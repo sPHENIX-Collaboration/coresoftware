@@ -64,9 +64,9 @@
 #include <TMatrixTSym.h>     // for TMatrixTSym
 #include <TMatrixTUtils.h>   // for TMatrixTRow
 #include <TSystem.h>
-#include <TVector3.h>        // for TVector3, operator*
-#include <TVectorDfwd.h>     // for TVectorD
-#include <TVectorT.h>        // for TVectorT
+#include <TVector3.h>     // for TVector3, operator*
+#include <TVectorDfwd.h>  // for TVectorD
+#include <TVectorT.h>     // for TVectorT
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -82,7 +82,7 @@ class PHField;
 class TGeoManager;
 namespace genfit
 {
-class AbsTrackRep;
+  class AbsTrackRep;
 }  // namespace genfit
 
 #define LogDebug(exp) \
@@ -147,8 +147,8 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   m_Fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
-                                          field, m_FitAlgoName, "RKTrackRep",
-                                          m_DoEvtDisplayFlag);
+                                           field, m_FitAlgoName, "RKTrackRep",
+                                           m_DoEvtDisplayFlag);
 
   if (!m_Fitter)
   {
@@ -160,7 +160,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
   // tower geometry for track states
 
-  for (map<string,pair<int,double>>::iterator iter = m_ProjectionsMap.begin(); iter !=  m_ProjectionsMap.end(); ++iter)
+  for (map<string, pair<int, double>>::iterator iter = m_ProjectionsMap.begin(); iter != m_ProjectionsMap.end(); ++iter)
   {
     if (isfinite(iter->second.second))
     {
@@ -174,7 +174,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       RawTowerGeomContainer* geo = findNode::getClass<RawTowerGeomContainer>(topNode, nodename);
       if (geo)
       {
-	iter->second.second=geo->get_radius();
+        iter->second.second = geo->get_radius();
       }
       break;
     }
@@ -195,7 +195,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       RawTowerGeom* temp_geo = twr_iter->second;
 
       //Changed by Barak on 12/10/19
-      iter->second.second=temp_geo->get_center_z();
+      iter->second.second = temp_geo->get_center_z();
       break;
     }
     default:
@@ -684,7 +684,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
     if (do_smearing)
     {
       const double momSmear = 3. / 180. * M_PI;  // rad
-      const double momMagSmear = 0.1;                   // relative
+      const double momMagSmear = 0.1;            // relative
 
       seed_mom.SetMag(
           True_mom.Mag() + gsl_ran_gaussian(m_RandomGenerator,
@@ -895,27 +895,27 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
       out_track->set_error(i, j, cov[i][j]);
     }
   }
-// the default name is UNKNOWN - let's set this to ORIGIN since it is at pathlength=0
+  // the default name is UNKNOWN - let's set this to ORIGIN since it is at pathlength=0
   out_track->begin_states()->second->set_name("ORIGIN");
 
-// make the projections for all detector types
-  for (map<string,pair<int,double>>::iterator iter = m_ProjectionsMap.begin(); iter !=  m_ProjectionsMap.end(); ++iter)
+  // make the projections for all detector types
+  for (map<string, pair<int, double>>::iterator iter = m_ProjectionsMap.begin(); iter != m_ProjectionsMap.end(); ++iter)
   {
     switch (iter->second.first)
     {
     case DETECTOR_TYPE::Cylinder:
-    pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.),
-								  TVector3(0., 0., 1.), 0);
-    break;
-case DETECTOR_TYPE::Vertical_Plane:
-    pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0.,iter->second.second),
-							       TVector3(1., 0., iter->second.second), 0);
-    break;
+      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.),
+                                                                    TVector3(0., 0., 1.), 0);
+      break;
+    case DETECTOR_TYPE::Vertical_Plane:
+      pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter->second.second),
+                                                                 TVector3(1., 0., iter->second.second), 0);
+      break;
     default:
       cout << "how in the world did you get here??????" << endl;
       gSystem->Exit(1);
     }
-    if ( pathlenth_from_first_meas <  -999990)
+    if (pathlenth_from_first_meas < -999990)
     {
       continue;
     }
@@ -939,7 +939,6 @@ case DETECTOR_TYPE::Vertical_Plane:
     out_track->insert_state(state);
     // the state is cloned on insert_state, so delete this copy here!
     delete state;
-
   }
 
   return static_cast<SvtxTrack*>(out_track);
@@ -961,8 +960,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane
   double v_smear = 0.;
   if (m_SmearingFlag)
   {
-   u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
-   v_smear = gsl_ran_gaussian(m_RandomGenerator, r_resolution);
+    u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
+    v_smear = gsl_ran_gaussian(m_RandomGenerator, r_resolution);
   }
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
@@ -996,8 +995,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementCylinder(
   double v_smear = 0.;
   if (m_SmearingFlag)
   {
-  u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
-  v_smear = gsl_ran_gaussian(m_RandomGenerator, z_resolution);
+    u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
+    v_smear = gsl_ran_gaussian(m_RandomGenerator, z_resolution);
   }
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y());
@@ -1046,13 +1045,13 @@ void PHG4TrackFastSim::DisplayEvent() const
 
 void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 {
-    if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
-    {
-      m_ProjectionsMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Vertical_Plane,NAN)));
-    }
-    else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
-    {
-      m_ProjectionsMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Cylinder,NAN)));
-    }
-    return;
+  if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
+  {
+    m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Vertical_Plane, NAN)));
+  }
+  else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
+  {
+    m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Cylinder, NAN)));
+  }
+  return;
 }

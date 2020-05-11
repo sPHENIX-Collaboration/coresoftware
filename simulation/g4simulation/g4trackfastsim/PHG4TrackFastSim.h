@@ -35,16 +35,16 @@ class PHG4TruthInfoContainer;
 
 namespace PHGenFit
 {
-class Fitter;
-class Measurement;
-class PlanarMeasurement;
-class Track;
+  class Fitter;
+  class Measurement;
+  class PlanarMeasurement;
+  class Track;
 } /* namespace PHGenFit */
 namespace genfit
 {
-class GFRaveVertex;
-class GFRaveVertexFactory;
-class Track;
+  class GFRaveVertex;
+  class GFRaveVertexFactory;
+  class Track;
 } /* namespace genfit */
 
 class PHG4TrackFastSim : public SubsysReco
@@ -123,18 +123,18 @@ class PHG4TrackFastSim : public SubsysReco
     m_phg4_detector_noise.push_back(noise);
   }
 
-// legacy interface for Babar calorimeter projections
+  // legacy interface for Babar calorimeter projections
   void add_state_name(const std::string& stateName);
 
-// add saving of state at plane in z
+  // add saving of state at plane in z
   void add_zplane_state(const std::string& stateName, const double zplane)
   {
-    m_ProjectionsMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Vertical_Plane,zplane)));
+    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
   }
 
   void add_cylinder_state(const std::string& stateName, const double radius)
   {
-    m_ProjectionsMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Cylinder,radius)));
+    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
   }
 
   const std::string& get_trackmap_out_name() const
@@ -231,10 +231,9 @@ class PHG4TrackFastSim : public SubsysReco
 
   void DisplayEvent() const;
 
-  void Smearing(const bool b) {m_SmearingFlag = b;}
+  void Smearing(const bool b) { m_SmearingFlag = b; }
 
  private:
-
   typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
 
   /*!
@@ -251,11 +250,11 @@ class PHG4TrackFastSim : public SubsysReco
 	 *
 	 */
   int PseudoPatternRecognition(const PHG4Particle* particle,
-                               std::vector<PHGenFit::Measurement*>& meas_out, 
-			       TVector3& seed_pos,
+                               std::vector<PHGenFit::Measurement*>& meas_out,
+                               TVector3& seed_pos,
                                TVector3& seed_mom,
-			       TMatrixDSym& seed_cov,
-			       const bool do_smearing = true);
+                               TMatrixDSym& seed_cov,
+                               const bool do_smearing = true);
 
   PHGenFit::PlanarMeasurement* PHG4HitToMeasurementVerticalPlane(const PHG4Hit* g4hit, const double phi_resolution, const double r_resolution);
 
@@ -270,15 +269,13 @@ class PHG4TrackFastSim : public SubsysReco
                            const unsigned int truth_track_id = UINT_MAX,
                            const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
-
   /*
   * Fill SvtxVertexMap from GFRaveVertexes and Tracks
   */
   bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
-			 const GenFitTrackMap& gf_tracks);
+                         const GenFitTrackMap& gf_tracks);
 
-
-// Pointers first
+  // Pointers first
   //! random generator that conform with sPHENIX standard
   gsl_rng* m_RandomGenerator;
 
@@ -294,8 +291,6 @@ class PHG4TrackFastSim : public SubsysReco
   SvtxTrackMap* m_SvtxTrackMapOut;
   SvtxVertexMap* m_SvtxVertexMap;
 
-
-
   std::vector<PHG4HitContainer*> m_PHG4HitContainer;
   std::vector<std::string> m_PHG4HitsNames;
   std::vector<DETECTOR_TYPE> m_phg4_detector_type;
@@ -305,15 +300,13 @@ class PHG4TrackFastSim : public SubsysReco
   std::vector<float> m_phg4_detector_hitfindeff;
   std::vector<float> m_phg4_detector_noise;
 
-  //! 
+  //!
   std::map<std::string, std::pair<int, double>> m_ProjectionsMap;
-
 
   std::string m_SubTopnodeName;
   std::string m_TrackmapOutNodeName;
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string m_VertexingMethod;
-
 
   /*!
 	 * Available choices:
