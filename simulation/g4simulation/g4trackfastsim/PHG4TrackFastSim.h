@@ -62,8 +62,8 @@ class PHG4TrackFastSim : public SubsysReco
  public:
   enum DETECTOR_TYPE
   {
-    Vertical_Plane,
-    Cylinder
+    Vertical_Plane = 0,
+    Cylinder = 1
   };
 
   //! Default constructor
@@ -140,13 +140,13 @@ class PHG4TrackFastSim : public SubsysReco
   void add_zplane_state(const std::string& stateName, const double zplane)
   {
     m_ZStateMap.insert(std::make_pair(stateName,zplane));
-    m_StateMap.insert(std::make_pair(stateName,std::make_pair(REFERENCE::zplane,zplane)));
+    m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Vertical_Plane,zplane)));
   }
 
   void add_cylinder_state(const std::string& stateName, const double radius)
   {
     m_CylinderStateMap.insert(std::make_pair(stateName,radius));
-    m_StateMap.insert(std::make_pair(stateName,std::make_pair(REFERENCE::cylinder,radius)));
+    m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Cylinder,radius)));
   }
 
   const std::string& get_trackmap_out_name() const
@@ -247,11 +247,6 @@ class PHG4TrackFastSim : public SubsysReco
 
  private:
 
-  enum REFERENCE
-  {
-    zplane = 0,
-    cylinder = 1,
-  };
   /*!
 	 * Create needed nodes.
 	 */

@@ -168,7 +168,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
     }
     switch (iter->second.first)
     {
-    case REFERENCE::cylinder:
+    case DETECTOR_TYPE::Cylinder:
     {
       string nodename = "TOWERGEOM_" + iter->first;
       RawTowerGeomContainer* geo = findNode::getClass<RawTowerGeomContainer>(topNode, nodename);
@@ -178,7 +178,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       }
       break;
     }
-    case REFERENCE::zplane:
+    case DETECTOR_TYPE::Vertical_Plane:
     {
       string towergeonodename = "TOWERGEOM_" + iter->first;
       RawTowerGeomContainer* towergeo = findNode::getClass<RawTowerGeomContainer>(topNode, towergeonodename);
@@ -592,8 +592,12 @@ bool PHG4TrackFastSim::FillSvtxVertexMap(
     svtx_vtx->set_position(2, rave_vtx->getPos().Z());
 
     for (int i = 0; i < 3; i++)
+    {
       for (int j = 0; j < 3; j++)
+      {
         svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
+      }
+    }
 
     for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
     {
@@ -1242,12 +1246,12 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
     _state_names.push_back(stateName);
     if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
     {
-      m_StateMap.insert(make_pair(stateName,make_pair(REFERENCE::zplane,NAN)));
+      m_StateMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Vertical_Plane,NAN)));
       m_ZStateMap.insert(make_pair(stateName,NAN));
     }
     else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
     {
-      m_StateMap.insert(make_pair(stateName,make_pair(REFERENCE::cylinder,NAN)));
+      m_StateMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Cylinder,NAN)));
       m_CylinderStateMap.insert(make_pair(stateName,NAN));
     }
     return;
