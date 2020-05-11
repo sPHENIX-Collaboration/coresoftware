@@ -96,9 +96,9 @@ using namespace std;
 
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
-  , _event(-1)
+  , m_EventCnt(-1)
   , m_SmearingFlag(true)
-  , _truth_container(nullptr)
+  , m_TruthContainer(nullptr)
   , _sub_top_node_name("SVTX")
   , _trackmap_out_name("SvtxTrackMap")
   , _trackmap_out(nullptr)
@@ -130,7 +130,7 @@ PHG4TrackFastSim::~PHG4TrackFastSim()
 
 int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 {
-  _event = -1;
+  m_EventCnt = -1;
 
   int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK)
@@ -235,10 +235,10 @@ int PHG4TrackFastSim::End(PHCompositeNode* topNode)
 
 int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 {
-  _event++;
+  m_EventCnt++;
 
   if (Verbosity() >= 2)
-    std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
+    std::cout << "PHG4TrackFastSim::process_event: " << m_EventCnt << ".\n";
 
   //	if(_clustermap_out)
   //		_clustermap_out->empty();
@@ -259,7 +259,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   vector<PHGenFit::Track*> rf_tracks;
 
-  PHG4VtxPoint* truthVtx = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  PHG4VtxPoint* truthVtx = m_TruthContainer->GetPrimaryVtx(m_TruthContainer->GetPrimaryVertexIndex());
   TVector3 vtxPoint(truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
   // Smear the vertex ONCE for all particles in the event
   vtxPoint.SetX(vtxPoint.x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
@@ -270,12 +270,12 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
   if (_primary_tracking)
   {
     // Tracking for primaries only
-    itr_range = _truth_container->GetPrimaryParticleRange();
+    itr_range = m_TruthContainer->GetPrimaryParticleRange();
   }
   else
   {
     // Check ALL particles
-    itr_range = _truth_container->GetParticleRange();
+    itr_range = m_TruthContainer->GetParticleRange();
   }
 
   GenFitTrackMap gf_track_map;
@@ -313,7 +313,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
       if (Verbosity() >= 2)
       {
         //LogWarning("measurements.size() < 3");
-        std::cout << "event: " << _event << " : measurements.size() < 3"
+        std::cout << "event: " << m_EventCnt << " : measurements.size() < 3"
                   << "\n";
       }
       // Delete the measurements
@@ -362,7 +362,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
       if (Verbosity() >= 2)
       {
         //LogWarning("measurements.size() < 3");
-        std::cout << "event: " << _event
+        std::cout << "event: " << m_EventCnt
                   << " : fitting_err != 0, next track."
                   << "\n";
       }
@@ -599,52 +599,52 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
 {
   //DST objects
   //Truth container
-  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if (!_truth_container)
+  m_TruthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_TruthContainer)
   {
     cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  for (unsigned int i = 0; i < _phg4hits_names.size(); i++)
+  for (unsigned int i = 0; i < m_PHG4HitsNames.size(); i++)
   {
-    PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(topNode, _phg4hits_names[i]);
+    PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(topNode, m_PHG4HitsNames[i]);
     if (!phg4hit)
     {
-      cout << PHWHERE << _phg4hits_names[i].c_str()
+      cout << PHWHERE << m_PHG4HitsNames[i].c_str()
            << " node not found on node tree" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     if (Verbosity() > 0)
     {
-      cout << "PHG4TrackFastSim::GetNodes - node added: " << _phg4hits_names[i].c_str() << endl;
+      cout << "PHG4TrackFastSim::GetNodes - node added: " << m_PHG4HitsNames[i].c_str() << endl;
     }
-    _phg4hits.push_back(phg4hit);
+    m_PHG4HitContainer.push_back(phg4hit);
   }
 
   //checks
-  assert(_phg4hits_names.size() == _phg4hits.size());
-  assert(_phg4_detector_type.size() == _phg4hits.size());
-  assert(_phg4_detector_radres.size() == _phg4hits.size());
-  assert(_phg4_detector_phires.size() == _phg4hits.size());
-  assert(_phg4_detector_lonres.size() == _phg4hits.size());
-  assert(_phg4_detector_hitfindeff.size() == _phg4hits.size());
-  assert(_phg4_detector_noise.size() == _phg4hits.size());
+  assert(m_PHG4HitsNames.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_type.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_radres.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_phires.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_lonres.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_hitfindeff.size() == m_PHG4HitContainer.size());
+  assert(_phg4_detector_noise.size() == m_PHG4HitContainer.size());
 
   //	_clustermap_out = findNode::getClass<SvtxClusterMap>(topNode,
   //			_clustermap_out_name.c_str());
-  //	if (!_clustermap_out && _event < 2) {
+  //	if (!_clustermap_out && m_EventCnt < 2) {
   //		cout << PHWHERE << _clustermap_out_name.c_str() << " node not found on node tree"
   //				<< endl;
   //		return Fun4AllReturnCodes::ABORTEVENT;
   //	}
 
   _trackmap_out = findNode::getClass<SvtxTrackMap>(topNode, _trackmap_out_name.c_str());
-  if (!_trackmap_out && _event < 2)
+  if (!_trackmap_out && m_EventCnt < 2)
   {
-    cout << PHWHERE << _trackmap_out_name.c_str()
+    cout << PHWHERE << _trackmap_out_name
          << " node not found on node tree" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -697,17 +697,17 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
   if (Verbosity())
   {
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - DEBUG: "
-              << "searching for hits from  " << _phg4hits.size() << " PHG4Hit nodes" << endl;
+              << "searching for hits from  " << m_PHG4HitContainer.size() << " PHG4Hit nodes" << endl;
   }
 
   // order measurement with g4hit time via stl multimap
   multimap<double, PHGenFit::Measurement*> ordered_measurements;
 
-  for (unsigned int ilayer = 0; ilayer < _phg4hits.size(); ilayer++)
+  for (unsigned int ilayer = 0; ilayer < m_PHG4HitContainer.size(); ilayer++)
   {
-    if (!_phg4hits[ilayer])
+    if (!m_PHG4HitContainer[ilayer])
     {
-      LogError("No _phg4hits[i] found!");
+      LogError("No m_PHG4HitContainer[i] found!");
       continue;
     }
 
@@ -721,8 +721,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
     {
       std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - DEBUG: "
                 << "ilayer: "
-                << ilayer << ",  " << _phg4hits_names[ilayer]
-                << " with nsublayers: " << _phg4hits[ilayer]->num_layers()
+                << ilayer << ",  " << m_PHG4HitsNames[ilayer]
+                << " with nsublayers: " << m_PHG4HitContainer[ilayer]->num_layers()
                 << ", detradres = " << detradres
                 << ", detphires = " << detphires
                 << ", detlonres = " << detlonres
@@ -731,12 +731,12 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
                 << " \n";
     }
     for (PHG4HitContainer::LayerIter layerit =
-             _phg4hits[ilayer]->getLayers().first;
-         layerit != _phg4hits[ilayer]->getLayers().second; layerit++)
+             m_PHG4HitContainer[ilayer]->getLayers().first;
+         layerit != m_PHG4HitContainer[ilayer]->getLayers().second; layerit++)
     {
       for (PHG4HitContainer::ConstIterator itr =
-               _phg4hits[ilayer]->getHits(*layerit).first;
-           itr != _phg4hits[ilayer]->getHits(*layerit).second; ++itr)
+               m_PHG4HitContainer[ilayer]->getHits(*layerit).first;
+           itr != m_PHG4HitContainer[ilayer]->getHits(*layerit).second; ++itr)
       {
         PHG4Hit* hit = itr->second;
         if (!hit)
@@ -888,8 +888,6 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   out_track->set_x(pos.X());
   out_track->set_y(pos.Y());
   out_track->set_z(pos.Z());
-// the default name is UNKNOWN - let's set this to ORIGIN since it is at pathlength=0
-  out_track->begin_states()->second->set_name("ORIGIN");
   for (int i = 0; i < 6; i++)
   {
     for (int j = i; j < 6; j++)
@@ -897,6 +895,9 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
       out_track->set_error(i, j, cov[i][j]);
     }
   }
+// the default name is UNKNOWN - let's set this to ORIGIN since it is at pathlength=0
+  out_track->begin_states()->second->set_name("ORIGIN");
+
 // make the projections for all detector types
   for (map<string,pair<int,double>>::iterator iter = m_ProjectionsMap.begin(); iter !=  m_ProjectionsMap.end(); ++iter)
   {

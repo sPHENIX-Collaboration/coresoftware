@@ -93,7 +93,7 @@ class PHG4TrackFastSim : public SubsysReco
 
   const std::vector<std::string>& get_phg4hits_names() const
   {
-    return _phg4hits_names;
+    return m_PHG4HitsNames;
   }
 
   //! adding hits from a PHG4Hit node, which usually belong to one detector or a sub group of detectors
@@ -114,7 +114,7 @@ class PHG4TrackFastSim : public SubsysReco
       const float eff,
       const float noise)
   {
-    _phg4hits_names.push_back(phg4hitsNames);
+    m_PHG4HitsNames.push_back(phg4hitsNames);
     _phg4_detector_type.push_back(phg4dettype);
     _phg4_detector_radres.push_back(radres);
     _phg4_detector_phires.push_back(phires);
@@ -235,6 +235,8 @@ class PHG4TrackFastSim : public SubsysReco
 
  private:
 
+  typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
+
   /*!
 	 * Create needed nodes.
 	 */
@@ -249,8 +251,11 @@ class PHG4TrackFastSim : public SubsysReco
 	 *
 	 */
   int PseudoPatternRecognition(const PHG4Particle* particle,
-                               std::vector<PHGenFit::Measurement*>& meas_out, TVector3& seed_pos,
-                               TVector3& seed_mom, TMatrixDSym& seed_cov, const bool do_smearing = true);
+                               std::vector<PHGenFit::Measurement*>& meas_out, 
+			       TVector3& seed_pos,
+                               TVector3& seed_mom,
+			       TMatrixDSym& seed_cov,
+			       const bool do_smearing = true);
 
   PHGenFit::PlanarMeasurement* PHG4HitToMeasurementVerticalPlane(const PHG4Hit* g4hit, const double phi_resolution, const double r_resolution);
 
@@ -265,25 +270,23 @@ class PHG4TrackFastSim : public SubsysReco
                            const unsigned int truth_track_id = UINT_MAX,
                            const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
-  typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
 
   /*
   * Fill SvtxVertexMap from GFRaveVertexes and Tracks
   */
-  bool FillSvtxVertexMap(
-      const std::vector<genfit::GFRaveVertex*>& rave_vertices,
-      const GenFitTrackMap& gf_tracks);
+  bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
+			 const GenFitTrackMap& gf_tracks);
 
   //! Event counter
-  int _event;
+  int m_EventCnt;
 
   bool m_SmearingFlag;
 
   //! Input Node pointers
-  PHG4TruthInfoContainer* _truth_container;
+  PHG4TruthInfoContainer* m_TruthContainer;
 
-  std::vector<PHG4HitContainer*> _phg4hits;
-  std::vector<std::string> _phg4hits_names;
+  std::vector<PHG4HitContainer*> m_PHG4HitContainer;
+  std::vector<std::string> m_PHG4HitsNames;
   std::vector<DETECTOR_TYPE> _phg4_detector_type;
   std::vector<float> _phg4_detector_radres;
   std::vector<float> _phg4_detector_phires;
