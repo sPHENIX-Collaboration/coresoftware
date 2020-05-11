@@ -61,9 +61,9 @@ int DumpSvtxTrackMap::process_Node(PHNode *myNode)
         *fout << "trackstate px: " << trkstates->second->get_px() << endl;
         *fout << "trackstate py: " << trkstates->second->get_py() << endl;
         *fout << "trackstate pz: " << trkstates->second->get_pz() << endl;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
-          for (int j = 0; j < 5; j++)
+          for (int j = 0; j < 6; j++)
           {
             *fout << "trkstate covar[" << i << ", " << j << "]: "
                   << trkstates->second->get_error(i, j) << endl;
