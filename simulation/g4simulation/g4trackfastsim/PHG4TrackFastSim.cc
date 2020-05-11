@@ -888,7 +888,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   out_track->set_x(pos.X());
   out_track->set_y(pos.Y());
   out_track->set_z(pos.Z());
-
+// the default name is UNKNOWN - let's set this to ORIGIN since it is at pathlength=0
+  out_track->begin_states()->second->set_name("ORIGIN");
   for (int i = 0; i < 6; i++)
   {
     for (int j = i; j < 6; j++)
