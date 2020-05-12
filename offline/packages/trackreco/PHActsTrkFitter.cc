@@ -37,10 +37,10 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
   , m_tGeometry(nullptr)
+  , m_trackMap(nullptr)
   , m_timeAnalysis(false)
-  , m_trackMap(null)
-  , m_timeFile(null)
-  , h_eventTime(null)
+  , m_timeFile(nullptr)
+  , h_eventTime(nullptr)
 {
   Verbosity(0);
 }
