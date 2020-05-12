@@ -92,7 +92,7 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
-  TFile *timeFile;
+  TFile *m_timeFile;
   TH1 *h_eventTime;
   
 };

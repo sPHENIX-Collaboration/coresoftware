@@ -38,6 +38,9 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_actsProtoTracks(nullptr)
   , m_tGeometry(nullptr)
   , m_timeAnalysis(false)
+  , m_trackMap(null)
+  , m_timeFile(null)
+  , h_eventTime(null)
 {
   Verbosity(0);
 }
@@ -58,7 +61,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
   if(m_timeAnalysis)
     {
-      timeFile = new TFile("ActsTimeFile.root","RECREATE");
+      m_timeFile = new TFile("ActsTimeFile.root","RECREATE");
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -150,10 +153,10 @@ int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
   if(m_timeAnalysis)
     {
-      timeFile->cd();
+      m_timeFile->cd();
       h_eventTime->Write();
-      timeFile->Write();
-      timeFile->Close();
+      m_timeFile->Write();
+      m_timeFile->Close();
     } 
 
   if (Verbosity() > 10)
