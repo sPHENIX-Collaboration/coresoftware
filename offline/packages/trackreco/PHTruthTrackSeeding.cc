@@ -77,7 +77,9 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     TrkrCluster* cluster = clusiter->second;
     TrkrDefs::cluskey cluskey = clusiter->first;
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-
+    unsigned int layer = TrkrDefs::getLayer(cluskey);
+    if(layer<_min_layer) continue;
+    if(layer>=_max_layer) continue;
 
     if (Verbosity() >= 3)
     {

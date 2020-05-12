@@ -45,6 +45,11 @@ class PHTruthVertexing : public PHInitVertexing
     return _vertex_error;
   }
 
+  void set_embed_only(bool embed_only)
+  {
+    _embed_only = embed_only;
+  }
+
  protected:
 
   int Setup(PHCompositeNode *topNode);
@@ -61,6 +66,8 @@ class PHTruthVertexing : public PHInitVertexing
 
   /// manually assigned vertex error (standard dev), cm
   std::vector<float> _vertex_error;
+
+  bool _embed_only;
 
 #if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *m_RandomGenerator;
