@@ -1,0 +1,15 @@
+
+Steering macro modification:
+
+....
+  gSystem->Load("libPHTpcTracker.so");
+
+  PHTpcTracker* tracker = new PHTpcTracker("PHTpcTracker");
+  tracker->set_seed_finder_options( 3.0, M_PI / 8, 10, 6.0, M_PI / 8, 5, 1 ); // two-pass CA seed params
+  tracker->set_seed_finder_optimization_remove_loopers( true, 20.0, 10000.0 ); // true if loopers not needed
+  tracker->set_track_follower_optimization_helix( true ); // false for quality, true for speed
+  tracker->set_track_follower_optimization_precise_fit( true ); // true for quality, false for speed
+  tracker->enable_json_export( true ); // save event as json, filename is automatic and stamped by current time in ms
+  tracker->enable_vertexing( false ); // rave vertexing is pretty slow at large multiplicities...
+  se->registerSubsystem(tracker);
+....
