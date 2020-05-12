@@ -50,27 +50,33 @@ class SvtxTrackState : public PHObject
   virtual float get_error(unsigned int i, unsigned int j) const { return NAN; }
   virtual void set_error(unsigned int i, unsigned int j, float value) {}
 
-  virtual std::string get_name() { return ""; }
-  virtual void set_name(std::string &name) {}
+  virtual std::string get_name() const { return ""; }
+  virtual void set_name(const std::string &name) {}
 
   ///@name convenience interface, also found in Trkrcluster
   //@{
 
   /// rphi error
   virtual float get_rphi_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   /// phi error
   virtual float get_phi_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   /// z error
   virtual float get_z_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   //@}
 
-  protected:
+ protected:
   SvtxTrackState(float pathlength = 0.0) {}
 
   ClassDef(SvtxTrackState, 1);
