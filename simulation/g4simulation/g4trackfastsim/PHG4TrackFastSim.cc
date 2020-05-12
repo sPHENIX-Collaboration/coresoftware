@@ -59,7 +59,6 @@
 #include <GenFit/GFRaveVertexFactory.h>
 #include <GenFit/Track.h>
 
-#include <TMath.h>
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TMatrixTSym.h>     // for TMatrixTSym
 #include <TMatrixTUtils.h>   // for TMatrixTRow

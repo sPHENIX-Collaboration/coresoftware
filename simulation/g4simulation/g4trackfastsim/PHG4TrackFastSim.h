@@ -16,10 +16,8 @@
 #include <TVector3.h>
 
 #include <gsl/gsl_rng.h>
-#include <phgenfit/Track.h>
 
 #include <climits>  // for UINT_MAX
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
