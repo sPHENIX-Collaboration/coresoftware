@@ -35,7 +35,14 @@ libPHTpcTracker_la_SOURCES = \
 
 
 libPHTpcTracker_la_LIBADD = \
-  -llog4cpp
+  -lgenfit2 \
+  -lgenfit2exp \
+  -llog4cpp \
+  -lphool \
+  -lphfield \
+  -lphgeom \
+  -lSubsysReco \
+  -ltrack_io
 
 
 
@@ -58,7 +65,7 @@ noinst_PROGRAMS = \
 
 
 testexternals_SOURCES = testexternals.cc
-testexternals_track_reco_LDADD = libPHTpcTracker.la
+testexternals_LDADD = libPHTpcTracker.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
