@@ -5,7 +5,21 @@
  */
 
 #include "PHTpcVertexFinder.h"
+
+#include "Track.h"                       // for Track
+
 #include <phool/PHLog.h>
+
+#include <GenFit/GFRaveVertexFactory.h>  // for GFRaveVertexFactory
+
+#include <TMatrixDSymfwd.h>              // for TMatrixDSym
+#include <TMatrixTSym.h>                 // for TMatrixTSym
+#include <TVector3.h>                    // for TVector3
+
+#include <log4cpp/CategoryStream.hh>     // for CategoryStream
+
+namespace genfit { class GFRaveVertex; }
+namespace genfit { class Track; }
 
 PHTpcVertexFinder::PHTpcVertexFinder()
   : _vertex_finder(nullptr)

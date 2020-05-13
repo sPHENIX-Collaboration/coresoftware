@@ -8,6 +8,14 @@
 
 #include <phool/PHLog.h>
 
+#include <log4cpp/CategoryStream.hh>  // for CategoryStream
+
+#include <cmath>                     // for sqrt
+#include <memory>                     // for allocator_traits<>::value_type
+#include <utility>                    // for pair
+
+class TrkrClusterContainer;
+
 PHTpcLookup::PHTpcLookup()
   : mClusterMap(nullptr)
   , mKDindex(nullptr)

@@ -7,29 +7,16 @@
 //PHGenFit2
 #include "Fitter.h"
 
-#include "Track.h"
-
-//ROOT
-#include <RVersion.h>
-#include <TGeoManager.h>
 
 //GenFit
-#include <GenFit/AbsKalmanFitter.h>
-#include <GenFit/DAF.h>
+#include <GenFit/Exception.h>
 #include <GenFit/FieldManager.h>
-#include <GenFit/FitStatus.h>
 #include <GenFit/KalmanFitter.h>
-#include <GenFit/KalmanFitterRefTrack.h>
 #include <GenFit/MaterialEffects.h>
 #include <GenFit/TGeoMaterialInterface.h>
-#include <GenFit/Track.h>
 
 //GenFitExp
 #include <genfitexp/Field.h>
-
-#include <cassert>
-#include <cstddef>
-#include <iostream>
 
 namespace PHGenFit2
 {

@@ -5,35 +5,46 @@
  */
 
 #include "PHTpcTracker.h"
+
 #include "PHTpcEventExporter.h"
 #include "PHTpcLookup.h"
 #include "PHTpcSeedFinder.h"
 #include "PHTpcTrackFollower.h"
 #include "PHTpcVertexFinder.h"
+
+#include "Fitter.h"
+#include "Track.h"                           // for Track
 #include "externals/kdfinder.hpp"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHLog.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <phfield/PHField.h>
 #include <phfield/PHFieldConfigv2.h>
 #include <phfield/PHFieldUtility.h>
+
+#include <phgeom/PHGeomUtility.h>
+
 #include <trackbase/TrkrClusterContainer.h>
 
+#include <fun4all/SubsysReco.h>              // for SubsysReco
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHLog.h>
+#include <phool/getClass.h>
+
+#include <log4cpp/CategoryStream.hh>         // for CategoryStream
+
+#include <CLHEP/Units/SystemOfUnits.h>
+
+
 // GenFit
-#include <GenFit/GFRaveTrackParameters.h>
 #include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
-#include <phgeom/PHGeomUtility.h>
-#include "Fitter.h"
+
+#include <TVector3.h>                        // for TVector3
+
+#include <chrono>                            // for milliseconds, duration_cast
+#include <limits>                            // for numeric_limits
+#include <vector>                            // for vector
+
+class PHCompositeNode;
 
 PHTpcTracker::PHTpcTracker(const std::string& name)
   : SubsysReco(name)

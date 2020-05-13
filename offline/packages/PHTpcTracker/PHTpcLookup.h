@@ -7,9 +7,13 @@
 #ifndef PHTPCLOOKUP_H_
 #define PHTPCLOOKUP_H_
 
-#include <trackbase/TrkrClusterContainer.h>
-#include <vector>
 #include "externals/kdfinder.hpp"
+#include "externals/nanoflann.hpp"  // for KDTreeSingleIndexAdaptor, L2_Simp...
+
+#include <cstddef>                 // for size_t
+#include <vector>
+
+class TrkrClusterContainer;
 
 /// \class PHTpcLookup
 ///

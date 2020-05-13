@@ -13,13 +13,11 @@
 #include <TVector3.h>
 
 //STL
-#include <iostream>
 #include <map>
 #include <memory>
 #include <vector>
 
-//GenFit
-#include <phgenfit/Measurement.h>
+namespace PHGenFit { class Measurement; }
 
 namespace genfit
 {
@@ -30,8 +28,6 @@ namespace genfit
 
 namespace PHGenFit2
 {
-  class Measurement;
-
   class Track
   {
    public:

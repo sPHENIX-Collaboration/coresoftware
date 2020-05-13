@@ -7,8 +7,10 @@
 #ifndef PHTPCTRACKERUTIL_H_
 #define PHTPCTRACKERUTIL_H_
 
-#include <trackbase/TrkrClusterContainer.h>
+
 #include <vector>
+
+class TrkrClusterContainer;
 
 namespace PHTpcTrackerUtil
 {

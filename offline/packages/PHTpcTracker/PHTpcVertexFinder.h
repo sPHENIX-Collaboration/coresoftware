@@ -7,12 +7,11 @@
 #ifndef PHTPCVERTEXFINDER_H_
 #define PHTPCVERTEXFINDER_H_
 
-#include <GenFit/GFRaveTrackParameters.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
-#include <phfield/PHField.h>
 #include <vector>
-#include "Track.h"
+
+namespace PHGenFit2 { class Track; }
+namespace genfit { class GFRaveVertex; }
+namespace genfit { class GFRaveVertexFactory; }
 
 /// \class PHTpcVertexFinder
 ///

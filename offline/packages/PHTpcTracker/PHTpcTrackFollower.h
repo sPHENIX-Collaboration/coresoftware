@@ -7,15 +7,21 @@
 #ifndef PHTPCTRACKFOLLOWER_H_
 #define PHTPCTRACKFOLLOWER_H_
 
-#include "PHTpcLookup.h"
-#include "externals/kdfinder.hpp"
+#include <TVector3.h>  // for TVector3
 
-#include <GenFit/KalmanFitter.h>
-#include <phfield/PHField.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include "Fitter.h"
-#include "SpacepointMeasurement2.h"
-#include "Track.h"
+#include <utility>     // for pair
+#include <vector>      // for vector
+
+class PHField;
+class PHTpcLookup;
+class TrkrClusterContainer;
+
+namespace PHGenFit { class SpacepointMeasurement2; }
+namespace PHGenFit2 { class Fitter; }
+namespace PHGenFit2 { class Track; }
+namespace genfit { class MeasuredStateOnPlane; }
+namespace genfit { class Track; }
+namespace kdfinder { template <class T> class TrackCandidate; }
 
 /// \class PHTpcTrackFollower
 ///

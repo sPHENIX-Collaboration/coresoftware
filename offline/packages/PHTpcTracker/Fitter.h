@@ -7,11 +7,10 @@
 #ifndef PHGENFIT2_FITTER_H
 #define PHGENFIT2_FITTER_H
 
-#include <string>
-#include "GenFit/Exception.h"
-#include "GenFit/KalmanFitter.h"
-#include "GenFit/Track.h"
 #include "Track.h"
+
+#include <GenFit/KalmanFitter.h>
+#include <GenFit/Track.h>
 
 class TGeoManager;
 class PHField;

@@ -7,9 +7,14 @@
 #ifndef PHTPCEVENTEXPORTER_H_
 #define PHTPCEVENTEXPORTER_H_
 
-#include <trackbase/TrkrClusterContainer.h>
-#include "Track.h"
-#include "externals/kdfinder.hpp"
+#include <string>  // for string
+#include <vector>  // for vector
+
+class TrkrClusterContainer;
+
+namespace PHGenFit2 { class Track; }
+namespace kdfinder { template <class T> class TrackCandidate; }
+
 
 /// \class PHTpcEventExporter
 ///

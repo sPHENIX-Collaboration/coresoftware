@@ -7,8 +7,14 @@
 #ifndef PHTPCSEEDFINDER_H_
 #define PHTPCSEEDFINDER_H_
 
-#include <trackbase/TrkrClusterContainer.h>
-#include "externals/kdfinder.hpp"
+
+#include <cmath>    // for M_PI
+#include <cstddef>  // for size_t
+#include <vector>    // for vector
+
+class TrkrClusterContainer;
+
+namespace kdfinder { template <class T> class TrackCandidate; }
 
 /// \class PHTpcSeedFinder
 ///

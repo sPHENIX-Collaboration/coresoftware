@@ -4,10 +4,25 @@
  *  \author     Dmitry Arkhipkin <arkhipkin@gmail.com>
  */
 #include "PHTpcEventExporter.h"
-#include <phool/PHLog.h>
+
+#include "Track.h"                           // for Track
+
+#include "externals/kdfinder.hpp"            // for get_track_color, TrackCa...
+
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include "PHTpcTrackerUtil.h"
+
+#include <phool/PHLog.h>
+
+#include <log4cpp/CategoryStream.hh>         // for CategoryStream
+
+#include <TVector3.h>                        // for TVector3
+
+#include <cstddef>                          // for size_t
+#include <map>                               // for _Rb_tree_const_iterator
+#include <ostream>                           // for operator<<, basic_ostream
+#include <utility>                           // for pair
 
 PHTpcEventExporter::PHTpcEventExporter()
 {

@@ -7,9 +7,13 @@
 #include "PHTpcSeedFinder.h"
 #include "PHTpcTrackerUtil.h"
 
+#include "externals/kdfinder.hpp"     // for TrackCandidate, Circle, find_tr...
+
 #include <phool/PHLog.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrDefs.h>
+
+#include <log4cpp/CategoryStream.hh>  // for CategoryStream
+
+class TrkrClusterContainer;
 
 float round(float var)
 {

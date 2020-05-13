@@ -7,28 +7,42 @@
 #include "PHTpcTrackFollower.h"
 #include "PHTpcConst.h"
 
-#include <phool/PHLog.h>
-#include <trackbase/TrkrCluster.h>
+#include "Fitter.h"                       // for Fitter
+#include "PHTpcLookup.h"                  // for PHTpcLookup
+#include "Track.h"
+#include "SpacepointMeasurement2.h"
+#include "externals/kdfinder.hpp"         // for TrackCandidate, Helix, TVector
 
-#include <GenFit/AbsTrackRep.h>
+
+#include <trackbase/TrkrDefs.h>           // for cluskey
+
+#include <phool/PHLog.h>
+
 #include <GenFit/FieldManager.h>
 #include <GenFit/KalmanFitStatus.h>
-#include <GenFit/KalmanFittedStateOnPlane.h>
-#include <GenFit/KalmanFitter.h>
 #include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/Track.h>
 #include <GenFit/TrackPoint.h>
 
-#include <phgenfit/Fitter.h>
-#include <phgenfit/Measurement.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include "SpacepointMeasurement2.h"
-#include "Track.h"
+#include <TMatrixDSymfwd.h>               // for TMatrixDSym
+#include <TMatrixTSym.h>                  // for TMatrixTSym
+#include <TVector3.h>                     // for TVector3
+
+#include <log4cpp/CategoryStream.hh>      // for CategoryStream
 
 #include <algorithm>
+#include <cstddef>                       // for size_t
+#include <cmath>                          // for isnan, sqrt
+#include <cstdint>                        // for uint64_t, int64_t
+#include <limits>                         // for numeric_limits
 #include <unordered_set>
+
+class PHField;
+class TrkrClusterContainer;
+namespace PHGenFit { class Measurement; }
+namespace genfit { class AbsTrackRep; }
 
 PHTpcTrackFollower::PHTpcTrackFollower()
   : mOptHelix(true)

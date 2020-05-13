@@ -8,16 +8,22 @@
 #define PHTPCTRACKER_H_
 
 // PHENIX includes
-#include <TGeoManager.h>
 #include <fun4all/SubsysReco.h>
-#include <phfield/PHField.h>
-#include "Fitter.h"
 
+#include <cmath>                // for M_PI
+#include <cstddef>              // for size_t
+#include <string>                // for string
+
+class PHCompositeNode;
+class PHField;
+class TGeoManager;
 class PHTpcSeedFinder;
 class PHTpcTrackFollower;
 class PHTpcVertexFinder;
 class PHTpcEventExporter;
 class PHTpcLookup;
+
+namespace PHGenFit2 { class Fitter; }
 
 /// \class PHTpcTracker
 ///
