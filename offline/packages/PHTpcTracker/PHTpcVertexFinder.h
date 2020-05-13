@@ -7,30 +7,29 @@
 #ifndef PHTPCVERTEXFINDER_H_
 #define PHTPCVERTEXFINDER_H_
 
-#include <phfield/PHField.h>
-#include "Track.h"
 #include <GenFit/GFRaveTrackParameters.h>
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
+#include <phfield/PHField.h>
 #include <vector>
+#include "Track.h"
 
 /// \class PHTpcVertexFinder
 ///
-/// \brief 
+/// \brief
 ///
 class PHTpcVertexFinder
 {
-	public:
-		PHTpcVertexFinder();
-		~PHTpcVertexFinder();
+ public:
+  PHTpcVertexFinder();
+  ~PHTpcVertexFinder();
 
-		std::vector<genfit::GFRaveVertex*> findVertices( std::vector<PHGenFit2::Track*>& gtracks );
+  std::vector<genfit::GFRaveVertex*> findVertices(std::vector<PHGenFit2::Track*>& gtracks);
 
-	protected:
-		genfit::GFRaveVertexFactory* _vertex_finder;
+ protected:
+  genfit::GFRaveVertexFactory* _vertex_finder;
 
-	private:
-
+ private:
 };
 
 #endif /* PHTPCVERTEXFINDER_H_ */

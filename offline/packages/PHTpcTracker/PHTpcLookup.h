@@ -8,33 +8,32 @@
 #define PHTPCLOOKUP_H_
 
 #include <trackbase/TrkrClusterContainer.h>
-#include "externals/kdfinder.hpp"
 #include <vector>
+#include "externals/kdfinder.hpp"
 
 /// \class PHTpcLookup
 ///
-/// \brief 
+/// \brief
 ///
 class PHTpcLookup
 {
-	public:
-		PHTpcLookup();
-		~PHTpcLookup();
+ public:
+  PHTpcLookup();
+  ~PHTpcLookup();
 
-		void init( TrkrClusterContainer* cluster_map );
-		void clear();
+  void init(TrkrClusterContainer* cluster_map);
+  void clear();
 
-		std::vector<std::vector<double>*> find( double x, double y, double z, double radius, size_t& nMatches );
+  std::vector<std::vector<double>*> find(double x, double y, double z, double radius, size_t& nMatches);
 
-	protected:
-		TrkrClusterContainer* mClusterMap;
-		std::vector<std::vector<double> > mKDhits;
-		kdfinder::KDPointCloud<double> mCloud;
-		nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, kdfinder::KDPointCloud<double> >,
-			kdfinder::KDPointCloud<double>,3>* mKDindex;
-	
-	private:
+ protected:
+  TrkrClusterContainer* mClusterMap;
+  std::vector<std::vector<double> > mKDhits;
+  kdfinder::KDPointCloud<double> mCloud;
+  nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, kdfinder::KDPointCloud<double> >,
+                                      kdfinder::KDPointCloud<double>, 3>* mKDindex;
 
+ private:
 };
 
 #endif /* PHTPCLOOKUP_H_ */

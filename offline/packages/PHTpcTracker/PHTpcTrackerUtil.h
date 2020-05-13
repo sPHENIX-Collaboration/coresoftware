@@ -10,10 +10,10 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <vector>
 
-namespace PHTpcTrackerUtil {
+namespace PHTpcTrackerUtil
+{
+  std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map);
 
-	std::vector<std::vector<double> > convert_clusters_to_hits( TrkrClusterContainer* cluster_map );
+}  // namespace PHTpcTrackerUtil
 
-} // namespace PHTpcTrackerUtil
-
-#endif // PHTPCTRACKERUTIL_H_
+#endif  // PHTPCTRACKERUTIL_H_
