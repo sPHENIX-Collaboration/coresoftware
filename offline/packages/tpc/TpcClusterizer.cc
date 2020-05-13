@@ -47,6 +47,8 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , m_clusterhitassoc(nullptr)
   , zz_shaping_correction(0.0754)
   , pedestal(74.4)
+  , SectorFiducialCut(0.5)
+  , NSearch(2)
   , NPhiBinsMax(0)
   , NPhiBinsMin(0)
   , NZBinsMax(0)
@@ -57,14 +59,14 @@ TpcClusterizer::TpcClusterizer(const string &name)
 }
 
 //===================
-bool TpcClusterizer::is_local_maximum(int nlook, int phibin, int zbin, std::vector<std::vector<double>> &adcval)
+bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vector<double>> &adcval)
 {
   bool retval = true;
   double centval = adcval[phibin][zbin];
   
   // search contiguous adc values for a larger signal
-  for (int iz = zbin - nlook; iz <= zbin + nlook; iz++)
-    for (int iphi = phibin - nlook; iphi <= phibin + nlook; iphi++)
+  for (int iz = zbin - NSearch; iz <= zbin + NSearch; iz++)
+    for (int iphi = phibin - NSearch; iphi <= phibin + NSearch; iphi++)
       {
 	if (iz >= NZBinsMax) continue;
 	if (iz < NZBinsMin) continue;
@@ -81,7 +83,7 @@ bool TpcClusterizer::is_local_maximum(int nlook, int phibin, int zbin, std::vect
   return retval;
 }
 
-bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
 {
   bool reject_it = false;
 
@@ -96,8 +98,7 @@ bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layerge
   int sector_lo = sector * PhiBinsSector;
   int sector_hi = sector_lo + PhiBinsSector - 1;
 
-  double SectorFiducial_cm = 0.6;  // cm
-  int sector_fiducial_bins = (int) (SectorFiducial_cm / PhiBinSize);
+  int sector_fiducial_bins = (int) (SectorFiducialCut / PhiBinSize);
 
   if(phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
     {
@@ -353,14 +354,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     vector<int> zbinhi;
     // we want to search the hit list for local maxima in phi-z space and cluster around them
 
-    int nlook = 2;    // local maximum search spans central-bin +/- nlook in both phi and z
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)
     {
       int phibin = TpcDefs::getPad(hitr->first);
       int zbin = TpcDefs::getTBin(hitr->first);
-      if (!is_local_maximum(nlook, phibin, zbin, adcval)) continue;
+      if (!is_local_maximum(phibin, zbin, adcval)) continue;
 
       if(Verbosity() > 5)
 	{
@@ -372,10 +372,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       // eliminate double counting when two identical maxima are found within the search window (both bins will register as local maximum)
       bool duplicate = false;
-      for (int iz = zbin - nlook; iz <= zbin + nlook; iz++)
+      for (int iz = zbin - NSearch; iz <= zbin + NSearch; iz++)
 	{
 	  if(zbin_last == iz) 	  
-	    for (int iphi = phibin - nlook; iphi <= phibin + nlook; iphi++)
+	    for (int iphi = phibin - NSearch; iphi <= phibin + NSearch; iphi++)
 	      {
 		if(phibin_last == iphi)
 		  duplicate = true;
@@ -410,7 +410,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	}
 
       // Run a duplicate cluster check here
-      // Can get clusters that are formed around different maxima that are separated by more than nlook bins in z and/or phi
+      // Can get clusters that are formed around different maxima that are separated by more than NSearch bins in z and/or phi
       // 
 
 
