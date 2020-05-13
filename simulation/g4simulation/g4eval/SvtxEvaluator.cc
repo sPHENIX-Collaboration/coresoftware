@@ -152,7 +152,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:g4phisize:g4zsize:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:g4phisize:g4zsize:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
@@ -1958,7 +1958,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  if(ng4hits == 0)  continue;
 
 	  if(Verbosity() > 0)
-	    cout << " ntp_g4cluster: gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
+	    cout << "ntp_g4cluster: new particle with gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
 
 	  // convert truth hits for this particle to truth clusters in each TPC layer
 
@@ -1993,7 +1993,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               gprimary = trutheval->is_primary(g4particle);
 
 	      if(Verbosity() > 0)
-		cout << "layer " << layer << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+		cout << "  layer " << layer << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
 
 	      // Estimate the size of the truth cluster
 	      float g4phisize = NAN;
@@ -2016,18 +2016,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float adc = NAN;
 
 	      TrkrDefs::cluskey reco_cluskey = 0;
+	      float nreco = 0;
+	      std::set<TrkrDefs::cluskey> reco_clusters;
+	      // loop over all conteributing hits, look up the associated clusters, pick the ones in this layer.
 
-	      // loop over all conteributing hits, look up the associated clusters, pick the one in this layer.
 	      for(unsigned int i=0; i< contributing_hits.size(); ++i)
 		{
 
 		  PHG4Hit* cont_g4hit = contributing_hits[i];
 		  double energy = contributing_hits_energy[i];
 
-		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer
-		  float nclusters = clusters.size();
+		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer using TrkrAssoc maps
+
 		  if(Verbosity() > 0)
-		    cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " nclusters " << nclusters << " energy " << energy << endl;
+		    cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " g4trackID " << cont_g4hit->get_trkid() << " energy " << energy << endl;
 
 		  for (std::set<TrkrDefs::cluskey>::iterator iter = clusters.begin();
 		       iter != clusters.end();
@@ -2035,17 +2037,85 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    {
 		      TrkrDefs::cluskey this_cluskey = *iter;
 		      unsigned int clus_layer = TrkrDefs::getLayer(this_cluskey);
+		      // discard if in the wrong layer
 		      if(clus_layer != layer)  continue;
+
+		      reco_clusters.insert(this_cluskey);
 
 		      if(Verbosity() > 0)
 			cout << "             associated: this_cluskey " << this_cluskey << " clus_layer " << clus_layer << endl;
 
 		      // For now, we assume only one reco cluster matches, if there are multiple matches, keep the last one
-		      // In future, can make a list of clusters matching this g4cluster 
+		      // In future, can make a list of clusters matching this g4cluster, or find the best one
 		      reco_cluskey = this_cluskey;
 		    }
-		}
 
+		}
+	      nreco = reco_clusters.size();
+	      if(nreco > 1)
+		{
+		  // Find the matching reco cluster here with the largest adc value and replace reco_cluskey
+		  // and do some diagnostics on what went wrong here
+
+		  if(Verbosity() > 0)  
+		  if(gtrackID >= 0 && layer > 6)
+		    cout << "         --------  layer " << layer << " found " << nreco << " reco clusters for this g4cluster! " << endl;
+
+		  int side = -1;
+		  int sector = -1;		  
+		  double adc = -999;
+		  for(std::set<TrkrDefs::cluskey>::iterator it = reco_clusters.begin(); it != reco_clusters.end(); ++it)
+		    {
+		      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*it);
+		      int this_side = TpcDefs::getSide(hitsetkey);
+		      int this_sector = TpcDefs::getSectorId(hitsetkey);
+		      
+		      // get the cluster
+		      TrkrCluster* this_cluster = clustermap->findCluster(*it);
+		      double this_adc = this_cluster->getAdc();
+		      double this_x = this_cluster->getX();
+		      double this_y = this_cluster->getY();
+		      double this_z = this_cluster->getZ();
+
+		      if(Verbosity() > 0) 
+		      if(gtrackID >= 0 && layer > 6)
+			cout << "        cluster " << *it << " this_side " << this_side << " this_sector " << this_sector << " this_adc " << this_adc 
+			     << " this_x " << this_x << " this_y " << this_y << " this_z " << this_z
+			     << endl; 
+
+		      if(this_adc > adc) 
+			{
+			  adc = this_adc;
+			  reco_cluskey = *it;
+			}
+
+		      if(sector == -1)
+			{
+			  side = this_side;
+			  sector = this_sector;
+			}
+		      else 
+			{
+			  if(this_side != side)
+			    side = 999;
+			  if (this_sector != sector)
+			    sector = 999;
+			}
+		    }			
+
+		  if(Verbosity() > 0)
+		    if(gtrackID >= 0 && layer > 6)  
+		      {
+			cout << "        best  reco_cluskey = " << reco_cluskey << endl;
+			if(sector == 999) 
+			  cout << "        ***** sector change!" << endl;
+			if(side == 999)
+			  cout << "        ***** side change!" << endl;
+			if( side != 999 && sector != 999)
+			  cout << "     ***** NO sector or side change" << endl;
+		      }
+		}
+	      
 	      if(reco_cluskey)
 		{
 		  TrkrCluster* cluster = clustermap->findCluster(reco_cluskey);
@@ -2092,6 +2162,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					gprimary,
 					g4phisize,
 					g4zsize,
+					nreco,
 					x,
 					y,
 					z,

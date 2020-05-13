@@ -23,7 +23,7 @@ class TpcClusterizer : public SubsysReco
   int End(PHCompositeNode *topNode);
 
  private:
-  bool is_local_maximum(int phi, int z, std::vector<std::vector<double>> &adcval);
+  bool is_local_maximum(int nlook, int phi, int z, std::vector<std::vector<double>> &adcval);
   void get_cluster(int phibin, int zbin, int &phiup, int &phidown, int &zup, int &zdown, std::vector<std::vector<double>> &adcval);
 
   TrkrHitSetContainer *m_hits;
