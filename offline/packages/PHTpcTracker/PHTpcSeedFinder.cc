@@ -7,7 +7,7 @@
 #include "PHTpcSeedFinder.h"
 #include "PHTpcTrackerUtil.h"
 
-#include "externals/kdfinder.hpp"     // for TrackCandidate, Circle, find_tr...
+#include "externals/kdfinder.hpp"  // for TrackCandidate, Circle, find_tr...
 
 #include <phool/PHLog.h>
 

@@ -7,7 +7,6 @@
 //PHGenFit2
 #include "Fitter.h"
 
-
 //GenFit
 #include <GenFit/Exception.h>
 #include <GenFit/FieldManager.h>

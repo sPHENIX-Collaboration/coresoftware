@@ -10,7 +10,7 @@
 #include "externals/kdfinder.hpp"
 #include "externals/nanoflann.hpp"  // for KDTreeSingleIndexAdaptor, L2_Simp...
 
-#include <cstddef>                 // for size_t
+#include <cstddef>  // for size_t
 #include <vector>
 
 class TrkrClusterContainer;

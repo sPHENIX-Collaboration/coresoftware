@@ -42,8 +42,8 @@ namespace PHGenFit2
     }
 
    private:
-//    TGeoManager* _tgeo_manager;
-//    PHField* _field;
+    //    TGeoManager* _tgeo_manager;
+    //    PHField* _field;
     genfit::KalmanFitter* _fitter5;  // KalmanFitter with maxIterations = 5
     genfit::KalmanFitter* _fitter1;  // KalmanFitter with maxIterations = 1
 

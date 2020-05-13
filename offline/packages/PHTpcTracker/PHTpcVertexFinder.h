@@ -9,9 +9,18 @@
 
 #include <vector>
 
-namespace PHGenFit2 { class Track; }
-namespace genfit { class GFRaveVertex; }
-namespace genfit { class GFRaveVertexFactory; }
+namespace PHGenFit2
+{
+  class Track;
+}
+namespace genfit
+{
+  class GFRaveVertex;
+}
+namespace genfit
+{
+  class GFRaveVertexFactory;
+}
 
 /// \class PHTpcVertexFinder
 ///

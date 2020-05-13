@@ -17,7 +17,10 @@
 #include <memory>
 #include <vector>
 
-namespace PHGenFit { class Measurement; }
+namespace PHGenFit
+{
+  class Measurement;
+}
 
 namespace genfit
 {

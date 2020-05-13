@@ -13,7 +13,7 @@
 #include "PHTpcVertexFinder.h"
 
 #include "Fitter.h"
-#include "Track.h"                           // for Track
+#include "Track.h"  // for Track
 #include "externals/kdfinder.hpp"
 
 #include <phfield/PHField.h>
@@ -24,25 +24,24 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <fun4all/SubsysReco.h>              // for SubsysReco
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHLog.h>
 #include <phool/getClass.h>
 
-#include <log4cpp/CategoryStream.hh>         // for CategoryStream
+#include <log4cpp/CategoryStream.hh>  // for CategoryStream
 
 #include <CLHEP/Units/SystemOfUnits.h>
-
 
 // GenFit
 #include <GenFit/GFRaveVertex.h>
 
-#include <TVector3.h>                        // for TVector3
+#include <TVector3.h>  // for TVector3
 
-#include <chrono>                            // for milliseconds, duration_cast
-#include <limits>                            // for numeric_limits
-#include <vector>                            // for vector
+#include <chrono>  // for milliseconds, duration_cast
+#include <limits>  // for numeric_limits
+#include <vector>  // for vector
 
 class PHCompositeNode;
 

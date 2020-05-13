@@ -6,15 +6,15 @@
 
 #include "PHTpcTrackerUtil.h"
 
-#include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
 
 #include <phool/PHLog.h>
 
-#include <cstdint>                          // for uint64_t
+#include <cstdint>  // for uint64_t
 #include <cstring>
-#include <map>                               // for _Rb_tree_const_iterator
-#include <utility>                           // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 
 namespace PHTpcTrackerUtil
 {

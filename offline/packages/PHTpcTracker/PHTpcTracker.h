@@ -10,9 +10,9 @@
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>                // for M_PI
-#include <cstddef>              // for size_t
-#include <string>                // for string
+#include <cmath>    // for M_PI
+#include <cstddef>  // for size_t
+#include <string>   // for string
 
 class PHCompositeNode;
 class PHField;
@@ -23,7 +23,10 @@ class PHTpcVertexFinder;
 class PHTpcEventExporter;
 class PHTpcLookup;
 
-namespace PHGenFit2 { class Fitter; }
+namespace PHGenFit2
+{
+  class Fitter;
+}
 
 /// \class PHTpcTracker
 ///

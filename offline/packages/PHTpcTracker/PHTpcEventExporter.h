@@ -12,9 +12,15 @@
 
 class TrkrClusterContainer;
 
-namespace PHGenFit2 { class Track; }
-namespace kdfinder { template <class T> class TrackCandidate; }
-
+namespace PHGenFit2
+{
+  class Track;
+}
+namespace kdfinder
+{
+  template <class T>
+  class TrackCandidate;
+}
 
 /// \class PHTpcEventExporter
 ///

@@ -7,7 +7,6 @@
 #ifndef PHTPCTRACKERUTIL_H_
 #define PHTPCTRACKERUTIL_H_
 
-
 #include <vector>
 
 class TrkrClusterContainer;
