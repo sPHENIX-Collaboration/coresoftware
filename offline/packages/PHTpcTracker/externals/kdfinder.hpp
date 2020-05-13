@@ -702,16 +702,16 @@ public:
 
     /// path lengths at dca between two helices 
     std::pair<T, T> pathLengths( const Helix&, T minStepSize = 10 * 0.0001, T minRange = 10 ) const {
-		if ( mSingularity != h.mSingularity ) {
+      if ( mSingularity != h().mSingularity ) {
         	return std::pair<T,T>( NoSolution, NoSolution );
 		}
     
 		T s1, s2;
  
 		if ( mSingularity ) {
-			TVector<T> dv = h.mOrigin - mOrigin;
+		  TVector<T> dv = h().mOrigin - mOrigin;
 			TVector<T> a(-mCosDipAngle * mSinPhase, mCosDipAngle * mCosPhase, mSinDipAngle );
-			TVector<T> b(-h.mCosDipAngle * h.mSinPhase, h.mCosDipAngle * h.mCosPhase, h.mSinDipAngle );
+			TVector<T> b(-h().mCosDipAngle * h().mSinPhase, h().mCosDipAngle * h().mCosPhase, h().mSinDipAngle );
 			T ab = a * b;
 			T g  = dv * a;
 			T k  = dv * b;
@@ -719,11 +719,11 @@ public:
 			s1 = g + s2 * ab;
 			return std::pair<T,T>(s1, s2);
 		} else {
-			T dx = h.xcenter() - xcenter();
-			T dy = h.ycenter() - ycenter();
+			T dx = h().xcenter() - xcenter();
+			T dy = h().ycenter() - ycenter();
 			T dd = std::sqrt( dx * dx + dy * dy );
 			T r1 = 1 / curvature();
-			T r2 = 1 / h.curvature();
+			T r2 = 1 / h().curvature();
 			T cosAlpha = ( r1 * r1 + dd * dd - r2 * r2 ) / ( 2 * r1 * dd );
 
 			T s;
@@ -736,7 +736,7 @@ public:
 				x = xcenter() + r1 * ( cosAlpha * dx + sinAlpha * dy ) / dd;
 				y = ycenter() + r1 * ( cosAlpha * dy - sinAlpha * dx ) / dd;
 				T a = pathLength(x, y);
-				if ( h.distance( at( a ) ) < h.distance( at( s ) ) ) { s = a; }
+				if ( h().distance( at( a ) ) < h().distance( at( s ) ) ) { s = a; }
         	} else {
 				int rsign = ( ( r2 - r1 ) > dd ? -1 : 1 );
 				x = xcenter() + rsign * r1 * dx / dd;
@@ -744,7 +744,7 @@ public:
 				s = pathLength(x, y);
 			}
 
-			T dmin = h.distance( at( s ) );
+			T dmin = h().distance( at( s ) );
 			T range = std::max( 2 * dmin, minRange );
 			T ds = range / 10;
 			T slast = -999999, ss, d;
@@ -753,7 +753,7 @@ public:
 
 			while ( ds > minStepSize ) {
 				for ( ss = s1; ss < s2 + ds; ss += ds ) {
-					d = h.distance( at( ss ) );
+					d = h().distance( at( ss ) );
 					if ( d < dmin ) {
 						dmin = d;
 						s = ss;
@@ -774,7 +774,7 @@ public:
 					ds /= 10;
 				}
 			}
-			return std::pair<T, T>( s, h.pathLength( at( s ) ) );
+			return std::pair<T, T>( s, h().pathLength( at( s ) ) );
 		}
 	}
     
