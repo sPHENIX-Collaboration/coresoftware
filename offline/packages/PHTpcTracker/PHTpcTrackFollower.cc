@@ -522,12 +522,13 @@ std::pair<genfit::MeasuredStateOnPlane*, double> PHTpcTrackFollower::get_project
 
 int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup, PHGenFit2::Fitter* fitter, int dir)
 {
-  genfit::Track* gftrack = track->getGenFitTrack();
   if (!track)
   {
     LOG_ERROR("tracking.PHTpcTrackFollower.follow_track") << "cannot follow track, empty pointer!";
     return 0;
   }
+
+  genfit::Track* gftrack = track->getGenFitTrack();
 
   int nHitsAdded = 0;
 
