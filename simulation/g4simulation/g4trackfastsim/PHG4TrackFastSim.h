@@ -15,6 +15,11 @@
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TVector3.h>
 
+// #include <phgenfit/Track.h> is needed, it crashes on Ubuntu using 
+// singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
+#include <phgenfit/Track.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <climits>  // for UINT_MAX
@@ -42,7 +47,6 @@ namespace genfit
 {
   class GFRaveVertex;
   class GFRaveVertexFactory;
-  class Track;
 } /* namespace genfit */
 
 class PHG4TrackFastSim : public SubsysReco
