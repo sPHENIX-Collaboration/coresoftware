@@ -51,7 +51,7 @@
 #include <iterator>
 #include <map>
 #include <utility>
-
+#include <vector>
 
 using namespace std;
 
@@ -2411,9 +2411,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             ndf =     track->get_ndf();
             nhits =   track->size_cluster_keys();
 
-            int maps[_nlayers_maps];
-            int intt[_nlayers_intt];
-            int tpc[_nlayers_tpc];
+            vector <int> maps(_nlayers_maps, 0);
+            vector <int> intt(_nlayers_intt, 0);
+            vector <int> tpc(_nlayers_tpc, 0);
 
             if (_nlayers_maps > 0)
             {

@@ -2,31 +2,27 @@
 #define QA_QAG4SimulationTracking_H
 
 #include <fun4all/SubsysReco.h>
+#include <g4eval/SvtxEvalStack.h>
 
 #include <memory>
 #include <set>
 #include <string>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
-
 class PHCompositeNode;
+class PHG4HitContainer;
 class PHG4TruthInfoContainer;
-class PHG4Particle;
-class CaloEvalStack;
-class SvtxEvalStack;
 class SvtxTrack;
+class TrkrClusterContainer;
+class TrkrClusterHitAssoc;
+class TrkrHitTruthAssoc;
 
 /// \class QAG4SimulationTracking
 class QAG4SimulationTracking : public SubsysReco
 {
  public:
   QAG4SimulationTracking(const std::string &name = "QAG4SimulationTracking");
-  virtual ~QAG4SimulationTracking() {}
+  virtual ~QAG4SimulationTracking() = default;
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -54,19 +50,33 @@ class QAG4SimulationTracking : public SubsysReco
   }
 
  private:
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
-  std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
+
+  /// load nodes
+  int load_nodes( PHCompositeNode* );
+  
+  // get geant hits associated to a cluster
+  using G4HitSet = std::set<PHG4Hit*>;
+  G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
+  
+  std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
   std::set<int> m_embeddingIDs;
-#endif
 
   //! range of the truth track eta to be analyzed
-  std::pair<double, double> m_etaRange;
+  std::pair<double, double> m_etaRange = {-1, 1};
 
   //! only count unique truth<->reco track pair in tracking efficiency
-  bool m_uniqueTrackingMatch;
+  bool m_uniqueTrackingMatch = true;
 
-  PHG4TruthInfoContainer *_truthContainer;
+  PHG4TruthInfoContainer *m_truthContainer = nullptr;
+  
+  TrkrClusterContainer* m_cluster_map = nullptr;
+  TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+  TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+
+  PHG4HitContainer *m_g4hits_tpc = nullptr;
+  PHG4HitContainer *m_g4hits_intt = nullptr;
+  PHG4HitContainer *m_g4hits_mvtx = nullptr;
+
 };
 
 #endif  // QA_QAG4SimulationTracking_H

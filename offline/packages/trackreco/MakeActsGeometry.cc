@@ -74,7 +74,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_geoManager(nullptr)
   , m_minSurfZ(0.0)
   , m_maxSurfZ(105.5)
-  , m_nSurfZ(11)
+  , m_nSurfZ(1)
   , m_nSurfPhi(10)
   , m_verbosity(0)
 {
@@ -656,7 +656,7 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   
   if(mapIter == m_clusterSurfaceMapTpcEdit.end())
     {
-      cout << PHWHERE << "Error: hitsetkey not found in clusterSrfaceMap, hitsetkey = " << hitsetkey << endl;
+      cout << PHWHERE << "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " << hitsetkey << endl;
       return nullptr;
     }
 
@@ -668,10 +668,7 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   for(unsigned int i=0;i<surf_vec.size(); ++i)
     {
       Surface this_surf = surf_vec[i];
-      /*
-      cout << endl << "Stream of surface number " << i << endl;
-      this_surf->toStream(m_geoCtxt, std::cout);   cout << endl;
-  */
+  
       auto vec3d = this_surf->center(m_geoCtxt);
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);

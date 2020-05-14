@@ -1,6 +1,8 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
+#include "PHActsSourceLinks.h" 
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -23,6 +25,7 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
@@ -46,6 +49,7 @@ class PHActsTracks : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
 
  private:
   /** 
@@ -67,9 +71,8 @@ class PHActsTracks : public SubsysReco
   /// A vector to hold the source links corresponding to a particular SvtxTrack
   std::vector<SourceLink> m_trackSourceLinks;
 
-  /// A map of an Acts track seed and Acts-sPHENIX source links corresponding
-  /// to that track seed
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  /// A map corresponding the ActsTrack instance to the SvtxTrack key
+  std::map<unsigned int , ActsTrack> *m_actsTrackMap;
 
   /// Trackmap that contains SvtxTracks
   SvtxTrackMap *m_trackMap;
@@ -79,6 +82,8 @@ class PHActsTracks : public SubsysReco
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+  ActsTrackingGeometry *m_tGeometry;
 };
 
 #endif
