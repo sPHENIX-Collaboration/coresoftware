@@ -521,6 +521,7 @@ namespace nanoflann
     /**
 		    Default constructor. Initializes a new pool.
 		 */
+// cppcheck-suppress *
     PooledAllocator()
     {
       internal_init();
@@ -727,6 +728,7 @@ namespace nanoflann
     T* data() { return elems; }
     // assignment with type conversion
     template <typename T2>
+// cppcheck-suppress *
     CArray<T, N>& operator=(const CArray<T2, N>& rhs)
     {
       std::copy(rhs.begin(), rhs.end(), begin());
