@@ -521,7 +521,7 @@ namespace nanoflann
     /**
 		    Default constructor. Initializes a new pool.
 		 */
-// cppcheck-suppress *
+// cppcheck-suppress uninitMemberVar
     PooledAllocator()
     {
       internal_init();
