@@ -11,6 +11,8 @@
 #define G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H
 
 #include <fun4all/SubsysReco.h>
+
+#include <map>
 #include <string>
 
 //Forward declerations
@@ -65,6 +67,8 @@ class PHG4TrackFastSimEval : public SubsysReco
   //User modules
   void reset_variables();
 
+  void AddProjection(const std::string& name);
+
  private:
   void fill_track_tree(PHCompositeNode*);
   void fill_vertex_tree(PHCompositeNode*);
@@ -111,6 +115,14 @@ class PHG4TrackFastSimEval : public SubsysReco
   float pcaz;
   float dca2d;
 
+  static const int nproj = 3;
+  // projections hits/mom
+  float proj[3][nproj];
+  float proj_p[3][nproj];
+  // hits/mom at reference
+  float ref[3][nproj];
+  float ref_p[3][nproj];
+
   //vertex
   float vx;
   float vy;
@@ -129,6 +141,8 @@ class PHG4TrackFastSimEval : public SubsysReco
   PHG4TruthInfoContainer* _truth_container;
   SvtxTrackMap* _trackmap;
   SvtxVertexMap* _vertexmap;
+
+  std::map<std::string, int> m_ProjectionNameMap;
 };
 
 #endif  //* __PHG4TrackFastSimEval_H__ *//
