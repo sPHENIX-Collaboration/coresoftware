@@ -94,7 +94,8 @@ class PHActsSourceLinks : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-
+  int ResetEvent(PHCompositeNode *topNode);
+  
  private:
   /**
    * Functions
