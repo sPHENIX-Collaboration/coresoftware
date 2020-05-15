@@ -1480,16 +1480,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float cellID = 0;
 	    float ecell = hit->getAdc();
 	    
-	    int phibin = NAN;
-	    int zbin = NAN;
+	    float phibin = NAN;
+	    float zbin = NAN;
 	    float phi = NAN;
 	    float z = NAN;
 	    
 	    if (layer >= _nlayers_maps + _nlayers_intt)
 	      {
 		PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
-		phibin = TpcDefs::getPad(hit_key);
-		zbin = TpcDefs::getTBin(hit_key);
+		phibin = (float) TpcDefs::getPad(hit_key);
+		zbin = (float) TpcDefs::getTBin(hit_key);
 		phi = GeoLayer->get_phicenter(phibin);
 		z = GeoLayer->get_zcenter(zbin);
 	      }
