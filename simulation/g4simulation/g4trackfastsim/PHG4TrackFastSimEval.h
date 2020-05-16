@@ -42,7 +42,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   int End(PHCompositeNode*);
 
   //Change output filename
-  void set_filename(const std::string &file)
+  void set_filename(const std::string& file)
   {
     m_OutFileName = file;
   }
@@ -75,7 +75,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Event counter
   int m_EventCounter;
 
-// TTree variables
+  // TTree variables
   int m_TTree_Event;
   //-- truth
   int m_TTree_gTrackID;
@@ -124,7 +124,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   //name of SvtxTrackMap collection
   std::string m_TrackMapName;
 
-// names and index of projections
+  // names and index of projections
   std::map<std::string, int> m_ProjectionNameMap;
 };
 

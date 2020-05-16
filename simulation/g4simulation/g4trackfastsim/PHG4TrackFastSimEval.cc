@@ -10,7 +10,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <trackbase_historic/SvtxVertex.h>         // for SvtxVertex
+#include <trackbase_historic/SvtxVertex.h>  // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>
@@ -126,12 +126,12 @@ int PHG4TrackFastSimEval::Init(PHCompositeNode *topNode)
   }
 
   m_H2D_DeltaMomVsTruthEta = new TH2D("DeltaMomVsTruthEta",
-                                         "#frac{#Delta p}{truth p} vs. truth #eta", 54, -4.5, +4.5, 1000, -1,
-                                         1);
+                                      "#frac{#Delta p}{truth p} vs. truth #eta", 54, -4.5, +4.5, 1000, -1,
+                                      1);
 
   m_H2D_DeltaMomVsTruthMom = new TH2D("DeltaMomVsTruthMom",
-                                         "#frac{#Delta p}{truth p} vs. truth p", 41, -0.5, 40.5, 1000, -1,
-                                         1);
+                                      "#frac{#Delta p}{truth p} vs. truth p", 41, -0.5, 40.5, 1000, -1,
+                                      1);
 
   // create TTree - vertex
   m_VertexEvalTree = new TTree("vertex", "FastSim Eval => vertces");
@@ -412,8 +412,8 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
     map<PHG4VtxPoint *, int> vertex_match_map;
     for (auto iter = vertex->begin_tracks(); iter != vertex->end_tracks(); ++iter)
     {
-      const auto & trackid = *iter;
-      const auto trackIter = m_TrackMap->find( trackid);
+      const auto &trackid = *iter;
+      const auto trackIter = m_TrackMap->find(trackid);
 
       if (trackIter == m_TrackMap->end()) continue;
 
@@ -492,7 +492,7 @@ void PHG4TrackFastSimEval::reset_variables()
   m_TTree_DeltaVz = NAN;
   m_TTree_nTracks = -9999;
   m_TTree_nFromTruth = -9999;
-// projections
+  // projections
   for (int k = 0; k < 3; k++)
   {
     for (int j = 0; j < m_MaxNumberProjections; j++)
@@ -514,7 +514,7 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   //DST objects
   //Truth container
   m_TruthInfoContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                                "G4TruthInfo");
+                                                                    "G4TruthInfo");
   if (!m_TruthInfoContainer && m_EventCounter < 2)
   {
     cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
@@ -523,7 +523,7 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   }
 
   m_TrackMap = findNode::getClass<SvtxTrackMap>(topNode,
-                                               m_TrackMapName);
+                                                m_TrackMapName);
   //std::cout << m_TrackMapName << std::endl;
   if (!m_TrackMap)
   {
@@ -546,12 +546,13 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
 
 void PHG4TrackFastSimEval::AddProjection(const string &name)
 {
-  unsigned int size =  m_ProjectionNameMap.size();
+  unsigned int size = m_ProjectionNameMap.size();
   if (size >= m_MaxNumberProjections)
   {
     cout << "Too many projections in evaluator, maximum number is "
-	 << m_MaxNumberProjections << endl;
-    cout << "increase m_MaxNumberProjections in PHG4TrackFastSimEval and recompile" << endl;
+         << m_MaxNumberProjections << endl;
+    cout << "Cannot add " << name << endl;
+    cout << "increase m_MaxNumberProjections in PHG4TrackFastSimEval, recompile and rerun" << endl;
     gSystem->Exit(1);
   }
   m_ProjectionNameMap.insert(make_pair(name, m_ProjectionNameMap.size()));
