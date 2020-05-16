@@ -62,26 +62,21 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Node pointers
   PHG4TruthInfoContainer* m_TruthInfoContainer;
   SvtxTrackMap* m_TrackMap;
-  SvtxVertexMap* _vertexmap;
+  SvtxVertexMap* m_VertexMap;
 
   //TTrees
-  TTree* _eval_tree_tracks;
-  TTree* _eval_tree_vertex;
+  TTree* m_TracksEvalTree;
+  TTree* m_VertexEvalTree;
 
   //Histos
-  TH2D* _h2d_Delta_mom_vs_truth_mom;
-  TH2D* _h2d_Delta_mom_vs_truth_eta;
-
-  //output filename
-  std::string _outfile_name;
-
-  //name of SvtxTrackMap collection
-  std::string _trackmapname;
+  TH2D* m_H2D_DeltaMomVsTruthMom;
+  TH2D* m_H2D_DeltaMomVsTruthEta;
 
   //Event counter
-  int _event;
+  int m_EventCounter;
 
-  int event;
+// TTree variables
+  int m_TTree_Event;
   //-- truth
   int gtrackID;
   int gflavor;
@@ -123,8 +118,14 @@ class PHG4TrackFastSimEval : public SubsysReco
   int ntracks;
   int n_from_truth;
 
+  //output filename
+  std::string _outfile_name;
 
+  //name of SvtxTrackMap collection
+  std::string _trackmapname;
+
+// names and index of projections
   std::map<std::string, int> m_ProjectionNameMap;
 };
 
-#endif  //* __PHG4TrackFastSimEval_H__ *//
+#endif  //* G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H *//
