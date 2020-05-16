@@ -87,6 +87,7 @@ pkginclude_HEADERS = \
   PHG4OuterHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \
   PHG4RICHSubsystem.h \
+  PHG4mRICHSubsystem.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatv1.h \
   PHG4ScintillatorSlatContainer.h \
