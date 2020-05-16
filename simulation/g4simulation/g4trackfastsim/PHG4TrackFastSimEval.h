@@ -47,6 +47,12 @@ class PHG4TrackFastSimEval : public SubsysReco
     m_OutFileName = file;
   }
 
+  // set the name of the node with the trackmap
+  void set_trackmapname(const std::string& name)
+  {
+    m_TrackMapName = name;
+  }
+
   //User modules
   void reset_variables();
 
