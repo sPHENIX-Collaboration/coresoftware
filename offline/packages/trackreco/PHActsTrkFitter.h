@@ -24,6 +24,8 @@
 
 #include <memory>
 #include <string>
+#include <TFile.h>
+#include <TH1.h>
 
 namespace FW
 {
@@ -35,7 +37,8 @@ namespace FW
 
 class ActsTrack;
 class MakeActsGeometry;
-
+class SvtxTrack;
+class SvtxTrackMap;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 class PHActsTrkFitter : public PHTrackFitting
@@ -56,6 +59,8 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Process each event by calling the fitter
   int Process();
 
+  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+
  private:
   /// Event counter
   int m_event;
@@ -66,8 +71,15 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
-  /// Vector of acts tracks created by PHActsTracks
-  std::vector<ActsTrack>* m_actsProtoTracks;
+  /// Rotate the covariance from Acts local coordinates back to 
+  /// sPHENIX global coordinates
+  Acts::BoundSymMatrix rotateCovarianceLocalToGlobal(const Acts::KalmanFitterResult<SourceLink>& fitOutput);
+
+  /// Convert the acts track fit result to an svtx track
+  void updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
+
+  /// Map of acts tracks and track key created by PHActsTracks
+  std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
@@ -75,7 +87,14 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Configuration containing the fitting function instance
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
+  /// TrackMap containing SvtxTracks
+  SvtxTrackMap *m_trackMap;
 
+  /// Variables for doing event time execution analysis
+  bool m_timeAnalysis;
+  TFile *m_timeFile;
+  TH1 *h_eventTime;
+  
 };
 
 #endif

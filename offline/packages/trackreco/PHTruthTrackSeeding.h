@@ -42,6 +42,16 @@ class PHTruthTrackSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClustersPerTrack;
   }
 
+  void set_min_layer(unsigned int minLayer)
+  {
+    _min_layer = minLayer;
+  }
+
+  void set_max_layer(unsigned int maxLayer)
+  {
+    _max_layer = maxLayer;
+  }
+
   //! minimal truth momentum cut
   double get_min_momentum() const
   {
@@ -80,6 +90,8 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //PHG4CellContainer* cells_maps;
 
   unsigned int _min_clusters_per_track;
+  unsigned int _min_layer;
+  unsigned int _max_layer;
 
   //! minimal truth momentum cut
   double _min_momentum;

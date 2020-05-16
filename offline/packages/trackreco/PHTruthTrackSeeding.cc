@@ -48,6 +48,8 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   , hittruthassoc(nullptr)
   , clusterhitassoc(nullptr)
   , _min_clusters_per_track(3)
+  , _min_layer(0)
+  , _max_layer(10000)
   , _min_momentum(50e-3)  // default to p > 50 MeV
 {
 }
@@ -77,7 +79,9 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     TrkrCluster* cluster = clusiter->second;
     TrkrDefs::cluskey cluskey = clusiter->first;
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-
+    unsigned int layer = TrkrDefs::getLayer(cluskey);
+    if(layer<_min_layer) continue;
+    if(layer>=_max_layer) continue;
 
     if (Verbosity() >= 3)
     {
