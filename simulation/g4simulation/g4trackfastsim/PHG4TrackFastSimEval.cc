@@ -49,17 +49,16 @@ using namespace std;
 //----------------------------------------------------------------------------//
 PHG4TrackFastSimEval::PHG4TrackFastSimEval(const string &name, const string &filename, const string &trackmapname)
   : SubsysReco(name)
-  , _outfile_name(filename)
-  , _trackmapname(trackmapname)
-  , _event(0)
-  , _flags(NONE)
+  , m_TruthInfoContainer(nullptr)
+  , m_TrackMap(nullptr)
+  , _vertexmap(nullptr)
   , _eval_tree_tracks(nullptr)
   , _eval_tree_vertex(nullptr)
   , _h2d_Delta_mom_vs_truth_mom(nullptr)
   , _h2d_Delta_mom_vs_truth_eta(nullptr)
-  , _truth_container(nullptr)
-  , _trackmap(nullptr)
-  , _vertexmap(nullptr)
+  , _outfile_name(filename)
+  , _trackmapname(trackmapname)
+  , _event(0)
 {
   reset_variables();
 }
@@ -204,20 +203,20 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 {
   // Make sure to reset all the TTree variables before trying to set them.
 
-  if (!_truth_container)
+  if (!m_TruthInfoContainer)
   {
-    LogError("_truth_container not found!");
+    LogError("m_TruthInfoContainer not found!");
     return;
   }
 
-  if (!_trackmap)
+  if (!m_TrackMap)
   {
-    LogError("_trackmap not found!");
+    LogError("m_TrackMap not found!");
     return;
   }
 
   PHG4TruthInfoContainer::ConstRange range =
-      _truth_container->GetPrimaryParticleRange();
+      m_TruthInfoContainer->GetPrimaryParticleRange();
   //std::cout << "A2" << std::endl;
   for (PHG4TruthInfoContainer::ConstIterator truth_itr = range.first;
        truth_itr != range.second; ++truth_itr)
@@ -236,9 +235,9 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 
     SvtxTrack_FastSim *track = nullptr;
 
-    //std::cout << "TRACKmap size " << _trackmap->size() << std::endl;
-    for (SvtxTrackMap::ConstIter track_itr = _trackmap->begin();
-         track_itr != _trackmap->end();
+    //std::cout << "TRACKmap size " << m_TrackMap->size() << std::endl;
+    for (SvtxTrackMap::ConstIter track_itr = m_TrackMap->begin();
+         track_itr != m_TrackMap->end();
          track_itr++)
     {
       //std::cout << "TRACK * " << track_itr->first << std::endl;
@@ -268,7 +267,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
     gvy = NAN;
     gvz = NAN;
     gvt = NAN;
-    PHG4VtxPoint *vtx = _truth_container->GetVtx(g4particle->get_vtx_id());
+    PHG4VtxPoint *vtx = m_TruthInfoContainer->GetVtx(g4particle->get_vtx_id());
     if (vtx)
     {
       gvx = vtx->get_x();
@@ -356,7 +355,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
           }
         }
       }
-  }
+    }
     //std::cout << "B3" << std::endl;
 
     _eval_tree_tracks->Fill();
@@ -372,15 +371,15 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 //----------------------------------------------------------------------------//
 void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
 {
-  if (!_truth_container)
+  if (!m_TruthInfoContainer)
   {
-    LogError("_truth_container not found!");
+    LogError("m_TruthInfoContainer not found!");
     return;
   }
 
-  if (!_trackmap)
+  if (!m_TrackMap)
   {
-    LogError("_trackmap not found!");
+    LogError("m_TrackMap not found!");
     return;
   }
 
@@ -424,18 +423,18 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
     for (auto iter = vertex->begin_tracks(); iter != vertex->end_tracks(); ++iter)
     {
       const auto &trackID = *iter;
-      const auto trackIter = _trackmap->find(trackID);
+      const auto trackIter = m_TrackMap->find(trackID);
 
-      if (trackIter == _trackmap->end()) continue;
+      if (trackIter == m_TrackMap->end()) continue;
 
       SvtxTrack_FastSim *temp = dynamic_cast<SvtxTrack_FastSim *>(trackIter->second);
 
       if (!temp) continue;
 
       const auto g4trackID = temp->get_truth_track_id();
-      const PHG4Particle *g4particle = _truth_container->GetParticle(g4trackID);
+      const PHG4Particle *g4particle = m_TruthInfoContainer->GetParticle(g4trackID);
       assert(g4particle);
-      PHG4VtxPoint *vtx = _truth_container->GetVtx(g4particle->get_vtx_id());
+      PHG4VtxPoint *vtx = m_TruthInfoContainer->GetVtx(g4particle->get_vtx_id());
 
       int n_match = ++vertex_match_map[vtx];
 
@@ -513,19 +512,19 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
 {
   //DST objects
   //Truth container
-  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+  m_TruthInfoContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                 "G4TruthInfo");
-  if (!_truth_container && _event < 2)
+  if (!m_TruthInfoContainer && _event < 2)
   {
     cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,
+  m_TrackMap = findNode::getClass<SvtxTrackMap>(topNode,
                                                _trackmapname);
-  //std::cout << _trackmapname.c_str() << std::endl;
-  if (!_trackmap)
+  //std::cout << _trackmapname << std::endl;
+  if (!m_TrackMap)
   {
     cout << PHWHERE << "SvtxTrackMap node with name "
          << _trackmapname

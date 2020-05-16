@@ -15,7 +15,7 @@
 #include <map>
 #include <string>
 
-//Forward declerations
+//Forward declarations
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
@@ -42,26 +42,9 @@ class PHG4TrackFastSimEval : public SubsysReco
   int End(PHCompositeNode*);
 
   //Change output filename
-  void set_filename(const char* file)
+  void set_filename(const std::string &file)
   {
-    if (file) _outfile_name = file;
-  }
-
-  //Flags of different kinds of outputs
-  enum Flag
-  {
-    //all disabled
-    NONE = 0,
-  };
-
-  //Set the flag
-  //Flags should be set like set_flag(PHG4TrackFastSimEval::TRUTH, true) from macro
-  void set_flag(const Flag& flag, const bool& value)
-  {
-    if (value)
-      _flags |= flag;
-    else
-      _flags &= (~flag);
+    _outfile_name = file;
   }
 
   //User modules
@@ -73,6 +56,22 @@ class PHG4TrackFastSimEval : public SubsysReco
   void fill_track_tree(PHCompositeNode*);
   void fill_vertex_tree(PHCompositeNode*);
 
+  //Get all the nodes
+  int GetNodes(PHCompositeNode*);
+
+  //Node pointers
+  PHG4TruthInfoContainer* m_TruthInfoContainer;
+  SvtxTrackMap* m_TrackMap;
+  SvtxVertexMap* _vertexmap;
+
+  //TTrees
+  TTree* _eval_tree_tracks;
+  TTree* _eval_tree_vertex;
+
+  //Histos
+  TH2D* _h2d_Delta_mom_vs_truth_mom;
+  TH2D* _h2d_Delta_mom_vs_truth_eta;
+
   //output filename
   std::string _outfile_name;
 
@@ -82,15 +81,6 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Event counter
   int _event;
 
-  //Get all the nodes
-  int GetNodes(PHCompositeNode*);
-
-  //flags
-  unsigned int _flags;
-
-  //TTrees
-  TTree* _eval_tree_tracks;
-  TTree* _eval_tree_vertex;
   int event;
   //-- truth
   int gtrackID;
@@ -133,14 +123,6 @@ class PHG4TrackFastSimEval : public SubsysReco
   int ntracks;
   int n_from_truth;
 
-  //Histos
-  TH2D* _h2d_Delta_mom_vs_truth_mom;
-  TH2D* _h2d_Delta_mom_vs_truth_eta;
-
-  //Node pointers
-  PHG4TruthInfoContainer* _truth_container;
-  SvtxTrackMap* _trackmap;
-  SvtxVertexMap* _vertexmap;
 
   std::map<std::string, int> m_ProjectionNameMap;
 };
