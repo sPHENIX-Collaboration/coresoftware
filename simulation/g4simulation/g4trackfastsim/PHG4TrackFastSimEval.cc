@@ -298,16 +298,6 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
       m_H2D_DeltaMomVsTruthMom->Fill(truth_mom.Mag(), (reco_mom.Mag() - truth_mom.Mag()) / truth_mom.Mag());
       m_H2D_DeltaMomVsTruthEta->Fill(truth_mom.Eta(), (reco_mom.Mag() - truth_mom.Mag()) / truth_mom.Mag());
       // find projections
-      for (int k = 0; k < 3; k++)
-      {
-        for (int j = 0; j < m_MaxNumberProjections; j++)
-        {
-          m_TTree_proj[k][j] = -9999;
-          m_TTree_proj_p[k][j] = -9999;
-          m_TTree_ref[k][j] = -9999;
-          m_TTree_ref_p[k][j] = -9999;
-        }
-      }
       for (SvtxTrack::ConstStateIter trkstates = track->begin_states();
            trkstates != track->end_states();
            ++trkstates)
@@ -502,6 +492,17 @@ void PHG4TrackFastSimEval::reset_variables()
   m_TTree_DeltaVz = NAN;
   m_TTree_nTracks = -9999;
   m_TTree_nFromTruth = -9999;
+// projections
+  for (int k = 0; k < 3; k++)
+  {
+    for (int j = 0; j < m_MaxNumberProjections; j++)
+    {
+      m_TTree_proj[k][j] = -9999;
+      m_TTree_proj_p[k][j] = -9999;
+      m_TTree_ref[k][j] = -9999;
+      m_TTree_ref_p[k][j] = -9999;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------//
