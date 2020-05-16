@@ -44,7 +44,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Change output filename
   void set_filename(const std::string &file)
   {
-    _outfile_name = file;
+    m_OutFileName = file;
   }
 
   //User modules
@@ -78,51 +78,51 @@ class PHG4TrackFastSimEval : public SubsysReco
 // TTree variables
   int m_TTree_Event;
   //-- truth
-  int gtrackID;
-  int gflavor;
-  float gpx;
-  float gpy;
-  float gpz;
-  float gvx;
-  float gvy;
-  float gvz;
-  float gvt;
+  int m_TTree_gTrackID;
+  int m_TTree_gFlavor;
+  float m_TTree_gpx;
+  float m_TTree_gpy;
+  float m_TTree_gpz;
+  float m_TTree_gvx;
+  float m_TTree_gvy;
+  float m_TTree_gvz;
+  float m_TTree_gvt;
 
   //-- reco
-  int trackID;
-  int charge;
-  int nhits;
-  float px;
-  float py;
-  float pz;
-  float pcax;
-  float pcay;
-  float pcaz;
-  float dca2d;
+  int m_TTree_TrackID;
+  int m_TTree_Charge;
+  int m_TTree_nHits;
+  float m_TTree_px;
+  float m_TTree_py;
+  float m_TTree_pz;
+  float m_TTree_pcax;
+  float m_TTree_pcay;
+  float m_TTree_pcaz;
+  float m_TTree_dca2d;
 
-  static const int nproj = 3;
+  static const int m_MaxNumberProjections = 3;
   // projections hits/mom
-  float proj[3][nproj];
-  float proj_p[3][nproj];
+  float m_TTree_proj[3][m_MaxNumberProjections];
+  float m_TTree_proj_p[3][m_MaxNumberProjections];
   // hits/mom at reference
-  float ref[3][nproj];
-  float ref_p[3][nproj];
+  float m_TTree_ref[3][m_MaxNumberProjections];
+  float m_TTree_ref_p[3][m_MaxNumberProjections];
 
   //vertex
-  float vx;
-  float vy;
-  float vz;
-  float deltavx;
-  float deltavy;
-  float deltavz;
-  int ntracks;
-  int n_from_truth;
+  float m_TTree_vx;
+  float m_TTree_vy;
+  float m_TTree_vz;
+  float m_TTree_DeltaVx;
+  float m_TTree_DeltaVy;
+  float m_TTree_DeltaVz;
+  int m_TTree_nTracks;
+  int m_TTree_nFromTruth;
 
   //output filename
-  std::string _outfile_name;
+  std::string m_OutFileName;
 
   //name of SvtxTrackMap collection
-  std::string _trackmapname;
+  std::string m_TrackMapName;
 
 // names and index of projections
   std::map<std::string, int> m_ProjectionNameMap;
