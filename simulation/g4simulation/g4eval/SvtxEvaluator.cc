@@ -1920,7 +1920,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   }
 
   // fill the truth cluster NTuple
-  //------------------------
+  //-----------------------------------
 
   if (Verbosity() > 1)
   {
@@ -2001,6 +2001,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      G4ClusterSize( topNode, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
 	      // Find the matching TrkrCluster, if it exists
+	      // Presently, this code makes a list of all reco clusters that contain contributions from
+	      // g4hits that contribute to this g4cluster, and chooses the one within 4 sigmas in position
+
 	      float x = NAN;
 	      float y = NAN;
 	      float z = NAN;
@@ -2045,16 +2048,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		      if(Verbosity() > 1)
 			cout << "             associated: this_cluskey " << this_cluskey << " clus_layer " << clus_layer << endl;
 
-		      // For now, we assume only one reco cluster matches, if there are multiple matches, keep the last one
-		      // In future, can make a list of clusters matching this g4cluster, or find the best one
+		      // If there is only one matching cluster, we will keep this
 		      reco_cluskey = this_cluskey;
 		    }
-
 		}
 	      nreco = reco_clusters.size();
 	      if(nreco > 1)
 		{
-		  // Find the matching reco cluster here with the largest adc value and replace reco_cluskey
+		  // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
 		  // and do some diagnostics on what went wrong here
 
 		  if(Verbosity() > 0)  
@@ -2063,7 +2064,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 		  int side = -1;
 		  int sector = -1;		  
-		  double adc = -999;
+		  int gotit = -1;
 		  for(std::set<TrkrDefs::cluskey>::iterator it = reco_clusters.begin(); it != reco_clusters.end(); ++it)
 		    {
 		      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*it);
@@ -2076,16 +2077,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		      double this_x = this_cluster->getX();
 		      double this_y = this_cluster->getY();
 		      double this_z = this_cluster->getZ();
+		      double this_phi = atan2(this_y, this_x);
+
+		      // Find the difference in position from the g4cluster
+		      double dz = this_z - gz;
+		      double dphi = this_phi - gphi;
+		      double drphi = gr * dphi;
 
 		      if(Verbosity() > 0) 
 		      if(gtrackID >= 0 && layer > 6)
 			cout << "        cluster " << *it << " this_side " << this_side << " this_sector " << this_sector << " this_adc " << this_adc 
-			     << " this_x " << this_x << " this_y " << this_y << " this_z " << this_z
+			     << " this_z " << this_z  << " this_phi " << this_phi << " gphi " << gphi 
+			     << " drphi " << drphi << " dz " << dz 
 			     << endl; 
 
-		      if(this_adc > adc) 
+		      // approximate 4 sigmas cut
+		      if(fabs(drphi) < 4.0 * 150e-04 &&
+			fabs(dz) < 4.0 * 550e-04)
 			{
-			  adc = this_adc;
+			  gotit = 1;
 			  reco_cluskey = *it;
 			}
 
@@ -2102,6 +2112,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 			    sector = 999;
 			}
 		    }			
+
+		  if(gotit == -1)
+		    {
+		      if(Verbosity() > 0)
+			if(gtrackID >= 0 && layer > 6)  
+			  cout << "       Did not get close reco cluster match" << endl;
+
+		      reco_cluskey = 0;
+		    }
 
 		  if(Verbosity() > 0)
 		    if(gtrackID >= 0 && layer > 6)  
