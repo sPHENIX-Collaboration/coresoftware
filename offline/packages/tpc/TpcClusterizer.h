@@ -11,6 +11,7 @@ class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TNtuple;
+class PHG4CylinderCellGeom;
 
 class TpcClusterizer : public SubsysReco
 {
@@ -22,8 +23,12 @@ class TpcClusterizer : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
+  void set_search_bins(const int bins){NSearch = bins;}
+
  private:
   bool is_local_maximum(int phi, int z, std::vector<std::vector<double>> &adcval);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
   void get_cluster(int phibin, int zbin, int &phiup, int &phidown, int &zup, int &zdown, std::vector<std::vector<double>> &adcval);
 
   TrkrHitSetContainer *m_hits;
@@ -32,6 +37,9 @@ class TpcClusterizer : public SubsysReco
 
   double zz_shaping_correction;
   double pedestal;
+
+  double SectorFiducialCut;
+  int NSearch;
 
   int NPhiBinsMax;
   int NPhiBinsMin;
