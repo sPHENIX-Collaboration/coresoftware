@@ -43,7 +43,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
   const auto range = geom_container->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   { m_layers.insert( iter->first ); }
-  
+
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -95,12 +95,12 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
     }
 
     {
-      // total cluster size 
+      // total cluster size
       auto h = new TH1F( Form( "%sclus_size_%i", get_histo_prefix().c_str(), layer ), Form( "INTT cluster size layer_%i", layer ), 10, 0, 10 );
       h->GetXaxis()->SetTitle( "csize" );
       hm->registerHisto(h);
     }
-    
+
     {
       // cluster size in phi
       auto h = new TH1F( Form( "%sclus_size_phi_%i", get_histo_prefix().c_str(), layer ), Form( "INTT cluster size (#phi) layer_%i", layer ), 10, 0, 10 );
@@ -114,7 +114,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
       h->GetXaxis()->SetTitle( "csize_{z}" );
       hm->registerHisto(h);
     }
-    
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -274,11 +274,11 @@ void QAG4SimulationIntt::evaluate_clusters()
       const auto& hit_key = hit_iter->second;
       phibins.insert( InttDefs::getRow( hit_key ) );
       zbins.insert( InttDefs::getCol( hit_key ) );
-    }      
+    }
 
     fill( hiter->second.csize_phi, phibins.size() );
     fill( hiter->second.csize_z, zbins.size() );
-    
+
   }
 }
 

@@ -93,14 +93,14 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
       h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth}/#sigmaz (cm)" );
       hm->registerHisto(h);
     }
-    
+
     {
-      // total cluster size 
+      // total cluster size
       auto h = new TH1F( Form( "%sclus_size_%i", get_histo_prefix().c_str(), layer ), Form( "MVTX cluster size layer_%i", layer ), 20, 0, 20 );
       h->GetXaxis()->SetTitle( "csize" );
       hm->registerHisto(h);
     }
-    
+
     {
       // cluster size in phi
       auto h = new TH1F( Form( "%sclus_size_phi_%i", get_histo_prefix().c_str(), layer ), Form( "MVTX cluster size (#phi) layer_%i", layer ), 10, 0, 10 );
@@ -114,7 +114,7 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
       h->GetXaxis()->SetTitle( "csize_{z}" );
       hm->registerHisto(h);
     }
-    
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -189,7 +189,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
     TH1* dz = nullptr;
     TH1* z_error = nullptr;
     TH1* z_pulls = nullptr;
-    
+
     TH1* csize = nullptr;
     TH1* csize_phi = nullptr;
     TH1* csize_z = nullptr;
@@ -275,11 +275,11 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto& hit_key = hit_iter->second;
       phibins.insert( MvtxDefs::getRow( hit_key ) );
       zbins.insert( MvtxDefs::getCol( hit_key ) );
-    }      
+    }
 
     fill( hiter->second.csize_phi, phibins.size() );
     fill( hiter->second.csize_z, zbins.size() );
-    
+
   }
 }
 
