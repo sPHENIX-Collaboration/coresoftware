@@ -7,6 +7,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <intt/InttDefs.h>
 #include <phool/getClass.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -93,6 +94,27 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
       hm->registerHisto(h);
     }
 
+    {
+      // total cluster size 
+      auto h = new TH1F( Form( "%sclus_size_%i", get_histo_prefix().c_str(), layer ), Form( "INTT cluster size layer_%i", layer ), 10, 0, 10 );
+      h->GetXaxis()->SetTitle( "csize" );
+      hm->registerHisto(h);
+    }
+    
+    {
+      // cluster size in phi
+      auto h = new TH1F( Form( "%sclus_size_phi_%i", get_histo_prefix().c_str(), layer ), Form( "INTT cluster size (#phi) layer_%i", layer ), 10, 0, 10 );
+      h->GetXaxis()->SetTitle( "csize_{#phi}" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // cluster size in z
+      auto h = new TH1F( Form( "%sclus_size_z_%i", get_histo_prefix().c_str(), layer ), Form( "INTT cluster size (z) layer_%i", layer ), 10, 0, 10 );
+      h->GetXaxis()->SetTitle( "csize_{z}" );
+      hm->registerHisto(h);
+    }
+    
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -167,6 +189,10 @@ void QAG4SimulationIntt::evaluate_clusters()
     TH1* dz = nullptr;
     TH1* z_error = nullptr;
     TH1* z_pulls = nullptr;
+
+    TH1* csize = nullptr;
+    TH1* csize_phi = nullptr;
+    TH1* csize_z = nullptr;
   };
 
   using HistogramMap = std::map<int,HistogramList>;
@@ -182,6 +208,10 @@ void QAG4SimulationIntt::evaluate_clusters()
     h.dz = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdz_%i", get_histo_prefix().c_str(), layer )) );
     h.z_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%sz_error_%i", get_histo_prefix().c_str(), layer )) );
     h.z_pulls = dynamic_cast<TH1*>( hm->getHisto(Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer )) );
+
+    h.csize = dynamic_cast<TH1*>( hm->getHisto(Form( "%sclus_size_%i", get_histo_prefix().c_str(), layer )) );
+    h.csize_phi = dynamic_cast<TH1*>( hm->getHisto(Form( "%sclus_size_phi_%i", get_histo_prefix().c_str(), layer )) );
+    h.csize_z = dynamic_cast<TH1*>( hm->getHisto(Form( "%sclus_size_z_%i", get_histo_prefix().c_str(), layer )) );
 
     histograms.insert( std::make_pair(layer,h));
   }
@@ -232,15 +262,29 @@ void QAG4SimulationIntt::evaluate_clusters()
     fill( hiter->second.z_error, z_error );
     fill( hiter->second.z_pulls, dz/z_error );
 
+    // cluster sizes
+    // get associated hits
+    const auto hit_range = m_cluster_hit_map->getHits(key);
+    fill( hiter->second.csize, std::distance( hit_range.first, hit_range.second ) );
+
+    std::set<int> phibins;
+    std::set<int> zbins;
+    for( auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter )
+    {
+      const auto& hit_key = hit_iter->second;
+      phibins.insert( InttDefs::getRow( hit_key ) );
+      zbins.insert( InttDefs::getCol( hit_key ) );
+    }      
+
+    fill( hiter->second.csize_phi, phibins.size() );
+    fill( hiter->second.csize_z, zbins.size() );
+    
   }
 }
 
 //_____________________________________________________________________
 QAG4SimulationIntt::G4HitSet QAG4SimulationIntt::find_g4hits( TrkrDefs::cluskey cluster_key ) const
 {
-
-  // check maps
-  if( !( m_cluster_hit_map && m_hit_truth_map ) ) return G4HitSet();
 
   // find hitset associated to cluster
   G4HitSet out;
