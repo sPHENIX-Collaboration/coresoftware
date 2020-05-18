@@ -61,11 +61,7 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
 
   if(Verbosity() > 1)
     {
-      if(_embed_only){
-	cout << "embed only true" << endl;
-      }else{
-	cout << "embed only true" << endl;
-      }
+      std::cout << "embed only: " << std::boolalpha << _embed_only << std::endl;
     }
   auto vrange =  _g4truth_container->GetPrimaryVtxRange();
   set<int> gembed_set;
