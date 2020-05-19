@@ -62,8 +62,6 @@ class PHActsTracks : public SubsysReco
   /// Get nodes off node tree needed to execute module
   int getNodes(PHCompositeNode *topNode);
 
-  Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
-
   /**
    * Member variables
    */

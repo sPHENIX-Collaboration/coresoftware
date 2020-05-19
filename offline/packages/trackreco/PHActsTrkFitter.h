@@ -71,10 +71,6 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
-  /// Rotate the covariance from Acts local coordinates back to 
-  /// sPHENIX global coordinates
-  Acts::BoundSymMatrix rotateCovarianceLocalToGlobal(const Acts::KalmanFitterResult<SourceLink>& fitOutput);
-
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
 
