@@ -22,6 +22,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsTrack.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -37,6 +38,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
+  PHActsTrkProp.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -111,16 +113,22 @@ ACTS_SOURCES = \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
+  PHActsTrkProp.cc \
   PHActsTrkFitter.cc
 
+AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
+
 ACTS_LIBS = \
-  -lACTFramework \
   -lActsCore \
+  -lActsFatras \
   -lActsTGeoPlugin \
-  -lACTFWTGeoDetector \
+  -lActsExamplesCommon \
   -lActsTGeoPlugin \
-  -lACTFWFatras \
-  -lACTFWExamplesCommon
+  -lActsExamplesFitting \
+  -lActsExamplesDetectorTGeo \
+  -lActsExamplesFramework \
+  -lActsExamplesIoRoot \
+  -lActsExamplesMagneticField
 endif
 
 libtrack_reco_la_SOURCES = \

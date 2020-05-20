@@ -1,6 +1,8 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
+#include "PHActsSourceLinks.h" 
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -14,6 +16,8 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
+#include "ActsTrack.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -21,32 +25,10 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
-/**
- * A struct that contains an Acts track seed and the corresponding source links,
- * to be put on the node tree by this module.
- * Need to use a struct instead of a std::map because the Acts classes do not 
- * have defined operators for "<", which means they can't be used as keys
- * according to stl libraries
- */
-struct ActsTrack
-{
-  /// Default constructor. There is not a no argument constructor
-  /// as source links don't have a no argument constructor
-  ActsTrack(FW::TrackParameters seed, const std::vector<SourceLink> &links)
-    : trackSeed(seed)
-    , sourceLinks(links)
-  {
-  }
-
-  /// The acts track parameters for this track
-  FW::TrackParameters trackSeed;
-
-  /// The corresponding source links that are associated to the above track
-  std::vector<SourceLink> sourceLinks;
-};
 
 /**
  * This class is responsible for taking SvtxTracks and converting them to track
@@ -67,6 +49,7 @@ class PHActsTracks : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
 
  private:
   /** 
@@ -88,9 +71,8 @@ class PHActsTracks : public SubsysReco
   /// A vector to hold the source links corresponding to a particular SvtxTrack
   std::vector<SourceLink> m_trackSourceLinks;
 
-  /// A map of an Acts track seed and Acts-sPHENIX source links corresponding
-  /// to that track seed
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  /// A map corresponding the ActsTrack instance to the SvtxTrack key
+  std::map<unsigned int , ActsTrack> *m_actsTrackMap;
 
   /// Trackmap that contains SvtxTracks
   SvtxTrackMap *m_trackMap;
@@ -100,6 +82,8 @@ class PHActsTracks : public SubsysReco
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+  ActsTrackingGeometry *m_tGeometry;
 };
 
 #endif

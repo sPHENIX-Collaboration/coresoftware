@@ -371,69 +371,177 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
     return std::set<TrkrDefs::cluskey>();
   }
 
-  if (_do_cache)
-  {
-    std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
-        _cache_all_clusters_from_g4hit.find(truthhit);
-    if (iter != _cache_all_clusters_from_g4hit.end())
+  // one time, fill cache of g4hit/cluster pairs
+  if(_cache_all_clusters_from_g4hit.size() == 0)
+    {
+      // make a map of truthhit, cluster_key inside this loop
+      std::multimap<PHG4HitDefs::keytype, TrkrDefs::cluskey> truth_cluster_map;
+      std::set<PHG4HitDefs::keytype> all_g4hits_set;
+      std::map<PHG4HitDefs::keytype, PHG4Hit*> all_g4hits_map;
+
+      // get all reco clusters
+      TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();      
+
+      if(_verbosity > 1) cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
+      // loop over clusters and get all contributing hits
+      for (TrkrClusterContainer::ConstIterator iter = all_clusters.first; iter != all_clusters.second; ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = iter->first;
+	  int layer = TrkrDefs::getLayer(cluster_key);
+	  TrkrCluster *clus = iter->second;
+	  if(_verbosity > 1) 
+	    {
+	      cout << " layer " << layer << " cluster_key " << cluster_key << " adc " << clus->getAdc() 
+		   << " x " << clus->getX() 
+		   << " y " << clus->getY() 
+		   << " z " << clus->getZ() 
+		   << endl;
+	      cout << "  associated hits:";
+	      TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+	      for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+		{
+		  TrkrDefs::hitkey hitkey = clushititer->second;
+		  cout << " " << hitkey;
+		}
+	      cout << endl;
+	    }
+
+	  // the returned truth hits were obtained from TrkrAssoc maps
+	  std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
+	  for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+	       jter != hits.end();
+	       ++jter)
+	    {
+	      PHG4Hit* candidate = *jter;
+	      PHG4HitDefs::keytype g4hit_key = candidate->get_hit_id();
+
+	      if(_verbosity > 5) 
+		{
+		  int gtrackID = candidate->get_trkid();
+		  cout << "   adding cluster with cluster_key " << cluster_key << " g4hit with g4hit_key " << g4hit_key
+		       << " gtrackID " << gtrackID 
+		       << endl;
+		}
+
+	      all_g4hits_set.insert(g4hit_key);
+	      all_g4hits_map.insert(std::make_pair(g4hit_key, candidate));
+
+	      truth_cluster_map.insert(std::make_pair(g4hit_key, cluster_key));
+	    }	  
+	}
+
+      // now fill the cache
+      // loop over all entries in all_g4hits
+      for(std::set<PHG4HitDefs::keytype>::iterator iter = all_g4hits_set.begin(); iter != all_g4hits_set.end(); ++iter)
+	{
+	  PHG4HitDefs::keytype g4hit_key = *iter;
+	  if(_verbosity > 5) cout << " associations for g4hit_key " << g4hit_key << endl;
+
+	  std::map<PHG4HitDefs::keytype, PHG4Hit*>::iterator it = all_g4hits_map.find(g4hit_key);
+ 	  PHG4Hit *g4hit = it->second;
+
+	  std::set<TrkrDefs::cluskey> assoc_clusters;
+
+	  std::pair<std::multimap<PHG4HitDefs::keytype, TrkrDefs::cluskey>::iterator, 
+		    std::multimap<PHG4HitDefs::keytype, TrkrDefs::cluskey>::iterator>  ret = truth_cluster_map.equal_range(g4hit_key);
+	  for(std::multimap<PHG4HitDefs::keytype, TrkrDefs::cluskey>::iterator jter = ret.first; jter != ret.second; ++jter)
+	    {
+	      assoc_clusters.insert(jter->second);
+
+	      if(_verbosity > 5)  cout << "             g4hit_key " << g4hit_key << " associated with cluster_key " << jter->second << endl; 
+	    }
+	  // done with this g4hit
+	  _cache_all_clusters_from_g4hit.insert(make_pair(g4hit, assoc_clusters));
+	}
+
+    }
+  
+  // get the clusters
+  std::set<TrkrDefs::cluskey> clusters;
+  std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
+    _cache_all_clusters_from_g4hit.find(truthhit);
+  if (iter != _cache_all_clusters_from_g4hit.end())
     {
       return iter->second;
     }
-  }
+
+
   if (_clusters_per_layer.size() == 0)
   {
     fill_cluster_layer_map();
   }
+
+  /*
   std::set<TrkrDefs::cluskey> clusters;
 
-  unsigned int hit_layer = truthhit->get_layer();
-  // loop over all the clusters
+  std::vector<unsigned int> layers;
 
-  multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(hit_layer);
-  if (miter != _clusters_per_layer.end())
-  {
-    const float hit_phi = fast_approx_atan2(truthhit->get_avg_y(), truthhit->get_avg_x());
-
-    if (_verbosity >= 2)
+  unsigned int hit_layer = truthhit->get_layer();  
+  // for the TPC there is no unique relationship between g4hit and layer - it could be +/-1 layers from this
+  if(hit_layer > 6)
     {
-      cout << "SvtxClusterEval::all_clusters_from - hit_phi = " << hit_phi
-           << ", miter->first = " << miter->first
-           << ", clusters_searching_window = " << _clusters_searching_window
-           << ", miter->second.size() = " << miter->second.size()
-           << endl;
+      layers.push_back(hit_layer-1);
+      layers.push_back(hit_layer);
+      layers.push_back(hit_layer+1);
     }
-
-    auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
-    auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
-
-    for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
-         liter != iter_upper_bound;
-         ++liter)
+  else
     {
-      TrkrDefs::cluskey cluster_key = liter->second;
+      layers.push_back(hit_layer);
+    } 
+   
+  // loop over all the clusters that might be associated with this g4hit
+  for(std::vector<unsigned int>::iterator iter = layers.begin(); iter != layers.end(); ++iter)
+    { 
+      unsigned int this_layer = *iter;
 
-      if (TrkrDefs::getLayer(cluster_key) != hit_layer) continue;
+      multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(this_layer);
+      if (miter != _clusters_per_layer.end())
+	{
+	  const float hit_phi = fast_approx_atan2(truthhit->get_avg_y(), truthhit->get_avg_x());
+	  
+	  if (_verbosity >= 2)
+	    {
+	      cout << "SvtxClusterEval::all_clusters_from - hit_phi = " << hit_phi
+		   << ", miter->first = " << miter->first
+		   << ", clusters_searching_window = " << _clusters_searching_window
+		   << ", miter->second.size() = " << miter->second.size()
+		   << endl;
+	    }
 
-      // loop over all truth hits connected to this cluster
-      std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
-      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
-           jter != hits.end();
-           ++jter)
-      {
-        PHG4Hit* candidate = *jter;
-        if (candidate->get_hit_id() == truthhit->get_hit_id())
-        {
-          clusters.insert(cluster_key);
-        }
-      }  //      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+	  auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
+	  auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
+	  
+	  for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
+	       liter != iter_upper_bound;
+	       ++liter)
+	    {
+	      TrkrDefs::cluskey cluster_key = liter->second;
+	      
+	      if (TrkrDefs::getLayer(cluster_key) != this_layer) continue;
+	      
+	      // loop over all truth hits connected to this cluster
+	      std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
+	      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+		   jter != hits.end();
+		   ++jter)
+		{
+		  PHG4Hit* candidate = *jter;
+		  if (candidate->get_hit_id() == truthhit->get_hit_id())
+		    {
+		      //cout << "   adding cluster with cluster_key " << cluster_key << " in this_layer " << this_layer << endl;
+		      clusters.insert(cluster_key);
+		    }
+		}  //      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
+	      
+	    }  //    for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
+	  
+	}  //  if (miter != _clusters_per_layer.end())
 
-    }  //    for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
-
-  }  //  if (miter != _clusters_per_layer.end())
-
-  if (_do_cache) _cache_all_clusters_from_g4hit.insert(make_pair(truthhit, clusters));
-
-  return clusters;
+    } // loop over all layers for g4hit
+  
+  */
+      
+   return clusters;
 }
 
 TrkrDefs::cluskey SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit)

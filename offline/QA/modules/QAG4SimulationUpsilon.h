@@ -4,8 +4,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <memory>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>
 
 #if !defined(__CINT__) || defined(__CLING__)
@@ -25,7 +25,7 @@ class SvtxTrack;
 class QAG4SimulationUpsilon : public SubsysReco
 {
  public:
-  QAG4SimulationUpsilon(const std::string & name = "QAG4SimulationUpsilon");
+  QAG4SimulationUpsilon(const std::string &name = "QAG4SimulationUpsilon");
   virtual ~QAG4SimulationUpsilon() {}
 
   int Init(PHCompositeNode *topNode);
@@ -45,7 +45,6 @@ class QAG4SimulationUpsilon : public SubsysReco
     m_etaRange.first = low;
     m_etaRange.second = high;
   }
-
 
   void setQuarkoniaPID(const int pid)
   {

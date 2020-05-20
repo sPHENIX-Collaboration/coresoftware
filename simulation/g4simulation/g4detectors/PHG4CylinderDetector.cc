@@ -7,6 +7,8 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <phool/phool.h>
+
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -62,10 +64,19 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true
   double radius = m_Params->get_double_param("radius") * cm;
   double thickness = m_Params->get_double_param("thickness") * cm;
+  double length = m_Params->get_double_param("length") * cm;
+  if (!isfinite(radius) || !isfinite(thickness) || !isfinite(length))
+  {
+    cout << PHWHERE << ": Bad Parameters for " << GetName() << endl;
+    cout << "Radius: " << radius << endl;
+    cout << "Thickness: " << thickness << endl;
+    cout << "Length: " << length << endl;
+    gSystem->Exit(1);
+  }
   G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName()),
                                         radius,
                                         radius + thickness,
-                                        m_Params->get_double_param("length") * cm / 2., 0, twopi);
+                                        length / 2., 0, twopi);
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   G4UserLimits *g4userlimits = nullptr;
   if (isfinite(steplimits))

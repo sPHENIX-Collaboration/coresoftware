@@ -54,14 +54,20 @@ int PHG4CrystalCalorimeterSubsystem::Init(PHCompositeNode* topNode)
   // create detector
   if (projective_)
   {
-    cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
+    if (Verbosity() > 1)
+    {
+      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
+    }
     m_Detector = new PHG4ProjCrystalCalorimeterDetector(this, topNode, Name());
     m_Detector->SetTowerMappingFile(mappingfile_);
     m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
   }
   else
   {
-    cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
+    if (Verbosity() > 1)
+    {
+      cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
+    }
     m_Detector = new PHG4CrystalCalorimeterDetector(this, topNode, Name());
     m_Detector->SetTowerMappingFile(mappingfile_);
   }

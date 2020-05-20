@@ -12,6 +12,7 @@
 
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
+#include <Acts/Utilities/Units.hpp>
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -25,18 +26,21 @@
 
 #include <TMatrixDSym.h>
 
+
 PHActsTracks::PHActsTracks(const std::string &name)
   : SubsysReco(name)
-  , m_actsProtoTracks(nullptr)
+  , m_actsTrackMap(nullptr)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
+  , m_tGeometry(nullptr)
 {
   Verbosity(0);
 }
 
 int PHActsTracks::End(PHCompositeNode *topNode)
 {
+
   if (Verbosity() > 10)
   {
     std::cout << "Finished PHActsTracks" << std::endl;
@@ -76,30 +80,32 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
        trackIter != m_trackMap->end(); ++trackIter)
   {
     const SvtxTrack *track = trackIter->second;
+    const unsigned int trackKey = trackIter->first;
+    if (!track)
+      continue;
+
     if (Verbosity() > 1)
     {
       std::cout << "found SvtxTrack " << trackIter->first << std::endl;
       track->identify();
     }
 
-    if (!track)
-      continue;
-
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = getActsCovMatrix(track);
-    const Acts::Vector3D seedPos(track->get_x(),
-                                 track->get_y(),
-                                 track->get_z());
-    const Acts::Vector3D seedMom(track->get_px(),
-                                 track->get_py(),
-                                 track->get_pz());
+    const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
+                                 track->get_y()  * Acts::UnitConstants::cm,
+                                 track->get_z()  * Acts::UnitConstants::cm);
+    const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
+                                 track->get_py() * Acts::UnitConstants::GeV,
+                                 track->get_pz() * Acts::UnitConstants::GeV);
 
-    // just set to 0 for now?
-    const double trackTime = 0;
+    // just set to 10 ns for now?
+    const double trackTime = 10 * Acts::UnitConstants::ns;
     const int trackQ = track->get_charge();
 
-    const FW::TrackParameters trackSeed(seedCov, seedPos,
-                                        seedMom, trackQ, trackTime);
+    const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
+					trackQ * Acts::UnitConstants::e, 
+					trackTime);
 
     /// Start fresh for this track
     trackSourceLinks.clear();
@@ -110,14 +116,19 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       const TrkrDefs::cluskey key = *clusIter;
 
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
-
-      if (Verbosity() > 0)
-      {
-        std::cout << "cluskey " << key
-                  << " has hitid " << hitId
-                  << std::endl;
-      }
+ 
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
+      
+      if (Verbosity() > 100)
+	{
+
+	  
+	  std::cout << std::endl << "cluskey " << key
+		    << " has hitid " << hitId
+		    << std::endl;
+	  std::cout << "Adding the following surface for this SL" << std::endl;
+	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	}
     }
 
     if (Verbosity() > 0)
@@ -129,7 +140,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     }
 
     ActsTrack actsTrack(trackSeed, trackSourceLinks);
-    m_actsProtoTracks->push_back(actsTrack);
+    m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
   }
 
   if (Verbosity() > 20)
@@ -138,83 +149,200 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+int PHActsTracks::ResetEvent(PHCompositeNode *topNode)
+{
+  /// Reset the proto track vector after each event
+  m_actsTrackMap->clear();
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
 {
   Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+  
   const double px = track->get_px();
   const double py = track->get_py();
   const double pz = track->get_pz();
   const double p = sqrt(px * px + py * py + pz * pz);
+  const double phiPos = atan2(track->get_x(), track->get_y());
+  const int charge = track->get_charge();
 
   // Get the track seed covariance matrix
-  // These are the variances, so the std devs are sqrt(seed_cov[i][j])
-  TMatrixDSym seed_cov(6);
+  // These are the variances, so the std devs are sqrt(seedCov[i][j])
+  Acts::BoundSymMatrix seedCov = Acts::BoundSymMatrix::Zero();
+
   for (int i = 0; i < 6; i++)
   {
     for (int j = 0; j < 6; j++)
     {
-      seed_cov[i][j] = track->get_error(i, j);
+      /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
+      /// it in form of (x,y,px,py,pz,time) for acts
+      int row = -1;
+      int col = -1;
+      if( i < 2)
+	row = i;
+      else if ( i < 5)
+	row = i+1;
+      else if (i == 5)
+	row = 2;
+
+      if( j < 2 )
+	col = j;
+      else if ( j < 5 )
+	col = j+1;
+      else if ( j == 5 )
+	col = 2;
+
+      seedCov(i,j) = track->get_error(row, col);
+      
+      /// get the units right, since acts works in mm
+      /// Don't need to multiply by units of GeV since that is Acts default
+      if(i < 2 && j < 2)
+	seedCov(i,j) *= Acts::UnitConstants::cm2;
+      else if (i < 2 && j < 5 )
+	seedCov(i,j) *= Acts::UnitConstants::cm;
+      else if (i < 5 && j < 2 )
+	seedCov(i,j) *= Acts::UnitConstants::cm;
+
     }
   }
-
-  const double sigmap = sqrt(px * px * seed_cov[3][3] + py * py * seed_cov[4][4] + pz * pz * seed_cov[5][5]) / p;
-
-  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
-  // x,y,phi/theta of p, qoverp, time
-  double phi = atan(py / px);
-  if (phi < -1 * M_PI)
-    phi += 2. * M_PI;
-  else if (phi > M_PI)
-    phi -= 2. * M_PI;
-
-  const double pxfracerr = seed_cov[3][3] / (px * px);
-  const double pyfracerr = seed_cov[4][4] / (py * py);
-  const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
-  const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
-  const double theta = acos(pz / p);
-  const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
-  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seed_cov[5][5] / (pz * pz));
-  const double sigmaQOverP = sigmap / (p * p);
-
-  // Just set to 0 for now?
-  const double sigmaTime = 0;
-
-  if (Verbosity() > 10)
-  {
-    std::cout << "Track (px,py,pz,p) = (" << px << "," << py
-              << "," << pz << "," << p << ")" << std::endl;
-    std::cout << "Track covariance matrix: " << std::endl;
-
-    for (int i = 0; i < 6; i++)
+  
+  /// Set the time column/row to 0
+  for(int i = 5; i< 6; i++)
     {
-      for (int j = 0; j < 6; j++)
-      {
-        std::cout << seed_cov[i][j] << ", ";
-      }
-      std::cout << std::endl;
+      for(int j = 0; j <6; j++)
+	{
+	  seedCov(i,j) = 0;
+	  seedCov(j,i) = 0;
+	}
     }
-    std::cout << "Corresponding uncertainty calculations: " << std::endl;
-    std::cout << "perr: " << sigmap << std::endl;
-    std::cout << "phi: " << phi << std::endl;
-    std::cout << "pxfracerr: " << pxfracerr << std::endl;
-    std::cout << "pyfracerr: " << pyfracerr << std::endl;
-    std::cout << "phiPrefactor: " << phiPrefactor << std::endl;
-    std::cout << "sigmaPhi: " << sigmaPhi << std::endl;
-    std::cout << "theta: " << theta << std::endl;
-    std::cout << "thetaPrefactor: " << thetaPrefactor << std::endl;
-    std::cout << "sigmaTheta: " << sigmaTheta << std::endl;
-    std::cout << "sigmaQOverP: " << sigmaQOverP << std::endl;
-  }
+  /// Just give time a 10 ns covariance for now
+  seedCov(5,5) = 10 * Acts::UnitConstants::ns;
 
-  /// Seed covariances are already variances, so don't need to square them
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = seed_cov[0][0];
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = seed_cov[1][1];
-  matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
-  matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
-  matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
-  matrix(Acts::eT, Acts::eT) = sigmaTime;
+  if(Verbosity() > 10)
+    {
+      std::cout << "Initial covariance: " << std::endl;
+      for(int i =0; i<6; i++)
+	{
+	  std::cout << std::endl;
+	  for(int j= 0; j<6; j++)
+	    {
+	      std::cout << track->get_error(i,j) << ", ";
+	    }
 
-  return matrix;
+	}
+
+      std::cout << std::endl << "Shifted covariance " << std::endl;
+      for(int i = 0; i < 6; i++)
+	{
+	  std::cout<<std::endl;
+	  for(int j=0; j<6; j++)
+	    {
+	      std::cout << seedCov(i,j) << ", ";
+
+	    }
+	}
+    }
+
+
+  /// Need to transform from global to local coordinate frame. 
+  /// Amounts to the local transformation as in PHActsSourceLinks as well as
+  /// a rotation from cartesian to spherical coordinates for the momentum
+  /// Rotating from (x_G, y_G, px, py, pz, time) to (x_L, y_L, phi, theta, q/p,time)
+
+  /// Make a unit p vector for the rotation
+  const double uPx = px / p;
+  const double uPy = py / p;
+  const double uPz = pz / p;
+  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
+  
+  /// This needs to rotate to (x_L, y_l, phi, theta, q/p, t)
+  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+
+  /// Local position rotations
+  rotation(0,0) = cos(phiPos);
+  rotation(0,1) = sin(phiPos);
+  rotation(1,0) = -1 * sin(phiPos);
+  rotation(1,1) = cos(phiPos);
+
+  /// Momentum vector rotations
+  /// phi rotation
+  rotation(2,2) = -1 * uPy / (uPx * uPx + uPy * uPy);
+  rotation(2,3) = -1 * uPx / (uPx * uPx + uPy * uPy);
+
+  /// theta rotation
+  /// Leave uP in for clarity, even though it is trivially unity
+  rotation(3,2) = (uPx * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,3) = (uPy * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,4) = (-1 * sqrt(uPx * uPx + uPy * uPy)) / (uP * uP);
+  
+  /// p rotation
+  rotation(4,2) = uPx / uP;
+  rotation(4,3) = uPy / uP;
+  rotation(4,4) = uPz / uP;
+
+  /// time rotation
+  rotation(5,5) = 1;
+
+  if(Verbosity() > 10 )
+    {
+      std::cout << std::endl << "Rotation matrix is : " << std::endl;
+      for(int i = 0; i < 6; i++)
+	{
+	  std::cout << std::endl;
+	  for(int j = 0 ; j < 6 ; j++)
+	    {
+	      std::cout<< rotation(i,j) << ", ";
+	    }
+	}
+
+    }
+
+  /// Rotate the covariance matrix by the jacobian rotation matrix
+  matrix = rotation * seedCov * rotation.transpose();
+
+  if(Verbosity() > 10)
+    {
+      std::cout << std::endl << "Acts rotated covariance " << std::endl;
+      for(int i = 0; i < 6; i++)
+	{
+	  for(int j=0; j<6; j++)
+	    {
+	      std::cout << matrix(i,j) << ", ";
+	      
+	    }
+	  
+	  std::cout << std::endl;
+	}
+    }
+
+  /// Rotate again to get q/p instead of p
+  Acts::BoundSymMatrix qprotation = Acts::BoundSymMatrix::Zero();
+  qprotation(0,0) = 1;
+  qprotation(1,1) = 1;
+  qprotation(2,2) = 1;
+  qprotation(3,3) = 1;
+  qprotation(4,4) = charge * charge / (p * p * p * p);
+  qprotation(5,5) = 1;
+  
+  Acts::BoundSymMatrix finalMatrix = Acts::BoundSymMatrix::Zero();
+  finalMatrix = qprotation * matrix * qprotation.transpose();
+  
+    if(Verbosity() > 10)
+    {
+      std::cout << std::endl << "Acts rotated rotated covariance " << std::endl;
+      for(int i = 0; i < 6; i++)
+	{
+	  std::cout << std::endl;
+	  for(int j=0; j<6; j++)
+	    {
+	      std::cout << finalMatrix(i,j) << ", ";
+	      
+	    }
+	}
+    }
+  
+  return finalMatrix;
 }
 
 void PHActsTracks::createNodes(PHCompositeNode *topNode)
@@ -237,17 +365,16 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsProtoTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
+  m_actsTrackMap = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  
+  if(!m_actsTrackMap)
+    {
+      m_actsTrackMap = new std::map<unsigned int, ActsTrack>;
+      PHDataNode<std::map<unsigned int, ActsTrack>> *actsTrackMapNode = 
+	new PHDataNode<std::map<unsigned int, ActsTrack>>(m_actsTrackMap, "ActsTrackMap");
+      svtxNode->addNode(actsTrackMapNode);
+    }
 
-  if (!m_actsProtoTracks)
-  {
-    m_actsProtoTracks = new std::vector<ActsTrack>;
-
-    PHDataNode<std::vector<ActsTrack>> *protoTrackNode =
-        new PHDataNode<std::vector<ActsTrack>>(m_actsProtoTracks, "ActsProtoTracks");
-
-    svtxNode->addNode(protoTrackNode);
-  }
 
   return;
 }
@@ -272,6 +399,15 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "ActsTrackingGeometry not on node tree, exiting."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
 

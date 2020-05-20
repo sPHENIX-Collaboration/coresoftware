@@ -8,26 +8,43 @@
  * \date $Date: $
  */
 
+#include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllInputManager.h>
+#include <fun4all/Fun4AllDummyInputManager.h>
+#include <fun4all/Fun4AllOutputManager.h>
+#include <fun4all/Fun4AllDstInputManager.h>
+#include <fun4all/Fun4AllNoSyncDstInputManager.h>
+#include <fun4all/Fun4AllDstOutputManager.h>
+#include <phool/recoConsts.h>
+#include <phgeom/PHGeomUtility.h>
+
+#include <TEveManager.h>
+#include <TGLViewer.h>
+#include <TGLUtil.h>
+#include <TGLClip.h>
+#include <TGeoManager.h>
+#include <TROOT.h>
+#include <TGeoManager.h>
+#include <TEveGeoNode.h>
+
 #include <cassert>
+#include <string>
+
+using namespace std;
+
+R__LOAD_LIBRARY(libphgeom.so)
+R__LOAD_LIBRARY(libg4dst.so)
+R__LOAD_LIBRARY(libfun4all.so)
+
 
 //! Quick inspection of PHGeoTGeo object in RUN/GEOMETRY node inside a DST file
 //! Based on abhisek's display macro
 void
-PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root",
+PHGeom_DSTInspection(string DST_file_name = "G4sPHENIX.root",
     bool do_clip = true)
 {
   TEveManager::Create();
-
-
-  // main lib
-  gSystem->Load("libphgeom.so");
-
-  // in case DST contains sPHENIX stuff
-  gSystem->Load("libg4calo.so");
-  gSystem->Load("libg4vertex.so");
-  gSystem->Load("libcalotrigger_io.so");
-  gSystem->Load("libg4eval.so");
-
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);

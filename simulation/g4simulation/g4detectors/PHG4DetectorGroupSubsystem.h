@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 #include <string>
-#include <utility>                 // for make_pair, pair
+#include <utility>  // for make_pair, pair
 
 class PHCompositeNode;
 class PHParametersContainer;
@@ -72,7 +72,8 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   const std::string SuperDetector() const { return m_SuperDetector; }
   int GetLayer() const { return m_Layer; }
   virtual void SetDefaultParameters() = 0;  // this one has to be implemented by the daughter
- protected:                                 // those cannot be executed on the cmd line
+
+ protected:  // those cannot be executed on the cmd line
   PHG4DetectorGroupSubsystem(const std::string &name = "GenericSubsystem", const int lyr = 0);
   // these initialize the defaults and add new entries to the
   // list of variables. This should not be possible from the macro to

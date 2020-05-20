@@ -11,6 +11,7 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+#include <phool/PHTimer.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
@@ -27,6 +28,8 @@
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
+
+#include <TNtuple.h>
 
 // rootcint does not like M_PI in the default arguments (the dict.cc file
 // translates this into a string and does not convert M_PI to its definition)
@@ -71,14 +74,14 @@ class PHCASeeding : public PHTrackSeeding
  public:
   PHCASeeding(
       const std::string &name = "PHCASeeding",
-      unsigned int nlayers_maps = 3,
-      unsigned int nlayers_intt = 4,
-      unsigned int nlayers_tpc = 48,
+      const unsigned int nlayers_maps = 3,
+      const unsigned int nlayers_intt = 4,
+      const unsigned int nlayers_tpc = 48,
       unsigned int start_layer = 55,
       float cluster_z_error = 0.015,
       float cluster_alice_y_error = 0.015,
-      float neighbor_phi_width = M_PI/6,
-      float neighbor_eta_width = 1,
+      float neighbor_phi_width = .05,
+      float neighbor_eta_width = .01,
       float maxSinPhi = 0.999,
       float Bz = 14*0.000299792458f);
 
@@ -96,7 +99,7 @@ class PHCASeeding : public PHTrackSeeding
   virtual int Setup(PHCompositeNode *topNode);
   virtual int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
-
+  int FindSeedsLayerSkip(double cosTheta_limit,TNtuple* NT,PHTimer* t);
   virtual int End();
 
  private:
@@ -118,7 +121,6 @@ class PHCASeeding : public PHTrackSeeding
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
   void FillTree();
-
 #if !defined(__CINT__) || defined(__CLING__)
   double pointKeyToTuple(pointKey *pK);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
@@ -133,9 +135,9 @@ class PHCASeeding : public PHTrackSeeding
   //std::vector<int> _seeding_layer;
   SvtxVertex *_vertex;
 
-  unsigned int _nlayers_maps;
-  unsigned int _nlayers_intt;
-  unsigned int _nlayers_tpc;
+  const unsigned int _nlayers_maps;
+  const unsigned int _nlayers_intt;
+  const unsigned int _nlayers_tpc;
   unsigned int _start_layer;
   float _cluster_z_error;
   float _cluster_alice_y_error;
