@@ -29,6 +29,21 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 
   printMatrix("Initial covariance :", svtxTrackCov);
 
+  /// Need to make sure units are what acts expects. Acts defaults to mm and GeV
+  /// so covariance entries with position component must be multiplied by 10
+  for(int i = 0; i < 6; ++i)
+    {
+      for(int j = 0; j < 6; ++j)
+	{
+	  if(i < 3 && j < 3)
+	    svtxTrackCov(i,j) *= Acts::UnitConstants::cm2;
+	  else if(i < 3 || j < 3)
+	    svtxTrackCov(i,j) *= Acts::UnitConstants::cm;	  
+	}
+    }
+
+  printMatrix("Unit converted matrix is : ", svtxTrackCov);
+
   /// Construct the jacobian transformation matrix. Can be determined
   /// by writing Acts quantities in terms of (x,y,z,px,py,pz) and taking
   /// derivatives
@@ -61,9 +76,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 
   /// Rotate to p. Since p is a unit vector it is trivially 1 but leave it
   /// in for clarity
-  rotation(4,3) = uPx / uP;
-  rotation(4,4) = uPy / uP;
-  rotation(4,5) = uPz / uP;
+  rotation(4,3) = uPx / (uP);
+  rotation(4,4) = uPy / (uP);
+  rotation(4,5) = uPz / (uP);
 
   /// time component is 0, so we have no entries for rotation(5,j)
 
@@ -83,22 +98,11 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   qprotation(4,4) = charge * charge / (p * p * p * p);
   qprotation(5,5) = 1;
   
-  matrix = qprotation * matrix * rotation.transpose();
+  Acts::BoundSymMatrix finalmatrix = qprotation * matrix * rotation.transpose();
 
-  /// Need to make sure units are what acts expects. Acts defaults to mm and GeV
-  /// so covariance entries with position component must be multiplied by 10
-  for(int i = 0; i < 6; ++i)
-    {
-      for(int j = 0; j < 6; ++j)
-	{
-	  if(i < 2 && j < 2)
-	    matrix(i,j) *= Acts::UnitConstants::cm2;
-	  else if((i < 2 && j < 5) || (i < 5 && j < 2))
-	    matrix(i,j) *= Acts::UnitConstants::cm;	  
-	}
-    }
+  printMatrix("rotated q/p matrix is : ", finalmatrix);
 
-  return matrix;
+  return finalmatrix;
 }
 
 
@@ -106,8 +110,6 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
                      const Acts::KalmanFitterResult<SourceLink>& fitOutput)
 {
 
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-  
   const auto& params = fitOutput.fittedParameters.value();
   auto covarianceMatrix = *params.covariance();
   
@@ -130,9 +132,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
       for(int j = 0; j < 6; ++j)
 	{
 	  if(i < 2 && j < 2)
-	    matrix(i,j) /= Acts::UnitConstants::cm2;
+	    covarianceMatrix(i,j) /= Acts::UnitConstants::cm2;
 	  else if((i < 2 && j < 5) || (i < 5 && j < 2))
-	    matrix(i,j) /= Acts::UnitConstants::cm;	  
+	    covarianceMatrix(i,j) /= Acts::UnitConstants::cm;	  
 	}
     }
 
@@ -181,13 +183,11 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   
   printMatrix("Rotation matrix is ", rotation);
 
-  matrix = rotation * covarianceMatrix * rotation.transpose();
+  covarianceMatrix = rotation * covarianceMatrix * rotation.transpose();
 
-  printMatrix("Rotated matrix is : ", matrix);
+  printMatrix("Rotated matrix is : ", covarianceMatrix);
 
- 
-
-  return matrix;
+  return covarianceMatrix;
 }
 
 
@@ -206,6 +206,7 @@ void ActsCovarianceRotater::printMatrix(const std::string message,
 	      std::cout << matrix(i,j) << ", ";
 	    }
 	}
+    
+      std::cout << std::endl;
     }
-
 }
