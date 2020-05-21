@@ -76,8 +76,6 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
-  Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
-
   ActsTrackingGeometry *m_tGeometry;
 
   /// Track map with Svtx objects
