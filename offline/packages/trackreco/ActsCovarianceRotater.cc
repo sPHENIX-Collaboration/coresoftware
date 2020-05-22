@@ -40,24 +40,36 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   const double cosTheta = uPz;
   const double sinTheta = sqrt(uPx * uPx + uPy * uPy);
   const double invSinTheta = 1. / sinTheta;
-  const double cosPhi = uPx * invSinTheta;
-  const double sinPhi = uPy * invSinTheta;
+  const double cosPhi = uPx * invSinTheta; // equivalent to x/r
+  const double sinPhi = uPy * invSinTheta; // equivalent to y/r
     
+  const double x = track->get_x();
+  const double y = track->get_y();
+  const double z = track->get_z();
+  const double r = sqrt(x*x + y*y + z*z);
+  
+  const double posCosTheta = z / r;
+  const double posSinTheta = sqrt(x*x + y*y) / r;
+  const double posInvSinTheta = 1. / posSinTheta;
+  const double posCosPhi = x * posInvSinTheta;
+  const double posSinPhi = y * posInvSinTheta;
+
   /// Position rotation to Acts loc0 and loc1, which are the local points
   /// on a surface centered at the (x,y,z) global position with normal
   /// vector in the direction of the unit momentum vector
-  rotation(0, 0) = -sinPhi;
-  rotation(0, 1) = cosPhi;
-  rotation(1, 0) = -cosPhi * cosTheta;
-  rotation(1, 1) = -sinPhi * cosTheta;
-  rotation(1, 2) = sinTheta;
+ 
+  rotation(0,0) = -posSinPhi;
+  rotation(0,1) = posCosPhi;
+  rotation(1,0) = -posCosPhi * posCosTheta;
+  rotation(1,1) = -posSinPhi * posCosTheta;
+  rotation(1,2) = posSinTheta;
 
   // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p*sinPhi * sinTheta;
-  rotation(2, 4) = p*cosPhi * sinTheta;
-  rotation(3, 3) = p*cosPhi * cosTheta;
-  rotation(3, 4) = p*sinPhi * cosTheta;
-  rotation(3, 5) = -p*sinTheta;
+  rotation(2, 3) = -p * sinPhi * sinTheta;
+  rotation(2, 4) = p * cosPhi * sinTheta;
+  rotation(3, 3) = p * cosPhi * cosTheta;
+  rotation(3, 4) = p * sinPhi * cosTheta;
+  rotation(3, 5) = -p * sinTheta;
   
   ///q/p rotaton
   // p_i/p transforms from px -> p, and charge/p^4 transforms from

@@ -78,7 +78,6 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   std::vector<FW::TrackParameters> trackSeeds;
 
   ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
-  rotater->setVerbosity(true);
   
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)

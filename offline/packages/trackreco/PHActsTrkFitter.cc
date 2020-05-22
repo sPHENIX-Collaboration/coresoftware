@@ -58,7 +58,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
-	       Acts::Logging::VERBOSE);
+	       Acts::Logging::INFO);
 
   if(m_timeAnalysis)
     {
@@ -191,7 +191,6 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
   if(params.covariance())
     {
       ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
-      rotater->setVerbosity(true);
       Acts::BoundSymMatrix rotatedCov = 
 	rotater->rotateActsCovToSvtxTrack(fitOutput);
       
