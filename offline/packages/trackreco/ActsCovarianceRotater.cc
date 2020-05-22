@@ -4,105 +4,77 @@
 Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 	             const SvtxTrack *track)
 {
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-
-  const double x = track->get_x();
-  const double y = track->get_y();
-
-  const double px = track->get_px();
-  const double py = track->get_py();
-  const double pz = track->get_pz();
-  const double p = sqrt(px * px + py * py + pz * pz);
-
-  const double phiPos = atan2(y,x);
-  const int charge = track->get_charge();
-
-  Acts::BoundSymMatrix svtxTrackCov = Acts::BoundSymMatrix::Zero();
+  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+  Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
   
-  for (int i = 0; i < 6; ++i)
-    {
-      for (int j = 0; j < 6; ++j)
-	{
-	  svtxTrackCov(i,j) = track->get_error(i,j);
-	}
-    }
-
-  printMatrix("Initial covariance :", svtxTrackCov);
-
-  /// Need to make sure units are what acts expects. Acts defaults to mm and GeV
-  /// so covariance entries with position component must be multiplied by 10
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
 	{
+	  svtxCovariance(i,j) = track->get_error(i,j);
+	  
+	  /// Convert Svtx to mm and GeV units as Acts expects
 	  if(i < 3 && j < 3)
-	    svtxTrackCov(i,j) *= Acts::UnitConstants::cm2;
-	  else if(i < 3 || j < 3)
-	    svtxTrackCov(i,j) *= Acts::UnitConstants::cm;	  
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
+	  else if (i < 3)
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+	  else if (j < 3)
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+	  
 	}
     }
 
-  printMatrix("Unit converted matrix is : ", svtxTrackCov);
-
-  /// Construct the jacobian transformation matrix. Can be determined
-  /// by writing Acts quantities in terms of (x,y,z,px,py,pz) and taking
-  /// derivatives
-  /// Rotation matrix does not need units because everything is defined
-  /// in a unitless way, intentionally
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
-
-  /// Make a unit p vector for the rotation
+  printMatrix("OG svtx covariance : ", svtxCovariance);
+ 
+  const double px = track->get_px();
+  const double py = track->get_py();
+  const double pz = track->get_pz();
+  const int charge = track->get_charge();
+  const double p = sqrt(px*px + py*py + pz*pz);
+  
   const double uPx = px / p;
   const double uPy = py / p;
   const double uPz = pz / p;
-  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
 
-  /// d0 = sqrt(x*x + y*y) when reference point is at (0,0,0)
-  rotation(0,0) = cos(phiPos);
-  rotation(0,1) = sin(phiPos);
+  //Acts version
+  const double cosTheta = uPz;
+  const double sinTheta = sqrt(uPx * uPx + uPy * uPy);
+  const double invSinTheta = 1. / sinTheta;
+  const double cosPhi = uPx * invSinTheta;
+  const double sinPhi = uPy * invSinTheta;
+    
+  /// Position rotation to Acts loc0 and loc1, which are the local points
+  /// on a surface centered at the (x,y,z) global position with normal
+  /// vector in the direction of the unit momentum vector
+  rotation(0, 0) = -sinPhi;
+  rotation(0, 1) = cosPhi;
+  rotation(1, 0) = -cosPhi * cosTheta;
+  rotation(1, 1) = -sinPhi * cosTheta;
+  rotation(1, 2) = sinTheta;
 
-  /// z to z0 rotation is trivial
-  rotation(1,2) = 1;
+  // Directional and momentum parameters for curvilinear
+  rotation(2, 3) = -p*sinPhi * sinTheta;
+  rotation(2, 4) = p*cosPhi * sinTheta;
+  rotation(3, 3) = p*cosPhi * cosTheta;
+  rotation(3, 4) = p*sinPhi * cosTheta;
+  rotation(3, 5) = -p*sinTheta;
   
-  /// Rotating px,py,pz to phi, theta, p is just a rotation from cartesian to spherical
-  /// Rotate to phi
-  rotation(2,3) = -1 * uPy / (uPx * uPx + uPy * uPy);
-  rotation(2,4) = uPx / (uPx * uPx + uPy * uPy);
+  ///q/p rotaton
+  // p_i/p transforms from px -> p, and charge/p^4 transforms from
+  // p -> q/p
+  // d(p)/dpx = px/p
+  // var(q/p) = (d(1/p)/dp)^2 * var(p) = (-1/p^2)^2 * var(p)
+  rotation(4,3) = charge * px / pow(p,5);
+  rotation(4,4) = charge * py / pow(p,5);
+  rotation(4,5) = charge * pz / pow(p,5);
 
-  /// Rotate to theta. Leave uP in for clarity even though it is trivially 1
-  rotation(3,3) = uPx * uPz / (uP* uP * sqrt(uPx * uPx + uPy * uPy));
-  rotation(3,4) = uPy * uPz / (uP * uP * sqrt(uPx * uPx + uPy * uPy));
-  rotation(3,5) = -1 * sqrt(uPx * uPx + uPy * uPy) / (uP * uP);
+  /// time is left as 0
+  printMatrix("United svtxCov is : " , svtxCovariance);
+  printMatrix("rotation is : ",rotation);
+  Acts::BoundSymMatrix matrix = rotation * svtxCovariance * rotation.transpose();
+  printMatrix("Rotated is : ",matrix);
+  return matrix;
 
-  /// Rotate to p. Since p is a unit vector it is trivially 1 but leave it
-  /// in for clarity
-  rotation(4,3) = uPx / (uP);
-  rotation(4,4) = uPy / (uP);
-  rotation(4,5) = uPz / (uP);
-
-  /// time component is 0, so we have no entries for rotation(5,j)
-
-  printMatrix("Rotation matrix is : ", rotation);
-
-  matrix = rotation * svtxTrackCov * rotation.transpose();
-
-  printMatrix("Rotated matrix is : ", matrix);
-
-  /// Now rotate to q/p, which is mostly trivial
-  Acts::BoundSymMatrix qprotation = Acts::BoundSymMatrix::Zero();
-  qprotation(0,0) = 1;
-  qprotation(1,1) = 1;
-  qprotation(2,2) = 1;
-  qprotation(3,3) = 1;
-  /// var(q/p) = (d(1/p)/dp)^2 * var(p) = (-1/p^2)^2 * var(p), from acts devel
-  qprotation(4,4) = charge * charge / (p * p * p * p);
-  qprotation(5,5) = 1;
-  
-  Acts::BoundSymMatrix finalmatrix = qprotation * matrix * rotation.transpose();
-
-  printMatrix("rotated q/p matrix is : ", finalmatrix);
-
-  return finalmatrix;
 }
 
 
@@ -119,75 +91,66 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   const double py = params.momentum()(1);
   const double pz = params.momentum()(2);
   const double p = sqrt(px * px + py * py + pz * pz);
-  
-  const double x = params.position()(0);
-  const double y = params.position()(1);
 
   const int charge = params.charge();
-  const double phiPos = atan2(x, y);
+  
+  const double uPx = px / p;
+  const double uPy = py / p;
+  const double uPz = pz / p;
+  
+  const double cosTheta = uPz;
+  const double sinTheta = sqrt(uPx * uPx + uPy * uPy);
+  const double invSinTheta = 1. / sinTheta;
+  const double cosPhi = uPx * invSinTheta;
+  const double sinPhi = uPy * invSinTheta;
 
-  /// Return to sPHENIX units of cm
+  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+
+  /// This is the original matrix we rotated by. So instead of rotating
+  /// as normal RCR^T, we will just rotate back by rotating by the same 
+  /// matrix as R^TCR
+  rotation(0, 0) = -sinPhi;
+  rotation(0, 1) = cosPhi;
+  rotation(1, 0) = -cosPhi * cosTheta;
+  rotation(1, 1) = -sinPhi * cosTheta;
+  rotation(1, 2) = sinTheta;
+
+  // Directional and momentum parameters for curvilinear
+  rotation(2, 3) = -p*sinPhi * sinTheta;
+  rotation(2, 4) = p*cosPhi * sinTheta;
+  rotation(3, 3) = p*cosPhi * cosTheta;
+  rotation(3, 4) = p*sinPhi * cosTheta;
+  rotation(3, 5) = -p*sinTheta;
+  
+  ///q/p rotaton
+  rotation(4,3) = charge * px / pow(p,5);
+  rotation(4,4) = charge * py / pow(p,5);
+  rotation(4,5) = charge * pz / pow(p,5);
+
+  printMatrix("Rotating back to global with : ", rotation.transpose());
+
+  Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();
+  globalCov = rotation.transpose() * covarianceMatrix * rotation;
+
+
+  /// convert back to sPHENIX coordinates of cm
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
 	{
-	  if(i < 2 && j < 2)
-	    covarianceMatrix(i,j) /= Acts::UnitConstants::cm2;
-	  else if((i < 2 && j < 5) || (i < 5 && j < 2))
-	    covarianceMatrix(i,j) /= Acts::UnitConstants::cm;	  
+	  if(i < 3 && j < 3)
+	    globalCov(i,j) /= Acts::UnitConstants::cm2;
+	  else if (i < 3)
+	    globalCov(i,j) /= Acts::UnitConstants::cm;
+	  else if (j < 3)
+	    globalCov(i,j) /= Acts::UnitConstants::cm;
 	}
     }
 
-  /// First rotate the covariance matrix from (d0,z0,phi,theta,q/p,t) 
-  /// to (d0,z0,phi,theta,p,t) since it is easier to work with
-  Acts::BoundSymMatrix qprotation = Acts::BoundSymMatrix::Zero();
-  qprotation(0,0) = 1;
-  qprotation(1,1) = 1;
-  qprotation(2,2) = 1;
-  qprotation(3,3) = 1;
-  /// var(q/p) = (d(1/p)/dp)^2 * var(p) = (-1/p^2)^2 * var(p)
-  qprotation(4,4) = (p * p * p * p) / (charge * charge);
-  qprotation(5,5) = 1;
+  printMatrix("Global sPHENIX cov : ", globalCov);
 
-  covarianceMatrix = qprotation * covarianceMatrix * qprotation.transpose();
 
-  /// Make a unit vector for transformation matrix
-  const double uPx = px / p;
-  const double uPy = py / p;
-  const double uPz = pz / p;
-  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
-
-  const double cosphi = uPx / uP;
-  const double sinphi = uPy / uP;
-  const double rho = sqrt(uP * uP - uPz * uPz);
-  const double sintheta = rho / uP;
-  const double costheta = uPz / uP;
-
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
-  /// Rotate from d0, z0 to x,y,z. Again, assumes reference point of 0,0,0
-  rotation(0,0) = cos(phiPos);
-  rotation(1,0) = sin(phiPos);
-
-  /// z pos trivial
-  rotation(2,1) = 1;
-
-  /// Leave uP in for clarity even though it is trivially 1
-  rotation(3,2) = -1 * uP * sintheta * sinphi;
-  rotation(3,3) = uP * costheta * cosphi;
-  rotation(3,4) = sintheta * cosphi;
-  rotation(4,2) = uP * sintheta * cosphi;
-  rotation(4,3) = uP * costheta * sinphi;
-  rotation(4,4) = sintheta * sinphi;
-  rotation(5,3) = -1 * uP * sintheta;
-  rotation(5,4) = costheta;
-  
-  printMatrix("Rotation matrix is ", rotation);
-
-  covarianceMatrix = rotation * covarianceMatrix * rotation.transpose();
-
-  printMatrix("Rotated matrix is : ", covarianceMatrix);
-
-  return covarianceMatrix;
+  return globalCov;
 }
 
 
