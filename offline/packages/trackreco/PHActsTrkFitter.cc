@@ -8,6 +8,7 @@
 #include "PHActsTrkFitter.h"
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
+#include "ActsCovarianceRotater.h"
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -79,7 +80,10 @@ int PHActsTrkFitter::Process()
   }
 
 
-  /// Construct a perigee surface as the target surface (?)
+  /// Construct a perigee surface as the target surface
+  /// This surface is what Acts fits with respect to. So we put it
+  /// at 0 so that the fitter is fitting with respect to the global 
+  /// position. Presumably we could put this as the zvertex
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	          Acts::Vector3D{0., 0., 0.});
 
@@ -186,144 +190,21 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
 
   if(params.covariance())
     {
-   
-      Acts::BoundSymMatrix rotatedCov = rotateCovarianceLocalToGlobal(fitOutput);
+      ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+      Acts::BoundSymMatrix rotatedCov = 
+	rotater->rotateActsCovToSvtxTrack(fitOutput);
+      
       for(int i = 0; i < 6; i++)
-	for(int j = 0; j < 6; j++)
-	  track->set_error(i,j, rotatedCov(i,j));
+	{
+	  for(int j = 0; j < 6; j++)
+	    {
+	      track->set_error(i,j, rotatedCov(i,j));
+	    }
+	}
     }
  
   return;
 
-}
-
-Acts::BoundSymMatrix PHActsTrkFitter::rotateCovarianceLocalToGlobal(
-                     const Acts::KalmanFitterResult<SourceLink>& fitOutput)
-{
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-  
-  const auto& params = fitOutput.fittedParameters.value();
-  auto covarianceMatrix = *params.covariance();
-
-  const double px = params.momentum()(0);
-  const double py = params.momentum()(1);
-  const double pz = params.momentum()(2);
-  const double p = sqrt(px * px + py * py + pz * pz);
-  
-  const double x = params.position()(0);
-  const double y = params.position()(1);
-
-  const int charge = params.charge();
-  const double phiPos = atan2(x, y);
-
-  /// We need to rotate the opposite of what was done in PHActsTracks.
-  /// So first rotate from (x_l, y_l, phi, theta, q/p, time) to 
-  /// (x_l, y_l, phi, theta, p, time)
-
-  Acts::BoundSymMatrix qprotation = Acts::BoundSymMatrix::Zero();
-  qprotation(0,0) = 1;
-  qprotation(1,1) = 1;
-  qprotation(2,2) = 1;
-  qprotation(3,3) = 1;
-  qprotation(4,4) = charge * charge / (p * p * p * p);
-  qprotation(5,5) = 1;
-  
-  /// Want the inverse of the rotation matrix from PHActsTracks 
-  /// because we are rotating back from local to global. So we do R^TCR 
-  /// rather than RCR^T
-  matrix = qprotation.transpose() * covarianceMatrix * qprotation;
-
-  /// Now rotate to (x_g, y_g, px, py, pz, t)
-  /// Make a unit p vector for the rotation
-  const double uPx = px / p;
-  const double uPy = py / p;
-  const double uPz = pz / p;
-  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
-  
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
-  /// Local position rotations
-  rotation(0,0) = cos(phiPos);
-  rotation(0,1) = sin(phiPos);
-  rotation(1,0) = -1 * sin(phiPos);
-  rotation(1,1) = cos(phiPos);
-
-  /// Momentum vector rotations
-  /// phi rotation
-  rotation(2,2) = -1 * uPy / (uPx * uPx + uPy * uPy);
-  rotation(2,3) = -1 * uPx / (uPx * uPx + uPy * uPy);
-
-  /// theta rotation
-  /// Leave uP in for clarity, even though it is trivially unity
-  rotation(3,2) = (uPx * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
-  rotation(3,3) = (uPy * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
-  rotation(3,4) = (-1 * sqrt(uPx * uPx + uPy * uPy)) / (uP * uP);
-  
-  /// p rotation
-  rotation(4,2) = uPx / uP;
-  rotation(4,3) = uPy / uP;
-  rotation(4,4) = uPz / uP;
-
-  /// time rotation
-  rotation(5,5) = 1;
-  /// Undoing the rotation, so R^TCR instead of RCR^T
-  matrix = rotation.transpose() * matrix * rotation;
-  
-  if(Verbosity() > 20)
-    {
-      std::cout<<"Rotated Matrix"<<std::endl;
-      for(int i =0;i<6; i++)
-	{
-	  for(int j =0; j<6; j++)
-	    std::cout<<matrix(i,j)<<", ";
-	  std::cout<<std::endl;
-	}
-    }
-
-  /// Now matrix is in basis (x_g, y_g, px, py, pz, t)
-  /// Shift rows and columns to get like (x_g, y_g, z, px, py, pz)
-  Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
-  for(int i = 0; i < 6; i++ )
-    {
-      for(int j = 0; j < 6; j++ )
-	{
-	  int row = -1;
-	  int col = -1;
-	  if( i < 2)
-	    row = i;
-	  else if ( i < 5)
-	    row = i+1;
-	  else if (i == 5)
-	    row = 2;
-	  
-	  if( j < 2 )
-	    col = j;
-	  else if ( j < 5 )
-	    col = j+1;
-	  else if ( j == 5 )
-	    col = 2;
-	  
-	  svtxCovariance(row,col) = matrix(i, j);
-	  
-	  if(row < 2 && col < 2)
-	    svtxCovariance(row,col) /= Acts::UnitConstants::cm2;
-	  else if(row < 2 && col < 5)
-	    svtxCovariance(row,col) /= Acts::UnitConstants::cm;
-	  else if (row < 5 && col < 2)
-	    svtxCovariance(row,col) /= Acts::UnitConstants::cm;
-	}
-    }
-  if(Verbosity() > 20)
-    {
-      std::cout << "shiftd matrix"<<std::endl;
-      for(int i =0;i<6;i++)
-	{
-	  for(int j =0;j<6; j++)
-	    std::cout<<svtxCovariance(i,j)<<", ";
-	  std::cout<<std::endl;
-	}
-    }
-
-  return svtxCovariance;
 }
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)

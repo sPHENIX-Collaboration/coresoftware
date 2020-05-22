@@ -2,6 +2,7 @@
 #include "PHActsTrkProp.h"
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
+#include "ActsCovarianceRotater.h"
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -123,6 +124,9 @@ int PHActsTrkProp::Process()
       ++slIter;
     }
 
+  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  
+
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)
     {
@@ -138,7 +142,7 @@ int PHActsTrkProp::Process()
 	}
       
       /// Get the necessary parameters and values for the TrackParameters
-      const Acts::BoundSymMatrix seedCov = getActsCovMatrix(track);
+      const Acts::BoundSymMatrix seedCov = rotater->rotateSvtxTrackCovToActs(track);
       const Acts::Vector3D seedPos(track->get_x(),
 				   track->get_y(),
 				   track->get_z());
@@ -219,82 +223,6 @@ int PHActsTrkProp::End()
     std::cout << "Finished PHActsTrkProp" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
-{
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-    const double px = track->get_px();
-  const double py = track->get_py();
-  const double pz = track->get_pz();
-  const double p = sqrt(px * px + py * py + pz * pz);
-  const double phiPos = atan2(track->get_x(), track->get_y());
-  const int charge = track->get_charge();
-  // Get the track seed covariance matrix
-  // These are the variances, so the std devs are sqrt(seedCov[i][j])
-  Acts::BoundSymMatrix seedCov = Acts::BoundSymMatrix::Zero();
-  for (int i = 0; i < 5; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
-      /// it in form of (x,y,px,py,pz,time) for acts
-      if(i < 2) /// get x,y components
-	seedCov(i, j) = track->get_error(i, j);
-      else if(i < 5) /// get px,py,pz components 1 row up
-	seedCov(i,j) = track->get_error(i+1, j);
-      else if (i == 5) /// Get z components, scale by drift velocity
-	seedCov(i,j) = track->get_error(2, j) * 8.; //cm per millisec drift vel
-    }
-  }
-  std::cout<<track->get_x()<<std::endl;
-  /// convert the global z position covariances to timing covariances
-  /// TPC z position resolution is 0.05 cm, drift velocity is 8cm/ms
-  /// --> therefore timing resolution is ~6 microseconds
-  seedCov(5,5) = 6 * Acts::UnitConstants::us;
-
-  /// Need to transform from global to local coordinate frame. 
-  /// Amounts to the local transformation as in PHActsSourceLinks as well as
-  /// a rotation from cartesian to spherical coordinates for the momentum
-  /// Rotating from (x_G, y_G, px, py, pz, time) to (x_L, y_L, phi, theta, q/p,time)
-
-  /// Make a unit p vector for the rotation
-  const double uPx = px / p;
-  const double uPy = py / p;
-  const double uPz = pz / p;
-  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
-  
-  /// This needs to rotate to (x_L, y_l, phi, theta, q/p, t)
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
-
-  /// Local position rotations
-  rotation(0,0) = cos(phiPos);
-  rotation(0,1) = sin(phiPos);
-  rotation(1,0) = -1 * sin(phiPos);
-  rotation(1,1) = cos(phiPos);
-
-  /// Momentum vector rotations
-  /// phi rotation
-  rotation(2,3) = -1 * uPy / (uPx * uPx + uPy * uPy);
-  rotation(2,4) = -1 * uPx / (uPx * uPx + uPy * uPy);
-
-  /// theta rotation
-  /// Leave uP in for clarity, even though it is trivially unity
-  rotation(3,3) = (uPx * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
-  rotation(3,4) = (uPy * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
-  rotation(3,5) = (-1 * sqrt(uPx * uPx + uPy * uPy)) / (uP * uP);
-  
-  /// q/p rotation
-  rotation(4,3) = charge / uPx;
-  rotation(4,4) = charge / uPy;
-  rotation(4,5) = charge / uPz;
-
-  /// time rotation
-  rotation(5,5) = 1;
-
-  matrix = rotation * seedCov * rotation.transpose();
-
-  return matrix;
 }
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
