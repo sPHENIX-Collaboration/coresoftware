@@ -20,10 +20,6 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-// TODO: can this be removed after debug is done? 
-#include <g4jets/JetMap.h>
-#include <g4jets/Jet.h>
-
 #include "ParticleFlowElementContainer.h"
 #include "ParticleFlowElementv1.h"
 
@@ -147,29 +143,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   _pflow_HAD_match_EM.clear();
   _pflow_HAD_match_TRK.clear();
 
-  // TODO: put in truth jet matching just for debug purposes -- undo later...
-
-  float jet_eta = -99;
-  float jet_phi = -99;
-
-  {
-    JetMap* jets = findNode::getClass<JetMap>(topNode,"AntiKt_Truth_r04");
-
-    for (JetMap::Iter iter = jets->begin(); iter != jets->end(); ++iter) {
-      Jet* this_jet = iter->second;
-      
-      if (this_jet->get_pt() < 30 || this_jet->get_pt() > 32.5 || fabs(this_jet->get_eta() ) > 0.6) continue;
-
-      float jet_pt = this_jet->get_pt();
-      jet_phi = this_jet->get_phi();
-      jet_eta = this_jet->get_eta();
-
-      std::cout << " DEBUG Truth R=0.4 jet pt / eta / phi = " << jet_pt << " / " << jet_eta << " / " << jet_phi << std::endl;
-
-    }
-  }
-
-
 
   if ( Verbosity() > 2 ) 
     std::cout << "ParticleFlowReco::process_event : initial population of TRK, EM, HAD objects " << std::endl;
@@ -197,10 +170,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	continue; // only keep |eta| < 1.1
       
       float truth_phi = t.Phi();
-
-      // TODO: DEBUG
-      if ( calculate_dR( truth_eta , jet_eta , truth_phi , jet_phi ) > 0.4 ) continue;
-
       
       int truth_pid = abs( g4particle->get_pid() ); // particle species
 
@@ -236,9 +205,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
 	
-	// TODO: DEBUG
-	if ( calculate_dR( cluster_eta , jet_eta , cluster_phi , jet_phi ) > 0.40 ) continue;
-
 	_pflow_EM_E.push_back( cluster_E );
 	_pflow_EM_eta.push_back( cluster_eta );
 	_pflow_EM_phi.push_back( cluster_phi );
@@ -289,9 +255,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
 	
-	// TODO: DEBUG
-	if ( calculate_dR( cluster_eta , jet_eta , cluster_phi , jet_phi ) > 0.40 ) continue;
-
 	_pflow_HAD_E.push_back( cluster_E );
 	_pflow_HAD_eta.push_back( cluster_eta );
 	_pflow_HAD_phi.push_back( cluster_phi );
@@ -382,7 +345,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       if ( has_overlap ) {
 
-	std::cout << " -> possible match to EM " << em << " with dR = " << dR << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> possible match to EM " << em << " with dR = " << dR << std::endl;
 
 	if ( _pflow_EM_E.at( em ) > max_em_pt ) {
 	  max_em_pt = _pflow_EM_E.at( em );
@@ -392,7 +356,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       } else {
 	
-	std::cout << " -> no match to EM " << em << " (even though dR = " << dR << " )" << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> no match to EM " << em << " (even though dR = " << dR << " )" << std::endl;
 	
       }
 
@@ -402,10 +367,13 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       _pflow_EM_match_TRK.at( min_em_index ).push_back( trk );
       _pflow_TRK_match_EM.at( trk ).push_back( min_em_index );
 
-      std::cout << " -> matched EM with pt / eta / phi = " << _pflow_EM_E.at( min_em_index ) << " / " << _pflow_EM_eta.at( min_em_index ) << " / " << _pflow_EM_phi.at( min_em_index ) << ", dR = " << min_em_dR << std::endl;
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> matched EM with pt / eta / phi = " << _pflow_EM_E.at( min_em_index ) << " / " << _pflow_EM_eta.at( min_em_index ) << " / " << _pflow_EM_phi.at( min_em_index ) << ", dR = " << min_em_dR << std::endl;
       
     } else {
-      std::cout << " -> no EM match! ( best dR = " << min_em_dR << " ) " << std::endl;
+
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> no EM match! ( best dR = " << min_em_dR << " ) " << std::endl;
     }
     
     // TRK -> HAD link
@@ -440,7 +408,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       if ( has_overlap ) {
 
-	std::cout << " -> possible match to HAD " << had << " with dR = " << dR << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> possible match to HAD " << had << " with dR = " << dR << std::endl;
 
 	if ( _pflow_HAD_E.at( had ) > max_had_pt ) {
 	  max_had_pt = _pflow_HAD_E.at( had );
@@ -450,7 +419,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       } else {
 	
-	std::cout << " -> no match to HAD " << had << " (even though dR = " << dR << " )" << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> no match to HAD " << had << " (even though dR = " << dR << " )" << std::endl;
 	
       }
 
@@ -460,10 +430,12 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       _pflow_HAD_match_TRK.at( min_had_index ).push_back( trk );
       _pflow_TRK_match_HAD.at( trk ).push_back( min_had_index );
 
-      std::cout << " -> matched HAD with pt / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> matched HAD with pt / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
       
     } else {
-      std::cout << " -> no HAD match! ( best dR = " << min_had_dR << " ) " << std::endl;
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> no HAD match! ( best dR = " << min_had_dR << " ) " << std::endl;
     }
 
 
@@ -510,7 +482,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       if ( has_overlap ) {
 
-	std::cout << " -> possible match to HAD " << had << " with dR = " << dR << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> possible match to HAD " << had << " with dR = " << dR << std::endl;
 
 	if ( _pflow_HAD_E.at( had ) > max_had_pt ) {
 	  max_had_pt = _pflow_HAD_E.at( had );
@@ -520,7 +493,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       } else {
 	
-	std::cout << " -> no match to HAD " << had << " (even though dR = " << dR << " )" << std::endl;
+	if ( Verbosity() > 5 ) 
+	  std::cout << " -> no match to HAD " << had << " (even though dR = " << dR << " )" << std::endl;
 	
       }
 
@@ -530,10 +504,12 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       _pflow_HAD_match_EM.at( min_had_index ).push_back( em );
       _pflow_EM_match_HAD.at( em ).push_back( min_had_index );
 
-      std::cout << " -> matched HAD with E / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> matched HAD with E / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
       
     } else {
-      std::cout << " -> no HAD match! ( best dR = " << min_had_dR << " ) " << std::endl;
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> no HAD match! ( best dR = " << min_had_dR << " ) " << std::endl;
     }
 
   }

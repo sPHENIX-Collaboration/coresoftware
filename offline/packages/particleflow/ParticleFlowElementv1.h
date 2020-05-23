@@ -1,6 +1,12 @@
 #ifndef PARTICLEFLOW_PARTICLEFLOWELEMENTV1_H
 #define PARTICLEFLOW_PARTICLEFLOWELEMENTV1_H
 
+//===========================================================
+/// \file ParticleFlowElementv1.h
+/// \brief v1 Implementation of ParticleFlowElement base class 
+/// \author Dennis V. Perepelitsa
+//===========================================================
+
 #include "TObject.h"
 
 #include <iostream>
