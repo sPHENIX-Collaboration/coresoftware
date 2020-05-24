@@ -30,7 +30,7 @@ using namespace std;
 
 PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name)
   : SubsysReco(name)
-  , _energy_threshold(0.0)
+  , _energy_threshold(0.95e-6)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
