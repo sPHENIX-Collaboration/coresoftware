@@ -9,16 +9,18 @@ using namespace std;
 
 BEmcRecFEMC::BEmcRecFEMC() : _emcprof(nullptr) 
 {
+  Name("BEmcRecFEMC");
   SetPlanarGeometry();
 }
 
 BEmcRecFEMC::~BEmcRecFEMC()
 {
-  if (_emcprof) delete _emcprof;
+// one can delete null pointers
+  delete _emcprof;
 }
 
 
-void BEmcRecFEMC::LoadProfile(const char *fname) 
+void BEmcRecFEMC::LoadProfile(const string &fname)
 {
   _emcprof = new BEmcProfile(fname); 
 }

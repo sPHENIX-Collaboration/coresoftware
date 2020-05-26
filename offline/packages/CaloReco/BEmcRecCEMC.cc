@@ -6,21 +6,24 @@
 
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 using namespace std;
 
 BEmcRecCEMC::BEmcRecCEMC() : _emcprof(nullptr) 
 {
+  Name("BEmcRecCEMC");
   SetCylindricalGeometry();
 }
 
 BEmcRecCEMC::~BEmcRecCEMC()
 {
-  if (_emcprof) delete _emcprof;
+// you can delete null pointers
+  delete _emcprof;
 }
 
 
-void BEmcRecCEMC::LoadProfile(const char *fname) 
+void BEmcRecCEMC::LoadProfile(const string &fname)
 {
   //  printf("Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC\n");
   _emcprof = new BEmcProfile(fname); 
@@ -314,7 +317,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     x0 = x;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
+	 << x << " dx = " << x0 - ix0 << endl;
   }
 
   // Correct for phi bias within module of 8 towers
@@ -336,7 +340,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     y0 = y;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
+         << y << "dy = " << y0 - iy0 << endl;
   }
   yc = y0;
 

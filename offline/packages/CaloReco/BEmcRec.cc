@@ -9,11 +9,10 @@
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
 
-#include <TMath.h>
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <utility>
 
 using namespace std;
@@ -36,7 +35,8 @@ BEmcRec::BEmcRec()
   , fVz(0)
   , fgTowerThresh(0.01)
   , fgMinPeakEnergy(0.08)
-    //  , _emcprof(nullptr)
+  , m_ThisName("NOTSET") 
+   //  , _emcprof(nullptr)
 {
   fTowerGeom.clear();
   fModules = new vector<EmcModule>;
@@ -64,9 +64,9 @@ BEmcRec::~BEmcRec()
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::LoadProfile(const char *fname) 
+void BEmcRec::LoadProfile(const string &fname) 
 {
-  printf("Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module BEmcRec{Name}\n");
+  cout << "Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module " << Name() << endl;
 }
 
 void BEmcRec::PrintTowerGeometry(const char* fname)

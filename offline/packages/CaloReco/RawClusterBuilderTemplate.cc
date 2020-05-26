@@ -88,13 +88,8 @@ void RawClusterBuilderTemplate::Detector(const std::string& d)
   bemc->SetTowerThreshold(0);
 }
 
-void RawClusterBuilderTemplate::LoadProfile(const char *fname) 
+void RawClusterBuilderTemplate::LoadProfile(const string &fname) 
 { 
-  if( bemc == nullptr ) {
-    printf("Error in RawClusterBuilderTemplate::LoadProfile(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it\n");
-    return;
-  }
-
   //  _emcprof = new BEmcProfile(fname); 
   bemc->LoadProfile(fname);
 }
