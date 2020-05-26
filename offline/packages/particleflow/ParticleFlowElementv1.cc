@@ -7,6 +7,8 @@ ParticleFlowElementv1::ParticleFlowElementv1()
   : _mom() , _e(NAN)
 {
   for (int i = 0; i < 3; ++i) _mom[i] = NAN;
+
+  _id = 0;
 }
 
 void ParticleFlowElementv1::identify(std::ostream& os) const
