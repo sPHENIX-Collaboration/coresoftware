@@ -30,22 +30,28 @@ if MAKEROOT6
 endif
 
 lib_LTLIBRARIES = \
+  libparticleflow_io.la \
   libparticleflow.la
+
+libparticleflow_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  ParticleFlowElement.cc \
+  ParticleFlowElementv1.cc \
+  ParticleFlowElementContainer.cc
 
 libparticleflow_la_SOURCES = \
   $(ROOTDICTS) \
   ParticleFlowReco.cc \
-  ParticleFlowElement.cc \
-  ParticleFlowElementv1.cc \
-  ParticleFlowElementContainer.cc \
   ParticleFlowJetInput.cc
 
+libparticleflow_io_la_LIBADD = \
+  -lphool
+
 libparticleflow_la_LIBADD = \
-  -lg4dst \
-  -lg4eval \
+  libparticleflow_io.la \
   -lcalo_io \
-  -lphool \
-  -lfun4all \
+  -lphg4hit \
+  -lg4jets_io \
   -lSubsysReco
 
 %_Dict.cc: %.h %LinkDef.h
@@ -57,7 +63,11 @@ libparticleflow_la_LIBADD = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_io \
   testexternals
+
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD   = libparticleflow_io.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libparticleflow.la
