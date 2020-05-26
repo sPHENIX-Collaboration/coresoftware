@@ -16,7 +16,7 @@ class BEmcRecEEMC : public BEmcRec
   void CorrectShowerDepth(float energy, float x, float y, float z, float& xc, float& yc, float& zc );
   static float GetImpactAngle(float e, float x, float y);
 
-  void LoadProfile(const char *fname);
+  void LoadProfile(const std::string &fname) override;
   float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
 
  private:
