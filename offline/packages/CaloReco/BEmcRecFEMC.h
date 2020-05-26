@@ -12,8 +12,8 @@ class BEmcRecFEMC : public BEmcRec
   virtual ~BEmcRecFEMC();
   void CorrectEnergy(float energy, float x, float y, float *ecorr);
   void CorrectECore(float ecore, float x, float y, float *ecorecorr);
-  void CorrectPosition(float energy, float x, float y, float& xcorr, float& ycorr);
-  void CorrectShowerDepth(float energy, float x, float y, float z, float& xc, float& yc, float& zc );
+  void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr);
+  void CorrectShowerDepth(float energy, float x, float y, float z, float &xc, float &yc, float &zc);
   static float GetImpactAngle(float e, float x, float y);
 
   void LoadProfile(const std::string &fname) override;
