@@ -23,6 +23,12 @@
 #include "ParticleFlowElementContainer.h"
 #include "ParticleFlowElementv1.h"
 
+// examine second value of std::pair, sort by smallest
+bool sort_by_pair_second_lowest( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
+{ 
+  return (a.second < b.second); 
+} 
+
 float ParticleFlowReco::calculate_dR( float eta1, float eta2, float phi1, float phi2 ) {
 
   float deta = eta1 - eta2;
@@ -126,6 +132,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   _pflow_TRK_phi.clear();
   _pflow_TRK_match_EM.clear();
   _pflow_TRK_match_HAD.clear();
+  _pflow_TRK_addtl_match_EM.clear();
 
   _pflow_EM_E.clear();
   _pflow_EM_eta.clear();
@@ -182,6 +189,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       _pflow_TRK_match_EM.push_back( std::vector<int>() );
       _pflow_TRK_match_HAD.push_back( std::vector<int>() );
+
+      _pflow_TRK_addtl_match_EM.push_back( std::vector< std::pair<int,float> >() );
 
       if ( Verbosity() > 5 && truth_pt > 0.5 ) 
 	std::cout << " TRK with p / pT = " << truth_p << " / " << truth_pt  << " , eta / phi = " << truth_eta << " / " << truth_phi << std::endl;
@@ -312,12 +321,11 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   for (unsigned int trk = 0; trk < _pflow_TRK_p.size() ; trk++ ) {
     
     if ( Verbosity() > 10 )
-      std::cout << " TRK with p / eta / phi = " << _pflow_TRK_p[ trk ] << " / " << _pflow_TRK_eta[ trk ] << " / " << _pflow_TRK_phi[ trk ] << std::endl;
+      std::cout << " TRK " << trk << " with p / eta / phi = " << _pflow_TRK_p[ trk ] << " / " << _pflow_TRK_eta[ trk ] << " / " << _pflow_TRK_phi[ trk ] << std::endl;
 
     // TRK -> EM link
     float min_em_dR = 0.2;
     int min_em_index = -1;
-    float max_em_pt = 0;
     
     for (unsigned int em = 0 ; em < _pflow_EM_E.size() ; em++) {
 
@@ -348,11 +356,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	if ( Verbosity() > 5 ) 
 	  std::cout << " -> possible match to EM " << em << " with dR = " << dR << std::endl;
 
-	if ( _pflow_EM_E.at( em ) > max_em_pt ) {
-	  max_em_pt = _pflow_EM_E.at( em );
-	  min_em_index = em;
-	  min_em_dR = dR;
-	}
+	_pflow_TRK_addtl_match_EM.at( trk ).push_back( std::pair<int,float>( em, dR ) );
 
       } else {
 	
@@ -363,12 +367,31 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
     }
 
+    // sort possible matches 
+
+    std::sort( _pflow_TRK_addtl_match_EM.at( trk ).begin(), _pflow_TRK_addtl_match_EM.at( trk ).end(), sort_by_pair_second_lowest );
+    if ( Verbosity() > 10 ) {
+      for (unsigned int n = 0; n < _pflow_TRK_addtl_match_EM.at( trk ).size(); n++) {
+	std::cout << " -> sorted list of matches, EM / dR = " <<  _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first << " / " << _pflow_TRK_addtl_match_EM.at( trk ).at( n ).second << std::endl;
+      }
+    }
+
+    if ( _pflow_TRK_addtl_match_EM.at( trk ).size() > 0 ) {
+      min_em_index = _pflow_TRK_addtl_match_EM.at( trk ).at( 0 ).first;
+      min_em_dR =  _pflow_TRK_addtl_match_EM.at( trk ).at( 0 ).second;
+      // delete best matched element
+      _pflow_TRK_addtl_match_EM.at( trk ).erase( _pflow_TRK_addtl_match_EM.at( trk ).begin() );
+    }
+
+
     if ( min_em_index > -1 ) {
       _pflow_EM_match_TRK.at( min_em_index ).push_back( trk );
       _pflow_TRK_match_EM.at( trk ).push_back( min_em_index );
 
-      if ( Verbosity() > 5 ) 
-	std::cout << " -> matched EM with pt / eta / phi = " << _pflow_EM_E.at( min_em_index ) << " / " << _pflow_EM_eta.at( min_em_index ) << " / " << _pflow_EM_phi.at( min_em_index ) << ", dR = " << min_em_dR << std::endl;
+      if ( Verbosity() > 5 ) {
+	std::cout << " -> matched EM " << min_em_index << " with pt / eta / phi = " << _pflow_EM_E.at( min_em_index ) << " / " << _pflow_EM_eta.at( min_em_index ) << " / " << _pflow_EM_phi.at( min_em_index ) << ", dR = " << min_em_dR;
+	std::cout << " ( " << _pflow_TRK_addtl_match_EM.at( trk ).size() << " other possible matches ) " << std::endl;
+      }
       
     } else {
 
@@ -431,7 +454,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       _pflow_TRK_match_HAD.at( trk ).push_back( min_had_index );
 
       if ( Verbosity() > 5 ) 
-	std::cout << " -> matched HAD with pt / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
+	std::cout << " -> matched HAD " << min_had_index << " with pt / eta / phi = " << _pflow_HAD_E.at( min_had_index ) << " / " << _pflow_HAD_eta.at( min_had_index ) << " / " << _pflow_HAD_phi.at( min_had_index ) << ", dR = " << min_had_dR << std::endl;
       
     } else {
       if ( Verbosity() > 5 ) 
@@ -598,7 +621,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       int trk = _pflow_HAD_match_TRK.at( had ).at( j );
 
       if ( Verbosity() > 5 ) {
-	std::cout << " -> -> LINKED TRK with p / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
+	std::cout << " -> -> LINKED TRK " << trk << " with p / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
       }
       
       total_TRK_p += _pflow_TRK_p.at( trk );
@@ -632,13 +655,97 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
     }
 
+
     // process compatibility of fit 
     float total_expected_E_err = sqrt( total_expected_E_var );
 
     if ( Verbosity() > 5 ) {
       std::cout << " -> Total track Sum p = " << total_TRK_p << " , expected calo Sum E = " << total_expected_E << " +/- " << total_expected_E_err << " , observed EM+HAD Sum E = " << total_EMHAD_E << std::endl;
     }
+
+    // if Sum pT > calo, add in additional possible matched EMs associated with tracks until that is no longer the case
+
+    if ( total_expected_E > total_EMHAD_E ) {
       
+      if ( Verbosity() > 5 ) 
+	std::cout << " -> Expected E > Observed E, looking for additional potential TRK->EM matches" << std::endl;
+      
+      std::map<int, float> additional_EMs;
+      
+      for (unsigned int j = 0 ; j <  _pflow_HAD_match_TRK.at( had ).size() ; j++) {
+	
+	int trk = _pflow_HAD_match_TRK.at( had ).at( j );
+
+	int addtl_matches = _pflow_TRK_addtl_match_EM.at( trk ).size();
+
+	if ( Verbosity() > 10 )
+	  std::cout << " -> -> TRK " << trk << " has " << addtl_matches << " additional matches! " << std::endl;
+	
+	for (unsigned int n  = 0 ; n < _pflow_TRK_addtl_match_EM.at( trk ).size() ; n++ ) {
+	  if ( Verbosity() > 10 )
+	    std::cout << " -> -> -> additional match to EM = " << _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first << " with dR = " <<  _pflow_TRK_addtl_match_EM.at( trk ).at( n ).second << std::endl;
+	  
+	  float existing_dR = 0.21;
+	  int counts = additional_EMs.count(  _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first );
+	  if ( counts > 0 ) {
+	    existing_dR = additional_EMs[ _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first ];
+	  }
+	  if ( _pflow_TRK_addtl_match_EM.at( trk ).at( n ).second < existing_dR )
+	    additional_EMs[ _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first ] = _pflow_TRK_addtl_match_EM.at( trk ).at( n ).second;
+	}
+	
+      }
+
+      // map now assured to have only minimal dR values for each possible additional EM
+      // translate the map to a vector of pairs, then sort by smallest dR
+
+      std::vector< std::pair<int,float> > additional_EMs_vec;
+
+      for (auto& x : additional_EMs) {
+	additional_EMs_vec.push_back( std::pair<int,float>( x.first , x.second ) );
+      }
+
+      std::sort( additional_EMs_vec.begin(), additional_EMs_vec.end(), sort_by_pair_second_lowest );
+
+      if ( Verbosity() > 5 )      
+	std::cout << " -> Sorting the set of potential additional EMs " << std::endl;
+
+      // now add in additional EMs until there are none left or it is no longer the case that Sum pT > calo
+
+      int n_EM_added = 0;
+      while ( additional_EMs_vec.size() != 0 && total_expected_E > total_EMHAD_E ) {
+
+	int new_EM = additional_EMs_vec.at( 0 ).first;
+
+	if ( Verbosity() > 5 )      
+	  std::cout << " -> adding EM " << new_EM << " ( dR = " << additional_EMs_vec.at( 0 ).second << " to the system (should not see it as orphan below)" << std::endl;
+
+	// for now, just make the first HAD-linked track point to this new EM, and vice versa
+	_pflow_EM_match_TRK.at( new_EM ).push_back( _pflow_HAD_match_TRK.at( had ).at( 0 ) );
+	_pflow_TRK_match_EM.at( _pflow_HAD_match_TRK.at( had ).at( 0 ) ).push_back( new_EM );
+	
+	// add to expected calo
+	total_EMHAD_E += _pflow_EM_E.at( new_EM );
+
+	// erase lowest-dR EM
+	additional_EMs_vec.erase( additional_EMs_vec.begin() );
+
+	n_EM_added++;
+      }
+    
+      if ( Verbosity() > 5) {
+	if ( n_EM_added > 0 ) {
+	  std::cout << "After adding N = " << n_EM_added << " any additional EMs : " << std::endl;
+	  std::cout << "-> Total track Sum p = " << total_TRK_p << " , expected calo Sum E = " << total_expected_E << " +/- " << total_expected_E_err << " , observed EM+HAD Sum E = " << total_EMHAD_E << std::endl;
+	}
+	else { 
+	  std::cout << "No additional EMs found, continuing hypothesis check" << std::endl;
+	}
+      }
+    }
+    
+  
+  
     if ( total_expected_E + 1.5 * total_expected_E_err > total_EMHAD_E ) {
       
       if ( Verbosity() > 5 ) {
@@ -864,8 +971,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
         
   } // close TRK loop 
 
-  
-
   // DEBUG: print out all PFLow elements
   if ( Verbosity() > 5 ) {
     std::cout << "ParticleFlowReco::process_event: summary of PFlow objects " << std::endl;
@@ -876,8 +981,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     }
 
   }
-
-
 
   std::cout << "ParticleFlowReco::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;

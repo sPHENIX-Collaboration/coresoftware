@@ -51,6 +51,9 @@ class ParticleFlowReco : public SubsysReco
   std::vector< std::vector<int> > _pflow_TRK_match_EM;
   std::vector< std::vector<int> > _pflow_TRK_match_HAD;
 
+  // convention is ( EM index, dR value )
+  std::vector< std::vector< std::pair<int,float> > > _pflow_TRK_addtl_match_EM;
+
   std::vector<float> _pflow_EM_E;
   std::vector<float> _pflow_EM_eta;
   std::vector<float> _pflow_EM_phi;
