@@ -42,7 +42,7 @@ class BEmcRec
   bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
   bool GetTowerGeometry(int ix, int iy, TowerGeom &geom);
   bool CompleteTowerGeometry();
-  void PrintTowerGeometry(const char *fname);
+  void PrintTowerGeometry(const std::string &fname);
 
   void SetPlanarGeometry() { bCYL = false; }
   void SetCylindricalGeometry() { bCYL = true; }
