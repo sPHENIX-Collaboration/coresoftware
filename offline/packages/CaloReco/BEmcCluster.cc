@@ -5,8 +5,6 @@
 #include "BEmcCluster.h"
 #include "BEmcRec.h"
 
-#include <TMath.h>
-
 #include <iostream>
 
 using namespace std;

@@ -3,10 +3,8 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawClusterDefs.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -21,10 +19,11 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <cassert>
 #include <cmath>
 #include <exception>
 #include <iostream>
+#include <cstdlib>                          // for abs
+#include <memory>                            // for allocator_traits<>::valu...
 #include <stdexcept>
 #include <utility>
 #include <vector>

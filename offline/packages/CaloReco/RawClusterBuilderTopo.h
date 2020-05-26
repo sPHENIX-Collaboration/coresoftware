@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <utility>               // for pair
 
 class PHCompositeNode;
 class RawClusterContainer;

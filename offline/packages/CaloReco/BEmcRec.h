@@ -5,12 +5,11 @@
 // Author: A. Bazilevsky, Apr 2012
 // Modified from EmcSectorRec.h and EmcScSectorRec.h
 
-#include <map>
-#include <vector>
+#include "BEmcCluster.h"
 
-class EmcCluster;
-class EmcModule;
-//class BEmcProfile;
+#include <map>
+#include <string>
+#include <vector>
 
 typedef struct TowerGeom
 {

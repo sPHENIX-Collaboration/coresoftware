@@ -5,7 +5,6 @@
 #include "BEmcRecFEMC.h"
 #include "BEmcRecCEMC.h"
 #include "BEmcRecEEMC.h"
-#include "BEmcProfile.h"
 
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
@@ -29,7 +28,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <cstdio>
 #include <exception>
 #include <fstream>
 #include <map>

@@ -3,8 +3,6 @@
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
-#include <TMath.h>
-
 #include <cmath>
 #include <iostream>
 
