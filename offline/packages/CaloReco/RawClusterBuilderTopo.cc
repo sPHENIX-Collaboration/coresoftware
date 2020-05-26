@@ -1174,6 +1174,6 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
 
   _clusters = new RawClusterContainer();
   ClusterNodeName = "TOPOCLUSTER_HCAL";
-  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName.c_str(), "PHObject");
+  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
 }
