@@ -7,7 +7,7 @@
 
 #include <TMath.h>
 
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
@@ -369,7 +369,9 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
       if (npk >= fgMaxNofPeaks)
       {
         delete[] hlist;
-        printf("!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>%d). May need tower energy threshold increase for clustering.\n", fgMaxNofPeaks);
+        cout << "!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>"
+	     << fgMaxNofPeaks
+             << "). May need tower energy threshold increase for clustering." << endl;
         return -1;
       }
 
@@ -383,7 +385,7 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
   /*
   for( ipk=0; ipk<npk; ipk++ ) {
     ic = PeakCh[ipk];
-    printf("  %d: E=%f\n", ipk, hlist[ic].amp);
+    cout << "  " << ipk << ": E = " << hlist[ic].amp << endl;
   }
   */
 
@@ -583,7 +585,8 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
     ig = igmpk1[ipk];
     if (ig >= 0)
     {
-      //      printf("  %d: X=%f Y=%f\n",ipk,xpk[ig], ypk[ig]);
+      //      cout << "  " << ipk << ": X = " << xpk[ig]
+      //           << " Y = " << ypk[ig] << endl;
       //      fOwner->SetProfileParameters(0, epk[ig], xpk[ig], ypk[ig]);
       for (in = 0; in < nhit; in++)
       {

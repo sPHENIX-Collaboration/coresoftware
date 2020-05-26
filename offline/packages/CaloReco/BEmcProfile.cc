@@ -408,7 +408,9 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float phi, fl
   int it1 = it2 - 1;
   //  int it1 = it2-2; // For a test()
 
-  //  printf("Energy bin= %d %d (%f)  Theta bin= %d %d (%f)\n",ie1,ie2,energy,it1,it2,theta);
+  //  cout << "Energy bin= " << ie1 << " " << ie2 << " ("
+  //       << energy << ")  Theta bin= " << it1 << " " << it2
+  //       << " (" << theta << ")" << endl;
 
   float rr = sqrt((0.5 - ddz) * (0.5 - ddz) + (0.5 - ddy) * (0.5 - ddy));
 
@@ -475,7 +477,11 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float phi, fl
   float dd = (hmean[ii11]->GetBinContent(ibin2) -
               hmean[ii11]->GetBinContent(ibin1)) /
              2.;
-  //  if( fabs(dd)>er ) printf("ie=%d it=%d bin=%d: %f %f\n",ie1,it1,ibin,er,dd);
+  //  if( fabs(dd)>er )
+  // {
+  //   cout << "ie = " << ie1 << ", it = " << it1 << ", bin = "
+  // 	 << ibin << ": " << er << " " << dd << endl;
+  // }
   er = sqrt(er * er + dd * dd);
 
   ep = pr;

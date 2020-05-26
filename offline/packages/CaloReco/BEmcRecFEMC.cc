@@ -3,7 +3,7 @@
 #include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
@@ -171,7 +171,8 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
+	 << x << ",  dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -185,6 +186,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
+	 << y << ",  dy = " << y0 - iy0 << endl;
   }
 }
