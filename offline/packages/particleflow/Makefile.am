@@ -34,7 +34,6 @@ lib_LTLIBRARIES = \
 
 libparticleflow_la_SOURCES = \
   $(ROOTDICTS) \
-  $(ROOT5_IO_DICTS) \
   ParticleFlowReco.cc \
   ParticleFlowElement.cc \
   ParticleFlowElementv1.cc \
