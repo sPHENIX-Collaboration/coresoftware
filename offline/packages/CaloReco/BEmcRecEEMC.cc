@@ -8,7 +8,8 @@
 
 using namespace std;
 
-BEmcRecEEMC::BEmcRecEEMC() : _emcprof(nullptr) 
+BEmcRecEEMC::BEmcRecEEMC()
+  : _emcprof(nullptr)
 {
   Name("BEmcRecEEMC");
   SetPlanarGeometry();
@@ -16,11 +17,11 @@ BEmcRecEEMC::BEmcRecEEMC() : _emcprof(nullptr)
 
 BEmcRecEEMC::~BEmcRecEEMC()
 {
-// you can delete null pointers
+  // you can delete null pointers
   delete _emcprof;
 }
 
-void BEmcRecEEMC::LoadProfile(const std::string &fname)
+void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
   cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
 }
@@ -34,7 +35,7 @@ float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
   return prob;
 }
 
-void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // DZ, D and X0 should be negative for -Z direction
   const float DZ = -9;     // in cm, tower half length
@@ -110,7 +111,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA); // x is second index in here
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
   float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
@@ -144,7 +145,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   {
     xc = x;
     cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
-	 << x << ", dx = " << x0 - ix0 << endl;
+         << x << ", dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -159,6 +160,6 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   {
     yc = y;
     cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
-	 << y << ",  dy = " << y0 - iy0 << endl;
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

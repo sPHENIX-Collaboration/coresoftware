@@ -21,7 +21,6 @@ using namespace std;
 // Max number of clusters, used in FindClusters(), automatically extended when needed
 int const BEmcRec::fgMaxLen = 1000;
 
-
 // ///////////////////////////////////////////////////////////////////////////
 // BEmcRec member functions
 
@@ -35,7 +34,7 @@ BEmcRec::BEmcRec()
   , fgTowerThresh(0.01)
   , fgMinPeakEnergy(0.08)
   , m_ThisName("NOTSET")
-   //  , _emcprof(nullptr)
+//  , _emcprof(nullptr)
 {
   fTowerGeom.clear();
   fModules = new vector<EmcModule>;
@@ -63,23 +62,23 @@ BEmcRec::~BEmcRec()
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::LoadProfile(const string &fname) 
+void BEmcRec::LoadProfile(const string& fname)
 {
   cout << "Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module " << Name() << endl;
 }
 
-void BEmcRec::PrintTowerGeometry(const string &fname)
+void BEmcRec::PrintTowerGeometry(const string& fname)
 {
   ofstream outfile(fname);
   if (!outfile.is_open())
   {
     cout << "Error in BEmcRec::PrintTowerGeometry(): Failed to open file "
-	 << fname << endl;
+         << fname << endl;
     return;
   }
   outfile << "Number of bins:" << endl;
   outfile << fNx << " " << fNy << endl;
-  outfile <<  "ix iy x y z dx0 dy0 dz0 dx1 dy1 dz1" << endl;
+  outfile << "ix iy x y z dx0 dy0 dz0 dx1 dy1 dz1" << endl;
   int ich;
   TowerGeom geom;
   std::map<int, TowerGeom>::iterator it;
@@ -92,10 +91,10 @@ void BEmcRec::PrintTowerGeometry(const string &fname)
       if (it != fTowerGeom.end())
       {
         geom = it->second;
-	outfile << ix << " " << iy << " " << geom.Xcenter << " "
-	     << geom.Ycenter << " " << geom.Zcenter << " " << geom.dX[0] << " "
-	     << geom.dY[0] << " " <<  geom.dZ[0] << " " << geom.dX[1] << " "
-	     << geom.dY[1] << " " << geom.dZ[1] << endl;
+        outfile << ix << " " << iy << " " << geom.Xcenter << " "
+                << geom.Ycenter << " " << geom.Zcenter << " " << geom.dX[0] << " "
+                << geom.dY[0] << " " << geom.dZ[0] << " " << geom.dX[1] << " "
+                << geom.dY[1] << " " << geom.dZ[1] << endl;
       }
     }
   }
@@ -121,7 +120,7 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
   geom.Xcenter = xx;
   geom.Ycenter = yy;
   geom.Zcenter = zz;
-  geom.dX[0] = geom.dX[1] = 0; // These should be calculated by CompleteTowerGeometry()
+  geom.dX[0] = geom.dX[1] = 0;  // These should be calculated by CompleteTowerGeometry()
   geom.dY[0] = geom.dY[1] = 0;
   geom.dZ[0] = geom.dZ[1] = 0;
 
@@ -133,60 +132,61 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
 bool BEmcRec::CompleteTowerGeometry()
 // Calculates tower front size from coordinates of tower center coordinates
 {
-  if( fTowerGeom.empty() || fNx <= 0 ) {
+  if (fTowerGeom.empty() || fNx <= 0)
+  {
     cout << "Error in BEmcRec::CalculateTowerSize(): Tower geometry not well setup (NX = "
-	 << fNx << ")" << endl;
+         << fNx << ")" << endl;
     return false;
   }
 
   std::map<int, TowerGeom>::iterator it;
 
-  for( it = fTowerGeom.begin(); it != fTowerGeom.end(); it++ ){
-
+  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); it++)
+  {
     int ich = it->first;
     TowerGeom geom0 = it->second;
-    int ix = ich%fNx;
-    int iy = ich/fNx;
+    int ix = ich % fNx;
+    int iy = ich / fNx;
 
     // Next tower in x
     TowerGeom geomx;
     int idx = 0;
     if (ix < fNx / 2)
-      {
-	idx += 1;
-	while (!GetTowerGeometry(ix + idx, iy, geomx) && idx < fNx / 2) idx += 1;
-      }
+    {
+      idx += 1;
+      while (!GetTowerGeometry(ix + idx, iy, geomx) && idx < fNx / 2) idx += 1;
+    }
     else
-      {
-	idx -= 1;
-	while (!GetTowerGeometry(ix + idx, iy, geomx) && idx > -fNx / 2) idx -= 1;
-      }
+    {
+      idx -= 1;
+      while (!GetTowerGeometry(ix + idx, iy, geomx) && idx > -fNx / 2) idx -= 1;
+    }
     if (idx >= fNx / 2 || idx <= -fNx / 2)
-      {
-	cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
-	     << ix << "," << iy << ")" << endl;
-	return false;
-      }
-    
+    {
+      cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
+           << ix << "," << iy << ")" << endl;
+      return false;
+    }
+
     // Next tower in y
     TowerGeom geomy;
     int idy = 0;
     if (iy < fNy / 2)
-      {
-	idy += 1;
-	while (!GetTowerGeometry(ix, iy + idy, geomy) && idy < fNy / 2) idy += 1;
-      }
+    {
+      idy += 1;
+      while (!GetTowerGeometry(ix, iy + idy, geomy) && idy < fNy / 2) idy += 1;
+    }
     else
-      {
-	idy -= 1;
-	while (!GetTowerGeometry(ix, iy + idy, geomy) && idy > -fNy / 2) idy -= 1;
-      }
+    {
+      idy -= 1;
+      while (!GetTowerGeometry(ix, iy + idy, geomy) && idy > -fNy / 2) idy -= 1;
+    }
     if (idy >= fNy / 2 || idy <= -fNy / 2)
-      {
-	cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
-	     << ix << "," << iy << ")" << endl;
-	return false;
-      }
+    {
+      cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
+           << ix << "," << iy << ")" << endl;
+      return false;
+    }
 
     geom0.dX[0] = (geomx.Xcenter - geom0.Xcenter) / float(idx);
     geom0.dY[0] = (geomx.Ycenter - geom0.Ycenter) / float(idx);
@@ -197,17 +197,16 @@ bool BEmcRec::CompleteTowerGeometry()
 
     it->second = geom0;
 
-  } // it = fTowerGeom.begin()
-  
+  }  // it = fTowerGeom.begin()
+
   return true;
 }
 
 void BEmcRec::Tower2Global(float E, float xC, float yC,
-                               float& xA, float& yA, float& zA)
+                           float& xA, float& yA, float& zA)
 // xC and yC are local position in tower units
 // For CYL geometry (xC,yC) is actually (phiC,zC)
 {
-
   xA = 0;
   yA = 0;
   zA = 0;
@@ -229,20 +228,22 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   // Get tower where the shower is positioned
   TowerGeom geom0;
 
-  if (!GetTowerGeometry(ix, iy, geom0)) { 
+  if (!GetTowerGeometry(ix, iy, geom0))
+  {
     // Weird case: cluster center of gravity outside the EMCal, take geometry from the neighbouring tower
-    int idx[4] = {1,0,-1, 0};
-    int idy[4] = {0,1, 0,-1};
+    int idx[4] = {1, 0, -1, 0};
+    int idy[4] = {0, 1, 0, -1};
     int ii = 0;
-    while( ii<4 && !GetTowerGeometry(ix+idx[ii], iy+idy[ii], geom0) ) ii++;
-    if( ii >= 4 ) {
+    while (ii < 4 && !GetTowerGeometry(ix + idx[ii], iy + idy[ii], geom0)) ii++;
+    if (ii >= 4)
+    {
       cout << "Error in BEmcRec::Tower2Global: can not identify neighbour for tower ("
-	   << ix << "," << iy << ")" << endl;
+           << ix << "," << iy << ")" << endl;
       return;
     }
-    float Xc = geom0.Xcenter - idx[ii]*geom0.dX[0] - idy[ii]*geom0.dX[1];
-    float Yc = geom0.Ycenter - idx[ii]*geom0.dY[0] - idy[ii]*geom0.dY[1];
-    float Zc = geom0.Zcenter - idx[ii]*geom0.dZ[0] - idy[ii]*geom0.dZ[1];
+    float Xc = geom0.Xcenter - idx[ii] * geom0.dX[0] - idy[ii] * geom0.dX[1];
+    float Yc = geom0.Ycenter - idx[ii] * geom0.dY[0] - idy[ii] * geom0.dY[1];
+    float Zc = geom0.Zcenter - idx[ii] * geom0.dZ[0] - idy[ii] * geom0.dZ[1];
     geom0.Xcenter = Xc;
     geom0.Ycenter = Yc;
     geom0.Zcenter = Zc;
@@ -256,7 +257,6 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
 
   //  rA = sqrt(xA*xA+yA*yA);
   //  phiA = atan2(yA, xA);
-  
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -328,7 +328,7 @@ int BEmcRec::FindClusters()
 
   int MaxLen = fgMaxLen;
   LenCl = new int[MaxLen];
-  ZeroVector(LenCl,MaxLen);
+  ZeroVector(LenCl, MaxLen);
 
   vt = new EmcModule[nhit];
   vhit = new EmcModule[nhit];
@@ -357,18 +357,18 @@ int BEmcRec::FindClusters()
       next = ich;
       if (nCl >= MaxLen)
       {
-	//        delete[] vhit;
-	//        delete[] vt;
-	//        return -1;
-	int* LenCltmp = new int[MaxLen];
-	CopyVector(LenCl,LenCltmp,MaxLen);
-	delete[] LenCl;
-	LenCl = new int[MaxLen*2];
-	ZeroVector(LenCl,MaxLen*2);
-	CopyVector(LenCltmp,LenCl,MaxLen);
-	delete[] LenCltmp;
-	MaxLen *= 2;
-	//	cout << "Extend array size to " << MaxLen << endl;
+        //        delete[] vhit;
+        //        delete[] vt;
+        //        return -1;
+        int* LenCltmp = new int[MaxLen];
+        CopyVector(LenCl, LenCltmp, MaxLen);
+        delete[] LenCl;
+        LenCl = new int[MaxLen * 2];
+        ZeroVector(LenCl, MaxLen * 2);
+        CopyVector(LenCltmp, LenCl, MaxLen);
+        delete[] LenCltmp;
+        MaxLen *= 2;
+        //	cout << "Extend array size to " << MaxLen << endl;
       }
       nCl++;
       LenCl[nCl - 1] = next - ib;
@@ -462,7 +462,8 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
   ph = phit->begin();
   float emax = 0;
   int ichmax = 0;
-  while (ph != phit->end()) {
+  while (ph != phit->end())
+  {
     a = ph->amp;
     if (a > emax)
     {
@@ -485,7 +486,8 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
   yy = 0;
   yx = 0;
   ph = phit->begin();
-  while (ph != phit->end()) {
+  while (ph != phit->end())
+  {
     a = ph->amp;
     int iy = ph->ich / fNx;
     int ix = ph->ich - iy * fNx;
@@ -521,7 +523,6 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
     pyy = yy;
     pyx = yx;
   }
-
 }
 
 // ///////////////////////////////////////////////////////////////////////////

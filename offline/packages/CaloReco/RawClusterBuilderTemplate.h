@@ -22,13 +22,13 @@ class RawClusterBuilderTemplate : public SubsysReco
 
   void SetCylindricalGeometry();
   void SetPlanarGeometry();
-  void PrintGeometry() { bPrintGeom = true; } // Prints it at InitRun time
-  void PrintCylGeom(RawTowerGeomContainer *towergeom, const std::string &fname);
+  void PrintGeometry() { bPrintGeom = true; }  // Prints it at InitRun time
+  void PrintCylGeom(RawTowerGeomContainer* towergeom, const std::string& fname);
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void setEnergyNorm(float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
-  void LoadProfile(const std::string &fname);
+  void LoadProfile(const std::string& fname);
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
