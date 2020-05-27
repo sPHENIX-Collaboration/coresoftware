@@ -26,9 +26,9 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-//#include <fun4all/SubsysReco.h>  // for SubsysReco
 #include <trackreco/PHTrackSeeding.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHLog.h>
 #include <phool/getClass.h>
