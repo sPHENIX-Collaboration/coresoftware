@@ -42,9 +42,8 @@ libPHTpcTracker_la_LIBADD = \
   -lphfield \
   -lphgeom \
   -lSubsysReco \
+  -ltrack_reco \
   -ltrack_io
-
-
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

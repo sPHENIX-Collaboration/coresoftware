@@ -23,9 +23,12 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <trackreco/PHTrackSeeding.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHLog.h>
 #include <phool/getClass.h>
@@ -45,8 +48,10 @@
 
 class PHCompositeNode;
 
+using namespace std;
+
 PHTpcTracker::PHTpcTracker(const std::string& name)
-  : SubsysReco(name)
+  : PHTrackSeeding(name)
   ,
   //		mSeedFinder(nullptr), mTrackFollower(nullptr),
   //		mVertexFinder(nullptr), mEventExporter(nullptr), mLookup(nullptr),
@@ -85,7 +90,20 @@ PHTpcTracker::~PHTpcTracker()
   delete mField;
 }
 
-int PHTpcTracker::process_event(PHCompositeNode* topNode)
+int PHTpcTracker::Setup(PHCompositeNode* topNode)
+{
+  cout << "Enter PHTruthTrackSeeding:: Setup" << endl;
+
+  int ret = PHTrackSeeding::Setup(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  //  ret = GetNodes(topNode);
+  // if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHTpcTracker::Process(PHCompositeNode* topNode)
 {
   LOG_INFO("tracking.PHTpcTracker.process_event") << "---- process event started -----";
 
@@ -157,6 +175,48 @@ int PHTpcTracker::process_event(PHCompositeNode* topNode)
     LOG_INFO("tracking.PHTpcTracker.process_event") << "EventExporter dumped hits and tracks to json file";
   }
 
+  // write tracks to fun4all server
+  //  cout<<  gtracks[1]->get_vertex_id() << endl;
+  for (int i = 0, ilen = gtracks.size(); i < ilen; i++){
+    //  for (auto it = gtracks.begin(); it != gtracks.end(); ++it)
+    std::shared_ptr<SvtxTrack_v1> svtx_track( new SvtxTrack_v1() );
+    ////// from here:
+
+    svtx_track->Reset();
+    svtx_track->set_id(1);
+    // cout << gtracks[i]->get_vertex_id() << endl;
+    TVectorD state = gtracks[i]->getGenFitTrack()->getStateSeed();
+    TVector3 pos(state(0), state(1), state(2));
+    TVector3 mom(state(3), state(4), state(5));
+    TMatrixDSym cov = gtracks[i]->getGenFitTrack()->getCovSeed();
+    //cout<< "pt: " << pos.Perp() << endl;
+
+    for(int i=0; i<6; i++){
+      for(int j=0; j<6; j++){
+	svtx_track->set_error(i, j, cov[i][j]);
+      }
+    }
+    
+    svtx_track->set_px(mom.Px());
+    svtx_track->set_py(mom.Py());
+    svtx_track->set_pz(mom.Pz());
+    
+    svtx_track->set_x(pos.X());
+    svtx_track->set_y(pos.Y());
+    svtx_track->set_z(pos.Z());
+    
+    for (TrkrDefs::cluskey cluster_key : gtracks[i]->get_cluster_keys())
+      {
+	//_gftrk_hitkey_map.insert(std::make_pair(cluster_key, phtrk_iter->first));
+	svtx_track->insert_cluster_key(cluster_key);
+      }
+  
+    //Check track quality
+    //		bool is_good_track = true;
+    
+    _track_map->insert(svtx_track.get());
+  }
+
   // ----- cleanup -----
 
   // candidates cleanup
@@ -184,6 +244,19 @@ int PHTpcTracker::process_event(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+/*
+int PHTpcTracker::GetNodes(PHCompositeNode* topNode)
+{
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+*/
+int PHTpcTracker::End()
+{
+  return 0;
+}
+
 
 PHField* PHTpcTracker::getMagField(PHCompositeNode* topNode, double& B)
 {
