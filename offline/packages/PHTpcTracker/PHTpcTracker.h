@@ -8,7 +8,8 @@
 #define PHTPCTRACKER_H_
 
 // PHENIX includes
-#include <fun4all/SubsysReco.h>
+//#include <fun4all/SubsysReco.h>
+#include <trackreco/PHTrackSeeding.h>
 
 #include <cmath>    // for M_PI
 #include <cstddef>  // for size_t
@@ -32,13 +33,13 @@ namespace PHGenFit2
 ///
 /// \brief
 ///
-class PHTpcTracker : public SubsysReco
+class PHTpcTracker : public PHTrackSeeding
 {
  public:
   PHTpcTracker(const std::string& name = "PHTpcTracker");
   ~PHTpcTracker();
 
-  int process_event(PHCompositeNode* topNode);
+  // int process_event(PHCompositeNode* topNode);
 
   void set_seed_finder_options(double maxdistance1 = 3.0, double tripletangle1 = M_PI / 8, size_t minhits1 = 10,
                                double maxdistance2 = 6.0, double tripletangle2 = M_PI / 8, size_t minhits2 = 5, size_t nthreads = 1);
@@ -55,6 +56,12 @@ class PHTpcTracker : public SubsysReco
   void enable_json_export(bool opt = false) { mEnableJsonExport = opt; }
 
  protected:
+  int Setup(PHCompositeNode* topNode);
+
+  int Process(PHCompositeNode* topNode);
+
+  int End();
+
   PHField* getMagField(PHCompositeNode* topNode, double& B);
 
  private:
