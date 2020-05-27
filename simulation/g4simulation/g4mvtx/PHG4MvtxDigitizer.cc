@@ -25,6 +25,7 @@
 
 #include <cstdlib>                                 // for exit
 #include <iostream>
+#include <set>
 
 using namespace std;
 
@@ -168,6 +169,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
     TrkrHitSet::ConstRange hit_range = hitset->getHits();
+    std::set<TrkrDefs::hitkey> hits_rm;
     for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
          hit_iter != hit_range.second;
          ++hit_iter)
@@ -182,10 +184,19 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       // Remove the hits with energy under threshold
       bool rm_hit = false;
       if (hit->getEnergy() < _energy_threshold) rm_hit = true;
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", remove hit " << rm_hit << endl;
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
 
-      if (rm_hit) hitset->removeHit(hit_iter->first);
+      if (rm_hit) hits_rm.insert(hit_iter->first);
     }
+
+    for (std::set<TrkrDefs::hitkey>::iterator hits_rm_iter = hits_rm.begin();
+         hits_rm_iter != hits_rm.end();
+         ++hits_rm_iter)
+    {
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << *hits_rm_iter << endl;
+      hitset->removeHit(*hits_rm_iter);
+    }
+
   }
 
   // end new containers
