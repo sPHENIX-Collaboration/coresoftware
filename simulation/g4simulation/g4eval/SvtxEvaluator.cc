@@ -221,7 +221,11 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
   }
   recoConsts *rc = recoConsts::instance();
   _iseed = rc->get_IntFlag("RANDOMSEED");
-  cout << "SvtxEvaluator::process_event - Seed = " << _iseed << endl;
+
+  if(Verbosity() > 1)
+    {
+      cout << "SvtxEvaluator::process_event - Seed = " << _iseed << endl;
+    }
 
   if (!_svtxevalstack)
   {
@@ -801,12 +805,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   int nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   float nhits = nhit[layer];
   occ11  = nhits/nbins;
-  cout << " occ11 = " << occ11
-       << " nbins = " << nbins
-       << " nhits = " << nhits
-       << " layer = " << layer
-       << endl;
-
+  if(Verbosity() > 1)
+    {
+      cout << " occ11 = " << occ11
+	   << " nbins = " << nbins
+	   << " nhits = " << nhits
+	   << " layer = " << layer
+	   << endl;
+    }
   layer = _nlayers_maps + _nlayers_intt + 15;
   GeoLayer = geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
@@ -834,13 +840,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   nhits = nhit[layer];
   occ316 = nhits/nbins;
 
-  cout << " occ11 = " << occ11
-       << " occ116 = " << occ116
-       << " occ21 = " << occ21
-       << " occ216 = " << occ216
-       << " occ31 = " << occ31
-       << " occ316 = " << occ316
-       << endl;
+  if(Verbosity() > 1)
+    {
+      cout << " occ11 = " << occ11
+	   << " occ116 = " << occ116
+	   << " occ21 = " << occ21
+	   << " occ216 = " << occ216
+	   << " occ31 = " << occ31
+	   << " occ316 = " << occ316
+	   << endl;
+    }
   TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   nclus_all = clustermap_in->size();
   TrkrClusterContainer::ConstRange all_clusters = clustermap_in->getClusters();

@@ -314,6 +314,8 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
   _local_max_minE_LAYER[2] = 1;
+
+  ClusterNodeName = "TOPOCLUSTER_HCAL";
 }
 
 int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
@@ -1172,7 +1174,7 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
   }
 
   _clusters = new RawClusterContainer();
-  ClusterNodeName = "TOPOCLUSTER_HCAL";
+
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
 }
