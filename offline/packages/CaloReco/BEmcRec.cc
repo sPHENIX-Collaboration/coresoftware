@@ -9,11 +9,9 @@
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
 
-#include <TMath.h>
-
-#include <cmath>
-#include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <utility>
 
 using namespace std;
@@ -36,7 +34,8 @@ BEmcRec::BEmcRec()
   , fVz(0)
   , fgTowerThresh(0.01)
   , fgMinPeakEnergy(0.08)
-    //  , _emcprof(nullptr)
+  , m_ThisName("NOTSET")
+   //  , _emcprof(nullptr)
 {
   fTowerGeom.clear();
   fModules = new vector<EmcModule>;
@@ -64,24 +63,23 @@ BEmcRec::~BEmcRec()
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::LoadProfile(const char *fname) 
+void BEmcRec::LoadProfile(const string &fname) 
 {
-  printf("Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module BEmcRec{Name}\n");
+  cout << "Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module " << Name() << endl;
 }
 
-void BEmcRec::PrintTowerGeometry(const char* fname)
+void BEmcRec::PrintTowerGeometry(const string &fname)
 {
-  FILE* pf = fopen(fname, "w");
-  if (!pf)
+  ofstream outfile(fname);
+  if (!outfile.is_open())
   {
-    printf("Error in BEmcRec::PrintTowerGeometry(): Failed to open file %s\n", fname);
+    cout << "Error in BEmcRec::PrintTowerGeometry(): Failed to open file "
+	 << fname << endl;
     return;
   }
-
-  //  printf("Info: Print from BEmcRec::PrintTowerGeometry():\n");
-  //  printf("      Number of bins: %d %d\n",fNx,fNy);
-  fprintf(pf, "Number of bins:\n%d %d\n", fNx, fNy);
-  fprintf(pf, "ix iy x y z dx0 dy0 dz0 dx1 dy1 dz1\n");
+  outfile << "Number of bins:" << endl;
+  outfile << fNx << " " << fNy << endl;
+  outfile <<  "ix iy x y z dx0 dy0 dz0 dx1 dy1 dz1" << endl;
   int ich;
   TowerGeom geom;
   std::map<int, TowerGeom>::iterator it;
@@ -94,13 +92,13 @@ void BEmcRec::PrintTowerGeometry(const char* fname)
       if (it != fTowerGeom.end())
       {
         geom = it->second;
-        //	printf("       %d %d: %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
-        fprintf(pf, "%d %d %f %f %f %f %f %f %f %f %f\n", ix, iy, geom.Xcenter, geom.Ycenter, geom.Zcenter, geom.dX[0],  geom.dY[0],  geom.dZ[0], geom.dX[1], geom.dY[1],  geom.dZ[1]);
+	outfile << ix << " " << iy << " " << geom.Xcenter << " "
+	     << geom.Ycenter << " " << geom.Zcenter << " " << geom.dX[0] << " "
+	     << geom.dY[0] << " " <<  geom.dZ[0] << " " << geom.dX[1] << " "
+	     << geom.dY[1] << " " << geom.dZ[1] << endl;
       }
     }
   }
-
-  fclose(pf);
 }
 
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
@@ -136,7 +134,8 @@ bool BEmcRec::CompleteTowerGeometry()
 // Calculates tower front size from coordinates of tower center coordinates
 {
   if( fTowerGeom.empty() || fNx <= 0 ) {
-    printf("Error in BEmcRec::CalculateTowerSize(): Tower geometry not well setup (NX=%d)\n",fNx);
+    cout << "Error in BEmcRec::CalculateTowerSize(): Tower geometry not well setup (NX = "
+	 << fNx << ")" << endl;
     return false;
   }
 
@@ -164,7 +163,8 @@ bool BEmcRec::CompleteTowerGeometry()
       }
     if (idx >= fNx / 2 || idx <= -fNx / 2)
       {
-	printf("Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=(%d,%d)\n", ix, iy);
+	cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
+	     << ix << "," << iy << ")" << endl;
 	return false;
       }
     
@@ -183,7 +183,8 @@ bool BEmcRec::CompleteTowerGeometry()
       }
     if (idy >= fNy / 2 || idy <= -fNy / 2)
       {
-	printf("Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=(%d,%d)\n", ix, iy);
+	cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
+	     << ix << "," << iy << ")" << endl;
 	return false;
       }
 
@@ -214,14 +215,14 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   int ix = xC + 0.5;  // tower #
   if (ix < 0 || ix >= fNx)
   {
-    printf("Error in BEmcRec::Tower2Global: wrong input x: %d\n", ix);
+    cout << "Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
     return;
   }
 
   int iy = yC + 0.5;  // tower #
   if (iy < 0 || iy >= fNy)
   {
-    printf("Error in BEmcRec::Tower2Global: wrong input y: %d\n", iy);
+    cout << "Error in BEmcRec::Tower2Global: wrong input y: " << iy << endl;
     return;
   }
 
@@ -235,7 +236,8 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
     int ii = 0;
     while( ii<4 && !GetTowerGeometry(ix+idx[ii], iy+idy[ii], geom0) ) ii++;
     if( ii >= 4 ) {
-      printf("Error in BEmcRec::Tower2Global: can not identify neighbour for tower (%d,%d)\n", ix,iy);
+      cout << "Error in BEmcRec::Tower2Global: can not identify neighbour for tower ("
+	   << ix << "," << iy << ")" << endl;
       return;
     }
     float Xc = geom0.Xcenter - idx[ii]*geom0.dX[0] - idy[ii]*geom0.dX[1];
@@ -274,7 +276,7 @@ int BEmcRec::iTowerDist(int ix1, int ix2)
         idist = -idistr;
     }
   }
-  //  printf("Dist %d %d: %d\n",ix1,ix2,idist);
+  //  cout << "Dist " << ix1 << " " << ix2 << ": " << idist << endl;
   return idist;
 }
 
@@ -366,7 +368,7 @@ int BEmcRec::FindClusters()
 	CopyVector(LenCltmp,LenCl,MaxLen);
 	delete[] LenCltmp;
 	MaxLen *= 2;
-	//	printf("Extend array size to %d\n",MaxLen);
+	//	cout << "Extend array size to " << MaxLen << endl;
       }
       nCl++;
       LenCl[nCl - 1] = next - ib;

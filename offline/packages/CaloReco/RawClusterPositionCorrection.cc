@@ -125,10 +125,10 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
   }
 
   string towergeomnodename = "TOWERGEOM_" + _det_name;
-  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
+    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   const int nphibin = towergeom->get_phibins();

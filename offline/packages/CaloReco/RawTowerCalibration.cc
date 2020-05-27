@@ -192,7 +192,7 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   TowerGeomNodeName = "TOWERGEOM_" + detector;
   rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-                                                           TowerGeomNodeName.c_str());
+                                                           TowerGeomNodeName);
   if (!rawtowergeom)
   {
     std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
@@ -219,7 +219,7 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
   _raw_towers = findNode::getClass<RawTowerContainer>(dstNode,
-                                                      RawTowerNodeName.c_str());
+                                                      RawTowerNodeName);
   if (!_raw_towers)
   {
     std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
@@ -242,12 +242,11 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   // Be careful as a previous calibrator may have been registered for this detector
   CaliTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + detector;
   _calib_towers = findNode::getClass<RawTowerContainer>(DetNode,
-                                                        CaliTowerNodeName.c_str());
+                                                        CaliTowerNodeName);
   if (!_calib_towers)
   {
     _calib_towers = new RawTowerContainer(_raw_towers->getCalorimeterID());
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(
-        _calib_towers, CaliTowerNodeName.c_str(), "PHObject");
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_calib_towers, CaliTowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
   return;

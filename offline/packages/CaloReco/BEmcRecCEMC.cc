@@ -1,28 +1,29 @@
 #include "BEmcRecCEMC.h"
+
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
-#include <TMath.h>
-
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
 BEmcRecCEMC::BEmcRecCEMC() : _emcprof(nullptr) 
 {
+  Name("BEmcRecCEMC");
   SetCylindricalGeometry();
 }
 
 BEmcRecCEMC::~BEmcRecCEMC()
 {
-  if (_emcprof) delete _emcprof;
+// you can delete null pointers
+  delete _emcprof;
 }
 
 
-void BEmcRecCEMC::LoadProfile(const char *fname) 
+void BEmcRecCEMC::LoadProfile(const string &fname)
 {
-  //  printf("Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC\n");
+  //  cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << endl;
   _emcprof = new BEmcProfile(fname); 
 }
 
@@ -78,7 +79,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
       nn++;
       if (nn >= Nmax)
       {
-        printf("BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers\n");
+      cout << "BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers" << endl;
         break;
       }
     }  // if( ee[nn]
@@ -314,7 +315,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     x0 = x;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
+	 << x << " dx = " << x0 - ix0 << endl;
   }
 
   // Correct for phi bias within module of 8 towers
@@ -336,7 +338,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     y0 = y;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
+         << y << "dy = " << y0 - iy0 << endl;
   }
   yc = y0;
 
@@ -393,7 +396,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pxc = x - xShift;
-    printf("????? Something wrong in CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in CorrectPosition: x = "
+         << x << " dx = " << x0 - ix0 << endl;
   }
 
   y0 = y;
@@ -407,7 +411,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pyc = y - yShift;
-    printf("????? Something wrong in CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in CorrectPosition: y = "
+         << y << " dy = " << y0 - iy << endl;
   }
 }
 */
