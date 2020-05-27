@@ -199,8 +199,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Cluster positions on GeoObject/Surface
     Acts::BoundVector loc = Acts::BoundVector::Zero();
-    loc[Acts::eLOC_0] = local2D[0] * Acts::UnitConstants::cm;
-    loc[Acts::eLOC_1] = local2D[1] * Acts::UnitConstants::cm;
+    loc[Acts::eLOC_0] = local2D[0];
+    loc[Acts::eLOC_1] = local2D[1];
 
     if (Verbosity() > 0)
     {
@@ -320,17 +320,27 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
               << " surf_z_center " << surfZCenter
               << std::endl;
   }
-
-  local2D[0] = rClusPhi - surfRphiCenter;
-  local2D[1] = zTpc - surfZCenter;
+  Acts::Vector2D localPos(0,0);
+  Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
+			   y * Acts::UnitConstants::cm,
+			   z * Acts::UnitConstants::cm);
+  
+  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
+			 surface->normal(m_actsGeometry->getGeoContext()),
+			 localPos);
+  
+  local2D[0] = localPos(0);
+  local2D[1] = localPos(1);
 
   if (Verbosity() > 0)
   {
     std::cout << "r_clusphi " << rClusPhi << " surf_rphi center "
               << surfRphiCenter
               << " ztpc " << zTpc << " surf_z_center " << surfZCenter
-              << " local rphi " << local2D[0] << " local z " << local2D[1]
-              << std::endl;
+              << " local rphi " << rClusPhi-surfRphiCenter << " local z " << zTpc - surfZCenter
+	      << " acts local : " <<localPos(0) <<"  "<<localPos(1)
+
+	      << std::endl;
   }
 
   localErr = transformCovarToLocal(clusPhi, worldErr);
@@ -395,15 +405,24 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
               << std::endl;
     return nullptr;
   }
-
-  // transform position back to local coords on sensor
+ 
   CylinderGeomIntt *layerGeom =
-      dynamic_cast<CylinderGeomIntt *>(m_geomContainerIntt->GetLayerGeom(layer));
+    dynamic_cast<CylinderGeomIntt *>(m_geomContainerIntt->GetLayerGeom(layer));
+ 
   local = layerGeom->get_local_from_world_coords(ladderZId,
-                                                 ladderPhiId,
-                                                 world);
-  local2D[0] = local[1];  // r*phi
-  local2D[1] = local[2];  // z
+						 ladderPhiId,
+						 world);
+  Acts::Vector2D localPos(0,0);
+  Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
+			   y * Acts::UnitConstants::cm,
+			   z * Acts::UnitConstants::cm);
+  
+  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
+			 surface->normal(m_actsGeometry->getGeoContext()),
+			 localPos);
+  
+  local2D[0] = localPos(0);
+  local2D[1] = localPos(1);
 
   if (Verbosity() > 10)
   {
@@ -415,6 +434,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
               << " " << world[2] << std::endl;
     std::cout << "   local; " << local[0] << " " << local[1]
               << " " << local[2] << std::endl;
+    std::cout << " acts local "<<localPos(0)<<"  "<<localPos(1)<<std::endl;
   }
 
   /// Get the local covariance error
@@ -486,11 +506,24 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
     return nullptr;
   }
 
-  CylinderGeom_Mvtx *layerGeom = dynamic_cast<CylinderGeom_Mvtx *>(m_geomContainerMvtx->GetLayerGeom(layer));
+  CylinderGeom_Mvtx *layerGeom = 
+    dynamic_cast<CylinderGeom_Mvtx *>(m_geomContainerMvtx->GetLayerGeom(layer));
+ 
   local = layerGeom->get_local_from_world_coords(staveId, 0, 0,
-                                                 chipId, world);
-  local2D[0] = local[0];
-  local2D[1] = local[2];
+						 chipId,
+						 world);
+
+  Acts::Vector2D localPos(0,0);
+  Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
+			   y * Acts::UnitConstants::cm,
+			   z * Acts::UnitConstants::cm);
+  
+  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
+			 surface->normal(m_actsGeometry->getGeoContext()),
+			 localPos);
+  
+  local2D[0] = localPos(0);
+  local2D[1] = localPos(1);
 
   if (Verbosity() > 10)
   {
@@ -502,6 +535,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
               << world[1] << " " << world[2] << std::endl;
     std::cout << "   local; " << local[0] << " "
               << local[1] << " " << local[2] << std::endl;
+    std::cout<<" acts local "<<localPos(0)<<"  "<<localPos(1)<<std::endl;
   }
 
   // transform covariance matrix back to local coords on chip
