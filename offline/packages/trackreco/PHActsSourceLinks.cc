@@ -208,7 +208,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
                 << " create measurement for trkrid " << trkrId
                 << " surface " << surface->name() << " surface type "
                 << surface->type() << " local x " << loc[Acts::eLOC_0]
-                << " local y " << loc[Acts::eLOC_1] << std::endl;
+                << " local y " << loc[Acts::eLOC_1] << std::endl << std::endl;
     }
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
@@ -262,6 +262,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
                                              const TrkrCluster *cluster,
                                              const TrkrDefs::cluskey clusKey)
 {
+  // cm
   const float x = cluster->getPosition(0);
   const float y = cluster->getPosition(1);
   const float z = cluster->getPosition(2);
@@ -280,11 +281,11 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   /// Extract detector element IDs to access the correct Surface
   TVector3 world(x, y, z);
 
-  /// Get some geometry values
+  /// Get some geometry values (lengths in mm)
   const double clusPhi = atan2(world[1], world[0]);
-  const double radius = sqrt(x * x + y * y);
+  const double radius = sqrt(x * x + y * y) *Acts::UnitConstants::cm;
   const double rClusPhi = radius * clusPhi;
-  const double zTpc = world[2];
+  const double zTpc = world[2] *Acts::UnitConstants::cm;
 
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
   const unsigned int sectorId = TpcDefs::getSectorId(clusKey);
@@ -299,7 +300,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 							    worldVec);
   assert(surface);
   
-  if(Verbosity() > 10)
+  if(Verbosity() > 0)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
       surface->toStream(m_tGeometry->geoContext, std::cout);
@@ -308,16 +309,19 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
+  // lengths in mm
   Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
-  double surfRphiCenter = atan2(center[1], center[0]) * radius;
+  double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
+  double surfPhiCenter = atan2(center[1], center[0]);
+  double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
   if (Verbosity() > 0)
   {
-    std::cout << "surface center readback:   x " << center[0]
-              << " y " << center[1] << " phi "
-              << atan2(center[1], center[0]) << " z " << center[2]
-              << " surf_rphi_center " << surfRphiCenter
-              << " surf_z_center " << surfZCenter
+    std::cout << std::endl << "surface center readback:   x " << center[0]
+              << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
+    std::cout << " surface center  phi " << atan2(center[1], center[0]) 
+              << " surface center r*phi " << surfRphiCenter
+              << " surface center z  " << surfZCenter
               << std::endl;
   }
   Acts::Vector2D localPos(0,0);
@@ -334,13 +338,13 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 
   if (Verbosity() > 0)
   {
-    std::cout << "r_clusphi " << rClusPhi << " surf_rphi center "
-              << surfRphiCenter
-              << " ztpc " << zTpc << " surf_z_center " << surfZCenter
-              << " local rphi " << rClusPhi-surfRphiCenter << " local z " << zTpc - surfZCenter
-	      << " acts local : " <<localPos(0) <<"  "<<localPos(1)
-
-	      << std::endl;
+    std::cout << "cluster readback (mm):  x " << x*Acts::UnitConstants::cm <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
+	      << " radius " << radius << std::endl;
+    std::cout << " cluster phi " << clusPhi << " cluster z " << zTpc << " r*clusphi " << rClusPhi << std::endl;
+    std::cout << " local phi " << clusPhi - surfPhiCenter
+              << " local rphi " << rClusPhi-surfRphiCenter 
+ 	      << " local z " << zTpc - surfZCenter  << std::endl;
+      std::cout << " acts local : " <<localPos(0) <<"  "<<localPos(1) << std::endl;
   }
 
   localErr = transformCovarToLocal(clusPhi, worldErr);
