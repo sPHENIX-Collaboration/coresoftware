@@ -8,7 +8,8 @@
 
 using namespace std;
 
-BEmcRecCEMC::BEmcRecCEMC() : _emcprof(nullptr) 
+BEmcRecCEMC::BEmcRecCEMC()
+  : _emcprof(nullptr)
 {
   Name("BEmcRecCEMC");
   SetCylindricalGeometry();
@@ -16,17 +17,15 @@ BEmcRecCEMC::BEmcRecCEMC() : _emcprof(nullptr)
 
 BEmcRecCEMC::~BEmcRecCEMC()
 {
-// you can delete null pointers
+  // you can delete null pointers
   delete _emcprof;
 }
 
-
-void BEmcRecCEMC::LoadProfile(const string &fname)
+void BEmcRecCEMC::LoadProfile(const string& fname)
 {
   //  cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << endl;
-  _emcprof = new BEmcProfile(fname); 
+  _emcprof = new BEmcProfile(fname);
 }
-
 
 float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
 {
@@ -35,16 +34,19 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
   float prob = -1;
 
   //  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  float rg = sqrt(xg*xg+yg*yg);
+  float rg = sqrt(xg * xg + yg * yg);
   float theta_twr;
-  if( fabs(zg)<=15 ) theta_twr = 0;
-  else if( zg>15 )   theta_twr = atan2(zg-15,rg);
-  else               theta_twr = atan2(zg+15,rg);
-  float theta_tr = atan2(zg-fVz,rg);
+  if (fabs(zg) <= 15)
+    theta_twr = 0;
+  else if (zg > 15)
+    theta_twr = atan2(zg - 15, rg);
+  else
+    theta_twr = atan2(zg + 15, rg);
+  float theta_tr = atan2(zg - fVz, rg);
   float theta = fabs(theta_tr - theta_twr);
 
-  float phi = atan2(yg,xg);
-  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
+  float phi = atan2(yg, xg);
+  if (_emcprof != nullptr) prob = _emcprof->GetProb(&HitList, fNx, ecl, theta, phi);
 
   return prob;
 }
@@ -215,7 +217,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 }
 */
 
-void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   xC = xA;
   yC = yA;
@@ -259,7 +261,6 @@ void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
   const float c0 = 0.950;  // For no threshold
   *Ecorr = Ecore / c0;
 }
-
 
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
                                   float& xc, float& yc)
@@ -316,17 +317,17 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   {
     x0 = x;
     cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
-	 << x << " dx = " << x0 - ix0 << endl;
+         << x << " dx = " << x0 - ix0 << endl;
   }
 
   // Correct for phi bias within module of 8 towers
-  int ix8 = int(x+0.5)/8;
-  float x8 = x+0.5-ix8*8-4; // from -4 to +4
+  int ix8 = int(x + 0.5) / 8;
+  float x8 = x + 0.5 - ix8 * 8 - 4;  // from -4 to +4
   float dx = 0.10 * x8 / 4.;
-  if( fabs(x8)>3.3 ) dx=0; // Don't correct near the module edge
+  if (fabs(x8) > 3.3) dx = 0;  // Don't correct near the module edge
   //  dx = 0;
 
-  xc = x0-dx;
+  xc = x0 - dx;
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);
@@ -342,9 +343,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
          << y << "dy = " << y0 - iy0 << endl;
   }
   yc = y0;
-
 }
-
 
 /*
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,

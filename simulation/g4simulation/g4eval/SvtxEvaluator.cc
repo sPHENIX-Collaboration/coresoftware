@@ -63,6 +63,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   : SubsysReco("SvtxEvaluator")
   , _ievent(0)
   , _iseed(0)
+  , m_fSeed(NAN)
   , _svtxevalstack(nullptr)
   , _strict(false)
   , _use_initial_vertex(false)
@@ -220,7 +221,16 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
     cout << "SvtxEvaluator::process_event - Event = " << _ievent << endl;
   }
   recoConsts *rc = recoConsts::instance();
-  _iseed = rc->get_IntFlag("RANDOMSEED");
+  if (rc->FlagExist("RANDOMSEED"))
+  {
+    _iseed = rc->get_IntFlag("RANDOMSEED");
+    m_fSeed = _iseed;
+  }
+  else
+  {
+    _iseed = 0;
+    m_fSeed = NAN;
+  }
 
   if(Verbosity() > 1)
     {
@@ -881,7 +891,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (trackmap)
 	ntrk = (float) trackmap->size();
       PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-      float info_data[] = {(float) _ievent,(float) _iseed,
+      float info_data[] = {(float) _ievent,m_fSeed,
 			   occ11,occ116,occ21,occ216,occ31,occ316,
 			   (float)truthinfo->GetNumPrimaryVertexParticles(),
 			   0,
@@ -1048,7 +1058,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           embedvtxid_found[(int) gembed] = true;
         }
 	
-        float vertex_data[] = {(float) _ievent,(float) _iseed,
+        float vertex_data[] = {(float) _ievent,m_fSeed,
                                vx,
                                vy,
                                vz,
@@ -1110,7 +1120,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             //        nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
           }
 
-          float vertex_data[] = {(float) _ievent,(float) _iseed,
+          float vertex_data[] = {(float) _ievent,m_fSeed,
                                  vx,
                                  vy,
                                  vz,
@@ -1198,7 +1208,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             nfromtruth = vertexeval->get_ntracks_contribution(vertex, point);
           }
 
-          float gpoint_data[] = {(float) _ievent,(float) _iseed,
+          float gpoint_data[] = {(float) _ievent,m_fSeed,
                                  gvx,
                                  gvy,
                                  gvz,
@@ -1379,7 +1389,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
       }
 
-      float g4hit_data[] = {(float) _ievent,(float) _iseed,
+      float g4hit_data[] = {(float) _ievent,m_fSeed,
                             g4hitID,
                             gx,
                             gy,
@@ -1781,7 +1791,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 
         float nparticles = clustereval->all_truth_particles(cluster_key).size();
-        float cluster_data[] = {(float) _ievent,(float) _iseed,
+        float cluster_data[] = {(float) _ievent,m_fSeed,
                                 hitID,
                                 x,
                                 y,
@@ -2695,7 +2705,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
-	float gtrack_data[] = {(float) _ievent,(float) _iseed,
+	float gtrack_data[] = {(float) _ievent,m_fSeed,
                                gntracks,
                                gtrackID,
                                gflavor,
@@ -3096,7 +3106,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
         }
 
-        float track_data[] = {(float) _ievent,(float) _iseed,
+        float track_data[] = {(float) _ievent,m_fSeed,
                               trackID,
                               px,
                               py,

@@ -172,7 +172,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   {
     xc = x;
     cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
-	 << x << ",  dx = " << x0 - ix0 << endl;
+         << x << ",  dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -187,6 +187,6 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   {
     yc = y;
     cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
-	 << y << ",  dy = " << y0 - iy0 << endl;
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

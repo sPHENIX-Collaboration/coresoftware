@@ -26,9 +26,9 @@ class EmcModule
 
   virtual ~EmcModule() {}
 
-  int ich;      // module id (linear)
-  float amp;    // module signal
-  float tof;    // module time-of-flight
+  int ich;    // module id (linear)
+  float amp;  // module signal
+  float tof;  // module time-of-flight
 };
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,8 @@ class EmcCluster : public TObject
 {
  public:
   /// Constructor (zero Hit List)
-EmcCluster(): fOwner(nullptr)
+  EmcCluster()
+    : fOwner(nullptr)
   {
   }
 
@@ -57,7 +58,8 @@ EmcCluster(): fOwner(nullptr)
 
   EmcCluster(const std::vector<EmcModule>& hlist,
              BEmcRec* sector)
-    : fHitList(hlist), fOwner(sector)
+    : fHitList(hlist)
+    , fOwner(sector)
   {
   }
 
@@ -82,7 +84,7 @@ EmcCluster(): fOwner(nullptr)
   //  EmcModule GetImpactTower();
   /// Returns the energy of the ich-tower
   float GetTowerEnergy(int ich);
-  /// Returns the energy of the tower ix,iy 
+  /// Returns the energy of the tower ix,iy
   float GetTowerEnergy(int ix, int iy);
   /// Returns the ToF of the ich-tower
   float GetTowerToF(int ich);
