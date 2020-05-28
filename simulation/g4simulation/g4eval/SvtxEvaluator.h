@@ -64,7 +64,7 @@ class SvtxEvaluator : public SubsysReco
  private:
   unsigned int _ievent;
   unsigned int _iseed;
-
+  float m_fSeed;
   // eval stack
   SvtxEvalStack *_svtxevalstack;
 
