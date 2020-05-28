@@ -1,5 +1,7 @@
 #include "PHFlag.h"
 
+#include <boost/stacktrace.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -15,8 +17,9 @@ PHFlag::get_CharFlag(const string &name) const
   {
     return iter->second;
   }
-  cout << "PHFlag::getString: ERROR Unknown character Flag " << name
-       << ", The following are implemented: " << endl;
+  cout << "PHFlag::getString: ERROR Unknown character Flag " << name << endl;
+  PrintStackTrace();
+  cout  << "The following flags are implemented: " << endl;
   Print();
   return nullptr;
 }
@@ -49,8 +52,9 @@ double PHFlag::get_DoubleFlag(const string &name) const
   {
     return iter->second;
   }
-  cout << "PHFlag::getFlag: ERROR Unknown Double Flag " << name
-       << ", The following are implemented: " << endl;
+  cout << "PHFlag::getFlag: ERROR Unknown Double Flag " << name << endl;
+  PrintStackTrace();
+  cout  << "The following flags are implemented: " << endl;
   Print();
   return 0.0;
 }
@@ -82,8 +86,9 @@ float PHFlag::get_FloatFlag(const string &name) const
   {
     return iter->second;
   }
-  cout << "PHFlag::getFlag: ERROR Unknown Float Flag " << name
-       << ", The following are implemented: " << endl;
+  cout << "PHFlag::getFlag: ERROR Unknown Float Flag " << name << endl;
+  PrintStackTrace();
+  cout  << "The following flags are implemented: " << endl;
   Print();
   return 0.0;
 }
@@ -115,8 +120,9 @@ int PHFlag::get_IntFlag(const string &name) const
   {
     return iter->second;
   }
-  cout << "PHFlag::getFlag: ERROR Unknown Int Flag " << name
-       << ", The following are implemented: " << endl;
+  cout << "PHFlag::getFlag: ERROR Unknown Int Flag " << name << endl;
+  PrintStackTrace();
+  cout  << "The following flags are implemented: " << endl;
   Print();
   return 0;
 }
@@ -322,4 +328,12 @@ void PHFlag::WriteToFile(const string &name)
   }
 
   outFile.close();
+}
+
+void PHFlag::PrintStackTrace() const
+{
+  cout << "Called by #3 or #4 in this list: " << endl;
+  cout << boost::stacktrace::stacktrace();
+  cout << endl;
+  cout << "DO NOT PANIC - this is not a segfault" << endl;
 }
