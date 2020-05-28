@@ -43,6 +43,13 @@ class PHG4MvtxDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer, energy_per_adc));
   }
 
+  void set_energy_threshold(const float threshold)
+  {
+    _energy_threshold = threshold;
+  }
+
+  float get_energy_threshold() { return _energy_threshold; }
+
  private:
   void CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode);
   void DigitizeMvtxLadderCells(PHCompositeNode *topNode);
@@ -53,6 +60,7 @@ class PHG4MvtxDigitizer : public SubsysReco
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
+  float _energy_threshold;
 
 #if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
