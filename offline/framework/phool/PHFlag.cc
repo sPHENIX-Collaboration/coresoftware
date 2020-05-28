@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <utility>   // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -19,7 +19,7 @@ PHFlag::get_CharFlag(const string &name) const
   }
   cout << "PHFlag::getString: ERROR Unknown character Flag " << name << endl;
   PrintStackTrace();
-  cout  << "The following flags are implemented: " << endl;
+  cout << "The following flags are implemented: " << endl;
   Print();
   return nullptr;
 }
@@ -54,7 +54,7 @@ double PHFlag::get_DoubleFlag(const string &name) const
   }
   cout << "PHFlag::getFlag: ERROR Unknown Double Flag " << name << endl;
   PrintStackTrace();
-  cout  << "The following flags are implemented: " << endl;
+  cout << "The following flags are implemented: " << endl;
   Print();
   return 0.0;
 }
@@ -88,7 +88,7 @@ float PHFlag::get_FloatFlag(const string &name) const
   }
   cout << "PHFlag::getFlag: ERROR Unknown Float Flag " << name << endl;
   PrintStackTrace();
-  cout  << "The following flags are implemented: " << endl;
+  cout << "The following flags are implemented: " << endl;
   Print();
   return 0.0;
 }
@@ -122,7 +122,7 @@ int PHFlag::get_IntFlag(const string &name) const
   }
   cout << "PHFlag::getFlag: ERROR Unknown Int Flag " << name << endl;
   PrintStackTrace();
-  cout  << "The following flags are implemented: " << endl;
+  cout << "The following flags are implemented: " << endl;
   Print();
   return 0;
 }
