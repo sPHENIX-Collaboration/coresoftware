@@ -131,17 +131,17 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Function which returns MVTX local coordinates and error, as well as
   /// corresponding surface
-  Surface getMvtxLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+  Surface getMvtxLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
                              const TrkrCluster *cluster,
                              const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for INTT
-  Surface getInttLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+  Surface getInttLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
                              const TrkrCluster *cluster,
                              const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for TPC
-  Surface getTpcLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+  Surface getTpcLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
                             const TrkrCluster *cluster,
                             const TrkrDefs::cluskey clusKey);
 

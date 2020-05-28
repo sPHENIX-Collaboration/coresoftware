@@ -129,12 +129,13 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     TMatrixD localErr(3, 3);
     double local2D[2] = {0};
     Surface surface;
-
+    Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+    
     /// Run the detector specific function for getting the local coordinates
     /// of the cluster, as well as the corresponding Acts::Surface
     if (trkrId == TrkrDefs::mvtxId)
     {
-      surface = getMvtxLocalCoords(local2D, localErr, cluster, clusKey);
+      surface = getMvtxLocalCoords(local2D, cov, cluster, clusKey);
       /// Make sure things returned appropriately
       if (!surface)
       {
@@ -144,7 +145,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     }
     else if (trkrId == TrkrDefs::inttId)
     {
-      surface = getInttLocalCoords(local2D, localErr, cluster, clusKey);
+      surface = getInttLocalCoords(local2D, cov, cluster, clusKey);
       if (!surface)
       {
         /// Error message already printed in function, return abort
@@ -153,7 +154,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     }
     else if (trkrId == TrkrDefs::tpcId)
     {
-      surface = getTpcLocalCoords(local2D, localErr, cluster, clusKey);
+      surface = getTpcLocalCoords(local2D, cov, cluster, clusKey);
 
       if (!surface)
       {
@@ -175,12 +176,6 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     /// for this cluster
     /// ====================================================
 
-    /// Get the 2D location covariance uncertainty for the cluster
-    Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-    cov(Acts::eLOC_0, Acts::eLOC_0) = localErr[1][1] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_1, Acts::eLOC_0) = localErr[2][1] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_0, Acts::eLOC_1) = localErr[1][2] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_1, Acts::eLOC_1) = localErr[2][2] * Acts::UnitConstants::cm2;
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
@@ -258,7 +253,7 @@ int PHActsSourceLinks::End(PHCompositeNode *topNode)
 }
 
 Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
-                                             TMatrixD &localErr,
+                                             Acts::BoundMatrix &localErr,
                                              const TrkrCluster *cluster,
                                              const TrkrDefs::cluskey clusKey)
 {
@@ -347,7 +342,18 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
       std::cout << " acts local : " <<localPos(0) <<"  "<<localPos(1) << std::endl;
   }
 
-  localErr = transformCovarToLocal(clusPhi, worldErr);
+  TMatrixD sPhenixLocalErr = transformCovarToLocal(clusPhi, worldErr);
+
+  /// Get the 2D location covariance uncertainty for the cluster 
+  localErr(Acts::eLOC_0, Acts::eLOC_0) = 
+    sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
+    sPhenixLocalErr[2][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
+    sPhenixLocalErr[1][2] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
+    sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
+
 
   if(Verbosity() > 0)
     {
@@ -355,7 +361,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 	{
 	  for (int j = 0; j < 3; j++)
 	    {
-	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << localErr[i][j] << std::endl;
+	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << sPhenixLocalErr[i][j] << std::endl;
 	    }
 	}
     }
@@ -364,7 +370,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 }
 
 Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
-                                              TMatrixD &localErr,
+                                              Acts::BoundMatrix &localErr,
                                               const TrkrCluster *cluster,
                                               const TrkrDefs::cluskey clusKey)
 {
@@ -453,13 +459,24 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   }
 
   /// Get the local covariance error
-  localErr = getInttCovarLocal(layer, ladderZId, ladderPhiId, worldErr);
+  TMatrixD sPhenixLocalErr = getInttCovarLocal(layer, ladderZId, ladderPhiId, worldErr);
+
+  /// Get the 2D location covariance uncertainty for the cluster 
+  localErr(Acts::eLOC_0, Acts::eLOC_0) = 
+    sPhenixLocalErr[0][0] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
+    sPhenixLocalErr[1][0] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
+    sPhenixLocalErr[0][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
+    sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
+
 
   return surface;
 }
 
 Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
-                                              TMatrixD &localErr,
+                                              Acts::BoundMatrix &localErr,
                                               const TrkrCluster *cluster,
                                               const TrkrDefs::cluskey clusKey)
 {
@@ -554,7 +571,16 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
   }
 
   // transform covariance matrix back to local coords on chip
-  localErr = getMvtxCovarLocal(layer, staveId, chipId, worldErr);
+  TMatrixD sPhenixLocalErr = getMvtxCovarLocal(layer, staveId, chipId, worldErr);
+    /// Get the 2D location covariance uncertainty for the cluster 
+  localErr(Acts::eLOC_0, Acts::eLOC_0) = 
+    sPhenixLocalErr[0][0] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
+    sPhenixLocalErr[1][0] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
+    sPhenixLocalErr[0][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
+    sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
 
   return surface;
 }
