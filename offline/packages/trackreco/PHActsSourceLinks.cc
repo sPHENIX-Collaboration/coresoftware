@@ -177,10 +177,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Get the 2D location covariance uncertainty for the cluster
     Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-    cov(Acts::eLOC_0, Acts::eLOC_0) = localErr[0][0] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_1, Acts::eLOC_0) = localErr[1][0] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_0, Acts::eLOC_1) = localErr[0][1] * Acts::UnitConstants::cm2;
-    cov(Acts::eLOC_1, Acts::eLOC_1) = localErr[1][1] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_0, Acts::eLOC_0) = localErr[1][1] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_1, Acts::eLOC_0) = localErr[2][1] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_0, Acts::eLOC_1) = localErr[1][2] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_1, Acts::eLOC_1) = localErr[2][2] * Acts::UnitConstants::cm2;
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
@@ -274,7 +274,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   {
     for (int j = 0; j < 3; j++)
     {
-      worldErr[i][j] = cluster->getError(i, j);
+      worldErr[i][j] = cluster->getError(i, j);  // this is the cov error squared
     }
   }
 
@@ -348,6 +348,17 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   }
 
   localErr = transformCovarToLocal(clusPhi, worldErr);
+
+  if(Verbosity() > 0)
+    {
+      for (int i = 0; i < 3; ++i)
+	{
+	  for (int j = 0; j < 3; j++)
+	    {
+	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << localErr[i][j] << std::endl;
+	    }
+	}
+    }
 
   return surface;
 }
