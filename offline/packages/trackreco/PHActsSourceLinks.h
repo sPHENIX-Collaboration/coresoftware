@@ -114,14 +114,14 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Get the local covariance matrix for the Mvtx cluster in a form Acts
   /// can accept
-  TMatrixD getMvtxCovarLocal(const unsigned int layer,
+  Acts::BoundMatrix getMvtxCovarLocal(const unsigned int layer,
                              const unsigned int staveid,
                              const unsigned int chipid,
                              TMatrixD world_err);
 
   /// Get the local covariance matrix for the Intt cluster in a form Acts
   /// can accept
-  TMatrixD getInttCovarLocal(const unsigned int layer,
+  Acts::BoundMatrix getInttCovarLocal(const unsigned int layer,
                              const unsigned int ladderZId,
                              const unsigned int ladderPhiId,
                              TMatrixD worldErr);
@@ -131,17 +131,20 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Function which returns MVTX local coordinates and error, as well as
   /// corresponding surface
-  Surface getMvtxLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
+  Surface getMvtxLocalCoords(Acts::Vector2D &local2D, 
+			     Acts::BoundMatrix &localErr,
                              const TrkrCluster *cluster,
                              const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for INTT
-  Surface getInttLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
+  Surface getInttLocalCoords(Acts::Vector2D &local2D, 
+			     Acts::BoundMatrix &localErr,
                              const TrkrCluster *cluster,
                              const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for TPC
-  Surface getTpcLocalCoords(double (&local2D)[2], Acts::BoundMatrix &localErr,
+  Surface getTpcLocalCoords(Acts::Vector2D &local2D, 
+			    Acts::BoundMatrix &localErr,
                             const TrkrCluster *cluster,
                             const TrkrDefs::cluskey clusKey);
 
