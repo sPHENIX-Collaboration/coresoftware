@@ -86,6 +86,8 @@ class PHActsTrkFitter : public PHTrackFitting
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
 
+  int m_nBadFits;
+
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
   TFile *m_timeFile;
