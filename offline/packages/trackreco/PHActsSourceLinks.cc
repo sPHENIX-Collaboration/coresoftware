@@ -439,7 +439,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   local2D[0] = localPos(0);
   local2D[1] = localPos(1);
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     double segcent[3];
     layerGeom->find_segment_center(ladderZId, ladderPhiId, segcent);
@@ -540,7 +540,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
   local2D[0] = localPos(0);
   local2D[1] = localPos(1);
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     double segcent[3];
     layerGeom->find_sensor_center(staveId, 0, 0, chipId, segcent);
