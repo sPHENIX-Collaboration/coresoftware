@@ -306,14 +306,19 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   /// relative to surface z center
   // lengths in mm
   Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
+  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
+  
   double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
   double surfPhiCenter = atan2(center[1], center[0]);
   double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
+  
   if (Verbosity() > 0)
   {
     std::cout << std::endl << "surface center readback:   x " << center[0]
               << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
+    std::cout << "Surface normal vector : "<< normal(0) << ", " 
+	      << normal(1) << ", " << normal(2) << std::endl;
     std::cout << " surface center  phi " << atan2(center[1], center[0]) 
               << " surface center r*phi " << surfRphiCenter
               << " surface center z  " << surfZCenter
@@ -441,6 +446,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
 			 surface->normal(m_actsGeometry->getGeoContext()),
 			 localPos);
+  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
   local2D[0] = localPos(0);
   local2D[1] = localPos(1);
@@ -449,6 +455,8 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   {
     double segcent[3];
     layerGeom->find_segment_center(ladderZId, ladderPhiId, segcent);
+    std::cout << "Acts surface normal vector: " << normal(0) << ", "
+	      << normal(1) << ", " <<normal(2)<<std::endl;
     std::cout << "   segment center: " << segcent[0]
               << " " << segcent[1] << " " << segcent[2] << std::endl;
     std::cout << "   world; " << world[0] << " " << world[1]
@@ -557,10 +565,14 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
   
   local2D[0] = localPos(0);
   local2D[1] = localPos(1);
-
+  
+  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
+  
   if (Verbosity() > 0)
   {
     double segcent[3];
+    std::cout << "Acts normal vector: "<<normal(0) << ", " << normal(1) 
+	      << ", " << normal(2) << std::endl;
     layerGeom->find_sensor_center(staveId, 0, 0, chipId, segcent);
     std::cout << "   segment center: " << segcent[0] << " "
               << segcent[1] << " " << segcent[2] << std::endl;
