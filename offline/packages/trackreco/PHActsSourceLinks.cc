@@ -344,7 +344,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 
   TMatrixD sPhenixLocalErr = transformCovarToLocal(clusPhi, worldErr);
 
-  /// Get the 2D location covariance uncertainty for the cluster 
+  /// Get the 2D location covariance uncertainty for the cluster (y and z)
   localErr(Acts::eLOC_0, Acts::eLOC_0) = 
     sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
   localErr(Acts::eLOC_1, Acts::eLOC_0) = 
@@ -461,15 +461,15 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   /// Get the local covariance error
   TMatrixD sPhenixLocalErr = getInttCovarLocal(layer, ladderZId, ladderPhiId, worldErr);
 
-  /// Get the 2D location covariance uncertainty for the cluster 
+  /// Get the 2D location covariance uncertainty for the cluster (y and z)
   localErr(Acts::eLOC_0, Acts::eLOC_0) = 
-    sPhenixLocalErr[0][0] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
-    sPhenixLocalErr[1][0] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
-    sPhenixLocalErr[0][1] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
     sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
+    sPhenixLocalErr[2][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
+    sPhenixLocalErr[1][2] * Acts::UnitConstants::cm2;
+  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
+    sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
 
   return surface;
@@ -541,6 +541,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
   CylinderGeom_Mvtx *layerGeom = 
     dynamic_cast<CylinderGeom_Mvtx *>(m_geomContainerMvtx->GetLayerGeom(layer));
  
+  // this is just for checking - however it disagrees in x by much more than the pixel size - why? tilt not right?
   local = layerGeom->get_local_from_world_coords(staveId, 0, 0,
 						 chipId,
 						 world);
@@ -565,22 +566,22 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
               << segcent[1] << " " << segcent[2] << std::endl;
     std::cout << "   world; " << world[0] << " "
               << world[1] << " " << world[2] << std::endl;
-    std::cout << "   local; " << local[0] << " "
+    std::cout << "   our local; " << local[0] << " "
               << local[1] << " " << local[2] << std::endl;
     std::cout<<" acts local "<<localPos(0)<<"  "<<localPos(1)<<std::endl;
   }
 
   // transform covariance matrix back to local coords on chip
   TMatrixD sPhenixLocalErr = getMvtxCovarLocal(layer, staveId, chipId, worldErr);
-    /// Get the 2D location covariance uncertainty for the cluster 
+    /// Get the 2D location covariance uncertainty for the cluster (x and z) 
   localErr(Acts::eLOC_0, Acts::eLOC_0) = 
     sPhenixLocalErr[0][0] * Acts::UnitConstants::cm2;
   localErr(Acts::eLOC_1, Acts::eLOC_0) = 
-    sPhenixLocalErr[1][0] * Acts::UnitConstants::cm2;
+    sPhenixLocalErr[2][0] * Acts::UnitConstants::cm2;
   localErr(Acts::eLOC_0, Acts::eLOC_1) = 
-    sPhenixLocalErr[0][1] * Acts::UnitConstants::cm2;
+    sPhenixLocalErr[0][2] * Acts::UnitConstants::cm2;
   localErr(Acts::eLOC_1, Acts::eLOC_1) = 
-    sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
+    sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
   return surface;
 }
@@ -767,14 +768,14 @@ TMatrixD PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, const un
 
   localErr = transformCovarToLocal(ladderPhi, worldErr);
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
       {
         std::cout << "  " << i << "    " << j
-                  << " local_err " << localErr[i][j]
+                  << " world_err " << worldErr[i][j] << " local_err " << localErr[i][j]
                   << std::endl;
       }
     }
