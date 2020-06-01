@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <iosfwd>                         // for std
 #include <vector>
 
 using namespace std;

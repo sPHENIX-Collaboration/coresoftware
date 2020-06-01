@@ -2,21 +2,32 @@
 #include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
 #include <mvtx/MvtxDefs.h>
-#include <phool/getClass.h>
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>                            // for PHWHERE
+
 #include <TH1F.h>
+#include <TString.h>                                // for Form
 
 #include <cassert>
+#include <iostream>                                 // for operator<<, basic...
+#include <iterator>                                 // for distance
+#include <map>                                      // for map
+#include <utility>                                  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string &name)

@@ -1,28 +1,20 @@
 #include "QAG4SimulationTracking.h"
 #include "QAHistManagerDef.h"
 
-#include <g4eval/CaloEvalStack.h>
-#include <g4eval/CaloRawClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTrackEval.h>  // for SvtxTrackEval
+#include <g4eval/SvtxTruthEval.h>  // for SvtxTruthEval
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <calobase/RawCluster.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomContainer.h>
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
-
-#include <g4eval/SvtxTrackEval.h>  // for SvtxTrackEval
-#include <g4eval/SvtxTruthEval.h>  // for SvtxTruthEval
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -35,6 +27,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
+#include <TParticlePDG.h>                    // for TParticlePDG
 #include <TString.h>
 #include <TVector3.h>
 
@@ -42,9 +35,8 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <iterator>  // for reverse_iterator
+#include <map>                               // for map
 #include <utility>   // for pair
-#include <vector>
 
 using namespace std;
 

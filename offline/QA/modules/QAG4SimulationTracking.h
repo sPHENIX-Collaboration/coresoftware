@@ -1,8 +1,11 @@
 #ifndef QA_QAG4SimulationTracking_H
 #define QA_QAG4SimulationTracking_H
 
-#include <fun4all/SubsysReco.h>
 #include <g4eval/SvtxEvalStack.h>
+
+#include <trackbase/TrkrDefs.h>    // for cluskey
+
+#include <fun4all/SubsysReco.h>
 
 #include <memory>
 #include <set>
@@ -10,9 +13,9 @@
 #include <utility>
 
 class PHCompositeNode;
+class PHG4Hit;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
-class SvtxTrack;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;

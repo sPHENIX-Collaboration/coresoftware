@@ -1,14 +1,14 @@
 #ifndef QA_QAG4SIMULATIONMVTX_H
 #define QA_QAG4SIMULATIONMVTX_H
 
-#include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <memory>
+#include <fun4all/SubsysReco.h>
+
 #include <string>
 #include <set>
-#include <utility>
 
+class PHCompositeNode;
 class PHG4Hit;
 class PHG4HitContainer;
 class TrkrClusterContainer;
