@@ -19,7 +19,7 @@ class TDirectoryHelper
                        const std::string& where);
 
   static TDirectory* mkdir(TDirectory* topDir,
-                           const std::string &path,
+                           const std::string& path,
                            std::vector<std::string>* titles = 0);
 
   static bool mkpath(TDirectory* dir, const std::string& path);

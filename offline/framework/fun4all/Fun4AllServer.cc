@@ -1,7 +1,7 @@
 #include "Fun4AllServer.h"
 
 #include "Fun4AllHistoBinDefs.h"
-#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
+#include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
 #include "Fun4AllMemoryTracker.h"
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
@@ -9,22 +9,22 @@
 #include "SubsysReco.h"
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHNodeReset.h>
 #include <phool/PHObject.h>
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTimeStamp.h>
-#include <phool/PHTimer.h>                // for PHTimer
+#include <phool/PHTimer.h>  // for PHTimer
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <Rtypes.h>                       // for kMAXSIGNALS
+#include <Rtypes.h>  // for kMAXSIGNALS
 #include <TDirectory.h>
 #include <TH1.h>
 #include <TROOT.h>
-#include <TSysEvtHandler.h>               // for ESignals
+#include <TSysEvtHandler.h>  // for ESignals
 #include <TSystem.h>
 
 #include <boost/foreach.hpp>
@@ -34,7 +34,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <memory>                         // for allocator_traits<>::value_type
+#include <memory>  // for allocator_traits<>::value_type
 #include <sstream>
 
 using namespace std;

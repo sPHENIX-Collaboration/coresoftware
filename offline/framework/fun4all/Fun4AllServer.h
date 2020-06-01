@@ -5,14 +5,14 @@
 
 #include "Fun4AllBase.h"
 
-#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
+#include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
 
 #include <phool/PHTimer.h>
 
 #include <iostream>
 #include <map>
 #include <string>
-#include <utility>          // for pair
+#include <utility>  // for pair
 #include <vector>
 
 class Fun4AllInputManager;

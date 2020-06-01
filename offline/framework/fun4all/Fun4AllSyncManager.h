@@ -9,7 +9,7 @@
 
 #include "Fun4AllBase.h"
 
-#include <string>         // for string
+#include <string>  // for string
 #include <vector>
 
 class Fun4AllInputManager;
