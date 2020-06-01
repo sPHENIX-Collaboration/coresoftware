@@ -279,9 +279,9 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 
   /// Get some geometry values (lengths in mm)
   const double clusPhi = atan2(world[1], world[0]);
-  const double radius = sqrt(x * x + y * y) *Acts::UnitConstants::cm;
+  const double radius = sqrt(x * x + y * y) * Acts::UnitConstants::cm;
   const double rClusPhi = radius * clusPhi;
-  const double zTpc = world[2] *Acts::UnitConstants::cm;
+  const double zTpc = world[2] * Acts::UnitConstants::cm;
 
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
   const unsigned int sectorId = TpcDefs::getSectorId(clusKey);
@@ -550,7 +550,10 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
 			 local2D);
   
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
-  
+  // we use our calculation rather than acts for now since there is a discrepancy
+  local2D(0) = local[0];
+  local2D(1) = local[1];
+
   if (Verbosity() > 0)
   {
     double segcent[3];
