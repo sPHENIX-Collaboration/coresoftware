@@ -15,8 +15,13 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -36,6 +41,7 @@ using namespace std::chrono;
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
   , m_event(0)
+  , m_actsFitResults(nullptr)
   , m_actsProtoTracks(nullptr)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
@@ -52,9 +58,12 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
-  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
+
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
@@ -119,10 +128,17 @@ int PHActsTrkFitter::Process()
   
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
 
+
     /// Check that the track fit result did not return an error
     if (result.ok())
     {  
-      const Acts::KalmanFitterResult<SourceLink>& fitOutput = result.value();
+      const FitResult& fitOutput = result.value();
+   
+      /// Insert a new entry into the map
+      m_actsFitResults->insert(
+        std::pair<const unsigned int, const FitResult&>(trackKey, fitOutput));
+  
+
       if (fitOutput.fittedParameters)
       {
 	/// Get position, momentum from the Acts output. Update the values of
@@ -140,6 +156,13 @@ int PHActsTrkFitter::Process()
         }
       }
     }
+    else
+      {
+	/// Insert an empty track fit output into the map since the fit failed
+        const FitResult emptyResult;
+	m_actsFitResults->insert(std::pair<const unsigned int, const FitResult&>
+				(trackKey, emptyResult));
+      }
     
 
   }
@@ -153,7 +176,18 @@ int PHActsTrkFitter::Process()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::End(PHCompositeNode* topNode)
+int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
+{
+  m_actsFitResults->clear();
+  if(Verbosity() > 1)
+    {
+      std::cout << "Reset PHActsTrkFitter" << std::endl;
+
+    }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsTrkFitter::End(PHCompositeNode *topNode)
 {
   if(m_timeAnalysis)
     {
@@ -209,6 +243,41 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
+
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+  }
+  
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, const FitResult&>>(topNode, "ActsFitResults");
+  
+  if(!m_actsFitResults)
+    {
+      m_actsFitResults = new std::map<const unsigned int, const FitResult&>;
+
+      PHDataNode<std::map<const unsigned int, 
+			  const FitResult&>> *fitNode = 
+		 new PHDataNode<std::map<const unsigned int, 
+			        const FitResult&>>
+		 (m_actsFitResults, "ActsFitResults");
+
+      svtxNode->addNode(fitNode);
+      
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
