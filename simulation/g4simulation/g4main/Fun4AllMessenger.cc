@@ -3,8 +3,11 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <Geant4/G4ApplicationState.hh>           // for G4State_Idle
+#include <Geant4/G4String.hh>
 #include <Geant4/G4UIcmdWithAnInteger.hh>
 #include <Geant4/G4UIdirectory.hh>                // for G4UIdirectory
+
+#include <iosfwd>                          // for std
 
 class G4UIcommand;
 
