@@ -24,6 +24,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsCovarianceRotater.h \
   ActsTrack.h \
+  ActsTrkFitAnalyzer.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -112,6 +113,7 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   ActsCovarianceRotater.cc \
+  ActsTrkFitAnalyzer.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
