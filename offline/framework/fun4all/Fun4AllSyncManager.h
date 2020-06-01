@@ -32,7 +32,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   */
   int skip(const int nevnts = 0);
 
-  int fileopen(const std::string &managername = "NONE", const std::string &filename = "NONE");
+  int fileopen(const std::string &managername, const std::string &filename);
   int fileclose(const std::string &managername = "NONE");
   int CurrentRun() { return m_CurrentRun; }
   void CurrentRun(const int ival) { m_CurrentRun = ival; }

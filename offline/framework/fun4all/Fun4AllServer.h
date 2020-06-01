@@ -32,7 +32,7 @@ class Fun4AllServer : public Fun4AllBase
   static Fun4AllServer *instance();
   virtual ~Fun4AllServer();
 
-  virtual bool registerHisto(const char *hname, TNamed *h1d, const int replace = 0);
+  virtual bool registerHisto(const std::string &hname, TNamed *h1d, const int replace = 0);
   virtual bool registerHisto(TNamed *h1d, const int replace = 0);
   template <typename T>
   T *makeHisto(T *t)
@@ -50,12 +50,12 @@ class Fun4AllServer : public Fun4AllBase
   Fun4AllHistoManager *getHistoManager(const std::string &name);
   TNamed *getHisto(const std::string &hname) const;
   TNamed *getHisto(const unsigned int ihisto) const;
-  const char *getHistoName(const unsigned int ihisto) const;
+  std::string getHistoName(const unsigned int ihisto) const;
   virtual void Print(const std::string &what = "ALL") const;
 
   void InitAll();
   int BeginRunTimeStamp(PHTimeStamp &TimeStp);
-  int dumpHistos(const std::string &filename = "", const std::string &openmode = "RECREATE");
+  int dumpHistos(const std::string &filename, const std::string &openmode = "RECREATE");
   int process_event(PHCompositeNode *topNode);
   int Reset();
   virtual int BeginRun(const int runno);
@@ -74,7 +74,7 @@ class Fun4AllServer : public Fun4AllBase
 
   // Interface to the default Input Master
   int registerInputManager(Fun4AllInputManager *InManager);
-  Fun4AllInputManager *getInputManager(const char *name);
+  Fun4AllInputManager *getInputManager(const std::string &name);
   int PrdfEvents() const;
   int DstEvents() const;
 
@@ -87,13 +87,13 @@ class Fun4AllServer : public Fun4AllBase
   */
   int skip(const int nevnts = 0);
 
-  int fileopen(const char *managername = "NONE", const char *filename = "NONE");
-  int fileclose(const std::string &managername = "");
+  int fileopen(const std::string &managername, const std::string &filename);
+  int fileclose(const std::string &managername);
   int SegmentNumber();
   int ResetNodeTree();
-  int BranchSelect(const char *managername, const char *branch, int iflag);
-  int BranchSelect(const char *branch, int iflag);
-  int setBranches(const char *managername);
+  int BranchSelect(const std::string &managername, const std::string &branch, int iflag);
+  int BranchSelect(const std::string &branch, int iflag);
+  int setBranches(const std::string &managername);
   int setBranches();
   virtual int DisconnectDB();
   virtual void identify(std::ostream &out = std::cout) const;

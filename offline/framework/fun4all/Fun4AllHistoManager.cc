@@ -221,7 +221,7 @@ Fun4AllHistoManager::getHisto(const unsigned int ihisto) const
   return nullptr;
 }
 
-const char *
+string
 Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
 {
   map<const string, TNamed *>::const_iterator histoiter = Histo.begin();
@@ -236,14 +236,14 @@ Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
     {
       ++histoiter;
     }
-    return histoiter->first.c_str();
+    return histoiter->first;
   }
   else
   {
     cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
          << ihisto << ", maximum number is " << size << endl;
   }
-  return nullptr;
+  return "";
 }
 
 TNamed *

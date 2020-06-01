@@ -145,7 +145,7 @@ bool TDirectoryHelper::mkpath(TDirectory* dir, const string& path)
 //_____________________________________________________________________________
 TDirectory*
 TDirectoryHelper::mkdir(TDirectory* topDir,
-                        const char* path,
+                        const string &path,
                         std::vector<std::string>* titles)
 {
   TDirectory* save = gDirectory;
