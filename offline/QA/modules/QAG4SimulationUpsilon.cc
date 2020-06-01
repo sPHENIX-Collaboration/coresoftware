@@ -22,7 +22,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
-#include <TParticlePDG.h>                    // for TParticlePDG
+#include <TParticlePDG.h>  // for TParticlePDG
 #include <TString.h>
 #include <TVector3.h>
 
@@ -30,9 +30,9 @@
 
 #include <cassert>
 #include <cmath>
-#include <cstdlib>                         // for abs
+#include <cstdlib>  // for abs
 #include <iostream>
-#include <utility>   // for pair
+#include <utility>  // for pair
 
 using namespace std;
 

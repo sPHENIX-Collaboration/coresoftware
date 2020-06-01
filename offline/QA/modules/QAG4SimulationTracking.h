@@ -3,7 +3,7 @@
 
 #include <g4eval/SvtxEvalStack.h>
 
-#include <trackbase/TrkrDefs.h>    // for cluskey
+#include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <fun4all/SubsysReco.h>
 
@@ -53,14 +53,13 @@ class QAG4SimulationTracking : public SubsysReco
   }
 
  private:
-
   /// load nodes
-  int load_nodes( PHCompositeNode* );
-  
+  int load_nodes(PHCompositeNode *);
+
   // get geant hits associated to a cluster
-  using G4HitSet = std::set<PHG4Hit*>;
-  G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
-  
+  using G4HitSet = std::set<PHG4Hit *>;
+  G4HitSet find_g4hits(TrkrDefs::cluskey) const;
+
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
   std::set<int> m_embeddingIDs;
 
@@ -71,15 +70,14 @@ class QAG4SimulationTracking : public SubsysReco
   bool m_uniqueTrackingMatch = true;
 
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
-  
-  TrkrClusterContainer* m_cluster_map = nullptr;
-  TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
-  TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+
+  TrkrClusterContainer *m_cluster_map = nullptr;
+  TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;
+  TrkrHitTruthAssoc *m_hit_truth_map = nullptr;
 
   PHG4HitContainer *m_g4hits_tpc = nullptr;
   PHG4HitContainer *m_g4hits_intt = nullptr;
   PHG4HitContainer *m_g4hits_mvtx = nullptr;
-
 };
 
 #endif  // QA_QAG4SimulationTracking_H
