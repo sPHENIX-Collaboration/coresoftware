@@ -102,6 +102,6 @@ PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("length", 100);
-  set_default_double_param("radius", 100);
+  set_default_double_param("mm_length", 220);
+  set_default_double_param("mm_radius", 82);
 }
