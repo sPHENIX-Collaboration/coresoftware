@@ -129,12 +129,12 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     { CuStrips, G4Colour::Brown()},
     { KaptonStrips, G4Colour::Brown()},
     { ResistiveStrips, G4Colour::Black()},
-	  { Gas1, G4Colour::Grey()},
-	  { Mesh, G4Colour::White()},
-	  { Gas2, G4Colour::Grey()},
-	  { DriftCuElectrode, G4Colour::Brown()},
-	  { DriftKapton, G4Colour::Brown()},
-	  { DriftCuGround, G4Colour(51/255., 26/255., 0)}
+    { Gas1, G4Colour::Grey()},
+	   { Mesh, G4Colour::White()},
+	   { Gas2, G4Colour::Grey()},
+	   { DriftCuElectrode, G4Colour::Brown()},
+	   { DriftKapton, G4Colour::Brown()},
+    { DriftCuGround, G4Colour(51/255., 26/255., 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
@@ -163,8 +163,8 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // start seting up volumes
   // get initial radius
-  const double radius = m_Params->get_double_param("radius")*cm;
-  const double length =  m_Params->get_double_param("length")*cm;
+  const double radius = m_Params->get_double_param("mm_radius")*cm;
+  const double length =  m_Params->get_double_param("mm_length")*cm;
   
   // get total thickness
   const double thickness = std::accumulate( 
