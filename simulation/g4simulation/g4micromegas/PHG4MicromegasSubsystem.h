@@ -24,10 +24,10 @@ class PHG4SteppingAction;
    */
 class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
 {
-  
+
   public:
   //! constructor
-  PHG4MicromegasSubsystem(const std::string& name = "Micromegas", int layer = 0);
+  PHG4MicromegasSubsystem(const std::string& name = "MICROMEGAS", int layer = 0);
 
   //! destructor
   virtual ~PHG4MicromegasSubsystem() = default;
@@ -49,7 +49,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   PHG4Detector* GetDetector() const override;
   PHG4SteppingAction* GetSteppingAction() const override;
   //@}
-  
+
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
@@ -58,7 +58,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   void SetDefaultParameters() override;
 
   private:
-    
+
   //! detector construction
   /*! derives from PHG4Detector */
   PHG4MicromegasDetector *m_Detector = nullptr;
