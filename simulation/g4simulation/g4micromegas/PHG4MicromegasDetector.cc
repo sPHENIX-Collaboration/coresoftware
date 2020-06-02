@@ -138,46 +138,54 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
   };
 
   // setup layers in the correct order, going outwards from beam axis
-  static constexpr int n_layers = 21;
-  const std::array<Component,n_layers> layer_type =
+  using LayerDefinition = std::tuple<Component,std::string>;
+  const std::vector<LayerDefinition> layer_definitions =
   {
     // inner side
-    DriftCuGround, DriftKapton, DriftCuElectrode, Gas2, Mesh, Gas1, ResistiveStrips, KaptonStrips, CuStrips, PCB,
-    // separating ground
-    CuGround,
-    // outer side (= inner side, mirrored)
-    PCB, CuStrips, KaptonStrips, ResistiveStrips, Gas1, Mesh, Gas2, DriftCuElectrode, DriftKapton, DriftCuGround
-  };
+    { DriftCuGround, "DriftCuGround_inner"},
+    { DriftKapton, "DriftKapton_inner"},
+    { DriftCuElectrode, "DriftCuElectrode_inner"},
+    { Gas2, "Gas2_inner"},
+    { Mesh, "Mesh_inner"},
+    { Gas1, "Gas1_inner"},
+    { ResistiveStrips, "ResistiveStrips_inner"},
+    { KaptonStrips, "KaptonStrips_inner"},
+    { CuStrips, "CuStrips_inner"},
+    { PCB, "PCB_inner"},
 
-  // layer names (must be kept consistent with layer type)
-  /* all names must be unique */
-  const std::array<std::string,n_layers> layer_name =
-  {
-    // inner side
-    "DriftCuGround_inner",  "DriftKapton_inner", "DriftCuElectrode_inner",  "Gas2_inner",  "Mesh_inner", "Gas1_inner", "ResistiveStrips_inner", "KaptonStrips_inner", "CuStrips_inner", "PCB_inner", 
     // separating ground
-    "CuGround", 
+    { CuGround, "CuGround"},
+
     // outer side (= inner side, mirrored)
-    "PCB_outer", "CuStrips_outer", "KaptonStrips_outer", "ResistiveStrips_outer", "Gas1_outer", "Mesh_outer", "Gas2_outer", "DriftCuElectrode_outer", "DriftKapton_outer", "DriftCuGround_outer" 
+    { PCB, "PCB_outer"},
+    { CuStrips, "CuStrips_outer"},
+    { KaptonStrips, "KaptonStrips_outer"},
+    { ResistiveStrips, "ResistiveStrips_outer"},
+    { Gas1, "Gas1_outer"},
+    { Mesh, "Mesh_outer"},
+    { Gas2, "Gas2_outer"},
+    { DriftCuElectrode, "DriftCuElectrode_outer"},
+    { DriftKapton, "DriftKapton_outer"},
+    { DriftCuGround, "DriftCuGround_outer"}
   };
 
   // start seting up volumes
   // get initial radius
   const double radius = m_Params->get_double_param("mm_radius")*cm;
   const double length =  m_Params->get_double_param("mm_length")*cm;
-  
+
   // get total thickness
-  const double thickness = std::accumulate( 
-    layer_type.begin(), layer_type.end(), 0., 
-    [layer_thickness](double value, Component component )
-    { return value + layer_thickness.at(component); } );
-  
+  const double thickness = std::accumulate(
+    layer_definitions.begin(), layer_definitions.end(), 0.,
+    [layer_thickness](double value, LayerDefinition layer )
+    { return value + layer_thickness.at(std::get<0>(layer)); } );
+
   std::cout << PHWHERE << "detector thickness is " << thickness/cm << " cm" << std::endl;
 
   // create mother volume
   auto cylinder_solid = new G4Tubs( G4String(GetName()), radius - 0.001*mm, radius + thickness + 0.001*mm, length / 2., 0, M_PI*2);
-  auto cylinder_logic = new G4LogicalVolume( cylinder_solid, G4Material::GetMaterial("myAir"), G4String(GetName()) );  
-  auto vis = new G4VisAttributes(G4Color(G4Colour::Grey())); 
+  auto cylinder_logic = new G4LogicalVolume( cylinder_solid, G4Material::GetMaterial("myAir"), G4String(GetName()) );
+  auto vis = new G4VisAttributes(G4Color(G4Colour::Grey()));
   vis->SetForceSolid(true);
   vis->SetVisibility(false);
   cylinder_logic->SetVisAttributes(vis);
@@ -185,26 +193,26 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // add placement
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
-  
+
   // create detector
   /* we loop over registered layers and create volumes for each */
   auto current_radius = radius;
-  for( int ilayer = 0; ilayer < n_layers; ++ilayer )
+  for( const auto& layer:layer_definitions )
   {
-    const Component type = layer_type[ilayer];
-    const std::string name = layer_name[ilayer];
-    
+    const Component& type = std::get<0>(layer);
+    const std::string& name = std::get<1>(layer);
+
     // layer name
     G4String cname = G4String(GetName()) + "_" + name;
-    
+
     // get thickness, material and name
     const auto thickness = layer_thickness.at(type);
     const auto material = layer_material.at(type);
     const auto color = layer_color.at(type);
-    
+
     auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length/2, 0, M_PI*2);
-    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");    
-    auto vis = new G4VisAttributes( color ); 
+    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+    auto vis = new G4VisAttributes( color );
     vis->SetForceSolid(true);
     vis->SetVisibility(true);
     component_logic->SetVisAttributes(vis);
@@ -217,7 +225,7 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     // update radius
     current_radius += thickness;
   }
-  
+
   return;
 }
 
