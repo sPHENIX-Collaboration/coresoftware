@@ -9,8 +9,18 @@
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+/// Tracking includes
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTrackEval.h>
+
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+
 #include <TFile.h>
 #include <TTree.h>
+
 
 
 ActsTrkFitAnalyzer::ActsTrkFitAnalyzer(const std::string& name)
@@ -25,18 +35,103 @@ ActsTrkFitAnalyzer::~ActsTrkFitAnalyzer()
 int ActsTrkFitAnalyzer::Init(PHCompositeNode *topNode)
 {
   initializeTree();
-  
+  m_svtxEvalStack = new SvtxEvalStack(topNode);
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
 {
+  
+  if(!getNodes(topNode))
+    return Fun4AllReturnCodes::ABORTEVENT;
 
+  m_svtxEvalStack->next_event(topNode);
+  
+  //SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
+  SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
+
+  std::map<const unsigned int, const FitResult&>::iterator trackIter;
+ 
+  for (trackIter = m_actsFitResults->begin();
+       trackIter != m_actsFitResults->end();
+       ++trackIter)
+    {
+      const unsigned int trackKey = trackIter->first;
+      const FitResult& actsResult = trackIter->second;
+      
+      SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
+      SvtxTrack *track = trackIter->second;
+      
+      PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
+      if(g4particle)
+	{}
+      
+      const auto trackTip = actsResult.trackTip;
+      Acts::MultiTrajectory<SourceLink> mj = actsResult.fittedStates;
+      auto trajState =
+        Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+    }
+ 
+  /*
+  for (PHG4TruthInfoContainer::ConstIterator truthIter = range.first;
+       truthIter != range.second;
+       ++truthIter)
+    {
+      PHG4Particle* g4particle = truthIter->second;
+      m_t_barcode = g4particle->get_track_id();
+      const auto pid = g4particle->get_pid();
+      m_t_charge = pid < 0 ? -1 : 1;
+      const auto vtx = trutheval->get_vertex(g4particle);
+      m_t_vx = 
+//m_t_vx = 
+
+	}
+  */
+  m_eventNr++;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int ActsTrkFitAnalyzer::End(PHCompositeNode *topNode)
 {
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
+{
+  
+  m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+  if(!m_truthInfo)
+    {
+      std::cout << PHWHERE << "PHG4TruthInfoContainer not found, cannot continue!" 
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, const FitResult&>>(topNode, "ActsFitResults");
+    
+    if(!m_actsFitResults)
+      {
+	std::cout << PHWHERE << "No Acts fit results on node tree. Bailing" 
+		  << std::endl;
+
+	return Fun4AllReturnCodes::ABORTEVENT;
+      }				
+
+    m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+   
+    if(!m_trackMap)
+      {
+	std::cout << PHWHERE << "No SvtxTrackMap on node tree. Bailing." 
+		  << std::endl;
+	
+	return Fun4AllReturnCodes::ABORTEVENT;
+      }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -47,7 +142,7 @@ void ActsTrkFitAnalyzer::initializeTree()
   m_trackFile = new TFile(Name().c_str(),"RECREATE");
   
   m_trackTree = new TTree("tracktree","A tree with Acts KF track information");
-  /*
+  
   m_trackTree->Branch("event_nr", &m_eventNr);
   m_trackTree->Branch("traj_nr", &m_trajNr);
   m_trackTree->Branch("t_barcode", &m_t_barcode, "t_barcode/l");
@@ -215,5 +310,5 @@ void ActsTrkFitAnalyzer::initializeTree()
   m_trackTree->Branch("pz_smt", &m_pz_smt);
   m_trackTree->Branch("eta_smt", &m_eta_smt);
   m_trackTree->Branch("pT_smt", &m_pT_smt);
-  */
+  
 }
