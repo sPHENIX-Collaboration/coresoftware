@@ -1,5 +1,5 @@
 /*!
- * \file MicromegasDetector.cc
+ * \file PHG4MicromegasDetector.cc
  * \brief strongly inspired by code from Qinhua Huang <qinhua.huang@cea.fr>
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
@@ -14,7 +14,7 @@
 // get inserted into the m_PhysicalVolumesSet)PHWHERE
 //
 // Rather than using hardcoded values you should consider using the parameter class
-// Parameter names and defaults are set in MicromegasSubsystem::SetDefaultParameters()
+// Parameter names and defaults are set in PHG4MicromegasSubsystem::SetDefaultParameters()
 // Only parameters defined there can be used (also to override in the macro)
 // to avoids typos.
 // IMPORTANT: parameters have no inherent units, there is a convention (cm/deg)
@@ -26,7 +26,7 @@
 // Do not forget to include the G4 includes for your volumes
 //____________________________________________________________________________..
 
-#include "MicromegasDetector.h"
+#include "PHG4MicromegasDetector.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -52,17 +52,17 @@ class G4VSolid;
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-MicromegasDetector::MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
 {}
 
 //_______________________________________________________________
-int MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
+int PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
 { return m_PhysicalVolumesSet.find( volume ) != m_PhysicalVolumesSet.end(); }
 
 //_______________________________________________________________
-void MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
+void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   create_materials();
 
@@ -222,9 +222,9 @@ void MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
 }
 
 //_______________________________________________________________
-void MicromegasDetector::Print(const std::string &what) const
+void PHG4MicromegasDetector::Print(const std::string &what) const
 {
-  std::cout << "Micromegas Detector:" << std::endl;
+  std::cout << "PHG4Micromegas Detector:" << std::endl;
   if (what == "ALL" || what == "VOLUME")
   {
     std::cout << "Version 0.1" << std::endl;
@@ -235,7 +235,7 @@ void MicromegasDetector::Print(const std::string &what) const
 }
 
 //_______________________________________________________________
-void MicromegasDetector::create_materials() const
+void PHG4MicromegasDetector::create_materials() const
 {
   // get the list of NIST materials
   // ---------------------------------

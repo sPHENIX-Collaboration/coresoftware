@@ -1,11 +1,11 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MICROMEGASSTEPPINGACTION_H
-#define MICROMEGASSTEPPINGACTION_H
+#ifndef PHG4MICROMEGASSTEPPINGACTION_H
+#define PHG4MICROMEGASSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
-class MicromegasDetector;
+class PHG4MicromegasDetector;
 
 class G4Step;
 class G4VPhysicalVolume;
@@ -14,14 +14,14 @@ class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
 
-class MicromegasSteppingAction : public PHG4SteppingAction
+class PHG4MicromegasSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  MicromegasSteppingAction(MicromegasDetector*, const PHParameters* parameters);
+  PHG4MicromegasSteppingAction(PHG4MicromegasDetector*, const PHParameters* parameters);
 
   //! destructor
-  virtual ~MicromegasSteppingAction();
+  virtual ~PHG4MicromegasSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -31,7 +31,7 @@ class MicromegasSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  MicromegasDetector* m_Detector;
+  PHG4MicromegasDetector* m_Detector;
   const PHParameters* m_Params;
   //! pointer to hit container
   PHG4HitContainer* m_HitContainer;

@@ -1,10 +1,10 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MICROMEGASDETECTOR_H
-#define MICROMEGASDETECTOR_H
+#ifndef PHG4MICROMEGASDETECTOR_H
+#define PHG4MICROMEGASDETECTOR_H
 
 /*!
- * \file MicromegasDetector.h
+ * \file PHG4MicromegasDetector.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -19,12 +19,12 @@ class PHCompositeNode;
 class PHG4Subsystem;
 class PHParameters;
 
-class MicromegasDetector : public PHG4Detector
+class PHG4MicromegasDetector : public PHG4Detector
 {
  public:
 
   //! constructor
-  MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
+  PHG4MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;

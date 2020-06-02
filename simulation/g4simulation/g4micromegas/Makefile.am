@@ -11,17 +11,17 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  MicromegasSubsystem.h
+  PHG4MicromegasSubsystem.h
 
 lib_LTLIBRARIES = \
-  libMicromegas.la
+  libPHG4Micromegas.la
 
-libMicromegas_la_SOURCES = \
-  MicromegasSubsystem.cc\
-  MicromegasDetector.cc\
-  MicromegasSteppingAction.cc
+libPHG4Micromegas_la_SOURCES = \
+  PHG4MicromegasSubsystem.cc\
+  PHG4MicromegasDetector.cc\
+  PHG4MicromegasSteppingAction.cc
 
-libMicromegas_la_LIBADD = \
+libPHG4Micromegas_la_LIBADD = \
   -lphool \
   -lSubsysReco\
   -lg4detectors\
@@ -33,7 +33,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libMicromegas.la
+testexternals_LDADD   = libPHG4Micromegas.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

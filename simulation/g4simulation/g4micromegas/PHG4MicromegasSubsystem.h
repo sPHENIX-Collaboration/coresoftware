@@ -1,10 +1,10 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MICROMEGASSUBSYSTEM_H
-#define MICROMEGASSUBSYSTEM_H
+#ifndef PHG4MICROMEGASSUBSYSTEM_H
+#define PHG4MICROMEGASSUBSYSTEM_H
 
 /*!
- * \file MicromegasSubsystem.h
+ * \file PHG4MicromegasSubsystem.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -12,25 +12,25 @@
 
 class PHCompositeNode;
 class PHG4Detector;
-class MicromegasDetector;
-class MicromegasSteppingAction;
+class PHG4MicromegasDetector;
+class PHG4MicromegasSteppingAction;
 class PHG4SteppingAction;
 
 /**
    * \brief Detector Subsystem module
-   * The detector is constructed and registered via MicromegasDetector
-   * \see MicromegasDetector
-   * \see MicromegasSubsystem
+   * The detector is constructed and registered via PHG4MicromegasDetector
+   * \see PHG4MicromegasDetector
+   * \see PHG4MicromegasSubsystem
    */
-class MicromegasSubsystem : public PHG4DetectorSubsystem
+class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
 {
   
   public:
   //! constructor
-  MicromegasSubsystem(const std::string& name = "Micromegas");
+  PHG4MicromegasSubsystem(const std::string& name = "PHG4Micromegas");
 
   //! destructor
-  virtual ~MicromegasSubsystem() = default;
+  virtual ~PHG4MicromegasSubsystem() = default;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -60,11 +60,11 @@ class MicromegasSubsystem : public PHG4DetectorSubsystem
   private:
   //! detector construction
   /*! derives from PHG4Detector */
-  MicromegasDetector *m_Detector = nullptr;
+  PHG4MicromegasDetector *m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  MicromegasSteppingAction *m_SteppingAction = nullptr;
+  PHG4MicromegasSteppingAction *m_SteppingAction = nullptr;
 };
 
 #endif // MICROMEGASSUBSYSTEM_H

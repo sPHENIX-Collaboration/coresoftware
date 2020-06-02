@@ -16,9 +16,9 @@
 //
 //____________________________________________________________________________..
 
-#include "MicromegasSteppingAction.h"
+#include "PHG4MicromegasSteppingAction.h"
 
-#include "MicromegasDetector.h"
+#include "PHG4MicromegasDetector.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -60,7 +60,7 @@ class PHCompositeNode;
 using namespace std;
 
 //____________________________________________________________________________..
-MicromegasSteppingAction::MicromegasSteppingAction(MicromegasDetector *detector, const PHParameters *parameters)
+PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetector *detector, const PHParameters *parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
@@ -80,7 +80,7 @@ MicromegasSteppingAction::MicromegasSteppingAction(MicromegasDetector *detector,
 }
 
 //____________________________________________________________________________..
-MicromegasSteppingAction::~MicromegasSteppingAction()
+PHG4MicromegasSteppingAction::~PHG4MicromegasSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -91,7 +91,7 @@ MicromegasSteppingAction::~MicromegasSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_used)
+bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_used)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -344,7 +344,7 @@ bool MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_u
 }
 
 //____________________________________________________________________________..
-void MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
+void PHG4MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
   string hitnodename = "G4HIT_" + m_Detector->GetName();
   // now look for the map and grab a pointer to it.
@@ -352,7 +352,7 @@ void MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
   // if we do not find the node we need to make it.
   if (!m_HitContainer)
   {
-    std::cout << "MicromegasSteppingAction::SetTopNode - unable to find "
+    std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find "
               << hitnodename << std::endl;
   }
 }
