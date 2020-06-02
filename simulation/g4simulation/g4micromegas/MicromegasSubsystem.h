@@ -3,31 +3,34 @@
 #ifndef MICROMEGASSUBSYSTEM_H
 #define MICROMEGASSUBSYSTEM_H
 
+/*!
+ * \file MicromegasSubsystem.h
+ * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
 class PHCompositeNode;
 class PHG4Detector;
 class MicromegasDetector;
+class MicromegasSteppingAction;
 class PHG4SteppingAction;
 
 /**
    * \brief Detector Subsystem module
-   *
    * The detector is constructed and registered via MicromegasDetector
-   *
-   *
    * \see MicromegasDetector
    * \see MicromegasSubsystem
-   *
    */
 class MicromegasSubsystem : public PHG4DetectorSubsystem
 {
- public:
+  
+  public:
   //! constructor
   MicromegasSubsystem(const std::string& name = "Micromegas");
 
   //! destructor
-  virtual ~MicromegasSubsystem() {}
+  virtual ~MicromegasSubsystem() = default;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -41,25 +44,27 @@ class MicromegasSubsystem : public PHG4DetectorSubsystem
   */
   int process_event(PHCompositeNode*) override;
 
-  //! accessors (reimplemented)
+  //!@name accessors (reimplemented)
+  //@{
   PHG4Detector* GetDetector() const override;
-
-  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
+  PHG4SteppingAction* GetSteppingAction() const override;
+  //@}
+  
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
- protected:
+  protected:
   // \brief Set default parameter values
   void SetDefaultParameters() override;
 
- private:
+  private:
   //! detector construction
   /*! derives from PHG4Detector */
-  MicromegasDetector  *m_Detector;
+  MicromegasDetector *m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *m_SteppingAction;
+  MicromegasSteppingAction *m_SteppingAction = nullptr;
 };
 
 #endif // MICROMEGASSUBSYSTEM_H
