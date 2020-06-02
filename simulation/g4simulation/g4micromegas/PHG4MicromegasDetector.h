@@ -38,23 +38,32 @@ class PHG4MicromegasDetector : public PHG4Detector
 
   //! set layer number
   void set_layer( int layer ) { m_layer = layer; }
-  
+
   //! get layer number
   int get_layer() const { return m_layer; }
-  
+
+  //! super detector name
+  void SuperDetector(const std::string &name) { m_superdetector = name; }
+
+  //! super detector name
+  const std::string SuperDetector() const { return m_superdetector; }
+
   private:
-  
+
   // create needed material
   void create_materials() const;
-  
+
   PHParameters *m_Params = nullptr;
 
   // active volumes
   std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 
-  //! detector layer number
+  //! super detector name
+  std::string m_superdetector;
+
+  //! layer number
   int m_layer = 0;
-  
+
 };
 
 #endif // MICROMEGASDETECTOR_H
