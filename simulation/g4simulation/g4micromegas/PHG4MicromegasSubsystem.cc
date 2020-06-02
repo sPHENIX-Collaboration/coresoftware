@@ -37,6 +37,8 @@ PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int la
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
   InitializeParameters();
+  
+  SuperDetector(name);
 }
 
 //_______________________________________________________________________
@@ -48,14 +50,14 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   if (GetParams()->get_int_param("active"))
   {
-    auto detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", Name()));
+    auto detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!detNode)
     {
-      detNode = new PHCompositeNode(Name());
+      detNode = new PHCompositeNode(SuperDetector());
       dstNode->addNode(detNode);
     }
 
-    const std::string g4hitnodename = "G4HIT_" + Name();
+    const std::string g4hitnodename = "G4HIT_" + SuperDetector();
     auto g4_hits = findNode::getClass<PHG4HitContainer>(detNode, g4hitnodename);
     if (!g4_hits)
     {
@@ -67,6 +69,9 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create detector
   m_Detector = new PHG4MicromegasDetector(this, topNode, GetParams(), Name());
   m_Detector->set_layer( GetLayer() );
+
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
   // create stepping action if detector is active
