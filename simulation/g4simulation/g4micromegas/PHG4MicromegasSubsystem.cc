@@ -21,11 +21,11 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h> 
+#include <g4main/PHG4SteppingAction.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h> 
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
@@ -45,7 +45,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   PHNodeIterator dstIter(dstNode);
-  
+
   if (GetParams()->get_int_param("active"))
   {
     auto detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", Name()));
@@ -54,7 +54,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       detNode = new PHCompositeNode(Name());
       dstNode->addNode(detNode);
     }
-    
+
     const std::string g4hitnodename = "G4HIT_" + Name();
     auto g4_hits = findNode::getClass<PHG4HitContainer>(detNode, g4hitnodename);
     if (!g4_hits)
@@ -63,12 +63,12 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       detNode->addNode(new PHIODataNode<PHObject>(g4_hits, g4hitnodename, "PHObject"));
     }
   }
-  
+
   // create detector
   m_Detector = new PHG4MicromegasDetector(this, topNode, GetParams(), Name());
   m_Detector->set_layer( GetLayer() );
   m_Detector->OverlapCheck(CheckOverlap());
-  
+
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams()); }
@@ -97,7 +97,7 @@ PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
 { return m_Detector; }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const 
+PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 { return m_SteppingAction; }
 
 //_______________________________________________________________________

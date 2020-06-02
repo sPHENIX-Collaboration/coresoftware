@@ -58,6 +58,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   void SetDefaultParameters() override;
 
   private:
+    
   //! detector construction
   /*! derives from PHG4Detector */
   PHG4MicromegasDetector *m_Detector = nullptr;
