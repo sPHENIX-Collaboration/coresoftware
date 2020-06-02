@@ -35,12 +35,12 @@
 
 #include <TSystem.h>
 
-#include <Geant4/G4ParticleDefinition.hh> 
+#include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh> 
+#include <Geant4/G4StepPoint.hh>
 #include <Geant4/G4StepStatus.hh>
-#include <Geant4/G4String.hh> 
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
@@ -56,8 +56,6 @@
 #include <string>
 
 class PHCompositeNode;
-
-using namespace std;
 
 //____________________________________________________________________________..
 PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetector *detector, const PHParameters *parameters)
@@ -77,14 +75,14 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
-  
+
   // IsInDetector(volume) returns
   //  == 0 outside of detector
   //   > 0 for hits in active volume
   //  < 0 for hits in passive material
   int whichactive = m_Detector->IsInDetector(volume);
   if (!whichactive) return false;
-  
+
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -107,17 +105,17 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   // geantino or chargedgeantino has pid=0
   if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
       aTrack->GetParticleDefinition()->GetParticleName().find("geantino") !=
-          string::npos)  // this also accounts for "chargedgeantino"
+          std::string::npos)  // this also accounts for "chargedgeantino"
   {
     geantino = true;
   }
   G4StepPoint *prePoint = aStep->GetPreStepPoint();
   G4StepPoint *postPoint = aStep->GetPostStepPoint();
 
-// Here we have to decide if we need to create a new hit.  Normally this should 
+// Here we have to decide if we need to create a new hit.  Normally this should
 // only be neccessary if a G4 Track enters a new volume or is freshly created
 // For this we look at the step status of the prePoint (beginning of the G4 Step).
-// This should be either fGeomBoundary (G4 Track crosses into volume) or 
+// This should be either fGeomBoundary (G4 Track crosses into volume) or
 // fUndefined (G4 Track newly created)
 // Sadly over the years with different G4 versions we have observed cases where
 // G4 produces "impossible hits" which we try to catch here
@@ -125,7 +123,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 // still check for them for safety. We can reproduce G4 runs identically (if given
 // the sequence of random number seeds you find in the log), the printouts help
 // us giving the G4 support information about those failures
-// 
+//
   switch (prePoint->GetStepStatus())
   {
   case fPostStepDoItProc:
@@ -139,21 +137,21 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     {
       // this is an impossible G4 Step print out diagnostic to help debug, not sure if
       // this is still with us
-      cout << GetName() << ": New Hit for  " << endl;
-      cout << "prestep status: "
+      std::cout << GetName() << ": New Hit for  " << std::endl;
+      std::cout << "prestep status: "
            << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
            << ", poststep status: "
            << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
            << ", last pre step status: "
            << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
            << ", last post step status: "
-           << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+           << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+           << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
 // These are the normal cases
   case fGeomBoundary:
@@ -186,7 +184,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     }
     else
     {
-      cout << "implement stuff for whichactive < 0 (inactive volumes)" << endl;
+      std::cout << "implement stuff for whichactive < 0 (inactive volumes)" << std::endl;
       gSystem->Exit(1);
     }
     // this is for the tracking of the truth info
@@ -206,34 +204,34 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   // This section is called for every step
   // some sanity checks for inconsistencies (aka bugs) we have seen over the years
   // check if this hit was created, if not print out last post step status
-  if (!m_Hit || !isfinite(m_Hit->get_x(0)))
+  if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
   {
-    cout << GetName() << ": hit was not created" << endl;
-    cout << "prestep status: "
+    std::cout << GetName() << ": hit was not created" << std::endl;
+    std::cout << "prestep status: "
          << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
          << ", poststep status: "
          << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
          << ", last pre step status: "
          << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
          << ", last post step status: "
-         << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-    cout << "last track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID() << endl;
-    cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-    cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-         << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+         << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+    std::cout << "last track: " << m_SaveTrackId
+         << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+    std::cout << "phys pre vol: " << volume->GetName()
+         << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+    std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+         << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     // This is fatal - a hit from nowhere. This needs to be looked at and fixed
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
   if (aTrack->GetTrackID() != m_SaveTrackId)
   {
-    cout << GetName() << ": hits do not belong to the same track" << endl;
-    cout << "saved track: " << m_SaveTrackId
+    std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+    std::cout << "saved track: " << m_SaveTrackId
          << ", current trackid: " << aTrack->GetTrackID()
          << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << m_SavePostStepStatus << endl;
+         << ", previous post step status: " << m_SavePostStepStatus << std::endl;
     // This is fatal - a hit from nowhere. This needs to be looked at and fixed
     gSystem->Exit(1);
   }
@@ -303,7 +301,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       {
         m_Hit->set_eion(m_EionSum);
       }
-      
+
       // ownership has been transferred to container
       // so we release the hits
       m_SaveHitContainer->AddHit(detector_id, m_Hit.release());
@@ -320,13 +318,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 //____________________________________________________________________________..
 void PHG4MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
-  string hitnodename = "G4HIT_" + m_Detector->GetName();
-  // now look for the map and grab a pointer to it.
+  std::string hitnodename = "G4HIT_" + m_Detector->SuperDetector();
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  // if we do not find the node we need to make it.
-  if (!m_HitContainer)
-  {
-    std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find "
-              << hitnodename << std::endl;
-  }
+  if (!m_HitContainer) std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
 }
