@@ -64,30 +64,9 @@ PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetecto
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
-  , m_EdepSum(0)
-  , m_EionSum(0)
-{
-}
-
-//____________________________________________________________________________..
-PHG4MicromegasSteppingAction::~PHG4MicromegasSteppingAction()
-{
-  // if the last hit was a zero energie deposit hit, it is just reset
-  // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a nullptr pointer which are
-  // legal to delete (it results in a no operation)
-  delete m_Hit;
-}
+{}
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
@@ -95,8 +74,10 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
+
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
+  
   // IsInDetector(volume) returns
   //  == 0 outside of detector
   //   > 0 for hits in active volume
@@ -181,7 +162,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   case fUndefined:
     if (!m_Hit)
     {
-      m_Hit = new PHG4Hitv1();
+      m_Hit.reset( new PHG4Hitv1() );
     }
     m_Hit->set_layer(detector_id);
     // here we set the entrance values in cm
@@ -326,16 +307,13 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       {
         m_Hit->set_eion(m_EionSum);
       }
-      m_SaveHitContainer->AddHit(detector_id, m_Hit);
-      // ownership has been transferred to container, set to null
-      // so we will create a new hit for the next track
-      m_Hit = nullptr;
+      
+      // ownership has been transferred to container
+      // so we release the hits
+      m_SaveHitContainer->AddHit(detector_id, m_Hit.release());
     }
     else
     {
-      // if this hit has no energy deposit, just reset it for reuse
-      // this means we have to delete it in the dtor. If this was
-      // the last hit we processed the memory is still allocated
       m_Hit->Reset();
     }
   }
