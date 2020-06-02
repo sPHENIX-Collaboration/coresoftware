@@ -1,0 +1,70 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHG4MICROMEGASSUBSYSTEM_H
+#define PHG4MICROMEGASSUBSYSTEM_H
+
+/*!
+ * \file PHG4MicromegasSubsystem.h
+ * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
+#include <g4detectors/PHG4DetectorSubsystem.h>
+
+class PHCompositeNode;
+class PHG4Detector;
+class PHG4MicromegasDetector;
+class PHG4MicromegasSteppingAction;
+class PHG4SteppingAction;
+
+/**
+   * \brief Detector Subsystem module
+   * The detector is constructed and registered via PHG4MicromegasDetector
+   * \see PHG4MicromegasDetector
+   * \see PHG4MicromegasSubsystem
+   */
+class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
+{
+  
+  public:
+  //! constructor
+  PHG4MicromegasSubsystem(const std::string& name = "Micromegas");
+
+  //! destructor
+  virtual ~PHG4MicromegasSubsystem() = default;
+
+  /*!
+  creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
+  */
+  int InitRunSubsystem(PHCompositeNode*) override;
+
+  //! event processing
+  /*!
+  get all relevant nodes from top nodes (namely hit list)
+  and pass that to the stepping action
+  */
+  int process_event(PHCompositeNode*) override;
+
+  //!@name accessors (reimplemented)
+  //@{
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override;
+  //@}
+  
+  //! Print info (from SubsysReco)
+  void Print(const std::string& what = "ALL") const override;
+
+  protected:
+  // \brief Set default parameter values
+  void SetDefaultParameters() override;
+
+  private:
+  //! detector construction
+  /*! derives from PHG4Detector */
+  PHG4MicromegasDetector *m_Detector = nullptr;
+
+  //! particle tracking "stepping" action
+  /*! derives from PHG4SteppingActions */
+  PHG4MicromegasSteppingAction *m_SteppingAction = nullptr;
+};
+
+#endif // MICROMEGASSUBSYSTEM_H
