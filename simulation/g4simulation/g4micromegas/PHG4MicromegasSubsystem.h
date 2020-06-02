@@ -27,7 +27,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   
   public:
   //! constructor
-  PHG4MicromegasSubsystem(const std::string& name = "PHG4Micromegas");
+  PHG4MicromegasSubsystem(const std::string& name = "Micromegas");
 
   //! destructor
   virtual ~PHG4MicromegasSubsystem() = default;
