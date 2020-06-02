@@ -31,8 +31,8 @@
 #include <phool/getClass.h>
 
 //_______________________________________________________________________
-PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name)
-  : PHG4DetectorSubsystem(name)
+PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int layer)
+  : PHG4DetectorSubsystem(name, layer)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
@@ -66,6 +66,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   
   // create detector
   m_Detector = new PHG4MicromegasDetector(this, topNode, GetParams(), Name());
+  m_Detector->set_layer( GetLayer() );
   m_Detector->OverlapCheck(CheckOverlap());
   
   // create stepping action if detector is active
