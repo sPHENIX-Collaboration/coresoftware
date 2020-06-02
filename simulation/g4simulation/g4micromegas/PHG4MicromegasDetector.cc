@@ -180,7 +180,7 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     [layer_thickness](double value, LayerDefinition layer )
     { return value + layer_thickness.at(std::get<0>(layer)); } );
 
-  std::cout << PHWHERE << "detector thickness is " << thickness/cm << " cm" << std::endl;
+  std::cout << "PHG4MicromegasDetector::ConstructMe - detector thickness is " << thickness/cm << " cm" << std::endl;
 
   // create mother volume
   auto cylinder_solid = new G4Tubs( G4String(GetName()), radius - 0.001*mm, radius + thickness + 0.001*mm, length / 2., 0, M_PI*2);
@@ -189,7 +189,6 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
   vis->SetForceSolid(true);
   vis->SetVisibility(false);
   cylinder_logic->SetVisAttributes(vis);
-  GetMySubsystem()->SetLogicalVolume(cylinder_logic);
 
   // add placement
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );

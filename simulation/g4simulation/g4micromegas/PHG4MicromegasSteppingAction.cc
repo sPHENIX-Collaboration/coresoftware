@@ -83,10 +83,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   //   > 0 for hits in active volume
   //  < 0 for hits in passive material
   int whichactive = m_Detector->IsInDetector(volume);
-  if (!whichactive)
-  {
-    return false;
-  }
+  if (!whichactive) return false;
+  
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -160,10 +158,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 // These are the normal cases
   case fGeomBoundary:
   case fUndefined:
-    if (!m_Hit)
-    {
-      m_Hit.reset( new PHG4Hitv1() );
-    }
+    if (!m_Hit) m_Hit.reset( new PHG4Hitv1() );
+
     m_Hit->set_layer(detector_id);
     // here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
