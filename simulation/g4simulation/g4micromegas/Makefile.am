@@ -14,14 +14,14 @@ pkginclude_HEADERS = \
   PHG4MicromegasSubsystem.h
 
 lib_LTLIBRARIES = \
-  libPHG4Micromegas.la
+  libg4micromegas.la
 
-libPHG4Micromegas_la_SOURCES = \
+libg4micromegas_la_SOURCES = \
   PHG4MicromegasSubsystem.cc\
   PHG4MicromegasDetector.cc\
   PHG4MicromegasSteppingAction.cc
 
-libPHG4Micromegas_la_LIBADD = \
+libg4micromegas_la_LIBADD = \
   -lphool \
   -lSubsysReco\
   -lg4detectors\
@@ -33,7 +33,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libPHG4Micromegas.la
+testexternals_LDADD   = libg4micromegas.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
