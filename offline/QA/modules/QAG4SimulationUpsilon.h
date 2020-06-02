@@ -8,18 +8,9 @@
 #include <string>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
-
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class PHG4Particle;
-class CaloEvalStack;
 class SvtxEvalStack;
-class SvtxTrack;
 
 /// \class QAG4SimulationUpsilon
 class QAG4SimulationUpsilon : public SubsysReco
