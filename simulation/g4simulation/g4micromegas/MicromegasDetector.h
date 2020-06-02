@@ -3,6 +3,11 @@
 #ifndef MICROMEGASDETECTOR_H
 #define MICROMEGASDETECTOR_H
 
+/*!
+ * \file MicromegasDetector.h
+ * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
 #include <g4main/PHG4Detector.h>
 
 #include <set>
@@ -17,11 +22,9 @@ class PHParameters;
 class MicromegasDetector : public PHG4Detector
 {
  public:
-  //! constructor
-  MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
-  //! destructor
-  virtual ~MicromegasDetector() {}
+  //! constructor
+  MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -33,16 +36,25 @@ class MicromegasDetector : public PHG4Detector
   int IsInDetector(G4VPhysicalVolume *) const;
   //@}
 
-  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
-
- private:
-  PHParameters *m_Params;
+  //! set layer number
+  void set_layer( int layer ) { m_layer = layer; }
+  
+  //! get layer number
+  int get_layer() const { return m_layer; }
+  
+  private:
+  
+  // create needed material
+  void create_materials() const;
+  
+  PHParameters *m_Params = nullptr;
 
   // active volumes
   std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 
-  std::string m_SuperDetector;
+  //! detector layer number
+  int m_layer = 0;
+  
 };
 
 #endif // MICROMEGASDETECTOR_H
