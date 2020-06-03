@@ -259,7 +259,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 
 	      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
 	      double phi_center = min_phi + m_surfStepPhi / 2.0;
-	      double phi_center_degrees = phi_center * 180.0 / 3.14159;
+	      double phi_center_degrees = phi_center * 180.0 / M_PI;
 	      
 	      for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
 		{
@@ -299,9 +299,8 @@ void MakeActsGeometry::buildActsSurfaces()
   const int argc = 33;
   char *arg[argc];
   //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "xzy", "--bf-values", "0", "0", "1.4"};
-  //intt + mvtx args
-  //const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--bf-values", "0", "0", "1.4"};
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
+
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)

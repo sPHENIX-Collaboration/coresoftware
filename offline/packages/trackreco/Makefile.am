@@ -127,7 +127,7 @@ ACTS_LIBS = \
   -lActsFatras \
   -lActsTGeoPlugin \
   -lActsExamplesCommon \
-  -lActsTGeoPlugin \
+  -lActsJsonPlugin \
   -lActsExamplesFitting \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \

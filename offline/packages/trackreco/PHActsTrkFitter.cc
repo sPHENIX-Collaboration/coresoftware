@@ -45,9 +45,11 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_actsProtoTracks(nullptr)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
+  , m_nBadFits(0)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
+  
 {
   Verbosity(0);
 }
@@ -155,6 +157,7 @@ int PHActsTrkFitter::Process()
                     << std::endl;
         }
       }
+
     }
     else
       {
@@ -162,6 +165,20 @@ int PHActsTrkFitter::Process()
         const FitResult emptyResult;
 	m_actsFitResults->insert(std::pair<const unsigned int, const FitResult&>
 				(trackKey, emptyResult));
+
+	/// Mark the SvtxTrack as bad, for better analysis
+	/// can remove later
+	SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
+	SvtxTrack *track = trackIter->second;
+
+	track->set_x(-9999);
+	track->set_y(-9999);
+	track->set_z(-9999);
+	track->set_px(-9999);
+	track->set_py(-9999);
+	track->set_pz(-9999);
+
+	m_nBadFits++;
       }
     
 
@@ -196,6 +213,8 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
       m_timeFile->Write();
       m_timeFile->Close();
     } 
+
+  std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
 
   if (Verbosity() > 10)
   {

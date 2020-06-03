@@ -5,12 +5,9 @@
 
 #include "EicEventHeader.h"
 
-#include <climits>
-#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <map>
-#include <string>
-#include <utility>
 
 class EicEventHeaderv1 : public EicEventHeader
 {
