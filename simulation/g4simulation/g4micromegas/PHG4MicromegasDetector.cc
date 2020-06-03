@@ -81,7 +81,7 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
   this describes all the detector onion layers for a single side
   note that the detector is two sided
   */
-  enum Component
+  enum class Component
   {
     CuGround,
     PCB,
@@ -99,81 +99,82 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // layer thickness
   const std::map<Component,float> layer_thickness =
   {
-    { CuGround, 0.000158*cm },
-    { PCB, 0.01*cm },
-    { CuStrips, 0.0012*cm },
-    { KaptonStrips, 0.0075*cm },
-    { ResistiveStrips, 0.002*cm },
-    { Gas1, 0.002*cm },
-    { Mesh, 0.0018*cm },
-    { Gas2, 0.3*cm },
-    { DriftCuElectrode, 0.0005*cm },
-    { DriftKapton, 0.025*cm },
-    { DriftCuGround, 0.000041*cm },
+    { Component::CuGround, 0.000158*cm },
+    { Component::PCB, 0.01*cm },
+    { Component::CuStrips, 0.0012*cm },
+    { Component::KaptonStrips, 0.0075*cm },
+    { Component::ResistiveStrips, 0.002*cm },
+    { Component::Gas1, 0.002*cm },
+    { Component::Mesh, 0.0018*cm },
+    { Component::Gas2, 0.3*cm },
+    { Component::DriftCuElectrode, 0.0005*cm },
+    { Component::DriftKapton, 0.025*cm },
+    { Component::DriftCuGround, 0.000041*cm },
   };
 
   // materials
   const std::map<Component,G4Material*> layer_material =
   {
-    { CuGround, G4Material::GetMaterial("myCopper") },
-    { PCB, G4Material::GetMaterial("myFR4") },
-    { CuStrips, G4Material::GetMaterial("myMMStrips") },
-    { KaptonStrips, G4Material::GetMaterial("myKapton") },
-    { ResistiveStrips, G4Material::GetMaterial("myMMResistivePaste" ) },
-    { Gas1, gasMaterial },
-    { Mesh, G4Material::GetMaterial("myMMMesh") },
-    { Gas2, gasMaterial },
-    { DriftCuElectrode, G4Material::GetMaterial("myCopper") },
-    { DriftKapton, G4Material::GetMaterial("myKapton") },
-    { DriftCuGround, G4Material::GetMaterial("myCopper") }
+    { Component::CuGround, G4Material::GetMaterial("myCopper") },
+    { Component::PCB, G4Material::GetMaterial("myFR4") },
+    { Component::CuStrips, G4Material::GetMaterial("myMMStrips") },
+    { Component::KaptonStrips, G4Material::GetMaterial("myKapton") },
+    { Component::ResistiveStrips, G4Material::GetMaterial("myMMResistivePaste" ) },
+    { Component::Gas1, gasMaterial },
+    { Component::Mesh, G4Material::GetMaterial("myMMMesh") },
+    { Component::Gas2, gasMaterial },
+    { Component::DriftCuElectrode, G4Material::GetMaterial("myCopper") },
+    { Component::DriftKapton, G4Material::GetMaterial("myKapton") },
+    { Component::DriftCuGround, G4Material::GetMaterial("myCopper") }
   };
 
   // color
-  const std::map<int, G4Colour> layer_color =
+  const std::map<Component, G4Colour> layer_color =
   {
-    { CuGround, G4Colour::Brown()},
-    { PCB, G4Colour::Green()},
-    { CuStrips, G4Colour::Brown()},
-    { KaptonStrips, G4Colour::Brown()},
-    { ResistiveStrips, G4Colour::Black()},
-    { Gas1, G4Colour::Grey()},
-	   { Mesh, G4Colour::White()},
-	   { Gas2, G4Colour::Grey()},
-	   { DriftCuElectrode, G4Colour::Brown()},
-	   { DriftKapton, G4Colour::Brown()},
-    { DriftCuGround, G4Colour(51/255., 26/255., 0)}
+    { Component::CuGround, G4Colour::Brown()},
+    { Component::PCB, G4Colour::Green()},
+    { Component::CuStrips, G4Colour::Brown()},
+    { Component::KaptonStrips, G4Colour::Brown()},
+    { Component::ResistiveStrips, G4Colour::Black()},
+    { Component::Gas1, G4Colour::Grey()},
+	  { Component::Mesh, G4Colour::White()},
+	  { Component::Gas2, G4Colour::Grey()},
+	  { Component::DriftCuElectrode, G4Colour::Brown()},
+	  { Component::DriftKapton, G4Colour::Brown()},
+    { Component::DriftCuGround, G4Colour(51/255., 26/255., 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
+  /* same compoment can appear multiple times. Layer names must be unique */
   using LayerDefinition = std::tuple<Component,std::string>;
   const std::vector<LayerDefinition> layer_definitions =
   {
     // inner side
-    { DriftCuGround, "DriftCuGround_inner"},
-    { DriftKapton, "DriftKapton_inner"},
-    { DriftCuElectrode, "DriftCuElectrode_inner"},
-    { Gas2, "Gas2_inner"},
-    { Mesh, "Mesh_inner"},
-    { Gas1, "Gas1_inner"},
-    { ResistiveStrips, "ResistiveStrips_inner"},
-    { KaptonStrips, "KaptonStrips_inner"},
-    { CuStrips, "CuStrips_inner"},
-    { PCB, "PCB_inner"},
+    { Component::DriftCuGround, "DriftCuGround_inner"},
+    { Component::DriftKapton, "DriftKapton_inner"},
+    { Component::DriftCuElectrode, "DriftCuElectrode_inner"},
+    { Component::Gas2, "Gas2_inner"},
+    { Component::Mesh, "Mesh_inner"},
+    { Component::Gas1, "Gas1_inner"},
+    { Component::ResistiveStrips, "ResistiveStrips_inner"},
+    { Component::KaptonStrips, "KaptonStrips_inner"},
+    { Component::CuStrips, "CuStrips_inner"},
+    { Component::PCB, "PCB_inner"},
 
     // separating ground
-    { CuGround, "CuGround"},
+    { Component::CuGround, "CuGround"},
 
     // outer side (= inner side, mirrored)
-    { PCB, "PCB_outer"},
-    { CuStrips, "CuStrips_outer"},
-    { KaptonStrips, "KaptonStrips_outer"},
-    { ResistiveStrips, "ResistiveStrips_outer"},
-    { Gas1, "Gas1_outer"},
-    { Mesh, "Mesh_outer"},
-    { Gas2, "Gas2_outer"},
-    { DriftCuElectrode, "DriftCuElectrode_outer"},
-    { DriftKapton, "DriftKapton_outer"},
-    { DriftCuGround, "DriftCuGround_outer"}
+    { Component::PCB, "PCB_outer"},
+    { Component::CuStrips, "CuStrips_outer"},
+    { Component::KaptonStrips, "KaptonStrips_outer"},
+    { Component::ResistiveStrips, "ResistiveStrips_outer"},
+    { Component::Gas1, "Gas1_outer"},
+    { Component::Mesh, "Mesh_outer"},
+    { Component::Gas2, "Gas2_outer"},
+    { Component::DriftCuElectrode, "DriftCuElectrode_outer"},
+    { Component::DriftKapton, "DriftKapton_outer"},
+    { Component::DriftCuGround, "DriftCuGround_outer"}
   };
 
   // start seting up volumes
@@ -229,7 +230,7 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
     // store active volume
-    if( type == Gas2 ) m_PhysicalVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
+    if( type == Component::Gas2 ) m_PhysicalVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
 
     // update radius
     current_radius += thickness;
