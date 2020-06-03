@@ -1,3 +1,8 @@
+/*!
+ * \file PHG4MicromegasSteppingAction.cc
+ * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
 //____________________________________________________________________________..
 //
 // This is a working template for the Stepping Action which needs to be implemented
