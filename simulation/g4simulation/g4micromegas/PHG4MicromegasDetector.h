@@ -23,55 +23,55 @@ class PHG4MicromegasDetector : public PHG4Detector
 {
  public:
 
-  //* constructor
+  //! constructor
   PHG4MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
 
-  //* construct
+  //! construct
   void ConstructMe(G4LogicalVolume*) override;
 
   void Print(const std::string &what = "ALL") const override;
 
-  //* set first layer number
+  //! set first layer number
   void set_first_layer( int layer ) { m_first_layer = layer; }
 
-  //* get first layer number
+  //! get first layer number
   int get_first_layer() const { return m_first_layer; }
 
-  //* returns true if passed volume is an active volume of this detector
+  //! returns true if passed volume is an active volume of this detector
   bool IsInDetector(G4VPhysicalVolume*) const;
 
-  //* return layer associated to a given volume, or -1 if invalid
+  //! return layer associated to a given volume, or -1 if invalid
   int get_layer(G4VPhysicalVolume*) const;
 
-  //* super detector name
+  //! super detector name
   void SuperDetector(const std::string &name) { m_superdetector = name; }
 
-  //* super detector name
+  //! super detector name
   const std::string SuperDetector() const { return m_superdetector; }
 
   private:
 
-  //* create needed material
+  //! create needed material
   void create_materials() const;
 
-  //* construct
+  //! construct
   void construct_micromegas(G4LogicalVolume*);
 
-  //* add geometry node
-  /** this handles the internal (module/strips) segmentation, needed for tracking*/
+  //! add geometry node
+  /*! this handles the internal (module/strips) segmentation, needed for tracking*/
   void add_geometry_node();
 
-  //* detector parameters
+  //! detector parameters
   PHParameters* m_Params = nullptr;
 
-  //* active volumes, and mapping to layer
-  /** it is needed in the stepping action to map a volume to a given layer */
+  //! active volumes, and mapping to layer
+  /*! it is needed in the stepping action to map a volume to a given layer */
   std::map<G4VPhysicalVolume*, int> m_PhysicalVolumes;
 
-  //* super detector name
+  //! super detector name
   std::string m_superdetector;
 
-  //* first layer number
+  //! first layer number
   /* there are two layers in the detector */
   int m_first_layer = 0;
 
