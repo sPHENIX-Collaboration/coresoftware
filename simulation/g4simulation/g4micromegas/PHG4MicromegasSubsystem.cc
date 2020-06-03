@@ -37,7 +37,7 @@ PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int la
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
   InitializeParameters();
-  
+
   SuperDetector(name);
 }
 
@@ -68,7 +68,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create detector
   m_Detector = new PHG4MicromegasDetector(this, topNode, GetParams(), Name());
-  m_Detector->set_layer( GetLayer() );
+  m_Detector->set_first_layer( GetLayer() );
 
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
