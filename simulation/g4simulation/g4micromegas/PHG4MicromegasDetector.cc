@@ -69,13 +69,114 @@ int PHG4MicromegasDetector::get_layer(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
+void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   create_materials();
+  construct_micromegas(logicWorld);
+  add_geometry_node();
+}
 
-  // keep
-  auto gasMaterial = G4Material::GetMaterial( "myMMGas" );
+//_______________________________________________________________
+void PHG4MicromegasDetector::Print(const std::string &what) const
+{
+  std::cout << "PHG4Micromegas Detector:" << std::endl;
+  if (what == "ALL" || what == "VOLUME")
+  {
+    std::cout << "Version 0.1" << std::endl;
+    std::cout << "Parameters:" << std::endl;
+    m_Params->Print();
+  }
+  return;
+}
 
+//_______________________________________________________________
+void PHG4MicromegasDetector::create_materials() const
+{
+  // get the list of NIST materials
+  // ---------------------------------
+  auto G4_N = G4Material::GetMaterial("G4_N");
+  auto G4_O = G4Material::GetMaterial("G4_O");
+  auto G4_C = G4Material::GetMaterial("G4_C");
+  auto G4_H = G4Material::GetMaterial("G4_H");
+  auto G4_Si = G4Material::GetMaterial("G4_Si");
+  auto G4_Ar = G4Material::GetMaterial("G4_Ar");
+  auto G4_Cr = G4Material::GetMaterial("G4_Cr");
+  auto G4_Fe = G4Material::GetMaterial("G4_Fe");
+  auto G4_Mn = G4Material::GetMaterial("G4_Mn");
+  auto G4_Ni = G4Material::GetMaterial("G4_Ni");
+  auto G4_Cu = G4Material::GetMaterial("G4_Cu");
+
+  // combine elements
+  // ----------------
+  static constexpr G4double temperature = 298.15*kelvin;
+  static constexpr G4double pressure = 1.*atmosphere;
+
+
+  // air
+  if (!G4Material::GetMaterial("myAir", false))
+  {
+    auto myAir = new G4Material( "myAir", 0.001205*g/cm3, 2, kStateGas, temperature, pressure);
+    myAir->AddMaterial( G4_N, 0.77 );
+    myAir->AddMaterial( G4_O, 0.23 );
+  }
+
+  // FR4
+  if (!G4Material::GetMaterial("myFR4", false))
+  {
+    auto myFR4 = new G4Material( "myFR4", 1.860*g/cm3, 4, kStateSolid);
+    myFR4->AddMaterial( G4_C,  0.43550 );
+    myFR4->AddMaterial( G4_H,  0.03650 );
+    myFR4->AddMaterial( G4_O,  0.28120 );
+    myFR4->AddMaterial( G4_Si, 0.24680 );
+  }
+
+  // Kapton
+  if (!G4Material::GetMaterial("myKapton", false))
+  {
+    auto myKapton = new G4Material( "myKapton", 1.420*g/cm3, 4, kStateSolid);
+    myKapton->AddMaterial( G4_C, 0.6911330 );
+    myKapton->AddMaterial( G4_H, 0.0263620 );
+    myKapton->AddMaterial( G4_N, 0.0732700 );
+    myKapton->AddMaterial( G4_O, 0.2092350);
+  }
+
+  // MMgas
+  if (!G4Material::GetMaterial("myMMGas", false))
+  {
+    auto myMMGas = new G4Material( "myMMGas", 0.00170335*g/cm3, 3, kStateGas, temperature, pressure);
+    myMMGas->AddMaterial( G4_Ar, 0.900 );
+    myMMGas->AddMaterial( G4_C,  0.0826586 );
+    myMMGas->AddMaterial( G4_H,  0.0173414 );
+  }
+
+  // MMMesh
+  if (!G4Material::GetMaterial("myMMMesh", false))
+  {
+    auto myMMMesh = new G4Material( "myMMMesh", 2.8548*g/cm3, 5, kStateSolid);
+    myMMMesh->AddMaterial( G4_Cr, 0.1900 );
+    myMMMesh->AddMaterial( G4_Fe, 0.6800 );
+    myMMMesh->AddMaterial( G4_Mn, 0.0200 );
+    myMMMesh->AddMaterial( G4_Ni, 0.1000 );
+    myMMMesh->AddMaterial( G4_Si, 0.0100 );
+  }
+
+  // MMStrips
+  if (!G4Material::GetMaterial("myMMStrips", false))
+  { new G4Material( "myMMStrips", 5.248414*g/cm3, G4_Cu, kStateSolid); }
+
+  // MMResistivePaste
+  if (!G4Material::GetMaterial("myMMResistivePaste", false))
+  { new G4Material( "myMMResistivePaste", 0.77906*g/cm3, G4_C, kStateSolid); }
+
+  // Copper
+  if (!G4Material::GetMaterial("myCopper", false))
+  { new G4Material("myCopper", 8.9600*g/cm3, G4_Cu, kStateSolid); }
+
+}
+
+//_______________________________________________________________
+void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
+{
   // components enumeration
   /*
   this describes all the detector onion layers for a single side
@@ -120,9 +221,9 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     { Component::CuStrips, G4Material::GetMaterial("myMMStrips") },
     { Component::KaptonStrips, G4Material::GetMaterial("myKapton") },
     { Component::ResistiveStrips, G4Material::GetMaterial("myMMResistivePaste" ) },
-    { Component::Gas1, gasMaterial },
+    { Component::Gas1, G4Material::GetMaterial( "myMMGas" ) },
     { Component::Mesh, G4Material::GetMaterial("myMMMesh") },
-    { Component::Gas2, gasMaterial },
+    { Component::Gas2, G4Material::GetMaterial( "myMMGas" ) },
     { Component::DriftCuElectrode, G4Material::GetMaterial("myCopper") },
     { Component::DriftKapton, G4Material::GetMaterial("myKapton") },
     { Component::DriftCuGround, G4Material::GetMaterial("myCopper") }
@@ -137,10 +238,10 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     { Component::KaptonStrips, G4Colour::Brown()},
     { Component::ResistiveStrips, G4Colour::Black()},
     { Component::Gas1, G4Colour::Grey()},
-	  { Component::Mesh, G4Colour::White()},
-	  { Component::Gas2, G4Colour::Grey()},
-	  { Component::DriftCuElectrode, G4Colour::Brown()},
-	  { Component::DriftKapton, G4Colour::Brown()},
+    { Component::Mesh, G4Colour::White()},
+    { Component::Gas2, G4Colour::Grey()},
+	   { Component::DriftCuElectrode, G4Colour::Brown()},
+	   { Component::DriftKapton, G4Colour::Brown()},
     { Component::DriftCuGround, G4Colour(51/255., 26/255., 0)}
   };
 
@@ -245,99 +346,7 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
 }
 
 //_______________________________________________________________
-void PHG4MicromegasDetector::Print(const std::string &what) const
+void PHG4MicromegasDetector::add_geometry_node()
 {
-  std::cout << "PHG4Micromegas Detector:" << std::endl;
-  if (what == "ALL" || what == "VOLUME")
-  {
-    std::cout << "Version 0.1" << std::endl;
-    std::cout << "Parameters:" << std::endl;
-    m_Params->Print();
-  }
-  return;
-}
-
-//_______________________________________________________________
-void PHG4MicromegasDetector::create_materials() const
-{
-  // get the list of NIST materials
-  // ---------------------------------
-  auto G4_N = G4Material::GetMaterial("G4_N");
-  auto G4_O = G4Material::GetMaterial("G4_O");
-  auto G4_C = G4Material::GetMaterial("G4_C");
-  auto G4_H = G4Material::GetMaterial("G4_H");
-  auto G4_Si = G4Material::GetMaterial("G4_Si");
-  auto G4_Ar = G4Material::GetMaterial("G4_Ar");
-  auto G4_Cr = G4Material::GetMaterial("G4_Cr");
-  auto G4_Fe = G4Material::GetMaterial("G4_Fe");
-  auto G4_Mn = G4Material::GetMaterial("G4_Mn");
-  auto G4_Ni = G4Material::GetMaterial("G4_Ni");
-  auto G4_Cu = G4Material::GetMaterial("G4_Cu");
-
-  // combine elements
-  // ----------------
-  static constexpr G4double temperature = 298.15*kelvin;
-  static constexpr G4double pressure = 1.*atmosphere;
-
-
-  // air
-  if (!G4Material::GetMaterial("myAir", false))
-  {
-    auto myAir = new G4Material( "myAir", 0.001205*g/cm3, 2, kStateGas, temperature, pressure);
-    myAir->AddMaterial( G4_N, 0.77 );
-    myAir->AddMaterial( G4_O, 0.23 );
-  }
-
-  // FR4
-  if (!G4Material::GetMaterial("myFR4", false))
-  {
-    auto myFR4 = new G4Material( "myFR4", 1.860*g/cm3, 4, kStateSolid);
-    myFR4->AddMaterial( G4_C,  0.43550 );
-    myFR4->AddMaterial( G4_H,  0.03650 );
-    myFR4->AddMaterial( G4_O,  0.28120 );
-    myFR4->AddMaterial( G4_Si, 0.24680 );
-  }
-
-  // Kapton
-  if (!G4Material::GetMaterial("myKapton", false))
-  {
-    auto myKapton = new G4Material( "myKapton", 1.420*g/cm3, 4, kStateSolid);
-    myKapton->AddMaterial( G4_C, 0.6911330 );
-    myKapton->AddMaterial( G4_H, 0.0263620 );
-    myKapton->AddMaterial( G4_N, 0.0732700 );
-    myKapton->AddMaterial( G4_O, 0.2092350);
-  }
-
-  // MMgas
-  if (!G4Material::GetMaterial("myMMGas", false))
-  {
-    auto myMMGas = new G4Material( "myMMGas", 0.00170335*g/cm3, 3, kStateGas, temperature, pressure);
-    myMMGas->AddMaterial( G4_Ar, 0.900 );
-    myMMGas->AddMaterial( G4_C,  0.0826586 );
-    myMMGas->AddMaterial( G4_H,  0.0173414 );
-  }
-
-  // MMMesh
-  if (!G4Material::GetMaterial("myMMMesh", false))
-  {
-    auto myMMMesh = new G4Material( "myMMMesh", 2.8548*g/cm3, 5, kStateSolid);
-    myMMMesh->AddMaterial( G4_Cr, 0.1900 );
-    myMMMesh->AddMaterial( G4_Fe, 0.6800 );
-    myMMMesh->AddMaterial( G4_Mn, 0.0200 );
-    myMMMesh->AddMaterial( G4_Ni, 0.1000 );
-    myMMMesh->AddMaterial( G4_Si, 0.0100 );
-  }
-
-  // MMStrips
-  if (!G4Material::GetMaterial("myMMStrips", false))
-  { new G4Material( "myMMStrips", 5.248414*g/cm3, G4_Cu, kStateSolid); }
-
-  // MMResistivePaste
-  if (!G4Material::GetMaterial("myMMResistivePaste", false))
-  { new G4Material( "myMMResistivePaste", 0.77906*g/cm3, G4_C, kStateSolid); }
-
-  // Copper
-  if (!G4Material::GetMaterial("myCopper", false))
-  { new G4Material("myCopper", 8.9600*g/cm3, G4_Cu, kStateSolid); }
 
 }

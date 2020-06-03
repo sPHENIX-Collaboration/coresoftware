@@ -27,7 +27,7 @@ class PHG4MicromegasDetector : public PHG4Detector
   PHG4MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
 
   //* construct
-  void ConstructMe(G4LogicalVolume *world) override;
+  void ConstructMe(G4LogicalVolume*) override;
 
   void Print(const std::string &what = "ALL") const override;
 
@@ -53,6 +53,13 @@ class PHG4MicromegasDetector : public PHG4Detector
 
   //* create needed material
   void create_materials() const;
+
+  //* construct
+  void construct_micromegas(G4LogicalVolume*);
+
+  //* add geometry node
+  /** this handles the internal (module/strips) segmentation, needed for tracking*/
+  void add_geometry_node();
 
   //* detector parameters
   PHParameters* m_Params = nullptr;
