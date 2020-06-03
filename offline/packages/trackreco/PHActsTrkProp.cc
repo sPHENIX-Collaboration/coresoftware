@@ -74,11 +74,12 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// and volumes to help the CKF out a little 
   /// First need to walk through layers/volumes to figure out appropriate
   /// numerical identifiers
+  /// Leave these out for now once we return to track propagation
   /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
   /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
-  m_sourceLinkSelectorConfig.maxChi2 = 8;
-  // Set the allowed maximum number of source links to be large enough
-  m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
+  /// m_sourceLinkSelectorConfig.maxChi2 = 8;
+  /// Set the allowed maximum number of source links to be large enough
+  /// m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
  
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
                    m_tGeometry->tGeometry,
