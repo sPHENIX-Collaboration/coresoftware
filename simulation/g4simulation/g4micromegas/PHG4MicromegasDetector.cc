@@ -30,9 +30,15 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4Subsystem.h>
+#include <micromegas/CylinderGeomMicromegas.h>
+#include <micromegas/MicromegasDefs.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Tubs.hh>
@@ -303,7 +309,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
 
   // keep track of current layer
-  int layer_index = m_first_layer;
+  int layer_index = m_FirstLayer;
 
   // create detector
   /* we loop over registered layers and create volumes for each */
@@ -338,7 +344,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   }
 
   // print physical layers
-  std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_first_layer << std::endl;
+  std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
   for( const auto& pair:m_PhysicalVolumes )
   {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
 
@@ -348,5 +354,44 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 //_______________________________________________________________
 void PHG4MicromegasDetector::add_geometry_node()
 {
+  // do nothing if detector is inactive
+  if( !m_Params->get_int_param("active")) return;
+
+  // find or create geometry node
+  std::string geonode_name = std::string( "CYLINDERGEOM_" ) + m_SuperDetector;
+  auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode_name);
+  if (!geonode)
+  {
+    geonode = new PHG4CylinderGeomContainer();
+    PHNodeIterator iter(topNode());
+    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
+    runNode->addNode(newNode);
+  }
+
+  // add cylinder objects
+  /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
+  for( const auto& pair:m_PhysicalVolumes )
+  {
+    // store layer and volume
+    const int layer = pair.second;
+    const G4VPhysicalVolume* volume_phys = pair.first;
+
+    // get solid volume, cast to a tube
+    const auto tub = dynamic_cast<const G4Tubs*>( volume_phys->GetLogicalVolume()->GetSolid() );
+
+    // create cylinder and match geometry
+    /* we assume first layer is of type SEGMENTATION_PHI, and other(s) of type SEGMENTATION_Z */
+    auto cylinder = new CylinderGeomMicromegas( layer, layer == m_FirstLayer ?
+      MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
+      MicromegasDefs::SegmentationType::SEGMENTATION_Z );
+    cylinder->set_radius( (tub->GetInnerRadius()/cm + tub->GetOuterRadius()/cm)/2 );
+    cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
+    cylinder->set_zmin( -tub->GetZHalfLength()/cm );
+    cylinder->set_zmax( tub->GetZHalfLength()/cm );
+
+    geonode->AddLayerGeom(layer, cylinder);
+    cylinder->identify( std::cout );
+  }
 
 }

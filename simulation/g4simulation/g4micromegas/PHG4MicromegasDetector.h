@@ -32,10 +32,10 @@ class PHG4MicromegasDetector : public PHG4Detector
   void Print(const std::string &what = "ALL") const override;
 
   //! set first layer number
-  void set_first_layer( int layer ) { m_first_layer = layer; }
+  void set_first_layer( int layer ) { m_FirstLayer = layer; }
 
   //! get first layer number
-  int get_first_layer() const { return m_first_layer; }
+  int get_first_layer() const { return m_FirstLayer; }
 
   //! returns true if passed volume is an active volume of this detector
   bool IsInDetector(G4VPhysicalVolume*) const;
@@ -44,10 +44,10 @@ class PHG4MicromegasDetector : public PHG4Detector
   int get_layer(G4VPhysicalVolume*) const;
 
   //! super detector name
-  void SuperDetector(const std::string &name) { m_superdetector = name; }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
 
   //! super detector name
-  const std::string SuperDetector() const { return m_superdetector; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
   private:
 
@@ -69,11 +69,11 @@ class PHG4MicromegasDetector : public PHG4Detector
   std::map<G4VPhysicalVolume*, int> m_PhysicalVolumes;
 
   //! super detector name
-  std::string m_superdetector;
+  std::string m_SuperDetector;
 
   //! first layer number
   /* there are two layers in the detector */
-  int m_first_layer = 0;
+  int m_FirstLayer = 0;
 
 };
 

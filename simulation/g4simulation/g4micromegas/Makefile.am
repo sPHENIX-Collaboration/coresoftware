@@ -4,7 +4,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include\
-  -I$(G4_MAIN)/include 
+  -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -25,7 +25,8 @@ libg4micromegas_la_LIBADD = \
   -lphool \
   -lSubsysReco\
   -lg4detectors\
-  -lg4testbench 
+  -lg4testbench\
+  -lmicromegas_io
 
 BUILT_SOURCES = testexternals.cc
 
