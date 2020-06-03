@@ -16,6 +16,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 {
   public:
 
+  //* empty constructor
+  explicit CylinderGeomMicromegas()
+  {}
+
   //* constructor
   CylinderGeomMicromegas(int layer, MicromegasDefs::SegmentationType type )
     : m_layer( layer )
