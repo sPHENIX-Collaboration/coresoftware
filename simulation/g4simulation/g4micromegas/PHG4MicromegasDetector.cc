@@ -11,7 +11,7 @@
 // so here it is called ConstructMe() but there is no functional difference
 // Currently this installs a simple G4Box solid, creates a logical volume from it
 // and places it. Put your own detector in place (just make sure all active volumes
-// get inserted into the m_PhysicalVolumesSet)PHWHERE
+// get inserted into the m_PhysicalVolumes)
 //
 // Rather than using hardcoded values you should consider using the parameter class
 // Parameter names and defaults are set in PHG4MicromegasSubsystem::SetDefaultParameters()
@@ -58,8 +58,15 @@ PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHComposit
 {}
 
 //_______________________________________________________________
-int PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
-{ return m_PhysicalVolumesSet.find( volume ) != m_PhysicalVolumesSet.end(); }
+bool PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
+{ return m_PhysicalVolumes.find( volume ) != m_PhysicalVolumes.end(); }
+
+//_______________________________________________________________
+int PHG4MicromegasDetector::get_layer(G4VPhysicalVolume *volume) const
+{
+  const auto iter = m_PhysicalVolumes.find( volume );
+  return iter == m_PhysicalVolumes.end() ? -1:iter->second;
+}
 
 //_______________________________________________________________
 void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
@@ -193,6 +200,9 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // add placement
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
 
+  // keep track of current layer
+  int layer_index = m_first_layer;
+
   // create detector
   /* we loop over registered layers and create volumes for each */
   auto current_radius = radius;
@@ -219,11 +229,16 @@ void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume *logicWorld)
     auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
     // store active volume
-    if( type == Gas2 ) m_PhysicalVolumesSet.insert( component_phys );
+    if( type == Gas2 ) m_PhysicalVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
 
     // update radius
     current_radius += thickness;
   }
+
+  // print physical layers
+  std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_first_layer << std::endl;
+  for( const auto& pair:m_PhysicalVolumes )
+  {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
 
   return;
 }

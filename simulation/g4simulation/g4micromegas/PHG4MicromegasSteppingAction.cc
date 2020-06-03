@@ -148,7 +148,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     {
       if (!m_Hit) m_Hit.reset( new PHG4Hitv1() );
 
-      m_Hit->set_layer(m_Detector->get_layer());
+      m_Hit->set_layer(m_Detector->get_layer(volume));
 
       // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);

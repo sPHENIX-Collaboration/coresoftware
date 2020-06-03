@@ -10,7 +10,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <set>
+#include <map>
 #include <string>  // for string
 
 class G4LogicalVolume;
@@ -23,46 +23,50 @@ class PHG4MicromegasDetector : public PHG4Detector
 {
  public:
 
-  //! constructor
+  //* constructor
   PHG4MicromegasDetector(PHG4Subsystem*, PHCompositeNode*, PHParameters*, const std::string&);
 
-  //! construct
+  //* construct
   void ConstructMe(G4LogicalVolume *world) override;
 
   void Print(const std::string &what = "ALL") const override;
 
-  //!@name volume accessors
-  //@{
-  int IsInDetector(G4VPhysicalVolume *) const;
-  //@}
+  //* set first layer number
+  void set_first_layer( int layer ) { m_first_layer = layer; }
 
-  //! set layer number
-  void set_layer( int layer ) { m_layer = layer; }
+  //* get first layer number
+  int get_first_layer() const { return m_first_layer; }
 
-  //! get layer number
-  int get_layer() const { return m_layer; }
+  //* returns true if passed volume is an active volume of this detector
+  bool IsInDetector(G4VPhysicalVolume*) const;
 
-  //! super detector name
+  //* return layer associated to a given volume, or -1 if invalid
+  int get_layer(G4VPhysicalVolume*) const;
+
+  //* super detector name
   void SuperDetector(const std::string &name) { m_superdetector = name; }
 
-  //! super detector name
+  //* super detector name
   const std::string SuperDetector() const { return m_superdetector; }
 
   private:
 
-  // create needed material
+  //* create needed material
   void create_materials() const;
 
-  PHParameters *m_Params = nullptr;
+  //* detector parameters
+  PHParameters* m_Params = nullptr;
 
-  // active volumes
-  std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
+  //* active volumes, and mapping to layer
+  /** it is needed in the stepping action to map a volume to a given layer */
+  std::map<G4VPhysicalVolume*, int> m_PhysicalVolumes;
 
-  //! super detector name
+  //* super detector name
   std::string m_superdetector;
 
-  //! layer number
-  int m_layer = 0;
+  //* first layer number
+  /* there are two layers in the detector */
+  int m_first_layer = 0;
 
 };
 
