@@ -16,7 +16,7 @@ class PHG4MicromegasDetector;
 class PHG4MicromegasSteppingAction;
 class PHG4SteppingAction;
 
-/**
+/*!
    * \brief Detector Subsystem module
    * The detector is constructed and registered via PHG4MicromegasDetector
    * \see PHG4MicromegasDetector
