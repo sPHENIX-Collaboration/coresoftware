@@ -6,8 +6,7 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include "MicromegasDefs.h"
-
+#include <micromegas/MicromegasDefs.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 
 #include <cmath>
@@ -25,23 +24,24 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //!@name accessors
   //@{
-  int get_layer() const {return m_layer;}
-  double get_radius() const {return m_radius;}
-  double get_thickness() const { return m_thickness;}
-  double get_zmin() const {return m_zmin;}
-  double get_zmax() const {return m_zmax;}
-
+  virtual int get_layer() const {return m_layer;}
+  virtual double get_radius() const {return m_radius;}
+  virtual double get_thickness() const { return m_thickness;}
+  virtual double get_zmin() const {return m_zmin;}
+  virtual double get_zmax() const {return m_zmax;}
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
+
+  virtual void identify(std::ostream&) const;
 
   //@}
 
-  //!@name reimplemented modifiers
+  //!@name modifiers
   //@{
-  void set_layer(const int i) {m_layer = i;}
-  void set_radius(const double value) {m_radius = value;}
-  void set_thickness(const double value) {m_thickness = value;}
-  void set_zmin(const double value) {m_zmin = value;}
-  void set_zmax(const double value) {m_zmax = value;}
+  virtual void set_layer(const int i) {m_layer = i;}
+  virtual void set_radius(const double value) {m_radius = value;}
+  virtual void set_thickness(const double value) {m_thickness = value;}
+  virtual void set_zmin(const double value) {m_zmin = value;}
+  virtual void set_zmax(const double value) {m_zmax = value;}
   void set_segmentation_type( MicromegasDefs::SegmentationType value ) {m_segmentation_type = value;}
   //@}
 
