@@ -3,6 +3,11 @@
 #ifndef PHG4MICROMEGASSTEPPINGACTION_H
 #define PHG4MICROMEGASSTEPPINGACTION_H
 
+/*!
+ * \file PHG4MicromegasSteppingAction.h
+ * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
 #include <g4main/PHG4SteppingAction.h>
 #include <memory>
 
@@ -17,9 +22,9 @@ class PHParameters;
 
 class PHG4MicromegasSteppingAction : public PHG4SteppingAction
 {
-  
+
   public:
-  
+
   //! constructor
   PHG4MicromegasSteppingAction(PHG4MicromegasDetector*, const PHParameters* parameters);
 
@@ -30,10 +35,10 @@ class PHG4MicromegasSteppingAction : public PHG4SteppingAction
   void SetInterfacePointers(PHCompositeNode*) override;
 
   private:
-  
+
   //! pointer to the detector
   PHG4MicromegasDetector* m_Detector = nullptr;
-  
+
   const PHParameters* m_Params = nullptr;
 
   //! pointer to hit container
@@ -41,7 +46,7 @@ class PHG4MicromegasSteppingAction : public PHG4SteppingAction
 
   // running hit
   std::unique_ptr<PHG4Hit> m_Hit;
-  
+
   PHG4HitContainer* m_SaveHitContainer = nullptr;
   G4VPhysicalVolume* m_SaveVolPre = nullptr;
   G4VPhysicalVolume* m_SaveVolPost = nullptr;
