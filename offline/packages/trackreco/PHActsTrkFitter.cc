@@ -135,17 +135,20 @@ int PHActsTrkFitter::Process()
     if (result.ok())
     {  
       const FitResult& fitOutput = result.value();
-   
-      /// Insert a new entry into the map
-      m_actsFitResults->insert(
-        std::pair<const unsigned int, const FitResult&>(trackKey, fitOutput));
-  
+
+      /// Make a trajectory state for storage, which conforms to Acts track fit
+      /// analysis tool
+      std::vector<size_t> trackTips;
+      trackTips.push_back(fitOutput.trackTip);
+      FW::IndexedParams indexedParams;
 
       if (fitOutput.fittedParameters)
       {
 	/// Get position, momentum from the Acts output. Update the values of
 	/// the proto track
         updateSvtxTrack(fitOutput, trackKey);
+
+	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
 
         if (Verbosity() > 10)
         {
@@ -158,15 +161,20 @@ int PHActsTrkFitter::Process()
         }
       }
 
+      Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
+
+      /// Insert a new entry into the map
+      m_actsFitResults->insert(
+	   std::pair<const unsigned int, Trajectory>(trackKey, trajectory));
+  
     }
     else
       {
 	if(Verbosity() > 10)
 	  std::cout<<"Track fit failed"<<std::endl;
 	/// Insert an empty track fit output into the map since the fit failed
-        const FitResult emptyResult;
-	m_actsFitResults->insert(std::pair<const unsigned int, const FitResult&>
-				(trackKey, emptyResult));
+       	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
+				 (trackKey, FW::TrkrClusterMultiTrajectory()));
 
 	/// Mark the SvtxTrack as bad, for better analysis
 	/// can remove later
@@ -283,16 +291,16 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, const FitResult&>>(topNode, "ActsFitResults");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
   
   if(!m_actsFitResults)
     {
-      m_actsFitResults = new std::map<const unsigned int, const FitResult&>;
+      m_actsFitResults = new std::map<const unsigned int, Trajectory>;
 
       PHDataNode<std::map<const unsigned int, 
-			  const FitResult&>> *fitNode = 
+			  Trajectory>> *fitNode = 
 		 new PHDataNode<std::map<const unsigned int, 
-			        const FitResult&>>
+				    Trajectory>>
 		 (m_actsFitResults, "ActsFitResults");
 
       svtxNode->addNode(fitNode);

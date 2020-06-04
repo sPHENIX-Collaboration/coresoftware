@@ -21,7 +21,7 @@
 #include <Acts/Utilities/CalibrationContext.hpp>
 
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
@@ -43,6 +43,7 @@ class SvtxTrackMap;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
+using Trajectory = FW::TrkrClusterMultiTrajectory;
 
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -80,7 +81,7 @@ class PHActsTrkFitter : public PHTrackFitting
   void updateSvtxTrack(const FitResult& fitOutput, const unsigned int trackKey);
 
   /// Map of Acts fit results and track key to be placed on node tree
-  std::map<const unsigned int, const FitResult&> 
+  std::map<const unsigned int, Trajectory> 
     *m_actsFitResults;
 
   /// Map of acts tracks and track key created by PHActsTracks
