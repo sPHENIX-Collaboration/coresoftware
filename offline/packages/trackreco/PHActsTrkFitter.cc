@@ -161,6 +161,8 @@ int PHActsTrkFitter::Process()
     }
     else
       {
+	if(Verbosity() > 10)
+	  std::cout<<"Track fit failed"<<std::endl;
 	/// Insert an empty track fit output into the map since the fit failed
         const FitResult emptyResult;
 	m_actsFitResults->insert(std::pair<const unsigned int, const FitResult&>

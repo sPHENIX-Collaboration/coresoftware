@@ -58,7 +58,7 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
        ++trackIter)
     {
       const unsigned int trackKey = trackIter->first;
-      const FitResult& actsResult = trackIter->second;
+      //const FitResult& actsResult = trackIter->second;
       
       SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
       SvtxTrack *track = trackIter->second;
@@ -66,12 +66,12 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
       PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
       if(g4particle)
 	{}
-      
+      /*
       const auto trackTip = actsResult.trackTip;
       Acts::MultiTrajectory<SourceLink> mj = actsResult.fittedStates;
       auto trajState =
         Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-
+      */
     }
  
   /*

@@ -123,6 +123,7 @@ ACTS_SOURCES = \
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
+  -lg4eval \
   -lActsCore \
   -lActsFatras \
   -lActsTGeoPlugin \
