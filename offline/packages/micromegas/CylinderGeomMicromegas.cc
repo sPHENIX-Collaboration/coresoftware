@@ -13,7 +13,7 @@ namespace
   template<class T>
     inline constexpr T square( const T& x ) { return x*x; }
 
-  // bind angle to [-M_PI,+M_PI[. This is useful when making the difference between two azimuthal angles
+  // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
   template<class T>
     inline constexpr T bind_angle( const T& angle )
   {
@@ -59,13 +59,11 @@ CylinderGeomMicromegas::StripId CylinderGeomMicromegas::find_strip( const TVecto
     // calculate strip index, depending on cylinder direction
     switch( m_segmentation_type )
     {
-
       case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-      return std::make_pair( itile, (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)/tile.m_pitch ) );
+      return std::make_pair( itile, (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)*m_radius/tile.m_pitch ) );
 
       case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
       return std::make_pair( itile, (int) std::floor( (z - tile.m_centerZ + tile.m_sizeZ/2)/tile.m_pitch ) );
-
     }
 
   }
