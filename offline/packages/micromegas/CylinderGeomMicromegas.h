@@ -36,12 +36,23 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   virtual double get_thickness() const { return m_thickness;}
   virtual double get_zmin() const {return m_zmin;}
   virtual double get_zmax() const {return m_zmax;}
+
+  //! segmentation type
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
 
-  // tile and strip id
-  using StripId = std::pair<int,int>;
-  StripId find_strip( const TVector3& ) const;
+  //! get tile and strip for a give world location
+  std::pair<int,int> find_strip( const TVector3& ) const;
 
+  //! get strip length for a given tile
+  double get_strip_length( uint tileid ) const;
+
+  //! get pitch for a given tile
+  double get_pitch( uint tileid ) const;
+
+  //! get world location for a given tile and strip
+  TVector3 get_world_coordinate( uint tileid, uint stripnum ) const;
+
+  //! print information about this layer
   virtual void identify(std::ostream&) const;
 
   //@}
