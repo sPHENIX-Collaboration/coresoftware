@@ -25,16 +25,16 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
     const std::string &detector = "MICROMEGAS");
 
   //! module initialization
-  int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //!@name modifiers
   //@{
 
   //! parameters
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //@}
 
