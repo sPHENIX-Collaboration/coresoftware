@@ -18,7 +18,8 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   MicromegasDefs.h \
-  CylinderGeomMicromegas.h
+ 	 MicromegasTile.h \
+  	CylinderGeomMicromegas.h
 
 ROOTDICTS = \
   CylinderGeomMicromegas_Dict.cc
