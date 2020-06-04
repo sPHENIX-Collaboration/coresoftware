@@ -37,6 +37,23 @@
 
 #include <cassert>
 
+namespace
+{
+  // convenient square function
+  template<class T>
+    inline constexpr T square( const T& x ) { return x*x; }
+
+  // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
+  template<class T>
+    inline constexpr T bind_angle( const T& angle )
+  {
+    if( angle >= M_PI ) return angle - 2*M_PI;
+    else if( angle < -M_PI ) return angle + 2*M_PI;
+    else return angle;
+  }
+
+}
+
 //___________________________________________________________________________
 PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std::string& detector)
   : SubsysReco(name)
@@ -205,6 +222,32 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // associate this hitset and hit to the geant4 hit key
       hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
 
+      // debugging
+      if(Verbosity() > 0)
+      {
+        auto hit_world_coord = layergeom->get_world_coordinate( tileid, stripnum );
+        switch( layergeom->get_segmentation_type() )
+        {
+
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+          {
+            auto truth_phi = std::atan2( world_mid.y(), world_mid.x() );
+            auto hit_phi = std::atan2( hit_world_coord.y(), hit_world_coord.x() );
+            std::cout << "PHG4MicromegasHitReco::process_event - layer: " << layer << " rphi difference: " << bind_angle( hit_phi - truth_phi )*layergeom->get_radius() << std::endl;
+            break;
+          }
+
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+          {
+            auto truth_z = world_mid.z();
+            auto hit_z = hit_world_coord.z();
+            std::cout << "PHG4MicromegasHitReco::process_event - layer: " << layer << "    z difference: " << hit_z - truth_z << std::endl;
+            break;
+          }
+
+        }
+      }
+
     }
 
   }
@@ -243,7 +286,8 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     // for now, put a single tile at 0,0, with 50cm along z and 25 cm along phi
     // TODO: allow tiles to be setup from the macro and propagated to the geometry here, rather than hardcoded
     auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
-    cylinder->set_tiles( { MicromegasTile( 0, 0, 25./(2*M_PI*cylinder->get_radius()), 50 ) } );
+    // cylinder->set_tiles( { MicromegasTile( 0, 0, 25./(2*M_PI*cylinder->get_radius()), 50 ) } );
+    cylinder->set_tiles( { MicromegasTile( 0, 0, 2*M_PI, cylinder->get_zmax() - cylinder->get_zmin() ) } );
   }
 }
 
