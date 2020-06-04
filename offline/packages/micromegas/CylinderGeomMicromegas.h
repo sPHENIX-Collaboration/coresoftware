@@ -13,6 +13,8 @@
 #include <cmath>
 #include <iostream>
 
+class TVector3;
+
 class CylinderGeomMicromegas : public PHG4CylinderGeom
 {
   public:
@@ -35,6 +37,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   virtual double get_zmin() const {return m_zmin;}
   virtual double get_zmax() const {return m_zmax;}
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
+
+  // tile and strip id
+  using StripId = std::pair<int,int>;
+  StripId find_strip( const TVector3& ) const;
 
   virtual void identify(std::ostream&) const;
 
