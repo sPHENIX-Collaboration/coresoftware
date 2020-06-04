@@ -99,14 +99,14 @@ TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnu
       case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
       {
         const double z = tile.m_centerZ;
-        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + stripnum*tile.m_pitch/m_radius;
+        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + (0.5+stripnum)*tile.m_pitch/m_radius;
         assert( bind_angle( phi-tile.m_centerPhi ) <= tile.m_sizePhi/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
       }
 
       case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
       {
-        const double z = tile.m_centerZ - tile.m_sizeZ/2 + stripnum*tile.m_pitch;
+        const double z = tile.m_centerZ - tile.m_sizeZ/2 + (0.5+stripnum)*tile.m_pitch;
         const double phi = tile.m_centerPhi;
         assert( z - tile.m_centerZ <= tile.m_sizeZ/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
