@@ -33,6 +33,9 @@ class MicromegasTile
   double m_sizePhi = 0;
   double m_sizeZ = 0;
 
+  // for now we assume 1mm pitch
+  double m_pitch = 0.1;
+
 };
 
 #endif
