@@ -7,6 +7,8 @@
 
 #include <TVector3.h>
 
+#include <cassert>
+
 namespace
 {
   // convenient square function
@@ -25,20 +27,7 @@ namespace
 }
 
 //________________________________________________________________________________
-void CylinderGeomMicromegas::identify( std::ostream& out ) const
-{
-  out << "CylinderGeomMicromegas" << std::endl;
-  out << "layer: " << m_layer << std::endl;
-  out << "segmentation_type: " << (m_segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ? "SEGMENTATION_PHI":"SEGMENTATION_Z") << std::endl;
-  out << "radius: " << m_radius << "cm" << std::endl;
-  out << "thickness: " << m_thickness << "cm" << std::endl;
-  out << "zmin: " << m_zmin << "cm" << std::endl;
-  out << "zmax: " << m_zmax << "cm" << std::endl;
-  out << std::endl;
-}
-
-//________________________________________________________________________________
-CylinderGeomMicromegas::StripId CylinderGeomMicromegas::find_strip( const TVector3& world_location ) const
+std::pair<int,int> CylinderGeomMicromegas::find_strip( const TVector3& world_location ) const
 {
 
   // convert to polar coordinates
@@ -71,4 +60,74 @@ CylinderGeomMicromegas::StripId CylinderGeomMicromegas::find_strip( const TVecto
   // no tile found
   return  std::make_pair( -1, -1 );
 
+}
+
+//________________________________________________________________________________
+double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
+{
+  assert( tileid < m_tiles.size() );
+  switch( m_segmentation_type )
+  {
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    return m_tiles[tileid].m_sizeZ;
+
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    return m_tiles[tileid].m_sizePhi*m_radius;
+  }
+
+  // unreachable
+  return 0;
+}
+
+//________________________________________________________________________________
+double CylinderGeomMicromegas::get_pitch( uint tileid ) const
+{
+  assert( tileid < m_tiles.size() );
+  return m_tiles[tileid].m_pitch;
+}
+
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnum ) const
+{
+    assert( tileid < m_tiles.size() );
+
+    // get tile
+    const auto& tile = m_tiles[tileid];
+
+    switch( m_segmentation_type )
+    {
+      case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+      {
+        const double z = tile.m_centerZ;
+        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + stripnum*tile.m_pitch/m_radius;
+        assert( bind_angle( phi-tile.m_centerPhi ) <= tile.m_sizePhi/2 );
+        return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
+      }
+
+      case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+      {
+        const double z = tile.m_centerZ - tile.m_sizeZ/2 + stripnum*tile.m_pitch;
+        const double phi = tile.m_centerPhi;
+        assert( z - tile.m_centerZ <= tile.m_sizeZ/2 );
+        return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
+      }
+
+    }
+
+    // unreachable
+    return TVector3();
+
+}
+
+//________________________________________________________________________________
+void CylinderGeomMicromegas::identify( std::ostream& out ) const
+{
+  out << "CylinderGeomMicromegas" << std::endl;
+  out << "layer: " << m_layer << std::endl;
+  out << "segmentation_type: " << (m_segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ? "SEGMENTATION_PHI":"SEGMENTATION_Z") << std::endl;
+  out << "radius: " << m_radius << "cm" << std::endl;
+  out << "thickness: " << m_thickness << "cm" << std::endl;
+  out << "zmin: " << m_zmin << "cm" << std::endl;
+  out << "zmax: " << m_zmax << "cm" << std::endl;
+  out << std::endl;
 }
