@@ -31,7 +31,8 @@ nobase_dist_pcm_DATA = \
 # sources for io library
 libmicromegas_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomMicromegas.cc
+  CylinderGeomMicromegas.cc \
+  MicromegasDefs.cc
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
