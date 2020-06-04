@@ -2,16 +2,23 @@
 #define ACTSTRKFITANALYZER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
+
+#include "PHActsSourceLinks.h"
+
+#include <Acts/Utilities/Helpers.hpp>
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 class TTree;
 class TFile;
-
+class PHG4Particle;
 class SvtxEvalStack;
 class SvtxTrackMap;
 class PHG4TruthInfoContainer;
+class SvtxEvaluator;
 
 #include <string>
 #include <vector>
@@ -19,27 +26,45 @@ class PHG4TruthInfoContainer;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
+using Trajectory = FW::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::ParDef::eLOC_0, 
+                                      Acts::ParDef::eLOC_1>;
+using Acts::VectorHelpers::eta;
+using Acts::VectorHelpers::perp;
+using Acts::VectorHelpers::phi;
+using Acts::VectorHelpers::theta;
 
 class ActsTrkFitAnalyzer : public SubsysReco
 {
 
  public:
-  ActsTrkFitAnalyzer(const std::string& name = "ActsTrkFitAnalyzer.root");
+  ActsTrkFitAnalyzer(const std::string& name = "ActsTrkFitAnalyzer.root",
+		     SvtxEvaluator *svtxEvaluator = nullptr);
   ~ActsTrkFitAnalyzer();
   
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
   
  private:
 
   int getNodes(PHCompositeNode *topNode);
   void initializeTree();
-
+  void fillG4Particle(PHG4Particle *part);
+  void fillFittedTrackParams(const Trajectory traj);
+  void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
+  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
+  
+  SvtxEvaluator *m_svtxEvaluator;
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
-  std::map<const unsigned int, const FitResult&> *m_actsFitResults;
+  std::map<const unsigned int, Trajectory> *m_actsFitResults;
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  
+  ActsTrackingGeometry *m_tGeometry;
 
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
