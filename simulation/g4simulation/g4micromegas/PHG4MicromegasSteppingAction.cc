@@ -106,7 +106,6 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   // the detector id can be used to distinguish between them
   // hits can easily be analyzed later according to their detector id
 
-  int detector_id = 0;  // we use here only one detector in this simple example
   bool geantino =
     aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
     aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos;
@@ -151,20 +150,21 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     case fGeomBoundary:
     case fUndefined:
     {
-      if (!m_Hit) m_Hit.reset( new PHG4Hitv1() );
+      if (!m_hit) m_hit.reset( new PHG4Hitv1() );
 
-      m_Hit->set_layer(m_Detector->get_layer(volume));
+      // assign layer
+      m_hit->set_layer(m_Detector->get_layer(volume));
 
       // here we set the entrance values in cm
-      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
-      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
-      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
-      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
       // set the track ID
-      m_Hit->set_trkid(aTrack->GetTrackID());
+      m_hit->set_trkid(aTrack->GetTrackID());
       m_SaveTrackId = aTrack->GetTrackID();
 
       // reset the initial energy deposit
@@ -178,8 +178,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       if (whichactive > 0)
       {
         m_EionSum = 0;  // assuming the ionization energy is only needed for active
-        m_Hit->set_eion(0);
-        m_SaveHitContainer = m_HitContainer;
+        m_hit->set_eion(0);
+        m_SaveHitContainer = m_hitContainer;
       } else {
         std::cout << PHWHERE << "implement stuff for whichactive < 0 (inactive volumes)" << std::endl;
         gSystem->Exit(1);
@@ -190,8 +190,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       {
         if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
         {
-          m_Hit->set_trkid(pp->GetUserTrackId());
-          pp->GetShower()->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
+          m_hit->set_trkid(pp->GetUserTrackId());
+          pp->GetShower()->add_g4hit_id(m_SaveHitContainer->GetID(), m_hit->get_hit_id());
         }
       }
       break;
@@ -201,7 +201,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
   }
 
-  if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
+  if (!m_hit || !std::isfinite(m_hit->get_x(0)))
   {
     std::cout << GetName() << ": hit was not created" << std::endl;
     std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
@@ -264,10 +264,10 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     {
       // update values at exit coordinates and set keep flag
       // of track to keep
-      m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
-      m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
-      m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
-      m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+      m_hit->set_x(1, postPoint->GetPosition().x() / cm);
+      m_hit->set_y(1, postPoint->GetPosition().y() / cm);
+      m_hit->set_z(1, postPoint->GetPosition().z() / cm);
+      m_hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1 *pp = dynamic_cast<PHG4TrackUserInfoV1 *>(p))
@@ -279,31 +279,35 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       {
  //implement your own here://
  // if you want to do something special for geantinos (normally you do not)
-        m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way
+        m_hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way
                               // geantinos survive the g4hit compression
         if (whichactive > 0)
         {
-          m_Hit->set_eion(-1);
+          m_hit->set_eion(-1);
         }
       }
       else
       {
-        m_Hit->set_edep(m_EdepSum);
+        m_hit->set_edep(m_EdepSum);
       }
  //implement your own here://
  // what you set here will be saved in the output
       if (whichactive > 0)
       {
-        m_Hit->set_eion(m_EionSum);
+        m_hit->set_eion(m_EionSum);
       }
 
-      // ownership has been transferred to container
-      // so we release the hits
-      m_SaveHitContainer->AddHit(detector_id, m_Hit.release());
-    }
-    else
-    {
-      m_Hit->Reset();
+      // add in container
+      m_SaveHitContainer->AddHit(m_hit->get_layer(), m_hit.get());
+
+      // ownership is transferred to container
+      // so we release the hit
+      m_hit.release();
+
+    } else {
+
+      m_hit->Reset();
+
     }
   }
   // return true to indicate the hit was used
@@ -314,6 +318,6 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 void PHG4MicromegasSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
   std::string hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  if (!m_HitContainer) std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+  m_hitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  if (!m_hitContainer) std::cout << "PHG4MicromegasSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
 }
