@@ -55,9 +55,11 @@ class ActsTrkFitAnalyzer : public SubsysReco
   void fillG4Particle(PHG4Particle *part);
   void fillFittedTrackParams(const Trajectory traj);
   void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
+  void clearTrackVariables();
+
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
   
-  SvtxEvaluator *m_svtxEvaluator;
+  SvtxEvaluator *m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
