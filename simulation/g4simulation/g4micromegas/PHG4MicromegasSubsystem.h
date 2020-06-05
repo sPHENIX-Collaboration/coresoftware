@@ -1,7 +1,8 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef PHG4MICROMEGASSUBSYSTEM_H
-#define PHG4MICROMEGASSUBSYSTEM_H
+
+#ifndef G4MICROMEGAS_PHG4MICROMEGASSUBSYSTEM_H
+#define G4MICROMEGAS_PHG4MICROMEGASSUBSYSTEM_H
 
 /*!
  * \file PHG4MicromegasSubsystem.h

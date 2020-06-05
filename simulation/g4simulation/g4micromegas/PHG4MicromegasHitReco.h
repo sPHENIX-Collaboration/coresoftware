@@ -1,5 +1,8 @@
-#ifndef G4MVTX_PHG4MicromegasHitReco_H
-#define G4MVTX_PHG4MicromegasHitReco_H
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+
+#ifndef G4MICROMEGAS_PHG4MICROMEGASHITRECO_H
+#define G4MICROMEGAS_PHG4MICROMEGASHITRECO_H
 
 /*!
  * \file PHG4MicromegasHitReco.h
