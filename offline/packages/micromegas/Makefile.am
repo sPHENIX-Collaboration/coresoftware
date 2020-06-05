@@ -4,7 +4,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libmicromegas_io.la
+  libmicromegas_io.la \
+  libmicromegas.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -17,9 +18,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  	CylinderGeomMicromegas.h \
+  MicromegasClusterizer.h \
   MicromegasDefs.h \
- 	 MicromegasTile.h \
-  	CylinderGeomMicromegas.h
+ 	 MicromegasTile.h
 
 ROOTDICTS = \
   CylinderGeomMicromegas_Dict.cc
@@ -41,6 +43,14 @@ libmicromegas_io_la_LIBADD = \
   -ltrack_io \
   -ltrackbase_historic_io
 
+# sources for micromegas library
+libmicromegas_la_SOURCES = \
+  MicromegasClusterizer.cc
+
+libmicromegas_la_LIBADD = \
+  libmicromegas_io.la \
+  -lphg4hit \
+  -lSubsysReco
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -56,10 +66,14 @@ libmicromegas_io_la_LIBADD = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_micromegas_io
+  testexternals_micromegas_io \
+  testexternals_micromegas
 
 testexternals_micromegas_io_SOURCES = testexternals.cc
 testexternals_micromegas_io_LDADD = libmicromegas_io.la
+
+testexternals_micromegas_SOURCES = testexternals.cc
+testexternals_micromegas_LDADD = libmicromegas.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
