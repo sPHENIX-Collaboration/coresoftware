@@ -74,7 +74,7 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
     std::set<TrkrDefs::hitkey> removed_keys;
 
     // loop over hits
-    for( auto hit_it = hit_range.first; hit_it != hit_range.second; )
+    for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
     {
 
       TrkrHit *hit = hit_it->second;
