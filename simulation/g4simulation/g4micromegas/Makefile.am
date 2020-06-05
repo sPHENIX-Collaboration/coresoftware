@@ -11,6 +11,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  PHG4MicromegasDigitizer.h\
   PHG4MicromegasHitReco.h\
   PHG4MicromegasSubsystem.h
 
@@ -20,6 +21,7 @@ lib_LTLIBRARIES = \
 libg4micromegas_la_SOURCES = \
   PHG4MicromegasSubsystem.cc\
   PHG4MicromegasDetector.cc\
+  PHG4MicromegasDigitizer.cc\
   PHG4MicromegasHitReco.cc\
   PHG4MicromegasSteppingAction.cc
 
