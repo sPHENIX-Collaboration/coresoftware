@@ -166,7 +166,7 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   if (!dstNode)
   {

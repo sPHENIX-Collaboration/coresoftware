@@ -106,19 +106,23 @@ MakeActsGeometry::~MakeActsGeometry()
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
 
-   // Add the TPC surfaces to the copy of the TGeoManager. Do this before
-  // anything else so that the geometry is finalized
+  /// Add the TPC surfaces to the copy of the TGeoManager. Do this before
+  /// anything else so that the geometry is finalized
   editTPCGeometry(topNode);
 
   getNodes(topNode);  // for geometry nodes
 
   createNodes(topNode);  // for writing surface map
 
-  // run Acts layer builder
+  /// Run Acts layer builder
   buildActsSurfaces();
 
-  // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
+  /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   makeTGeoNodeMap(topNode);
+
+  /// Export the new geometry to a root file for examination
+  if(m_verbosity)
+    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXexport.root");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
