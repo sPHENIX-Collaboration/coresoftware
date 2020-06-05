@@ -34,13 +34,6 @@ namespace MicromegasDefs
   static constexpr unsigned int kBitShiftStrip __attribute__((unused)) = 0;
 
   /*!
-   * @brief Get the stave id from hitsetkey
-   * @param[in] hitsetkey
-   * @param[out] stave id
-   s*/
-  uint8_t getTileId(TrkrDefs::hitsetkey key);
-
-  /*!
    * @brief Generate a hitsetkey for the micromegas
    * @param[in] layer Layer index
    * @param[in] tile tile index
@@ -52,11 +45,28 @@ namespace MicromegasDefs
   TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, uint8_t tile );
 
   /*!
+   * @brief Get the stave id from hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] stave id
+   s*/
+  uint8_t getTileId(TrkrDefs::hitsetkey);
+
+  /*!
    * @brief Generate a hitkey from strip index inside tile
    * @param[in] strip strip index
    */
   TrkrDefs::hitkey genHitKey(uint16_t strip );
 
+  //! get strip from hit key
+  uint16_t getStrip(TrkrDefs::hitkey);
+
+  /**
+   * @brief Generate a cluster key using a hitsetkey and cluster id
+   * @param[in] hskey hitsetkey
+   * @param[in] clusid Cluster id
+   * @param[out] cluskey
+   */
+  TrkrDefs::cluskey genClusterKey(TrkrDefs::hitsetkey hskey, uint32_t clusid);
 }
 
 #endif

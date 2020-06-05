@@ -27,13 +27,21 @@ class MicromegasClusterizer : public SubsysReco
  public:
 
   //! constructor
-  MicromegasClusterizer(const std::string &name = "MicromegasClusterizer");
+  MicromegasClusterizer(
+    const std::string &name = "MicromegasClusterizer",
+    const std::string &detector = "MICROMEGAS"
+    );
 
   //! run initialization
   int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
+
+  private:
+
+  //! detector name
+  std::string m_detector;
 
 };
 
