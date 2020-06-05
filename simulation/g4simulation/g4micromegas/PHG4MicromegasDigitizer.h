@@ -1,8 +1,8 @@
 // Tell emacs that this is a C++ source
 // -*- C++ -*-.
 
-#ifndef PHG4MICROMEGASDIGITIZER_H
-#define PHG4MICROMEGASDIGITIZER_H
+#ifndef G4MICROMEGAS_PHG4MICROMEGASDIGITIZER_H
+#define G4MICROMEGAS_PHG4MICROMEGASDIGITIZER_H
 
 /*!
  * \file PHG4MicromegasDigitizer.h

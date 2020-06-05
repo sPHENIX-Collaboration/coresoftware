@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef PHG4MICROMEGASSTEPPINGACTION_H
-#define PHG4MICROMEGASSTEPPINGACTION_H
+#ifndef G4MICROMEGAS_PHG4MICROMEGASSTEPPINGACTION_H
+#define G4MICROMEGAS_PHG4MICROMEGASSTEPPINGACTION_H
 
 /*!
  * \file PHG4MicromegasSteppingAction.h
