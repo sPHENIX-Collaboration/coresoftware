@@ -159,6 +159,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // create cluster key
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
 
+      // associate cluster key to hit key
+      trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
+
       // create new cluster of this key
       auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
 
