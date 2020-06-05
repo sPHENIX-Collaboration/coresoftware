@@ -135,7 +135,7 @@ class ActsTrkFitAnalyzer : public SubsysReco
   std::vector<float> m_pull_y_hit;  ///< hit pull y
   std::vector<int> m_dim_hit;       ///< dimension of measurement
 
-  bool m_hasFittedParams;        ///< if the track has fitted parameter
+  bool m_hasFittedParams{false};        ///< if the track has fitted parameter
   float m_eLOC0_fit{-99.};       ///< fitted parameter eLOC_0
   float m_eLOC1_fit{-99.};       ///< fitted parameter eLOC_1
   float m_ePHI_fit{-99.};        ///< fitted parameter ePHI

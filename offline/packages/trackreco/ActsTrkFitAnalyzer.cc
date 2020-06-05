@@ -32,6 +32,12 @@ ActsTrkFitAnalyzer::ActsTrkFitAnalyzer(const std::string& name,
 				       SvtxEvaluator *svtxEvaluator)
   : SubsysReco(name)
   , m_svtxEvaluator(svtxEvaluator)
+  , m_truthInfo(nullptr)
+  , m_trackMap(nullptr)
+  , m_svtxEvalStack(nullptr)
+  , m_actsFitResults(nullptr)
+  , m_hitIdClusKey(nullptr)
+  ,  m_tGeometry(nullptr)
 {
 }
 
