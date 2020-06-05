@@ -1,5 +1,8 @@
-#ifndef CYLINDERGEOMMICROMEGAS_H
-#define CYLINDERGEOMMICROMEGAS_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+
+#ifndef MICROMEGAS_CYLINDERGEOMMICROMEGAS_H
+#define MICROMEGAS_CYLINDERGEOMMICROMEGAS_H
 
 /*!
  * \file CylinderGeomMicromegas.h

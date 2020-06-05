@@ -1,5 +1,8 @@
-#ifndef MICROMEGASTILE_H
-#define MICROMEGASTILE_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+
+#ifndef MICROMEGAS_MICROMEGASTILE_H
+#define MICROMEGAS_MICROMEGASTILE_H
 
 /*!
  * \file MicromegasTile.h

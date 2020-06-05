@@ -1,8 +1,8 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
 
-#ifndef MICROMEGASDEFS_H
-#define MICROMEGASDEFS_H
+#ifndef MICROMEGAS_MICROMEGASDEFS_H
+#define MICROMEGAS_MICROMEGASDEFS_H
 
 /*!
  * \file MicromegasDefs.h
