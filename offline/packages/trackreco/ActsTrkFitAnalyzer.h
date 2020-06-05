@@ -35,6 +35,15 @@ using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
 
+
+/**
+ * This class is an analyzing class for the Acts track fitting, and produces
+ * a tree with many branches useful for debugging what Acts is doing. 
+ * The truth G4Particle, reconstructed Acts track fit result from 
+ * PHActsTrkFitter, and the comparison between truth and reconstructed states
+ * throughout the track fit are written out to the tree.
+ * Note that this module works and outputs in Acts units of mm and GeV, 
+ */
 class ActsTrkFitAnalyzer : public SubsysReco
 {
 
@@ -63,10 +72,10 @@ class ActsTrkFitAnalyzer : public SubsysReco
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
-  std::map<const unsigned int, Trajectory> *m_actsFitResults;
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   
-  ActsTrackingGeometry *m_tGeometry;
+  ActsTrackingGeometry *m_tGeometry{nullptr};
 
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};

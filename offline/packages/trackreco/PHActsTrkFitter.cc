@@ -162,7 +162,7 @@ int PHActsTrkFitter::Process()
       }
 
       Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
-
+     
       /// Insert a new entry into the map
       m_actsFitResults->insert(
 	   std::pair<const unsigned int, Trajectory>(trackKey, trajectory));

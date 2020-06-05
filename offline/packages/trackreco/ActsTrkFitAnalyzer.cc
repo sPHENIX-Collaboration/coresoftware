@@ -21,6 +21,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/Utilities/Units.hpp>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -62,9 +63,9 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
       std::cout << "Starting ActsTrkFitAnalyzer at event " << m_eventNr 
 		<< std::endl;
     }
-  if(!getNodes(topNode))
+  if(getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     return Fun4AllReturnCodes::ABORTEVENT;
-
+  
   m_svtxEvalStack = new SvtxEvalStack(topNode);
 
   m_svtxEvalStack->next_event(topNode);
@@ -73,6 +74,7 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
 
   std::map<const unsigned int, Trajectory>::iterator trackIter;
   int iTrack = 0;
+ 
   for (trackIter = m_actsFitResults->begin();
        trackIter != m_actsFitResults->end();
        ++trackIter)
@@ -84,7 +86,6 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
       SvtxTrack *track = trackIter->second;
       PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
       const auto& [trackTips, mj] = traj.trajectory();
-
       m_trajNr = iTrack;
     
       /// Skip failed tracks
@@ -185,6 +186,8 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
       m_z_hit.push_back(global.z());
 
       /// Get the truth hit corresponding to this trackState
+      /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
+      /// the map created in PHActsSourceLinks
       const unsigned int hitId = state.uncalibrated().hitID();
       TrkrDefs::cluskey clusKey = getClusKey(hitId);
       
@@ -213,6 +216,10 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
 	  
 	}
 
+      /// Convert to acts units of mm
+      gx *= Acts::UnitConstants::cm;
+      gy *= Acts::UnitConstants::cm;
+      gz *= Acts::UnitConstants::cm;
       
       /// Get local truth position
       Acts::Vector2D truthlocal;
@@ -225,8 +232,7 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
 	  globalTruthPos, 
 	  globalTruthUnitDir, 
 	  truthlocal);
-      
-      
+         
       /// Push the truth hit info
       m_t_x.push_back(gx);
       m_t_y.push_back(gy);
@@ -235,8 +241,7 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
       m_t_dx.push_back(gx / r);
       m_t_dy.push_back(gy / r);
       m_t_dz.push_back(gz / r);
-      
-      
+          
       /// Get the truth track parameter at this track State
       float truthLOC0 = 0;
       float truthLOC1 = 0;
@@ -244,7 +249,9 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
       float truthTHETA = 0;
       float truthQOP = 0; 
       float truthTIME = 0;
-      float momentum = sqrt(m_t_px * m_t_px + m_t_py * m_t_py + m_t_pz * m_t_pz);
+      float momentum = sqrt(m_t_px * m_t_px + 
+			    m_t_py * m_t_py + 
+			    m_t_pz * m_t_pz);
 
       truthLOC0 = truthlocal.x();
       truthLOC1 = truthlocal.y();
@@ -720,9 +727,9 @@ void ActsTrkFitAnalyzer::fillG4Particle(PHG4Particle *part)
       const auto pid = part->get_pid();
       m_t_charge = pid < 0 ? -1 : 1;
       const auto vtx = trutheval->get_vertex(part);
-      m_t_vx = vtx->get_x();
-      m_t_vy = vtx->get_y();
-      m_t_vz = vtx->get_z();
+      m_t_vx = vtx->get_x() * Acts::UnitConstants::cm;
+      m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
+      m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
       m_t_px = part->get_px();
       m_t_py = part->get_py();
       m_t_pz = part->get_pz();
@@ -755,7 +762,7 @@ void ActsTrkFitAnalyzer::fillG4Particle(PHG4Particle *part)
 
 int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
 {
-  
+
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   
   if(!m_truthInfo)
@@ -775,7 +782,7 @@ int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
 
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+ 
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
  
   if(!m_tGeometry)
@@ -796,9 +803,9 @@ int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
       
       return Fun4AllReturnCodes::ABORTEVENT;
     }				
-  
+
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  
+ 
   if(!m_trackMap)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree. Bailing." 
@@ -806,7 +813,7 @@ int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
       
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
