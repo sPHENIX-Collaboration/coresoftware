@@ -1,5 +1,3 @@
-// this is the new trackbase version
-
 /*!
  * \file PHG4MicromegasHitReco.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
@@ -125,7 +123,6 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 {
-
   // load relevant nodes
   // G4Hits
   const std::string g4hitnodename = "G4HIT_" + m_detector;
@@ -247,9 +244,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
         }
       }
-
     }
-
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
