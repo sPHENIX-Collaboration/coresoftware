@@ -127,36 +127,20 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
   // G4Hits
   const std::string g4hitnodename = "G4HIT_" + m_detector;
   auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, g4hitnodename);
-  if(! g4hitcontainer )
-  {
-    std::cout << PHWHERE << "Could not locate g4 hit node " << g4hitnodename << std::endl;
-    exit(1);
-  }
+  assert(g4hitcontainer);
 
   // geometry
   const std::string geonodename = "CYLINDERGEOM_" + m_detector;
   auto geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
-  if (!geonode)
-  {
-    std::cout << PHWHERE << "Could not locate geometry node " << geonodename << std::endl;
-    exit(1);
-  }
+  assert(geonode);
 
   // Get the TrkrHitSetContainer node
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!trkrhitsetcontainer)
-  {
-    std::cout << PHWHERE << "Could not locate TRKR_HITSET node" << std::endl;
-    exit(1);
-  }
+  assert(trkrhitsetcontainer);
 
   // Get the TrkrHitTruthAssoc node
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  if (!hittruthassoc)
-  {
-    std::cout << PHWHERE << "Could not locate TRKR_HITTRUTHASSOC node" << std::endl;
-    exit(1);
-  }
+  assert(hittruthassoc);
 
   // loop over layers in the g4hit container
   auto layer_range = g4hitcontainer->getLayers();
