@@ -1,4 +1,4 @@
-#include "ActsTrkFitAnalyzer.h"
+#include "ActsEvaluator.h"
 
 /// General fun4all and subsysreco includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -26,7 +26,7 @@
 #include <TFile.h>
 #include <TTree.h>
 
-ActsTrkFitAnalyzer::ActsTrkFitAnalyzer(const std::string &name,
+ActsEvaluator::ActsEvaluator(const std::string &name,
                                        SvtxEvaluator *svtxEvaluator)
   : SubsysReco(name)
   , m_svtxEvaluator(svtxEvaluator)
@@ -39,32 +39,32 @@ ActsTrkFitAnalyzer::ActsTrkFitAnalyzer(const std::string &name,
 {
 }
 
-ActsTrkFitAnalyzer::~ActsTrkFitAnalyzer()
+ActsEvaluator::~ActsEvaluator()
 {
 }
 
-int ActsTrkFitAnalyzer::Init(PHCompositeNode *topNode)
+int ActsEvaluator::Init(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Starting ActsTrkFitAnalyzer::Init" << std::endl;
+    std::cout << "Starting ActsEvaluator::Init" << std::endl;
   }
 
   initializeTree();
 
   if (Verbosity() > 1)
   {
-    std::cout << "Finished ActsTrkFitAnalyzer::Init" << std::endl;
+    std::cout << "Finished ActsEvaluator::Init" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
+int ActsEvaluator::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Starting ActsTrkFitAnalyzer at event " << m_eventNr
+    std::cout << "Starting ActsEvaluator at event " << m_eventNr
               << std::endl;
   }
   
@@ -97,7 +97,7 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
     if (trackTips.empty())
     {
       if (Verbosity() > 1)
-        std::cout << "TrackTips empty in ActsTrkFitAnalyzer" << std::endl;
+        std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
     }
 
@@ -129,12 +129,12 @@ int ActsTrkFitAnalyzer::process_event(PHCompositeNode *topNode)
   m_eventNr++;
 
   if (Verbosity() > 1)
-    std::cout << "Finished ActsTrkFitAnalyzer::process_event" << std::endl;
+    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int ActsTrkFitAnalyzer::End(PHCompositeNode *topNode)
+int ActsEvaluator::End(PHCompositeNode *topNode)
 {
   m_trackFile->cd();
   m_trackTree->Write();
@@ -143,13 +143,13 @@ int ActsTrkFitAnalyzer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int ActsTrkFitAnalyzer::ResetEvent(PHCompositeNode *topNode)
+int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 {
   m_trajNr = 0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
+void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
@@ -650,7 +650,7 @@ void ActsTrkFitAnalyzer::visitTrackStates(const Trajectory traj, PHCompositeNode
 
   return;
 }
-TrkrDefs::cluskey ActsTrkFitAnalyzer::getClusKey(const unsigned int hitID)
+TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
 {
   TrkrDefs::cluskey clusKey = 0;
   /// Unfortunately the map is backwards for looking up cluster key from
@@ -670,7 +670,7 @@ TrkrDefs::cluskey ActsTrkFitAnalyzer::getClusKey(const unsigned int hitID)
 
   return clusKey;
 }
-void ActsTrkFitAnalyzer::fillFittedTrackParams(const Trajectory traj)
+void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
 {
   m_hasFittedParams = false;
   const auto &[trackTips, mj] = traj.trajectory();
@@ -718,7 +718,7 @@ void ActsTrkFitAnalyzer::fillFittedTrackParams(const Trajectory traj)
 
   return;
 }
-void ActsTrkFitAnalyzer::fillG4Particle(PHG4Particle *part)
+void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 {
   SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
 
@@ -760,7 +760,7 @@ void ActsTrkFitAnalyzer::fillG4Particle(PHG4Particle *part)
   return;
 }
 
-int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
+int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -815,7 +815,7 @@ int ActsTrkFitAnalyzer::getNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void ActsTrkFitAnalyzer::clearTrackVariables()
+void ActsEvaluator::clearTrackVariables()
 {
   m_t_x.clear();
   m_t_y.clear();
@@ -953,7 +953,7 @@ void ActsTrkFitAnalyzer::clearTrackVariables()
   return;
 }
 
-void ActsTrkFitAnalyzer::initializeTree()
+void ActsEvaluator::initializeTree()
 {
   m_trackFile = new TFile(Name().c_str(), "RECREATE");
 

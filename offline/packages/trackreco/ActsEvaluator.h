@@ -1,5 +1,5 @@
-#ifndef ACTSTRKFITANALYZER_H
-#define ACTSTRKFITANALYZER_H
+#ifndef ACTSEVALUATOR_H
+#define ACTSEVALUATOR_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -43,12 +43,12 @@ using Acts::VectorHelpers::theta;
  * throughout the track fit are written out to the tree.
  * Note that this module works and outputs in Acts units of mm and GeV, 
  */
-class ActsTrkFitAnalyzer : public SubsysReco
+class ActsEvaluator : public SubsysReco
 {
  public:
-  ActsTrkFitAnalyzer(const std::string &name = "ActsTrkFitAnalyzer.root",
+  ActsEvaluator(const std::string &name = "ActsEvaluator.root",
                      SvtxEvaluator *svtxEvaluator = nullptr);
-  ~ActsTrkFitAnalyzer();
+  ~ActsEvaluator();
 
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
