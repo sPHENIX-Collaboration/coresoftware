@@ -8,9 +8,9 @@
 
 #include <Acts/Utilities/Helpers.hpp>
 
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 class TTree;
 class TFile;
@@ -20,21 +20,20 @@ class SvtxTrackMap;
 class PHG4TruthInfoContainer;
 class SvtxEvaluator;
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
-                                      Acts::ParDef::eLOC_0, 
+                                      Acts::ParDef::eLOC_0,
                                       Acts::ParDef::eLOC_1>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
-
 
 /**
  * This class is an analyzing class for the Acts track fitting, and produces
@@ -46,19 +45,17 @@ using Acts::VectorHelpers::theta;
  */
 class ActsTrkFitAnalyzer : public SubsysReco
 {
-
  public:
-  ActsTrkFitAnalyzer(const std::string& name = "ActsTrkFitAnalyzer.root",
-		     SvtxEvaluator *svtxEvaluator = nullptr);
+  ActsTrkFitAnalyzer(const std::string &name = "ActsTrkFitAnalyzer.root",
+                     SvtxEvaluator *svtxEvaluator = nullptr);
   ~ActsTrkFitAnalyzer();
-  
+
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-  
- private:
 
+ private:
   int getNodes(PHCompositeNode *topNode);
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
@@ -67,24 +64,23 @@ class ActsTrkFitAnalyzer : public SubsysReco
   void clearTrackVariables();
 
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
-  
+
   SvtxEvaluator *m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
-  
+
   ActsTrackingGeometry *m_tGeometry{nullptr};
 
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
 
-
   /// Acts tree values
   int m_eventNr{0};
   int m_trajNr{0};
-  
+
   unsigned long m_t_barcode{0};  ///< Truth particle barcode
   int m_t_charge{0};             ///< Truth particle charge
   float m_t_time{0};             ///< Truth particle time
@@ -135,43 +131,43 @@ class ActsTrkFitAnalyzer : public SubsysReco
   std::vector<float> m_pull_y_hit;  ///< hit pull y
   std::vector<int> m_dim_hit;       ///< dimension of measurement
 
-  bool m_hasFittedParams{false};        ///< if the track has fitted parameter
-  float m_eLOC0_fit{-99.};       ///< fitted parameter eLOC_0
-  float m_eLOC1_fit{-99.};       ///< fitted parameter eLOC_1
-  float m_ePHI_fit{-99.};        ///< fitted parameter ePHI
-  float m_eTHETA_fit{-99.};      ///< fitted parameter eTHETA
-  float m_eQOP_fit{-99.};        ///< fitted parameter eQOP
-  float m_eT_fit{-99.};          ///< fitted parameter eT
-  float m_err_eLOC0_fit{-99.};   ///< fitted parameter eLOC_-99.err
-  float m_err_eLOC1_fit{-99.};   ///< fitted parameter eLOC_1 err
-  float m_err_ePHI_fit{-99.};    ///< fitted parameter ePHI err
-  float m_err_eTHETA_fit{-99.};  ///< fitted parameter eTHETA err
-  float m_err_eQOP_fit{-99.};    ///< fitted parameter eQOP err
-  float m_err_eT_fit{-99.};      ///< fitted parameter eT err
+  bool m_hasFittedParams{false};  ///< if the track has fitted parameter
+  float m_eLOC0_fit{-99.};        ///< fitted parameter eLOC_0
+  float m_eLOC1_fit{-99.};        ///< fitted parameter eLOC_1
+  float m_ePHI_fit{-99.};         ///< fitted parameter ePHI
+  float m_eTHETA_fit{-99.};       ///< fitted parameter eTHETA
+  float m_eQOP_fit{-99.};         ///< fitted parameter eQOP
+  float m_eT_fit{-99.};           ///< fitted parameter eT
+  float m_err_eLOC0_fit{-99.};    ///< fitted parameter eLOC_-99.err
+  float m_err_eLOC1_fit{-99.};    ///< fitted parameter eLOC_1 err
+  float m_err_ePHI_fit{-99.};     ///< fitted parameter ePHI err
+  float m_err_eTHETA_fit{-99.};   ///< fitted parameter eTHETA err
+  float m_err_eQOP_fit{-99.};     ///< fitted parameter eQOP err
+  float m_err_eT_fit{-99.};       ///< fitted parameter eT err
 
-  int m_nPredicted{0};      ///< number of states with predicted parameter
-  std::vector<bool> m_prt;  ///< predicted status
-  std::vector<float> m_eLOC0_prt;       ///< predicted parameter eLOC0
-  std::vector<float> m_eLOC1_prt;       ///< predicted parameter eLOC1
-  std::vector<float> m_ePHI_prt;        ///< predicted parameter ePHI
-  std::vector<float> m_eTHETA_prt;      ///< predicted parameter eTHETA
-  std::vector<float> m_eQOP_prt;        ///< predicted parameter eQOP
-  std::vector<float> m_eT_prt;          ///< predicted parameter eT
-  std::vector<float> m_res_eLOC0_prt;   ///< predicted parameter eLOC0 residual
-  std::vector<float> m_res_eLOC1_prt;   ///< predicted parameter eLOC1 residual
-  std::vector<float> m_res_ePHI_prt;    ///< predicted parameter ePHI residual
-  std::vector<float> m_res_eTHETA_prt;  ///< predicted parameter eTHETA residual
-  std::vector<float> m_res_eQOP_prt;    ///< predicted parameter eQOP residual
-  std::vector<float> m_res_eT_prt;      ///< predicted parameter eT residual
-  std::vector<float> m_err_eLOC0_prt;   ///< predicted parameter eLOC0 error
-  std::vector<float> m_err_eLOC1_prt;   ///< predicted parameter eLOC1 error
-  std::vector<float> m_err_ePHI_prt;    ///< predicted parameter ePHI error
-  std::vector<float> m_err_eTHETA_prt;  ///< predicted parameter eTHETA error
-  std::vector<float> m_err_eQOP_prt;    ///< predicted parameter eQOP error
-  std::vector<float> m_err_eT_prt;      ///< predicted parameter eT error
-  std::vector<float> m_pull_eLOC0_prt;  ///< predicted parameter eLOC0 pull
-  std::vector<float> m_pull_eLOC1_prt;  ///< predicted parameter eLOC1 pull
-  std::vector<float> m_pull_ePHI_prt;   ///< predicted parameter ePHI pull
+  int m_nPredicted{0};                   ///< number of states with predicted parameter
+  std::vector<bool> m_prt;               ///< predicted status
+  std::vector<float> m_eLOC0_prt;        ///< predicted parameter eLOC0
+  std::vector<float> m_eLOC1_prt;        ///< predicted parameter eLOC1
+  std::vector<float> m_ePHI_prt;         ///< predicted parameter ePHI
+  std::vector<float> m_eTHETA_prt;       ///< predicted parameter eTHETA
+  std::vector<float> m_eQOP_prt;         ///< predicted parameter eQOP
+  std::vector<float> m_eT_prt;           ///< predicted parameter eT
+  std::vector<float> m_res_eLOC0_prt;    ///< predicted parameter eLOC0 residual
+  std::vector<float> m_res_eLOC1_prt;    ///< predicted parameter eLOC1 residual
+  std::vector<float> m_res_ePHI_prt;     ///< predicted parameter ePHI residual
+  std::vector<float> m_res_eTHETA_prt;   ///< predicted parameter eTHETA residual
+  std::vector<float> m_res_eQOP_prt;     ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eT_prt;       ///< predicted parameter eT residual
+  std::vector<float> m_err_eLOC0_prt;    ///< predicted parameter eLOC0 error
+  std::vector<float> m_err_eLOC1_prt;    ///< predicted parameter eLOC1 error
+  std::vector<float> m_err_ePHI_prt;     ///< predicted parameter ePHI error
+  std::vector<float> m_err_eTHETA_prt;   ///< predicted parameter eTHETA error
+  std::vector<float> m_err_eQOP_prt;     ///< predicted parameter eQOP error
+  std::vector<float> m_err_eT_prt;       ///< predicted parameter eT error
+  std::vector<float> m_pull_eLOC0_prt;   ///< predicted parameter eLOC0 pull
+  std::vector<float> m_pull_eLOC1_prt;   ///< predicted parameter eLOC1 pull
+  std::vector<float> m_pull_ePHI_prt;    ///< predicted parameter ePHI pull
   std::vector<float> m_pull_eTHETA_prt;  ///< predicted parameter eTHETA pull
   std::vector<float> m_pull_eQOP_prt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_prt;      ///< predicted parameter eT pull
@@ -184,11 +180,11 @@ class ActsTrkFitAnalyzer : public SubsysReco
   std::vector<float> m_eta_prt;          ///< predicted momentum eta
   std::vector<float> m_pT_prt;           ///< predicted momentum pT
 
-  int m_nFiltered{0};              ///< number of states with filtered parameter
-  std::vector<bool> m_flt;         ///< filtered status
-  std::vector<float> m_eLOC0_flt;  ///< filtered parameter eLOC0
-  std::vector<float> m_eLOC1_flt;  ///< filtered parameter eLOC1
-  std::vector<float> m_ePHI_flt;   ///< filtered parameter ePHI
+  int m_nFiltered{0};                    ///< number of states with filtered parameter
+  std::vector<bool> m_flt;               ///< filtered status
+  std::vector<float> m_eLOC0_flt;        ///< filtered parameter eLOC0
+  std::vector<float> m_eLOC1_flt;        ///< filtered parameter eLOC1
+  std::vector<float> m_ePHI_flt;         ///< filtered parameter ePHI
   std::vector<float> m_eTHETA_flt;       ///< filtered parameter eTHETA
   std::vector<float> m_eQOP_flt;         ///< filtered parameter eQOP
   std::vector<float> m_eT_flt;           ///< filtered parameter eT
@@ -220,11 +216,11 @@ class ActsTrkFitAnalyzer : public SubsysReco
   std::vector<float> m_pT_flt;           ///< filtered momentum pT
   std::vector<float> m_chi2;             ///< chisq from filtering
 
-  int m_nSmoothed{0};              ///< number of states with smoothed parameter
-  std::vector<bool> m_smt;         ///< smoothed status
-  std::vector<float> m_eLOC0_smt;  ///< smoothed parameter eLOC0
-  std::vector<float> m_eLOC1_smt;  ///< smoothed parameter eLOC1
-  std::vector<float> m_ePHI_smt;   ///< smoothed parameter ePHI
+  int m_nSmoothed{0};                    ///< number of states with smoothed parameter
+  std::vector<bool> m_smt;               ///< smoothed status
+  std::vector<float> m_eLOC0_smt;        ///< smoothed parameter eLOC0
+  std::vector<float> m_eLOC1_smt;        ///< smoothed parameter eLOC1
+  std::vector<float> m_ePHI_smt;         ///< smoothed parameter ePHI
   std::vector<float> m_eTHETA_smt;       ///< smoothed parameter eTHETA
   std::vector<float> m_eQOP_smt;         ///< smoothed parameter eQOP
   std::vector<float> m_eT_smt;           ///< smoothed parameter eT
@@ -254,8 +250,6 @@ class ActsTrkFitAnalyzer : public SubsysReco
   std::vector<float> m_pz_smt;           ///< smoothed momentum pz
   std::vector<float> m_eta_smt;          ///< smoothed momentum eta
   std::vector<float> m_pT_smt;           ///< smoothed momentum pT
-  
-
 };
 
 #endif
