@@ -110,6 +110,9 @@ PHGenFitTrkProp::PHGenFitTrkProp(
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc)
+  , _firstlayer_maps(0)
+  , _firstlayer_intt(_firstlayer_maps + _nlayers_maps)
+  , _firstlayer_tpc(_firstlayer_intt + _nlayers_intt)
 {}
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
@@ -717,32 +720,24 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   Int_t n_intt = 0;
   Int_t n_tpc = 0;
   
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  for (auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
+  {
+    TrkrDefs::cluskey cluster_key = *iter;
+    unsigned int layer = TrkrDefs::getLayer(cluster_key);
+    if( is_maps_layer( layer ) )
     {
-      TrkrDefs::cluskey cluster_key = *iter;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      if (_nlayers_maps > 0 && layer < _nlayers_maps)
-	{
-	  n_maps++;
-	}
-      if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
-	{
-	  n_intt++;
-	}
+      n_maps++;
+    } else if( is_intt_layer( layer ) ) {
+      n_intt++;
       if (n_intt > 4)
-	{
-	  cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
-	  exit(1);
-	}
-      if (_nlayers_tpc > 0 &&
-	  layer >= (_nlayers_maps + _nlayers_intt) &&
-	  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-	{
-	  n_tpc++;
-	}
+      {
+        cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+        exit(1);
+      }
+    } else if( is_tpc_layer( layer ) ) {
+      n_tpc++;
     }
+  }
   
   // Add the cluster-track association to the association table for later use
   for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
@@ -1242,21 +1237,21 @@ int PHGenFitTrkProp::TrackPropPatRec(
     float phi_window = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
     float theta_window = _search_wins_theta[layer] * sqrt(cov[2][2]) / pos.Perp();
 
-    if (layer < _nlayers_maps)
+    if( is_maps_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
       if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
       if (theta_window > _max_search_win_theta_maps) theta_window = _max_search_win_theta_maps;
       if (theta_window < _min_search_win_theta_maps) theta_window = _min_search_win_theta_maps;
     }
-    else if (layer < _nlayers_maps + _nlayers_intt)
+    else if( is_intt_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _max_search_win_phi_intt[layer - _nlayers_maps];
       if (phi_window < _min_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _min_search_win_phi_intt[layer - _nlayers_maps];
       if (theta_window > _max_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _max_search_win_theta_intt[layer - _nlayers_maps];
       if (theta_window < _min_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _min_search_win_theta_intt[layer - _nlayers_maps];
     }
-    else
+    else if( is_tpc_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
       if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
@@ -1352,9 +1347,9 @@ int PHGenFitTrkProp::TrackPropPatRec(
         track_iter->first.nhits = tq.nhits + 1;
         track_iter->first.chi2 = tq.chi2 + iter->first;
         track_iter->first.ndf = tq.ndf + 2;
-        track_iter->first.ntpc = tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nmaps = tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0);
+        track_iter->first.ntpc = tq.ntpc + (is_tpc_layer(layer) ? 1 : 0);
+        track_iter->first.nintt = tq.nintt + (is_intt_layer(layer) ? 1 : 0);
+        track_iter->first.nmaps = tq.nmaps + (is_maps_layer(layer) ? 1 : 0);
 
         track_iter->second = std::shared_ptr<PHGenFit::Track>(iter->second);
 
@@ -1405,10 +1400,10 @@ int PHGenFitTrkProp::TrackPropPatRec(
                     tq.nhits + 1,
                     tq.chi2 + iter->first,
                     tq.ndf + 2,
-                    tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0)),
-                std::shared_ptr<PHGenFit::Track>(iter->second)));
+                    tq.ntpc + (is_tpc_layer(layer) ? 1 : 0),
+                    tq.nintt + (is_intt_layer(layer) ? 1 : 0),
+                    tq.nmaps + (is_maps_layer(layer) ? 1 : 0)),
+                    iter->second));
       }
 
 #ifdef _DEBUG_
