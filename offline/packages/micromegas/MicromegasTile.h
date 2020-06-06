@@ -9,6 +9,8 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include <array>
+#include <cassert>
 #include <vector>
 
 //! header only class that contains information about a given Tile location inside CylinderGeom
@@ -21,6 +23,14 @@ class MicromegasTile
 
   //! default constructor
   MicromegasTile()
+  {}
+
+  //! constructor
+  MicromegasTile( std::array<double, 4> values )
+    :m_centerPhi( values[0] )
+    ,m_centerZ( values[1] )
+    ,m_sizePhi( values[2] )
+    ,m_sizeZ( values[3] )
   {}
 
   //! constructor
