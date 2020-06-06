@@ -1128,10 +1128,11 @@ int PHGenFitTrkProp::TrackPropPatRec(
     }
     else if( is_intt_layer( layer ) )
     {
-      if (phi_window > _max_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _max_search_win_phi_intt[layer - _nlayers_maps];
-      if (phi_window < _min_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _min_search_win_phi_intt[layer - _nlayers_maps];
-      if (theta_window > _max_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _max_search_win_theta_intt[layer - _nlayers_maps];
-      if (theta_window < _min_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _min_search_win_theta_intt[layer - _nlayers_maps];
+      const auto layer_intt = layer - _firstlayer_intt;
+      if (phi_window > _max_search_win_phi_intt[layer_intt]) phi_window = _max_search_win_phi_intt[layer_intt];
+      if (phi_window < _min_search_win_phi_intt[layer_intt]) phi_window = _min_search_win_phi_intt[layer_intt];
+      if (theta_window > _max_search_win_theta_intt[layer_intt]) theta_window = _max_search_win_theta_intt[layer_intt];
+      if (theta_window < _min_search_win_theta_intt[layer_intt]) theta_window = _min_search_win_theta_intt[layer_intt];
     }
     else if( is_tpc_layer( layer ) )
     {
