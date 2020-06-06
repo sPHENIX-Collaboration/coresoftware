@@ -58,7 +58,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
       const std::string& name = "PHGenFitTrkProp",
       unsigned int nlayers_maps = 3,
       unsigned int nlayers_intt = 8,
-      unsigned int nlayers_tpc = 60);
+      unsigned int nlayers_tpc = 60,
+      unsigned int nlayers_micromegas = 0);
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -81,28 +82,26 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   struct TrackQuality
   {
-    int nhits;
-    float chi2;
-    int ndf;
-
-    int ntpc;
-    int nintt;
-    int nmaps;
+    int nhits = 0;
+    float chi2 = 0;
+    int ndf = 0;
+    int nmicromegas = 0;
+    int ntpc = 0;
+    int nintt = 0;
+    int nmaps = 0;
 
     TrackQuality(int nhits_, float chi2_, int ndf_)
       : nhits(nhits_)
       , chi2(chi2_)
       , ndf(ndf_)
-      , ntpc(0)
-      , nintt(0)
-      , nmaps(0)
     {
     }
 
-    TrackQuality(int nhits_, float chi2_, int ndf_, int ntpc_, int nintt_, int nmaps_)
+    TrackQuality(int nhits_, float chi2_, int ndf_, int nmicromegas_, int ntpc_, int nintt_, int nmaps_)
       : nhits(nhits_)
       , chi2(chi2_)
       , ndf(ndf_)
+      , nmicromegas(nmicromegas_)
       , ntpc(ntpc_)
       , nintt(nintt_)
       , nmaps(nmaps_)
@@ -122,7 +121,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
       os
           << tq.nhits << ", "
           << tq.chi2 << ", " << tq.ndf << ", "
-          << tq.ntpc << ", " << tq.nintt << ", " << tq.nmaps
+          << tq.nmicromegas << ", " << tq.ntpc << ", " << tq.nintt << ", " << tq.nmaps
           << std::endl;
 
       return os;
@@ -296,6 +295,25 @@ class PHGenFitTrkProp : public PHTrackPropagating
   {
     _max_search_win_theta_tpc = maxSearchWinZ;
   }
+  float get_max_search_win_phi_micromegas() const
+  {
+    return _max_search_win_phi_micromegas;
+  }
+
+  void set_max_search_win_phi_micromegas(float maxSearchWinPhi)
+  {
+    _max_search_win_phi_micromegas = maxSearchWinPhi;
+  }
+
+  float get_max_search_win_theta_micromegas() const
+  {
+    return _max_search_win_theta_micromegas;
+  }
+
+  void set_max_search_win_theta_micromegas(float maxSearchWinZ)
+  {
+    _max_search_win_theta_micromegas = maxSearchWinZ;
+  }
 
   float get_blowup_factor() const
   {
@@ -377,6 +395,16 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _min_search_win_phi_tpc = minSearchWinPhiTpc;
   }
 
+  float get_min_search_win_phi_micromegas() const
+  {
+    return _min_search_win_phi_micromegas;
+  }
+
+  void set_min_search_win_phi_micromegas(float minSearchWinPhimicromegas)
+  {
+    _min_search_win_phi_micromegas = minSearchWinPhimicromegas;
+  }
+
   float get_min_search_win_theta_intt(int inttlayer) const
   {
     return _min_search_win_theta_intt[inttlayer];
@@ -407,10 +435,14 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _min_search_win_theta_tpc = minSearchWinThetaTpc;
   }
 
-  void set_vertex_error(const float a)
+  float get_min_search_win_theta_micromegas() const
   {
-    _vertex_error.clear();
-    // _vertex_error.assign(3, a);
+    return _min_search_win_theta_micromegas;
+  }
+
+  void set_min_search_win_theta_micromegas(float minSearchWinThetamicromegas)
+  {
+    _min_search_win_theta_micromegas = minSearchWinThetamicromegas;
   }
 
   int get_primary_pid_guess() const
@@ -435,6 +467,9 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   inline bool is_tpc_layer( unsigned int layer ) const
   { return layer >= _firstlayer_tpc && layer < _firstlayer_tpc + _nlayers_tpc; }
+
+  inline bool is_micromegas_layer( unsigned int layer ) const
+  { return layer >= _firstlayer_micromegas && layer < _firstlayer_micromegas + _nlayers_micromegas; }
   //@}
 
   //--------------
@@ -573,15 +608,23 @@ class PHGenFitTrkProp : public PHTrackPropagating
   unsigned int _nlayers_maps = 3;
   unsigned int _nlayers_intt = 4;
   unsigned int _nlayers_tpc = 48;
+  unsigned int _nlayers_micromegas = 0;
 
   int _nlayers_all = 55;
 
   unsigned int _firstlayer_maps = 0;
   unsigned int _firstlayer_intt = 3;
   unsigned int _firstlayer_tpc = 7;
+  unsigned int _firstlayer_micromegas = 55;
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::vector<float> _radii_all;
+
+  // TODO: might need to use layer dependent windows because micromegas are 1D measurements
+  float _max_search_win_phi_micromegas = 0.004;
+  float _min_search_win_phi_micromegas = 0;
+  float _max_search_win_theta_micromegas = 0.004;
+  float _min_search_win_theta_micromegas = 0;
 
   float _max_search_win_phi_tpc = 0.004;
   float _min_search_win_phi_tpc = 0;
