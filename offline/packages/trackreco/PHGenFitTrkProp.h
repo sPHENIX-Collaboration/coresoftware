@@ -422,6 +422,19 @@ class PHGenFitTrkProp : public PHTrackPropagating
   }
 
  private:
+
+  //*@name utility methods
+  //@{
+  inline bool is_maps_layer( unsigned int layer ) const
+  { return layer >= _firstlayer_maps && layer < _firstlayer_maps + _nlayers_maps; }
+
+  inline bool is_intt_layer( unsigned int layer ) const
+  { return layer >= _firstlayer_intt && layer < _firstlayer_intt + _nlayers_intt; }
+
+  inline bool is_tpc_layer( unsigned int layer ) const
+  { return layer >= _firstlayer_tpc && layer < _firstlayer_tpc + _nlayers_tpc; }
+  //@}
+
   //--------------
   // InitRun Calls
   //--------------
@@ -565,6 +578,10 @@ class PHGenFitTrkProp : public PHTrackPropagating
   unsigned int _nlayers_tpc = 48;
 
   int _nlayers_all = 55;
+
+  unsigned int _firstlayer_maps = 0;
+  unsigned int _firstlayer_intt = 3;
+  unsigned int _firstlayer_tpc = 7;
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::vector<float> _radii_all;
