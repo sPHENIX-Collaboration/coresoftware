@@ -176,7 +176,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
       // check tile and strip
       if( tileid < 0 ) continue;
-      assert( stripnum > 0 );
+      if( stripnum < 0 ) continue;
 
       // for now, we create one hit per g4hit
       // TODO: implement proper smearing, lorentz angle, charge sharing among adjacent zig-zag strips, etc.
