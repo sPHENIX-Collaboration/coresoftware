@@ -106,127 +106,11 @@ PHGenFitTrkProp::PHGenFitTrkProp(
     unsigned int nlayers_intt,
     unsigned int nlayers_tpc)
   : PHTrackPropagating(name)
-  , _t_seeds_cleanup(nullptr)
-  , _t_translate_to_PHGenFitTrack(nullptr)
-  , _t_translate1(nullptr)
-  , _t_translate2(nullptr)
-  , _t_translate3(nullptr)
-  , _t_kalman_pat_rec(nullptr)
-  , _t_search_clusters(nullptr)
-  , _t_search_clusters_encoding(nullptr)
-  , _t_search_clusters_map_iter(nullptr)
-  , _t_track_propagation(nullptr)
-  , _t_full_fitting(nullptr)
-  , _t_output_io(nullptr)
-  ,
-
-  _vertex()
-  , _bbc_vertexes(nullptr)
-  , _hit_used_map(nullptr)
-  , _hit_used_map_size(0)
-  , _geom_container_intt(nullptr)
-  , _geom_container_maps(nullptr)
-  , _analyzing_mode(false)
-  , _analyzing_file(nullptr)
-  , _analyzing_ntuple(nullptr)
-  , _max_merging_dphi(0.1)
-  , _max_merging_deta(0.1)
-  , _max_merging_dr(0.1)
-  , _max_merging_dz(0.1)
-  , _max_share_hits(3)
-  , _fitter(nullptr)
-  , _track_fitting_alg_name("KalmanFitter")
-  , _primary_pid_guess(211)
-  , _cut_min_pT(0.2)
-  , _do_evt_display(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc)
-  , _layer_ilayer_map_all()
-  , _radii_all()
-  ,
-
-  _max_search_win_phi_tpc(0.0040)
-  , _min_search_win_phi_tpc(0.0000)
-  , _max_search_win_theta_tpc(0.0040)
-  , _min_search_win_theta_tpc(0.0000)
-  ,
-
-  _max_search_win_phi_maps(0.0050)
-  , _min_search_win_phi_maps(0.0000)
-  , _max_search_win_theta_maps(0.0400)
-  , _min_search_win_theta_maps(0.0000)
-  ,
-
-  _search_win_phi(20)
-  , _search_win_theta(20)
-  , _layer_thetaID_phiID_clusterID()
-  ,
-  //_half_max_theta(160),
-  _half_max_theta(3.1416 / 2.)
-  ,
-  //_half_max_phi(252), //80cm * Pi
-  _half_max_phi(3.1416)
-  ,
-  //_layer_thetaID_phiID_clusterID_phiSize(0.1200),
-  _layer_thetaID_phiID_clusterID_phiSize(0.1200 / 30)
-  ,  //rad
-  _layer_thetaID_phiID_clusterID_zSize(0.1700 / 30)
-  , _PHGenFitTracks()
-  , _init_direction(-1)
-  , _blowup_factor(1.)
-  , _max_consecutive_missing_layer(20)
-  , _max_incr_chi2(20.)
-  , _max_splitting_chi2(20.)
-  , _min_good_track_hits(30)
-{
-  _event = 0;
-
-  _max_search_win_phi_intt[0] = 0.20;
-  _max_search_win_phi_intt[1] = 0.20;
-  _max_search_win_phi_intt[2] = 0.0050;
-  _max_search_win_phi_intt[3] = 0.0050;
-  _max_search_win_phi_intt[4] = 0.0050;
-  _max_search_win_phi_intt[5] = 0.0050;
-  _max_search_win_phi_intt[6] = 0.0050;
-  _max_search_win_phi_intt[7] = 0.0050;
-
-  _min_search_win_phi_intt[0] = 0.2000;
-  _min_search_win_phi_intt[1] = 0.2000;
-  _min_search_win_phi_intt[2] = 0.0;
-  _min_search_win_phi_intt[3] = 0.0;
-  _min_search_win_phi_intt[4] = 0.0;
-  _min_search_win_phi_intt[5] = 0.0;
-  _min_search_win_phi_intt[6] = 0.0;
-  _min_search_win_phi_intt[7] = 0.0;
-
-  _max_search_win_theta_intt[0] = 0.010;
-  _max_search_win_theta_intt[1] = 0.010;
-  _max_search_win_theta_intt[2] = 0.2000;
-  _max_search_win_theta_intt[3] = 0.2000;
-  _max_search_win_theta_intt[4] = 0.2000;
-  _max_search_win_theta_intt[5] = 0.2000;
-  _max_search_win_theta_intt[6] = 0.2000;
-  _max_search_win_theta_intt[7] = 0.2000;
-
-  _min_search_win_theta_intt[0] = 0.000;
-  _min_search_win_theta_intt[1] = 0.000;
-  _min_search_win_theta_intt[2] = 0.200;
-  _min_search_win_theta_intt[3] = 0.200;
-  _min_search_win_theta_intt[4] = 0.200;
-  _min_search_win_theta_intt[5] = 0.200;
-  _min_search_win_theta_intt[6] = 0.200;
-  _min_search_win_theta_intt[7] = 0.200;
-
-  _vertex_error.clear();
-  //_vertex_error.assign(3, 0.0100);
-}
-
-PHGenFitTrkProp::~PHGenFitTrkProp()
-{
-  delete _fitter;
-}
+{}
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
 {
@@ -428,9 +312,7 @@ int PHGenFitTrkProp::InitializePHGenFit(PHCompositeNode* topNode)
 
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-  _fitter = PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name,
-                                          "RKTrackRep", _do_evt_display);
+  _fitter.reset( PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", _do_evt_display) ); 
 
   if (!_fitter)
   {
