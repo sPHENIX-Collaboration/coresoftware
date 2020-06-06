@@ -7,7 +7,6 @@
 
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
-#include <micromegas/MicromegasTile.h>
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
@@ -98,7 +97,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   }
 
   // create hit truth association if needed
-  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     std::cout << PHWHERE << "creating TRKR_HITTRUTHASSOC." << std::endl;
@@ -261,12 +260,8 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
   for( auto iter = range.first; iter != range.second; ++iter )
   {
     std::cout << "PHG4MicromegasHitReco::setup_tiles - processing layer " << iter->first << std::endl;
-
-    // for now, put a single tile at 0,0, with 50cm along z and 25 cm along phi
-    // TODO: allow tiles to be setup from the macro and propagated to the geometry here, rather than hardcoded
     auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
-    // cylinder->set_tiles( { {{ 0, 0, 25./(2*M_PI*cylinder->get_radius()), 50 }} } );
-    cylinder->set_tiles( {{{ 0, 0, 2*M_PI, cylinder->get_zmax() - cylinder->get_zmin() }}} );
+    cylinder->set_tiles( m_tiles );
   }
 }
 

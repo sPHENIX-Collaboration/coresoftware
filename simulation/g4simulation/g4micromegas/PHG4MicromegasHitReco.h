@@ -9,6 +9,7 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include <micromegas/MicromegasTile.h>
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
@@ -39,6 +40,10 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
+  //! set micromegas tiles
+  void set_tiles( const MicromegasTile::List& tiles )
+  { m_tiles = tiles; }
+
   //@}
 
   private:
@@ -52,6 +57,10 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! timing window (ns)
   double m_tmin = 0;
   double m_tmax = 0;
+
+  //! micromegas tiles
+  MicromegasTile::List m_tiles;
+
 };
 
 #endif
