@@ -51,6 +51,7 @@ pkginclude_HEADERS = \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
+  PHTruthClustering_hp.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
   VertexFitter.h \
@@ -143,6 +144,7 @@ libtrack_reco_la_SOURCES = \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
+  PHTruthClustering_hp.cc \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
