@@ -636,10 +636,10 @@ class PHGenFitTrkProp : public PHTrackPropagating
   float _max_search_win_theta_tpc = 0.004;
   float _min_search_win_theta_tpc = 0;
 
-  std::array<float,8> _max_search_win_phi_intt = {{ 0.2, 0.2, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005 }};
-  std::array<float,8> _min_search_win_phi_intt = {{ 0.2, 0.2, 0, 0, 0, 0, 0, 0 }};
-  std::array<float,8> _max_search_win_theta_intt = {{ 0.01, 0.01, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2 }};
-  std::array<float,8> _min_search_win_theta_intt = {{ 0, 0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2 }};
+  std::array<float,4> _max_search_win_phi_intt = {{ 0.2, 0.2, 0.005, 0.005 }};
+  std::array<float,4> _min_search_win_phi_intt = {{ 0.2, 0.2, 0, 0 }};
+  std::array<float,4> _max_search_win_theta_intt = {{ 0.01, 0.01, 0.2, 0.2 }};
+  std::array<float,4> _min_search_win_theta_intt = {{ 0, 0, 0.2, 0.2 }};
 
   float _max_search_win_phi_maps = 0.005;
   float _min_search_win_phi_maps = 0;
