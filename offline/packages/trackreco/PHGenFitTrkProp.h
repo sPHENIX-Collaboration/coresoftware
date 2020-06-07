@@ -293,24 +293,24 @@ class PHGenFitTrkProp : public PHTrackPropagating
   {
     _max_search_win_theta_tpc = maxSearchWinZ;
   }
-  float get_max_search_win_phi_micromegas() const
+  float get_max_search_win_phi_micromegas(int layer) const
   {
-    return _max_search_win_phi_micromegas;
+    return _max_search_win_phi_micromegas[layer];
   }
 
-  void set_max_search_win_phi_micromegas(float maxSearchWinPhi)
+  void set_max_search_win_phi_micromegas(int layer, float maxSearchWinPhi)
   {
-    _max_search_win_phi_micromegas = maxSearchWinPhi;
+    _max_search_win_phi_micromegas[layer] = maxSearchWinPhi;
   }
 
-  float get_max_search_win_theta_micromegas() const
+  float get_max_search_win_theta_micromegas(int layer) const
   {
-    return _max_search_win_theta_micromegas;
+    return _max_search_win_theta_micromegas[layer];
   }
 
-  void set_max_search_win_theta_micromegas(float maxSearchWinZ)
+  void set_max_search_win_theta_micromegas(int layer, float maxSearchWinZ)
   {
-    _max_search_win_theta_micromegas = maxSearchWinZ;
+    _max_search_win_theta_micromegas[layer] = maxSearchWinZ;
   }
 
   float get_blowup_factor() const
@@ -393,14 +393,14 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _min_search_win_phi_tpc = minSearchWinPhiTpc;
   }
 
-  float get_min_search_win_phi_micromegas() const
+  float get_min_search_win_phi_micromegas(int layer) const
   {
-    return _min_search_win_phi_micromegas;
+    return _min_search_win_phi_micromegas[layer];
   }
 
-  void set_min_search_win_phi_micromegas(float minSearchWinPhimicromegas)
+  void set_min_search_win_phi_micromegas(int layer, float minSearchWinPhimicromegas)
   {
-    _min_search_win_phi_micromegas = minSearchWinPhimicromegas;
+    _min_search_win_phi_micromegas[layer] = minSearchWinPhimicromegas;
   }
 
   float get_min_search_win_theta_intt(int inttlayer) const
@@ -433,14 +433,14 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _min_search_win_theta_tpc = minSearchWinThetaTpc;
   }
 
-  float get_min_search_win_theta_micromegas() const
+  float get_min_search_win_theta_micromegas(int layer) const
   {
-    return _min_search_win_theta_micromegas;
+    return _min_search_win_theta_micromegas[layer];
   }
 
-  void set_min_search_win_theta_micromegas(float minSearchWinThetamicromegas)
+  void set_min_search_win_theta_micromegas(int layer, float minSearchWinThetamicromegas)
   {
-    _min_search_win_theta_micromegas = minSearchWinThetamicromegas;
+    _min_search_win_theta_micromegas[layer] = minSearchWinThetamicromegas;
   }
 
   int get_primary_pid_guess() const
@@ -624,10 +624,10 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::vector<float> _radii_all;
 
   // TODO: might need to use layer dependent windows because micromegas are 1D measurements
-  float _max_search_win_phi_micromegas = 0.004;
-  float _min_search_win_phi_micromegas = 0;
-  float _max_search_win_theta_micromegas = 0.004;
-  float _min_search_win_theta_micromegas = 0;
+  std::array<float,2> _max_search_win_phi_micromegas = {{ 0.004, 0.004}};
+  std::array<float,2> _min_search_win_phi_micromegas = {{ 0, 0 }};
+  std::array<float,2> _max_search_win_theta_micromegas = {{ 0.004, 0.004}};
+  std::array<float,2> _min_search_win_theta_micromegas = {{ 0, 0}};
 
   float _max_search_win_phi_tpc = 0.004;
   float _min_search_win_phi_tpc = 0;

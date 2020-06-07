@@ -1149,10 +1149,11 @@ int PHGenFitTrkProp::TrackPropPatRec(
     } 
     else if( is_micromegas_layer( layer ) ) 
     {
-      if (phi_window > _max_search_win_phi_micromegas) phi_window = _max_search_win_phi_micromegas;
-      if (phi_window < _min_search_win_phi_micromegas) phi_window = _min_search_win_phi_micromegas;
-      if (theta_window > _max_search_win_theta_micromegas) theta_window = _max_search_win_theta_micromegas;
-      if (theta_window < _min_search_win_theta_micromegas) theta_window = _min_search_win_theta_micromegas;
+      const auto layer_micromegas = layer - _firstlayer_micromegas;
+      if (phi_window > _max_search_win_phi_micromegas[layer_micromegas]) phi_window = _max_search_win_phi_micromegas[layer_micromegas];
+      if (phi_window < _min_search_win_phi_micromegas[layer_micromegas]) phi_window = _min_search_win_phi_micromegas[layer_micromegas];
+      if (theta_window > _max_search_win_theta_micromegas[layer_micromegas]) theta_window = _max_search_win_theta_micromegas[layer_micromegas];
+      if (theta_window < _min_search_win_theta_micromegas[layer_micromegas]) theta_window = _min_search_win_theta_micromegas[layer_micromegas];
     }
 #endif
 
