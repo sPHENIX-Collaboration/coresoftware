@@ -105,9 +105,15 @@ PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
 PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 { return m_SteppingAction; }
 
-//_______________________________________________________________________
+//________________________________________________PHG4MicromegasSubsystem.h_______________________
 void PHG4MicromegasSubsystem::SetDefaultParameters()
 {
   set_default_double_param("mm_length", 220);
   set_default_double_param("mm_radius", 82);
+
+  // pitch for phi segmented layers
+  set_default_double_param("mm_pitch_phi", 0.1 );
+
+  // pitch for z segmented layers
+  set_default_double_param("mm_pitch_z", 0.1 );
 }

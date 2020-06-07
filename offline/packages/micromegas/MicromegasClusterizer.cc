@@ -136,7 +136,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
      */
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
-    const double pitch = layergeom->get_pitch( tile );
+    const double pitch = layergeom->get_pitch();
     const double strip_length = layergeom->get_strip_length( tile );
 
     // initialize cluster count
