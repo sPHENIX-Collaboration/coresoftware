@@ -49,10 +49,10 @@ std::pair<int,int> CylinderGeomMicromegas::find_strip( const TVector3& world_loc
     switch( m_segmentation_type )
     {
       case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-      return std::make_pair( itile, (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)*m_radius/tile.m_pitch ) );
+      return std::make_pair( itile, (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)*m_radius/m_pitch ) );
 
       case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-      return std::make_pair( itile, (int) std::floor( (z - tile.m_centerZ + tile.m_sizeZ/2)/tile.m_pitch ) );
+      return std::make_pair( itile, (int) std::floor( (z - tile.m_centerZ + tile.m_sizeZ/2)/m_pitch ) );
     }
 
   }
@@ -80,13 +80,6 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
 }
 
 //________________________________________________________________________________
-double CylinderGeomMicromegas::get_pitch( uint tileid ) const
-{
-  assert( tileid < m_tiles.size() );
-  return m_tiles[tileid].m_pitch;
-}
-
-//________________________________________________________________________________
 TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnum ) const
 {
     assert( tileid < m_tiles.size() );
@@ -99,14 +92,14 @@ TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnu
       case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
       {
         const double z = tile.m_centerZ;
-        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + (0.5+stripnum)*tile.m_pitch/m_radius;
+        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + (0.5+stripnum)*m_pitch/m_radius;
         assert( bind_angle( phi-tile.m_centerPhi ) <= tile.m_sizePhi/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
       }
 
       case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
       {
-        const double z = tile.m_centerZ - tile.m_sizeZ/2 + (0.5+stripnum)*tile.m_pitch;
+        const double z = tile.m_centerZ - tile.m_sizeZ/2 + (0.5+stripnum)*m_pitch;
         const double phi = tile.m_centerPhi;
         assert( z - tile.m_centerZ <= tile.m_sizeZ/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
@@ -129,5 +122,6 @@ void CylinderGeomMicromegas::identify( std::ostream& out ) const
   out << "thickness: " << m_thickness << "cm" << std::endl;
   out << "zmin: " << m_zmin << "cm" << std::endl;
   out << "zmax: " << m_zmax << "cm" << std::endl;
+  out << "pitch: " << m_pitch << "cm" << std::endl;
   out << std::endl;
 }

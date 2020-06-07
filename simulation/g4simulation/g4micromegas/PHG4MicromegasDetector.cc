@@ -389,6 +389,9 @@ void PHG4MicromegasDetector::add_geometry_node()
     cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
     cylinder->set_zmin( -tub->GetZHalfLength()/cm );
     cylinder->set_zmax( tub->GetZHalfLength()/cm );
+    cylinder->set_pitch( layer == m_FirstLayer ?
+       m_Params->get_double_param("mm_pitch_phi"):
+       m_Params->get_double_param("mm_pitch_z"));
 
     geonode->AddLayerGeom(layer, cylinder);
     cylinder->identify( std::cout );
