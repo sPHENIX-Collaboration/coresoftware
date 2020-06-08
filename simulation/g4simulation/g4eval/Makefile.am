@@ -35,6 +35,7 @@ pkginclude_HEADERS = \
   CaloRawClusterEval.h \
   CaloRawTowerEval.h \
   CaloTruthEval.h \
+  EventCounter_hp.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -83,6 +84,7 @@ libg4eval_la_SOURCES = \
   CaloRawTowerEval.cc \
   CaloRawClusterEval.cc \
   CaloEvaluator.cc \
+  EventCounter_hp.cc \
   JetEvalStack.cc \
   JetTruthEval.cc \
   JetRecoEval.cc \
@@ -100,7 +102,7 @@ libg4eval_la_SOURCES = \
   TrackingEvaluator_hp.cc \
   TrackingEvaluator_hp_Dict.cc \
   MomentumEvaluator.cc \
-  PHG4DstCompressReco.cc 
+  PHG4DstCompressReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
