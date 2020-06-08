@@ -44,6 +44,11 @@ public:
   //! \param[in] pt_gaus_width   if non-zero, further apply a Gauss smearing to the pt_min - pt_max flat distribution
   void set_pt_range(const double pt_min, const double pt_max, const double pt_gaus_width = 0);
 
+  //! range of randomized pt values
+  //! \param[in] pt_bins bin limits for the distribution, of size n+1
+  //! \param[in] pt_dist integrated yield in given bin (size n). In case of variable size bins, what is expected is the integrated bin content, and not the value at the center of the bin
+  void set_pt_range(const std::vector<double>& pt_bins, const std::vector<double>& pt_dist);
+
   //! range of randomized p values
   //! \param[in] p_gaus_width   if non-zero, further apply a Gauss smearing to the p_min - p_max flat distribution
   void set_p_range(const double p_min, const double p_max, const double p_gaus_width = 0);
@@ -99,6 +104,9 @@ private:
   double _p_min;
   double _p_max; 
   double _p_gaus_width;
+
+  std::vector<double> _pt_bins;
+  std::vector<double> _pt_dist;
 
   PHG4InEvent* _ineve;
 };
