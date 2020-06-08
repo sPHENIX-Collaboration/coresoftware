@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -20,7 +20,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
-  TpcClusterizer.h
+  TpcClusterizer.h \
+  TpcMisaligner_hp.h
 
 ROOTDICTS = \
   TpcHit_Dict.cc
@@ -30,13 +31,14 @@ if MAKEROOT6
     TpcHit_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-    TpcClusterizer_Dict.cc 
+    TpcClusterizer_Dict.cc
 endif
 
 # sources for tpc library
 libtpc_la_SOURCES = \
   $(ROOT5_DICTS) \
-  TpcClusterizer.cc
+  TpcClusterizer.cc \
+  TpcMisaligner_hp.cc
 
 
 libtpc_la_LIBADD = \
