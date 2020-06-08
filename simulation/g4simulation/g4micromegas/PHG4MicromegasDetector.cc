@@ -4,28 +4,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-//____________________________________________________________________________..
-//
-// This is a working template for the G4 Construct() method which needs to be implemented
-// We wedge a method between the G4 Construct() to enable volume hierarchies on the macro
-// so here it is called ConstructMe() but there is no functional difference
-// Currently this installs a simple G4Box solid, creates a logical volume from it
-// and places it. Put your own detector in place (just make sure all active volumes
-// get inserted into the m_PhysicalVolumes)
-//
-// Rather than using hardcoded values you should consider using the parameter class
-// Parameter names and defaults are set in PHG4MicromegasSubsystem::SetDefaultParameters()
-// Only parameters defined there can be used (also to override in the macro)
-// to avoids typos.
-// IMPORTANT: parameters have no inherent units, there is a convention (cm/deg)
-// but in any case you need to multiply them here with the correct CLHEP/G4 unit
-//
-// The place where you put your own detector is marked with
-// //begin implement your own here://
-// //end implement your own here://
-// Do not forget to include the G4 includes for your volumes
-//____________________________________________________________________________..
-
 #include "PHG4MicromegasDetector.h"
 
 #include <phparameter/PHParameters.h>
@@ -246,9 +224,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::Gas1, G4Colour::Grey()},
     { Component::Mesh, G4Colour::White()},
     { Component::Gas2, G4Colour::Grey()},
-	   { Component::DriftCuElectrode, G4Colour::Brown()},
-	   { Component::DriftKapton, G4Colour::Brown()},
-    { Component::DriftCuGround, G4Colour(51/255., 26/255., 0)}
+    { Component::DriftCuElectrode, G4Colour::Brown()},
+    { Component::DriftKapton, G4Colour::Brown()},
+    { Component::DriftCuGround, G4Colour(150/255., 75/255., 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
