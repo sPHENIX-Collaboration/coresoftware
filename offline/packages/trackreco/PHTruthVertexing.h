@@ -7,12 +7,11 @@
 #ifndef TRACKRECO_PHTRUTHVERTEXING_H
 #define TRACKRECO_PHTRUTHVERTEXING_H
 
-
 // rootcint barfs with this header so we need to hide it
 #if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
-#include <string>             // for string
+#include <string>  // for string
 #include <vector>
 
 #include "PHInitVertexing.h"
@@ -51,7 +50,6 @@ class PHTruthVertexing : public PHInitVertexing
   }
 
  protected:
-
   int Setup(PHCompositeNode *topNode);
 
   int Process(PHCompositeNode *topNode);
