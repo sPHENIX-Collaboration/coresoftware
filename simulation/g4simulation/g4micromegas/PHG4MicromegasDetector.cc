@@ -189,7 +189,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::CuStrips, 0.0012*cm },
     { Component::KaptonStrips, 0.0075*cm },
     { Component::ResistiveStrips, 0.002*cm },
-    { Component::Gas1, 0.002*cm },
+    { Component::Gas1, 0.012*cm },
     { Component::Mesh, 0.0018*cm },
     { Component::Gas2, 0.3*cm },
     { Component::DriftCuElectrode, 0.0005*cm },
