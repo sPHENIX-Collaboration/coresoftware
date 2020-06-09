@@ -621,10 +621,10 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::vector<float> _radii_all;
 
   // TODO: might need to use layer dependent windows because micromegas are 1D measurements
-  std::array<float,2> _max_search_win_phi_micromegas = {{ 0.004, 0.004}};
-  std::array<float,2> _min_search_win_phi_micromegas = {{ 0, 0 }};
-  std::array<float,2> _max_search_win_theta_micromegas = {{ 0.004, 0.004}};
-  std::array<float,2> _min_search_win_theta_micromegas = {{ 0, 0}};
+  std::array<float,2> _max_search_win_phi_micromegas = {{ 0.004, 0.62}};
+  std::array<float,2> _min_search_win_phi_micromegas = {{ 0, 0.31 }};
+  std::array<float,2> _max_search_win_theta_micromegas = {{ 1.24, 0.004}};
+  std::array<float,2> _min_search_win_theta_micromegas = {{ 0.62, 0}};
 
   float _max_search_win_phi_tpc = 0.004;
   float _min_search_win_phi_tpc = 0;
