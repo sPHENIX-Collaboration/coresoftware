@@ -1750,7 +1750,7 @@ unsigned int PHGenFitTrkProp::encode_cluster_index(const unsigned int layer,
 int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
 {
 
-  auto micromegasgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_MICROMEGAS");
+  auto micromegasgeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   auto cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto laddergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
