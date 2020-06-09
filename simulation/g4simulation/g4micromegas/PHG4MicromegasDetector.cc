@@ -359,17 +359,12 @@ void PHG4MicromegasDetector::add_geometry_node()
     const auto tub = dynamic_cast<const G4Tubs*>( volume_phys->GetLogicalVolume()->GetSolid() );
 
     // create cylinder and match geometry
-    /* we assume first layer is of type SEGMENTATION_PHI, and other(s) of type SEGMENTATION_Z */
-    auto cylinder = new CylinderGeomMicromegas( layer, layer == m_FirstLayer ?
-      MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
-      MicromegasDefs::SegmentationType::SEGMENTATION_Z );
+    /* note: cylinder segmentation type and pitch is set in PHG4MicromegasHitReco */
+    auto cylinder = new CylinderGeomMicromegas(layer);
     cylinder->set_radius( (tub->GetInnerRadius()/cm + tub->GetOuterRadius()/cm)/2 );
     cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
     cylinder->set_zmin( -tub->GetZHalfLength()/cm );
     cylinder->set_zmax( tub->GetZHalfLength()/cm );
-    cylinder->set_pitch( layer == m_FirstLayer ?
-       m_Params->get_double_param("mm_pitch_phi"):
-       m_Params->get_double_param("mm_pitch_z"));
 
     geonode->AddLayerGeom(layer, cylinder);
     cylinder->identify( std::cout );
