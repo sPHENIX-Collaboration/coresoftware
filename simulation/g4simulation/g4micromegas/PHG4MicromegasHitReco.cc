@@ -261,7 +261,21 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
   {
     std::cout << "PHG4MicromegasHitReco::setup_tiles - processing layer " << iter->first << std::endl;
     auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
+
+    // assign tiles
     cylinder->set_tiles( m_tiles );
+
+    // asign segmentation type and pitch
+    // assume first layer in phi, other(s) are z
+    const bool is_first( iter == range.first );
+    cylinder->set_segmentation_type( is_first ?
+      MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
+      MicromegasDefs::SegmentationType::SEGMENTATION_Z );
+
+    // pitch
+    /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
+    cylinder->set_pitch( is_first ? 0.0977 : 0.195 );
+
   }
 }
 

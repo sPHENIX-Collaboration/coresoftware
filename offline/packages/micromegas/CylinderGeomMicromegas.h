@@ -27,9 +27,8 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   {}
 
   //* constructor
-  CylinderGeomMicromegas(int layer, MicromegasDefs::SegmentationType type )
+  CylinderGeomMicromegas(int layer )
     : m_layer( layer )
-    , m_segmentation_type( type )
   {}
 
   //!@name accessors
