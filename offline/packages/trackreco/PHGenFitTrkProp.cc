@@ -671,7 +671,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
     {
-      gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(gftrk_iter->second->extrapolateToPoint(vertex_position));
+      gf_state_vertex_ca.reset(gftrk_iter->second->extrapolateToPoint(vertex_position));
     }
   catch (...)
     {
@@ -1182,7 +1182,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
     std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
     try
     {
-      state = std::unique_ptr<genfit::MeasuredStateOnPlane>(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+      state.reset(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
                                                                                          TVector3(0, 0, 1), extrapolate_base_TP_id, direction));
       //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
       //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
