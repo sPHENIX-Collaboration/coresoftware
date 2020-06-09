@@ -466,7 +466,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   inline bool is_tpc_layer( unsigned int layer ) const
   { return layer >= _firstlayer_tpc && layer < _firstlayer_tpc + _nlayers_tpc; }
 
-  bool is_micromegas_layer( unsigned int layer ) const
+  inline bool is_micromegas_layer( unsigned int layer ) const
   { return layer >= _firstlayer_micromegas && layer < _firstlayer_micromegas + _nlayers_micromegas; }
   //@}
 
