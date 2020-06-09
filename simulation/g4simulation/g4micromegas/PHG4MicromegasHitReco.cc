@@ -274,8 +274,8 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
-    cylinder->set_pitch( is_first ? 0.0977 : 0.195 );
-
+    cylinder->set_pitch( is_first ? 25./256 : 50./256 );
+    cylinder->identify( std::cout );
   }
 }
 
