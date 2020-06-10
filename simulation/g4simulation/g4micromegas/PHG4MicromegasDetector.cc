@@ -248,7 +248,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::PCB, "PCB_inner"},
 
     // separating ground
-    { Component::CuGround, "CuGround"},
+    // { Component::CuGround, "CuGround"},
 
     // outer side (= inner side, mirrored)
     { Component::PCB, "PCB_outer"},
