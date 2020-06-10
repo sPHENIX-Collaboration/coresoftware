@@ -44,7 +44,7 @@ class PHG4MicromegasSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer* m_hitContainer = nullptr;
 
-  // running hit
+  //! running hit
   std::unique_ptr<PHG4Hit> m_hit;
 
   PHG4HitContainer* m_SaveHitContainer = nullptr;
