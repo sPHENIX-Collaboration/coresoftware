@@ -168,7 +168,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   */
   enum class Component
   {
-    CuGround,
     PCB,
     CuStrips,
     KaptonStrips,
@@ -185,7 +184,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // numbers from M. Vandenbroucke <maxence.vandenbroucke@cea.fr>
   const std::map<Component,float> layer_thickness =
   {
-    { Component::CuGround, 1.58*micrometer },
     { Component::PCB, 1.*mm },
     { Component::CuStrips, 12.*micrometer },
     { Component::KaptonStrips, 50.*micrometer },
@@ -201,7 +199,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // materials
   const std::map<Component,G4Material*> layer_material =
   {
-    { Component::CuGround, G4Material::GetMaterial("myCopper") },
     { Component::PCB, G4Material::GetMaterial("myFR4") },
     { Component::CuStrips, G4Material::GetMaterial("myMMStrips") },
     { Component::KaptonStrips, G4Material::GetMaterial("myKapton") },
@@ -217,7 +214,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // color
   const std::map<Component, G4Colour> layer_color =
   {
-    { Component::CuGround, G4Colour::Brown()},
     { Component::PCB, G4Colour::Green()},
     { Component::CuStrips, G4Colour::Brown()},
     { Component::KaptonStrips, G4Colour::Brown()},
@@ -245,13 +241,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::ResistiveStrips, "ResistiveStrips_inner"},
     { Component::KaptonStrips, "KaptonStrips_inner"},
     { Component::CuStrips, "CuStrips_inner"},
-    { Component::PCB, "PCB_inner"},
-
-    // separating ground
-    // { Component::CuGround, "CuGround"},
+    
+    // PCB
+    { Component::PCB, "PCB"},
 
     // outer side (= inner side, mirrored)
-    { Component::PCB, "PCB_outer"},
     { Component::CuStrips, "CuStrips_outer"},
     { Component::KaptonStrips, "KaptonStrips_outer"},
     { Component::ResistiveStrips, "ResistiveStrips_outer"},
