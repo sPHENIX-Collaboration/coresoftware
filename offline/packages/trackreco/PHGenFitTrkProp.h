@@ -72,6 +72,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
+  std::shared_ptr<PHGenFit::Track> ReFitTrack(SvtxTrack* intrack);
+
  public:
   //	int Init(PHCompositeNode *topNode);
   //	int InitRun(PHCompositeNode *topNode);
@@ -601,7 +603,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::unique_ptr<PHGenFit::Fitter> _fitter;
 
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
-  std::string _track_fitting_alg_name = "KalmanFitter";
+  // std::string _track_fitting_alg_name = "KalmanFitter";
+  std::string _track_fitting_alg_name = "DafRef";
 
   int _primary_pid_guess = 211;
   double _cut_min_pT = 0.2;
@@ -669,6 +672,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   unsigned int _min_good_track_hits = 30;
 
+  PHCompositeNode* _topNode = nullptr;
+  int _ntrack = 0;
 };
 
 #endif
