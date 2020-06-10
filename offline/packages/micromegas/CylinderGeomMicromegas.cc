@@ -93,7 +93,6 @@ TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnu
       {
         const double z = tile.m_centerZ;
         const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + (0.5+stripnum)*m_pitch/m_radius;
-        assert( bind_angle( phi-tile.m_centerPhi ) <= tile.m_sizePhi/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
       }
 
@@ -101,7 +100,6 @@ TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnu
       {
         const double z = tile.m_centerZ - tile.m_sizeZ/2 + (0.5+stripnum)*m_pitch;
         const double phi = tile.m_centerPhi;
-        assert( z - tile.m_centerZ <= tile.m_sizeZ/2 );
         return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
       }
 
