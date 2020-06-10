@@ -30,9 +30,6 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   //! constructor
   PHG4MicromegasSubsystem(const std::string& name = "MICROMEGAS", int layer = 0);
 
-  //! destructor
-  virtual ~PHG4MicromegasSubsystem() = default;
-
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
