@@ -95,7 +95,7 @@ PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
 PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 { return m_SteppingAction; }
 
-//________________________________________________PHG4MicromegasSubsystem.h_______________________
+//_______________________________________________________________________
 void PHG4MicromegasSubsystem::SetDefaultParameters()
 {
   set_default_double_param("mm_length", 220);
