@@ -168,7 +168,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   */
   enum class Component
   {
-    CuGround,
     PCB,
     CuStrips,
     KaptonStrips,
@@ -178,29 +177,28 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     Gas2,
     DriftCuElectrode,
     DriftKapton,
-    DriftCuGround,
+    DriftCarbon
   };
 
   // layer thickness
+  // numbers from M. Vandenbroucke <maxence.vandenbroucke@cea.fr>
   const std::map<Component,float> layer_thickness =
   {
-    { Component::CuGround, 0.000158*cm },
-    { Component::PCB, 0.01*cm },
-    { Component::CuStrips, 0.0012*cm },
-    { Component::KaptonStrips, 0.0075*cm },
-    { Component::ResistiveStrips, 0.002*cm },
-    { Component::Gas1, 0.012*cm },
-    { Component::Mesh, 0.0018*cm },
-    { Component::Gas2, 0.3*cm },
-    { Component::DriftCuElectrode, 0.0005*cm },
-    { Component::DriftKapton, 0.025*cm },
-    { Component::DriftCuGround, 0.000041*cm },
+    { Component::PCB, 1.*mm },
+    { Component::CuStrips, 12.*micrometer },
+    { Component::KaptonStrips, 50.*micrometer },
+    { Component::ResistiveStrips, 20.*micrometer },
+    { Component::Gas1, 120.*micrometer },
+    { Component::Mesh, 18.*0.8*micrometer }, // 0.8 correction factor is to account for the mesh denstity@18/45
+    { Component::Gas2, 3.*mm },
+    { Component::DriftCuElectrode, 15.*micrometer },
+    { Component::DriftKapton, 50.*micrometer },
+    { Component::DriftCarbon, 1.*mm }
   };
 
   // materials
   const std::map<Component,G4Material*> layer_material =
   {
-    { Component::CuGround, G4Material::GetMaterial("myCopper") },
     { Component::PCB, G4Material::GetMaterial("myFR4") },
     { Component::CuStrips, G4Material::GetMaterial("myMMStrips") },
     { Component::KaptonStrips, G4Material::GetMaterial("myKapton") },
@@ -210,13 +208,12 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::Gas2, G4Material::GetMaterial( "myMMGas" ) },
     { Component::DriftCuElectrode, G4Material::GetMaterial("myCopper") },
     { Component::DriftKapton, G4Material::GetMaterial("myKapton") },
-    { Component::DriftCuGround, G4Material::GetMaterial("myCopper") }
+    { Component::DriftCarbon, G4Material::GetMaterial("G4_C") }
   };
 
   // color
   const std::map<Component, G4Colour> layer_color =
   {
-    { Component::CuGround, G4Colour::Brown()},
     { Component::PCB, G4Colour::Green()},
     { Component::CuStrips, G4Colour::Brown()},
     { Component::KaptonStrips, G4Colour::Brown()},
@@ -226,7 +223,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::Gas2, G4Colour::Grey()},
     { Component::DriftCuElectrode, G4Colour::Brown()},
     { Component::DriftKapton, G4Colour::Brown()},
-    { Component::DriftCuGround, G4Colour(150/255., 75/255., 0)}
+    { Component::DriftCarbon, G4Colour(150/255., 75/255., 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
@@ -235,7 +232,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   const std::vector<LayerDefinition> layer_definitions =
   {
     // inner side
-    { Component::DriftCuGround, "DriftCuGround_inner"},
+    { Component::DriftCarbon, "DriftCarbon_inner"},
     { Component::DriftKapton, "DriftKapton_inner"},
     { Component::DriftCuElectrode, "DriftCuElectrode_inner"},
     { Component::Gas2, "Gas2_inner"},
@@ -244,13 +241,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::ResistiveStrips, "ResistiveStrips_inner"},
     { Component::KaptonStrips, "KaptonStrips_inner"},
     { Component::CuStrips, "CuStrips_inner"},
-    { Component::PCB, "PCB_inner"},
-
-    // separating ground
-    { Component::CuGround, "CuGround"},
+    
+    // PCB
+    { Component::PCB, "PCB"},
 
     // outer side (= inner side, mirrored)
-    { Component::PCB, "PCB_outer"},
     { Component::CuStrips, "CuStrips_outer"},
     { Component::KaptonStrips, "KaptonStrips_outer"},
     { Component::ResistiveStrips, "ResistiveStrips_outer"},
@@ -259,7 +254,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::Gas2, "Gas2_outer"},
     { Component::DriftCuElectrode, "DriftCuElectrode_outer"},
     { Component::DriftKapton, "DriftKapton_outer"},
-    { Component::DriftCuGround, "DriftCuGround_outer"}
+    { Component::DriftCarbon, "DriftCarbon_outer"}
   };
 
   // start seting up volumes
