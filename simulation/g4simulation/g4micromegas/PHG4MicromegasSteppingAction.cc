@@ -3,24 +3,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-//____________________________________________________________________________..
-//
-// This is a working template for the Stepping Action which needs to be implemented
-// for active detectors. Most of the code is error handling and access to the G4 objects
-// and our data structures. It does not need any adjustment. The only thing you need to
-// do is to add the properties of the G4Hits you want to save for later analysis
-// This needs to be done in 2 places, G4Hits are generated when a G4 track enters a new
-// volume (or is created). Here you give it an initial value. When the G4 track leaves
-// the volume the final value needs to be set.
-// The places to do this is marked by //implement your own here//
-//
-// As guidance you can look at the total (integrated over all steps in a volume) energy
-// deposit which should always be saved.
-// Additionally the total ionization energy is saved - this can be removed if you are not
-// interested in this. Naturally you may want remove these comments in your version
-//
-//____________________________________________________________________________..
-
 #include "PHG4MicromegasSteppingAction.h"
 
 #include "PHG4MicromegasDetector.h"

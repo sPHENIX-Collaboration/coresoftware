@@ -3,16 +3,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-//____________________________________________________________________________..
-//
-// This is the interface to the framework. You only need to define the parameters
-// you use for your detector in the SetDefaultParameters() method here
-// The place to do this is marked by //implement your own here//
-// The parameters have no units, they need to be converted in the
-// PHG4MicromegasDetector::ConstructMe() method
-// but the convention is as mentioned cm and deg
-//____________________________________________________________________________..
-//
 #include "PHG4MicromegasSubsystem.h"
 
 #include "PHG4MicromegasDetector.h"
