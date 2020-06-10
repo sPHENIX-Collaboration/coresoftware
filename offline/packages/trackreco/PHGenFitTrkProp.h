@@ -79,6 +79,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
+  std::shared_ptr<PHGenFit::Track> ReFitTrack(SvtxTrack* intrack);
+
  public:
   //	int Init(PHCompositeNode *topNode);
   //	int InitRun(PHCompositeNode *topNode);
@@ -628,6 +630,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   unsigned int _min_good_track_hits;
 
+  PHCompositeNode* _topNode;
+  int _ntrack;
 #endif  // __CINT__
 };
 
