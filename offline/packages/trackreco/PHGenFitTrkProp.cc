@@ -174,6 +174,8 @@ PHGenFitTrkProp::PHGenFitTrkProp(
   , _max_incr_chi2(20.)
   , _max_splitting_chi2(20.)
   , _min_good_track_hits(30)
+  , _topNode(nullptr)
+  , _ntrack(0)
 {
   _event = 0;
 
