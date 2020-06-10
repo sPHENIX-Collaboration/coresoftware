@@ -80,13 +80,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
   // get volume of the current step
   G4VPhysicalVolume *volume = touch->GetVolume();
-
-  // IsInDetector(volume) returns
-  //  == 0 outside of detector
-  //   > 0 for hits in active volume
-  //  < 0 for hits in passive material
-  int whichactive = m_Detector->IsInDetector(volume);
-  if (!whichactive) return false;
+  if (!m_Detector->IsInDetector(volume)) return false;
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -100,11 +94,6 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
     auto killtrack = const_cast<G4Track *>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-
-  // we use here only one detector in this simple example
-  // if you deal with multiple detectors in this stepping action
-  // the detector id can be used to distinguish between them
-  // hits can easily be analyzed later according to their detector id
 
   bool geantino =
     aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -169,21 +158,9 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
       // reset the initial energy deposit
       m_EdepSum = 0;
-
-      // implement your own here://
-      // add the properties you are interested in via set_XXX methods
-      // you can find existing set methods in $OFFLINE_MAIN/include/g4main/PHG4Hit.h
-      // this is initialization of your value. This is not needed you can just set the final
-      // value at the last step in this volume later one
-      if (whichactive > 0)
-      {
-        m_EionSum = 0;  // assuming the ionization energy is only needed for active
-        m_hit->set_eion(0);
-        m_SaveHitContainer = m_hitContainer;
-      } else {
-        std::cout << PHWHERE << "implement stuff for whichactive < 0 (inactive volumes)" << std::endl;
-        gSystem->Exit(1);
-      }
+      m_EionSum = 0;  // assuming the ionization energy is only needed for active
+      m_hit->set_eion(0);
+      m_SaveHitContainer = m_hitContainer;
 
       // this is for the tracking of the truth info
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
@@ -241,10 +218,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
   // ceases to exist
   // sum up the energy to get total deposited
   m_EdepSum += edep;
-  if (whichactive > 0)
-  {
-    m_EionSum += eion;
-  }
+  m_EionSum += eion;
 
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
@@ -277,25 +251,15 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       }
       if (geantino)
       {
- //implement your own here://
- // if you want to do something special for geantinos (normally you do not)
-        m_hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way
-                              // geantinos survive the g4hit compression
-        if (whichactive > 0)
-        {
-          m_hit->set_eion(-1);
-        }
+        m_hit->set_edep(-1);  
+        m_hit->set_eion(-1);
       }
       else
       {
         m_hit->set_edep(m_EdepSum);
-      }
- //implement your own here://
- // what you set here will be saved in the output
-      if (whichactive > 0)
-      {
         m_hit->set_eion(m_EionSum);
       }
+
 
       // add in container
       m_SaveHitContainer->AddHit(m_hit->get_layer(), m_hit.get());
