@@ -232,29 +232,29 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   const std::vector<LayerDefinition> layer_definitions =
   {
     // inner side
-    { Component::DriftCarbon, "DriftCarbon_inner"},
-    { Component::DriftKapton, "DriftKapton_inner"},
-    { Component::DriftCuElectrode, "DriftCuElectrode_inner"},
-    { Component::Gas2, "Gas2_inner"},
-    { Component::Mesh, "Mesh_inner"},
-    { Component::Gas1, "Gas1_inner"},
-    { Component::ResistiveStrips, "ResistiveStrips_inner"},
-    { Component::KaptonStrips, "KaptonStrips_inner"},
-    { Component::CuStrips, "CuStrips_inner"},
+    std::make_tuple( Component::DriftCarbon, "DriftCarbon_inner" ),
+    std::make_tuple( Component::DriftKapton, "DriftKapton_inner" ),
+    std::make_tuple( Component::DriftCuElectrode, "DriftCuElectrode_inner" ),
+    std::make_tuple( Component::Gas2, "Gas2_inner" ),
+    std::make_tuple( Component::Mesh, "Mesh_inner" ),
+    std::make_tuple( Component::Gas1, "Gas1_inner" ),
+    std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_inner" ),
+    std::make_tuple( Component::KaptonStrips, "KaptonStrips_inner" ),
+    std::make_tuple( Component::CuStrips, "CuStrips_inner"  ),
     
     // PCB
-    { Component::PCB, "PCB"},
+    std::make_tuple( Component::PCB, "PCB" ),
 
     // outer side (= inner side, mirrored)
-    { Component::CuStrips, "CuStrips_outer"},
-    { Component::KaptonStrips, "KaptonStrips_outer"},
-    { Component::ResistiveStrips, "ResistiveStrips_outer"},
-    { Component::Gas1, "Gas1_outer"},
-    { Component::Mesh, "Mesh_outer"},
-    { Component::Gas2, "Gas2_outer"},
-    { Component::DriftCuElectrode, "DriftCuElectrode_outer"},
-    { Component::DriftKapton, "DriftKapton_outer"},
-    { Component::DriftCarbon, "DriftCarbon_outer"}
+    std::make_tuple( Component::CuStrips, "CuStrips_outer" ),
+    std::make_tuple( Component::KaptonStrips, "KaptonStrips_outer" ),
+    std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_outer" ),
+    std::make_tuple( Component::Gas1, "Gas1_outer" ),
+    std::make_tuple( Component::Mesh, "Mesh_outer" ),
+    std::make_tuple( Component::Gas2, "Gas2_outer" ),
+    std::make_tuple( Component::DriftCuElectrode, "DriftCuElectrode_outer" ),
+    std::make_tuple( Component::DriftKapton, "DriftKapton_outer" ),
+    std::make_tuple( Component::DriftCarbon, "DriftCarbon_outer" )
   };
 
   // start seting up volumes
