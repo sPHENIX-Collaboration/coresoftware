@@ -92,8 +92,8 @@ void PHG4MicromegasDetector::create_materials() const
 
   // combine elements
   // ----------------
-  static constexpr G4double temperature = 298.15*kelvin;
-  static constexpr G4double pressure = 1.*atmosphere;
+  static const G4double temperature = 298.15*kelvin;
+  static const G4double pressure = 1.*atmosphere;
 
 
   // air

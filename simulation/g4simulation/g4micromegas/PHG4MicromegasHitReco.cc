@@ -42,7 +42,7 @@ namespace
 
   // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
   template<class T>
-    inline constexpr T bind_angle( const T& angle )
+    inline T bind_angle( const T& angle )
   {
     if( angle >= M_PI ) return angle - 2*M_PI;
     else if( angle < -M_PI ) return angle + 2*M_PI;
