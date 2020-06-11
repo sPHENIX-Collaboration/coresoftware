@@ -43,13 +43,13 @@ PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHComposit
 
 //_______________________________________________________________
 bool PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
-{ return m_PhysicalVolumes.find( volume ) != m_PhysicalVolumes.end(); }
+{ return m_activeVolumes.find( volume ) != m_activeVolumes.end(); }
 
 //_______________________________________________________________
 int PHG4MicromegasDetector::get_layer(G4VPhysicalVolume *volume) const
 {
-  const auto iter = m_PhysicalVolumes.find( volume );
-  return iter == m_PhysicalVolumes.end() ? -1:iter->second;
+  const auto iter = m_activeVolumes.find( volume );
+  return iter == m_activeVolumes.end() ? -1:iter->second;
 }
 
 //_______________________________________________________________
@@ -306,7 +306,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
     // store active volume
-    if( type == Component::Gas2 ) m_PhysicalVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
+    if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
+    else m_passiveVolumes.insert( component_phys );
 
     // update radius
     current_radius += thickness;
@@ -314,7 +315,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // print physical layers
   std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
-  for( const auto& pair:m_PhysicalVolumes )
+  for( const auto& pair:m_activeVolumes )
   {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
 
   return;
@@ -340,7 +341,7 @@ void PHG4MicromegasDetector::add_geometry_node()
 
   // add cylinder objects
   /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
-  for( const auto& pair:m_PhysicalVolumes )
+  for( const auto& pair:m_activeVolumes )
   {
     // store layer and volume
     const int layer = pair.second;
