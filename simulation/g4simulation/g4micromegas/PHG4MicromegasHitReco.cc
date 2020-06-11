@@ -42,7 +42,7 @@ namespace
 
   // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
   template<class T>
-    inline constexpr T bind_angle( const T& angle )
+    inline T bind_angle( const T& angle )
   {
     if( angle >= M_PI ) return angle - 2*M_PI;
     else if( angle < -M_PI ) return angle + 2*M_PI;
@@ -172,7 +172,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       auto world_mid = (world_in + world_out)*0.5;
 
       // get detector id and strip number from geometry
-      const auto [tileid, stripnum] = layergeom->find_strip( world_mid );
+      int tileid, stripnum;
+      std::tie(tileid, stripnum) = layergeom->find_strip( world_mid );
 
       // check tile and strip
       if( tileid < 0 ) continue;
