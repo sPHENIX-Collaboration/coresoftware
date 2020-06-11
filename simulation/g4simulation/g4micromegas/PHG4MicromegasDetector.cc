@@ -152,10 +152,6 @@ void PHG4MicromegasDetector::create_materials() const
   if (!G4Material::GetMaterial("myMMResistivePaste", false))
   { new G4Material( "myMMResistivePaste", 0.77906*g/cm3, G4_C, kStateSolid); }
 
-  // Copper
-  if (!G4Material::GetMaterial("myCopper", false))
-  { new G4Material("myCopper", 8.9600*g/cm3, G4_Cu, kStateSolid); }
-
 }
 
 //_______________________________________________________________
@@ -206,7 +202,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::Gas1, G4Material::GetMaterial( "myMMGas" ) },
     { Component::Mesh, G4Material::GetMaterial("myMMMesh") },
     { Component::Gas2, G4Material::GetMaterial( "myMMGas" ) },
-    { Component::DriftCuElectrode, G4Material::GetMaterial("myCopper") },
+    { Component::DriftCuElectrode, G4Material::GetMaterial("G4_Cu") },
     { Component::DriftKapton, G4Material::GetMaterial("myKapton") },
     { Component::DriftCarbon, G4Material::GetMaterial("G4_C") }
   };
