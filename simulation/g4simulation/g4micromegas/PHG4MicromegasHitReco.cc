@@ -172,7 +172,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       auto world_mid = (world_in + world_out)*0.5;
 
       // get detector id and strip number from geometry
-      const auto [tileid, stripnum] = layergeom->find_strip( world_mid );
+      int tileid, stripnum;
+      std::tie(tileid, stripnum) = layergeom->find_strip( world_mid );
 
       // check tile and strip
       if( tileid < 0 ) continue;
