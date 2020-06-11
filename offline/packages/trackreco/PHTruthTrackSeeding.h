@@ -64,11 +64,11 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   }
 
  protected:
-  int Setup(PHCompositeNode* topNode);
+  int Setup(PHCompositeNode* topNode) override;
 
-  int Process(PHCompositeNode* topNode);
+  int Process(PHCompositeNode* topNode) override;
 
-  int End();
+  int End() override;
 
  private:
   /// fetch node pointers
