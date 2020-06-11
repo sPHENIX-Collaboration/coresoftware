@@ -30,7 +30,6 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 {
  public:
   PHTruthTrackSeeding(const std::string& name = "PHTruthTrackSeeding");
-  virtual ~PHTruthTrackSeeding() {}
 
   unsigned int get_min_clusters_per_track() const
   {
@@ -75,26 +74,21 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
-  PHG4TruthInfoContainer* _g4truth_container;
+  PHG4TruthInfoContainer* _g4truth_container = nullptr;
 
-  PHG4HitContainer* phg4hits_tpc;
-  PHG4HitContainer* phg4hits_intt;
-  PHG4HitContainer* phg4hits_mvtx;
+  PHG4HitContainer* phg4hits_tpc = nullptr;
+  PHG4HitContainer* phg4hits_intt = nullptr;
+  PHG4HitContainer* phg4hits_mvtx = nullptr;
 
-  TrkrHitTruthAssoc* hittruthassoc;
-  TrkrClusterHitAssoc* clusterhitassoc;
+  TrkrHitTruthAssoc* hittruthassoc = nullptr;
+  TrkrClusterHitAssoc* clusterhitassoc = nullptr;
 
-  //SvtxHitMap* hitsmap;
-  //PHG4CellContainer* cells_svtx;
-  //PHG4CellContainer* cells_intt;
-  //PHG4CellContainer* cells_maps;
+  unsigned int _min_clusters_per_track = 3;
+  unsigned int _min_layer = 0;
+  unsigned int _max_layer = 10000;
 
-  unsigned int _min_clusters_per_track;
-  unsigned int _min_layer;
-  unsigned int _max_layer;
-
-  //! minimal truth momentum cut
-  double _min_momentum;
+  //! minimal truth momentum cut (GeV)
+  double _min_momentum = 50e-3;
 };
 
 #endif

@@ -41,18 +41,7 @@ using namespace std;
 
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
-  , _g4truth_container(nullptr)
-  , phg4hits_tpc(nullptr)
-  , phg4hits_intt(nullptr)
-  , phg4hits_mvtx(nullptr)
-  , hittruthassoc(nullptr)
-  , clusterhitassoc(nullptr)
-  , _min_clusters_per_track(3)
-  , _min_layer(0)
-  , _max_layer(10000)
-  , _min_momentum(50e-3)  // default to p > 50 MeV
-{
-}
+{}
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
