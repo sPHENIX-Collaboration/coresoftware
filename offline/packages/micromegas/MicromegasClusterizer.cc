@@ -207,7 +207,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       const double cosphi = std::cos(phi);
       const double sinphi = std::sin(phi);
       rotation(0,0) = cosphi;
-      rotation(1,1) = -sinphi;
+      rotation(0,1) = -sinphi;
       rotation(1,0) = sinphi;
       rotation(1,1) = cosphi;
 
