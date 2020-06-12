@@ -104,125 +104,19 @@ PHGenFitTrkProp::PHGenFitTrkProp(
     const string& name,
     unsigned int nlayers_maps,
     unsigned int nlayers_intt,
-    unsigned int nlayers_tpc)
+    unsigned int nlayers_tpc,
+    unsigned int nlayers_micromegas)
   : PHTrackPropagating(name)
-  , _t_seeds_cleanup(nullptr)
-  , _t_translate_to_PHGenFitTrack(nullptr)
-  , _t_translate1(nullptr)
-  , _t_translate2(nullptr)
-  , _t_translate3(nullptr)
-  , _t_kalman_pat_rec(nullptr)
-  , _t_search_clusters(nullptr)
-  , _t_search_clusters_encoding(nullptr)
-  , _t_search_clusters_map_iter(nullptr)
-  , _t_track_propagation(nullptr)
-  , _t_full_fitting(nullptr)
-  , _t_output_io(nullptr)
-  , _vertex()
-  , _bbc_vertexes(nullptr)
-  , _hit_used_map(nullptr)
-  , _hit_used_map_size(0)
-  , _geom_container_intt(nullptr)
-  , _geom_container_maps(nullptr)
-  , _analyzing_mode(false)
-  , _analyzing_file(nullptr)
-  , _analyzing_ntuple(nullptr)
-  , _max_merging_dphi(0.1)
-  , _max_merging_deta(0.1)
-  , _max_merging_dr(0.1)
-  , _max_merging_dz(0.1)
-  , _max_share_hits(3)
-  , _fitter(nullptr)
-  , _track_fitting_alg_name("DafRef")//KalmanFitter
-  , _primary_pid_guess(211)
-  , _cut_min_pT(0.2)
-  , _do_evt_display(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
-  , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc)
-  , _layer_ilayer_map_all()
-  , _radii_all()
-  , _max_search_win_phi_tpc(0.0040)
-  , _min_search_win_phi_tpc(0.0000)
-  , _max_search_win_theta_tpc(0.0040)
-  , _min_search_win_theta_tpc(0.0000)
-  , _max_search_win_phi_maps(0.0050)
-  , _min_search_win_phi_maps(0.0000)
-  , _max_search_win_theta_maps(0.0400)
-  , _min_search_win_theta_maps(0.0000)
-  ,
-
-  _search_win_phi(20)
-  , _search_win_theta(20)
-  , _layer_thetaID_phiID_clusterID()
-  ,
-  //_half_max_theta(160),
-  _half_max_theta(3.1416 / 2.)
-  ,
-  //_half_max_phi(252), //80cm * Pi
-  _half_max_phi(3.1416)
-  ,
-  //_layer_thetaID_phiID_clusterID_phiSize(0.1200),
-  _layer_thetaID_phiID_clusterID_phiSize(0.1200 / 30)
-  ,  //rad
-  _layer_thetaID_phiID_clusterID_zSize(0.1700 / 30)
-  , _PHGenFitTracks()
-  , _init_direction(-1)
-  , _blowup_factor(1.)
-  , _max_consecutive_missing_layer(20)
-  , _max_incr_chi2(20.)
-  , _max_splitting_chi2(20.)
-  , _min_good_track_hits(30)
-  , _topNode(nullptr)
-  , _ntrack(0)
-{
-  _event = 0;
-
-  _max_search_win_phi_intt[0] = 0.20;
-  _max_search_win_phi_intt[1] = 0.20;
-  _max_search_win_phi_intt[2] = 0.0050;
-  _max_search_win_phi_intt[3] = 0.0050;
-  _max_search_win_phi_intt[4] = 0.0050;
-  _max_search_win_phi_intt[5] = 0.0050;
-  _max_search_win_phi_intt[6] = 0.0050;
-  _max_search_win_phi_intt[7] = 0.0050;
-
-  _min_search_win_phi_intt[0] = 0.2000;
-  _min_search_win_phi_intt[1] = 0.2000;
-  _min_search_win_phi_intt[2] = 0.0;
-  _min_search_win_phi_intt[3] = 0.0;
-  _min_search_win_phi_intt[4] = 0.0;
-  _min_search_win_phi_intt[5] = 0.0;
-  _min_search_win_phi_intt[6] = 0.0;
-  _min_search_win_phi_intt[7] = 0.0;
-
-  _max_search_win_theta_intt[0] = 0.010;
-  _max_search_win_theta_intt[1] = 0.010;
-  _max_search_win_theta_intt[2] = 0.2000;
-  _max_search_win_theta_intt[3] = 0.2000;
-  _max_search_win_theta_intt[4] = 0.2000;
-  _max_search_win_theta_intt[5] = 0.2000;
-  _max_search_win_theta_intt[6] = 0.2000;
-  _max_search_win_theta_intt[7] = 0.2000;
-
-  _min_search_win_theta_intt[0] = 0.000;
-  _min_search_win_theta_intt[1] = 0.000;
-  _min_search_win_theta_intt[2] = 0.200;
-  _min_search_win_theta_intt[3] = 0.200;
-  _min_search_win_theta_intt[4] = 0.200;
-  _min_search_win_theta_intt[5] = 0.200;
-  _min_search_win_theta_intt[6] = 0.200;
-  _min_search_win_theta_intt[7] = 0.200;
-
-  _vertex_error.clear();
-  //_vertex_error.assign(3, 0.0100);
-}
-
-PHGenFitTrkProp::~PHGenFitTrkProp()
-{
-  delete _fitter;
-}
+  , _nlayers_micromegas(nlayers_micromegas)
+  , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_micromegas)
+  , _firstlayer_maps(0)
+  , _firstlayer_intt(_firstlayer_maps + _nlayers_maps)
+  , _firstlayer_tpc(_firstlayer_intt + _nlayers_intt)
+  , _firstlayer_micromegas(_firstlayer_tpc + _nlayers_tpc)
+{}
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
 {
@@ -424,9 +318,7 @@ int PHGenFitTrkProp::InitializePHGenFit(PHCompositeNode* topNode)
 
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-  _fitter = PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name,
-                                          "RKTrackRep", _do_evt_display);
+  _fitter.reset( PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", _do_evt_display) ); 
 
   if (!_fitter)
   {
@@ -779,7 +671,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
     {
-      gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(gftrk_iter->second->extrapolateToPoint(vertex_position));
+      gf_state_vertex_ca.reset(gftrk_iter->second->extrapolateToPoint(vertex_position));
     }
   catch (...)
     {
@@ -830,33 +722,28 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   Int_t n_maps = 0;
   Int_t n_intt = 0;
   Int_t n_tpc = 0;
-  
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  Int_t n_micromegas = 0;
+
+  for (auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
+  {
+    TrkrDefs::cluskey cluster_key = *iter;
+    unsigned int layer = TrkrDefs::getLayer(cluster_key);
+    if( is_maps_layer( layer ) )
     {
-      TrkrDefs::cluskey cluster_key = *iter;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      if (_nlayers_maps > 0 && layer < _nlayers_maps)
-	{
-	  n_maps++;
-	}
-      if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
-	{
-	  n_intt++;
-	}
+      n_maps++;
+    } else if( is_intt_layer( layer ) ) {
+      n_intt++;
       if (n_intt > 4)
-	{
-	  cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
-	  exit(1);
-	}
-      if (_nlayers_tpc > 0 &&
-	  layer >= (_nlayers_maps + _nlayers_intt) &&
-	  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-	{
-	  n_tpc++;
-	}
+      {
+        cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+        exit(1);
+      }
+    } else if( is_tpc_layer( layer ) ) {
+      n_tpc++;
+    } else if( is_micromegas_layer( layer ) ) {
+      n_micromegas++;
     }
+  }
   
   // Add the cluster-track association to the association table for later use
   for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
@@ -868,7 +755,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   if (Verbosity() > 10)
     {
       cout << "Output propagared track " << track->get_id() << " vertex " << track->get_vertex_id()<< " quality = " << track->get_quality()
-	   << " clusters: mvtx " << n_maps << " intt " << n_intt << " tpc  " << n_tpc 
+	   << " clusters mvtx: " << n_maps << " intt: " << n_intt << " tpc:  " << n_tpc << " micromegas: " << n_micromegas
 	   << endl;
       cout << "px = " << track->get_px() << " py = " << track->get_py()
 	   << " pz = " << track->get_pz() << endl;
@@ -1141,7 +1028,7 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   {
     _PHGenFitTracks.push_back(
         MapPHGenFitTrack::value_type(
-            PHGenFitTrkProp::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track));
+            TrackQuality(nhits, chi2, ndf, 0, nhits, 0, 0), track));
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1295,7 +1182,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
     std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
     try
     {
-      state = std::unique_ptr<genfit::MeasuredStateOnPlane>(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+      state.reset(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
                                                                                          TVector3(0, 0, 1), extrapolate_base_TP_id, direction));
       //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
       //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
@@ -1356,34 +1243,36 @@ int PHGenFitTrkProp::TrackPropPatRec(
     float phi_window = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
     float theta_window = _search_wins_theta[layer] * sqrt(cov[2][2]) / pos.Perp();
 
-    if (layer < _nlayers_maps)
+    if( is_maps_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
       if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
       if (theta_window > _max_search_win_theta_maps) theta_window = _max_search_win_theta_maps;
       if (theta_window < _min_search_win_theta_maps) theta_window = _min_search_win_theta_maps;
     }
-    else if (layer < _nlayers_maps + _nlayers_intt)
+    else if( is_intt_layer( layer ) )
     {
-      if (phi_window > _max_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _max_search_win_phi_intt[layer - _nlayers_maps];
-      if (phi_window < _min_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _min_search_win_phi_intt[layer - _nlayers_maps];
-      if (theta_window > _max_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _max_search_win_theta_intt[layer - _nlayers_maps];
-      if (theta_window < _min_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _min_search_win_theta_intt[layer - _nlayers_maps];
+      const auto layer_intt = layer - _firstlayer_intt;
+      if (phi_window > _max_search_win_phi_intt[layer_intt]) phi_window = _max_search_win_phi_intt[layer_intt];
+      if (phi_window < _min_search_win_phi_intt[layer_intt]) phi_window = _min_search_win_phi_intt[layer_intt];
+      if (theta_window > _max_search_win_theta_intt[layer_intt]) theta_window = _max_search_win_theta_intt[layer_intt];
+      if (theta_window < _min_search_win_theta_intt[layer_intt]) theta_window = _min_search_win_theta_intt[layer_intt];
     }
-    else
+    else if( is_tpc_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
       if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
       if (theta_window > _max_search_win_theta_tpc) theta_window = _max_search_win_theta_tpc;
       if (theta_window < _min_search_win_theta_tpc) theta_window = _min_search_win_theta_tpc;
+    } 
+    else if( is_micromegas_layer( layer ) ) 
+    {
+      const auto layer_micromegas = layer - _firstlayer_micromegas;
+      if (phi_window > _max_search_win_phi_micromegas[layer_micromegas]) phi_window = _max_search_win_phi_micromegas[layer_micromegas];
+      if (phi_window < _min_search_win_phi_micromegas[layer_micromegas]) phi_window = _min_search_win_phi_micromegas[layer_micromegas];
+      if (theta_window > _max_search_win_theta_micromegas[layer_micromegas]) theta_window = _max_search_win_theta_micromegas[layer_micromegas];
+      if (theta_window < _min_search_win_theta_micromegas[layer_micromegas]) theta_window = _min_search_win_theta_micromegas[layer_micromegas];
     }
-
-    //FIXME optimize this
-    //		if(layer == _nlayers_maps + _nlayers_intt -1) {
-    //			phi_window = 0.02;
-    //			theta_window = 0.04;
-    //		}
-
 #endif
 
 #ifdef _DEBUG_
@@ -1466,9 +1355,10 @@ int PHGenFitTrkProp::TrackPropPatRec(
         track_iter->first.nhits = tq.nhits + 1;
         track_iter->first.chi2 = tq.chi2 + iter->first;
         track_iter->first.ndf = tq.ndf + 2;
-        track_iter->first.ntpc = tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nmaps = tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0);
+        track_iter->first.nmicromegas = tq.nmicromegas + (is_micromegas_layer( layer ) ? 1 : 0);
+        track_iter->first.ntpc = tq.ntpc + (is_tpc_layer(layer) ? 1 : 0);
+        track_iter->first.nintt = tq.nintt + (is_intt_layer(layer) ? 1 : 0);
+        track_iter->first.nmaps = tq.nmaps + (is_maps_layer(layer) ? 1 : 0);
 
         track_iter->second = std::shared_ptr<PHGenFit::Track>(iter->second);
 
@@ -1515,14 +1405,15 @@ int PHGenFitTrkProp::TrackPropPatRec(
 	iter->second->set_vertex_id(ivert);
         _PHGenFitTracks.push_back(
             MapPHGenFitTrack::value_type(
-                PHGenFitTrkProp::TrackQuality(
+                TrackQuality(
                     tq.nhits + 1,
                     tq.chi2 + iter->first,
                     tq.ndf + 2,
-                    tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0)),
-                std::shared_ptr<PHGenFit::Track>(iter->second)));
+                    tq.nmicromegas + (is_micromegas_layer( layer ) ? 1 : 0),
+                    tq.ntpc + (is_tpc_layer(layer) ? 1 : 0),
+                    tq.nintt + (is_intt_layer(layer) ? 1 : 0),
+                    tq.nmaps + (is_maps_layer(layer) ? 1 : 0)),
+                    iter->second));
       }
 
 #ifdef _DEBUG_
@@ -1600,8 +1491,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
       int chip_index = MvtxDefs::getChipId(cluster_id);
       
       double ladder_location[3] = {0.0, 0.0, 0.0};
-      CylinderGeom_Mvtx* geom =
-	dynamic_cast<CylinderGeom_Mvtx*>(_geom_container_maps->GetLayerGeom(layer));
+      auto geom = dynamic_cast<CylinderGeom_Mvtx*>(_geom_container_maps->GetLayerGeom(layer));
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, 0,
 			       0, chip_index, ladder_location);
@@ -1611,8 +1501,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
     }
   else if(trkrid == TrkrDefs::inttId)
     {
-      CylinderGeomIntt* geom =
-	dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(layer));
+      auto geom = dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(layer));
       double hit_location[3] = {0.0, 0.0, 0.0};
       geom->find_segment_center(InttDefs::getLadderZId(cluster_id),
 				InttDefs::getLadderPhiId(cluster_id), hit_location);
@@ -1860,17 +1749,26 @@ unsigned int PHGenFitTrkProp::encode_cluster_index(const unsigned int layer,
 
 int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
 {
-  PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
-      PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  auto micromegasgeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
+  auto cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto laddergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  auto mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
   map<float, int> radius_layer_map;
 
   _radii_all.assign(_nlayers_all, 0.0);
   _layer_ilayer_map_all.clear();
+
+  // micromegas
+  if (micromegasgeos)
+  {
+    const auto range = micromegasgeos->get_begin_end();
+    for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
+    { radius_layer_map.insert( std::make_pair(layeriter->second->get_radius(), layeriter->second->get_layer())); }
+  }
+
+  // tpc
   if (cellgeos)
   {
     PHG4CylinderCellGeomContainer::ConstRange layerrange =
@@ -1885,6 +1783,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // intt
   if (laddergeos)
   {
     PHG4CylinderGeomContainer::ConstRange layerrange =
@@ -1899,6 +1798,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // mvtx
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange layerrange =
@@ -1920,6 +1820,18 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
   }
 
   // now we extract the information from the cellgeos first
+  // micromegas
+  if (micromegasgeos)
+  {
+    const auto range = micromegasgeos->get_begin_end();
+    for( auto iter = range.first; iter != range.second; iter++)
+    {
+      auto geo = iter->second;
+      _radii_all[_layer_ilayer_map_all[geo->get_layer()]] = geo->get_radius() + 0.5 * geo->get_thickness();
+    }
+  }
+
+  // tpc
   if (cellgeos)
   {
     PHG4CylinderCellGeomContainer::ConstRange begin_end =
@@ -1934,6 +1846,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // intt
   if (laddergeos)
   {
     PHG4CylinderGeomContainer::ConstRange begin_end =
@@ -1948,6 +1861,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // mvtx
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange begin_end =
