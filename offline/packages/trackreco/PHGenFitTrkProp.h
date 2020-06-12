@@ -603,7 +603,6 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::unique_ptr<PHGenFit::Fitter> _fitter;
 
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
-  // std::string _track_fitting_alg_name = "KalmanFitter";
   std::string _track_fitting_alg_name = "DafRef";
 
   int _primary_pid_guess = 211;
