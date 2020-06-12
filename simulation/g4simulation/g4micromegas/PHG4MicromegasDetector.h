@@ -11,7 +11,8 @@
 #include <g4main/PHG4Detector.h>
 
 #include <map>
-#include <string>  // for string
+#include <set>
+#include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -66,8 +67,11 @@ class PHG4MicromegasDetector : public PHG4Detector
 
   //! active volumes, and mapping to layer
   /*! it is needed in the stepping action to map a volume to a given layer */
-  std::map<G4VPhysicalVolume*, int> m_PhysicalVolumes;
+  std::map<G4VPhysicalVolume*, int> m_activeVolumes;
 
+  //! also store passive volumes
+  std::set<G4VPhysicalVolume*> m_passiveVolumes;
+  
   //! super detector name
   std::string m_SuperDetector;
 
