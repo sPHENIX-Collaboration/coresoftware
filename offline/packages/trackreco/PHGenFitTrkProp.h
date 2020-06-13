@@ -577,11 +577,6 @@ class PHGenFitTrkProp : public PHTrackPropagating
   // node pointers
   BbcVertexMap* _bbc_vertexes = nullptr;
 
-  //nodes to get norm vector
-  //SvtxHitMap* _svtxhitsmap;
-
-  int* _hit_used_map = nullptr;
-  int _hit_used_map_size = 0;
   std::multimap<TrkrDefs::cluskey, unsigned int> _gftrk_hitkey_map;
 
   PHG4CylinderGeomContainer* _geom_container_intt = nullptr;
