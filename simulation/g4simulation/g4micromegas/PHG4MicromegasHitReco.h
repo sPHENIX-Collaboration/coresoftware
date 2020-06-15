@@ -18,7 +18,9 @@
 #include <string>
 #include <utility>  // for pair
 
+class CylinderGeomMicromegas;
 class PHCompositeNode;
+class TVector3;
 
 class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -51,6 +53,18 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! setup tiles definition in CylinderGeom
   void setup_tiles(PHCompositeNode*);
 
+  //! stores strip number and corresponding charge fraciton
+  using charge_pair_t = std::pair<int, float>;
+    
+  //! list of charge fractions
+  using charge_list_t = std::vector<charge_pair_t>;
+  
+  //! tile and list of charge fractions
+  using charge_info_t = std::pair<int, charge_list_t>;
+
+  //! distribute a charge across adjacent strips
+  charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, float sigma ) const;
+  
   //! detector name
   std::string m_detector;
 
