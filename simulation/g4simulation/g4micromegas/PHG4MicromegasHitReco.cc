@@ -25,28 +25,58 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <TVector3.h>
 
+#include <gsl/gsl_randist.h>
 #include <cassert>
+#include <numeric>
 
 namespace
 {
-  // convenient square function
+  //! convenient square function
   template<class T>
     inline constexpr T square( const T& x ) { return x*x; }
 
-  // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
+  //! return normalized gaussian centered on zero and of width sigma
+  template<class T>
+    inline T gaus( const T& x, const T& sigma )
+  { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
+
+  //! bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
   template<class T>
     inline T bind_angle( const T& angle )
   {
     if( angle >= M_PI ) return angle - 2*M_PI;
     else if( angle < -M_PI ) return angle + 2*M_PI;
     else return angle;
+  }
+
+  // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
+  template<class T>
+    inline T get_rectangular_fraction( const T& xloc, const T& sigma, const T& pitch )
+  { return (std::erf( (xloc + pitch/2)/(M_SQRT2*sigma) ) - std::erf( (xloc - pitch/2)/(M_SQRT2*sigma) ))/2; }
+
+  /*
+  this corresponds to integrating a gaussian centered on zero and of width sigma
+  convoluted with a zig-zag strip response function, which is triangular from xloc-pitch to xloc+pitch, with a maximum of 1 at xloc
+  */
+  template<class T>
+    inline T get_zigzag_fraction( const T& xloc, const T& sigma, const T& pitch )
+  {
+    return
+      // rising edge
+      (pitch - xloc)*(std::erf(xloc/(M_SQRT2*sigma)) - std::erf((xloc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(xloc-pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch
+
+      // descending edge
+      + (pitch + xloc)*(std::erf((xloc+pitch)/(M_SQRT2*sigma)) - std::erf(xloc/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
 }
@@ -56,18 +86,42 @@ PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std:
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
-{ SetDefaultParameters(); }
+{
+  // initialize rng
+  const uint seed = PHRandomSeed();
+  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+  gsl_rng_set( m_rng.get(), seed );
+
+  InitializeParameters();
+}
 
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
 {
 
-  PHNodeIterator iter(topNode);
+  UpdateParametersWithMacro();
+
+  // load parameters
+  m_tmin = get_double_param("micromegas_tmin" );
+  m_tmax = get_double_param("micromegas_tmax" );
+  m_electrons_per_gev = get_double_param("micromegas_electrons_per_gev" );
+  m_gain = get_double_param("micromegas_gain");
+  m_cloud_sigma = get_double_param("micromegas_cloud_sigma" );
+
+  // printout
+  std::cout
+    << "PHG4MicromegasHitReco::InitRun\n"
+    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
+    << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
+    << " m_gain: " << m_gain << "\n"
+    << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
+    << std::endl;
 
   // setup tiles
   setup_tiles( topNode );
 
   // get dst node
+  PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
@@ -171,62 +225,58 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
       auto world_mid = (world_in + world_out)*0.5;
 
-      // get detector id and strip number from geometry
-      int tileid, stripnum;
-      std::tie(tileid, stripnum) = layergeom->find_strip( world_mid );
+      // distribute charge among adjacent strips
+      // todo: will need to split charge for different segments along drift space
+      // calculate the fired strips for each segment, including diffusion
+      // get the complete cluster by resumming
+      int tileid;
+      charge_list_t fractions;
+      std::tie(tileid, fractions) = distribute_charge( layergeom, world_mid, m_cloud_sigma );
+      if( tileid < 0 || fractions.empty() ) continue;
 
-      // check tile and strip
-      if( tileid < 0 ) continue;
-      if( stripnum < 0 ) continue;
+      // make sure fractions adds up to unity
+      if( Verbosity() > 0 )
+      {
+        const auto sum = std::accumulate( fractions.begin(), fractions.end(), double( 0 ),
+          []( double value, const charge_pair_t& pair ) { return value + pair.second; } );
+        std::cout << "PHG4MicromegasHitReco::process_event - sum: " << sum << std::endl;
+      }
 
-      // for now, we create one hit per g4hit
-      // TODO: implement proper smearing, lorentz angle, charge sharing among adjacent zig-zag strips, etc.
-      // generate hitset key for this tile, and get corresponding hitset
+      /*
+      calculate the total number of electrons used for this hit
+      this is what will be stored as 'energy' in the hits
+      this accounts for number of 'primary', detector gain, and fluctuations thereof
+      */
+      const auto nelectrons = get_electrons( g4hit );      
+      
+      // create hitset
       TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
       // generate the key for this hit
-      TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(stripnum);
-
-      // get hit from hitset
-      TrkrHit* hit = hitset_it->second->getHit(hitkey);
-      if( !hit )
+      // loop over strips in list
+      for( const auto pair:fractions )
       {
-        // create hit and insert in hitset
-        hit = new TrkrHit;
-        hitset_it->second->addHitSpecificKey(hitkey, hit);
-      }
+        // get strip and bound check
+        const int strip = pair.first;
+        if( strip < 0 || strip >= layergeom->get_strip_count( tileid ) ) continue;
 
-      // add energy from g4hit
-      hit->addEnergy( g4hit->get_eion() );
-
-      // associate this hitset and hit to the geant4 hit key
-      hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
-
-      // debugging
-      if(Verbosity() > 0)
-      {
-        auto hit_world_coord = layergeom->get_world_coordinate( tileid, stripnum );
-        switch( layergeom->get_segmentation_type() )
+        // get hit from hitset
+        TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+        TrkrHit* hit = hitset_it->second->getHit(hitkey);
+        if( !hit )
         {
-
-          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-          {
-            auto truth_phi = std::atan2( world_mid.y(), world_mid.x() );
-            auto hit_phi = std::atan2( hit_world_coord.y(), hit_world_coord.x() );
-            std::cout << "PHG4MicromegasHitReco::process_event - layer: " << layer << " rphi difference: " << bind_angle( hit_phi - truth_phi )*layergeom->get_radius() << std::endl;
-            break;
-          }
-
-          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-          {
-            auto truth_z = world_mid.z();
-            auto hit_z = hit_world_coord.z();
-            std::cout << "PHG4MicromegasHitReco::process_event - layer: " << layer << "    z difference: " << hit_z - truth_z << std::endl;
-            break;
-          }
-
+          // create hit and insert in hitset
+          hit = new TrkrHit;
+          hitset_it->second->addHitSpecificKey(hitkey, hit);
         }
+
+        // add energy from g4hit
+        const double fraction = pair.second;
+        hit->addEnergy( fraction*nelectrons );
+
+        // associate this hitset and hit to the geant4 hit key
+        hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
       }
     }
   }
@@ -237,10 +287,35 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 //___________________________________________________________________________
 void PHG4MicromegasHitReco::SetDefaultParameters()
 {
-  // default timing window
-  // TODO: allow to modify this via PHParameterInterface
-  m_tmin = -5000;
-  m_tmax = 5000;
+  // default timing window (ns)
+  set_default_double_param("micromegas_tmin", -5000 );
+  set_default_double_param("micromegas_tmax", 5000 );
+
+  // gas data from
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // assume Ar/iC4H10 90/10, at 20C and 1atm
+  // dedx (KeV/cm) for MIP
+  static constexpr double Ar_dEdx = 2.44;
+  static constexpr double iC4H10_dEdx = 5.93;
+  static constexpr double mix_dEdx = 0.9*Ar_dEdx + 0.1*iC4H10_dEdx;
+
+  // number of electrons per MIP (cm-1)
+  static constexpr double Ar_ntot = 94;
+  static constexpr double iC4H10_ntot = 195;
+  static constexpr double mix_ntot = 0.9*Ar_ntot + 0.1*iC4H10_ntot;
+
+  // number of electrons per gev
+  static constexpr double mix_electrons_per_gev = 1e6*mix_ntot / mix_dEdx;
+  set_default_double_param("micromegas_electrons_per_gev", mix_electrons_per_gev );
+
+  // gain
+  set_default_double_param("micromegas_gain", 2000 );
+
+  // electron cloud sigma, after avalanche (cm)
+  set_default_double_param("micromegas_cloud_sigma", 0.04 );
+
+  // zigzag strips
+  set_default_int_param("micromegas_zigzag_strips", true );
 }
 
 //___________________________________________________________________________
@@ -280,3 +355,78 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
   }
 }
 
+//___________________________________________________________________________
+uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
+{
+  // number of primary electrons
+  const auto nprimary = gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev);
+  if( !nprimary ) return 0;
+
+  /*
+   * to handle gain fluctuations, an exponential distribution is used, similar to what used for the GEMS
+   * (simulations/g4simulations/g4tpc/PHG4TpcPadPlaneReadout::getSingleEGEMAmplification)
+   * One must get a different random number for each primary electron for this to be valid
+   */
+  uint ntot = 0;
+  for( uint i = 0; i < nprimary; ++i ) { ntot += gsl_ran_exponential(m_rng.get(), m_gain); }
+  
+  if( Verbosity() > 0 )
+  {
+    std::cout 
+      << "PHG4MicromegasHitReco::get_electrons -"
+      << " nprimary: " << nprimary 
+      << " average gain: " << static_cast<double>(ntot)/nprimary 
+      << std::endl;
+  }
+  
+  return ntot;
+}
+
+//___________________________________________________________________________
+PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
+  CylinderGeomMicromegas* layergeom, const TVector3& location, double sigma ) const
+{
+
+  // find tile and strip matching center position
+  int tileid, stripnum;
+  std::tie(tileid, stripnum) = layergeom->find_strip( location );
+
+  // check tile and strip
+  if( tileid < 0 || stripnum < 0 ) return std::make_pair( -1, charge_list_t() );
+
+  // store pitch and radius
+  const auto pitch = layergeom->get_pitch();
+  const auto radius = layergeom->get_radius();
+
+  // find relevant strip indices
+  const auto strip_count = layergeom->get_strip_count( tileid );
+  const auto stripnum_min = std::clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
+  const auto stripnum_max = std::clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
+
+  // prepare charge list
+  charge_list_t charge_list;
+
+  // store azimuthal angle
+  const auto phi = std::atan2( location.y(), location.x() );
+
+  // loop over strips
+  for( int strip = stripnum_min; strip <= stripnum_max; ++strip )
+  {
+    // get strip center
+    const TVector3 strip_location = layergeom->get_world_coordinate( tileid, strip );
+    const auto phi_strip = std::atan2( strip_location.y(), strip_location.x() );
+
+    // find relevant strip coordinate with respect to location
+    const auto xloc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
+      radius * bind_angle( phi_strip - phi ):
+      strip_location.z() - location.z();
+
+    // calculate charge fraction
+    const auto fraction = get_zigzag_fraction( xloc, sigma, pitch );
+
+    // store
+    charge_list.push_back( std::make_pair( strip, fraction ) );
+  }
+
+  return std::make_pair( tileid, charge_list );
+}
