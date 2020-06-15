@@ -5,6 +5,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include "PHActsSourceLinks.h"
+#include "ActsTrack.h"
 
 #include <Acts/Utilities/Helpers.hpp>
 
@@ -59,6 +60,7 @@ class ActsEvaluator : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
+  void fillProtoTrack(const ActsTrack track);
   void fillFittedTrackParams(const Trajectory traj);
   void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
   void clearTrackVariables();
@@ -71,7 +73,7 @@ class ActsEvaluator : public SubsysReco
   SvtxEvalStack *m_svtxEvalStack{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
-
+  std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
 
   TFile *m_trackFile{nullptr};
