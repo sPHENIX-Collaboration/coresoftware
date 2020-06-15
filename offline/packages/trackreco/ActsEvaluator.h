@@ -260,7 +260,9 @@ class ActsEvaluator : public SubsysReco
   float m_protoTrackY{-9999.};           /// Proto track PCA y
   float m_protoTrackZ{-9999.};           /// Proto track PCA z
   
-  std::vector<float> m_protoTrackSLLoc;
+  std::vector<float> m_SLx;              /// Proto track source link global x pos
+  std::vector<float> m_SLy;              /// Proto track source link global y pos
+  std::vector<float> m_SLz;              /// Proto track source link global z pos
 };
 
 #endif
