@@ -60,7 +60,7 @@ class ActsEvaluator : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
-  void fillProtoTrack(const ActsTrack track);
+  void fillProtoTrack(ActsTrack track);
   void fillFittedTrackParams(const Trajectory traj);
   void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
   void clearTrackVariables();
@@ -258,6 +258,15 @@ class ActsEvaluator : public SubsysReco
   std::vector<float> m_pz_smt;           /// smoothed momentum pz
   std::vector<float> m_eta_smt;          /// smoothed momentum eta
   std::vector<float> m_pT_smt;           /// smoothed momentum pT
+
+  float m_protoTrackPx{-9999.};          /// Proto track px
+  float m_protoTrackPy{-9999.};          /// Proto track py
+  float m_protoTrackPz{-9999.};          /// Proto track pz
+  float m_protoTrackX{-9999.};           /// Proto track PCA x
+  float m_protoTrackY{-9999.};           /// Proto track PCA y
+  float m_protoTrackZ{-9999.};           /// Proto track PCA z
+  
+  std::vector<float> m_protoTrackSLLoc;
 };
 
 #endif

@@ -152,12 +152,6 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void ActsEvaluator::fillProtoTrack(const ActsTrack track)
-{
-
-
-
-}
 
 void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
 {
@@ -682,6 +676,30 @@ TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
 
   return clusKey;
 }
+
+
+void ActsEvaluator::fillProtoTrack(ActsTrack track)
+{
+  FW::TrackParameters params = track.getTrackParams();
+  std::vector<SourceLink> sourceLinks = track.getSourceLinks();
+
+  Acts::Vector3D position = params.position();
+  Acts::Vector3D momentum = params.momentum();
+  m_protoTrackPx = momentum(0);
+  m_protoTrackPy = momentum(1);
+  m_protoTrackPz = momentum(2);
+  m_protoTrackX  = position(0);
+  m_protoTrackY  = position(1);
+  m_protoTrackZ  = position(2);
+  
+  for(int i = 0; i < sourceLinks.size(); ++i)
+    {
+
+
+    }
+
+}
+
 void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
 {
   m_hasFittedParams = false;
