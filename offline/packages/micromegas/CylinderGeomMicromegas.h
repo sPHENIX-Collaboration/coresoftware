@@ -49,6 +49,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! get strip length for a given tile
   double get_strip_length( uint tileid ) const;
 
+  //! get number of strips
+  uint get_strip_count( uint tileid ) const;
+
   //! get world location for a given tile and strip
   TVector3 get_world_coordinate( uint tileid, uint stripnum ) const;
 

@@ -80,6 +80,23 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
 }
 
 //________________________________________________________________________________
+uint CylinderGeomMicromegas::get_strip_count( uint tileid ) const
+{
+  assert( tileid < m_tiles.size() );
+  switch( m_segmentation_type )
+  {
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    return std::floor( m_tiles[tileid].m_sizePhi*m_radius/m_pitch );
+
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    return std::floor( m_tiles[tileid].m_sizeZ/m_pitch );
+  }
+
+  // unreachable
+  return 0;
+}
+
+//________________________________________________________________________________
 TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnum ) const
 {
     assert( tileid < m_tiles.size() );
