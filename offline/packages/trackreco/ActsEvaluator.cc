@@ -90,6 +90,8 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
     SvtxTrack *track = trackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
+    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTrack;
 
@@ -116,6 +118,7 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     m_nStates = trajState.nStates;
 
     fillG4Particle(g4particle);
+    fillProtoTrack(actsProtoTrack);
     fillFittedTrackParams(traj);
     visitTrackStates(traj, topNode);
 
@@ -147,6 +150,13 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 {
   m_trajNr = 0;
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void ActsEvaluator::fillProtoTrack(const ActsTrack track)
+{
+
+
+
 }
 
 void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
@@ -826,6 +836,15 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_actsProtoTrackMap = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  if (!m_actsProtoTrackMap)
+    {
+      std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
