@@ -682,7 +682,7 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track)
 {
   FW::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
-
+  
   Acts::Vector3D position = params.position();
   Acts::Vector3D momentum = params.momentum();
   m_protoTrackPx = momentum(0);
@@ -691,10 +691,21 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track)
   m_protoTrackX  = position(0);
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
-  
+
   for(int i = 0; i < sourceLinks.size(); ++i)
     {
-
+      Acts::Vector2D loc(sourceLinks.at(i).location()(0),
+			 sourceLinks.at(i).location()(1));
+      Acts::Vector3D globalPos(0,0,0);
+      Acts::Vector3D mom(0,0,0);
+      
+      sourceLinks.at(i).referenceSurface().localToGlobal(
+                                            m_tGeometry->geoContext,
+					    loc,
+					    mom, globalPos);
+      m_SLx.push_back(globalPos(0));
+      m_SLy.push_back(globalPos(1));
+      m_SLz.push_back(globalPos(2));
 
     }
 
@@ -1002,6 +1013,17 @@ void ActsEvaluator::clearTrackVariables()
   m_eta_smt.clear();
   m_pT_smt.clear();
 
+  m_SLx.clear();
+  m_SLy.clear();
+  m_SLz.clear();
+  m_protoTrackPx = -9999.;
+  m_protoTrackPy = -9999.;
+  m_protoTrackPz = -9999.;
+  m_protoTrackX  = -9999.;
+  m_protoTrackY  = -9999.;
+  m_protoTrackZ  = -9999.;
+
+
   return;
 }
 
@@ -1041,6 +1063,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_eQOP", &m_t_eQOP);
   m_trackTree->Branch("t_eT", &m_t_eT);
 
+
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
   m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
   m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
@@ -1060,6 +1083,16 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_x_fit" , &m_x_fit);
   m_trackTree->Branch("g_y_fit" , &m_y_fit);
   m_trackTree->Branch("g_z_fit" , &m_z_fit);
+
+  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx, "m_protoTrackPx/F");
+  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy, "m_protoTrackPy/F");
+  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz, "m_protoTrackPz/F");
+  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX, "m_protoTrackX/F");
+  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY, "m_protoTrackY/F");
+  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ, "m_protoTrackZ/F");
+  m_trackTree->Branch("g_SLx", &m_SLx);
+  m_trackTree->Branch("g_SLy", &m_SLy);
+  m_trackTree->Branch("g_SLz", &m_SLz);
 
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
