@@ -46,23 +46,12 @@ namespace
   //______________________________________________________________________
   template<class T> constexpr T square( const T& x ) { return x*x; }
 
-  //______________________________________________________________________
-  double get_pad_response( double position, const std::array<double,2>& par )
-  { return par[0]-std::abs(position - par[1]); }
-
 }
 
 PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
   : PHG4TpcPadPlane(name)
 {
   InitializeParameters();
-
-  // initialize gaussian weights
-  for( int i = 0; i < _ngauss_steps; ++i )
-  {
-    const double x = -4.5 + 2.0*_nsigmas*i/_ngauss_steps;
-    _gauss_weights[i] = std::exp( -square( x )/2 );
-  }
 
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
@@ -623,7 +612,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
 
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
   std::array<double,10> overlap = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
-  std::array<double,10> overlap_new = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
 
   // use analytic integral
   double sum = 0;
@@ -642,38 +630,10 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
       + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
 
     sum += fraction;
-    overlap_new[ipad] = fraction*pitch/sigma;
+    
+    // multiplicative factors are here for consistency with previous implementation
+    overlap[ipad] = fraction*pitch/sigma;
 
-  }
-
-  // use manual intervertion
-  double xstep = 2.0 * _nsigmas * cloud_sig_rp / (double) _ngauss_steps;
-  for (int i = 0; i < _ngauss_steps; i++)
-  {
-    const double x = rphi - 4.5 * cloud_sig_rp + (double) i * xstep;
-    const double charge = _gauss_weights[i];
-    for (int ipad = 0; ipad <= npads; ipad++)
-    {
-      const double pad_response = get_pad_response( x, pad_parameters[ipad] );
-      if( pad_response > 0 )
-      {
-        const double prod = charge * pad_response;
-        overlap[ipad] += prod;
-      }
-    }  // pads
-  }  // steps
-
-  // compare
-  for( int ipad = 0; ipad < npads; ++ipad )
-  {
-    std::cout
-      << "PHG4TpcPadPlaneReadout::populate_zigzag_phibins -"
-      << " ipad: " << ipad
-      << " overlap: " << overlap[ipad]
-      << " overlap_new " << overlap_new[ipad]
-      << " sum_new " << sum
-      << " ratio: " << overlap_new[ipad]/overlap[ipad]
-      << std::endl;
   }
 
   // now we have the overlap for each pad
