@@ -48,7 +48,7 @@ namespace
 
   //______________________________________________________________________
   double get_pad_response( double position, const std::array<double,2>& par )
-  { return std::get<0>(par)-std::abs(position - std::get<1>(par)); }
+  { return par[0]-std::abs(position - par[1]); }
 
 }
 
