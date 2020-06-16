@@ -622,11 +622,31 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   }
 
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
+  std::array<double,10> overlap = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
+  std::array<double,10> overlap_new = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
 
-  double overlap[10];
-  for (int i = 0; i < 10; i++)
-    overlap[i] = 0;
+  // use analytic integral
+  double sum = 0;
+  static const double sqrt2 = std::sqrt(2.);
+  auto gaus = []( const double x, const double sigma ) { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); };
+  for( int ipad = 0; ipad <= npads; ipad++ )
+  {
+    const double pitch = pad_parameters[ipad][0];
+    const double x_loc = pad_parameters[ipad][1] - rphi;
+    const double sigma  = cloud_sig_rp;
 
+    const double fraction =
+      (pitch - x_loc)*(std::erf(x_loc/(sqrt2*sigma)) - std::erf((x_loc-pitch)/(sqrt2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(sqrt2*sigma)) - std::erf(x_loc/(sqrt2*sigma)))/(pitch*2)
+      + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
+      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
+
+    sum += fraction;
+    overlap_new[ipad] = fraction*pitch/sigma;
+
+  }
+
+  // use manual intervertion
   double xstep = 2.0 * _nsigmas * cloud_sig_rp / (double) _ngauss_steps;
   for (int i = 0; i < _ngauss_steps; i++)
   {
@@ -641,8 +661,20 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
         overlap[ipad] += prod;
       }
     }  // pads
-
   }  // steps
+
+  // compare
+  for( int ipad = 0; ipad < npads; ++ipad )
+  {
+    std::cout
+      << "PHG4TpcPadPlaneReadout::populate_zigzag_phibins -"
+      << " ipad: " << ipad
+      << " overlap: " << overlap[ipad]
+      << " overlap_new " << overlap_new[ipad]
+      << " sum_new " << sum
+      << " ratio: " << overlap_new[ipad]/overlap[ipad]
+      << std::endl;
+  }
 
   // now we have the overlap for each pad
   for (int ipad = 0; ipad <= npads; ipad++)
