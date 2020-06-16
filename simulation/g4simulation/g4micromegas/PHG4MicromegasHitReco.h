@@ -63,7 +63,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   using charge_info_t = std::pair<int, charge_list_t>;
 
   //! distribute a charge across adjacent strips
-  charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, float sigma ) const;
+  charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, double sigma ) const;
   
   //! detector name
   std::string m_detector;

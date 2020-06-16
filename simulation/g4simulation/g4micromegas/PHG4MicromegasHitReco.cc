@@ -37,12 +37,17 @@
 
 namespace
 {
-  // convenient square function
-  template<class T>
+  //! convenient square function
+  template<class T> 
     inline constexpr T square( const T& x ) { return x*x; }
 
-  // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
-  template<class T>
+  //! return normalized gaussian centered on zero and of width sigma
+  template<class T> 
+    inline T gaus( const T& x, const T& sigma )
+  { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
+
+  //! bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
+  template<class T> 
     inline T bind_angle( const T& angle )
   {
     if( angle >= M_PI ) return angle - 2*M_PI;
@@ -272,7 +277,7 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 }
 
 //___________________________________________________________________________
-PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( CylinderGeomMicromegas* layergeom, const TVector3& location, float sigma ) const
+PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( CylinderGeomMicromegas* layergeom, const TVector3& location, double sigma ) const
 {
 
   // find tile and strip matching center position
@@ -297,7 +302,6 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( C
   const auto phi = std::atan2( location.y(), location.x() );
 
   // loop over strips
-  static const double sqrt2 = std::sqrt(2.);
   for( int strip = stripnum_min; strip <= stripnum_max; ++strip )
   {
     // get strip center
@@ -311,14 +315,13 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( C
 
     // calculate charge fraction
 //     // this corresponds to integrating the gaussian of width sigma from x_loc - pitch/2 to x_loc+pitch/2
-//     const float fraction = (std::erf( (x_loc + pitch/2)/(sqrt2*sigma) ) - std::erf( (x_loc - pitch/2)/(sqrt2*sigma) ))/2;
+//     const float fraction = (std::erf( (x_loc + pitch/2)/(M_SQRT2*sigma) ) - std::erf( (x_loc - pitch/2)/(M_SQRT2*sigma) ))/2;
 
     // this corresponds to zigzag strips with full overlap between one strip and its neighbors
     // this is the same implementation as in the GEM code
-    auto gaus = []( const double x, const double sigma ) { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); };
     const float fraction =
-      (pitch - x_loc)*(std::erf(x_loc/(sqrt2*sigma)) - std::erf((x_loc-pitch)/(sqrt2*sigma)))/(pitch*2)
-      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(sqrt2*sigma)) - std::erf(x_loc/(sqrt2*sigma)))/(pitch*2)
+      (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
       + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
       + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
 
