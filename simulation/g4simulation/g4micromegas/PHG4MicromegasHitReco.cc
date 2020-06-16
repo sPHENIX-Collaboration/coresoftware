@@ -25,7 +25,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -184,7 +184,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // make sure fractions adds up to unity
       if( Verbosity() > 0 )
       {
-        const auto sum = std::accumulate( fractions.begin(), fractions.end(), double( 0 ), 
+        const auto sum = std::accumulate( fractions.begin(), fractions.end(), double( 0 ),
           []( double value, const charge_pair_t& pair ) { return value + pair.second; } );
         std::cout << "PHG4MicromegasHitReco::process_event - sum: " << sum << std::endl;
       }
@@ -192,16 +192,16 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // create hitset
       TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
-      
+
       // generate the key for this hit
       // loop over strips in list
       for( const auto pair:fractions )
       {
-        
+
         // get strip and bound check
-        const int strip = pair.first;        
+        const int strip = pair.first;
         if( strip < 0 || strip >= layergeom->get_strip_count( tileid ) ) continue;
-        
+
         // get hit from hitset
         TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
         TrkrHit* hit = hitset_it->second->getHit(hitkey);
@@ -212,10 +212,10 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
           hitset_it->second->addHitSpecificKey(hitkey, hit);
         }
 
-        // add energy from g4hit       
+        // add energy from g4hit
         const double fraction = pair.second;
         hit->addEnergy( g4hit->get_eion()*fraction );
-        
+
         // associate this hitset and hit to the geant4 hit key
         hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
       }
@@ -274,7 +274,7 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 //___________________________________________________________________________
 PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( CylinderGeomMicromegas* layergeom, const TVector3& location, float sigma ) const
 {
-  
+
   // find tile and strip matching center position
   int tileid, stripnum;
   std::tie(tileid, stripnum) = layergeom->find_strip( location );
@@ -285,50 +285,46 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( C
   // store pitch and radius
   const auto pitch = layergeom->get_pitch();
   const auto radius = layergeom->get_radius();
-  
+
   // find relevant strip indices
   const auto strip_count = layergeom->get_strip_count( tileid );
   const auto stripnum_min = std::clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
   const auto stripnum_max = std::clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
-  
+
   // prepare charge list
   charge_list_t charge_list;
 
   const auto phi = std::atan2( location.y(), location.x() );
-  
+
   // loop over strips
   static const double sqrt2 = std::sqrt(2.);
   for( int strip = stripnum_min; strip <= stripnum_max; ++strip )
-  {    
+  {
     // get strip center
     const TVector3 strip_location = layergeom->get_world_coordinate( tileid, strip );
     const auto phi_strip = std::atan2( strip_location.y(), strip_location.x() );
-  
+
     // find relevant strip coordinate with respect to location
-    const auto x_loc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ? 
+    const auto x_loc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
       radius * bind_angle( phi_strip - phi ):
       strip_location.z() - location.z();
-        
+
     // calculate charge fraction
 //     // this corresponds to integrating the gaussian of width sigma from x_loc - pitch/2 to x_loc+pitch/2
 //     const float fraction = (std::erf( (x_loc + pitch/2)/(sqrt2*sigma) ) - std::erf( (x_loc - pitch/2)/(sqrt2*sigma) ))/2;
-    
+
     // this corresponds to zigzag strips with full overlap between one strip and its neighbors
-    /* todo: 
-     * - double check formulas
-     * - match actual zigzag design from micromegas
-     * - compare to GEM implementation
-     */
+    // this is the same implementation as in the GEM code
     auto gaus = []( const double x, const double sigma ) { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); };
-    const float fraction = 
-      (pitch - x_loc)*(std::erf(x_loc/(sqrt2*sigma)) - erf((x_loc-pitch)/(sqrt2*sigma)))/(pitch*2)
-      + (pitch + x_loc)*(erf((x_loc+pitch)/(sqrt2*sigma)) - std::erf(x_loc/(sqrt2*sigma)))/(pitch*2) 
+    const float fraction =
+      (pitch - x_loc)*(std::erf(x_loc/(sqrt2*sigma)) - std::erf((x_loc-pitch)/(sqrt2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(sqrt2*sigma)) - std::erf(x_loc/(sqrt2*sigma)))/(pitch*2)
       + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
-      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch; 
-          
+      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
+
     // store
     charge_list.push_back( std::make_pair( strip, fraction ) );
   }
-    
-  return std::make_pair( tileid, charge_list ); 
+
+  return std::make_pair( tileid, charge_list );
 }
