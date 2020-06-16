@@ -276,8 +276,9 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   // PHENIX EMCal JGL 3/27/2016
   G4int nlayers = 66;
   G4double thickness_layer = m_TowerDz[2] / (float) nlayers;
-  G4double thickness_absorber = thickness_layer * 0.23;      // 27% absorber by length
-  G4double thickness_scintillator = thickness_layer * 0.73;  // 73% scintillator by length
+  // update layer thickness with https://doi.org/10.1016/S0168-9002(02)01954-X
+  G4double thickness_absorber = thickness_layer * (1.5/5.6);      // 1.5mm absorber
+  G4double thickness_scintillator = thickness_layer * (4.0/5.6);  // 4mm scintillator
 
   G4VSolid* solid_absorber = new G4Box(G4String("single_plate_absorber_solid2"),
                                        m_TowerDx[2] / 2.0,

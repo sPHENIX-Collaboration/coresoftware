@@ -41,18 +41,7 @@ using namespace std;
 
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
-  , _g4truth_container(nullptr)
-  , phg4hits_tpc(nullptr)
-  , phg4hits_intt(nullptr)
-  , phg4hits_mvtx(nullptr)
-  , hittruthassoc(nullptr)
-  , clusterhitassoc(nullptr)
-  , _min_clusters_per_track(3)
-  , _min_layer(0)
-  , _max_layer(10000)
-  , _min_momentum(50e-3)  // default to p > 50 MeV
-{
-}
+{}
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
@@ -104,14 +93,32 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       {
         // extract the g4 hit key here and add the hits to the set
         PHG4HitDefs::keytype g4hitkey = htiter->second.second;
-        PHG4Hit* phg4hit;
-        if (trkrid == TrkrDefs::tpcId)
-          phg4hit = phg4hits_tpc->findHit(g4hitkey);
-        else if (trkrid == TrkrDefs::inttId)
-          phg4hit = phg4hits_intt->findHit(g4hitkey);
-        else
-          phg4hit = phg4hits_mvtx->findHit(g4hitkey);
+        PHG4Hit* phg4hit = nullptr;
+        switch( trkrid )
+        {
+          case TrkrDefs::mvtxId:
+          if (phg4hits_mvtx) phg4hit = phg4hits_mvtx->findHit( g4hitkey );
+          break;
 
+          case TrkrDefs::inttId:
+          if (phg4hits_intt) phg4hit = phg4hits_intt->findHit( g4hitkey );
+          break;
+
+          case TrkrDefs::tpcId:
+          if (phg4hits_tpc) phg4hit = phg4hits_tpc->findHit( g4hitkey );
+          break;
+
+          case TrkrDefs::micromegasId:
+          if (phg4hits_micromegas) phg4hit = phg4hits_micromegas->findHit( g4hitkey );
+          break;
+        }
+   
+        if( !phg4hit )
+        {
+          std::cout<<PHWHERE<<" unable to find g4hit from key " << g4hitkey << std::endl;
+          continue;
+        }
+     
         int particle_id = phg4hit->get_trkid();
 
         // monentum cut-off
@@ -298,22 +305,19 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
     exit(1);
   }
 
-  phg4hits_tpc = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_TPC");
-
-  phg4hits_intt = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_INTT");
-
-  phg4hits_mvtx = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_MVTX");
-
-  if (!phg4hits_tpc and phg4hits_intt and !phg4hits_mvtx)
+  using nodePair = std::pair<std::string, PHG4HitContainer*&>;
+  std::initializer_list<nodePair> nodes =
   {
-    if (Verbosity() >= 0)
-    {
-      cerr << PHWHERE << " ERROR: No PHG4HitContainer found!" << endl;
-    }
-    return Fun4AllReturnCodes::ABORTRUN;
+    { "G4HIT_TPC", phg4hits_tpc },
+    { "G4HIT_INTT", phg4hits_intt },
+    { "G4HIT_MVTX", phg4hits_mvtx },
+    { "G4HIT_MICROMEGAS", phg4hits_micromegas }
+  };
+  
+  for( auto&& node: nodes )
+  {
+    if( !( node.second = findNode::getClass<PHG4HitContainer>( topNode, node.first ) ) )
+    { std::cerr << PHWHERE << " PHG4HitContainer " << node.first << " not found" << std::endl; }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

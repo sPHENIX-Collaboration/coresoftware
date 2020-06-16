@@ -180,6 +180,8 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *top
                          meas.parameters()[Acts::ParDef::eLOC_1]);
     /// Get global position
     Acts::Vector3D global(0, 0, 0);
+    /// This is an arbitrary vector. Doesn't matter in coordinate transformation
+    /// in Acts code
     Acts::Vector3D mom(1, 1, 1);
     meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
                                           local, mom, global);
@@ -786,6 +788,13 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
     m_err_eQOP_fit = sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP));
     m_err_eT_fit = sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT));
 
+    m_px_fit = boundParam.momentum()(0);
+    m_py_fit = boundParam.momentum()(1);
+    m_pz_fit = boundParam.momentum()(2);
+    m_x_fit  = boundParam.position()(0);
+    m_y_fit  = boundParam.position()(1);
+    m_z_fit  = boundParam.position()(2);
+
     return;
   }
 
@@ -802,6 +811,12 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
   m_err_eTHETA_fit = -9999;
   m_err_eQOP_fit = -9999;
   m_err_eT_fit = -9999;
+  m_px_fit = -9999;
+  m_py_fit = -9999;
+  m_pz_fit = -9999;
+  m_x_fit = -9999;
+  m_y_fit = -9999;
+  m_z_fit = -9999;
 
   return;
 }
@@ -1104,6 +1119,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_eQOP", &m_t_eQOP);
   m_trackTree->Branch("t_eT", &m_t_eT);
 
+
   m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx, "m_protoTrackPx/F");
   m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy, "m_protoTrackPy/F");
   m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz, "m_protoTrackPz/F");
@@ -1120,6 +1136,27 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gx", &m_t_SL_gx);
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
+
+  m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
+  m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
+  m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
+  m_trackTree->Branch("ePHI_fit", &m_ePHI_fit);
+  m_trackTree->Branch("eTHETA_fit", &m_eTHETA_fit);
+  m_trackTree->Branch("eQOP_fit", &m_eQOP_fit);
+  m_trackTree->Branch("eT_fit", &m_eT_fit);
+  m_trackTree->Branch("err_eLOC0_fit", &m_err_eLOC0_fit);
+  m_trackTree->Branch("err_eLOC1_fit", &m_err_eLOC1_fit);
+  m_trackTree->Branch("err_ePHI_fit", &m_err_ePHI_fit);
+  m_trackTree->Branch("err_eTHETA_fit", &m_err_eTHETA_fit);
+  m_trackTree->Branch("err_eQOP_fit", &m_err_eQOP_fit);
+  m_trackTree->Branch("err_eT_fit", &m_err_eT_fit);
+  m_trackTree->Branch("g_px_fit", &m_px_fit);
+  m_trackTree->Branch("g_py_fit", &m_py_fit);
+  m_trackTree->Branch("g_pz_fit", &m_pz_fit);
+  m_trackTree->Branch("g_x_fit" , &m_x_fit);
+  m_trackTree->Branch("g_y_fit" , &m_y_fit);
+  m_trackTree->Branch("g_z_fit" , &m_z_fit);
+
 
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
@@ -1138,20 +1175,6 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("pull_x_hit", &m_pull_x_hit);
   m_trackTree->Branch("pull_y_hit", &m_pull_y_hit);
   m_trackTree->Branch("dim_hit", &m_dim_hit);
-
-  m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
-  m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
-  m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
-  m_trackTree->Branch("ePHI_fit", &m_ePHI_fit);
-  m_trackTree->Branch("eTHETA_fit", &m_eTHETA_fit);
-  m_trackTree->Branch("eQOP_fit", &m_eQOP_fit);
-  m_trackTree->Branch("eT_fit", &m_eT_fit);
-  m_trackTree->Branch("err_eLOC0_fit", &m_err_eLOC0_fit);
-  m_trackTree->Branch("err_eLOC1_fit", &m_err_eLOC1_fit);
-  m_trackTree->Branch("err_ePHI_fit", &m_err_ePHI_fit);
-  m_trackTree->Branch("err_eTHETA_fit", &m_err_eTHETA_fit);
-  m_trackTree->Branch("err_eQOP_fit", &m_err_eQOP_fit);
-  m_trackTree->Branch("err_eT_fit", &m_err_eT_fit);
 
   m_trackTree->Branch("nPredicted", &m_nPredicted);
   m_trackTree->Branch("predicted", &m_prt);
