@@ -43,13 +43,13 @@ using namespace std;
 namespace
 {
 
-  //______________________________________________________________________
-  //! square utility function
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  //! convenient square function
+  template<class T> 
+    inline constexpr T square( const T& x ) { return x*x; }
 
-  //______________________________________________________________________
   //! return normalized gaussian centered on zero and of width sigma
-  template<class T> inline T gaus( const T& x, const T& sigma )
+  template<class T> 
+    inline T gaus( const T& x, const T& sigma )
   { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
 
 }
@@ -621,7 +621,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
 
   // use analytic integral
   double sum = 0;
-  static const double sqrt2 = std::sqrt(2.);
   for( int ipad = 0; ipad <= npads; ipad++ )
   {
     const double pitch = pad_parameters[ipad][0];
@@ -634,8 +633,8 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
     convoluted with a strip response function, which is triangular from -pitch to +pitch, with a maximum of 1. at stript center
     */
     const double fraction =
-      (pitch - x_loc)*(std::erf(x_loc/(sqrt2*sigma)) - std::erf((x_loc-pitch)/(sqrt2*sigma)))/(pitch*2)
-      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(sqrt2*sigma)) - std::erf(x_loc/(sqrt2*sigma)))/(pitch*2)
+      (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
       + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
       + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
 
