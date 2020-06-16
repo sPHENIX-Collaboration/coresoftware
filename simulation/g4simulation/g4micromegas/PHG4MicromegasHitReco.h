@@ -54,23 +54,28 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   void setup_tiles(PHCompositeNode*);
 
   //! stores strip number and corresponding charge fraciton
-  using charge_pair_t = std::pair<int, float>;
-    
+  using charge_pair_t = std::pair<int, double>;
+
   //! list of charge fractions
   using charge_list_t = std::vector<charge_pair_t>;
-  
+
   //! tile and list of charge fractions
   using charge_info_t = std::pair<int, charge_list_t>;
 
   //! distribute a charge across adjacent strips
   charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, double sigma ) const;
-  
+
   //! detector name
   std::string m_detector;
 
   //! timing window (ns)
   double m_tmin = 0;
+
+  //! timing window (ns)
   double m_tmax = 0;
+
+  //! electron cloud sigma (cm) after avalanche
+  double m_cloud_sigma = 0.04;
 
   //! micromegas tiles
   MicromegasTile::List m_tiles;

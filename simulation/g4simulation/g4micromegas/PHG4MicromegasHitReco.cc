@@ -38,21 +38,43 @@
 namespace
 {
   //! convenient square function
-  template<class T> 
+  template<class T>
     inline constexpr T square( const T& x ) { return x*x; }
 
   //! return normalized gaussian centered on zero and of width sigma
-  template<class T> 
+  template<class T>
     inline T gaus( const T& x, const T& sigma )
   { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
 
   //! bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
-  template<class T> 
+  template<class T>
     inline T bind_angle( const T& angle )
   {
     if( angle >= M_PI ) return angle - 2*M_PI;
     else if( angle < -M_PI ) return angle + 2*M_PI;
     else return angle;
+  }
+
+  // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
+  template<class T>
+    inline T get_rectangular_fraction( const T& xloc, const T& sigma, const T& pitch )
+  { return (std::erf( (xloc + pitch/2)/(M_SQRT2*sigma) ) - std::erf( (xloc - pitch/2)/(M_SQRT2*sigma) ))/2; }
+
+  /*
+  this corresponds to integrating a gaussian centered on zero and of width sigma
+  convoluted with a zig-zag strip response function, which is triangular from xloc-pitch to xloc+pitch, with a maximum of 1 at xloc
+  */
+  template<class T>
+    inline T get_zigzag_fraction( const T& xloc, const T& sigma, const T& pitch )
+  {
+    return
+      // rising edge
+      (pitch - xloc)*(std::erf(xloc/(M_SQRT2*sigma)) - std::erf((xloc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(xloc-pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch
+
+      // descending edge
+      + (pitch + xloc)*(std::erf((xloc+pitch)/(M_SQRT2*sigma)) - std::erf(xloc/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
 }
@@ -62,13 +84,28 @@ PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std:
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
-{ SetDefaultParameters(); }
+{ InitializeParameters(); }
 
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
 {
 
   PHNodeIterator iter(topNode);
+
+  // store parameters
+  m_tmin = get_double_param("micromegas_tmin" );
+  m_tmax = get_double_param("micromegas_tmax" );
+  std::cout
+    << "PHG4MicromegasHitReco::InitRun -"
+    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns"
+    << std::endl;
+
+  // cloud sigma
+  m_cloud_sigma = get_double_param("micromegas_cloud_sigma" );
+  std::cout
+    << "PHG4MicromegasHitReco::InitRun -"
+    << " m_cloud_sigma: " << m_cloud_sigma << "cm"
+    << std::endl;
 
   // setup tiles
   setup_tiles( topNode );
@@ -183,7 +220,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // get the complete cluster by resumming
       int tileid;
       charge_list_t fractions;
-      std::tie(tileid, fractions) = distribute_charge( layergeom, world_mid, layergeom->get_pitch()/5 );
+      std::tie(tileid, fractions) = distribute_charge( layergeom, world_mid, m_cloud_sigma );
       if( tileid < 0 || fractions.empty() ) continue;
 
       // make sure fractions adds up to unity
@@ -233,10 +270,13 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 //___________________________________________________________________________
 void PHG4MicromegasHitReco::SetDefaultParameters()
 {
-  // default timing window
-  // TODO: allow to modify this via PHParameterInterface
-  m_tmin = -5000;
-  m_tmax = 5000;
+  // default timing window (ns)
+  set_default_double_param("micromegas_tmin", -5000 );
+  set_default_double_param("micromegas_tmax", 5000 );
+
+  // electron cloud sigma, after avalanche
+  set_default_double_param("micromegas_cloud_sigma", 0.04 );
+
 }
 
 //___________________________________________________________________________
@@ -299,6 +339,7 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( C
   // prepare charge list
   charge_list_t charge_list;
 
+  // store azimuthal angle
   const auto phi = std::atan2( location.y(), location.x() );
 
   // loop over strips
@@ -309,21 +350,12 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( C
     const auto phi_strip = std::atan2( strip_location.y(), strip_location.x() );
 
     // find relevant strip coordinate with respect to location
-    const auto x_loc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
+    const auto xloc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
       radius * bind_angle( phi_strip - phi ):
       strip_location.z() - location.z();
 
     // calculate charge fraction
-//     // this corresponds to integrating the gaussian of width sigma from x_loc - pitch/2 to x_loc+pitch/2
-//     const float fraction = (std::erf( (x_loc + pitch/2)/(M_SQRT2*sigma) ) - std::erf( (x_loc - pitch/2)/(M_SQRT2*sigma) ))/2;
-
-    // this corresponds to zigzag strips with full overlap between one strip and its neighbors
-    // this is the same implementation as in the GEM code
-    const float fraction =
-      (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
-      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
-      + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
-      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
+    const auto fraction = get_zigzag_fraction( xloc, sigma, pitch );
 
     // store
     charge_list.push_back( std::make_pair( strip, fraction ) );
