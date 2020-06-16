@@ -620,7 +620,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   std::array<double,10> overlap = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
 
   // use analytic integral
-  double sum = 0;
   for( int ipad = 0; ipad <= npads; ipad++ )
   {
     const double pitch = pad_parameters[ipad][0];
@@ -632,17 +631,11 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
     this corresponds to integrating the charge distribution Gaussian function (centered on rphi and of width cloud_sig_rp), 
     convoluted with a strip response function, which is triangular from -pitch to +pitch, with a maximum of 1. at stript center
     */
-    const double fraction =
+    overlap[ipad] =
       (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
       + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
       + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
       + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
-
-    sum += fraction;
-    
-    // multiplicative factors are here for consistency with previous implementation
-    overlap[ipad] = fraction*pitch/sigma;
-
   }
 
   // now we have the overlap for each pad
