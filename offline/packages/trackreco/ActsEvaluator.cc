@@ -35,6 +35,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_svtxEvalStack(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
+  , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
 {
 }
