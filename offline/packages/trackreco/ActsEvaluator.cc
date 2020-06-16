@@ -118,7 +118,7 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     m_nStates = trajState.nStates;
 
     fillG4Particle(g4particle);
-    fillProtoTrack(actsProtoTrack);
+    fillProtoTrack(actsProtoTrack, topNode);
     fillFittedTrackParams(traj);
     visitTrackStates(traj, topNode);
 
@@ -155,7 +155,6 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 
 void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
 {
-  SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
   const auto &[trackTips, mj] = traj.trajectory();
   auto &trackTip = trackTips.front();
@@ -200,43 +199,15 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *top
     /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
     /// the map created in PHActsSourceLinks
     const unsigned int hitId = state.uncalibrated().hitID();
-    TrkrDefs::cluskey clusKey = getClusKey(hitId);
-
-    const PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(clusKey);
-
-    float layer = (float) TrkrDefs::getLayer(clusKey);
-    float gx = -9999;
-    float gy = -9999;
-    float gz = -9999;
     float gt = -9999;
-    float gedep = -9999;
-
-    if (g4hit)
-    {
-      /// Cluster the associated truth hits within the same layer to get
-      /// the truth cluster position
-      std::set<PHG4Hit *> truth_hits = clustereval->all_truth_hits(clusKey);
-      std::vector<PHG4Hit *> contributing_hits;
-      std::vector<double> contributing_hits_energy;
-      std::vector<std::vector<double>> contributing_hits_entry;
-      std::vector<std::vector<double>> contributing_hits_exit;
-      m_svtxEvaluator->LayerClusterG4Hits(topNode, truth_hits, 
-					  contributing_hits,
-                                          contributing_hits_energy, 
-					  contributing_hits_entry,
-                                          contributing_hits_exit, 
-					  layer, gx, gy, gz, gt,
-                                          gedep);
-    }
-
-    /// Convert to acts units of mm
-    gx *= Acts::UnitConstants::cm;
-    gy *= Acts::UnitConstants::cm;
-    gz *= Acts::UnitConstants::cm;
+    Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitId, gt);
+    float gx = globalTruthPos(0);
+    float gy = globalTruthPos(1);
+    float gz = globalTruthPos(2);
 
     /// Get local truth position
     Acts::Vector2D truthlocal;
-    Acts::Vector3D globalTruthPos(gx, gy, gz);
+
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
 
@@ -678,7 +649,53 @@ TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
 }
 
 
-void ActsEvaluator::fillProtoTrack(ActsTrack track)
+Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode, 
+						const unsigned int hitID,
+						float &_gt)
+{
+  SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
+
+  TrkrDefs::cluskey clusKey = getClusKey(hitID);
+  
+  const PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(clusKey);
+  
+  float layer = (float) TrkrDefs::getLayer(clusKey);
+  float gx = -9999;
+  float gy = -9999;
+  float gz = -9999;
+  float gt = -9999;
+  float gedep = -9999;
+  
+  if (g4hit)
+    {
+      /// Cluster the associated truth hits within the same layer to get
+      /// the truth cluster position
+      std::set<PHG4Hit *> truth_hits = clustereval->all_truth_hits(clusKey);
+      std::vector<PHG4Hit *> contributing_hits;
+      std::vector<double> contributing_hits_energy;
+      std::vector<std::vector<double>> contributing_hits_entry;
+      std::vector<std::vector<double>> contributing_hits_exit;
+      m_svtxEvaluator->LayerClusterG4Hits(topNode, truth_hits, 
+					  contributing_hits,
+                                          contributing_hits_energy, 
+					  contributing_hits_entry,
+                                          contributing_hits_exit, 
+					  layer, gx, gy, gz, gt,
+                                          gedep);
+    }
+  
+  /// Convert to acts units of mm
+  gx *= Acts::UnitConstants::cm;
+  gy *= Acts::UnitConstants::cm;
+  gz *= Acts::UnitConstants::cm;
+  
+  Acts::Vector3D globalPos(gx, gy, gz);
+  _gt = gt;
+  return globalPos;
+  
+}
+
+void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 {
   FW::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
@@ -694,6 +711,7 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track)
 
   for(int i = 0; i < sourceLinks.size(); ++i)
     {
+      /// Get source link global position
       Acts::Vector2D loc(sourceLinks.at(i).location()(0),
 			 sourceLinks.at(i).location()(1));
       Acts::Vector3D globalPos(0,0,0);
@@ -703,9 +721,39 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track)
                                             m_tGeometry->geoContext,
 					    loc,
 					    mom, globalPos);
+
       m_SLx.push_back(globalPos(0));
       m_SLy.push_back(globalPos(1));
       m_SLz.push_back(globalPos(2));
+      m_SL_lx.push_back(loc(0));
+      m_SL_ly.push_back(loc(1));
+      
+      /// Get corresponding truth hit position
+      const unsigned int hitID = sourceLinks.at(i).hitID();
+      float gt = -9999;
+      Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitID, gt);
+      float gx = globalTruthPos(0);
+      float gy = globalTruthPos(1);
+      float gz = globalTruthPos(2);
+      
+      /// Get local truth position
+      Acts::Vector2D truthlocal;
+      
+      const float r = sqrt(gx * gx + gy * gy + gz * gz);
+      Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
+      
+      sourceLinks.at(i).referenceSurface().globalToLocal(
+					    m_tGeometry->geoContext,
+					    globalTruthPos,
+					    globalTruthUnitDir,
+					    truthlocal);
+      m_t_SL_lx.push_back(truthlocal(0));
+      m_t_SL_ly.push_back(truthlocal(1));
+      m_t_SL_gx.push_back(gx);
+      m_t_SL_gy.push_back(gy);
+      m_t_SL_gz.push_back(gz);
+      
+
 
     }
 
@@ -1016,6 +1064,14 @@ void ActsEvaluator::clearTrackVariables()
   m_SLx.clear();
   m_SLy.clear();
   m_SLz.clear();
+  m_SL_lx.clear();
+  m_SL_ly.clear();
+  m_t_SL_lx.clear();
+  m_t_SL_ly.clear();
+  m_t_SL_gx.clear();
+  m_t_SL_gy.clear();
+  m_t_SL_gz.clear();
+  
   m_protoTrackPx = -9999.;
   m_protoTrackPy = -9999.;
   m_protoTrackPz = -9999.;
@@ -1093,6 +1149,13 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);
+  m_trackTree->Branch("l_SLx", &m_SL_lx);
+  m_trackTree->Branch("l_SLy", &m_SL_ly);
+  m_trackTree->Branch("t_SL_lx", &m_t_SL_lx);
+  m_trackTree->Branch("t_SL_ly", &m_t_SL_ly);
+  m_trackTree->Branch("t_SL_gx", &m_t_SL_gx);
+  m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
+  m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);

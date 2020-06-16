@@ -60,11 +60,13 @@ class ActsEvaluator : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
-  void fillProtoTrack(ActsTrack track);
+  void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);
   void fillFittedTrackParams(const Trajectory traj);
   void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
   void clearTrackVariables();
-
+  Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
+				   const unsigned int hitID,
+				   float &_gt);
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   SvtxEvaluator *m_svtxEvaluator{nullptr};
@@ -75,7 +77,7 @@ class ActsEvaluator : public SubsysReco
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
-
+ 
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
 
@@ -266,9 +268,17 @@ class ActsEvaluator : public SubsysReco
   float m_protoTrackY{-9999.};           /// Proto track PCA y
   float m_protoTrackZ{-9999.};           /// Proto track PCA z
   
+  std::vector<float> m_SL_lx;            /// Proto track source link local x pos
+  std::vector<float> m_SL_ly;            /// Proto track source link local y pos
   std::vector<float> m_SLx;              /// Proto track source link global x pos
   std::vector<float> m_SLy;              /// Proto track source link global y pos
   std::vector<float> m_SLz;              /// Proto track source link global z pos
+  std::vector<float> m_t_SL_lx;          /// Proto track truth hit local x
+  std::vector<float> m_t_SL_ly;          /// Proto track truth hit local y
+  std::vector<float> m_t_SL_gx;          /// Proto track truth hit global x
+  std::vector<float> m_t_SL_gy;          /// Proto track truth hit global y
+  std::vector<float> m_t_SL_gz;          /// Proto track truth hit global z
+
 };
 
 #endif
