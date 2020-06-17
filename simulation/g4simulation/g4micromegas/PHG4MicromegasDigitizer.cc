@@ -30,11 +30,8 @@
 PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
   : SubsysReco(name)
 {
-  // fixed seed is handled in this funtcion
-  const unsigned int seed = PHRandomSeed();
-  std::cout << Name() << " random seed: " << seed << std::endl;
-
   // initialize rng
+  const unsigned int seed = PHRandomSeed();
   m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
   gsl_rng_set( m_rng.get(), seed );
 }

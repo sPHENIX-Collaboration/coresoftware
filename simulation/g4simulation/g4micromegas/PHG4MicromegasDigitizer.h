@@ -51,8 +51,7 @@ class PHG4MicromegasDigitizer : public SubsysReco
   {
     public:
     //! deletion operator
-    void operator() (gsl_rng* rng) const
-    { gsl_rng_free(rng); }
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
   };
 
   //! random generator that conform with sPHENIX standard
