@@ -14,12 +14,15 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <gsl/gsl_rng.h>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>  // for pair
 
 class CylinderGeomMicromegas;
 class PHCompositeNode;
+class PHG4Hit;
 class TVector3;
 
 class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
@@ -62,7 +65,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! tile and list of charge fractions
   using charge_info_t = std::pair<int, charge_list_t>;
 
-  //! distribute a charge across adjacent strips
+  //! get total number of electrons collected for a give g4hit
+  /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
+  uint get_electrons( PHG4Hit* ) const;
+  
+  //! distribute a Gaussian charge across adjacent strips
   charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, double sigma ) const;
 
   //! detector name
@@ -74,11 +81,29 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! timing window (ns)
   double m_tmax = 0;
 
+  //! number of primary electrons per GeV
+  double m_electrons_per_gev = 0;
+  
+  //! min gain
+  double m_gain = 0;
+  
   //! electron cloud sigma (cm) after avalanche
   double m_cloud_sigma = 0.04;
 
   //! micromegas tiles
   MicromegasTile::List m_tiles;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 
 };
 

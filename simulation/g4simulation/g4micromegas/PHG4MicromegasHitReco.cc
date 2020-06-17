@@ -27,11 +27,13 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <TVector3.h>
 
+#include <gsl/gsl_randist.h>
 #include <cassert>
 #include <numeric>
 
@@ -84,7 +86,14 @@ PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std:
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
-{ InitializeParameters(); }
+{
+  // initialize rng
+  const uint seed = PHRandomSeed();
+  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+  gsl_rng_set( m_rng.get(), seed );
+
+  InitializeParameters();
+}
 
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
@@ -95,16 +104,16 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   // store parameters
   m_tmin = get_double_param("micromegas_tmin" );
   m_tmax = get_double_param("micromegas_tmax" );
-  std::cout
-    << "PHG4MicromegasHitReco::InitRun -"
-    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns"
-    << std::endl;
-
-  // cloud sigma
+  m_electrons_per_gev = get_double_param("micromegas_electrons_per_gev" );
+  m_gain = get_double_param("micromegas_gain");
   m_cloud_sigma = get_double_param("micromegas_cloud_sigma" );
+
   std::cout
-    << "PHG4MicromegasHitReco::InitRun -"
-    << " m_cloud_sigma: " << m_cloud_sigma << "cm"
+    << "PHG4MicromegasHitReco::InitRun\n"
+    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
+    << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
+    << " m_gain: " << m_gain << "\n"
+    << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
     << std::endl;
 
   // setup tiles
@@ -231,6 +240,13 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         std::cout << "PHG4MicromegasHitReco::process_event - sum: " << sum << std::endl;
       }
 
+      /*
+      calculate the total number of electrons used for this hit
+      this is what will be stored as 'energy' in the hits
+      this accounts for number of 'primary', detector gain, and fluctuations thereof
+      */
+      const auto nelectrons = get_electrons( g4hit );
+
       // create hitset
       TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -239,7 +255,6 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // loop over strips in list
       for( const auto pair:fractions )
       {
-
         // get strip and bound check
         const int strip = pair.first;
         if( strip < 0 || strip >= layergeom->get_strip_count( tileid ) ) continue;
@@ -256,7 +271,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
         // add energy from g4hit
         const double fraction = pair.second;
-        hit->addEnergy( g4hit->get_eion()*fraction );
+        hit->addEnergy( fraction*nelectrons );
 
         // associate this hitset and hit to the geant4 hit key
         hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
@@ -274,7 +289,27 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
   set_default_double_param("micromegas_tmin", -5000 );
   set_default_double_param("micromegas_tmax", 5000 );
 
-  // electron cloud sigma, after avalanche
+  // gas data from
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // assume Ar/iC4H10 90/10, at 20C and 1atm
+  // dedx (KeV/cm) for MIP
+  static constexpr double Ar_dEdx = 2.44;
+  static constexpr double iC4H10_dEdx = 5.93;
+  static constexpr double mix_dEdx = 0.9*Ar_dEdx + 0.1*iC4H10_dEdx;
+
+  // number of electrons per MIP (cm-1)
+  static constexpr double Ar_ntot = 94;
+  static constexpr double iC4H10_ntot = 195;
+  static constexpr double mix_ntot = 0.9*Ar_ntot + 0.1*iC4H10_ntot;
+
+  // number of electrons per gev
+  static constexpr double mix_electrons_per_gev = 1e6*mix_ntot / mix_dEdx;
+  set_default_double_param("micromegas_electrons_per_gev", mix_electrons_per_gev );
+
+  // gain
+  set_default_double_param("micromegas_gain", 2000 );
+
+  // electron cloud sigma, after avalanche (cm)
   set_default_double_param("micromegas_cloud_sigma", 0.04 );
 
 }
@@ -317,7 +352,25 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 }
 
 //___________________________________________________________________________
-PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge( CylinderGeomMicromegas* layergeom, const TVector3& location, double sigma ) const
+uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
+{
+  // number of primary electrons
+  uint nprimary = gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev);
+  if( !nprimary ) return 0;
+
+  /*
+  to handle gain fluctuations, an exponential distribution is used, similar to what used for the GEMS
+  however one must get a different random number for each primary electron for this to be valid
+  TODO: see how well this approximates to a gaussian, if nprimary is large enough
+  */
+  uint ntot = 0;
+  for( uint i = 0; i < nprimary; ++i ) { ntot += gsl_ran_exponential(m_rng.get(), m_gain); }
+  return ntot;
+}
+
+//___________________________________________________________________________
+PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
+  CylinderGeomMicromegas* layergeom, const TVector3& location, double sigma ) const
 {
 
   // find tile and strip matching center position
