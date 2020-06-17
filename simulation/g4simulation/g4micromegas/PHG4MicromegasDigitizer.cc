@@ -23,26 +23,57 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <gsl/gsl_randist.h>
+#include <algorithm>
 #include <cassert>
 #include <set>
 
 //____________________________________________________________________________
 PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
   : SubsysReco(name)
+  , PHParameterInterface(name)
 {
-  // fixed seed is handled in this funtcion
-  const unsigned int seed = PHRandomSeed();
-  std::cout << Name() << " random seed: " << seed << std::endl;
-
   // initialize rng
+  const unsigned int seed = PHRandomSeed();
   m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
   gsl_rng_set( m_rng.get(), seed );
+  
+  InitializeParameters();
 }
 
 //____________________________________________________________________________
 int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
 {
-  // TODO: set default values for m_max_adc, energy_scale and threshold
+
+  UpdateParametersWithMacro();
+
+  // load parameters
+  m_adc_threshold = get_double_param( "micromegas_adc_threshold" );
+  m_enc = get_double_param( "micromegas_enc" );
+  m_pedestal = get_double_param( "micromegas_pedestal" );
+  m_volts_per_charge = get_double_param( "micromegas_volts_per_charge" );
+
+  // printout
+  std::cout
+    << "PHG4MicromegasDigitizer::InitRun\n"
+    << " m_adc_threshold: " << m_adc_threshold << " electrons\n"
+    << " m_enc: " << m_enc << " electrons\n"
+    << " m_pedestal: " << m_pedestal << " electrons\n"
+    << " m_volts_per_charge: " << m_volts_per_charge << " mV/fC\n"
+    << std::endl;
+
+  // threshold is effectively applied on top of pedestal
+  m_adc_threshold += m_pedestal;
+
+  /*
+   * Factor that convertes charge in a voltage in each z bin
+   * the scale up factor of 2.4 is meant to account for shaping time (80ns)
+   * it only applies to the signal
+   * see: simulations/g4simulations/g4tpc/PHG4TpcDigitizer::InitRun
+   */
+  m_volt_per_electron_signal = m_volts_per_charge * 1.602e-4 * 2.4;
+  m_volt_per_electron_noise = m_volts_per_charge * 1.602e-4;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -54,17 +85,13 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert( trkrhitsetcontainer );
 
-  // Digitization
-  // We want all hitsets for the Mvtx
+  // get all micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
-
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
   {
 
-    // get key and layer
+    // get key 
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
-    const int layer = TrkrDefs::getLayer(hitsetkey);
-    if (Verbosity() > 1) std::cout << "PHG4MicromegasDigitizer::process_event - hitsetkey: " << hitsetkey << " layer:" << layer << std::endl;
 
     // get all of the hits from this hitset
     TrkrHitSet* hitset = hitset_it->second;
@@ -76,25 +103,27 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
     // loop over hits
     for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
     {
-
+      // store key and hit
+      const TrkrDefs::hitkey& key = hit_it->first;
       TrkrHit *hit = hit_it->second;
 
-      // Convert the signal value to an ADC value and write that to the hit
-      unsigned int adc = hit->getEnergy()/m_energy_scale;
-
-      // TODO: add noise
-      // compare to max adc
-      if( m_max_adc > 0 && adc > m_max_adc) adc = m_max_adc;
-
-      // assign to hit
-      hit->setAdc(adc);
-
-      // Remove the hits with energy under threshold
-      if( m_energy_threshold > 0 && hit->getEnergy() < m_energy_threshold )
-      { removed_keys.insert( hit_it->first ); }
-
-      // TODO: should also add ADC threshold ?
-
+      // get energy (electrons)
+      const double signal = hit->getEnergy();
+      const double noise = add_noise();
+      
+      // convert to mV
+      const double voltage = (m_pedestal + noise)*m_volt_per_electron_noise + signal*m_volt_per_electron_signal;
+      
+      // compare to threshold
+      if( voltage > m_adc_threshold*m_volt_per_electron_noise )
+      {
+        // keep hit, update adc
+        hit->setAdc( std::clamp<uint>( voltage*m_adc_per_volt, 0, 1023 ) );        
+      } else {
+        // mark hit as removable
+        removed_keys.insert( key );
+      }
+      
     }
 
     // remove hits
@@ -104,3 +133,17 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+//___________________________________________________________________________
+void PHG4MicromegasDigitizer::SetDefaultParameters()
+{ 
+  // all values taken from TPC sampa chips (simulations/g4simulations/g4tpc/PHG4TpcDigitizer)
+  set_default_double_param( "micromegas_enc", 670 );
+  set_default_double_param( "micromegas_adc_threshold", 2680 );
+  set_default_double_param( "micromegas_pedestal", 50000 );
+  set_default_double_param( "micromegas_volts_per_charge", 20 );
+}
+
+//___________________________________________________________________________
+double PHG4MicromegasDigitizer::add_noise() const
+{ return gsl_ran_gaussian( m_rng.get(), m_enc); }
