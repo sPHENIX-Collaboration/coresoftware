@@ -98,16 +98,14 @@ PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std:
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
 {
-
-  PHNodeIterator iter(topNode);
-
-  // store parameters
+  // load parameters
   m_tmin = get_double_param("micromegas_tmin" );
   m_tmax = get_double_param("micromegas_tmax" );
   m_electrons_per_gev = get_double_param("micromegas_electrons_per_gev" );
   m_gain = get_double_param("micromegas_gain");
   m_cloud_sigma = get_double_param("micromegas_cloud_sigma" );
 
+  // printout
   std::cout
     << "PHG4MicromegasHitReco::InitRun\n"
     << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
@@ -120,6 +118,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   setup_tiles( topNode );
 
   // get dst node
+  PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {

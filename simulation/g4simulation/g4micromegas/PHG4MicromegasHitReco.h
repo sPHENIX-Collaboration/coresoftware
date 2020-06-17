@@ -33,14 +33,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
     const std::string &name = "PHG4MicromegasHitReco",
     const std::string &detector = "MICROMEGAS");
 
-  //! module initialization
+  //! run initialization
   int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
-
-  //!@name modifiers
-  //@{
 
   //! parameters
   void SetDefaultParameters() override;
@@ -48,8 +45,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! set micromegas tiles
   void set_tiles( const MicromegasTile::List& tiles )
   { m_tiles = tiles; }
-
-  //@}
 
   private:
 
