@@ -17,7 +17,7 @@
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Fitting/TrkrClusterFindingAlgorithm.hpp>
+#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 
 #include <memory>
 #include <string>
