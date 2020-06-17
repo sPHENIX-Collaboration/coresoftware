@@ -245,7 +245,11 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
       SvtxTrack_FastSim *temp = dynamic_cast<SvtxTrack_FastSim *>(track_itr->second);
       if (!temp)
       {
-        std::cout << "ERROR CASTING PARTICLE!" << std::endl;
+        if (Verbosity())
+        {  
+          std::cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
+          track_itr->second->identify();
+        }
         continue;
       }
       //std::cout << " PARTICLE!" << std::endl;
