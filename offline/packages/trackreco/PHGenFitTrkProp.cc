@@ -108,7 +108,6 @@ PHGenFitTrkProp::PHGenFitTrkProp(
     unsigned int nlayers_tpc,
     unsigned int nlayers_micromegas)
   : PHTrackPropagating(name)
-<<<<<<< HEAD
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
@@ -118,124 +117,10 @@ PHGenFitTrkProp::PHGenFitTrkProp(
   , _firstlayer_intt(_firstlayer_maps + _nlayers_maps)
   , _firstlayer_tpc(_firstlayer_intt + _nlayers_intt)
   , _firstlayer_micromegas(_firstlayer_tpc + _nlayers_tpc)
-{}
-=======
-  , _t_seeds_cleanup(nullptr)
-  , _t_translate_to_PHGenFitTrack(nullptr)
-  , _t_translate1(nullptr)
-  , _t_translate2(nullptr)
-  , _t_translate3(nullptr)
-  , _t_kalman_pat_rec(nullptr)
-  , _t_search_clusters(nullptr)
-  , _t_search_clusters_encoding(nullptr)
-  , _t_search_clusters_map_iter(nullptr)
-  , _t_track_propagation(nullptr)
-  , _t_full_fitting(nullptr)
-  , _t_output_io(nullptr)
-  , _vertex()
-  , _bbc_vertexes(nullptr)
-  , _hit_used_map(nullptr)
-  , _hit_used_map_size(0)
-  , _geom_container_intt(nullptr)
-  , _geom_container_maps(nullptr)
-  , _analyzing_mode(false)
-  , _analyzing_file(nullptr)
-  , _analyzing_ntuple(nullptr)
-  , _max_merging_dphi(0.1)
-  , _max_merging_deta(0.1)
-  , _max_merging_dr(0.1)
-  , _max_merging_dz(0.1)
-  , _max_share_hits(3)
-  , _fitter(nullptr)
-  , _track_fitting_alg_name("KalmanFitter")
-  , _primary_pid_guess(211)
-  , _cut_min_pT(0.2)
-  , _do_evt_display(false)
-  , _nlayers_maps(nlayers_maps)
-  , _nlayers_intt(nlayers_intt)
-  , _nlayers_tpc(nlayers_tpc)
-  , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc)
-  , _layer_ilayer_map_all()
-  , _radii_all()
-  , _max_search_win_phi_tpc(0.0040)
-  , _min_search_win_phi_tpc(0.0000)
-  , _max_search_win_theta_tpc(0.0040)
-  , _min_search_win_theta_tpc(0.0000)
-  , _max_search_win_phi_maps(0.0050)
-  , _min_search_win_phi_maps(0.0000)
-  , _max_search_win_theta_maps(0.0400)
-  , _min_search_win_theta_maps(0.0000)
-  ,
-
-  _search_win_phi(20)
-  , _search_win_theta(20)
-  , _layer_thetaID_phiID_clusterID()
-  ,
-  //_half_max_theta(160),
-  _half_max_theta(3.1416 / 2.)
-  ,
-  //_half_max_phi(252), //80cm * Pi
-  _half_max_phi(3.1416)
-  ,
-  //_layer_thetaID_phiID_clusterID_phiSize(0.1200),
-  _layer_thetaID_phiID_clusterID_phiSize(0.1200 / 30)
-  ,  //rad
-  _layer_thetaID_phiID_clusterID_zSize(0.1700 / 30)
-  , _PHGenFitTracks()
-  , _init_direction(-1)
-  , _blowup_factor(1.)
-  , _max_consecutive_missing_layer(20)
-  , _max_incr_chi2(20.)
-  , _max_splitting_chi2(20.)
-  , _min_good_track_hits(30)
   , _use_beam(false)
 {
   _event = 0;
-  _max_search_win_phi_intt[0] = 0.20;
-  _max_search_win_phi_intt[1] = 0.20;
-  _max_search_win_phi_intt[2] = 0.0050;
-  _max_search_win_phi_intt[3] = 0.0050;
-  _max_search_win_phi_intt[4] = 0.0050;
-  _max_search_win_phi_intt[5] = 0.0050;
-  _max_search_win_phi_intt[6] = 0.0050;
-  _max_search_win_phi_intt[7] = 0.0050;
-
-  _min_search_win_phi_intt[0] = 0.2000;
-  _min_search_win_phi_intt[1] = 0.2000;
-  _min_search_win_phi_intt[2] = 0.0;
-  _min_search_win_phi_intt[3] = 0.0;
-  _min_search_win_phi_intt[4] = 0.0;
-  _min_search_win_phi_intt[5] = 0.0;
-  _min_search_win_phi_intt[6] = 0.0;
-  _min_search_win_phi_intt[7] = 0.0;
-
-  _max_search_win_theta_intt[0] = 0.010;
-  _max_search_win_theta_intt[1] = 0.010;
-  _max_search_win_theta_intt[2] = 0.2000;
-  _max_search_win_theta_intt[3] = 0.2000;
-  _max_search_win_theta_intt[4] = 0.2000;
-  _max_search_win_theta_intt[5] = 0.2000;
-  _max_search_win_theta_intt[6] = 0.2000;
-  _max_search_win_theta_intt[7] = 0.2000;
-
-  _min_search_win_theta_intt[0] = 0.000;
-  _min_search_win_theta_intt[1] = 0.000;
-  _min_search_win_theta_intt[2] = 0.200;
-  _min_search_win_theta_intt[3] = 0.200;
-  _min_search_win_theta_intt[4] = 0.200;
-  _min_search_win_theta_intt[5] = 0.200;
-  _min_search_win_theta_intt[6] = 0.200;
-  _min_search_win_theta_intt[7] = 0.200;
-
-  _vertex_error.clear();
-  //_vertex_error.assign(3, 0.0100);
 }
-
-PHGenFitTrkProp::~PHGenFitTrkProp()
-{
-  delete _fitter;
-}
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
 {
@@ -908,7 +793,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkProp::ReFitTrack(SvtxTrack* intrack)
   PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
       PHG4CylinderGeomContainer>(_topNode, "CYLINDERGEOM_INTT");
 
-<<<<<<< HEAD
   PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(_topNode, "CYLINDERGEOM_MVTX");
 
@@ -1071,31 +955,12 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   // clean up working array for each event
   _PHGenFitTracks.clear();
 
-  TVector3 seed_mom(1000, 0, 0);
-  TVector3 seed_pos(0, 0, 0);
-  //  const float blowup_factor = 1.;
-  TMatrixDSym seed_cov(6);
-  for (int i = 0; i < 6; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      seed_cov[i][j] = 100.;
-      //      seed_cov[i][j] = blowup_factor * svtxtrack->get_error(i, j);
-    }
-  }
-
-
-  //Sort hits in r 
-  //  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
-  std::map<float, TrkrDefs::cluskey> m_r_clusterID;
-=======
   if(Verbosity() > 10) cout << PHWHERE << "Converting SvtxTrack to PHGenFit track: track ID " << svtxtrack->get_id()
        << " track z " << svtxtrack->get_z()
        << " vertex ID " << svtxtrack->get_vertex_id() 
        << " vertex z " << _vertex[svtxtrack->get_vertex_id()][2]
        << endl;
   //svtxtrack->identify();
-
 
   std::vector<PHGenFit::Measurement*> measurements;
 
@@ -1106,8 +971,11 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
     beam->set_cluster_key(0);
     measurements.push_back(beam);
   }
-  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
+
+  //Sort hits in r 
+  //  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
+  std::map<float, TrkrDefs::cluskey> m_r_clusterID;
+
   for (auto hit_iter = svtxtrack->begin_cluster_keys();
        hit_iter != svtxtrack->end_cluster_keys(); ++hit_iter)
   {
@@ -1125,10 +993,6 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
     }
   }
 
-<<<<<<< HEAD
-  // Create measurements
-  std::vector<PHGenFit::Measurement*> measurements;
-=======
   /*
   if (_vertex_map)
   {
@@ -1148,7 +1012,6 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   */
   TrkrDefs::cluskey last_cluster_key = 0;
 
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
   for (auto iter = m_r_clusterID.begin();
        iter != m_r_clusterID.end();
        ++iter)
@@ -1159,29 +1022,13 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
       LogError("No cluster Found!\n");
       continue;
     }
-<<<<<<< HEAD
     //    const int layer = TrkrDefs::getLayer(cluster_key);
-=======
     last_cluster_key = cluster_key;
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
     PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
-    TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
-    seed_mom.SetPhi(pos.Phi());
-    seed_mom.SetTheta(pos.Theta());
-    /*
-    cout << "Add meas layer " << layer << " cluskey " << cluster_key
-	 << endl
-	 << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-	 << " RPhiErr " << cluster->getRPhiError()
-	 << " ZErr " << cluster->getZError()
-	 << endl;
-    */
     if (meas){
       measurements.push_back(meas);
     }
   }
-<<<<<<< HEAD
-=======
 
   TVector3 seed_pos;
   TVector3 seed_mom;
@@ -1215,13 +1062,6 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   std::shared_ptr<PHGenFit::Track> track(
       new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
 
-
-  track->addMeasurements(measurements);
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
-
-  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
-  std::shared_ptr<PHGenFit::Track> track(
-      new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
 
   track->addMeasurements(measurements);
   if (Verbosity() >= 1)

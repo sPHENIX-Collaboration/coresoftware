@@ -1791,12 +1791,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 
         float nparticles = clustereval->all_truth_particles(cluster_key).size();
-<<<<<<< HEAD
-        float cluster_data[] = {(float) _ievent,m_fSeed,
-=======
         float cluster_data[] = {(float) _ievent,
 				(float) _iseed,
->>>>>>> 0f076ffe... PHGenFitTrkProp fix
                                 hitID,
                                 x,
                                 y,
@@ -2014,8 +2010,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 z,
                                 r,
                                 phi,
-				  eta,
-				  theta,
+				eta,
+				theta,
                                 ex,
                                 ey,
                                 ez,
