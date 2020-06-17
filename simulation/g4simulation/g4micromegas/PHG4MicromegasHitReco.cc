@@ -245,8 +245,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       this is what will be stored as 'energy' in the hits
       this accounts for number of 'primary', detector gain, and fluctuations thereof
       */
-      const auto nelectrons = get_electrons( g4hit );
-
+      const auto nelectrons = get_electrons( g4hit );      
+      
       // create hitset
       TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -359,12 +359,22 @@ uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
   if( !nprimary ) return 0;
 
   /*
-  to handle gain fluctuations, an exponential distribution is used, similar to what used for the GEMS
-  however one must get a different random number for each primary electron for this to be valid
-  TODO: see how well this approximates to a gaussian, if nprimary is large enough
-  */
+   * to handle gain fluctuations, an exponential distribution is used, similar to what used for the GEMS
+   * (simulations/g4simulations/g4tpc/PHG4TpcPadPlaneReadout::getSingleEGEMAmplification)
+   * One must get a different random number for each primary electron for this to be valid
+   */
   uint ntot = 0;
   for( uint i = 0; i < nprimary; ++i ) { ntot += gsl_ran_exponential(m_rng.get(), m_gain); }
+  
+  if( Verbosity() > 0 )
+  {
+    std::cout 
+      << "PHG4MicromegasHitReco::get_electrons -"
+      << " nprimary: " << nprimary 
+      << " average gain: " << static_cast<double>(ntot)/nprimary 
+      << std::endl;
+  }
+  
   return ntot;
 }
 
