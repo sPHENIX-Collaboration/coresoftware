@@ -127,7 +127,7 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   }
 
   // ---- timer -----
-  auto tracking_timer_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  //  auto tracking_timer_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
   // ----- Seed finding -----
   TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -140,7 +140,7 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   std::vector<PHGenFit2::Track*> gtracks;
   gtracks = mTrackFollower->followTracks(cluster_map, candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
-
+  /*
   // ---- timer -----
   auto tracking_timer_stop = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -174,7 +174,7 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
     mEventExporter->exportEvent(cluster_map, gtracks, mB, filename);
     LOG_INFO("tracking.PHTpcTracker.process_event") << "EventExporter dumped hits and tracks to json file";
   }
-
+  */
   // write tracks to fun4all server
   //  cout<<  gtracks[1]->get_vertex_id() << endl;
   for (int i = 0, ilen = gtracks.size(); i < ilen; i++){
@@ -233,13 +233,13 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
 
   // hit lookup cleanup
   mLookup->clear();
-
+  /*
   // rave vertices cleanup
   for (auto it = vertices.begin(); it != vertices.end(); ++it)
   {
     delete (*it);
   }
-
+  */
   LOG_INFO("tracking.PHTpcTracker.process_event") << "---- process event finished -----";
 
   return Fun4AllReturnCodes::EVENT_OK;

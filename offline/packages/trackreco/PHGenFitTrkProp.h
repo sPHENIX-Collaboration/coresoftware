@@ -455,6 +455,16 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _primary_pid_guess = primaryPidGuess;
   }
 
+<<<<<<< HEAD
+=======
+  void set_beam_constraint(bool beamConstraint)
+  {
+    _use_beam = beamConstraint;
+  }
+
+#if !defined(__CINT__) || defined(__CLING__)
+
+>>>>>>> 0f076ffe... PHGenFitTrkProp fix
  private:
 
   //*@name utility methods
@@ -666,8 +676,13 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   unsigned int _min_good_track_hits = 30;
 
+<<<<<<< HEAD
   PHCompositeNode* _topNode = nullptr;
   int _ntrack = 0;
+=======
+  bool _use_beam;
+#endif  // __CINT__
+>>>>>>> 0f076ffe... PHGenFitTrkProp fix
 };
 
 #endif

@@ -152,7 +152,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                            "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
-                                                   "event:seed:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
+                                                   "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
                                                    "e:adc:layer:size:phisize:"
                                                    "zsize:trackID:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
@@ -1682,7 +1682,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float r = pos.Perp();
         float phi = pos.Phi();
         float eta = pos.Eta();
-
+        float theta = pos.Theta();
         float ex = sqrt(cluster->getError(0, 0));
         float ey = sqrt(cluster->getError(1, 1));
         float ez = cluster->getZError();
@@ -1791,7 +1791,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 
         float nparticles = clustereval->all_truth_particles(cluster_key).size();
+<<<<<<< HEAD
         float cluster_data[] = {(float) _ievent,m_fSeed,
+=======
+        float cluster_data[] = {(float) _ievent,
+				(float) _iseed,
+>>>>>>> 0f076ffe... PHGenFitTrkProp fix
                                 hitID,
                                 x,
                                 y,
@@ -1799,6 +1804,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 r,
                                 phi,
                                 eta,
+				theta,
                                 ex,
                                 ey,
                                 ez,
@@ -1890,6 +1896,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float r = pos.Perp();
           float phi = pos.Phi();
           float eta = pos.Eta();
+	  float theta = pos.Theta();
           float ex = sqrt(cluster->getError(0, 0));
           float ey = sqrt(cluster->getError(1, 1));
           float ez = cluster->getZError();
@@ -2000,13 +2007,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float nparticles = clustereval->all_truth_particles(cluster_key).size();
 
           float cluster_data[] = {(float) _ievent,
+				  (float) _iseed,
                                 hitID,
                                 x,
                                 y,
                                 z,
                                 r,
                                 phi,
-                                eta,
+				  eta,
+				  theta,
                                 ex,
                                 ey,
                                 ez,
@@ -2289,7 +2298,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  r = sqrt(x*x+y*y);
 		  phi = pos.Phi();
 		  eta = pos.Eta();
-
 		  ex = sqrt(cluster->getError(0, 0));
 		  ey = sqrt(cluster->getError(1, 1));
 		  ez = cluster->getZError();		  
