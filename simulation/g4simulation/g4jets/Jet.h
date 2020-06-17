@@ -63,6 +63,12 @@ class Jet : public PHObject
     //! used to tag as seed jet in 1st or 2nd iteration of UE
     //! determination
     prop_SeedItr = 4,
+
+    //! SoftDrop quantities
+    prop_zg = 5,
+    prop_Rg = 6,
+    prop_mu = 7,
+
   };
 
   Jet() {}
