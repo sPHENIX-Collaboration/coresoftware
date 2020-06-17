@@ -658,11 +658,13 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   SvtxTrack* track = phtrk_iter->second;
   auto track_id = track->get_id();
   auto vertex_id = track->get_vertex_id();
+  auto track_charge = track->get_charge();
 
   // now reset the track info and rewrite it using info from the Genfit track
   track->Reset();
   track->set_id(track_id);
   track->set_vertex_id(vertex_id);
+  track->set_charge(track_charge);
   
 #ifdef _DO_FULL_FITTING_
   if (Verbosity() >= 1) _t_full_fitting->restart();
