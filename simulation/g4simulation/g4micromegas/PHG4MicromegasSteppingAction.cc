@@ -140,7 +140,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
       // reset the initial energy deposit
       m_EdepSum = 0;
-      m_EionSum = 0;  // assuming the ionization energy is only needed for active
+      m_EionSum = 0;
+      m_hit->set_edep(0);
       m_hit->set_eion(0);
       m_SaveHitContainer = m_hitContainer;
 
