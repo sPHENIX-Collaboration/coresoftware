@@ -223,7 +223,14 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
     cout << " Vertex size (width) = (" << _vertex_size_width << ")" << endl;
     cout << " Eta range = " << _eta_min << " - " << _eta_max << endl;
     cout << " Phi range = " << _phi_min << " - " << _phi_max << endl;
+    if (isfinite(_pt_min) && isfinite(_pt_max))
+    {
     cout << " pT range = " << _pt_min << " - " << _pt_max << endl;
+    }
+    if (isfinite(_p_min) && isfinite(_p_max))
+    {
+    cout << " p range = " << _p_min << " - " << _p_max << endl;
+    }
     cout << " t0 = " << _t0 << endl;
     cout << "===========================================================================" << endl;
   }
