@@ -39,16 +39,14 @@ using namespace std;
 
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
-  , _eventcount(0)
-  , _registeredTriggers()
-  , _triggersOR(true)
-  , _triggersAND(false)
-  , _pythia(nullptr)
-  , _configFile("phpythia8.cfg")
-  , _commands()
-  , _pythiaToHepMC(nullptr)
-  , _save_integrated_luminosity(true)
-  , _integral_node(nullptr)
+  , m_EventCount(0)
+  , m_TriggersOR(true)
+  , m_TriggersAND(false)
+  , m_Pythia8(nullptr)
+  , m_ConfigFileName("phpythia8.cfg")
+  , m_Pythia8ToHepMC(nullptr)
+  , m_SaveIntegratedLuminosityFlag(true)
+  , m_IntegralNode(nullptr)
 {
   char *charPath = getenv("PYTHIA8");
   if (!charPath)
@@ -59,34 +57,31 @@ PHPythia8::PHPythia8(const std::string &name)
 
   std::string thePath(charPath);
   thePath += "/xmldoc/";
-  _pythia = new Pythia8::Pythia(thePath.c_str());
+  m_Pythia8 = new Pythia8::Pythia(thePath.c_str());
 
-  _pythiaToHepMC = new HepMC::Pythia8ToHepMC();
-  _pythiaToHepMC->set_store_proc(true);
-  _pythiaToHepMC->set_store_pdf(true);
-  _pythiaToHepMC->set_store_xsec(true);
+  m_Pythia8ToHepMC = new HepMC::Pythia8ToHepMC();
+  m_Pythia8ToHepMC->set_store_proc(true);
+  m_Pythia8ToHepMC->set_store_pdf(true);
+  m_Pythia8ToHepMC->set_store_xsec(true);
 
-  hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
+  m_HepMC_Helper.set_embedding_id(1);  // default embedding ID to 1
 }
 
 PHPythia8::~PHPythia8()
 {
-  delete _pythia;
-  delete _pythiaToHepMC;
+  delete m_Pythia8;
+  delete m_Pythia8ToHepMC;
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode)
 {
-  if (!_configFile.empty()) read_config();
-  for (unsigned int j = 0; j < _commands.size(); j++)
+  if (!m_ConfigFileName.empty()) read_config(m_ConfigFileName);
+  for (unsigned int j = 0; j < m_Commands.size(); j++)
   {
-    _pythia->readString(_commands[j]);
+    m_Pythia8->readString(m_Commands[j]);
   }
 
   create_node_tree(topNode);
-
-  // event numbering will start from 1
-  _eventcount = 0;
 
   // PYTHIA8 has very specific requires for its random number range
   // I map the designated unique seed from recoconst into something
@@ -101,8 +96,8 @@ int PHPythia8::Init(PHCompositeNode *topNode)
 
   if ((seed > 0) && (seed <= 900000000))
   {
-    _pythia->readString("Random:setSeed = on");
-    _pythia->readString(str(boost::format("Random:seed = %1%") % seed));
+    m_Pythia8->readString("Random:setSeed = on");
+    m_Pythia8->readString(str(boost::format("Random:seed = %1%") % seed));
   }
   else
   {
@@ -112,7 +107,7 @@ int PHPythia8::Init(PHCompositeNode *topNode)
 // print out seed so we can make this is reproducible
   cout << "PHPythia8 random seed: " << seed << endl;
 
-  _pythia->init();
+  m_Pythia8->init();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -124,23 +119,23 @@ int PHPythia8::End(PHCompositeNode *topNode)
   if (Verbosity() >= VERBOSITY_SOME)
   {
     //-* dump out closing info (cross-sections, etc)
-    _pythia->stat();
+    m_Pythia8->stat();
 
     //match pythia printout
     cout << " |                                                                "
          << "                                                 | " << endl;
-    cout << "                         PHPythia8::End - " << _eventcount
+    cout << "                         PHPythia8::End - " << m_EventCount
          << " events passed trigger" << endl;
-    cout << "                         Fraction passed: " << _eventcount
-         << "/" << _pythia->info.nAccepted()
-         << " = " << _eventcount / float(_pythia->info.nAccepted()) << endl;
+    cout << "                         Fraction passed: " << m_EventCount
+         << "/" << m_Pythia8->info.nAccepted()
+         << " = " << m_EventCount / float(m_Pythia8->info.nAccepted()) << endl;
     cout << " *-------  End PYTHIA Trigger Statistics  ------------------------"
          << "-------------------------------------------------* " << endl;
 
-    if (_integral_node)
+    if (m_IntegralNode)
     {
       cout << "Integral information on stored on node RUN/PHGenIntegral:" << endl;
-      _integral_node->identify();
+      m_IntegralNode->identify();
       cout << " *-------  End PYTHIA Integral Node Print  ------------------------"
            << "-------------------------------------------------* " << endl;
     }
@@ -150,21 +145,21 @@ int PHPythia8::End(PHCompositeNode *topNode)
 }
 
 //__________________________________________________________
-int PHPythia8::read_config(const char *cfg_file)
+int PHPythia8::read_config(const string &cfg_file)
 {
-  if (cfg_file) _configFile = cfg_file;
+  m_ConfigFileName = cfg_file;
 
   if (Verbosity() >= VERBOSITY_SOME)
-    cout << "PHPythia8::read_config - Reading " << _configFile << endl;
+    cout << "PHPythia8::read_config - Reading " << m_ConfigFileName << endl;
 
-  ifstream infile(_configFile.c_str());
+  ifstream infile(m_ConfigFileName);
   if (infile.fail())
   {
-    cout << "PHPythia8::read_config - Failed to open file " << _configFile << endl;
+    cout << "PHPythia8::read_config - Failed to open file " << m_ConfigFileName << endl;
     exit(2);
   }
 
-  _pythia->readFile(_configFile.c_str());
+  m_Pythia8->readFile(m_ConfigFileName);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -172,12 +167,12 @@ int PHPythia8::read_config(const char *cfg_file)
 //-* print pythia config info
 void PHPythia8::print_config() const
 {
-  _pythia->info.list();
+  m_Pythia8->info.list();
 }
 
 int PHPythia8::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << _eventcount << endl;
+  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << m_EventCount << endl;
 
   bool passedGen = false;
   bool passedTrigger = false;
@@ -190,7 +185,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
     // generate another pythia event
     while (!passedGen)
     {
-      passedGen = _pythia->next();
+      passedGen = m_Pythia8->next();
     }
 
     // test trigger logic
@@ -198,25 +193,25 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
     bool andScoreKeeper = true;
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      cout << "PHPythia8::process_event - triggersize: " << _registeredTriggers.size() << endl;
+      cout << "PHPythia8::process_event - triggersize: " << m_RegisteredTriggers.size() << endl;
     }
 
-    for (unsigned int tr = 0; tr < _registeredTriggers.size(); tr++)
+    for (unsigned int tr = 0; tr < m_RegisteredTriggers.size(); tr++)
     {
-      bool trigResult = _registeredTriggers[tr]->Apply(_pythia);
+      bool trigResult = m_RegisteredTriggers[tr]->Apply(m_Pythia8);
 
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
         cout << "PHPythia8::process_event trigger: "
-             << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
+             << m_RegisteredTriggers[tr]->GetName() << "  " << trigResult << endl;
       }
 
-      if (_triggersOR && trigResult)
+      if (m_TriggersOR && trigResult)
       {
         passedTrigger = true;
         break;
       }
-      else if (_triggersAND)
+      else if (m_TriggersAND)
       {
         andScoreKeeper &= trigResult;
       }
@@ -224,11 +219,11 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger)
       {
         cout << "PHPythia8::process_event - failed trigger: "
-             << _registeredTriggers[tr]->GetName() << endl;
+             << m_RegisteredTriggers[tr]->GetName() << endl;
       }
     }
 
-    if ((andScoreKeeper && _triggersAND) || (_registeredTriggers.size() == 0))
+    if ((andScoreKeeper && m_TriggersAND) || (m_RegisteredTriggers.size() == 0))
     {
       passedTrigger = true;
       genCounter = 0;
@@ -240,10 +235,10 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
   // fill HepMC object with event & pass to
 
   HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
-  _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
+  m_Pythia8ToHepMC->fill_next_event(*m_Pythia8, genevent, m_EventCount);
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = hepmc_helper.insert_event(genevent);
+  PHHepMCGenEvent *success = m_HepMC_Helper.insert_event(genevent);
   if (!success)
   {
     cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << endl;
@@ -253,18 +248,18 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
   // print outs
 
   if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
-  if (_eventcount < 2 && Verbosity() >= VERBOSITY_SOME) _pythia->event.list();
-  if (_eventcount >= 2 && Verbosity() >= VERBOSITY_A_LOT) _pythia->event.list();
+  if (m_EventCount < 2 && Verbosity() >= VERBOSITY_SOME) m_Pythia8->event.list();
+  if (m_EventCount >= 2 && Verbosity() >= VERBOSITY_A_LOT) m_Pythia8->event.list();
 
-  ++_eventcount;
+  ++m_EventCount;
 
   // save statistics
-  if (_integral_node)
+  if (m_IntegralNode)
   {
-    _integral_node->set_N_Generator_Accepted_Event(_pythia->info.nAccepted());
-    _integral_node->set_N_Processed_Event(_eventcount);
-    _integral_node->set_Sum_Of_Weight(_pythia->info.weightSum());
-    _integral_node->set_Integrated_Lumi(_pythia->info.nAccepted() / (_pythia->info.sigmaGen() * 1e9));
+    m_IntegralNode->set_N_Generator_Accepted_Event(m_Pythia8->info.nAccepted());
+    m_IntegralNode->set_N_Processed_Event(m_EventCount);
+    m_IntegralNode->set_Sum_Of_Weight(m_Pythia8->info.weightSum());
+    m_IntegralNode->set_Integrated_Lumi(m_Pythia8->info.nAccepted() / (m_Pythia8->info.sigmaGen() * 1e9));
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -273,7 +268,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
 int PHPythia8::create_node_tree(PHCompositeNode *topNode)
 {
   // HepMC IO
-  hepmc_helper.create_node_tree(topNode);
+  m_HepMC_Helper.create_node_tree(topNode);
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
@@ -282,12 +277,13 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode)
     cout << PHWHERE << "RUN Node missing doing nothing" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  _integral_node = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
-  if (!_integral_node)
+  if (m_SaveIntegratedLuminosityFlag)
   {
-    _integral_node = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(hepmc_helper.get_embedding_id()));
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(_integral_node, "PHGenIntegral", "PHObject");
+  m_IntegralNode = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
+  if (!m_IntegralNode)
+  {
+    m_IntegralNode = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(m_HepMC_Helper.get_embedding_id()));
+    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(m_IntegralNode, "PHGenIntegral", "PHObject");
     sumNode->addNode(newmapnode);
   }
   else
@@ -297,22 +293,17 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode)
          << "It is messy to overwrite integrated luminosities. Please turn off this function in the macro with " << endl;
     cout << "                              PHPythia8::save_integrated_luminosity(false);" << endl;
     cout << "The current RUN/PHGenIntegral node is ";
-    _integral_node->identify(cout);
+    m_IntegralNode->identify(cout);
 
     exit(EXIT_FAILURE);
   }
-  assert(_integral_node);
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHPythia8::ResetEvent(PHCompositeNode *topNode)
-{
+  assert(m_IntegralNode);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHPythia8::register_trigger(PHPy8GenTrigger *theTrigger)
 {
   if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
-  _registeredTriggers.push_back(theTrigger);
+  m_RegisteredTriggers.push_back(theTrigger);
 }
