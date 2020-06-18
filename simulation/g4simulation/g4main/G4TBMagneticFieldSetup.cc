@@ -27,7 +27,7 @@
 // $Id: G4TBMagneticFieldSetup.cc,v 1.24 2014/11/14 21:47:38 mccumber Exp $
 // GEANT4 tag $Name:  $
 //
-//  
+//
 //   User Field class implementation.
 //
 
@@ -35,28 +35,27 @@
 #include "G4TBFieldMessenger.hh"
 #include "PHG4MagneticField.h"
 
-
-#include <Geant4/G4UniformMagField.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4Mag_UsualEqRhs.hh>
-#include <Geant4/G4MagIntegratorStepper.hh>
-#include <Geant4/G4MagIntegratorDriver.hh>
-#include <Geant4/G4ChordFinder.hh>
-#include <Geant4/G4ExplicitEuler.hh>
-#include <Geant4/G4ImplicitEuler.hh>
-#include <Geant4/G4SimpleRunge.hh>
-#include <Geant4/G4SimpleHeum.hh>
-#include <Geant4/G4ClassicalRK4.hh>
 #include <Geant4/G4CashKarpRKF45.hh>
-#include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4Types.hh>                         // for G4double, G4int
+#include <Geant4/G4ChordFinder.hh>
+#include <Geant4/G4ClassicalRK4.hh>
+#include <Geant4/G4ExplicitEuler.hh>
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4ImplicitEuler.hh>
+#include <Geant4/G4MagIntegratorDriver.hh>
+#include <Geant4/G4MagIntegratorStepper.hh>
+#include <Geant4/G4Mag_UsualEqRhs.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4SimpleHeum.hh>
+#include <Geant4/G4SimpleRunge.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ios.hh>                     // for G4cout, G4endl
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4Types.hh>  // for G4double, G4int
+#include <Geant4/G4UniformMagField.hh>
+#include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <cassert>
-#include <cstdlib>                            // for exit, size_t
+#include <cstdlib>  // for exit, size_t
 #include <iostream>
 #include <string>
 
@@ -66,35 +65,35 @@ using namespace std;
 //
 //  Constructors:
 
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField * phfield)
-  : verbosity(0),
-    fChordFinder(0), 
-    fStepper(0),
-    fIntgrDriver(0)
-{    
+G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
+  : verbosity(0)
+  , fChordFinder(0)
+  , fStepper(0)
+  , fIntgrDriver(0)
+{
   assert(phfield);
 
   fEMfield = new PHG4MagneticField(phfield);
-  fFieldMessenger = new G4TBFieldMessenger(this) ;  
-  fEquation = new  G4Mag_UsualEqRhs(fEMfield); 
-  fMinStep     = 0.005*mm ; // minimal step of 10 microns
-  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
+  fFieldMessenger = new G4TBFieldMessenger(this);
+  fEquation = new G4Mag_UsualEqRhs(fEMfield);
+  fMinStep = 0.005 * mm;  // minimal step of 10 microns
+  fStepperType = 4;       // ClassicalRK4 -- the default stepper
 
   fFieldManager = GetGlobalFieldManager();
   UpdateField();
-  double point[4] = {0,0,0,0};
-  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
-    {
-      magfield_at_000[i] = magfield_at_000[i]/tesla;
-    }
+  double point[4] = {0, 0, 0, 0};
+  fEMfield->GetFieldValue(&point[0], &magfield_at_000[0]);
+  for (size_t i = 0; i < sizeof(magfield_at_000) / sizeof(double); i++)
+  {
+    magfield_at_000[i] = magfield_at_000[i] / tesla;
+  }
   if (verbosity > 0)
-    {
-      cout << "field: x" << magfield_at_000[0]
-     << ", y: " << magfield_at_000[1]
-     << ", z: " << magfield_at_000[2]
-     << endl;
-    }
+  {
+    cout << "field: x" << magfield_at_000[0]
+         << ", y: " << magfield_at_000[1]
+         << ", z: " << magfield_at_000[2]
+         << endl;
+  }
 }
 
 //G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
@@ -164,7 +163,6 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField * phfield)
 //    }
 //}
 
-
 ////////////////////////////////////////////////////////////////////////////////
 
 G4TBMagneticFieldSetup::~G4TBMagneticFieldSetup()
@@ -172,13 +170,13 @@ G4TBMagneticFieldSetup::~G4TBMagneticFieldSetup()
   delete fChordFinder;
   delete fStepper;
   delete fFieldMessenger;
-  delete fEquation;   
+  delete fEquation;
   delete fEMfield;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Register this field to 'global' Field Manager and 
+// Register this field to 'global' Field Manager and
 // Create Stepper and Chord Finder with predefined type, minstep (resp.)
 //
 
@@ -186,17 +184,17 @@ void G4TBMagneticFieldSetup::UpdateField()
 {
   SetStepper();
 
-  fFieldManager->SetDetectorField(fEMfield );
+  fFieldManager->SetDetectorField(fEMfield);
 
   delete fChordFinder;
 
-  fIntgrDriver = new G4MagInt_Driver(fMinStep, 
-				     fStepper, 
-                                     fStepper->GetNumberOfVariables() );
+  fIntgrDriver = new G4MagInt_Driver(fMinStep,
+                                     fStepper,
+                                     fStepper->GetNumberOfVariables());
 
   fChordFinder = new G4ChordFinder(fIntgrDriver);
 
-  fFieldManager->SetChordFinder( fChordFinder );
+  fFieldManager->SetChordFinder(fChordFinder);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -211,65 +209,67 @@ void G4TBMagneticFieldSetup::SetStepper()
   delete fStepper;
 
   std::stringstream message;
-  
-  switch ( fStepperType ) 
+
+  switch (fStepperType)
   {
-    case 0:  
-      fStepper = new G4ExplicitEuler( fEquation, nvar ); 
-      message << "Stepper in use: G4ExplicitEuler";
-      break;
-    case 1:  
-      fStepper = new G4ImplicitEuler( fEquation, nvar );
-      message << "Stepper in use: G4ImplicitEuler";     
-      break;
-    case 2:  
-      fStepper = new G4SimpleRunge( fEquation, nvar );
-      message << "Stepper in use: G4SimpleRunge";     
-      break;
-    case 3:  
-      fStepper = new G4SimpleHeum( fEquation, nvar );         
-      message << "Stepper in use: G4SimpleHeum";     
-      break;
-    case 4:  
-      fStepper = new G4ClassicalRK4( fEquation, nvar );       
-      message << "Stepper in use: G4ClassicalRK4 (default)";     
-      break;
-    case 5:  
-      fStepper = new G4CashKarpRKF45( fEquation, nvar );      
-      message << "Stepper in use: G4CashKarpRKF45";     
-      break;
-    case 6:  
-      fStepper = nullptr; // new G4RKG3_Stepper( fEquation, nvar );       
-      message << "G4RKG3_Stepper is not currently working for Magnetic Field";
-      break;
-    case 7:  
-      fStepper = nullptr; // new G4HelixExplicitEuler( fEquation ); 
-      message << "G4HelixExplicitEuler is not valid for Magnetic Field";     
-      break;
-    case 8:  
-      fStepper = nullptr; // new G4HelixImplicitEuler( fEquation ); 
-      message << "G4HelixImplicitEuler is not valid for Magnetic Field";     
-      break;
-    case 9:  
-      fStepper = nullptr; // new G4HelixSimpleRunge( fEquation );   
-      message << "G4HelixSimpleRunge is not valid for Magnetic Field";     
-      break;
-    default: fStepper = nullptr;
+  case 0:
+    fStepper = new G4ExplicitEuler(fEquation, nvar);
+    message << "Stepper in use: G4ExplicitEuler";
+    break;
+  case 1:
+    fStepper = new G4ImplicitEuler(fEquation, nvar);
+    message << "Stepper in use: G4ImplicitEuler";
+    break;
+  case 2:
+    fStepper = new G4SimpleRunge(fEquation, nvar);
+    message << "Stepper in use: G4SimpleRunge";
+    break;
+  case 3:
+    fStepper = new G4SimpleHeum(fEquation, nvar);
+    message << "Stepper in use: G4SimpleHeum";
+    break;
+  case 4:
+    fStepper = new G4ClassicalRK4(fEquation, nvar);
+    message << "Stepper in use: G4ClassicalRK4 (default)";
+    break;
+  case 5:
+    fStepper = new G4CashKarpRKF45(fEquation, nvar);
+    message << "Stepper in use: G4CashKarpRKF45";
+    break;
+  case 6:
+    fStepper = nullptr;  // new G4RKG3_Stepper( fEquation, nvar );
+    message << "G4RKG3_Stepper is not currently working for Magnetic Field";
+    break;
+  case 7:
+    fStepper = nullptr;  // new G4HelixExplicitEuler( fEquation );
+    message << "G4HelixExplicitEuler is not valid for Magnetic Field";
+    break;
+  case 8:
+    fStepper = nullptr;  // new G4HelixImplicitEuler( fEquation );
+    message << "G4HelixImplicitEuler is not valid for Magnetic Field";
+    break;
+  case 9:
+    fStepper = nullptr;  // new G4HelixSimpleRunge( fEquation );
+    message << "G4HelixSimpleRunge is not valid for Magnetic Field";
+    break;
+  default:
+    fStepper = nullptr;
   }
-    
-  if (verbosity > 0) {
+
+  if (verbosity > 0)
+  {
     G4cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << G4endl;
     G4cout << "  " << message.str() << endl;
-    G4cout << "  Minimum step size: " << fMinStep/mm << " mm" << G4endl;
+    G4cout << "  Minimum step size: " << fMinStep / mm << " mm" << G4endl;
     G4cout << " -----------------------------------------------------------" << G4endl;
   }
 
   if (!fStepper)
-    {
-      cout << "no stepper set, edxiting now" << endl;
-      exit(1);
-    }
-  
+  {
+    cout << "no stepper set, edxiting now" << endl;
+    exit(1);
+  }
+
   return;
 }
 
@@ -280,9 +280,9 @@ void G4TBMagneticFieldSetup::SetStepper()
 
 void G4TBMagneticFieldSetup::SetFieldValue(const G4double fieldValue)
 {
-  G4ThreeVector fieldVector( 0.0, 0.0, fieldValue );  
+  G4ThreeVector fieldVector(0.0, 0.0, fieldValue);
 
-  SetFieldValue( fieldVector );
+  SetFieldValue(fieldVector);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,26 +293,26 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4double fieldValue)
 void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector fieldVector)
 {
   // Find the Field Manager for the global field
-  G4FieldManager* fieldMgr= GetGlobalFieldManager();
-    
-  if(fieldVector != G4ThreeVector(0.,0.,0.))
-  { 
-    if(fEMfield) delete fEMfield;
-    fEMfield = new  G4UniformMagField(fieldVector);
+  G4FieldManager* fieldMgr = GetGlobalFieldManager();
+
+  if (fieldVector != G4ThreeVector(0., 0., 0.))
+  {
+    if (fEMfield) delete fEMfield;
+    fEMfield = new G4UniformMagField(fieldVector);
 
     fEquation->SetFieldObj(fEMfield);  // must now point to the new field
 
     // UpdateField();
-   
+
     fieldMgr->SetDetectorField(fEMfield);
   }
-  else 
+  else
   {
     // If the new field's value is Zero, then it is best to
     //  insure that it is not used for propagation.
     delete fEMfield;
     fEMfield = nullptr;
-    fEquation->SetFieldObj(fEMfield);   // As a double check ...
+    fEquation->SetFieldObj(fEMfield);  // As a double check ...
     fieldMgr->SetDetectorField(fEMfield);
   }
 }
@@ -321,7 +321,7 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector fieldVector)
 //
 //  Utility method
 
-G4FieldManager*  G4TBMagneticFieldSetup::GetGlobalFieldManager()
+G4FieldManager* G4TBMagneticFieldSetup::GetGlobalFieldManager()
 {
   return G4TransportationManager::GetTransportationManager()->GetFieldManager();
 }
