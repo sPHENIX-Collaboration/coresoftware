@@ -46,6 +46,16 @@ SpacepointMeasurement::SpacepointMeasurement(const TVector3& pos, const double r
   init(pos, cov);
 }
 
+SpacepointMeasurement::SpacepointMeasurement(const TVector3& pos, const TVector3& resolution)
+{
+  TMatrixDSym cov(3);
+  cov.Zero();
+  cov(0, 0) = resolution.X() * resolution.X();
+  cov(1, 1) = resolution.Y() * resolution.Y();
+  cov(2, 2) = resolution.Z() * resolution.Z();
+  init(pos, cov);
+}
+  
 /*!
  * Ctor
  * \param pos measurement position

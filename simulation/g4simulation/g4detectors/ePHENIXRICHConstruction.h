@@ -111,9 +111,19 @@ class RICH_Geometry
   get_Rotation_HBD() const;
 
   double
-  get_R_beam_pipe() const
+  get_R_beam_pipe_front() const
   {
-    return R_beam_pipe;
+    return R_beam_pipe_front;
+  }
+  double
+  get_R_beam_pipe_back() const
+  {
+    return R_beam_pipe_back;
+  }
+  double
+  get_R_beam_pipe_min() const
+  {
+    return R_beam_pipe_front<R_beam_pipe_back ? R_beam_pipe_front : R_beam_pipe_back;
   }
 
   double
@@ -228,9 +238,19 @@ class RICH_Geometry
      */
   ///@{
   void
-  set_R_beam_pipe(double beamPipe)
+  set_R_beam_pipe_front(double beamPipe)
   {
-    R_beam_pipe = beamPipe;
+    R_beam_pipe_front = beamPipe;
+  }
+
+  /** @name Set Parameters
+     *  Group of functions to set parameters.
+     */
+  ///@{
+  void
+  set_R_beam_pipe_back(double beamPipe)
+  {
+    R_beam_pipe_back = beamPipe;
   }
 
   void
@@ -334,7 +354,8 @@ class RICH_Geometry
   int N_RICH_Sector;
 
   double min_eta;
-  double R_beam_pipe;
+  double R_beam_pipe_front;
+  double R_beam_pipe_back;
 
   double z_shift;
   double R_shift;

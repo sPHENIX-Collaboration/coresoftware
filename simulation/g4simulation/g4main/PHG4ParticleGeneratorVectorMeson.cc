@@ -1,31 +1,31 @@
 #include "PHG4ParticleGeneratorVectorMeson.h"
 
-#include "PHG4Particle.h"           // for PHG4Particle
-#include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
+#include "PHG4Particle.h"  // for PHG4Particle
+#include "PHG4Particlev1.h"
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>       // for PHDataNode
-#include <phool/PHNode.h>           // for PHNode
-#include <phool/PHNodeIterator.h>   // for PHNodeIterator
-#include <phool/PHObject.h>         // for PHObject
+#include <phool/PHDataNode.h>      // for PHDataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
-#include <phool/phool.h>            // for PHWHERE
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TF1.h>
 #include <TLorentzVector.h>
-#include <TRandom.h>                // for TRandom
+#include <TRandom.h>  // for TRandom
 #include <TRandom3.h>
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>            // for gsl_rng_uniform, gsl_rng_uniform_pos
+#include <gsl/gsl_rng.h>  // for gsl_rng_uniform, gsl_rng_uniform_pos
 
-#include <cmath>                   // for sin, sqrt, cos, M_PI
-#include <cstdlib>                 // for exit
-#include <iostream>                 // for operator<<, basic_ostream, basic_...
-#include <utility>                  // for pair
-#include <vector>                   // for vector, vector<>::const_iterator
+#include <cmath>     // for sin, sqrt, cos, M_PI
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, basic_ostream, basic_...
+#include <utility>   // for pair
+#include <vector>    // for vector, vector<>::const_iterator
 
 using namespace std;
 
@@ -79,6 +79,12 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   // Upsilon 2S has mass 10.0233, width 31.98 keV
   // Upsilon 3S has mass 10.3552, width 20.32 keV
   return;
+}
+
+PHG4ParticleGeneratorVectorMeson::
+    ~PHG4ParticleGeneratorVectorMeson()
+{
+  if (trand) delete trand;
 }
 
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)

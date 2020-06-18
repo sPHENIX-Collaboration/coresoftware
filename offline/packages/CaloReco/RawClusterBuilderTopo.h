@@ -11,9 +11,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <utility>               // for pair
 
 class PHCompositeNode;
 class RawClusterContainer;
+class RawTowerGeomContainer;
 
 class RawClusterBuilderTopo : public SubsysReco
 {
@@ -24,6 +27,12 @@ class RawClusterBuilderTopo : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+
+  void set_nodename( std::string nodename ) {
+
+    ClusterNodeName = nodename;
+
+  }
 
   void set_noise( float noise_0 = 0.0025, float noise_1 = 0.006, float noise_2 = 0.03) {
 
@@ -59,14 +68,36 @@ class RawClusterBuilderTopo : public SubsysReco
 
   }
 
+  void set_do_split( bool do_split ) {
+
+    _do_split = do_split;
+
+  }
+
+  void set_minE_local_max( float minE_0 = 1, float minE_1 = 1, float minE_2 = 1) {
+
+    _local_max_minE_LAYER[0] = minE_0;
+    _local_max_minE_LAYER[1] = minE_1;
+    _local_max_minE_LAYER[2] = minE_2;
+
+  }
+
+  void set_R_shower( float R_shower ) {
+
+    _R_shower = R_shower;
+
+  }
+
  private:
 
   void CreateNodes(PHCompositeNode *topNode);
 
   std::vector< std::vector< std::vector<float> > > _TOWERMAP_E_LAYER_ETA_PHI;
+  std::vector< std::vector< std::vector<int> > > _TOWERMAP_KEY_LAYER_ETA_PHI;
   std::vector< std::vector< std::vector<int> > > _TOWERMAP_STATUS_LAYER_ETA_PHI;
 
   std::vector< std::vector<float> > _EMTOWERMAP_E_ETA_PHI;
+  std::vector< std::vector<int> > _EMTOWERMAP_KEY_ETA_PHI;
   std::vector< std::vector<int> > _EMTOWERMAP_STATUS_ETA_PHI;
 
   // geometric constants to express IHCal<->EMCal overlap in eta
@@ -89,10 +120,16 @@ class RawClusterBuilderTopo : public SubsysReco
   }
 
   int get_matching_HCal_phi_from_EMCal( int index_emcal_phi ) { 
-    return ( (32 + ( index_emcal_phi - 68 ) / 4 + _HCAL_NPHI ) % _HCAL_NPHI );
+    return ( (32 + ( index_emcal_phi - 68 + _EMCAL_NPHI ) / 4 ) % _HCAL_NPHI );
   }
 
   std::vector<int> get_adjacent_towers_by_ID( int ID );
+
+  float calculate_dR( float, float, float, float );
+
+  void export_single_cluster(std::vector<int>);
+
+  void export_clusters(std::vector<int>, std::map< int, std::pair<int,int> >, unsigned int, std::vector<float>, std::vector<float>, std::vector<float> );
 
   int get_ID( int ilayer, int ieta, int iphi ) {
     if ( ilayer < 2 ) return ilayer * _HCAL_NETA * _HCAL_NPHI + ieta * _HCAL_NPHI + iphi;
@@ -130,7 +167,8 @@ class RawClusterBuilderTopo : public SubsysReco
   }
   
   RawClusterContainer *_clusters;
-
+  
+  RawTowerGeomContainer* _geom_containers[3];
 
   float _noise_LAYER[3];
 
@@ -142,6 +180,10 @@ class RawClusterBuilderTopo : public SubsysReco
 
   bool _enable_HCal;
   bool _enable_EMCal;
+
+  bool _do_split;
+  float _local_max_minE_LAYER[3];
+  float _R_shower;
 
   std::string ClusterNodeName;
 };

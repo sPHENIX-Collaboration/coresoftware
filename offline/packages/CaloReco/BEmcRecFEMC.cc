@@ -3,24 +3,26 @@
 #include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
-BEmcRecFEMC::BEmcRecFEMC() : _emcprof(nullptr) 
+BEmcRecFEMC::BEmcRecFEMC()
+  : _emcprof(nullptr)
 {
+  Name("BEmcRecFEMC");
   SetPlanarGeometry();
 }
 
 BEmcRecFEMC::~BEmcRecFEMC()
 {
-  if (_emcprof) delete _emcprof;
+  // one can delete null pointers
+  delete _emcprof;
 }
 
-
-void BEmcRecFEMC::LoadProfile(const char *fname) 
+void BEmcRecFEMC::LoadProfile(const string& fname)
 {
-  _emcprof = new BEmcProfile(fname); 
+  _emcprof = new BEmcProfile(fname);
 }
 
 float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
@@ -29,13 +31,14 @@ float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
   ndf = 0;
   float prob = -1;
 
-  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta);
+  float theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
+  float phi = atan2(yg, xg);
+  if (_emcprof != nullptr) prob = _emcprof->GetProb(&HitList, fNx, ecl, theta, phi);
 
   return prob;
 }
 
-void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // For ala PHENIX PbSc modules
   /*
@@ -44,8 +47,8 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   const float X0 = 2.2;  // in cm; obtained from GEANT (should be ~ rad length)
   */
   // For E684-based modules
-  const float DZ = 8;   // in cm, tower half length
-  const float D = 4.6;  // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+  const float DZ = 8;    // in cm, tower half length
+  const float D = 4.6;   // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
   const float X0 = 0.8;  // in cm; obtained from GEANT (should be ~ rad length)
 
   float logE = log(0.1);
@@ -111,20 +114,20 @@ void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
 }
 
 void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
+                                  float& xc, float& yc)
 {
   // Corrects the Shower Center of Gravity for the systematic shift due to
   // limited tower size
   //
   // Everything here is in tower units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
+  // (x,y) - CG position, (xc,yc) - corrected position
 
   float xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
 
-  *pxc = x;
-  *pyc = y;
+  xc = x;
+  yc = y;
   //  return;
 
   if (Energy < 0.01) return;
@@ -134,7 +137,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA); // x is second index in here
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
   float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
@@ -163,12 +166,13 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
-    *pxc = x0;
+    xc = x0;
   }
   else
   {
-    *pxc = x;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    xc = x;
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
+         << x << ",  dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -177,11 +181,12 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(y0 - iy0) <= 0.5)
   {
     y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
-    *pyc = y0;
+    yc = y0;
   }
   else
   {
-    *pyc = y;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    yc = y;
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

@@ -22,6 +22,9 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsCovarianceRotater.h \
+  ActsTrack.h \
+  ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -32,8 +35,12 @@ pkginclude_HEADERS = \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
+  MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsSourceLinks.h \
+  PHActsTracks.h \
+  PHActsTrkProp.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -47,7 +54,6 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
-  TrkrClusterSourceLink.hpp \
   VertexFitter.h \
   PHRaveVertexing.h \
   GPUTPCBaseTrackParam.h \
@@ -106,16 +112,28 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
+  ActsCovarianceRotater.cc \
+  ActsEvaluator.cc \
+  MakeActsGeometry.cc \
+  PHActsSourceLinks.cc \
+  PHActsTracks.cc \
+  PHActsTrkProp.cc \
   PHActsTrkFitter.cc
 
+AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
+
 ACTS_LIBS = \
-  -lACTFramework \
+  -lg4eval \
   -lActsCore \
+  -lActsFatras \
   -lActsTGeoPlugin \
-  -lACTFWTGeoDetector \
-  -lActsTGeoPlugin \
-  -lACTFWFatras \
-  -lACTFWExamplesCommon
+  -lActsExamplesCommon \
+  -lActsJsonPlugin \
+  -lActsExamplesFitting \
+  -lActsExamplesDetectorTGeo \
+  -lActsExamplesFramework \
+  -lActsExamplesIoRoot \
+  -lActsExamplesMagneticField
 endif
 
 libtrack_reco_la_SOURCES = \

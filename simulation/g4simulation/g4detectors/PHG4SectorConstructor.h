@@ -375,6 +375,9 @@ class PHG4SectorConstructor
     overlapcheck_sector = check;
   }
 
+  void Verbosity(int v) {m_Verbosity = v;}
+  int Verbosity() const {return m_Verbosity;}
+
  protected:
   bool overlapcheck_sector;
 
@@ -395,6 +398,7 @@ class PHG4SectorConstructor
 
  private:
   PHG4SectorDisplayAction *m_DisplayAction;
+  int m_Verbosity;
 
  protected:
   G4LogicalVolume *

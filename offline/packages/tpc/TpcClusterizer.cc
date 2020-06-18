@@ -28,6 +28,9 @@
 #include <TMatrixT.h>       // for TMatrixT, ope...
 #include <TMatrixTUtils.h>  // for TMatrixTRow
 
+#include <TNtuple.h>  
+#include <TFile.h>  
+
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
 #include <map>  // for _Rb_tree_cons...
@@ -44,10 +47,14 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , m_clusterhitassoc(nullptr)
   , zz_shaping_correction(0.0754)
   , pedestal(74.4)
+  , SectorFiducialCut(0.5)
+  , NSearch(2)
   , NPhiBinsMax(0)
   , NPhiBinsMin(0)
   , NZBinsMax(0)
   , NZBinsMin(0)
+  , hit_nt(nullptr)
+  , cluster_nt(nullptr)
 {
 }
 
@@ -56,29 +63,57 @@ bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vec
 {
   bool retval = true;
   double centval = adcval[phibin][zbin];
-  //cout << "enter is_local_maximum for phibin " << phibin << " zbin " << zbin << " adcval " << centval <<  endl;
-
+  
   // search contiguous adc values for a larger signal
-  for (int iz = zbin - 4; iz <= zbin + 4; iz++)
-    for (int iphi = phibin - 2; iphi <= phibin + 2; iphi++)
-    {
-      //cout << " is_local_maximum: iphi " <<  iphi << " iz " << iz << " adcval " << adcval[iphi][iz] << endl;
-      if (iz >= NZBinsMax) continue;
-      if (iz < NZBinsMin) continue;
-
-      if (iphi >= NPhiBinsMax) continue;
-      if (iphi < NPhiBinsMin) continue;
-
-      if (adcval[iphi][iz] > centval)
+  for (int iz = zbin - NSearch; iz <= zbin + NSearch; iz++)
+    for (int iphi = phibin - NSearch; iphi <= phibin + NSearch; iphi++)
       {
-        retval = false;
+	if (iz >= NZBinsMax) continue;
+	if (iz < NZBinsMin) continue;
+	
+	if (iphi >= NPhiBinsMax) continue;
+	if (iphi < NPhiBinsMin) continue;
+	
+	if (adcval[iphi][iz] > centval)
+	  {
+	    retval = false;
+	  }
       }
-    }
-
-  //if(retval)  cout << "**********************   success: returning " << retval << endl;
-
+  
   return retval;
 }
+
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
+{
+  bool reject_it = false;
+
+  // sector boundaries occur every 1/12 of the full phi bin range  
+  int PhiBins = layergeom->get_phibins();
+  int PhiBinsSector = PhiBins/12;
+
+  double radius = layergeom->get_radius();
+  double PhiBinSize = 2.0* radius * M_PI / (double) PhiBins;
+
+  // sector starts where?
+  int sector_lo = sector * PhiBinsSector;
+  int sector_hi = sector_lo + PhiBinsSector - 1;
+
+  int sector_fiducial_bins = (int) (SectorFiducialCut / PhiBinSize);
+
+  if(phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
+    {
+      reject_it = true;
+      /*
+      int layer = layergeom->get_layer();
+      cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
+      << " PhiBins " << PhiBins << " sector_fiducial_bins " << sector_fiducial_bins
+      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << endl;  
+      */
+    }
+
+  return reject_it;
+}
+
 
 void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown, int &zup, int &zdown, std::vector<std::vector<double>> &adcval)
 {
@@ -187,12 +222,18 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
+  if(Verbosity() > 10)
+    {
+      hit_nt = new TNtuple("hit_nt", "TPC hits", "phibin:zbin:layer:adc");
+      cluster_nt = new TNtuple("cluster_nt", "TPC hits", "phibin:zbin:layer:adc");
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
-  int print_layer = 47;
+  int print_layer = 18;
 
   if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
@@ -247,17 +288,20 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
   {
     TrkrHitSet *hitset = hitsetitr->second;
+    int layer = TrkrDefs::getLayer(hitsetitr->first);
     if (Verbosity() > 1)
-      cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
-           << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
-           << " side " << (int) TpcDefs::getSide(hitsetitr->first)
-           << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
-           << endl;
-    if (Verbosity() > 2) hitset->identify();
+      //if (layer == print_layer)
+      {
+	cout << endl << "TpcClusterizer process hitsetkey " << hitsetitr->first
+	     << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
+	     << " side " << (int) TpcDefs::getSide(hitsetitr->first)
+	     << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
+	     << endl;
+	if (Verbosity() > 5) hitset->identify();
+      }
 
     // we have a single hitset, get the info that identifies the module
-    int layer = TrkrDefs::getLayer(hitsetitr->first);
-    // int sector = TpcDefs::getSectorId(hitsetitr->first);
+    int sector = TpcDefs::getSectorId(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
 
     // we will need the geometry object for this layer to get the global position
@@ -289,18 +333,27 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       int phibin = TpcDefs::getPad(hitr->first);
       int zbin = TpcDefs::getTBin(hitr->first);
       if (hitr->second->getAdc() > 0)
-        adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
+	{
+	  adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
 
-      if (Verbosity() > 2)
-        if (layer == print_layer)
-          cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+	  if (Verbosity() > 2)
+	    if (layer == print_layer)
+	      cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+	  
+	  if(Verbosity() > 10)
+	    //if (layer == print_layer)
+	    hit_nt->Fill(phibin, zbin, layer, adcval[phibin][zbin]);
+	}
     }
 
+    int phibin_last = -1;
+    int zbin_last = -1;
     vector<int> phibinlo;
     vector<int> phibinhi;
     vector<int> zbinlo;
     vector<int> zbinhi;
     // we want to search the hit list for local maxima in phi-z space and cluster around them
+
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)
@@ -308,6 +361,35 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       int phibin = TpcDefs::getPad(hitr->first);
       int zbin = TpcDefs::getTBin(hitr->first);
       if (!is_local_maximum(phibin, zbin, adcval)) continue;
+
+      if(Verbosity() > 5)
+	{
+	  cout << "  Local maximum at phibin " << phibin 
+	       << " zbin " << zbin 
+	       << " adcval " << adcval[phibin][zbin] 
+	       << endl; 
+	}
+
+      // eliminate double counting when two identical maxima are found within the search window (both bins will register as local maximum)
+      bool duplicate = false;
+      for (int iz = zbin - NSearch; iz <= zbin + NSearch; iz++)
+	{
+	  if(zbin_last == iz) 	  
+	    for (int iphi = phibin - NSearch; iphi <= phibin + NSearch; iphi++)
+	      {
+		if(phibin_last == iphi)
+		  duplicate = true;
+	      }
+	}
+      if(duplicate) continue;
+
+      // Eliminate local maxima that fall within the fiducial boundary of a sector
+      // This does not prevent full clustering of all accepted local maxima, just eliminates clusters **centered** outside the sector fiducial boundary
+      if(is_in_sector_boundary(phibin, sector, layergeom))
+	continue;
+
+      phibin_last = phibin;
+      zbin_last = zbin;
 
       int phiup = 0;
       int phidown = 0;
@@ -318,15 +400,38 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       if (phiup == 0 && phidown == 0 && zup == 0 and zdown == 0) continue;  // ignore isolated noise hit
 
+      if(Verbosity() > 5)
+	{
+	  for(int iphi = phibin - phidown; iphi <= phibin + phiup; ++iphi)
+	    for(int iz = zbin - zdown; iz <= zbin + zup; ++iz)
+	      {
+		cout <<  "        iz " << iz << " iphi " << iphi << " adc " << adcval[iphi][iz] << endl;
+	      }
+	}
+
+      // Run a duplicate cluster check here
+      // Can get clusters that are formed around different maxima that are separated by more than NSearch bins in z and/or phi
+      // 
+
+
+
+
+
+
+
       // Add this cluster to a vector of clusters for later analysis
       phibinlo.push_back(phibin - phidown);
       phibinhi.push_back(phibin + phiup);
       zbinlo.push_back(zbin - zdown);
       zbinhi.push_back(zbin + zup);
 
+      if(Verbosity() > 10) 
+	//if (layer == print_layer)
+	cluster_nt->Fill(phibin, zbin, layer, adcval[phibin][zbin]);
+
       if (Verbosity() > 2)
-        if (layer == print_layer)
-          cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown
+        //if (layer == print_layer)
+          cout << "   cluster in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown
                << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl;
     }  // end loop over hits in this hitset
 
@@ -401,7 +506,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       double phi_cov = (dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum * adc_sum));
       double z_cov = dz2_adc / adc_sum - dz_adc * dz_adc / (adc_sum * adc_sum);
 
-      //cout << " layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
+      //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
 
       // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
       // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
@@ -438,11 +543,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
-      DIM[1][1] = phi_size / radius * phi_size / radius;  //cluster_v1 expects polar coordinates covariance
+      DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
       DIM[1][2] = 0.0;
       DIM[2][0] = 0.0;
       DIM[2][1] = 0.0;
-      DIM[2][2] = z_size * z_size;
+      DIM[2][2] = pow(0.5 * z_size,2);
 
       TMatrixF ERR(3, 3);
       ERR[0][0] = 0.0;
@@ -513,17 +618,29 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }  // end loop over clusters for this hitset
   }    // end loop over hitsets
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 100)
   {
     cout << "Dump clusters after TpcClusterizer" << endl;
     m_clusterlist->identify();
   }
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 100)
   {
     cout << "Dump cluster hit associations after TpcClusterizer" << endl;
     m_clusterhitassoc->identify();
   }
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TpcClusterizer::End(PHCompositeNode *topNode)
+{
+  if (Verbosity() > 10)
+  {
+    TFile *outf = new TFile("cluster_nt_out.root", "recreate");
+    outf->WriteTObject(hit_nt);
+    outf->WriteTObject(cluster_nt);
+    outf->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }

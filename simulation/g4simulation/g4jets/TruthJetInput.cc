@@ -22,8 +22,7 @@
 using namespace std;
 
 TruthJetInput::TruthJetInput(Jet::SRC input)
-  : _verbosity(0)
-  , _input(input)
+  : _input(input)
   , _eta_min(-4.0)
   , _eta_max(+4.0)
 {
@@ -45,7 +44,7 @@ void TruthJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (_verbosity > 0) cout << "TruthJetInput::process_event -- entered" << endl;
+  if (Verbosity() > 0) cout << "TruthJetInput::process_event -- entered" << endl;
 
   // Pull the reconstructed track information off the node tree...
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -96,7 +95,7 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (_verbosity > 0) cout << "TruthJetInput::process_event -- exited" << endl;
+  if (Verbosity() > 0) cout << "TruthJetInput::process_event -- exited" << endl;
 
   return pseudojets;
 }

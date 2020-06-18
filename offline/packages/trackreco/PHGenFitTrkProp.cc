@@ -49,6 +49,7 @@
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/Track.h>
+#include <phgenfit/SpacepointMeasurement.h>
 
 #include <phgenfit/Fitter.h>
 #include <phgenfit/Measurement.h>                       // for Measurement
@@ -104,128 +105,21 @@ PHGenFitTrkProp::PHGenFitTrkProp(
     const string& name,
     unsigned int nlayers_maps,
     unsigned int nlayers_intt,
-    unsigned int nlayers_tpc)
+    unsigned int nlayers_tpc,
+    unsigned int nlayers_micromegas)
   : PHTrackPropagating(name)
-  , _t_seeds_cleanup(nullptr)
-  , _t_translate_to_PHGenFitTrack(nullptr)
-  , _t_translate1(nullptr)
-  , _t_translate2(nullptr)
-  , _t_translate3(nullptr)
-  , _t_kalman_pat_rec(nullptr)
-  , _t_search_clusters(nullptr)
-  , _t_search_clusters_encoding(nullptr)
-  , _t_search_clusters_map_iter(nullptr)
-  , _t_track_propagation(nullptr)
-  , _t_full_fitting(nullptr)
-  , _t_output_io(nullptr)
-  ,
-
-  _vertex()
-  , _bbc_vertexes(nullptr)
-  , _hit_used_map(nullptr)
-  , _hit_used_map_size(0)
-  , _geom_container_intt(nullptr)
-  , _geom_container_maps(nullptr)
-  , _analyzing_mode(false)
-  , _analyzing_file(nullptr)
-  , _analyzing_ntuple(nullptr)
-  , _max_merging_dphi(0.1)
-  , _max_merging_deta(0.1)
-  , _max_merging_dr(0.1)
-  , _max_merging_dz(0.1)
-  , _max_share_hits(3)
-  , _fitter(nullptr)
-  , _track_fitting_alg_name("KalmanFitter")
-  , _primary_pid_guess(211)
-  , _cut_min_pT(0.2)
-  , _do_evt_display(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
-  , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc)
-  , _layer_ilayer_map_all()
-  , _radii_all()
-  ,
-
-  _max_search_win_phi_tpc(0.0040)
-  , _min_search_win_phi_tpc(0.0000)
-  , _max_search_win_theta_tpc(0.0040)
-  , _min_search_win_theta_tpc(0.0000)
-  ,
-
-  _max_search_win_phi_maps(0.0050)
-  , _min_search_win_phi_maps(0.0000)
-  , _max_search_win_theta_maps(0.0400)
-  , _min_search_win_theta_maps(0.0000)
-  ,
-
-  _search_win_phi(20)
-  , _search_win_theta(20)
-  , _layer_thetaID_phiID_clusterID()
-  ,
-  //_half_max_theta(160),
-  _half_max_theta(3.1416 / 2.)
-  ,
-  //_half_max_phi(252), //80cm * Pi
-  _half_max_phi(3.1416)
-  ,
-  //_layer_thetaID_phiID_clusterID_phiSize(0.1200),
-  _layer_thetaID_phiID_clusterID_phiSize(0.1200 / 30)
-  ,  //rad
-  _layer_thetaID_phiID_clusterID_zSize(0.1700 / 30)
-  , _PHGenFitTracks()
-  , _init_direction(-1)
-  , _blowup_factor(1.)
-  , _max_consecutive_missing_layer(20)
-  , _max_incr_chi2(20.)
-  , _max_splitting_chi2(20.)
-  , _min_good_track_hits(30)
+  , _nlayers_micromegas(nlayers_micromegas)
+  , _nlayers_all(_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_micromegas)
+  , _firstlayer_maps(0)
+  , _firstlayer_intt(_firstlayer_maps + _nlayers_maps)
+  , _firstlayer_tpc(_firstlayer_intt + _nlayers_intt)
+  , _firstlayer_micromegas(_firstlayer_tpc + _nlayers_tpc)
+  , _use_beam(false)
 {
   _event = 0;
-
-  _max_search_win_phi_intt[0] = 0.20;
-  _max_search_win_phi_intt[1] = 0.20;
-  _max_search_win_phi_intt[2] = 0.0050;
-  _max_search_win_phi_intt[3] = 0.0050;
-  _max_search_win_phi_intt[4] = 0.0050;
-  _max_search_win_phi_intt[5] = 0.0050;
-  _max_search_win_phi_intt[6] = 0.0050;
-  _max_search_win_phi_intt[7] = 0.0050;
-
-  _min_search_win_phi_intt[0] = 0.2000;
-  _min_search_win_phi_intt[1] = 0.2000;
-  _min_search_win_phi_intt[2] = 0.0;
-  _min_search_win_phi_intt[3] = 0.0;
-  _min_search_win_phi_intt[4] = 0.0;
-  _min_search_win_phi_intt[5] = 0.0;
-  _min_search_win_phi_intt[6] = 0.0;
-  _min_search_win_phi_intt[7] = 0.0;
-
-  _max_search_win_theta_intt[0] = 0.010;
-  _max_search_win_theta_intt[1] = 0.010;
-  _max_search_win_theta_intt[2] = 0.2000;
-  _max_search_win_theta_intt[3] = 0.2000;
-  _max_search_win_theta_intt[4] = 0.2000;
-  _max_search_win_theta_intt[5] = 0.2000;
-  _max_search_win_theta_intt[6] = 0.2000;
-  _max_search_win_theta_intt[7] = 0.2000;
-
-  _min_search_win_theta_intt[0] = 0.000;
-  _min_search_win_theta_intt[1] = 0.000;
-  _min_search_win_theta_intt[2] = 0.200;
-  _min_search_win_theta_intt[3] = 0.200;
-  _min_search_win_theta_intt[4] = 0.200;
-  _min_search_win_theta_intt[5] = 0.200;
-  _min_search_win_theta_intt[6] = 0.200;
-  _min_search_win_theta_intt[7] = 0.200;
-
-  _vertex_error.clear();
-  //_vertex_error.assign(3, 0.0100);
-}
-
-PHGenFitTrkProp::~PHGenFitTrkProp()
-{
-  delete _fitter;
 }
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
@@ -428,9 +322,7 @@ int PHGenFitTrkProp::InitializePHGenFit(PHCompositeNode* topNode)
 
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-  _fitter = PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name,
-                                          "RKTrackRep", _do_evt_display);
+  _fitter.reset( PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", _do_evt_display) ); 
 
   if (!_fitter)
   {
@@ -450,6 +342,7 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
+  _topNode = topNode;
 
   // used in fast vertexing from BBC
   _bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
@@ -548,19 +441,26 @@ int PHGenFitTrkProp::KalmanTrkProp()
        phtrk_iter != _track_map->end();)
     {
       SvtxTrack* tracklet = phtrk_iter->second;
-      if (Verbosity() >= 10){
+      if (Verbosity() >= 1){
 	std::cout
 	  << __LINE__
 	  << ": Processing seed itrack: " << phtrk_iter->first
+	  << ": nhits: " << tracklet-> size_cluster_keys()
 	  << ": Total tracks: " << _track_map->size()
 	  << endl;
       }
+      _ntrack = phtrk_iter->first;
       /*!
        * Translate sPHENIX track To PHGenFitTracks
        */
       if (Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
-      SvtxTrackToPHGenFitTracks(tracklet);
-      
+      /*
+      std::shared_ptr<PHGenFit::Track> rf_phgf_track =  ReFitTrack(tracklet);
+      if(!rf_phgf_track)
+	{
+	  cout << "FAIL ReFitting input track# " << phtrk_iter->first << endl;
+	}
+      */
       //if (Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
       
       /*!
@@ -570,9 +470,11 @@ int PHGenFitTrkProp::KalmanTrkProp()
 #ifdef _DEBUG_
       int i = 0;
 #endif
+      SvtxTrackToPHGenFitTracks(tracklet);
       if (_PHGenFitTracks.empty()) 
 	{
-	  cout << "Warning: Conversion of SvtxTrack tracklet " <<  phtrk_iter->first << " to PHGenFitTrack failed, moving to next tracklet " << endl;
+	  cout << "FAIL SvtxTrackToGenFit " <<  phtrk_iter->first << endl;
+	  //cout << "Warning: Conversion of SvtxTrack tracklet " <<  phtrk_iter->first << " to PHGenFitTrack failed, moving to next tracklet " << endl;
 	  ++phtrk_iter;
 	  continue;
 	}
@@ -601,20 +503,31 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	  std::vector<TrkrDefs::cluskey> clusterkeys = gftrk_iter->second->get_cluster_keys();
 	  
 	  unsigned int init_layer = UINT_MAX;
+	  unsigned int min_layer = UINT_MAX;
+	  unsigned int max_layer = 0;
 	  
+	  for (auto iter = clusterkeys.begin();
+	       iter != clusterkeys.end(); ++iter){
+	    TrkrDefs::cluskey cluster_key = *iter;
+	    if(cluster_key!=0){
+	      unsigned int layer = TrkrDefs::getLayer(cluster_key);
+	      if(layer < min_layer) min_layer = layer;
+	      if(layer > max_layer) max_layer = layer;
+	    }
+	  }
 	  if (!is_splitting_track)
 	    {
 	      if (_init_direction == 1)
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.front())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.front());
+		  init_layer = min_layer;//TrkrDefs::getLayer(clusterkeys.front());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, true);
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, false);
 		}
 	      else
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.back())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.back());
+		  init_layer = max_layer;//TrkrDefs::getLayer(clusterkeys.back());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, true);
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, false);
 		}
@@ -625,13 +538,13 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	      if (_init_direction == 1)
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.front())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.front());
+		  init_layer = min_layer;//TrkrDefs::getLayer(clusterkeys.front());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, false);
 		}
 	      else
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.back())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.back());
+		  init_layer = max_layer;//TrkrDefs::getLayer(clusterkeys.back());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, false);
 		}
 	    }
@@ -773,7 +686,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
     {
-      gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(gftrk_iter->second->extrapolateToPoint(vertex_position));
+      gf_state_vertex_ca.reset(gftrk_iter->second->extrapolateToPoint(vertex_position));
     }
   catch (...)
     {
@@ -789,11 +702,20 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   TVector3 mom = gf_state_vertex_ca->getMom();
   TVector3 pos = gf_state_vertex_ca->getPos();
   TMatrixDSym cov = gf_state_vertex_ca->get6DCov();
+
 #else
   TVectorD state = gftrk_iter->second->getGenFitTrack()->getStateSeed();
   TVector3 pos(state(0), state(1), state(2));
   TVector3 mom(state(3), state(4), state(5));
+  TMatrixDSym cov = gftrk_iter->second->getGenFitTrack()->getCovSeed();
 #endif
+
+  for(int i=0; i<6; i++){
+    for(int j=0; j<6; j++){
+      track->set_error(i, j, cov[i][j]);
+    }
+  }
+
   track->set_px(mom.Px());
   track->set_py(mom.Py());
   track->set_pz(mom.Pz());
@@ -804,6 +726,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   
   for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
     {
+      if(cluster_key<=0)continue;
       if(Verbosity() > 10) cout << " track id: " << phtrk_iter->first <<  " adding clusterkey " << cluster_key << endl;
       _gftrk_hitkey_map.insert(std::make_pair(cluster_key, phtrk_iter->first));
       track->insert_cluster_key(cluster_key);
@@ -815,33 +738,28 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   Int_t n_maps = 0;
   Int_t n_intt = 0;
   Int_t n_tpc = 0;
-  
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  Int_t n_micromegas = 0;
+
+  for (auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
+  {
+    TrkrDefs::cluskey cluster_key = *iter;
+    unsigned int layer = TrkrDefs::getLayer(cluster_key);
+    if( is_maps_layer( layer ) )
     {
-      TrkrDefs::cluskey cluster_key = *iter;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      if (_nlayers_maps > 0 && layer < _nlayers_maps)
-	{
-	  n_maps++;
-	}
-      if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
-	{
-	  n_intt++;
-	}
+      n_maps++;
+    } else if( is_intt_layer( layer ) ) {
+      n_intt++;
       if (n_intt > 4)
-	{
-	  cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
-	  exit(1);
-	}
-      if (_nlayers_tpc > 0 &&
-	  layer >= (_nlayers_maps + _nlayers_intt) &&
-	  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-	{
-	  n_tpc++;
-	}
+      {
+        cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+        exit(1);
+      }
+    } else if( is_tpc_layer( layer ) ) {
+      n_tpc++;
+    } else if( is_micromegas_layer( layer ) ) {
+      n_micromegas++;
     }
+  }
   
   // Add the cluster-track association to the association table for later use
   for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
@@ -853,7 +771,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   if (Verbosity() > 10)
     {
       cout << "Output propagared track " << track->get_id() << " vertex " << track->get_vertex_id()<< " quality = " << track->get_quality()
-	   << " clusters: mvtx " << n_maps << " intt " << n_intt << " tpc  " << n_tpc 
+	   << " clusters mvtx: " << n_maps << " intt: " << n_intt << " tpc:  " << n_tpc << " micromegas: " << n_micromegas
 	   << endl;
       cout << "px = " << track->get_px() << " py = " << track->get_py()
 	   << " pz = " << track->get_pz() << endl;
@@ -864,52 +782,178 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   return 0;
 }
 
-int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
+std::shared_ptr<PHGenFit::Track> PHGenFitTrkProp::ReFitTrack(SvtxTrack* intrack)
 {
-  // clean up working array for each event
-  _PHGenFitTracks.clear();
-  
-  double time1 = 0;
-  double time2 = 0;
-  
-  //FIXME used in analysis ntuple
-  float kappa = 0;
-  float d = 0;
-  float phi = 0;
-  float dzdl = 0;
-  float z0 = 0;
-  float nhit = 0;
-  float ml = 0;
-  float rec = 0;
-  float dt = 0;
-
-  if (Verbosity() > 1)
+  if (!intrack)
   {
-    time1 = _t_translate1->get_accumulated_time();
-    time2 = _t_translate1->get_accumulated_time();
-    _t_translate1->restart();
+    cerr << PHWHERE << " Input SvtxTrack is nullptr!" << endl;
+    return nullptr;
   }
+  
+  PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
+      PHG4CylinderGeomContainer>(_topNode, "CYLINDERGEOM_INTT");
 
-  TVector3 seed_pos(
-      svtxtrack->get_x(),
-      svtxtrack->get_y(),
-      svtxtrack->get_z());
+  PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
+      PHG4CylinderGeomContainer>(_topNode, "CYLINDERGEOM_MVTX");
 
-  TVector3 seed_mom(
-      svtxtrack->get_px(),
-      svtxtrack->get_py(),
-      svtxtrack->get_pz());
-
-  const float blowup_factor = 1.;
-
+  // prepare seed
+  TVector3 seed_mom(100, 0, 0);
+  TVector3 seed_pos(0, 0, 0);
   TMatrixDSym seed_cov(6);
   for (int i = 0; i < 6; i++)
   {
     for (int j = 0; j < 6; j++)
     {
-      seed_cov[i][j] = blowup_factor * svtxtrack->get_error(i, j);
+      seed_cov[i][j] = 100.;
     }
   }
+
+  //Sort hits in r
+  std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
+  for (auto iter = intrack->begin_cluster_keys();
+       iter != intrack->end_cluster_keys(); ++iter){
+    TrkrDefs::cluskey cluster_key = *iter;
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    float x = cluster->getPosition(0);
+    float y = cluster->getPosition(1);
+    float r = sqrt(x*x + y*y);
+    m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
+    int layer_out = TrkrDefs::getLayer(cluster_key);
+    if(Verbosity() >= 2) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+  }
+
+  // Create measurements
+  std::vector<PHGenFit::Measurement*> measurements;
+  for (auto iter = m_r_cluster_id.begin();
+       iter != m_r_cluster_id.end();
+       ++iter)
+  {
+    TrkrDefs::cluskey cluster_key = iter->second;
+    const int layer = TrkrDefs::getLayer(cluster_key);
+
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    if (!cluster){
+      LogError("No cluster Found!");
+      continue;
+    }
+    //    PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
+    
+    TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+
+    seed_mom.SetPhi(pos.Phi());
+    seed_mom.SetTheta(pos.Theta());
+
+    //TODO use u, v explicitly?
+    TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
+    
+    // get the trkrid
+    unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+
+    if(trkrid == TrkrDefs::mvtxId)
+      {
+	int stave_index = MvtxDefs::getStaveId(cluster_key);
+	int chip_index = MvtxDefs::getChipId(cluster_key);
+	
+	double ladder_location[3] = {0.0, 0.0, 0.0};
+	CylinderGeom_Mvtx* geom =
+          dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+	// returns the center of the sensor in world coordinates - used to get the ladder phi location
+	geom->find_sensor_center(stave_index, 0,
+				 0, chip_index, ladder_location);
+	
+	//cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
+	//   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
+	n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+	n.RotateZ(geom->get_stave_phi_tilt());
+      }
+    else if(trkrid == TrkrDefs::inttId)
+      {
+	CylinderGeomIntt* geom =
+          dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+	double hit_location[3] = {0.0, 0.0, 0.0};
+	geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
+				  InttDefs::getLadderPhiId(cluster_key), hit_location);
+	
+	//cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
+	//   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
+	n.SetXYZ(hit_location[0], hit_location[1], 0);
+	n.RotateZ(geom->get_strip_phi_tilt());
+      }
+    // end new
+    //-----------------
+    
+    PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+								  cluster->getRPhiError(), cluster->getZError());
+    cout << "Add meas layer " << layer << " cluskey " << cluster_key
+	 << endl
+	 << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
+	 << " RPhiErr " << cluster->getRPhiError()
+	 << " ZErr " << cluster->getZError()
+	 << endl;
+    /*
+    if(Verbosity() > 10)
+      {
+	cout << "Add meas layer " << layer << " cluskey " << cluster_key
+	     << endl
+	     << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
+	     << "  n.X " <<  n.X() << " n.Y " << n.Y()
+	     << " RPhiErr " << cluster->getRPhiError()
+	     << " ZErr " << cluster->getZError()
+	     << endl;
+      }
+    */
+    measurements.push_back(meas);
+  }
+  
+  /*!
+   * mu+:	-13
+   * mu-:	13
+   * pi+:	211
+   * pi-:	-211
+   * e-:	11
+   * e+:	-11
+   */
+  //TODO Add multiple TrackRep choices.
+  //int pid = 211;
+
+  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
+  std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom,
+                                                             seed_cov));
+
+  //TODO unsorted measurements, should use sorted ones?
+  track->addMeasurements(measurements);
+  if (Verbosity() >= 1)
+    cout <<  "#trk: " << _ntrack << " ReFit nhits: " <<  measurements.size() << endl;
+  /*!
+   *  Fit the track
+   *  ret code 0 means 0 error or good status
+   */
+  
+  if (_fitter->processTrack(track.get(), false) != 0)
+    {
+      if (Verbosity() >= 1)
+	{
+	  cout <<  "#trk: " << _ntrack << "Track fitting failed (ReFit) nhits: " <<  measurements.size() << endl;
+	  //	  LogWarning("Track fitting failed ");
+	  cout << " " << endl;
+	  /*
+	    cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
+	    << " mom.X " << track->get_mom().X()
+	    << " mom.Y " << track->get_mom().Y()
+	    << " mom.Z " << track->get_mom().Z()
+	    << endl;
+	  */
+	}
+      //delete track;
+      return nullptr;
+    }
+  return track;
+}
+
+int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
+{
+  // clean up working array for each event
+  _PHGenFitTracks.clear();
 
   if(Verbosity() > 10) cout << PHWHERE << "Converting SvtxTrack to PHGenFit track: track ID " << svtxtrack->get_id()
        << " track z " << svtxtrack->get_z()
@@ -918,15 +962,23 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
        << endl;
   //svtxtrack->identify();
 
-  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
-  std::shared_ptr<PHGenFit::Track> track(
-      new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+  std::vector<PHGenFit::Measurement*> measurements;
 
-  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
+  if(_use_beam){
+    TVector3 posvtx(0.0, 0.0,0.0);
+    TVector3 resvtx(0.015, 0.015,30.0);
+    PHGenFit::SpacepointMeasurement* beam = new PHGenFit::SpacepointMeasurement(posvtx, resvtx);
+    beam->set_cluster_key(0);
+    measurements.push_back(beam);
+  }
+
+  //Sort hits in r 
+  //  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
+  std::map<float, TrkrDefs::cluskey> m_r_clusterID;
+
   for (auto hit_iter = svtxtrack->begin_cluster_keys();
        hit_iter != svtxtrack->end_cluster_keys(); ++hit_iter)
   {
-
     TrkrDefs::cluskey clusterkey = *hit_iter;    
     TrkrCluster *cluster = _cluster_map->findCluster(clusterkey);
     float r = sqrt(
@@ -934,13 +986,13 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
 		   cluster->getPosition(1) * cluster->getPosition(1));
     m_r_clusterID.insert(std::pair<float, TrkrDefs::cluskey>(r, clusterkey)); 
     if (Verbosity() >= 10){
-    cout << PHWHERE << " inserted r " << r << " clusterkey " << clusterkey 
-	 << " layer: " << (float)TrkrDefs::getLayer(clusterkey)
-	 <<  endl;
+      cout << PHWHERE << " inserted r " << r << " clusterkey " << clusterkey 
+	   << " layer: " << (float)TrkrDefs::getLayer(clusterkey)
+	   << " max: " << svtxtrack->size_cluster_keys()
+	   <<  endl;
     }
   }
 
-  std::vector<PHGenFit::Measurement*> measurements;
   /*
   if (_vertex_map)
   {
@@ -958,46 +1010,68 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
     measurements.push_back(meas);
   }
   */
+  TrkrDefs::cluskey last_cluster_key = 0;
+
   for (auto iter = m_r_clusterID.begin();
        iter != m_r_clusterID.end();
        ++iter)
   {
     TrkrDefs::cluskey cluster_key = iter->second;
-
     TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
-    ml += TrkrDefs::getLayer(cluster_key);
-    if (!cluster)
-    {
+    if (!cluster){
       LogError("No cluster Found!\n");
       continue;
     }
-
+    //    const int layer = TrkrDefs::getLayer(cluster_key);
+    last_cluster_key = cluster_key;
     PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
-
-    if (meas)
-      {
-	//cout << "   add meas with cluster key " << meas->get_cluster_key() << endl;
-	measurements.push_back(meas);
-      }
+    if (meas){
+      measurements.push_back(meas);
+    }
   }
-  track->addMeasurements(measurements);
 
-  if (Verbosity() > 1) _t_translate2->stop();
-  if (Verbosity() > 1) _t_translate3->restart();
+  TVector3 seed_pos;
+  TVector3 seed_mom;
+  const float blowup_factor = 100.;
+  TMatrixDSym seed_cov(6);
+  
+  if(svtxtrack->get_py()==0&&svtxtrack->get_pz()==0){
+    TrkrCluster *last_cluster = _cluster_map->findCluster(last_cluster_key);
+    TVector3 pos(last_cluster->getPosition(0), last_cluster->getPosition(1), last_cluster->getPosition(2));
+    seed_mom.SetXYZ(100,0,0);
+    seed_mom.SetPhi(pos.Phi());
+    seed_mom.SetTheta(pos.Theta());
+    //    seed_mom.SetPtThetaPhi(pos.Perp(),pos.Theta(),pos.Phi());
+    for (int i = 0; i < 6; i++){
+      for (int j = 0; j < 6; j++){
+	seed_cov[i][j] = 100.;
+      }
+    }
+  }else{
+    seed_pos.SetXYZ(svtxtrack->get_x(),svtxtrack->get_y(),svtxtrack->get_z());
+    seed_mom.SetXYZ(svtxtrack->get_px(),svtxtrack->get_py(),svtxtrack->get_pz());
+    
+    for (int i = 0; i < 6; i++){
+      for (int j = 0; j < 6; j++){
+	seed_cov[i][j] = blowup_factor * svtxtrack->get_error(i, j);
+      }
+    }
+  }
+
+  genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
+  std::shared_ptr<PHGenFit::Track> track(
+      new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+
+
+  track->addMeasurements(measurements);
+  if (Verbosity() >= 1)
+    cout << "#trk: " << _ntrack << " ToPHGen size:" << measurements.size()  <<endl;
 
   if (_fitter->processTrack(track.get(), false) != 0)
   {
-    if (Verbosity() >= 1)
-      LogWarning("Seed fitting failed") << std::endl;
-    if (Verbosity() > 1) _t_translate3->stop();
-    if (Verbosity() > 1)
-    {
-      _t_translate1->stop();
-      time2 = _t_translate1->get_accumulated_time();
+    if (Verbosity() >= 1){
+      cout << "#trk: " << _ntrack << " Seed fitting failed (ToPHGen) size:" << measurements.size()  <<endl;
     }
-    dt = time2 - time1;
-    if (_analyzing_mode == true)
-      _analyzing_ntuple->Fill(svtxtrack->get_pt(), kappa, d, phi, dzdl, z0, nhit, ml / nhit, rec, dt);
     return -1;
   }
 
@@ -1009,18 +1083,8 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   {
     _PHGenFitTracks.push_back(
         MapPHGenFitTrack::value_type(
-            PHGenFitTrkProp::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track));
+            TrackQuality(nhits, chi2, ndf, 0, nhits, 0, 0), track));
   }
-  if (Verbosity() > 1) _t_translate3->stop();
-  if (Verbosity() > 1)
-  {
-    _t_translate1->stop();
-    time2 = _t_translate1->get_accumulated_time();
-  }
-  dt = time2 - time1;
-  rec = 1;
-  if (_analyzing_mode == true)
-    _analyzing_ntuple->Fill(svtxtrack->get_pt(), kappa, d, phi, dzdl, z0, nhit, rec, dt);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1068,6 +1132,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
   
   for (unsigned int i = 0; i < clusterkeys.size(); ++i)
     {
+      if(clusterkeys[i]==0)continue;
       unsigned int layer = TrkrDefs::getLayer(clusterkeys[i]);
       layer_occupied[layer] = 1;
       if(layer == init_layer)
@@ -1173,7 +1238,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
     std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
     try
     {
-      state = std::unique_ptr<genfit::MeasuredStateOnPlane>(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
+      state.reset(track->extrapolateToCylinder(layer_r, TVector3(0, 0, 0),
                                                                                          TVector3(0, 0, 1), extrapolate_base_TP_id, direction));
       //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
       //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
@@ -1234,34 +1299,36 @@ int PHGenFitTrkProp::TrackPropPatRec(
     float phi_window = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
     float theta_window = _search_wins_theta[layer] * sqrt(cov[2][2]) / pos.Perp();
 
-    if (layer < _nlayers_maps)
+    if( is_maps_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_maps) phi_window = _max_search_win_phi_maps;
       if (phi_window < _min_search_win_phi_maps) phi_window = _min_search_win_phi_maps;
       if (theta_window > _max_search_win_theta_maps) theta_window = _max_search_win_theta_maps;
       if (theta_window < _min_search_win_theta_maps) theta_window = _min_search_win_theta_maps;
     }
-    else if (layer < _nlayers_maps + _nlayers_intt)
+    else if( is_intt_layer( layer ) )
     {
-      if (phi_window > _max_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _max_search_win_phi_intt[layer - _nlayers_maps];
-      if (phi_window < _min_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _min_search_win_phi_intt[layer - _nlayers_maps];
-      if (theta_window > _max_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _max_search_win_theta_intt[layer - _nlayers_maps];
-      if (theta_window < _min_search_win_theta_intt[layer - _nlayers_maps]) theta_window = _min_search_win_theta_intt[layer - _nlayers_maps];
+      const auto layer_intt = layer - _firstlayer_intt;
+      if (phi_window > _max_search_win_phi_intt[layer_intt]) phi_window = _max_search_win_phi_intt[layer_intt];
+      if (phi_window < _min_search_win_phi_intt[layer_intt]) phi_window = _min_search_win_phi_intt[layer_intt];
+      if (theta_window > _max_search_win_theta_intt[layer_intt]) theta_window = _max_search_win_theta_intt[layer_intt];
+      if (theta_window < _min_search_win_theta_intt[layer_intt]) theta_window = _min_search_win_theta_intt[layer_intt];
     }
-    else
+    else if( is_tpc_layer( layer ) )
     {
       if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
       if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
       if (theta_window > _max_search_win_theta_tpc) theta_window = _max_search_win_theta_tpc;
       if (theta_window < _min_search_win_theta_tpc) theta_window = _min_search_win_theta_tpc;
+    } 
+    else if( is_micromegas_layer( layer ) ) 
+    {
+      const auto layer_micromegas = layer - _firstlayer_micromegas;
+      if (phi_window > _max_search_win_phi_micromegas[layer_micromegas]) phi_window = _max_search_win_phi_micromegas[layer_micromegas];
+      if (phi_window < _min_search_win_phi_micromegas[layer_micromegas]) phi_window = _min_search_win_phi_micromegas[layer_micromegas];
+      if (theta_window > _max_search_win_theta_micromegas[layer_micromegas]) theta_window = _max_search_win_theta_micromegas[layer_micromegas];
+      if (theta_window < _min_search_win_theta_micromegas[layer_micromegas]) theta_window = _min_search_win_theta_micromegas[layer_micromegas];
     }
-
-    //FIXME optimize this
-    //		if(layer == _nlayers_maps + _nlayers_intt -1) {
-    //			phi_window = 0.02;
-    //			theta_window = 0.04;
-    //		}
-
 #endif
 
 #ifdef _DEBUG_
@@ -1296,7 +1363,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
         LogError("No cluster Found!\n");
         continue;
       }
-
+      
       PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
 
       if (meas)
@@ -1344,9 +1411,10 @@ int PHGenFitTrkProp::TrackPropPatRec(
         track_iter->first.nhits = tq.nhits + 1;
         track_iter->first.chi2 = tq.chi2 + iter->first;
         track_iter->first.ndf = tq.ndf + 2;
-        track_iter->first.ntpc = tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0);
-        track_iter->first.nmaps = tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0);
+        track_iter->first.nmicromegas = tq.nmicromegas + (is_micromegas_layer( layer ) ? 1 : 0);
+        track_iter->first.ntpc = tq.ntpc + (is_tpc_layer(layer) ? 1 : 0);
+        track_iter->first.nintt = tq.nintt + (is_intt_layer(layer) ? 1 : 0);
+        track_iter->first.nmaps = tq.nmaps + (is_maps_layer(layer) ? 1 : 0);
 
         track_iter->second = std::shared_ptr<PHGenFit::Track>(iter->second);
 
@@ -1393,14 +1461,15 @@ int PHGenFitTrkProp::TrackPropPatRec(
 	iter->second->set_vertex_id(ivert);
         _PHGenFitTracks.push_back(
             MapPHGenFitTrack::value_type(
-                PHGenFitTrkProp::TrackQuality(
+                TrackQuality(
                     tq.nhits + 1,
                     tq.chi2 + iter->first,
                     tq.ndf + 2,
-                    tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0),
-                    tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0)),
-                std::shared_ptr<PHGenFit::Track>(iter->second)));
+                    tq.nmicromegas + (is_micromegas_layer( layer ) ? 1 : 0),
+                    tq.ntpc + (is_tpc_layer(layer) ? 1 : 0),
+                    tq.nintt + (is_intt_layer(layer) ? 1 : 0),
+                    tq.nmaps + (is_maps_layer(layer) ? 1 : 0)),
+                    iter->second));
       }
 
 #ifdef _DEBUG_
@@ -1478,8 +1547,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
       int chip_index = MvtxDefs::getChipId(cluster_id);
       
       double ladder_location[3] = {0.0, 0.0, 0.0};
-      CylinderGeom_Mvtx* geom =
-	dynamic_cast<CylinderGeom_Mvtx*>(_geom_container_maps->GetLayerGeom(layer));
+      auto geom = dynamic_cast<CylinderGeom_Mvtx*>(_geom_container_maps->GetLayerGeom(layer));
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, 0,
 			       0, chip_index, ladder_location);
@@ -1489,8 +1557,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
     }
   else if(trkrid == TrkrDefs::inttId)
     {
-      CylinderGeomIntt* geom =
-	dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(layer));
+      auto geom = dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(layer));
       double hit_location[3] = {0.0, 0.0, 0.0};
       geom->find_segment_center(InttDefs::getLadderZId(cluster_id),
 				InttDefs::getLadderPhiId(cluster_id), hit_location);
@@ -1500,6 +1567,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
     }
   
   //double radius = sqrt(cluster->getPosition(0)*cluster->getPosition(0)  + cluster->getPosition(1)*cluster->getPosition(1));
+  
   PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 								cluster->getRPhiError(), cluster->getZError());
 
@@ -1737,17 +1805,26 @@ unsigned int PHGenFitTrkProp::encode_cluster_index(const unsigned int layer,
 
 int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
 {
-  PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
-      PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  auto micromegasgeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
+  auto cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto laddergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  auto mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
   map<float, int> radius_layer_map;
 
   _radii_all.assign(_nlayers_all, 0.0);
   _layer_ilayer_map_all.clear();
+
+  // micromegas
+  if (micromegasgeos)
+  {
+    const auto range = micromegasgeos->get_begin_end();
+    for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
+    { radius_layer_map.insert( std::make_pair(layeriter->second->get_radius(), layeriter->second->get_layer())); }
+  }
+
+  // tpc
   if (cellgeos)
   {
     PHG4CylinderCellGeomContainer::ConstRange layerrange =
@@ -1762,6 +1839,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // intt
   if (laddergeos)
   {
     PHG4CylinderGeomContainer::ConstRange layerrange =
@@ -1776,6 +1854,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // mvtx
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange layerrange =
@@ -1797,6 +1876,18 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
   }
 
   // now we extract the information from the cellgeos first
+  // micromegas
+  if (micromegasgeos)
+  {
+    const auto range = micromegasgeos->get_begin_end();
+    for( auto iter = range.first; iter != range.second; iter++)
+    {
+      auto geo = iter->second;
+      _radii_all[_layer_ilayer_map_all[geo->get_layer()]] = geo->get_radius() + 0.5 * geo->get_thickness();
+    }
+  }
+
+  // tpc
   if (cellgeos)
   {
     PHG4CylinderCellGeomContainer::ConstRange begin_end =
@@ -1811,6 +1902,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // intt
   if (laddergeos)
   {
     PHG4CylinderGeomContainer::ConstRange begin_end =
@@ -1825,6 +1917,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
     }
   }
 
+  // mvtx
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange begin_end =

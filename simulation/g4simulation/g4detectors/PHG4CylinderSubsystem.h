@@ -6,7 +6,7 @@
 #include "PHG4DetectorSubsystem.h"
 
 #if !defined(__CINT__) || defined(__CLING__)
-#include <array>   // for array
+#include <array>  // for array
 #endif
 
 #include <string>  // for string
@@ -28,8 +28,8 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 
   //! init runwise stuff
   /*!
-  creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
-  reates the stepping action and place it on the node tree, under "ACTIONS" node
+  creates the m_Detector object
+  creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode*);
@@ -56,10 +56,10 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
     m_ColorArray[2] = blue;
     m_ColorArray[3] = alpha;
   }
-// this method is used to check if it can be used as mothervolume
-// Subsystems which can be mothervolume need to implement this 
-// and return true
-  virtual bool CanBeMotherSubsystem() const {return true;}
+  // this method is used to check if it can be used as mothervolume
+  // Subsystems which can be mothervolume need to implement this
+  // and return true
+  virtual bool CanBeMotherSubsystem() const { return true; }
 
  private:
   void SetDefaultParameters();

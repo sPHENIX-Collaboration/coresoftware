@@ -23,6 +23,8 @@ libg4eval_la_LIBADD = \
   -ltrackbase_historic_io \
   -ltrack_io \
   -ltpc_io \
+  -lmvtx_io \
+  -lintt_io \
   -lphg4hit
 
 pkginclude_HEADERS = \
@@ -41,7 +43,6 @@ pkginclude_HEADERS = \
   PHG4DSTReader.h \
   SvtxEvalStack.h \
   SvtxEvaluator.h \
-  TrkrEvaluator.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
@@ -67,7 +68,6 @@ if ! MAKEROOT6
   SvtxTrackEval_Dict.cc \
   SvtxVertexEval_Dict.cc \
   SvtxEvaluator_Dict.cc \
-  TrkrEvaluator_Dict.cc \
   MomentumEvaluator_Dict.cc \
   PHG4DstCompressReco_Dict.cc
 endif
@@ -92,7 +92,6 @@ libg4eval_la_SOURCES = \
   SvtxTrackEval.cc \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
-  TrkrEvaluator.cc \
   MomentumEvaluator.cc \
   PHG4DstCompressReco.cc 
 

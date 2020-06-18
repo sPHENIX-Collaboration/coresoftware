@@ -207,7 +207,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 
   if (_do_eval)
   {
-    if (Verbosity() >= 1)
+    if (Verbosity() > 1)
       cout << PHWHERE << " Openning file: " << _eval_outname << endl;
     PHTFileServer::get().open(_eval_outname, "RECREATE");
     init_eval_tree();
@@ -228,7 +228,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 {
   _event++;
-
+  
   if (Verbosity() > 1)
     std::cout << PHWHERE << "Events processed: " << _event << std::endl;
   //	if (_event % 1000 == 0)
@@ -241,40 +241,43 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   //! stands for Refit_GenFit_Tracks
   vector<genfit::Track*> rf_gf_tracks;
   vector<std::shared_ptr<PHGenFit::Track> > rf_phgf_tracks;
-
+  
   map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
-
+  
   if (_trackmap_refit)
     _trackmap_refit->empty();
-
+  
   // _trackmap is SvtxTrackMap from the node tree
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
-  {
-    SvtxTrack* svtx_track = iter->second;
-    if(Verbosity() > 10)
-      {
-  cout << "   process SVTXTrack " << iter->first << endl;
-  svtx_track->identify();
+    {
+      SvtxTrack* svtx_track = iter->second;
+      if(Verbosity() > 10){
+	cout << "   process SVTXTrack " << iter->first << endl;
+	svtx_track->identify();
       }
-    if (!svtx_track)
-      continue;
-    if (!(svtx_track->get_pt() > _fit_min_pT))
-      continue;
+      if (!svtx_track)
+	continue;
+      if (!(svtx_track->get_pt() > _fit_min_pT))
+	continue;
 
-    // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
-    //! rf_phgf_track stands for Refit_PHGenFit_Track
-    std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
-    if (rf_phgf_track)
-      {
-  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
-  rf_phgf_tracks.push_back(rf_phgf_track);
-  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
+      // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
+      //! rf_phgf_track stands for Refit_PHGenFit_Track
+      std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+      if (rf_phgf_track)
+	{
+	  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
+	  rf_phgf_tracks.push_back(rf_phgf_track);
+	  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
+	    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+	  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
+	}
+      else{
+	if(Verbosity() >= 1) 
+	  cout << "failed refitting input track# " << iter->first << endl;
       }
-
-  }
+      
+    }
 
   /*
    * add tracks to event display
@@ -293,9 +296,17 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   //! find vertices using final tracks
   std::vector<genfit::GFRaveVertex*> rave_vertices;
+
   if (rf_gf_tracks.size() >= 2)
   {
-    if(Verbosity() > 10) cout << "Call Rave vertex finder" << endl;
+    if(Verbosity() > 10)
+      {cout << "Call Rave vertex finder" << endl;
+  cout << " rf_gf_tracks size " << rf_gf_tracks.size() << endl;
+  for(long unsigned int i=0;i<rf_gf_tracks.size();++i)
+    {
+      cout << "   track " << i << " num points " << rf_gf_tracks[i]->getNumPointsWithMeasurement() << endl;
+    }
+      }
     try
     {
       _vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
@@ -365,6 +376,9 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
         auto key = iter->first;
         ++iter;
         _trackmap->erase(key);
+        continue;
+      } else {
+        ++iter;
         continue;
       }
   }
@@ -497,7 +511,7 @@ int PHGenFitTrkFitter::End(PHCompositeNode* topNode)
 {
   if (_do_eval)
   {
-    if (Verbosity() >= 1)
+    if (Verbosity() > 1)
       cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
     PHTFileServer::get().cd(_eval_outname);
     _eval_tree->Write();
@@ -941,8 +955,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
   for (auto iter = intrack->begin_cluster_keys();
-       iter != intrack->end_cluster_keys(); ++iter)
-  {
+       iter != intrack->end_cluster_keys(); ++iter){
     TrkrDefs::cluskey cluster_key = *iter;
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
     float x = cluster->getPosition(0);
@@ -1066,16 +1079,19 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
    *  Fit the track
    *  ret code 0 means 0 error or good status
    */
+
   if (_fitter->processTrack(track.get(), false) != 0)
   {
     if (Verbosity() >= 1)
       {
-  LogWarning("Track fitting failed");
-  cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
-       << " mom.X " << track->get_mom().X()
-       << " mom.Y " << track->get_mom().Y()
-       << " mom.Z " << track->get_mom().Z()
-       << endl;
+	LogWarning("Track fitting failed");
+	/*
+	cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
+	     << " mom.X " << track->get_mom().X()
+	     << " mom.Y " << track->get_mom().Y()
+	     << " mom.Z " << track->get_mom().Z()
+	     << endl;
+	*/
       }
     //delete track;
     return nullptr;
@@ -1478,12 +1494,12 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     }
     catch (...)
     {
-      if (Verbosity() > 1)
+      if (Verbosity() >= 1)
         LogWarning("Exrapolation failed!");
     }
     if (!gf_state)
     {
-      if (Verbosity() > 1)
+      if (Verbosity() >= 1)
         LogWarning("Exrapolation failed!");
       continue;
     }

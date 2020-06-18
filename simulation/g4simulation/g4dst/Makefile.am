@@ -20,6 +20,7 @@ libg4dst_la_LDFLAGS = \
   -lintt_io \
   -ljetbackground_io \
   -lmvtx_io \
+  -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \
   -lphgeom_io \
