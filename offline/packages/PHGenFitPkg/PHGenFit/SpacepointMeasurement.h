@@ -24,7 +24,12 @@ class SpacepointMeasurement : public Measurement
 	 * \param resolution standard dev for diagnal elements of the cov, other elements are zero
 	 */
   SpacepointMeasurement(const TVector3& pos, const double resolution);
-
+  /*!
+	 * Ctor
+	 * \param pos measurement position
+	 * \param resolution standard dev for each diagnal element of the cov, other elements are zero
+	 */
+  SpacepointMeasurement(const TVector3& pos, const TVector3& resolution);
   /*!
 	 * Ctor
 	 * \param pos measurement position

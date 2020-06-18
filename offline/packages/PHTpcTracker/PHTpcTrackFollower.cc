@@ -1,3 +1,4 @@
+
 /*!
  *  \file       PHTpcTrackFollower.cc
  *  \brief      
@@ -175,7 +176,6 @@ PHGenFit2::Track* PHTpcTrackFollower::propagateTrack(kdfinder::TrackCandidate<do
     LOG_DEBUG("tracking.PHTpcTrackFollower.propagateTrack") << "Found inconsistent track, skipping";
     return nullptr;
   }
-
   // ----- make initial fit of the track -----
   try
   {
