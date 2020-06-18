@@ -51,6 +51,7 @@
 #include <Geant4/G4ClassicalRK4.hh>
 #include <Geant4/G4CashKarpRKF45.hh>
 #include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Types.hh>                         // for G4double, G4int
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ios.hh>                     // for G4cout, G4endl
 

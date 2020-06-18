@@ -18,6 +18,7 @@
 #include <Geant4/G4PrimaryParticle.hh>
 #include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>                     // for G4ThreeVector
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4TrackingManager.hh>
 #include <Geant4/G4TrackVector.hh>               // for G4TrackVector

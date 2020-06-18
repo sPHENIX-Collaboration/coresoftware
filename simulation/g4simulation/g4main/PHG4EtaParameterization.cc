@@ -3,6 +3,7 @@
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>                    // for G4int
 
 #include <algorithm>                     // for copy
 #include <cmath>

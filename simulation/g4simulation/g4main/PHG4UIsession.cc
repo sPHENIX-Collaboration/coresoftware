@@ -1,7 +1,12 @@
 #include "PHG4UIsession.h"
  
+#include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4Types.hh>   // for G4int
+ 
 #include <iostream>  // for flush, basic_ostream, ostream, cerr, cout
 #include <string>    // for operator<<
+
+class G4UIsession;
 
 PHG4UIsession::PHG4UIsession()
   : verbosity(0) {
