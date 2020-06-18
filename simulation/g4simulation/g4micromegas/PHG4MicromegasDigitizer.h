@@ -45,7 +45,7 @@ class PHG4MicromegasDigitizer : public SubsysReco, public PHParameterInterface
   double m_enc = 670;
   
   //! pedestal (electrons)
-  double m_pedestal = 5000;
+  double m_pedestal = 50000;
   
   //! conversion factor mv/fc
   double m_volts_per_charge = 20;
