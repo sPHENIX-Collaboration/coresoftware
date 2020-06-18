@@ -59,6 +59,9 @@ int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
     << " m_volts_per_charge: " << m_volts_per_charge << " mV/fC\n"
     << std::endl;
 
+  // threshold is effectively applied on top of pedestal
+  m_adc_threshold += m_pedestal;
+
   /*
    * Factor that convertes charge in a voltage in each z bin
    * the scale up factor of 2.4 is meant to account for shaping time (80ns)
