@@ -2,10 +2,10 @@
 #define TRACKRECO_PHCASEEDING_H
 
 /*!
- *  \file CaSeeding.h
- *  \brief Progressive pattern recgnition based on GenFit Kalman filter
- *  \detail using Alan Dion's HelixHough for seeding, GenFit Kalman filter to do track propagation
- *  \author Christof Roland & Haiwang Yu
+ *  \file PHCASeeding.cc
+ *  \brief Track seeding using ALICE-style "cellular automaton" (CA) algorithm
+ *  \detail 
+ *  \author Michael Peters & Christof Roland
  */
 
 //begin
@@ -67,7 +67,11 @@ namespace bgi = boost::geometry::index;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
+typedef std::array<pointKey,2> keylink;
+typedef std::vector<TrkrDefs::cluskey> keylist;
 #endif
+
+enum skip_layers {on, off};
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -122,6 +126,13 @@ class PHCASeeding : public PHTrackSeeding
   double phidiff(double phi1, double phi2);
   void FillTree();
 #if !defined(__CINT__) || defined(__CLING__)
+  void FillTree(std::vector<pointKey> &clusters);
+  std::vector<pointKey> FindLinkedClusters(TNtuple* NT, PHTimer* t_seed);
+  int FindSeedsLayerSkip(TNtuple* NT, PHTimer* t_seed);
+  std::pair<std::vector<std::set<keylink>>> CreateLinks(vector<pointKey> &clusters, PHTimer* t_seed, int mode = skip_layers::off);
+  std::vector<std::vector<keylink>> FindBiLinks(std::vector<std::set<keylink>> &belowLinks, std::vector<std::set<keylink>> &aboveLinks, PHTimer* t_seed);
+  std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> &bidirectionalLinks, PHTimer* t_seed);
+  int ALICEKalmanFilter(std::vector<keylist> &trackSeedKeyLists, TNtuple* NT, PHTimer* t_seed);
   double pointKeyToTuple(pointKey *pK);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
 #endif
@@ -147,6 +158,7 @@ class PHCASeeding : public PHTrackSeeding
   float _Bz;
   float _phi_scale;
   float _z_scale;
+  float cosTheta_limit;
   //std::vector<float> _radii_all;
 
 #if !defined(__CINT__) || defined(__CLING__)
