@@ -125,7 +125,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     TrkrHitSet* hitset = hitset_it->second;
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
     const auto layer = TrkrDefs::getLayer(hitsetkey);
-    const auto tile = MicromegasDefs::getTileId(hitsetkey);
+    const auto tileid = MicromegasDefs::getTileId(hitsetkey);
 
     // get geometry object
     const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
@@ -138,7 +138,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
     const double pitch = layergeom->get_pitch();
-    const double strip_length = layergeom->get_strip_length( tile );
+    const double strip_length = layergeom->get_strip_length( tileid );
 
     // keep a list of ranges corresponding to each cluster
     using range_list_t = std::vector<TrkrHitSet::ConstRange>;
@@ -217,7 +217,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const auto strip = MicromegasDefs::getStrip( hitkey );
 
         // get strip world coordinate
-        world_coordinates += layergeom->get_world_coordinate( tile, strip )*hit->getAdc();
+        world_coordinates += layergeom->get_world_coordinate( tileid, strip )*hit->getAdc();
         adc_sum += hit->getAdc();
 
       }

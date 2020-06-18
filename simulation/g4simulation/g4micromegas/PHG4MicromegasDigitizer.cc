@@ -87,10 +87,8 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
   {
 
-    // get key and layer
+    // get key 
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
-    const int layer = TrkrDefs::getLayer(hitsetkey);
-    if (Verbosity() > 1) std::cout << "PHG4MicromegasDigitizer::process_event - hitsetkey: " << hitsetkey << " layer:" << layer << std::endl;
 
     // get all of the hits from this hitset
     TrkrHitSet* hitset = hitset_it->second;
