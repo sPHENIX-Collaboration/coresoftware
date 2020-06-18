@@ -2,28 +2,28 @@
 
 #include "PHPy8GenTrigger.h"
 
-#include <phhepmc/PHGenIntegral.h>                 // for PHGenIntegral
+#include <phhepmc/PHGenIntegral.h>  // for PHGenIntegral
 #include <phhepmc/PHGenIntegralv1.h>
-#include <phhepmc/PHHepMCGenHelper.h>              // for PHHepMCGenHelper
+#include <phhepmc/PHHepMCGenHelper.h>  // for PHHepMCGenHelper
 
-#include <fun4all/Fun4AllBase.h>                   // for Fun4AllBase::VERBO...
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBO...
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                    // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                          // for PHNode
-#include <phool/PHNodeIterator.h>                  // for PHNodeIterator
-#include <phool/PHObject.h>                        // for PHObject
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                           // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/Units.h>                           // for GEV, MM
+#include <HepMC/Units.h>  // for GEV, MM
 
-#include <Pythia8/Event.h>                         // for Event
-#include <Pythia8/Info.h>                          // for Info
+#include <Pythia8/Event.h>  // for Event
+#include <Pythia8/Info.h>   // for Info
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
 
@@ -31,7 +31,7 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <iostream>                                // for operator<<, endl
+#include <iostream>  // for operator<<, endl
 
 class PHHepMCGenEvent;
 
@@ -104,7 +104,7 @@ int PHPythia8::Init(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: seed " << seed << " is not valid" << endl;
     exit(1);
   }
-// print out seed so we can make this is reproducible
+  // print out seed so we can make this is reproducible
   cout << "PHPythia8 random seed: " << seed << endl;
 
   m_Pythia8->init();
@@ -279,25 +279,25 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode)
   }
   if (m_SaveIntegratedLuminosityFlag)
   {
-  m_IntegralNode = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
-  if (!m_IntegralNode)
-  {
-    m_IntegralNode = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(m_HepMC_Helper.get_embedding_id()));
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(m_IntegralNode, "PHGenIntegral", "PHObject");
-    sumNode->addNode(newmapnode);
-  }
-  else
-  {
-    cout << "PHPythia8::create_node_tree - Fatal Error - "
-         << "RUN/PHGenIntegral node already exist. "
-         << "It is messy to overwrite integrated luminosities. Please turn off this function in the macro with " << endl;
-    cout << "                              PHPythia8::save_integrated_luminosity(false);" << endl;
-    cout << "The current RUN/PHGenIntegral node is ";
-    m_IntegralNode->identify(cout);
+    m_IntegralNode = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
+    if (!m_IntegralNode)
+    {
+      m_IntegralNode = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(m_HepMC_Helper.get_embedding_id()));
+      PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(m_IntegralNode, "PHGenIntegral", "PHObject");
+      sumNode->addNode(newmapnode);
+    }
+    else
+    {
+      cout << "PHPythia8::create_node_tree - Fatal Error - "
+           << "RUN/PHGenIntegral node already exist. "
+           << "It is messy to overwrite integrated luminosities. Please turn off this function in the macro with " << endl;
+      cout << "                              PHPythia8::save_integrated_luminosity(false);" << endl;
+      cout << "The current RUN/PHGenIntegral node is ";
+      m_IntegralNode->identify(cout);
 
-    exit(EXIT_FAILURE);
-  }
-  assert(m_IntegralNode);
+      exit(EXIT_FAILURE);
+    }
+    assert(m_IntegralNode);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
