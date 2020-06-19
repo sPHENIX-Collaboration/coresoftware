@@ -50,9 +50,11 @@
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
+  , m_nBadFits(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
   , m_actsProtoTracks(nullptr)
+  , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
 {
@@ -130,7 +132,8 @@ int PHActsTrkProp::Process()
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)
     {
-      const SvtxTrack *track = trackIter->second;
+      const unsigned int trackKey = trackIter->first;
+      SvtxTrack *track = trackIter->second;
       
       if (!track)
 	continue;
@@ -175,29 +178,15 @@ int PHActsTrkProp::Process()
 	  const auto& fitOutput = result.value();
 	  auto parameterMap = fitOutput.fittedParameters;
 
-	  /// how to get the associated source links from fit result?
-	  std::vector<size_t> allSourceLinks = fitOutput.sourcelinkCandidateIndices;  
-	  std::vector<SourceLink> trackSourceLinks;
-	      
-	  for(size_t i = 0; i < allSourceLinks.size(); ++i)
-	    {
-	      trackSourceLinks.push_back(sourceLinks.at(allSourceLinks.at(i)));
-	    }
+	  Trajectory traj(fitOutput.fittedStates,
+			  fitOutput.trackTips,
+			  fitOutput.fittedParameters);
 	
+	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
+				   (trackKey, traj));
+
 	  for(auto element : parameterMap)
 	    {
-	      const auto& params = element.second;
-	      if(Verbosity() > 10)
-		{
-		  std::cout << "Fitted parameters for track finder" << std::endl;
-		  std::cout << "Position : " << params.position().transpose()
-			    << std::endl;
-		  std::cout << "Momentum : " << params.momentum().transpose()
-			    << std::endl;
-
-		}
-
-
 	      /// Get the finder results into a FW::TrackParameters 
 	      const FW::TrackParameters trackSeed(element.second.covariance(),
 						  element.second.position(),
@@ -205,13 +194,38 @@ int PHActsTrkProp::Process()
 						  element.second.charge(),
 						  element.second.time());
 	      
-	      ActsTrack actsProtoTrack(trackSeed, trackSourceLinks);
-	      m_actsProtoTracks->push_back(actsProtoTrack);
+	      /// Need to update acts proto tracks? No if KF is called in conjunction
+	      /// with CKF finder
+	      //ActsTrack actsProtoTrack(trackSeed, trackSourceLinks);
+	      //m_actsProtoTracks->push_back(actsProtoTrack);
 	    }
-	  
 	}
+      else
+	{
+	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
+				   (trackKey, FW::TrkrClusterMultiTrajectory()));
+
+	  /// Track prop failed - set to arbitrary values
+	  track->set_x(-9999.);
+	  track->set_y(-9999.);
+	  track->set_z(-9999.);
+	  track->set_px(-9999.);
+	  track->set_py(-9999.);
+	  track->set_pz(-9999.);
+	  
+	  m_nBadFits++;
+	}
+	
     }
 
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
+{
+  m_actsFitResults->clear();
+  m_actsProtoTracks->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -256,6 +270,17 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
         new PHDataNode<std::vector<ActsTrack>>(m_actsProtoTracks, "ActsProtoTracks");
       
       svtxNode->addNode(protoTrackNode);
+
+    }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsCKFResults");
+  if(!m_actsFitResults)
+    {
+      m_actsFitResults = new std::map<const unsigned int, Trajectory>;
+      PHDataNode<std::map<const unsigned int, Trajectory>> *fitNode = 
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_actsFitResults, "ActsCKFResults");
+      
+      svtxNode->addNode(fitNode);
 
     }
 

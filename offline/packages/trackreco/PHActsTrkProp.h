@@ -18,6 +18,7 @@
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
@@ -48,6 +49,8 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 using SourceLinkSelector = Acts::CKFSourceLinkSelector;
 using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
+using Trajectory = FW::TrkrClusterMultiTrajectory;
+
 class PHActsTrkProp : public PHTrackPropagating
 {
  public:
@@ -66,9 +69,15 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Process each event by calling the fitter
   int Process();
 
+  /// Reset maps event by event
+  int ResetEvent(PHCompositeNode *topNode);
+
  private:
   /// Event counter
   int m_event;
+  
+  /// Num bad fit counter
+  int m_nBadFits;
 
   /// Get all the nodes
   int getNodes(PHCompositeNode *topNode);
@@ -83,6 +92,9 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Acts proto tracks to be put on the node tree by this module
   std::vector<ActsTrack> *m_actsProtoTracks;
+  
+  /// Acts MultiTrajectories for ActsEvaluator
+  std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   /// Map of cluster keys to hit ids, for debugging statements
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
@@ -97,6 +109,7 @@ class PHActsTrkProp : public PHTrackPropagating
  
   /// Configuration containing the finding function instance
   FW::TrkrClusterFindingAlgorithm::Config findCfg;
+
 
 };
 
