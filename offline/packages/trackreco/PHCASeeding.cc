@@ -876,9 +876,11 @@ int PHCASeeding::FindSeedsLayerSkip(double cosTheta_limit, TNtuple* NT, PHTimer 
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,_max_sin_phi))
       {
-        LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << endl);
+	if (Verbosity() >= 1)
+	  LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << endl);
         break;
       }
+      
       x = nextCluster_x;
       y = nextCluster_y;
       #if defined(_DEBUG_)

@@ -455,6 +455,11 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _primary_pid_guess = primaryPidGuess;
   }
 
+  void set_beam_constraint(bool beamConstraint)
+  {
+    _use_beam = beamConstraint;
+  }
+
  private:
 
   //*@name utility methods
@@ -668,6 +673,8 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   PHCompositeNode* _topNode = nullptr;
   int _ntrack = 0;
+  bool _use_beam;
+
 };
 
 #endif

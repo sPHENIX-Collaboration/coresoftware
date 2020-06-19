@@ -3,8 +3,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VPhysicalVolume.hh>
 
-using namespace std;
-
 int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume* physvol)
 {
   int iret = 0;
