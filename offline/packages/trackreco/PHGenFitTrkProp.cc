@@ -49,6 +49,7 @@
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/Track.h>
+#include <phgenfit/SpacepointMeasurement.h>
 
 #include <phgenfit/Fitter.h>
 #include <phgenfit/Measurement.h>                       // for Measurement
@@ -116,7 +117,10 @@ PHGenFitTrkProp::PHGenFitTrkProp(
   , _firstlayer_intt(_firstlayer_maps + _nlayers_maps)
   , _firstlayer_tpc(_firstlayer_intt + _nlayers_intt)
   , _firstlayer_micromegas(_firstlayer_tpc + _nlayers_tpc)
-{}
+  , _use_beam(false)
+{
+  _event = 0;
+}
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
 {
@@ -499,20 +503,31 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	  std::vector<TrkrDefs::cluskey> clusterkeys = gftrk_iter->second->get_cluster_keys();
 	  
 	  unsigned int init_layer = UINT_MAX;
+	  unsigned int min_layer = UINT_MAX;
+	  unsigned int max_layer = 0;
 	  
+	  for (auto iter = clusterkeys.begin();
+	       iter != clusterkeys.end(); ++iter){
+	    TrkrDefs::cluskey cluster_key = *iter;
+	    if(cluster_key!=0){
+	      unsigned int layer = TrkrDefs::getLayer(cluster_key);
+	      if(layer < min_layer) min_layer = layer;
+	      if(layer > max_layer) max_layer = layer;
+	    }
+	  }
 	  if (!is_splitting_track)
 	    {
 	      if (_init_direction == 1)
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.front())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.front());
+		  init_layer = min_layer;//TrkrDefs::getLayer(clusterkeys.front());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, true);
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, false);
 		}
 	      else
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.back())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.back());
+		  init_layer = max_layer;//TrkrDefs::getLayer(clusterkeys.back());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, true);
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, false);
 		}
@@ -523,13 +538,13 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	      if (_init_direction == 1)
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.front())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.front());
+		  init_layer = min_layer;//TrkrDefs::getLayer(clusterkeys.front());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, _nlayers_all, false);
 		}
 	      else
 		{
 		  //init_layer = _cluster_map->get(clusterkeys.back())->get_layer();
-		  init_layer = TrkrDefs::getLayer(clusterkeys.back());
+		  init_layer = max_layer;//TrkrDefs::getLayer(clusterkeys.back());
 		  TrackPropPatRec(ivert, gftrk_iter, init_layer, 0, false);
 		}
 	    }
@@ -711,6 +726,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   
   for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
     {
+      if(cluster_key<=0)continue;
       if(Verbosity() > 10) cout << " track id: " << phtrk_iter->first <<  " adding clusterkey " << cluster_key << endl;
       _gftrk_hitkey_map.insert(std::make_pair(cluster_key, phtrk_iter->first));
       track->insert_cluster_key(cluster_key);
@@ -939,23 +955,27 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
   // clean up working array for each event
   _PHGenFitTracks.clear();
 
-  TVector3 seed_mom(1000, 0, 0);
-  TVector3 seed_pos(0, 0, 0);
-  //  const float blowup_factor = 1.;
-  TMatrixDSym seed_cov(6);
-  for (int i = 0; i < 6; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      seed_cov[i][j] = 100.;
-      //      seed_cov[i][j] = blowup_factor * svtxtrack->get_error(i, j);
-    }
-  }
+  if(Verbosity() > 10) cout << PHWHERE << "Converting SvtxTrack to PHGenFit track: track ID " << svtxtrack->get_id()
+       << " track z " << svtxtrack->get_z()
+       << " vertex ID " << svtxtrack->get_vertex_id() 
+       << " vertex z " << _vertex[svtxtrack->get_vertex_id()][2]
+       << endl;
+  //svtxtrack->identify();
 
+  std::vector<PHGenFit::Measurement*> measurements;
+
+  if(_use_beam){
+    TVector3 posvtx(0.0, 0.0,0.0);
+    TVector3 resvtx(0.015, 0.015,30.0);
+    PHGenFit::SpacepointMeasurement* beam = new PHGenFit::SpacepointMeasurement(posvtx, resvtx);
+    beam->set_cluster_key(0);
+    measurements.push_back(beam);
+  }
 
   //Sort hits in r 
   //  std::multimap<float, TrkrDefs::cluskey> m_r_clusterID;
   std::map<float, TrkrDefs::cluskey> m_r_clusterID;
+
   for (auto hit_iter = svtxtrack->begin_cluster_keys();
        hit_iter != svtxtrack->end_cluster_keys(); ++hit_iter)
   {
@@ -973,40 +993,75 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
     }
   }
 
-  // Create measurements
-  std::vector<PHGenFit::Measurement*> measurements;
+  /*
+  if (_vertex_map)
+  {
+    TVector3 v(_vertex[0], _vertex[1], _vertex[2]);
+    TMatrixDSym cov(3);
+    cov.Zero();
+    cov(0, 0) = _vertex_error[0] * _vertex_error[0];
+    cov(1, 1) = _vertex_error[1] * _vertex_error[1];
+    cov(2, 2) = _vertex_error[2] * _vertex_error[2];
+    PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(v, cov);
+    //FIXME re-use the first cluster id
+    //  TrkrDefs::cluskey id = m_r_clusterID.begin()->second;
+    //    meas->set_cluster_key(id);
+    meas->set_cluster_key(0);
+    measurements.push_back(meas);
+  }
+  */
+  TrkrDefs::cluskey last_cluster_key = 0;
+
   for (auto iter = m_r_clusterID.begin();
        iter != m_r_clusterID.end();
        ++iter)
   {
     TrkrDefs::cluskey cluster_key = iter->second;
-
     TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
     if (!cluster){
       LogError("No cluster Found!\n");
       continue;
     }
     //    const int layer = TrkrDefs::getLayer(cluster_key);
+    last_cluster_key = cluster_key;
     PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
-    TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
-    seed_mom.SetPhi(pos.Phi());
-    seed_mom.SetTheta(pos.Theta());
-    /*
-    cout << "Add meas layer " << layer << " cluskey " << cluster_key
-	 << endl
-	 << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-	 << " RPhiErr " << cluster->getRPhiError()
-	 << " ZErr " << cluster->getZError()
-	 << endl;
-    */
     if (meas){
       measurements.push_back(meas);
+    }
+  }
+
+  TVector3 seed_pos;
+  TVector3 seed_mom;
+  const float blowup_factor = 100.;
+  TMatrixDSym seed_cov(6);
+  
+  if(svtxtrack->get_py()==0&&svtxtrack->get_pz()==0){
+    TrkrCluster *last_cluster = _cluster_map->findCluster(last_cluster_key);
+    TVector3 pos(last_cluster->getPosition(0), last_cluster->getPosition(1), last_cluster->getPosition(2));
+    seed_mom.SetXYZ(100,0,0);
+    seed_mom.SetPhi(pos.Phi());
+    seed_mom.SetTheta(pos.Theta());
+    //    seed_mom.SetPtThetaPhi(pos.Perp(),pos.Theta(),pos.Phi());
+    for (int i = 0; i < 6; i++){
+      for (int j = 0; j < 6; j++){
+	seed_cov[i][j] = 100.;
+      }
+    }
+  }else{
+    seed_pos.SetXYZ(svtxtrack->get_x(),svtxtrack->get_y(),svtxtrack->get_z());
+    seed_mom.SetXYZ(svtxtrack->get_px(),svtxtrack->get_py(),svtxtrack->get_pz());
+    
+    for (int i = 0; i < 6; i++){
+      for (int j = 0; j < 6; j++){
+	seed_cov[i][j] = blowup_factor * svtxtrack->get_error(i, j);
+      }
     }
   }
 
   genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
   std::shared_ptr<PHGenFit::Track> track(
       new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+
 
   track->addMeasurements(measurements);
   if (Verbosity() >= 1)
@@ -1077,6 +1132,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
   
   for (unsigned int i = 0; i < clusterkeys.size(); ++i)
     {
+      if(clusterkeys[i]==0)continue;
       unsigned int layer = TrkrDefs::getLayer(clusterkeys[i]);
       layer_occupied[layer] = 1;
       if(layer == init_layer)
