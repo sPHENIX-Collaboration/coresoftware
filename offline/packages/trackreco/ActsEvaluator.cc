@@ -76,6 +76,19 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
 
   m_svtxEvalStack->next_event(topNode);
 
+  evaluateTrackFits(topNode);
+
+  m_eventNr++;
+
+  if (Verbosity() > 1)
+    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
+{
+
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
   std::map<const unsigned int, Trajectory>::iterator trackIter;
@@ -130,13 +143,9 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     ++iTrack;
   }
 
-  m_eventNr++;
-
-  if (Verbosity() > 1)
-    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return;
 }
+
 
 int ActsEvaluator::End(PHCompositeNode *topNode)
 {

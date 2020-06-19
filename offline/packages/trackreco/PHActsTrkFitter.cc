@@ -262,7 +262,7 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
     {
       ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
       Acts::BoundSymMatrix rotatedCov = 
-	rotater->rotateActsCovToSvtxTrack(fitOutput);
+	rotater->rotateActsCovToSvtxTrack(fitOutput.fittedParameters.value());
       
       for(int i = 0; i < 6; i++)
 	{

@@ -58,6 +58,9 @@ class ActsEvaluator : public SubsysReco
 
  private:
   int getNodes(PHCompositeNode *topNode);
+  
+  void evaluateTrackFits(PHCompositeNode *topNode);
+
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
   void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);

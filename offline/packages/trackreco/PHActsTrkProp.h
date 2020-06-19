@@ -49,6 +49,7 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 using SourceLinkSelector = Acts::CKFSourceLinkSelector;
 using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
+using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
 
 class PHActsTrkProp : public PHTrackPropagating
@@ -85,13 +86,12 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
+  void updateSvtxTrackMap();
+
   ActsTrackingGeometry *m_tGeometry;
 
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;
-
-  /// Acts proto tracks to be put on the node tree by this module
-  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
   
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;

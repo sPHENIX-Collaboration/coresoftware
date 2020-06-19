@@ -16,6 +16,7 @@
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <Acts/EventData/ChargePolicy.hpp>
@@ -31,7 +32,7 @@
 #include <Acts/Utilities/Helpers.hpp>
 #include <Acts/Utilities/Units.hpp>
 #include <Acts/TrackFinder/CombinatorialKalmanFilter.hpp>
-
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/Plugins/BField/ScalableBField.hpp>
@@ -53,7 +54,6 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_nBadFits(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
-  , m_actsProtoTracks(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
@@ -175,11 +175,12 @@ int PHActsTrkProp::Process()
 		&(*pSurface));
       
       /// Run the CKF for all source links and the constructed track seed
+      /// CKF runs both track finder and KF track fitter
       auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
       
       if(result.ok())
 	{
-	  const auto& fitOutput = result.value();
+	  const CKFFitResult& fitOutput = result.value();
 	  auto parameterMap = fitOutput.fittedParameters;
 
 	  Trajectory traj(fitOutput.fittedStates,
@@ -189,20 +190,6 @@ int PHActsTrkProp::Process()
 	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				   (trackKey, traj));
 
-	  for(auto element : parameterMap)
-	    {
-	      /// Get the finder results into a FW::TrackParameters 
-	      const FW::TrackParameters trackSeed(element.second.covariance(),
-						  element.second.position(),
-						  element.second.momentum(),
-						  element.second.charge(),
-						  element.second.time());
-	      
-	      /// Need to update acts proto tracks? No if KF is called in conjunction
-	      /// with CKF finder
-	      //ActsTrack actsProtoTrack(trackSeed, trackSourceLinks);
-	      //m_actsProtoTracks->push_back(actsProtoTrack);
-	    }
 	}
       else
 	{
@@ -222,6 +209,9 @@ int PHActsTrkProp::Process()
 	
     }
 
+  /// Update the SvtxTrackMap by wiping it clean and adding the tracks from the CKF
+  updateSvtxTrackMap();
+
   if(Verbosity() > 1)
     std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
 
@@ -232,7 +222,6 @@ int PHActsTrkProp::Process()
 int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
 {
   m_actsFitResults->clear();
-  m_actsProtoTracks->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -243,8 +232,91 @@ int PHActsTrkProp::End()
   {
     std::cout << "Finished PHActsTrkProp" << std::endl;
   }
+
+  std::cout << "PHActsTrkProp had " << m_nBadFits << " bad fits" << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHActsTrkProp::updateSvtxTrackMap()
+{
+  
+  /// Wipe the track map completely, since the CKF can return multiple tracks for a given
+  /// track seed the trackseed track keys no longer have meaning
+  m_trackMap->Reset();
+
+  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  rotater->setVerbosity(Verbosity());
+
+  /// Iterate over the Trajectories and add them to the SvtxTrackMap
+  std::map<const unsigned int, Trajectory>::iterator trackIter;
+  int iTrack = 0;
+
+  for (trackIter = m_actsFitResults->begin();
+       trackIter != m_actsFitResults->end();
+       ++trackIter)
+  {
+    Trajectory traj = trackIter->second;
+ 
+    const auto& [trackTips, mj] = traj.trajectory();
+    if(trackTips.empty()) 
+      {
+	if(Verbosity() > 5)
+	  std::cout << "Empty multiTrajectory... continuing" << std::endl;
+	continue;
+      }
+    
+    for(const size_t& trackTip : trackTips) 
+      {
+	SvtxTrack_v1 track;
+	track.set_id(iTrack);
+    
+	auto trajState = Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+	
+	if(! traj.hasTrackParameters(trackTip))
+	  continue;
+	
+	const auto& fittedParameters = traj.trackParameters(trackTip);
+	
+	track.set_x(fittedParameters.position()(0) / Acts::UnitConstants::cm);
+	track.set_y(fittedParameters.position()(1) / Acts::UnitConstants::cm);
+	track.set_z(fittedParameters.position()(2) / Acts::UnitConstants::cm);
+	track.set_px(fittedParameters.momentum()(0));
+	track.set_py(fittedParameters.momentum()(1));
+	track.set_pz(fittedParameters.momentum()(2));
+	if(fittedParameters.covariance())
+	  {
+	    Acts::BoundSymMatrix rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters);
+	    for(int i = 0; i < 6; ++i)
+	      {
+		for(int j = 0; j < 6; ++j)
+		  {
+		    track.set_error(i,j, rotatedCov(i,j));
+		  }
+	      }
+	  }
+
+	/// Loop over trajectory source links somehow ? TBD
+	/// Logic will be: 
+	/// SL->hitID()
+	/// hitID -> clusterkey via map created in PHActsSourceLinks
+	/// add cluster key to SvtxTrack
+	/// Will want to match with clusterkey as determined in PHActsSourceLinks
+	
+	size_t nStates = trajState.nStates;
+	size_t nMeasurements = trajState.nMeasurements;
+	double chi2sum = trajState.chi2Sum;
+	size_t NDF = trajState.NDF;
+	
+	++iTrack;
+	m_trackMap->insert(&track);
+      }
+
+  }
+
+
+}
+
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
@@ -265,21 +337,6 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
   }
-
-
-  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsProtoTracks");
-
-  if(!m_actsProtoTracks)
-    {
-      m_actsProtoTracks = new std::map<unsigned int, ActsTrack>;
-
-      PHDataNode<std::map<unsigned int, ActsTrack>> *protoTrackNode =
-        new PHDataNode<std::map<unsigned int, ActsTrack>>
-	(m_actsProtoTracks, "ActsTrackMap");
-      
-      svtxNode->addNode(protoTrackNode);
-
-    }
 
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsCKFResults");
   if(!m_actsFitResults)

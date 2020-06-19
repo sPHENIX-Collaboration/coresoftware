@@ -43,7 +43,7 @@ class ActsCovarianceRotater
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
   Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-	        const Acts::KalmanFitterResult<SourceLink>& fitOutput);
+						const Acts::BoundParameters params);
 
   void setVerbosity(bool verbosity) {m_verbosity = verbosity;}
 
