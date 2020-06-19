@@ -56,7 +56,12 @@ namespace
     else if( angle < -M_PI ) return angle + 2*M_PI;
     else return angle;
   }
-
+  
+  // local version of std::clamp, which is only available for c++17
+  template<class T>
+    constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+  { return (v < lo) ? lo : (hi < v) ? hi : v; }
+  
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
   template<class T>
     inline T get_rectangular_fraction( const T& xloc, const T& sigma, const T& pitch )
@@ -395,8 +400,8 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
 
   // find relevant strip indices
   const auto strip_count = layergeom->get_strip_count( tileid );
-  const auto stripnum_min = std::clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
-  const auto stripnum_max = std::clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
+  const auto stripnum_min = clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
+  const auto stripnum_max = clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
 
   // prepare charge list
   charge_list_t charge_list;
