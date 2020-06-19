@@ -28,6 +28,15 @@
 #include <cassert>
 #include <set>
 
+namespace 
+{
+   
+  // local version of std::clamp, which is only available for c++17
+  template<class T>
+    constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+  { return (v < lo) ? lo : (hi < v) ? hi : v; }
+ 
+}
 //____________________________________________________________________________
 PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
   : SubsysReco(name)
@@ -118,7 +127,7 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
       if( voltage > m_adc_threshold*m_volt_per_electron_noise )
       {
         // keep hit, update adc
-        hit->setAdc( std::clamp<uint>( voltage*m_adc_per_volt, 0, 1023 ) );        
+        hit->setAdc( clamp<uint>( voltage*m_adc_per_volt, 0, 1023 ) );        
       } else {
         // mark hit as removable
         removed_keys.insert( key );
