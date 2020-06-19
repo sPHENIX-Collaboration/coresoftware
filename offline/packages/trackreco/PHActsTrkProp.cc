@@ -126,7 +126,6 @@ int PHActsTrkProp::Process()
     }
 
   ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
-  
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)
@@ -153,7 +152,7 @@ int PHActsTrkProp::Process()
       
       // just set to 10 ns for now
       const double trackTime = 10 * Acts::UnitConstants::ns;
-      const int trackQ = track->get_charge();
+      const int trackQ = -1*track->get_charge();
       
       const FW::TrackParameters trackSeed(seedCov, seedPos,
 					  seedMom, trackQ, trackTime);
