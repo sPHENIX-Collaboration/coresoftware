@@ -91,7 +91,7 @@ class PHActsTrkProp : public PHTrackPropagating
   SvtxTrackMap *m_trackMap;
 
   /// Acts proto tracks to be put on the node tree by this module
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
   
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;

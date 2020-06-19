@@ -67,6 +67,8 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
 
 int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 {
+  if(Verbosity() > 1)
+    std::cout << "Setup PHActsTrkProp" << std::endl;
   createNodes(topNode);
   
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -86,9 +88,10 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
                    m_tGeometry->tGeometry,
 		   m_tGeometry->magField,
-		   Acts::Logging::VERBOSE);
+		   Acts::Logging::INFO);
 
-
+  if(Verbosity() > 1)
+    std::cout <<" Finish PHActsTrkProp setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -128,6 +131,7 @@ int PHActsTrkProp::Process()
     }
 
   ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)
@@ -218,6 +222,9 @@ int PHActsTrkProp::Process()
 	
     }
 
+  if(Verbosity() > 1)
+    std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -260,14 +267,15 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
   }
 
 
-  m_actsProtoTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
+  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsProtoTracks");
 
   if(!m_actsProtoTracks)
     {
-      m_actsProtoTracks = new std::vector<ActsTrack>;
+      m_actsProtoTracks = new std::map<unsigned int, ActsTrack>;
 
-      PHDataNode<std::vector<ActsTrack>> *protoTrackNode =
-        new PHDataNode<std::vector<ActsTrack>>(m_actsProtoTracks, "ActsProtoTracks");
+      PHDataNode<std::map<unsigned int, ActsTrack>> *protoTrackNode =
+        new PHDataNode<std::map<unsigned int, ActsTrack>>
+	(m_actsProtoTracks, "ActsTrackMap");
       
       svtxNode->addNode(protoTrackNode);
 

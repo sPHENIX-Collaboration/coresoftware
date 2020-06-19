@@ -60,12 +60,15 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
+  if(Verbosity() > 1)
+    std::cout << "Setup PHActsTrkFitter" << std::endl;
+  
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-
+  
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
@@ -76,6 +79,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
       m_timeFile = new TFile("ActsTimeFile.root","RECREATE");
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
+  
+  if(Verbosity() > 1)
+    std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -312,6 +319,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  
   m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
 
   if (!m_actsProtoTracks)
