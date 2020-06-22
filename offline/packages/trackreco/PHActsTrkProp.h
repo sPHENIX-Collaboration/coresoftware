@@ -3,6 +3,7 @@
 
 #include "PHTrackPropagating.h"
 #include "PHActsSourceLinks.h"
+#include "ActsTrack.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -89,6 +90,8 @@ class PHActsTrkProp : public PHTrackPropagating
 
   void updateSvtxTrackMap(PHCompositeNode *topNode);
 
+  std::vector<SourceLink> getEventSourceLinks();
+
   void getTrackClusters(const size_t& trackTip, Trajectory traj,
 			SvtxTrack &track);
 
@@ -99,6 +102,8 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;
+
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
   
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
@@ -110,7 +115,7 @@ class PHActsTrkProp : public PHTrackPropagating
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
-PHCompositeNode *m_topNode;
+  PHCompositeNode *m_topNode;
 
   /// SourceLinkSelector to help the CKF identify which source links 
   /// may belong to a track seed based on geometry considerations

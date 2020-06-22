@@ -81,9 +81,11 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// Leave these out for now once we return to track propagation
   /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
   /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
-  /// m_sourceLinkSelectorConfig.maxChi2 = 8;
+
+  /// Set the maxChi2 to something unreasonably large for evaluation purposes
+  /// m_sourceLinkSelectorConfig.maxChi2 = 100;
   /// Set the allowed maximum number of source links to be large enough
-  /// m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
+  ///m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
  
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
                    m_tGeometry->tGeometry,
@@ -96,22 +98,8 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkProp::Process()
+std::vector<SourceLink> PHActsTrkProp::getEventSourceLinks()
 {
-
-  m_event++;
-
-  if (Verbosity() > 1)
-  {
-    std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
-    std::cout << "Start PHActsTrkProp::process_event" << std::endl;
-  }
-
-
-  PerigeeSurface pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>
-    (Acts::Vector3D(0., 0., 0.));
-
-  /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks;
   std::map<unsigned int, SourceLink>::iterator slIter = m_sourceLinks->begin();
   while(slIter != m_sourceLinks->end())
@@ -130,50 +118,49 @@ int PHActsTrkProp::Process()
       ++slIter;
     }
 
+  return sourceLinks;
+
+}
+
+int PHActsTrkProp::Process()
+{
+
+  m_event++;
+
+  if (Verbosity() > 1)
+  {
+    std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
+    std::cout << "Start PHActsTrkProp::process_event" << std::endl;
+  }
+
+  PerigeeSurface pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>
+    (Acts::Vector3D(0., 0., 0.));
+
+  /// Collect all source links for the CKF
+  std::vector<SourceLink> sourceLinks = getEventSourceLinks();
+
   ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
   rotater->setVerbosity(Verbosity());
+  
+  std::map<unsigned int, ActsTrack>::iterator trackIter;
+  for(trackIter = m_actsProtoTracks->begin();
+      trackIter != m_actsProtoTracks->end();
+      ++trackIter)
+  {
+    ActsTrack track = trackIter->second;
+    const unsigned int trackKey = trackIter->first;
 
-  for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
-       trackIter != m_trackMap->end(); ++trackIter)
-    {
-      const unsigned int trackKey = trackIter->first;
-      SvtxTrack *track = trackIter->second;
-      
-      if (!track)
-	continue;
-      
-      if (Verbosity() > 1)
-	{
-	  std::cout << "found SvtxTrack " << trackIter->first << std::endl;
-	  track->identify();
-	}
-      
-      /// Get the necessary parameters and values for the TrackParameters
-      const Acts::BoundSymMatrix seedCov = rotater->rotateSvtxTrackCovToActs(track);
-      const Acts::Vector3D seedPos(track->get_x(),
-				   track->get_y(),
-				   track->get_z());
-      const Acts::Vector3D seedMom(track->get_px(),
-				   track->get_py(),
-				   track->get_pz());
-      
-      // just set to 10 ns for now
-      const double trackTime = 10 * Acts::UnitConstants::ns;
-      const int trackQ = -1*track->get_charge();
-      
-      const FW::TrackParameters trackSeed(seedCov, seedPos,
-					  seedMom, trackQ, trackTime);
-      
-      
-      /// Construct the options to pass to the CKF.
-      /// SourceLinkSelector set in Init()
-      Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
+    FW::TrackParameters trackSeed = track.getTrackParams();
+    
+    /// Construct the options to pass to the CKF.
+    /// SourceLinkSelector set in Init()
+    Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
 	        m_tGeometry->geoContext, 
 		m_tGeometry->magFieldContext, 
 		m_tGeometry->calibContext, 
 		m_sourceLinkSelectorConfig, 
 		&(*pSurface));
-      
+
       /// Run the CKF for all source links and the constructed track seed
       /// CKF runs both track finder and KF track fitter
       auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
@@ -196,13 +183,7 @@ int PHActsTrkProp::Process()
 	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				   (trackKey, FW::TrkrClusterMultiTrajectory()));
 
-	  /// Track prop failed - set to arbitrary values
-	  track->set_x(-9999.);
-	  track->set_y(-9999.);
-	  track->set_z(-9999.);
-	  track->set_px(-9999.);
-	  track->set_py(-9999.);
-	  track->set_pz(-9999.);
+	  /// Update SvtxTrack to be a bad fit
 	  
 	  m_nBadFits++;
 	}
@@ -395,7 +376,7 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
     {
       m_actsFitResults = new std::map<const unsigned int, Trajectory>;
       PHDataNode<std::map<const unsigned int, Trajectory>> *fitNode = 
-	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_actsFitResults, "ActsCKFResults");
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_actsFitResults, "ActsFitResults");
       
       svtxNode->addNode(fitNode);
 
@@ -409,6 +390,16 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
 {
 
   m_topNode = topNode;
+
+  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+
+  if(!m_actsProtoTracks)
+    {
+      std::cout << PHWHERE << "Acts proto tracks not on node tree. Bailing." 
+		<< std::endl;
+
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
 

@@ -109,7 +109,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTrack;
 
-    /// Skip failed tracks
+    /// Skip failed fits
     if (trackTips.empty())
     {
       if (Verbosity() > 1)
@@ -117,30 +117,27 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
       continue;
     }
 
-    if (trackTips.size() > 1)
-    {
-      std::cout << "There should not be a track with fit track tip > 1... Bailing."
-                << std::endl;
-      break;
-    }
+    /// For the KF this iterates once. For the CKF it may iterate multiple times 
+    /// per Trajectory
+    for(const size_t &trackTip : trackTips)
+      {
+	auto trajState =
+	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+	
+	m_nMeasurements = trajState.nMeasurements;
+	m_nStates = trajState.nStates;
+	
+	fillG4Particle(g4particle);
+	fillProtoTrack(actsProtoTrack, topNode);
+	fillFittedTrackParams(traj);
+	visitTrackStates(traj, topNode);
+	
+	m_trackTree->Fill();
 
-    auto &trackTip = trackTips.front();
-    auto trajState =
-        Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-
-    m_nMeasurements = trajState.nMeasurements;
-    m_nStates = trajState.nStates;
-
-    fillG4Particle(g4particle);
-    fillProtoTrack(actsProtoTrack, topNode);
-    fillFittedTrackParams(traj);
-    visitTrackStates(traj, topNode);
-
-    m_trackTree->Fill();
-
-    /// Start fresh for the next track
-    clearTrackVariables();
-    ++iTrack;
+	/// Start fresh for the next track
+	clearTrackVariables();
+	++iTrack;
+      }
   }
 
   return;
