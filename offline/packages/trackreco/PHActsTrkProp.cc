@@ -151,7 +151,7 @@ int PHActsTrkProp::Process()
     const unsigned int trackKey = trackIter->first;
 
     FW::TrackParameters trackSeed = track.getTrackParams();
-    
+
     /// Construct the options to pass to the CKF.
     /// SourceLinkSelector set in Init()
     Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
@@ -168,7 +168,6 @@ int PHActsTrkProp::Process()
       if(result.ok())
 	{
 	  const CKFFitResult& fitOutput = result.value();
-	  auto parameterMap = fitOutput.fittedParameters;
 
 	  Trajectory traj(fitOutput.fittedStates,
 			  fitOutput.trackTips,
@@ -183,7 +182,8 @@ int PHActsTrkProp::Process()
 	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				   (trackKey, FW::TrkrClusterMultiTrajectory()));
 
-	  /// Update SvtxTrack to be a bad fit
+	  /// Don't need to update SvtxTrack to be a bad fit since the 
+	  /// track map will get wiped anyway in updateSvtxTrackMap
 	  
 	  m_nBadFits++;
 	}
