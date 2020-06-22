@@ -637,6 +637,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *top
 
   return;
 }
+
 TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
 {
   TrkrDefs::cluskey clusKey = 0;

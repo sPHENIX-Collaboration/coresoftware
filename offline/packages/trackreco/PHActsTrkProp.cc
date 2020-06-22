@@ -210,7 +210,7 @@ int PHActsTrkProp::Process()
     }
 
   /// Update the SvtxTrackMap by wiping it clean and adding the tracks from the CKF
-  updateSvtxTrackMap();
+  updateSvtxTrackMap(m_topNode);
 
   if(Verbosity() > 1)
     std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
@@ -218,7 +218,7 @@ int PHActsTrkProp::Process()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+ 
 int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
 {
   m_actsFitResults->clear();
@@ -238,7 +238,7 @@ int PHActsTrkProp::End()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrkProp::updateSvtxTrackMap()
+void PHActsTrkProp::updateSvtxTrackMap(PHCompositeNode *topNode)
 {
   
   /// Wipe the track map completely, since the CKF can return multiple tracks for a given
@@ -258,6 +258,7 @@ void PHActsTrkProp::updateSvtxTrackMap()
   {
     Trajectory traj = trackIter->second;
  
+    /// This gets the track indexer and associated tracks (Acts::MultiTrajectories)
     const auto& [trackTips, mj] = traj.trajectory();
     if(trackTips.empty()) 
       {
@@ -266,6 +267,7 @@ void PHActsTrkProp::updateSvtxTrackMap()
 	continue;
       }
     
+    /// Iterate over the found tracks via their trackTip index
     for(const size_t& trackTip : trackTips) 
       {
 	SvtxTrack_v1 track;
@@ -273,7 +275,7 @@ void PHActsTrkProp::updateSvtxTrackMap()
     
 	auto trajState = Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 	
-	if(! traj.hasTrackParameters(trackTip))
+	if( !traj.hasTrackParameters(trackTip))
 	  continue;
 	
 	const auto& fittedParameters = traj.trackParameters(trackTip);
@@ -284,6 +286,13 @@ void PHActsTrkProp::updateSvtxTrackMap()
 	track.set_px(fittedParameters.momentum()(0));
 	track.set_py(fittedParameters.momentum()(1));
 	track.set_pz(fittedParameters.momentum()(2));
+	
+	float qOp = fittedParameters.parameters()[Acts::ParDef::eQOP];
+	track.set_charge(1);
+	/// If negative QOP then set charge to negative
+	if(qOp < 0)
+	  track.set_charge(-1);
+	   
 	if(fittedParameters.covariance())
 	  {
 	    Acts::BoundSymMatrix rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters);
@@ -296,18 +305,16 @@ void PHActsTrkProp::updateSvtxTrackMap()
 	      }
 	  }
 
-	/// Loop over trajectory source links somehow ? TBD
-	/// Logic will be: 
-	/// SL->hitID()
-	/// hitID -> clusterkey via map created in PHActsSourceLinks
-	/// add cluster key to SvtxTrack
-	/// Will want to match with clusterkey as determined in PHActsSourceLinks
-	
-	size_t nStates = trajState.nStates;
-	size_t nMeasurements = trajState.nMeasurements;
+	/// Loop over trajectory source links, and add them to the track
+	getTrackClusters(trackTip, traj, track);
+	//size_t nStates = trajState.nStates;
+	//size_t nMeasurements = trajState.nMeasurements;
 	double chi2sum = trajState.chi2Sum;
 	size_t NDF = trajState.NDF;
-	
+
+	track.set_chisq(chi2sum);
+	track.set_ndf(NDF);
+
 	++iTrack;
 	m_trackMap->insert(&track);
       }
@@ -317,6 +324,51 @@ void PHActsTrkProp::updateSvtxTrackMap()
 
 }
 
+void PHActsTrkProp::getTrackClusters(const size_t& trackTip, 
+				     Trajectory traj, SvtxTrack &track)
+{
+  /// Unable to pass mj into the function, so we have to pass the 
+  /// Trajectory and regrab the Acts::MultiTrajectory here
+  const auto &[trackTips, mj] = traj.trajectory();
+
+  /// Get the state information
+  mj.visitBackwards(trackTip, [&](const auto &state) {
+    /// Only fill the track states with non-outlier measurement
+    auto typeFlags = state.typeFlags();
+    if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
+      {
+	return true;
+      }
+  
+    const unsigned int hitID = state.uncalibrated().hitID();
+    TrkrDefs::cluskey clusKey = getClusKey(hitID);
+    track.insert_cluster_key(clusKey);
+    return true;
+    }); /// Finish lambda function
+  
+  return;
+}
+
+TrkrDefs::cluskey PHActsTrkProp::getClusKey(const unsigned int hitID)
+{
+  TrkrDefs::cluskey clusKey = 0;
+  /// Unfortunately the map is backwards for looking up cluster key from
+  /// hit ID. So we need to iterate over it. There won't be duplicates since
+  /// the cluster key and hit id are a one-to-one map
+  std::map<TrkrDefs::cluskey, unsigned int>::iterator
+      hitIter = m_hitIdClusKey->begin();
+  while (hitIter != m_hitIdClusKey->end())
+  {
+    if (hitIter->second == hitID)
+    {
+      clusKey = hitIter->first;
+      break;
+    }
+    ++hitIter;
+  }
+
+  return clusKey;
+}
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
@@ -355,6 +407,8 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
 {
+
+  m_topNode = topNode;
 
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
 

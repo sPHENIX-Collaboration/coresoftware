@@ -24,6 +24,7 @@
 #include <string>
 #include <map>
 
+class PHCompositeNode;
 class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
@@ -86,7 +87,13 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
-  void updateSvtxTrackMap();
+  void updateSvtxTrackMap(PHCompositeNode *topNode);
+
+  void getTrackClusters(const size_t& trackTip, Trajectory traj,
+			SvtxTrack &track);
+
+  /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
+  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   ActsTrackingGeometry *m_tGeometry;
 
@@ -102,6 +109,8 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Acts source links created by PHActsSourceLinks
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+PHCompositeNode *m_topNode;
 
   /// SourceLinkSelector to help the CKF identify which source links 
   /// may belong to a track seed based on geometry considerations
