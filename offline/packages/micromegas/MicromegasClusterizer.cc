@@ -112,10 +112,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
 
-  // do clusterization
-  // for now each found hit is converted into a cluster
-  // TODO: implement real cluster
-
   // loop over micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
@@ -200,7 +196,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
 
       TVector3 world_coordinates;
-      uint adc_sum = 0;
+      double adc_sum = 0;
 
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
@@ -216,9 +212,14 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         // get strip number
         const auto strip = MicromegasDefs::getStrip( hitkey );
 
+        // get adc, remove pedestal
+        /* pedestal should be the same as the one used in PHG4MicromegasDigitizer */
+        static constexpr double pedestal = 74.6;
+        const double weight = double(hit->getAdc()) - pedestal;
+
         // get strip world coordinate
-        world_coordinates += layergeom->get_world_coordinate( tileid, strip )*hit->getAdc();
-        adc_sum += hit->getAdc();
+        world_coordinates += layergeom->get_world_coordinate( tileid, strip )*weight;
+        adc_sum += weight;
 
       }
 
