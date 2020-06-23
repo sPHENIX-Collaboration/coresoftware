@@ -5,6 +5,19 @@
 
 #include "MicromegasDefs.h"
 
+namespace
+{
+   //* converninece trait for underlying type
+  template<class T>
+    using underlying_type_t = typename std::underlying_type<T>::type;
+
+  //* convert an strong type enum to integral type
+  template<class T>
+    constexpr underlying_type_t<T>
+    to_underlying_type(T value) noexcept
+  { return static_cast<underlying_type_t<T>>(value);}
+ 
+}
 
 namespace MicromegasDefs
 {
@@ -14,18 +27,12 @@ namespace MicromegasDefs
   {
     TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::micromegasId, layer);
     
-    TrkrDefs::hitsetkey tmp = type;
+    TrkrDefs::hitsetkey tmp = to_underlying_type(type);
     key |= (tmp << kBitShiftSegmentation);
 
     tmp = tile;
     key |= (tmp << kBitShiftTileId);
-    
-//     std::cout << "MicromegasDefs::genHitSetKey -"
-//       << " layer: " << int(layer)
-//       << " segmentation: " << type 
-//       << " tile: " << int(tile)
-//       << std::endl;
-    
+        
     return key;
   }
 
@@ -33,7 +40,7 @@ namespace MicromegasDefs
   SegmentationType getSegmentationType(TrkrDefs::hitsetkey key)
   {
     TrkrDefs::hitsetkey tmp = (key >> kBitShiftSegmentation);
-    return (SegmentationType)tmp;
+    return static_cast<SegmentationType>(tmp);
   }
 
   //________________________________________________________________

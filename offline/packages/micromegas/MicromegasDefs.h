@@ -15,7 +15,7 @@ namespace MicromegasDefs
 {
 
   //* tells the direction along which a given cylinder is segmented
-  enum SegmentationType: uint8_t
+  enum class SegmentationType: uint8_t
   {
     SEGMENTATION_Z,
     SEGMENTATION_PHI
