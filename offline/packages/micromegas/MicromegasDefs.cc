@@ -10,12 +10,30 @@ namespace MicromegasDefs
 {
 
   //________________________________________________________________
-  TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, uint8_t tile )
+  TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, SegmentationType type, uint8_t tile )
   {
     TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::micromegasId, layer);
-    TrkrDefs::hitsetkey tmp = tile;
+    
+    TrkrDefs::hitsetkey tmp = type;
+    key |= (tmp << kBitShiftSegmentation);
+
+    tmp = tile;
     key |= (tmp << kBitShiftTileId);
+    
+//     std::cout << "MicromegasDefs::genHitSetKey -"
+//       << " layer: " << int(layer)
+//       << " segmentation: " << type 
+//       << " tile: " << int(tile)
+//       << std::endl;
+    
     return key;
+  }
+
+  //________________________________________________________________
+  SegmentationType getSegmentationType(TrkrDefs::hitsetkey key)
+  {
+    TrkrDefs::hitsetkey tmp = (key >> kBitShiftSegmentation);
+    return (SegmentationType)tmp;
   }
 
   //________________________________________________________________
@@ -46,6 +64,20 @@ namespace MicromegasDefs
     TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
     key |= clusid;
     return key;
+  }
+
+  //________________________________________________________________
+  SegmentationType getSegmentationType(TrkrDefs::cluskey key)
+  {
+    TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+    return getSegmentationType( tmp );
+  }
+
+  //________________________________________________________________
+  uint8_t getTileId(TrkrDefs::cluskey key)
+  {
+    TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+    return getTileId( tmp );
   }
 
 }
