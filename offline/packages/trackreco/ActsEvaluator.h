@@ -89,6 +89,7 @@ class ActsEvaluator : public SubsysReco
   /// Acts tree values
   int m_eventNr{0};
   int m_trajNr{0};
+  int m_trackNr{0};
 
   unsigned long m_t_barcode{0};  /// Truth particle barcode
   int m_t_charge{0};             /// Truth particle charge

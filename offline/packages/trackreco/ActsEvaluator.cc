@@ -92,6 +92,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
   std::map<const unsigned int, Trajectory>::iterator trackIter;
+  int iTraj = 0;
   int iTrack = 0;
 
   for (trackIter = m_actsFitResults->begin();
@@ -101,13 +102,22 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     /// Get the track information
     const unsigned int trackKey = trackIter->first;
     const Trajectory traj = trackIter->second;
-    SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
-    SvtxTrack *track = trackIter->second;
+    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
+    SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     
+    if(Verbosity() > 1)
+      {
+	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
+	track->identify();
+	std::cout << "TruthParticle : " << g4particle->get_px()
+		  << ", " << g4particle->get_py() << ", "
+		  << g4particle->get_pz() <<g4particle->get_e() << std::endl;
+      }
+
     const auto &[trackTips, mj] = traj.trajectory();
-    m_trajNr = iTrack;
+    m_trajNr = iTraj;
 
     /// Skip failed fits
     if (trackTips.empty())
@@ -116,13 +126,30 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
         std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
     }
-
-    /// For the KF this iterates once. For the CKF it may iterate multiple times 
-    /// per Trajectory
+    
+   
+    iTrack = 0;
+    /// For the KF this iterates once. For the CKF it may iterate 
+    /// multiple times per Trajectory
     for(const size_t &trackTip : trackTips)
       {
+	m_trackNr = iTrack;
+        iTrack++;
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+	if(Verbosity() > 1)
+	  {
+	    std::cout << "Analyzing trajectory with trackTip " << trackTip
+		      << std::endl;
+	    if(traj.hasTrackParameters(trackTip))
+	      {
+		std::cout << "Fitted params : " 
+			  << traj.trackParameters(trackTip).position() 
+			  << "   " << traj.trackParameters(trackTip).momentum()
+			  << std::endl;
+	      }
+	  }
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
@@ -135,10 +162,16 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	visitTrackStates(traj,trackTip, topNode);
 	
 	m_trackTree->Fill();
-
+	
 	/// Start fresh for the next track
 	clearTrackVariables();
-	++iTrack;
+      }
+    
+    ++iTraj;
+    if(Verbosity() > 1)
+      {
+	std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
+		  << iTraj << std::endl;
       }
   }
 
@@ -1101,6 +1134,7 @@ void ActsEvaluator::initializeTree()
 
   m_trackTree->Branch("event_nr", &m_eventNr);
   m_trackTree->Branch("traj_nr", &m_trajNr);
+  m_trackTree->Branch("track_nr", &m_trackNr);
   m_trackTree->Branch("t_barcode", &m_t_barcode, "t_barcode/l");
   m_trackTree->Branch("t_charge", &m_t_charge);
   m_trackTree->Branch("t_time", &m_t_time);
