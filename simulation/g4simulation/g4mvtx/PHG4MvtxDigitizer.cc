@@ -7,6 +7,7 @@
 #include <trackbase/TrkrHit.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -151,6 +152,9 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     cout << "Could not locate TRKR_HITSET node, quit! " << endl;
     exit(1);
   }
+  
+  // Get the TrkrHitTruthAssoc node
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
   // Digitization
 
@@ -189,13 +193,12 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       if (rm_hit) hits_rm.insert(hit_iter->first);
     }
 
-    for (std::set<TrkrDefs::hitkey>::iterator hits_rm_iter = hits_rm.begin();
-         hits_rm_iter != hits_rm.end();
-         ++hits_rm_iter)
-    {
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << *hits_rm_iter << endl;
-      hitset->removeHit(*hits_rm_iter);
-    }
+    for( const auto& key:hits_rm )
+    { 
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
+      hitset->removeHit(key);
+      if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+   }
 
   }
 
