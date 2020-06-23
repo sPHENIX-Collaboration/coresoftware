@@ -85,6 +85,9 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! electron cloud sigma (cm) after avalanche
   double m_cloud_sigma = 0.04;
 
+  //! use zig zag pads
+  bool m_zigzag_strips = true;
+  
   //! micromegas tiles
   MicromegasTile::List m_tiles;
 
