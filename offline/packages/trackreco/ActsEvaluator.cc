@@ -126,11 +126,13 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
+	m_chi2_fit = trajState.chi2Sum;
+	m_ndf_fit = trajState.NDF;
 	
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
-	fillFittedTrackParams(traj);
-	visitTrackStates(traj, topNode);
+	fillFittedTrackParams(traj, trackTip);
+	visitTrackStates(traj,trackTip, topNode);
 	
 	m_trackTree->Fill();
 
@@ -160,11 +162,12 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 }
 
 
-void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
+void ActsEvaluator::visitTrackStates(const Trajectory traj, 
+				     const size_t &trackTip,
+				     PHCompositeNode *topNode)
 {
 
   const auto &[trackTips, mj] = traj.trajectory();
-  auto &trackTip = trackTips.front();
 
   mj.visitBackwards(trackTip, [&](const auto &state) {
     /// Only fill the track states with non-outlier measurement
@@ -767,11 +770,10 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 
 }
 
-void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
+void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
+					  const size_t &trackTip)
 {
   m_hasFittedParams = false;
-  const auto &[trackTips, mj] = traj.trajectory();
-  auto &trackTip = trackTips.front();
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
