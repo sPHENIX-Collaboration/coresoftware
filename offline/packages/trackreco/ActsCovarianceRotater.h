@@ -47,7 +47,7 @@ class ActsCovarianceRotater
 
   void setVerbosity(bool verbosity) {m_verbosity = verbosity;}
 
-  void printMatrix(const std::string message, Acts::BoundSymMatrix matrix);
+  void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix);
 
  private:
   bool m_verbosity;

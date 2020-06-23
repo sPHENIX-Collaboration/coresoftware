@@ -88,10 +88,13 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
+  /// Wipe and recreate the SvtxTrackMap with Acts output
   void updateSvtxTrackMap(PHCompositeNode *topNode);
 
+  /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
 
+  /// Iterate through the Trajectory to obtain the fitted clusters
   void getTrackClusters(const size_t& trackTip, Trajectory traj,
 			SvtxTrack &track);
 
@@ -103,12 +106,13 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;
 
+  /// Track map with ActsTracks, created in PHActsTracks
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
   
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
-  /// Map of cluster keys to hit ids, for debugging statements
+  /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   /// Acts source links created by PHActsSourceLinks

@@ -177,7 +177,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
 }
 
 
-void ActsCovarianceRotater::printMatrix(const std::string message,
+void ActsCovarianceRotater::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  

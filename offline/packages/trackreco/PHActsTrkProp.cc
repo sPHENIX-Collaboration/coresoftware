@@ -54,9 +54,11 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_nBadFits(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
+  , m_actsProtoTracks(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
+  , m_topNode(nullptr)
 {
   Verbosity(0);
 }
@@ -151,7 +153,7 @@ int PHActsTrkProp::Process()
     const unsigned int trackKey = trackIter->first;
 
     FW::TrackParameters trackSeed = track.getTrackParams();
-
+  
     /// Construct the options to pass to the CKF.
     /// SourceLinkSelector set in Init()
     Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
