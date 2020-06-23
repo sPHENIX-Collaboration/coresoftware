@@ -12,6 +12,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -28,14 +29,14 @@
 #include <cassert>
 #include <set>
 
-namespace 
+namespace
 {
-   
+
   // local version of std::clamp, which is only available for c++17
   template<class T>
     constexpr const T& clamp( const T& v, const T& lo, const T& hi )
   { return (v < lo) ? lo : (hi < v) ? hi : v; }
- 
+
 }
 //____________________________________________________________________________
 PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
@@ -46,7 +47,7 @@ PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
   const unsigned int seed = PHRandomSeed();
   m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
   gsl_rng_set( m_rng.get(), seed );
-  
+
   InitializeParameters();
 }
 
@@ -82,7 +83,7 @@ int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
    */
   m_volt_per_electron_signal = m_volts_per_charge * 1.602e-4 * 2.4;
   m_volt_per_electron_noise = m_volts_per_charge * 1.602e-4;
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -94,12 +95,15 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
   auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert( trkrhitsetcontainer );
 
+  // Get the TrkrHitTruthAssoc node
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+
   // get all micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
   {
 
-    // get key 
+    // get key
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
 
     // get all of the hits from this hitset
@@ -119,25 +123,28 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
       // get energy (electrons)
       const double signal = hit->getEnergy();
       const double noise = add_noise();
-      
+
       // convert to mV
       const double voltage = (m_pedestal + noise)*m_volt_per_electron_noise + signal*m_volt_per_electron_signal;
-      
+
       // compare to threshold
       if( voltage > m_adc_threshold*m_volt_per_electron_noise )
       {
         // keep hit, update adc
-        hit->setAdc( clamp<uint>( voltage*m_adc_per_volt, 0, 1023 ) );        
+        hit->setAdc( clamp<uint>( voltage*m_adc_per_volt, 0, 1023 ) );
       } else {
         // mark hit as removable
         removed_keys.insert( key );
       }
-      
+
     }
 
     // remove hits
     for( const auto& key:removed_keys )
-    { hitset->removeHit(key); }
+    {
+      hitset->removeHit(key);
+      if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+    }
 
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -145,7 +152,7 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
 
 //___________________________________________________________________________
 void PHG4MicromegasDigitizer::SetDefaultParameters()
-{ 
+{
   // all values taken from TPC sampa chips (simulations/g4simulations/g4tpc/PHG4TpcDigitizer)
   set_default_double_param( "micromegas_enc", 670 );
   set_default_double_param( "micromegas_adc_threshold", 2680 );
