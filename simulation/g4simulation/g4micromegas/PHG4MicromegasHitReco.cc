@@ -56,12 +56,12 @@ namespace
     else if( angle < -M_PI ) return angle + 2*M_PI;
     else return angle;
   }
-  
+
   // local version of std::clamp, which is only available for c++17
   template<class T>
     constexpr const T& clamp( const T& v, const T& lo, const T& hi )
   { return (v < lo) ? lo : (hi < v) ? hi : v; }
-  
+
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
   template<class T>
     inline T get_rectangular_fraction( const T& xloc, const T& sigma, const T& pitch )
@@ -111,7 +111,8 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   m_tmax = get_double_param("micromegas_tmax" );
   m_electrons_per_gev = get_double_param("micromegas_electrons_per_gev" );
   m_gain = get_double_param("micromegas_gain");
-  m_cloud_sigma = get_double_param("micromegas_cloud_sigma" );
+  m_cloud_sigma = get_double_param("micromegas_cloud_sigma");
+  m_zigzag_strips = get_int_param("micromegas_zigzag_strips");
 
   // printout
   std::cout
@@ -120,6 +121,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
     << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
     << " m_gain: " << m_gain << "\n"
     << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
+    << " m_zigzag_strips: " << std::boolalpha << m_zigzag_strips << "\n"
     << std::endl;
 
   // setup tiles
@@ -252,8 +254,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       this is what will be stored as 'energy' in the hits
       this accounts for number of 'primary', detector gain, and fluctuations thereof
       */
-      const auto nelectrons = get_electrons( g4hit );      
-      
+      const auto nelectrons = get_electrons( g4hit );
+
       // create hitset
       TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -374,16 +376,16 @@ uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
    */
   uint ntot = 0;
   for( uint i = 0; i < nprimary; ++i ) { ntot += gsl_ran_exponential(m_rng.get(), m_gain); }
-  
+
   if( Verbosity() > 0 )
   {
-    std::cout 
+    std::cout
       << "PHG4MicromegasHitReco::get_electrons -"
-      << " nprimary: " << nprimary 
-      << " average gain: " << static_cast<double>(ntot)/nprimary 
+      << " nprimary: " << nprimary
+      << " average gain: " << static_cast<double>(ntot)/nprimary
       << std::endl;
   }
-  
+
   return ntot;
 }
 
@@ -427,7 +429,9 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
       strip_location.z() - location.z();
 
     // calculate charge fraction
-    const auto fraction = get_zigzag_fraction( xloc, sigma, pitch );
+    const auto fraction = m_zigzag_strips ?
+      get_zigzag_fraction( xloc, sigma, pitch ):
+      get_rectangular_fraction( xloc, sigma, pitch );
 
     // store
     charge_list.push_back( std::make_pair( strip, fraction ) );
