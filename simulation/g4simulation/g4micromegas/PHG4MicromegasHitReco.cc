@@ -257,7 +257,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       const auto nelectrons = get_electrons( g4hit );
 
       // create hitset
-      TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, tileid );
+      TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, layergeom->get_segmentation_type(), tileid );
       auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
       // generate the key for this hit

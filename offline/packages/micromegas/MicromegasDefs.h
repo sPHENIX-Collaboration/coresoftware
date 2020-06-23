@@ -15,7 +15,7 @@ namespace MicromegasDefs
 {
 
   //* tells the direction along which a given cylinder is segmented
-  enum class SegmentationType
+  enum class SegmentationType: uint8_t
   {
     SEGMENTATION_Z,
     SEGMENTATION_PHI
@@ -26,8 +26,10 @@ namespace MicromegasDefs
    * Micromegas specific lower 16 bits
    * 24 - 32  tracker id
    * 16 - 24  layer
-   * 0 - 16 tile id
+   * 8 - 16 segmentation type
+   * 0 - 8 tile id
    */
+  static constexpr unsigned int kBitShiftSegmentation __attribute__((unused)) = 8;
   static constexpr unsigned int kBitShiftTileId __attribute__((unused)) = 0;
 
   //! bit shift for hit key
@@ -42,12 +44,19 @@ namespace MicromegasDefs
    * Generate a hitsetkey for the mvtx. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, uint8_t tile );
+  TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, SegmentationType segmentation, uint8_t tile );
 
   /*!
-   * @brief Get the stave id from hitsetkey
+   * @brief Get the segmentation type from hitsetkey
    * @param[in] hitsetkey
-   * @param[out] stave id
+   * @param[out] segmentation
+   s*/
+  SegmentationType getSegmentationType(TrkrDefs::hitsetkey);
+
+  /*!
+   * @brief Get the tile id from hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] tile id
    s*/
   uint8_t getTileId(TrkrDefs::hitsetkey);
 
@@ -67,6 +76,21 @@ namespace MicromegasDefs
    * @param[out] cluskey
    */
   TrkrDefs::cluskey genClusterKey(TrkrDefs::hitsetkey hskey, uint32_t clusid);
+  
+  /*!
+   * @brief Get the segmentation type from cluster key
+   * @param[in] cluskey
+   * @param[out] segmentation
+   s*/
+  SegmentationType getSegmentationType(TrkrDefs::cluskey);
+
+  /*!
+   * @brief Get the tile id from cluster key
+   * @param[in] cluskey
+   * @param[out] tile id
+   s*/
+  uint8_t getTileId(TrkrDefs::cluskey);
+
 }
 
 #endif
