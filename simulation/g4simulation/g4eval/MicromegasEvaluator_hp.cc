@@ -104,14 +104,6 @@ int MicromegasEvaluator_hp::InitRun(PHCompositeNode* topNode )
   const auto geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
   assert(geonode);
 
-  // map layer to segmentation type
-  m_layermap.clear();
-  const auto range = geonode->get_begin_end();
-  std::transform( range.first, range.second, std::inserter( m_layermap, m_layermap.end() ),
-    []( const PHG4CylinderGeomContainer::Map::value_type& pair )
-    { return std::make_pair( pair.first, dynamic_cast<CylinderGeomMicromegas*>(pair.second)->get_segmentation_type() ); }
-    );
-
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -123,7 +115,7 @@ int MicromegasEvaluator_hp::process_event(PHCompositeNode* topNode)
   auto res =  load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
   if( m_container ) m_container->Reset();
-  
+
   evaluate_g4hits();
   evaluate_hits();
 
@@ -241,12 +233,7 @@ void MicromegasEvaluator_hp::evaluate_hits()
     TrkrHitSet* hitset = hitset_it->second;
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
     const auto layer = TrkrDefs::getLayer(hitsetkey);
-
-    // get segmentation
-    const auto iter = m_layermap.find( layer );
-    assert( iter != m_layermap.end() );
-
-    const auto segmentation_type = to_underlying_type( iter->second );
+    const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
 
     // loop over hits
     const auto hit_range = hitset->getHits();
@@ -262,7 +249,7 @@ void MicromegasEvaluator_hp::evaluate_hits()
       auto hit_struct = create_hit( hitsetkey, hitkey, hit );
 
       // assign segmentation type
-      hit_struct._segmentation = segmentation_type;
+      hit_struct._segmentation = to_underlying_type(segmentation_type);
 
       // store
       m_container->addHit( hit_struct );

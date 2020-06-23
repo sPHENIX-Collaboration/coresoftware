@@ -30,13 +30,13 @@ class HitStruct
 
   /// strip
   uint _strip = 0;
-  
+
   /// number of g4hits associated to this cluster
   uint _segmentation = 0;
 
   /// energy
   double _energy = 0;
-  
+
   /// ADC counts
   uint _adc = 0;
 
@@ -45,26 +45,26 @@ class HitStruct
 // g4hit information to be stored in the tree
 class G4HitStruct
 {
-  
+
   public:
-  
+
   using List = std::vector<G4HitStruct>;
-  
+
   /// layer
   uint _layer = 0;
 
   /// tile
   uint _tile = 0;
-  
+
   /// ionization energy
   double _eion = 0;
-  
+
   /// number of primary electrons
   uint _nprimary = 0;
-  
+
   /// total number of electrons
   uint _nelectron = 0;
-  
+
 };
 
 class MicromegasEvaluator_hp : public SubsysReco
@@ -133,7 +133,7 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     /// g4hits array
     G4HitStruct::List _g4hits;
-    
+
     /// hits array
     HitStruct::List _hits;
 
@@ -157,17 +157,13 @@ class MicromegasEvaluator_hp : public SubsysReco
 
   /// gemometry
   PHG4CylinderGeomContainer* m_geonode = nullptr;
-  
+
   /// g4hit container
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
 
   /// hitset container
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
-  
-  //! map layer to segmentation type
-  using layermap_t = std::map<uint,MicromegasDefs::SegmentationType>;
-  layermap_t m_layermap;
-  
+
   //! rng de-allocator
   class Deleter
   {
