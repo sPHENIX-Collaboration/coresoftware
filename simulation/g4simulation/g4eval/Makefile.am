@@ -26,7 +26,10 @@ libg4eval_la_LIBADD = \
   -ltpc_io \
   -lmvtx_io \
   -lintt_io \
-  -lphg4hit
+  -lmicromegas_io \
+  -lphg4hit \
+  -lgsl \
+  -lgslcblas
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \
@@ -40,6 +43,7 @@ pkginclude_HEADERS = \
   JetEvaluator.h \
   JetRecoEval.h \
   JetTruthEval.h \
+  MicromegasEvaluator_hp.h \
   MomentumEvaluator.h \
   PHG4DstCompressReco.h \
   PHG4DSTReader.h \
@@ -89,6 +93,8 @@ libg4eval_la_SOURCES = \
   JetTruthEval.cc \
   JetRecoEval.cc \
   JetEvaluator.cc \
+  MicromegasEvaluator_hp_Dict.cc \
+  MicromegasEvaluator_hp.cc \
   PHG4DSTReader.cc \
   SimEvaluator_hp.cc \
   SimEvaluator_hp_Dict.cc \
