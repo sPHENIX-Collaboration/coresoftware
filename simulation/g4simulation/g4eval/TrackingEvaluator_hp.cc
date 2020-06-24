@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <tpc/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -238,45 +239,58 @@ namespace
   }
 
   /// number of hits associated to cluster
-  void add_cluster_size( ClusterStruct& cluster, TrkrDefs::cluskey key, TrkrClusterHitAssoc* cluster_hit_map )
+  void add_cluster_size( ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   {
     if( !cluster_hit_map ) return;
-    const auto range = cluster_hit_map->getHits(key);
+    const auto range = cluster_hit_map->getHits(clus_key);
 
     // store full size
     cluster._size =  std::distance( range.first, range.second );
 
-    // for intt, and mvtx, also get row and column size
-    const auto detId = TrkrDefs::getTrkrId( key );
-    std::set<int> phibins;
-    std::set<int> zbins;
-    for( auto iter = range.first; iter != range.second; ++iter )
+    const auto detId = TrkrDefs::getTrkrId(clus_key);
+    if(detId == TrkrDefs::micromegasId)
     {
 
-      // hit key
-      const auto& hit_key = iter->second;
-      switch( detId )
+      // for micromegas the directional cluster size depends on segmentation type
+      auto segmentation_type = MicromegasDefs::getSegmentationType(clus_key);
+      if( segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z ) cluster._z_size = cluster._size;
+      else cluster._phi_size = cluster._size;
+
+    } else {
+
+      // for other detectors, one must loop over the constituting hits
+      std::set<int> phibins;
+      std::set<int> zbins;
+      for( auto iter = range.first; iter != range.second; ++iter )
       {
-        default: break;
-
-        case TrkrDefs::mvtxId:
+        // hit key
+        const auto& hit_key = iter->second;
+        switch( detId )
         {
-          phibins.insert( MvtxDefs::getRow( hit_key ) );
-          zbins.insert( MvtxDefs::getCol( hit_key ) );
-          break;
-        }
-
-        case TrkrDefs::inttId:
-        {
-          phibins.insert( InttDefs::getRow( hit_key ) );
-          zbins.insert( InttDefs::getCol( hit_key ) );
-          break;
+          default: break;
+          case TrkrDefs::mvtxId:
+          {
+            phibins.insert( MvtxDefs::getRow( hit_key ) );
+            zbins.insert( MvtxDefs::getCol( hit_key ) );
+            break;
+          }
+          case TrkrDefs::inttId:
+          {
+            phibins.insert( InttDefs::getRow( hit_key ) );
+            zbins.insert( InttDefs::getCol( hit_key ) );
+            break;
+          }
+          case TrkrDefs::tpcId:
+          {
+            phibins.insert( TpcDefs::getPad( hit_key ) );
+            zbins.insert( TpcDefs::getTBin( hit_key ) );
+            break;
+          }
         }
       }
+      cluster._phi_size = phibins.size();
+      cluster._z_size = zbins.size();
     }
-
-    cluster._phi_size = phibins.size();
-    cluster._z_size = zbins.size();
   }
 
   // add truth information
@@ -606,15 +620,17 @@ void TrackingEvaluator_hp::print_clusters() const
 {
 
   if( !m_cluster_map ) return;
-
   auto range = m_cluster_map->getClusters();
   for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
   {
-    const auto& key = clusterIter->first;
-    const auto& cluster = clusterIter->second;
-    print_cluster( key, cluster );
+    const auto& cluster_key = clusterIter->first;
+    const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
+    if( trkrId == TrkrDefs::tpcId )
+    {
+      const auto& cluster = clusterIter->second;
+      print_cluster( cluster_key, cluster );
+    }
   }
-
 }
 
 //_____________________________________________________________________
@@ -628,44 +644,87 @@ void TrackingEvaluator_hp::print_tracks() const
 }
 
 //_____________________________________________________________________
-void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
+void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
 {
+
+  // get detector type
+  const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
 
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
-    << " layer: " << (int)TrkrDefs::getLayer(key)
+    << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
+    << " type: " << (int) trkrId
     << " position: (" << cluster->getX() << "," << cluster->getY() << "," << cluster->getZ() << ")"
     << " polar: (" << get_r( cluster->getX(), cluster->getY()) << "," << get_phi( cluster->getX(), cluster->getY()) << "," << cluster->getZ() << ")"
     << std::endl;
 
-  // get associated g4 hist
-  auto g4hits = find_g4hits( key );
-  for( const auto& g4hit:g4hits )
+  // get associated hits
   {
+    const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
+    // loop over hits associated to clusters
+    const auto range = m_cluster_hit_map->getHits(cluster_key);
     std::cout
       << "TrackingEvaluator_hp::print_cluster -"
-      << " layer: " << g4hit->get_layer()
-      << " track: " << g4hit->get_trkid()
-      << " in: (" << g4hit->get_x(0) << "," << g4hit->get_y(0) << "," << g4hit->get_z(0) << ")"
-      << " out: (" << g4hit->get_x(1) << "," << g4hit->get_y(1) << "," << g4hit->get_z(1) << ")"
-      << " polar in: (" << get_r( g4hit->get_x(0), g4hit->get_y(0) ) << "," << get_phi( g4hit->get_x(0), g4hit->get_y(0) ) << "," << g4hit->get_z(0) << ")"
-      << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << get_phi( g4hit->get_x(1), g4hit->get_y(1) ) << "," << g4hit->get_z(1) << ")"
+      << " hit_count: " << std::distance( range.first, range.second )
       << std::endl;
+
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+
+      // hit key
+      const auto& hit_key = iter->second;
+      switch( trkrId )
+      {
+        case TrkrDefs::tpcId:
+        std::cout
+          << "TrackingEvaluator_hp::print_cluster -"
+          << " hit: " << hit_key
+          << " sector: " << TpcDefs::getSectorId( cluster_key )
+          << " pad: " << TpcDefs::getPad( hit_key )
+          << " time bin: " << TpcDefs::getTBin( hit_key )
+          << std::endl;
+        break;
+
+        default: break;
+
+      }
+    }
   }
 
-  // interpolate g4hits positions at the same radius as the cluster to get resolution
-  const auto rextrap = get_r( cluster->getX(), cluster->getY());
-  const auto xextrap = interpolate<&PHG4Hit::get_x>( g4hits, rextrap );
-  const auto yextrap = interpolate<&PHG4Hit::get_y>( g4hits, rextrap );
-  const auto zextrap = interpolate<&PHG4Hit::get_z>( g4hits, rextrap );
+  // get associated g4 hits
+  if( false )
+  {
 
-  // print interpolation
-  std::cout
-    << "TrackingEvaluator_hp::print_cluster -"
-    << " interpolation: (" << xextrap << "," << yextrap << "," << zextrap << ")"
-    << " polar: (" << get_r( xextrap, yextrap ) << "," << get_phi( xextrap, yextrap ) << "," << zextrap << ")"
-    << std::endl;
+    auto g4hits = find_g4hits( cluster_key );
+    for( const auto& g4hit:g4hits )
+    {
+
+      std::cout
+        << "TrackingEvaluator_hp::print_cluster -"
+        << " layer: " << g4hit->get_layer()
+        << " track: " << g4hit->get_trkid()
+        << " in: (" << g4hit->get_x(0) << "," << g4hit->get_y(0) << "," << g4hit->get_z(0) << ")"
+        << " out: (" << g4hit->get_x(1) << "," << g4hit->get_y(1) << "," << g4hit->get_z(1) << ")"
+        << " polar in: (" << get_r( g4hit->get_x(0), g4hit->get_y(0) ) << "," << get_phi( g4hit->get_x(0), g4hit->get_y(0) ) << "," << g4hit->get_z(0) << ")"
+        << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << get_phi( g4hit->get_x(1), g4hit->get_y(1) ) << "," << g4hit->get_z(1) << ")"
+        << std::endl;
+    }
+
+    // interpolate g4hits positions at the same radius as the cluster to get resolution
+    const auto rextrap = get_r( cluster->getX(), cluster->getY());
+    const auto xextrap = interpolate<&PHG4Hit::get_x>( g4hits, rextrap );
+    const auto yextrap = interpolate<&PHG4Hit::get_y>( g4hits, rextrap );
+    const auto zextrap = interpolate<&PHG4Hit::get_z>( g4hits, rextrap );
+
+    // print interpolation
+    std::cout
+      << "TrackingEvaluator_hp::print_cluster -"
+      << " interpolation: (" << xextrap << "," << yextrap << "," << zextrap << ")"
+      << " polar: (" << get_r( xextrap, yextrap ) << "," << get_phi( xextrap, yextrap ) << "," << zextrap << ")"
+      << std::endl;
+
+  }
 
   std::cout << std::endl;
 
