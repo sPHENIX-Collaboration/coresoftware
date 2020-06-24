@@ -151,8 +151,8 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode *topNode)
 void PHG4MicromegasDigitizer::SetDefaultParameters()
 {
   // all values taken from TPC sampa chips (simulations/g4simulations/g4tpc/PHG4TpcDigitizer)
-  set_default_double_param( "micromegas_adc_threshold", 2700 );
   set_default_double_param( "micromegas_enc", 670 );
+  set_default_double_param( "micromegas_adc_threshold", 2680 );
   set_default_double_param( "micromegas_pedestal", 50000 );
   set_default_double_param( "micromegas_volts_per_charge", 20 );
 }
