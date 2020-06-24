@@ -28,6 +28,7 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
@@ -60,12 +61,15 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
+  if(Verbosity() > 1)
+    std::cout << "Setup PHActsTrkFitter" << std::endl;
+  
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-
+  
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
@@ -76,6 +80,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
       m_timeFile = new TFile("ActsTimeFile.root","RECREATE");
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
+  
+  if(Verbosity() > 1)
+    std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -111,13 +119,16 @@ int PHActsTrkFitter::Process()
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
       
-    if(Verbosity() > 10)
+    if(Verbosity() > 1)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
-		  << "momentum: " << trackSeed.momentum() << std::endl;
+		  << "momentum: " << trackSeed.momentum() 
+		  << " corresponding to SvtxTrack key "<< trackKey
+		  << std::endl;
 
       }
+
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
@@ -129,7 +140,6 @@ int PHActsTrkFitter::Process()
       &(*pSurface));
   
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
-
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -144,9 +154,6 @@ int PHActsTrkFitter::Process()
 
       if (fitOutput.fittedParameters)
       {
-	/// Get position, momentum from the Acts output. Update the values of
-	/// the proto track
-        updateSvtxTrack(fitOutput, trackKey);
 
 	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
 
@@ -158,11 +165,17 @@ int PHActsTrkFitter::Process()
                     << std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
                     << std::endl;
+	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
         }
       }
 
       Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
-     
+
+      /// Get position, momentum from the Acts output. Update the values of
+      /// the proto track
+      if(fitOutput.fittedParameters)
+	updateSvtxTrack(trajectory, trackKey);
+
       /// Insert a new entry into the map
       m_actsFitResults->insert(
 	   std::pair<const unsigned int, Trajectory>(trackKey, trajectory));
@@ -233,9 +246,16 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey)
+void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 
+				      const unsigned int trackKey)
 {
-  const auto& params = fitOutput.fittedParameters.value();
+  const auto &[trackTips, mj] = traj.trajectory();
+  /// only one track tip in the track fit Trajectory
+  auto &trackTip = trackTips.front();
+  auto trajState =
+    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+  const auto& params = traj.trackParameters(trackTip);
  
   SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
   SvtxTrack *track = trackIter->second;
@@ -247,15 +267,14 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
-
-  /// This will contain the chi2/ndf
-  Acts::MultiTrajectory<SourceLink> states = fitOutput.fittedStates;
+  track->set_chisq(trajState.chi2Sum);
+  track->set_ndf(trajState.NDF);
 
   if(params.covariance())
     {
       ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
       Acts::BoundSymMatrix rotatedCov = 
-	rotater->rotateActsCovToSvtxTrack(fitOutput);
+	rotater->rotateActsCovToSvtxTrack(params);
       
       for(int i = 0; i < 6; i++)
 	{
@@ -312,6 +331,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  
   m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
 
   if (!m_actsProtoTracks)

@@ -3,6 +3,7 @@
 
 #include "PHTrackPropagating.h"
 #include "PHActsSourceLinks.h"
+#include "ActsTrack.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -17,12 +18,14 @@
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Fitting/TrkrClusterFindingAlgorithm.hpp>
+#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
 #include <map>
 
+class PHCompositeNode;
 class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
@@ -48,6 +51,9 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 using SourceLinkSelector = Acts::CKFSourceLinkSelector;
 using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
+using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
+using Trajectory = FW::TrkrClusterMultiTrajectory;
+
 class PHActsTrkProp : public PHTrackPropagating
 {
  public:
@@ -66,9 +72,15 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Process each event by calling the fitter
   int Process();
 
+  /// Reset maps event by event
+  int ResetEvent(PHCompositeNode *topNode);
+
  private:
   /// Event counter
   int m_event;
+  
+  /// Num bad fit counter
+  int m_nBadFits;
 
   /// Get all the nodes
   int getNodes(PHCompositeNode *topNode);
@@ -76,20 +88,38 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
+  /// Wipe and recreate the SvtxTrackMap with Acts output
+  void updateSvtxTrackMap(PHCompositeNode *topNode);
+
+  /// Get all source links in a given event
+  std::vector<SourceLink> getEventSourceLinks();
+
+  /// Iterate through the Trajectory to obtain the fitted clusters
+  void getTrackClusters(const size_t& trackTip, Trajectory traj,
+			SvtxTrack &track);
+
+  /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
+  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
+
   ActsTrackingGeometry *m_tGeometry;
 
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;
 
-  /// Acts proto tracks to be put on the node tree by this module
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  /// Track map with ActsTracks, created in PHActsTracks
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
+  
+  /// Acts MultiTrajectories for ActsEvaluator
+  std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
-  /// Map of cluster keys to hit ids, for debugging statements
+  /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   /// Acts source links created by PHActsSourceLinks
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+  PHCompositeNode *m_topNode;
 
   /// SourceLinkSelector to help the CKF identify which source links 
   /// may belong to a track seed based on geometry considerations
@@ -97,6 +127,7 @@ class PHActsTrkProp : public PHTrackPropagating
  
   /// Configuration containing the finding function instance
   FW::TrkrClusterFindingAlgorithm::Config findCfg;
+
 
 };
 
