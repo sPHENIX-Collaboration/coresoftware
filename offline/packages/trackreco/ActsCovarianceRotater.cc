@@ -90,10 +90,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 
 
 Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
-                     const Acts::KalmanFitterResult<SourceLink>& fitOutput)
+                     const Acts::BoundParameters params)
 {
 
-  const auto& params = fitOutput.fittedParameters.value();
   auto covarianceMatrix = *params.covariance();
   
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
@@ -178,7 +177,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
 }
 
 
-void ActsCovarianceRotater::printMatrix(const std::string message,
+void ActsCovarianceRotater::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  

@@ -131,6 +131,7 @@ ACTS_LIBS = \
   -lActsExamplesCommon \
   -lActsJsonPlugin \
   -lActsExamplesFitting \
+  -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \

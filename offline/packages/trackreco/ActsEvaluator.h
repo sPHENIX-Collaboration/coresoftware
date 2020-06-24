@@ -58,11 +58,16 @@ class ActsEvaluator : public SubsysReco
 
  private:
   int getNodes(PHCompositeNode *topNode);
+  
+  void evaluateTrackFits(PHCompositeNode *topNode);
+
   void initializeTree();
   void fillG4Particle(PHG4Particle *part);
   void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);
-  void fillFittedTrackParams(const Trajectory traj);
-  void visitTrackStates(const Trajectory traj, PHCompositeNode *topNode);
+  void fillFittedTrackParams(const Trajectory traj, const size_t &trackTip);
+  void visitTrackStates(const Trajectory traj,
+			const size_t &trackTip, 
+			PHCompositeNode *topNode);
   void clearTrackVariables();
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
 				   const unsigned int hitID,
@@ -84,6 +89,7 @@ class ActsEvaluator : public SubsysReco
   /// Acts tree values
   int m_eventNr{0};
   int m_trajNr{0};
+  int m_trackNr{0};
 
   unsigned long m_t_barcode{0};  /// Truth particle barcode
   int m_t_charge{0};             /// Truth particle charge
@@ -154,7 +160,9 @@ class ActsEvaluator : public SubsysReco
   float m_x_fit{-99.};            /// fitted parameter global PCA x
   float m_y_fit{-99.};            /// fitted parameter global PCA y
   float m_z_fit{-99.};            /// fitted parameter global PCA z
-
+  float m_chi2_fit{-99.};         /// fitted parameter chi2
+  float m_ndf_fit{-99.};         /// fitted parameter ndf
+  
   int m_nPredicted{0};                   /// number of states with predicted parameter
   std::vector<bool> m_prt;               /// predicted status
   std::vector<float> m_eLOC0_prt;        /// predicted parameter eLOC0

@@ -18,7 +18,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
-pkginclude_HEADERS =
+pkginclude_HEADERS = \
+  PHTpcTracker.h
 
 
 libPHTpcTracker_la_SOURCES = \
