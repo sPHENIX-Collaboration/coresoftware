@@ -103,6 +103,9 @@ PHG4MicromegasHitReco::PHG4MicromegasHitReco(const std::string &name, const std:
 //___________________________________________________________________________
 int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
 {
+
+  UpdateParametersWithMacro();
+
   // load parameters
   m_tmin = get_double_param("micromegas_tmin" );
   m_tmax = get_double_param("micromegas_tmax" );
@@ -319,8 +322,7 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
   set_default_double_param("micromegas_cloud_sigma", 0.04 );
 
   // zigzag strips
-  set_default_int_param("micromegas_zigzag_strips", 1 );
-
+  set_default_int_param("micromegas_zigzag_strips", true );
 }
 
 //___________________________________________________________________________
