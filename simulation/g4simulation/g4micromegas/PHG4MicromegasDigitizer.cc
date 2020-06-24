@@ -54,6 +54,9 @@ PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
 //____________________________________________________________________________
 int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
 {
+
+  UpdateParametersWithMacro();
+
   // load parameters
   m_adc_threshold = get_double_param( "micromegas_adc_threshold" );
   m_enc = get_double_param( "micromegas_enc" );
