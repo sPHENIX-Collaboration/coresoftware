@@ -40,7 +40,7 @@ class PHLog
       log4cpp::Appender* appender1 = new log4cpp::OstreamAppender("console", &std::cout);
       appender1->setLayout(layout1);
       log4cpp::Category& root = log4cpp::Category::getRoot();
-      root.setPriority(log4cpp::Priority::INFO);
+      root.setPriority(log4cpp::Priority::FATAL);
       root.addAppender(appender1);
     }
   };
