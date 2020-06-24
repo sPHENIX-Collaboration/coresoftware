@@ -3163,6 +3163,11 @@ namespace kdfinder
       {
         candidates.emplace_back(trk);
       }
+      else
+      {
+	delete trk;
+	trk = nullptr;
+      }
     }
 
     auto end1 = std::chrono::system_clock::now();
