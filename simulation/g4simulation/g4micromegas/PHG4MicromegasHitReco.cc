@@ -266,7 +266,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       {
         // get strip and bound check
         const int strip = pair.first;
-        if( strip < 0 || strip >= layergeom->get_strip_count( tileid ) ) continue;
+        if( strip < 0 || strip >= (int) layergeom->get_strip_count( tileid ) ) continue;
 
         // get hit from hitset
         TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
