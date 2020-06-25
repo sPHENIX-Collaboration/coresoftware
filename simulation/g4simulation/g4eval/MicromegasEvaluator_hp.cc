@@ -232,7 +232,6 @@ void MicromegasEvaluator_hp::evaluate_hits()
     // get hitset, key and layer
     TrkrHitSet* hitset = hitset_it->second;
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
-    const auto layer = TrkrDefs::getLayer(hitsetkey);
     const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
 
     // loop over hits

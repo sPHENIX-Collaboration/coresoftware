@@ -660,7 +660,6 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
 
   // get associated hits
   {
-    const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
     // loop over hits associated to clusters
     const auto range = m_cluster_hit_map->getHits(cluster_key);
