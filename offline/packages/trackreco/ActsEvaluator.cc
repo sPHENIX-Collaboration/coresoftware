@@ -113,7 +113,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	track->identify();
 	std::cout << "TruthParticle : " << g4particle->get_px()
 		  << ", " << g4particle->get_py() << ", "
-		  << g4particle->get_pz() <<g4particle->get_e() << std::endl;
+		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		  << std::endl;
       }
 
     const auto &[trackTips, mj] = traj.trajectory();
@@ -876,6 +877,9 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vx = vtx->get_x() * Acts::UnitConstants::cm;
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
+    if(Verbosity() > 1)
+      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
+		<< ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -1184,12 +1188,12 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_y_fit" , &m_y_fit);
   m_trackTree->Branch("g_z_fit" , &m_z_fit);
 
-  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx, "m_protoTrackPx/F");
-  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy, "m_protoTrackPy/F");
-  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz, "m_protoTrackPz/F");
-  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX, "m_protoTrackX/F");
-  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY, "m_protoTrackY/F");
-  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ, "m_protoTrackZ/F");
+  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx);
+  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy);
+  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz);
+  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
+  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
+  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);
