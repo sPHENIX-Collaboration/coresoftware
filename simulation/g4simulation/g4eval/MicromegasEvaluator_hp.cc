@@ -224,36 +224,44 @@ void MicromegasEvaluator_hp::evaluate_hits()
   // clear array
   m_container->clearHits();
 
-  // loop over micromegas hitsets
-  const auto hitset_range = m_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
-  for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
+  // loop over micromegas and tpc hitsets
+  for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
   {
 
-    // get hitset, key and layer
-    TrkrHitSet* hitset = hitset_it->second;
-    const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
-    const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
-
-    // loop over hits
-    const auto hit_range = hitset->getHits();
-
-    for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
+    const auto hitset_range = m_hitsetcontainer->getHitSets(id);
+    for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
     {
 
-      // get key and hit
-      const auto hitkey = hit_it->first;
-      const auto hit = hit_it->second;
+      // get hitset, key and layer
+      TrkrHitSet* hitset = hitset_it->second;
+      const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
 
-      // create hit struct
-      auto hit_struct = create_hit( hitsetkey, hitkey, hit );
+      // this returns garbage for tpc hitsets
+      const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
 
-      // assign segmentation type
-      hit_struct._segmentation = to_underlying_type(segmentation_type);
+      // loop over hits
+      const auto hit_range = hitset->getHits();
 
-      // store
-      m_container->addHit( hit_struct );
+      for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
+      {
 
+        // get key and hit
+        const auto hitkey = hit_it->first;
+        const auto hit = hit_it->second;
+
+        // create hit struct
+        auto hit_struct = create_hit( hitsetkey, hitkey, hit );
+
+        // assign segmentation type
+        if( id == TrkrDefs::TrkrId::micromegasId )
+        { hit_struct._segmentation = to_underlying_type(segmentation_type); }
+
+        // store
+        m_container->addHit( hit_struct );
+
+      }
     }
+
   }
 
 }
