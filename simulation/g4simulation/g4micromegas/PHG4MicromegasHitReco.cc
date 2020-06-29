@@ -366,7 +366,7 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
 {
   // number of primary electrons
-  uint nprimary = gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev);
+  const auto nprimary = gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev);
   if( !nprimary ) return 0;
 
   /*
