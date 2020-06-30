@@ -230,43 +230,69 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
-      auto world_mid = (world_in + world_out)*0.5;
 
-      // distribute charge among adjacent strips
-      // todo: will need to split charge for different segments along drift space
-      // calculate the fired strips for each segment, including diffusion
-      // get the complete cluster by resumming
-      int tileid;
-      charge_list_t fractions;
-      std::tie(tileid, fractions) = distribute_charge( layergeom, world_mid, m_cloud_sigma );
-      if( tileid < 0 || fractions.empty() ) continue;
-
-      // make sure fractions adds up to unity
-      if( Verbosity() > 0 )
-      {
-        const auto sum = std::accumulate( fractions.begin(), fractions.end(), double( 0 ),
-          []( double value, const charge_pair_t& pair ) { return value + pair.second; } );
-        std::cout << "PHG4MicromegasHitReco::process_event - sum: " << sum << std::endl;
-      }
-
+      // make sure that the mid point is in one of the tiles
       /*
-      calculate the total number of electrons used for this hit
-      this is what will be stored as 'energy' in the hits
-      this accounts for number of 'primary', detector gain, and fluctuations thereof
-      */
-      const auto nelectrons = get_electrons( g4hit );
+       * at this point we do not check the strip validity.
+       * This will be done when actually distributing electrons along the G4Hit track segment
+       */
+      const auto world_mid = (world_in+world_out)*0.5;
+      const int tileid = layergeom->find_tile( world_mid );
+      if( tileid < 0 ) continue;
+
+      // number of primary elections
+      const auto nprimary = get_primary_electrons( g4hit );
+      if( !nprimary ) continue;
 
       // create hitset
-      TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, layergeom->get_segmentation_type(), tileid );
-      auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+      const TrkrDefs::hitsetkey hitsetkey = MicromegasDefs::genHitSetKey( layer, layergeom->get_segmentation_type(), tileid );
+      const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+
+      // keep track of all charges
+      using charge_map_t = std::map<int,double>;
+      charge_map_t total_charges;
+
+      // loop over primaries
+      for( uint ie = 0; ie < nprimary; ++ie )
+      {
+
+        // put the electron at a random position along the g4hit path
+        const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
+        const auto world =  world_in*t + world_out*(1.0-t);
+
+        // distribute charge among adjacent strips
+        const auto fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
+
+        // make sure fractions adds up to unity
+        if( Verbosity() > 0 )
+        {
+          const auto sum = std::accumulate( fractions.begin(), fractions.end(), double( 0 ),
+            []( double value, const charge_pair_t& pair ) { return value + pair.second; } );
+          std::cout << "PHG4MicromegasHitReco::process_event - sum: " << sum << std::endl;
+        }
+
+        // generate gain for this electron
+        const auto gain = get_single_electron_amplification();
+
+        // merge to total charges
+        for( const auto& pair: fractions )
+        {
+          const int strip = pair.first;
+          if( strip < 0 || strip >= (int) layergeom->get_strip_count( tileid ) ) continue;
+
+          const auto it = total_charges.lower_bound( strip );
+          if( it != total_charges.end() && it->first == strip ) it->second += pair.second*gain;
+          else total_charges.insert( it, std::make_pair( strip, pair.second*gain ) );
+        }
+
+      }
 
       // generate the key for this hit
       // loop over strips in list
-      for( const auto pair:fractions )
+      for( const auto pair:total_charges )
       {
         // get strip and bound check
         const int strip = pair.first;
-        if( strip < 0 || strip >= (int) layergeom->get_strip_count( tileid ) ) continue;
 
         // get hit from hitset
         TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
@@ -279,12 +305,12 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         }
 
         // add energy from g4hit
-        const double fraction = pair.second;
-        hit->addEnergy( fraction*nelectrons );
+        hit->addEnergy( pair.second );
 
         // associate this hitset and hit to the geant4 hit key
         hittruthassoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
       }
+
     }
   }
 
@@ -363,43 +389,33 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 }
 
 //___________________________________________________________________________
-uint PHG4MicromegasHitReco::get_electrons( PHG4Hit* g4hit ) const
-{
-  // number of primary electrons
-  const auto nprimary = gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev);
-  if( !nprimary ) return 0;
+uint PHG4MicromegasHitReco::get_primary_electrons( PHG4Hit* g4hit ) const
+{ return gsl_ran_poisson(m_rng.get(), g4hit->get_eion() * m_electrons_per_gev); }
 
+//___________________________________________________________________________
+uint PHG4MicromegasHitReco::get_single_electron_amplification() const
+{
   /*
    * to handle gain fluctuations, an exponential distribution is used, similar to what used for the GEMS
    * (simulations/g4simulations/g4tpc/PHG4TpcPadPlaneReadout::getSingleEGEMAmplification)
    * One must get a different random number for each primary electron for this to be valid
    */
-  uint ntot = 0;
-  for( uint i = 0; i < nprimary; ++i ) { ntot += gsl_ran_exponential(m_rng.get(), m_gain); }
-
-  if( Verbosity() > 0 )
-  {
-    std::cout
-      << "PHG4MicromegasHitReco::get_electrons -"
-      << " nprimary: " << nprimary
-      << " average gain: " << static_cast<double>(ntot)/nprimary
-      << std::endl;
-  }
-
-  return ntot;
+  return gsl_ran_exponential(m_rng.get(), m_gain);
 }
 
 //___________________________________________________________________________
-PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
-  CylinderGeomMicromegas* layergeom, const TVector3& location, double sigma ) const
+PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
+  CylinderGeomMicromegas* layergeom,
+  uint tileid,
+  const TVector3& location,
+  double sigma ) const
 {
 
   // find tile and strip matching center position
-  int tileid, stripnum;
-  std::tie(tileid, stripnum) = layergeom->find_strip( location );
+  auto stripnum = layergeom->find_strip( tileid, location );
 
   // check tile and strip
-  if( tileid < 0 || stripnum < 0 ) return std::make_pair( -1, charge_list_t() );
+  if( stripnum < 0 ) return charge_list_t();
 
   // store pitch and radius
   const auto pitch = layergeom->get_pitch();
@@ -437,5 +453,5 @@ PHG4MicromegasHitReco::charge_info_t PHG4MicromegasHitReco::distribute_charge(
     charge_list.push_back( std::make_pair( strip, fraction ) );
   }
 
-  return std::make_pair( tileid, charge_list );
+  return charge_list;
 }
