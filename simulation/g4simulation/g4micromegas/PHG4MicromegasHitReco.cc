@@ -249,6 +249,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
       // keep track of all charges
+      using charge_map_t = std::map<int,double>;
       charge_map_t total_charges;
 
       // loop over primaries
@@ -260,7 +261,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         const auto world =  world_in*t + world_out*(1.0-t);
 
         // distribute charge among adjacent strips
-        const charge_map_t fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
+        const auto fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
 
         // make sure fractions adds up to unity
         if( Verbosity() > 0 )
@@ -403,7 +404,7 @@ uint PHG4MicromegasHitReco::get_single_electron_amplification() const
 }
 
 //___________________________________________________________________________
-PHG4MicromegasHitReco::charge_map_t PHG4MicromegasHitReco::distribute_charge(
+PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
   CylinderGeomMicromegas* layergeom,
   uint tileid,
   const TVector3& location,
@@ -414,7 +415,7 @@ PHG4MicromegasHitReco::charge_map_t PHG4MicromegasHitReco::distribute_charge(
   auto stripnum = layergeom->find_strip( tileid, location );
 
   // check tile and strip
-  if( stripnum < 0 ) return charge_map_t();
+  if( stripnum < 0 ) return charge_list_t();
 
   // store pitch and radius
   const auto pitch = layergeom->get_pitch();
@@ -426,7 +427,7 @@ PHG4MicromegasHitReco::charge_map_t PHG4MicromegasHitReco::distribute_charge(
   const auto stripnum_max = clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
 
   // prepare charge list
-  charge_map_t charge_map;
+  charge_list_t charge_list;
 
   // store azimuthal angle
   const auto phi = std::atan2( location.y(), location.x() );
@@ -449,8 +450,8 @@ PHG4MicromegasHitReco::charge_map_t PHG4MicromegasHitReco::distribute_charge(
       get_rectangular_fraction( xloc, sigma, pitch );
 
     // store
-    charge_map.insert( std::make_pair( strip, fraction ) );
+    charge_list.push_back( std::make_pair( strip, fraction ) );
   }
 
-  return charge_map;
+  return charge_list;
 }
