@@ -43,8 +43,14 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! segmentation type
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
 
+  //! get tile for a given world location
+  int find_tile( const TVector3& ) const;
+
   //! get tile and strip for a give world location
   std::pair<int,int> find_strip( const TVector3& ) const;
+
+  //! get strip for a give world location and tile
+  int find_strip( uint tileid, const TVector3& ) const;
 
   //! get strip length for a given tile
   double get_strip_length( uint tileid ) const;
@@ -76,14 +82,28 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   private:
 
+  // check if hit radius matches this cylinder
+  bool check_radius( const TVector3& ) const;
+
+  //! layer id
   int m_layer = 0;
+
+  //! segmentation type
   MicromegasDefs::SegmentationType m_segmentation_type = MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+
+  //! layer radius
   double m_radius = 0;
+
+  //! layer thickness
   double m_thickness = 0;
+
+  //! layer z extend
   double m_zmin = 0;
+
+  //! layer z extend
   double m_zmax = 0;
 
-  // 1mm pitch by default
+  //! 1mm pitch by default
   double m_pitch = 0.1;
 
   //! tiles
