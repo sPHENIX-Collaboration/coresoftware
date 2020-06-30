@@ -51,21 +51,21 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! setup tiles definition in CylinderGeom
   void setup_tiles(PHCompositeNode*);
 
-  //! stores strip number and corresponding charge fraciton
-  using charge_pair_t = std::pair<int, double>;
+  //! map strip number to charge fraction
+  using charge_map_t = std::map<int, double>;
 
-  //! list of charge fractions
-  using charge_list_t = std::vector<charge_pair_t>;
-
-  //! tile and list of charge fractions
-  using charge_info_t = std::pair<int, charge_list_t>;
+  //! stores strip number and corresponding charge fraction
+  using charge_pair_t = charge_map_t::value_type;
 
   //! get total number of electrons collected for a give g4hit
   /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
-  uint get_electrons( PHG4Hit* ) const;
+  uint get_primary_electrons( PHG4Hit* ) const;
+
+  //! get single electron amplification
+  uint get_single_electron_amplification() const;
   
   //! distribute a Gaussian charge across adjacent strips
-  charge_info_t distribute_charge( CylinderGeomMicromegas*, const TVector3& position, double sigma ) const;
+  charge_map_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector3& position, double sigma ) const;
 
   //! detector name
   std::string m_detector;
