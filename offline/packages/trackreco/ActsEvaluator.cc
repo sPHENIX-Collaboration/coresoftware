@@ -21,6 +21,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Units.hpp>
 
 #include <TFile.h>
@@ -113,7 +114,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	track->identify();
 	std::cout << "TruthParticle : " << g4particle->get_px()
 		  << ", " << g4particle->get_py() << ", "
-		  << g4particle->get_pz() <<g4particle->get_e() << std::endl;
+		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		  << std::endl;
       }
 
     const auto &[trackTips, mj] = traj.trajectory();
@@ -837,6 +839,8 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_x_fit  = boundParam.position()(0);
     m_y_fit  = boundParam.position()(1);
     m_z_fit  = boundParam.position()(2);
+    
+    calculateDCA(boundParam);
 
     return;
   }
@@ -863,6 +867,52 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
 
   return;
 }
+
+void ActsEvaluator::calculateDCA(const Acts::BoundParameters param)
+{
+
+  Acts::Vector3D pos = param.position();
+  Acts::Vector3D mom = param.momentum();
+  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+  if(param.covariance())
+    cov = param.covariance().value();
+
+  Acts::ActsSymMatrixD<3> posCov;
+  for(int i = 0; i < 3; ++i)
+    {
+      for(int j = 0; j < 3; ++j)
+	{
+	  posCov(i,j) = cov(i,j);
+	} 
+    }
+
+  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+
+  Acts::RotationMatrix3D rot;
+  Acts::RotationMatrix3D rot_T;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3D pos_R = rot * pos;
+  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+
+  m_dca3Dxy = pos_R(0);
+  m_dca3Dz = pos_R(2);
+  m_dca3DxyCov = rotCov(0,0);
+  m_dca3DzCov = rotCov(2,2);
+  
+}
+
 void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 {
   SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
@@ -876,6 +926,9 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vx = vtx->get_x() * Acts::UnitConstants::cm;
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
+    if(Verbosity() > 1)
+      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
+		<< ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -1183,13 +1236,17 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_x_fit" , &m_x_fit);
   m_trackTree->Branch("g_y_fit" , &m_y_fit);
   m_trackTree->Branch("g_z_fit" , &m_z_fit);
+  m_trackTree->Branch("g_dca3Dxy_fit" , &m_dca3Dxy);
+  m_trackTree->Branch("g_dca3Dz_fit" , &m_dca3Dz);
+  m_trackTree->Branch("g_dca3Dxy_cov" , &m_dca3DxyCov);
+  m_trackTree->Branch("g_dca3Dz_cov" , &m_dca3DzCov);
 
-  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx, "m_protoTrackPx/F");
-  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy, "m_protoTrackPy/F");
-  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz, "m_protoTrackPz/F");
-  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX, "m_protoTrackX/F");
-  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY, "m_protoTrackY/F");
-  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ, "m_protoTrackZ/F");
+  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx);
+  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy);
+  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz);
+  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
+  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
+  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);

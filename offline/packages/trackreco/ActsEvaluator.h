@@ -69,6 +69,9 @@ class ActsEvaluator : public SubsysReco
 			const size_t &trackTip, 
 			PHCompositeNode *topNode);
   void clearTrackVariables();
+  
+  void calculateDCA(const Acts::BoundParameters param);
+
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
 				   const unsigned int hitID,
 				   float &_gt);
@@ -161,8 +164,12 @@ class ActsEvaluator : public SubsysReco
   float m_y_fit{-99.};            /// fitted parameter global PCA y
   float m_z_fit{-99.};            /// fitted parameter global PCA z
   float m_chi2_fit{-99.};         /// fitted parameter chi2
-  float m_ndf_fit{-99.};         /// fitted parameter ndf
-  
+  float m_ndf_fit{-99.};          /// fitted parameter ndf
+  float m_dca3Dxy{-99.};          /// fitted parameter 3D DCA in xy plane
+  float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane
+  float m_dca3DxyCov{-99.};       /// fitted parameter 3D DCA covariance in xy
+  float m_dca3DzCov{-99.};        /// fitted parameter 3D DCA covariance in z
+
   int m_nPredicted{0};                   /// number of states with predicted parameter
   std::vector<bool> m_prt;               /// predicted status
   std::vector<float> m_eLOC0_prt;        /// predicted parameter eLOC0
