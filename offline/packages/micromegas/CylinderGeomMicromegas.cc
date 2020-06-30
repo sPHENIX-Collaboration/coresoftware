@@ -27,15 +27,37 @@ namespace
 }
 
 //________________________________________________________________________________
-std::pair<int,int> CylinderGeomMicromegas::find_strip( const TVector3& world_location ) const
+int CylinderGeomMicromegas::find_tile( const TVector3& world_location ) const
 {
+  // check radius
+  if( !check_radius(world_location) ) return -1;
 
   // convert to polar coordinates
-  const auto radius = std::sqrt( square( world_location.x() ) + square( world_location.y() ) );
   const auto phi = std::atan2( world_location.y(), world_location.x() );
   const auto z = world_location.z();
 
-  if( std::abs( radius - m_radius ) > m_thickness/2 ) return std::make_pair( -1, -1 );
+  for( size_t itile = 0; itile < m_tiles.size(); ++itile )
+  {
+    const auto& tile = m_tiles.at(itile);
+
+    if( std::abs( z - tile.m_centerZ ) > tile.m_sizeZ/2 ) continue;
+    if( std::abs( bind_angle( phi - tile.m_centerPhi ) ) > tile.m_sizePhi/2 ) continue;
+
+    return itile;
+  }
+
+  return -1;
+}
+
+//________________________________________________________________________________
+std::pair<int,int> CylinderGeomMicromegas::find_strip( const TVector3& world_location ) const
+{
+  // check radius
+  if( !check_radius(world_location) ) return std::make_pair(-1,-1);
+
+  // convert to polar coordinates
+  const auto phi = std::atan2( world_location.y(), world_location.x() );
+  const auto z = world_location.z();
 
   for( size_t itile = 0; itile < m_tiles.size(); ++itile )
   {
@@ -59,7 +81,37 @@ std::pair<int,int> CylinderGeomMicromegas::find_strip( const TVector3& world_loc
 
   // no tile found
   return  std::make_pair( -1, -1 );
+}
 
+//________________________________________________________________________________
+int CylinderGeomMicromegas::find_strip( uint tileid, const TVector3& world_location ) const
+{
+  // check radius
+  if( !check_radius(world_location) ) return -1;
+
+  // convert to polar coordinates
+  const auto phi = std::atan2( world_location.y(), world_location.x() );
+  const auto z = world_location.z();
+
+  // get tile
+  const auto& tile = m_tiles.at(tileid);
+
+  if( std::abs( z - tile.m_centerZ ) > tile.m_sizeZ/2 ) return -1;
+  if( std::abs( bind_angle( phi - tile.m_centerPhi ) ) > tile.m_sizePhi/2 ) return -1;
+
+  // we found a tile to which the hit belong
+  // calculate strip index, depending on cylinder direction
+  switch( m_segmentation_type )
+  {
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    return (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)*m_radius/m_pitch );
+
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    return (int) std::floor( (z - tile.m_centerZ + tile.m_sizeZ/2)/m_pitch );
+  }
+
+  // unreachable
+  return -1;
 }
 
 //________________________________________________________________________________
@@ -124,7 +176,6 @@ TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnu
 
     // unreachable
     return TVector3();
-
 }
 
 //________________________________________________________________________________
@@ -139,4 +190,11 @@ void CylinderGeomMicromegas::identify( std::ostream& out ) const
   out << "zmax: " << m_zmax << "cm" << std::endl;
   out << "pitch: " << m_pitch << "cm" << std::endl;
   out << std::endl;
+}
+
+//________________________________________________________________________________
+bool  CylinderGeomMicromegas::check_radius( const TVector3& world_location ) const
+{
+  const auto radius = std::sqrt( square( world_location.x() ) + square( world_location.y() ) );
+  return std::abs( radius - m_radius ) <= m_thickness/2;
 }
