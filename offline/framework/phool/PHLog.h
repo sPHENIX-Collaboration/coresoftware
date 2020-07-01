@@ -18,7 +18,6 @@ class PHLog
  public:
   static void Init()
   {
-    std::cout << "..logger_init.." << std::endl;
     const std::string initFileName = "phlog.conf";
     const char* env_file = std::getenv("PHLOGCONF");
     if (_file_exists(initFileName))
