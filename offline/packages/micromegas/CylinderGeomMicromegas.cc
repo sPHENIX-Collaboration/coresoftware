@@ -184,6 +184,7 @@ void CylinderGeomMicromegas::identify( std::ostream& out ) const
   out << "CylinderGeomMicromegas" << std::endl;
   out << "layer: " << m_layer << std::endl;
   out << "segmentation_type: " << (m_segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ? "SEGMENTATION_PHI":"SEGMENTATION_Z") << std::endl;
+  out << "drift_direction: " << (m_drift_direction == MicromegasDefs::DriftDirection::INWARD ? "INWARD":"OUTWARD") << std::endl;
   out << "radius: " << m_radius << "cm" << std::endl;
   out << "thickness: " << m_thickness << "cm" << std::endl;
   out << "zmin: " << m_zmin << "cm" << std::endl;
