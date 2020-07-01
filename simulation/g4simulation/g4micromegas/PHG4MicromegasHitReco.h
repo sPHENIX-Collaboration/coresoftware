@@ -85,6 +85,9 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! electron cloud sigma (cm) after avalanche
   double m_cloud_sigma = 0.04;
 
+  //! electron transverse diffusion (cm/sqrt(cm))
+  double m_diffusion_trans = 0.03;
+  
   //! use zig zag pads
   bool m_zigzag_strips = true;
   

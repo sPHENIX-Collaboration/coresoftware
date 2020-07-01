@@ -112,6 +112,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   m_electrons_per_gev = get_double_param("micromegas_electrons_per_gev" );
   m_gain = get_double_param("micromegas_gain");
   m_cloud_sigma = get_double_param("micromegas_cloud_sigma");
+  m_diffusion_trans = get_double_param("micromegas_diffusion_trans");
   m_zigzag_strips = get_int_param("micromegas_zigzag_strips");
 
   // printout
@@ -121,6 +122,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
     << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
     << " m_gain: " << m_gain << "\n"
     << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
+    << " m_diffusion_trans: " << m_diffusion_trans << "cm/sqrt(cm)\n"
     << " m_zigzag_strips: " << std::boolalpha << m_zigzag_strips << "\n"
     << std::endl;
 
@@ -213,8 +215,17 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
     auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
     assert( layergeom );
 
+    /* 
+     * get the radius of the detector mesh. It depends on the drift direction 
+     * it is used to calculate the drift distance of the primary electrons, and the
+     * corresponding transverse diffusion
+     */
+    const auto mesh_radius = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
+      (layergeom->get_radius() + layergeom->get_thickness()/2): 
+      (layergeom->get_radius() - layergeom->get_thickness()/2);
+        
     // get corresponding hits
-    PHG4HitContainer::ConstRange g4hit_range = g4hitcontainer->getHits(layer);
+    const PHG4HitContainer::ConstRange g4hit_range = g4hitcontainer->getHits(layer);
 
     // loop over hits
     for( auto g4hit_it = g4hit_range.first; g4hit_it != g4hit_range.second; ++g4hit_it )
@@ -255,11 +266,32 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       // loop over primaries
       for( uint ie = 0; ie < nprimary; ++ie )
       {
-
         // put the electron at a random position along the g4hit path
         const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
-        const auto world =  world_in*t + world_out*(1.0-t);
-
+        auto world =  world_in*t + world_out*(1.0-t);
+        
+        if( m_diffusion_trans > 0 )
+        {
+          // add transeverse diffusion
+          // first convert to polar coordinates
+          const double radius = std::sqrt(square(world.x())+square(world.y()));
+          const double phi = std::atan2(world.y(),world.x());
+          const double drift_distance = std::abs(radius - mesh_radius);
+          const double diffusion = gsl_ran_gaussian(m_rng.get(), m_diffusion_trans*std::sqrt(drift_distance));
+          const double diffusion_angle = gsl_ran_flat(m_rng.get(), -M_PI, M_PI);
+                    
+          /*
+           * diffusion happens in the phi,z plane (plane perpendicular to the radius direction)
+           * with a magnitude 'diffusion' and an angle 'diffusion angle'
+           * rotate back to cartesian coordinates
+           */
+          const auto sphi = std::sin(phi);
+          const auto cphi = std::cos(phi);
+          const auto salpha = std::sin(diffusion_angle);
+          const auto calpha = std::cos(diffusion_angle);
+          world += TVector3(-sphi*calpha*diffusion, cphi*calpha*diffusion, salpha*diffusion); 
+        }
+        
         // distribute charge among adjacent strips
         const auto fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
 
@@ -347,6 +379,9 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
   // electron cloud sigma, after avalanche (cm)
   set_default_double_param("micromegas_cloud_sigma", 0.04 );
 
+  // transverse diffusion (cm/sqrt(cm))
+  set_default_double_param("micromegas_diffusion_trans", 0.03 );
+  
   // zigzag strips
   set_default_int_param("micromegas_zigzag_strips", true );
 }
@@ -374,13 +409,24 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     // assign tiles
     cylinder->set_tiles( m_tiles );
 
-    // asign segmentation type and pitch
-    // assume first layer in phi, other(s) are z
+    /*
+     * asign segmentation type and pitch
+     * assume first layer in phi, other(s) are z
+     */
     const bool is_first( iter == range.first );
     cylinder->set_segmentation_type( is_first ?
       MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
       MicromegasDefs::SegmentationType::SEGMENTATION_Z );
 
+    /*
+     * assign drift direction
+     * assume first layer is outward, with readout plane at the top, and others are inward, with readout plane at the bottom
+     * this is used to properly implement transverse diffusion in ::process_event
+     */
+    cylinder->set_drift_direction( is_first ? 
+      MicromegasDefs::DriftDirection::OUTWARD :
+      MicromegasDefs::DriftDirection::INWARD );      
+    
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
