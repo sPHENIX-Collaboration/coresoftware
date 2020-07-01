@@ -43,6 +43,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! segmentation type
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
 
+  //! drift direction
+  MicromegasDefs::DriftDirection get_drift_direction() const {return m_drift_direction;}
+
   //! get tile for a given world location
   int find_tile( const TVector3& ) const;
 
@@ -76,8 +79,13 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   void set_pitch( double value ) { m_pitch = value; }
 
   //! tiles
-  void set_tiles( const MicromegasTile::List& tiles ) { m_tiles = tiles; }
+  void set_tiles( const MicromegasTile::List& tiles ) {m_tiles = tiles;}
+
+  //! segmentation
   void set_segmentation_type( MicromegasDefs::SegmentationType value ) {m_segmentation_type = value;}
+
+  //! drift direction
+  void set_drift_direction( MicromegasDefs::DriftDirection value ) {m_drift_direction = value;}
   //@}
 
   private:
@@ -90,6 +98,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //! segmentation type
   MicromegasDefs::SegmentationType m_segmentation_type = MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+
+  //! drift direction
+  MicromegasDefs::DriftDirection m_drift_direction = MicromegasDefs::DriftDirection::OUTWARD;
 
   //! layer radius
   double m_radius = 0;

@@ -14,11 +14,19 @@
 namespace MicromegasDefs
 {
 
-  //* tells the direction along which a given cylinder is segmented
+  //! tells the direction along which a given cylinder is segmented
   enum class SegmentationType: uint8_t
   {
     SEGMENTATION_Z,
     SEGMENTATION_PHI
+  };
+
+  //! tells the drift direction for a given micromegas layer
+  /*! this is needed for properly implementing transverse diffusion in the layer */
+  enum class DriftDirection: uint8_t
+  {
+    INWARD,
+    OUTWARD
   };
 
   /*!
@@ -76,7 +84,7 @@ namespace MicromegasDefs
    * @param[out] cluskey
    */
   TrkrDefs::cluskey genClusterKey(TrkrDefs::hitsetkey hskey, uint32_t clusid);
-  
+
   /*!
    * @brief Get the segmentation type from cluster key
    * @param[in] cluskey
