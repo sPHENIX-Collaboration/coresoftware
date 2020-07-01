@@ -201,7 +201,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
-
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
@@ -220,7 +219,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         // get strip world coordinate
         world_coordinates += layergeom->get_world_coordinate( tileid, strip )*weight;
         adc_sum += weight;
-
       }
 
       // cluster position
