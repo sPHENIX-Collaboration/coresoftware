@@ -8,30 +8,39 @@
 #include "CylinderGeomMicromegas.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 
+
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/phool.h>
+#include <phool/PHIODataNode.h>                     // for PHIODataNode
+#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNodeIterator.h>                   // for PHNodeIterator
+#include <phool/PHObject.h>                         // for PHObject
 
 #include <Eigen/Dense>
 
 #include <TVector3.h>
 
-#include <array>
 #include <cassert>
 #include <cmath>
+#include <cstdint>                                 // for uint16_t
+#include <iterator>                                 // for distance
+#include <map>                                      // for _Rb_tree_const_it...
+#include <utility>                                  // for pair, make_pair
 #include <vector>
-#include <iostream>
+
 
 namespace
 {
