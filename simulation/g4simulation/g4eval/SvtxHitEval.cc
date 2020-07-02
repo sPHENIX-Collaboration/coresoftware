@@ -219,13 +219,13 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	      //cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;	  
 	      PHG4Hit * g4hit = nullptr;
-	      if(trkrid == TrkrDefs::tpcId)
-		g4hit = _g4hits_tpc->findHit(g4hitkey);
-	      else if(trkrid == TrkrDefs::inttId)
-		g4hit = _g4hits_intt->findHit(g4hitkey);
-	      else
-		g4hit = _g4hits_mvtx->findHit(g4hitkey);
-
+       switch( trkrid )
+       {
+        case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
+        case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
+        case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
+        default: break;
+       }
 	      // fill output set
 	      if( g4hit ) truth_hits.insert(g4hit);
 	    }
