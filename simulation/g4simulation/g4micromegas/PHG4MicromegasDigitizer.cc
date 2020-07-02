@@ -14,20 +14,21 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
 #include <gsl/gsl_randist.h>
-#include <algorithm>
+#include <gsl/gsl_rng.h>                       // for gsl_rng_alloc, gsl_rng...
+
 #include <cassert>
+#include <iostream>                            // for operator<<, basic_ostream
 #include <set>
+#include <utility>                             // for pair
 
 namespace
 {

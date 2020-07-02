@@ -14,7 +14,9 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <gsl/gsl_rng.h>
+
 #include <memory>
+#include <string>                              // for string
 
 class PHCompositeNode;
 
