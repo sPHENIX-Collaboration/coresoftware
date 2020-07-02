@@ -19,9 +19,11 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Utils.h>
+
+#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -30,11 +32,19 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHObject.h>                         // for PHObject
+
 
 #include <TVector3.h>
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                            // for gsl_rng_alloc
+
 #include <cassert>
+#include <cmath>                                   // for atan2, sqrt, M_PI
+#include <cstdlib>                                 // for exit
+#include <iostream>                                 // for operator<<, basic...
+#include <map>                                      // for _Rb_tree_const_it...
 #include <numeric>
 
 namespace
