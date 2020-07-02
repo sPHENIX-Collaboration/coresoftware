@@ -3596,7 +3596,7 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
   float gt = 0.0;
   float gwt = 0.0;
   
-  if (layer >= _nlayers_maps + _nlayers_intt && layer <= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+  if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
     {
       //cout << "layer = " << layer << " _nlayers_maps " << _nlayers_maps << " _nlayers_intt " << _nlayers_intt << endl;
 
