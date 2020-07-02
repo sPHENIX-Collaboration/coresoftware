@@ -123,7 +123,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
 
 	  // extract the g4 hit key here and add the hits to the set
 	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
-	  PHG4Hit * g4hit;
+	  PHG4Hit * g4hit = nullptr;
 	  unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
 	  if(trkrid == TrkrDefs::tpcId)
 	    g4hit = _g4hits_tpc->findHit(g4hitkey);
@@ -131,7 +131,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
 	    g4hit = _g4hits_intt->findHit(g4hitkey);
 	  else
 	    g4hit = _g4hits_mvtx->findHit(g4hitkey);
-	  truth_hits.insert(g4hit);	      
+	  if( g4hit ) truth_hits.insert(g4hit);	      
 	} // end loop over g4hits associated with hitsetkey and hitkey
     } // end loop over hits associated with cluskey  
 

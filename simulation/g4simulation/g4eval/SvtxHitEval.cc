@@ -218,7 +218,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 	      // extract the g4 hit key here and add the g4hit to the set
 	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	      //cout << "           hitkey " << hitkey <<  " g4hitkey " << g4hitkey << endl;	  
-	      PHG4Hit * g4hit;
+	      PHG4Hit * g4hit = nullptr;
 	      if(trkrid == TrkrDefs::tpcId)
 		g4hit = _g4hits_tpc->findHit(g4hitkey);
 	      else if(trkrid == TrkrDefs::inttId)
@@ -227,7 +227,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 		g4hit = _g4hits_mvtx->findHit(g4hitkey);
 
 	      // fill output set
-	      truth_hits.insert(g4hit);
+	      if( g4hit ) truth_hits.insert(g4hit);
 	    }
 	}
     }
