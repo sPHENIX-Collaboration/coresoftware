@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include\
+  -I$(ROOTSYS)/include \
   -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
@@ -11,25 +11,25 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  PHG4MicromegasDigitizer.h\
-  PHG4MicromegasHitReco.h\
+  PHG4MicromegasDigitizer.h \
+  PHG4MicromegasHitReco.h \
   PHG4MicromegasSubsystem.h
 
 lib_LTLIBRARIES = \
   libg4micromegas.la
 
 libg4micromegas_la_SOURCES = \
-  PHG4MicromegasSubsystem.cc\
-  PHG4MicromegasDetector.cc\
-  PHG4MicromegasDigitizer.cc\
-  PHG4MicromegasHitReco.cc\
+  PHG4MicromegasSubsystem.cc \
+  PHG4MicromegasDetector.cc \
+  PHG4MicromegasDigitizer.cc \
+  PHG4MicromegasHitReco.cc \
   PHG4MicromegasSteppingAction.cc
 
 libg4micromegas_la_LIBADD = \
   -lphool \
-  -lSubsysReco\
-  -lg4detectors\
-  -lg4testbench\
+  -lSubsysReco \
+  -lg4detectors \
+  -lg4testbench \
   -lmicromegas_io
 
 BUILT_SOURCES = testexternals.cc
