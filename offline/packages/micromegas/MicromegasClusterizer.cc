@@ -3,7 +3,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-
 #include "MicromegasClusterizer.h"
 #include "MicromegasDefs.h"
 #include "CylinderGeomMicromegas.h"
@@ -14,6 +13,7 @@
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 
@@ -30,6 +30,7 @@
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <vector>
 #include <iostream>
 
 namespace
@@ -111,10 +112,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
 
-  // do clusterization
-  // for now each found hit is converted into a cluster
-  // TODO: implement real cluster
-
   // loop over micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
@@ -124,7 +121,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     TrkrHitSet* hitset = hitset_it->second;
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
     const auto layer = TrkrDefs::getLayer(hitsetkey);
-    const auto tile = MicromegasDefs::getTileId(hitsetkey);
+    const auto tileid = MicromegasDefs::getTileId(hitsetkey);
 
     // get geometry object
     const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
@@ -137,13 +134,22 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
     const double pitch = layergeom->get_pitch();
-    const double strip_length = layergeom->get_strip_length( tile );
+    const double strip_length = layergeom->get_strip_length( tileid );
 
-    // initialize cluster count
-    int cluster_count = 0;
+    // keep a list of ranges corresponding to each cluster
+    using range_list_t = std::vector<TrkrHitSet::ConstRange>;
+    range_list_t ranges;
 
     // loop over hits
     const auto hit_range = hitset->getHits();
+
+    // keep track of first iterator of runing cluster
+    auto begin = hit_range.first;
+
+    // keep track of previous strip
+    uint16_t previous_strip = 0;
+    bool first = true;
+
     for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
     {
 
@@ -153,22 +159,72 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // get strip number
       const auto strip = MicromegasDefs::getStrip( hitkey );
 
-      // get strip world coordinate
-      TVector3 world_coordinates = layergeom->get_world_coordinate( tile, strip );
+      if( first )
+      {
 
-      // create cluster key
+        previous_strip = strip;
+        first = false;
+        continue;
+
+      } else if( strip - previous_strip > 1 ) {
+
+        // store current cluster range
+        ranges.push_back( std::make_pair( begin, hit_it ) );
+
+        // reinitialize begin of next cluster range
+        begin = hit_it;
+
+      }
+
+      // update previous strip
+      previous_strip = strip;
+
+    }
+
+    // store last cluster
+    if( begin != hit_range.second ) ranges.push_back( std::make_pair( begin, hit_range.second ) );
+
+    // initialize cluster count
+    int cluster_count = 0;
+
+    // loop over found hit ranges and create clusters
+    for( const auto& range : ranges )
+    {
+
+      // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-
-      // associate cluster key to hit key
-      trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
-
-      // create new cluster of this key
       auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
 
+      TVector3 world_coordinates;
+      double adc_sum = 0;
+
+      // loop over constituting hits
+      for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
+      {
+        // get hit key
+        const auto hitkey = hit_it->first;
+        const auto hit = hit_it->second;
+
+        // associate cluster key to hit key
+        trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
+
+        // get strip number
+        const auto strip = MicromegasDefs::getStrip( hitkey );
+
+        // get adc, remove pedestal
+        /* pedestal should be the same as the one used in PHG4MicromegasDigitizer */
+        static constexpr double pedestal = 74.6;
+        const double weight = double(hit->getAdc()) - pedestal;
+
+        // get strip world coordinate
+        world_coordinates += layergeom->get_world_coordinate( tileid, strip )*weight;
+        adc_sum += weight;
+      }
+
       // cluster position
-      cluster->setPosition( 0, world_coordinates.x() );
-      cluster->setPosition( 1, world_coordinates.y() );
-      cluster->setPosition( 2, world_coordinates.z() );
+      cluster->setPosition( 0, world_coordinates.x()/adc_sum );
+      cluster->setPosition( 1, world_coordinates.y()/adc_sum );
+      cluster->setPosition( 2, world_coordinates.z()/adc_sum );
       cluster->setGlobal();
 
       // dimension and error in r, rphi and z coordinates
@@ -178,11 +234,12 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       matrix_t dimension = matrix_t::Zero();
       matrix_t error = matrix_t::Zero();
 
+      const auto size = std::distance( range.first, range.second );
       switch( segmentation_type )
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
         dimension(0,0) = square(0.5*thickness);
-        dimension(1,1) = square( 0.5*pitch );
+        dimension(1,1) = square( 0.5*pitch*size );
         dimension(2,2) = square( 0.5*strip_length );
 
         error(0,0) = square(thickness*invsqrt12);
@@ -193,7 +250,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
         dimension(0,0) = square(0.5*thickness);
         dimension(1,1) = square( 0.5*strip_length );
-        dimension(2,2) = square( 0.5*pitch );
+        dimension(2,2) = square( 0.5*pitch*size );
 
         error(0,0) = square(thickness*invsqrt12);
         error(1,1) = square( strip_length*invsqrt12 );
