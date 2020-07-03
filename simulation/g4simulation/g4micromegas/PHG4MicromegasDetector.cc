@@ -9,16 +9,18 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <g4main/PHG4Detector.h>
-#include <g4main/PHG4Subsystem.h>
+
 #include <micromegas/CylinderGeomMicromegas.h>
-#include <micromegas/MicromegasDefs.h>
+
 #include <phool/getClass.h>
-#include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNodeIterator.h>                   // for PHNodeIterator
+#include <phool/PHObject.h>                         // for PHObject
 
-#include <Geant4/G4Box.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -26,14 +28,18 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4String.hh>                       // for G4String
+#include <Geant4/G4ThreeVector.hh>                  // for G4ThreeVector
+#include <Geant4/G4Types.hh>                        // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>              // for G4VPhysicalVolume
+#include <Geant4/G4VSolid.hh>                       // for G4VSolid
 
-#include <array>
 #include <cmath>
 #include <iostream>
 #include <numeric>
-
-class G4VSolid;
-class PHCompositeNode;
+#include <tuple>                                    // for make_tuple, tuple
+#include <utility>                                  // for pair, make_pair
+#include <vector>                                   // for vector
 
 //____________________________________________________________________________..
 PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)

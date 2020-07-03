@@ -9,12 +9,14 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include <phool/PHObject.h>
+
 #include <array>
 #include <cassert>
 #include <vector>
 
 //! header only class that contains information about a given Tile location inside CylinderGeom
-class MicromegasTile
+class MicromegasTile: public PHObject
 {
 
   public:
@@ -24,6 +26,9 @@ class MicromegasTile
   //! default constructor
   MicromegasTile()
   {}
+
+// ROOT wants a virtual dtor
+  virtual ~MicromegasTile() {}
 
   //! constructor
   MicromegasTile( std::array<double, 4> values )
@@ -46,6 +51,7 @@ class MicromegasTile
   double m_sizePhi = 0;
   double m_sizeZ = 0;
 
+  ClassDef(MicromegasTile,1)
 };
 
 #endif

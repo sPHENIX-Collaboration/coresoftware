@@ -9,6 +9,7 @@
  */
 
 #include <g4main/PHG4SteppingAction.h>
+
 #include <memory>
 
 class PHG4MicromegasDetector;

@@ -10,16 +10,10 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 
 #include <string>                // for string
-#include <utility>
 
 class PHCompositeNode;
-class TrkrHit;
-class TrkrHitSetContainer;
-class TrkrClusterContainer;
-class TrkrClusterHitAssoc;
 
 //! micromegas clusterizer
 class MicromegasClusterizer : public SubsysReco
