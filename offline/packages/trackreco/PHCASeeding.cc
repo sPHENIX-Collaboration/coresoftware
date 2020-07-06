@@ -42,6 +42,10 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <boost/geometry/policies/compare.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <algorithm>
 #include <cmath>
@@ -75,33 +79,92 @@ class PHCompositeNode;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
-typedef std::array<pointKey,2> keylink;
+typedef std::pair<std::array<float,3>,TrkrDefs::cluskey> coordKey;
+typedef std::array<coordKey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
-
-enum skip_layers {on, off};
 
 // apparently there is no builtin STL hash function for a std::array
 // so to use std::unordered_set (essentially a hash table), we have to make our own hasher
 
 namespace std
 {
-  template<typename T, size_t N>
-  struct hash<array<T, N> >
+/*
+  template<typename T, size_t N, typename L, size_t M>
+  struct hash<array<pair<array<T, N>,L>,M> >
   {
-    typedef array<T, N> argument_type;
+    typedef array<pair<array<T, N>,L>,M> argument_type;
+    typedef size_t result_type;
+
+    result_type operator()(const argument_type& a) const
+    {
+      hash<T> hasher;
+      hash<L> other_hasher;
+      hash<pair<array<T,N>,L> 
+      result_type h = 0;
+      for (result_type i = 0; i < N; ++i)
+      {
+        h = h * 31 + hasher(a[i]);
+      }
+      for (result_type i = 0; i < M; ++i)
+      {
+        h = h * 31 + other_hasher
+      return h;
+    }
+  };
+*/
+  template<typename T,size_t N>
+  struct hash<array<T,N>>
+  {
+    typedef array<T,N> argument_type;
     typedef size_t result_type;
 
     result_type operator()(const argument_type& a) const
     {
       hash<T> hasher;
       result_type h = 0;
-      for (result_type i = 0; i < N; ++i)
+      for(result_type i = 0; i < N; ++i)
       {
         h = h * 31 + hasher(a[i]);
       }
       return h;
     }
   };
+  template<typename A,typename B>
+  struct hash<pair<A,B>>
+  {
+    typedef pair<A,B> argument_type;
+    typedef size_t result_type;
+    
+    result_type operator()(const argument_type& a) const
+    {
+      hash<A> hashA;
+      hash<B> hashB;
+      return (hashA(a.first)*31+hashB(a.second));
+    }
+  }; 
+}
+
+/*
+namespace std
+{
+  template<typename T>
+  struct hash<pair<array<float,3>, T>>
+  {
+    typedef pair<array<float,3>,T> argument_type;
+    typedef size_t result_type;
+    result_type operator()(const argument_type& a) const
+    {
+      hash<T> hasher;
+      hash<double> d_hasher;
+      return d_hasher(a.first.get<0>())+d_hasher(a.first.get<1>())+d_hasher(a.first.get<2>())+hasher(a.second);
+    }
+  };
+}
+*/
+
+bool PHCASeeding::samepoint(point q1,point q2)
+{
+  return (q1.get<0>() == q2.get<0>()) && (q1.get<1>() == q2.get<1>()) && (q1.get<2>() == q2.get<2>());
 }
 
 using namespace std;
@@ -144,9 +207,7 @@ PHCASeeding::PHCASeeding(
   , _neighbor_eta_width(neighbor_eta_width)
   , _max_sin_phi(maxSinPhi)
   , _Bz(Bz)
-  , _phi_scale(2)
-  , _z_scale(2)
-  , _cosTheta_limit(-0.95)
+  , _cosTheta_limit(2)
 {
 }
 
@@ -305,6 +366,15 @@ double PHCASeeding::phidiff(double phi1, double phi2)
     return d;
 }
 
+bool PHCASeeding::samepointKey(const pointKey &p1, const pointKey &p2)
+{
+  bool equalCluskey = (p1.second == p2.second);
+  point q1 = p1.first;
+  point q2 = p2.first;
+  bool equalPoint = (q1.get<0>() == q2.get<0>()) && (q1.get<1>() == q2.get<1>()) && (q1.get<2>() == q2.get<2>());
+  return equalCluskey && equalPoint;
+}
+
 void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values)
 {
   rtree.query(bgi::intersects(box(point(phimin, etamin, lmin), point(phimax, etamax, lmax))), std::back_inserter(returned_values));
@@ -378,6 +448,38 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
   std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
 }
 
+pointKey PHCASeeding::toPointKey(coordKey v)
+{
+  return make_pair(point(v.first.at(0),v.first.at(1),v.first.at(2)),v.second);
+}
+
+vector<pointKey> PHCASeeding::toPointKey(vector<coordKey> v)
+{
+  vector<pointKey> output;
+  output.reserve(v.size());
+  for(vector<coordKey>::iterator ck = v.begin();ck != v.end();++ck)
+  {
+    output.push_back(make_pair(point(ck->first.at(0),ck->first.at(1),ck->first.at(2)),ck->second));
+  }
+  return output;
+}
+
+coordKey PHCASeeding::fromPointKey(pointKey p)
+{
+  return make_pair(array<float,3>({p.first.get<0>(),p.first.get<1>(),p.first.get<2>()}),p.second);
+}
+
+vector<coordKey> PHCASeeding::fromPointKey(vector<pointKey> p)
+{
+  vector<coordKey> output;
+  output.reserve(p.size());
+  for(vector<pointKey>::iterator pk = p.begin();pk != p.end();++pk)
+  {
+    output.push_back(make_pair(array<float,3>({pk->first.get<0>(),pk->first.get<1>(),pk->first.get<2>()}),pk->second));
+  }
+  return output;
+}
+
 int PHCASeeding::Process(PHCompositeNode *topNode)
 {
   TFile fpara("CA_para.root", "RECREATE");
@@ -394,12 +496,12 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   int numberofseeds = 0;
-  vector<pointKey> clusterCands = FindLinkedClusters(NT,t_seed);
+  vector<coordKey> clusterCands = FindLinkedClusters(NT,t_seed);
   t_seed->stop();
   cout << "Linked cluster find time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   _rtree.clear();
-  FillTree(clusterCands);
+  FillTree(toPointKey(clusterCands));
   t_seed->stop();
   cout << "Reduced RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
@@ -414,11 +516,11 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-vector<pointKey> PHCASeeding::FindLinkedClusters(TNtuple* NT, PHTimer* t_seed)
+vector<coordKey> PHCASeeding::FindLinkedClusters(TNtuple* NT, PHTimer* t_seed)
 {
   vector<pointKey> allClusters;
-  vector<set<keylink>> belowLinks;
-  vector<set<keylink>> aboveLinks;
+  vector<unordered_set<keylink>> belowLinks;
+  vector<unordered_set<keylink>> aboveLinks;
   belowLinks.resize(_nlayers_tpc);
   aboveLinks.resize(_nlayers_tpc);
   // get vector<pointKey> for all clusters in outer third of TPC
@@ -435,27 +537,29 @@ vector<pointKey> PHCASeeding::FindLinkedClusters(TNtuple* NT, PHTimer* t_seed)
   LogDebug(" number of total clusters: " << allClusters.size() << endl);
   t_seed->restart();
 
-  pair<vector<set<keylink>>> links = CreateLinks(allClusters,t_seed);
+  pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters),t_seed);
+  cout << "created links\n";
   vector<vector<keylink>> bidirectionalLinks = FindBiLinks(links.first,links.second,t_seed);
+  cout << "found bilinks\n";
   // extract involved clusters (and locations) from bi-links
   // std::set::insert automatically skips duplicates
-  set<pointKey> clusterCands;
+  vector<coordKey> clusterCands;
   for(vector<keylink> link_list : bidirectionalLinks)
   {
-    for(keylink) link : link_list)
+    for(keylink link : link_list)
     {
-      clusterCands.insert(link.first);
-      clusterCands.insert(link.second);
+      if(!any_of(clusterCands.begin(),clusterCands.end(),[&](coordKey k){return link[0]==k;})) clusterCands.push_back(link[0]);
+      if(!any_of(clusterCands.begin(),clusterCands.end(),[&](coordKey k){return link[1]==k;})) clusterCands.push_back(link[1]);
     }
   }
-  return vector<pointKey>(clusterCands.begin(),clusterCands.end());
+  return clusterCands;
 }
 
 int PHCASeeding::FindSeedsLayerSkip(TNtuple* NT,PHTimer* t_seed)
 {
   vector<pointKey> reducedClusters;
-  vector<set<keylink>> belowLinks;
-  vector<set<keylink>> aboveLinks;
+  vector<unordered_set<keylink>> belowLinks;
+  vector<unordered_set<keylink>> aboveLinks;
   belowLinks.resize(_nlayers_tpc);
   aboveLinks.resize(_nlayers_tpc);
   // get vector<pointKey> for all clusters in outer third of TPC
@@ -472,14 +576,14 @@ int PHCASeeding::FindSeedsLayerSkip(TNtuple* NT,PHTimer* t_seed)
   LogDebug(" number of reduced clusters: " << reducedClusters.size() << endl);
   t_seed->restart();
 
-  pair<vector<set<keylink>>> links = CreateLinks(allClusters,t_seed,skip_layers::on);
-  vector<vector<keylink>> bidirectionalLinks = FindBiLinks(links.first,links.second,t_seed);
+  pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(reducedClusters),t_seed,skip_layers::on);
+  vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second,t_seed);
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,t_seed);
   int nseeds = ALICEKalmanFilter(trackSeedKeyLists,NT,t_seed);
   return nseeds;
 }
 
-pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, PHTimer* t_seed, int mode = skip_layers::off)
+pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding::CreateLinks(vector<coordKey> clusters, PHTimer* t_seed, int mode)
 {
   size_t nclusters = 0;
 
@@ -489,18 +593,20 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
   double compute_best_angle_time = 0;
   double set_insert_time = 0;
 
-  vector<set<keylink>> belowLinks;
-  vector<set<keylink>> aboveLinks;
+  vector<unordered_set<keylink>> belowLinks;
+  vector<unordered_set<keylink>> aboveLinks;
+  belowLinks.resize(_nlayers_tpc);
+  aboveLinks.resize(_nlayers_tpc);
 
-  for (vector<pointKey>::iterator StartCluster = clusters.begin(); StartCluster != clusters.end(); ++StartCluster)
+  for (vector<coordKey>::iterator StartCluster = clusters.begin(); StartCluster != clusters.end(); ++StartCluster)
   {
     nclusters++;
     t_seed->stop();
     t_seed->restart();
     // get clusters near this one in adjacent layers
-    double StartPhi = StartCluster->first.get<0>();
-    double StartEta = StartCluster->first.get<1>();
-    unsigned int StartLayer = StartCluster->first.get<2>();
+    double StartPhi = StartCluster->first[0];
+    double StartEta = StartCluster->first[1];
+    unsigned int StartLayer = StartCluster->first[2];
     //if(StartLayer > _start_layer) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
     double StartX = StartCl->getPosition(0);
@@ -565,8 +671,8 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
     // find the three clusters closest to a straight line
     // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
     double maxCosPlaneAngle = 1;
-    pointKey bestBelowCluster = make_pair(point(0.,0.,-1e9),0);
-    pointKey bestAboveCluster = make_pair(point(0.,0.,-1e9),0);
+    coordKey bestBelowCluster = make_pair(array<float,3>({0.,0.,-1e9}),0);
+    coordKey bestAboveCluster = make_pair(array<float,3>({0.,0.,-1e9}),0);
     for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
     {
       for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
@@ -578,8 +684,8 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
         if(cosPlaneAngle < maxCosPlaneAngle)
         {
           maxCosPlaneAngle = cosPlaneAngle;
-          bestBelowCluster = ClustersBelow[iBelow];
-          bestAboveCluster = ClustersAbove[iAbove];
+          bestBelowCluster = fromPointKey(ClustersBelow[iBelow]);
+          bestAboveCluster = fromPointKey(ClustersAbove[iAbove]);
         }
       }
     }
@@ -588,7 +694,6 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
     {
       if(maxCosPlaneAngle > _cosTheta_limit)
       {
-        cout << "Starting two layers below branch...\n";
         // if no triplet is sufficiently linear, then it's likely that there's a missing cluster
         // repeat search but skip one layer below
         vector<pointKey> clustersTwoLayersBelow;
@@ -620,15 +725,14 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
             if(cosPlaneAngle < maxCosPlaneAngle)
             {
               maxCosPlaneAngle = cosPlaneAngle;
-              bestBelowCluster = clustersTwoLayersBelow[iBelow].second;
-              bestAboveCluster = ClustersAbove[iAbove].second;
+              bestBelowCluster = fromPointKey(clustersTwoLayersBelow[iBelow]);
+              bestAboveCluster = fromPointKey(ClustersAbove[iAbove]);
             }
           }
         }
         // if no triplet is STILL sufficiently linear, then do the same thing, but skip one layer above
-        if(maxCosPlaneAngle > cosTheta_limit)
+        if(maxCosPlaneAngle > _cosTheta_limit)
         {
-          cout << "Starting two layer above branch...\n";
           vector<pointKey> clustersTwoLayersAbove;
           QueryTree(_rtree,
                   StartPhi-_neighbor_phi_width,
@@ -658,26 +762,24 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
               if(cosPlaneAngle < maxCosPlaneAngle)
               {
                 maxCosPlaneAngle = cosPlaneAngle;
-                bestBelowCluster = ClustersBelow[iBelow].second;
-                bestAboveCluster = clustersTwoLayersAbove[iAbove].second;
+                bestBelowCluster = fromPointKey(ClustersBelow[iBelow]);
+                bestAboveCluster = fromPointKey(clustersTwoLayersAbove[iAbove]);
               }
             }
           }
         }
       }
     }
-
     t_seed->stop();
     compute_best_angle_time += t_seed->elapsed();
     t_seed->restart();
     int layer_index = StartLayer - (_nlayers_intt + _nlayers_maps);
-    belowLinks[layer_index].insert({StartCluster,bestBelowCluster});
-    aboveLinks[layer_index].insert({StartCluster,bestAboveCluster});
+    if(bestBelowCluster.second != 0) belowLinks[layer_index].insert(keylink{{*StartCluster,bestBelowCluster}});
+    if(bestAboveCluster.second != 0) aboveLinks[layer_index].insert(keylink{{*StartCluster,bestAboveCluster}});
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
     LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
-
   }
   t_seed->stop();
   cout << "triplet forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
@@ -691,19 +793,19 @@ pair<vector<set<keylink>>> PHCASeeding::CreateLinks(vector<pointKey> &clusters, 
   return make_pair(belowLinks,aboveLinks);
 }
 
-vector<vector<keylink>> PHCASeeding::FindBiLinks(vector<set<keylink>> &belowLinks,vector<set<keylink>> &aboveLinks,PHTimer* t_seed)
+vector<vector<keylink>> PHCASeeding::FindBiLinks(vector<unordered_set<keylink>> belowLinks,vector<unordered_set<keylink>> aboveLinks,PHTimer* t_seed)
 {
   // remove all triplets for which there isn't a mutual association between two clusters
   vector<vector<keylink>> bidirectionalLinks;
   bidirectionalLinks.resize(_nlayers_tpc);
   for(int layer = _nlayers_tpc-1; layer > 0; --layer)
   {
-    for(set<keylink>::iterator belowLink = belowLinks[layer].begin(); belowLink != belowLinks[layer].end(); ++belowLink)
+    for(unordered_set<keylink>::iterator belowLink = belowLinks[layer].begin(); belowLink != belowLinks[layer].end(); ++belowLink)
     {
       if((*belowLink)[1].second==0) continue;
       unsigned int end_layer_index = TrkrDefs::getLayer((*belowLink)[1].second) - (_nlayers_intt + _nlayers_maps);
       keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
-      set<keylink>::iterator sameAboveLinkExists = aboveLinks[end_layer_index].find(reversed);
+      unordered_set<keylink>::iterator sameAboveLinkExists = aboveLinks[end_layer_index].find(reversed);
       if(sameAboveLinkExists != aboveLinks[end_layer_index].end())
       {
         bidirectionalLinks[layer].push_back((*belowLink));
@@ -717,7 +819,7 @@ vector<vector<keylink>> PHCASeeding::FindBiLinks(vector<set<keylink>> &belowLink
   return bidirectionalLinks;
 }
 
-vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylist>> &bidirectionalLinks,PHTimer* t_seed)
+vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectionalLinks,PHTimer* t_seed)
 {
   // follow bidirectional links to form lists of cluster keys
   // (to be fitted for track seed parameters)
@@ -755,14 +857,14 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylist>> &bidirectiona
     bool reached_end = false;
     while(!reached_end)
     {
-      TrkrDefs::cluskey trackHead = trackKeyChain->back().second;
+      TrkrDefs::cluskey trackHead = trackKeyChain->back();
       unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
       bool no_next_link = true;
       for(vector<keylink>::iterator testlink = bidirectionalLinks[trackHead_layer].begin(); testlink != bidirectionalLinks[trackHead_layer].end(); ++testlink)
       {
         if((*testlink)[0].second==trackHead)
         {
-          trackKeyChain->push_back((*testlink)[1]);
+          trackKeyChain->push_back((*testlink)[1].second);
           no_next_link = false;
         }
       }
@@ -787,7 +889,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylist>> &bidirectiona
     double lastphi = -100;
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
     {
-      TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j].second);
+      TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
       TVector3 vec(cl->getPosition(0) - _vertex->get_x(), cl->getPosition(1) - _vertex->get_y(), cl->getPosition(2) - _vertex->get_z());
 
       double clus_phi = vec.Phi();
@@ -816,9 +918,10 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylist>> &bidirectiona
   return trackSeedKeyLists;
 }
 
-int PHCA::ALICEKalmanFilter(vector<keylist> &trackSeedKeyLists,TNtuple* NT,PHTimer* t_seed)
+int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT,PHTimer* t_seed)
 {
-    for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+  int nseeds = 0;
+  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
     if(trackKeyChain->size() < 5) continue;
     // get starting cluster from key
@@ -873,7 +976,7 @@ int PHCA::ALICEKalmanFilter(vector<keylist> &trackSeedKeyLists,TNtuple* NT,PHTim
       LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
       LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl);
       // get cluster from key
-      TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey.second);
+      TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
       // find ALICE x-coordinate
       float nextCluster_x = nextCluster->getPosition(0);
       float nextCluster_y = nextCluster->getPosition(1);
@@ -936,7 +1039,14 @@ int PHCA::ALICEKalmanFilter(vector<keylist> &trackSeedKeyLists,TNtuple* NT,PHTim
       alice_x = nextAlice_x;
       #endif
       ++cluster_ctr;
+    }
+    /*
+    if(!trackSeed.CheckNumericalQuality())
+    {
+      cout << "ERROR: Track seed failed numerical quality check before conversion to sPHENIX coordinates! Skipping this one.\n";
+      continue;
     } 
+    */
     //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
     // float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
@@ -947,7 +1057,7 @@ int PHCA::ALICEKalmanFilter(vector<keylist> &trackSeedKeyLists,TNtuple* NT,PHTim
     float track_z = trackSeed.GetZ();
     float track_zerr = sqrt(trackSeed.GetErr2Z());
     float track_phi = atan(trackCartesian_y/trackCartesian_x);
-    float last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back().second)->getPhiError();
+    float last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back())->getPhiError();
     // phi error assuming error in track radial coordinate is zero
     float track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
@@ -1014,8 +1124,69 @@ int PHCA::ALICEKalmanFilter(vector<keylist> &trackSeedKeyLists,TNtuple* NT,PHTim
     track.set_error(3, 2, track.get_error(2, 3));
     track.set_error(4, 2, track.get_error(2, 4));
     track.set_error(4, 3, track.get_error(3, 4));
+    if(!covIsPosDef(track))
+    {
+      repairCovariance(track);
+    }
     _track_map->insert(&track);
     ++nseeds;
   }
   return nseeds;
+}
+
+Eigen::Matrix<float,6,6> PHCASeeding::getEigenCov(SvtxTrack_v1 &track)
+{
+  Eigen::Matrix<float,6,6> cov;
+  for(int i=0;i<6;i++)
+  {
+    for(int j=0;j<6;j++)
+    {
+      cov(i,j) = track.get_error(i,j);
+    }
+  }
+  return cov;
+}
+
+bool PHCASeeding::covIsPosDef(SvtxTrack_v1 &track)
+{
+  // put covariance matrix into Eigen container
+  Eigen::Matrix<float,6,6> cov = getEigenCov(track);
+  // attempt Cholesky decomposition
+  Eigen::LLT<Eigen::Matrix<float,6,6>> chDec(cov);
+  // if Cholesky decomposition does not exist, matrix is not positive definite
+  return (chDec.info() != Eigen::NumericalIssue);
+}
+
+void PHCASeeding::repairCovariance(SvtxTrack_v1 &track)
+{
+  // find closest positive definite matrix
+  Eigen::Matrix<float,6,6> cov = getEigenCov(track);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix<float,6,6>> solver(cov);
+  Eigen::Matrix<float,6,1> D = solver.eigenvalues();
+  Eigen::Matrix<float,6,6> Q = solver.eigenvectors();
+  Eigen::Matrix<float,6,1> Dp = D.cwiseMax(1e-6);
+  Eigen::Matrix<float,6,6> Z = Q*Dp.asDiagonal()*Q.transpose();
+  // updates covariance matrix
+  for(int i=0;i<6;i++)
+  {
+    for(int j=0;j<6;j++)
+    {
+      track.set_error(i,j,Z(i,j));
+    }
+  }
+}
+
+int PHCASeeding::Setup(PHCompositeNode *topNode)
+{
+  cout << "Called Setup" << endl;
+  cout << "topNode:" << topNode << endl;
+  PHTrackSeeding::Setup(topNode);
+  InitializeGeometry(topNode);
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHCASeeding::End()
+{
+  cout << "Called End " << endl;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
