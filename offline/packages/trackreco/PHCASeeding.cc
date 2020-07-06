@@ -207,7 +207,7 @@ PHCASeeding::PHCASeeding(
   , _neighbor_eta_width(neighbor_eta_width)
   , _max_sin_phi(maxSinPhi)
   , _Bz(Bz)
-  , _cosTheta_limit(2)
+  , _cosTheta_limit(-0.98)
 {
 }
 
@@ -496,12 +496,12 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   int numberofseeds = 0;
-  vector<coordKey> clusterCands = FindLinkedClusters(NT,t_seed);
+  //vector<coordKey> clusterCands = FindLinkedClusters(NT,t_seed);
   t_seed->stop();
   cout << "Linked cluster find time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
-  _rtree.clear();
-  FillTree(toPointKey(clusterCands));
+  //_rtree.clear();
+  //FillTree(toPointKey(clusterCands));
   t_seed->stop();
   cout << "Reduced RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
@@ -576,7 +576,7 @@ int PHCASeeding::FindSeedsLayerSkip(TNtuple* NT,PHTimer* t_seed)
   LogDebug(" number of reduced clusters: " << reducedClusters.size() << endl);
   t_seed->restart();
 
-  pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(reducedClusters),t_seed,skip_layers::on);
+  pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(reducedClusters),t_seed);
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second,t_seed);
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,t_seed);
   int nseeds = ALICEKalmanFilter(trackSeedKeyLists,NT,t_seed);
@@ -625,7 +625,7 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     QueryTree(_rtree,
               StartPhi-_neighbor_phi_width,
               StartEta-_neighbor_eta_width,
-              (double) StartLayer - 1.5,
+              (double) StartLayer - 3.5,
               StartPhi+_neighbor_phi_width,
               StartEta+_neighbor_eta_width,
               (double) StartLayer - 0.5,
@@ -636,7 +636,7 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
               (double) StartLayer + 0.5,
               StartPhi+_neighbor_phi_width,
               StartEta+_neighbor_eta_width,
-              (double) StartLayer + 1.5,
+              (double) StartLayer + 3.5,
               ClustersAbove);
     t_seed->stop();
     rtree_query_time += t_seed->elapsed();
@@ -671,6 +671,7 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     // find the three clusters closest to a straight line
     // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
     double maxCosPlaneAngle = 1;
+    double minSumLengths = 1e9;
     coordKey bestBelowCluster = make_pair(array<float,3>({0.,0.,-1e9}),0);
     coordKey bestAboveCluster = make_pair(array<float,3>({0.,0.,-1e9}),0);
     for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
@@ -681,9 +682,10 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
         double belowLength = sqrt(delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1]+delta_below[iBelow][2]*delta_below[iBelow][2]);
         double aboveLength = sqrt(delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1]+delta_above[iAbove][2]*delta_above[iAbove][2]);
         double cosPlaneAngle = dotProduct / (belowLength*aboveLength);
-        if(cosPlaneAngle < maxCosPlaneAngle)
+        if(cosPlaneAngle < _cosTheta_limit && (belowLength+aboveLength) < minSumLengths)
         {
-          maxCosPlaneAngle = cosPlaneAngle;
+          //maxCosPlaneAngle = cosPlaneAngle;
+          minSumLengths = belowLength+aboveLength;
           bestBelowCluster = fromPointKey(ClustersBelow[iBelow]);
           bestAboveCluster = fromPointKey(ClustersAbove[iAbove]);
         }
