@@ -75,7 +75,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_minSurfZ(0.0)
   , m_maxSurfZ(105.5)
   , m_nSurfZ(1)
-  , m_nSurfPhi(3)
+  , m_nSurfPhi(12)
   , m_verbosity(0)
 {
   /// These are arbitrary tpc subdivisions, and may change

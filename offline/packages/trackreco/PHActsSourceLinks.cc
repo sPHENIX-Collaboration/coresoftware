@@ -333,6 +333,11 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
 			 surface->normal(m_actsGeometry->getGeoContext()),
 			 local2D);
+  
+  /// Test that Acts surface transforms correctly back
+  Acts::Vector3D actsGlobal(0,0,0);
+  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
+			 Acts::Vector3D(1,1,1), actsGlobal);
 
   if (Verbosity() > 0)
   {
@@ -342,7 +347,11 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     std::cout << " local phi " << clusPhi - surfPhiCenter
               << " local rphi " << rClusPhi-surfRphiCenter 
  	      << " local z " << zTpc - surfZCenter  << std::endl;
-      std::cout << " acts local : " <<local2D(0) <<"  "<<local2D(1) << std::endl;
+    std::cout << " acts local : " <<local2D(0) <<"  "<<local2D(1) << std::endl;
+    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
+	      << z * 10 << "  " << std::endl;
+    std::cout << " acts global : " << actsGlobal(0) << "  " << actsGlobal(1) 
+	      << "  " << actsGlobal(2) << std::endl;
   }
 
   TMatrixD sPhenixLocalErr = transformCovarToLocal(clusPhi, worldErr);
@@ -444,7 +453,12 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
   surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
 			 surface->normal(m_actsGeometry->getGeoContext()),
 			 local2D);
-  
+
+  /// Test that Acts surface transforms correctly back
+  Acts::Vector3D actsGlobal(0,0,0);
+  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
+			 Acts::Vector3D(1,1,1), actsGlobal);
+
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
   if (Verbosity() > 0)
@@ -459,7 +473,11 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
               << " " << world[2] << std::endl;
     std::cout << "   local; " << local[0] << " " << local[1]
               << " " << local[2] << std::endl;
-    std::cout << " acts local "<<local2D(0)<<"  "<<local2D(1)<<std::endl;
+    std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
+    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
+	      << z * 10 << "  " << std::endl;
+    std::cout << " acts global : " << actsGlobal(0) << "  " << actsGlobal(1) 
+	      << "  " << actsGlobal(2) << std::endl;
   }
 
   /// Get the local covariance error
@@ -548,7 +566,12 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
   surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
 			 surface->normal(m_actsGeometry->getGeoContext()),
 			 local2D);
-  
+
+  /// Test that Acts surface transforms correctly back
+  Acts::Vector3D actsGlobal(0,0,0);
+  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
+			 Acts::Vector3D(1,1,1), actsGlobal);
+
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
 
   if (Verbosity() > 0)
@@ -561,9 +584,13 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
               << segcent[1] << " " << segcent[2] << std::endl;
     std::cout << "   world; " << world[0] << " "
               << world[1] << " " << world[2] << std::endl;
-    std::cout << "   our local; " << local[0] << " "
-              << local[1] << " " << local[2] << std::endl;
-    std::cout<<" acts local "<<local2D(0)<<"  "<<local2D(1)<<std::endl;
+    std::cout << "   our local; " << local[0] * 10 << " "
+              << local[1] * 10<< " " << local[2] * 10 << std::endl;
+    std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
+    std::cout << "Our global : " << x * 10 << "  " << y * 10 << "   " << z * 10 
+	      << std::endl;
+    std::cout << "Acts transform global : " << actsGlobal(0) << "  " << actsGlobal(1)
+	      << "   " << actsGlobal(2) << std::endl;
   }
 
   // transform covariance matrix back to local coords on chip
