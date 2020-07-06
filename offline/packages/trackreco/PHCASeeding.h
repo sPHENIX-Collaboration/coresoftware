@@ -86,7 +86,8 @@ class PHCASeeding : public PHTrackSeeding
       const unsigned int nlayers_maps = 3,
       const unsigned int nlayers_intt = 4,
       const unsigned int nlayers_tpc = 48,
-      unsigned int start_layer = 55,
+      unsigned int start_layer = 7,
+      unsigned int end_layer = 55,
       float cluster_z_error = 0.015,
       float cluster_alice_y_error = 0.015,
       float neighbor_phi_width = .05,
@@ -164,6 +165,7 @@ class PHCASeeding : public PHTrackSeeding
   const unsigned int _nlayers_intt;
   const unsigned int _nlayers_tpc;
   unsigned int _start_layer;
+  unsigned int _end_layer;
   float _cluster_z_error;
   float _cluster_alice_y_error;
   float _neighbor_phi_width;

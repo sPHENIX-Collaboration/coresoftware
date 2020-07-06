@@ -178,6 +178,7 @@ PHCASeeding::PHCASeeding(
     unsigned int nlayers_intt,
     unsigned int nlayers_tpc,
     unsigned int start_layer,
+    unsigned int end_layer,
     float cluster_z_error,
     float cluster_alice_y_error,
     float neighbor_phi_width,
@@ -201,6 +202,7 @@ PHCASeeding::PHCASeeding(
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _start_layer(start_layer)
+  , _end_layer(end_layer)
   , _cluster_z_error(cluster_z_error)
   , _cluster_alice_y_error(cluster_alice_y_error)
   , _neighbor_phi_width(neighbor_phi_width)
@@ -607,7 +609,8 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     double StartPhi = StartCluster->first[0];
     double StartEta = StartCluster->first[1];
     unsigned int StartLayer = StartCluster->first[2];
-    //if(StartLayer > _start_layer) continue;
+    if(StartLayer < _start_layer) continue;
+    if(StartLayer > _end_layer) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
     double StartX = StartCl->getPosition(0);
     double StartY = StartCl->getPosition(1);
