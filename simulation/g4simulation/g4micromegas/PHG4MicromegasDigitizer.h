@@ -11,12 +11,16 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phparameter/PHParameterInterface.h>
+
 #include <gsl/gsl_rng.h>
+
 #include <memory>
+#include <string>                              // for string
 
 class PHCompositeNode;
 
-class PHG4MicromegasDigitizer : public SubsysReco
+class PHG4MicromegasDigitizer : public SubsysReco, public PHParameterInterface
 {
 
   public:
@@ -28,31 +32,42 @@ class PHG4MicromegasDigitizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
 
-  //! adc parameters
-  void set_adc_scale(unsigned int max_adc, double energy_scale)
-  {
-    m_max_adc  = max_adc;
-    m_energy_scale = energy_scale;
-  }
-
-  //! threshold
-  void set_energy_threshold(double value)
-  { m_energy_threshold = value; }
+  //! parameters
+  void SetDefaultParameters() override;
 
   private:
 
-  // settings
-  unsigned int m_max_adc = 0;
-  double m_energy_scale = 1;
-  double m_energy_threshold = 0;
+  //! add noise to a measurement
+  double add_noise() const;
 
+  //! threshold (electrons)
+  double m_adc_threshold = 2700;
+
+  //! noise (electrons)
+  double m_enc = 670;
+  
+  //! pedestal (electrons)
+  double m_pedestal = 50000;
+  
+  //! conversion factor mv/fc
+  double m_volts_per_charge = 20;
+
+  //! conversion factor (mv/electron)
+  double m_volt_per_electron_signal = 0;
+
+  //! conversion factor (mv/electron)
+  double m_volt_per_electron_noise = 0;
+
+  //! conversion factor (adc/mv)
+  /*! this is a fixed parameter, from SAMPA */
+  static constexpr double m_adc_per_volt = 1024./2200;
+  
   //! rng de-allocator
   class Deleter
   {
     public:
     //! deletion operator
-    void operator() (gsl_rng* rng) const
-    { gsl_rng_free(rng); }
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
   };
 
   //! random generator that conform with sPHENIX standard

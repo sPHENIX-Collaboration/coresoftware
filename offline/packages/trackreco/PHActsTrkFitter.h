@@ -78,7 +78,7 @@ class PHActsTrkFitter : public PHTrackFitting
   int createNodes(PHCompositeNode*);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(const FitResult& fitOutput, const unsigned int trackKey);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 

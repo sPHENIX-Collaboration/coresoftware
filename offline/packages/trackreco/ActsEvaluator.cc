@@ -21,6 +21,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Units.hpp>
 
 #include <TFile.h>
@@ -76,9 +77,23 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
 
   m_svtxEvalStack->next_event(topNode);
 
+  evaluateTrackFits(topNode);
+
+  m_eventNr++;
+
+  if (Verbosity() > 1)
+    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
+{
+
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
   std::map<const unsigned int, Trajectory>::iterator trackIter;
+  int iTraj = 0;
   int iTrack = 0;
 
   for (trackIter = m_actsFitResults->begin();
@@ -88,55 +103,83 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     /// Get the track information
     const unsigned int trackKey = trackIter->first;
     const Trajectory traj = trackIter->second;
-    SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
-    SvtxTrack *track = trackIter->second;
+    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
+    SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     
-    const auto &[trackTips, mj] = traj.trajectory();
-    m_trajNr = iTrack;
+    if(Verbosity() > 1)
+      {
+	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
+	track->identify();
+	std::cout << "TruthParticle : " << g4particle->get_px()
+		  << ", " << g4particle->get_py() << ", "
+		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		  << std::endl;
+      }
 
-    /// Skip failed tracks
+    const auto &[trackTips, mj] = traj.trajectory();
+    m_trajNr = iTraj;
+
+    /// Skip failed fits
     if (trackTips.empty())
     {
       if (Verbosity() > 1)
         std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
     }
+    
+   
+    iTrack = 0;
+    /// For the KF this iterates once. For the CKF it may iterate 
+    /// multiple times per Trajectory
+    for(const size_t &trackTip : trackTips)
+      {
+	m_trackNr = iTrack;
+        iTrack++;
+	auto trajState =
+	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
-    if (trackTips.size() > 1)
-    {
-      std::cout << "There should not be a track with fit track tip > 1... Bailing."
-                << std::endl;
-      break;
-    }
-
-    auto &trackTip = trackTips.front();
-    auto trajState =
-        Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-
-    m_nMeasurements = trajState.nMeasurements;
-    m_nStates = trajState.nStates;
-
-    fillG4Particle(g4particle);
-    fillProtoTrack(actsProtoTrack, topNode);
-    fillFittedTrackParams(traj);
-    visitTrackStates(traj, topNode);
-
-    m_trackTree->Fill();
-
-    /// Start fresh for the next track
-    clearTrackVariables();
-    ++iTrack;
+	if(Verbosity() > 1)
+	  {
+	    std::cout << "Analyzing trajectory with trackTip " << trackTip
+		      << std::endl;
+	    if(traj.hasTrackParameters(trackTip))
+	      {
+		std::cout << "Fitted params : " 
+			  << traj.trackParameters(trackTip).position() 
+			  << "   " << traj.trackParameters(trackTip).momentum()
+			  << std::endl;
+	      }
+	  }
+	
+	m_nMeasurements = trajState.nMeasurements;
+	m_nStates = trajState.nStates;
+	m_chi2_fit = trajState.chi2Sum;
+	m_ndf_fit = trajState.NDF;
+	
+	fillG4Particle(g4particle);
+	fillProtoTrack(actsProtoTrack, topNode);
+	fillFittedTrackParams(traj, trackTip);
+	visitTrackStates(traj,trackTip, topNode);
+	
+	m_trackTree->Fill();
+	
+	/// Start fresh for the next track
+	clearTrackVariables();
+      }
+    
+    ++iTraj;
+    if(Verbosity() > 1)
+      {
+	std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
+		  << iTraj << std::endl;
+      }
   }
 
-  m_eventNr++;
-
-  if (Verbosity() > 1)
-    std::cout << "Finished ActsEvaluator::process_event" << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return;
 }
+
 
 int ActsEvaluator::End(PHCompositeNode *topNode)
 {
@@ -154,11 +197,12 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 }
 
 
-void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *topNode)
+void ActsEvaluator::visitTrackStates(const Trajectory traj, 
+				     const size_t &trackTip,
+				     PHCompositeNode *topNode)
 {
 
   const auto &[trackTips, mj] = traj.trajectory();
-  auto &trackTip = trackTips.front();
 
   mj.visitBackwards(trackTip, [&](const auto &state) {
     /// Only fill the track states with non-outlier measurement
@@ -628,6 +672,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj, PHCompositeNode *top
 
   return;
 }
+
 TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
 {
   TrkrDefs::cluskey clusKey = 0;
@@ -760,11 +805,10 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 
 }
 
-void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
+void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
+					  const size_t &trackTip)
 {
   m_hasFittedParams = false;
-  const auto &[trackTips, mj] = traj.trajectory();
-  auto &trackTip = trackTips.front();
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
@@ -795,6 +839,8 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
     m_x_fit  = boundParam.position()(0);
     m_y_fit  = boundParam.position()(1);
     m_z_fit  = boundParam.position()(2);
+    
+    calculateDCA(boundParam);
 
     return;
   }
@@ -821,6 +867,52 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj)
 
   return;
 }
+
+void ActsEvaluator::calculateDCA(const Acts::BoundParameters param)
+{
+
+  Acts::Vector3D pos = param.position();
+  Acts::Vector3D mom = param.momentum();
+  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+  if(param.covariance())
+    cov = param.covariance().value();
+
+  Acts::ActsSymMatrixD<3> posCov;
+  for(int i = 0; i < 3; ++i)
+    {
+      for(int j = 0; j < 3; ++j)
+	{
+	  posCov(i,j) = cov(i,j);
+	} 
+    }
+
+  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+
+  Acts::RotationMatrix3D rot;
+  Acts::RotationMatrix3D rot_T;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3D pos_R = rot * pos;
+  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+
+  m_dca3Dxy = pos_R(0);
+  m_dca3Dz = pos_R(2);
+  m_dca3DxyCov = rotCov(0,0);
+  m_dca3DzCov = rotCov(2,2);
+  
+}
+
 void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 {
   SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
@@ -834,6 +926,9 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vx = vtx->get_x() * Acts::UnitConstants::cm;
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
+    if(Verbosity() > 1)
+      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
+		<< ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -1092,6 +1187,7 @@ void ActsEvaluator::initializeTree()
 
   m_trackTree->Branch("event_nr", &m_eventNr);
   m_trackTree->Branch("traj_nr", &m_trajNr);
+  m_trackTree->Branch("track_nr", &m_trackNr);
   m_trackTree->Branch("t_barcode", &m_t_barcode, "t_barcode/l");
   m_trackTree->Branch("t_charge", &m_t_charge);
   m_trackTree->Branch("t_time", &m_t_time);
@@ -1140,13 +1236,17 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_x_fit" , &m_x_fit);
   m_trackTree->Branch("g_y_fit" , &m_y_fit);
   m_trackTree->Branch("g_z_fit" , &m_z_fit);
+  m_trackTree->Branch("g_dca3Dxy_fit" , &m_dca3Dxy);
+  m_trackTree->Branch("g_dca3Dz_fit" , &m_dca3Dz);
+  m_trackTree->Branch("g_dca3Dxy_cov" , &m_dca3DxyCov);
+  m_trackTree->Branch("g_dca3Dz_cov" , &m_dca3DzCov);
 
-  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx, "m_protoTrackPx/F");
-  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy, "m_protoTrackPy/F");
-  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz, "m_protoTrackPz/F");
-  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX, "m_protoTrackX/F");
-  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY, "m_protoTrackY/F");
-  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ, "m_protoTrackZ/F");
+  m_trackTree->Branch("g_protoTrackPx", &m_protoTrackPx);
+  m_trackTree->Branch("g_protoTrackPy", &m_protoTrackPy);
+  m_trackTree->Branch("g_protoTrackPz", &m_protoTrackPz);
+  m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
+  m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
+  m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);

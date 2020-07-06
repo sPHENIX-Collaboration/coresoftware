@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
-  	-I$(OFFLINE_MAIN)/include/eigen3
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -19,17 +19,19 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  	CylinderGeomMicromegas.h \
+  CylinderGeomMicromegas.h \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
- 	 MicromegasTile.h
+  MicromegasTile.h
 
 ROOTDICTS = \
-  CylinderGeomMicromegas_Dict.cc
+  CylinderGeomMicromegas_Dict.cc \
+  MicromegasTile_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  CylinderGeomMicromegas_Dict_rdict.pcm
+  CylinderGeomMicromegas_Dict_rdict.pcm \
+  MicromegasTile_Dict_rdict.pcm
 
 # sources for io library
 libmicromegas_io_la_SOURCES = \

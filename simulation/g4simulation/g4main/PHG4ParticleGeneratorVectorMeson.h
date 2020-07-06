@@ -23,7 +23,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
     Gaus
   };
 
-  explicit PHG4ParticleGeneratorVectorMeson(const std::string &name = "PGUN");
+  explicit PHG4ParticleGeneratorVectorMeson(const std::string &name = "VMESON");
   virtual ~PHG4ParticleGeneratorVectorMeson();
 
   int InitRun(PHCompositeNode *topNode);

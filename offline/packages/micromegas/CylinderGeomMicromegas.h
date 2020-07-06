@@ -43,11 +43,23 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! segmentation type
   MicromegasDefs::SegmentationType get_segmentation_type() const {return m_segmentation_type;}
 
+  //! drift direction
+  MicromegasDefs::DriftDirection get_drift_direction() const {return m_drift_direction;}
+
+  //! get tile for a given world location
+  int find_tile( const TVector3& ) const;
+
   //! get tile and strip for a give world location
   std::pair<int,int> find_strip( const TVector3& ) const;
 
+  //! get strip for a give world location and tile
+  int find_strip( uint tileid, const TVector3& ) const;
+
   //! get strip length for a given tile
   double get_strip_length( uint tileid ) const;
+
+  //! get number of strips
+  uint get_strip_count( uint tileid ) const;
 
   //! get world location for a given tile and strip
   TVector3 get_world_coordinate( uint tileid, uint stripnum ) const;
@@ -67,20 +79,42 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   void set_pitch( double value ) { m_pitch = value; }
 
   //! tiles
-  void set_tiles( const MicromegasTile::List& tiles ) { m_tiles = tiles; }
+  void set_tiles( const MicromegasTile::List& tiles ) {m_tiles = tiles;}
+
+  //! segmentation
   void set_segmentation_type( MicromegasDefs::SegmentationType value ) {m_segmentation_type = value;}
+
+  //! drift direction
+  void set_drift_direction( MicromegasDefs::DriftDirection value ) {m_drift_direction = value;}
   //@}
 
   private:
 
+  // check if hit radius matches this cylinder
+  bool check_radius( const TVector3& ) const;
+
+  //! layer id
   int m_layer = 0;
+
+  //! segmentation type
   MicromegasDefs::SegmentationType m_segmentation_type = MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+
+  //! drift direction
+  MicromegasDefs::DriftDirection m_drift_direction = MicromegasDefs::DriftDirection::OUTWARD;
+
+  //! layer radius
   double m_radius = 0;
+
+  //! layer thickness
   double m_thickness = 0;
+
+  //! layer z extend
   double m_zmin = 0;
+
+  //! layer z extend
   double m_zmax = 0;
 
-  // 1mm pitch by default
+  //! 1mm pitch by default
   double m_pitch = 0.1;
 
   //! tiles
