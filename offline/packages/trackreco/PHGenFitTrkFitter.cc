@@ -1580,6 +1580,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       if( id > 0 )  id_min = id-1;
 
       // extrapolate forward
+      try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
@@ -1587,17 +1588,26 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         pathlength = gf_state.extrapolateToPoint( pos );
         auto tmp = *kfi->getBackwardUpdate();
         pathlength -= tmp.extrapolateToPoint( vertex_position );
+      } catch (...) {
+        if(Verbosity() > 0)
+        { std::cerr << PHWHERE << "Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
+        continue;
       }
 
       // also extrapolate backward from next state if any
       // and take the weighted average between both points
       if( id > 0 && id < gftrack->getNumPointsWithMeasurement() )
+      try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         genfit::KalmanFittedStateOnPlane gf_state_backward = *kfi->getBackwardUpdate();
         gf_state_backward.extrapolateToPlane( gf_state.getPlane() );
         gf_state = genfit::calcAverageState( gf_state, gf_state_backward );
+      } catch (...) {
+        if(Verbosity() > 0)
+        { std::cerr << PHWHERE << "Failed to backward extrapolate from id " << id << " to disabled layer " << layer << std::endl; }
+        continue;
       }
 
       // create new svtx state and add to track
