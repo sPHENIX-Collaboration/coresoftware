@@ -26,8 +26,8 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   explicit PHG4ParticleGeneratorVectorMeson(const std::string &name = "VMESON");
   virtual ~PHG4ParticleGeneratorVectorMeson();
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   //! interface for adding particles by name
   void add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id);
