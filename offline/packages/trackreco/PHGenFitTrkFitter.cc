@@ -1031,7 +1031,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     //-----------------
 
     PHGenFit::Measurement* meas = nullptr;
-    if(trkrid == TrkrDefs::micromegasId )
+    if(false && trkrid == TrkrDefs::micromegasId)
     {
       std::cout << "PHGenFitTrkFitter::ReFitTrack - adding Micromegas Hit" << std::endl;
 
