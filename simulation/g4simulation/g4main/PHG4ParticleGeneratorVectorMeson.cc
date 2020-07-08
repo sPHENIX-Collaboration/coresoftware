@@ -328,7 +328,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(pow(mnow, 2) + pow(pt, 2));
+  double mt = sqrt(mnow*mnow + pt*pt);
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -376,7 +376,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // 3D Randomized vertex
     if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
     {
-      _vertex_size_mean = sqrt(pow(vtx_x, 2) + pow(vtx_y, 2) + pow(vtx_z, 2));
+      _vertex_size_mean = sqrt(vtx_x*vtx_x + vtx_y*vtx_y + vtx_z*vtx_z);
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
       double x1 = 0.0;
       double y1 = 0.0;
@@ -395,8 +395,8 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // Now decay it
     // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
 
-    double E1 = (pow(mnow, 2) - pow(m2, 2) + pow(m1, 2)) / (2.0 * mnow);
-    double p1 = sqrt((pow(mnow, 2) - pow(m1 + m2, 2)) * (pow(mnow, 2) - pow(m1 - m2, 2))) / (2.0 * mnow);
+    double E1 = (mnow*mnow - m2*m2 + m1*m1) / (2.0 * mnow);
+    double p1 = sqrt((mnow*mnow - (m1 + m2)*(m1 + m2)) * (mnow*mnow - (m1 + m2)*(m1 + m2))) / (2.0 * mnow);
 
     // In the frame of the vector meson, get a random theta and phi angle for particle 1
     // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta
