@@ -188,24 +188,10 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
                                           field, _track_fitting_alg_name,
                                           "RKTrackRep", _do_evt_display) );
   _fitter->set_verbosity(Verbosity());
-
-  if (!_fitter)
-  {
-    cerr << PHWHERE << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   //LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
 
   _vertex_finder.reset( new genfit::GFRaveVertexFactory(Verbosity()) );
   _vertex_finder->setMethod(_vertexing_method.data());
-
-
-  if (!_vertex_finder)
-  {
-    cerr << PHWHERE << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
 
   if (_do_eval)
   {
