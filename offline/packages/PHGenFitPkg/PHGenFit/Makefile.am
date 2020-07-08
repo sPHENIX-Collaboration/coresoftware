@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
   Fitter.h \
   Measurement.h \
   PlanarMeasurement.h \
+  Planar1DMeasurement.h \
   SpacepointMeasurement.h \
   Track.h \
   Tools.h
@@ -26,6 +27,7 @@ pkginclude_HEADERS = \
 libPHGenFit_la_SOURCES = \
   Fitter.cc \
   PlanarMeasurement.cc \
+  Planar1DMeasurement.cc \
   SpacepointMeasurement.cc \
   Track.cc \
   Tools.cc
