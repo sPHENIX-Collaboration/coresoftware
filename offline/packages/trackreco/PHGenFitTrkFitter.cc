@@ -32,6 +32,7 @@
 //
 #include <intt/CylinderGeomIntt.h>
 
+#include <micromegas/MicromegasDefs.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4main/PHG4Particle.h>
@@ -43,6 +44,7 @@
 #include <phgenfit/Fitter.h>
 #include <phgenfit/Measurement.h>                   // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/Planar1DMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
@@ -1042,9 +1044,27 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // end new
     //-----------------
 
-    PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-                  cluster->getRPhiError(), cluster->getZError());
-
+    PHGenFit::Measurement* meas = nullptr;
+    if(trkrid == TrkrDefs::micromegasId )
+    {
+    
+      // for micromegas detectors use 1D measurements
+      // do decide on the direction of the measurement, one needs the segmentation type from the cluster key
+      const auto segmentation = MicromegasDefs::getSegmentationType( cluster_key );
+      const double error = (segmentation == MicromegasDefs::SegmentationType::SEGMENTATION_Z) ? cluster->getZError():cluster->getRPhiError();
+      auto meas_1d =  new PHGenFit::Planar1DMeasurement( pos, n, error );
+      if( segmentation == MicromegasDefs::SegmentationType::SEGMENTATION_Z ) meas_1d->setStripV();
+        
+      // assign
+      meas = meas_1d;
+      
+    } else {
+      
+      // for all other detectors use 2D measurements
+      meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+    
+    }
+    
     if(Verbosity() > 10)
       {
   cout << "Add meas layer " << layer << " cluskey " << cluster_key
