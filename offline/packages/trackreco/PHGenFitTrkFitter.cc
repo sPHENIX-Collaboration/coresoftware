@@ -1047,7 +1047,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     PHGenFit::Measurement* meas = nullptr;
     if(trkrid == TrkrDefs::micromegasId )
     {
-    
+      std::cout << "PHGenFitTrkFitter::ReFitTrack - adding Micromegas Hit" << std::endl;
+
       // for micromegas detectors use 1D measurements
       // do decide on the direction of the measurement, one needs the segmentation type from the cluster key
       const auto segmentation = MicromegasDefs::getSegmentationType( cluster_key );
@@ -1057,6 +1058,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         
       // assign
       meas = meas_1d;
+
       
     } else {
       
