@@ -396,7 +396,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
 
     double E1 = (mnow*mnow - m2*m2 + m1*m1) / (2.0 * mnow);
-    double p1 = sqrt((mnow*mnow - (m1 + m2)*(m1 + m2)) * (mnow*mnow - (m1 + m2)*(m1 + m2))) / (2.0 * mnow);
+    double p1 = sqrt((mnow*mnow - (m1 + m2)*(m1 + m2)) * (mnow*mnow - (m1 - m2)*(m1 - m2))) / (2.0 * mnow);
 
     // In the frame of the vector meson, get a random theta and phi angle for particle 1
     // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta
