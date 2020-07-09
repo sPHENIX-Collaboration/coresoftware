@@ -140,8 +140,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
       /// Make sure things returned appropriately
       if (!surface)
       {
-        /// Error message already printed in function, return abort
-        return Fun4AllReturnCodes::ABORTEVENT;
+        /// if we couldn't find the surface (shouldn't happen) just skip this hit
+	continue;
       }
     }
     else if (trkrId == TrkrDefs::inttId)
@@ -149,8 +149,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
       surface = getInttLocalCoords(local2D, cov, cluster, clusKey);
       if (!surface)
       {
-        /// Error message already printed in function, return abort
-        return Fun4AllReturnCodes::ABORTEVENT;
+	/// if we couldn't find the surface (shouldn't happen) just skip this hit
+	continue;
       }
     }
     else if (trkrId == TrkrDefs::tpcId)
@@ -159,8 +159,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
       if (!surface)
       {
-        /// Error message already printed in function, return abort
-        return Fun4AllReturnCodes::ABORTEVENT;
+        /// if we couldn't find the surface (shouldn't happen) just skip this hit
+	continue;
       }
     }
     else
@@ -294,8 +294,15 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// a given readout module
   Surface surface = m_actsGeometry->getTpcSurfaceFromCoords(tpcHitSetKey,
 							    worldVec);
-  assert(surface);
-  
+
+  /// If surface can't be found (shouldn't happen) return nullptr and skip this cluster
+  if(!surface)
+    {
+      std::cout << PHWHERE
+		<< "Failed to find associated surface element - should be impossible!"
+		<< std::endl;
+      return nullptr;
+    }
   if(Verbosity() > 0)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
