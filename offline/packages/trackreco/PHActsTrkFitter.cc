@@ -104,7 +104,7 @@ int PHActsTrkFitter::Process()
   /// at 0 so that the fitter is fitting with respect to the global 
   /// position. Presumably we could put this as the zvertex
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-	          Acts::Vector3D{0., 0., 0.});
+	          Acts::Vector3D{0., 0., 10.});
 
   std::map<unsigned int, ActsTrack>::iterator trackIter;
 
@@ -123,7 +123,8 @@ int PHActsTrkFitter::Process()
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
-		  << "momentum: " << trackSeed.momentum() 
+		  << "momentum: " << trackSeed.momentum() << std::endl
+		  << "charge : "<<trackSeed.charge()
 		  << " corresponding to SvtxTrack key "<< trackKey
 		  << std::endl;
 
@@ -163,6 +164,7 @@ int PHActsTrkFitter::Process()
           std::cout << "Fitted parameters for track" << std::endl;
           std::cout << " position : " << params.position().transpose()
                     << std::endl;
+	  std::cout << "charge: "<<params.charge()<<std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
                     << std::endl;
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
