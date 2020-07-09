@@ -58,8 +58,8 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
 
   void set_read_vtx_from_hepmc(bool read_vtx) { read_vtx_from_hepmc = read_vtx; }
 
-  void set_mass(const double mass_in) {mass = mass_in;}
-  void set_width(const double width_in) {m_Width = width_in;}
+  void set_mass(const double mass_in) { mass = mass_in; }
+  void set_width(const double width_in) { m_Width = width_in; }
   void set_decay_types(const std::string &decay1, const std::string &decay2);
   void set_histrand_init(const int initflag) { _histrand_init = initflag; }
   void set_upsilon_1s();
@@ -76,7 +76,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   std::map<unsigned int, double> decay_vtx_offset_y;
   std::map<unsigned int, double> decay_vtx_offset_z;
 
-// protected:
+  // protected:
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;

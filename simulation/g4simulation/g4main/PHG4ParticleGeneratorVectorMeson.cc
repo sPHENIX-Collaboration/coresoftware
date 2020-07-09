@@ -73,7 +73,7 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , trand(nullptr)
   , ineve(nullptr)
 {
-  set_upsilon_1s(); // make mass and width of 1S default
+  set_upsilon_1s();  // make mass and width of 1S default
   return;
 }
 
@@ -87,11 +87,11 @@ void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &na
 {
   if (name1.compare("e") == 0)
   {
-    add_decay_particles("e+","e-",decay_id);
+    add_decay_particles("e+", "e-", decay_id);
   }
   else if (name1.compare("mu") == 0)
   {
-    add_decay_particles("mu+","mu-",decay_id);
+    add_decay_particles("mu+", "mu-", decay_id);
   }
   else
   {
@@ -103,22 +103,21 @@ void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &na
 
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)
 {
-// check for valid select ion (e+,e- or mu+,mu-)
-  if ((name1.compare("e-") == 0 && name2.compare("e+") == 0 ) ||
-      (name1.compare("e+") == 0  && name2.compare("e-") == 0 ) ||
-      (name1.compare("mu+") == 0  && name2.compare("mu-") == 0 ) ||
-      (name1.compare("mu-") == 0  && name2.compare("mu+") == 0 ))
+  // check for valid select ion (e+,e- or mu+,mu-)
+  if ((name1.compare("e-") == 0 && name2.compare("e+") == 0) ||
+      (name1.compare("e+") == 0 && name2.compare("e-") == 0) ||
+      (name1.compare("mu+") == 0 && name2.compare("mu-") == 0) ||
+      (name1.compare("mu-") == 0 && name2.compare("mu+") == 0))
   {
-
-  decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
-  decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
-  decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  return;
+    decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
+    decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
+    decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    return;
   }
-    cout << "invalid decay channel Y --> " << name1 << " + " << name2 << endl;
-    gSystem->Exit(1); 
+  cout << "invalid decay channel Y --> " << name1 << " + " << name2 << endl;
+  gSystem->Exit(1);
 }
 
 void PHG4ParticleGeneratorVectorMeson::set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id)
@@ -204,10 +203,10 @@ void PHG4ParticleGeneratorVectorMeson::set_vertex_size_parameters(const double m
 
 void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1, const std::string &name2)
 {
-//http://pdg.lbl.gov/2020/listings/rpp2020-list-muon.pdf
-  static const double mmuon = 105.6583745e-3; //+-0.0000024e-3
-// http://pdg.lbl.gov/2020/listings/rpp2020-list-electron.pdf
-  static const double melectron = 0.5109989461e-3; //+-0.0000000031e-3
+  //http://pdg.lbl.gov/2020/listings/rpp2020-list-muon.pdf
+  static const double mmuon = 105.6583745e-3;       //+-0.0000024e-3
+                                                    // http://pdg.lbl.gov/2020/listings/rpp2020-list-electron.pdf
+  static const double melectron = 0.5109989461e-3;  //+-0.0000000031e-3
 
   decay1 = name1;
   if (decay1.compare("e+") == 0 || decay1.compare("e-") == 0)
@@ -221,7 +220,7 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   else
   {
     cout << "Do not recognize the decay type " << decay1 << endl;
-    gSystem->Exit(1); 
+    gSystem->Exit(1);
   }
 
   decay2 = name2;
@@ -236,7 +235,7 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   else
   {
     cout << "Do not recognize the decay type " << decay2 << endl;
-    gSystem->Exit(1); 
+    gSystem->Exit(1);
   }
 
   return;
@@ -328,7 +327,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(mnow*mnow + pt*pt);
+  double mt = sqrt(mnow * mnow + pt * pt);
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -376,7 +375,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // 3D Randomized vertex
     if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
     {
-      _vertex_size_mean = sqrt(vtx_x*vtx_x + vtx_y*vtx_y + vtx_z*vtx_z);
+      _vertex_size_mean = sqrt(vtx_x * vtx_x + vtx_y * vtx_y + vtx_z * vtx_z);
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
       double x1 = 0.0;
       double y1 = 0.0;
@@ -395,8 +394,8 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // Now decay it
     // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
 
-    double E1 = (mnow*mnow - m2*m2 + m1*m1) / (2.0 * mnow);
-    double p1 = sqrt((mnow*mnow - (m1 + m2)*(m1 + m2)) * (mnow*mnow - (m1 - m2)*(m1 - m2))) / (2.0 * mnow);
+    double E1 = (mnow * mnow - m2 * m2 + m1 * m1) / (2.0 * mnow);
+    double p1 = sqrt((mnow * mnow - (m1 + m2) * (m1 + m2)) * (mnow * mnow - (m1 - m2) * (m1 - m2))) / (2.0 * mnow);
 
     // In the frame of the vector meson, get a random theta and phi angle for particle 1
     // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta
@@ -535,22 +534,21 @@ PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double w
 
 void PHG4ParticleGeneratorVectorMeson::set_upsilon_1s()
 {
-// http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-1S.pdf
-  set_mass(9.4603); //+- 0.00026
-  set_width(54.02e-6); // +- 1.25e-6
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-1S.pdf
+  set_mass(9.4603);     //+- 0.00026
+  set_width(54.02e-6);  // +- 1.25e-6
 }
 
 void PHG4ParticleGeneratorVectorMeson::set_upsilon_2s()
 {
-// http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-2S.pdf
-  set_mass(10.02326); // +- 0.00031
-  set_width(31.98e-6); // +- 2.63e-6
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-2S.pdf
+  set_mass(10.02326);   // +- 0.00031
+  set_width(31.98e-6);  // +- 2.63e-6
 }
 
 void PHG4ParticleGeneratorVectorMeson::set_upsilon_3s()
 {
-//http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-3S.pdf
-  set_mass(10.3552); // +- 0.0005
-  set_width(20.32e-6); // +- 1.85e-6
+  //http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-3S.pdf
+  set_mass(10.3552);    // +- 0.0005
+  set_width(20.32e-6);  // +- 1.85e-6
 }
-
