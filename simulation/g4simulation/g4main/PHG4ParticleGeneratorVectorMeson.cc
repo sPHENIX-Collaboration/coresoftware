@@ -17,6 +17,7 @@
 #include <TLorentzVector.h>
 #include <TRandom.h>  // for TRandom
 #include <TRandom3.h>
+#include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform, gsl_rng_uniform_pos
@@ -39,7 +40,6 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , _vertex_func_x(Uniform)
   , _vertex_func_y(Uniform)
   , _vertex_func_z(Uniform)
-  , _t0(0.0)
   , _vertex_x(0.0)
   , _vertex_y(0.0)
   , _vertex_z(0.0)
@@ -61,8 +61,6 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , mom_max(10.0)
   , pt_min(4.)
   , pt_max(4.)
-  , mass(9.46)
-  , m_Width(54.02e-6)
   , m1(0.511e-3)
   , m2(0.511e-3)
   , _histrand_init(0)
@@ -74,10 +72,7 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , trand(nullptr)
   , ineve(nullptr)
 {
-  // From PDG:
-  // Upsilon 1S has mass 9.4603, width 54.02 keV
-  // Upsilon 2S has mass 10.0233, width 31.98 keV
-  // Upsilon 3S has mass 10.3552, width 20.32 keV
+  set_upsilon_1s();  // make mass and width of 1S default
   return;
 }
 
@@ -87,14 +82,41 @@ PHG4ParticleGeneratorVectorMeson::
   delete trand;
 }
 
+void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const unsigned int decay_id)
+{
+  if (name1.compare("e") == 0)
+  {
+    add_decay_particles("e+", "e-", decay_id);
+  }
+  else if (name1.compare("mu") == 0)
+  {
+    add_decay_particles("mu+", "mu-", decay_id);
+  }
+  else
+  {
+    cout << "Invalid decay " << name1 << ", valid is e or mu" << endl;
+    gSystem->Exit(1);
+  }
+  return;
+}
+
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)
 {
-  decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
-  decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
-  decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
-  return;
+  // check for valid select ion (e+,e- or mu+,mu-)
+  if ((name1.compare("e-") == 0 && name2.compare("e+") == 0) ||
+      (name1.compare("e+") == 0 && name2.compare("e-") == 0) ||
+      (name1.compare("mu+") == 0 && name2.compare("mu-") == 0) ||
+      (name1.compare("mu-") == 0 && name2.compare("mu+") == 0))
+  {
+    decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
+    decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
+    decay_vtx_offset_x.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    decay_vtx_offset_y.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
+    return;
+  }
+  cout << "invalid decay channel Y --> " << name1 << " + " << name2 << endl;
+  gSystem->Exit(1);
 }
 
 void PHG4ParticleGeneratorVectorMeson::set_decay_vertex_offset(double dx, double dy, double dz, const unsigned int decay_id)
@@ -178,45 +200,41 @@ void PHG4ParticleGeneratorVectorMeson::set_vertex_size_parameters(const double m
   return;
 }
 
-void PHG4ParticleGeneratorVectorMeson::set_mass(const double mass_in)
-{
-  mass = mass_in;
-  return;
-}
-
-void PHG4ParticleGeneratorVectorMeson::set_width(const double width_in)
-{
-  m_Width = width_in;
-  return;
-}
-
 void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1, const std::string &name2)
 {
-  double mmuon = 105.64e-3;
-  double melectron = 0.511e-3;
+  //http://pdg.lbl.gov/2020/listings/rpp2020-list-muon.pdf
+  static const double mmuon = 105.6583745e-3;       //+-0.0000024e-3
+                                                    // http://pdg.lbl.gov/2020/listings/rpp2020-list-electron.pdf
+  static const double melectron = 0.5109989461e-3;  //+-0.0000000031e-3
 
   decay1 = name1;
   if (decay1.compare("e+") == 0 || decay1.compare("e-") == 0)
+  {
     m1 = melectron;
+  }
   else if (decay1.compare("mu+") == 0 || decay1.compare("mu-") == 0)
+  {
     m1 = mmuon;
+  }
   else
   {
-    cout << "Do not recognize the decay type " << decay1 << " will assume e+" << endl;
-    decay1 = "e+";
-    m1 = melectron;
+    cout << "Do not recognize the decay type " << decay1 << endl;
+    gSystem->Exit(1);
   }
 
   decay2 = name2;
   if (decay2.compare("e+") == 0 || decay2.compare("e-") == 0)
+  {
     m2 = melectron;
+  }
   else if (decay2.compare("mu+") == 0 || decay2.compare("mu-") == 0)
+  {
     m2 = mmuon;
+  }
   else
   {
-    cout << "Do not recognize the decay type " << decay2 << " will assume e-" << endl;
-    decay2 = "e-";
-    m2 = melectron;
+    cout << "Do not recognize the decay type " << decay2 << endl;
+    gSystem->Exit(1);
   }
 
   return;
@@ -224,16 +242,16 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
 
 int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 {
-  cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
-
+  if (Verbosity() > 0)
+  {
+    cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
+  }
   trand = new TRandom3();
   unsigned int iseed = PHRandomSeed();  // fixed seed handles in PHRandomSeed()
-  cout << Name() << " random seed: " << iseed << endl;
   trand->SetSeed(iseed);
   if (_histrand_init)
   {
     iseed = PHRandomSeed();
-    cout << Name() << " histrand random seed: " << iseed << endl;
     gRandom->SetSeed(iseed);
   }
 
@@ -263,7 +281,10 @@ int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
     dstNode->addNode(newNode);
   }
 
-  cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << endl;
+  }
   return 0;
 }
 
@@ -305,7 +326,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(pow(mnow, 2) + pow(pt, 2));
+  double mt = sqrt(mnow * mnow + pt * pt);
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -353,7 +374,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // 3D Randomized vertex
     if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
     {
-      _vertex_size_mean = sqrt(pow(vtx_x, 2) + pow(vtx_y, 2) + pow(vtx_z, 2));
+      _vertex_size_mean = sqrt(vtx_x * vtx_x + vtx_y * vtx_y + vtx_z * vtx_z);
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
       double x1 = 0.0;
       double y1 = 0.0;
@@ -372,8 +393,8 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // Now decay it
     // Get the decay energy and momentum in the frame of the vector meson - this correctly handles decay particles of any mass.
 
-    double E1 = (pow(mnow, 2) - pow(m2, 2) + pow(m1, 2)) / (2.0 * mnow);
-    double p1 = sqrt((pow(mnow, 2) - pow(m1 + m2, 2)) * (pow(mnow, 2) - pow(m1 - m2, 2))) / (2.0 * mnow);
+    double E1 = (mnow * mnow - m2 * m2 + m1 * m1) / (2.0 * mnow);
+    double p1 = sqrt((mnow * mnow - (m1 + m2) * (m1 + m2)) * (mnow * mnow - (m1 - m2) * (m1 - m2))) / (2.0 * mnow);
 
     // In the frame of the vector meson, get a random theta and phi angle for particle 1
     // Assume angular distribution in the frame of the decaying meson that is uniform in phi and goes as sin(theta) in theta
@@ -508,4 +529,25 @@ PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double w
     res = position + gsl_ran_gaussian(RandomGenerator, m_Width);
   }
   return res;
+}
+
+void PHG4ParticleGeneratorVectorMeson::set_upsilon_1s()
+{
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-1S.pdf
+  set_mass(9.4603);     //+- 0.00026
+  set_width(54.02e-6);  // +- 1.25e-6
+}
+
+void PHG4ParticleGeneratorVectorMeson::set_upsilon_2s()
+{
+  // http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-2S.pdf
+  set_mass(10.02326);   // +- 0.00031
+  set_width(31.98e-6);  // +- 2.63e-6
+}
+
+void PHG4ParticleGeneratorVectorMeson::set_upsilon_3s()
+{
+  //http://pdg.lbl.gov/2020/listings/rpp2020-list-upsilon-3S.pdf
+  set_mass(10.3552);    // +- 0.0005
+  set_width(20.32e-6);  // +- 1.85e-6
 }

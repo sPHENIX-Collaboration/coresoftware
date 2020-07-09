@@ -523,7 +523,7 @@ void PHG4TruthEventAction::ProcessShowers()
     }
 
     // weighted covariance matrix
-    prefactor = sumw / (pow(sumw, 2) - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
+    prefactor = sumw / (sumw*sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
 
     shower->set_x(mean(0, 0));
