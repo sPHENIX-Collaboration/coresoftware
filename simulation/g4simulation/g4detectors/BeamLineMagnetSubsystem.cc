@@ -19,7 +19,7 @@
 #include <phool/getClass.h>
 
 #include <iostream>  // for operator<<, endl, basic_ostream
-#include <set>                                  // for set
+#include <set>       // for set
 
 class PHG4Detector;
 

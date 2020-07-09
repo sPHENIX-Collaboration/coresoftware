@@ -44,7 +44,7 @@ BeamLineMagnetDetector::BeamLineMagnetDetector(PHG4Subsystem *subsys, PHComposit
   , magnet_physi(nullptr)
   , magnet_iron_physi(nullptr)
   , m_DisplayAction(dynamic_cast<BeamLineMagnetDisplayAction *>(subsys->GetDisplayAction()))
-  ,  m_MagnetId(magnet_id)
+  , m_MagnetId(magnet_id)
 {
 }
 
