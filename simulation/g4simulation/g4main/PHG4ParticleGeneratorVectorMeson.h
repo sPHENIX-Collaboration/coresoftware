@@ -76,11 +76,9 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   std::map<unsigned int, double> decay_vtx_offset_y;
   std::map<unsigned int, double> decay_vtx_offset_z;
 
-  // protected:
   FUNCTION _vertex_func_x;
   FUNCTION _vertex_func_y;
   FUNCTION _vertex_func_z;
-  double _t0;
   double _vertex_x;         // primary vertex (or mean) x component, cf. vtx_x = track-by-track vertex x component
   double _vertex_y;         // primary vertex (or mean) y component, cf. vtx_y = track-by-track vertex y component
   double _vertex_z;         // primary vertex (or mean)z component, cf. vtx_z = track-by-track vertex z component

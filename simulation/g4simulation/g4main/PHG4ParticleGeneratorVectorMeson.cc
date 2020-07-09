@@ -40,7 +40,6 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , _vertex_func_x(Uniform)
   , _vertex_func_y(Uniform)
   , _vertex_func_z(Uniform)
-  , _t0(0.0)
   , _vertex_x(0.0)
   , _vertex_y(0.0)
   , _vertex_z(0.0)
