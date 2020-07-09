@@ -142,6 +142,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
      */
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
+    const double radius = layergeom->get_radius();
     const double pitch = layergeom->get_pitch();
     const double strip_length = layergeom->get_strip_length( tileid );
 
@@ -205,7 +206,12 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
 
       TVector3 world_coordinates;
-      double adc_sum = 0;
+      double weight_sum = 0;
+
+      // needed for proper error calculation
+      // it is either the sum over z, or phi, depending on segmentation
+      double coord_sum = 0;
+      double coordsquare_sum = 0;
 
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
@@ -225,51 +231,81 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         static constexpr double pedestal = 74.6;
         const double weight = double(hit->getAdc()) - pedestal;
 
-        // get strip world coordinate
-        world_coordinates += layergeom->get_world_coordinate( tileid, strip )*weight;
-        adc_sum += weight;
+        // get strip world coordinate and update relevant sums
+        const auto strip_world_coordinate = layergeom->get_world_coordinate( tileid, strip );
+        world_coordinates += strip_world_coordinate*weight;
+        switch( segmentation_type )
+        {
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+          {
+
+            const auto rphi = radius*std::atan2( strip_world_coordinate.y(), strip_world_coordinate.x() );
+            coord_sum += rphi*weight;
+            coordsquare_sum += square(rphi)*weight;
+            break;
+          }
+
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+          {
+            const auto z = strip_world_coordinate.z();
+            coord_sum += z*weight;
+            coordsquare_sum += square(z)*weight;
+            break;
+          }
+        }
+
+        weight_sum += weight;
+
       }
 
       // cluster position
-      cluster->setPosition( 0, world_coordinates.x()/adc_sum );
-      cluster->setPosition( 1, world_coordinates.y()/adc_sum );
-      cluster->setPosition( 2, world_coordinates.z()/adc_sum );
+      cluster->setPosition( 0, world_coordinates.x()/weight_sum );
+      cluster->setPosition( 1, world_coordinates.y()/weight_sum );
+      cluster->setPosition( 2, world_coordinates.z()/weight_sum );
       cluster->setGlobal();
 
       // dimension and error in r, rphi and z coordinates
       static const float invsqrt12 = 1./std::sqrt(12);
+      static constexpr float error_scale_phi = 1.6;
+      static constexpr float error_scale_z = 0.8;
 
       using matrix_t = Eigen::Matrix<float, 3, 3>;
       matrix_t dimension = matrix_t::Zero();
       matrix_t error = matrix_t::Zero();
 
       const auto size = std::distance( range.first, range.second );
+      auto coord_cov = coordsquare_sum/weight_sum - square( coord_sum/weight_sum );
+      auto coord_error_sq = coord_cov/weight_sum;
       switch( segmentation_type )
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
         dimension(0,0) = square(0.5*thickness);
-        dimension(1,1) = square( 0.5*pitch*size );
-        dimension(2,2) = square( 0.5*strip_length );
+        dimension(1,1) = square(0.5*pitch*size);
+        dimension(2,2) = square(0.5*strip_length);
 
+        if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
+        else coord_error_sq *= square(error_scale_phi);
         error(0,0) = square(thickness*invsqrt12);
-        error(1,1) = square( pitch*invsqrt12 );
-        error(2,2) = square( strip_length*invsqrt12 );
+        error(1,1) = coord_error_sq;
+        error(2,2) = square(strip_length*invsqrt12);
         break;
 
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
         dimension(0,0) = square(0.5*thickness);
-        dimension(1,1) = square( 0.5*strip_length );
-        dimension(2,2) = square( 0.5*pitch*size );
+        dimension(1,1) = square(0.5*strip_length);
+        dimension(2,2) = square(0.5*pitch*size);
 
+        if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
+        else coord_error_sq *= square(error_scale_z);
         error(0,0) = square(thickness*invsqrt12);
-        error(1,1) = square( strip_length*invsqrt12 );
-        error(2,2) = square( pitch*invsqrt12 );
+        error(1,1) = square(strip_length*invsqrt12);
+        error(2,2) = coord_error_sq;
         break;
       }
 
       // rotate and save
       matrix_t rotation = matrix_t::Identity();
-      const double phi = std::atan2( world_coordinates.y(), world_coordinates.x() );
+      const double phi = std::atan2(world_coordinates.y(), world_coordinates.x());
       const double cosphi = std::cos(phi);
       const double sinphi = std::sin(phi);
       rotation(0,0) = cosphi;
