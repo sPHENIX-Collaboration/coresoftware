@@ -487,28 +487,24 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       // Estimate the errors
       double dphi2_adc = 0.0;
-      double dphi_adc = 0.0;
       double dz2_adc = 0.0;
-      double dz_adc = 0.0;
       for (int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
       {
         for (int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
         {
-          double dphi = layergeom->get_phicenter(iphi) - clusphi;
+          const double dphi = layergeom->get_phicenter(iphi) - clusphi;
           dphi2_adc += dphi * dphi * adcval[iphi][iz];
-          dphi_adc += dphi * adcval[iphi][iz];
 
-          double dz = layergeom->get_zcenter(iz) - clusz;
+          const double dz = layergeom->get_zcenter(iz) - clusz;
           dz2_adc += dz * dz * adcval[iphi][iz];
-          dz_adc += dz * adcval[iphi][iz];
         }
       }
-      double phi_cov = (dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum * adc_sum));
-      double z_cov = dz2_adc / adc_sum - dz_adc * dz_adc / (adc_sum * adc_sum);
+      double phi_cov = dphi2_adc/adc_sum;
+      double z_cov = dz2_adc/adc_sum;
 
-      //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
+      //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << endl;
 
-      // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
+      // phi_cov = (weighted mean of dphi^2). The error is then:
       // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
       //    - N is the number of electrons that drift to the readout plane
       // We have to convert (sum of adc units for all bins in the cluster) to number of ionization electrons N
