@@ -654,11 +654,13 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
-    << " position: (" << cluster->getX() << "," << cluster->getY() << "," << cluster->getZ() << ")"
+    // << " position: (" << cluster->getX() << "," << cluster->getY() << "," << cluster->getZ() << ")"
     << " polar: (" << get_r( cluster->getX(), cluster->getY()) << "," << get_phi( cluster->getX(), cluster->getY()) << "," << cluster->getZ() << ")"
+    << " errors: (" << cluster->getPhiError() << ", " << cluster->getZError() << ")"
     << std::endl;
 
   // get associated hits
+  if( false ) 
   {
 
     // loop over hits associated to clusters
