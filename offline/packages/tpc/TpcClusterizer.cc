@@ -38,6 +38,11 @@
 #include <utility>  // for pair
 #include <vector>
 
+namespace 
+{
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+}
+
 using namespace std;
 
 TpcClusterizer::TpcClusterizer(const string &name)
@@ -440,9 +445,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     {
       //cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
       // loop over the hits in this cluster
-      double zsum = 0.0;
+      double z_sum = 0.0;
       double phi_sum = 0.0;
       double adc_sum = 0.0;
+
+      double z2_sum = 0.0;
+      double phi2_sum = 0.0;
+
       double radius = layergeom->get_radius();  // returns center of layer
       if (Verbosity() > 2)
         if (layer == print_layer)
@@ -456,11 +465,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       {
         for (int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
         {
-          double phi_center = layergeom->get_phicenter(iphi);
-          double z = layergeom->get_zcenter(iz);
+          const double phi_center = layergeom->get_phicenter(iphi);
+          const double z = layergeom->get_zcenter(iz);
 
-          zsum += z * adcval[iphi][iz];
-          phi_sum += phi_center * adcval[iphi][iz];
+          z_sum += z*adcval[iphi][iz];
+          z2_sum += square(z)*adcval[iphi][iz];
+
+          phi_sum += phi_center*adcval[iphi][iz];
+          phi2_sum += square(phi_center)*adcval[iphi][iz];
           adc_sum += adcval[iphi][iz];
 
           // capture the hitkeys for all non-zero adc values
@@ -475,40 +487,22 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       if (adc_sum < 10) continue;  // skip obvious noise "clusters"
 
       // This is the global position
-      double clusphi = phi_sum / adc_sum;
-      double clusz = zsum / adc_sum;
+      const double clusphi = phi_sum / adc_sum;
+      double clusz = z_sum / adc_sum;
+
+      const double phi_cov = phi2_sum/adc_sum - square(clusphi);
+      const double z_cov = z2_sum/adc_sum - square(clusz);
 
       // create the cluster entry directly in the node tree
       TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
       TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
 
-      double phi_size = (double) (phibinhi[iclus] - phibinlo[iclus] + 1) * radius * layergeom->get_phistep();
-      double z_size = (double) (zbinhi[iclus] - zbinlo[iclus] + 1) * layergeom->get_zstep();
+      const double phi_size = (double) (phibinhi[iclus] - phibinlo[iclus] + 1) * radius * layergeom->get_phistep();
+      const double z_size = (double) (zbinhi[iclus] - zbinlo[iclus] + 1) * layergeom->get_zstep();
 
-      // Estimate the errors
-      double dphi2_adc = 0.0;
-      double dphi_adc = 0.0;
-      double dz2_adc = 0.0;
-      double dz_adc = 0.0;
-      for (int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
-      {
-        for (int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
-        {
-          double dphi = layergeom->get_phicenter(iphi) - clusphi;
-          dphi2_adc += dphi * dphi * adcval[iphi][iz];
-          dphi_adc += dphi * adcval[iphi][iz];
+      //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << endl;
 
-          double dz = layergeom->get_zcenter(iz) - clusz;
-          dz2_adc += dz * dz * adcval[iphi][iz];
-          dz_adc += dz * adcval[iphi][iz];
-        }
-      }
-      double phi_cov = (dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum * adc_sum));
-      double z_cov = dz2_adc / adc_sum - dz_adc * dz_adc / (adc_sum * adc_sum);
-
-      //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
-
-      // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
+      // phi_cov = (weighted mean of dphi^2). The error is then:
       // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
       //    - N is the number of electrons that drift to the readout plane
       // We have to convert (sum of adc units for all bins in the cluster) to number of ionization electrons N
@@ -516,13 +510,16 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
       // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
-      double phi_err = radius * sqrt(phi_cov / (adc_sum * 0.14));
-      if (phi_err == 0.0)  // a single phi bin will cause this
-        phi_err = radius * layergeom->get_phistep() / sqrt(12.0);
+      // square errors are calculated, since this is what enters the error matrix below
+      // also need to include special handling for size one clusters, for which the RMS calculated above is automatically zero
 
-      double z_err = sqrt(z_cov / (adc_sum * 0.14));
-      if (z_err == 0.0)
-        z_err = layergeom->get_zstep() / sqrt(12.0);
+      const double phi_err_square = (phibinhi[iclus] == phibinlo[iclus]) ?
+        square(radius*layergeom->get_phistep())/12:
+        square(radius)*phi_cov/(adc_sum*0.14);
+
+      const double z_err_square = (zbinhi[iclus] == zbinlo[iclus]) ?
+        square(layergeom->get_zstep())/12:
+        z_cov/(adc_sum*0.14);
 
       // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping time
       if (clusz < 0)
@@ -543,22 +540,22 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
-      DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
+      DIM[1][1] = square(0.5*phi_size);  //cluster_v1 expects 1/2 of actual size
       DIM[1][2] = 0.0;
       DIM[2][0] = 0.0;
       DIM[2][1] = 0.0;
-      DIM[2][2] = pow(0.5 * z_size,2);
+      DIM[2][2] = square(0.5*z_size);
 
       TMatrixF ERR(3, 3);
       ERR[0][0] = 0.0;
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = phi_err * phi_err;  //cluster_v1 expects rad, arc, z as elementsof covariance
+      ERR[1][1] = phi_err_square;  //cluster_v1 expects rad, arc, z as elementsof covariance
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
-      ERR[2][2] = z_err * z_err;
+      ERR[2][2] = z_err_square;
 
       TMatrixF ROT(3, 3);
       ROT[0][0] = cos(clusphi);
