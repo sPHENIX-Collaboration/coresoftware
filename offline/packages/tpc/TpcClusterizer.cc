@@ -465,22 +465,23 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       {
         for (int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
         {
-          const double phi_center = layergeom->get_phicenter(iphi);
-          const double z = layergeom->get_zcenter(iz);
+          // skip hits for which weight is non-positive
+          if( adcval[iphi][iz] <= 0 ) continue;
 
+          // update z sums
+          const double z = layergeom->get_zcenter(iz);
           z_sum += z*adcval[iphi][iz];
           z2_sum += square(z)*adcval[iphi][iz];
 
+          // update phi sums
+          const double phi_center = layergeom->get_phicenter(iphi);
           phi_sum += phi_center*adcval[iphi][iz];
           phi2_sum += square(phi_center)*adcval[iphi][iz];
           adc_sum += adcval[iphi][iz];
 
           // capture the hitkeys for all non-zero adc values
-          if (adcval[iphi][iz] != 0)
-          {
-            TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
-            hitkeyvec.push_back(hitkey);
-          }
+          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
+          hitkeyvec.push_back(hitkey);
         }
       }
 
