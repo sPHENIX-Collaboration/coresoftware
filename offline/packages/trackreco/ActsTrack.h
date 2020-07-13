@@ -9,7 +9,7 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 
 /**
- * Aclass that contains an Acts track seed and the corresponding source links.
+ * A class that contains an Acts track seed and the corresponding source links.
  * Also contains a vertex id corresponding to the original track seed
  * vertex id.
  * Used by a variety of the Acts track fitting classes.

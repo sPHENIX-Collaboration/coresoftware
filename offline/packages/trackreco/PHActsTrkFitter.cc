@@ -73,7 +73,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
-	       Acts::Logging::VERBOSE);
+	       Acts::Logging::INFO);
 
   if(m_timeAnalysis)
     {
