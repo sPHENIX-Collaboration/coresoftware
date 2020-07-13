@@ -20,10 +20,10 @@ class ActsTrack
  public:
   ActsTrack(FW::TrackParameters params, 
 	    const std::vector<SourceLink> &links,
-	    unsigned int vertexId)
+	    const std::vector<float> vertex)
     : m_trackParams(params)
     , m_sourceLinks(links)
-    , m_vertexId(vertexId)
+    , m_vertex(vertex)
     {}
 
   ~ActsTrack(){}
@@ -35,13 +35,18 @@ class ActsTrack
   void setSourceLinks(std::vector<SourceLink> srcLinks)
   { m_sourceLinks = srcLinks; }
   
-  unsigned int getVertexId() { return m_vertexId;}
-  void setVertexId(unsigned int id){m_vertexId = id;}
+  std::vector<float> getVertexId() { return m_vertex;}
+  void setVertexId(std::vector<float> vertex){m_vertex = vertex;}
 
  private:
+  /// Initial track seed parameters
   FW::TrackParameters m_trackParams;
+
+  /// SourceLinks associated to this track
   std::vector<SourceLink> m_sourceLinks;
-  unsigned int m_vertexId;
+
+  /// Initial x,y,z vertex estimate
+  std::vector<float> m_vertex;
 
 };
 
