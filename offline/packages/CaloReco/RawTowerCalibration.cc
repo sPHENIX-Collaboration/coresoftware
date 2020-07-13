@@ -116,22 +116,16 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
     if (_calib_algorithm == kNo_calibration)
     {
-      if (raw_tower->get_energy() > _zero_suppression_GeV)
-      {
-        _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
-      }
+     _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
     }
     else if (_calib_algorithm == kSimple_linear_calibration)
     {
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC;
 
-      if (calib_energy > _zero_suppression_GeV)
-      {
-        RawTower *calib_tower = new RawTowerv1(*raw_tower);
-        calib_tower->set_energy(calib_energy);
-        _calib_towers->AddTower(key, calib_tower);
-      }
+      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      calib_tower->set_energy(calib_energy);
+      _calib_towers->AddTower(key, calib_tower);
     }
     else if (_calib_algorithm == kTower_by_tower_calibration)
     {
@@ -145,12 +139,9 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
 
-      if (calib_energy > _zero_suppression_GeV)
-      {
-        RawTower *calib_tower = new RawTowerv1(*raw_tower);
-        calib_tower->set_energy(calib_energy);
-        _calib_towers->AddTower(key, calib_tower);
-      }
+      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      calib_tower->set_energy(calib_energy);
+      _calib_towers->AddTower(key, calib_tower);
     }
     else
     {
