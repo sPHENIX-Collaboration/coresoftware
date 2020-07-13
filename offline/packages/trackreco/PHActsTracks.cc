@@ -99,10 +99,17 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     const unsigned int vertexId = track->get_vertex_id();
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    std::vector<float> vertex = {svtxVertex->get_x(), 
-				 svtxVertex->get_y(), 
-				 svtxVertex->get_z()};
+    Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_z() * Acts::UnitConstants::cm};
     
+    if(Verbosity() > 4)
+      {
+	std::cout << "Vertex estimate : ("; 
+	for(int i = 0; i < vertex.size(); i++)
+	  std::cout<<vertex(i)<<", ";
+	std::cout << ")" << std::endl;
+      }
 
 
     /// Get the necessary parameters and values for the TrackParameters
