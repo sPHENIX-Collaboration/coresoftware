@@ -61,8 +61,10 @@ class SvtxEvaluator : public SubsysReco
   void do_eval_light(bool b) { _do_eval_light = b; }
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
 
+  /*
   /// This is public so that the Acts evaluator can access it
   void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &gx, float &gy, float &gz,  float &gt, float &gedep);
+  */
 
  private:
   unsigned int _ievent;
@@ -116,12 +118,12 @@ class SvtxEvaluator : public SubsysReco
 
   PHTimer *_timer;
 
+  /*
   //  void LayerClusterG4Particle();
-
   void G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
-
-  
+   
   float line_circle_intersection(float x[], float y[], float z[], float radius);
+  */
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis

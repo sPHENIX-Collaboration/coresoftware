@@ -17,6 +17,7 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
+class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
@@ -55,6 +56,8 @@ class SvtxClusterEval
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits(TrkrDefs::cluskey cluster);
   PHG4Hit* max_truth_hit_by_energy(TrkrDefs::cluskey);
+  std::set<TrkrCluster*> all_truth_clusters(TrkrDefs::cluskey cluster_key);
+  TrkrCluster* max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key);
 
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles(TrkrDefs::cluskey);
@@ -68,6 +71,8 @@ class SvtxClusterEval
   // overlap calculations
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
+
+  TrkrCluster* reco_cluster_from_truth_cluster(TrkrCluster* gclus);
 
   unsigned int get_errors() { return _errors + _hiteval.get_errors(); }
 
@@ -98,7 +103,9 @@ class SvtxClusterEval
 
   bool _do_cache;
   std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::map<TrkrDefs::cluskey, std::set<TrkrCluster*> > _cache_all_truth_clusters;
   std::map<TrkrDefs::cluskey, PHG4Hit*> _cache_max_truth_hit_by_energy;
+  std::map<TrkrDefs::cluskey, TrkrCluster* > _cache_max_truth_cluster_by_energy;
   std::map<TrkrDefs::cluskey, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_energy;
   std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_particle;
@@ -106,6 +113,7 @@ class SvtxClusterEval
   std::map<PHG4Hit*, TrkrDefs::cluskey> _cache_best_cluster_from_g4hit;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
+  std::map<TrkrCluster*, TrkrCluster* > _cache_reco_cluster_from_truth_cluster;
 
 #if !defined(__CINT__) || defined(__CLING__)
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad

@@ -10,6 +10,7 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -34,7 +35,9 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   , _errors(0)
   , _do_cache(true)
   , _cache_all_truth_hits()
+  , _cache_all_truth_clusters()
   , _cache_max_truth_hit_by_energy()
+  , _cache_max_truth_cluster_by_energy()
   , _cache_all_truth_particles()
   , _cache_max_truth_particle_by_energy()
   , _cache_all_clusters_from_particle()
@@ -42,6 +45,7 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   , _cache_best_cluster_from_g4hit()
   , _cache_get_energy_contribution_g4particle()
   , _cache_get_energy_contribution_g4hit()
+  ,_cache_reco_cluster_from_truth_cluster()
 {
   get_node_pointers(topNode);
 }
@@ -60,6 +64,7 @@ SvtxClusterEval::~SvtxClusterEval()
 void SvtxClusterEval::next_event(PHCompositeNode* topNode)
 {
   _cache_all_truth_hits.clear();
+  _cache_all_truth_clusters.clear();
   _cache_max_truth_hit_by_energy.clear();
   _cache_all_truth_particles.clear();
   _cache_max_truth_particle_by_energy.clear();
@@ -76,6 +81,168 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 } 
 
+std::set<TrkrCluster*> SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey cluster_key)
+{
+  if (_do_cache)
+  {
+    std::map<TrkrDefs::cluskey, std::set<TrkrCluster*> >::iterator iter =
+        _cache_all_truth_clusters.find(cluster_key);
+    if (iter != _cache_all_truth_clusters.end())
+    {
+      return iter->second;
+    }
+  }
+
+  std::set<TrkrCluster*> truth_clusters;
+
+  unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
+
+  std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
+  for (std::set<PHG4Particle*>::iterator iter = particles.begin();
+       iter != particles.end();
+       ++iter)
+    {
+      PHG4Particle* particle = *iter;
+      
+      std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(particle);
+      for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
+	   citer != gclusters.end();
+	   ++citer)
+	{
+	  if(citer->first == cluster_layer) 
+	    {
+	      truth_clusters.insert(citer->second);
+	    }
+	}
+    }
+  
+  return truth_clusters;
+}
+
+TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key)
+{
+  if (_do_cache)
+  {
+    std::map<TrkrDefs::cluskey, TrkrCluster* >::iterator iter =
+        _cache_max_truth_cluster_by_energy.find(cluster_key);
+    if (iter != _cache_max_truth_cluster_by_energy.end())
+    {
+      return iter->second;
+    }
+  }
+
+  TrkrCluster* truth_cluster = 0;
+
+  unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
+
+  PHG4Particle* max_particle = max_truth_particle_by_energy(cluster_key);
+  if(_verbosity > 0) 
+    cout << "    max truth particle by energy has  trackID  " << max_particle->get_track_id() << endl;      
+
+  std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(max_particle);
+  for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
+       citer != gclusters.end();
+       ++citer)
+    {
+      if(citer->first == cluster_layer) 
+	{
+	  truth_cluster = citer->second;
+	}
+    }
+  
+  return truth_cluster;
+}
+
+TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus)
+{
+  if (_do_cache)
+  {
+    std::map<TrkrCluster*, TrkrCluster* >::iterator iter =
+      _cache_reco_cluster_from_truth_cluster.find(gclus);
+    if (iter != _cache_reco_cluster_from_truth_cluster.end())
+    {
+      return iter->second;
+    }
+  }
+
+  TrkrDefs::cluskey ckey = gclus->getClusKey();
+  double gx = gclus->getX();
+  double gy = gclus->getY();
+  double gz = gclus->getZ();
+  double gr = sqrt(gx*gx+gy*gy);
+  double grphi = gr*atan2(gy, gx);
+
+  TrkrCluster *reco_cluster = 0;
+  unsigned int truth_layer = TrkrDefs::getLayer(ckey);
+
+  std::set<TrkrDefs::cluskey> reco_cluskeys;
+  std::set<PHG4Hit*> contributing_hits =  get_truth_eval()->get_truth_hits_from_truth_cluster(ckey);
+  for(auto it = contributing_hits.begin(); it != contributing_hits.end(); ++it)
+    {
+      PHG4Hit* cont_g4hit = *it;            
+      std::set<TrkrDefs::cluskey> cluskeys = all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer using TrkrAssoc maps
+      
+      if(_verbosity > 1)
+	cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " g4trackID " << cont_g4hit->get_trkid() << endl;
+      
+      for (std::set<TrkrDefs::cluskey>::iterator iter = cluskeys.begin();
+	   iter != cluskeys.end();
+	   ++iter)
+	{
+	  unsigned int clus_layer = TrkrDefs::getLayer(*iter);
+	  // discard if reco cluster is in the wrong layer
+	  if(clus_layer != truth_layer)  continue;
+	  
+	  reco_cluskeys.insert(*iter);
+	  
+	  // If there is only one matching cluster, we will keep this
+	  reco_cluster = _clustermap->findCluster(*iter);
+	}
+    }
+
+  unsigned int nreco = reco_cluskeys.size();
+  if(nreco > 1)
+    {
+      // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
+      // and do some diagnostics on what went wrong here
+      
+      cout << "         --------  truth_layer " << truth_layer << " found " << nreco << " reco clusters for this g4cluster! " << endl;
+      
+      for(std::set<TrkrDefs::cluskey>::iterator it = reco_cluskeys.begin(); it != reco_cluskeys.end(); ++it)
+	{
+	  // get the cluster
+	  TrkrCluster* this_cluster = _clustermap->findCluster(*it);
+	  double this_x = this_cluster->getX();
+	  double this_y = this_cluster->getY();
+	  double this_z = this_cluster->getZ();
+	  double this_rphi = gr*atan2(this_y, this_x);
+	  
+	  // Find the difference in position from the g4cluster
+	  double dz = this_z - gz;
+	  double drphi = this_rphi - grphi;
+	  
+	  
+	  if(_verbosity > 0) 
+	    if(truth_layer > 6)
+	      cout << "        cluster " << *it 
+		   << " this_z " << this_z  << " this_rphi " << this_rphi << " grphi " << grphi 
+		   << " drphi " << drphi << " dz " << dz 
+		   << endl; 
+	  
+
+	  // approximate 4 sigmas cut
+	  if(fabs(drphi) < 4.0 * 150e-04 &&
+	     fabs(dz) < 4.0 * 550e-04)
+	    {
+	      return this_cluster;;
+	    }
+	  
+	}
+    } 
+      
+  return  reco_cluster;      
+}
+
 std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key)
 {
   if (!has_node_pointers())
@@ -83,16 +250,6 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
       ++_errors;
       return std::set<PHG4Hit*>();
     }
-  
-//  if (_strict)
-//    {
-//      assert(cluster_key);
-//    }
-//  else if (!cluster_key)
-//    {
-//      ++_errors;
-//      return std::set<PHG4Hit*>();
-//    }
   
   if (_do_cache)
     {
@@ -197,16 +354,6 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
       return std::set<PHG4Particle*>();
     }
   
-//  if (_strict)
-//    {
-//      assert(cluster_key);
-//    }
-//  else if (!cluster_key)
-//    {
-//      ++_errors;
-//      return std::set<PHG4Particle*>();
-//    }
-  
   if (_do_cache)
     {
       std::map<TrkrDefs::cluskey, std::set<PHG4Particle*> >::iterator iter =
@@ -227,7 +374,8 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
     {
       PHG4Hit* hit = *iter;
       PHG4Particle* particle = get_truth_eval()->get_particle(hit);
-      
+      //cout << "cluster key " << cluster_key << " has hit " << hit->get_hit_id() << " and has particle " << particle->get_track_id() << endl;
+
       if (_strict)
 	{
 	  assert(particle);
@@ -237,7 +385,7 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
 	  ++_errors;
 	  continue;
 	}
-      
+
       truth_particles.insert(particle);
     }
   
@@ -291,7 +439,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(TrkrDefs::cluskey cl
 	  max_particle = particle;
 	}
     }
-  
+ 
   if (_do_cache) _cache_max_truth_particle_by_energy.insert(make_pair(cluster_key, max_particle));
   
   return max_particle;
