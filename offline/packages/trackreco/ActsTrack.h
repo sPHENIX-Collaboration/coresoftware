@@ -9,16 +9,21 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 
 /**
- * A struct that contains an Acts track seed and the corresponding source links.
+ * Aclass that contains an Acts track seed and the corresponding source links.
+ * Also contains a vertex id corresponding to the original track seed
+ * vertex id.
  * Used by a variety of the Acts track fitting classes.
  */
 class ActsTrack
 {
 
  public:
-  ActsTrack(FW::TrackParameters params, const std::vector<SourceLink> &links)
+  ActsTrack(FW::TrackParameters params, 
+	    const std::vector<SourceLink> &links,
+	    unsigned int vertexId)
     : m_trackParams(params)
     , m_sourceLinks(links)
+    , m_vertexId(vertexId)
     {}
 
   ~ActsTrack(){}
@@ -30,11 +35,13 @@ class ActsTrack
   void setSourceLinks(std::vector<SourceLink> srcLinks)
   { m_sourceLinks = srcLinks; }
   
+  unsigned int getVertexId() { return m_vertexId;}
+  void setVertexId(unsigned int id){m_vertexId = id;}
 
  private:
-  
   FW::TrackParameters m_trackParams;
   std::vector<SourceLink> m_sourceLinks;
+  unsigned int m_vertexId;
 
 };
 
