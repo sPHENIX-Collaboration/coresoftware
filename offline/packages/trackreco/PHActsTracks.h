@@ -25,6 +25,7 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class SvtxVertexMap;
 class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
@@ -74,6 +75,9 @@ class PHActsTracks : public SubsysReco
 
   /// Trackmap that contains SvtxTracks
   SvtxTrackMap *m_trackMap;
+
+  /// VertexMap that contains the initial vertexing estimates
+  SvtxVertexMap *m_vertexMap;
 
   /// Map between cluster key and arbitrary hit id created in PHActsSourceLinks
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
