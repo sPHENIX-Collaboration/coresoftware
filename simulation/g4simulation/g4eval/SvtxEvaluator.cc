@@ -1971,62 +1971,58 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    if(Verbosity() > 0)
 	      {
 		TrkrDefs::cluskey truth_cluskey = truth_cluster->getClusKey();
-		cout << "    Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
+		cout << "         Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
 	      }
 
 	    g4hitID = 0;
 	    gx=truth_cluster->getX();
 	    gy=truth_cluster->getY();
 	    gz=truth_cluster->getZ();
+	    efromtruth = truth_cluster->getError(0,0);
 
 	    TVector3 gpos(gx, gy, gz);
 	    gr = gpos.Perp();
 	    gphi = gpos.Phi();
 	    geta = gpos.Eta();
 
-	  if (g4particle)
-            {
-              gtrackID = g4particle->get_track_id();
-              gflavor = g4particle->get_pid();
-              gpx = g4particle->get_px();
-              gpy = g4particle->get_py();
-              gpz = g4particle->get_pz();
-
-              PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-              if (vtx)
-              {
-                gvx = vtx->get_x();
-                gvy = vtx->get_y();
-                gvz = vtx->get_z();
-		gvt = vtx->get_t();
-              }
-              PHG4Hit* outerhit = nullptr;
-              if (_do_eval_light == false)
-                outerhit = trutheval->get_outermost_truth_hit(g4particle);
-              if (outerhit)
-              {
-                gfpx = outerhit->get_px(1);
-                gfpy = outerhit->get_py(1);
-                gfpz = outerhit->get_pz(1);
-                gfx = outerhit->get_x(1);
-                gfy = outerhit->get_y(1);
-                gfz = outerhit->get_z(1);
-              }
-
-              gembed = trutheval->get_embed(g4particle);
-              gprimary = trutheval->is_primary(g4particle);
-            }  //   if (g4particle){
+	    if (g4particle)
+	      {
+		gtrackID = g4particle->get_track_id();
+		gflavor = g4particle->get_pid();
+		gpx = g4particle->get_px();
+		gpy = g4particle->get_py();
+		gpz = g4particle->get_pz();
+		
+		PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+		if (vtx)
+		  {
+		    gvx = vtx->get_x();
+		    gvy = vtx->get_y();
+		    gvz = vtx->get_z();
+		    gvt = vtx->get_t();
+		  }
+		PHG4Hit* outerhit = nullptr;
+		if (_do_eval_light == false)
+		  outerhit = trutheval->get_outermost_truth_hit(g4particle);
+		if (outerhit)
+		  {
+		    gfpx = outerhit->get_px(1);
+		    gfpy = outerhit->get_py(1);
+		    gfpz = outerhit->get_pz(1);
+		    gfx = outerhit->get_x(1);
+		    gfy = outerhit->get_y(1);
+		    gfz = outerhit->get_z(1);
+		  }
+		
+		gembed = trutheval->get_embed(g4particle);
+		gprimary = trutheval->is_primary(g4particle);
+	      }  //   if (g4particle){
           }    //  if (g4hit) {
-
-          if (g4particle)
-          {
-            efromtruth = clustereval->get_energy_contribution(cluster_key, g4particle);
-          }
-
-          float nparticles = clustereval->all_truth_particles(cluster_key).size();
-
-          float cluster_data[] = {(float) _ievent,
-				  (float) _iseed,
+	
+	float nparticles = clustereval->all_truth_particles(cluster_key).size();
+	
+	float cluster_data[] = {(float) _ievent,
+				(float) _iseed,
                                 hitID,
                                 x,
                                 y,
@@ -2204,7 +2200,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		}
 	      if(nreco == 0 && Verbosity() > 0)
 		{
-		  cout << "   ----------- Failed to find matching reco cluster " << endl;
+		  if(Verbosity() > 0)
+		    cout << "   ----------- Failed to find matching reco cluster " << endl;
 		}
 
 

@@ -138,6 +138,8 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
   PHG4Particle* max_particle = max_truth_particle_by_cluster_energy(cluster_key);
+  if(!max_particle)
+    return truth_cluster;
 
   if(_verbosity > 0) 
     cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;      
@@ -232,8 +234,6 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
     {
       // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
       // and do some diagnostics on what went wrong here
-      
-      cout << "         --------  truth_layer " << truth_layer << " found " << nreco << " reco clusters for this g4cluster! " << endl;
       
       for(std::set<TrkrDefs::cluskey>::iterator it = reco_cluskeys.begin(); it != reco_cluskeys.end(); ++it)
 	{
