@@ -149,7 +149,7 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
   double reco_y = reco_cluster->getY();
   double reco_z = reco_cluster->getZ();
   double r = sqrt(reco_x*reco_x + reco_y*reco_y);
-  double reco_rphi = r*atan2(reco_y, reco_x);
+  double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
   
   std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(max_particle);
   for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
@@ -164,7 +164,8 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
 	  double gy = truth_cluster->getY();
 	  double gz = truth_cluster->getZ();
 	  double gr = sqrt(gx*gx+gy*gy);
-	  double grphi = gr*atan2(gy, gx);
+	  //double grphi = gr*atan2(gy, gx);
+	  double grphi = gr*fast_approx_atan2(gy, gx);
 
 	  // Find the difference in position from the reco cluster
 	  double dz = reco_z - gz;
@@ -199,7 +200,8 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
   double gy = gclus->getY();
   double gz = gclus->getZ();
   double gr = sqrt(gx*gx+gy*gy);
-  double grphi = gr*atan2(gy, gx);
+  //double grphi = gr*atan2(gy, gx);
+  double grphi = gr*fast_approx_atan2(gy, gx);
 
   TrkrCluster *reco_cluster = 0;
   unsigned int truth_layer = TrkrDefs::getLayer(ckey);
@@ -242,7 +244,8 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
 	  double this_x = this_cluster->getX();
 	  double this_y = this_cluster->getY();
 	  double this_z = this_cluster->getZ();
-	  double this_rphi = gr*atan2(this_y, this_x);
+	  //double this_rphi = gr*atan2(this_y, this_x);
+	  double this_rphi = gr*fast_approx_atan2(this_y, this_x);
 	  
 	  // Find the difference in position from the g4cluster
 	  double dz = this_z - gz;
@@ -332,16 +335,6 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
       ++_errors;
       return nullptr;
     }
-  
-//  if (_strict)
-//    {
-//      assert(cluster_key);
-//    }
-//  else if (!cluster_key)
-//    {
-//      ++_errors;
-//      return nullptr;
-//    }
   
   if (_do_cache)
     {
@@ -689,76 +682,6 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
   {
     fill_cluster_layer_map();
   }
-
-  /*
-  std::set<TrkrDefs::cluskey> clusters;
-
-  std::vector<unsigned int> layers;
-
-  unsigned int hit_layer = truthhit->get_layer();  
-  // for the TPC there is no unique relationship between g4hit and layer - it could be +/-1 layers from this
-  if(hit_layer > 6)
-    {
-      layers.push_back(hit_layer-1);
-      layers.push_back(hit_layer);
-      layers.push_back(hit_layer+1);
-    }
-  else
-    {
-      layers.push_back(hit_layer);
-    } 
-   
-  // loop over all the clusters that might be associated with this g4hit
-  for(std::vector<unsigned int>::iterator iter = layers.begin(); iter != layers.end(); ++iter)
-    { 
-      unsigned int this_layer = *iter;
-
-      multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(this_layer);
-      if (miter != _clusters_per_layer.end())
-	{
-	  const float hit_phi = fast_approx_atan2(truthhit->get_avg_y(), truthhit->get_avg_x());
-	  
-	  if (_verbosity >= 2)
-	    {
-	      cout << "SvtxClusterEval::all_clusters_from - hit_phi = " << hit_phi
-		   << ", miter->first = " << miter->first
-		   << ", clusters_searching_window = " << _clusters_searching_window
-		   << ", miter->second.size() = " << miter->second.size()
-		   << endl;
-	    }
-
-	  auto iter_lower_bound = miter->second.lower_bound(hit_phi - _clusters_searching_window);
-	  auto iter_upper_bound = miter->second.upper_bound(hit_phi + _clusters_searching_window);
-	  
-	  for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
-	       liter != iter_upper_bound;
-	       ++liter)
-	    {
-	      TrkrDefs::cluskey cluster_key = liter->second;
-	      
-	      if (TrkrDefs::getLayer(cluster_key) != this_layer) continue;
-	      
-	      // loop over all truth hits connected to this cluster
-	      std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
-	      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
-		   jter != hits.end();
-		   ++jter)
-		{
-		  PHG4Hit* candidate = *jter;
-		  if (candidate->get_hit_id() == truthhit->get_hit_id())
-		    {
-		      //cout << "   adding cluster with cluster_key " << cluster_key << " in this_layer " << this_layer << endl;
-		      clusters.insert(cluster_key);
-		    }
-		}  //      for (std::set<PHG4Hit*>::iterator jter = hits.begin();
-	      
-	    }  //    for (multimap<float, TrkrDefs::cluskey>::iterator liter = iter_lower_bound;
-	  
-	}  //  if (miter != _clusters_per_layer.end())
-
-    } // loop over all layers for g4hit
-  
-  */
       
    return clusters;
 }
@@ -815,7 +738,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit)
 // overlap calculations
 float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* particle)
 {
-  //Note: this does not work correctly for the TPC
+  // Note: this does not work correctly for the TPC
   // It assumes one g4hit per layer. Use the truth cluster energy instead.
 
   if (!has_node_pointers())

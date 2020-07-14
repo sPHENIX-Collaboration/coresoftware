@@ -86,7 +86,7 @@ class SvtxTruthEval
   bool _strict;
   int _verbosity;
   unsigned int _errors;
-  unsigned int iclus;
+  unsigned long iclus;
 
   const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
