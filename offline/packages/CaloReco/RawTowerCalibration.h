@@ -5,8 +5,8 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <string>
 #include <iostream>
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -113,8 +113,9 @@ class RawTowerCalibration : public SubsysReco
   void
   set_zero_suppression_GeV(double)
   {
-    std::cout <<"RawTowerCalibration::set_zero_suppression_GeV is deprecated!"<<std::endl
-        <<"  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867"<<std::endl<<std::endl;
+    std::cout << "RawTowerCalibration::set_zero_suppression_GeV is deprecated!" << std::endl
+              << "  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867" << std::endl
+              << std::endl;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();

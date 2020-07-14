@@ -1,23 +1,23 @@
 #include "RawTowerCalibration.h"
 
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTower.h>
 #include <calobase/RawTowerv1.h>
-#include <calobase/RawTowerDefs.h>
 
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 
 #include <cassert>
 #include <cmath>
@@ -114,7 +114,7 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
     if (_calib_algorithm == kNo_calibration)
     {
-     _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
+      _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
     }
     else if (_calib_algorithm == kSimple_linear_calibration)
     {
