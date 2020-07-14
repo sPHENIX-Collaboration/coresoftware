@@ -817,6 +817,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     const auto &boundParam = traj.trackParameters(trackTip);
     const auto &parameter = boundParam.parameters();
     const auto &covariance = *boundParam.covariance();
+    m_charge_fit = boundParam.charge();
     m_eLOC0_fit = parameter[Acts::ParDef::eLOC_0];
     m_eLOC1_fit = parameter[Acts::ParDef::eLOC_1];
     m_ePHI_fit = parameter[Acts::ParDef::ePHI];
@@ -852,6 +853,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_eTHETA_fit = -9999;
   m_eQOP_fit = -9999;
   m_eT_fit = -9999;
+  m_charge_fit = -9999;
   m_err_eLOC0_fit = -9999;
   m_err_eLOC1_fit = -9999;
   m_err_ePHI_fit = -9999;
@@ -1201,7 +1203,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_phi", &m_t_phi);
   m_trackTree->Branch("t_eta", &m_t_eta);
   m_trackTree->Branch("t_pT", &m_t_pT);
-
+  
   m_trackTree->Branch("t_x", &m_t_x);
   m_trackTree->Branch("t_y", &m_t_y);
   m_trackTree->Branch("t_z", &m_t_z);
@@ -1224,6 +1226,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("eTHETA_fit", &m_eTHETA_fit);
   m_trackTree->Branch("eQOP_fit", &m_eQOP_fit);
   m_trackTree->Branch("eT_fit", &m_eT_fit);
+  m_trackTree->Branch("charge_fit", &m_charge_fit);
   m_trackTree->Branch("err_eLOC0_fit", &m_err_eLOC0_fit);
   m_trackTree->Branch("err_eLOC1_fit", &m_err_eLOC1_fit);
   m_trackTree->Branch("err_ePHI_fit", &m_err_ePHI_fit);

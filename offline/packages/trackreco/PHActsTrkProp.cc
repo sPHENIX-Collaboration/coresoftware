@@ -135,9 +135,6 @@ int PHActsTrkProp::Process()
     std::cout << "Start PHActsTrkProp::process_event" << std::endl;
   }
 
-  PerigeeSurface pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>
-    (Acts::Vector3D(0., 0., 0.));
-
   /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks = getEventSourceLinks();
 
@@ -153,7 +150,13 @@ int PHActsTrkProp::Process()
     const unsigned int trackKey = trackIter->first;
 
     FW::TrackParameters trackSeed = track.getTrackParams();
-  
+
+    /// Construct a perigee surface as the target surface
+    /// This surface is what Acts fits with respect to, so we set it to
+    /// the initial vertex estimation
+    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+	                           track.getVertex());
+
     /// Construct the options to pass to the CKF.
     /// SourceLinkSelector set in Init()
     Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
