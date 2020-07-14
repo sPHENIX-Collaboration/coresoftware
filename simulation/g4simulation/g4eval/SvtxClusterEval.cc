@@ -150,7 +150,8 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
   double reco_y = reco_cluster->getY();
   double reco_z = reco_cluster->getZ();
   double r = sqrt(reco_x*reco_x + reco_y*reco_y);
-  double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
+  //double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
+  double reco_rphi = r*atan2(reco_y, reco_x);
   
   std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(max_particle);
   for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
@@ -159,24 +160,24 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
     {
       if(citer->first == cluster_layer) 
 	{
-	  truth_cluster = citer->second;
+	  TrkrCluster* candidate_truth_cluster = citer->second;
 
-	  double gx = truth_cluster->getX();
-	  double gy = truth_cluster->getY();
-	  double gz = truth_cluster->getZ();
+	  double gx = candidate_truth_cluster->getX();
+	  double gy = candidate_truth_cluster->getY();
+	  double gz = candidate_truth_cluster->getZ();
 	  double gr = sqrt(gx*gx+gy*gy);
-	  //double grphi = gr*atan2(gy, gx);
-	  double grphi = gr*fast_approx_atan2(gy, gx);
-
+	  double grphi = gr*atan2(gy, gx);
+	  //double grphi = gr*fast_approx_atan2(gy, gx);
+	  
 	  // Find the difference in position from the reco cluster
 	  double dz = reco_z - gz;
 	  double drphi = reco_rphi - grphi;
-
+	  
 	  // approximate 4 sigmas cut
 	  if(fabs(drphi) < 4.0 * 150e-04 &&
 	     fabs(dz) < 4.0 * 550e-04)
 	    {
-	      return truth_cluster;;
+	      return candidate_truth_cluster;;
 	    }
 	}
     }
@@ -201,11 +202,11 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
   double gy = gclus->getY();
   double gz = gclus->getZ();
   double gr = sqrt(gx*gx+gy*gy);
-  //double grphi = gr*atan2(gy, gx);
-  double grphi = gr*fast_approx_atan2(gy, gx);
+  double grphi = gr*atan2(gy, gx);
+  //double grphi = gr*fast_approx_atan2(gy, gx);
 
-  TrkrCluster *reco_cluster = 0;
   unsigned int truth_layer = TrkrDefs::getLayer(ckey);
+  TrkrCluster *reco_cluster = 0;
 
   std::set<TrkrDefs::cluskey> reco_cluskeys;
   std::set<PHG4Hit*> contributing_hits =  get_truth_eval()->get_truth_hits_from_truth_cluster(ckey);
@@ -226,9 +227,6 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
 	  if(clus_layer != truth_layer)  continue;
 	  
 	  reco_cluskeys.insert(*iter);
-
-	  // If there is only one matching cluster, we will keep this
-	  reco_cluster = _clustermap->findCluster(*iter);
 	}
     }
 
@@ -244,8 +242,8 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
 	  double this_x = this_cluster->getX();
 	  double this_y = this_cluster->getY();
 	  double this_z = this_cluster->getZ();
-	  //double this_rphi = gr*atan2(this_y, this_x);
-	  double this_rphi = gr*fast_approx_atan2(this_y, this_x);
+	  double this_rphi = gr*atan2(this_y, this_x);
+	  //double this_rphi = gr*fast_approx_atan2(this_y, this_x);
 	  
 	  // Find the difference in position from the g4cluster
 	  double dz = this_z - gz;
@@ -856,7 +854,8 @@ void SvtxClusterEval::fill_cluster_layer_map()
     TrkrDefs::cluskey cluster_key = iter->first;
     unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
     TrkrCluster *cluster = iter->second;
-    float clus_phi = fast_approx_atan2(cluster->getY(), cluster->getX());
+    //float clus_phi = fast_approx_atan2(cluster->getY(), cluster->getX());
+    float clus_phi = atan2(cluster->getY(), cluster->getX());
 
     multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
     if (it == _clusters_per_layer.end())
