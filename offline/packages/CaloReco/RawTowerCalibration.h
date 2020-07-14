@@ -6,6 +6,7 @@
 #include <phparameter/PHParameters.h>
 
 #include <string>
+#include <iostream>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -109,16 +110,11 @@ class RawTowerCalibration : public SubsysReco
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
 
-  double
-  get_zero_suppression_GeV() const
-  {
-    return _zero_suppression_GeV;
-  }
-
   void
-  set_zero_suppression_GeV(double zeroSuppressionGeV)
+  set_zero_suppression_GeV(double)
   {
-    _zero_suppression_GeV = zeroSuppressionGeV;
+    std::cout <<"RawTowerCalibration::set_zero_suppression_GeV is deprecated!"<<std::endl
+        <<"  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867"<<std::endl<<std::endl;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
@@ -151,9 +147,6 @@ class RawTowerCalibration : public SubsysReco
 
   //! calibration constant in unit of GeV per ADC
   double _calib_const_GeV_ADC;
-
-  //! zero suppression in unit of GeV
-  double _zero_suppression_GeV;
 
   //! tower type to act on
   int _tower_type;
