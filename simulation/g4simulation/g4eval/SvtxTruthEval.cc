@@ -45,11 +45,13 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   , _do_cache(true)
   , _cache_all_truth_hits()
   , _cache_all_truth_hits_g4particle()
+  , _cache_all_truth_clusters_g4particle()
   , _cache_get_innermost_truth_hit()
   , _cache_get_outermost_truth_hit()
   , _cache_get_primary_particle_g4hit()
 {
   get_node_pointers(topNode);
+  iclus = 0;
 }
 
 SvtxTruthEval::~SvtxTruthEval()
@@ -67,6 +69,7 @@ void SvtxTruthEval::next_event(PHCompositeNode* topNode)
 {
   _cache_all_truth_hits.clear();
   _cache_all_truth_hits_g4particle.clear();
+  _cache_all_truth_clusters_g4particle.clear();
   _cache_get_innermost_truth_hit.clear();
   _cache_get_outermost_truth_hit.clear();
   _cache_get_primary_particle_g4hit.clear();
@@ -253,7 +256,7 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
 
   // convert truth hits for this particle to truth clusters in each TPC layer
   // loop over layers
-  unsigned int iclus = 0;
+
   for(float layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++layer)
     {
       float gx = NAN;
@@ -315,7 +318,7 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
       truth_clusters.insert(make_pair(layer, clus));
 
     }  // end loop over layers for this particle
-  
+
   if (_do_cache) _cache_all_truth_clusters_g4particle.insert(make_pair(particle, truth_clusters));
   
   return truth_clusters;

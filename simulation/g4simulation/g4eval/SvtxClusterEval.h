@@ -62,6 +62,7 @@ class SvtxClusterEval
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles(TrkrDefs::cluskey);
   PHG4Particle* max_truth_particle_by_energy(TrkrDefs::cluskey);
+  PHG4Particle* max_truth_particle_by_cluster_energy(TrkrDefs::cluskey);
 
   // forwardtrace through to SvtxClusters
   std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Particle* truthparticle);
@@ -108,6 +109,7 @@ class SvtxClusterEval
   std::map<TrkrDefs::cluskey, TrkrCluster* > _cache_max_truth_cluster_by_energy;
   std::map<TrkrDefs::cluskey, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_energy;
+  std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_cluster_energy;
   std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_particle;
   std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_g4hit;
   std::map<PHG4Hit*, TrkrDefs::cluskey> _cache_best_cluster_from_g4hit;

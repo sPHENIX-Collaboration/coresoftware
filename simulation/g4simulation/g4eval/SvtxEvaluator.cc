@@ -1671,7 +1671,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	TrkrDefs::cluskey cluster_key = iter->first;
 	TrkrCluster *cluster = clustermap->findCluster(cluster_key);
         SvtxTrack* track = trackeval->best_track_from(cluster_key);
-        PHG4Particle* g4particle = clustereval->max_truth_particle_by_energy(cluster_key);
+	PHG4Particle* g4particle = clustereval->max_truth_particle_by_cluster_energy(cluster_key);
 
         float hitID = (float) cluster_key;
         float x = cluster->getX();
@@ -1732,7 +1732,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float efromtruth = NAN;
 
-	if(Verbosity() > -1)
+	if(Verbosity() > 0)
 	  {
 	    TrkrDefs::cluskey reco_cluskey = cluster->getClusKey();		  
 	    std::cout << "  ****   reco: layer " << layer << std::endl;
@@ -1753,6 +1753,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    gx=truth_cluster->getX();
 	    gy=truth_cluster->getY();
 	    gz=truth_cluster->getZ();
+	    efromtruth = truth_cluster->getError(0,0);
 
 	    TVector3 gpos(gx, gy, gz);
 	    gr = gpos.Perp();  // could also be just the center of the layer
@@ -1791,10 +1792,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             gembed = trutheval->get_embed(g4particle);
             gprimary = trutheval->is_primary(g4particle);
-	    efromtruth = clustereval->get_energy_contribution(cluster_key, g4particle);	    
           }  //   if (g4particle){
 	  
-	  if(Verbosity() > -1)
+	  if(Verbosity() > 0)
 	    {
 	      TrkrDefs::cluskey ckey = truth_cluster->getClusKey();		  
 	      cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " efromtruth " << efromtruth << endl;
@@ -2100,7 +2100,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_g4cluster)
     {
-      if (Verbosity() > 1) 
+      if (Verbosity() > 0) 
 	cout << "Filling ntp_g4cluster " << endl;
 
        PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");      
@@ -2122,7 +2122,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float gembed = trutheval->get_embed(g4particle);
 	  float gprimary = trutheval->is_primary(g4particle);
 
-	  if(Verbosity() > -1)
+	  if(Verbosity() > 0)
 	    cout << "PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " gprimary " << gprimary << endl;
 
 	  // Get the truth clusters from this particle
@@ -2145,7 +2145,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gphi = gpos.Phi();
 	      float geta = gpos.Eta();
 
-	      if(Verbosity() > -1)
+	      if(Verbosity() > 0)
 		{
 		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 		  std::cout << "  ****   truth: layer " << layer << std::endl;
@@ -2196,13 +2196,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  
 		  adc = reco_cluster->getAdc();
 
-		  if(Verbosity() > -1)
+		  if(Verbosity() > 0)
 		    {
 		      TrkrDefs::cluskey reco_cluskey = reco_cluster->getClusKey();		  
 		      cout << "              reco cluster key " << reco_cluskey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 		    }
 		}
-	      if(nreco == 0)
+	      if(nreco == 0 && Verbosity() > 0)
 		{
 		  cout << "   ----------- Failed to find matching reco cluster " << endl;
 		}
