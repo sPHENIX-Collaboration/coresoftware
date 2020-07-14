@@ -67,6 +67,7 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode)
   _cache_all_truth_hits.clear();
   _cache_all_truth_clusters.clear();
   _cache_max_truth_hit_by_energy.clear();
+  _cache_max_truth_cluster_by_energy.clear();
   _cache_all_truth_particles.clear();
   _cache_max_truth_particle_by_energy.clear();
   _cache_max_truth_particle_by_cluster_energy.clear();
@@ -232,10 +233,9 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
     }
 
   unsigned int nreco = reco_cluskeys.size();
-  if(nreco > 1)
+  if(nreco > 0)
     {
       // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
-      // and do some diagnostics on what went wrong here
       
       for(std::set<TrkrDefs::cluskey>::iterator it = reco_cluskeys.begin(); it != reco_cluskeys.end(); ++it)
 	{
