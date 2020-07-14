@@ -98,14 +98,6 @@ int PHActsTrkFitter::Process()
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
   }
 
-
-  /// Construct a perigee surface as the target surface
-  /// This surface is what Acts fits with respect to. So we put it
-  /// at 0 so that the fitter is fitting with respect to the global 
-  /// position. Presumably we could put this as the zvertex
-  auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-	          Acts::Vector3D{0., 0., 0.});
-
   std::map<unsigned int, ActsTrack>::iterator trackIter;
 
   for (trackIter = m_actsProtoTracks->begin();
@@ -118,12 +110,20 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-      
+    
+    /// Construct a perigee surface as the target surface
+    /// This surface is what Acts fits with respect to, so we set it to
+    /// the initial vertex estimation
+    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+		          track.getVertex());
+   
     if(Verbosity() > 1)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
-		  << "momentum: " << trackSeed.momentum() 
+		  << "momentum: " << trackSeed.momentum() << std::endl
+		  << "charge : "<<trackSeed.charge()
+		  << "initial vertex : "<<track.getVertex()
 		  << " corresponding to SvtxTrack key "<< trackKey
 		  << std::endl;
 
@@ -163,6 +163,7 @@ int PHActsTrkFitter::Process()
           std::cout << "Fitted parameters for track" << std::endl;
           std::cout << " position : " << params.position().transpose()
                     << std::endl;
+	  std::cout << "charge: "<<params.charge()<<std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
                     << std::endl;
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;

@@ -686,7 +686,7 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   if(surf_index == 999)
     {
       cout << PHWHERE << "Error: surface index not defined, can't go on!" << endl;
-      exit(1);
+      return nullptr;
     }
  
   return surf_vec[surf_index];

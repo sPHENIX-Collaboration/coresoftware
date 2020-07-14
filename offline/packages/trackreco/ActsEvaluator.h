@@ -169,6 +169,7 @@ class ActsEvaluator : public SubsysReco
   float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane
   float m_dca3DxyCov{-99.};       /// fitted parameter 3D DCA covariance in xy
   float m_dca3DzCov{-99.};        /// fitted parameter 3D DCA covariance in z
+  int m_charge_fit{-99};          /// fitted parameter charge
 
   int m_nPredicted{0};                   /// number of states with predicted parameter
   std::vector<bool> m_prt;               /// predicted status

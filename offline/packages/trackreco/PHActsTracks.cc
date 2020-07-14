@@ -18,6 +18,8 @@
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 /// std (and the like) includes
 #include <cmath>
@@ -32,6 +34,7 @@ PHActsTracks::PHActsTracks(const std::string &name)
   : SubsysReco(name)
   , m_actsTrackMap(nullptr)
   , m_trackMap(nullptr)
+  , m_vertexMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
   , m_tGeometry(nullptr)
@@ -93,6 +96,21 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       std::cout << "found SvtxTrack " << trackIter->first << std::endl;
       track->identify();
     }
+
+    const unsigned int vertexId = track->get_vertex_id();
+    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+    Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_z() * Acts::UnitConstants::cm};
+    
+    if(Verbosity() > 4)
+      {
+	std::cout << "Vertex estimate : ("; 
+	for(int i = 0; i < vertex.size(); i++)
+	  std::cout<<vertex(i)<<", ";
+	std::cout << ")" << std::endl;
+      }
+
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
@@ -161,7 +179,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       }
     }
 
-    ActsTrack actsTrack(trackSeed, trackSourceLinks);
+    ActsTrack actsTrack(trackSeed, trackSourceLinks, vertex);
     m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
   }
 
@@ -216,6 +234,15 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
 
 int PHActsTracks::getNodes(PHCompositeNode *topNode)
 {
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!m_vertexMap)
+    {
+      std::cout << PHWHERE << "SvtxVertexMap not found on node tree. Exiting."
+		<< std::endl;
+
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   if (!m_trackMap)
