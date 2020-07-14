@@ -173,6 +173,7 @@ void SimEvaluator_hp::fill_g4particle_map()
 
     // loop over hits
     const auto range = container->getHits();
+    std::cout << "SimEvaluator_hp::fill_g4particle_map - counts: " << std::distance( range.first, range.second ) << std::endl;
     for( auto iter = range.first; iter != range.second; ++iter )
     {
       const auto map_iter = m_g4particle_map.lower_bound( iter->second->get_trkid() );
