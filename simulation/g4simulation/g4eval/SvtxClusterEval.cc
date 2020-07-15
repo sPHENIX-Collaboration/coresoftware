@@ -174,10 +174,45 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
 	  double drphi = reco_rphi - grphi;
 	  
 	  // approximate 4 sigmas cut
-	  if(fabs(drphi) < 4.0 * 150e-04 &&
-	     fabs(dz) < 4.0 * 550e-04)
+	  if(cluster_layer > 6 && cluster_layer < 23)
 	    {
-	      return candidate_truth_cluster;;
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_inner &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
+	  if(cluster_layer > 22 && cluster_layer < 39)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_mid &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
+	  if(cluster_layer > 38 && cluster_layer < 55)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_outer &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
+	  else if(cluster_layer < 3)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_mvtx_rphi &&
+		 fabs(dz) < 4.0 * sig_mvtx_z)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
+	  else
+	    {
+	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
+		 fabs(dz) < range_intt_z)
+		{
+		  return candidate_truth_cluster;;
+		}
 	    }
 	}
     }
@@ -248,23 +283,75 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
 	  // Find the difference in position from the g4cluster
 	  double dz = this_z - gz;
 	  double drphi = this_rphi - grphi;
-	  
-	  
-	  if(_verbosity > 0) 
-	    if(truth_layer > 6)
-	      cout << "        cluster " << *it 
-		   << " this_z " << this_z  << " this_rphi " << this_rphi << " grphi " << grphi 
-		   << " drphi " << drphi << " dz " << dz 
-		   << endl; 
-	  
 
 	  // approximate 4 sigmas cut
-	  if(fabs(drphi) < 4.0 * 150e-04 &&
-	     fabs(dz) < 4.0 * 550e-04)
+	  if(truth_layer > 6 && truth_layer < 23)
 	    {
-	      return this_cluster;;
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_inner &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return this_cluster;;
+		}
 	    }
-	  
+	  if(truth_layer > 22 && truth_layer < 39)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_mid &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  if(truth_layer > 38 && truth_layer < 55)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_tpc_rphi_outer &&
+		 fabs(dz) < 4.0 * sig_tpc_z)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  else if(truth_layer < 3)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_mvtx_rphi &&
+		 fabs(dz) < 4.0 * sig_mvtx_z)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  else
+	    {
+	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
+		 fabs(dz) < range_intt_z)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  /*
+	  // approximate 4 sigmas cut
+	  if(truth_layer > 6)
+	    {
+	      if(fabs(drphi) < 4.0 * 150e-04 &&
+		 fabs(dz) < 4.0 * 550e-04)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  else if(truth_layer < 3)
+	    {
+	      if(fabs(drphi) < 4.0 * 10e-04 &&
+		 fabs(dz) < 4.0 * 10e-04)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  else
+	    {
+	      if(fabs(drphi) < 4.0 * 70e-04 &&
+		 fabs(dz) < 2.0)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  */
 	}
     } 
       

@@ -117,6 +117,17 @@ class SvtxClusterEval
   std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
   std::map<TrkrCluster*, TrkrCluster* > _cache_reco_cluster_from_truth_cluster;
 
+  // measured for low occupancy events, all in cm
+  const float sig_tpc_rphi_inner = 205e-04;
+  const float sig_tpc_rphi_mid = 155e-04;
+  const float sig_tpc_rphi_outer = 165e-04;
+  const float sig_tpc_z = 750e-04;
+  const float sig_intt_rphi = 17e-04;
+  const float range_intt_z = 0.9;
+  const float sig_mvtx_rphi = 4.0e-04;
+  const float sig_mvtx_z = 4.7e-04;
+
+
 #if !defined(__CINT__) || defined(__CLING__)
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad
   static constexpr float _clusters_searching_window = 0.1f;
