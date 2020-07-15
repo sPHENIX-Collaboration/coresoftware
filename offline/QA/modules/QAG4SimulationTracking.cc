@@ -15,6 +15,7 @@
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -72,6 +73,19 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   h = new TH2F(TString(get_histo_prefix()) + "pTRecoGenRatio_pTGen",
                ";Truth p_{T} [GeV/c];Reco p_{T}/Truth p_{T}", 200, 0, 50, 500, 0, 2);
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
+  // reco track w/ truth-track matched vs reco pT histograms
+  h = new TH1F(TString(get_histo_prefix()) + "nGen_pTReco",
+	       "Gen tracks at reco p_{T}; Reco p_{T} [GeV/c]", 200, 0.1, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "nReco_pTReco",
+	       ";Gen p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "pTRecoTruthMatchedRatio_pTReco",
+	       ";Reco p_{T} [GeV/c];Matched p_{T}/Reco p_{T}", 200, 0, 50, 500, 0, 2);
   hm->registerHisto(h);
 
   // reco pT histogram
@@ -177,6 +191,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH2 *h_pTRecoGenRatio_pTGen = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "pTRecoGenRatio_pTGen"));
   assert(h_pTRecoGenRatio);
 
+  // reco track, truth track matched histogram at reco pT
+  TH1 *h_nGen_pTReco = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_pTReco"));
+  assert(h_nGen_pTReco);
+  // Normalization histogram for reco track truth track matched
+  TH1 *h_nReco_pTReco = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTReco"));
+  assert(h_nReco_pTReco);
+  // Truth matched ratio histogram
+  TH2 *h_pTRecoTruthMatchedRatio_pTReco = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "pTRecoTruthMatchedRatio_pTReco"));
+  assert(h_pTRecoTruthMatchedRatio_pTReco);
+
   // reco histogram plotted at gen pT
   TH1 *h_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen"));
   assert(h_nReco_pTGen);
@@ -258,6 +282,25 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
         }
       }
+    }
+  }
+
+  // loop over reco tracks to fill norm histogram for track matching
+  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if(trackmap)
+  {
+    for (SvtxTrackMap::Iter iter = trackmap->begin();
+         iter != trackmap->end();
+         ++iter)
+    {
+      SvtxTrack* track = iter->second;
+      double px = track->get_px();
+      double py = track->get_py();
+      double pz = track->get_pz();
+      double pt;
+      TVector3 v(px, py, pz);
+      pt = v.Pt();
+      h_nReco_pTReco->Fill(pt); // normalization histogram fill
     }
   }
 
@@ -351,6 +394,38 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       else if (Verbosity())
       {
         std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
+      }
+    }
+    
+    // for-loop over reco tracks
+    SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    if(trackmap)
+    {
+      SvtxEvalStack *svtxevalstack = new SvtxEvalStack(topNode);
+      svtxevalstack->next_event(topNode);
+      SvtxTrackEval *trackeval = svtxevalstack->get_track_eval();
+
+      for (SvtxTrackMap::Iter iter = trackmap->begin();
+	   iter != trackmap->end();
+	   ++iter)
+      {
+	SvtxTrack* track = iter->second;
+	double px = track->get_px();
+	double py = track->get_py();
+	double pz = track->get_pz();
+	double pt;
+	TVector3 v(px, py, pz);
+	pt = v.Pt();
+	PHG4Particle* g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
+	if (g4particle_match)
+	{
+	  if (g4particle_match->get_track_id() == g4particle->get_track_id())
+	  {
+	    h_nGen_pTReco->Fill(pt); // fill if matching truth track
+	    float pt_ratio = (pt != 0) ? gpt / pt : 0;
+	    h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
+	  }
+	}
       }
     }
 
