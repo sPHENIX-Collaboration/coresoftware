@@ -10,6 +10,7 @@
 #include <phool/getClass.h>
 
 /// Tracking includes
+#include <trackbase/TrkrClusterv1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -705,19 +706,16 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
   
   const TrkrCluster *truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
-  float layer = (float) TrkrDefs::getLayer(clusKey);
   float gx = -9999;
   float gy = -9999;
   float gz = -9999;
   float gt = -9999;
-  float gedep = -9999;
   
   if (truth_cluster)
     {
       gx = truth_cluster->getX();
       gy = truth_cluster->getY();
       gz = truth_cluster->getZ();
-      gedep = truth_cluster->getError(0,0);  // yes, it is a kludge ....
     }
   
   /// Convert to acts units of mm
