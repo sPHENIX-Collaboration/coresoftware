@@ -466,6 +466,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
         for (int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
         {
           // skip hits for which weight is non-positive
+          /*
+           * Having negative weights in the calculation of the error might result in negative variance
+           * and thus -nan error, that then propagate through the tracking. Since those hits correspond to
+           * noise anyway and in order to have the error and centroid calculation consistent,
+           * we skip the hit alltogether
+           */
           if( adcval[iphi][iz] <= 0 ) continue;
 
           // update z sums
