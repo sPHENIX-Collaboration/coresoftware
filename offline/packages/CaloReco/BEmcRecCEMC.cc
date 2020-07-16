@@ -1,31 +1,31 @@
 #include "BEmcRecCEMC.h"
+
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
-#include <TMath.h>
-
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
-BEmcRecCEMC::BEmcRecCEMC() : _emcprof(nullptr) 
+BEmcRecCEMC::BEmcRecCEMC()
+  : _emcprof(nullptr)
 {
+  Name("BEmcRecCEMC");
   SetCylindricalGeometry();
 }
 
 BEmcRecCEMC::~BEmcRecCEMC()
 {
-  if (_emcprof) delete _emcprof;
+  // you can delete null pointers
+  delete _emcprof;
 }
 
-
-void BEmcRecCEMC::LoadProfile(const char *fname) 
+void BEmcRecCEMC::LoadProfile(const string& fname)
 {
-  //  printf("Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC\n");
-  _emcprof = new BEmcProfile(fname); 
+  //  cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << endl;
+  _emcprof = new BEmcProfile(fname);
 }
-
 
 float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
 {
@@ -34,16 +34,19 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
   float prob = -1;
 
   //  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  float rg = sqrt(xg*xg+yg*yg);
+  float rg = sqrt(xg * xg + yg * yg);
   float theta_twr;
-  if( fabs(zg)<=15 ) theta_twr = 0;
-  else if( zg>15 )   theta_twr = atan2(zg-15,rg);
-  else               theta_twr = atan2(zg+15,rg);
-  float theta_tr = atan2(zg-fVz,rg);
+  if (fabs(zg) <= 15)
+    theta_twr = 0;
+  else if (zg > 15)
+    theta_twr = atan2(zg - 15, rg);
+  else
+    theta_twr = atan2(zg + 15, rg);
+  float theta_tr = atan2(zg - fVz, rg);
   float theta = fabs(theta_tr - theta_twr);
 
-  float phi = atan2(yg,xg);
-  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
+  float phi = atan2(yg, xg);
+  if (_emcprof != nullptr) prob = _emcprof->GetProb(&HitList, fNx, ecl, theta, phi);
 
   return prob;
 }
@@ -78,7 +81,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
       nn++;
       if (nn >= Nmax)
       {
-        printf("BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers\n");
+      cout << "BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers" << endl;
         break;
       }
     }  // if( ee[nn]
@@ -214,7 +217,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 }
 */
 
-void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   xC = xA;
   yC = yA;
@@ -258,7 +261,6 @@ void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
   const float c0 = 0.950;  // For no threshold
   *Ecorr = Ecore / c0;
 }
-
 
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
                                   float& xc, float& yc)
@@ -314,17 +316,18 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     x0 = x;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
+         << x << " dx = " << x0 - ix0 << endl;
   }
 
   // Correct for phi bias within module of 8 towers
-  int ix8 = int(x+0.5)/8;
-  float x8 = x+0.5-ix8*8-4; // from -4 to +4
+  int ix8 = int(x + 0.5) / 8;
+  float x8 = x + 0.5 - ix8 * 8 - 4;  // from -4 to +4
   float dx = 0.10 * x8 / 4.;
-  if( fabs(x8)>3.3 ) dx=0; // Don't correct near the module edge
+  if (fabs(x8) > 3.3) dx = 0;  // Don't correct near the module edge
   //  dx = 0;
 
-  xc = x0-dx;
+  xc = x0 - dx;
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);
@@ -336,12 +339,11 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     y0 = y;
-    printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
+         << y << "dy = " << y0 - iy0 << endl;
   }
   yc = y0;
-
 }
-
 
 /*
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
@@ -393,7 +395,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pxc = x - xShift;
-    printf("????? Something wrong in CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in CorrectPosition: x = "
+         << x << " dx = " << x0 - ix0 << endl;
   }
 
   y0 = y;
@@ -407,7 +410,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pyc = y - yShift;
-    printf("????? Something wrong in CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in CorrectPosition: y = "
+         << y << " dy = " << y0 - iy << endl;
   }
 }
 */

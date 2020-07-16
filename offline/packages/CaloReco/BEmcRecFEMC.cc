@@ -3,24 +3,26 @@
 #include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
-BEmcRecFEMC::BEmcRecFEMC() : _emcprof(nullptr) 
+BEmcRecFEMC::BEmcRecFEMC()
+  : _emcprof(nullptr)
 {
+  Name("BEmcRecFEMC");
   SetPlanarGeometry();
 }
 
 BEmcRecFEMC::~BEmcRecFEMC()
 {
-  if (_emcprof) delete _emcprof;
+  // one can delete null pointers
+  delete _emcprof;
 }
 
-
-void BEmcRecFEMC::LoadProfile(const char *fname) 
+void BEmcRecFEMC::LoadProfile(const string& fname)
 {
-  _emcprof = new BEmcProfile(fname); 
+  _emcprof = new BEmcProfile(fname);
 }
 
 float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
@@ -29,14 +31,14 @@ float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
   ndf = 0;
   float prob = -1;
 
-  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  float phi = atan2(yg,xg);
-  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
+  float theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
+  float phi = atan2(yg, xg);
+  if (_emcprof != nullptr) prob = _emcprof->GetProb(&HitList, fNx, ecl, theta, phi);
 
   return prob;
 }
 
-void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // For ala PHENIX PbSc modules
   /*
@@ -45,8 +47,8 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   const float X0 = 2.2;  // in cm; obtained from GEANT (should be ~ rad length)
   */
   // For E684-based modules
-  const float DZ = 8;   // in cm, tower half length
-  const float D = 4.6;  // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+  const float DZ = 8;    // in cm, tower half length
+  const float D = 4.6;   // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
   const float X0 = 0.8;  // in cm; obtained from GEANT (should be ~ rad length)
 
   float logE = log(0.1);
@@ -135,7 +137,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA); // x is second index in here
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
   float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
@@ -169,7 +171,8 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
+         << x << ",  dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -183,6 +186,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

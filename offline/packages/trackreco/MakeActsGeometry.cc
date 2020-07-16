@@ -75,7 +75,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_minSurfZ(0.0)
   , m_maxSurfZ(105.5)
   , m_nSurfZ(1)
-  , m_nSurfPhi(3)
+  , m_nSurfPhi(12)
   , m_verbosity(0)
 {
   /// These are arbitrary tpc subdivisions, and may change
@@ -106,19 +106,23 @@ MakeActsGeometry::~MakeActsGeometry()
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
 
-   // Add the TPC surfaces to the copy of the TGeoManager. Do this before
-  // anything else so that the geometry is finalized
+  /// Add the TPC surfaces to the copy of the TGeoManager. Do this before
+  /// anything else so that the geometry is finalized
   editTPCGeometry(topNode);
 
   getNodes(topNode);  // for geometry nodes
 
   createNodes(topNode);  // for writing surface map
 
-  // run Acts layer builder
+  /// Run Acts layer builder
   buildActsSurfaces();
 
-  // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
+  /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   makeTGeoNodeMap(topNode);
+
+  /// Export the new geometry to a root file for examination
+  if(m_verbosity)
+    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXexport.root");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -259,7 +263,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 
 	      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
 	      double phi_center = min_phi + m_surfStepPhi / 2.0;
-	      double phi_center_degrees = phi_center * 180.0 / 3.14159;
+	      double phi_center_degrees = phi_center * 180.0 / M_PI;
 	      
 	      for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
 		{
@@ -299,9 +303,8 @@ void MakeActsGeometry::buildActsSurfaces()
   const int argc = 33;
   char *arg[argc];
   //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "xzy", "--bf-values", "0", "0", "1.4"};
-  //intt + mvtx args
-  //const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--bf-values", "0", "0", "1.4"};
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
+
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -683,7 +686,7 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   if(surf_index == 999)
     {
       cout << PHWHERE << "Error: surface index not defined, can't go on!" << endl;
-      exit(1);
+      return nullptr;
     }
  
   return surf_vec[surf_index];

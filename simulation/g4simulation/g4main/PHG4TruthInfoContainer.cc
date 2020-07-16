@@ -324,11 +324,10 @@ int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
 
   int highest_embedding_ID = numeric_limits<int>::min();
   int vtx_id_for_highest_embedding_ID = 0;
-
   for (auto iter = vrange.first; iter != vrange.second; ++iter)
   {
-    //    cout <<"PHG4TruthInfoContainer::GetPrimaryVertexIndex - vertex ID "<<iter->first<<" embedding ID "<< g4truth->isEmbededVtx(iter->first) <<": "
-    //         ; iter->second->identify();
+    //        cout <<"PHG4TruthInfoContainer::GetPrimaryVertexIndex - vertex ID "<<iter->first<<" embedding ID "<< isEmbededVtx(iter->first) <<": ";
+    // iter->second->identify();
     const int embedding_ID = isEmbededVtx(iter->first);
 
     if (embedding_ID >= highest_embedding_ID)

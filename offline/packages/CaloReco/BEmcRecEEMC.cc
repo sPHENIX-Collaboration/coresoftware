@@ -1,25 +1,29 @@
 #include "BEmcRecEEMC.h"
+
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
-BEmcRecEEMC::BEmcRecEEMC() : _emcprof(nullptr) 
+BEmcRecEEMC::BEmcRecEEMC()
+  : _emcprof(nullptr)
 {
+  Name("BEmcRecEEMC");
   SetPlanarGeometry();
 }
 
 BEmcRecEEMC::~BEmcRecEEMC()
 {
-  if (_emcprof) delete _emcprof;
+  // you can delete null pointers
+  delete _emcprof;
 }
 
-void BEmcRecEEMC::LoadProfile(const char *fname)
+void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
-  printf("Infor from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC\n");
+  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
 }
 
 float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
@@ -31,7 +35,7 @@ float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
   return prob;
 }
 
-void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // DZ, D and X0 should be negative for -Z direction
   const float DZ = -9;     // in cm, tower half length
@@ -107,7 +111,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA); // x is second index in here
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
   float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
@@ -140,7 +144,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
+         << x << ", dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -154,6 +159,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

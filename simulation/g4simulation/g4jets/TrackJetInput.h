@@ -13,7 +13,7 @@ class PHCompositeNode;
 class TrackJetInput : public JetInput
 {
  public:
-  TrackJetInput(Jet::SRC input);
+  TrackJetInput(Jet::SRC input, const std::string &name = "SvtxTrackMap");
   virtual ~TrackJetInput() {}
 
   void identify(std::ostream& os = std::cout);
@@ -23,7 +23,7 @@ class TrackJetInput : public JetInput
   std::vector<Jet*> get_input(PHCompositeNode* topNode);
 
  private:
-  int _verbosity;
+  std::string m_NodeName;
   Jet::SRC _input;
 };
 

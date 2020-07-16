@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <utility>               // for pair
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -26,6 +27,12 @@ class RawClusterBuilderTopo : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+
+  void set_nodename( std::string nodename ) {
+
+    ClusterNodeName = nodename;
+
+  }
 
   void set_noise( float noise_0 = 0.0025, float noise_1 = 0.006, float noise_2 = 0.03) {
 

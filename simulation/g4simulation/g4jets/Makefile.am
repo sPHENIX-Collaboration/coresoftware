@@ -26,6 +26,8 @@ libg4jets_la_LIBADD = \
   -lg4vertex_io \
   -lCGAL \
   -lfastjet \
+  -lfastjettools \
+  -lRecursiveTools \
   -lphhepmc_io \
   -ltrackbase_historic_io
 
@@ -43,7 +45,6 @@ pkginclude_HEADERS = \
   ClusterJetInput.h \
   FastJetAlgo.h \
   JetHepMCLoader.h
-  
 
 #pkginclude_HEADERS = $(include_HEADERS)
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need

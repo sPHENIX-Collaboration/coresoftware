@@ -3,10 +3,8 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawClusterDefs.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -21,10 +19,11 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <cassert>
 #include <cmath>
 #include <exception>
 #include <iostream>
+#include <cstdlib>                          // for abs
+#include <memory>                            // for allocator_traits<>::valu...
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -315,6 +314,8 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
   _local_max_minE_LAYER[2] = 1;
+
+  ClusterNodeName = "TOPOCLUSTER_HCAL";
 }
 
 int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
@@ -1173,7 +1174,7 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
   }
 
   _clusters = new RawClusterContainer();
-  ClusterNodeName = "TOPOCLUSTER_HCAL";
-  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName.c_str(), "PHObject");
+
+  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
 }

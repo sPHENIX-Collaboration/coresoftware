@@ -81,8 +81,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   // gaussian sampling
   static constexpr double _nsigmas = 5;
-  static constexpr int _ngauss_steps = 100;
-  std::array<double, _ngauss_steps> _gauss_weights;
 
   double averageGEMGain = NAN;
 

@@ -24,6 +24,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsCovarianceRotater.h \
   ActsTrack.h \
+  ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -112,6 +113,7 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   ActsCovarianceRotater.cc \
+  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
@@ -121,12 +123,14 @@ ACTS_SOURCES = \
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
+  -lg4eval \
   -lActsCore \
   -lActsFatras \
   -lActsTGeoPlugin \
   -lActsExamplesCommon \
-  -lActsTGeoPlugin \
+  -lActsJsonPlugin \
   -lActsExamplesFitting \
+  -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \

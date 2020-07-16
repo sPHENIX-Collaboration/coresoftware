@@ -43,12 +43,14 @@ using namespace std;
 namespace
 {
 
-  //______________________________________________________________________
-  template<class T> constexpr T square( const T& x ) { return x*x; }
+  //! convenient square function
+  template<class T> 
+    inline constexpr T square( const T& x ) { return x*x; }
 
-  //______________________________________________________________________
-  double get_pad_response( double position, const std::array<double,2>& par )
-  { return std::get<0>(par)-std::abs(position - std::get<1>(par)); }
+  //! return normalized gaussian centered on zero and of width sigma
+  template<class T> 
+    inline T gaus( const T& x, const T& sigma )
+  { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
 
 }
 
@@ -56,13 +58,6 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
   : PHG4TpcPadPlane(name)
 {
   InitializeParameters();
-
-  // initialize gaussian weights
-  for( int i = 0; i < _ngauss_steps; ++i )
-  {
-    const double x = -4.5 + 2.0*_nsigmas*i/_ngauss_steps;
-    _gauss_weights[i] = std::exp( -square( x )/2 );
-  }
 
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
@@ -622,27 +617,26 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   }
 
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
+  std::array<double,10> overlap = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
 
-  double overlap[10];
-  for (int i = 0; i < 10; i++)
-    overlap[i] = 0;
-
-  double xstep = 2.0 * _nsigmas * cloud_sig_rp / (double) _ngauss_steps;
-  for (int i = 0; i < _ngauss_steps; i++)
+  // use analytic integral
+  for( int ipad = 0; ipad <= npads; ipad++ )
   {
-    const double x = rphi - 4.5 * cloud_sig_rp + (double) i * xstep;
-    const double charge = _gauss_weights[i];
-    for (int ipad = 0; ipad <= npads; ipad++)
-    {
-      const double pad_response = get_pad_response( x, pad_parameters[ipad] );
-      if( pad_response > 0 )
-      {
-        const double prod = charge * pad_response;
-        overlap[ipad] += prod;
-      }
-    }  // pads
+    const double pitch = pad_parameters[ipad][0];
+    const double x_loc = pad_parameters[ipad][1] - rphi;
+    const double sigma  = cloud_sig_rp;
 
-  }  // steps
+    // calculate fraction of the total charge on this strip
+    /* 
+    this corresponds to integrating the charge distribution Gaussian function (centered on rphi and of width cloud_sig_rp), 
+    convoluted with a strip response function, which is triangular from -pitch to +pitch, with a maximum of 1. at stript center
+    */
+    overlap[ipad] =
+      (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
+      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
+  }
 
   // now we have the overlap for each pad
   for (int ipad = 0; ipad <= npads; ipad++)

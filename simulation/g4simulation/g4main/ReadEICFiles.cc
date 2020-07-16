@@ -10,7 +10,6 @@
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
-#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -30,13 +29,11 @@
 // General Root and C++ classes
 #include <TBranch.h>  // for TBranch
 #include <TChain.h>
-#include <TROOT.h>
 #include <TVector3.h>  // for TVector3
 
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <vector>    // for vector
 
-class PHCompositeNode;
 class PHHepMCGenEvent;
 
 using namespace std;

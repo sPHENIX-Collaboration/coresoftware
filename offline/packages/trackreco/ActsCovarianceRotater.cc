@@ -24,7 +24,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 	}
     }
 
-  printMatrix("OG svtx covariance : ", svtxCovariance);
+  printMatrix("svtx covariance, acts units: ", svtxCovariance);
  
   const double px = track->get_px();
   const double py = track->get_py();
@@ -51,13 +51,12 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   const double posCosTheta = z / r;
   const double posSinTheta = sqrt(x*x + y*y) / r;
   const double posInvSinTheta = 1. / posSinTheta;
-  const double posCosPhi = x * posInvSinTheta;
-  const double posSinPhi = y * posInvSinTheta;
+  const double posCosPhi = x * posInvSinTheta / r;
+  const double posSinPhi = y * posInvSinTheta / r;
 
   /// Position rotation to Acts loc0 and loc1, which are the local points
   /// on a surface centered at the (x,y,z) global position with normal
   /// vector in the direction of the unit momentum vector
- 
   rotation(0,0) = -posSinPhi;
   rotation(0,1) = posCosPhi;
   rotation(1,0) = -posCosPhi * posCosTheta;
@@ -81,7 +80,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   rotation(4,5) = charge * pz / pow(p,5);
 
   /// time is left as 0
-  printMatrix("United svtxCov is : " , svtxCovariance);
+  printMatrix("Unit-ed svtxCov is : " , svtxCovariance);
   printMatrix("rotation is : ",rotation);
   Acts::BoundSymMatrix matrix = rotation * svtxCovariance * rotation.transpose();
   printMatrix("Rotated is : ",matrix);
@@ -91,10 +90,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 
 
 Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
-                     const Acts::KalmanFitterResult<SourceLink>& fitOutput)
+                     const Acts::BoundParameters params)
 {
 
-  const auto& params = fitOutput.fittedParameters.value();
   auto covarianceMatrix = *params.covariance();
   
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
@@ -103,7 +101,17 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   const double py = params.momentum()(1);
   const double pz = params.momentum()(2);
   const double p = sqrt(px * px + py * py + pz * pz);
+  
+  const double x = params.position()(0);
+  const double y = params.position()(1);
+  const double z = params.position()(2);
+  const double r = sqrt(x*x + y*y + z*z);
 
+  const double posCosTheta = z / r;
+  const double posSinTheta = sqrt(x*x + y*y) / r;
+  const double posCosPhi = x / ( r * posSinTheta);
+  const double posSinPhi = y / ( r * posSinTheta);
+  
   const int charge = params.charge();
   
   const double uPx = px / p;
@@ -121,18 +129,21 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   /// This is the original matrix we rotated by. So instead of rotating
   /// as normal RCR^T, we will just rotate back by rotating by the same 
   /// matrix as R^TCR
-  rotation(0, 0) = -sinPhi;
-  rotation(0, 1) = cosPhi;
-  rotation(1, 0) = -cosPhi * cosTheta;
-  rotation(1, 1) = -sinPhi * cosTheta;
-  rotation(1, 2) = sinTheta;
+  /// Position rotation to Acts loc0 and loc1, which are the local points
+  /// on a surface centered at the (x,y,z) global position with normal
+  /// vector in the direction of the unit momentum vector
+  rotation(0,0) = -posSinPhi;
+  rotation(0,1) = posCosPhi;
+  rotation(1,0) = -posCosPhi * posCosTheta;
+  rotation(1,1) = -posSinPhi * posCosTheta;
+  rotation(1,2) = posSinTheta;
 
   // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p*sinPhi * sinTheta;
-  rotation(2, 4) = p*cosPhi * sinTheta;
-  rotation(3, 3) = p*cosPhi * cosTheta;
-  rotation(3, 4) = p*sinPhi * cosTheta;
-  rotation(3, 5) = -p*sinTheta;
+  rotation(2, 3) = -p * sinPhi * sinTheta;
+  rotation(2, 4) = p * cosPhi * sinTheta;
+  rotation(3, 3) = p * cosPhi * cosTheta;
+  rotation(3, 4) = p * sinPhi * cosTheta;
+  rotation(3, 5) = -p * sinTheta;
   
   ///q/p rotaton
   rotation(4,3) = charge * px / pow(p,5);
@@ -166,7 +177,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
 }
 
 
-void ActsCovarianceRotater::printMatrix(const std::string message,
+void ActsCovarianceRotater::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  

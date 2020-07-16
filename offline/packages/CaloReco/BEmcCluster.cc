@@ -5,9 +5,7 @@
 #include "BEmcCluster.h"
 #include "BEmcRec.h"
 
-#include <TMath.h>
-
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
@@ -88,7 +86,7 @@ float EmcCluster::GetTowerEnergy(int ix, int iy)
 
   if (fHitList.empty()) return 0;
   ph = fHitList.begin();
-  int ich = iy*fOwner->GetNx() + ix;
+  int ich = iy * fOwner->GetNx() + ix;
   return GetTowerEnergy(ich);
 }
 
@@ -282,8 +280,8 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 {
   float e, xg, yg, zg;
   e = GetTotalEnergy();
-  GetGlobalPos(xg,yg,zg);
-  return fOwner->GetProb(fHitList, e,xg,yg,zg, chi2, ndf);
+  GetGlobalPos(xg, yg, zg);
+  return fOwner->GetProb(fHitList, e, xg, yg, zg, chi2, ndf);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -291,7 +289,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* ppeaks)
 {
   // Splits the cluster onto subclusters
-  // The number of subclusters is equal to the number of Local Maxima in a cluster. 
+  // The number of subclusters is equal to the number of Local Maxima in a cluster.
   // Local Maxima can have the energy not less then
   // defined in fgMinPeakEnergy
   //
@@ -369,7 +367,9 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
       if (npk >= fgMaxNofPeaks)
       {
         delete[] hlist;
-        printf("!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>%d). May need tower energy threshold increase for clustering.\n", fgMaxNofPeaks);
+        cout << "!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>"
+             << fgMaxNofPeaks
+             << "). May need tower energy threshold increase for clustering." << endl;
         return -1;
       }
 
@@ -383,7 +383,7 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
   /*
   for( ipk=0; ipk<npk; ipk++ ) {
     ic = PeakCh[ipk];
-    printf("  %d: E=%f\n", ipk, hlist[ic].amp);
+    cout << "  " << ipk << ": E = " << hlist[ic].amp << endl;
   }
   */
 
@@ -543,7 +543,7 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
         {
           phit[nh].ich = ixy;
           phit[nh].amp = a;
-          phit[nh].tof = hlist[in].tof;          // Not necessary here
+          phit[nh].tof = hlist[in].tof;  // Not necessary here
 
           nh++;
         }
@@ -583,7 +583,8 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
     ig = igmpk1[ipk];
     if (ig >= 0)
     {
-      //      printf("  %d: X=%f Y=%f\n",ipk,xpk[ig], ypk[ig]);
+      //      cout << "  " << ipk << ": X = " << xpk[ig]
+      //           << " Y = " << ypk[ig] << endl;
       //      fOwner->SetProfileParameters(0, epk[ig], xpk[ig], ypk[ig]);
       for (in = 0; in < nhit; in++)
       {
@@ -643,4 +644,3 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
 
   return nn;
 }
-

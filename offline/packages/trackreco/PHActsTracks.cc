@@ -18,6 +18,8 @@
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 /// std (and the like) includes
 #include <cmath>
@@ -32,6 +34,7 @@ PHActsTracks::PHActsTracks(const std::string &name)
   : SubsysReco(name)
   , m_actsTrackMap(nullptr)
   , m_trackMap(nullptr)
+  , m_vertexMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
   , m_tGeometry(nullptr)
@@ -78,7 +81,8 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   std::vector<FW::TrackParameters> trackSeeds;
 
   ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
-  
+  rotater->setVerbosity(Verbosity());
+
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
        trackIter != m_trackMap->end(); ++trackIter)
   {
@@ -93,6 +97,21 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       track->identify();
     }
 
+    const unsigned int vertexId = track->get_vertex_id();
+    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+    Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			     svtxVertex->get_z() * Acts::UnitConstants::cm};
+    
+    if(Verbosity() > 4)
+      {
+	std::cout << "Vertex estimate : ("; 
+	for(int i = 0; i < vertex.size(); i++)
+	  std::cout<<vertex(i)<<", ";
+	std::cout << ")" << std::endl;
+      }
+
+
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
           rotater->rotateSvtxTrackCovToActs(track);
@@ -103,9 +122,26 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
                                  track->get_py() * Acts::UnitConstants::GeV,
                                  track->get_pz() * Acts::UnitConstants::GeV);
 
+    if(Verbosity() > 0)
+      {
+	std::cout << PHWHERE << std::endl;
+	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
+	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
+	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
+	std::cout << " seedCov: " << std::endl;
+	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
+	  {
+	    for(unsigned int icol = 0; icol < seedCov.cols(); ++icol)
+	      {
+		std::cout << seedCov(irow,icol) << "  ";
+	      }
+	    std::cout << std::endl;
+	  }
+      }
+
     // just set to 10 ns for now?
     const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = track->get_charge();
+    const int trackQ = -track->get_charge();  // charge is set in PHHoughTrackSeeding, copied over in PHGenFitTrkProp. Sign convention is apparently opposite here. Mag field sign?
 
     const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
 					trackQ * Acts::UnitConstants::e, 
@@ -143,7 +179,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       }
     }
 
-    ActsTrack actsTrack(trackSeed, trackSourceLinks);
+    ActsTrack actsTrack(trackSeed, trackSourceLinks, vertex);
     m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
   }
 
@@ -166,7 +202,7 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   if (!dstNode)
   {
@@ -198,6 +234,15 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
 
 int PHActsTracks::getNodes(PHCompositeNode *topNode)
 {
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!m_vertexMap)
+    {
+      std::cout << PHWHERE << "SvtxVertexMap not found on node tree. Exiting."
+		<< std::endl;
+
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   if (!m_trackMap)

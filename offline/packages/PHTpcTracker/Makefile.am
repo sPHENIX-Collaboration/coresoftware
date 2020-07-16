@@ -18,7 +18,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
-pkginclude_HEADERS =
+pkginclude_HEADERS = \
+  PHTpcTracker.h
 
 
 libPHTpcTracker_la_SOURCES = \
@@ -42,9 +43,8 @@ libPHTpcTracker_la_LIBADD = \
   -lphfield \
   -lphgeom \
   -lSubsysReco \
+  -ltrack_reco \
   -ltrack_io
-
-
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
