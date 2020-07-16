@@ -75,9 +75,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   // p -> q/p
   // d(p)/dpx = px/p
   // var(q/p) = (d(1/p)/dp)^2 * var(p) = (-1/p^2)^2 * var(p)
-  rotation(4,3) = charge * px / pow(p,5);
-  rotation(4,4) = charge * py / pow(p,5);
-  rotation(4,5) = charge * pz / pow(p,5);
+  rotation(4,3) = charge * px / pow(p,1.5);
+  rotation(4,4) = charge * py / pow(p,1.5);
+  rotation(4,5) = charge * pz / pow(p,1.5);
 
   /// time is left as 0
   printMatrix("Unit-ed svtxCov is : " , svtxCovariance);
@@ -146,9 +146,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   rotation(3, 5) = -p * sinTheta;
   
   ///q/p rotaton
-  rotation(4,3) = charge * px / pow(p,5);
-  rotation(4,4) = charge * py / pow(p,5);
-  rotation(4,5) = charge * pz / pow(p,5);
+  rotation(4,3) = charge * px / pow(p,1.5);
+  rotation(4,4) = charge * py / pow(p,1.5);
+  rotation(4,5) = charge * pz / pow(p,1.5);
 
   printMatrix("Rotating back to global with : ", rotation.transpose());
 
