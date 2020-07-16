@@ -334,6 +334,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   {
     cout << __PRETTY_FUNCTION__ << " : " << __LINE__ << endl;
     evt->print();
+    cout << endl << endl;
   }
 
   if (!success)
