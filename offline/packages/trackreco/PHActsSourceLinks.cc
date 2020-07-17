@@ -299,7 +299,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   if(!surface)
     {
       std::cout << PHWHERE
-		<< "Failed to find associated surface element - should be impossible!"
+		<< "Failed to find associated surface element - should be impossible! Skipping measurement."
 		<< std::endl;
       return nullptr;
     }

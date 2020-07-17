@@ -685,7 +685,7 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
     }
   if(surf_index == 999)
     {
-      cout << PHWHERE << "Error: surface index not defined, can't go on!" << endl;
+      cout << PHWHERE << "Error: TPC surface index not defined, skipping cluster!" << endl;
       return nullptr;
     }
  
