@@ -65,19 +65,16 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 
   // Directional and momentum parameters for curvilinear
   rotation(2, 3) = -p * sinPhi * sinTheta;
-  rotation(2, 4) = p * cosPhi * sinTheta;
-  rotation(3, 3) = p * cosPhi * cosTheta;
-  rotation(3, 4) = p * sinPhi * cosTheta;
+  rotation(2, 4) =  p * cosPhi * sinTheta;
+  rotation(3, 3) =  p * cosPhi * cosTheta;
+  rotation(3, 4) =  p * sinPhi * cosTheta;
   rotation(3, 5) = -p * sinTheta;
   
-  ///q/p rotaton
-  // p_i/p transforms from px -> p, and charge/p^4 transforms from
-  // p -> q/p
-  // d(p)/dpx = px/p
-  // var(q/p) = (d(1/p)/dp)^2 * var(p) = (-1/p^2)^2 * var(p)
-  rotation(4,3) = charge * px / pow(p,1.5);
-  rotation(4,4) = charge * py / pow(p,1.5);
-  rotation(4,5) = charge * pz / pow(p,1.5);
+  /// q/p rotaton
+  /// d(q/p)/dp_i = -q * p_i / p^(3/2)
+  rotation(4,3) = -1*charge * px / pow(p,1.5);
+  rotation(4,4) = -1*charge * py / pow(p,1.5);
+  rotation(4,5) = -1*charge * pz / pow(p,1.5);
 
   /// time is left as 0
   printMatrix("Unit-ed svtxCov is : " , svtxCovariance);
