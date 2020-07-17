@@ -6,7 +6,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 {
   Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
-  
+
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
@@ -181,7 +181,7 @@ void ActsCovarianceRotater::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  
-  if(m_verbosity)
+  if(m_verbosity > 0)
     {
       std::cout << std::endl << message.c_str() << std::endl;
       for(int i = 0 ; i < matrix.rows(); ++i)
