@@ -27,7 +27,7 @@ class PHHepMCGenEventMap : public PHObject
   typedef std::map<int, PHHepMCGenEvent*>::const_reverse_iterator ConstReverseIter;
   typedef std::map<int, PHHepMCGenEvent*>::reverse_iterator ReverseIter;
 
-  PHHepMCGenEventMap();
+  PHHepMCGenEventMap() = default;
   PHHepMCGenEventMap(const PHHepMCGenEventMap& eventmap);
   PHHepMCGenEventMap& operator=(const PHHepMCGenEventMap& eventmap);
 
