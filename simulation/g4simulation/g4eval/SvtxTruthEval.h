@@ -20,6 +20,7 @@ class TrkrCluster;
 #include <map>
 #include <set>
 #include <vector>
+#include <memory>
 
 class SvtxTruthEval
 {
@@ -49,7 +50,7 @@ class SvtxTruthEval
   PHG4Particle* get_primary_particle(PHG4Hit* g4hit);
   PHG4Particle* get_primary_particle(PHG4Particle* particle);
 
-  std::map<unsigned int, TrkrCluster*> all_truth_clusters(PHG4Particle* particle);
+  std::map<unsigned int, std::shared_ptr<TrkrCluster> > all_truth_clusters(PHG4Particle* particle);
 
   bool is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle);
   bool are_same_particle(PHG4Particle* p1, PHG4Particle* p2);
@@ -97,7 +98,7 @@ class SvtxTruthEval
   bool _do_cache;
   std::set<PHG4Hit*> _cache_all_truth_hits;
   std::map<PHG4Particle*, std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;
-  std::map<PHG4Particle*, std::map<unsigned int, TrkrCluster*> > _cache_all_truth_clusters_g4particle;
+  std::map<PHG4Particle*, std::map<unsigned int, std::shared_ptr<TrkrCluster> > > _cache_all_truth_clusters_g4particle;
   std::map<PHG4Particle*, PHG4Hit*> _cache_get_innermost_truth_hit;
   std::map<PHG4Particle*, PHG4Hit*> _cache_get_outermost_truth_hit;
   std::map<PHG4Hit*, PHG4Particle*> _cache_get_primary_particle_g4hit;

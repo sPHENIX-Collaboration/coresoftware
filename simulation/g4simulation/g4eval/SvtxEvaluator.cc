@@ -162,7 +162,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:ng4hits:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
@@ -1735,12 +1735,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	if(Verbosity() > 0)
 	  {
 	    TrkrDefs::cluskey reco_cluskey = cluster->getClusKey();		  
-	    std::cout << "  ****   reco: layer " << layer << std::endl;
+	    std::cout << PHWHERE << "  ****   reco: layer " << layer << std::endl;
 	    cout << "              reco cluster key " << reco_cluskey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 	  }
 
 	// get best matching truth cluster from clustereval
-	TrkrCluster* truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
+	std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
 	if(truth_cluster)
 	  {
 	    if(Verbosity() > 0)
@@ -1965,7 +1965,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  //cout << "Look for truth cluster to match reco cluster " << cluster_key << endl;
 
 	// get best matching truth cluster from clustereval
-	TrkrCluster* truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
+	  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
 	if(truth_cluster)
 	  {
 	    if(Verbosity() > 0)
@@ -2119,22 +2119,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float gprimary = trutheval->is_primary(g4particle);
 
 	  if(Verbosity() > 0)
-	    cout << "PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " gprimary " << gprimary << endl;
+	    cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " gprimary " << gprimary << endl;
 
 	  // Get the truth clusters from this particle
-	  std::map<unsigned int, TrkrCluster*> truth_clusters =   trutheval->all_truth_clusters(g4particle);
+	  std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters =   trutheval->all_truth_clusters(g4particle);
 
 	  // loop over layers and add to ntuple
 	  for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
 	    {
 	      unsigned int layer = it->first;
-	      TrkrCluster *gclus = it->second;
+	      std::shared_ptr<TrkrCluster> gclus = it->second;
 
 	      float gx = gclus->getX();
 	      float gy = gclus->getY();
 	      float gz = gclus->getZ();
 	      float gt = NAN;
 	      float gedep = gclus->getError(0,0);
+	      float ng4hits = gclus->getAdc();
 
 	      TVector3 gpos(gx, gy, gz);
 	      float gr = sqrt(gx*gx+gy*gy);
@@ -2144,8 +2145,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      if(Verbosity() > 0)
 		{
 		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
-		  std::cout << "  ****   truth: layer " << layer << std::endl;
-		  cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " gedep " << gedep << endl;
+		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
+		  cout << "             truth cluster key " << ckey << " hg4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
+		       << " gphi " << gphi << " gedep " << gedep << endl;
 		}
 	      
 	      float gphisize = gclus->getSize(1,1);
@@ -2217,6 +2219,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					gr,
 					gphi,
 					geta,
+					ng4hits,
 					gtrackID,
 					gflavor,
 					gembed,

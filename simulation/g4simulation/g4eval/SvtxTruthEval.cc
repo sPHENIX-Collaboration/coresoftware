@@ -216,12 +216,12 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
   return truth_hits;
 }
 
-std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
+std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
 {
   if (!has_node_pointers())
   {
     ++_errors;
-    return std::map<unsigned int, TrkrCluster*>();
+    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
   }
 
   if (_strict)
@@ -231,12 +231,12 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
   else if (!particle)
   {
     ++_errors;
-    return std::map<unsigned int, TrkrCluster*>();
+    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
   }
 
   if (_do_cache)
   {
-    std::map<PHG4Particle*, std::map<unsigned int, TrkrCluster*> >::iterator iter =
+    std::map<PHG4Particle*, std::map<unsigned int, std::shared_ptr<TrkrCluster> > >::iterator iter =
         _cache_all_truth_clusters_g4particle.find(particle);
     if (iter != _cache_all_truth_clusters_g4particle.end())
     {
@@ -244,15 +244,19 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
     }
   }
 
+  if(_verbosity > 0)
+    cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;;
+
   // get all g4hits for this particle
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
 	  
   float ng4hits = g4hits.size();
   if(ng4hits == 0) 
-    return std::map<unsigned int, TrkrCluster*>();
+    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
 
   // container for storing truth clusters
-  std::map<unsigned int, TrkrCluster*> truth_clusters;
+  //std::map<unsigned int, TrkrCluster*> truth_clusters;
+  std::map<unsigned int, std::shared_ptr<TrkrCluster>> truth_clusters;
 
   // convert truth hits for this particle to truth clusters in each TPC layer
   // loop over layers
@@ -282,11 +286,12 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
       unsigned int sector = 0;
 
       TrkrDefs::cluskey ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
-      TrkrClusterv1 *clus = new TrkrClusterv1();
+      //TrkrClusterv1 *clus = new TrkrClusterv1();
+      std::shared_ptr<TrkrClusterv1> clus(new TrkrClusterv1());
       clus->setClusKey(ckey);
       iclus++;
 
-      //clus->setAdc(gedep);
+      clus->setAdc(contributing_hits.size());
       clus->setPosition(0, gx);
       clus->setPosition(1, gy);
       clus->setPosition(2, gz);
@@ -326,6 +331,8 @@ std::map<unsigned int, TrkrCluster*> SvtxTruthEval::all_truth_clusters(PHG4Parti
 
 void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
+  bool use_geo = true;
+
   // Given a set of g4hits, cluster them within a given layer of the TPC
 
   float gx = 0.0;
@@ -334,8 +341,8 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
   float gr = 0.0;
   float gt = 0.0;
   float gwt = 0.0;
-  
-  if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+
+  if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)   // in TPC
     {
       //cout << "layer = " << layer << " _nlayers_maps " << _nlayers_maps << " _nlayers_intt " << _nlayers_intt << endl;
 
@@ -348,6 +355,9 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       // radii of layer boundaries
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
+
+      if(_verbosity > 0)
+	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
 
       // we do not assume that the truth hits know what layer they are in            
       for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
@@ -392,13 +402,16 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  if (rbegin > rbout && rend > rbout)
 	    continue;
 
-	  /*
-	  if(Verbosity() > 3)
+
+	  if(_verbosity > 0)
 	    {
-	      cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " layer " << layer << " rbegin " << rbegin << " rend " << rend << endl;
-	      cout << "   inside layer " << layer << "  with rbin " << rbin << " rbout " << rbout << " keep g4hit with rbegin " << rbegin << " rend " << rend << endl;
+	      cout << "     keep g4hit with rbegin " << rbegin << " rend " << rend  
+		   << "         xbegin " <<  xl[0] << " xend " << xl[1]
+		   << " ybegin " << yl[0] << " yend " << yl[1]
+		   << " zbegin " << zl[0] << " zend " << zl[1]
+		   << endl;
 	    }
-	  */
+
 
 	  float xin = xl[0];
 	  float yin = yl[0];
@@ -445,12 +458,15 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  gr += (rin + rout) * 0.5 * efrac;
 	  gwt += efrac;
 
-	  /*
-	  if(Verbosity() > 3)
-	    cout << "     rin  " << rin << " rout " << rout << " edep " << this_g4hit->get_edep() 
-		 << " this_edep " <<  efrac << " xavge " << (xin+xout) * 0.5 << " yavge " << (yin+yout) * 0.5 << " zavge " << (zin+zout) * 0.5 << " ravge " << (rin+rout) * 0.5
-		 << endl;
-	  */
+	  if(_verbosity > 0)
+	    {
+	      cout << "      rin  " << rin << " rout " << rout 
+		   << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout 
+		   << " edep " << this_g4hit->get_edep() 
+		   << " this_edep " <<  efrac << endl;
+	      cout << "              xavge " << (xin+xout) * 0.5 << " yavge " << (yin+yout) * 0.5 << " zavge " << (zin+zout) * 0.5 << " ravge " << (rin+rout) * 0.5
+		   << endl;
+	    }
 
 	  // Capture entry and exit points
 	  std::vector<double> entry_loc;
@@ -468,7 +484,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  contributing_hits_entry.push_back(entry_loc);
 	  contributing_hits_exit.push_back(exit_loc);
 
-	}  // loop over this_g4hit
+	}  // loop over contributing hits
 
       if(gwt == 0)
 	{
@@ -479,67 +495,77 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       gx /= gwt;
       gy /= gwt;
       gz /= gwt;
-      gr /= gwt;
+      gr = (rbin + rbout) * 0.5;
       gt /= gwt;
 
-      // The energy weighted values above have significant scatter due to fluctuations in the energy deposit from Geant
-      // Calculate the geometric mean positions instead
-      float rentry = 999.0;
-      float xentry = 999.0;
-      float yentry = 999.0;
-      float zentry = 999.0;
-      float rexit = - 999.0;
-      float xexit = -999.0;
-      float yexit = -999.0;
-      float zexit = -999.0;
-
-      for(unsigned int ientry = 0; ientry < contributing_hits_entry.size(); ++ientry)
+      if(_verbosity > 0)
 	{
-	  float tmpx = contributing_hits_entry[ientry][0];
-	  float tmpy = contributing_hits_entry[ientry][1];
-	  float tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
+	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << " e " << gwt << endl;
+	}
 
-	  if(tmpr < rentry)
+      if(use_geo)
+	{
+	  // The energy weighted values above have significant scatter due to fluctuations in the energy deposit from Geant
+	  // Calculate the geometric mean positions instead
+	  float rentry = 999.0;
+	  float xentry = 999.0;
+	  float yentry = 999.0;
+	  float zentry = 999.0;
+	  float rexit = - 999.0;
+	  float xexit = -999.0;
+	  float yexit = -999.0;
+	  float zexit = -999.0;
+	  
+	  for(unsigned int ientry = 0; ientry < contributing_hits_entry.size(); ++ientry)
 	    {
-	      rentry =  tmpr;
-	      xentry = contributing_hits_entry[ientry][0];
-	      yentry = contributing_hits_entry[ientry][1];
-	      zentry = contributing_hits_entry[ientry][2];
+	      float tmpx = contributing_hits_entry[ientry][0];
+	      float tmpy = contributing_hits_entry[ientry][1];
+	      float tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
+	      
+	      if(tmpr < rentry)
+		{
+		  rentry =  tmpr;
+		  xentry = contributing_hits_entry[ientry][0];
+		  yentry = contributing_hits_entry[ientry][1];
+		  zentry = contributing_hits_entry[ientry][2];
+		}
+	      
+	      tmpx = contributing_hits_exit[ientry][0];
+	      tmpy = contributing_hits_exit[ientry][1];
+	      tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
+	      
+	      if(tmpr > rexit)
+		{
+		  rexit =  tmpr;
+		  xexit = contributing_hits_exit[ientry][0];
+		  yexit = contributing_hits_exit[ientry][1];
+		  zexit = contributing_hits_exit[ientry][2];
+		}
+	    }
+	  
+	  float geo_r = (rentry+rexit)*0.5;
+	  float geo_x = (xentry+xexit)*0.5;
+	  float geo_y = (yentry+yexit)*0.5;
+	  float geo_z = (zentry+zexit)*0.5;
+	  
+	  if(rexit > 0)
+	    {
+	      gx = geo_x;
+	      gy = geo_y;
+	      gz = geo_z;
+	      gr = geo_r;
 	    }
 
-	  tmpx = contributing_hits_exit[ientry][0];
-	  tmpy = contributing_hits_exit[ientry][1];
-	  tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
 
-	  if(tmpr > rexit)
+	  if(_verbosity > 0)
 	    {
-	      rexit =  tmpr;
-	      xexit = contributing_hits_exit[ientry][0];
-	      yexit = contributing_hits_exit[ientry][1];
-	      zexit = contributing_hits_exit[ientry][2];
+	      cout << "      rentry  " << rentry << " rexit " << rexit 
+		   << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << endl;
+	      
+	      cout  << " geometric means: geo_x " << geo_x << " geo_y " << geo_y << " geo_z " << geo_z  << " geo r " << geo_r <<  " e " << gwt << endl << endl;
 	    }
 	}
 
-      float geo_r = (rentry+rexit)*0.5;
-      float geo_x = (xentry+xexit)*0.5;
-      float geo_y = (yentry+yexit)*0.5;
-      float geo_z = (zentry+zexit)*0.5;
-
-      if(rexit > 0)
-	{
-	  gx = geo_x;
-	  gy = geo_y;
-	  gz = geo_z;
-	  gr = geo_r;
-	}
-
-      /*
-      if(Verbosity() > 3)
-	{
-	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << endl;
-	  cout  << " geometric means: geo_x " << geo_x << " geo_y " << geo_y << " geo_z " << geo_z  << " geo r " << geo_r <<  endl;
-	}
-      */
     }  // if TPC
   else
     {

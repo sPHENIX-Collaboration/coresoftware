@@ -84,11 +84,11 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 } 
 
-std::set<TrkrCluster*> SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey cluster_key)
+std::set<std::shared_ptr<TrkrCluster> > SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey cluster_key)
 {
   if (_do_cache)
   {
-    std::map<TrkrDefs::cluskey, std::set<TrkrCluster*> >::iterator iter =
+    std::map<TrkrDefs::cluskey, std::set<std::shared_ptr<TrkrCluster> > >::iterator iter =
         _cache_all_truth_clusters.find(cluster_key);
     if (iter != _cache_all_truth_clusters.end())
     {
@@ -96,7 +96,7 @@ std::set<TrkrCluster*> SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey clu
     }
   }
 
-  std::set<TrkrCluster*> truth_clusters;
+  std::set<std::shared_ptr<TrkrCluster> > truth_clusters;
 
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
@@ -107,8 +107,8 @@ std::set<TrkrCluster*> SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey clu
     {
       PHG4Particle* particle = *iter;
       
-      std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(particle);
-      for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
+      std::map<unsigned int, std::shared_ptr<TrkrCluster> > gclusters = get_truth_eval()->all_truth_clusters(particle);
+      for (std::map<unsigned int, std::shared_ptr<TrkrCluster> >::iterator citer = gclusters.begin();
 	   citer != gclusters.end();
 	   ++citer)
 	{
@@ -122,11 +122,11 @@ std::set<TrkrCluster*> SvtxClusterEval::all_truth_clusters(TrkrDefs::cluskey clu
   return truth_clusters;
 }
 
-TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key)
+std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key)
 {
   if (_do_cache)
   {
-    std::map<TrkrDefs::cluskey, TrkrCluster* >::iterator iter =
+    std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> >::iterator iter =
         _cache_max_truth_cluster_by_energy.find(cluster_key);
     if (iter != _cache_max_truth_cluster_by_energy.end())
     {
@@ -134,7 +134,7 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
     }
   }
 
-  TrkrCluster* truth_cluster = 0;
+  std::shared_ptr<TrkrCluster> truth_cluster = 0;
 
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
@@ -153,14 +153,14 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
   //double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
   double reco_rphi = r*atan2(reco_y, reco_x);
   
-  std::map<unsigned int, TrkrCluster*> gclusters = get_truth_eval()->all_truth_clusters(max_particle);
-  for (std::map<unsigned int, TrkrCluster*>::iterator citer = gclusters.begin();
+  std::map<unsigned int, std::shared_ptr<TrkrCluster> > gclusters = get_truth_eval()->all_truth_clusters(max_particle);
+  for (std::map<unsigned int, std::shared_ptr<TrkrCluster> >::iterator citer = gclusters.begin();
        citer != gclusters.end();
        ++citer)
     {
       if(citer->first == cluster_layer) 
 	{
-	  TrkrCluster* candidate_truth_cluster = citer->second;
+	  std::shared_ptr<TrkrCluster> candidate_truth_cluster = citer->second;
 
 	  double gx = candidate_truth_cluster->getX();
 	  double gy = candidate_truth_cluster->getY();
@@ -220,11 +220,11 @@ TrkrCluster* SvtxClusterEval::max_truth_cluster_by_energy(TrkrDefs::cluskey clus
   return truth_cluster;
 }
 
-TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus)
+TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<TrkrCluster> gclus)
 {
   if (_do_cache)
   {
-    std::map<TrkrCluster*, TrkrCluster* >::iterator iter =
+    std::map<std::shared_ptr<TrkrCluster>, TrkrCluster* >::iterator iter =
       _cache_reco_cluster_from_truth_cluster.find(gclus);
     if (iter != _cache_reco_cluster_from_truth_cluster.end())
     {
@@ -325,33 +325,6 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(TrkrCluster *gclus
 		  return this_cluster;;
 		}
 	    }
-	  /*
-	  // approximate 4 sigmas cut
-	  if(truth_layer > 6)
-	    {
-	      if(fabs(drphi) < 4.0 * 150e-04 &&
-		 fabs(dz) < 4.0 * 550e-04)
-		{
-		  return this_cluster;;
-		}
-	    }
-	  else if(truth_layer < 3)
-	    {
-	      if(fabs(drphi) < 4.0 * 10e-04 &&
-		 fabs(dz) < 4.0 * 10e-04)
-		{
-		  return this_cluster;;
-		}
-	    }
-	  else
-	    {
-	      if(fabs(drphi) < 4.0 * 70e-04 &&
-		 fabs(dz) < 2.0)
-		{
-		  return this_cluster;;
-		}
-	    }
-	  */
 	}
     } 
       
@@ -529,7 +502,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_cluster_energy(TrkrDefs::cl
        ++iter)
     {
       PHG4Particle* particle = *iter;
-      std::map<unsigned int, TrkrCluster *> truth_clus = get_truth_eval()->all_truth_clusters(particle);
+      std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clus = get_truth_eval()->all_truth_clusters(particle);
       for(auto it = truth_clus.begin(); it != truth_clus.end(); ++it)
 	{	
 	  if(it->first == layer)
