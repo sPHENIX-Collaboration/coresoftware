@@ -118,14 +118,14 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
     std::cout << PHWHERE << " adding region " << region << " with layers " << region_layer_low[region] << " to " << region_layer_high[region] << std::endl;
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), region), Form("TPC r#Delta#phi_{cluster-truth} region_%i", region), 100, -0.08, 0.08);
+      auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), region), Form("TPC r#Delta#phi_{cluster-truth} region_%i", region), 100, -0.079, 0.075);
       h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto h = new TH1F(Form("%srphi_error_%i", get_histo_prefix().c_str(), region), Form("TPC r#Delta#phi error region_%i", region), 100, 0, 0.08);
+      auto h = new TH1F(Form("%srphi_error_%i", get_histo_prefix().c_str(), region), Form("TPC r#Delta#phi error region_%i", region), 100, 0, 0.075);
       h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
       hm->registerHisto(h);
     }
@@ -139,14 +139,14 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
 
     {
       // z residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), region), Form("TPC #Deltaz_{cluster-truth} region_%i", region), 100, -0.2, 0.2);
+      auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), region), Form("TPC #Deltaz_{cluster-truth} region_%i", region), 100, -0.19, 0.19);
       h->GetXaxis()->SetTitle("#Delta#z_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto h = new TH1F(Form("%sz_error_%i", get_histo_prefix().c_str(), region), Form("TPC z error region_%i", region), 100, 0, 0.2);
+      auto h = new TH1F(Form("%sz_error_%i", get_histo_prefix().c_str(), region), Form("TPC z error region_%i", region), 100, 0, 0.18);
       h->GetXaxis()->SetTitle("z error (cm)");
       hm->registerHisto(h);
     }
@@ -251,13 +251,13 @@ void QAG4SimulationTpc::evaluate_clusters()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  // cluster efficiency histogram
+  // get histograms for cluster efficiency
   TH1 *h_eff0 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_0", get_histo_prefix().c_str())));
   assert(h_eff0);
   TH1 *h_eff1 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_1", get_histo_prefix().c_str())));
   assert(h_eff1);
 
-  // cluster parameters vs truth histograms
+  // get histograms for cluster parameters vs truth 
   struct HistogramList
   {
     TH1* drphi = nullptr;
