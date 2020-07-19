@@ -37,6 +37,7 @@
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
   : SubsysReco(name)
+  ,m_truthContainer(nullptr)
 {
 }
 
