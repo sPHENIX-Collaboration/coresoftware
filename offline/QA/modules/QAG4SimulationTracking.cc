@@ -51,9 +51,11 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
   if (!m_svtxEvalStack)
   {
     m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
-    m_svtxEvalStack->set_strict(true);
-    m_svtxEvalStack->set_verbosity(Verbosity() + 1);
+    m_svtxEvalStack->set_strict(false);
+    m_svtxEvalStack->set_verbosity(Verbosity());
   }
+
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -77,15 +79,15 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
 
   // reco track w/ truth-track matched vs reco pT histograms
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTReco",
-	       "Gen tracks at reco p_{T}; Reco p_{T} [GeV/c]", 200, 0.1, 50.5);
+               "Gen tracks at reco p_{T}; Reco p_{T} [GeV/c]", 200, 0.1, 50.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH1F(TString(get_histo_prefix()) + "nReco_pTReco",
-	       ";Gen p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
+               ";Gen p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "pTRecoTruthMatchedRatio_pTReco",
-	       ";Reco p_{T} [GeV/c];Matched p_{T}/Reco p_{T}", 200, 0, 50, 500, 0, 2);
+               ";Reco p_{T} [GeV/c];Matched p_{T}/Reco p_{T}", 200, 0, 50, 500, 0, 2);
   hm->registerHisto(h);
 
   // reco pT histogram
@@ -110,11 +112,11 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
 
   // DCA histograms
   h = new TH2F(TString(get_histo_prefix()) + "DCArPhi_pT",
-	       "DCA resolution at truth p_{T};Truth p_{T} [GeV/c];DCA(r#phi) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
+               "DCA resolution at truth p_{T};Truth p_{T} [GeV/c];DCA(r#phi) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "DCAZ_pT",
-	       "DCA resolution at truth p_{T};Truth p_{T} [GeV/c];DCA(Z) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
+               "DCA resolution at truth p_{T};Truth p_{T} [GeV/c];DCA(Z) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
@@ -286,23 +288,50 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   }
 
   // loop over reco tracks to fill norm histogram for track matching
-  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if(trackmap)
+  if (m_trackMap)
   {
-    for (SvtxTrackMap::Iter iter = trackmap->begin();
-         iter != trackmap->end();
+    for (SvtxTrackMap::Iter iter = m_trackMap->begin();
+         iter != m_trackMap->end();
          ++iter)
     {
-      SvtxTrack* track = iter->second;
-      double px = track->get_px();
-      double py = track->get_py();
-      double pz = track->get_pz();
-      double pt;
-      TVector3 v(px, py, pz);
-      pt = v.Pt();
-      h_nReco_pTReco->Fill(pt); // normalization histogram fill
+      SvtxTrack *track = iter->second;
+      assert(track);
+
+      const double px = track->get_px();
+      const double py = track->get_py();
+      const double pz = track->get_pz();
+      const TVector3 v(px, py, pz);
+      const double pt = v.Pt();
+      h_nReco_pTReco->Fill(pt);  // normalization histogram fill
+
+      PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
+      if (g4particle_match)
+      {
+        SvtxTrack *matched_track = trackeval->best_track_from(g4particle_match);
+
+        if (matched_track)
+        {
+          if (matched_track->get_id() == track->get_id())
+          {
+            h_nGen_pTReco->Fill(pt);  // fill if matching truth track
+
+            const double gpx = g4particle_match->get_px();
+            const double gpy = g4particle_match->get_py();
+            TVector3 gv(gpx, gpy, 0);
+            const double gpt = gv.Pt();
+
+            const double pt_ratio = (pt != 0) ? gpt / pt : 0;
+            h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
+          }
+        }
+      }
     }
   }
+  else
+  {
+    cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }  // reco track loop
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
@@ -396,38 +425,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
       }
     }
-    
-    // for-loop over reco tracks
-    SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-    if(trackmap)
-    {
-      SvtxEvalStack *svtxevalstack = new SvtxEvalStack(topNode);
-      svtxevalstack->next_event(topNode);
-      SvtxTrackEval *trackeval = svtxevalstack->get_track_eval();
-
-      for (SvtxTrackMap::Iter iter = trackmap->begin();
-	   iter != trackmap->end();
-	   ++iter)
-      {
-	SvtxTrack* track = iter->second;
-	double px = track->get_px();
-	double py = track->get_py();
-	double pz = track->get_pz();
-	double pt;
-	TVector3 v(px, py, pz);
-	pt = v.Pt();
-	PHG4Particle* g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
-	if (g4particle_match)
-	{
-	  if (g4particle_match->get_track_id() == g4particle->get_track_id())
-	  {
-	    h_nGen_pTReco->Fill(pt); // fill if matching truth track
-	    float pt_ratio = (pt != 0) ? gpt / pt : 0;
-	    h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
-	  }
-	}
-      }
-    }
 
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
@@ -466,13 +463,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       {
         h_nReco_etaGen->Fill(geta);
         h_nReco_pTGen->Fill(gpt);
-	
-	// double dca2d = track->get_dca2d();
-	// double dca2dsigma = track->get_dca2d_error();
-	double dca3dxy = track->get_dca3d_xy();
-	// double dca3dxysigma = track->get_dca3d_xy_error();
-	double dca3dz = track->get_dca3d_z();
-	// double dca3dzsigma = track->get_dca3d_z_error();
+
+        // double dca2d = track->get_dca2d();
+        // double dca2dsigma = track->get_dca2d_error();
+        double dca3dxy = track->get_dca3d_xy();
+        // double dca3dxysigma = track->get_dca3d_xy_error();
+        double dca3dz = track->get_dca3d_z();
+        // double dca3dzsigma = track->get_dca3d_z_error();
         double px = track->get_px();
         double py = track->get_py();
         double pz = track->get_pz();
@@ -485,8 +482,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         float pt_ratio = (gpt != 0) ? pt / gpt : 0;
         h_pTRecoGenRatio->Fill(pt_ratio);
         h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
-	h_DCArPhi_pT->Fill(pt, dca3dxy);
-	h_DCAZ_pT->Fill(pt, dca3dz);
+        h_DCArPhi_pT->Fill(pt, dca3dxy);
+        h_DCAZ_pT->Fill(pt, dca3dz);
         h_norm->Fill("Reco Track", 1);
 
         // tracker cluster stat.
