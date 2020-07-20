@@ -11,21 +11,6 @@
 
 using namespace std;
 
-PHG4Hitv1::PHG4Hitv1():
- hitid(ULONG_LONG_MAX),
- trackid(INT_MIN),
- edep(NAN)
-{
-  for (int i = 0; i<2;i++)
-    {
-      set_x(i,NAN);
-      set_y(i,NAN);
-      set_z(i,NAN);
-      set_t(i,NAN);
-    }
-
-}
-
 PHG4Hitv1::PHG4Hitv1(const PHG4Hit *g4hit)
 {
   CopyFrom(g4hit);
@@ -36,6 +21,7 @@ PHG4Hitv1::Reset()
 {
   hitid = ULONG_LONG_MAX;
   trackid = INT_MIN;
+  showerid = INT_MIN;
   edep = NAN;
   for (int i = 0; i<2;i++)
     {

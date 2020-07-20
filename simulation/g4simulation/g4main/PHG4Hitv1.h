@@ -17,9 +17,9 @@
 class PHG4Hitv1 : public PHG4Hit
 {
  public:
-  PHG4Hitv1();
+  PHG4Hitv1() = default;
   explicit PHG4Hitv1(const PHG4Hit *g4hit);
-  virtual ~PHG4Hitv1() {}
+  virtual ~PHG4Hitv1() = default;
   void identify(std::ostream& os  = std::cout) const;
   void Reset();
 
@@ -102,14 +102,14 @@ class PHG4Hitv1 : public PHG4Hit
   void set_property_nocheck(const PROPERTY prop_id,const unsigned int ui) {prop_map[prop_id]=ui;}
   // Store both the entry and exit points of the particle
   // Remember, particles do not always enter on the inner edge!
-  float x[2];
-  float y[2];
-  float z[2];
-  float t[2];
-  PHG4HitDefs::keytype hitid;
-  int trackid;
-  int showerid;
-  float edep;
+  float x[2] = {NAN,NAN};
+  float y[2] = {NAN,NAN};
+  float z[2] = {NAN,NAN};
+  float t[2] = {NAN,NAN};
+  PHG4HitDefs::keytype hitid = ULONG_LONG_MAX;
+  int trackid = INT_MIN;
+  int showerid = INT_MIN;
+  float edep = NAN;
 
   //! storage types for additional property
   typedef uint8_t prop_id_t;

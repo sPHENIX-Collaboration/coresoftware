@@ -10,6 +10,7 @@
 #include <phool/getClass.h>
 
 /// Tracking includes
+#include <trackbase/TrkrClusterv1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -703,31 +704,18 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 
   TrkrDefs::cluskey clusKey = getClusKey(hitID);
   
-  const PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(clusKey);
+  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
-  float layer = (float) TrkrDefs::getLayer(clusKey);
   float gx = -9999;
   float gy = -9999;
   float gz = -9999;
   float gt = -9999;
-  float gedep = -9999;
   
-  if (g4hit)
+  if (truth_cluster)
     {
-      /// Cluster the associated truth hits within the same layer to get
-      /// the truth cluster position
-      std::set<PHG4Hit *> truth_hits = clustereval->all_truth_hits(clusKey);
-      std::vector<PHG4Hit *> contributing_hits;
-      std::vector<double> contributing_hits_energy;
-      std::vector<std::vector<double>> contributing_hits_entry;
-      std::vector<std::vector<double>> contributing_hits_exit;
-      m_svtxEvaluator->LayerClusterG4Hits(topNode, truth_hits, 
-					  contributing_hits,
-                                          contributing_hits_energy, 
-					  contributing_hits_entry,
-                                          contributing_hits_exit, 
-					  layer, gx, gy, gz, gt,
-                                          gedep);
+      gx = truth_cluster->getX();
+      gy = truth_cluster->getY();
+      gz = truth_cluster->getZ();
     }
   
   /// Convert to acts units of mm
