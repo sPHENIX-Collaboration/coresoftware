@@ -38,10 +38,38 @@ namespace
   { return particle->get_parent_id() == 0; }
 
   //_____________________________________________________________________
-  /// create track struct from struct from svx track
-  VertexStruct create_vertex( PHG4VtxPoint* vertex )
+  SimEvaluator_hp::EventStruct create_event(PHG4TruthInfoContainer* container)
   {
-    VertexStruct vertexStruct;
+    SimEvaluator_hp::EventStruct eventStruct;
+    if( container ) 
+    {
+      std::set<int> flags;
+      const auto range = container->GetEmbeddedTrkIds();
+      for( auto iter = range.first; iter != range.second; ++iter )
+      { flags.insert( iter->second ); }
+
+      // print
+      std::cout << "::create_event - flags: ";
+      for( const auto& flag:flags ) std::cout << flag << " ";
+      std::cout << std::endl;
+
+      for( const auto& flag:flags )
+      {
+        ++eventStruct._nevt;
+        if( flag < 0 ) ++eventStruct._nevt_bg;
+        else ++eventStruct._nevt_active;
+      }
+    }
+    
+    return eventStruct;
+    
+  }
+  
+  //_____________________________________________________________________
+  /// create track struct from struct from svx track
+  SimEvaluator_hp::VertexStruct create_vertex( PHG4VtxPoint* vertex )
+  {
+    SimEvaluator_hp::VertexStruct vertexStruct;
     vertexStruct._x = vertex->get_x();
     vertexStruct._y = vertex->get_y();
     vertexStruct._z = vertex->get_z();
@@ -51,9 +79,9 @@ namespace
 
   //_____________________________________________________________________
   /// create track struct from struct from svx track
-  ParticleStruct create_particle( PHG4Particle* particle )
+  SimEvaluator_hp::ParticleStruct create_particle( PHG4Particle* particle )
   {
-    ParticleStruct particleStruct;
+    SimEvaluator_hp::ParticleStruct particleStruct;
     particleStruct._pid = particle->get_pid();
     particleStruct._charge = particle->get_IonCharge()/eplus;
     particleStruct._is_primary = is_primary( particle );
@@ -128,6 +156,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
   auto res =  load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
+  fill_event();
   fill_vertices();
   fill_g4particle_map();
   fill_particles();
@@ -191,6 +220,22 @@ void SimEvaluator_hp::fill_g4particle_map()
     }
 
   }
+
+}
+
+//_____________________________________________________________________
+void SimEvaluator_hp::fill_event()
+{
+
+  if( !( m_container && m_g4truthinfo ) )
+  {
+    std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
+    return;
+  }
+
+  // clear vertices from previous event
+  m_container->clearEventList();
+  m_container->addEvent( create_event( m_g4truthinfo ) );
 
 }
 

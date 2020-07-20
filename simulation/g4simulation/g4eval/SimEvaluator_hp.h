@@ -12,44 +12,6 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
-// vertex information
-class VertexStruct
-{
-  public:
-
-  using List = std::vector<VertexStruct>;
-
-  float _x = 0;
-  float _y = 0;
-  float _z = 0;
-  float _t = 0;
-
-  bool _is_main_vertex = false;
-
-};
-
-// vertex information
-class ParticleStruct
-{
-  public:
-  using List = std::vector<ParticleStruct>;
-
-  int _charge = 0;
-  int _pid = 0;
-  int _embed = 0;
-  bool _is_primary = false;
-  int64_t _mask = 0;
-
-  float _px = 0;
-  float _py = 0;
-  float _pz = 0;
-  float _pt = 0;
-  float _p = 0;
-  float _eta = 0;
-
-};
-
-
 class SimEvaluator_hp : public SubsysReco
 {
   public:
@@ -68,7 +30,57 @@ class SimEvaluator_hp : public SubsysReco
 
   /// end of processing
   virtual int End(PHCompositeNode*);
-
+  
+  // event information
+  class EventStruct
+  {
+    
+    public:
+    
+    using List = std::vector<EventStruct>;
+    
+    int _nevt = 0;
+    int _nevt_active = 0;
+    int _nevt_bg = 0;
+  };
+  
+  // vertex information
+  class VertexStruct
+  {
+    public:
+    
+    using List = std::vector<VertexStruct>;
+    
+    float _x = 0;
+    float _y = 0;
+    float _z = 0;
+    float _t = 0;
+    
+    bool _is_main_vertex = false;
+    
+  };
+  
+  // vertex information
+  class ParticleStruct
+  {
+    public:
+    using List = std::vector<ParticleStruct>;
+    
+    int _charge = 0;
+    int _pid = 0;
+    int _embed = 0;
+    bool _is_primary = false;
+    int64_t _mask = 0;
+    
+    float _px = 0;
+    float _py = 0;
+    float _pz = 0;
+    float _pt = 0;
+    float _p = 0;
+    float _eta = 0;
+    
+  };
+  
   class Container: public PHObject
   {
 
@@ -88,6 +100,10 @@ class SimEvaluator_hp : public SubsysReco
 
     ///@name accessors
     //@{
+
+    const EventStruct::List& events() const
+    { return _events; }
+
     const VertexStruct::List& vertexList() const
     { return _vertex_list; }
 
@@ -99,11 +115,17 @@ class SimEvaluator_hp : public SubsysReco
     ///@name modifiers
     //@{
 
+    void addEvent( const EventStruct& event )
+    { _events.push_back( event ); }
+
     void addVertex( const VertexStruct& vertex )
     { _vertex_list.push_back( vertex ); }
 
     void addParticle( const ParticleStruct& particle )
     { _particle_list.push_back( particle ); }
+
+    void clearEventList()
+    { _events.clear(); }
 
     void clearVertexList()
     { _vertex_list.clear(); }
@@ -114,6 +136,9 @@ class SimEvaluator_hp : public SubsysReco
     //@}
 
     private:
+
+    /// event struct
+    EventStruct::List _events;
 
     //* vertex list
     VertexStruct::List _vertex_list;
@@ -133,6 +158,9 @@ class SimEvaluator_hp : public SubsysReco
   /// fill MC track map
   void fill_g4particle_map();
 
+  /// fill event struct
+  void fill_event();
+  
   /// fill vertices
   void fill_vertices();
 
