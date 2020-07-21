@@ -15,58 +15,6 @@ class PHG4HitContainer;
 class TrkrHitSetContainer;
 class TrkrHit;
 
-// cluster information to be stored in tree
-class HitStruct
-{
-  public:
-
-  using List = std::vector<HitStruct>;
-
-  /// layer
-  uint _layer = 0;
-
-  /// number of hits belonging to the cluster
-  uint _tile = 0;
-
-  /// strip
-  uint _strip = 0;
-
-  /// number of g4hits associated to this cluster
-  uint _segmentation = 0;
-
-  /// energy
-  double _energy = 0;
-
-  /// ADC counts
-  uint _adc = 0;
-
-};
-
-// g4hit information to be stored in the tree
-class G4HitStruct
-{
-
-  public:
-
-  using List = std::vector<G4HitStruct>;
-
-  /// layer
-  uint _layer = 0;
-
-  /// tile
-  uint _tile = 0;
-
-  /// ionization energy
-  double _eion = 0;
-
-  /// number of primary electrons
-  uint _nprimary = 0;
-
-  /// total number of electrons
-  uint _nelectron = 0;
-
-};
-
 class MicromegasEvaluator_hp : public SubsysReco
 {
   public:
@@ -86,6 +34,55 @@ class MicromegasEvaluator_hp : public SubsysReco
   /// end of processing
   virtual int End(PHCompositeNode*);
 
+  // hit information to be stored in tree
+  class HitStruct
+  {
+    public:
+    
+    using List = std::vector<HitStruct>;
+    
+    /// layer
+    uint _layer = 0;
+    
+    /// number of hits belonging to the cluster
+    uint _tile = 0;
+    
+    /// strip
+    uint _strip = 0;
+    
+    /// energy
+    double _energy = 0;
+    
+    /// ADC counts
+    uint _adc = 0;
+    
+  };
+  
+  // g4hit information to be stored in the tree
+  class G4HitStruct
+  {
+    
+    public:
+    
+    using List = std::vector<G4HitStruct>;
+    
+    /// layer
+    uint _layer = 0;
+    
+    /// tile
+    uint _tile = 0;
+    
+    /// ionization energy
+    double _eion = 0;
+    
+    /// number of primary electrons
+    uint _nprimary = 0;
+    
+    /// total number of electrons
+    uint _nelectron = 0;
+    
+  };
+  
   /// track container
   class Container: public PHObject
   {

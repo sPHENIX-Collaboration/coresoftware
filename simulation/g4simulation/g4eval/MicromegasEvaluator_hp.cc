@@ -40,9 +40,9 @@ namespace
   { return static_cast<underlying_type_t<T>>(value);}
 
   /// create cluster struct from svx cluster
-  HitStruct create_hit( TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey, TrkrHit* hit )
+  MicromegasEvaluator_hp::HitStruct create_hit( TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey, TrkrHit* hit )
   {
-    HitStruct hit_struct;
+    MicromegasEvaluator_hp::HitStruct hit_struct;
     hit_struct._layer = TrkrDefs::getLayer(hitsetkey);
     hit_struct._tile = MicromegasDefs::getTileId(hitsetkey);
     hit_struct._strip = MicromegasDefs::getStrip(hitkey);
@@ -251,10 +251,6 @@ void MicromegasEvaluator_hp::evaluate_hits()
 
         // create hit struct
         auto hit_struct = create_hit( hitsetkey, hitkey, hit );
-
-        // assign segmentation type
-        if( id == TrkrDefs::TrkrId::micromegasId )
-        { hit_struct._segmentation = to_underlying_type(segmentation_type); }
 
         // store
         m_container->addHit( hit_struct );
