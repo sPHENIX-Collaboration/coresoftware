@@ -28,6 +28,7 @@ libg4eval_la_LIBADD = \
   -lintt_io \
   -lmicromegas_io \
   -lphg4hit \
+  -lphhepmc \
   -lgsl \
   -lgslcblas
 

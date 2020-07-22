@@ -6,11 +6,14 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
+
+#include <HepMC/GenEvent.h>
 
 #include <algorithm>
 #include <bitset>
@@ -156,6 +159,9 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
   auto res =  load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
+  // for debugging
+  check_genevent();
+  
   fill_event();
   fill_vertices();
   fill_g4particle_map();
@@ -174,9 +180,11 @@ int SimEvaluator_hp::End(PHCompositeNode* )
 //_____________________________________________________________________
 int SimEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
-
   // local container
   m_container = findNode::getClass<Container>(topNode, "SimEvaluator_hp::Container");
+
+  // hep mc
+  m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
 
   // g4 truth info
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -188,9 +196,7 @@ int SimEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
-
 
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_g4particle_map()
@@ -216,11 +222,33 @@ void SimEvaluator_hp::fill_g4particle_map()
         m_g4particle_map.insert( map_iter, std::make_pair( iter->second->get_trkid(), 1LL<<iter->second->get_layer() ) );
 
       }
-
     }
-
   }
 
+}
+
+//_____________________________________________________________________
+void SimEvaluator_hp::check_genevent()
+{
+  if( !m_geneventmap ) 
+  {
+    std::cout << "SimEvaluator_hp::check_genevent - unable to load PHHepMCGenEventMap" << std::endl;
+    return;
+  }
+  
+  // get events
+  for( const auto& [id, phevent]:m_geneventmap->get_map() )
+  {
+    std::cout << "SimEvaluator_hp::check_genevent - index: " << id << std::endl;
+    
+    // make a deep copy of the gen event and delete, to see if it crashes the writting of the node
+    auto event = phevent->getEvent();
+    
+//     // replace event to try trigger a crash
+//     auto newevent = new HepMC::GenEvent( *event );
+//     phevent->addEvent( newevent );
+  }
+  
 }
 
 //_____________________________________________________________________

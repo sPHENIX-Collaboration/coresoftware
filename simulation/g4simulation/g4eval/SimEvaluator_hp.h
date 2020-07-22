@@ -11,7 +11,8 @@
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
-
+class PHHepMCGenEventMap;
+  
 class SimEvaluator_hp : public SubsysReco
 {
   public:
@@ -158,6 +159,9 @@ class SimEvaluator_hp : public SubsysReco
   /// fill MC track map
   void fill_g4particle_map();
 
+  /// genevent
+  void check_genevent();
+  
   /// fill event struct
   void fill_event();
   
@@ -181,6 +185,9 @@ class SimEvaluator_hp : public SubsysReco
   PHG4HitContainer* m_g4hits_mvtx = nullptr;
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
 
+  //* hep event
+  PHHepMCGenEventMap* m_geneventmap = nullptr;
+  
   //* truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
