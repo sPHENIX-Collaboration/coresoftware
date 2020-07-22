@@ -34,9 +34,7 @@ PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event)
 
   _embedding_id = event.get_embedding_id();
   _isSimulated = event.is_simulated();
-
-  const HepMC::GenEvent* hepmc = event.getEvent();
-  _theEvt = new HepMC::GenEvent(*(hepmc));
+  _theEvt = new HepMC::GenEvent(*event.getEvent());
 
   return *this;
 }
