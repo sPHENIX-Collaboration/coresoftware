@@ -268,11 +268,12 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
     }
 
+  // The number of associated clusters may have changed - start over
   track->clear_states();
   track->clear_cluster_keys();
 
   // create a state at pathlength = 0.0
-  // This state holds the track parametyers, which will be updated below
+  // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
   SvtxTrackState_v1 out( pathlength);
   out.set_x(0.0);
@@ -280,7 +281,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   out.set_z(0.0);
   track->insert_state(&out);   
 
-  // begin temporary kluge because the smoothed momenta are screwed up
+  //========  begin temporary kluge because the smoothed momenta are screwed up
   // use first pass filter result for momentum for now
   int istate = 0;
   mj.visitBackwards(trackTip, [&](const auto &state) {
@@ -310,7 +311,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       return true;
     }
     );
-  // end temporary kluge
+  //==========  end temporary kluge
 
   auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
@@ -354,11 +355,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_dca3d_xy_error(m_dca3DxyCov / Acts::UnitConstants::cm);
   track->set_dca3d_z_error(m_dca3DzCov / Acts::UnitConstants::cm);
   
-  // Also need to update the state list for all measurements associated with the acts track  
+  // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
   fillSvtxTrackStates(traj, trackTip, track);  
-
-  // Also need to update list of associated cluster keys ( HitIDClusIDActsMap on node tree) 
 
   if(Verbosity() > 2)
     {  
@@ -396,15 +395,13 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
 					    local, mom, global);
       
-      /// Get measurement covariance
-      //auto cov = meas.covariance();
-      
       float pathlength = sqrt(global.x()*global.x() + global.y()*global.y());  // use measurement radius for now, how to get pathlength from Acts?
       SvtxTrackState_v1 out( pathlength );
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
       out.set_z(global.z() /  Acts::UnitConstants::cm);
-      
+
+      // I assume we want the smoothed for the final track states?      
       if (state.hasSmoothed())
 	{
 	  Acts::BoundParameters parameter(
@@ -415,9 +412,10 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 	  out.set_px(parameter.momentum().x());
 	  out.set_py(parameter.momentum().y());
 	  out.set_pz(parameter.momentum().z());
-	  
 
-	  // set covariance to zero for now
+	  /// Get measurement covariance
+	  // auto cov = meas.covariance();      
+	  // set covariance to zero for now until transform method is available
 	  for (int i = 0; i < 6; i++)
 	    {
 	      for (int j = i; j < 6; j++)
@@ -434,6 +432,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
 			<< global.z() /  Acts::UnitConstants::cm 
 			<< " pathlength " << pathlength
+			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
 			<< " cluskey " << cluskey
 			<< std::endl; 
 	    }
