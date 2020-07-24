@@ -117,6 +117,7 @@ nobase_dist_pcm_DATA = \
 else
   ROOT5HITDICTS = PHG4HitDefs_Dict.cc
   ROOT5TBDICTS = \
+    Fun4AllDstPileupInputManager_Dict.cc \
     HepMCNodeReader_Dict.cc \
     PHG4ConsistencyCheck_Dict.cc \
     PHG4HeadReco_Dict.cc \
@@ -167,6 +168,7 @@ libg4testbench_la_SOURCES = \
   Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
+  Fun4AllDstPileupInputManager.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -213,6 +215,7 @@ libg4testbench_la_SOURCES = \
 
 pkginclude_HEADERS = \
   EicEventHeader.h \
+  Fun4AllDstPileupInputManager.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
