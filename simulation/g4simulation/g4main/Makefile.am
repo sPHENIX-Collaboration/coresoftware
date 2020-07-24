@@ -59,6 +59,7 @@ libg4testbench_la_LIBADD = \
   -lphgeom \
   -lphg4gdml \
   -lphhepmc \
+  -lphparameter \
   -lvararray
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
@@ -135,6 +136,7 @@ else
     PHG4Subsystem_Dict.cc \
     PHG4TruthSubsystem_Dict.cc \
     PHG4Utils_Dict.cc \
+    PHG4VertexSelection_Dict.cc \
     ReadEICFiles_Dict.cc \
     PHG4HitReadBack_Dict.cc
 endif
@@ -202,6 +204,7 @@ libg4testbench_la_SOURCES = \
   PHG4TruthTrackingAction.cc \
   PHG4UIsession.cc \
   PHG4Utils.cc \
+  PHG4VertexSelection.cc \
   ReadEICFiles.cc
 
 
@@ -247,6 +250,7 @@ pkginclude_HEADERS = \
   PHG4TruthSubsystem.h \
   PHG4Units.h \
   PHG4Utils.h \
+  PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
   ReadEICFiles.h
