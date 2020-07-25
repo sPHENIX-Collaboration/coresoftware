@@ -50,10 +50,10 @@ class EventHeader: public PHObject
   virtual void set_TimeStamp(const time_t /*evttime*/) {return;}
 
   //! bunch crossing
-  void set_BunchCrossing( int64_t ) {}
+  virtual void set_BunchCrossing( int64_t ) {}
   
   //! bunch crossing
-  int64_t get_BunchCrossing() const {return 0;}
+  virtual int64_t get_BunchCrossing() const {return 0;}
 
   private: // prevent doc++ from showing ClassDef
   ClassDef(EventHeader,1)

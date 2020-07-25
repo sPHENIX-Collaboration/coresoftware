@@ -272,13 +272,8 @@ readagain:
   // load relevant DST nodes to internal pointers
   std::cout << "Fun4AllDstPileupInputManager::run - loaded event " << m_events_thisfile - 1 << std::endl;
 
-  /*
-   * keep track of whether nodes have been loaded
-   * only load nodes if there is at least one background event to merge
-   */
-  bool nodes_loaded = false;
-
   // store bunch crossing both inside the event header and as the last bunch crossing
+  load_nodes(m_dstNode);
   if( m_eventheader ) m_eventheader->set_BunchCrossing( bunchCrossing );
   m_last_bunchCrossing = bunchCrossing;
 
@@ -295,13 +290,6 @@ readagain:
 
     // try read
     if( ievent_thisfile < 0 || !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
-
-    // load nodes
-    if( !nodes_loaded )
-    {
-      load_nodes(m_dstNode);
-      nodes_loaded = true;
-    }
 
     // merge
     copy_background_event( m_dstNodeInternal.get(), delta_t );
@@ -324,13 +312,6 @@ readagain:
 
     // try read
     if( !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
-
-    // load nodes
-    if( !nodes_loaded )
-    {
-      load_nodes(m_dstNode);
-      nodes_loaded = true;
-    }
 
     // merge
     copy_background_event( m_dstNodeInternal.get(), delta_t );
