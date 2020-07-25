@@ -61,8 +61,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   //! copy background event
   void copy_background_event(PHCompositeNode*, double delta_t);
 
-  int m_InitRun = 0;
-
   //!@name event counters
   //@{
   int m_ReadRunTTree = 1;

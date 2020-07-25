@@ -900,7 +900,10 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
        * loop from last to first to preserve order with respect to the original event
        * also this ensures that for a given particle its parent has already been converted and thus found in the map
        */
-      for( auto iter = std::reverse_iterator(range.second); iter != std::reverse_iterator(range.first); ++iter )
+      for( 
+        auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.second); 
+        iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.first);
+        ++iter )
       {
         const auto& source = iter->second;
         auto dest = new PHG4Particle_t( source );
