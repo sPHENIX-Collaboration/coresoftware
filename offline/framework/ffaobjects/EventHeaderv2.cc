@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-EventHeaderv2::EventHeaderv2()
-{ Reset(); }
-
 void EventHeaderv2::Reset()
-{ m_bunchCrossing = 0; }
+{ 
+  EventHeaderv1::Reset();
+  m_bunchCrossing = 0; 
+}
 
 void EventHeaderv2::identify(std::ostream& out) const
 {

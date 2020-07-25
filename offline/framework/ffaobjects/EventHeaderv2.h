@@ -21,7 +21,7 @@ class EventHeaderv2: public EventHeaderv1
  public:
 
   //! ctor
-  EventHeaderv2();
+  EventHeaderv2() = default;
 
   //! dtor
   virtual ~EventHeaderv2() = default;
