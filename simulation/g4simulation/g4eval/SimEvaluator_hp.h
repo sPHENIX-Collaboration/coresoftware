@@ -8,6 +8,7 @@
 #include <set>
 #include <vector>
 
+class EventHeader;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
@@ -191,6 +192,9 @@ class SimEvaluator_hp : public SubsysReco
   //* truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
+  //! event header
+  EventHeader* m_eventheader = nullptr;
+  
   // map trk_id to layer mask
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;

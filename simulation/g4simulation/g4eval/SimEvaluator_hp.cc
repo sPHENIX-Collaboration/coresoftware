@@ -1,5 +1,6 @@
 #include "SimEvaluator_hp.h"
 
+#include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -195,6 +196,9 @@ int SimEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
   m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
+  // event header
+  m_eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -254,6 +258,9 @@ void SimEvaluator_hp::check_genevent()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
+  
+  if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
+  else  std::cout << "SimEvaluator_hp::fill_event - EventHeader not found" << std::endl;
 
   if( !( m_container && m_g4truthinfo ) )
   {
