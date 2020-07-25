@@ -840,7 +840,7 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
         auto newVertex = new PHG4VtxPoint_t(sourceVertex);
         newVertex->set_t( sourceVertex->get_t() + delta_t );
         m_g4truthinfo->AddVertex( ++key, newVertex );
-        vtxid_map.insert( std::make_pair( sourceVertex->get_id(), key ) ).first;
+        vtxid_map.insert( std::make_pair( sourceVertex->get_id(), key ) );
       }
     }
 
