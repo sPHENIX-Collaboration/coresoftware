@@ -850,7 +850,10 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
       const auto range = container->GetSecondaryVtxRange();
 
       // loop from last to first to preserve order with respect to the original event
-      for( auto iter = std::reverse_iterator(range.second); iter != std::reverse_iterator(range.first); ++iter )
+      for(
+        auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.second);
+        iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.first);
+        ++iter )
       {
         // clone vertex, shift time, insert in map, and add index conversion
         const auto& sourceVertex = iter->second;
