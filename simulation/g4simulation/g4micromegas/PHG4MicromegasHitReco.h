@@ -74,7 +74,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   double m_tmin = 0;
 
   //! timing window (ns)
-  double m_tmax = 0;
+  double m_tmax = 800;
 
   //! number of primary electrons per GeV
   double m_electrons_per_gev = 0;
