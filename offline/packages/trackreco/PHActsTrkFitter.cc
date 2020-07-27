@@ -283,34 +283,21 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   //========  begin temporary kluge because the smoothed momenta are screwed up
   // use first pass filter result for momentum for now
-  int istate = 0;
-  mj.visitBackwards(trackTip, [&](const auto &state) {
-      /// Only fill the track states with non-outlier measurement
-      auto typeFlags = state.typeFlags();
-      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-	{
-	  std::cout << " failed typeFlags: " << typeFlags << std::endl;
-	}
 
-      if (state.hasFiltered())
-	{
-	  if(istate != 0) return true;
-
-	  Acts::BoundParameters parameter(
-					  m_tGeometry->geoContext,
-					  state.filteredCovariance(), state.filtered(),
-					  state.referenceSurface().getSharedPtr());
-
-	  // We take the momentum (only) from the first pass filter results
-	  track->set_px(parameter.momentum()(0));
-	  track->set_py(parameter.momentum()(1));
-	  track->set_pz(parameter.momentum()(2));
-
-	  istate++;
-	}
-      return true;
+  if(mj.getTrackState(trackTip).hasFiltered())
+    {
+      
+      Acts::BoundParameters filteredParams = mj.getTrackState(trackTip).filteredParameters(m_tGeometry->geoContext);
+      track->set_px(filteredParams.momentum()(0));
+      track->set_py(filteredParams.momentum()(1));
+      track->set_pz(filteredParams.momentum()(2));
     }
-    );
+  if(mj.getTrackState(trackTip).hasSmoothed())
+    {
+      Acts::BoundParameters smoothedParams = mj.getTrackState(trackTip).smoothedParameters(m_tGeometry->geoContext);
+      //can get smoothed momentum from this
+    }
+
   //==========  end temporary kluge
 
   auto trajState =
@@ -353,7 +340,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3DzCov = -9999.;
 
   calculateDCA(params, dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
-
+  std::cout<<"smoothed dca: "<<dca3Dxy<<"  "<<dca3Dz<<"  "
+	   <<dca3DxyCov<<"  "<<dca3DzCov<<std::endl;
   // convert from mm to cm
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
@@ -479,7 +467,7 @@ void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param,
 				   float &dca3DxyCov,
 				   float &dca3DzCov)
 {
-
+  std::cout<<"Calculate DCA: "<<param.position().transpose()<<"   "<<param.momentum().transpose()<<std::endl;
   Acts::Vector3D pos = param.position();
   Acts::Vector3D mom = param.momentum();
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
