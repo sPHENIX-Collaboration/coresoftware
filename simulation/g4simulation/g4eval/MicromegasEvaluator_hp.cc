@@ -236,9 +236,6 @@ void MicromegasEvaluator_hp::evaluate_hits()
       TrkrHitSet* hitset = hitset_it->second;
       const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
 
-      // this returns garbage for tpc hitsets
-      const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
-
       // loop over hits
       const auto hit_range = hitset->getHits();
 
