@@ -179,7 +179,7 @@ int PHActsTrkFitter::Process()
       /// Get position, momentum from the Acts output. Update the values of
       /// the proto track
       if(fitOutput.fittedParameters)
-	updateSvtxTrack(trajectory, trackKey);
+	updateSvtxTrack(trajectory, trackKey, track.getVertex());
 
       /// Insert a new entry into the map
       m_actsFitResults->insert(
@@ -252,7 +252,8 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
 }
 
 void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 
-				      const unsigned int trackKey)
+				      const unsigned int trackKey,
+				      Acts::Vector3D vertex)
 {
   const auto &[trackTips, mj] = traj.trajectory();
   /// only one track tip in the track fit Trajectory
@@ -260,7 +261,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
   SvtxTrack *track = trackIter->second;
-
+  
   if(Verbosity() > 2)
     {
       std::cout << "Identify (proto) track before updating with acts results " << std::endl;
@@ -309,7 +310,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_x(params.position()(0) / Acts::UnitConstants::cm);
   track->set_y(params.position()(1) / Acts::UnitConstants::cm);
   track->set_z(params.position()(2) / Acts::UnitConstants::cm);
-
   /*
   // See above: we get these from the first pass filter output instead for now, until the smoothing is fixed 
   track->set_px(params.momentum()(0));
@@ -339,9 +339,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3DxyCov = -9999.;
   float dca3DzCov = -9999.;
 
-  calculateDCA(params, dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
-  std::cout<<"smoothed dca: "<<dca3Dxy<<"  "<<dca3Dz<<"  "
-	   <<dca3DxyCov<<"  "<<dca3DzCov<<std::endl;
+  calculateDCA(params, vertex, 
+	       dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
+ 
   // convert from mm to cm
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
@@ -462,14 +462,18 @@ TrkrDefs::cluskey PHActsTrkFitter::getClusKey(const unsigned int hitID)
 }
     
 void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param,
+				   Acts::Vector3D vertex,
 				   float &dca3Dxy,
 				   float &dca3Dz,
 				   float &dca3DxyCov,
 				   float &dca3DzCov)
 {
-  std::cout<<"Calculate DCA: "<<param.position().transpose()<<"   "<<param.momentum().transpose()<<std::endl;
   Acts::Vector3D pos = param.position();
   Acts::Vector3D mom = param.momentum();
+
+  /// Correct for initial vertex estimation
+  pos -= vertex;
+
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
   if(param.covariance())
     cov = param.covariance().value();

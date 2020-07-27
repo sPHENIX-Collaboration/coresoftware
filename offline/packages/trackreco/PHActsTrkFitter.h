@@ -71,15 +71,20 @@ class PHActsTrkFitter : public PHTrackFitting
 
  private:
 
-  // DCA 
+  /// Calculate the fitted track DCA 
   void calculateDCA(const Acts::BoundParameters param,
+		    Acts::Vector3D vertex,
 		    float &dca3Dxy,
 		    float &dca3Dz,
 		    float &dca3DxyCov,
 		    float &dca3DzCov);
 
-  void fillSvtxTrackStates(const Trajectory traj, const size_t &trackTip, SvtxTrack *svtx_track);
+  /// Reset the SvtxTrack states with the new track fit states
+  void fillSvtxTrackStates(const Trajectory traj, 
+			   const size_t &trackTip,
+			   SvtxTrack *svtx_track);
 
+  /// Get the cluster key for the corresponding hitID from the map 
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   /// Event counter
@@ -92,7 +97,8 @@ class PHActsTrkFitter : public PHTrackFitting
   int createNodes(PHCompositeNode*);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
+		       Acts::Vector3D vertex);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
