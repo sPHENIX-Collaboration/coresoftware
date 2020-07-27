@@ -241,12 +241,14 @@ void SimEvaluator_hp::check_genevent()
   }
   
   // get events
-  for( const auto& [id, phevent]:m_geneventmap->get_map() )
+  
+  for( const auto& pair:m_geneventmap->get_map() )
   {
+    auto id = pair.first;
     std::cout << "SimEvaluator_hp::check_genevent - index: " << id << std::endl;
     
-    // make a deep copy of the gen event and delete, to see if it crashes the writting of the node
-    auto event = phevent->getEvent();
+//     // make a deep copy of the gen event and delete, to see if it crashes the writting of the node
+//     auto event = phevent->getEvent();
     
 //     // replace event to try trigger a crash
 //     auto newevent = new HepMC::GenEvent( *event );
