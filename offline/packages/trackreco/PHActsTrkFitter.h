@@ -72,7 +72,11 @@ class PHActsTrkFitter : public PHTrackFitting
  private:
 
   // DCA 
-  void calculateDCA(const Acts::BoundParameters param);
+  void calculateDCA(const Acts::BoundParameters param,
+		    float &dca3Dxy,
+		    float &dca3Dz,
+		    float &dca3DxyCov,
+		    float &dca3DzCov);
 
   void fillSvtxTrackStates(const Trajectory traj, const size_t &trackTip, SvtxTrack *svtx_track);
 
@@ -110,12 +114,6 @@ class PHActsTrkFitter : public PHTrackFitting
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
 
   int m_nBadFits;
-
-  float m_dca3Dxy;          /// fitted parameter 3D DCA in xy plane
-  float m_dca3Dz;           /// fitted parameter 3D DCA in z plane
-  float m_dca3DxyCov;       /// fitted parameter 3D DCA covariance in xy
-  float m_dca3DzCov;        /// fitted parameter 3D DCA covariance in z
-
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;

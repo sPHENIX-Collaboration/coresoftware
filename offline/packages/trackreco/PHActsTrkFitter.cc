@@ -347,13 +347,18 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	}
     }
 
-  calculateDCA(params);
+  float dca3Dxy = -9999.;
+  float dca3Dz = -9999.;
+  float dca3DxyCov = -9999.;
+  float dca3DzCov = -9999.;
+
+  calculateDCA(params, dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
 
   // convert from mm to cm
-  track->set_dca3d_xy(m_dca3Dxy / Acts::UnitConstants::cm);
-  track->set_dca3d_z(m_dca3Dz / Acts::UnitConstants::cm);
-  track->set_dca3d_xy_error(m_dca3DxyCov / Acts::UnitConstants::cm);
-  track->set_dca3d_z_error(m_dca3DzCov / Acts::UnitConstants::cm);
+  track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
+  track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
+  track->set_dca3d_xy_error(dca3DxyCov / Acts::UnitConstants::cm);
+  track->set_dca3d_z_error(dca3DzCov / Acts::UnitConstants::cm);
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
@@ -468,7 +473,11 @@ TrkrDefs::cluskey PHActsTrkFitter::getClusKey(const unsigned int hitID)
   return clusKey;
 }
     
-void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param)
+void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param,
+				   float &dca3Dxy,
+				   float &dca3Dz,
+				   float &dca3DxyCov,
+				   float &dca3DzCov)
 {
 
   Acts::Vector3D pos = param.position();
@@ -506,10 +515,10 @@ void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param)
   Acts::Vector3D pos_R = rot * pos;
   Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
 
-  m_dca3Dxy = pos_R(0);
-  m_dca3Dz = pos_R(2);
-  m_dca3DxyCov = rotCov(0,0);
-  m_dca3DzCov = rotCov(2,2);
+  dca3Dxy = pos_R(0);
+  dca3Dz = pos_R(2);
+  dca3DxyCov = rotCov(0,0);
+  dca3DzCov = rotCov(2,2);
   
 }
 
