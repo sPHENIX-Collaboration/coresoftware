@@ -57,6 +57,7 @@ class SyncObject: public PHObject
  private: // prevent doc++ from showing ClassDef
   friend class SyncObjectv1;
   friend class Fun4AllDstInputManager;
+  friend class Fun4AllDstPileupInputManager;
   friend class DumpSyncObject;
   friend class SegmentSelect;
 
