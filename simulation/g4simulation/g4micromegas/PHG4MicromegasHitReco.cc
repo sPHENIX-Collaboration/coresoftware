@@ -363,8 +363,9 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 void PHG4MicromegasHitReco::SetDefaultParameters()
 {
   // default timing window (ns)
-  set_default_double_param("micromegas_tmin", -5000 );
-  set_default_double_param("micromegas_tmax", 5000 );
+  /* see https://indico.bnl.gov/event/8548/contributions/37753/attachments/28212/43343/2020_05_Proposal_sPhenixMonitoring_update_19052020.pptx slide 10 */
+  set_default_double_param("micromegas_tmin", 0 );
+  set_default_double_param("micromegas_tmax", 800 );
 
   // gas data from
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
