@@ -64,8 +64,8 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   //!@name event counters
   //@{
   int m_ReadRunTTree = 1;
-  int m_events_total = 0;
-  int m_events_thisfile = 0;
+  int m_ievent_total = 0;
+  int m_ievent_thisfile = 0;
   int m_events_skipped_during_sync = 0;
   int m_events_accepted = 0;
   //@}

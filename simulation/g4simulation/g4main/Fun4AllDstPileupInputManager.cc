@@ -195,7 +195,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   if (m_IManager->isFunctional())
   {
     IsOpen(1);
-    m_events_thisfile = 0;
+    m_ievent_thisfile = 0;
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
@@ -247,30 +247,41 @@ readagain:
     else return -1;
   }
 
-  m_events_total += ncount;
-  m_events_thisfile += ncount;
-
+  m_ievent_total += ncount;
+  m_ievent_thisfile += ncount;
+  
+  // check events consistency
+  if( m_ievent_thisfile != static_cast<int>( m_IManager->getEventNumber() ) )
+  {
+    std::cout << PHWHERE
+      << " inconsistent event counters between inputmanager and ionode manager: " 
+      << " m_ievent_thisfile: " << m_ievent_thisfile
+      << " m_IManager->getEventNumber(): " << m_IManager->getEventNumber()
+      << std::endl;
+    gSystem->Exit(1);    
+  }
+  
   // get bunchCrossing  associated to this event
-  const size_t ievent = m_events_total + m_event_offset - 1;
+  const size_t ievent = m_ievent_total + m_event_offset - 1;
   if( ievent >= m_bunchCrossings.size() ) return Fun4AllReturnCodes::ABORTRUN;
 
   const auto bunchCrossing = m_bunchCrossings[ievent];
   if( m_events_accepted > 0 && bunchCrossing == m_last_bunchCrossing )
   {
     // reject if event belongs to the same bunch crossing as the last accepted event
-    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_events_thisfile - 1 << std::endl;
+    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
     goto readagain;
   }
 
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
-    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_events_thisfile - 1 << std::endl;
+    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
     goto readagain;
   }
 
   // load relevant DST nodes to internal pointers
-  std::cout << "Fun4AllDstPileupInputManager::run - loaded event " << m_events_thisfile - 1 << std::endl;
+  std::cout << "Fun4AllDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
 
   // store bunch crossing both inside the event header and as the last bunch crossing
   load_nodes(m_dstNode);
@@ -286,7 +297,7 @@ readagain:
     if( delta_t < m_tmin ) break;
 
     // get relevant event in file index
-    const int ievent_thisfile = m_events_thisfile+ieventpast-ievent-1;
+    const int ievent_thisfile = m_ievent_thisfile+ieventpast-ievent-1;
 
     // try read
     if( ievent_thisfile < 0 || !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
@@ -308,7 +319,7 @@ readagain:
     if( delta_t > m_tmax ) break;
 
     // get relevant event in file index
-    const int ievent_thisfile = m_events_thisfile+ieventfuture-ievent-1;
+    const int ievent_thisfile = m_ievent_thisfile+ieventfuture-ievent-1;
 
     // try read
     if( !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
@@ -588,7 +599,9 @@ readnextsync:
   }
   if (!readfull)
   {
-    EventOnDst++;
+    ++EventOnDst;
+    ++m_ievent_thisfile;
+    ++m_ievent_total;
     m_IManager->setEventNumber(EventOnDst);  // update event number in phool io manager
   }
   else
@@ -721,6 +734,8 @@ int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
   {
     unsigned EventOnDst = m_IManager->getEventNumber();
     EventOnDst -= static_cast<unsigned>(i);
+    m_ievent_thisfile -= i;
+    m_ievent_total -= i;
     m_IManager->setEventNumber(EventOnDst);
     return 0;
   }
