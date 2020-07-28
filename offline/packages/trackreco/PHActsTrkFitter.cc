@@ -72,10 +72,14 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  auto logger = Acts::Logging::INFO;
+  if(Verbosity() > 2)
+    logger = Acts::Logging::VERBOSE;
+
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
-	       Acts::Logging::INFO);
+	       logger);
 
   if(m_timeAnalysis)
     {
@@ -155,13 +159,11 @@ int PHActsTrkFitter::Process()
       std::vector<size_t> trackTips;
       trackTips.push_back(fitOutput.trackTip);
       FW::IndexedParams indexedParams;
-
       if (fitOutput.fittedParameters)
       {
-
 	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
 
-        if (Verbosity() > 10)
+        if (Verbosity() > 2)
         {
 	  const auto& params = fitOutput.fittedParameters.value();
           std::cout << "Fitted parameters for track" << std::endl;
@@ -292,6 +294,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       track->set_px(filteredParams.momentum()(0));
       track->set_py(filteredParams.momentum()(1));
       track->set_pz(filteredParams.momentum()(2));
+  
     }
   if(mj.getTrackState(trackTip).hasSmoothed())
     {
