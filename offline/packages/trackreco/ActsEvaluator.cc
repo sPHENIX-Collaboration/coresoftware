@@ -114,9 +114,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     const unsigned int vertexId = track->get_vertex_id();
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     
-    Acts::Vector3D vertex(svtxVertex->get_x(),
-			  svtxVertex->get_y(),
-			  svtxVertex->get_z());
+    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
+			  svtxVertex->get_y() * Acts::UnitConstants::cm,
+			  svtxVertex->get_z() * Acts::UnitConstants::cm);
 
     if(Verbosity() > 1)
       {
