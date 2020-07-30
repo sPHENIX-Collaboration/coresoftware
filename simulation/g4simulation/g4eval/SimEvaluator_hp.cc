@@ -226,13 +226,9 @@ void SimEvaluator_hp::fill_g4particle_map()
       const auto map_iter = m_g4particle_map.lower_bound( iter->second->get_trkid() );
       if( map_iter != m_g4particle_map.end() && map_iter->first == iter->second->get_trkid() )
       {
-
         map_iter->second |= (1LL<<iter->second->get_layer());
-
       } else {
-
         m_g4particle_map.insert( map_iter, std::make_pair( iter->second->get_trkid(), 1LL<<iter->second->get_layer() ) );
-
       }
     }
   }
@@ -260,7 +256,7 @@ void SimEvaluator_hp::fill_event()
   m_container->clearEventList();
 
   // create event and store pileup information
-  m_container->addEvent( create_event( m_geneventmap ) );
+  m_container->addEvent(create_event(m_geneventmap));
 
 }
 
@@ -286,9 +282,9 @@ void SimEvaluator_hp::fill_vertices()
     auto vertex = iter->second;
     if( vertex )
     {
-      auto vertexStruct = create_vertex( vertex );
-      vertexStruct._is_main_vertex = ( vertex->get_id() == main_vertex_id );
-      m_container->addVertex( vertexStruct );
+      auto vertexStruct = create_vertex(vertex);
+      vertexStruct._is_main_vertex = (vertex->get_id() == main_vertex_id);
+      m_container->addVertex(vertexStruct);
     }
 
   }
