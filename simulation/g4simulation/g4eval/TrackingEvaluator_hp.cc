@@ -16,12 +16,16 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <algorithm>
 #include <bitset>
+#include <cassert>
 #include <iostream>
 #include <numeric>
 
@@ -432,6 +436,9 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   // local container
   m_container = findNode::getClass<Container>(topNode, "TrackingEvaluator_hp::Container");
 
+  // hitset container
+  m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
   // g4hits
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
@@ -449,27 +456,52 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 void TrackingEvaluator_hp::evaluate_event()
 {
 
-  if( !( m_cluster_map && m_container ) ) return;
+  if(!m_container) return;
 
   // create event struct
   EventStruct event;
 
-  auto range = m_cluster_map->getClusters();
-  for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+  if( m_hitsetcontainer )
   {
-    const auto& key = clusterIter->first;
-    const auto trkrid = TrkrDefs::getTrkrId(key);
-    switch( trkrid )
+    // fill hit related information
+    const auto range = m_hitsetcontainer->getHitSets();
+    for( auto iter = range.first; iter!=range.second; ++iter )
     {
-      case TrkrDefs::mvtxId: ++event._nclusters_mvtx; break;
-      case TrkrDefs::inttId: ++event._nclusters_intt; break;
-      case TrkrDefs::tpcId: ++event._nclusters_tpc; break;
-      case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
+      // loop over hits
+      const auto hit_range = iter->second->getHits();
+      for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
+      {
+        const size_t layer = static_cast<size_t>(TrkrDefs::getLayer(hit_it->first));
+        assert(layer<EventStruct::max_layer);
+        ++event._nhits[layer];
+      }
+    }
+  }
+
+  if(m_cluster_map)
+  {
+    // fill cluster related information
+    const auto range = m_cluster_map->getClusters();
+    for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+    {
+      const auto& key = clusterIter->first;
+      const auto trkrid = TrkrDefs::getTrkrId(key);
+      switch( trkrid )
+      {
+        case TrkrDefs::mvtxId: ++event._nclusters_mvtx; break;
+        case TrkrDefs::inttId: ++event._nclusters_intt; break;
+        case TrkrDefs::tpcId: ++event._nclusters_tpc; break;
+        case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
+      }
+
+      const size_t layer = static_cast<size_t>(TrkrDefs::getLayer(key));
+      assert(layer<EventStruct::max_layer);
+      ++event._nclusters[layer];
     }
   }
 
   // store
-  m_container->addEvent(std::move(event));
+  m_container->addEvent(event);
 
 }
 
@@ -590,21 +622,13 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
   m_container->clearTrackPairs();
   for( auto firstIter = m_track_map->begin(); firstIter != m_track_map->end(); ++firstIter )
   {
-
     const auto first = firstIter->second;
     for( auto  secondIter = m_track_map->begin(); secondIter != firstIter; ++secondIter )
     {
-
       const auto second = secondIter->second;
-      auto trackpair_struct = create_track_pair( first, second );
-
-      // add to array
-      m_container->addTrackPair( trackpair_struct );
-
+      m_container->addTrackPair( create_track_pair( first, second ) );
     }
-
   }
-
 }
 
 //_____________________________________________________________________
@@ -652,7 +676,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
     << std::endl;
 
   // get associated hits
-  if( false ) 
+  if( false )
   {
 
     // loop over hits associated to clusters

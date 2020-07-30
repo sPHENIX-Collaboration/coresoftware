@@ -19,6 +19,7 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
 class TrackingEvaluator_hp : public SubsysReco
@@ -43,11 +44,11 @@ class TrackingEvaluator_hp : public SubsysReco
   // event information
   class EventStruct
   {
-    
+
     public:
     using List = std::vector<EventStruct>;
-    static constexpr int max_layer = 64;
-    
+    static constexpr size_t max_layer = 57;
+
     // constructor
     EventStruct()
     {
@@ -64,27 +65,27 @@ class TrackingEvaluator_hp : public SubsysReco
     int _nclusters_tpc = 0;
     int _nclusters_micromegas = 0;
   };
-  
+
   // cluster information to be stored in tree
   class ClusterStruct
   {
     public:
-    
+
     using List = std::vector<ClusterStruct>;
-    
+
     /// cluster layer
     unsigned int _layer = 0;
-    
+
     /// number of hits belonging to the cluster
     unsigned int _size = 0;
-    
+
     /// number of g4hits associated to this cluster
     unsigned int _truth_size = 0;
-    
+
     /// number of hits along phi and along z
     int _phi_size = 0;
     int _z_size = 0;
-    
+
     ///@name cluster position
     //@{
     float _x = 0;
@@ -95,7 +96,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _phi_error = 0;
     float _z_error = 0;
     //@}
-    
+
     ///@name track position at cluster
     //@{
     float _trk_x = 0;
@@ -103,19 +104,19 @@ class TrackingEvaluator_hp : public SubsysReco
     float _trk_z = 0;
     float _trk_r = 0;
     float _trk_phi = 0;
-    
+
     /// track errors
     float _trk_phi_error = 0;
     float _trk_z_error = 0;
-    
+
     /// track inclination at cluster in r,phi plane
     float _trk_alpha = 0;
-    
+
     /// track inclination at cluster in r,z plane
     float _trk_beta = 0;
-    
+
     //@}
-    
+
     ///@name truth position
     //@{
     float _truth_x = 0;
@@ -123,21 +124,21 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_z = 0;
     float _truth_r = 0;
     float _truth_phi = 0;
-    
+
     /// track inclination at cluster in r,phi plane
     float _truth_alpha = 0;
-    
+
     /// track inclination at cluster in r,z plane
     float _truth_beta = 0;
     //@}
-    
+
   };
-  
+
   // track information to be stored in tree
   class TrackStruct
   {
     public:
-    
+
     // constructor
     explicit TrackStruct()
     {
@@ -145,21 +146,21 @@ class TrackingEvaluator_hp : public SubsysReco
       static constexpr int max_layers = 60;
       _clusters.reserve( max_layers );
     }
-    
+
     using List = std::vector<TrackStruct>;
-    
+
     int _charge = 0;
     int _nclusters = 0;
     int64_t _mask = 0;
-    
+
     int _nclusters_mvtx = 0;
     int _nclusters_intt = 0;
     int _nclusters_tpc = 0;
     int _nclusters_micromegas = 0;
-    
+
     float _chisquare = 0;
     int _ndf = 0;
-    
+
     ///@name position
     //@{
     float _x = 0;
@@ -168,7 +169,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _r = 0;
     float _phi = 0;
     //@}
-    
+
     ///@name momentum
     //@{
     float _px = 0;
@@ -178,16 +179,16 @@ class TrackingEvaluator_hp : public SubsysReco
     float _p = 0;
     float _eta = 0;
     //@}
-    
+
     ///@name truth momentum
     //@{
     int _pid = 0;
     int _embed = 0;
     bool _is_primary = false;
-    
+
     // number of g4hits from this MC track that match
     int _contributors = 0;
-    
+
     float _truth_px = 0;
     float _truth_py = 0;
     float _truth_pz = 0;
@@ -195,20 +196,20 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_p = 0;
     float _truth_eta = 0;
     //@}
-    
+
     // associate clusters
     ClusterStruct::List _clusters;
   };
-  
+
   // pair information to be stored in tree
   class TrackPairStruct
   {
     public:
-    
+
     using List = std::vector<TrackPairStruct>;
-    
+
     int _charge = 0;
-    
+
     ///@name momentum
     //@{
     float _px = 0;
@@ -219,12 +220,12 @@ class TrackingEvaluator_hp : public SubsysReco
     float _e = 0;
     float _m = 0;
     float _eta = 0;
-    
+
     std::array<float,2> _trk_pt = {{0,0}};
-    
+
     //@}
   };
-  
+
   /// track container
   class Container: public PHObject
   {
@@ -367,17 +368,30 @@ class TrackingEvaluator_hp : public SubsysReco
   // flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks | EvalTrackPairs;
 
-  // nodes
-  SvtxTrackMap* m_track_map = nullptr;
+  //! hits
+  TrkrHitSetContainer* m_hitsetcontainer = nullptr;
+
+  //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! cluster to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+
+  //! hit to truth association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
 
+  //! tracks
+  SvtxTrackMap* m_track_map = nullptr;
+
+  //!@name geant4 hits
+  //@{
   PHG4HitContainer* m_g4hits_tpc = nullptr;
   PHG4HitContainer* m_g4hits_intt = nullptr;
   PHG4HitContainer* m_g4hits_mvtx = nullptr;
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
+  //@}
 
+  //! truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
   // map cluster keys to g4hits
