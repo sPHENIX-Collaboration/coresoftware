@@ -42,7 +42,10 @@ class SimEvaluator_hp : public SubsysReco
     using List = std::vector<EventStruct>;
     
     //! impact parameter, when relevant
-    double _b = 0;
+    float _bimp = 0;
+    
+    //! reaction plane angle, when relevant
+    float _rplane = 0;
     
     //!@name used keep track of the number of pileup events
     //@{

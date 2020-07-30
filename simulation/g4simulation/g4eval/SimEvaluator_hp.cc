@@ -42,33 +42,41 @@ namespace
   { return particle->get_parent_id() == 0; }
 
   //_____________________________________________________________________
-  SimEvaluator_hp::EventStruct create_event(PHG4TruthInfoContainer* container)
+  SimEvaluator_hp::EventStruct create_event(PHHepMCGenEventMap* eventmap)
   {
     SimEvaluator_hp::EventStruct eventStruct;
-    if( container ) 
+    if( eventmap )
     {
-      std::set<int> flags;
-      const auto range = container->GetEmbeddedTrkIds();
-      for( auto iter = range.first; iter != range.second; ++iter )
-      { flags.insert( iter->second ); }
+      // keep track of the main underlying event, associated to key 0
+      PHHepMCGenEvent* mainevent = nullptr;
 
-      // print
-      std::cout << "::create_event - flags: ";
-      for( const auto& flag:flags ) std::cout << flag << " ";
-      std::cout << std::endl;
-
-      for( const auto& flag:flags )
+      // check event keys
+      for( const auto& pair:eventmap->get_map() )
       {
+        std::cout << "SimEvaluator_hp::create_event - adding event with key: " << pair.first << std::endl;
         ++eventStruct._nevt;
-        if( flag < 0 ) ++eventStruct._nevt_bg;
+        if( pair.first < 0 ) ++eventStruct._nevt_bg;
         else ++eventStruct._nevt_active;
+
+        if( pair.first == 0 ) mainevent = pair.second;
+      }
+
+      // store centrality and reaction plane angle
+      if( mainevent )
+      {
+        auto hi = mainevent->getEvent()->heavy_ion();
+        if( hi )
+        {
+          eventStruct._bimp = hi->impact_parameter();
+          eventStruct._rplane = hi->event_plane_angle();
+        }
+      } else {
+        std::cout << "SimEvaluator_hp::create_event - no event found for key 0" << std::endl;
       }
     }
-    
     return eventStruct;
-    
   }
-  
+
   //_____________________________________________________________________
   /// create track struct from struct from svx track
   SimEvaluator_hp::VertexStruct create_vertex( PHG4VtxPoint* vertex )
@@ -162,7 +170,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
 
   // for debugging
   check_genevent();
-  
+
   fill_event();
   fill_vertices();
   fill_g4particle_map();
@@ -233,38 +241,16 @@ void SimEvaluator_hp::fill_g4particle_map()
 
 //_____________________________________________________________________
 void SimEvaluator_hp::check_genevent()
-{
-  if( !m_geneventmap ) 
-  {
-    std::cout << "SimEvaluator_hp::check_genevent - unable to load PHHepMCGenEventMap" << std::endl;
-    return;
-  }
-  
-  // get events
-  
-  for( const auto& pair:m_geneventmap->get_map() )
-  {
-    auto id = pair.first;
-    std::cout << "SimEvaluator_hp::check_genevent - index: " << id << std::endl;
-    
-//     // make a deep copy of the gen event and delete, to see if it crashes the writting of the node
-//     auto event = phevent->getEvent();
-    
-//     // replace event to try trigger a crash
-//     auto newevent = new HepMC::GenEvent( *event );
-//     phevent->addEvent( newevent );
-  }
-  
-}
+{}
 
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
-  
+
   if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
   else  std::cout << "SimEvaluator_hp::fill_event - EventHeader not found" << std::endl;
 
-  if( !( m_container && m_g4truthinfo ) )
+  if( !( m_container && m_geneventmap ) )
   {
     std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
     return;
@@ -272,7 +258,9 @@ void SimEvaluator_hp::fill_event()
 
   // clear vertices from previous event
   m_container->clearEventList();
-  m_container->addEvent( create_event( m_g4truthinfo ) );
+
+  // create event and store pileup information
+  m_container->addEvent( create_event( m_geneventmap ) );
 
 }
 
