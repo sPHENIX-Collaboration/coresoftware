@@ -71,7 +71,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   std::string m_detector;
 
   //! timing window (ns)
-  double m_tmin = 0;
+  double m_tmin = -20;
 
   //! timing window (ns)
   double m_tmax = 800;
