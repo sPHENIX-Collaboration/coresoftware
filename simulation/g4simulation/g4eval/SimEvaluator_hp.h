@@ -41,9 +41,15 @@ class SimEvaluator_hp : public SubsysReco
     
     using List = std::vector<EventStruct>;
     
+    //! impact parameter, when relevant
+    double _b = 0;
+    
+    //!@name used keep track of the number of pileup events
+    //@{
     int _nevt = 0;
     int _nevt_active = 0;
     int _nevt_bg = 0;
+    //@}
   };
   
   // vertex information
