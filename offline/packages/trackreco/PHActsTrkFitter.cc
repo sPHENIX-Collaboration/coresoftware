@@ -284,26 +284,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   out.set_z(0.0);
   track->insert_state(&out);   
 
-  //========  begin temporary kluge because the smoothed momenta are screwed up
-  // use first pass filter result for momentum for now
-
-  if(mj.getTrackState(trackTip).hasFiltered())
-    {
-      
-      Acts::BoundParameters filteredParams = mj.getTrackState(trackTip).filteredParameters(m_tGeometry->geoContext);
-      track->set_px(filteredParams.momentum()(0));
-      track->set_py(filteredParams.momentum()(1));
-      track->set_pz(filteredParams.momentum()(2));
-  
-    }
-  if(mj.getTrackState(trackTip).hasSmoothed())
-    {
-      Acts::BoundParameters smoothedParams = mj.getTrackState(trackTip).smoothedParameters(m_tGeometry->geoContext);
-      //can get smoothed momentum from this
-    }
-
-  //==========  end temporary kluge
-
   auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
  
@@ -313,12 +293,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_x(params.position()(0) / Acts::UnitConstants::cm);
   track->set_y(params.position()(1) / Acts::UnitConstants::cm);
   track->set_z(params.position()(2) / Acts::UnitConstants::cm);
-  /*
-  // See above: we get these from the first pass filter output instead for now, until the smoothing is fixed 
+
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
-  */
+  
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
@@ -379,7 +358,10 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 	}
       
       auto meas = std::get<Measurement>(*state.uncalibrated());
-      
+
+      /// Get the surface, if we need geometry information
+      ///auto stateSurface = meas.referenceSurface();
+
       /// Get local position
       Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
 			   meas.parameters()[Acts::ParDef::eLOC_1]);
@@ -391,7 +373,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
 					    local, mom, global);
       
-      float pathlength = sqrt(global.x()*global.x() + global.y()*global.y());  // use measurement radius for now, how to get pathlength from Acts?
+      float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
       SvtxTrackState_v1 out( pathlength );
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
@@ -400,8 +382,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       // I assume we want the smoothed for the final track states?      
       if (state.hasSmoothed())
 	{
-	  Acts::BoundParameters parameter(
-					  m_tGeometry->geoContext,
+	  Acts::BoundParameters parameter(m_tGeometry->geoContext,
 					  state.smoothedCovariance(), state.smoothed(),
 					  state.referenceSurface().getSharedPtr());
 	  
@@ -409,13 +390,17 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 	  out.set_py(parameter.momentum().y());
 	  out.set_pz(parameter.momentum().z());
 
-	  /// Get measurement covariance
-	  // auto cov = meas.covariance();      
-	  // set covariance to zero for now until transform method is available
+	  /// Get measurement covariance    
+	  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+	  rotater->setVerbosity(Verbosity());
+
+	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
 	  for (int i = 0; i < 6; i++)
 	    {
-	      for (int j = i; j < 6; j++)
-		{ out.set_error(i, j, 0.0); }
+	      for (int j = 0; j < 6; j++)
+		{ 
+		  out.set_error(i, j, globalCov(i,j)); 
+		}
 	    }
 	  	  
 	  const unsigned int hitId = state.uncalibrated().hitID();
@@ -429,8 +414,8 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 			<< global.z() /  Acts::UnitConstants::cm 
 			<< " pathlength " << pathlength
 			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
-			<< " cluskey " << cluskey
-			<< std::endl; 
+			<< " cluskey " << cluskey << std::endl
+			<< "covariance " << globalCov << std::endl; 
 	    }
 	  
 	  svtx_track->insert_state(&out);      
