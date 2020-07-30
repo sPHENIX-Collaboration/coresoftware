@@ -59,6 +59,7 @@ libg4testbench_la_LIBADD = \
   -lphgeom \
   -lphg4gdml \
   -lphhepmc \
+  -lphparameter \
   -lvararray
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
@@ -116,6 +117,7 @@ nobase_dist_pcm_DATA = \
 else
   ROOT5HITDICTS = PHG4HitDefs_Dict.cc
   ROOT5TBDICTS = \
+    Fun4AllDstPileupInputManager_Dict.cc \
     HepMCNodeReader_Dict.cc \
     PHG4ConsistencyCheck_Dict.cc \
     PHG4HeadReco_Dict.cc \
@@ -135,6 +137,7 @@ else
     PHG4Subsystem_Dict.cc \
     PHG4TruthSubsystem_Dict.cc \
     PHG4Utils_Dict.cc \
+    PHG4VertexSelection_Dict.cc \
     ReadEICFiles_Dict.cc \
     PHG4HitReadBack_Dict.cc
 endif
@@ -165,6 +168,7 @@ libg4testbench_la_SOURCES = \
   Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
+  Fun4AllDstPileupInputManager.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -202,6 +206,7 @@ libg4testbench_la_SOURCES = \
   PHG4TruthTrackingAction.cc \
   PHG4UIsession.cc \
   PHG4Utils.cc \
+  PHG4VertexSelection.cc \
   ReadEICFiles.cc
 
 
@@ -210,6 +215,7 @@ libg4testbench_la_SOURCES = \
 
 pkginclude_HEADERS = \
   EicEventHeader.h \
+  Fun4AllDstPileupInputManager.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
@@ -227,6 +233,7 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4Particlev3.h \
   PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
   PHG4ParticleGeneratorVectorMeson.h \
@@ -247,6 +254,7 @@ pkginclude_HEADERS = \
   PHG4TruthSubsystem.h \
   PHG4Units.h \
   PHG4Utils.h \
+  PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
   ReadEICFiles.h

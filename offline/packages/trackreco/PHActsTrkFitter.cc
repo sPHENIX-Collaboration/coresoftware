@@ -122,11 +122,13 @@ int PHActsTrkFitter::Process()
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
 		  << "momentum: " << trackSeed.momentum() << std::endl
-		  << "charge : "<<trackSeed.charge()
+		  << "charge : "<<trackSeed.charge() << std::endl
 		  << "initial vertex : "<<track.getVertex()
 		  << " corresponding to SvtxTrack key "<< trackKey
 		  << std::endl;
-
+	std::cout << "proto track covariance " << std::endl
+		  << trackSeed.covariance().value() << std::endl;
+     
       }
 
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
