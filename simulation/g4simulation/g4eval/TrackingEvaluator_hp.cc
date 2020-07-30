@@ -467,14 +467,11 @@ void TrackingEvaluator_hp::evaluate_event()
     const auto range = m_hitsetcontainer->getHitSets();
     for( auto iter = range.first; iter!=range.second; ++iter )
     {
-      // loop over hits
+
+      const auto layer = TrkrDefs::getLayer(iter->first);
+      assert(layer<EventStruct::max_layer);
       const auto hit_range = iter->second->getHits();
-      for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
-      {
-        const size_t layer = static_cast<size_t>(TrkrDefs::getLayer(hit_it->first));
-        assert(layer<EventStruct::max_layer);
-        ++event._nhits[layer];
-      }
+      event._nhits[layer] += std::distance( hit_range.first, hit_range.second );
     }
   }
 
@@ -494,7 +491,7 @@ void TrackingEvaluator_hp::evaluate_event()
         case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
       }
 
-      const size_t layer = static_cast<size_t>(TrkrDefs::getLayer(key));
+      const int layer = static_cast<int>(TrkrDefs::getLayer(key));
       assert(layer<EventStruct::max_layer);
       ++event._nclusters[layer];
     }
