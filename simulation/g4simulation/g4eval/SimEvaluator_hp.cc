@@ -69,6 +69,9 @@ namespace
         {
           eventStruct._bimp = hi->impact_parameter();
           eventStruct._rplane = hi->event_plane_angle();
+          std::cout << "SimEvaluator_hp::create_event - impact parameter: " << eventStruct._bimp << std::endl;
+        } else {
+          std::cout << "SimEvaluator_hp::create_event - unable to load heavy ion data" << std::endl;
         }
       } else {
         std::cout << "SimEvaluator_hp::create_event - no event found for key 0" << std::endl;
@@ -220,7 +223,6 @@ void SimEvaluator_hp::fill_g4particle_map()
 
     // loop over hits
     const auto range = container->getHits();
-    std::cout << "SimEvaluator_hp::fill_g4particle_map - counts: " << std::distance( range.first, range.second ) << std::endl;
     for( auto iter = range.first; iter != range.second; ++iter )
     {
       const auto map_iter = m_g4particle_map.lower_bound( iter->second->get_trkid() );
@@ -243,21 +245,15 @@ void SimEvaluator_hp::check_genevent()
 void SimEvaluator_hp::fill_event()
 {
 
-  if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
-  else  std::cout << "SimEvaluator_hp::fill_event - EventHeader not found" << std::endl;
-
-  if( !( m_container && m_geneventmap ) )
-  {
-    std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
-    return;
-  }
+  // // print bunchcrossing id from event header
+  // if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
+  if( !( m_container && m_geneventmap ) ) return;;
 
   // clear vertices from previous event
   m_container->clearEventList();
 
   // create event and store pileup information
   m_container->addEvent(create_event(m_geneventmap));
-
 }
 
 //_____________________________________________________________________
