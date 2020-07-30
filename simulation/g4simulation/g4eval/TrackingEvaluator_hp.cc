@@ -124,9 +124,9 @@ namespace
   { return mask & (1LL<<layer); }
 
   /// create track struct from struct from svx track
-  TrackStruct create_track( SvtxTrack* track )
+  TrackingEvaluator_hp::TrackStruct create_track( SvtxTrack* track )
   {
-    TrackStruct trackStruct;
+    TrackingEvaluator_hp::TrackStruct trackStruct;
 
     trackStruct._charge = track->get_charge();
     trackStruct._nclusters = track->size_cluster_keys();
@@ -156,9 +156,9 @@ namespace
   }
 
   /// create track struct from struct from svx track
-  TrackPairStruct create_track_pair( SvtxTrack* first, SvtxTrack* second )
+  TrackingEvaluator_hp::TrackPairStruct create_track_pair( SvtxTrack* first, SvtxTrack* second )
   {
-    TrackPairStruct trackpair_struct;
+    TrackingEvaluator_hp::TrackPairStruct trackpair_struct;
 
     trackpair_struct._charge = first->get_charge() + second->get_charge();
     trackpair_struct._px = first->get_px() + second->get_px();
@@ -182,21 +182,15 @@ namespace
   }
 
   /// create cluster struct from svx cluster
-  ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
+  TrackingEvaluator_hp::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
   {
-    ClusterStruct cluster_struct;
+    TrackingEvaluator_hp::ClusterStruct cluster_struct;
     cluster_struct._layer = TrkrDefs::getLayer(key);
     cluster_struct._x = cluster->getX();
     cluster_struct._y = cluster->getY();
     cluster_struct._z = cluster->getZ();
     cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
     cluster_struct._phi = get_phi( cluster_struct._x, cluster_struct._y );
-
-//     // for mvtx we add offset on the cluster radius to fix pulls vs z
-//     static constexpr std::array<float,3> roffset = {{ -5.9e-4, -5.9e-4, -5.7e-4 }};
-//     if( cluster_struct._layer >= 0 && cluster_struct._layer < 3 )
-//     { cluster_struct._r += roffset[cluster_struct._layer]; }
-
     cluster_struct._phi_error = cluster->getPhiError();
     cluster_struct._z_error = cluster->getZError();
 
@@ -204,9 +198,8 @@ namespace
   }
 
   /// add track information
-  void add_trk_information( ClusterStruct& cluster, SvtxTrackState* state )
+  void add_trk_information( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state )
   {
-
     // need to extrapolate to the right r
     const auto trk_r = get_r( state->get_x(), state->get_y() );
     const auto dr = cluster._r - trk_r;
@@ -235,11 +228,10 @@ namespace
     cluster._trk_beta = std::atan2( trk_pz, trk_pr );
     cluster._trk_phi_error = state->get_phi_error();
     cluster._trk_z_error = state->get_z_error();
-
   }
 
   /// number of hits associated to cluster
-  void add_cluster_size( ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
+  void add_cluster_size( TrackingEvaluator_hp::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   {
     if( !cluster_hit_map ) return;
     const auto range = cluster_hit_map->getHits(clus_key);
@@ -294,7 +286,7 @@ namespace
   }
 
   // add truth information
-  void add_truth_information( ClusterStruct& cluster, std::set<PHG4Hit*> hits )
+  void add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits )
   {
     const auto rextrap = cluster._r;
     cluster._truth_size = hits.size();
@@ -320,7 +312,7 @@ namespace
   }
 
   // add truth information
-  void add_truth_information( TrackStruct& track, PHG4Particle* particle )
+  void add_truth_information( TrackingEvaluator_hp::TrackStruct& track, PHG4Particle* particle )
   {
     if( particle )
     {
@@ -336,7 +328,7 @@ namespace
   }
 
   // print to stream
-  std::ostream& operator << (std::ostream& out, const ClusterStruct& cluster )
+  std::ostream& operator << (std::ostream& out, const TrackingEvaluator_hp::ClusterStruct& cluster )
   {
     out << "ClusterStruct" << std::endl;
     out << "  cluster: (" << cluster._x << "," << cluster._y << "," << cluster._z << ")" << std::endl;
