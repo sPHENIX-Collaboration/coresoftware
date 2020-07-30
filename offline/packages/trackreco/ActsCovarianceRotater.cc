@@ -12,7 +12,6 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
       for(int j = 0; j < 6; ++j)
 	{
 	  svtxCovariance(i,j) = track->get_error(i,j);
-	  
 	  /// Convert Svtx to mm and GeV units as Acts expects
 	  if(i < 3 && j < 3)
 	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
@@ -57,27 +56,25 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
   /// Position rotation to Acts loc0 and loc1, which are the local points
   /// on a surface centered at the (x,y,z) global position with normal
   /// vector in the direction of the unit momentum vector
-  rotation(0,0) = -posSinPhi;
-  rotation(0,1) = posCosPhi;
-  rotation(1,0) = -posCosPhi * posCosTheta;
-  rotation(1,1) = -posSinPhi * posCosTheta;
-  rotation(1,2) = posSinTheta;
+  rotation(0,0) = - posSinPhi;
+  rotation(0,1) =   posCosPhi;
+  rotation(1,0) =   posCosPhi * posCosTheta;
+  rotation(1,1) = - posSinPhi * posCosTheta;
+  rotation(1,2) = - posSinTheta;
 
   // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p * sinPhi * sinTheta;
-  rotation(2, 4) =  p * cosPhi * sinTheta;
-  rotation(3, 3) =  p * cosPhi * cosTheta;
-  rotation(3, 4) =  p * sinPhi * cosTheta;
-  rotation(3, 5) = -p * sinTheta;
-  
+  rotation(2, 3) = - p * sinPhi * sinTheta;
+  rotation(2, 4) =   p * cosPhi * sinTheta;
+  rotation(3, 3) =   p * cosPhi * cosTheta;
+  rotation(3, 4) =   p * sinPhi * cosTheta;
+  rotation(3, 5) = - p * sinTheta;
+
   ///q/p rotaton
-  // d(q/p)/dp_i = pq * p_i / p^(3/2)
-  rotation(4,3) = -charge * px / pow(p,1.5);
-  rotation(4,4) = -charge * py / pow(p,1.5);
-  rotation(4,5) = -charge * pz / pow(p,1.5);
+  rotation(4,3) = -charge * px / pow(p,0.5);
+  rotation(4,4) = -charge * py / pow(p,0.5);
+  rotation(4,5) = -charge * pz / pow(p,0.5);
 
   /// time is left as 0
-  printMatrix("Unit-ed svtxCov is : " , svtxCovariance);
   printMatrix("rotation is : ",rotation);
   Acts::BoundSymMatrix matrix = rotation * svtxCovariance * rotation.transpose();
   printMatrix("Rotated is : ",matrix);
@@ -143,9 +140,9 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
   rotation(3, 5) = -p * sinTheta;
   
   ///q/p rotaton
-  rotation(4,3) = -charge * px / pow(p,1.5);
-  rotation(4,4) = -charge * py / pow(p,1.5);
-  rotation(4,5) = -charge * pz / pow(p,1.5);
+  rotation(4,3) = -charge * px / pow(p,0.5);
+  rotation(4,4) = -charge * py / pow(p,0.5);
+  rotation(4,5) = -charge * pz / pow(p,0.5);
 
   printMatrix("Rotating back to global with : ", rotation.transpose());
 
