@@ -225,15 +225,15 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
     auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
     assert( layergeom );
 
-    /* 
-     * get the radius of the detector mesh. It depends on the drift direction 
+    /*
+     * get the radius of the detector mesh. It depends on the drift direction
      * it is used to calculate the drift distance of the primary electrons, and the
      * corresponding transverse diffusion
      */
     const auto mesh_radius = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
-      (layergeom->get_radius() + layergeom->get_thickness()/2): 
+      (layergeom->get_radius() + layergeom->get_thickness()/2):
       (layergeom->get_radius() - layergeom->get_thickness()/2);
-        
+
     // get corresponding hits
     const PHG4HitContainer::ConstRange g4hit_range = g4hitcontainer->getHits(layer);
 
@@ -279,7 +279,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         // put the electron at a random position along the g4hit path
         const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
         auto world =  world_in*t + world_out*(1.0-t);
-        
+
         if( m_diffusion_trans > 0 )
         {
           // add transeverse diffusion
@@ -289,7 +289,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
           const double drift_distance = std::abs(radius - mesh_radius);
           const double diffusion = gsl_ran_gaussian(m_rng.get(), m_diffusion_trans*std::sqrt(drift_distance));
           const double diffusion_angle = gsl_ran_flat(m_rng.get(), -M_PI, M_PI);
-                    
+
           /*
            * diffusion happens in the phi,z plane (plane perpendicular to the radius direction)
            * with a magnitude 'diffusion' and an angle 'diffusion angle'
@@ -299,9 +299,9 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
           const auto cphi = std::cos(phi);
           const auto salpha = std::sin(diffusion_angle);
           const auto calpha = std::cos(diffusion_angle);
-          world += TVector3(-sphi*calpha*diffusion, cphi*calpha*diffusion, salpha*diffusion); 
+          world += TVector3(-sphi*calpha*diffusion, cphi*calpha*diffusion, salpha*diffusion);
         }
-        
+
         // distribute charge among adjacent strips
         const auto fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
 
@@ -363,9 +363,9 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 void PHG4MicromegasHitReco::SetDefaultParameters()
 {
   // default timing window (ns)
-  /* 
-   * see https://indico.bnl.gov/event/8548/contributions/37753/attachments/28212/43343/2020_05_Proposal_sPhenixMonitoring_update_19052020.pptx slide 10 
-   * small negative time for tmin is set to catch out of time, same-bunch pileup events 
+  /*
+   * see https://indico.bnl.gov/event/8548/contributions/37753/attachments/28212/43343/2020_05_Proposal_sPhenixMonitoring_update_19052020.pptx slide 10
+   * small negative time for tmin is set to catch out of time, same-bunch pileup events
    * similar value is used in PHG4InttReco
   */
   set_default_double_param("micromegas_tmin", -20 );
@@ -396,7 +396,7 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
 
   // transverse diffusion (cm/sqrt(cm))
   set_default_double_param("micromegas_diffusion_trans", 0.03 );
-  
+
   // zigzag strips
   set_default_int_param("micromegas_zigzag_strips", true );
 }
@@ -438,10 +438,10 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
      * assume first layer is outward, with readout plane at the top, and others are inward, with readout plane at the bottom
      * this is used to properly implement transverse diffusion in ::process_event
      */
-    cylinder->set_drift_direction( is_first ? 
+    cylinder->set_drift_direction( is_first ?
       MicromegasDefs::DriftDirection::OUTWARD :
-      MicromegasDefs::DriftDirection::INWARD );      
-    
+      MicromegasDefs::DriftDirection::INWARD );
+
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
@@ -484,8 +484,9 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
 
   // find relevant strip indices
   const auto strip_count = layergeom->get_strip_count( tileid );
-  const auto stripnum_min = clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
-  const auto stripnum_max = clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
+  const int nstrips = 5.*sigma/pitch + 1;
+  const auto stripnum_min = clamp<int>( stripnum - nstrips, 0, strip_count );
+  const auto stripnum_max = clamp<int>( stripnum + nstrips, 0, strip_count );
 
   // prepare charge list
   charge_list_t charge_list;
