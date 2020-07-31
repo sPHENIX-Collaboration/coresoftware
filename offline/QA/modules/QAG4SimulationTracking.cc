@@ -288,27 +288,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   }
 
   // loop over reco tracks to fill norm histogram for track matching
-<<<<<<< HEAD
-  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (trackmap)
-=======
   if (m_trackMap)
->>>>>>> 0523e7c833a63c0ae018bb1f6ab47ea67b2e0319
   {
     for (SvtxTrackMap::Iter iter = m_trackMap->begin();
          iter != m_trackMap->end();
          ++iter)
     {
       SvtxTrack *track = iter->second;
-<<<<<<< HEAD
-      double px = track->get_px();
-      double py = track->get_py();
-      double pz = track->get_pz();
-      double pt;
-      TVector3 v(px, py, pz);
-      pt = v.Pt();
-      h_nReco_pTReco->Fill(pt);  // normalization histogram fill
-=======
       assert(track);
 
       const double px = track->get_px();
@@ -316,30 +302,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       const double pz = track->get_pz();
       const TVector3 v(px, py, pz);
       const double pt = v.Pt();
-      h_nReco_pTReco->Fill(pt);  // normalization histogram fill
-
-      PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
-      if (g4particle_match)
-      {
-        SvtxTrack *matched_track = trackeval->best_track_from(g4particle_match);
-
-        if (matched_track)
-        {
-          if (matched_track->get_id() == track->get_id())
-          {
-            h_nGen_pTReco->Fill(pt);  // fill if matching truth track
-
-            const double gpx = g4particle_match->get_px();
-            const double gpy = g4particle_match->get_py();
-            TVector3 gv(gpx, gpy, 0);
-            const double gpt = gv.Pt();
-
-            const double pt_ratio = (pt != 0) ? gpt / pt : 0;
-            h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
-          }
-        }
-      }
->>>>>>> 0523e7c833a63c0ae018bb1f6ab47ea67b2e0319
+      h_nReco_pTReco->Fill(pt);  // normalization histogram fill9
     }
   }
   else
@@ -440,7 +403,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
       }
     }
-<<<<<<< HEAD
 
     // for-loop over reco tracks
     SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -473,8 +435,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         }
       }
     }
-=======
->>>>>>> 0523e7c833a63c0ae018bb1f6ab47ea67b2e0319
 
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
