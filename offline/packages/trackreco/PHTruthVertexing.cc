@@ -28,7 +28,7 @@ using namespace std;
 PHTruthVertexing::PHTruthVertexing(const std::string& name)
   : PHInitVertexing(name)
   , _g4truth_container(nullptr)
-  , _vertex_error({0.01, 0.01, 0.01})
+  , _vertex_error({0.0005, 0.0005, 0.0005})
   , _embed_only(false)
 {
 
