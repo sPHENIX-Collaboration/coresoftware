@@ -42,6 +42,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
+  , m_vertexMap(nullptr)
 {
 }
 

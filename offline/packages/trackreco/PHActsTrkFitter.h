@@ -117,7 +117,7 @@ class PHActsTrkFitter : public PHTrackFitting
   SvtxTrackMap *m_trackMap;
 
   // map relating acts hitid's to clusterkeys
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   int m_nBadFits;
 
