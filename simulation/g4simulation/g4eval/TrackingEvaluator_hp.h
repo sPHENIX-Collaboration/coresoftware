@@ -310,7 +310,6 @@ class TrackingEvaluator_hp : public SubsysReco
 
   enum Flags
   {
-
     EvalEvent = 1<<0,
     EvalClusters = 1<<1,
     EvalTracks = 1<<2,
