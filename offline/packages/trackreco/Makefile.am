@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -118,7 +119,8 @@ ACTS_SOURCES = \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  PHActsVertexFinder.cc
 
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
