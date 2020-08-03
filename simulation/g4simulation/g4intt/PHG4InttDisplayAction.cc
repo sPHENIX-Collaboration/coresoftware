@@ -32,9 +32,11 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
 
-  G4Colour colour_air ( 0.0, 0.0, 0.0, 0.0 );
-  G4Colour colour_CFRP( 0.4, 0.4, 0.4, 1 );
-
+  G4Colour colour_air    ( 0.0, 0.0, 0.0, 0.0 );
+  G4Colour colour_CFRP   ( 0.4, 0.4, 0.4, 1   );
+  G4Colour colour_endcap ( 0.0, 0.0, 1.0, 0.2 );
+  G4Colour colour_copper ( 0.7, 0.4, 0,   1   );
+  
   for (auto it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
@@ -54,34 +56,17 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
       visatt->SetVisibility( true  );
 
     }
-    else if (it.second == "FPHXGlue" || it.second == "SiGlue")
-    {
-      visatt->SetColour( G4Colour(0.1, 0.1, 0.1, 0.8) );
-      visatt->SetVisibility( true  );
-
-    }
-    else if (it.second == "HdiCopper")
-    {
-      visatt->SetColour( G4Colour(0.7, 0.4, 0, 1) ); // copper color
-      visatt->SetVisibility( true );
-
-    }
-    else if (it.second == "HdiKapton")
-    {
-      visatt->SetColour( G4Colour(0.0, 0.590, 1.0, 0.5 ) ); // blue
-      visatt->SetVisibility( true );
-
-    }
-    else if (it.second == "Ladder" || it.second == "FPHXContainer" || it.second == "FPHXGlueContainer" || it.second == "StaveBox" )
+    else if (it.second == "Ladder"
+	     || it.second == "FPHXContainer"
+	     || it.second == "FPHXGlueContainer"
+	     || it.second == "StaveBox" ) // for containers
     {
       visatt->SetColour( colour_air );
-      //visatt->SetColour( G4Colour(1, 1, 1, 1 ) ); // black for debigging
       visatt->SetForceWireframe( true );
       visatt->SetVisibility( false );
-      //visatt->SetVisibility( true );
 
     }
-    else if (it.second == "Rail") // checked, ?
+    else if (it.second == "Rail")
     {
       visatt->SetColour( G4Colour::Cyan());
       visatt->SetVisibility( false );
@@ -145,14 +130,32 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
       visatt->SetColour(G4Colour::Blue());
       visatt->SetVisibility( true );
     }
-    else if (it.second == "Endcap")
+    else if (it.second.find("Endcap") != string::npos ) // any Endcap
     {
-      visatt->SetColour(G4Colour::Blue());
-      visatt->SetVisibility( false );
+      visatt->SetColour( colour_endcap );
+      //visatt->SetVisibility( false );
+    }
+    else if(it.second.find("Glue") != string::npos )
+    {
+      visatt->SetColour( G4Colour(0.1, 0.1, 0.1, 0.8) );
+      visatt->SetVisibility( true  );
+
+    }
+    else if( it.second.find( "Copper" ) != string::npos ) // any copper
+    {
+      visatt->SetColour( colour_copper );
+      visatt->SetVisibility( true );
+
+    }
+    else if (it.second.find("Kapton") != string::npos ) // any Kapton
+    {
+      visatt->SetColour( G4Colour(0.0, 0.590, 1.0, 0.5 ) ); // blue
+      visatt->SetVisibility( true );
+
     }
     else
     {
-      cout << "did not assing color to " << it.first->GetName()
+      cout << "did not assign color to " << it.first->GetName()
 	   << " under " << it.second << endl;
       gSystem->Exit(1);
     }

@@ -175,11 +175,14 @@ void PHG4InttSubsystem::SetDefaultParameters()
                        PHG4InttDefs::SEGMENTATION_PHI,
                        PHG4InttDefs::SEGMENTATION_PHI,
                        PHG4InttDefs::SEGMENTATION_PHI};                                    // default
-  //int nladder[8] = {17, 17, 15, 15, 18, 18, 21, 21};                                       // default
+
   int nladder[8]          = {17,   17,    12,    12,    16,     16,     21,     21};      // default, new 03/05/2020
 
-  //  double sensor_radius[8] = {6.876, 7.462, 8.987, 9.545, 10.835, 11.361, 12.676, 13.179};  // radius of center of sensor for layer default
-  double sensor_radius[8] = {6.876, 7.462, 7.188, 7.732, 9.680, 10.262, 12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
+  double sensor_radius[8]     = {6.876, 7.462,
+				 // 4 elements are those for PHG4InttDefs::SEGMENTATION_PHI, 36um subtracted to set si sensors at the place
+				 // these subtractions are due to different thickness of glue for the sensors (14um) and the FPHX chips (50um)
+				 7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4,
+				 12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
 
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
@@ -248,13 +251,13 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "fphx_offset_z",   0.005);
     set_default_double_param(SEGMENTATION_PHI, "gap_sensor_fphx", 0.1  );
 
-    set_default_double_param(SEGMENTATION_PHI, "si_glue_x", 0.005 ); // new 29/05/2020, 50 um
+    set_default_double_param(SEGMENTATION_PHI, "si_glue_x",   0.0014 ); // 14 um, don't forget to change double sensor_radius when it's changed
+    set_default_double_param(SEGMENTATION_PHI, "fphx_glue_x", 0.005  ); // 50 um
 
     set_default_double_param(SEGMENTATION_PHI, "halfladder_z",        40.00  );
     set_default_double_param(SEGMENTATION_PHI, "halfladder_inside_z", 23.9622);
 
-    //    set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.0052);
-    set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.00376); // new 19/05/2020
+    set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.00376);
     set_default_double_param(SEGMENTATION_PHI, "hdi_edge_z",   0.     );
     set_default_double_param(SEGMENTATION_PHI, "hdi_kapton_x", 0.038  );
     set_default_double_param(SEGMENTATION_PHI, "hdi_y",        3.8    );
@@ -267,15 +270,12 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "strip_z_0",       1.6   );
     set_default_double_param(SEGMENTATION_PHI, "strip_z_1",       2.    );
 
-    //    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_x", 0.01905);
-    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_x", 0.03   ); // new 19/05/2020
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_x", 0.03   );
     set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_y", 1.47684);
 
-    //set_default_double_param(SEGMENTATION_PHI, "stave_slant_cooler_y", 0.6345120525); // original
-    set_default_double_param(SEGMENTATION_PHI, "stave_slant_cooler_y",   0.6322614829); // new 19/05/2020
+    set_default_double_param(SEGMENTATION_PHI, "stave_slant_cooler_y",   0.6322614829);
 
-    //set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y", 0.33451); // original
-    set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y",    0.33227); // new 19/05/2020
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y",    0.33227);
     set_default_double_param(SEGMENTATION_PHI, "stave_straight_rohacell_y", 0.58842);
 
     // SUPPORTPARAMS //////////////////////////////////////
@@ -286,7 +286,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
     set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      50.7   );
     set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
-
+    
     set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
     set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
     set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length",       50.7   );
@@ -328,6 +328,14 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_inner_radius",  6.6675);
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_outer_radius", 11.43  );
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_length",        0.6370);
+
+    // Cylinders for the bus extenders
+    set_default_int_param(SUPPORTPARAMS,    "bus_extender",    1);  // 0: OFF, 1: ON
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_ends_at",  328.5 );    // z-coordinate in cm where the bus extender ends at
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_radius",    15.0 );    // radius of the innermost layer (copper for the inner barrel)
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_copper_x",  48.0e-4 ); // thickness of the copper layer of the bus extenders in cm, it's 48 um
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_kapton_x", 300.0e-4 ); // thickness of the kapton layer of the bus extenders in cm, it's 300 um
 
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness",     0.18);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8 );

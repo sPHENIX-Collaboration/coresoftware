@@ -151,6 +151,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     double fphx_z = params->get_double_param("fphx_z") * cm;
     double fphx_offset_z = params->get_double_param("fphx_offset_z") * cm;
     double si_glue_x = params->get_double_param("si_glue_x") * cm;
+    double fphx_glue_x = params->get_double_param("fphx_glue_x") * cm;
     double halfladder_inside_z = params->get_double_param("halfladder_inside_z") * cm;
 
     if (Verbosity() > 0)
@@ -226,10 +227,8 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // Glue for Si-sensor full area
       G4VSolid *si_glue_box = new G4Box((boost::format("si_glue_box_%d_%d") % inttlayer % itype).str(), si_glue_x/ 2., sifull_y / 2.0, sifull_z / 2.0);
       
-      
-	//      G4LogicalVolume *si_glue_volume = new G4LogicalVolume(si_glue_box, G4Material::GetMaterial("G4_Ag"),
       G4LogicalVolume *si_glue_volume = new G4LogicalVolume(si_glue_box, G4Material::GetMaterial("SilverEpoxyGlue_INTT"),
-							    (boost::format("si_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0); // material should be implemented soon, changed to silver (10.5 g/cc)
+							    (boost::format("si_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
@@ -333,11 +332,10 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
 
       // Glue for FPHX, silver powder epoxy, impletemented in the same way as FPHX
-      G4VSolid *fphx_glue_box = new G4Box((boost::format("fphx_glue_box_%d_%d") % inttlayer % itype).str(), si_glue_x / 2., fphx_y / 2., fphx_z / 2.);
+      G4VSolid *fphx_glue_box = new G4Box((boost::format("fphx_glue_box_%d_%d") % inttlayer % itype).str(), fphx_glue_x / 2., fphx_y / 2., fphx_z / 2.);
       
-	//G4LogicalVolume *fphx_glue_volume = new G4LogicalVolume(fphx_glue_box, G4Material::GetMaterial("G4_Ag"),
-	G4LogicalVolume *fphx_glue_volume = new G4LogicalVolume(fphx_glue_box, G4Material::GetMaterial("SilverEpoxyGlue_INTT"),
-								(boost::format("fphx_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0); // material to be implemented
+      G4LogicalVolume *fphx_glue_volume = new G4LogicalVolume(fphx_glue_box, G4Material::GetMaterial("SilverEpoxyGlue_INTT"),
+								(boost::format("fphx_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(make_pair(fphx_glue_volume, make_tuple(inttlayer, PHG4InttDefs::FPHX_GLUE)));
@@ -347,14 +345,14 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       //  Glue of FPHX Container
       // make a container for the glue of FPHX chips, and then place them in the container
       G4VSolid *fphx_gluecontainer_box = new G4Box((boost::format("fphx_gluecontainer_box_%d_%d") % inttlayer % itype).str(),
-                                              si_glue_x / 2., fphx_y / 2., hdi_z / 2.);
+                                              fphx_glue_x / 2., fphx_y / 2., hdi_z / 2.);
       G4LogicalVolume *fphx_gluecontainer_volume = new G4LogicalVolume(fphx_gluecontainer_box, G4Material::GetMaterial("G4_AIR"),
                                                                   (boost::format("fphx_gluecontainer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
       // Parameters for FPHX glue for G4VPVParameterisation are the same as FPGX's, so reuse them!
       G4VPVParameterisation *fphx_glueparam = new PHG4InttFPHXParameterisation(fphx_offsetx, +fphx_offsety, offsetz, 2. * cell_length_z / 2., ncopy);
 
-      new G4PVParameterised((boost::format("blue_fphxcontainer_%d_%d") % inttlayer % itype).str(),
+      new G4PVParameterised((boost::format("glue_fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_glue_volume, fphx_gluecontainer_volume, kZAxis, ncopy, fphx_glueparam, OverlapCheck());
       m_DisplayAction->AddVolume(fphx_gluecontainer_volume, "FPHXGlueContainer");
       
@@ -885,9 +883,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // ================================================================
 
       // Make the ladder volume first
-      // We are still in the loop over inner or outer sensors. This is the ladder volume corresponding to this sensor. The FPHX is taller than the sensor in x.
-	//const double ladder_x = stave_x + stave_thickness + hdi_kapton_x + hdi_copper_x + si_glue_x + fphx_x;
-	const double ladder_x = stave_x + hdi_kapton_x + hdi_copper_x + si_glue_x + fphx_x;
+      // We are still in the loop over inner or outer sensors. This is the ladder volume corresponding to this sensor.
+      // But the thickness of the glue for FPHX is used since it's taller than the sensor in x.
+      const double ladder_x = stave_x + hdi_kapton_x + hdi_copper_x + fphx_glue_x + fphx_x;
       double ladder_y = hdi_y;
 
       // Make ladder volume. Drop two corners in positive x as done for stave volume
@@ -963,11 +961,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siactive_volume,
                         (boost::format("siactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
 
-      // FPHX glue container
-      const double TVfphx_glue_x = TVsi_glue_x;
+      // FPHX glue
+      const double TVfphx_glue_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_glue_x / 2.;
       double TVfphx_glue_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
       if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
         TVfphx_glue_y -= sensor_offset_y;
+
       // laddertype PHG4InttDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4InttDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)
       {
@@ -976,11 +975,11 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       new G4PVPlacement(0, G4ThreeVector(TVfphx_glue_x, -TVfphx_glue_y, 0.0), fphx_gluecontainer_volume, (boost::format("fphx_gluecontainerm_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
       
       // FPHX container
-      //const double TVfphx_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_x / 2.;
-      const double TVfphx_x = TVsi_glue_x - si_glue_x / 2. - fphx_x / 2.;
+      const double TVfphx_x = TVfphx_glue_x - fphx_glue_x / 2. - fphx_x / 2.;
       double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
       if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
         TVfphx_y -= sensor_offset_y;
+
       // laddertype PHG4InttDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4InttDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)
       {
@@ -1200,6 +1199,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
   G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, G4Material::GetMaterial("WaterGlycol_INTT"),
                                                                "endcap_WG_ring_volume", 0, 0, 0);
+
   // Carbon PEEK ring
   G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
@@ -1209,7 +1209,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
   G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, G4Material::GetMaterial("CF30_PEEK70"),
                                                                "endcap_CP_ring_volume", 0, 0, 0);
-  m_DisplayAction->AddVolume(endcap_CP_ring_volume, "Endcap");
+  m_DisplayAction->AddVolume(endcap_CP_ring_volume, "EndcapCPRing");
+
+  double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
 
   if (m_IsEndcapActive)
   {
@@ -1223,7 +1225,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
         double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
         double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
-
+	
         for (int j = 0; j < 2; j++)  // j=0 : positive side z, j=1 negative side z
         {
           width_WGring_z = (j == 0) ? width_WGring_z : -1.0 * width_WGring_z;
@@ -1233,7 +1235,8 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
           double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
           double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
-
+	  endcap_outer_edge_z =  fabs(endcap_ring_z) + fabs(width_WGring_z + width_SSring_z + width_Alring_z / 2.); // absolute distance from origin
+	  
           new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
                             endcap_WG_ring_volume,
                             (boost::format("endcap_WG_ring_pv_%d_%d") % i % j).str(),
@@ -1254,10 +1257,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     else if (supportparams->get_int_param("endcap_ring_type") == 1)  // Place CP endcap rings
     {
       double endcap_ring_z = supportparams->get_double_param("endcap_CPring_z") * cm;
+      
       for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
       {
         endcap_ring_z = (i == 0) ? endcap_ring_z : -1.0 * endcap_ring_z;
-
+	endcap_outer_edge_z = fabs(endcap_ring_z);
+	
         new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
                           endcap_CP_ring_volume,
                           (boost::format("endcap_CP_ring_pv_%d") % i).str(),
@@ -1265,8 +1270,85 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       }
     }
-  }
+  
 
+  // Mimic cylinders for the bus extender (very simplified for the moment)
+  double bus_extender_radius_innermost = supportparams->get_double_param("bus_extender_radius")   * cm;
+  double bus_extender_length           = supportparams->get_double_param("bus_extender_length")   * cm;
+  double bus_extender_copper_x         = supportparams->get_double_param("bus_extender_copper_x") * cm;
+  double bus_extender_kapton_x         = supportparams->get_double_param("bus_extender_kapton_x") * cm;
+
+  // copper layer of the bus extender for the inner barrel
+  double inner_radius = bus_extender_radius_innermost;
+  G4Tubs *bus_extender_copper_inner = new G4Tubs("bus_extender_coppe_innerr",
+						 inner_radius, inner_radius + bus_extender_copper_x,
+						 bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *bus_extender_copper_inner_volume = new G4LogicalVolume(bus_extender_copper_inner, G4Material::GetMaterial("G4_Cu"),
+									  "bus_extender_copper_inner_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(bus_extender_copper_inner_volume, "BusExtenderCopperInner");
+
+  // kapton layer of the bus extender for the inner barrel
+  inner_radius += bus_extender_copper_x;
+  G4Tubs *bus_extender_kapton_inner = new G4Tubs("bus_extender_kapton_inner",
+						 inner_radius, inner_radius + bus_extender_kapton_x,
+						 bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *bus_extender_kapton_inner_volume = new G4LogicalVolume(bus_extender_kapton_inner, G4Material::GetMaterial("G4_KAPTON"),
+									  "bus_extender_kapton_inner_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(bus_extender_kapton_inner_volume, "BusExtenderKaptonInner");
+
+  // copper layer of the bus extender for the outer outerbarrel
+  inner_radius += bus_extender_kapton_x;
+  G4Tubs *bus_extender_copper_outer = new G4Tubs("bus_extender_copper_outer",
+					   inner_radius, inner_radius + bus_extender_copper_x,
+					   bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *bus_extender_copper_outer_volume = new G4LogicalVolume(bus_extender_copper_outer, G4Material::GetMaterial("G4_Cu"),
+									  "bus_extender_copper_outer_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(bus_extender_copper_outer_volume, "BusExtenderCopperOuter");
+
+  // kapton layer of the bus extender for the outer barrel
+  inner_radius += bus_extender_copper_x;
+  G4Tubs *bus_extender_kapton_outer = new G4Tubs("bus_extender_kapton_outer",
+					   inner_radius, inner_radius + bus_extender_kapton_x,
+					   bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *bus_extender_kapton_outer_volume = new G4LogicalVolume(bus_extender_kapton_outer, G4Material::GetMaterial("G4_KAPTON"),
+									  "bus_extender_kapton_outer_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(bus_extender_kapton_outer_volume, "BusExtenderKaptonOuter");
+
+  double bus_extender_z = endcap_outer_edge_z;
+  for (int i = 0; i < 2; i++)  // loop over both positive and negative sides to put the cylinders,  i=0 : positive z, i=1 negative z
+    {
+      // copper layer of bus extender for the inner barrel
+      double cent_bus_extender_z = bus_extender_z + bus_extender_length / 2.0;
+      cent_bus_extender_z *= (i == 0) ? 1.0 : -1.0;	
+      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z ),
+			bus_extender_copper_inner_volume,
+			(boost::format("bus_extender_copper_inner_layer_pv_%d") % i ).str(),
+			trackerenvelope, false, 0, OverlapCheck());
+
+      // kapton layer of bus extender for the inner barrel
+      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z ),
+			bus_extender_kapton_inner_volume,
+			(boost::format("bus_extender_kapton_inner_layer_pv_%d") % i ).str(),
+			trackerenvelope, false, 0, OverlapCheck());
+
+      // copper layer of bus extender for the outer barrel
+      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z ),
+			bus_extender_copper_outer_volume,
+			(boost::format("bus_extender_copper_outer_layer_pv_%d") % i ).str(),
+			trackerenvelope, false, 0, OverlapCheck());
+
+      // kapton layer of bus extender for the outer barrel
+      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z ),
+			bus_extender_kapton_outer_volume,
+			(boost::format("bus_extender_kapton_outer_layer_pv_%d") % i ).str(),
+			trackerenvelope, false, 0, OverlapCheck());
+    }
+  }
+  
   //=======================================================
   // Add an outer shell for the MVTX - move this to the MVTX detector module
   //=======================================================
