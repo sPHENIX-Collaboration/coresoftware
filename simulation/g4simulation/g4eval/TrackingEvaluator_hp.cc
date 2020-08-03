@@ -311,11 +311,40 @@ namespace
     const auto truth_pphi = -truth_px*sinphi + truth_py*cosphi;
     const auto truth_pr = truth_px*cosphi + truth_py*sinphi;
     const auto truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+
     cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
     cluster._truth_beta = std::atan2( truth_pz, truth_pr );
+
+    const auto layer( cluster._layer );
+    if(std::isnan(cluster._truth_alpha) || std::isnan(cluster._truth_beta))
+    {
+      // recalculate
+      double truth_alpha = 0;
+      double truth_beta = 0;
+      double sum_w = 0;
+      for( const auto& hit:hits )
+      {
+        const auto px = hit->get_x(1) - hit->get_x(0);
+        const auto py = hit->get_y(1) - hit->get_y(0);
+        const auto pz = hit->get_z(1) - hit->get_z(0);
+        const auto pphi = -px*sinphi + py*cosphi;
+        const auto pr = px*cosphi + py*sinphi;
+
+        const auto w =  hit->get_edep();
+        if( w < 0 ) continue;
+
+        sum_w += w;
+        truth_alpha += w*std::atan2( pphi, pr );
+        truth_beta += w*std::atan2( pz, pr );
+      }
+      truth_alpha /= sum_w;
+      truth_beta /= sum_w;
+      cluster._truth_alpha = truth_alpha;
+      cluster._truth_beta = truth_beta;
+    }
   }
 
-  // add truth information
+  // ad}d truth information
   void add_truth_information( TrackingEvaluator_hp::TrackStruct& track, PHG4Particle* particle )
   {
     if( particle )
