@@ -298,12 +298,11 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-
   // Can hard code geometry options since the TGeo options are fixed by our detector design
   const int argc = 33;
   char *arg[argc];
   //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-detector-volume", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-cvolume-name", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodule-name", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmodule-axes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
 
 
   // Set vector of chars to arguments needed
