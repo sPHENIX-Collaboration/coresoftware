@@ -371,7 +371,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       /// This is an arbitrary vector. Doesn't matter in coordinate transformation
       /// in Acts code
       Acts::Vector3D mom(1, 1, 1);
-      meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
+      meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
 					    local, mom, global);
       
       float pathlength = state.pathLength() / Acts::UnitConstants::cm;  

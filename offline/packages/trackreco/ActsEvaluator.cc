@@ -239,7 +239,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
     Acts::Vector3D mom(1, 1, 1);
-    meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
+    meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
                                           local, mom, global);
 
     /// Get measurement covariance
@@ -267,7 +267,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
 
-    meas.referenceSurface().globalToLocal(
+    meas.referenceObject().globalToLocal(
         m_tGeometry->geoContext,
         globalTruthPos,
         globalTruthUnitDir,
