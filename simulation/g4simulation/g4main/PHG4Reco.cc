@@ -940,6 +940,11 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   CF4->AddElement(G4Element::GetElement("C"), natoms = 1);
   CF4->AddElement(G4Element::GetElement("F"), natoms = 4);
 
+  // Silver epoxy glue LOCTITE ABLESTIK 2902 for the silicon sensors and FPHX chips of INTT
+  G4Material *SilverEpoxyGlue_INTT = new G4Material("SilverEpoxyGlue_INTT", density = 3.2 * g / cm3, ncomponents = 2);
+  SilverEpoxyGlue_INTT->AddMaterial(Epoxy, fractionmass = 0.79);
+  SilverEpoxyGlue_INTT->AddMaterial(G4Material::GetMaterial("G4_Ag"), fractionmass = 0.21);
+
   //! ePHENIX TPC - Jin Huang <jhuang@bnl.gov>
   //! Ref: B. Yu et al. A gem based tpc for the legs experiment. In Nuclear Science Symposium
   //! Conference Record, 2005 IEEE, volume 2, pages 924-928, 2005. doi:10.1109/NSSMIC.2005.1596405.
