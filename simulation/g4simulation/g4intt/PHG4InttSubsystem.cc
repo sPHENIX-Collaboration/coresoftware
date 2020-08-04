@@ -334,8 +334,8 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm
     set_default_double_param(SUPPORTPARAMS, "bus_extender_ends_at",  328.5 );    // z-coordinate in cm where the bus extender ends at
     set_default_double_param(SUPPORTPARAMS, "bus_extender_radius",    15.0 );    // radius of the innermost layer (copper for the inner barrel)
-    set_default_double_param(SUPPORTPARAMS, "bus_extender_copper_x",  48.0e-4 ); // thickness of the copper layer of the bus extenders in cm, it's 48 um
-    set_default_double_param(SUPPORTPARAMS, "bus_extender_kapton_x", 300.0e-4 ); // thickness of the kapton layer of the bus extenders in cm, it's 300 um
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_copper_x",  48.0e-4 * 1.5 ); // thickness of the copper layer of the bus extenders in cm, it's 48 um
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_kapton_x", 300.0e-4 * 1.5 ); // thickness of the kapton layer of the bus extenders in cm, it's 300 um
 
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness",     0.18);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8 );
