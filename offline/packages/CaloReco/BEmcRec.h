@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+class BEmcProfile;
+
 typedef struct TowerGeom
 {
   float Xcenter;  // Tower center position
@@ -51,6 +53,8 @@ class BEmcRec
   void SetCylindricalGeometry() { bCYL = true; }
   bool isCylindrical() const { return bCYL; }
 
+  void SetProfileProb(bool bprob) { bProfileProb = bprob; }
+
   int GetNx() const { return fNx; }
   int GetNy() const { return fNy; }
   float GetVx() const { return fVx; }
@@ -71,11 +75,14 @@ class BEmcRec
   int FindClusters();
 
   void Momenta(std::vector<EmcModule> *, float &, float &, float &, float &, float &,
-               float &);
+               float &, float thresh=0);
 
   void Tower2Global(float E, float xC, float yC, float &xA, float &yA, float &zA);
+  float GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist);
 
-  virtual float PredictEnergy(float, float, float);
+  float PredictEnergy(float, float, float, int, int);
+  float PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy);
+  virtual float PredictEnergyParam(float, float, float);
 
   // Calorimeter specific functions to be specified in respective inherited object
   virtual void CorrectEnergy(float energy, float x, float y, float *ecorr) { *ecorr = energy; }
@@ -92,7 +99,9 @@ class BEmcRec
     zc = z;
   }
   virtual void LoadProfile(const std::string &fname);
-  virtual float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
+  virtual void GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi) {theta=0; phi=0;}
+
+  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
   virtual std::string Name() const { return m_ThisName; }
   virtual void Name(const std::string &name) { m_ThisName = name; }
 
@@ -108,6 +117,7 @@ class BEmcRec
  protected:
   // Geometry
   bool bCYL;  // Cylindrical?
+  bool bProfileProb;
   int fNx;    // length in X direction
   int fNy;    // length in Y direction
   std::map<int, TowerGeom> fTowerGeom;
@@ -123,7 +133,7 @@ class BEmcRec
   //  static float const fgMinShowerEnergy;
   static int const fgMaxLen;
 
-  //  BEmcProfile *_emcprof;
+  BEmcProfile *_emcprof;
 
  private:
   std::string m_ThisName;
