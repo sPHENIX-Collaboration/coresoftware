@@ -66,7 +66,6 @@
 
 using namespace std;
 
-
 MakeActsGeometry::MakeActsGeometry(const string &name)
   : m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
