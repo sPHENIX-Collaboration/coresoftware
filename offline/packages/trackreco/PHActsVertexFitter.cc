@@ -57,8 +57,8 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 {
 
 
-  std::vector<Acts::BoundParameters> tracks =
-    getTracks();
+  std::vector<const Acts::BoundParameters*> tracks = getTracks();
+
 
   /// Determine the input mag field type from the initial geometry created in
   /// MakeActsGeometry
@@ -82,11 +82,17 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
       
       typename VertexFitter::Config vertexFitterCfg;
       VertexFitter fitter(vertexFitterCfg);
-      //VertexFitter::State(state(m_tGeometry->magFieldContext));
-      /*
-      Linearizer::Config linConfig(bField, propagator);
+      typename VertexFitter::State state(m_tGeometry->magFieldContext);
+      
+      typename Linearizer::Config linConfig(bField, propagator);
       Linearizer linearizer(linConfig);
-      */
+
+      VertexFitterOptions vfOptions(m_tGeometry->geoContext,
+				    m_tGeometry->magFieldContext);
+
+      auto fitRes = fitter.fit(tracks,linearizer,
+      		       vfOptions, state);
+      
     }
     , m_tGeometry->magField
     );
@@ -95,10 +101,11 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 }
 
 
-std::vector<Acts::BoundParameters> PHActsVertexFitter::getTracks()
+std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
 {
+ 
+  std::vector<const Acts::BoundParameters*> trackPtrs;
 
-  std::vector<Acts::BoundParameters> tracks;
   std::map<const unsigned int, Trajectory>::iterator trackIter;
 
   for (trackIter = m_actsFitResults->begin();
@@ -114,13 +121,13 @@ std::vector<Acts::BoundParameters> PHActsVertexFitter::getTracks()
       {
 	if(traj.hasTrackParameters(trackTip))
 	  {
-	    tracks.push_back(traj.trackParameters(trackTip));
+	    trackPtrs.push_back(&traj.trackParameters(trackTip));
 	  }
 
       }
   }
 
-  return tracks;
+  return trackPtrs;
 
 }
 
