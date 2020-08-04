@@ -17,9 +17,21 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
-#include "Acts/MagneticField/ConstantBField.hpp"
-#include "Acts/MagneticField/InterpolatedBFieldMap.hpp"
-#include "Acts/MagneticField/SharedBField.hpp"
+#include <Acts/MagneticField/ConstantBField.hpp>
+#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
+#include <Acts/MagneticField/SharedBField.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/MagneticField/ConstantBField.hpp>
+#include <Acts/Propagator/EigenStepper.hpp>
+#include <Acts/Propagator/Propagator.hpp>
+#include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/Helpers.hpp>
+#include <Acts/Vertexing/FullBilloirVertexFitter.hpp>
+#include <Acts/Vertexing/HelicalTrackLinearizer.hpp>
+#include <Acts/Vertexing/LinearizedTrack.hpp>
+#include <Acts/Vertexing/Vertex.hpp>
+#include <Acts/Vertexing/VertexingOptions.hpp>
 
 #include <iostream>
 
@@ -45,7 +57,18 @@ int PHActsVertexFitter::End(PHCompositeNode *topNode)
 
 int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 {
-  
+
+  /// Determine the input mag field type from the initial geometry created in
+  /// MakeActsGeometry
+  std::visit([](auto&& inputField) {
+      using InputMagneticField = typename std::decay_t<decltype(inputField)>::element_type;
+      using MagneticField = Acts::SharedBField<InputMagneticField>;
+      MagneticField bField(std::move(inputField));
+    }
+    , m_tGeometry->magField
+    );
+
+  //using Stepper = Acts::EigenStepper<MagneticField>;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
