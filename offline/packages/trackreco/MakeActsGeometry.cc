@@ -298,13 +298,15 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-
-  // Can hard code geometry options since the TGeo options are fixed by our detector design
-  const int argc = 33;
+  const int argc = 7;
   char *arg[argc];
-  //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
 
+  // Response file contains arguments necessary for geometry building
+  const std::string argstr[argc]{
+    "-n1", "-l0", 
+      "--response-file=tgeo-sphenix.response",
+      "--bf-values", "0", "0", "1.4"
+      };
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -312,8 +314,9 @@ void MakeActsGeometry::buildActsSurfaces()
     // need a copy, since .c_str() returns a const char * and process geometry will not take a const
     arg[i] = strdup(argstr[i].c_str());
   }
-
-  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
+  
+  // We replicate the relevant functionality of  
+  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
   makeGeometry(argc, arg, m_detector);
@@ -345,10 +348,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   m_contextDecorators = geometry.second;
 
   m_magneticField = FW::Options::readBField(vm);
-
-  /// The detectors
-  /// "MVTX" and "Silicon" and "TPC"
-  read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   size_t ievt = 0;
   size_t ialg = 0;
