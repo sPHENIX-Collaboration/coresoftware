@@ -30,6 +30,7 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
                                       Acts::ParDef::eLOC_0,
                                       Acts::ParDef::eLOC_1>;
 using Acts::VectorHelpers::eta;
