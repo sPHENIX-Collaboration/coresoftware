@@ -78,8 +78,10 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  m_svtxEvalStack = new SvtxEvalStack(topNode);
+  if(Verbosity() > 1)
+    std::cout << "ActsEvaluator: Got nodes" << std::endl;
 
+  m_svtxEvalStack = new SvtxEvalStack(topNode);
   m_svtxEvalStack->next_event(topNode);
 
   evaluateTrackFits(topNode);
@@ -94,27 +96,30 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
 
 void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 {
+  if(Verbosity() > 5)
+    std::cout << "Evaluating Acts track fits" << std::endl;
 
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
-  std::map<const unsigned int, Trajectory>::iterator trackIter;
+  std::map<const unsigned int, Trajectory>::iterator trajIter;
   int iTraj = 0;
   int iTrack = 0;
 
-  for (trackIter = m_actsFitResults->begin();
-       trackIter != m_actsFitResults->end();
-       ++trackIter)
+  for (trajIter = m_actsFitResults->begin();
+       trajIter != m_actsFitResults->end();
+       ++trajIter)
   {
-    /// Get the track information
-    const unsigned int trackKey = trackIter->first;
-    const Trajectory traj = trackIter->second;
+    /// Get the trajectory information
+    const unsigned int trackKey = trajIter->first;
+    Trajectory traj = trajIter->second;
     SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
+    
     SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
     const unsigned int vertexId = track->get_vertex_id();
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    
     Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
 			  svtxVertex->get_y() * Acts::UnitConstants::cm,
 			  svtxVertex->get_z() * Acts::UnitConstants::cm);
@@ -187,6 +192,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 		  << iTraj << std::endl;
       }
   }
+  
+  if(Verbosity () > 5)
+    std::cout << "Finished evaluating track fits" << std::endl;
 
   return;
 }
@@ -1005,7 +1013,8 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
+                     (topNode, "ActsFitResults");
 
   if (!m_actsFitResults)
   {
