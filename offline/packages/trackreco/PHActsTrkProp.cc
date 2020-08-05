@@ -78,8 +78,6 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 
   /// Need to implement different chi2 criteria for the different layers
   /// and volumes to help the CKF out a little 
-  /// First need to walk through layers/volumes to figure out appropriate
-  /// numerical identifiers
   /// Leave these out for now once we return to track propagation
   /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
   /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
@@ -89,10 +87,14 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// Set the allowed maximum number of source links to be large enough
   ///m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
  
+  auto logger = Acts::Logging::INFO;
+  if(Verbosity() > 5)
+    logger = Acts::Logging::VERBOSE;
+
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
                    m_tGeometry->tGeometry,
 		   m_tGeometry->magField,
-		   Acts::Logging::INFO);
+		   logger);
 
   if(Verbosity() > 1)
     std::cout <<" Finish PHActsTrkProp setup" << std::endl;
@@ -166,36 +168,37 @@ int PHActsTrkProp::Process()
 		m_sourceLinkSelectorConfig, 
 		&(*pSurface));
 
-      /// Run the CKF for all source links and the constructed track seed
-      /// CKF runs both track finder and KF track fitter
-      auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
-      
-      if(result.ok())
-	{
-	  const CKFFitResult& fitOutput = result.value();
-
-	  Trajectory traj(fitOutput.fittedStates,
-			  fitOutput.trackTips,
-			  fitOutput.fittedParameters);
+    /// Run the CKF for all source links and the constructed track seed
+    /// CKF runs both track finder and KF track fitter
+    auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
+    
+    if(result.ok())
+      {
+	const CKFFitResult& fitOutput = result.value();
 	
-	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
-				   (trackKey, traj));
-
-	}
-      else
-	{
-	  m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
-				   (trackKey, FW::TrkrClusterMultiTrajectory()));
-
-	  /// Don't need to update SvtxTrack to be a bad fit since the 
-	  /// track map will get wiped anyway in updateSvtxTrackMap
-	  
-	  m_nBadFits++;
-	}
+	Trajectory traj(fitOutput.fittedStates,
+			fitOutput.trackTips,
+			fitOutput.fittedParameters);
 	
-    }
-
-  /// Update the SvtxTrackMap by wiping it clean and adding the tracks from the CKF
+	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
+				 (trackKey, traj));
+	
+      }
+    else
+      {
+	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
+				 (trackKey, FW::TrkrClusterMultiTrajectory()));
+	
+	/// Don't need to update SvtxTrack to be a bad fit since the 
+	/// track map will get wiped anyway in updateSvtxTrackMap
+	
+	m_nBadFits++;
+      }
+    
+  }
+  
+  /// Update the SvtxTrackMap by wiping it clean and adding the 
+  /// tracks from the CKF
   updateSvtxTrackMap(m_topNode);
 
   if(Verbosity() > 1)
