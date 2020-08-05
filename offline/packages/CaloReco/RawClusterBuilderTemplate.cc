@@ -200,7 +200,6 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     ix -= BINX0;
     iy -= BINY0;
     bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
-    //    }
   }
 
   if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;
