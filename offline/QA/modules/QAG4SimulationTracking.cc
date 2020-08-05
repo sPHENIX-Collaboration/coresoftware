@@ -90,6 +90,19 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
                ";Reco p_{T} [GeV/c];Matched p_{T}/Reco p_{T}", 200, 0, 50, 500, 0, 2);
   hm->registerHisto(h);
 
+  // reco track w/ truth-track matched vs reco pT histograms with quality cuts
+  h = new TH1F(TString(get_histo_prefix()) + "nGen_pTReco_cuts",
+               "Gen tracks at reco p_{T} (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC); Reco p_{T} [GeV/c]", 200, 0.1, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "nReco_pTReco_cuts",
+               ";Gen p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "pTRecoTruthMatchedRatio_pTReco_cuts",
+               ";Reco p_{T} [GeV/c];Matched p_{T}/Reco p_{T}", 200, 0, 50, 500, 0, 2);
+  hm->registerHisto(h);
+
   // reco pT histogram
   h = new TH1F(TString(get_histo_prefix()) + "nReco_pTGen",
                "Reco tracks at truth p_{T};Truth p_{T} [GeV/c]", 200, 0.1, 50.5);
@@ -119,6 +132,25 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
                "DCA resolution at truth p_{T};Truth p_{T} [GeV/c];DCA(Z) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
+
+  // DCA histograms with cuts
+  h = new TH2F(TString(get_histo_prefix()) + "DCArPhi_pT_cuts",
+               "DCA Resolution (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC);Truth p_{T} [GeV/c];DCA(r#phi) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "DCAZ_pT_cuts",
+               "DCA Resolution (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC);Truth p_{T} [GeV/c];DCA(Z) resolution [cm]", 200, 0.1, 50.5, 500, -0.05, 0.05);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "SigmalizedDCArPhi_pT",
+               "Sigmalized DCA (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC);Truth p_{T} [GeV/c];Sigmalized DCA(r#phi) [cm]", 200, 0.1, 50.5, 500, -5., 5.);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "SigmalizedDCAZ_pT",
+               "Sigmalized DCA (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC);Truth p_{T} [GeV/c];Sigmalized DCA(Z) [cm]", 200, 0.1, 50.5, 500, -5., 5.);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
 
   // reco pT histogram
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
@@ -203,6 +235,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH2 *h_pTRecoTruthMatchedRatio_pTReco = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "pTRecoTruthMatchedRatio_pTReco"));
   assert(h_pTRecoTruthMatchedRatio_pTReco);
 
+  // reco track, truth track matched histogram at reco pT with cuts
+  TH1 *h_nGen_pTReco_cuts = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_pTReco_cuts"));
+  assert(h_nGen_pTReco_cuts);
+  // Normalization histogram for reco track truth track matched with cuts
+  TH1 *h_nReco_pTReco_cuts = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTReco_cuts"));
+  assert(h_nReco_pTReco_cuts);
+  // Truth matched ratio histogram with cuts
+  TH2 *h_pTRecoTruthMatchedRatio_pTReco_cuts = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "pTRecoTruthMatchedRatio_pTReco_cuts"));
+  assert(h_pTRecoTruthMatchedRatio_pTReco_cuts);
+
   // reco histogram plotted at gen pT
   TH1 *h_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen"));
   assert(h_nReco_pTGen);
@@ -223,6 +265,19 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   // DCA resolution histogram
   TH2 *h_DCAZ_pT = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "DCAZ_pT"));
   assert(h_DCAZ_pT);
+
+  // DCA resolution histogram with cuts
+  TH2 *h_DCArPhi_pT_cuts = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "DCArPhi_pT_cuts"));
+  assert(h_DCArPhi_pT_cuts);
+  // DCA resolution histogram with cuts
+  TH2 *h_DCAZ_pT_cuts = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "DCAZ_pT_cuts"));
+  assert(h_DCAZ_pT_cuts);
+  // Sigmalized DCA histograms with cuts
+  TH2 *h_SigmalizedDCArPhi_pT = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "SigmalizedDCArPhi_pT"));
+  assert(h_SigmalizedDCArPhi_pT);
+  // Sigmalized DCA histograms with cuts
+  TH2 *h_SigmalizedDCAZ_pT = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "SigmalizedDCAZ_pT"));
+  assert(h_SigmalizedDCAZ_pT);
 
   // gen pT histogram
   TH1 *h_nGen_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_pTGen"));
@@ -302,7 +357,32 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       const double pz = track->get_pz();
       const TVector3 v(px, py, pz);
       const double pt = v.Pt();
-      h_nReco_pTReco->Fill(pt);  // normalization histogram fill9
+      h_nReco_pTReco->Fill(pt);  // normalization histogram fill
+
+      int MVTX_hits = 0;
+      int INTT_hits = 0;
+      int TPC_hits = 0;
+      for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::mvtxId)
+          ++MVTX_hits;
+        else if (trackerID == TrkrDefs::inttId)
+          ++INTT_hits;
+        else if (trackerID == TrkrDefs::tpcId)
+          ++TPC_hits;
+        else
+        {
+          if (Verbosity())
+            cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+        }
+      }
+      if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+      {
+        h_nReco_pTReco_cuts->Fill(pt); // normalization histogram fill with cuts
+      }
     }
   }
   else
@@ -423,6 +503,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         double pt;
         TVector3 v(px, py, pz);
         pt = v.Pt();
+
         PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
         if (g4particle_match)
         {
@@ -431,6 +512,32 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
             h_nGen_pTReco->Fill(pt);  // fill if matching truth track
             float pt_ratio = (pt != 0) ? gpt / pt : 0;
             h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
+
+	    int MVTX_hits = 0;
+	    int INTT_hits = 0;
+	    int TPC_hits = 0;
+	    for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+	    {
+              const auto &cluster_key = *cluster_iter;
+              const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+              if (trackerID == TrkrDefs::mvtxId)
+                ++MVTX_hits;
+              else if (trackerID == TrkrDefs::inttId)
+                ++INTT_hits;
+              else if (trackerID == TrkrDefs::tpcId)
+                ++TPC_hits;
+              else
+              {
+                if (Verbosity())
+                   cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+              }
+            }
+	    if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+	    {
+              h_nGen_pTReco_cuts->Fill(pt);
+	      h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
+            }
           }
         }
       }
@@ -477,9 +584,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         // double dca2d = track->get_dca2d();
         // double dca2dsigma = track->get_dca2d_error();
         double dca3dxy = track->get_dca3d_xy();
-        // double dca3dxysigma = track->get_dca3d_xy_error();
+        double dca3dxysigma = track->get_dca3d_xy_error();
         double dca3dz = track->get_dca3d_z();
-        // double dca3dzsigma = track->get_dca3d_z_error();
+        double dca3dzsigma = track->get_dca3d_z_error();
         double px = track->get_px();
         double py = track->get_py();
         double pz = track->get_pz();
@@ -495,6 +602,34 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         h_DCArPhi_pT->Fill(pt, dca3dxy);
         h_DCAZ_pT->Fill(pt, dca3dz);
         h_norm->Fill("Reco Track", 1);
+
+	int MVTX_hits = 0;
+	int INTT_hits = 0;
+	int TPC_hits = 0;
+	for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+	{
+          const auto &cluster_key = *cluster_iter;
+          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+          if (trackerID == TrkrDefs::mvtxId)
+            ++MVTX_hits;
+          else if (trackerID == TrkrDefs::inttId)
+            ++INTT_hits;
+          else if (trackerID == TrkrDefs::tpcId)
+            ++TPC_hits;
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+          }
+        }
+	if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+	{
+          h_DCArPhi_pT_cuts->Fill(pt, dca3dxy);
+	  h_DCAZ_pT_cuts->Fill(pt, dca3dz);
+	  h_SigmalizedDCArPhi_pT->Fill(pt, dca3dxy/dca3dxysigma);
+	  h_SigmalizedDCAZ_pT->Fill(pt, dca3dz/dca3dzsigma);
+        }
 
         // tracker cluster stat.
         std::array<unsigned int, 3> nclusters = {{0, 0, 0}};
