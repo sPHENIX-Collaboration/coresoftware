@@ -52,7 +52,7 @@ class TrackingEvaluator_hp : public SubsysReco
     // constructor
     EventStruct()
     {
-      for( int i = 0; i < max_layer; ++i )
+      for( size_t i = 0; i < max_layer; ++i )
       {
         _nhits[i] = 0;
         _nclusters[i] = 0;

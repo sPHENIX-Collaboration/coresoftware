@@ -314,8 +314,6 @@ namespace
 
     cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
     cluster._truth_beta = std::atan2( truth_pz, truth_pr );
-
-    const auto layer( cluster._layer );
     if(std::isnan(cluster._truth_alpha) || std::isnan(cluster._truth_beta))
     {
       // recalculate
@@ -520,7 +518,7 @@ void TrackingEvaluator_hp::evaluate_event()
         case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
       }
 
-      const int layer = static_cast<int>(TrkrDefs::getLayer(key));
+      const auto layer = static_cast<size_t>(TrkrDefs::getLayer(key));
       assert(layer<EventStruct::max_layer);
       ++event._nclusters[layer];
     }
