@@ -89,14 +89,14 @@ class PHActsTrkProp : public PHTrackPropagating
   void createNodes(PHCompositeNode *topNode);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
-  void updateSvtxTrackMap(PHCompositeNode *topNode);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey);
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
 
   /// Iterate through the Trajectory to obtain the fitted clusters
   void getTrackClusters(const size_t& trackTip, Trajectory traj,
-			SvtxTrack &track);
+			SvtxTrack *track);
 
   /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
