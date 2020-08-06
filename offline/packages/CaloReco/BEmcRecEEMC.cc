@@ -9,7 +9,7 @@
 using namespace std;
 
 BEmcRecEEMC::BEmcRecEEMC()
-  : _emcprof(nullptr)
+//  : _emcprof(nullptr)
 {
   Name("BEmcRecEEMC");
   SetPlanarGeometry();
@@ -18,22 +18,36 @@ BEmcRecEEMC::BEmcRecEEMC()
 BEmcRecEEMC::~BEmcRecEEMC()
 {
   // you can delete null pointers
-  delete _emcprof;
+  //  delete _emcprof;
 }
 
 void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
-  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
+  //  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
+  _emcprof = new BEmcProfile(fname);
 }
 
-float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
-// et, xg, yg, zg not used here
+void BEmcRecEEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
+{
+  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  phi = atan2(yg,xg);
+}
+
+/*
+float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
+// ecl, xg, yg, zg not used here
 {
   chi2 = 0;
   ndf = 0;
   float prob = -1;
+
+  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  float phi = atan2(yg,xg);
+  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
+
   return prob;
 }
+*/
 
 void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {

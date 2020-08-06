@@ -24,6 +24,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   void SetPlanarGeometry();
   void PrintGeometry() { bPrintGeom = true; }  // Prints it at InitRun time
   void PrintCylGeom(RawTowerGeomContainer* towergeom, const std::string& fname);
+  void SetProfileProb(bool pprob) { bProfProb = pprob; }
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void setEnergyNorm(float norm) { fEnergyNorm = norm; }
@@ -52,6 +53,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   int NBINY;
 
   bool bPrintGeom;
+  bool bProfProb;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

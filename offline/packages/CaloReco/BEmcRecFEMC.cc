@@ -8,7 +8,7 @@
 using namespace std;
 
 BEmcRecFEMC::BEmcRecFEMC()
-  : _emcprof(nullptr)
+//  : _emcprof(nullptr)
 {
   Name("BEmcRecFEMC");
   SetPlanarGeometry();
@@ -17,7 +17,7 @@ BEmcRecFEMC::BEmcRecFEMC()
 BEmcRecFEMC::~BEmcRecFEMC()
 {
   // one can delete null pointers
-  delete _emcprof;
+  //  delete _emcprof;
 }
 
 void BEmcRecFEMC::LoadProfile(const string& fname)
@@ -25,6 +25,13 @@ void BEmcRecFEMC::LoadProfile(const string& fname)
   _emcprof = new BEmcProfile(fname);
 }
 
+void BEmcRecFEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
+{
+  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  phi = atan2(yg,xg);
+}
+
+/*
 float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
 {
   chi2 = 0;
@@ -37,6 +44,7 @@ float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
 
   return prob;
 }
+*/
 
 void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
