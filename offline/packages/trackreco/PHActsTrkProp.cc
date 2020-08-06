@@ -300,8 +300,11 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       float DCA3DzCov = -9999;
       
       rotater->calculateDCA(fittedParameters, vertex,
-		   DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
+			    DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
       
+
+      
+
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)
 	{
@@ -327,6 +330,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  origTrack->set_x(x);
 	  origTrack->set_y(y);
 	  origTrack->set_z(z);
+	  origTrack->set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
+	  origTrack->set_dca3D_z(DCA3dz / Acts::UnitConstants::cm);
+	  origTrack->set_dca3D_xy_error(DCA3Dxy / Acts::UnitConstants::cm);
+	  origTrack->set_dca3D_z_error(DCA3Dxy / Acts::UnitConstants::cm);
 	}
       else
 	{
@@ -350,7 +357,11 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  newTrack.set_x(x);
 	  newTrack.set_y(y);
 	  newTrack.set_z(z);
-	  
+	  newTrack->set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
+	  newTrack->set_dca3D_z(DCA3dz / Acts::UnitConstants::cm);
+	  newTrack->set_dca3D_xy_error(DCA3Dxy / Acts::UnitConstants::cm);
+	  newTrack->set_dca3D_z_error(DCA3Dxy / Acts::UnitConstants::cm);
+
 	  for(int i = 0; i < 6; ++i)
 	    {
 	      for(int j = 0; j < 6; ++j)
