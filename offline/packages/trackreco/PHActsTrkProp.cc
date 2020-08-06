@@ -2,7 +2,7 @@
 #include "PHActsTrkProp.h"
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -140,7 +140,7 @@ int PHActsTrkProp::Process()
   /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks = getEventSourceLinks();
 
-  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
   
   std::map<unsigned int, ActsTrack>::iterator trackIter;
@@ -183,7 +183,7 @@ int PHActsTrkProp::Process()
 	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				 (trackKey, traj));
 	
-	updateSvtxTrack(traj, trackKey);
+	updateSvtxTrack(traj, trackKey, track.getVertex());
       }
     else
       {
@@ -224,10 +224,12 @@ int PHActsTrkProp::End()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrkProp::updateSvtxTrack(Trajectory traj, const unsigned int trackKey)
+void PHActsTrkProp::updateSvtxTrack(Trajectory traj, 
+				    const unsigned int trackKey,
+				    Acts::Vector3D vertex)
 {
   
-  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
 
   /// Iterate over the Trajectories and add them to the SvtxTrackMap
@@ -292,6 +294,13 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj, const unsigned int trackKey
       double chi2sum = trajState.chi2Sum;
       size_t NDF = trajState.NDF;
       
+      float DCA3Dxy = -9999;
+      float DCA3Dz = -9999;
+      float DCA3DxyCov = -9999;
+      float DCA3DzCov = -9999;
+      
+      rotater->calculateDCA(fittedParameters, vertex,
+		   DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
       
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)

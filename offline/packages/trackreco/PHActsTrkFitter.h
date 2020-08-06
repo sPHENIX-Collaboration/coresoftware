@@ -72,13 +72,6 @@ class PHActsTrkFitter : public PHTrackFitting
 
  private:
 
-  /// Calculate the fitted track DCA 
-  void calculateDCA(const Acts::BoundParameters param,
-		    Acts::Vector3D vertex,
-		    float &dca3Dxy,
-		    float &dca3Dz,
-		    float &dca3DxyCov,
-		    float &dca3DzCov);
 
   /// Reset the SvtxTrack states with the new track fit states
   void fillSvtxTrackStates(const Trajectory traj, 

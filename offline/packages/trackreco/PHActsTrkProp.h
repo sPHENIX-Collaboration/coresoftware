@@ -89,7 +89,7 @@ class PHActsTrkProp : public PHTrackPropagating
   void createNodes(PHCompositeNode *topNode);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey, Acts::Vector3D vertex);
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();

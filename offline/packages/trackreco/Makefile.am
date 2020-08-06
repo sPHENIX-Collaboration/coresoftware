@@ -22,7 +22,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsCovarianceRotater.h \
+  ActsTransformations.h \
   ActsTrack.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
@@ -112,7 +112,7 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsCovarianceRotater.cc \
+  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \

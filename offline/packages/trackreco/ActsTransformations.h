@@ -1,5 +1,5 @@
-#ifndef TRACKRECO_ACTSCOVARIANCEROTATER_H
-#define TRACKRECO_ACTSCOVARIANCEROTATER_H
+#ifndef TRACKRECO_ACTSTRANSFORMATIONS_H
+#define TRACKRECO_ACTSTRANSFORMATIONS_H
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -27,13 +27,13 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
  * basis with respect to the given reference point that is provided as an
  * option to the KalmanFitter. 
  */
-class ActsCovarianceRotater
+class ActsTransformations
 {
   public:
-  ActsCovarianceRotater()
+  ActsTransformations()
     : m_verbosity(false)
     {}
-  virtual ~ActsCovarianceRotater(){}
+  virtual ~ActsTransformations(){}
   
   /// Rotates an SvtxTrack covariance matrix from (x,y,z,px,py,pz) global
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
@@ -47,6 +47,15 @@ class ActsCovarianceRotater
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
   void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix);
+
+  /// Calculate the DCA for a given Acts fitted track parameters and 
+  /// vertex
+  void calculateDCA(const Acts::BoundParameters param,
+		    Acts::Vector3D vertex,
+		    float &dca3Dxy,
+		    float &dca3Dz,
+		    float &dca3DxyCov,
+		    float &dca3DzCov);
 
  private:
   int m_verbosity;
