@@ -121,6 +121,10 @@ ACTS_SOURCES = \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc
 
+$OFFLINE_MAIN/share:
+dist_data_DATA = \
+  tgeo-sphenix.response
+
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
