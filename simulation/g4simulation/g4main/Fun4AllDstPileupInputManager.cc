@@ -812,7 +812,7 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
 
     // shift vertex time and store new embed id
     newevent->moveVertex( 0, 0, 0, delta_t );
-    new_embed_id = genevent->get_embedding_id();
+    new_embed_id = newevent->get_embedding_id();
   }
 
   // copy truth container
