@@ -123,15 +123,15 @@ class RawTowerDigitizer : public SubsysReco
   }
 
   void
-  set_variable_zs(const bool value)
+  set_variable_zero_suppression(const bool value)
   {
-    m_zsFile = value;
+    m_ZeroSuppressionFile = value;
   }
 
   void
-  set_variable_ped(const bool value)
+  set_variable_pedestal(const bool value)
   {
-    m_pedFile = value;
+    m_pedestalFile = value;
   }
 
   PHParameters &
@@ -207,13 +207,13 @@ class RawTowerDigitizer : public SubsysReco
   double m_PedstalWidthADC;
 
   //! pedestal from file
-  bool m_pedFile;
+  bool m_pedestalFile;
 
   //! zero suppression in unit of ADC
   double m_ZeroSuppressionADC;
 
   //! zero suppression from file
-  bool m_zsFile;
+  bool m_ZeroSuppressionFile;
 
   //! tower type to act on
   int m_TowerType;

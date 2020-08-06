@@ -51,9 +51,9 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
   , m_PhotonElecADC(NAN)
   , m_PedstalCentralADC(NAN)
   , m_PedstalWidthADC(NAN)
-  , m_pedFile(false)
+  , m_pedestalFile(false)
   , m_ZeroSuppressionADC(-1000)  //default to apply no zero suppression
-  , m_zsFile(false)
+  , m_ZeroSuppressionFile(false)
   , m_TowerType(-1)
   , m_SiPMEffectivePixel(40000 * 4)  // sPHENIX EMCal default, 4x Hamamatsu S12572-015P MPPC [sPHENIX TDR]
   , _tower_params(name)
@@ -130,17 +130,16 @@ int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
   {
     const RawTowerDefs::keytype key = it->second->get_id();
     
-    if (m_zsFile == true)
+    if (m_ZeroSuppressionFile == true)
     {
       const int eta = it->second->get_bineta();
       const int phi = it->second->get_binphi();
       const string zsName = "ZS_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
-      cout << "ZS name: " << zsName << endl;
       m_ZeroSuppressionADC =
         _tower_params.get_double_param(zsName);
     }
 
-    if (m_pedFile == true)
+    if (m_pedestalFile == true)
     {
       const int eta = it->second->get_bineta();
       const int phi = it->second->get_binphi();
@@ -248,11 +247,6 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 
   const double pedstal = m_PedstalCentralADC + ((m_PedstalWidthADC > 0) ? gsl_ran_gaussian(m_RandomGenerator, m_PedstalWidthADC) : 0);
   const int sum_ADC = signal_ADC + (int) pedstal;
-
-  cout << "ZS Value: " << m_ZeroSuppressionADC << endl;
-  cout << "Ped Central: " << m_PedstalCentralADC << endl;
-  cout << "Ped Width: " << m_PedstalWidthADC << endl;
-  cout << "Ped: " << pedstal << endl;
 
   if (sum_ADC > m_ZeroSuppressionADC)
   {
