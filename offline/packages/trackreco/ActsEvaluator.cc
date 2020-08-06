@@ -10,6 +10,7 @@
 #include <phool/getClass.h>
 
 /// Tracking includes
+#include <trackbase/TrkrClusterv1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -17,6 +18,9 @@
 #include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxEvaluator.h>
 #include <g4eval/SvtxTrackEval.h>
+
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <g4main/PHG4VtxPoint.h>
 
@@ -38,6 +42,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
+  , m_vertexMap(nullptr)
 {
 }
 
@@ -107,7 +112,13 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    const unsigned int vertexId = track->get_vertex_id();
+    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     
+    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
+			  svtxVertex->get_y() * Acts::UnitConstants::cm,
+			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+
     if(Verbosity() > 1)
       {
 	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
@@ -160,7 +171,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
-	fillFittedTrackParams(traj, trackTip);
+	fillFittedTrackParams(traj, trackTip, vertex);
 	visitTrackStates(traj,trackTip, topNode);
 	
 	m_trackTree->Fill();
@@ -228,7 +239,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
     Acts::Vector3D mom(1, 1, 1);
-    meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
+    meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
                                           local, mom, global);
 
     /// Get measurement covariance
@@ -256,7 +267,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
 
-    meas.referenceSurface().globalToLocal(
+    meas.referenceObject().globalToLocal(
         m_tGeometry->geoContext,
         globalTruthPos,
         globalTruthUnitDir,
@@ -703,31 +714,18 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 
   TrkrDefs::cluskey clusKey = getClusKey(hitID);
   
-  const PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(clusKey);
+  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
-  float layer = (float) TrkrDefs::getLayer(clusKey);
   float gx = -9999;
   float gy = -9999;
   float gz = -9999;
   float gt = -9999;
-  float gedep = -9999;
   
-  if (g4hit)
+  if (truth_cluster)
     {
-      /// Cluster the associated truth hits within the same layer to get
-      /// the truth cluster position
-      std::set<PHG4Hit *> truth_hits = clustereval->all_truth_hits(clusKey);
-      std::vector<PHG4Hit *> contributing_hits;
-      std::vector<double> contributing_hits_energy;
-      std::vector<std::vector<double>> contributing_hits_entry;
-      std::vector<std::vector<double>> contributing_hits_exit;
-      m_svtxEvaluator->LayerClusterG4Hits(topNode, truth_hits, 
-					  contributing_hits,
-                                          contributing_hits_energy, 
-					  contributing_hits_entry,
-                                          contributing_hits_exit, 
-					  layer, gx, gy, gz, gt,
-                                          gedep);
+      gx = truth_cluster->getX();
+      gy = truth_cluster->getY();
+      gz = truth_cluster->getZ();
     }
   
   /// Convert to acts units of mm
@@ -806,7 +804,8 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 }
 
 void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
-					  const size_t &trackTip)
+					  const size_t &trackTip,
+					  const Acts::Vector3D vertex)
 {
   m_hasFittedParams = false;
 
@@ -817,6 +816,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     const auto &boundParam = traj.trackParameters(trackTip);
     const auto &parameter = boundParam.parameters();
     const auto &covariance = *boundParam.covariance();
+    m_charge_fit = boundParam.charge();
     m_eLOC0_fit = parameter[Acts::ParDef::eLOC_0];
     m_eLOC1_fit = parameter[Acts::ParDef::eLOC_1];
     m_ePHI_fit = parameter[Acts::ParDef::ePHI];
@@ -840,7 +840,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_y_fit  = boundParam.position()(1);
     m_z_fit  = boundParam.position()(2);
     
-    calculateDCA(boundParam);
+    calculateDCA(boundParam, vertex);
 
     return;
   }
@@ -852,6 +852,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_eTHETA_fit = -9999;
   m_eQOP_fit = -9999;
   m_eT_fit = -9999;
+  m_charge_fit = -9999;
   m_err_eLOC0_fit = -9999;
   m_err_eLOC1_fit = -9999;
   m_err_ePHI_fit = -9999;
@@ -868,11 +869,16 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   return;
 }
 
-void ActsEvaluator::calculateDCA(const Acts::BoundParameters param)
+void ActsEvaluator::calculateDCA(const Acts::BoundParameters param,
+				 const Acts::Vector3D vertex)
 {
 
   Acts::Vector3D pos = param.position();
   Acts::Vector3D mom = param.momentum();
+  
+  /// Correct for vertex position
+  pos -= vertex;
+
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
   if(param.covariance())
     cov = param.covariance().value();
@@ -960,6 +966,15 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 
 int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_vertexMap)
+    {
+      std::cout << PHWHERE << "SvtxVertexMAp not found, cannot continue!" 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   if (!m_truthInfo)
@@ -1201,7 +1216,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_phi", &m_t_phi);
   m_trackTree->Branch("t_eta", &m_t_eta);
   m_trackTree->Branch("t_pT", &m_t_pT);
-
+  
   m_trackTree->Branch("t_x", &m_t_x);
   m_trackTree->Branch("t_y", &m_t_y);
   m_trackTree->Branch("t_z", &m_t_z);
@@ -1224,6 +1239,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("eTHETA_fit", &m_eTHETA_fit);
   m_trackTree->Branch("eQOP_fit", &m_eQOP_fit);
   m_trackTree->Branch("eT_fit", &m_eT_fit);
+  m_trackTree->Branch("charge_fit", &m_charge_fit);
   m_trackTree->Branch("err_eLOC0_fit", &m_err_eLOC0_fit);
   m_trackTree->Branch("err_eLOC1_fit", &m_err_eLOC1_fit);
   m_trackTree->Branch("err_ePHI_fit", &m_err_ePHI_fit);

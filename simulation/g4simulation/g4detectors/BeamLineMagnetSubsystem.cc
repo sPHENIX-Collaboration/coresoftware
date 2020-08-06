@@ -3,6 +3,8 @@
 #include "BeamLineMagnetDisplayAction.h"
 #include "BeamLineMagnetSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
@@ -16,10 +18,9 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cmath>     // for NAN
 #include <iostream>  // for operator<<, endl, basic_ostream
+#include <set>       // for set
 
-class PHCompositeNode;
 class PHG4Detector;
 
 using namespace std;

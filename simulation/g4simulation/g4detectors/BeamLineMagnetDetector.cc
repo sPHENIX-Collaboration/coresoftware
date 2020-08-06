@@ -6,7 +6,6 @@
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
 
@@ -28,16 +27,13 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4bool
 #include <Geant4/G4UniformMagField.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg, tesla, twopi, meter
 
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 
 class G4VSolid;
 class PHCompositeNode;
-class PHG4Subsystem;
 
 using namespace std;
 
@@ -48,7 +44,7 @@ BeamLineMagnetDetector::BeamLineMagnetDetector(PHG4Subsystem *subsys, PHComposit
   , magnet_physi(nullptr)
   , magnet_iron_physi(nullptr)
   , m_DisplayAction(dynamic_cast<BeamLineMagnetDisplayAction *>(subsys->GetDisplayAction()))
-  ,  m_MagnetId(magnet_id)
+  , m_MagnetId(magnet_id)
 {
 }
 

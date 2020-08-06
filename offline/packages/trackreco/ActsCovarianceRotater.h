@@ -42,15 +42,14 @@ class ActsCovarianceRotater
   Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track);
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-						const Acts::BoundParameters params);
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(const Acts::BoundParameters params);
 
-  void setVerbosity(bool verbosity) {m_verbosity = verbosity;}
+  void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
   void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix);
 
  private:
-  bool m_verbosity;
+  int m_verbosity;
 
 
 };
