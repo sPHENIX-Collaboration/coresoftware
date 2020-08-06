@@ -383,6 +383,33 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       {
         h_nReco_pTReco_cuts->Fill(pt); // normalization histogram fill with cuts
       }
+      PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
+      if (g4particle_match)
+      {
+        SvtxTrack *matched_track = trackeval->best_track_from(g4particle_match);
+
+        if (matched_track)
+        {
+          if (matched_track->get_id() == track->get_id())
+          {
+            h_nGen_pTReco->Fill(pt);  // fill if matching truth track
+
+            const double gpx = g4particle_match->get_px();
+            const double gpy = g4particle_match->get_py();
+            TVector3 gv(gpx, gpy, 0);
+            const double gpt = gv.Pt();
+
+            const double pt_ratio = (pt != 0) ? gpt / pt : 0;
+            h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
+
+	    if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+	    {
+	      h_nGen_pTReco_cuts->Fill(pt);
+	      h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
+	    }
+          }
+        }
+      }
     }
   }
   else
@@ -390,6 +417,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }  // reco track loop
+
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
@@ -484,64 +512,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
     }
 
-    // for-loop over reco tracks
-    SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-    if (trackmap)
-    {
-      SvtxEvalStack *svtxevalstack = new SvtxEvalStack(topNode);
-      svtxevalstack->next_event(topNode);
-      SvtxTrackEval *trackeval = svtxevalstack->get_track_eval();
-
-      for (SvtxTrackMap::Iter iter = trackmap->begin();
-           iter != trackmap->end();
-           ++iter)
-      {
-        SvtxTrack *track = iter->second;
-        double px = track->get_px();
-        double py = track->get_py();
-        double pz = track->get_pz();
-        double pt;
-        TVector3 v(px, py, pz);
-        pt = v.Pt();
-
-        PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
-        if (g4particle_match)
-        {
-          if (g4particle_match->get_track_id() == g4particle->get_track_id())
-          {
-            h_nGen_pTReco->Fill(pt);  // fill if matching truth track
-            float pt_ratio = (pt != 0) ? gpt / pt : 0;
-            h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
-
-	    int MVTX_hits = 0;
-	    int INTT_hits = 0;
-	    int TPC_hits = 0;
-	    for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
-	    {
-              const auto &cluster_key = *cluster_iter;
-              const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-              if (trackerID == TrkrDefs::mvtxId)
-                ++MVTX_hits;
-              else if (trackerID == TrkrDefs::inttId)
-                ++INTT_hits;
-              else if (trackerID == TrkrDefs::tpcId)
-                ++TPC_hits;
-              else
-              {
-                if (Verbosity())
-                   cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
-              }
-            }
-	    if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
-	    {
-              h_nGen_pTReco_cuts->Fill(pt);
-	      h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
-            }
-          }
-        }
-      }
-    }
 
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
