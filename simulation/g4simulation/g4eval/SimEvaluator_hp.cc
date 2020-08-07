@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -110,6 +111,18 @@ namespace
   }
 
   //_____________________________________________________________________
+  /// create g4hit struct from G4Hit
+  SimEvaluator_hp::G4HitStruct create_g4hit( PHG4Hit* g4hit )
+  {
+    SimEvaluator_hp::G4HitStruct g4hitstruct;
+    g4hitstruct._t = g4hit->get_avg_t();
+    g4hitstruct._x = g4hit->get_avg_x();
+    g4hitstruct._y = g4hit->get_avg_y();
+    g4hitstruct._z = g4hit->get_avg_z();
+    return g4hitstruct;
+  }
+  
+  //_____________________________________________________________________
   std::ostream& operator << (std::ostream& out, const PHG4VtxPoint& vertex )
   {
     out << "( " << vertex.get_x() << ", " << vertex.get_y() << ", " << vertex.get_z() << ", " << vertex.get_t() << ")";
@@ -121,8 +134,10 @@ namespace
 //_____________________________________________________________________
 void SimEvaluator_hp::Container::Reset()
 {
+  _events.clear();
   _vertex_list.clear();
   _particle_list.clear();
+  _g4hits.clear();
 }
 
 //_____________________________________________________________________
@@ -178,6 +193,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
   fill_vertices();
   fill_g4particle_map();
   fill_particles();
+  fill_hits();
   // print_vertices();
 
   m_g4particle_map.clear();
@@ -321,6 +337,48 @@ void SimEvaluator_hp::fill_particles()
 
   }
 
+}
+
+//_____________________________________________________________________
+void SimEvaluator_hp::fill_hits()
+{
+  std::cout << "SimEvaluator_hp::fill_hits" << std::endl;
+  if( !m_container ) return; 
+  m_container->clearG4Hits();
+    
+  // map detector id to g4hit container
+  std::map<TrkrDefs::TrkrId, PHG4HitContainer*> containers = {
+    { TrkrDefs::mvtxId, m_g4hits_mvtx },
+    { TrkrDefs::inttId, m_g4hits_intt },
+    { TrkrDefs::tpcId, m_g4hits_tpc },
+    { TrkrDefs::micromegasId, m_g4hits_micromegas }
+  };
+  
+  // loop over containers
+  for( const auto& pair:containers )
+  {
+    const auto& container( pair.second );
+    if( !container ) continue;
+
+    // load g4hits
+    const auto range = container->getHits();
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+
+      // create hit
+      auto g4hit = create_g4hit( iter->second );
+      
+      // detector id
+      g4hit._detid = static_cast<int>( pair.first );
+      
+      // embed id
+      if( m_g4truthinfo ) 
+      { g4hit._embed = m_g4truthinfo->isEmbeded( iter->second->get_trkid() ); }
+      
+      // add
+      m_container->addG4Hit( g4hit );
+    }
+  }
 }
 
 //_____________________________________________________________________

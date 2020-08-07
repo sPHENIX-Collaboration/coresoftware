@@ -13,7 +13,7 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
-  
+
 class SimEvaluator_hp : public SubsysReco
 {
   public:
@@ -32,21 +32,21 @@ class SimEvaluator_hp : public SubsysReco
 
   /// end of processing
   virtual int End(PHCompositeNode*);
-  
+
   // event information
   class EventStruct
   {
-    
+
     public:
-    
+
     using List = std::vector<EventStruct>;
-    
+
     //! impact parameter, when relevant
     float _bimp = 0;
-    
+
     //! reaction plane angle, when relevant
     float _rplane = 0;
-    
+
     //!@name used keep track of the number of pileup events
     //@{
     int _nevt = 0;
@@ -54,44 +54,57 @@ class SimEvaluator_hp : public SubsysReco
     int _nevt_bg = 0;
     //@}
   };
-  
+
   // vertex information
   class VertexStruct
   {
     public:
-    
+
     using List = std::vector<VertexStruct>;
-    
+
     float _x = 0;
     float _y = 0;
     float _z = 0;
     float _t = 0;
-    
+
     bool _is_main_vertex = false;
-    
+
   };
-  
-  // vertex information
+
+  // particle information
   class ParticleStruct
   {
     public:
     using List = std::vector<ParticleStruct>;
-    
+
     int _charge = 0;
     int _pid = 0;
     int _embed = 0;
     bool _is_primary = false;
     int64_t _mask = 0;
-    
+
     float _px = 0;
     float _py = 0;
     float _pz = 0;
     float _pt = 0;
     float _p = 0;
     float _eta = 0;
-    
+
   };
-  
+
+  // particle information
+  class G4HitStruct
+  {
+    public:
+    using List = std::vector<G4HitStruct>;
+    int _embed = 0;
+    int _detid = 0;
+    float _x = 0;
+    float _y = 0;
+    float _z = 0;
+    float _t = 0;
+  };
+
   class Container: public PHObject
   {
 
@@ -121,6 +134,9 @@ class SimEvaluator_hp : public SubsysReco
     const ParticleStruct::List& particleList() const
     { return _particle_list; }
 
+    const G4HitStruct::List& g4hits() const
+    { return _g4hits; }
+
     //@}
 
     ///@name modifiers
@@ -135,6 +151,9 @@ class SimEvaluator_hp : public SubsysReco
     void addParticle( const ParticleStruct& particle )
     { _particle_list.push_back( particle ); }
 
+    void addG4Hit( const G4HitStruct& hit )
+    { _g4hits.push_back( hit ); }
+
     void clearEventList()
     { _events.clear(); }
 
@@ -143,6 +162,9 @@ class SimEvaluator_hp : public SubsysReco
 
     void clearParticleList()
     { _particle_list.clear(); }
+
+    void clearG4Hits()
+    { _g4hits.clear(); }
 
     //@}
 
@@ -156,6 +178,9 @@ class SimEvaluator_hp : public SubsysReco
 
     //* particles
     ParticleStruct::List _particle_list;
+
+    //* hits
+    G4HitStruct::List _g4hits;
 
     ClassDef(Container,1)
 
@@ -171,15 +196,18 @@ class SimEvaluator_hp : public SubsysReco
 
   /// genevent
   void check_genevent();
-  
+
   /// fill event struct
   void fill_event();
-  
+
   /// fill vertices
   void fill_vertices();
 
   /// fill particles
   void fill_particles();
+
+  /// fill hits
+  void fill_hits();
 
   /// print vertices
   void print_vertices();
@@ -190,20 +218,20 @@ class SimEvaluator_hp : public SubsysReco
   //* data container
   Container* m_container = nullptr;
 
-  PHG4HitContainer* m_g4hits_tpc = nullptr;
-  PHG4HitContainer* m_g4hits_intt = nullptr;
   PHG4HitContainer* m_g4hits_mvtx = nullptr;
+  PHG4HitContainer* m_g4hits_intt = nullptr;
+  PHG4HitContainer* m_g4hits_tpc = nullptr;
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
 
   //* hep event
   PHHepMCGenEventMap* m_geneventmap = nullptr;
-  
+
   //* truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
   //! event header
   EventHeader* m_eventheader = nullptr;
-  
+
   // map trk_id to layer mask
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;
