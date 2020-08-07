@@ -295,6 +295,7 @@ void SimEvaluator_hp::fill_vertices()
     if( vertex )
     {
       auto vertexStruct = create_vertex(vertex);
+      vertexStruct._embed = m_g4truthinfo->isEmbededVtx(vertex->get_id());
       vertexStruct._is_main_vertex = (vertex->get_id() == main_vertex_id);
       m_container->addVertex(vertexStruct);
     }

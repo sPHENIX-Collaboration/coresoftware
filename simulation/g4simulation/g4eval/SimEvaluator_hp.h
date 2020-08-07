@@ -59,16 +59,13 @@ class SimEvaluator_hp : public SubsysReco
   class VertexStruct
   {
     public:
-
     using List = std::vector<VertexStruct>;
-
+    int _embed = 0;
     float _x = 0;
     float _y = 0;
     float _z = 0;
     float _t = 0;
-
     bool _is_main_vertex = false;
-
   };
 
   // particle information
