@@ -183,6 +183,19 @@ class SimEvaluator_hp : public SubsysReco
 
   };
 
+  enum Flags
+  {
+    EvalEvent = 1<<0,
+    EvalVertices = 1<<1,
+    EvalParticles = 1<<2,
+    EvalHits = 1<<3,
+    PrintVertices = 1<<4
+  };
+
+  /// set flags. Should be a bitwise or of Flags enum
+  void set_flags( int flags )
+  { m_flags = flags; }
+
   private:
 
   /// load nodes
@@ -214,6 +227,9 @@ class SimEvaluator_hp : public SubsysReco
 
   //* data container
   Container* m_container = nullptr;
+
+  // flags
+  int m_flags = EvalEvent | EvalVertices | EvalParticles | EvalHits;
 
   PHG4HitContainer* m_g4hits_mvtx = nullptr;
   PHG4HitContainer* m_g4hits_intt = nullptr;

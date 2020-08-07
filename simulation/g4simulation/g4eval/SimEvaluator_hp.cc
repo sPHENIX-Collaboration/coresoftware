@@ -189,12 +189,15 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
   // for debugging
   check_genevent();
 
-  fill_event();
-  fill_vertices();
-  fill_g4particle_map();
-  fill_particles();
-  fill_hits();
-  // print_vertices();
+  if( m_flags&EvalEvent) fill_event();
+  if( m_flags&EvalVertices) fill_vertices();
+  if( m_flags&EvalParticles) 
+  {
+    fill_g4particle_map();
+    fill_particles();
+  }
+  if( m_flags&EvalHits) fill_hits();
+  if( m_flags&EvalVertices) print_vertices();
 
   m_g4particle_map.clear();
 
@@ -299,9 +302,7 @@ void SimEvaluator_hp::fill_vertices()
       vertexStruct._is_main_vertex = (vertex->get_id() == main_vertex_id);
       m_container->addVertex(vertexStruct);
     }
-
   }
-
 }
 
 //_____________________________________________________________________
@@ -335,9 +336,7 @@ void SimEvaluator_hp::fill_particles()
 
       m_container->addParticle( particleStruct );
     }
-
   }
-
 }
 
 //_____________________________________________________________________
