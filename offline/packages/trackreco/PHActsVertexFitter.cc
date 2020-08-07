@@ -1,6 +1,5 @@
 #include "PHActsVertexFitter.h"
 
-
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -35,30 +34,39 @@
 
 #include <iostream>
 
-PHActsVertexFitter::PHActsVertexFitter()
-{}
+PHActsVertexFitter::PHActsVertexFitter(const std::string& name) 
+: SubsysReco(name)
+  , m_event(0)
+{
+}
 
 
 int PHActsVertexFitter::Init(PHCompositeNode *topNode)
 {
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTRUN;
+  if(Verbosity() > 1)
+    std::cout << "PHActsVertexFitter::Init" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsVertexFitter::End(PHCompositeNode *topNode)
 {
-
+  if(Verbosity() > 1)
+    std::cout << "PHActsVertexFitter::End " << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 {
 
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTRUN;
+
+  if(Verbosity() > 1)
+    std::cout << "Beginning PHActsVertexFitter::process_event number " 
+	      << m_event << std::endl;
 
   std::vector<const Acts::BoundParameters*> tracks = getTracks();
-
 
   /// Determine the input mag field type from the initial geometry created in
   /// MakeActsGeometry
@@ -83,15 +91,38 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
       typename VertexFitter::Config vertexFitterCfg;
       VertexFitter fitter(vertexFitterCfg);
       typename VertexFitter::State state(m_tGeometry->magFieldContext);
-      
+    
       typename Linearizer::Config linConfig(bField, propagator);
       Linearizer linearizer(linConfig);
 
       VertexFitterOptions vfOptions(m_tGeometry->geoContext,
 				    m_tGeometry->magFieldContext);
-
+      
       auto fitRes = fitter.fit(tracks,linearizer,
       		       vfOptions, state);
+
+      if(fitRes.ok())
+	{
+	  std::cout<<"fit result okay"<<std::endl;
+	  Acts::Vertex<TrackParameters> fittedVertex;
+	  fittedVertex = *fitRes;
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "Fitted vertex position "
+			<< fittedVertex.position().x() << ", " 
+			<< fittedVertex.position().y() << ", "
+			<< fittedVertex.position().z() << std::endl;
+
+	    }
+	}
+      else
+	{
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "Acts vertex fit error: " << fitRes.error().message()
+			<< std::endl;
+	    }
+	}
       
     }
     , m_tGeometry->magField
@@ -115,17 +146,35 @@ std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
     const Trajectory traj = trackIter->second;
     const auto &[trackTips, mj] = traj.trajectory();
     
-    /// For the KF this iterates once. For the CKF it may iterate multiple
-    /// times per trajectory
     for(const size_t &trackTip : trackTips)
       {
 	if(traj.hasTrackParameters(trackTip))
 	  {
-	    trackPtrs.push_back(&traj.trackParameters(trackTip));
+	    const Acts::BoundParameters *param = new Acts::BoundParameters(traj.trackParameters(trackTip));
+	 
+	    trackPtrs.push_back(param);
 	  }
 
       }
   }
+  
+  if(Verbosity() > 3)
+    {
+      std::cout << "Fitting a vertex for the following number of tracks "
+		<< trackPtrs.size()
+		<< std::endl;
+      
+      for(std::vector<const Acts::BoundParameters*>::iterator it = trackPtrs.begin();
+	  it != trackPtrs.end(); ++it)
+	{
+	  const Acts::BoundParameters* param = *it;
+	  std::cout << "Track position: (" << param->position()(0)
+		    <<", " << param->position()(1) << ", "
+		    << param->position()(2) << ")" << std::endl;
+
+	}
+      
+    }
 
   return trackPtrs;
 
@@ -133,7 +182,7 @@ std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
 
 int PHActsVertexFitter::getNodes(PHCompositeNode *topNode)
 {
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
   if(!m_actsFitResults)
     {
       std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."

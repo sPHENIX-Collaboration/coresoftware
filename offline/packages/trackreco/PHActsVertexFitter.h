@@ -20,7 +20,7 @@ using Trajectory = FW::TrkrClusterMultiTrajectory;
 class PHActsVertexFitter : public SubsysReco
 {
  public:
-  PHActsVertexFitter();
+  PHActsVertexFitter(const std::string& name = "PHActsVertexFitter");
   virtual ~PHActsVertexFitter(){}
   int process_event(PHCompositeNode *topNode);
   int Init(PHCompositeNode *topNode);
@@ -28,11 +28,12 @@ class PHActsVertexFitter : public SubsysReco
 
 
  private:
-
+  
   int getNodes(PHCompositeNode *topNode);
   std::vector<const Acts::BoundParameters*> getTracks();  
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
+  int m_event;
   ActsTrackingGeometry *m_tGeometry;
 };
 
