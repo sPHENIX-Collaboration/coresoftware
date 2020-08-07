@@ -197,7 +197,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
     fill_particles();
   }
   if( m_flags&EvalHits) fill_hits();
-  if( m_flags&EvalVertices) print_vertices();
+  if( m_flags&PrintVertices) print_vertices();
 
   m_g4particle_map.clear();
 
