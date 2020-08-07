@@ -71,6 +71,8 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
   /// Determine the input mag field type from the initial geometry created in
   /// MakeActsGeometry
   std::visit([&](auto& inputField) {
+
+      /// Setup aliases
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField = Acts::SharedBField<InputMagneticField>;
@@ -83,6 +85,7 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 	Acts::FullBilloirVertexFitter<TrackParameters, Linearizer>;
       using VertexFitterOptions = Acts::VertexingOptions<TrackParameters>;
       
+      /// Create necessary templated inputs for Acts vertex fitter
       MagneticField bField(std::move(inputField));
       auto propagator = std::make_shared<Propagator>(Stepper(bField));
       PropagatorOptions propagatorOpts(m_tGeometry->geoContext,
@@ -95,15 +98,16 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
       typename Linearizer::Config linConfig(bField, propagator);
       Linearizer linearizer(linConfig);
 
+      /// Can add a vertex fitting constraint as an option, if desired
       VertexFitterOptions vfOptions(m_tGeometry->geoContext,
 				    m_tGeometry->magFieldContext);
       
+      /// Call the fitter and get the result
       auto fitRes = fitter.fit(tracks,linearizer,
       		       vfOptions, state);
 
       if(fitRes.ok())
 	{
-	  std::cout<<"fit result okay"<<std::endl;
 	  Acts::Vertex<TrackParameters> fittedVertex;
 	  fittedVertex = *fitRes;
 	  if(Verbosity() > 3)
@@ -119,14 +123,19 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 	{
 	  if(Verbosity() > 3)
 	    {
-	      std::cout << "Acts vertex fit error: " << fitRes.error().message()
+	      std::cout << "Acts vertex fit error: " 
+			<< fitRes.error().message()
 			<< std::endl;
 	    }
 	}
       
     }
     , m_tGeometry->magField
-    );
+    ); /// end std::visit call
+
+  if(Verbosity() > 1)
+    std::cout << "Finished PHActsVertexFitter::process_event" 
+	      << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
