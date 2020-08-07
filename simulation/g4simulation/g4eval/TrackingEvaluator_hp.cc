@@ -485,6 +485,10 @@ void TrackingEvaluator_hp::evaluate_event()
 
   if(!m_container) return;
 
+  // TPC threshold (adc)
+  // from PHG4TpcDigitizer::InitRun - ADCThreshold * ADCNoiseConversionGain*1024/2200
+  static constexpr float tpc_threshold = 78.4645;
+
   // create event struct
   EventStruct event;
 
@@ -494,11 +498,19 @@ void TrackingEvaluator_hp::evaluate_event()
     const auto range = m_hitsetcontainer->getHitSets();
     for( auto iter = range.first; iter!=range.second; ++iter )
     {
-
+      const auto trkrId = TrkrDefs::getTrkrId( iter->first);
       const auto layer = TrkrDefs::getLayer(iter->first);
       assert(layer<EventStruct::max_layer);
       const auto hit_range = iter->second->getHits();
-      event._nhits[layer] += std::distance( hit_range.first, hit_range.second );
+      if( trkrId == TrkrDefs::tpcId )
+      {
+        const auto accepted = std::count_if( hit_range.first, hit_range.second,
+          []( const TrkrHitSet::Map::value_type pair )
+          { return pair.second->getAdc() >= tpc_threshold; });
+        event._nhits[layer] += accepted;
+      } else {
+        event._nhits[layer] += std::distance( hit_range.first, hit_range.second );
+      }
     }
   }
 
