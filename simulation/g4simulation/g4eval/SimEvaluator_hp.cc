@@ -193,7 +193,7 @@ int SimEvaluator_hp::Init(PHCompositeNode* topnode )
 //_____________________________________________________________________
 int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
 {
-  print_tpc( topnode );
+  // print_tpc( topnode );
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -321,13 +321,21 @@ void SimEvaluator_hp::fill_event()
 
   // // print bunchcrossing id from event header
   // if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
-  if( !( m_container && m_geneventmap ) ) return;;
+  if( !( m_container && m_geneventmap ) ) return;
 
   // clear vertices from previous event
   m_container->clearEventList();
 
   // create event and store pileup information
   m_container->addEvent(create_event(m_geneventmap));
+
+  // track embedding ids
+  if( m_g4truthinfo )
+  {
+    for( const auto& pair:range_adaptor( m_g4truthinfo->GetEmbeddedTrkIds() ) )
+    { std::cout << "SimEvaluator_hp::fill_event - track: " << pair.first << ", " << pair.second << std::endl; }
+  }
+
 }
 
 //_____________________________________________________________________
