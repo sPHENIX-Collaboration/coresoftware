@@ -818,10 +818,11 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       m_t_SL_gy.push_back(gy);
       m_t_SL_gz.push_back(gz);
       
-      if(Verbosity() > 2)
-	std::cout << "Filled proto track" << std::endl;
-
+  
     }
+
+  if(Verbosity() > 2)
+    std::cout << "Filled proto track" << std::endl;
 
 }
 
