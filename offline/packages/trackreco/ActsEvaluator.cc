@@ -85,7 +85,7 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
   m_svtxEvalStack->next_event(topNode);
 
   evaluateTrackFits(topNode);
-
+    
   m_eventNr++;
 
   if (Verbosity() > 1)
@@ -93,6 +93,7 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 {
@@ -110,19 +111,19 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
        ++trajIter)
   {
     /// Get the trajectory information
-    const unsigned int trackKey = trajIter->first;
+    unsigned int trackKey = trajIter->first;
     Trajectory traj = trajIter->second;
-    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
     
+    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
     SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
-    
     const unsigned int vertexId = track->get_vertex_id();
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
-			  svtxVertex->get_y() * Acts::UnitConstants::cm,
-			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+    Acts::Vector3D vertex;
+    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
+    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
+    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
 
     if(Verbosity() > 1)
       {
@@ -147,12 +148,30 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     
    
     iTrack = 0;
-    /// For the KF this iterates once. For the CKF it may iterate 
-    /// multiple times per Trajectory
+    /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
+	
+	/// If the CKFTrackMap is non-null, then the CKF was run. So we need
+	/// to update the truth matching with the trackTip-trackKey
+	/// match since the trajectory-svtx trackKey is no longer one-to-one
+	if(m_actsCKFTrackMap)
+	  {
+	    trackKey = m_actsCKFTrackMap->find(trackTip)->second;
+	     
+	    svtxTrackIter = m_trackMap->find(trackKey);
+	    track = svtxTrackIter->second;
+	    g4particle = trackeval->max_truth_particle_by_nclusters(track);
+
+	    /// The proto track and vertex will still be the same, since
+	    /// the proto track is defined as the track seed in the case of
+	    /// the CKF
+
+	  }
+
 	m_trackNr = iTrack;
         iTrack++;
+	  
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
@@ -214,6 +233,7 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
   m_trajNr = 0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 
 void ActsEvaluator::visitTrackStates(const Trajectory traj, 
@@ -1013,14 +1033,23 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_actsCKFTrackMap = findNode::getClass<std::map<const size_t, const unsigned int>>
+    (topNode, "ActsCKFTrackKeys");
+
+  if (!m_actsCKFTrackMap)
+    {
+      std::cout << PHWHERE << "No acts CKF track map on node tree. ActsEvaluator will not evaluate the CKF fitted track parameters."
+		<< std::endl;
+
+    }
+
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
                      (topNode, "ActsFitResults");
 
   if (!m_actsFitResults)
   {
-    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing"
+    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing."
               << std::endl;
-
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

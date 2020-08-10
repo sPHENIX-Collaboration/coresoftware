@@ -474,7 +474,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
   
   if(!m_actsFitResults)
     {

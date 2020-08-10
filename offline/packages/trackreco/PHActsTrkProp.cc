@@ -41,7 +41,6 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
-
 #include <TMatrixDSym.h>
 #include <cmath>
 #include <iostream>
@@ -302,9 +301,6 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       rotater->calculateDCA(fittedParameters, vertex,
 			    DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
       
-
-      
-
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)
 	{
@@ -331,9 +327,12 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  origTrack->set_y(y);
 	  origTrack->set_z(z);
 	  origTrack->set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
-	  origTrack->set_dca3D_z(DCA3dz / Acts::UnitConstants::cm);
-	  origTrack->set_dca3D_xy_error(DCA3Dxy / Acts::UnitConstants::cm);
-	  origTrack->set_dca3D_z_error(DCA3Dxy / Acts::UnitConstants::cm);
+	  origTrack->set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
+	  origTrack->set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
+	  origTrack->set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
+
+	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
+				    (trackTip,trackKey));
 	}
       else
 	{
@@ -357,10 +356,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  newTrack.set_x(x);
 	  newTrack.set_y(y);
 	  newTrack.set_z(z);
-	  newTrack->set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
-	  newTrack->set_dca3D_z(DCA3dz / Acts::UnitConstants::cm);
-	  newTrack->set_dca3D_xy_error(DCA3Dxy / Acts::UnitConstants::cm);
-	  newTrack->set_dca3D_z_error(DCA3Dxy / Acts::UnitConstants::cm);
+	  newTrack.set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
+	  newTrack.set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
+	  newTrack.set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
+	  newTrack.set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
 
 	  for(int i = 0; i < 6; ++i)
 	    {
@@ -370,6 +369,8 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 		}
 	    }
 	  
+	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
+				    (trackTip, lastTrackKey++));
 	  m_trackMap->insert(&newTrack);
 	}
       
@@ -444,12 +445,21 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsCKFResults");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsCKFTrackKeys");
+  if(!m_actsTrackKeyMap)
+    {
+      m_actsTrackKeyMap = new std::map<const size_t, const unsigned int>;
+      PHDataNode<std::map<const size_t, const unsigned int>> *fitNode = 
+	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsCKFTrackKeys");
+      svtxNode->addNode(fitNode);
+    }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
   if(!m_actsFitResults)
     {
       m_actsFitResults = new std::map<const unsigned int, Trajectory>;
       PHDataNode<std::map<const unsigned int, Trajectory>> *fitNode = 
-	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_actsFitResults, "ActsCKFResults");
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_actsFitResults, "ActsFitResults");
       
       svtxNode->addNode(fitNode);
 

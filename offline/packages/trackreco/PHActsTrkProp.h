@@ -112,6 +112,9 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
+  /// Map that correlates track key with track tip for ActsEvaluator
+  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
+
   /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
