@@ -16,6 +16,7 @@
 class TTree;
 class TFile;
 class PHG4Particle;
+class SvtxVertexMap;
 class SvtxEvalStack;
 class SvtxTrackMap;
 class PHG4TruthInfoContainer;
@@ -29,6 +30,7 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
                                       Acts::ParDef::eLOC_0,
                                       Acts::ParDef::eLOC_1>;
 using Acts::VectorHelpers::eta;
@@ -62,15 +64,23 @@ class ActsEvaluator : public SubsysReco
   void evaluateTrackFits(PHCompositeNode *topNode);
 
   void initializeTree();
+
   void fillG4Particle(PHG4Particle *part);
+
   void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);
-  void fillFittedTrackParams(const Trajectory traj, const size_t &trackTip);
+
+  void fillFittedTrackParams(const Trajectory traj,
+			     const size_t &trackTip,
+			     const Acts::Vector3D vertex);
+
   void visitTrackStates(const Trajectory traj,
 			const size_t &trackTip, 
 			PHCompositeNode *topNode);
+
   void clearTrackVariables();
   
-  void calculateDCA(const Acts::BoundParameters param);
+  void calculateDCA(const Acts::BoundParameters param, 
+		    const Acts::Vector3D vertex);
 
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
 				   const unsigned int hitID,
@@ -85,7 +95,8 @@ class ActsEvaluator : public SubsysReco
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
- 
+  SvtxVertexMap *m_vertexMap;
+
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
 

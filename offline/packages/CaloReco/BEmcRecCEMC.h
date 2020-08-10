@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-class BEmcProfile;
+//class BEmcProfile;
 class EmcModule;
 
 class BEmcRecCEMC : public BEmcRec
@@ -20,10 +20,11 @@ class BEmcRecCEMC : public BEmcRec
   void CorrectShowerDepth(float energy, float x, float y, float z, float &xc, float &yc, float &zc) override;
 
   void LoadProfile(const std::string &fname) override;
-  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
+  //  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
+  void GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi) override;
 
  private:
-  BEmcProfile *_emcprof;
+  //  BEmcProfile *_emcprof;
 };
 
 #endif

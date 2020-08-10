@@ -19,6 +19,9 @@
 #include <g4eval/SvtxEvaluator.h>
 #include <g4eval/SvtxTrackEval.h>
 
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+
 #include <g4main/PHG4VtxPoint.h>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
@@ -39,6 +42,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
+  , m_vertexMap(nullptr)
 {
 }
 
@@ -108,7 +112,13 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     SvtxTrack *track = svtxTrackIter->second;
     PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
     ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    const unsigned int vertexId = track->get_vertex_id();
+    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     
+    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
+			  svtxVertex->get_y() * Acts::UnitConstants::cm,
+			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+
     if(Verbosity() > 1)
       {
 	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
@@ -161,7 +171,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
-	fillFittedTrackParams(traj, trackTip);
+	fillFittedTrackParams(traj, trackTip, vertex);
 	visitTrackStates(traj,trackTip, topNode);
 	
 	m_trackTree->Fill();
@@ -229,7 +239,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
     Acts::Vector3D mom(1, 1, 1);
-    meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
+    meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
                                           local, mom, global);
 
     /// Get measurement covariance
@@ -257,7 +267,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
 
-    meas.referenceSurface().globalToLocal(
+    meas.referenceObject().globalToLocal(
         m_tGeometry->geoContext,
         globalTruthPos,
         globalTruthUnitDir,
@@ -794,7 +804,8 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 }
 
 void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
-					  const size_t &trackTip)
+					  const size_t &trackTip,
+					  const Acts::Vector3D vertex)
 {
   m_hasFittedParams = false;
 
@@ -829,7 +840,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_y_fit  = boundParam.position()(1);
     m_z_fit  = boundParam.position()(2);
     
-    calculateDCA(boundParam);
+    calculateDCA(boundParam, vertex);
 
     return;
   }
@@ -858,11 +869,16 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   return;
 }
 
-void ActsEvaluator::calculateDCA(const Acts::BoundParameters param)
+void ActsEvaluator::calculateDCA(const Acts::BoundParameters param,
+				 const Acts::Vector3D vertex)
 {
 
   Acts::Vector3D pos = param.position();
   Acts::Vector3D mom = param.momentum();
+  
+  /// Correct for vertex position
+  pos -= vertex;
+
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
   if(param.covariance())
     cov = param.covariance().value();
@@ -950,6 +966,15 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 
 int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_vertexMap)
+    {
+      std::cout << PHWHERE << "SvtxVertexMAp not found, cannot continue!" 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   if (!m_truthInfo)
