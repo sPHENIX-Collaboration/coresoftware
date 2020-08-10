@@ -227,7 +227,10 @@ int PHActsTrkFitter::Process()
 
 int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
 {
+
   m_actsFitResults->clear();
+  m_actsTrackKeyMap->clear();
+
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
