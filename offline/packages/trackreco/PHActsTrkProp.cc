@@ -146,9 +146,6 @@ int PHActsTrkProp::Process()
   /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks = getEventSourceLinks();
 
-  ActsTransformations *rotater = new ActsTransformations();
-  rotater->setVerbosity(Verbosity());
-  
   std::map<unsigned int, ActsTrack>::iterator trackIter;
   for(trackIter = m_actsProtoTracks->begin();
       trackIter != m_actsProtoTracks->end();
