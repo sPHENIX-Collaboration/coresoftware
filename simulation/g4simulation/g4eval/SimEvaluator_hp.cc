@@ -216,9 +216,13 @@ int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
 //_____________________________________________________________________
 int SimEvaluator_hp::process_event(PHCompositeNode* topnode)
 {
+
   // load nodes
   auto res =  load_nodes(topnode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
+
+  // clear embedding id map
+  m_g4embed_map.clear();
 
   // for debugging
   check_genevent();
@@ -277,7 +281,7 @@ void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
   std::vector<int> phibins;
   std::vector<int> zbins;
   std::vector<float> thickness;
-  const range_adaptor range(std::move( container->get_begin_end()));
+  const range_adaptor<PHG4CylinderCellGeomContainer::ConstIterator> range(std::move( container->get_begin_end()));
   for( const auto&pair:range )
   {
     phibins.push_back( pair.second->get_phibins() );
@@ -333,12 +337,12 @@ void SimEvaluator_hp::fill_event()
   // create event and store pileup information
   m_container->addEvent(create_event(m_geneventmap));
 
-  // track embedding ids
-  if( m_g4truthinfo )
-  {
-    for( const auto& pair:range_adaptor( m_g4truthinfo->GetEmbeddedTrkIds() ) )
-    { std::cout << "SimEvaluator_hp::fill_event - track: " << pair.first << ", " << pair.second << std::endl; }
-  }
+//   // track embedding ids
+//   if( m_g4truthinfo )
+//   {
+//     for( const auto& pair:range_adaptor<std::map<int, int>::const_iterator>( m_g4truthinfo->GetEmbeddedTrkIds() ) )
+//     { std::cout << "SimEvaluator_hp::fill_event - track: " << pair.first << ", " << pair.second << std::endl; }
+//   }
 
 }
 
@@ -412,6 +416,8 @@ void SimEvaluator_hp::fill_hits()
 {
   std::cout << "SimEvaluator_hp::fill_hits" << std::endl;
   if( !m_container ) return;
+
+  // clear container
   m_container->clearG4Hits();
 
   // map detector id to g4hit container
@@ -441,7 +447,7 @@ void SimEvaluator_hp::fill_hits()
 
       // embed id
       if( m_g4truthinfo )
-      { g4hit._embed = m_g4truthinfo->isEmbeded( iter->second->get_trkid() ); }
+      { g4hit._embed = get_embed( iter->second ); }
 
       // add
       m_container->addG4Hit( g4hit );
@@ -481,6 +487,27 @@ void SimEvaluator_hp::print_vertices()
     { std::cout << "SimEvaluator_hp::print_vertices - primary vertex: " << *vertex << std::endl; }
   }
 
+}
+
+//_____________________________________________________________________
+int SimEvaluator_hp::get_embed( PHG4Hit* hit )
+{
+  if(!(m_g4truthinfo && hit)) return 0;
+
+  // get trk id
+  const auto trk_id = hit->get_trkid();
+  if( trk_id > 0 ) return  m_g4truthinfo->isEmbeded( trk_id );
+  else
+  {
+    // for secondary particles, check cache or get the corresponding PHParticle
+    // check if already in map
+    const auto iter = m_g4embed_map.lower_bound( trk_id );
+    if( iter != m_g4embed_map.end() && iter->first == trk_id ) return iter->second;
+
+    const auto particle = m_g4truthinfo->GetParticle( trk_id );
+    const auto embed = get_embed( particle );
+    return m_g4embed_map.insert( iter, std::make_pair( trk_id, embed ) )->second;
+  }
 }
 
 //_____________________________________________________________________

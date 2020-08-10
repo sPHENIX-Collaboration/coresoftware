@@ -9,6 +9,7 @@
 #include <vector>
 
 class EventHeader;
+class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
@@ -225,6 +226,9 @@ class SimEvaluator_hp : public SubsysReco
   /// print vertices
   void print_vertices();
 
+  // get embedded id for given g4hit
+  int get_embed(PHG4Hit*);
+
   // get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
@@ -249,6 +253,10 @@ class SimEvaluator_hp : public SubsysReco
   //! event header
   EventHeader* m_eventheader = nullptr;
 
+  // map trk id to embed id
+  using EmbedMap = std::map<int,int>;
+  EmbedMap m_g4embed_map;
+  
   // map trk_id to layer mask
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;
