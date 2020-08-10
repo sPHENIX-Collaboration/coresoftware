@@ -94,7 +94,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   };
 
   auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 5)
+  if(Verbosity() > 0)
     logger = Acts::Logging::VERBOSE;
 
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(

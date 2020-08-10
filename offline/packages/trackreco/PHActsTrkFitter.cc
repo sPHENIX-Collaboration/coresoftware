@@ -65,7 +65,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -75,7 +75,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 2)
+  if(Verbosity() > 0)
     logger = Acts::Logging::VERBOSE;
 
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
@@ -89,7 +89,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -100,7 +100,7 @@ int PHActsTrkFitter::Process()
   auto startTime = high_resolution_clock::now();
   m_event++;
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
@@ -222,6 +222,10 @@ int PHActsTrkFitter::Process()
   if(m_timeAnalysis)
     h_eventTime->Fill(eventTime.count());
 
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter::process_event finished" 
+	      << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -251,7 +255,7 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
 
   std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
