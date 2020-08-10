@@ -46,6 +46,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_event(0)
   , m_actsFitResults(nullptr)
   , m_actsProtoTracks(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
@@ -261,6 +262,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   const auto &[trackTips, mj] = traj.trajectory();
   /// only one track tip in the track fit Trajectory
   auto &trackTip = trackTips.front();
+
+  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
+			    (trackTip, trackKey));
 
   SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
   SvtxTrack *track = trackIter->second;
@@ -488,6 +492,15 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
       svtxNode->addNode(fitNode);
       
+    }
+
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsCKFTrackKeys");
+  if(!m_actsTrackKeyMap)
+    {
+      m_actsTrackKeyMap = new std::map<const size_t, const unsigned int>;
+      PHDataNode<std::map<const size_t, const unsigned int>> *fitNode = 
+	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsCKFTrackKeys");
+      svtxNode->addNode(fitNode);
     }
   
   return Fun4AllReturnCodes::EVENT_OK;

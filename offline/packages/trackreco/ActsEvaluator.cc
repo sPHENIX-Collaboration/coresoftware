@@ -113,27 +113,6 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     /// Get the trajectory information
     unsigned int trackKey = trajIter->first;
     Trajectory traj = trajIter->second;
-    
-    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
-    SvtxTrack *track = svtxTrackIter->second;
-    PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
-    const unsigned int vertexId = track->get_vertex_id();
-    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    Acts::Vector3D vertex;
-    vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
-    vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
-    vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
-
-    if(Verbosity() > 1)
-      {
-	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
-	track->identify();
-	std::cout << "TruthParticle : " << g4particle->get_px()
-		  << ", " << g4particle->get_py() << ", "
-		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
-		  << std::endl;
-      }
 
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTraj;
@@ -144,40 +123,36 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
       if (Verbosity() > 1)
         std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
-    }
-    
+    }  
    
     iTrack = 0;
     /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
+	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
+	SvtxTrack *track = svtxTrackIter->second;
+	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
+	ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+	const unsigned int vertexId = track->get_vertex_id();
+	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+	Acts::Vector3D vertex;
+	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
+	vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
+	vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
 	
-	/// If the CKFTrackMap is non-null, then the CKF was run. So we need
-	/// to update the truth matching with the trackTip-trackKey
-	/// match since the trajectory-svtx trackKey is no longer one-to-one
-	if(m_actsCKFTrackMap)
+	if(Verbosity() > 1)
 	  {
-	    trackKey = m_actsCKFTrackMap->find(trackTip)->second;
-
-	    svtxTrackIter = m_trackMap->find(trackKey);
-	    track = svtxTrackIter->second;
-	    g4particle = trackeval->max_truth_particle_by_nclusters(track);
-	    
-	    if(Verbosity() > 2)
-	      {
-		std::cout << "CKF trackTip matches trackKey " << trackKey 
-			  << std::endl;
-		track->identify();
-	      }
-	    /// The proto track and vertex will still be the same, since
-	    /// the proto track is defined as the track seed in the case of
-	    /// the CKF
-
+	    std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
+	    track->identify();
+	    std::cout << "TruthParticle : " << g4particle->get_px()
+		      << ", " << g4particle->get_py() << ", "
+		      << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		      << std::endl;
 	  }
-
+	
 	m_trackNr = iTrack;
         iTrack++;
-	  
+	
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
@@ -208,6 +183,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	/// Start fresh for the next track
 	clearTrackVariables();
+	if(Verbosity() > 1)
+	  std::cout << "Finished track " << iTrack <<std::endl;
       }
     
     ++iTraj;
@@ -246,6 +223,9 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 				     const size_t &trackTip,
 				     PHCompositeNode *topNode)
 {
+
+  if(Verbosity() > 2)
+    std::cout << "Begin visit track states" << std::endl;
 
   const auto &[trackTips, mj] = traj.trajectory();
 
@@ -715,6 +695,10 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
   }   /// Finish lambda function
   );  /// Finish multi trajectory visitBackwards call
 
+
+  if(Verbosity() > 2)
+    std::cout << "Finished track states" << std::endl;
+
   return;
 }
 
@@ -775,6 +759,9 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 
 void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 {
+
+  if(Verbosity() > 2)
+    std::cout << "Filling proto track seed quantities" << std::endl;
   FW::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
   
@@ -831,7 +818,8 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       m_t_SL_gy.push_back(gy);
       m_t_SL_gz.push_back(gz);
       
-
+      if(Verbosity() > 2)
+	std::cout << "Filled proto track" << std::endl;
 
     }
 
@@ -842,6 +830,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
 					  const Acts::Vector3D vertex)
 {
   m_hasFittedParams = false;
+
+  if(Verbosity() > 2)
+    std::cout << "Filling fitted track parameters" << std::endl;
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
@@ -899,6 +890,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_x_fit = -9999;
   m_y_fit = -9999;
   m_z_fit = -9999;
+
+  if(Verbosity() > 2)
+    std::cout << "Finished fitted track params" << std::endl;
 
   return;
 }
@@ -967,8 +961,8 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
     if(Verbosity() > 1)
-      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
-		<< ")" << std::endl;
+      std::cout << "truth vertex : (" << m_t_vx << ", " << m_t_vy 
+		<< ", " << m_t_vz << ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();

@@ -226,6 +226,7 @@ int PHActsTrkProp::Process()
 int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
 {
   m_actsFitResults->clear();
+  m_actsTrackKeyMap->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
