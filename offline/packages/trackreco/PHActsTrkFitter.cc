@@ -39,6 +39,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+
 using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
@@ -534,7 +535,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 			  Trajectory>> *fitNode = 
 		 new PHDataNode<std::map<const unsigned int, 
 				    Trajectory>>
-		 (m_actsFitResults, "ActsFitResults");
+		 (m_actsFitResults, "ActsTrajectories");
 
       svtxNode->addNode(fitNode);
       

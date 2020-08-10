@@ -42,6 +42,7 @@ pkginclude_HEADERS = \
   PHActsTracks.h \
   PHActsTrkProp.h \
   PHActsTrkFitter.h \
+  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -118,7 +119,8 @@ ACTS_SOURCES = \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  PHActsVertexFitter.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
