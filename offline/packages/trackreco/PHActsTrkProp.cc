@@ -68,7 +68,7 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
 
 int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Setup PHActsTrkProp" << std::endl;
   createNodes(topNode);
   
@@ -102,7 +102,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 		   m_tGeometry->magField,
 		   logger);
 
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout <<" Finish PHActsTrkProp setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -137,7 +137,7 @@ int PHActsTrkProp::Process()
 
   m_event++;
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkProp::process_event" << std::endl;
@@ -165,6 +165,18 @@ int PHActsTrkProp::Process()
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	                           track.getVertex());
 
+    if(Verbosity() > 1)
+      {
+	std::cout << "Processing track seed with positon: "
+		  << trackSeed.position().transpose() << std::endl
+		  << "momentum: " << trackSeed.momentum().transpose() << std::endl
+		  << "charge: " << trackSeed.charge() << std::endl
+		  << "initial vertex : " <<track.getVertex()
+		  << " corresponding to SvtxTrack key " << trackKey
+		  << std::endl;
+      }
+
+
     /// Construct the options to pass to the CKF.
     /// SourceLinkSelector set in Init()
     Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
@@ -185,7 +197,7 @@ int PHActsTrkProp::Process()
 	Trajectory traj(fitOutput.fittedStates,
 			fitOutput.trackTips,
 			fitOutput.fittedParameters);
-	
+
 	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				 (trackKey, traj));
 	
@@ -204,7 +216,7 @@ int PHActsTrkProp::Process()
     
   }
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
 
 
@@ -220,13 +232,12 @@ int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsTrkProp::End()
 {
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkProp" << std::endl;
+    std::cout << "PHActsTrkProp had " << m_nBadFits 
+	      << " bad fits" << std::endl;
   }
-
-  std::cout << "PHActsTrkProp had " << m_nBadFits << " bad fits" << std::endl;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -278,13 +289,23 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	continue;
       
       const auto& fittedParameters = traj.trackParameters(trackTip);
-      
+    
       float x  = fittedParameters.position()(0) / Acts::UnitConstants::cm;
       float y  = fittedParameters.position()(1) / Acts::UnitConstants::cm;
       float z  = fittedParameters.position()(2) / Acts::UnitConstants::cm;
       float px = fittedParameters.momentum()(0);
       float py = fittedParameters.momentum()(1);
       float pz = fittedParameters.momentum()(2);
+      
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Track fit returned a track with: " << std::endl
+		    << "momentum : " << fittedParameters.momentum().transpose()
+		    << std::endl
+		    << "position : " << fittedParameters.position().transpose()
+		    << std::endl
+		    << "charge : " << fittedParameters.charge() << std::endl;
+	}
       
       float qOp = fittedParameters.parameters()[Acts::ParDef::eQOP];
       
@@ -311,6 +332,11 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)
 	{
+	  if(Verbosity() > 3)
+	    std::cout << "Replacing SvtxTrack " << trackKey 
+		      << " with parameters from trackTip " << trackTip
+		      << std::endl;
+	  
 	  origTrack->set_id(trackKey);
 	  origTrack->set_vertex_id(vertexId);
 	  origTrack->set_chisq(chi2sum);
@@ -344,7 +370,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       else
 	{
 	  /// Otherwise make a new track
-	  
+	  if(Verbosity() > 3)
+	    std::cout << "Creating new SvtxTrack with trackKey " << lastTrackKey++
+		      << " corresponding to trackTip " << trackTip << std::endl;
+
 	  SvtxTrack_v1 newTrack;
 	  /// Needs to be a new track id
 	  newTrack.set_id(lastTrackKey++);
