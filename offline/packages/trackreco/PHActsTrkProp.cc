@@ -75,17 +75,24 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  /// Need to implement different chi2 criteria for the different layers
-  /// and volumes to help the CKF out a little 
-  /// Leave these out for now once we return to track propagation
-  /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
-  /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
+  /// The CKF requires a source link selector which helps it identify possible
+  /// SLs to the track. The selections can be added like
+  /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
+  /// We'll just put the max chi2 to 10 to err on the side of keeping too much
+  m_sourceLinkSelectorConfig = {
+    /// global default values
+    {makeId(), {10.0, 55}},
 
-  /// Set the maxChi2 to something unreasonably large for evaluation purposes
-  /// m_sourceLinkSelectorConfig.maxChi2 = 100;
-  /// Set the allowed maximum number of source links to be large enough
-  ///m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
- 
+    /// MVTX volume should have max 3 SLs
+    {makeId(7), {10.0, 3}},
+    
+    /// INTT volume should have max 2 SLs
+    {makeId(9), {10.0, 2}},
+    
+    /// TPC volume should have max 50 (?) SLs
+    {makeId(11), {10.0,50}}
+  };
+
   auto logger = Acts::Logging::INFO;
   if(Verbosity() > 5)
     logger = Acts::Logging::VERBOSE;
@@ -402,6 +409,15 @@ void PHActsTrkProp::getTrackClusters(const size_t& trackTip,
     }); /// Finish lambda function
   
   return;
+}
+
+Acts::GeometryID PHActsTrkProp::makeId(int volume, 
+				       int layer, 
+				       int sensitive)
+{
+  return Acts::GeometryID().setVolume(volume)
+                           .setLayer(layer)
+                           .setSensitive(sensitive);
 }
 
 TrkrDefs::cluskey PHActsTrkProp::getClusKey(const unsigned int hitID)

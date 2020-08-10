@@ -12,14 +12,18 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <Acts/Geometry/GeometryID.hpp>
+
 #include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
+
 #include <Acts/Propagator/detail/SteppingLogger.hpp>
 #include <Acts/Propagator/MaterialInteractor.hpp>
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 #include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+
+#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 
 #include <memory>
 #include <string>
@@ -87,6 +91,11 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
+
+  /// Helper function to make an Acts::GeometryID for SL selection
+  Acts::GeometryID makeId(int volume = 0, 
+			  int layer = 0, 
+			  int sensitive = 0);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
   void updateSvtxTrack(Trajectory traj, const unsigned int trackKey, Acts::Vector3D vertex);

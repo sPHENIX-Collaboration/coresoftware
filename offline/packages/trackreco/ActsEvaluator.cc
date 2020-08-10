@@ -158,11 +158,17 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	if(m_actsCKFTrackMap)
 	  {
 	    trackKey = m_actsCKFTrackMap->find(trackTip)->second;
-	     
+
 	    svtxTrackIter = m_trackMap->find(trackKey);
 	    track = svtxTrackIter->second;
 	    g4particle = trackeval->max_truth_particle_by_nclusters(track);
-
+	    
+	    if(Verbosity() > 2)
+	      {
+		std::cout << "CKF trackTip matches trackKey " << trackKey 
+			  << std::endl;
+		track->identify();
+	      }
 	    /// The proto track and vertex will still be the same, since
 	    /// the proto track is defined as the track seed in the case of
 	    /// the CKF
