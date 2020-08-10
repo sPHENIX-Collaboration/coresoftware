@@ -201,6 +201,9 @@ class SimEvaluator_hp : public SubsysReco
   /// load nodes
   int load_nodes( PHCompositeNode* );
 
+  /// print TPC geometry
+  void print_tpc( PHCompositeNode* );
+
   /// fill MC track map
   void fill_g4particle_map();
 
@@ -229,7 +232,8 @@ class SimEvaluator_hp : public SubsysReco
   Container* m_container = nullptr;
 
   // flags
-  int m_flags = EvalEvent | EvalVertices | EvalParticles | EvalHits;
+  // int m_flags = EvalEvent | EvalVertices | EvalParticles | EvalHits;
+  int m_flags = EvalEvent | EvalVertices | EvalParticles;
 
   PHG4HitContainer* m_g4hits_mvtx = nullptr;
   PHG4HitContainer* m_g4hits_intt = nullptr;

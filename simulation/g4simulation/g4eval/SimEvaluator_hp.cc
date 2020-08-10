@@ -2,6 +2,8 @@
 
 #include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
@@ -25,6 +27,19 @@
 //_____________________________________________________________________
 namespace
 {
+
+  //! convenient class to use range for loop on a pair of iterators, as returned by most sphenix container classes
+  template<class T>
+  class range_adaptor
+  {
+    public:
+    range_adaptor( const std::pair<T,T>& range ) : m_range( range ) {};
+    const T& begin() const { return m_range.first; }
+    const T& end() const { return m_range.second; }
+
+    private:
+    const std::pair<T,T> m_range;
+  };
 
   /// square
   template<class T> T square( T x ) { return x*x; }
@@ -121,7 +136,7 @@ namespace
     g4hitstruct._z = g4hit->get_avg_z();
     return g4hitstruct;
   }
-  
+
   //_____________________________________________________________________
   std::ostream& operator << (std::ostream& out, const PHG4VtxPoint& vertex )
   {
@@ -146,11 +161,11 @@ SimEvaluator_hp::SimEvaluator_hp( const std::string& name ):
 {}
 
 //_____________________________________________________________________
-int SimEvaluator_hp::Init(PHCompositeNode* topNode )
+int SimEvaluator_hp::Init(PHCompositeNode* topnode )
 {
 
   // find DST node
-  PHNodeIterator iter(topNode);
+  PHNodeIterator iter(topnode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
@@ -176,14 +191,17 @@ int SimEvaluator_hp::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int SimEvaluator_hp::InitRun(PHCompositeNode* )
-{ return Fun4AllReturnCodes::EVENT_OK; }
+int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
+{
+  print_tpc( topnode );
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 //_____________________________________________________________________
-int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
+int SimEvaluator_hp::process_event(PHCompositeNode* topnode)
 {
   // load nodes
-  auto res =  load_nodes(topNode);
+  auto res =  load_nodes(topnode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
   // for debugging
@@ -191,7 +209,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topNode)
 
   if( m_flags&EvalEvent) fill_event();
   if( m_flags&EvalVertices) fill_vertices();
-  if( m_flags&EvalParticles) 
+  if( m_flags&EvalParticles)
   {
     fill_g4particle_map();
     fill_particles();
@@ -209,27 +227,64 @@ int SimEvaluator_hp::End(PHCompositeNode* )
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
-int SimEvaluator_hp::load_nodes( PHCompositeNode* topNode )
+int SimEvaluator_hp::load_nodes( PHCompositeNode* topnode )
 {
   // local container
-  m_container = findNode::getClass<Container>(topNode, "SimEvaluator_hp::Container");
+  m_container = findNode::getClass<Container>(topnode, "SimEvaluator_hp::Container");
 
   // hep mc
-  m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topnode, "PHHepMCGenEventMap");
 
   // g4 truth info
-  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topnode, "G4TruthInfo");
 
   // g4hits
-  m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
-  m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
-  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
-  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
+  m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topnode, "G4HIT_TPC");
+  m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topnode, "G4HIT_INTT");
+  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topnode, "G4HIT_MVTX");
+  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topnode, "G4HIT_MICROMEGAS");
 
   // event header
-  m_eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  m_eventheader = findNode::getClass<EventHeader>(topnode, "EventHeader");
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________
+void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
+{
+
+  // get relevant node
+  const auto container = findNode::getClass<PHG4CylinderCellGeomContainer>(topnode, "CYLINDERCELLGEOM_SVTX");
+  if( !container ) return;
+
+  std::vector<int> phibins;
+  std::vector<int> zbins;
+  const range_adaptor range(std::move( container->get_begin_end()));
+  for( const auto&pair:range )
+  {
+    phibins.push_back( pair.second->get_phibins() );
+    zbins.push_back( pair.second->get_zbins() );
+  }
+
+  // print vectors
+  auto print_vector = []( const std::string& name, const std::vector<int> values )
+  {
+    std::cout << "  " << name << "[" << values.size() << "] = {" << std::endl << "    ";
+    int count = 0;
+    for( const auto& value:values )
+    {
+      if( count ) std::cout << ", ";
+      std::cout << value;
+      ++count;
+      if( count == 10 ) { std::cout << std::endl << "    "; count = 0; }
+    }
+    std::cout << " };" << std::endl;
+  };
+
+  print_vector( "phibins", phibins );
+  print_vector( "zbins", zbins );
+
 }
 
 //_____________________________________________________________________
@@ -301,6 +356,7 @@ void SimEvaluator_hp::fill_vertices()
       vertexStruct._embed = m_g4truthinfo->isEmbededVtx(vertex->get_id());
       vertexStruct._is_main_vertex = (vertex->get_id() == main_vertex_id);
       m_container->addVertex(vertexStruct);
+      std::cout << "SimEvaluator_hp::fill_vertices - vertex id: " << vertex->get_id() << " embed: " << vertexStruct._embed << std::endl;
     }
   }
 }
@@ -343,9 +399,9 @@ void SimEvaluator_hp::fill_particles()
 void SimEvaluator_hp::fill_hits()
 {
   std::cout << "SimEvaluator_hp::fill_hits" << std::endl;
-  if( !m_container ) return; 
+  if( !m_container ) return;
   m_container->clearG4Hits();
-    
+
   // map detector id to g4hit container
   std::map<TrkrDefs::TrkrId, PHG4HitContainer*> containers = {
     { TrkrDefs::mvtxId, m_g4hits_mvtx },
@@ -353,7 +409,7 @@ void SimEvaluator_hp::fill_hits()
     { TrkrDefs::tpcId, m_g4hits_tpc },
     { TrkrDefs::micromegasId, m_g4hits_micromegas }
   };
-  
+
   // loop over containers
   for( const auto& pair:containers )
   {
@@ -367,14 +423,14 @@ void SimEvaluator_hp::fill_hits()
 
       // create hit
       auto g4hit = create_g4hit( iter->second );
-      
+
       // detector id
       g4hit._detid = static_cast<int>( pair.first );
-      
+
       // embed id
-      if( m_g4truthinfo ) 
+      if( m_g4truthinfo )
       { g4hit._embed = m_g4truthinfo->isEmbeded( iter->second->get_trkid() ); }
-      
+
       // add
       m_container->addG4Hit( g4hit );
     }
