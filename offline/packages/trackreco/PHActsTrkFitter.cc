@@ -497,7 +497,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 			  Trajectory>> *fitNode = 
 		 new PHDataNode<std::map<const unsigned int, 
 				    Trajectory>>
-		 (m_actsFitResults, "ActsTrajectories");
+		 (m_actsFitResults, "ActsFitResults");
 
       svtxNode->addNode(fitNode);
       
