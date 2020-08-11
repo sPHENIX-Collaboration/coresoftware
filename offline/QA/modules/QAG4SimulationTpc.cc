@@ -448,5 +448,3 @@ QAG4SimulationTpc::G4HitSet QAG4SimulationTpc::find_g4hits(TrkrDefs::cluskey clu
 
   return out;
 }
-
-

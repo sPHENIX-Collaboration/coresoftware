@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
 	QAG4SimulationMvtx.h \
 	QAG4SimulationTpc.h \
 	QAG4SimulationTracking.h \
+	QAG4SimulationVertex.h \
 	QAG4SimulationUpsilon.h \
 	QAHistManagerDef.h
 
@@ -55,6 +56,7 @@ libqa_modules_la_SOURCES = \
 	QAG4SimulationMvtx.cc \
 	QAG4SimulationTpc.cc \
 	QAG4SimulationTracking.cc \
+	QAG4SimulationVertex.cc \
 	QAG4SimulationUpsilon.cc \
 	QAHistManagerDef.cc
 
