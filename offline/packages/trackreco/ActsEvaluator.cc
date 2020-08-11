@@ -38,6 +38,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_truthInfo(nullptr)
   , m_trackMap(nullptr)
   , m_svtxEvalStack(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
@@ -129,6 +130,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
+	trackKey = m_actsTrackKeyMap->find(trackTip)->second;
 	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
 	SvtxTrack *track = svtxTrackIter->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
@@ -1034,10 +1036,10 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsCKFTrackMap = findNode::getClass<std::map<const size_t, const unsigned int>>
-    (topNode, "ActsCKFTrackKeys");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>
+    (topNode, "ActsTrackKeys");
 
-  if (!m_actsCKFTrackMap)
+  if (!m_actsTrackKeyMap)
     {
       std::cout << PHWHERE << "No acts CKF track map on node tree. ActsEvaluator will not evaluate the CKF fitted track parameters."
 		<< std::endl;

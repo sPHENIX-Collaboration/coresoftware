@@ -55,6 +55,7 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_trackMap(nullptr)
   , m_actsProtoTracks(nullptr)
   , m_actsFitResults(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
   , m_topNode(nullptr)
@@ -504,12 +505,12 @@ void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsCKFTrackKeys");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsTrackKeys");
   if(!m_actsTrackKeyMap)
     {
       m_actsTrackKeyMap = new std::map<const size_t, const unsigned int>;
       PHDataNode<std::map<const size_t, const unsigned int>> *fitNode = 
-	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsCKFTrackKeys");
+	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsTrackKeys");
       svtxNode->addNode(fitNode);
     }
 

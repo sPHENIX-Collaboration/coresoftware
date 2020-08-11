@@ -503,12 +503,12 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       
     }
 
-  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsCKFTrackKeys");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsTrackKeys");
   if(!m_actsTrackKeyMap)
     {
       m_actsTrackKeyMap = new std::map<const size_t, const unsigned int>;
       PHDataNode<std::map<const size_t, const unsigned int>> *fitNode = 
-	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsCKFTrackKeys");
+	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsTrackKeys");
       svtxNode->addNode(fitNode);
     }
   
