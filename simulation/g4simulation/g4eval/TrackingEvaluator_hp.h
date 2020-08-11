@@ -55,14 +55,31 @@ class TrackingEvaluator_hp : public SubsysReco
       for( size_t i = 0; i < max_layer; ++i )
       {
         _nhits[i] = 0;
+        _nhits_raw[i] = 0;
         _nclusters[i] = 0;
+
       }
     }
+    //! number of hits per layer / event
+    /* for TPC hits, the charge is compared to threshold */
     int _nhits[max_layer];
+
+    //! number of hits per layer / event
+    int _nhits_raw[max_layer];
+
+    //! number of clusters per layer / event
     int _nclusters[max_layer];
+
+    //! number of clusters in the TPC
     int _nclusters_mvtx = 0;
+
+    //! number of clusters in the intt
     int _nclusters_intt = 0;
+
+    //! number of clusters in the TPC
     int _nclusters_tpc = 0;
+
+    //! number of clusters in the Micromegas
     int _nclusters_micromegas = 0;
   };
 

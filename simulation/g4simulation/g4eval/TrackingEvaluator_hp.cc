@@ -502,6 +502,8 @@ void TrackingEvaluator_hp::evaluate_event()
       const auto layer = TrkrDefs::getLayer(iter->first);
       assert(layer<EventStruct::max_layer);
       const auto hit_range = iter->second->getHits();
+
+      // nhits per layer
       if( trkrId == TrkrDefs::tpcId )
       {
         const auto accepted = std::count_if( hit_range.first, hit_range.second,
@@ -511,6 +513,10 @@ void TrackingEvaluator_hp::evaluate_event()
       } else {
         event._nhits[layer] += std::distance( hit_range.first, hit_range.second );
       }
+
+      // nhits per layer, with no threshold cut for the TPC
+      event._nhits_raw[layer] += std::distance( hit_range.first, hit_range.second );
+
     }
   }
 
