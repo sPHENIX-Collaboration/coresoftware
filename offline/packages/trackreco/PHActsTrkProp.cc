@@ -78,7 +78,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// The CKF requires a source link selector which helps it identify possible
   /// SLs to the track. The selections can be added like
   /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
-  /// We'll just put the max chi2 to 10 to err on the side of keeping too much
+  /// We'll just put the max chi2 to 10 
   m_sourceLinkSelectorConfig = {
     /// global default values
     {makeId(), {10.0, 55}},
@@ -156,13 +156,24 @@ int PHActsTrkProp::Process()
 
     FW::TrackParameters trackSeed = track.getTrackParams();
 
+    auto covariance = trackSeed.covariance().value();
+    
+    /// The hough seed covariance is orders of magnitude too small, causes CKF
+    /// to ignore measurements. Blow up the covariance by an arbitrary
+    /// amount to let CKF know not to heavily weight seed parameters
+    FW::TrackParameters trackSeedLargeCov(covariance*1000,
+					  trackSeed.position(),
+					  trackSeed.momentum(),
+					  trackSeed.charge(),
+					  trackSeed.time());
+
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
     /// the initial vertex estimation
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	                           track.getVertex());
 
-    if(Verbosity() > 1)
+    if(Verbosity() > 0)
       {
 	std::cout << "Processing track seed with positon: "
 		  << trackSeed.position().transpose() << std::endl
@@ -170,6 +181,11 @@ int PHActsTrkProp::Process()
 		  << "charge: " << trackSeed.charge() << std::endl
 		  << "initial vertex : " <<track.getVertex()
 		  << " corresponding to SvtxTrack key " << trackKey
+		  << std::endl
+		  << "with initial covariance " << std::endl
+		  <<trackSeed.covariance().value()
+		  << std::endl << "with blown up covariance " << std::endl 
+		  << trackSeedLargeCov.covariance().value()
 		  << std::endl;
       }
 
@@ -185,7 +201,7 @@ int PHActsTrkProp::Process()
 
     /// Run the CKF for all source links and the constructed track seed
     /// CKF runs both track finder and KF track fitter
-    auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
+    auto result = findCfg.finder(sourceLinks, trackSeedLargeCov, ckfOptions);
     
     if(result.ok())
       {
@@ -295,7 +311,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       float py = fittedParameters.momentum()(1);
       float pz = fittedParameters.momentum()(2);
       
-      if(Verbosity() > 2)
+      if(Verbosity() > 0)
 	{
 	  std::cout << "Track fit returned a track with: " << std::endl
 		    << "momentum : " << fittedParameters.momentum().transpose()

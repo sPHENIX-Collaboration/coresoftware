@@ -125,7 +125,7 @@ int PHActsTrkFitter::Process()
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 		          track.getVertex());
    
-    if(Verbosity() > 1)
+    if(Verbosity() > 0)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
@@ -314,7 +314,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_ndf(trajState.NDF);
 
   ActsTransformations *rotater = new ActsTransformations();
-
+  rotater->setVerbosity(Verbosity());
+  
   if(params.covariance())
     {
    
