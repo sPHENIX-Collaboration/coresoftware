@@ -28,6 +28,22 @@
 namespace
 {
 
+  // print vectors
+  template<class T>
+  void print_vector( const std::string& name, const std::vector<T> values )
+  {
+    std::cout << "  " << name << "[" << values.size() << "] = {" << std::endl << "    ";
+    int count = 0;
+    for( const auto& value:values )
+    {
+      if( count ) std::cout << ", ";
+      std::cout << value;
+      ++count;
+      if( count == 10 ) { std::cout << std::endl << "    "; count = 0; }
+    }
+    std::cout << " };" << std::endl;
+  };
+
   //! convenient class to use range for loop on a pair of iterators, as returned by most sphenix container classes
   template<class T>
   class range_adaptor
@@ -193,7 +209,7 @@ int SimEvaluator_hp::Init(PHCompositeNode* topnode )
 //_____________________________________________________________________
 int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
 {
-  // print_tpc( topnode );
+  print_tpc( topnode );
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -260,30 +276,18 @@ void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
 
   std::vector<int> phibins;
   std::vector<int> zbins;
+  std::vector<float> thickness;
   const range_adaptor range(std::move( container->get_begin_end()));
   for( const auto&pair:range )
   {
     phibins.push_back( pair.second->get_phibins() );
     zbins.push_back( pair.second->get_zbins() );
+    thickness.push_back( pair.second->get_thickness() );
   }
-
-  // print vectors
-  auto print_vector = []( const std::string& name, const std::vector<int> values )
-  {
-    std::cout << "  " << name << "[" << values.size() << "] = {" << std::endl << "    ";
-    int count = 0;
-    for( const auto& value:values )
-    {
-      if( count ) std::cout << ", ";
-      std::cout << value;
-      ++count;
-      if( count == 10 ) { std::cout << std::endl << "    "; count = 0; }
-    }
-    std::cout << " };" << std::endl;
-  };
 
   print_vector( "phibins", phibins );
   print_vector( "zbins", zbins );
+  print_vector( "thickness", thickness );
 
 }
 
