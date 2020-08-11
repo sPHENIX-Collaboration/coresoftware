@@ -6,7 +6,7 @@
 #include <string>  // for string
 #include <vector>  // for vector
 
-class BEmcProfile;
+//class BEmcProfile;
 class EmcModule;
 
 class BEmcRecEEMC : public BEmcRec
@@ -21,10 +21,11 @@ class BEmcRecEEMC : public BEmcRec
   static float GetImpactAngle(float e, float x, float y);
 
   void LoadProfile(const std::string &fname) override;
-  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
+  //  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
+  void GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi) override;
 
  private:
-  BEmcProfile *_emcprof;
+  //  BEmcProfile *_emcprof;
 };
 
 #endif
