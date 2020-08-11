@@ -130,7 +130,6 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
-	trackKey = m_actsTrackKeyMap->find(trackTip)->second;
 	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
 	SvtxTrack *track = svtxTrackIter->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
