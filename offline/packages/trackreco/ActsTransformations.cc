@@ -1,7 +1,7 @@
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 
-Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
+Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 	             const SvtxTrack *track)
 {
   Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
@@ -83,7 +83,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateSvtxTrackCovToActs(
 }
 
 
-Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
+Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
                      const Acts::BoundParameters params)
 {
 
@@ -172,7 +172,7 @@ Acts::BoundSymMatrix ActsCovarianceRotater::rotateActsCovToSvtxTrack(
 }
 
 
-void ActsCovarianceRotater::printMatrix(const std::string &message,
+void ActsTransformations::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  
@@ -190,4 +190,59 @@ void ActsCovarianceRotater::printMatrix(const std::string &message,
     
       std::cout << std::endl;
     }
+}
+
+
+
+void ActsTransformations::calculateDCA(const Acts::BoundParameters param,
+				   Acts::Vector3D vertex,
+				   float &dca3Dxy,
+				   float &dca3Dz,
+				   float &dca3DxyCov,
+				   float &dca3DzCov)
+{
+  Acts::Vector3D pos = param.position();
+  Acts::Vector3D mom = param.momentum();
+
+  /// Correct for initial vertex estimation
+  pos -= vertex;
+
+  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+  if(param.covariance())
+    cov = param.covariance().value();
+
+  Acts::ActsSymMatrixD<3> posCov;
+  for(int i = 0; i < 3; ++i)
+    {
+      for(int j = 0; j < 3; ++j)
+	{
+	  posCov(i,j) = cov(i,j);
+	} 
+    }
+
+  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+
+  Acts::RotationMatrix3D rot;
+  Acts::RotationMatrix3D rot_T;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3D pos_R = rot * pos;
+  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+
+  dca3Dxy = pos_R(0);
+  dca3Dz = pos_R(2);
+  dca3DxyCov = rotCov(0,0);
+  dca3DzCov = rotCov(2,2);
+  
 }

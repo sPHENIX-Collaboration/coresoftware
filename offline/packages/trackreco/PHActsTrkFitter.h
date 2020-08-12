@@ -72,13 +72,6 @@ class PHActsTrkFitter : public PHTrackFitting
 
  private:
 
-  /// Calculate the fitted track DCA 
-  void calculateDCA(const Acts::BoundParameters param,
-		    Acts::Vector3D vertex,
-		    float &dca3Dxy,
-		    float &dca3Dz,
-		    float &dca3DxyCov,
-		    float &dca3DzCov);
 
   /// Reset the SvtxTrack states with the new track fit states
   void fillSvtxTrackStates(const Trajectory traj, 
@@ -107,6 +100,10 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Map of acts tracks and track key created by PHActsTracks
   std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
+
+  /// Map that correlates track key with track tip for ActsEvaluator
+  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
+
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;

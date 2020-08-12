@@ -8,7 +8,7 @@
 #include "PHActsTrkFitter.h"
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -47,6 +47,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_event(0)
   , m_actsFitResults(nullptr)
   , m_actsProtoTracks(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
@@ -65,7 +66,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -75,7 +76,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 2)
+  if(Verbosity() > 0)
     logger = Acts::Logging::VERBOSE;
 
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
@@ -89,7 +90,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -100,7 +101,7 @@ int PHActsTrkFitter::Process()
   auto startTime = high_resolution_clock::now();
   m_event++;
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
@@ -125,7 +126,7 @@ int PHActsTrkFitter::Process()
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 		          track.getVertex());
    
-    if(Verbosity() > 1)
+    if(Verbosity() > 0)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
@@ -222,12 +223,19 @@ int PHActsTrkFitter::Process()
   if(m_timeAnalysis)
     h_eventTime->Fill(eventTime.count());
 
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter::process_event finished" 
+	      << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
 {
+
   m_actsFitResults->clear();
+  m_actsTrackKeyMap->clear();
+
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
@@ -248,7 +256,7 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
 
   std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
@@ -262,6 +270,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   const auto &[trackTips, mj] = traj.trajectory();
   /// only one track tip in the track fit Trajectory
   auto &trackTip = trackTips.front();
+
+  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
+			    (trackTip, trackKey));
 
   SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
   SvtxTrack *track = trackIter->second;
@@ -303,9 +314,12 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
+  ActsTransformations *rotater = new ActsTransformations();
+  rotater->setVerbosity(Verbosity());
+  
   if(params.covariance())
     {
-      ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+   
       Acts::BoundSymMatrix rotatedCov = 
 	rotater->rotateActsCovToSvtxTrack(params);
       
@@ -323,7 +337,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3DxyCov = -9999.;
   float dca3DzCov = -9999.;
 
-  calculateDCA(params, vertex, 
+  rotater->calculateDCA(params, vertex, 
 	       dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
  
   // convert from mm to cm
@@ -393,7 +407,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 	  out.set_pz(parameter.momentum().z());
 
 	  /// Get measurement covariance    
-	  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+	  ActsTransformations *rotater = new ActsTransformations();
 	  rotater->setVerbosity(Verbosity());
 
 	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
@@ -451,58 +465,6 @@ TrkrDefs::cluskey PHActsTrkFitter::getClusKey(const unsigned int hitID)
   return clusKey;
 }
     
-void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param,
-				   Acts::Vector3D vertex,
-				   float &dca3Dxy,
-				   float &dca3Dz,
-				   float &dca3DxyCov,
-				   float &dca3DzCov)
-{
-  Acts::Vector3D pos = param.position();
-  Acts::Vector3D mom = param.momentum();
-
-  /// Correct for initial vertex estimation
-  pos -= vertex;
-
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-  if(param.covariance())
-    cov = param.covariance().value();
-
-  Acts::ActsSymMatrixD<3> posCov;
-  for(int i = 0; i < 3; ++i)
-    {
-      for(int j = 0; j < 3; ++j)
-	{
-	  posCov(i,j) = cov(i,j);
-	} 
-    }
-
-  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
-  float phi = atan2(r(1), r(0));
-
-  Acts::RotationMatrix3D rot;
-  Acts::RotationMatrix3D rot_T;
-  rot(0,0) = cos(phi);
-  rot(0,1) = -sin(phi);
-  rot(0,2) = 0;
-  rot(1,0) = sin(phi);
-  rot(1,1) = cos(phi);
-  rot(1,2) = 0;
-  rot(2,0) = 0;
-  rot(2,1) = 0;
-  rot(2,2) = 1;
-  
-  rot_T = rot.transpose();
-
-  Acts::Vector3D pos_R = rot * pos;
-  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
-
-  dca3Dxy = pos_R(0);
-  dca3Dz = pos_R(2);
-  dca3DxyCov = rotCov(0,0);
-  dca3DzCov = rotCov(2,2);
-  
-}
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
@@ -525,7 +487,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
   
   if(!m_actsFitResults)
     {
@@ -535,10 +497,19 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 			  Trajectory>> *fitNode = 
 		 new PHDataNode<std::map<const unsigned int, 
 				    Trajectory>>
-		 (m_actsFitResults, "ActsTrajectories");
+		 (m_actsFitResults, "ActsFitResults");
 
       svtxNode->addNode(fitNode);
       
+    }
+
+  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>(topNode, "ActsTrackKeys");
+  if(!m_actsTrackKeyMap)
+    {
+      m_actsTrackKeyMap = new std::map<const size_t, const unsigned int>;
+      PHDataNode<std::map<const size_t, const unsigned int>> *fitNode = 
+	new PHDataNode<std::map<const size_t, const unsigned int>>(m_actsTrackKeyMap, "ActsTrackKeys");
+      svtxNode->addNode(fitNode);
     }
   
   return Fun4AllReturnCodes::EVENT_OK;

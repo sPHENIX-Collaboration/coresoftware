@@ -16,6 +16,7 @@
 class TTree;
 class TFile;
 class PHG4Particle;
+class SvtxTrack;
 class SvtxVertexMap;
 class SvtxEvalStack;
 class SvtxTrackMap;
@@ -61,8 +62,9 @@ class ActsEvaluator : public SubsysReco
  private:
   int getNodes(PHCompositeNode *topNode);
   
+  /// Function to evaluate Trajectories fit results from the KF
   void evaluateTrackFits(PHCompositeNode *topNode);
-
+  
   void initializeTree();
 
   void fillG4Particle(PHG4Particle *part);
@@ -91,6 +93,7 @@ class ActsEvaluator : public SubsysReco
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
+  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};

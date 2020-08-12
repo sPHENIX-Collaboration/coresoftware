@@ -12,14 +12,18 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <Acts/Geometry/GeometryID.hpp>
+
 #include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
+
 #include <Acts/Propagator/detail/SteppingLogger.hpp>
 #include <Acts/Propagator/MaterialInteractor.hpp>
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 #include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+
+#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 
 #include <memory>
 #include <string>
@@ -88,15 +92,20 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   void createNodes(PHCompositeNode *topNode);
 
+  /// Helper function to make an Acts::GeometryID for SL selection
+  Acts::GeometryID makeId(int volume = 0, 
+			  int layer = 0, 
+			  int sensitive = 0);
+
   /// Wipe and recreate the SvtxTrackMap with Acts output
-  void updateSvtxTrackMap(PHCompositeNode *topNode);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey, Acts::Vector3D vertex);
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
 
   /// Iterate through the Trajectory to obtain the fitted clusters
   void getTrackClusters(const size_t& trackTip, Trajectory traj,
-			SvtxTrack &track);
+			SvtxTrack *track);
 
   /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
   TrkrDefs::cluskey getClusKey(const unsigned int hitID);
@@ -111,6 +120,9 @@ class PHActsTrkProp : public PHTrackPropagating
   
   /// Acts MultiTrajectories for ActsEvaluator
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
+
+  /// Map that correlates track key with track tip for ActsEvaluator
+  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
 
   /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
