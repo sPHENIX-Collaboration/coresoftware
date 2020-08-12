@@ -763,6 +763,7 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 
   if(Verbosity() > 2)
     std::cout << "Filling proto track seed quantities" << std::endl;
+  
   FW::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
   
@@ -774,6 +775,14 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
   m_protoTrackX  = position(0);
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
+
+  auto cov = params.covariance().value();
+  m_protoD0Cov = cov(0,0);
+  m_protoZ0Cov = cov(1,1);
+  m_protoPhiCov = cov(2,2);
+  m_protoThetaCov = cov(3,3);
+  m_protoQopCov = cov(4,4);
+  
 
   for(int i = 0; i < sourceLinks.size(); ++i)
     {
@@ -1229,7 +1238,11 @@ void ActsEvaluator::clearTrackVariables()
   m_protoTrackX  = -9999.;
   m_protoTrackY  = -9999.;
   m_protoTrackZ  = -9999.;
-
+  m_protoD0Cov   = -9999.;
+  m_protoZ0Cov   = -9999.;
+  m_protoPhiCov  = -9999.;
+  m_protoThetaCov= -9999.;
+  m_protoQopCov  = -9999.;
 
   return;
 }
@@ -1303,6 +1316,11 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
   m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
   m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
+  m_trackTree->Branch("g_protoTrackD0Cov", &m_protoD0Cov);
+  m_trackTree->Branch("g_protoTrackZ0Cov", &m_protoZ0Cov);
+  m_trackTree->Branch("g_protoTrackPhiCov", &m_protoPhiCov);
+  m_trackTree->Branch("g_protoTrackThetaCov", &m_protoThetaCov);
+  m_trackTree->Branch("g_protoTrackQopCov", &m_protoQopCov);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);
