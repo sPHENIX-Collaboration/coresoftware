@@ -70,8 +70,11 @@ class PHActsTrkFitter : public PHTrackFitting
 
   void setTimeAnalysis(bool time){m_timeAnalysis = time;}
 
+  void setMomentumCovariance(float cov){m_momCov = cov;}
+
  private:
 
+  float m_momCov;
 
   /// Reset the SvtxTrack states with the new track fit states
   void fillSvtxTrackStates(const Trajectory traj, 

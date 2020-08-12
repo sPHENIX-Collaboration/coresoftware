@@ -44,6 +44,7 @@ using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
+  , m_momCov(0.01)
   , m_event(0)
   , m_actsFitResults(nullptr)
   , m_actsProtoTracks(nullptr)
@@ -119,7 +120,29 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-    
+    /*
+    float p = sqrt(trackSeed.momentum()(0)*trackSeed.momentum()(0) +
+		   trackSeed.momentum()(1)*trackSeed.momentum()(1) +
+		   trackSeed.momentum()(2)*trackSeed.momentum()(2));
+    */
+    Acts::BoundSymMatrix cov;
+    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., m_momCov , 0.,
+           0., 0., 0., 0., 0., 1.;
+
+    //if(p > 20.)
+    //cov(4,4) = 0.01 * 10./p;
+
+    FW::TrackParameters newTrackSeed(cov,
+				  trackSeed.position(),
+				  trackSeed.momentum(),
+				  trackSeed.charge(),
+				  trackSeed.time());
+
+
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
     /// the initial vertex estimation
@@ -150,7 +173,7 @@ int PHActsTrkFitter::Process()
       Acts::VoidOutlierFinder(),
       &(*pSurface));
   
-    auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
+    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -393,7 +416,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       SvtxTrackState_v1 out( pathlength );
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
-      out.set_z(global.z() /  Acts::UnitConstants::cm);
+      out.set_z(global.z() / Acts::UnitConstants::cm);
 
       // I assume we want the smoothed for the final track states?      
       if (state.hasSmoothed())
@@ -408,7 +431,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 
 	  /// Get measurement covariance    
 	  ActsTransformations *rotater = new ActsTransformations();
-	  rotater->setVerbosity(Verbosity());
+	  rotater->setVerbosity(0);
 
 	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
 	  for (int i = 0; i < 6; i++)
