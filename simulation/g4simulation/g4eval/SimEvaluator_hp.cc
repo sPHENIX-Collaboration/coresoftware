@@ -327,8 +327,6 @@ void SimEvaluator_hp::check_genevent()
 void SimEvaluator_hp::fill_event()
 {
 
-  // // print bunchcrossing id from event header
-  // if( m_eventheader ) std::cout << "SimEvaluator_hp::fill_event - bunch crossing: " << m_eventheader->get_BunchCrossing() << std::endl;
   if( !( m_container && m_geneventmap ) ) return;
 
   // clear vertices from previous event
@@ -336,13 +334,6 @@ void SimEvaluator_hp::fill_event()
 
   // create event and store pileup information
   m_container->addEvent(create_event(m_geneventmap));
-
-//   // track embedding ids
-//   if( m_g4truthinfo )
-//   {
-//     for( const auto& pair:range_adaptor<std::map<int, int>::const_iterator>( m_g4truthinfo->GetEmbeddedTrkIds() ) )
-//     { std::cout << "SimEvaluator_hp::fill_event - track: " << pair.first << ", " << pair.second << std::endl; }
-//   }
 
 }
 
