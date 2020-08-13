@@ -55,9 +55,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   void setMaximumMass( float max_mass ) { m_max_mass = max_mass; }
   void setMinimumLifetime( float min_lifetime ) { m_min_lifetime = min_lifetime; }
   void setMaximumLifetime( float max_lifetime ) { m_max_lifetime = max_lifetime; }
-  void setMinimumTrackPT( float pt)  { m_track_pt = pt; }
+  void setMinimumTrackPT( float pt )  { m_track_pt = pt; }
+  void setMinimumTrackPTchi2( float ptchi2 )  { m_track_ptchi2 = ptchi2; }
   void setMinimumTrackIPchi2( float ipchi2 ) { m_track_ipchi2 = ipchi2; }
+  void setMaximumTrackchi2nDOF( float trackchi2ndof ) { m_track_chi2ndof = trackchi2ndof; }
   void setMaximumDaughterDCA( float dca ) { m_comb_DCA = dca; }
+  void setMaximumVertexchi2nDOF( float vertexchi2nDOF ) { m_vertex_chi2ndof = vertexchi2nDOF; }
   void setFlightDistancechi2( float fdchi2 ) { m_fdchi2 = fdchi2; }
   void setMinDIRA( float dira_min ) { m_dira_min = dira_min; }
   void setMaxDIRA( float dira_max ) { m_dira_max = dira_max; }
@@ -76,8 +79,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   void setThirdDaughter( std::string name )  { m_daughter_three = name; }
   void setForthDaughter( std::string name ) { m_daughter_four = name; }
 
+  void setFirstDaughterCharge( int charge ) { m_daughter_one_charge = charge; }
+  void setSecondDaughterCharge( int charge ) { m_daughter_two_charge = charge; }
+  void setThirdDaughterCharge( int charge ) { m_daughter_three_charge = charge; }
+  void setForthDaughterCharge( int charge ) { m_daughter_four_charge = charge; }
+
   void saveOutput ( bool save ) { m_save_output = save; }
   void setOutputName( std::string name ) { m_outfile_name = name; }
+  void doTruthMatching( bool truth ) { m_truth_matching = truth; }
+  void getDetectorInfo( bool detinfo ) { m_detector_info = detinfo; }
 
  protected:
  

@@ -1,6 +1,15 @@
 #ifndef KFParticle_nTuple_H__
 #define KFParticle_nTuple_H__
 
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+
+class SvtxEvalStack;
+class PHCompositeNode;
+class SvtxTrackMap;
+class SvtxTrack;
+class TrkrClusterContainer;
+
 class TFile;
 class TTree;
 class KFParticle;
@@ -16,7 +25,8 @@ class KFParticle_nTuple
 
     void initializeVariables();
     void initializeBranches( int nTracks);
-    void fillBranch( KFParticle motherParticle,
+    void fillBranch( PHCompositeNode *topNode,
+                     KFParticle motherParticle,
                      KFParticle vertex,
                      int nTracks,
                      KFParticle daughter_1,
@@ -24,6 +34,14 @@ class KFParticle_nTuple
                      KFParticle daughter_3,
                      KFParticle daughter_4,
                      int nPVs, int multiplicity );
+
+    SvtxTrack* getTrack( unsigned int track_id, SvtxTrackMap *trackmap );
+    void initializeTruthBranches( int daughter_id );
+    void fillTruthBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id );
+
+    void initializeDetectorBranches( int daughter_id );
+    void initializeSubDetectorBranches( std::string detectorName, int daughter_id );
+    void fillDetectorBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id );
 
   private:
 
@@ -77,6 +95,17 @@ class KFParticle_nTuple
     float m_calculated_daughter_chi2[4];
     int   m_calculated_daughter_ndof[4];
     float *m_calculated_daughter_cov[4];
+
+    float m_true_daughter_px[4];
+    float m_true_daughter_py[4];
+    float m_true_daughter_pz[4];
+
+    float m_d12_DCA_3D;
+    float m_d13_DCA_3D;
+    float m_d23_DCA_3D;
+    float m_d14_DCA_3D;
+    float m_d24_DCA_3D;
+    float m_d34_DCA_3D;
     
     float m_calculated_vertex_x;
     float m_calculated_vertex_y;
@@ -85,6 +114,24 @@ class KFParticle_nTuple
    
     int m_nPVs;
     int m_multiplicity;
+
+    std::vector<float> detector_local_x[4]; // 7 subdetector including outer and inner hcal plus 4th tracker
+    std::vector<float> detector_local_y[4];
+    std::vector<float> detector_local_z[4];
+    std::vector<int> detector_layer[4];
+    std::vector<int> mvtx_staveID[4];
+    std::vector<int> mvtx_chipID[4];
+    std::vector<int> intt_ladderZID[4];
+    std::vector<int> intt_ladderPhiID[4];
+    std::vector<int> tpc_sectorID[4];
+    std::vector<int> tpc_side[4];
+
+ protected:
+
+    bool m_truth_matching;
+    bool m_detector_info;
+    SvtxEvalStack *m_svtx_evalstack;
+    TrkrClusterContainer* dst_clustermap;
 };
 
 

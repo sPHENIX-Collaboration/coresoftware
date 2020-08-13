@@ -76,17 +76,24 @@ KFParticle_Tools::KFParticle_Tools():
     m_daughter_two( "pion" ),
     m_daughter_three( "pion" ),
     m_daughter_four( "pion" ),
+    m_daughter_one_charge( +1 ),
+    m_daughter_two_charge( -1 ),
+    m_daughter_three_charge( +1 ),
+    m_daughter_four_charge( -1),
     m_min_mass( 0 ),
     m_max_mass( 1e1 ),
     m_min_lifetime( 0 ),
     m_max_lifetime( 1e1 ),
     m_track_pt( 0.25 ),
-    m_track_ipchi2( 10 ),
+    m_track_ptchi2( FLT_MAX ),
+    m_track_ipchi2( 10. ),
+    m_track_chi2ndof( 4. ),
     m_comb_DCA( 0.2 ),
-    m_fdchi2( 50 ),
+    m_vertex_chi2ndof( 15. ),
+    m_fdchi2( 50. ),
     m_dira_min( 0.95 ),
     m_dira_max( 1.01 ),
-    m_mother_pt( 0 ),
+    m_mother_pt( 0. ),
     m_mother_charge( 0 ),
     m_dst_vertexmap(),
     m_dst_trackmap(),
@@ -150,6 +157,7 @@ void KFParticle_Tools::createDecay( PHCompositeNode *topNode, std::vector<KFPart
                                     daughterTracks[ i ].CovarianceMatrix(),
                             (Int_t) daughterTracks[ i ].GetQ(),
                                     particleMasses.find( names[ i ].c_str() )->second );
+                intParticle.SetId( daughterTracks[ i ].Id() );
                 goodDaughters[ i ].push_back(intParticle);
             }
           }
@@ -253,6 +261,7 @@ KFPTrack KFParticle_Tools::makeTrack( PHCompositeNode *topNode ) ///Return a KFP
   kfp_track.SetNDF( m_dst_track->get_ndf() );
   kfp_track.SetChi2( m_dst_track->get_chisq() );
   kfp_track.SetCharge( m_dst_track->get_charge() );
+  kfp_track.SetId( m_dst_track->get_id() );
 
   return kfp_track;
 }
@@ -270,12 +279,15 @@ KFParticle KFParticle_Tools::makeParticle( PHCompositeNode *topNode, int massHyp
 std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles( PHCompositeNode *topNode )
 { 
   std::vector<KFParticle> daughterParticles;
+  unsigned int trackID = 0;
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
 
   for ( SvtxTrackMap::Iter iter = m_dst_trackmap->begin(); iter != m_dst_trackmap->end(); ++iter )
   { 
      m_dst_track = iter->second;
      daughterParticles.push_back( makeParticle( topNode, -1 ) ); ///Turn all dst tracks in KFP tracks
+     daughterParticles[trackID].SetId( iter->first );
+     ++trackID;
   }
 
   return daughterParticles;
@@ -287,6 +299,9 @@ bool KFParticle_Tools::isGoodTrack( KFParticle particle, std::vector<KFPVertex> 
   bool goodTrack = false;
 
   float pt = particle.GetPt();
+  float pterr = particle.GetErrPt();
+  float ptchi2 = std::pow( pterr/pt, 2);
+  float trackchi2ndof = particle.GetChi2()/particle.GetNDF();
   std::vector<float> ipchi2;
 
   for ( unsigned int i_verts = 0; i_verts < primaryVertices.size(); ++i_verts )
@@ -298,7 +313,7 @@ bool KFParticle_Tools::isGoodTrack( KFParticle particle, std::vector<KFPVertex> 
   auto minmax_ipchi2 = std::minmax_element( ipchi2.begin(), ipchi2.end() ); //Order the IP chi2 from small to large
   float min_ipchi2 = *minmax_ipchi2.first;
 
-  if ( pt > m_track_pt && min_ipchi2 > m_track_ipchi2 ) goodTrack = true;
+  if ( pt > m_track_pt && ptchi2 < m_track_ptchi2 && min_ipchi2 > m_track_ipchi2 && trackchi2ndof < m_track_chi2ndof ) goodTrack = true;
 
   return goodTrack;
 }
@@ -321,14 +336,25 @@ std::vector<int> KFParticle_Tools::findAllGoodTracks( std::vector<KFParticle> da
 
 std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs( std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex )
 { 
+  int nTracks = m_num_tracks;
   std::vector<std::vector<int>> goodTracksThatMeet;
+  KFVertex twoParticleVertex;  
+
   for ( std::vector <int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it )
   { 
     for ( std::vector <int>::iterator j_it = goodTrackIndex.begin(); j_it != goodTrackIndex.end(); ++j_it )
     { 
       if( i_it < j_it )
       { 
-        if( daughterParticles[*i_it ].GetDistanceFromParticle( daughterParticles[*j_it ] ) < m_comb_DCA ) { std::vector<int> combination = { *i_it, *j_it }; goodTracksThatMeet.push_back( combination ); }
+        if( daughterParticles[*i_it ].GetDistanceFromParticle( daughterParticles[*j_it ] ) < m_comb_DCA ) 
+        { 
+          twoParticleVertex += daughterParticles[*i_it ];
+          twoParticleVertex += daughterParticles[*j_it ];
+          float vertexchi2ndof = twoParticleVertex.GetChi2()/twoParticleVertex.GetNDF();
+          std::vector<int> combination = { *i_it, *j_it };
+          if ( nTracks == 2 &&  vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
+          else goodTracksThatMeet.push_back( combination ); 
+        }
       }
     }
   }
@@ -339,7 +365,9 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs( std::vector<KFPar
 
 std::vector<std::vector<int>> KFParticle_Tools::findThreeProngs( std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, std::vector<std::vector<int>> goodTracksThatMeet )
 { 
+  int nTracks = m_num_tracks;
   unsigned int nGoodTwoProngs = goodTracksThatMeet.size();
+  KFVertex threeParticleVertex;  
 
   for ( std::vector <int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it )
   { 
@@ -349,7 +377,15 @@ std::vector<std::vector<int>> KFParticle_Tools::findThreeProngs( std::vector<KFP
       { 
         if( daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ 0 ] ] ) < m_comb_DCA &&
             daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ 1 ] ] ) < m_comb_DCA )
-          { std::vector<int> combination = { goodTracksThatMeet[ i_prongs ][ 0 ], goodTracksThatMeet[ i_prongs ][ 1 ],  *i_it, }; goodTracksThatMeet.push_back( combination ); } 
+          { 
+            threeParticleVertex += daughterParticles[*i_it ];
+            threeParticleVertex += daughterParticles[ goodTracksThatMeet[ i_prongs ][ 0 ] ];
+            threeParticleVertex += daughterParticles[ goodTracksThatMeet[ i_prongs ][ 1 ] ];
+            float vertexchi2ndof = threeParticleVertex.GetChi2()/threeParticleVertex.GetNDF();
+            std::vector<int> combination = { goodTracksThatMeet[ i_prongs ][ 0 ], goodTracksThatMeet[ i_prongs ][ 1 ],  *i_it, }; 
+            if ( nTracks == 3 &&  vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
+            else goodTracksThatMeet.push_back( combination );
+          }
       }
     }
   }
@@ -365,6 +401,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findThreeProngs( std::vector<KFP
 std::vector<std::vector<int>>  KFParticle_Tools::findFourProngs( std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, std::vector<std::vector<int>> goodTracksThatMeet )
 { 
   unsigned int nGoodThreeProngs = goodTracksThatMeet.size();
+  KFVertex fourParticleVertex;  
 
   for ( std::vector <int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it )
   { 
@@ -377,10 +414,18 @@ std::vector<std::vector<int>>  KFParticle_Tools::findFourProngs( std::vector<KFP
         if( daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ 0 ] ] ) < m_comb_DCA &&
             daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ 1 ] ] ) < m_comb_DCA &&
             daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ 2 ] ] ) < m_comb_DCA )
-          { std::vector<int> combination = { goodTracksThatMeet[ i_prongs ][ 0 ], 
+          { 
+            fourParticleVertex += daughterParticles[*i_it ];
+            fourParticleVertex += daughterParticles[ goodTracksThatMeet[ i_prongs ][ 0 ] ];
+            fourParticleVertex += daughterParticles[ goodTracksThatMeet[ i_prongs ][ 1 ] ];
+            fourParticleVertex += daughterParticles[ goodTracksThatMeet[ i_prongs ][ 2 ] ];
+            float vertexchi2ndof = fourParticleVertex.GetChi2()/fourParticleVertex.GetNDF();
+            std::vector<int> combination = { goodTracksThatMeet[ i_prongs ][ 0 ], 
                                              goodTracksThatMeet[ i_prongs ][ 1 ], 
                                              goodTracksThatMeet[ i_prongs ][ 2 ], 
-                                             *i_it, }; goodTracksThatMeet.push_back( combination ); } 
+                                             *i_it, }; 
+            if ( vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination ); 
+          } 
       }
     }
   }
@@ -475,10 +520,23 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination( KFParticle vDaugh
    if ( calculated_fdchi2 > m_fdchi2 && 
         calculated_dira > m_dira_min && calculated_dira < m_dira_max &&
         calculated_mass > m_min_mass && calculated_mass < m_max_mass && 
-        calculated_pt > m_mother_pt && std::abs( mother.GetQ() ) == m_mother_charge ) 
+        calculated_pt > m_mother_pt && chargeChecker( vDaughters ) ) 
         goodCandidate = true;
 
    return std::make_tuple( mother, goodCandidate );
+}
+
+bool KFParticle_Tools::chargeChecker( KFParticle vDaughters[] )
+{
+  bool checkCharge = vDaughters[0].GetQ() == m_daughter_one_charge && vDaughters[1].GetQ() == m_daughter_two_charge;
+  if ( m_num_tracks > 2) checkCharge *= vDaughters[2].GetQ() == m_daughter_three_charge; 
+  if ( m_num_tracks > 3) checkCharge *= vDaughters[3].GetQ() == m_daughter_four_charge; 
+
+  bool checkChargeConjugate = vDaughters[0].GetQ() == -1*m_daughter_one_charge && vDaughters[1].GetQ() == -1*m_daughter_two_charge;
+  if ( m_num_tracks > 2) checkChargeConjugate *= vDaughters[2].GetQ() == -1*m_daughter_three_charge; 
+  if ( m_num_tracks > 3) checkChargeConjugate *= vDaughters[3].GetQ() == -1*m_daughter_four_charge; 
+
+  return checkCharge || checkChargeConjugate;
 }
 
 

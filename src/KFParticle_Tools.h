@@ -101,13 +101,20 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::string m_daughter_two;
   std::string m_daughter_three;
   std::string m_daughter_four;
+  int m_daughter_one_charge;
+  int m_daughter_two_charge;
+  int m_daughter_three_charge;
+  int m_daughter_four_charge;
   float m_min_mass;
   float m_max_mass;
   float m_min_lifetime;
   float m_max_lifetime;
   float m_track_pt;
+  float m_track_ptchi2;
   float m_track_ipchi2;
+  float m_track_chi2ndof;
   float m_comb_DCA;
+  float m_vertex_chi2ndof;
   float m_fdchi2;
   float m_dira_min;
   float m_dira_max;
@@ -121,7 +128,9 @@ class KFParticle_Tools : protected KFParticle_MVA
 
 
  private:
-   
+  
+  bool chargeChecker( KFParticle vDaughters[] );
+ 
   float returnPDGMass( const int pdgIndex);
 
   void removeDuplicates(std::vector<int> &v);

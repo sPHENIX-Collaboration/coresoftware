@@ -46,7 +46,7 @@
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX():
     SubsysReco( "KFPARTICLE" ),
-    m_require_mva( false ),
+    m_require_mva(false),
     m_save_output(1),
     m_outfile_name("outputData.root")
 {}
@@ -85,9 +85,10 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
       if (m_num_tracks < 4) daughters_4.push_back(*dummyParticle);
     }
 
+
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i) 
     { 
-      if ( m_save_output ) fillBranch( mother[i], vertex[i], m_num_tracks, daughters_1[i], daughters_2[i], daughters_3[i], daughters_4[i], nPVs, multiplicity );
+      if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], m_num_tracks, daughters_1[i], daughters_2[i], daughters_3[i], daughters_4[i], nPVs, multiplicity );
     }
     return Fun4AllReturnCodes::EVENT_OK;
 }
