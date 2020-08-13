@@ -44,7 +44,6 @@ using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
-  , m_momCov(0.01)
   , m_event(0)
   , m_actsFitResults(nullptr)
   , m_actsProtoTracks(nullptr)
@@ -120,27 +119,28 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-    /*
-    float p = sqrt(trackSeed.momentum()(0)*trackSeed.momentum()(0) +
-		   trackSeed.momentum()(1)*trackSeed.momentum()(1) +
-		   trackSeed.momentum()(2)*trackSeed.momentum()(2));
-    */
+  
+    /// Acts cares about the track covariance as it helps the KF
+    /// know whether or not to trust the initial track seed or not.
+    /// We reset it here to some loose values as it helps Acts improve
+    /// the fitting. 
+    /// If the covariance is too loose, it won't be able to propagate,
+    /// but if it is too tight, it will just "believe" the track seed over
+    /// the hit data
     Acts::BoundSymMatrix cov;
     cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
            0., 0., 0.05, 0., 0., 0.,
            0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., m_momCov , 0.,
+           0., 0., 0., 0., 0.00005 , 0.,
            0., 0., 0., 0., 0., 1.;
 
-    //if(p > 20.)
-    //cov(4,4) = 0.01 * 10./p;
 
     FW::TrackParameters newTrackSeed(cov,
-				  trackSeed.position(),
-				  trackSeed.momentum(),
-				  trackSeed.charge(),
-				  trackSeed.time());
+				     trackSeed.position(),
+				     trackSeed.momentum(),
+				     trackSeed.charge(),
+				     trackSeed.time());
 
 
     /// Construct a perigee surface as the target surface
