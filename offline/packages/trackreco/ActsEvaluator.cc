@@ -44,6 +44,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
   , m_vertexMap(nullptr)
+  , m_evalCKF(false)
 {
 }
 
@@ -128,8 +129,17 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
    
     iTrack = 0;
     /// For the KF this iterates once. For the CKF it may iterate several times
+    std::cout<<"Track key going in ActsEvaluator" << trackKey<<std::endl;
     for(const size_t &trackTip : trackTips)
       {
+
+	/// The CKF has a trackTip == trackKey correspondence, rather
+	/// than a trajectory == trackKey correspondence. So need to
+	/// grab the correct key from the map
+	if(m_evalCKF)
+	  trackKey = m_actsTrackKeyMap->find(trackTip)->second;
+
+	std::cout<<"Track key for track tip " << trackKey << "   "<<trackTip<<std::endl;
 	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
 	SvtxTrack *track = svtxTrackIter->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);

@@ -100,6 +100,11 @@ class ActsEvaluator : public SubsysReco
   ActsTrackingGeometry *m_tGeometry{nullptr};
   SvtxVertexMap *m_vertexMap;
 
+  /// boolean indicating whether or not to evaluate the CKF or
+  /// the KF. Must correspond with what was run to do fitting
+  /// i.e. PHActsTrkFitter or PHActsTrkProp
+  bool m_evalCKF;
+
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
 
