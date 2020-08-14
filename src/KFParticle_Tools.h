@@ -71,9 +71,26 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
   void createDecay(PHCompositeNode *topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
-                                             std::vector<KFParticle>& selectedDaughters_1, std::vector<KFParticle>& selectedDaughters_2, 
-                                             std::vector<KFParticle>& selectedDaughters_3, std::vector<KFParticle>& selectedDaughters_4,
+                                             std::vector<std::vector<KFParticle>>& selectedDaughters,
+                                             std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                              int& nPVs, int& multiplicity);
+
+  void buildBasicChain(std::vector<KFParticle>& selectedMother, 
+                       std::vector<KFParticle>& selectedVertex,
+                       std::vector<std::vector<KFParticle>>& selectedDaughters, 
+                       std::vector<KFParticle> daughterParticles,
+                       std::vector<int>  goodTrackIndex,
+                       std::vector<KFPVertex> primaryVertices);
+
+  void getCandidateDecay(std::vector<KFParticle>& selectedMother,
+                         std::vector<KFParticle>& selectedVertex,
+                         std::vector<std::vector<KFParticle>>& selectedDaughters,
+                         std::vector<KFParticle> daughterParticles,
+                         std::vector<std::vector<int>> goodTracksThatMeet,
+                         std::vector<KFPVertex> primaryVertices,
+                         int n_track_start, int n_track_stop,
+                         bool isIntermediate, int intermediateNumber);
+
 
   bool isGoodTrack(KFParticle particle, std::vector<KFPVertex> primaryVertices);
 
@@ -89,24 +106,29 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float flightDistanceChi2(KFParticle particle, KFPVertex vertex);
 
-  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFPVertex vertex);
+  std::tuple<KFParticle, bool> buildMother( KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber );
 
-  std::vector<std::vector<std::string>> findUniqueDaughterCombinations();
+  void constrainToVertex(KFParticle& particle, bool& goodCandidate, KFPVertex& vertex );
+
+  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFPVertex vertex, 
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber );
+
+  std::vector<std::vector<std::string>> findUniqueDaughterCombinations( int start, int end );
 
  
  protected:
-  
+ 
+  bool m_has_intermediates;
   int m_num_tracks;
-  std::string m_daughter_one;
-  std::string m_daughter_two;
-  std::string m_daughter_three;
-  std::string m_daughter_four;
-  int m_daughter_one_charge;
-  int m_daughter_two_charge;
-  int m_daughter_three_charge;
-  int m_daughter_four_charge;
+  int m_num_tracks_from_intermediate[99];
+  std::string m_daughter_name[99];
+  int m_daughter_charge[99];
+  std::string m_intermediate_name[99];
+  int m_intermediate_charge[99];
   float m_min_mass;
   float m_max_mass;
+  std::pair<float, float> m_intermediate_mass_range[99];
+  float m_intermediate_min_pt[99];
   float m_min_lifetime;
   float m_max_lifetime;
   float m_track_pt;
@@ -119,8 +141,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   float m_dira_min;
   float m_dira_max;
   float m_mother_pt;
-  int   m_mother_charge;
   float m_mva_cut_value;
+  bool m_constrain_to_vertex;
   SvtxVertexMap *m_dst_vertexmap;
   SvtxTrackMap *m_dst_trackmap;
   SvtxVertex *m_dst_vertex;

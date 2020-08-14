@@ -29,10 +29,7 @@ class KFParticle_nTuple
                      KFParticle motherParticle,
                      KFParticle vertex,
                      int nTracks,
-                     KFParticle daughter_1,
-                     KFParticle daughter_2,
-                     KFParticle daughter_3,
-                     KFParticle daughter_4,
+                     std::vector<KFParticle> daughters,
                      int nPVs, int multiplicity );
 
     SvtxTrack* getTrack( unsigned int track_id, SvtxTrackMap *trackmap );

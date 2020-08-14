@@ -73,22 +73,15 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
 
 int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
 { 
-    std::vector<KFParticle> mother, vertex, daughters_1, daughters_2, daughters_3, daughters_4;
+    std::vector<KFParticle> mother, vertex;
+    std::vector<std::vector<KFParticle>> daughters, intermediates;
     int nPVs, multiplicity;
 
-    createDecay( topNode, mother, vertex, daughters_1, daughters_2, daughters_3, daughters_4, nPVs, multiplicity );
-
-    KFParticle *dummyParticle = new KFParticle();
-    for (unsigned int i = 0; i < mother.size(); ++i)
-    {
-      if (m_num_tracks < 3) daughters_3.push_back(*dummyParticle);
-      if (m_num_tracks < 4) daughters_4.push_back(*dummyParticle);
-    }
-
+    createDecay( topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity );
 
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i) 
     { 
-      if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], m_num_tracks, daughters_1[i], daughters_2[i], daughters_3[i], daughters_4[i], nPVs, multiplicity );
+      if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], m_num_tracks, daughters[i], nPVs, multiplicity );
     }
     return Fun4AllReturnCodes::EVENT_OK;
 }

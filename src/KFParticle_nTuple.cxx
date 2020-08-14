@@ -138,10 +138,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
                                     KFParticle motherParticle, 
                                     KFParticle vertex,
                                     int nTracks, 
-                                    KFParticle daughter_1, 
-                                    KFParticle daughter_2, 
-                                    KFParticle daughter_3, 
-                                    KFParticle daughter_4,
+                                    std::vector<KFParticle> daughters,
                                     int nPVs, int multiplicity )
 {
 
@@ -178,7 +175,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
 
 
   KFParticle temp;
-  KFParticle daughterArray[] = { daughter_1, daughter_2, daughter_3, daughter_4 };
+  KFParticle* daughterArray = &daughters[0];
 
   for( int i = 0; i < nTracks; i++ ) //This section of code should rearrange daughter particles by mass
   {

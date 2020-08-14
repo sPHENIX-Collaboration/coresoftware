@@ -50,7 +50,27 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   int End(PHCompositeNode *topNode);
 
   ///Parameters for the user to vary
+  void hasIntermediateStates( bool has_intermediates ) { m_has_intermediates = has_intermediates; }
   void setNumberOfTracks( int num_tracks ) { m_num_tracks = num_tracks; }
+  void setNumberTracksFromIntermeditateState( int num_tracks[99]) { for ( int i = 0; i < 99; ++i) m_num_tracks_from_intermediate[i] = num_tracks[i]; }
+  void setDaughters( std::pair<std::string, int> daughter_list[99] ) 
+  {
+    for ( int i = 0; i < 99; ++i)
+    {
+      m_daughter_name[i] = daughter_list[i].first;
+      m_daughter_charge[i] = daughter_list[i].second;
+    }
+  }
+
+  void setIntermediateStates( std::pair<std::string, int> intermediate_list[99] ) 
+  {
+    for ( int i = 0; i < 99; ++i)
+    {
+      m_intermediate_name[i] = intermediate_list[i].first;
+      m_intermediate_charge[i] = intermediate_list[i].second;
+    }
+  }
+
   void setMinimumMass( float min_mass ) { m_min_mass = min_mass; }
   void setMaximumMass( float max_mass ) { m_max_mass = max_mass; }
   void setMinimumLifetime( float min_lifetime ) { m_min_lifetime = min_lifetime; }
@@ -65,7 +85,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   void setMinDIRA( float dira_min ) { m_dira_min = dira_min; }
   void setMaxDIRA( float dira_max ) { m_dira_max = dira_max; }
   void setMotherPT( float mother_pt ) { m_mother_pt = mother_pt; }
-  void setMotherCharge( int mother_charge ) { m_mother_charge = mother_charge; }
+  void constrainToVertex( bool constrain_to_vertex ) { m_constrain_to_vertex = constrain_to_vertex; }
+  void setIntermediateMassRange( std::pair<float, float> intermediate_mass_range[99] ) 
+  { for ( int i = 0; i < 99; ++i) m_intermediate_mass_range[i] = intermediate_mass_range[i]; }
+  void setIntermediateMinPT ( float intermediate_min_pt[99] ) { for ( int i = 0; i < 99; ++i) m_intermediate_min_pt[i] = intermediate_min_pt[i]; }
 
   void useMVA( bool require_mva) { m_require_mva = require_mva; }
   void setNumMVAPars( unsigned int nPars ) { m_nPars = nPars; }
@@ -73,16 +96,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   void setMVAType( std::string mva_type ) { m_mva_type = mva_type; }
   void setMVAWeightsPath( std::string mva_weights_path ) { m_mva_path = mva_weights_path; }
   void setMVACutValue( float cut_value ) { m_mva_cut_value = cut_value; }
-
-  void setFirstDaughter( std::string name )  { m_daughter_one = name; }
-  void setSecondDaughter( std::string name ) { m_daughter_two = name; }
-  void setThirdDaughter( std::string name )  { m_daughter_three = name; }
-  void setForthDaughter( std::string name ) { m_daughter_four = name; }
-
-  void setFirstDaughterCharge( int charge ) { m_daughter_one_charge = charge; }
-  void setSecondDaughterCharge( int charge ) { m_daughter_two_charge = charge; }
-  void setThirdDaughterCharge( int charge ) { m_daughter_three_charge = charge; }
-  void setForthDaughterCharge( int charge ) { m_daughter_four_charge = charge; }
 
   void saveOutput ( bool save ) { m_save_output = save; }
   void setOutputName( std::string name ) { m_outfile_name = name; }

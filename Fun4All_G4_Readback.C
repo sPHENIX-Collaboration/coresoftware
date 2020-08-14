@@ -32,7 +32,7 @@ R__LOAD_LIBRARY(libg4dst.so)
 using namespace std;
 
 int Fun4All_G4_Readback(
-    const int nEvents = 1e5,
+    const int nEvents = 1e3,
     //const char *inputFile = "G4sPHENIX.root",
     const char *inputFile = "/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-1/G4sPHENIX-5K.root",
     //const char *inputFile = "/sphenix/data/data03/sphnxpro/user/jinhuang/HF-production-meson-pp200-tracking/D0_piK/D0_piK_3001.cfg.root",
@@ -57,12 +57,18 @@ int Fun4All_G4_Readback(
   // Hits file
   Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
   //hitsin->fileopen(inputFile);
-  //hitsin->AddListFile("fileList_bbbar.txt");
+  //hitsin->AddListFile("fileList_zhaozhong.txt");
   hitsin->AddListFile("fileList.txt");
   se->registerInputManager(hitsin);
 
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
+
   kfparticle->setNumberOfTracks(2);
+  std::pair<std::string, int> daughterList[99];
+  daughterList[0] = make_pair("kaon", -1);
+  daughterList[1] = make_pair("pion", +1);
+  kfparticle->setDaughters( daughterList );
+
   kfparticle->setMinimumMass(1.8);
   kfparticle->setMaximumMass(1.925);
   kfparticle->setMinimumTrackPT(0.10);
@@ -73,7 +79,7 @@ int Fun4All_G4_Readback(
   kfparticle->setFlightDistancechi2(60);
   kfparticle->setMinDIRA(0.8);
   kfparticle->setMotherPT(0);
-  kfparticle->setFirstDaughter("kaon");
+
   kfparticle->doTruthMatching(0);
   kfparticle->getDetectorInfo(0);
   se->registerSubsystem(kfparticle);
