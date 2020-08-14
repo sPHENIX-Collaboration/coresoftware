@@ -72,7 +72,6 @@ class PHActsTrkFitter : public PHTrackFitting
 
  private:
 
-
   /// Reset the SvtxTrack states with the new track fit states
   void fillSvtxTrackStates(const Trajectory traj, 
 			   const size_t &trackTip,

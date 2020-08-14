@@ -119,7 +119,30 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-    
+  
+    /// Acts cares about the track covariance as it helps the KF
+    /// know whether or not to trust the initial track seed or not.
+    /// We reset it here to some loose values as it helps Acts improve
+    /// the fitting. 
+    /// If the covariance is too loose, it won't be able to propagate,
+    /// but if it is too tight, it will just "believe" the track seed over
+    /// the hit data
+    Acts::BoundSymMatrix cov;
+    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., 0.00005 , 0.,
+           0., 0., 0., 0., 0., 1.;
+
+
+    FW::TrackParameters newTrackSeed(cov,
+				     trackSeed.position(),
+				     trackSeed.momentum(),
+				     trackSeed.charge(),
+				     trackSeed.time());
+
+
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
     /// the initial vertex estimation
@@ -150,7 +173,7 @@ int PHActsTrkFitter::Process()
       Acts::VoidOutlierFinder(),
       &(*pSurface));
   
-    auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
+    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -393,7 +416,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
       SvtxTrackState_v1 out( pathlength );
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
-      out.set_z(global.z() /  Acts::UnitConstants::cm);
+      out.set_z(global.z() / Acts::UnitConstants::cm);
 
       // I assume we want the smoothed for the final track states?      
       if (state.hasSmoothed())
@@ -408,7 +431,7 @@ void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &t
 
 	  /// Get measurement covariance    
 	  ActsTransformations *rotater = new ActsTransformations();
-	  rotater->setVerbosity(Verbosity());
+	  rotater->setVerbosity(0);
 
 	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
 	  for (int i = 0; i < 6; i++)

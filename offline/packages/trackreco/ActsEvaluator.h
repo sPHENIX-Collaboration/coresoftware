@@ -297,6 +297,12 @@ class ActsEvaluator : public SubsysReco
   float m_protoTrackX{-9999.};           /// Proto track PCA x
   float m_protoTrackY{-9999.};           /// Proto track PCA y
   float m_protoTrackZ{-9999.};           /// Proto track PCA z
+  float m_protoD0Cov{-9999.};            /// Proto track loc0 covariance
+  float m_protoZ0Cov{-9999.};            /// Proto track loc1 covariance
+  float m_protoPhiCov{-9999.};           /// Proto track phi covariance
+  float m_protoThetaCov{-9999.};         /// Proto track theta covariance
+  float m_protoQopCov{-9999.};           /// Proto track q/p covariance
+  
   
   std::vector<float> m_SL_lx;            /// Proto track source link local x pos
   std::vector<float> m_SL_ly;            /// Proto track source link local y pos
