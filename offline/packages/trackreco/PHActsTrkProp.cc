@@ -277,10 +277,6 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
   /// the same track seed
   const unsigned int vertexId = origTrack->get_vertex_id();
   
-  /// Get the last track key so that we can add new tracks if needed
-
-  unsigned int lastTrackKey = m_trackMap->end()->first;
-  
   origTrack->Reset();
   
   /// This gets the track indexer and associated tracks 
@@ -378,20 +374,25 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  origTrack->set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
 	  origTrack->set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
 	  origTrack->set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
-
+        
 	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
 				    (trackTip,trackKey));
 	}
       else
 	{
+	  /// Get the last track key so that we can add new tracks if needed
+	  
+	  const unsigned int lastTrackKey = m_trackMap->end()->first + 1;
+
 	  /// Otherwise make a new track
 	  if(Verbosity() > 3)
-	    std::cout << "Creating new SvtxTrack with trackKey " << lastTrackKey++
+	    std::cout << "Creating new SvtxTrack with trackKey " << lastTrackKey
 		      << " corresponding to trackTip " << trackTip << std::endl;
 
+	
 	  SvtxTrack_v1 newTrack;
 	  /// Needs to be a new track id
-	  newTrack.set_id(lastTrackKey++);
+	  newTrack.set_id(lastTrackKey);
 	  newTrack.set_vertex_id(vertexId);
 	  newTrack.set_chisq(chi2sum);
 	  newTrack.set_ndf(NDF);
@@ -421,7 +422,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	    }
 	  
 	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
-				    (trackTip, lastTrackKey++));
+				    (trackTip, lastTrackKey));
 	  m_trackMap->insert(&newTrack);
 	}
       

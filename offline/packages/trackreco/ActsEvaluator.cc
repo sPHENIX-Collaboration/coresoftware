@@ -116,6 +116,10 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     unsigned int trackKey = trajIter->first;
     Trajectory traj = trajIter->second;
 
+    if(Verbosity() > 2)
+      std::cout << "Starting trajectory " << iTraj << "with trackKey "
+		<< trackKey << std::endl;
+
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTraj;
 
@@ -128,22 +132,26 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     }  
    
     iTrack = 0;
+   
+    /// Track seed always is related to the trajectory->trackkey
+    /// mapping for KF (by definition) and CKF
+    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
     /// For the KF this iterates once. For the CKF it may iterate several times
-    std::cout<<"Track key going in ActsEvaluator" << trackKey<<std::endl;
     for(const size_t &trackTip : trackTips)
       {
+	if(Verbosity() > 2)
+	  std::cout << "beginning trackTip " << trackTip << std::endl;
 
 	/// The CKF has a trackTip == trackKey correspondence, rather
 	/// than a trajectory == trackKey correspondence. So need to
-	/// grab the correct key from the map
+	/// grab the correct key from the extra map
 	if(m_evalCKF)
 	  trackKey = m_actsTrackKeyMap->find(trackTip)->second;
 
-	std::cout<<"Track key for track tip " << trackKey << "   "<<trackTip<<std::endl;
-	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
-	SvtxTrack *track = svtxTrackIter->second;
+	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-	ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+
 	const unsigned int vertexId = track->get_vertex_id();
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
 	Acts::Vector3D vertex;
@@ -1059,8 +1067,9 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 
   if (!m_actsTrackKeyMap)
     {
-      std::cout << PHWHERE << "No acts CKF track map on node tree. ActsEvaluator will not evaluate the CKF fitted track parameters."
-		<< std::endl;
+      if(Verbosity() > 1)
+	std::cout << PHWHERE << "No acts CKF track map on node tree."
+		  << std::endl;
 
     }
 

@@ -58,6 +58,7 @@ class ActsEvaluator : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 
  private:
   int getNodes(PHCompositeNode *topNode);
