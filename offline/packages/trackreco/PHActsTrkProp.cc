@@ -95,7 +95,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   };
 
   auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 0)
+  if(Verbosity() > 5)
     logger = Acts::Logging::VERBOSE;
 
   findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
@@ -157,16 +157,19 @@ int PHActsTrkProp::Process()
 
     FW::TrackParameters trackSeed = track.getTrackParams();
 
-    auto covariance = trackSeed.covariance().value();
+    Acts::BoundSymMatrix covariance;
+    covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+                  0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+                  0., 0., 0.05, 0., 0., 0.,
+                  0., 0., 0., 0.05, 0., 0.,
+                  0., 0., 0., 0., 0.0001, 0.,
+                  0., 0., 0., 0., 0., 1.;
     
-    /// The hough seed covariance is orders of magnitude too small, causes CKF
-    /// to ignore measurements. Blow up the covariance by an arbitrary
-    /// amount to let CKF know not to heavily weight seed parameters
-    FW::TrackParameters trackSeedLargeCov(covariance*1000,
-					  trackSeed.position(),
-					  trackSeed.momentum(),
-					  trackSeed.charge(),
-					  trackSeed.time());
+    FW::TrackParameters trackSeedNewCov(covariance,
+					trackSeed.position(),
+					trackSeed.momentum(),
+					trackSeed.charge(),
+					trackSeed.time());
 
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
@@ -178,16 +181,14 @@ int PHActsTrkProp::Process()
       {
 	std::cout << "Processing track seed with positon: "
 		  << trackSeed.position().transpose() << std::endl
-		  << "momentum: " << trackSeed.momentum().transpose() << std::endl
+		  << "momentum: " << trackSeed.momentum().transpose() 
+		  << std::endl
 		  << "charge: " << trackSeed.charge() << std::endl
 		  << "initial vertex : " <<track.getVertex()
 		  << " corresponding to SvtxTrack key " << trackKey
 		  << std::endl
 		  << "with initial covariance " << std::endl
-		  <<trackSeed.covariance().value()
-		  << std::endl << "with blown up covariance " << std::endl 
-		  << trackSeedLargeCov.covariance().value()
-		  << std::endl;
+		  << covariance << std::endl;
       }
 
 
@@ -202,7 +203,7 @@ int PHActsTrkProp::Process()
 
     /// Run the CKF for all source links and the constructed track seed
     /// CKF runs both track finder and KF track fitter
-    auto result = findCfg.finder(sourceLinks, trackSeedLargeCov, ckfOptions);
+    auto result = findCfg.finder(sourceLinks, trackSeedNewCov, ckfOptions);
     
     if(result.ok())
       {
@@ -230,6 +231,7 @@ int PHActsTrkProp::Process()
     
   }
   
+
   if(Verbosity() > 0)
     std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
 
@@ -262,7 +264,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 {
   
   ActsTransformations *rotater = new ActsTransformations();
-  rotater->setVerbosity(Verbosity());
+  rotater->setVerbosity(0);
 
   /// Iterate over the Trajectories and add them to the SvtxTrackMap
   std::map<const unsigned int, Trajectory>::iterator trajIter;
@@ -343,7 +345,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)
 	{
-	  if(Verbosity() > 3)
+	  if(Verbosity() > 0)
 	    std::cout << "Replacing SvtxTrack " << trackKey 
 		      << " with parameters from trackTip " << trackTip
 		      << std::endl;
@@ -382,10 +384,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	{
 	  /// Get the last track key so that we can add new tracks if needed
 	  
-	  const unsigned int lastTrackKey = m_trackMap->end()->first + 1;
+	  const unsigned int lastTrackKey = m_trackMap->end()->first;
 
 	  /// Otherwise make a new track
-	  if(Verbosity() > 3)
+	  if(Verbosity() > 0)
 	    std::cout << "Creating new SvtxTrack with trackKey " << lastTrackKey
 		      << " corresponding to trackTip " << trackTip << std::endl;
 

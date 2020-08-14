@@ -147,11 +147,18 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	/// than a trajectory == trackKey correspondence. So need to
 	/// grab the correct key from the extra map
 	if(m_evalCKF)
-	  trackKey = m_actsTrackKeyMap->find(trackTip)->second;
-
+	  {
+	    std::map<const size_t, const unsigned int>::iterator ckfiter = m_actsTrackKeyMap->find(trackTip);
+	    if(ckfiter == m_actsTrackKeyMap->end())
+	      {
+		std::cout << "Couldn't find track tip, continuing"
+			  << std::endl;
+		continue;
+	      }
+	    trackKey = m_actsTrackKeyMap->find(trackTip)->second;
+	  }
 	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-
 	const unsigned int vertexId = track->get_vertex_id();
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
 	Acts::Vector3D vertex;
