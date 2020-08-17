@@ -118,7 +118,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 
     if(Verbosity() > 2)
       std::cout << "Starting trajectory " << iTraj 
-		<< "with trackKey corresponding to track seed "
+		<< " with trackKey corresponding to track seed "
 		<< trackKey << std::endl;
 
     const auto &[trackTips, mj] = traj.trajectory();
@@ -183,7 +183,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	  }
 	
 	m_trackNr = iTrack;
-        iTrack++;
+  
 	
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
@@ -217,6 +217,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	clearTrackVariables();
 	if(Verbosity() > 1)
 	  std::cout << "Finished track " << iTrack <<std::endl;
+
+	iTrack++;
       }
     
     ++iTraj;
