@@ -72,14 +72,6 @@ class PHActsTrkFitter : public PHTrackFitting
 
  private:
 
-  /// Reset the SvtxTrack states with the new track fit states
-  void fillSvtxTrackStates(const Trajectory traj, 
-			   const size_t &trackTip,
-			   SvtxTrack *svtx_track);
-
-  /// Get the cluster key for the corresponding hitID from the map 
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
-
   /// Event counter
   int m_event;
 

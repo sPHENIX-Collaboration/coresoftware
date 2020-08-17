@@ -1,6 +1,8 @@
 #ifndef TRACKRECO_ACTSTRANSFORMATIONS_H
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
+#include <trackbase/TrkrDefs.h>
+
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -10,6 +12,7 @@
 
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -19,6 +22,11 @@
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
+using Trajectory = FW::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
+                                      Acts::ParDef::eLOC_0,
+                                      Acts::ParDef::eLOC_1>;
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -57,8 +65,18 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov);
 
+  void fillSvtxTrackStates(const Trajectory traj, 
+			   const size_t &trackTip,
+			   SvtxTrack *svtxTrack,
+			   Acts::GeometryContext geoContext,
+			   std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap);
+
  private:
   int m_verbosity;
+
+  /// Get the cluster key for the corresponding hitID from the map 
+  TrkrDefs::cluskey getClusKey(const unsigned int hitID, 
+			       std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap);
 
 
 };

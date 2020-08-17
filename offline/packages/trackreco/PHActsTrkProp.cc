@@ -18,6 +18,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
 
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
@@ -222,10 +223,7 @@ int PHActsTrkProp::Process()
       {
 	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				 (trackKey, FW::TrkrClusterMultiTrajectory()));
-	
-	/// Don't need to update SvtxTrack to be a bad fit since the 
-	/// track map will get wiped anyway in updateSvtxTrackMap
-	
+		
 	m_nBadFits++;
       }
     
@@ -280,7 +278,15 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
   const unsigned int vertexId = origTrack->get_vertex_id();
   
   origTrack->Reset();
-  
+
+  /// Create a state at 0.0 to propagate out from
+  float pathLength = 0.0;
+  SvtxTrackState_v1 out(pathLength);
+  out.set_x(0.0);
+  out.set_y(0.0);
+  out.set_z(0.0);
+  origTrack->insert_state(&out);
+
   /// This gets the track indexer and associated tracks 
   /// (Acts::MultiTrajectories)
   const auto& [trackTips, mj] = traj.trajectory();
@@ -355,8 +361,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  origTrack->set_chisq(chi2sum);
 	  origTrack->set_ndf(NDF);
 	  origTrack->set_charge(1);
-	  /// Loop over trajectory source links, and add them to the track
-	  getTrackClusters(trackTip, traj, origTrack);
+
 	  if(qOp < 0)
 	    origTrack->set_charge(-1);
 	  for(int i = 0; i < 6; ++i)
@@ -366,6 +371,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 		  origTrack->set_error(i,j, rotatedCov(i,j));
 		}
 	    }
+
 	  origTrack->set_px(px);
 	  origTrack->set_py(py);
 	  origTrack->set_pz(pz);
@@ -376,6 +382,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  origTrack->set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
 	  origTrack->set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
 	  origTrack->set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
+
+	  rotater->fillSvtxTrackStates(traj, trackTip, origTrack,
+				       m_tGeometry->geoContext,
+				       m_hitIdClusKey);
         
 	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
 				    (trackTip,trackKey));
@@ -392,70 +402,48 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 		      << " corresponding to trackTip " << trackTip << std::endl;
 
 	
-	  SvtxTrack_v1 newTrack;
+	  SvtxTrack_v1 *newTrack = new SvtxTrack_v1();
 	  /// Needs to be a new track id
-	  newTrack.set_id(lastTrackKey);
-	  newTrack.set_vertex_id(vertexId);
-	  newTrack.set_chisq(chi2sum);
-	  newTrack.set_ndf(NDF);
-	  newTrack.set_charge(1);
+	  newTrack->set_id(lastTrackKey);
+	  newTrack->set_vertex_id(vertexId);
+	  newTrack->set_chisq(chi2sum);
+	  newTrack->set_ndf(NDF);
+	  newTrack->set_charge(1);
 	  /// If negative QOP then set charge to negative
 	  if(qOp < 0)
-	    newTrack.set_charge(-1);
+	    newTrack->set_charge(-1);
 	  
-	  getTrackClusters(trackTip, traj, &newTrack);
-	  newTrack.set_px(px);
-	  newTrack.set_py(py);
-	  newTrack.set_pz(pz);
-	  newTrack.set_x(x);
-	  newTrack.set_y(y);
-	  newTrack.set_z(z);
-	  newTrack.set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
-	  newTrack.set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
-	  newTrack.set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
-	  newTrack.set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
-
+	  newTrack->set_px(px);
+	  newTrack->set_py(py);
+	  newTrack->set_pz(pz);
+	  newTrack->set_x(x);
+	  newTrack->set_y(y);
+	  newTrack->set_z(z);
+	  newTrack->set_dca3d_xy(DCA3Dxy / Acts::UnitConstants::cm);
+	  newTrack->set_dca3d_z(DCA3Dz / Acts::UnitConstants::cm);
+	  newTrack->set_dca3d_xy_error(DCA3DxyCov / Acts::UnitConstants::cm);
+	  newTrack->set_dca3d_z_error(DCA3DzCov / Acts::UnitConstants::cm);
+	  rotater->fillSvtxTrackStates(traj, trackTip, 
+				       dynamic_cast<SvtxTrack*>(newTrack),
+				       m_tGeometry->geoContext,
+				       m_hitIdClusKey);
+        
 	  for(int i = 0; i < 6; ++i)
 	    {
 	      for(int j = 0; j < 6; ++j)
 		{
-		  newTrack.set_error(i,j, rotatedCov(i,j));
+		  newTrack->set_error(i,j, rotatedCov(i,j));
 		}
 	    }
 	  
 	  m_actsTrackKeyMap->insert(std::pair<const size_t, const unsigned int>
 				    (trackTip, lastTrackKey));
-	  m_trackMap->insert(&newTrack);
+	  m_trackMap->insert(newTrack);
 	}
       
       ++iTrack;
     }
 
-}
-
-void PHActsTrkProp::getTrackClusters(const size_t& trackTip, 
-				     Trajectory traj, SvtxTrack *track)
-{
-  /// Unable to pass mj into the function, so we have to pass the 
-  /// Trajectory and regrab the Acts::MultiTrajectory here
-  const auto &[trackTips, mj] = traj.trajectory();
-
-  /// Get the state information
-  mj.visitBackwards(trackTip, [&](const auto &state) {
-    /// Only fill the track states with non-outlier measurement
-    auto typeFlags = state.typeFlags();
-    if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-      {
-	return true;
-      }
-  
-    const unsigned int hitID = state.uncalibrated().hitID();
-    TrkrDefs::cluskey clusKey = getClusKey(hitID);
-    track->insert_cluster_key(clusKey);
-    return true;
-    }); /// Finish lambda function
-  
-  return;
 }
 
 Acts::GeometryID PHActsTrkProp::makeId(int volume, 
@@ -467,26 +455,6 @@ Acts::GeometryID PHActsTrkProp::makeId(int volume,
                            .setSensitive(sensitive);
 }
 
-TrkrDefs::cluskey PHActsTrkProp::getClusKey(const unsigned int hitID)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = m_hitIdClusKey->begin();
-  while (hitIter != m_hitIdClusKey->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
-}
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {

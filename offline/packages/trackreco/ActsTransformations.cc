@@ -1,5 +1,5 @@
 #include "ActsTransformations.h"
-
+#include <trackbase_historic/SvtxTrackState_v1.h>
 
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 	             const SvtxTrack *track)
@@ -245,4 +245,110 @@ void ActsTransformations::calculateDCA(const Acts::BoundParameters param,
   dca3DxyCov = rotCov(0,0);
   dca3DzCov = rotCov(2,2);
   
+}
+
+
+
+void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
+					      const size_t &trackTip,
+					      SvtxTrack *svtxTrack,
+					      Acts::GeometryContext geoContext,
+					      std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
+{
+
+ const auto &[trackTips, mj] = traj.trajectory();
+  
+  mj.visitBackwards(trackTip, [&](const auto &state) {
+      /// Only fill the track states with non-outlier measurement
+      auto typeFlags = state.typeFlags();
+      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
+	{
+	  return true;
+	}
+      
+      auto meas = std::get<Measurement>(*state.uncalibrated());
+
+      /// Get local position
+      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
+			   meas.parameters()[Acts::ParDef::eLOC_1]);
+      /// Get global position
+      Acts::Vector3D global(0., 0., 0.);
+      /// This is an arbitrary vector. Doesn't matter in coordinate transformation
+      /// in Acts code
+      Acts::Vector3D mom(1., 1., 1.);
+      meas.referenceObject().localToGlobal(geoContext,
+					    local, mom, global);
+      
+      float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
+      SvtxTrackState_v1 out( pathlength );
+      out.set_x(global.x() / Acts::UnitConstants::cm);
+      out.set_y(global.y() / Acts::UnitConstants::cm);
+      out.set_z(global.z() / Acts::UnitConstants::cm);
+    
+      if (state.hasSmoothed())
+	{
+	  Acts::BoundParameters parameter(geoContext,
+					  state.smoothedCovariance(), state.smoothed(),
+					  state.referenceSurface().getSharedPtr());
+	  
+	  out.set_px(parameter.momentum().x());
+	  out.set_py(parameter.momentum().y());
+	  out.set_pz(parameter.momentum().z());
+
+	  /// Get measurement covariance    
+
+	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter);
+	  for (int i = 0; i < 6; i++)
+	    {
+	      for (int j = 0; j < 6; j++)
+		{ 
+		  out.set_error(i, j, globalCov(i,j)); 
+		}
+	    }
+	  	  
+	  const unsigned int hitId = state.uncalibrated().hitID();
+	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
+	  svtxTrack->insert_cluster_key(cluskey);
+	  
+	  if(m_verbosity > 2)
+	    {
+	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
+			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
+			<< global.z() /  Acts::UnitConstants::cm 
+			<< " pathlength " << pathlength
+			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
+			<< " cluskey " << cluskey << std::endl
+			<< "covariance " << globalCov << std::endl; 
+	    }
+	  
+	  svtxTrack->insert_state(&out);      
+	}
+  
+      return true;      
+    }
+    );
+
+  return;
+}
+
+TrkrDefs::cluskey ActsTransformations::getClusKey(const unsigned int hitID,
+						  std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
+{
+  TrkrDefs::cluskey clusKey = 0;
+  /// Unfortunately the map is backwards for looking up cluster key from
+  /// hit ID. So we need to iterate over it. There won't be duplicates since
+  /// the cluster key and hit id are a one-to-one map
+  std::map<TrkrDefs::cluskey, unsigned int>::iterator
+      hitIter = hitIDCluskeyMap->begin();
+  while (hitIter != hitIDCluskeyMap->end())
+  {
+    if (hitIter->second == hitID)
+    {
+      clusKey = hitIter->first;
+      break;
+    }
+    ++hitIter;
+  }
+
+  return clusKey;
 }

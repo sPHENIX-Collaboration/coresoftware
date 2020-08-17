@@ -366,7 +366,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
-  fillSvtxTrackStates(traj, trackTip, track);  
+  rotater->fillSvtxTrackStates(traj, trackTip, track,
+			       m_tGeometry->geoContext,
+			       m_hitIdClusKey);  
 
   if(Verbosity() > 2)
     {  
@@ -379,109 +381,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &trackTip, SvtxTrack *svtx_track)
-{
-  const auto &[trackTips, mj] = traj.trajectory();
-  
-  mj.visitBackwards(trackTip, [&](const auto &state) {
-      /// Only fill the track states with non-outlier measurement
-      auto typeFlags = state.typeFlags();
-      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-	{
-	  return true;
-	}
-      
-      auto meas = std::get<Measurement>(*state.uncalibrated());
-
-      /// Get the surface, if we need geometry information
-      ///auto stateSurface = meas.referenceSurface();
-
-      /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-			   meas.parameters()[Acts::ParDef::eLOC_1]);
-      /// Get global position
-      Acts::Vector3D global(0, 0, 0);
-      /// This is an arbitrary vector. Doesn't matter in coordinate transformation
-      /// in Acts code
-      Acts::Vector3D mom(1, 1, 1);
-      meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
-					    local, mom, global);
-      
-      float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v1 out( pathlength );
-      out.set_x(global.x() / Acts::UnitConstants::cm);
-      out.set_y(global.y() / Acts::UnitConstants::cm);
-      out.set_z(global.z() / Acts::UnitConstants::cm);
-
-      // I assume we want the smoothed for the final track states?      
-      if (state.hasSmoothed())
-	{
-	  Acts::BoundParameters parameter(m_tGeometry->geoContext,
-					  state.smoothedCovariance(), state.smoothed(),
-					  state.referenceSurface().getSharedPtr());
-	  
-	  out.set_px(parameter.momentum().x());
-	  out.set_py(parameter.momentum().y());
-	  out.set_pz(parameter.momentum().z());
-
-	  /// Get measurement covariance    
-	  ActsTransformations *rotater = new ActsTransformations();
-	  rotater->setVerbosity(0);
-
-	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
-	  for (int i = 0; i < 6; i++)
-	    {
-	      for (int j = 0; j < 6; j++)
-		{ 
-		  out.set_error(i, j, globalCov(i,j)); 
-		}
-	    }
-	  	  
-	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = getClusKey(hitId);
-	  svtx_track->insert_cluster_key(cluskey);
-	  
-	  if(Verbosity() > 2)
-	    {
-	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
-			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
-			<< global.z() /  Acts::UnitConstants::cm 
-			<< " pathlength " << pathlength
-			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
-			<< " cluskey " << cluskey << std::endl
-			<< "covariance " << globalCov << std::endl; 
-	    }
-	  
-	  svtx_track->insert_state(&out);      
-	}
-  
-      return true;      
-    }
-    );
-
-  return;
-}
-
-TrkrDefs::cluskey PHActsTrkFitter::getClusKey(const unsigned int hitID)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = m_hitIdClusKey->begin();
-  while (hitIter != m_hitIdClusKey->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
-}
     
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)

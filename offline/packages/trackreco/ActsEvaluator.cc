@@ -117,7 +117,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     Trajectory traj = trajIter->second;
 
     if(Verbosity() > 2)
-      std::cout << "Starting trajectory " << iTraj << "with trackKey "
+      std::cout << "Starting trajectory " << iTraj 
+		<< "with trackKey corresponding to track seed "
 		<< trackKey << std::endl;
 
     const auto &[trackTips, mj] = traj.trajectory();
@@ -157,6 +158,11 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	      }
 	    trackKey = m_actsTrackKeyMap->find(trackTip)->second;
 	  }
+
+	if(Verbosity() > 2)
+	  std::cout<<"Evaluating track key " << trackKey 
+		   << " for track tip " << trackTip << std::endl;
+
 	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
 	const unsigned int vertexId = track->get_vertex_id();

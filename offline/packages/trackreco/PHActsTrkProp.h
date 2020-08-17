@@ -16,8 +16,7 @@
 
 #include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
 
-#include <Acts/Propagator/detail/SteppingLogger.hpp>
-#include <Acts/Propagator/MaterialInteractor.hpp>
+#include <Acts/EventData/MeasurementHelpers.hpp>
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
@@ -57,6 +56,11 @@ using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
 using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
+
+using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
+                                      Acts::ParDef::eLOC_0,
+                                      Acts::ParDef::eLOC_1>;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -102,13 +106,6 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
-
-  /// Iterate through the Trajectory to obtain the fitted clusters
-  void getTrackClusters(const size_t& trackTip, Trajectory traj,
-			SvtxTrack *track);
-
-  /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   ActsTrackingGeometry *m_tGeometry;
 
