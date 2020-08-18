@@ -83,9 +83,13 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Reset maps event by event
   int ResetEvent(PHCompositeNode *topNode);
 
+  void setQopCov(float qopCov){m_qopCov = qopCov;}
+
  private:
   /// Event counter
   int m_event;
+
+  float m_qopCov;
   
   /// Num bad fit counter
   int m_nBadFits;

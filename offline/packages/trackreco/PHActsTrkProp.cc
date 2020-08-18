@@ -51,6 +51,7 @@
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
+  , m_qopCov(0.01)
   , m_nBadFits(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
@@ -163,7 +164,7 @@ int PHActsTrkProp::Process()
                   0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
                   0., 0., 0.05, 0., 0., 0.,
                   0., 0., 0., 0.05, 0., 0.,
-                  0., 0., 0., 0., 0.0001, 0.,
+                  0., 0., 0., 0., m_qopCov, 0.,
                   0., 0., 0., 0., 0., 1.;
     
     FW::TrackParameters trackSeedNewCov(covariance,
