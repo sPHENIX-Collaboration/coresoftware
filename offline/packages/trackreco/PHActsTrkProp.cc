@@ -265,8 +265,6 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
   ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(0);
 
-  /// Iterate over the Trajectories and add them to the SvtxTrackMap
-  std::map<const unsigned int, Trajectory>::iterator trajIter;
   int iTrack = 0;
 
   /// There could be multiple tracks per trajectory found from the CKF
