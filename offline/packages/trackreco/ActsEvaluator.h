@@ -94,7 +94,8 @@ class ActsEvaluator : public SubsysReco
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
-  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap{nullptr};
+  std::map<const unsigned int, std::map<const size_t, 
+    const unsigned int>> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};

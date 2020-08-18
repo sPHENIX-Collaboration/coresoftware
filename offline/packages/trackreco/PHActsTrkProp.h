@@ -102,7 +102,9 @@ class PHActsTrkProp : public PHTrackPropagating
 			  int sensitive = 0);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey, Acts::Vector3D vertex);
+  void updateSvtxTrack(Trajectory traj, 
+		       const unsigned int trackKey, 
+		       Acts::Vector3D vertex);
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
@@ -119,7 +121,10 @@ class PHActsTrkProp : public PHTrackPropagating
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   /// Map that correlates track key with track tip for ActsEvaluator
-  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
+  /// Identifiers are <TrajNum, <trackTip, SvtxTrackKey>> where 
+  /// TrajNum has a one-to-one map to the original seed SvtxTrackKey
+  std::map<const unsigned int, 
+    std::map<const size_t, const unsigned int>> *m_actsTrackKeyMap;
 
   /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;

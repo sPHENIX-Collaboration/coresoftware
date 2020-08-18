@@ -176,7 +176,7 @@ void ActsTransformations::printMatrix(const std::string &message,
 					Acts::BoundSymMatrix matrix)
 {
  
-  if(m_verbosity > 0)
+  if(m_verbosity > 10)
     {
       std::cout << std::endl << message.c_str() << std::endl;
       for(int i = 0 ; i < matrix.rows(); ++i)
