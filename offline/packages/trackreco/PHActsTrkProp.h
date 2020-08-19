@@ -34,6 +34,9 @@ class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 
+class TFile;
+class TH1;
+
 namespace FW
 {
   namespace Data
@@ -83,9 +86,16 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Reset maps event by event
   int ResetEvent(PHCompositeNode *topNode);
 
+  void doTimeAnalysis(bool timeAnalysis) { m_timeAnalysis = timeAnalysis;}
+
  private:
   /// Event counter
   int m_event;
+
+  bool m_timeAnalysis;
+  
+  TFile *m_timeFile;
+  TH1 *h_eventTime;
 
   /// Num bad fit counter
   int m_nBadFits;

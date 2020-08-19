@@ -42,6 +42,8 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
+#include <TFile.h>
+#include <TH1.h>
 #include <TMatrixDSym.h>
 #include <cmath>
 #include <iostream>
@@ -54,6 +56,9 @@ using namespace std::chrono;
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
+  , m_timeAnalysis(false)
+  , m_timeFile(nullptr)
+  , h_eventTime(nullptr)
   , m_nBadFits(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
@@ -106,6 +111,13 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
                    m_tGeometry->tGeometry,
 		   m_tGeometry->magField,
 		   logger);
+
+  if(m_timeAnalysis)
+    {
+      m_timeFile = new TFile("PHActsTrkPropTime.root","recreate");
+      h_eventTime = new TH1F("h_eventTime",";time [ms]",10000,0,10000);
+    }
+
 
   if(Verbosity() > 0)
     std::cout <<" Finish PHActsTrkProp setup" << std::endl;
@@ -240,6 +252,8 @@ int PHActsTrkProp::Process()
   auto stopTime = high_resolution_clock::now();
   auto eventTime = duration_cast<microseconds>(stopTime - startTime);
 
+  if(m_timeAnalysis)
+    h_eventTime->Fill(eventTime.count() / 1000.);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -254,6 +268,15 @@ int PHActsTrkProp::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsTrkProp::End()
 {
+
+  if(m_timeAnalysis)
+    {
+      m_timeFile->cd();
+      h_eventTime->Write();
+      m_timeFile->Write();
+      m_timeFile->Close();
+    }
+
   if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkProp" << std::endl;

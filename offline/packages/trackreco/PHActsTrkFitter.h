@@ -68,7 +68,7 @@ class PHActsTrkFitter : public PHTrackFitting
 
   int ResetEvent(PHCompositeNode *topNode);
 
-  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+  void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
 
  private:
 
