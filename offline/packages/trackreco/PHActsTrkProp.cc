@@ -47,6 +47,9 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <chrono>
+
+using namespace std::chrono;
 
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
@@ -136,7 +139,8 @@ std::vector<SourceLink> PHActsTrkProp::getEventSourceLinks()
 
 int PHActsTrkProp::Process()
 {
-
+  auto startTime = high_resolution_clock::now();
+  
   m_event++;
 
   if (Verbosity() > 0)
@@ -232,6 +236,9 @@ int PHActsTrkProp::Process()
 
   if(Verbosity() > 0)
     std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
+
+  auto stopTime = high_resolution_clock::now();
+  auto eventTime = duration_cast<microseconds>(stopTime - startTime);
 
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -240,7 +240,7 @@ int PHActsTrkFitter::Process()
   }
 
   auto stopTime = high_resolution_clock::now();
-  auto eventTime = duration_cast<milliseconds>(stopTime - startTime);
+  auto eventTime = duration_cast<microseconds>(stopTime - startTime);
 
   if(m_timeAnalysis)
     h_eventTime->Fill(eventTime.count());
