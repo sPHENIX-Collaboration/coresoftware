@@ -147,6 +147,8 @@ class ActsEvaluator : public SubsysReco
   std::vector<float> m_t_eQOP;    /// truth parameter eQOP
   std::vector<float> m_t_eT;      /// truth parameter eT
 
+  int m_nHoles{0};                  /// number of holes in the track fit
+  int m_nOutliers{0};               /// number of outliers in the track fit
   int m_nStates{0};                 /// number of all states
   int m_nMeasurements{0};           /// number of states with measurements
   std::vector<int> m_volumeID;      /// volume identifier

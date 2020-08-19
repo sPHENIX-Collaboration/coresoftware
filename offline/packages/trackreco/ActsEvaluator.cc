@@ -206,6 +206,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
+	m_nOutliers = trajState.nOutliers;
+	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
 	
@@ -576,6 +578,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       m_pT_flt.push_back(parameter.pT());
       m_eta_flt.push_back(eta(parameter.position()));
       m_chi2.push_back(state.chi2());
+      
     }
     else
     {
@@ -1375,6 +1378,8 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
+  m_trackTree->Branch("nHoles", &m_nHoles);
+  m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
   m_trackTree->Branch("volume_id", &m_volumeID);
