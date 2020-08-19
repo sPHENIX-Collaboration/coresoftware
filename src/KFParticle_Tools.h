@@ -64,9 +64,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<KFPVertex> makeAllPrimaryVertices(PHCompositeNode *topNode);
 
-  KFPTrack makeTrack(PHCompositeNode *topNode);
-
-  KFParticle makeParticle(PHCompositeNode *topNode, int massHypothesis);
+  KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
@@ -82,6 +80,14 @@ class KFParticle_Tools : protected KFParticle_MVA
                        std::vector<int>  goodTrackIndex,
                        std::vector<KFPVertex> primaryVertices);
 
+void buildChain(std::vector<KFParticle>& selectedMother,
+                std::vector<KFParticle>& selectedVertex,
+                std::vector<std::vector<KFParticle>>& selectedDaughters,
+                std::vector<std::vector<KFParticle>>& selectedIntermediates,
+                std::vector<KFParticle> daughterParticles,
+                std::vector<int> goodTrackIndex,
+                std::vector<KFPVertex> primaryVertices);
+
   void getCandidateDecay(std::vector<KFParticle>& selectedMother,
                          std::vector<KFParticle>& selectedVertex,
                          std::vector<std::vector<KFParticle>>& selectedDaughters,
@@ -89,7 +95,7 @@ class KFParticle_Tools : protected KFParticle_MVA
                          std::vector<std::vector<int>> goodTracksThatMeet,
                          std::vector<KFPVertex> primaryVertices,
                          int n_track_start, int n_track_stop,
-                         bool isIntermediate, int intermediateNumber);
+                         bool isIntermediate, int intermediateNumber, bool constrainMass);
 
 
   bool isGoodTrack(KFParticle particle, std::vector<KFPVertex> primaryVertices);
@@ -106,12 +112,12 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float flightDistanceChi2(KFParticle particle, KFPVertex vertex);
 
-  std::tuple<KFParticle, bool> buildMother( KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber );
+  std::tuple<KFParticle, bool> buildMother( KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass );
 
   void constrainToVertex(KFParticle& particle, bool& goodCandidate, KFPVertex& vertex );
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFPVertex vertex, 
-                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber );
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass );
 
   std::vector<std::vector<std::string>> findUniqueDaughterCombinations( int start, int end );
 

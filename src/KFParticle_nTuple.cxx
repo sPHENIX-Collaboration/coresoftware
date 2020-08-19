@@ -78,7 +78,7 @@ void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
   m_tree->Branch( "mother_phi",            &m_calculated_mother_phi,          "mother_phi/F" );
   m_tree->Branch( "mother_chi2",           &m_calculated_mother_chi2,         "mother_chi2/F" );
   m_tree->Branch( "mother_nDoF",           &m_calculated_mother_ndof,         "mother_nDoF/I" );
-  m_tree->Branch( "mother_Covariance",     &m_calculated_mother_cov,          "mother_Covariance/F[21]", 21 );
+  m_tree->Branch( "mother_Covariance",      m_calculated_mother_cov,          "mother_Covariance[21]/F", 21 );
 
  for (int i = 0; i < nTracks; ++i)
  {
@@ -104,7 +104,7 @@ void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
     m_tree->Branch( TString(daughter_number) + "_phi",            &m_calculated_daughter_phi[i],      TString(daughter_number) + "_phi/F" );
     m_tree->Branch( TString(daughter_number) + "_chi2",           &m_calculated_daughter_chi2[i],     TString(daughter_number) + "_chi2/F" );
     m_tree->Branch( TString(daughter_number) + "_nDoF",           &m_calculated_daughter_ndof[i],     TString(daughter_number) + "_nDoF/I" );
-    m_tree->Branch( TString(daughter_number) + "_Covariance",     &m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance/F[21]", 21 );
+    m_tree->Branch( TString(daughter_number) + "_Covariance",      m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
     if ( m_truth_matching ) initializeTruthBranches( i ); 
     if ( m_detector_info )  initializeDetectorBranches( i );
@@ -126,7 +126,7 @@ void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
   m_tree->Branch( "primary_vertex_x",              &m_calculated_vertex_x,            "vertex_x/F" );
   m_tree->Branch( "primary_vertex_y",              &m_calculated_vertex_y,            "vertex_y/F" );
   m_tree->Branch( "primary_vertex_z",              &m_calculated_vertex_z,            "vertex_z/F" );
-  m_tree->Branch( "primary_vertex_Covariance",     &m_calculated_vertex_cov,          "vertex_Covariance/F[6]", 6 );
+  m_tree->Branch( "primary_vertex_Covariance",      m_calculated_vertex_cov,          "vertex_Covariance[6]/F", 6 );
 
   m_tree->Branch( "nPrimaryVertices",     &m_nPVs,                            "nPrimaryVertices/I" );
   m_tree->Branch( "nEventTracks",         &m_multiplicity,                    "nEventTracks/I" );
