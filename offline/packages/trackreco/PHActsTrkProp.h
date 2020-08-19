@@ -88,14 +88,19 @@ class PHActsTrkProp : public PHTrackPropagating
 
   void doTimeAnalysis(bool timeAnalysis) { m_timeAnalysis = timeAnalysis;}
 
+  void setVolumeMaxChi2(const int vol, const float maxChi2);
+
  private:
   /// Event counter
   int m_event;
 
-  bool m_timeAnalysis;
-  
+  bool m_timeAnalysis; 
   TFile *m_timeFile;
   TH1 *h_eventTime;
+
+  /// Map to hold maximum allowable measurement chi2 in each
+  /// volume identifier in Acts
+  std::map<const int, const float> m_volMaxChi2;
 
   /// Num bad fit counter
   int m_nBadFits;

@@ -89,19 +89,26 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// SLs to the track. The selections can be added like
   /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
   /// We'll just put the max chi2 to 10 
+
   m_sourceLinkSelectorConfig = {
     /// global default values
-    {makeId(), {10.0, 55}},
+    {makeId(), {100., 55}},
 
     /// MVTX volume should have max 3 SLs
-    {makeId(7), {10.0, 3}},
+    {makeId(7), {m_volMaxChi2.find(7)->second, 3}},
     
     /// INTT volume should have max 2 SLs
-    {makeId(9), {10.0, 2}},
+    {makeId(9), {m_volMaxChi2.find(9)->second, 2}},
     
     /// TPC volume should have max 50 (?) SLs
-    {makeId(11), {10.0,50}}
+    {makeId(11), {m_volMaxChi2.find(11)->second,50}}
   };
+
+  if(Verbosity() > 2)
+    std::cout << "Set measurement max chi 2 to :" << std::endl
+	      << "MVTX : " << m_volMaxChi2.find(7)->second << std::endl
+	      << "INTT : " << m_volMaxChi2.find(9)->second << std::endl
+	      << "TPC  : " << m_volMaxChi2.find(11)->second << std::endl;
 
   auto logger = Acts::Logging::INFO;
   if(Verbosity() > 5)
@@ -498,6 +505,10 @@ Acts::GeometryID PHActsTrkProp::makeId(int volume,
                            .setSensitive(sensitive);
 }
 
+void PHActsTrkProp::setVolumeMaxChi2(const int vol, const float maxChi2)
+{
+  m_volMaxChi2.insert(std::make_pair(vol, maxChi2));
+}
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
