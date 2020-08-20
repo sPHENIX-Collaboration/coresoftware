@@ -14,11 +14,16 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <map>
+#include <gsl/gsl_rng.h>
+#include <memory>
 #include <string>
-#include <utility>  // for pair
+#include <utility>  
+#include <vector>
 
+class CylinderGeomMicromegas;
 class PHCompositeNode;
+class PHG4Hit;
+class TVector3;
 
 class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -28,14 +33,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
     const std::string &name = "PHG4MicromegasHitReco",
     const std::string &detector = "MICROMEGAS");
 
-  //! module initialization
+  //! run initialization
   int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
-
-  //!@name modifiers
-  //@{
 
   //! parameters
   void SetDefaultParameters() override;
@@ -44,22 +46,65 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   void set_tiles( const MicromegasTile::List& tiles )
   { m_tiles = tiles; }
 
-  //@}
-
   private:
 
   //! setup tiles definition in CylinderGeom
   void setup_tiles(PHCompositeNode*);
 
+  //! get total number of electrons collected for a give g4hit
+  /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
+  uint get_primary_electrons( PHG4Hit* ) const;
+
+  //! get single electron amplification
+  uint get_single_electron_amplification() const;
+
+  //! stores strip number and corresponding charge fraction
+  using charge_pair_t = std::pair<int, double>;
+  
+  //! map strip number to charge fraction
+  using charge_list_t = std::vector<charge_pair_t>;
+
+  //! distribute a Gaussian charge across adjacent strips
+  charge_list_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector3& position, double sigma ) const;
+
   //! detector name
   std::string m_detector;
 
   //! timing window (ns)
-  double m_tmin = 0;
-  double m_tmax = 0;
+  double m_tmin = -20;
 
+  //! timing window (ns)
+  double m_tmax = 800;
+
+  //! number of primary electrons per GeV
+  double m_electrons_per_gev = 0;
+  
+  //! min gain
+  double m_gain = 0;
+  
+  //! electron cloud sigma (cm) after avalanche
+  double m_cloud_sigma = 0.04;
+
+  //! electron transverse diffusion (cm/sqrt(cm))
+  double m_diffusion_trans = 0.03;
+  
+  //! use zig zag pads
+  bool m_zigzag_strips = true;
+  
   //! micromegas tiles
   MicromegasTile::List m_tiles;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 
 };
 

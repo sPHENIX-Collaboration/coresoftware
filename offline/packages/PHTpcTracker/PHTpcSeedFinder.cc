@@ -69,6 +69,7 @@ std::vector<kdfinder::TrackCandidate<double>*> PHTpcSeedFinder::findSeeds(TrkrCl
     if (!(*it)->isFitted() || (*it)->Pt() < 0.025 || (*it)->Pt() > 200.0)
     {
       (*it)->deleteHits();
+      delete (*it);
       it = result.erase(it);
     }
     else
@@ -88,6 +89,7 @@ std::vector<kdfinder::TrackCandidate<double>*> PHTpcSeedFinder::findSeeds(TrkrCl
       if (((xyr - r) > mMinLooperRadius) && ((xyr + r) < mMaxLooperRadius))
       {
         (*it)->deleteHits();
+        delete (*it);
         it = result.erase(it);
       }
       else

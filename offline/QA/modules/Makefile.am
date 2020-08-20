@@ -28,7 +28,9 @@ pkginclude_HEADERS = \
 	QAG4SimulationIntt.h \
 	QAG4SimulationJet.h \
 	QAG4SimulationMvtx.h \
+	QAG4SimulationTpc.h \
 	QAG4SimulationTracking.h \
+	QAG4SimulationVertex.h \
 	QAG4SimulationUpsilon.h \
 	QAHistManagerDef.h
 
@@ -39,6 +41,7 @@ if ! MAKEROOT6
 		QAG4SimulationIntt_Dict.cc \
 		QAG4SimulationJet_Dict.cc \
 		QAG4SimulationMvtx_Dict.cc \
+		QAG4SimulationTpc_Dict.cc \
 		QAG4SimulationTracking_Dict.cc \
 		QAG4SimulationUpsilon_Dict.cc \
 		QAHistManagerDef_Dict.cc
@@ -51,7 +54,9 @@ libqa_modules_la_SOURCES = \
 	QAG4SimulationIntt.cc \
 	QAG4SimulationJet.cc \
 	QAG4SimulationMvtx.cc \
+	QAG4SimulationTpc.cc \
 	QAG4SimulationTracking.cc \
+	QAG4SimulationVertex.cc \
 	QAG4SimulationUpsilon.cc \
 	QAHistManagerDef.cc
 

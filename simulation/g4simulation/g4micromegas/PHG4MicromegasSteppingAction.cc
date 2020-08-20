@@ -131,6 +131,11 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       m_hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_hit->set_z(0, prePoint->GetPosition().z() / cm);
 
+      // momentum
+      m_hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+      m_hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+      m_hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+
       // time in ns
       m_hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
@@ -140,7 +145,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
       // reset the initial energy deposit
       m_EdepSum = 0;
-      m_EionSum = 0;  // assuming the ionization energy is only needed for active
+      m_EionSum = 0;
+      m_hit->set_edep(0);
       m_hit->set_eion(0);
       m_SaveHitContainer = m_hitContainer;
 
@@ -223,6 +229,11 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       m_hit->set_x(1, postPoint->GetPosition().x() / cm);
       m_hit->set_y(1, postPoint->GetPosition().y() / cm);
       m_hit->set_z(1, postPoint->GetPosition().z() / cm);
+      
+      m_hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+      m_hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+      m_hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+
       m_hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
       if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
       {

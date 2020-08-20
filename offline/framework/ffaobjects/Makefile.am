@@ -21,7 +21,8 @@ ROOTDICTS = \
   SyncObject_Dict.cc \
   SyncObjectv1_Dict.cc \
   EventHeader_Dict.cc \
-  EventHeaderv1_Dict.cc
+  EventHeaderv1_Dict.cc \
+  EventHeaderv2_Dict.cc
 
 # for root6 we need pcm and dictionaries but only for
 # i/o classes. For root5 we need only dictionaries but
@@ -38,7 +39,8 @@ nobase_dist_pcm_DATA = \
   SyncObject_Dict_rdict.pcm \
   SyncObjectv1_Dict_rdict.pcm \
   EventHeader_Dict_rdict.pcm \
-  EventHeaderv1_Dict_rdict.pcm
+  EventHeaderv1_Dict_rdict.pcm \
+  EventHeaderv2_Dict_rdict.pcm
 endif
 
 pkginclude_HEADERS = \
@@ -49,7 +51,8 @@ pkginclude_HEADERS = \
   SyncObject.h \
   SyncObjectv1.h \
   EventHeader.h \
-  EventHeaderv1.h
+  EventHeaderv1.h \
+  EventHeaderv2.h
 
 libffaobjects_la_SOURCES = \
   $(ROOTDICTS) \
@@ -58,7 +61,8 @@ libffaobjects_la_SOURCES = \
   SyncObject.cc \
   SyncObjectv1.cc \
   EventHeader.cc \
-  EventHeaderv1.cc
+  EventHeaderv1.cc \
+  EventHeaderv2.cc
 
 BUILT_SOURCES = testexternals.cc
 

@@ -1,23 +1,23 @@
 #include "RawTowerCalibration.h"
 
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTower.h>
 #include <calobase/RawTowerv1.h>
-#include <calobase/RawTowerDefs.h>
 
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 
 #include <cassert>
 #include <cmath>
@@ -48,11 +48,15 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
   //! pedstal in unit of ADC
   _pedstal_ADC(NAN)
   ,
+  //! default to fixed pedestal
+  _pedestal_file(false)
+  ,
   //! calibration constant in unit of GeV per ADC
   _calib_const_GeV_ADC(NAN)
   ,  //
-  _zero_suppression_GeV(0)
-  ,  //
+  //! default to fixed GeV per ADC
+  _GeV_ADC_file(false)
+  ,
   _tower_type(-1)
   , _tower_calib_params(name)
 {
@@ -116,22 +120,16 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
     if (_calib_algorithm == kNo_calibration)
     {
-      if (raw_tower->get_energy() > _zero_suppression_GeV)
-      {
-        _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
-      }
+      _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
     }
     else if (_calib_algorithm == kSimple_linear_calibration)
     {
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC;
 
-      if (calib_energy > _zero_suppression_GeV)
-      {
-        RawTower *calib_tower = new RawTowerv1(*raw_tower);
-        calib_tower->set_energy(calib_energy);
-        _calib_towers->AddTower(key, calib_tower);
-      }
+      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      calib_tower->set_energy(calib_energy);
+      _calib_towers->AddTower(key, calib_tower);
     }
     else if (_calib_algorithm == kTower_by_tower_calibration)
     {
@@ -142,15 +140,26 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
       const double tower_by_tower_calib =
           _tower_calib_params.get_double_param(calib_const_name);
 
+      if (_pedestal_file == true)
+      {
+        const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+        _pedstal_ADC =
+          _tower_calib_params.get_double_param(pedstal_name);
+      }
+      
+      if (_GeV_ADC_file == true)
+      {
+        const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+        _calib_const_GeV_ADC = 
+          _tower_calib_params.get_double_param(GeVperADCname);
+      }
+
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
-
-      if (calib_energy > _zero_suppression_GeV)
-      {
-        RawTower *calib_tower = new RawTowerv1(*raw_tower);
-        calib_tower->set_energy(calib_energy);
-        _calib_towers->AddTower(key, calib_tower);
-      }
+     
+      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      calib_tower->set_energy(calib_energy);
+      _calib_towers->AddTower(key, calib_tower);
     }
     else
     {

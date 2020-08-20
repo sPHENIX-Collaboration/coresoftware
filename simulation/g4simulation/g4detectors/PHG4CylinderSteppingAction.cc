@@ -1,5 +1,7 @@
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4CylinderDetector.h"
+#include "PHG4CylinderSubsystem.h"
+
 #include "PHG4StepStatusDecode.h"
 
 #include <phparameter/PHParameters.h>
@@ -42,8 +44,9 @@ class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHParameters* parameters)
+PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderSubsystem *subsys, PHG4CylinderDetector* detector, const PHParameters* parameters)
   :  PHG4SteppingAction(detector->GetName())
+  , m_Subsystem(subsys)
   , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
@@ -192,11 +195,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         }
       }
 
-      if (m_Hit->get_z(0) * cm > m_Zmax || m_Hit->get_z(0) * cm < m_Zmin)
+      if (!hasMotherSubsystem() && (m_Hit->get_z(0) * cm > m_Zmax || m_Hit->get_z(0) * cm < m_Zmin))
       {
         boost::io::ios_precision_saver ips(cout);
         cout << m_Detector->SuperDetector() << std::setprecision(9)
-             << "PHG4CylinderSteppingAction: Entry hit z " << m_Hit->get_z(0) * cm
+             << " PHG4CylinderSteppingAction: Entry hit z " << m_Hit->get_z(0) * cm
              << " outside acceptance,  zmin " << m_Zmin
              << ", zmax " << m_Zmax << ", layer: " << layer_id << endl;
       }
@@ -247,7 +250,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
     //sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin)
+    if (!hasMotherSubsystem() && (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin))
     {
       cout << m_Detector->SuperDetector() << std::setprecision(9)
            << " PHG4CylinderSteppingAction: Exit hit z " << m_Hit->get_z(1) * cm
@@ -345,4 +348,13 @@ void PHG4CylinderSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
+}
+
+bool PHG4CylinderSteppingAction::hasMotherSubsystem() const
+{
+  if (m_Subsystem->GetMotherSubsystem())
+  {
+    return true;
+  }
+  return false;
 }
