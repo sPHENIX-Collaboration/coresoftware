@@ -44,6 +44,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
   , m_vertexMap(nullptr)
+  , m_evalCKF(false)
 {
 }
 
@@ -79,9 +80,6 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  if(Verbosity() > 1)
-    std::cout << "ActsEvaluator: Got nodes" << std::endl;
-
   m_svtxEvalStack = new SvtxEvalStack(topNode);
   m_svtxEvalStack->next_event(topNode);
 
@@ -115,6 +113,11 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     unsigned int trackKey = trajIter->first;
     Trajectory traj = trajIter->second;
 
+    if(Verbosity() > 2)
+      std::cout << "Starting trajectory " << iTraj 
+		<< " with trackKey corresponding to track seed "
+		<< trackKey << std::endl;
+
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTraj;
 
@@ -127,13 +130,44 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     }  
    
     iTrack = 0;
+   
+    /// Track seed always is related to the trajectory->trackkey
+    /// mapping for KF (by definition) and CKF
+    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
+    /// Get the map of track tips->trackKeys for this trajectory
+    std::map<const size_t, const unsigned int> trackKeyMap;
+    if(m_evalCKF)
+      trackKeyMap = m_actsTrackKeyMap->find(trackKey)->second;
+
     /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
-	SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
-	SvtxTrack *track = svtxTrackIter->second;
+	if(Verbosity() > 2)
+	  std::cout << "beginning trackTip " << trackTip << std::endl;
+
+	/// The CKF has a trackTip == trackKey correspondence, rather
+	/// than a trajectory == trackKey correspondence. So need to
+	/// grab the correct key from the extra map
+	if(m_evalCKF)
+	  {
+	    std::map<const size_t, const unsigned int>::iterator ckfiter 
+	      = trackKeyMap.find(trackTip);
+	    if(ckfiter == trackKeyMap.end())
+	      {
+		std::cout << "Couldn't find track tip, continuing"
+			  << std::endl;
+		continue;
+	      }
+	    trackKey = ckfiter->second;
+	  }
+
+	if(Verbosity() > 2)
+	  std::cout<<"Evaluating track key " << trackKey 
+		   << " for track tip " << trackTip << std::endl;
+
+	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-	ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
 	const unsigned int vertexId = track->get_vertex_id();
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
 	Acts::Vector3D vertex;
@@ -152,7 +186,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	  }
 	
 	m_trackNr = iTrack;
-        iTrack++;
+  
 	
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
@@ -172,6 +206,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
+	m_nOutliers = trajState.nOutliers;
+	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
 	
@@ -186,14 +222,18 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	clearTrackVariables();
 	if(Verbosity() > 1)
 	  std::cout << "Finished track " << iTrack <<std::endl;
+
+	iTrack++;
       }
     
-    ++iTraj;
+   
     if(Verbosity() > 1)
       {
 	std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
 		  << iTraj << std::endl;
       }
+    
+    ++iTraj;
   }
   
   if(Verbosity () > 5)
@@ -538,6 +578,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       m_pT_flt.push_back(parameter.pT());
       m_eta_flt.push_back(eta(parameter.position()));
       m_chi2.push_back(state.chi2());
+      
     }
     else
     {
@@ -1009,7 +1050,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
     {
-      std::cout << PHWHERE << "SvtxVertexMAp not found, cannot continue!" 
+      std::cout << PHWHERE << "SvtxVertexMap not found, cannot continue!" 
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -1044,13 +1085,18 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsTrackKeyMap = findNode::getClass<std::map<const size_t, const unsigned int>>
+  m_actsTrackKeyMap = findNode::getClass<std::map<const unsigned int,
+				         std::map<const size_t, 
+						  const unsigned int>>>
     (topNode, "ActsTrackKeys");
 
   if (!m_actsTrackKeyMap)
     {
-      std::cout << PHWHERE << "No acts CKF track map on node tree. ActsEvaluator will not evaluate the CKF fitted track parameters."
-		<< std::endl;
+      if(Verbosity() > 1)
+	std::cout << PHWHERE << "No acts CKF track map on node tree."
+		  << std::endl 
+		  << "If you are analyzing the CKF, your results will be incorrect."
+		  << std::endl;
 
     }
 
@@ -1332,6 +1378,8 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
+  m_trackTree->Branch("nHoles", &m_nHoles);
+  m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
   m_trackTree->Branch("volume_id", &m_volumeID);

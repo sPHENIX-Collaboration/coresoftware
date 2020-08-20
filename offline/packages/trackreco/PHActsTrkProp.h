@@ -16,8 +16,7 @@
 
 #include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
 
-#include <Acts/Propagator/detail/SteppingLogger.hpp>
-#include <Acts/Propagator/MaterialInteractor.hpp>
+#include <Acts/EventData/MeasurementHelpers.hpp>
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
@@ -34,6 +33,9 @@ class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
+
+class TFile;
+class TH1;
 
 namespace FW
 {
@@ -58,6 +60,11 @@ using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
 using Trajectory = FW::TrkrClusterMultiTrajectory;
 
+using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
+                                      Acts::ParDef::eLOC_0,
+                                      Acts::ParDef::eLOC_1>;
+
 class PHActsTrkProp : public PHTrackPropagating
 {
  public:
@@ -79,10 +86,22 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Reset maps event by event
   int ResetEvent(PHCompositeNode *topNode);
 
+  void doTimeAnalysis(bool timeAnalysis) { m_timeAnalysis = timeAnalysis;}
+
+  void setVolumeMaxChi2(const int vol, const float maxChi2);
+
  private:
   /// Event counter
   int m_event;
-  
+
+  bool m_timeAnalysis; 
+  TFile *m_timeFile;
+  TH1 *h_eventTime;
+
+  /// Map to hold maximum allowable measurement chi2 in each
+  /// volume identifier in Acts
+  std::map<const int, const float> m_volMaxChi2;
+
   /// Num bad fit counter
   int m_nBadFits;
 
@@ -98,17 +117,12 @@ class PHActsTrkProp : public PHTrackPropagating
 			  int sensitive = 0);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey, Acts::Vector3D vertex);
+  void updateSvtxTrack(Trajectory traj, 
+		       const unsigned int trackKey, 
+		       Acts::Vector3D vertex);
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
-
-  /// Iterate through the Trajectory to obtain the fitted clusters
-  void getTrackClusters(const size_t& trackTip, Trajectory traj,
-			SvtxTrack *track);
-
-  /// Return cluster key from hit ID as determined in map from PHActsSourceLinks
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   ActsTrackingGeometry *m_tGeometry;
 
@@ -122,7 +136,10 @@ class PHActsTrkProp : public PHTrackPropagating
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   /// Map that correlates track key with track tip for ActsEvaluator
-  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
+  /// Identifiers are <TrajNum, <trackTip, SvtxTrackKey>> where 
+  /// TrajNum has a one-to-one map to the original seed SvtxTrackKey
+  std::map<const unsigned int, 
+    std::map<const size_t, const unsigned int>> *m_actsTrackKeyMap;
 
   /// Map of cluster keys to hit ids, for identifying clusters belonging to track
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;

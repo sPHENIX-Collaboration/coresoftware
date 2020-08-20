@@ -58,6 +58,7 @@ class ActsEvaluator : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 
  private:
   int getNodes(PHCompositeNode *topNode);
@@ -93,12 +94,18 @@ class ActsEvaluator : public SubsysReco
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
-  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap{nullptr};
+  std::map<const unsigned int, std::map<const size_t, 
+    const unsigned int>> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
   SvtxVertexMap *m_vertexMap;
+
+  /// boolean indicating whether or not to evaluate the CKF or
+  /// the KF. Must correspond with what was run to do fitting
+  /// i.e. PHActsTrkFitter or PHActsTrkProp
+  bool m_evalCKF;
 
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
@@ -140,6 +147,8 @@ class ActsEvaluator : public SubsysReco
   std::vector<float> m_t_eQOP;    /// truth parameter eQOP
   std::vector<float> m_t_eT;      /// truth parameter eT
 
+  int m_nHoles{0};                  /// number of holes in the track fit
+  int m_nOutliers{0};               /// number of outliers in the track fit
   int m_nStates{0};                 /// number of all states
   int m_nMeasurements{0};           /// number of states with measurements
   std::vector<int> m_volumeID;      /// volume identifier

@@ -68,17 +68,9 @@ class PHActsTrkFitter : public PHTrackFitting
 
   int ResetEvent(PHCompositeNode *topNode);
 
-  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+  void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
 
  private:
-
-  /// Reset the SvtxTrack states with the new track fit states
-  void fillSvtxTrackStates(const Trajectory traj, 
-			   const size_t &trackTip,
-			   SvtxTrack *svtx_track);
-
-  /// Get the cluster key for the corresponding hitID from the map 
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   /// Event counter
   int m_event;
@@ -99,10 +91,6 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Map of acts tracks and track key created by PHActsTracks
   std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
-
-  /// Map that correlates track key with track tip for ActsEvaluator
-  std::map<const size_t, const unsigned int> *m_actsTrackKeyMap;
-
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
