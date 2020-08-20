@@ -95,9 +95,6 @@ class PHCASeeding : public PHTrackSeeding
       float Bz = 14*0.000299792458f,
       float cosTheta_limit = -0.8);
 
-  void set_phi_scale(float scale) { _phi_scale = scale; }
-  void set_z_scale(float scale) { _z_scale = scale; }
-
   virtual ~PHCASeeding()
   {
   }
@@ -165,8 +162,6 @@ class PHCASeeding : public PHTrackSeeding
   float _neighbor_eta_width;
   float _max_sin_phi;
   float _Bz;
-  float _phi_scale;
-  float _z_scale;
   float _cosTheta_limit;
   //std::vector<float> _radii_all;
 
