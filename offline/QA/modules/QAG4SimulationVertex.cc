@@ -17,6 +17,7 @@
 
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -62,6 +63,8 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     m_svtxEvalStack->set_strict(false);
     m_svtxEvalStack->set_verbosity(Verbosity() + 1);
   }
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -89,6 +92,11 @@ int QAG4SimulationVertex::Init(PHCompositeNode *topNode)
   // ntracks distribution histogram
   h = new TH1F(TString(get_histo_prefix()) + "ntracks",
                "ntracks Distribution;Number of Tracks;Count", 100, 0.5, 100.5);
+  hm->registerHisto(h);
+
+  // ntracks distribution histogram with mvtx cuts
+  h = new TH1F(TString(get_histo_prefix()) + "ntracks_cuts",
+               "ntracks Distribution (#geq 2 MVTX);Number of Tracks;Count", 100, 0.5, 100.5);
   hm->registerHisto(h);
 
   // gntracks distribution histogram
@@ -153,6 +161,10 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   // ntracks distribution histogram
   TH1 *h_ntracks = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "ntracks"));
   assert(h_ntracks);
+
+  // ntracks distribution histogram with mvtx cuts
+  TH1 *h_ntracks_cuts = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "ntracks_cuts"));
+  assert(h_ntracks_cuts);
 
   // gntracks histogram
   TH1 *h_gntracks = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "gntracks"));
@@ -295,8 +307,51 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
            float gembed = NAN;
            float gntracks = truthinfo->GetNumPrimaryVertexParticles();
            float gntracksmaps = NAN;
+	   
+	   h_ntracks->Fill(ntracks);
 
-           h_ntracks->Fill(ntracks);
+	   int ntracks_with_cuts = 0;
+	   for (SvtxVertex::TrackIter iter2 = vertex->begin_tracks();
+		iter2 != vertex->end_tracks();
+		++iter2)
+	   {
+	     SvtxTrack* track = m_trackMap->get(*iter2);
+   
+	     if (false)
+	     {
+	       assert(track);
+	     }
+	     else if (!track)
+	     {
+	       continue;
+	     }
+	     int MVTX_hits = 0;
+	     int INTT_hits = 0;
+	     int TPC_hits = 0;
+
+	     for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+	     {
+	       const auto &cluster_key = *cluster_iter;
+	       const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+	       if (trackerID == TrkrDefs::mvtxId)
+		 ++MVTX_hits;
+	       else if (trackerID == TrkrDefs::inttId)
+		 ++INTT_hits;
+	       else if (trackerID == TrkrDefs::tpcId)
+		 ++TPC_hits;
+	       else
+	       {
+		   if (Verbosity())
+		     cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+	       }
+	     }
+	     if (MVTX_hits >= 2)
+	     {
+	       ++ntracks_with_cuts;
+	     }
+	   }
+	   h_ntracks_cuts->Fill(ntracks_with_cuts);
 
            if (point)
            {
@@ -349,4 +404,3 @@ QAG4SimulationVertex::get_histo_prefix()
 {
   return string("h_") + Name() + string("_");
 }
-
