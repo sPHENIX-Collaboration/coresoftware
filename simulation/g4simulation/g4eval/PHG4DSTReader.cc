@@ -24,8 +24,8 @@
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
+#include <g4jets/JetMap.h>
 #include <g4jets/Jetv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -75,8 +75,10 @@ PHG4DSTReader::PHG4DSTReader(const string &filename)
 
 PHG4DSTReader::~PHG4DSTReader()
 {
-  cout << "PHG4DSTReader::destructor - Clean ups" << endl;
-
+  if (Verbosity() > 1)
+  {
+    cout << "PHG4DSTReader::destructor - Clean ups" << endl;
+  }
   if (_T)
   {
     _T->ResetBranchAddresses();
@@ -99,8 +101,11 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
     string hname = Form("G4HIT_%s", nodenam.c_str());
     //      _node_name.push_back(hname);
-    cout << "PHG4DSTReader::Init - saving hits from node: " << hname << " - "
-         << class_name << endl;
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::Init - saving hits from node: " << hname << " - "
+           << class_name << endl;
+    }
 
     record rec;
     rec._cnt = 0;
@@ -114,7 +119,7 @@ int PHG4DSTReader::Init(PHCompositeNode *)
     nblocks++;
   }
 
-  if (_tower_postfix.size())
+  if (_tower_postfix.size() && Verbosity() > 0)
   {
     cout << "PHG4DSTReader::Init - zero suppression for calorimeter towers = "
          << _tower_zero_sup << " GeV" << endl;
@@ -128,9 +133,11 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
     string hname = Form("TOWER_%s", nodenam.c_str());
     //      _node_name.push_back(hname);
-    cout << "PHG4DSTReader::Init - saving raw tower info from node: " << hname
-         << " - " << class_name << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::Init - saving raw tower info from node: " << hname
+           << " - " << class_name << endl;
+    }
     record rec;
     rec._cnt = 0;
     rec._name = hname;
@@ -149,10 +156,11 @@ int PHG4DSTReader::Init(PHCompositeNode *)
     const char *class_name = PHPyJet_type::Class()->GetName();
 
     const string &hname = *it;
-
-    cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
-         << class_name << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::Init - saving jets from node: " << hname << " - "
+           << class_name << endl;
+    }
     record rec;
     rec._cnt = 0;
     rec._name = hname;
@@ -171,9 +179,11 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
     const char *class_name = part_type::Class()->GetName();
 
-    cout << "PHG4DSTReader::Init - saving Particles node:" << class_name
-         << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::Init - saving Particles node:" << class_name
+           << endl;
+    }
     record rec;
     rec._cnt = 0;
     rec._name = "PHG4Particle";
@@ -192,9 +202,11 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
     const char *class_name = vertex_type::Class()->GetName();
 
-    cout << "PHG4DSTReader::Init - saving vertex for particles under node:"
-         << class_name << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::Init - saving vertex for particles under node:"
+           << class_name << endl;
+    }
     record rec;
     rec._cnt = 0;
     rec._name = "PHG4VtxPoint";
@@ -206,9 +218,10 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
     nblocks++;
   }
-
-  cout << "PHG4DSTReader::Init - requested " << nblocks << " nodes" << endl;
-
+  if (Verbosity() > 0)
+  {
+    cout << "PHG4DSTReader::Init - requested " << nblocks << " nodes" << endl;
+  }
   build_tree();
 
   return 0;
@@ -216,8 +229,10 @@ int PHG4DSTReader::Init(PHCompositeNode *)
 
 void PHG4DSTReader::build_tree()
 {
-  cout << "PHG4DSTReader::build_tree - output to " << _out_file_name << endl;
-
+  if (Verbosity() > 0)
+  {
+    cout << "PHG4DSTReader::build_tree - output to " << _out_file_name << endl;
+  }
   static const int BUFFER_SIZE = 32000;
 
   // open TFile
@@ -230,8 +245,10 @@ void PHG4DSTReader::build_tree()
   {
     record &rec = *it;
 
-    cout << "PHG4DSTReader::build_tree - Add " << rec._name << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4DSTReader::build_tree - Add " << rec._name << endl;
+    }
     const string name_cnt = "n_" + rec._name;
     const string name_cnt_desc = name_cnt + "/I";
     _T->Branch(name_cnt.c_str(), &(rec._cnt), name_cnt_desc.c_str(),
@@ -241,8 +258,10 @@ void PHG4DSTReader::build_tree()
     nblocks++;
   }
 
-  cout << "PHG4DSTReader::build_tree - added " << nblocks << " nodes" << endl;
-
+  if (Verbosity() > 0)
+  {
+    cout << "PHG4DSTReader::build_tree - added " << nblocks << " nodes" << endl;
+  }
   _T->SetAutoSave(16000);
 }
 
@@ -266,7 +285,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       cout
           << "PHG4DSTReader::process_event - Error - can not find node G4TruthInfo. Quit processing!"
           << endl;
-    return Fun4AllReturnCodes::DISCARDEVENT;
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
@@ -507,10 +526,10 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         static bool once = true;
         if (once)
         {
-          cout
-              << "PHG4DSTReader::process_event - will load primary particle from G4TruthInfo"
-              << endl;
-
+          if (Verbosity() > 0)
+          {
+            cout << "PHG4DSTReader::process_event - will load primary particle from G4TruthInfo" << endl;
+          }
           once = false;
         }
 
@@ -549,10 +568,10 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       static bool once = true;
       if (once)
       {
-        cout
-            << "PHG4DSTReader::process_event - will load vertex from G4TruthInfo"
-            << endl;
-
+        if (Verbosity() > 0)
+        {
+          cout << "PHG4DSTReader::process_event - will load vertex from G4TruthInfo" << endl;
+        }
         once = false;
       }
 
@@ -634,7 +653,10 @@ void PHG4DSTReader::add_particle(PHG4DSTReader::record &rec, PHG4Particle *part)
 
 int PHG4DSTReader::End(PHCompositeNode * /*topNode*/)
 {
-  cout << "PHG4DSTReader::End - Clean ups" << endl;
+  if (Verbosity() > 1)
+  {
+    cout << "PHG4DSTReader::End - Clean ups" << endl;
+  }
 
   if (_T)
   {

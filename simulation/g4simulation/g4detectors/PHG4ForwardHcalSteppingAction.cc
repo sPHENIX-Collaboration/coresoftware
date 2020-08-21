@@ -52,7 +52,7 @@ class PHCompositeNode;
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector)
+PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const int absorberactive)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -60,7 +60,7 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDete
   , hitcontainer(nullptr)
   , hit(nullptr)
   , saveshower(nullptr)
-  , absorbertruth(0)
+  , absorbertruth(absorberactive)
   , light_scint_model(1)
 {
 }

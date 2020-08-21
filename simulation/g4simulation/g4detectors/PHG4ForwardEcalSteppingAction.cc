@@ -66,7 +66,7 @@ PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDete
   , m_Hit(nullptr)
   , m_CurrentShower(nullptr)
   , m_IsActiveFlag(m_Params->get_int_param("active"))
-  , absorbertruth(0)
+  , absorbertruth(m_Params->get_int_param("absorberactive"))
   , light_scint_model(1)
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
 {
