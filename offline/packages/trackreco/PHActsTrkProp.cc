@@ -105,20 +105,21 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   sourceLinkSelectors.push_back({makeId(11), {m_volMaxChi2.find(11)->second, 48}});
   
   /// Set individual layer criteria (e.g. for first layer of TPC)
+  /// Individual layers should only have one SL per layer
   for(int vol = 0; vol < m_volLayerMaxChi2.size(); ++vol)
     for(std::pair<const int, const float> element : m_volLayerMaxChi2.at(vol))
       sourceLinkSelectors.push_back({makeId(vol*2.+7, element.first),
-	                            {element.second, 2}});
+	                            {element.second, 1}});
 	      
   m_sourceLinkSelectorConfig = SourceLinkSelectorConfig(sourceLinkSelectors);
 
-  if(Verbosity() > 2)
+  if(Verbosity() > 1)
     {
       std::cout << "The source link selection criteria were set to: " << std::endl;
       for(int i = 0; i < sourceLinkSelectors.size(); i++)
 	{
 	  std::cout << "GeoID : " << sourceLinkSelectors.at(i).first
-		    << " has selection " 
+		    << " has chi sq selection " 
 		    << sourceLinkSelectors.at(i).second.chi2CutOff
 		    << std::endl;
 	}
