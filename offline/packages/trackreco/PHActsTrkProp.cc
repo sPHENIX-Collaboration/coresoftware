@@ -92,7 +92,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 
   m_sourceLinkSelectorConfig = {
     /// global default values
-    {makeId(), {100., 55}},
+    {makeId(), {100., 53}},
 
     /// MVTX volume should have max 3 SLs
     {makeId(7), {m_volMaxChi2.find(7)->second, 3}},
@@ -101,7 +101,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
     {makeId(9), {m_volMaxChi2.find(9)->second, 2}},
     
     /// TPC volume should have max 50 (?) SLs
-    {makeId(11), {m_volMaxChi2.find(11)->second,50}}
+    {makeId(11), {m_volMaxChi2.find(11)->second,48}}
   };
 
   if(Verbosity() > 2)
@@ -171,6 +171,8 @@ int PHActsTrkProp::Process()
   /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks = getEventSourceLinks();
 
+  int nTrackSeeds = 0;
+  
   std::map<unsigned int, ActsTrack>::iterator trackIter;
   for(trackIter = m_actsProtoTracks->begin();
       trackIter != m_actsProtoTracks->end();
@@ -184,9 +186,9 @@ int PHActsTrkProp::Process()
     Acts::BoundSymMatrix covariance;
     covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
                   0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-                  0., 0., 0.05, 0., 0., 0.,
-                  0., 0., 0., 0.05, 0., 0.,
-                  0., 0., 0., 0., 0.001, 0.,
+                  0., 0., 0.01, 0., 0., 0.,
+                  0., 0., 0., 0.01, 0., 0.,
+                  0., 0., 0., 0., 0.0001, 0.,
                   0., 0., 0., 0., 0., 1.;
     
     FW::TrackParameters trackSeedNewCov(covariance,
@@ -249,12 +251,18 @@ int PHActsTrkProp::Process()
 		
 	m_nBadFits++;
       }
-    
+
+    nTrackSeeds++;
   }
   
 
   if(Verbosity() > 0)
-    std::cout << "Finished process_event for PHActsTrkProp" << std::endl;
+    {
+      std::cout << "Finished process_event for PHActsTrkProp" 
+		<< std::endl;
+      std::cout << "Processed " << nTrackSeeds << " track seeds "
+		<< std::endl;
+    }
 
   auto stopTime = high_resolution_clock::now();
   auto eventTime = duration_cast<microseconds>(stopTime - startTime);
@@ -340,6 +348,13 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
     {
       auto trajState = Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
       
+      size_t nStates = trajState.nStates;
+      size_t nMeasurements = trajState.nMeasurements;
+      size_t nOutliers = trajState.nOutliers;
+      size_t nHoles = trajState.nHoles;
+      double chi2sum = trajState.chi2Sum;
+      size_t NDF = trajState.NDF;
+
       /// No trackParameters for this trackTip, so fit failed for this tip
       if( !traj.hasTrackParameters(trackTip) )
 	continue;
@@ -361,6 +376,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 		    << "position : " << fittedParameters.position().transpose()
 		    << std::endl
 		    << "charge : " << fittedParameters.charge() << std::endl;
+	  std::cout << "Track has " << nStates << " states and " 
+		    << nMeasurements << " measurements and " 
+		    << nHoles << " holes and " << nOutliers << " outliers "
+		    << std::endl;
 	}
       
       float qOp = fittedParameters.parameters()[Acts::ParDef::eQOP];
@@ -371,12 +390,6 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 	  rotater->setVerbosity(0);
 	  rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters);
 	}
-      
-      
-      //size_t nStates = trajState.nStates;
-      //size_t nMeasurements = trajState.nMeasurements;
-      double chi2sum = trajState.chi2Sum;
-      size_t NDF = trajState.NDF;
       
       float DCA3Dxy = -9999;
       float DCA3Dz = -9999;
