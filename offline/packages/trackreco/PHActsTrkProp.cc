@@ -47,6 +47,7 @@
 #include <TMatrixDSym.h>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <utility>
 #include <chrono>
@@ -70,6 +71,7 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_topNode(nullptr)
 {
   Verbosity(0);
+  initializeLayerSelector();
 }
 
  PHActsTrkProp::~PHActsTrkProp()
@@ -90,26 +92,38 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
   /// We'll just put the max chi2 to 10 
 
-  m_sourceLinkSelectorConfig = {
-    /// global default values
-    {makeId(), {100., 53}},
+  std::vector<std::pair<Acts::GeometryID,
+			Acts::SourceLinkSelectorCuts>> sourceLinkSelectors;
+  
+  /// Global detector criteria
+  sourceLinkSelectors.push_back({makeId(), {100.,53}});
 
-    /// MVTX volume should have max 3 SLs
-    {makeId(7), {m_volMaxChi2.find(7)->second, 3}},
-    
-    /// INTT volume should have max 2 SLs
-    {makeId(9), {m_volMaxChi2.find(9)->second, 2}},
-    
-    /// TPC volume should have max 50 (?) SLs
-    {makeId(11), {m_volMaxChi2.find(11)->second,48}}
-  };
+  /// Volume criteria
+  /// Volume IDs - MVTX = 7, INTT = 9, TPC = 11
+  sourceLinkSelectors.push_back({makeId(7), {m_volMaxChi2.find(7)->second, 3}});
+  sourceLinkSelectors.push_back({makeId(9), {m_volMaxChi2.find(9)->second, 2}});
+  sourceLinkSelectors.push_back({makeId(11), {m_volMaxChi2.find(11)->second, 48}});
+  
+  /// Set individual layer criteria (e.g. for first layer of TPC)
+  for(int vol = 0; vol < m_volLayerMaxChi2.size(); ++vol)
+    for(std::pair<const int, const float> element : m_volLayerMaxChi2.at(vol))
+      sourceLinkSelectors.push_back({makeId(vol*2.+7, element.first),
+	                            {element.second, 2}});
+	      
+  m_sourceLinkSelectorConfig = SourceLinkSelectorConfig(sourceLinkSelectors);
 
   if(Verbosity() > 2)
-    std::cout << "Set measurement max chi 2 to :" << std::endl
-	      << "MVTX : " << m_volMaxChi2.find(7)->second << std::endl
-	      << "INTT : " << m_volMaxChi2.find(9)->second << std::endl
-	      << "TPC  : " << m_volMaxChi2.find(11)->second << std::endl;
-
+    {
+      std::cout << "The source link selection criteria were set to: " << std::endl;
+      for(int i = 0; i < sourceLinkSelectors.size(); i++)
+	{
+	  std::cout << "GeoID : " << sourceLinkSelectors.at(i).first
+		    << " has selection " 
+		    << sourceLinkSelectors.at(i).second.chi2CutOff
+		    << std::endl;
+	}
+    }
+	     
   auto logger = Acts::Logging::INFO;
   if(Verbosity() > 5)
     logger = Acts::Logging::VERBOSE;
@@ -518,6 +532,25 @@ Acts::GeometryID PHActsTrkProp::makeId(int volume,
                            .setSensitive(sensitive);
 }
 
+void PHActsTrkProp::setVolumeLayerMaxChi2(const int vol, const int layer,
+					  const float maxChi2)
+{
+  int volume;
+  if(vol == 7)
+    volume = 0;
+  else if(vol == 9)
+    volume = 1;
+  else if(vol == 11)
+    volume = 2;
+  else
+    {
+      std::cout << "Invalid volume number supplied. Not including" << std::endl;
+      return;
+    }
+
+  m_volLayerMaxChi2.at(volume).insert(std::make_pair(layer, maxChi2));
+
+}
 void PHActsTrkProp::setVolumeMaxChi2(const int vol, const float maxChi2)
 {
   m_volMaxChi2.insert(std::make_pair(vol, maxChi2));
@@ -631,3 +664,10 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHActsTrkProp::initializeLayerSelector()
+{
+  std::map<const int, const float> dumMap;
+  m_volLayerMaxChi2.push_back(dumMap);
+  m_volLayerMaxChi2.push_back(dumMap);
+  m_volLayerMaxChi2.push_back(dumMap);
+}

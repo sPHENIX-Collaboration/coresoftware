@@ -89,7 +89,8 @@ class PHActsTrkProp : public PHTrackPropagating
   void doTimeAnalysis(bool timeAnalysis) { m_timeAnalysis = timeAnalysis;}
 
   void setVolumeMaxChi2(const int vol, const float maxChi2);
-
+  void setVolumeLayerMaxChi2(const int vol, const int layer,
+			     const float maxChi2);
  private:
   /// Event counter
   int m_event;
@@ -98,9 +99,16 @@ class PHActsTrkProp : public PHTrackPropagating
   TFile *m_timeFile;
   TH1 *h_eventTime;
 
+  void initializeLayerSelector();
+
   /// Map to hold maximum allowable measurement chi2 in each
   /// volume identifier in Acts
   std::map<const int, const float> m_volMaxChi2;
+
+  /// array of maps to hold maximum allowable measurement chi 2
+  /// in a particular layer of a particular volume id in acts
+  /// Entries are 0 - MVTX, 1 - INTT, 2 - TPC
+  std::vector<std::map<const int, const float>> m_volLayerMaxChi2;
 
   /// Num bad fit counter
   int m_nBadFits;
