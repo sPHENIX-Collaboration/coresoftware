@@ -1595,6 +1595,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    float hit_data[] = {
 	      event,
+              (float) _iseed,
 	      hitID,
 	      e,
 	      adc,
