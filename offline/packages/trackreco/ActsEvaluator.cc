@@ -144,7 +144,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
     for(const size_t &trackTip : trackTips)
       {
 	if(Verbosity() > 2)
-	  std::cout << "beginning trackTip " << trackTip << std::endl;
+	  std::cout << "beginning trackTip " << trackTip 
+		    << " corresponding to track " << iTrack 
+		    << " in trajectroy " << iTraj << std::endl;
 
 	/// The CKF has a trackTip == trackKey correspondence, rather
 	/// than a trajectory == trackKey correspondence. So need to
@@ -155,8 +157,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	      = trackKeyMap.find(trackTip);
 	    if(ckfiter == trackKeyMap.end())
 	      {
-		std::cout << "Couldn't find track tip, continuing"
-			  << std::endl;
+		if(Verbosity() > 2)
+		  std::cout << "Track result flagged as bad, continuing"
+			    << std::endl;
 		continue;
 	      }
 	    trackKey = ckfiter->second;
@@ -178,7 +181,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	if(Verbosity() > 1)
 	  {
 	    std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
-	    track->identify();
+        
 	    std::cout << "TruthParticle : " << g4particle->get_px()
 		      << ", " << g4particle->get_py() << ", "
 		      << g4particle->get_pz() << ", "<< g4particle->get_e() 
@@ -193,14 +196,17 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 
 	if(Verbosity() > 1)
 	  {
-	    std::cout << "Analyzing trajectory with trackTip " << trackTip
-		      << std::endl;
 	    if(traj.hasTrackParameters(trackTip))
 	      {
 		std::cout << "Fitted params : " 
 			  << traj.trackParameters(trackTip).position() 
-			  << "   " << traj.trackParameters(trackTip).momentum()
+			  << std::endl << traj.trackParameters(trackTip).momentum()
 			  << std::endl;
+		std::cout << "Track has " << trajState.nMeasurements
+			  << " measurements and " << trajState.nHoles
+			  << " holes and " << trajState.nOutliers 
+			  << " outliers and " << trajState.nStates
+			  << " states " << std::endl;
 	      }
 	  }
 	
@@ -210,7 +216,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
-	
+       
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
 	fillFittedTrackParams(traj, trackTip, vertex);
@@ -283,6 +289,11 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
+
+    if(Verbosity() > 3)
+      std::cout << "Cluster volume : layer : sensitive " << geoID.volume()
+		<< " : " << geoID.layer() << " : " 
+		<< geoID.sensitive() << std::endl;
 
     auto meas = std::get<Measurement>(*state.uncalibrated());
 
@@ -1332,6 +1343,8 @@ void ActsEvaluator::initializeTree()
 
 
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
+  m_trackTree->Branch("chi2_fit", &m_chi2_fit);
+  m_trackTree->Branch("ndf_fit", &m_ndf_fit);
   m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
   m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
   m_trackTree->Branch("ePHI_fit", &m_ePHI_fit);
