@@ -41,6 +41,9 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TH3F.h>
+#include <TAxis.h>
+
 #include <TNtuple.h>
 #include <TSystem.h>
 
@@ -121,6 +124,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     gSystem->Exit(1);
     exit(1);
   }
+
+        
+
 
   // new containers
   hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -230,6 +236,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
+  hitmap = new TH1F("hitmap","r0 locations",1000, 20,78);
+  se->registerHisto(hitmap);
   nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
   nthit = new TNtuple("nthit", "hit stuff", "hit:layer:phi:phicenter:z_gem:zcenter:weight");
   ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
@@ -242,6 +250,66 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, double z_start, double* radaddress, double* phiaddress)
+{
+  double distrp, distr, newp, newr;
+  cout << "inside DistortionIntegral r,p,z start = " << radstart <<" "<< phistart <<" " << z_start << endl;
+
+  Int_t binp = hDP->GetXaxis()->FindBin(phistart);
+  Int_t binr = hDR->GetYaxis()->FindBin(radstart);
+
+  cout << "bin in phi = " << binp << " bin in r = " << binr << endl;
+
+  // TAxis *xaxis = hDR->GetXaxis(); // creates axis objects that can be used to get bin numbers from input coordinates                                                          
+  // TAxis *yaxis = hDR->GetYaxis(); // creates axis objects that can be used to get bin numbers from input coordinates                                                          
+  // TAxis *zaxis = hDR->GetZaxis(); // creates axis objects that can be used to get bin numbers from input coordinates                                                          
+  //  cout << "is TAxis the problem?" << endl;
+ 
+  //Int_t binp = xaxis->FindBin(phistart);
+  // Int_t binr = yaxis->FindBin(radstart);
+  // cout << "is findbin the problem?" << endl;
+ 
+  int nBinZ=hDR->GetNbinsZ();// Only need to get number of bins in Z, but nice to see them all as a sanity check     
+  int nBinR=hDR->GetNbinsY();
+  int nBinP=hDR->GetNbinsX();
+
+  //  cout << "is nBinz the problem?" << endl;
+  cout << "total nbins r = " << nBinR << " total nbins p = " << nBinP << " total nbins z = " << nBinZ << endl;
+
+  newr=radstart;// placeholders for comparing original vs distorted values                                                                                                                                 
+  newp=phistart+M_PI;
+
+  cout << "distr initial = " << hDR->GetBinContent(binp,binr,0)<< endl;
+  cout << "distp initial = " << hDP->GetBinContent(binp,binr,0)<<endl;
+  for(Int_t binz = hDR->GetZaxis()->FindBin(z_start); binz<=hDR->GetNbinsZ(); binz++) // Sum over bins in Z starting at some Z specified from process_event                                                                                           
+    {
+      binp = hDP->GetXaxis()->FindBin(newp);
+      binr = hDR->GetYaxis()->FindBin(newr);
+    
+      distr = hDR->GetBinContent(binp,binr,binz); // Get R distortion                                                                                                                                      
+      distrp = hDP->GetBinContent(binp,binr,binz); // Get R*P distortion                                                                                                                                    
+      cout << "distortion in rphi is " << distrp << endl;
+      cout << "distortion in r is " << distr << endl;
+      cout << "bin number of phi is " << binp << endl;
+      cout << "bin number of r is " << binr << endl;
+      cout << "bin number of z is " << binz << endl;
+      newr += distr; // Sum over r-distortions                                                                                                                                                              
+      newp += distrp/newr; // Sum over phi distortions (distrp is r*phi, need to divide by r to get phi)                                                                                                    
+      
+    }
+  cout << "final p = " << newp << endl;
+  cout << "delta p =" << phistart+M_PI - newp << endl;
+  cout << "final r = " << newr << endl;
+  cout << "delta r =" << radstart - newr << endl;
+  
+  *radaddress = newr;
+  *phiaddress = newp; // using addresses to allow passing more than one value from inside the function
+  
+  return 0;
+}
+
+
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -253,6 +321,15 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
+  
+  //HK Space charge distortion code
+  //Open Space Charge Root File
+  TFile *DistFile=new TFile("last_macro.distortion_map.hist.root");//includes TH3Fs                                                                                               
+  if(DistFile->GetSize() == -1)
+    {
+      cout << "Distortion file could not be opened!" << endl;
+    }  
+  //
 
   double ihit = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
@@ -296,6 +373,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
     }
 
+    hitmap->Fill(sqrt(pow(hiter->second->get_x(0),2)+pow(hiter->second->get_y(0),2)));
+
+    // Henry's work begins here
+
+    hDP=(TH3F*)DistFile->Get("hDistortionP"); // Open TH3F files only once that contain distortions due to space charge
+    hDR=(TH3F*)DistFile->Get("hDistortionR");
+ 
+
     for (unsigned int i = 0; i < n_electrons; i++)
     {
       // We choose the electron starting position at random from a flat distribution along the path length
@@ -306,8 +391,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
       double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
-
+      
       double radstart = sqrt(x_start * x_start + y_start * y_start);
+      double phistart = atan2(y_start,x_start);
+
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -329,10 +416,18 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
         continue;
       }
-      double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
-      double x_final = x_start + rantrans * cos(ranphi);
-      double y_final = y_start + rantrans * sin(ranphi);
-      double rad_final = sqrt(x_final * x_final + y_final * y_final);
+
+
+      double rad_final,phi_final;
+
+      DistortionIntegral(radstart,phistart,z_start,&rad_final,&phi_final);
+
+      double x_final = rad_final*cos(phi_final);
+      double y_final = rad_final*sin(phi_final);
+      // double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
+      // double x_final = x_start + rantrans * cos(ranphi);
+      // double y_final = y_start + rantrans * sin(ranphi);
+      // double rad_final = sqrt(x_final * x_final + y_final * y_final);
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
       {
@@ -363,6 +458,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
     ihit++;
+
+
+
+
+
+
+
+    // Henry's work ends here.
+
+
 
     // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
     TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -417,7 +522,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     
   } // end loop over g4hits
   
-
+  // hitmap->Draw();
   unsigned int print_layer = 47;  
 
   if(Verbosity() > 2)
