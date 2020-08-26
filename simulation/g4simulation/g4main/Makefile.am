@@ -59,6 +59,7 @@ libg4testbench_la_LIBADD = \
   -lphgeom \
   -lphg4gdml \
   -lphhepmc \
+  -lphparameter \
   -lvararray
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
@@ -67,6 +68,8 @@ libg4testbench_la_LIBADD = \
 # following a simple naming convention, please change this accordingly and
 # let me know
 ROOTHITDICTS = \
+  EicEventHeader_Dict.cc \
+  EicEventHeaderv1_Dict.cc \
   PHG4EventHeader_Dict.cc \
   PHG4EventHeaderv1_Dict.cc \
   PHG4Hit_Dict.cc \
@@ -93,6 +96,8 @@ if MAKEROOT6
 # to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  EicEventHeader_Dict_rdict.pcm \
+  EicEventHeaderv1_Dict_rdict.pcm \
   PHG4EventHeader_Dict_rdict.pcm \
   PHG4EventHeaderv1_Dict_rdict.pcm \
   PHG4Hit_Dict_rdict.pcm \
@@ -112,6 +117,7 @@ nobase_dist_pcm_DATA = \
 else
   ROOT5HITDICTS = PHG4HitDefs_Dict.cc
   ROOT5TBDICTS = \
+    Fun4AllDstPileupInputManager_Dict.cc \
     HepMCNodeReader_Dict.cc \
     PHG4ConsistencyCheck_Dict.cc \
     PHG4HeadReco_Dict.cc \
@@ -131,6 +137,7 @@ else
     PHG4Subsystem_Dict.cc \
     PHG4TruthSubsystem_Dict.cc \
     PHG4Utils_Dict.cc \
+    PHG4VertexSelection_Dict.cc \
     ReadEICFiles_Dict.cc \
     PHG4HitReadBack_Dict.cc
 endif
@@ -138,6 +145,8 @@ endif
 libphg4hit_la_SOURCES = \
   $(ROOTHITDICTS) \
   $(ROOT5HITDICTS) \
+  EicEventHeader.cc \
+  EicEventHeaderv1.cc \
   PHG4EventHeaderv1.cc \
   PHG4Hit.cc \
   PHG4Hitv1.cc \
@@ -159,6 +168,7 @@ libg4testbench_la_SOURCES = \
   Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
+  Fun4AllDstPileupInputManager.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -196,6 +206,7 @@ libg4testbench_la_SOURCES = \
   PHG4TruthTrackingAction.cc \
   PHG4UIsession.cc \
   PHG4Utils.cc \
+  PHG4VertexSelection.cc \
   ReadEICFiles.cc
 
 
@@ -203,6 +214,8 @@ libg4testbench_la_SOURCES = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  EicEventHeader.h \
+  Fun4AllDstPileupInputManager.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
@@ -220,6 +233,7 @@ pkginclude_HEADERS = \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
+  PHG4Particlev3.h \
   PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
   PHG4ParticleGeneratorVectorMeson.h \
@@ -240,6 +254,7 @@ pkginclude_HEADERS = \
   PHG4TruthSubsystem.h \
   PHG4Units.h \
   PHG4Utils.h \
+  PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
   ReadEICFiles.h

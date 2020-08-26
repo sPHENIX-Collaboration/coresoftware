@@ -12,6 +12,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
+#include <phparameter/PHParameters.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -30,6 +32,7 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <string>
 #include <utility>  // for pair
 
 using namespace std;
@@ -48,9 +51,12 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
   , m_PhotonElecADC(NAN)
   , m_PedstalCentralADC(NAN)
   , m_PedstalWidthADC(NAN)
-  , m_ZeroSuppressionADC(0)  //default to apply no zero suppression
+  , m_pedestalFile(false)
+  , m_ZeroSuppressionADC(-1000)  //default to apply no zero suppression
+  , m_ZeroSuppressionFile(false)
   , m_TowerType(-1)
   , m_SiPMEffectivePixel(40000 * 4)  // sPHENIX EMCal default, 4x Hamamatsu S12572-015P MPPC [sPHENIX TDR]
+  , _tower_params(name)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
@@ -123,6 +129,28 @@ int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
        it != all_towers.second; ++it)
   {
     const RawTowerDefs::keytype key = it->second->get_id();
+    
+    if (m_ZeroSuppressionFile == true)
+    {
+      const int eta = it->second->get_bineta();
+      const int phi = it->second->get_binphi();
+      const string zsName = "ZS_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
+      m_ZeroSuppressionADC =
+        _tower_params.get_double_param(zsName);
+    }
+
+    if (m_pedestalFile == true)
+    {
+      const int eta = it->second->get_bineta();
+      const int phi = it->second->get_binphi();
+      const string pedCentralName = "PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
+      m_PedstalCentralADC =
+        _tower_params.get_double_param(pedCentralName);
+      const string pedWidthName = "PedWidth_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
+      m_PedstalWidthADC =
+        _tower_params.get_double_param(pedWidthName);
+    }
+
     if (m_TowerType >= 0)
     {
       // Skip towers that don't match the type we are supposed to digitize

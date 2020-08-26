@@ -38,7 +38,6 @@ class TruthJetInput : public JetInput
   }
 
  private:
-  int _verbosity;
   Jet::SRC _input;
   float _eta_min;
   float _eta_max;

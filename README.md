@@ -4,7 +4,7 @@
 This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
 
 [![Build Status](https://web.racf.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.racf.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
-[![Doxygen](https://img.shields.io/badge/code%20reference-Doxygen-green.svg)](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
+[![Doxygen](https://img.shields.io/badge/code%20reference-Doxygen-green.svg)](https://sphenix-collaboration.github.io/doxygen/)
 
 [![Open Issues](https://img.shields.io/github/issues/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/issues)
 [![Open Pull Request](https://img.shields.io/github/issues-pr/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/pulls)
@@ -28,7 +28,7 @@ Due to its importance, update of this repository require going through a review 
   * ["Pull Request" tutorial to update this repository](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
 * Documentation  
   * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
-  * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
+  * [Doxygen: easier way to browse code](https://sphenix-collaboration.github.io/doxygen/)
   * [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
   * [Coding convention](https://wiki.bnl.gov/sPHENIX/index.php/Codingconventions#Coding_Convention)
 * Communication

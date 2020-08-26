@@ -16,6 +16,7 @@ class CaloEvalStack;
 class PHCompositeNode;
 class TFile;
 class TNtuple;
+class TTree; //Added by Barak
 
 /// \class CaloEvaluator
 ///
@@ -81,6 +82,17 @@ class CaloEvaluator : public SubsysReco
 
   unsigned int _ievent;
 
+  //Added by Barak
+  unsigned int _towerID_debug;
+  int _ieta_debug;
+  int _iphi_debug;
+  float _eta_debug;
+  float _phi_debug;
+  float _e_debug;
+  float _x_debug;
+  float _y_debug;
+  float _z_debug;
+
   std::set<int> _truth_trace_embed_flags;
   float _truth_e_threshold;
   float _reco_e_threshold;
@@ -100,6 +112,7 @@ class CaloEvaluator : public SubsysReco
   TNtuple *_ntp_gpoint;
   TNtuple *_ntp_gshower;
   TNtuple *_ntp_tower;
+  TTree *_tower_debug; //Added by Barak
   TNtuple *_ntp_cluster;
 
   // evaluator output file

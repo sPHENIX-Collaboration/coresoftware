@@ -48,6 +48,8 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
     return get_world_from_local_coords(stave, 0, 0, chip, sensor_local);
   }
 
+  void get_sensor_indices_from_world_coords(std::vector<double> &world, unsigned int &stave, unsigned int &chip);
+
   bool get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol);
   int get_pixel_from_local_coords(TVector3 sensor_local);
 

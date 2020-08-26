@@ -16,8 +16,8 @@
 
 using namespace std;
 
-TrackJetInput::TrackJetInput(Jet::SRC input)
-  : _verbosity(0)
+TrackJetInput::TrackJetInput(Jet::SRC input, const string &nodename)
+  : m_NodeName(nodename)
   , _input(input)
 {
 }
@@ -29,10 +29,10 @@ void TrackJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (_verbosity > 0) cout << "TrackJetInput::process_event -- entered" << endl;
+  if (Verbosity() > 0) cout << "TrackJetInput::process_event -- entered" << endl;
 
   // Pull the reconstructed track information off the node tree...
-  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_NodeName);
   if (!trackmap)
   {
     return std::vector<Jet *>();
@@ -54,7 +54,7 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (_verbosity > 0) cout << "TrackJetInput::process_event -- exited" << endl;
+  if (Verbosity() > 0) cout << "TrackJetInput::process_event -- exited" << endl;
 
   return pseudojets;
 }

@@ -13,7 +13,7 @@ static std::uniform_int_distribution<unsigned int> fDistribution;
 
 bool PHRandomSeed::fInitialized(false);
 bool PHRandomSeed::fFixed(false);
-int PHRandomSeed::verbose(0);
+int PHRandomSeed::verbose(1);
 
 unsigned int PHRandomSeed::GetSeed()
 {

@@ -1,7 +1,7 @@
 #include "Fun4AllServer.h"
 
 #include "Fun4AllHistoBinDefs.h"
-#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
+#include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
 #include "Fun4AllMemoryTracker.h"
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
@@ -9,22 +9,22 @@
 #include "SubsysReco.h"
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHNodeReset.h>
 #include <phool/PHObject.h>
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTimeStamp.h>
-#include <phool/PHTimer.h>                // for PHTimer
+#include <phool/PHTimer.h>  // for PHTimer
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <Rtypes.h>                       // for kMAXSIGNALS
+#include <Rtypes.h>  // for kMAXSIGNALS
 #include <TDirectory.h>
 #include <TH1.h>
 #include <TROOT.h>
-#include <TSysEvtHandler.h>               // for ESignals
+#include <TSysEvtHandler.h>  // for ESignals
 #include <TSystem.h>
 
 #include <boost/foreach.hpp>
@@ -34,7 +34,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <memory>                         // for allocator_traits<>::value_type
+#include <memory>  // for allocator_traits<>::value_type
 #include <sstream>
 
 using namespace std;
@@ -170,7 +170,7 @@ bool Fun4AllServer::registerHisto(TNamed *h1d, const int replace)
   return ServerHistoManager->registerHisto(h1d, replace);
 }
 
-bool Fun4AllServer::registerHisto(const char *hname, TNamed *h1d, const int replace)
+bool Fun4AllServer::registerHisto(const string &hname, TNamed *h1d, const int replace)
 {
   return ServerHistoManager->registerHisto(hname, h1d, replace);
 }
@@ -489,7 +489,7 @@ Fun4AllServer::getHisto(const unsigned int ihisto) const
   return ServerHistoManager->getHisto(ihisto);
 }
 
-const char *
+string
 Fun4AllServer::getHistoName(const unsigned int ihisto) const
 {
   return (ServerHistoManager->getHistoName(ihisto));
@@ -1293,7 +1293,7 @@ int Fun4AllServer::registerInputManager(Fun4AllInputManager *InManager)
 }
 
 Fun4AllInputManager *
-Fun4AllServer::getInputManager(const char *name)
+Fun4AllServer::getInputManager(const string &name)
 {
   vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
@@ -1490,7 +1490,7 @@ int Fun4AllServer::skip(const int nevnts)
 }
 
 //_________________________________________________________________
-int Fun4AllServer::fileopen(const char *managername, const char *filename)
+int Fun4AllServer::fileopen(const string &managername, const string &filename)
 {
   int iret = 0;
   vector<Fun4AllSyncManager *>::const_iterator iter;
@@ -1501,7 +1501,7 @@ int Fun4AllServer::fileopen(const char *managername, const char *filename)
   return iret;
 }
 
-int Fun4AllServer::BranchSelect(const char *managername, const char *branch, int iflag)
+int Fun4AllServer::BranchSelect(const string &managername, const string &branch, int iflag)
 {
   int iret = 0;
   vector<Fun4AllSyncManager *>::const_iterator iter;
@@ -1512,7 +1512,7 @@ int Fun4AllServer::BranchSelect(const char *managername, const char *branch, int
   return iret;
 }
 
-int Fun4AllServer::BranchSelect(const char *branch, int iflag)
+int Fun4AllServer::BranchSelect(const string &branch, int iflag)
 {
   int iret = 0;
   vector<Fun4AllSyncManager *>::const_iterator iter;
@@ -1523,7 +1523,7 @@ int Fun4AllServer::BranchSelect(const char *branch, int iflag)
   return iret;
 }
 
-int Fun4AllServer::setBranches(const char *managername)
+int Fun4AllServer::setBranches(const string &managername)
 {
   int iret = 0;
   vector<Fun4AllSyncManager *>::const_iterator iter;

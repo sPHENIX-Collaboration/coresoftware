@@ -9,6 +9,7 @@ class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CylinderDetector;
+class PHG4CylinderSubsystem;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -18,7 +19,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CylinderSteppingAction(PHG4CylinderDetector *, const PHParameters *parameters);
+  PHG4CylinderSteppingAction(PHG4CylinderSubsystem *subsys, PHG4CylinderDetector *detector, const PHParameters *parameters);
 
   //! destructor
   virtual ~PHG4CylinderSteppingAction();
@@ -31,10 +32,17 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 
   void SaveLightYield(const int i = 1) { m_SaveLightYieldFlag = i; }
 
+// needed for hit position crosschecks, if this volume is inside
+// another volume the absolut hit coordinates in our G4Hits and
+// the local coordinates differ, so checking against our place in z
+// goes wrong
+  bool hasMotherSubsystem() const;
+
  private:
+  //! pointer to the Subsystem
+  PHG4CylinderSubsystem *m_Subsystem;
   //! pointer to the detector
   PHG4CylinderDetector *m_Detector;
-
   const PHParameters *m_Params;
 
   //! pointer to hit container

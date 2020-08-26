@@ -23,7 +23,6 @@ pkginclude_HEADERS = \
   TrkrClusterHitAssoc.h \
   TrkrDefs.h \
   TrkrHit.h \
-  TrkrHitCellAssoc.h \
   TrkrHitTruthAssoc.h \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \
@@ -37,7 +36,6 @@ ROOTDICTS = \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
-  TrkrHitCellAssoc_Dict.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
   TrkrTrack_Dict.cc \
@@ -52,7 +50,6 @@ if MAKEROOT6
     TrkrClusterHitAssoc_Dict_rdict.pcm \
     TrkrHit_Dict_rdict.pcm \
     TrkrHitTruthAssoc_Dict_rdict.pcm \
-    TrkrHitCellAssoc_Dict_rdict.pcm \
     TrkrHitSet_Dict_rdict.pcm \
     TrkrHitSetContainer_Dict_rdict.pcm \
     TrkrTrack_Dict_rdict.pcm \
@@ -70,7 +67,6 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainer.cc \
   TrkrClusterHitAssoc.cc \
   TrkrDefs.cc \
-  TrkrHitCellAssoc.cc \
   TrkrHitTruthAssoc.cc \
   TrkrHit.cc \
   TrkrHitSet.cc \

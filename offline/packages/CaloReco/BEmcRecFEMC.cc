@@ -1,102 +1,74 @@
 #include "BEmcRecFEMC.h"
 #include "BEmcCluster.h"
+#include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
-void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
-                               float& xA, float& yA, float& zA)
-// With shower depth correction reflected in zA
+using namespace std;
+
+BEmcRecFEMC::BEmcRecFEMC()
+//  : _emcprof(nullptr)
 {
+  Name("BEmcRecFEMC");
+  SetPlanarGeometry();
+}
+
+BEmcRecFEMC::~BEmcRecFEMC()
+{
+  // one can delete null pointers
+  //  delete _emcprof;
+}
+
+void BEmcRecFEMC::LoadProfile(const string& fname)
+{
+  _emcprof = new BEmcProfile(fname);
+}
+
+void BEmcRecFEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
+{
+  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  phi = atan2(yg,xg);
+}
+
+/*
+float BEmcRecFEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
+{
+  chi2 = 0;
+  ndf = 0;
+  float prob = -1;
+
+  float theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
+  float phi = atan2(yg, xg);
+  if (_emcprof != nullptr) prob = _emcprof->GetProb(&HitList, fNx, ecl, theta, phi);
+
+  return prob;
+}
+*/
+
+void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
+{
+  // For ala PHENIX PbSc modules
+  /*
   const float DZ = 18;   // in cm, tower half length
   const float D = 13.3;  // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
   const float X0 = 2.2;  // in cm; obtained from GEANT (should be ~ rad length)
-
-  xA = 0;
-  yA = 0;
-  zA = 0;
-
-  int ix = xC + 0.5;  // tower #
-  if (ix < 0 || ix >= fNx)
-  {
-    printf("Error in BEmcRecFEMC::SectorToGlobal: wrong input x: %d\n", ix);
-    return;
-  }
-
-  int iy = yC + 0.5;  // tower #
-  if (iy < 0 || iy >= fNy)
-  {
-    printf("Error in BEmcRecFEMC::SectorToGlobal: wrong input y: %d\n", iy);
-    return;
-  }
-
-  // Next tower in x
-  TowerGeom geomx;
-  int idx = 0;
-  if (ix < fNx / 2)
-  {
-    idx += 1;
-    while (!GetTowerGeometry(ix + idx, iy, geomx) && idx < fNx / 2) idx += 1;
-  }
-  else
-  {
-    idx -= 1;
-    while (!GetTowerGeometry(ix + idx, iy, geomx) && idx > -fNx / 2) idx -= 1;
-  }
-  if (idx >= fNx / 2 || idx <= -fNx / 2)
-  {
-    printf("Error in BEmcRecFEMC::Tower2Global: Error in geometry extraction for x= %f (ix,iy)=(%d,%d)\n", xC, ix, iy);
-    return;
-  }
-
-  // Next tower in y
-  TowerGeom geomy;
-  int idy = 0;
-  if (iy < fNy / 2)
-  {
-    idy += 1;
-    while (!GetTowerGeometry(ix, iy + idy, geomy) && idy < fNy / 2) idy += 1;
-  }
-  else
-  {
-    idy -= 1;
-    while (!GetTowerGeometry(ix, iy + idy, geomy) && idy > -fNy / 2) idy -= 1;
-  }
-  if (idy >= fNy / 2 || idy <= -fNy / 2)
-  {
-    printf("Error in BEmcRecFEMC::Tower2Global: Error in geometry extraction for y= %f (ix,iy)=(%d,%d)\n", yC, ix, iy);
-    return;
-  }
-
-  float dx, dy;
-  float Zcenter;
-
-  TowerGeom geom0;
-  if (GetTowerGeometry(ix, iy, geom0))
-  {  // Found; this is for normal case
-    dx = (geomx.Xcenter - geom0.Xcenter) / float(idx);
-    dy = (geomy.Ycenter - geom0.Ycenter) / float(idy);
-    xA = geom0.Xcenter + (xC - ix) * dx;
-    yA = geom0.Ycenter + (yC - iy) * dy;
-    Zcenter = geom0.Zcenter;
-  }
-  else
-  {  // Not found; weird case (cluster center of gravity outside the EMCal)
-    dx = (geomx.Xcenter - geomy.Xcenter) / float(idx);
-    dy = (geomy.Ycenter - geomx.Ycenter) / float(idy);
-    xA = geomx.Xcenter + (xC - ix) * dx - dx * idx;
-    yA = geomx.Ycenter + (yC - iy) * dy;  // Here I take Ycenter from geomx!
-    Zcenter = geomx.Zcenter;
-    //    printf("BEmcRecFEMC::Tower2Global: CG outside EMCal: input=(%f,%f), tower ind=(%d,%d); dd=(%d,%d); global=(%f,%f)\n",xC,yC,ix,iy,idx,idy,xA,yA);
-  }
+  */
+  // For E684-based modules
+  const float DZ = 8;    // in cm, tower half length
+  const float D = 4.6;   // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+  const float X0 = 0.8;  // in cm; obtained from GEANT (should be ~ rad length)
 
   float logE = log(0.1);
   if (E > 0.1) logE = log(E);
-  float ZcenterV = Zcenter - fVz;
-  float cosT = fabs(ZcenterV) / sqrt(xA * xA + yA * yA + ZcenterV * ZcenterV);
-  zA = (Zcenter - DZ) + (D + X0 * logE) * cosT;
+  float zV = zA - fVz;
+  float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
 
-  //  zA = Zcenter; //!!!!!
+  zC = (zA - DZ) + (D + X0 * logE) * cosT;
+  //  zC = zA; // !!!!!
+
+  xC = xA;
+  yC = yA;
 }
 
 void BEmcRecFEMC::CorrectEnergy(float Energy, float x, float y,
@@ -150,20 +122,20 @@ void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
 }
 
 void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
+                                  float& xc, float& yc)
 {
-  // Corrects the Shower Center of Gravity for the systematic error due to
-  // the limited tower size
+  // Corrects the Shower Center of Gravity for the systematic shift due to
+  // limited tower size
   //
   // Everything here is in tower units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
+  // (x,y) - CG position, (xc,yc) - corrected position
 
   float xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
 
-  *pxc = x;
-  *pyc = y;
+  xc = x;
+  yc = y;
   //  return;
 
   if (Energy < 0.01) return;
@@ -171,8 +143,10 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   float xA, yA, zA;
   Tower2Global(Energy, x, y, xA, yA, zA);
   zA -= fVz;
-  float sinTx = xA / sqrt(xA * xA + zA * zA);
-  float sinTy = yA / sqrt(yA * yA + zA * zA);
+  //  float sinTx = xA / sqrt(xA * xA + zA * zA);
+  //  float sinTy = yA / sqrt(yA * yA + zA * zA);
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
+  float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
 
@@ -200,12 +174,13 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
-    *pxc = x0;
+    xc = x0;
   }
   else
   {
-    *pxc = x;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    xc = x;
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
+         << x << ",  dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -214,11 +189,12 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(y0 - iy0) <= 0.5)
   {
     y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
-    *pyc = y0;
+    yc = y0;
   }
   else
   {
-    *pyc = y;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    yc = y;
+    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

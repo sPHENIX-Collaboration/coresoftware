@@ -139,11 +139,11 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     PHG4Cell *cell = cell_iter->second;
 
     if (Verbosity() > 2)
-    {
-      std::cout << PHWHERE << " print out the cell:" << std::endl;
-      cell->identify();
-    }
-
+      {
+	std::cout << PHWHERE << " print out the cell:" << std::endl;
+	cell->identify();
+      }
+    
     // add the energy to the corresponding tower
     RawTower *tower = nullptr;
     short int firstpar;
@@ -286,7 +286,6 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   for (miter = begin_end.first; miter != begin_end.second; ++miter)
   {
     PHG4CylinderCellGeom *cellgeo = miter->second;
-    first_cellgeo = miter->second;
 
     if (Verbosity())
     {
@@ -295,6 +294,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     thickness += cellgeo->get_thickness();
     if (ifirst)
     {
+      first_cellgeo = miter->second;
       m_CellBinning = cellgeo->get_binning();
       m_NumPhiBins = cellgeo->get_phibins();
       m_PhiMin = cellgeo->get_phimin();
@@ -423,7 +423,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
   if (m_CellBinning == PHG4CellDefs::etaphibinning || m_CellBinning == PHG4CellDefs::etaslatbinning || m_CellBinning == PHG4CellDefs::spacalbinning)
   {
-    const double r = inner_radius + thickness / 2.;
+    const double r = inner_radius;
 
     for (int ibin = 0; ibin < first_cellgeo->get_etabins(); ibin++)
     {
@@ -491,7 +491,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   }
   else if (m_CellBinning == PHG4CellDefs::sizebinning)
   {
-    const double r = inner_radius + thickness / 2.;
+    const double r = inner_radius;
 
     for (int ibin = 0; ibin < first_cellgeo->get_zbins(); ibin++)
     {

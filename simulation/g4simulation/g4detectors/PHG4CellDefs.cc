@@ -5,6 +5,8 @@
 #include <cstdlib>       // for exit
 #include <iostream>
 
+using namespace std;
+
 unsigned short
 generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
 
@@ -19,8 +21,6 @@ generic_16bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning
 
 PHG4CellDefs::keytype
 generic_32bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning binning, const unsigned int bit32);
-
-using namespace std;
 
 PHG4CellDefs::keytype
 PHG4CellDefs::SizeBinning::genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphi)

@@ -38,6 +38,7 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
+  BeamLineMagnetSubsystem.h \
   ePHENIXRICHConstruction.h \
   PHG4BlockCellGeom.h \
   PHG4BlockCellGeomContainer.h \
@@ -86,6 +87,7 @@ pkginclude_HEADERS = \
   PHG4OuterHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \
   PHG4RICHSubsystem.h \
+  PHG4mRICHSubsystem.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatv1.h \
   PHG4ScintillatorSlatContainer.h \
@@ -173,6 +175,7 @@ else
   PHG4CellDefs_Dict.cc \
   PHG4ScintillatorSlatDefs_Dict.cc
   ROOT5_DICTS = \
+  BeamLineMagnetSubsystem_Dict.cc \
   ePHENIXRICHConstruction_Dict.cc \
   PHG4GDMLSubsystem_Dict.cc \
   PHG4BeamlineMagnetSubsystem_Dict.cc \
@@ -242,6 +245,10 @@ libg4detectors_io_la_SOURCES = \
 
 libg4detectors_la_SOURCES = \
   $(ROOT5_DICTS) \
+  BeamLineMagnetDetector.cc \
+  BeamLineMagnetDisplayAction.cc \
+  BeamLineMagnetSubsystem.cc \
+  BeamLineMagnetSteppingAction.cc \
   PHG4GDMLDetector.cc \
   PHG4GDMLSubsystem.cc \
   PHG4BeamlineMagnetDetector.cc \
@@ -331,6 +338,9 @@ libg4detectors_la_SOURCES = \
   PHG4mRICHDetector.cc \
   PHG4mRICHSteppingAction.cc \
   PHG4mRICHSubsystem.cc
+
+bin_SCRIPTS = \
+  CreateG4Subsystem.pl
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

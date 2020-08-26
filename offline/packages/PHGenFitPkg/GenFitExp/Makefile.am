@@ -5,9 +5,10 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
-libgenfit2exp_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `root-config --libs`
 
 lib_LTLIBRARIES = \

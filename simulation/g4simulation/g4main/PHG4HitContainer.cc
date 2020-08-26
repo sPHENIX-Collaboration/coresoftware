@@ -116,8 +116,7 @@ PHG4HitContainer::AddHit(PHG4Hit *newhit)
   PHG4HitDefs::keytype detidlong = key >>  PHG4HitDefs::hit_idbits;
   unsigned int detid = detidlong;
   layers.insert(detid);
-  hitmap[key] = newhit;
-  return hitmap.find(key);
+  return hitmap.insert( std::make_pair( key, newhit ) ).first;
 }
 
 PHG4HitContainer::ConstIterator
@@ -126,8 +125,7 @@ PHG4HitContainer::AddHit(const unsigned int detid, PHG4Hit *newhit)
   PHG4HitDefs::keytype key = genkey(detid);
   layers.insert(detid);
   newhit->set_hit_id(key);
-  hitmap[key] = newhit;
-  return hitmap.find(key);
+  return hitmap.insert( std::make_pair( key, newhit ) ).first;
 }
 
 PHG4HitContainer::ConstRange PHG4HitContainer::getHits(const unsigned int detid) const

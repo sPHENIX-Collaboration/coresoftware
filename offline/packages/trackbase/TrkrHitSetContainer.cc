@@ -112,14 +112,11 @@ TrkrHitSetContainer::getHitSets(void) const
 TrkrHitSetContainer::Iterator
 TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
 {
-
-  TrkrHitSetContainer::Iterator it = m_hitmap.find(key);
-  if (it == m_hitmap.end())
+  auto it = m_hitmap.lower_bound( key );
+  if( it == m_hitmap.cend() || (key < it->first ) )
   {
-    // add new object and set its key
-    auto ret = m_hitmap.insert(std::make_pair(key, new TrkrHitSet()));
-    (ret.first->second)->setHitSetKey(key);
-    it = ret.first;
+    it = m_hitmap.insert(it, std::make_pair(key, new TrkrHitSet()));
+    it->second->setHitSetKey( key );
   }
   return it;
 }
