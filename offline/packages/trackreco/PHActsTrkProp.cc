@@ -62,6 +62,7 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , h_eventTime(nullptr)
   , m_nBadFits(0)
   , m_tGeometry(nullptr)
+  , m_resetCovariance(false)
   , m_trackMap(nullptr)
   , m_actsProtoTracks(nullptr)
   , m_actsFitResults(nullptr)
@@ -198,19 +199,25 @@ int PHActsTrkProp::Process()
 
     FW::TrackParameters trackSeed = track.getTrackParams();
 
-    Acts::BoundSymMatrix covariance;
-    covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-                  0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-                  0., 0., 0.01, 0., 0., 0.,
-                  0., 0., 0., 0.01, 0., 0.,
-                  0., 0., 0., 0., 0.0001, 0.,
-                  0., 0., 0., 0., 0., 1.;
-    
-    FW::TrackParameters trackSeedNewCov(covariance,
-					trackSeed.position(),
-					trackSeed.momentum(),
-					trackSeed.charge(),
-					trackSeed.time());
+    if(m_resetCovariance)
+      {
+	if(Verbosity() > 0)
+	  std::cout << "PHActsTrkProp : resetting covariance"<<std::endl;
+	Acts::BoundSymMatrix covariance;
+	covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	  0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	  0., 0., 0.01, 0., 0., 0.,
+	  0., 0., 0., 0.01, 0., 0.,
+	  0., 0., 0., 0., 0.01, 0.,
+	  0., 0., 0., 0., 0., 1.;
+	
+	FW::TrackParameters trackSeedNewCov(covariance,
+					    trackSeed.position(),
+					    trackSeed.momentum(),
+					    trackSeed.charge(),
+					    trackSeed.time());
+	trackSeed = trackSeedNewCov;
+      }
 
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
@@ -229,7 +236,7 @@ int PHActsTrkProp::Process()
 		  << " corresponding to SvtxTrack key " << trackKey
 		  << std::endl
 		  << "with initial covariance " << std::endl
-		  << covariance << std::endl;
+		  << trackSeed.covariance().value() << std::endl;
       }
 
 
@@ -244,7 +251,7 @@ int PHActsTrkProp::Process()
 
     /// Run the CKF for all source links and the constructed track seed
     /// CKF runs both track finder and KF track fitter
-    auto result = findCfg.finder(sourceLinks, trackSeedNewCov, ckfOptions);
+    auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
     
     if(result.ok())
       {
@@ -333,9 +340,14 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
   
   /// All these tracks should have the same vertexId if they came from
   /// the same track seed
-  const unsigned int vertexId = origTrack->get_vertex_id();
+  unsigned int vertexId = origTrack->get_vertex_id();
   
+  /// hack for now to just set the vertex id to 0 if it is needed
+  if(vertexId == UINT_MAX)
+    vertexId = 0;
+
   origTrack->Reset();
+
 
   /// Create a state at 0.0 to propagate out from
   float pathLength = 0.0;

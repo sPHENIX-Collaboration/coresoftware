@@ -97,7 +97,12 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       track->identify();
     }
 
-    const unsigned int vertexId = track->get_vertex_id();
+    unsigned int vertexId = track->get_vertex_id();
+
+    /// hack for now since TPC seeders don't set vertex id
+    if(vertexId == UINT_MAX)
+      vertexId = 0;
+
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
