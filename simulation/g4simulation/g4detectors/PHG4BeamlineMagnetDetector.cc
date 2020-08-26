@@ -149,14 +149,14 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   double radius = params->get_double_param("radius") * cm;
   double thickness = params->get_double_param("thickness") * cm;
 
-  G4VSolid *magnet_solid = new G4Tubs(G4String(GetName().c_str()),
+  G4VSolid *magnet_solid = new G4Tubs(GetName(),
                                       0,
                                       radius + thickness,
                                       params->get_double_param("length") * cm / 2., 0, twopi);
 
   G4LogicalVolume *magnet_logic = new G4LogicalVolume(magnet_solid,
                                                       G4Material::GetMaterial("G4_Galactic"),
-                                                      G4String(GetName().c_str()),
+                                                      GetName(),
                                                       0, 0, 0);
   magnet_logic->SetVisAttributes(fieldVis);
 
@@ -170,22 +170,22 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                                params->get_double_param("place_y") * cm,
                                                                params->get_double_param("place_z") * cm)),
                                    magnet_logic,
-                                   G4String(GetName().c_str()),
+                                   GetName(),
                                    logicMother, 0, false, OverlapCheck());
 
   /* Add volume with solid magnet material */
-  G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName().append("_Solid").c_str()),
+  G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName().append("_Solid")),
                                         radius,
                                         radius + thickness,
                                         params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid,
                                                         TrackerMaterial,
-                                                        G4String(GetName().c_str()),
+                                                        G4String(GetName()),
                                                         0, 0, 0);
   cylinder_logic->SetVisAttributes(siliconVis);
 
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                      cylinder_logic,
-                                     G4String(GetName().append("_Solid").c_str()),
+                                     G4String(GetName().append("_Solid")),
                                      magnet_logic, 0, false, OverlapCheck());
 }

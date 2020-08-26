@@ -10,9 +10,9 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <utility>
 
 class PHCompositeNode;
+class PHG4TruthInfoContainer;
 
 class QAG4SimulationVertex : public SubsysReco
 {
@@ -37,6 +37,8 @@ class QAG4SimulationVertex : public SubsysReco
   unsigned int _nlayers_maps = 3;
 
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
+
+  SvtxTrackMap *m_trackMap = nullptr;
 
   std::set<int> m_embeddingIDs;
 };

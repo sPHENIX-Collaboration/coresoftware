@@ -19,7 +19,7 @@ class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*);
+  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*, const int absorberactive);
 
   //! destructor
   virtual ~PHG4ForwardHcalSteppingAction();

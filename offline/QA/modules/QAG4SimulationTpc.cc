@@ -7,7 +7,6 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <tpc/TpcDefs.h>
@@ -15,17 +14,22 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrDefs.h> // for getTrkrId
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include<g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxClusterEval.h>  // for SvtxClusterEval
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTruthEval.h>   // for SvtxTruthEval
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TH1F.h>
+#include <TAxis.h>  // for TAxis
+#include <TH1.h>
 #include <TString.h>  // for Form
 
 #include <cassert>
@@ -33,6 +37,7 @@
 #include <iterator>  // for distance
 #include <map>       // for map
 #include <utility>   // for pair, make_pair
+#include <vector>    // for vector
 
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
