@@ -208,11 +208,11 @@ int PHActsTrkProp::Process()
 	  0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
 	  0., 0., 0.01, 0., 0., 0.,
 	  0., 0., 0., 0.01, 0., 0.,
-	  0., 0., 0., 0., 0.01, 0.,
+	  0., 0., 0., 0., 0.0001, 0.,
 	  0., 0., 0., 0., 0., 1.;
-	
+	Acts::Vector3D newPos(0.01,-0.01,30.);
 	FW::TrackParameters trackSeedNewCov(covariance,
-					    trackSeed.position(),
+					    newPos,
 					    trackSeed.momentum(),
 					    trackSeed.charge(),
 					    trackSeed.time());
