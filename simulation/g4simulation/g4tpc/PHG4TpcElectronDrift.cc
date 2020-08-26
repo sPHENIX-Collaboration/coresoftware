@@ -59,39 +59,13 @@ using namespace std;
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , hitsetcontainer(nullptr)
-  , temp_hitsetcontainer(new TrkrHitSetContainer())// this is used as a buffer for charge collection from a single g4hit
-  , hittruthassoc(nullptr)
-  , padplane(nullptr)
-  , dlong(nullptr)
-  , dtrans(nullptr)
-  , m_outf(nullptr)
-  , nt(nullptr)
-  , nthit(nullptr)
-  , ntfinalhit(nullptr)
-  , ntpad(nullptr)
-  , diffusion_trans(NAN)
-  , diffusion_long(NAN)
-  , drift_velocity(NAN)
-  , electrons_per_gev(NAN)
-  , min_active_radius(NAN)
-  , max_active_radius(NAN)
-  , min_time(NAN)
-  , max_time(NAN)
+  // this is used as a buffer for charge collection from a single g4hit
+  , temp_hitsetcontainer(new TrkrHitSetContainer())
 {
-  //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
-
+  RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
+  set_seed(PHRandomSeed());  
   return;
-}
-
-PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
-{
-  gsl_rng_free(RandomGenerator);
-  delete padplane;
-  delete temp_hitsetcontainer;
 }
 
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -283,7 +257,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
 
       double eion = hiter->second->get_eion();
-      unsigned int n_electrons = gsl_ran_poisson(RandomGenerator, eion * electrons_per_gev);
+      unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
       if (Verbosity() > 100)
 	cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
 	     << " eion " << eion << " n_electrons " << n_electrons
@@ -310,7 +284,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	{
 	  // We choose the electron starting position at random from a flat distribution along the path length
 	  // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
-	  double f = gsl_ran_flat(RandomGenerator, 0.0, 1.0);
+	  double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
 	  double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
 	  double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
@@ -319,13 +293,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 	  double radstart = sqrt(x_start * x_start + y_start * y_start);
 	  double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
-	  double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
-	  rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
+	  double rantrans = gsl_ran_gaussian(RandomGenerator.get(), r_sigma);
+	  rantrans += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
 	  double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
 	  double t_sigma = diffusion_long * sqrt(tpc_length / 2. - fabs(z_start)) / drift_velocity;
-	  double rantime = gsl_ran_gaussian(RandomGenerator, t_sigma);
-	  rantime += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_long) / drift_velocity;
+	  double rantime = gsl_ran_gaussian(RandomGenerator.get(), t_sigma);
+	  rantime += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
 	  double t_final = t_start + t_path + rantime;
 
 	  double z_final;
@@ -339,7 +313,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	      //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
 	      continue;
 	    }
-	  double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
+	  double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
 	  double x_final = x_start + rantrans * cos(ranphi);
 	  double y_final = y_start + rantrans * sin(ranphi);
 	  double rad_final = sqrt(x_final * x_final + y_final * y_final);
@@ -513,11 +487,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 }
 
 void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
-{
-  padplane->MapToPadPlane(temp_hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
-
-  return;
-}
+{ padplane->MapToPadPlane(temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit); }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
@@ -540,11 +510,8 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::set_seed(const unsigned int iseed)
-{
-  seed = iseed;
-  gsl_rng_set(RandomGenerator, seed);
-}
+void PHG4TpcElectronDrift::set_seed(const unsigned int seed)
+{ gsl_rng_set(RandomGenerator.get(), seed); }
 
 void PHG4TpcElectronDrift::SetDefaultParameters()
 {
@@ -579,7 +546,7 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
   cout << "Registering padplane " << endl;
-  padplane = inpadplane;
+  padplane.reset(inpadplane);
   padplane->Detector(Detector());
   padplane->UpdateInternalParameters();
   cout << "padplane registered and parameters updated" << endl;
