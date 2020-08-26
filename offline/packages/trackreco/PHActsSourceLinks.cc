@@ -14,6 +14,8 @@
 #include <tpc/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -47,6 +49,7 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
+  , m_useVertexMeasurement(false)
   , m_clusterMap(nullptr)
   , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
@@ -109,6 +112,9 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   /// Arbitrary hitId that is used to mape between cluster key and an
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
+
+  if(m_useVertexMeasurement)
+    addVerticesAsSourceLinks(topNode, hitId);
 
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
@@ -606,6 +612,71 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
   return surface;
 }
 
+void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
+						 unsigned int &hitId)
+{
+  SvtxVertexMap *vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+
+  if(!vertexMap)
+    {
+      std::cout << PHWHERE << "Can't get vertex map to add source links. Vertices won't be added as source links"
+		<< std::endl;
+      return;
+    }
+  
+  for(SvtxVertexMap::Iter vertexIter = vertexMap->begin();
+      vertexIter != vertexMap->end();
+      ++vertexIter)
+    {
+
+      const SvtxVertex *vertex = vertexIter->second;
+
+      const Acts::Vector3D globalPos(vertex->get_x() * Acts::UnitConstants::cm,
+				     vertex->get_y() * Acts::UnitConstants::cm,
+				     vertex->get_z() * Acts::UnitConstants::cm);
+
+      /// Make a perigee surface corresponding to the vertex for the 
+      /// "measurement" to live on
+      auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+				     globalPos);
+
+      Acts::Vector2D loc(0,0); 
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+
+      pSurface->globalToLocal(m_actsGeometry->getGeoContext(),
+			      globalPos,
+			      pSurface->normal(m_actsGeometry->getGeoContext()),
+			      loc);
+      
+      TMatrixD worldErr(3,3);
+      for(int i = 0; i < 3; i++)
+	for(int j = 0; j < 3; j++)
+	  worldErr(i,j) = vertex->get_error(i, j);
+
+      const float phi = atan2(vertex->get_y(), vertex->get_x());
+
+      TMatrixD localErr = transformCovarToLocal(phi, worldErr);
+      /*
+      cov(Acts::eLOC_0, Acts::eLOC_0) =
+	localErr[0][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_1, Acts::eLOC_0) =
+	localErr[2][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_0, Acts::eLOC_1) =
+	localErr[0][2] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_1, Acts::eLOC_1) =
+	localErr[2][2] * Acts::UnitConstants::cm2;
+      */
+      SourceLink vertexSL(hitId, pSurface, loc, cov);
+      
+      //m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId,vertexSL));
+
+      hitId++;
+    }
+
+  return;
+
+}
+
 int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 {
   m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -773,7 +844,10 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   return surface;
 }
 
-Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, const unsigned int staveId, const unsigned int chipId, TMatrixD worldErr)
+Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, 
+						       const unsigned int staveId,
+						       const unsigned int chipId, 
+						       TMatrixD worldErr)
 {
   TMatrixD localErr(3, 3);
 
