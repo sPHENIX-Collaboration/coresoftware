@@ -41,6 +41,7 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TH3.h>
 #include <TNtuple.h>
 #include <TSystem.h>
 
@@ -56,6 +57,13 @@
 
 using namespace std;
 
+//_____________________________________________________________
+namespace
+{
+  template<class T> inline constexpr T square(const T& x) { return x*x; }
+}
+
+//_____________________________________________________________
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
@@ -68,13 +76,14 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   return;
 }
 
+//_____________________________________________________________
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//_____________________________________________________________
 int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -204,7 +213,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-  Fun4AllServer *se = Fun4AllServer::instance();
+  // space charge distortions from external file
+  if( m_add_distortions )
+  {
+    std::cout << "PHG4TpcElectronDrift::InitRun - reading distortions from " << m_distortion_filename << std::endl;
+    m_distortion_tfile.reset(TFile::Open( m_distortion_filename.c_str() ));
+    if( !m_distortion_tfile )
+    {
+      std::cout << "PHG4TpcElectronDrift::InitRun - cannot open " << m_distortion_filename << std::endl;
+      exit(1);
+    }
+
+    // Open TH3F files only once that contain distortions due to space charge
+    hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
+    hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
+    hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );    
+  }
+  
+  auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
@@ -284,44 +310,60 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	{
 	  // We choose the electron starting position at random from a flat distribution along the path length
 	  // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
-	  double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
+    const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
-	  double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
-	  double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
-	  double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
-	  double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
+    const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
+    const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
+    const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
+	  const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
-	  double radstart = sqrt(x_start * x_start + y_start * y_start);
-	  double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
+    const double radstart = std::sqrt(square(x_start) + square(y_start));
+	  const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
 	  double rantrans = gsl_ran_gaussian(RandomGenerator.get(), r_sigma);
 	  rantrans += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
-	  double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
-	  double t_sigma = diffusion_long * sqrt(tpc_length / 2. - fabs(z_start)) / drift_velocity;
+	  const double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
+    const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - fabs(z_start)) / drift_velocity;
 	  double rantime = gsl_ran_gaussian(RandomGenerator.get(), t_sigma);
 	  rantime += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
-	  double t_final = t_start + t_path + rantime;
 
-	  double z_final;
-	  if (z_start < 0)
-	    z_final = -tpc_length / 2. + t_final * drift_velocity;
-	  else
-	    z_final = tpc_length / 2. - t_final * drift_velocity;
+    // drift time
+    const double t_final = t_start + t_path + rantime;
+	  if (t_final < min_time || t_final > max_time) continue;
 
-	  if (t_final < min_time || t_final > max_time)
-	    {
-	      //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
-	      continue;
-	    }
-	  double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
-	  double x_final = x_start + rantrans * cos(ranphi);
-	  double y_final = y_start + rantrans * sin(ranphi);
-	  double rad_final = sqrt(x_final * x_final + y_final * y_final);
+	  double z_final = 0;
+	  if (z_start < 0) z_final = -tpc_length / 2. + t_final * drift_velocity;
+	  else z_final = tpc_length / 2. - t_final * drift_velocity;
+     
+    double x_final = 0;
+    double y_final = 0;  
+    double rad_final = 0;
+	  const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
+    if( m_add_distortions )
+    {
+      // start azimuth angle
+      const double phistart = std::atan2(y_start,x_start);
+
+      // add radial distortion
+      // TODO: double check the M_PI with Henry
+      rad_final = radstart+hDRint->Interpolate(phistart+M_PI,radstart,z_start);      
+      const double phi_final = phistart+(hDPint->Interpolate(phistart+M_PI,radstart,z_start)/radstart);
+      
+      // also update z
+      z_final += hDZint->Interpolate(phistart+M_PI,radstart,z_start);
+      
+      // convert back to cartesian coordinates, add diffusion
+      x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
+      y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
+    } else {
+      x_final = x_start + rantrans * cos(ranphi);
+      y_final = y_start + rantrans * sin(ranphi);
+      rad_final = std::sqrt(square(x_final) + square(y_final));    
+    }
+    
 	  // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
 	  if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
-	    {
-	      continue;
-	    }
+    { continue; }
 
 	  if (Verbosity() > 1000)
 	    {
