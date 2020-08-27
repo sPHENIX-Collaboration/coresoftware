@@ -544,7 +544,7 @@ int PHInitZVertexing::create_nodes(PHCompositeNode* topNode) {
 
 	_trackmap = new SvtxTrackMap_v1;
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_trackmap,
-									 "SvtxTrackMap", "PHObject");
+									 "SvtxTrackMap_zvtx", "PHObject");
 	tb_node->addNode(tracks_node);
 	if (Verbosity() > 0) cout << "Svtx/SvtxTrackMap node added" << endl;
        

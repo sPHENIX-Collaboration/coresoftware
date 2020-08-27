@@ -14,41 +14,38 @@ libqa_modules_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libqa_modules_la_LIBADD = \
+  -lcalo_io \
+  -lcalo_util \
   -lfun4all \
-  -lphg4hit \
   -lg4detectors_io \
-  -lcalo_io -lcalo_util \
+  -lg4eval \
   -lg4jets_io \
-  -ltrackbase_historic_io \
-  -lg4eval
+  -lphg4hit \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
   QAG4SimulationCalorimeterSum.h \
+  QAG4SimulationIntt.h \
   QAG4SimulationJet.h \
+  QAG4SimulationMvtx.h \
+  QAG4SimulationTpc.h \
+  QAG4SimulationTracking.h \
+  QAG4SimulationVertex.h \
+  QAG4SimulationUpsilon.h \
   QAHistManagerDef.h
 
-if ! MAKEROOT6
-  ROOT5DICTS = \
-    QAHistManagerDef_Dict.cc \
-    QAG4SimulationCalorimeter_Dict.cc \
-    QAG4SimulationCalorimeterSum_Dict.cc \
-    QAG4SimulationJet_Dict.cc 
-endif
-
 libqa_modules_la_SOURCES = \
-  $(ROOT5DICTS) \
-  QAHistManagerDef.cc \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
-  QAG4SimulationJet.cc
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
+  QAG4SimulationIntt.cc \
+  QAG4SimulationJet.cc \
+  QAG4SimulationMvtx.cc \
+  QAG4SimulationTpc.cc \
+  QAG4SimulationTracking.cc \
+  QAG4SimulationVertex.cc \
+  QAG4SimulationUpsilon.cc \
+  QAHistManagerDef.cc
 
 ################################################
 # linking tests
@@ -56,13 +53,13 @@ libqa_modules_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.cc
+	testexternals.cc
 
 testexternals_SOURCES = \
-  testexternals.cc
+	testexternals.cc
 
 testexternals_LDADD = \
-  libqa_modules.la
+	libqa_modules.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

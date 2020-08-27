@@ -38,11 +38,13 @@ void PHFieldConfigv1::identify(std::ostream& os) const
     os << "] with a scale factor of " << get_magfield_rescale();
   }
   else
+  {
     os << "Empty";
+  }
   os << endl;
 }
 
-/// isValid returns non zero if object contains vailid data
+/// isValid returns non zero if object contains valid data
 int PHFieldConfigv1::isValid() const
 {
   return filename_.length();

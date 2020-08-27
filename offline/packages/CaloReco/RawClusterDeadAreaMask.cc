@@ -242,12 +242,12 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   string towergeomnodename = "TOWERGEOM_" + m_detector;
-  m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
+  m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!m_geometry)
   {
     cout << Name() << "::" << m_detector << "::"
          << "CreateNodeTree"
-         << ": Could not find node " << towergeomnodename.c_str() << endl;
+         << ": Could not find node " << towergeomnodename << endl;
     throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadAreaMask::CreateNodeTree");
   }
 

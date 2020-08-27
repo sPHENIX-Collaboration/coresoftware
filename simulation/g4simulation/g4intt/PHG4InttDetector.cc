@@ -339,335 +339,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       G4LogicalVolume *stave_volume = NULL;
       G4LogicalVolume *staveext_volume = NULL;
 
-      if (params->get_int_param("carbon_stave_type") == 0)  // carbon stave without water cooling
-      {
-        // Carbon stave. This is the formed sheet that sits on the PGS and completes the cooling tube
-        // Formed from straight sections and sections of a tube of radius 2.3 mm. All have wall thickness of 0.3 mm.
-        // These are different for laddertype PHG4InttDefs::SEGMENTATION_Z  and
-        // PHG4InttDefs::SEGMENTATION_PHI, but they use some common elements.
-
-        // The curved section is made from a G4Tubs, which is a generalized section of a cylinder
-        // Two curved sections combined should move the inner wall to be 2.0 mm away from the PGS, then 2 more sections bring it back
-        // For 1 of these tube sections,starting at 90 degrees, take decrease in y=1 mm at avge R.
-        // If avge R = 2.15 mm, dtheta = invcos( (R - y)/R ) = invcos(1.15/2.15) = 53.49 deg
-        // The extent along the x axis is then R*sin(dtheta) = 1.728 mm, so two sections combined have dx = 3.456 mm length in y
-        double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
-        double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * cm;
-        double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
-        const double Rcmin = 0.20 * cm;  // mm inner radius of curved section, same at both ends
-        const double Rcmax = 0.23 * cm;  // mm outer radius of curved section, same at both ends
-        double Rcavge = (Rcmax + Rcmin) / 2.0;
-        double dphi_c = acos((Rcavge - Rcmin / 2.) / Rcavge);
-        const double stave_z = pgs_z;
-
-        // makecurved sections for cooler tube
-        const double phic_begin[4] = {M_PI - dphi_c, -dphi_c, 0.0, M_PI};
-        const double dphic[4] = {dphi_c, dphi_c, dphi_c, dphi_c};
-
-        G4Tubs *stave_curve_cons[4];
-        G4Tubs *stave_curve_ext_cons[4];
-        G4LogicalVolume *stave_curve_volume[4];
-        G4LogicalVolume *stave_curve_ext_volume[4];
-
-        for (int i = 0; i < 4; i++)
-        {
-          stave_curve_cons[i] = new G4Tubs((boost::format("stave_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                           Rcmin, Rcmax, stave_z / 2., phic_begin[i], dphic[i]);
-          stave_curve_volume[i] = new G4LogicalVolume(stave_curve_cons[i], G4Material::GetMaterial("CFRP_INTT"),
-                                                      (boost::format("stave_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
-          if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-          {
-            m_PassiveVolumeTuple.insert(make_pair(stave_curve_volume[i], make_tuple(inttlayer, PHG4InttDefs::STAVE_CURVE)));
-          }
-          stave_curve_ext_cons[i] = new G4Tubs((boost::format("stave_curve_ext_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                               Rcmin, Rcmax, hdiext_z / 2., phic_begin[i], dphic[i]);
-          stave_curve_ext_volume[i] = new G4LogicalVolume(stave_curve_ext_cons[i], G4Material::GetMaterial("CFRP_INTT"),
-                                                          (boost::format("stave_curve_ext_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
-          if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-          {
-            m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i], make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_CURVE)));
-          }
-          m_DisplayAction->AddVolume(stave_curve_volume[i], "StaveCurve");
-          m_DisplayAction->AddVolume(stave_curve_ext_volume[i], "StaveCurve");
-        }
-
-        // we will need the length in y of the curved section as it is installed in the stave box
-        double curve_length_y = Rcavge * sin(dphi_c);
-
-        // Make several straight sections for use in making the stave
-
-        // Outer straight sections of stave
-        double stave_wall_thickness = 0.03 * cm;
-        G4VSolid *stave_straight_outer_box = new G4Box((boost::format("stave_straight_outer_box_%d_%d") % inttlayer % itype).str(),
-                                                       stave_wall_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
-        G4LogicalVolume *stave_straight_outer_volume = new G4LogicalVolume(stave_straight_outer_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                           (boost::format("stave_straight_outer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_OUTER)));
-        }
-        G4VSolid *stave_straight_outer_ext_box = new G4Box((boost::format("stave_straight_outer_ext_box_%d_%s") % inttlayer % itype).str(),
-                                                           stave_wall_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
-        G4LogicalVolume *stave_straight_outer_ext_volume = new G4LogicalVolume(stave_straight_outer_ext_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                               (boost::format("stave_straight_outer_ext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_ext_volume, make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_OUTER)));
-        }
-        // connects cooling tubes together, only needed for laddertype PHG4InttDefs::SEGMENTATION_PHI, for laddertype PHG4InttDefs::SEGMENTATION_Z we just make a dummy
-        G4VSolid *stave_straight_inner_box = new G4Box((boost::format("stave_straight_inner_box_%d_%d") % inttlayer % itype).str(),
-                                                       stave_wall_thickness / 2., stave_straight_inner_y / 2., stave_z / 2.);
-        G4LogicalVolume *stave_straight_inner_volume = new G4LogicalVolume(stave_straight_inner_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                           (boost::format("stave_straight_inner_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_INNER)));
-        }
-        G4VSolid *stave_straight_inner_ext_box = new G4Box((boost::format("stave_straight_inner_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                           stave_wall_thickness / 2., stave_straight_inner_y / 2., hdiext_z / 2.);
-        G4LogicalVolume *stave_straight_inner_ext_volume = new G4LogicalVolume(stave_straight_inner_ext_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                               (boost::format("stave_straight_inner_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_ext_volume, make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_INNER)));
-        }
-
-        //Top surface of cooler tube
-        G4VSolid *stave_straight_cooler_box = new G4Box((boost::format("stave_straight_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                        stave_wall_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
-        G4LogicalVolume *stave_straight_cooler_volume = new G4LogicalVolume(stave_straight_cooler_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                            (boost::format("stave_straight_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_COOLER)));
-        }
-        G4VSolid *stave_straight_cooler_ext_box = new G4Box((boost::format("stave_straight_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                            stave_wall_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
-        G4LogicalVolume *stave_straight_cooler_ext_volume = new G4LogicalVolume(stave_straight_cooler_ext_box, G4Material::GetMaterial("CFRP_INTT"),
-                                                                                (boost::format("stave_straight_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-        if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
-        {
-          m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_ext_volume, make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_COOLER)));
-        }
-
-        m_DisplayAction->AddVolume(stave_straight_cooler_volume, "StaveCooler");
-        m_DisplayAction->AddVolume(stave_straight_cooler_ext_volume, "StaveCooler");
-        if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)
-        {
-          m_DisplayAction->AddVolume(stave_straight_inner_volume, "StaveStraightInner");
-          m_DisplayAction->AddVolume(stave_straight_inner_ext_volume, "StaveStraightInner");
-        }
-        m_DisplayAction->AddVolume(stave_straight_outer_volume, "StaveStraightOuter");
-        m_DisplayAction->AddVolume(stave_straight_outer_ext_volume, "StaveStraightOuter");
-
-        // Now we combine the elements of a stave defined above into a stave
-        // Create a stave volume to install the stave sections into. The volume has to be big enouigh to contain the cooling tube
-        double cooler_gap_x = 0.2 * cm;  // id of cooling tube in cm
-        double cooler_wall = 0.03 * cm;  // outer wall thickness of cooling tube
-        double cooler_x = cooler_gap_x + cooler_wall;
-        stave_x = cooler_x;  // we do not include the PGS in the stave volume
-        stave_y = hdi_y;
-
-        // Make stave volume. Drop two corners in positive x to prevent ladder_volume overlapping
-        // with neighbouring ladders because of small clearance in the latest configuration
-        G4RotationMatrix *stv_rot_pos = new G4RotationMatrix();
-        stv_rot_pos->rotateZ(-15. * M_PI / 180.);
-        G4ThreeVector stvTranspos(stave_x / 2., stave_y / 2., 0.);
-
-        G4RotationMatrix *stv_rot_neg = new G4RotationMatrix();
-        stv_rot_neg->rotateZ(+15. * M_PI / 180.);
-        G4ThreeVector stvTransneg(stave_x / 2., -stave_y / 2., 0.);
-
-        G4VSolid *stave_basebox = new G4Box((boost::format("stave_basebox_%d_%d") % inttlayer % itype).str(), stave_x / 2., stave_y / 2., stave_z / 2.);
-        G4VSolid *stave_subtbox = new G4Box((boost::format("stave_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, stave_z / 1.);  // has to be longer in z to avoid coincident surface
-
-        G4VSolid *stave_box1 = new G4SubtractionSolid((boost::format("stave_box1_%d_%d") % inttlayer % itype).str(), stave_basebox, stave_subtbox, stv_rot_pos, stvTranspos);
-
-        G4VSolid *stave_box = new G4SubtractionSolid((boost::format("stave_box_%d_%d") % inttlayer % itype).str(), stave_box1, stave_subtbox, stv_rot_neg, stvTransneg);
-
-        stave_volume = new G4LogicalVolume(stave_box, G4Material::GetMaterial("G4_AIR"),
-                                           (boost::format("stave_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-
-        G4VSolid *staveext_basebox = new G4Box((boost::format("staveext_basebox_%d_%d") % inttlayer % itype).str(), stave_x / 2., stave_y / 2., hdiext_z / 2.);
-        G4VSolid *staveext_subtbox = new G4Box((boost::format("staveext_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, hdiext_z / 1.);  // has to be longer in z to avoid coincident surface
-
-        G4VSolid *staveext_box1 = new G4SubtractionSolid((boost::format("staveext_box1_%d_%d") % inttlayer % itype).str(), staveext_basebox, staveext_subtbox, stv_rot_pos, stvTranspos);
-
-        G4VSolid *staveext_box = new G4SubtractionSolid((boost::format("staveext_box_%d_%d") % inttlayer % itype).str(), staveext_box1, staveext_subtbox, stv_rot_neg, stvTransneg);
-
-        staveext_volume = new G4LogicalVolume(staveext_box, G4Material::GetMaterial("G4_AIR"),
-                                              (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-
-        m_DisplayAction->AddVolume(stave_volume, "StaveBox");
-        m_DisplayAction->AddVolume(staveext_volume, "StaveBox");
-        // Assemble the elements into the stave volume and the stave extension volume
-        // They are place relative to the center of the stave box. Thus the offset of the center of the segment is relative to the center of the satev box.
-        // But we want the segment to be located relative to the lowest x limit of the stave box.
-        if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
-        {
-          // only one cooling tube in laddertype 0
-          // Place the straight sections. We add the middle, then above x axis, then below x axis
-          double x_off_str[3] =
-              {
-                  Rcavge - stave_x / 2.,
-                  (Rcmax - Rcmin) / 2. - stave_x / 2.,
-                  (Rcmax - Rcmin) / 2. - stave_x / 2.};
-          double y_off_str[3] =
-              {
-                  0.0,
-                  stave_straight_cooler_y / 2. + 2.0 * curve_length_y + stave_straight_outer_y / 2.0,
-                  -stave_straight_cooler_y / 2. - 2.0 * curve_length_y - stave_straight_outer_y / 2.0};
-
-          for (int i = 0; i < 3; i++)
-          {
-            if (i == 0)
-            {
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
-                                (boost::format("stave_straight_cooler_%d_%d_%d") % i % inttlayer % itype).str(), stave_volume, false, 0, OverlapCheck());
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
-                                (boost::format("stave_straight_cooler_ext_%d_%d_%d") % i % inttlayer % itype).str(), staveext_volume, false, 0, OverlapCheck());
-            }
-            else
-            {
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
-                                (boost::format("stave_straight_outer_%d_%d_%d") % i % inttlayer % itype).str(), stave_volume, false, 0, OverlapCheck());
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
-                                (boost::format("stave_straight_outer_ext_%d_%d_%d") % i % inttlayer % itype).str(), staveext_volume, false, 0, OverlapCheck());
-            }
-          }
-          // The cooler curved sections are made using 2 curved sections in a recurve on each side of the cooler straight section
-          // The tube sections used here have the origin of their volume at their center of rotation. Rcavge
-          //      Each curve section is moved to the center of the stave volume by a translation of +/- Rcavge
-          //      Then it is moved to the outside or the inside of the stave volume by a translation of +/-  cooler_gap_x / 2.
-          // we start at lowest y and work up in y
-
-          double x_off_cooler[4] =
-              {
-                  Rcavge - cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  Rcavge - cooler_gap_x / 2.};
-          double y_off_cooler[4] =
-              {
-                  -stave_straight_cooler_y / 2. - 2. * curve_length_y,
-                  -stave_straight_cooler_y / 2.,
-                  stave_straight_cooler_y / 2.,
-                  stave_straight_cooler_y / 2. + 2. * curve_length_y};
-
-          for (int i = 0; i < 4; i++)
-          {
-            new G4PVPlacement(0, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_volume[i],
-                              (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_ext_volume[i],
-                              (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
-          }
-        }
-        else if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)  // The type PHG4InttDefs::SEGMENTATION_PHI ladder has two cooling tubes
-        {
-          // First place the straight sections, do the extension at the same time
-          // we alternate  positive and negative y values here
-          double x_off_str[5] =
-              {
-                  (Rcmax - Rcmin) / 2. - stave_x / 2.,  // against the PGS
-                  (Rcmax + Rcmin) / 2. - stave_x / 2.,  // top of cooler
-                  (Rcmax + Rcmin) / 2. - stave_x / 2.,  // top of cooler
-                  (Rcmax - Rcmin) / 2. - stave_x / 2.,
-                  (Rcmax - Rcmin) / 2 - stave_x / 2.};
-          double y_off_str[5] =
-              {
-                  0.0,                                                                                // center section against PGS
-                  stave_straight_inner_y / 2. + 2. * curve_length_y + stave_straight_cooler_y / 2.,   // top of cooler
-                  -stave_straight_inner_y / 2. - 2. * curve_length_y - stave_straight_cooler_y / 2.,  // top of cooler
-                  stave_straight_inner_y / 2. + 2. * curve_length_y + stave_straight_cooler_y + 2. * curve_length_y + stave_straight_outer_y / 2.,
-                  -stave_straight_inner_y / 2. - 2. * curve_length_y - stave_straight_cooler_y - 2. * curve_length_y - stave_straight_outer_y / 2.,
-              };
-
-          for (int i = 0; i < 5; i++)
-          {
-            if (i == 0)
-            {
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_inner_volume,
-                                (boost::format("stave_straight_inner_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_inner_ext_volume,
-                                (boost::format("stave_straight_inner_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
-            }
-            else if (i == 1 || i == 2)
-            {
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
-                                (boost::format("stave_straight_cooler_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
-                                (boost::format("stave_straight_cooler_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
-            }
-            else
-            {
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
-                                (boost::format("stave_straight_outer_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-              new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
-                                (boost::format("stave_straight_outer_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
-            }
-          }
-
-          // Place the curved sections
-          // here we do all above the x axis, then all below the x axis, each in order of increasing y
-
-          double x_off_curve[8] =
-              {
-                  // below x axis, increasing in y
-                  Rcavge - cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  Rcavge - cooler_gap_x / 2.,
-                  // above x axis, increasing in y
-                  Rcavge - cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  -Rcavge + cooler_gap_x / 2.,
-                  Rcavge - cooler_gap_x / 2.};
-          double y_off_curve[8] =
-              {
-                  // below the x axis, increasing in y
-                  -stave_straight_inner_y / 2. - 2. * curve_length_y - stave_straight_cooler_y - 2. * curve_length_y,
-                  -stave_straight_inner_y / 2. - 2. * curve_length_y - stave_straight_cooler_y,
-                  -stave_straight_inner_y / 2. - 2. * curve_length_y,
-                  -stave_straight_inner_y / 2.,
-                  // above the x axis, increasing in y
-                  stave_straight_inner_y / 2.,
-                  stave_straight_inner_y / 2. + 2. * curve_length_y,
-                  stave_straight_inner_y / 2. + 2. * curve_length_y + stave_straight_cooler_y,
-                  stave_straight_inner_y / 2. + 2. * curve_length_y + stave_straight_cooler_y + 2. * curve_length_y};
-
-          for (int i = 0; i < 8; i++)
-          {
-            // initially this was ivol = i; if (ivol > 3) ivol = i -4;
-            // but that triggered a false positive in coverity
-            // this should make it happy and reduce the noise in the coverity reports
-            int ivol;
-            if (i > 3)
-            {
-              ivol = i - 4;
-            }
-            else
-            {
-              ivol = i;
-            }
-            new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[ivol], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[ivol], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
-          }
-        }
-        else
-        {
-          cout << PHWHERE << "invalid laddertype " << laddertype << endl;
-          gSystem->Exit(1);
-        }
-      }                                                          // stave type 0
-      else if (params->get_int_param("carbon_stave_type") == 1)  // carbon stave without water cooling
-      {
         // Carbon stave. This is the formed sheet that sits on the PGS and completes the outer shell surrounds
         // Rohacel foam and cooling water pipe inside. Formed from straight sections and sections of a tube of
         // radius 3.1905 mm. All have wall thickness of 0.1905 mm.
-        const double Rcmin = 0.30 * cm;     // mm inner radius of curved section, same at both ends
-        const double Rcmax = 0.31905 * cm;  // mm outer radius of curved section, same at both ends
-        const double Rpmin = 0.10 * cm;     // inner radius of cooling pipe section, same at both ends
-        const double Rpmax = 0.15 * cm;     // outer radius of cooling pipe section, same at both ends
+        const double stave_thickness = params->get_double_param("stave_straight_cooler_x") * cm; // stave thickness
+        const double Rcmin = 0.30 * cm;                // inner radius of curved section, same at both ends
+        const double Rcmax = Rcmin + stave_thickness;  // outer radius of curved section, same at both ends
         double Rcavge = (Rcmax + Rcmin) / 2.0;
         double dphi_c = 23.19859051 * M_PI / 180.;  // phi of the curved section
         const double stave_z = pgs_z;
@@ -708,14 +385,13 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         double curve_length_y = Rcavge * sin(dphi_c);
 
         // Make several straight sections for use in making the stave
-        double stave_straight_outer_y = params->get_double_param("waterstave_straight_outer_y") * cm;
-        double stave_straight_cooler_y = params->get_double_param("waterstave_straight_cooler_y") * cm;
-        double rohacell_straight_y = params->get_double_param("waterstave_straight_rohacell_y") * cm;
+        double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
+        double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
+        double rohacell_straight_y = params->get_double_param("stave_straight_rohacell_y") * cm;
 
         // Outer straight sections of stave
-        double stave_wall_thickness = 0.01905 * cm;
         G4VSolid *stave_straight_outer_box = new G4Box((boost::format("stave_straight_outer_box_%d_%d") % inttlayer % itype).str(),
-                                                       stave_wall_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
+                                                       stave_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
         G4LogicalVolume *stave_straight_outer_volume = new G4LogicalVolume(stave_straight_outer_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                            (boost::format("stave_straight_outer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -723,7 +399,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_OUTER)));
         }
         G4VSolid *stave_straight_outer_ext_box = new G4Box((boost::format("stave_straight_outer_ext_box_%d_%s") % inttlayer % itype).str(),
-                                                           stave_wall_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
+                                                           stave_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
         G4LogicalVolume *stave_straight_outer_ext_volume = new G4LogicalVolume(stave_straight_outer_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                                (boost::format("stave_straight_outer_ext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -733,7 +409,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
         //Top surface of stave
         G4VSolid *stave_straight_cooler_box = new G4Box((boost::format("stave_straight_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                        stave_wall_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
+                                                        stave_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
         G4LogicalVolume *stave_straight_cooler_volume = new G4LogicalVolume(stave_straight_cooler_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                             (boost::format("stave_straight_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -741,7 +417,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_COOLER)));
         }
         G4VSolid *stave_straight_cooler_ext_box = new G4Box((boost::format("stave_straight_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                            stave_wall_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
+                                                            stave_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
         G4LogicalVolume *stave_straight_cooler_ext_volume = new G4LogicalVolume(stave_straight_cooler_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                                 (boost::format("stave_straight_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -750,9 +426,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         }
 
         // Slant straight sections of stave
-        double stave_slant_cooler_y = params->get_double_param("waterstave_slant_cooler_y") * cm;
+        double stave_slant_cooler_y = params->get_double_param("stave_slant_cooler_y") * cm;
         G4VSolid *stave_slant_cooler_box = new G4Box((boost::format("stave_slant_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                     stave_wall_thickness / 2., stave_slant_cooler_y / 2., stave_z / 2.);
+                                                     stave_thickness / 2., stave_slant_cooler_y / 2., stave_z / 2.);
         G4LogicalVolume *stave_slant_cooler_volume = new G4LogicalVolume(stave_slant_cooler_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                          (boost::format("stave_slant_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -760,7 +436,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           m_PassiveVolumeTuple.insert(make_pair(stave_slant_cooler_volume, make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_COOLER)));
         }
         G4VSolid *stave_slant_cooler_ext_box = new G4Box((boost::format("stave_lant_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                         stave_wall_thickness / 2., stave_slant_cooler_y / 2., hdiext_z / 2.);
+                                                         stave_thickness / 2., stave_slant_cooler_y / 2., hdiext_z / 2.);
         G4LogicalVolume *stave_slant_cooler_ext_volume = new G4LogicalVolume(stave_slant_cooler_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                              (boost::format("stave_slant_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
@@ -776,6 +452,8 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         m_DisplayAction->AddVolume(stave_slant_cooler_ext_volume, "StaveCooler");
 
         // cooling pipe + water inside + glue outside
+        const double Rpmin = 0.10 * cm;     // inner radius of cooling pipe section, same at both ends
+        const double Rpmax = 0.15 * cm;     // outer radius of cooling pipe section, same at both ends
         G4VSolid *stave_glue_box = new G4Box((boost::format("stave_glue_box_%d_%d") % inttlayer % itype).str(), 3. / 2, 3. / 2., stave_z / 2.);
         G4LogicalVolume *stave_glue_volume = new G4LogicalVolume(stave_glue_box, G4Material::GetMaterial("Epoxy"),
                                                                  (boost::format("stave_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
@@ -891,7 +569,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         // Now we combine the elements of a stave defined above into a stave
         // Create a stave volume to install the stave sections into. The volume has to be big enouigh to contain the cooling tube
         double cooler_gap_x = 0.3 * cm;     // id of cooling tube in cm
-        double cooler_wall = 0.01905 * cm;  // outer wall thickness of cooling tube
+        double cooler_wall = stave_thickness;  // outer wall thickness of cooling tube
         double cooler_x = cooler_gap_x + cooler_wall;
         stave_x = cooler_x;  // we do not include the PGS in the stave volume
         stave_y = hdi_y;
@@ -1139,12 +817,6 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           gSystem->Exit(1);
         }
 
-      }  //stave type 1
-      else
-      {
-        cout << PHWHERE << "invalid stavetype " << params->get_int_param("carbon_stave_type") << endl;
-        gSystem->Exit(1);
-      }
 
       // ----- Step 2 ------------------------------------------------------------------------------------
       // We place Si-sensor, FPHX, HDI, PGS sheet, and stave in the ladder  volume.
@@ -1332,7 +1004,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
     An inner skin with a ID at 62.416 mm and a thickness of 0.250 mm.
     An outer skin with a ID at 120.444 mm and a sandwich of 0.25 mm cfc, 1.5 mm foam and 0.25 mm cfc.
-    
+
     All of the above are carbon fiber.
   */
   const PHParameters *supportparams = m_ParamsContainer->GetParameters(PHG4InttDefs::SUPPORTPARAMS);
@@ -1519,42 +1191,6 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     }
   }
 
-  //=======================================================
-  // Add an outer shell for the MVTX - move this to the MVTX detector module
-  //=======================================================
-  // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
-  double skin_thickness = supportparams->get_double_param("mvtx_shell_skin_thickness") * cm;
-  double foam_core_thickness = supportparams->get_double_param("mvtx_shell_foam_core_thickness") * cm;
-  double mvtx_shell_length = supportparams->get_double_param("mvtx_shell_length") * cm;
-
-  double mvtx_shell_inner_skin_inner_radius = supportparams->get_double_param("mvtx_shell_inner_skin_inner_radius") * cm;
-
-  double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
-  double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
-
-  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs("mvtx_shell_inner_skin",
-                                                  mvtx_shell_inner_skin_inner_radius, mvtx_shell_inner_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_inner_skin_volume", 0, 0, 0);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
-                    "mvtx_shell_inner_skin", trackerenvelope, false, 0, OverlapCheck());
-  m_DisplayAction->AddVolume(mvtx_shell_inner_skin_volume, "Rail");
-
-  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
-                                                 mvtx_shell_foam_core_inner_radius, mvtx_shell_foam_core_inner_radius + foam_core_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube, G4Material::GetMaterial("ROHACELL_FOAM_110"),
-                                                                     "mvtx_shell_foam_core_volume", 0, 0, 0);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
-                    "mvtx_shell_foam_core", trackerenvelope, false, 0, OverlapCheck());
-  m_DisplayAction->AddVolume(mvtx_shell_foam_core_volume, "Rail");
-
-  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
-                                                  mvtx_shell_outer_skin_inner_radius, mvtx_shell_outer_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_outer_skin_volume", 0, 0, 0);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
-                    "mvtx_shell_outer_skin", trackerenvelope, false, 0, OverlapCheck());
-  m_DisplayAction->AddVolume(mvtx_shell_outer_skin_volume, "Rail");
   return 0;
 }
 

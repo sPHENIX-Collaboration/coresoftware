@@ -28,8 +28,21 @@ using namespace std;
 PHTruthVertexing::PHTruthVertexing(const std::string& name)
   : PHInitVertexing(name)
   , _g4truth_container(nullptr)
-  , _vertex_error({0.01, 0.01, 0.01})
+  , _vertex_error({0.0005, 0.0005, 0.0005})
+  , _embed_only(false)
 {
+
+  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  //  cout << Name() << " random seed: " << seed << endl;
+  gsl_rng_set(m_RandomGenerator, seed);
+}
+
+
+
+PHTruthVertexing::~PHTruthVertexing() {
+  gsl_rng_free(m_RandomGenerator);
 }
 
 int PHTruthVertexing::Setup(PHCompositeNode* topNode)
@@ -46,6 +59,10 @@ int PHTruthVertexing::Setup(PHCompositeNode* topNode)
 int PHTruthVertexing::Process(PHCompositeNode* topNode)
 {
 
+  if(Verbosity() > 1)
+    {
+      std::cout << "embed only: " << std::boolalpha << _embed_only << std::endl;
+    }
   auto vrange =  _g4truth_container->GetPrimaryVtxRange();
   set<int> gembed_set;
   for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
@@ -61,6 +78,11 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       pos[1] = iter->second->get_y();
       pos[2] = iter->second->get_z();
 
+      if(Verbosity() > 1)
+	{
+	  cout << " gembed: " << gembed << " vz " << iter->second->get_z() << endl;
+	}
+
       // skip particles that are not primary
       if( sqrt(pos[0]*pos[0]+pos[1]*pos[1])  > 0.1) continue;
 
@@ -69,16 +91,10 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
 
       gembed_set.insert(gembed);
       
-      gsl_rng* RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-      unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-      //  cout << Name() << " random seed: " << seed << endl;
-      gsl_rng_set(RandomGenerator, seed);
+      pos[0] += _vertex_error[0] * gsl_ran_ugaussian(m_RandomGenerator);
+      pos[1] += _vertex_error[1] * gsl_ran_ugaussian(m_RandomGenerator);
+      pos[2] += _vertex_error[2] * gsl_ran_ugaussian(m_RandomGenerator);
       
-      pos[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
-      pos[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
-      pos[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
-      
-      gsl_rng_free(RandomGenerator);
       
       if (Verbosity() > 0)
 	{
@@ -107,8 +123,11 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       vertex->set_t0(0);
       vertex->set_chisq(0);
       vertex->set_ndof(1);
-      
-      _vertex_map->insert(vertex);
+      if(_embed_only){
+	if(gembed>0)_vertex_map->insert(vertex);
+      }else{
+	_vertex_map->insert(vertex);
+      }
     }
   
   if (Verbosity() > 0)

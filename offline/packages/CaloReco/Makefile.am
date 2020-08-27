@@ -16,6 +16,7 @@ libcalo_reco_la_LIBADD = \
   -lSubsysReco \
   -lgsl \
   -lgslcblas \
+  -lg4vertex_io \
   -lcalo_io \
   -lcalo_util  \
   -lphparameter
@@ -28,8 +29,8 @@ AM_CPPFLAGS = \
 pkginclude_HEADERS = \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
+  RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
-  RawClusterBuilderTemplateFEMC.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h
 
@@ -37,9 +38,8 @@ pkginclude_HEADERS = \
 if ! MAKEROOT6
   ROOT5_DICTS = \
   RawClusterBuilderGraph_Dict.cc \
+  RawClusterBuilderTopo_Dict.cc \
   RawClusterBuilderTemplate_Dict.cc \
-  RawClusterBuilderTemplateFEMC_Dict.cc \
-  RawClusterBuilderTemplateEEMC_Dict.cc \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection_Dict.cc \
   RawClusterDeadAreaMask_Dict.cc \
@@ -59,9 +59,8 @@ libcalo_reco_la_SOURCES = \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
   RawClusterBuilderGraph.cc \
+  RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderTemplateFEMC.cc \
-  RawClusterBuilderTemplateEEMC.cc \
   RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
   RawClusterDeadAreaMask.cc \

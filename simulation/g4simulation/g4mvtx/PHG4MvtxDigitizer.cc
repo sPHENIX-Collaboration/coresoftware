@@ -7,6 +7,7 @@
 #include <trackbase/TrkrHit.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -25,11 +26,13 @@
 
 #include <cstdlib>                                 // for exit
 #include <iostream>
+#include <set>
 
 using namespace std;
 
 PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name)
   : SubsysReco(name)
+  , _energy_threshold(0.95e-6)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
@@ -149,6 +152,9 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     cout << "Could not locate TRKR_HITSET node, quit! " << endl;
     exit(1);
   }
+  
+  // Get the TrkrHitTruthAssoc node
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
   // Digitization
 
@@ -167,6 +173,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
     TrkrHitSet::ConstRange hit_range = hitset->getHits();
+    std::set<TrkrDefs::hitkey> hits_rm;
     for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
          hit_iter != hit_range.second;
          ++hit_iter)
@@ -178,8 +185,21 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       if (adc > _max_adc[layer]) adc = _max_adc[layer];
       hit->setAdc(adc);
 
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
+      // Remove the hits with energy under threshold
+      bool rm_hit = false;
+      if (hit->getEnergy() < _energy_threshold) rm_hit = true;
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
+
+      if (rm_hit) hits_rm.insert(hit_iter->first);
     }
+
+    for( const auto& key:hits_rm )
+    { 
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: remove hit with key: " << key << endl;
+      hitset->removeHit(key);
+      if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+   }
+
   }
 
   // end new containers

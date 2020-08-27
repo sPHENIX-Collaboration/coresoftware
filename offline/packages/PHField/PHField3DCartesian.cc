@@ -1,10 +1,10 @@
 #include "PHField3DCartesian.h"
 
-#include <TDirectory.h>                        // for TDirectory, gDirectory
+#include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include <CLHEP/Units/SystemOfUnits.h>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -19,7 +19,6 @@
 #include <utility>
 
 using namespace std;
-using namespace CLHEP;  // units
 
 typedef boost::tuple<double, double, double> trio;
 std::map<boost::tuple<double, double, double>, boost::tuple<double, double, double> > fieldmap;

@@ -9,20 +9,22 @@ lib_LTLIBRARIES = \
   libtrack_reco.la
 
 AM_CPPFLAGS = \
+  -DRAVE -DRaveDllExport= \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3
-
-AM_CXXFLAGS = \
- -DRAVE -DRaveDllExport=
+  -I$(OFFLINE_MAIN)/include/eigen3 
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsTransformations.h \
+  ActsTrack.h \
+  ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -33,19 +35,31 @@ pkginclude_HEADERS = \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
+  MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsSourceLinks.h \
+  PHActsTracks.h \
+  PHActsTrkProp.h \
+  PHActsTrkFitter.h \
+  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
+  PHRTreeSeeding.h \
+  PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
+  PHTrackFitting.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
   VertexFitter.h \
-  PHRaveVertexing.h
+  PHRaveVertexing.h \
+  GPUTPCBaseTrackParam.h \
+  GPUTPCTrackLinearisation.h \
+  GPUTPCTrackParam.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -78,6 +92,8 @@ else
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
     PHHoughSeeding_Dict.cc \
+    PHRTreeSeeding_Dict.cc \
+    PHCASeeding_Dict.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
@@ -92,9 +108,44 @@ libtrack_reco_io_la_SOURCES = \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
-  VertexFitter.cc
+  VertexFitter.cc \
+  GPUTPCTrackParam.cxx
+
+if MAKE_ACTS
+ACTS_SOURCES = \
+  ActsTransformations.cc \
+  ActsEvaluator.cc \
+  MakeActsGeometry.cc \
+  PHActsSourceLinks.cc \
+  PHActsTracks.cc \
+  PHActsTrkProp.cc \
+  PHActsTrkFitter.cc \
+  PHActsVertexFitter.cc
+
+$OFFLINE_MAIN/share:
+dist_data_DATA = \
+  tgeo-sphenix.response
+
+AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
+
+ACTS_LIBS = \
+  -lg4eval \
+  -lActsCore \
+  -lActsFatras \
+  -lActsTGeoPlugin \
+  -lActsExamplesCommon \
+  -lActsJsonPlugin \
+  -lActsExamplesFitting \
+  -lActsExamplesTrackFinding \
+  -lActsExamplesDetectorTGeo \
+  -lActsExamplesFramework \
+  -lActsExamplesIoRoot \
+  -lActsExamplesMagneticField
+endif
+
 libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
+  $(ACTS_SOURCES) \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
   PHTrackSeeding.cc \
@@ -105,6 +156,8 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
+  PHRTreeSeeding.cc \
+  PHCASeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
@@ -116,6 +169,7 @@ libtrack_reco_io_la_LIBADD = \
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
+  $(ACTS_LIBS) \
   -lSubsysReco \
   -lg4testbench \
   -lg4detectors \
@@ -134,7 +188,8 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter 
+  -lphparameter
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

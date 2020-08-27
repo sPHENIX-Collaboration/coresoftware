@@ -5,70 +5,49 @@
 #include "BEmcCluster.h"
 #include "BEmcRec.h"
 
-#include <TMath.h>
-
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
 // Define and initialize static members
 
-// Max number of peaks in cluster; used in EmcCluster::GetPeaks(...)
+// Max number of peaks in cluster; used in EmcCluster::GetSubClusters(...)
 int const EmcCluster::fgMaxNofPeaks = 1000;
 
-// Used in EmcCluster::GetPeaks(...), it is the number of iterations
+// Used in EmcCluster::GetSubClusters(...), it is the number of iterations
 // when fitting photons to peak areas
 int const EmcCluster::fgPeakIter = 6;
 
 // Emin cuts cluster energy: Ecl >= Epk1+Epk2 +...+Epkn !!!!!!!!!!!!!
 float const EmcCluster::fgEmin = 0.002;
 
-// chisq=3 devides about 1% of single showers (now it isn't used)
-float const EmcCluster::fgChisq = 3.;
-
-// define meaningless values for (x,y)
-float const EmcCluster::fgXABSURD = -999999.;
-float const EmcCluster::fgYABSURD = -999999.;
-
 EmcModule::EmcModule()
   : ich(0)
-  , softKey(0)
   , amp(0)
   , tof(0)
-  , deadmap(0)
-  , warnmap(0)
-  , adc(0)
-  , tac(0)
 {
 }
 
 //_____________________________________________________________________________
-EmcModule::EmcModule(int ich_, int softkey_, float amp_, float tof_,
-                     int deadmap_, int warnmap_, float adc_, float tac_)
+EmcModule::EmcModule(int ich_, float amp_, float tof_)
   : ich(ich_)
-  , softKey(softkey_)
   , amp(amp_)
   , tof(tof_)
-  , deadmap(deadmap_)
-  , warnmap(warnmap_)
-  , adc(adc_)
-  , tac(tac_)
 {
 }
 
 // ///////////////////////////////////////////////////////////////////////////
 // EmcCluster member functions
 
-void EmcCluster::GetCorrPos(float* px, float* py)
+void EmcCluster::GetCorrPos(float& xc, float& yc)
 // Returns the cluster corrected position in tower units
 // Corrected for S-oscilations, not for shower depth
 // Shower depth (z-coord) is defined in fOwner->Tower2Global()
 {
   float e, x, y, xx, yy, xy;
 
-  e = GetTotalEnergy();
-  GetMoments(&x, &y, &xx, &xy, &yy);
-  fOwner->CorrectPosition(e, x, y, px, py);
+  fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
+  fOwner->CorrectPosition(e, x, y, xc, yc);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -78,7 +57,7 @@ void EmcCluster::GetGlobalPos(float& xA, float& yA, float& zA)
 {
   float xc, yc;
   float e = GetTotalEnergy();
-  GetCorrPos(&xc, &yc);
+  GetCorrPos(xc, yc);
   fOwner->Tower2Global(e, xc, yc, xA, yA, zA);
 }
 
@@ -107,18 +86,12 @@ float EmcCluster::GetTowerEnergy(int ix, int iy)
 
   if (fHitList.empty()) return 0;
   ph = fHitList.begin();
-  while (ph != fHitList.end())
-  {
-    int ich = (*ph).ich;
-    int iyl = ich / fOwner->GetNx();
-    int ixl = ich % fOwner->GetNx();
-    if (ixl == ix && iyl == iy) return (*ph).amp;
-    ++ph;
-  }
-  return 0;
+  int ich = iy * fOwner->GetNx() + ix;
+  return GetTowerEnergy(ich);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
+
 float EmcCluster::GetTowerToF(int ich)
 // Returns the ToF of the ich-tower (0 if ich not found in the fHitList)
 {
@@ -131,113 +104,6 @@ float EmcCluster::GetTowerToF(int ich)
     ++ph;
   }
   return 0;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcCluster::GetTowerDeadMap(int ich)
-// Returns the Dead Map of the ich-tower (0 if ich not found in the fHitList)
-{
-  vector<EmcModule>::iterator ph;
-  if (fHitList.empty()) return 0;
-  ph = fHitList.begin();
-  while (ph != fHitList.end())
-  {
-    if ((*ph).ich == ich) return (*ph).deadmap;
-    ++ph;
-  }
-  return 0;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcCluster::GetTowerWarnMap(int ich)
-// Returns the Warning Map of the ich-tower (0 if ich not found in the fHitList)
-{
-  vector<EmcModule>::iterator ph;
-  if (fHitList.empty()) return 0;
-  ph = fHitList.begin();
-  while (ph != fHitList.end())
-  {
-    if ((*ph).ich == ich) return (*ph).warnmap;
-    ++ph;
-  }
-  return 0;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-float EmcCluster::GetTowerADC(int ich)
-// Returns ADC of the ich-tower (0 if ich not found in the fHitList)
-{
-  vector<EmcModule>::iterator ph;
-  if (fHitList.empty()) return 0;
-  ph = fHitList.begin();
-  while (ph != fHitList.end())
-  {
-    if ((*ph).ich == ich) return (*ph).adc;
-    ++ph;
-  }
-  return 0.;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-float EmcCluster::GetTowerTAC(int ich)
-// Returns ADC of the ich-tower (0 if ich not found in the fHitList)
-{
-  vector<EmcModule>::iterator ph;
-  if (fHitList.empty()) return 0;
-  ph = fHitList.begin();
-  while (ph != fHitList.end())
-  {
-    if ((*ph).ich == ich) return (*ph).tac;
-    ++ph;
-  }
-  return 0.;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-// Returns Number of Dead Channels in 3x3 Modules around MaxTower
-// see emc-calib/Calib/emcQAs.C for deadmap defn.
-int EmcCluster::GetNDead()
-{
-  EmcModule hmax = GetMaxTower();
-  int dead = hmax.deadmap;
-  int ndead = 0;
-
-  dead = dead >> 4;  // start at bit 4
-  for (int iy = 0; iy < 3; iy++)
-  {
-    for (int iz = 0; iz < 3; iz++)
-    {
-      ndead += dead & 1;
-      dead = dead >> 1;  // shift to next tower
-    }
-    dead = dead >> 2;  // shift up to next row
-  }
-  return ndead;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcCluster::GetDeadMap()
-{
-  // MV 2001/12/06 Returns the deadmap of the dominant tower
-
-  EmcModule hmax = GetMaxTower();
-  return hmax.deadmap;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcCluster::GetWarnMap()
-{
-  // MV 2001/12/06 Returns the warnmap of the dominant tower
-
-  EmcModule hmax = GetMaxTower();
-  return hmax.warnmap;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -263,10 +129,10 @@ float EmcCluster::GetECoreCorrected()
 // Returns the energy in core towers around the cluster Center of Gravity
 // Corrected for energy leak sidewise from core towers
 {
-  float x, y, xx, yy, xy;
+  float e, x, y, xx, yy, xy;
   float ecore, ecorecorr;
   ecore = GetECore();
-  GetMoments(&x, &y, &xx, &xy, &yy);
+  fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
   fOwner->CorrectECore(ecore, x, y, &ecorecorr);
   return ecorecorr;
 }
@@ -274,15 +140,14 @@ float EmcCluster::GetECoreCorrected()
 float EmcCluster::GetECore()
 // Returns the energy in core towers around the cluster Center of Gravity
 {
+  const float thresh = 0.01;
+
   vector<EmcModule>::iterator ph;
   float xcg, ycg, xx, xy, yy;
   float energy, es;
 
-  GetMoments(&xcg, &ycg, &xx, &xy, &yy);  // Now it is in cell units
-  //    xcg /= fOwner->GetModSizex();
-  //    ycg /= fOwner->GetModSizey();
-  energy = GetTotalEnergy();
-  fOwner->SetProfileParameters(0, energy, xcg, ycg);
+  fOwner->Momenta(&fHitList, energy, xcg, ycg, xx, yy, xy);
+  //  fOwner->SetProfileParameters(0, energy, xcg, ycg);
 
   es = 0;
   if (fHitList.empty()) return 0;
@@ -293,10 +158,11 @@ float EmcCluster::GetECore()
     int iy = ixy / fOwner->GetNx();
     int ix = ixy - iy * fOwner->GetNx();
     //      dx = xcg - ix;
-    float dx = fOwner->fTowerDist(float(ix), xcg);
-    float dy = ycg - iy;
-    float et = fOwner->PredictEnergy(dx, dy, -1);
-    if (et > 0.01) es += (*ph).amp;
+    //    float dx = fOwner->fTowerDist(float(ix), xcg);
+    //    float dy = ycg - iy;
+    //    float et = fOwner->PredictEnergy(dx, dy, energy);
+    float et = fOwner->PredictEnergy(energy, xcg, ycg, ix, iy);
+    if (et > thresh) es += (*ph).amp;
     ++ph;
   }
   return es;
@@ -307,13 +173,11 @@ float EmcCluster::GetECore()
 float EmcCluster::GetE4()
 // Returns the energy in 2x2 towers around the cluster Center of Gravity
 {
-  float xcg, ycg, xx, xy, yy;
+  float et, xcg, ycg, xx, xy, yy;
   float e1, e2, e3, e4;
   int ix0, iy0, isx, isy;
 
-  GetMoments(&xcg, &ycg, &xx, &xy, &yy);
-  xcg /= fOwner->GetModSizex();
-  ycg /= fOwner->GetModSizey();
+  fOwner->Momenta(&fHitList, et, xcg, ycg, xx, yy, xy);
   ix0 = int(xcg + 0.5);
   iy0 = int(ycg + 0.5);
 
@@ -334,16 +198,14 @@ float EmcCluster::GetE4()
 float EmcCluster::GetE9()
 // Returns the energy in 3x3 towers around the cluster Center of Gravity
 {
-  float xcg, ycg, xx, xy, yy;
+  float et, xcg, ycg, xx, xy, yy;
   int ich, ix0, iy0, nhit;
 
   nhit = fHitList.size();
 
   if (nhit <= 0) return 0;
 
-  GetMoments(&xcg, &ycg, &xx, &xy, &yy);
-  //     xcg /= fOwner->GetModSizex();
-  //     ycg /= fOwner->GetModSizey();
+  fOwner->Momenta(&fHitList, et, xcg, ycg, xx, yy, xy);
   ix0 = int(xcg + 0.5);
   iy0 = int(ycg + 0.5);
   ich = iy0 * fOwner->GetNx() + ix0;
@@ -379,40 +241,6 @@ float EmcCluster::GetE9(int ich)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-EmcModule EmcCluster::GetImpactTower()
-// Returns the EmcModule corresponding to the reconstructed impact tower
-{
-  float x, y;
-  EmcModule ht;
-
-  GetCorrPos(&x, &y);
-  int ix = lowint(x / fOwner->GetModSizex() + 0.5);
-  int iy = lowint(y / fOwner->GetModSizey() + 0.5);
-  if (ix < 0 || ix > fOwner->GetNx() - 1 || iy < 0 || iy > fOwner->GetNy() - 1)
-  {
-    printf("????? EmcClusterChi2: Something wrong in GetImpactTower: (x,y)=(%f,%f)  (ix,iy)=(%d,%d) \n", x, y, ix, iy);
-    //!!!!!	memset(&ht, 0, sizeof(EmcModule)); // MV 2002/03/12 bugfix
-    ht.ich = -1;
-    ht.amp = 0;
-    ht.tof = 0;
-    return ht;
-  }
-  else
-  {
-    int ich = iy * fOwner->GetNx() + ix;
-    ht.ich = ich;
-    ht.amp = GetTowerEnergy(ich);
-    ht.tof = GetTowerToF(ich);
-    ht.deadmap = GetTowerDeadMap(ich);
-    ht.warnmap = GetTowerWarnMap(ich);  // MV 2002/02/18 bugfix
-    ht.adc = GetTowerADC(ich);          // MV 2002/03/12 bugfix
-    ht.tac = GetTowerTAC(ich);          // MV 2002/03/12 bugfix
-    return ht;
-  }
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
 EmcModule EmcCluster::GetMaxTower()
 // Returns the EmcModule with the maximum energy
 {
@@ -420,7 +248,6 @@ EmcModule EmcCluster::GetMaxTower()
   float emax = 0;
   EmcModule ht;
 
-  //!!!!!     memset(&ht, 0, sizeof(EmcModule)); // MV 2002/03/12 bugfix
   ht.ich = -1;
   ht.amp = 0;
   ht.tof = 0;
@@ -441,122 +268,34 @@ EmcModule EmcCluster::GetMaxTower()
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void EmcCluster::GetHits(EmcModule* phit, int n)
-// Returns n EmcModules (sorted) with the maximum energy
-{
-  int nhit;
-  EmcModule *hlist, *vv;
-  vector<EmcModule>::iterator ph;
-
-  fOwner->ZeroVector(phit, n);
-  nhit = fHitList.size();
-
-  if (nhit <= 0) return;
-
-  hlist = new EmcModule[nhit];
-
-  ph = fHitList.begin();
-  vv = hlist;
-  while (ph != fHitList.end()) *vv++ = *ph++;
-
-  qsort(hlist, nhit, sizeof(EmcModule), fOwner->HitACompare);
-  for (int i = 0; i < min(nhit, n); i++) phit[i] = hlist[i];
-  delete[] hlist;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcCluster::GetMoments(float* px, float* py, float* pxx, float* pxy, float* pyy)
+void EmcCluster::GetMoments(float& x, float& y, float& xx, float& xy, float& yy)
 //  Returns cluster 1-st (px,py) and 2-d momenta (pxx,pxy,pyy) in cell unit
 {
-  vector<EmcModule>::iterator ph;
-  float e, x, y, xx, yy, xy;
-  int nhit;
-  EmcModule *phit, *p;
-
-  *px = fgXABSURD;
-  *py = fgYABSURD;
-  *pxx = 0;
-  *pxy = 0;
-  *pyy = 0;
-  nhit = fHitList.size();
-  if (nhit <= 0) return;
-
-  phit = new EmcModule[nhit];
-  ph = fHitList.begin();
-  p = phit;
-  while (ph != fHitList.end())
-  {
-    p->ich = (*ph).ich;
-    p->amp = (*ph).amp;
-    ++ph;
-    ++p;
-  }
-  fOwner->Momenta(nhit, phit, &e, &x, &y, &xx, &yy, &xy);
-  /*
-     *px = x*fOwner->GetModSizex();
-     *py = y*fOwner->GetModSizey();
-     *pxx = xx*fOwner->GetModSizex()*fOwner->GetModSizex();
-     *pxy = xy*fOwner->GetModSizex()*fOwner->GetModSizey();
-     *pyy = yy*fOwner->GetModSizey()*fOwner->GetModSizey();
-     */
-  *px = x;
-  *py = y;
-  *pxx = xx;
-  *pxy = xy;
-  *pyy = yy;
-
-  delete[] phit;
+  float e;
+  fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
-
-void EmcCluster::GetErrors(float* pde, float* pdx, float* pdy, float* pdz)
-{
-  //  Returns the errors for the reconstructed energy and position
-
-  float e, x, y;
-
-  e = GetTotalEnergy();
-  GetCorrPos(&x, &y);
-  fOwner->CalculateErrors(e, x, y, pde, pdx, pdy, pdz);
-}
 
 float EmcCluster::GetProb(float& chi2, int& ndf)
 {
-  return fOwner->GetProb(fHitList, chi2, ndf);
+  float e, xg, yg, zg;
+  e = GetTotalEnergy();
+  GetGlobalPos(xg, yg, zg);
+  return fOwner->GetProb(fHitList, e, xg, yg, zg, chi2, ndf);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void EmcCluster::GetChar(float* pe,
-                         float* pxcg, float* pycg,
-                         float* pxc, float* pyc,
-                         float* pxg, float* pyg, float* pzg,
-                         float* pxx, float* pxy, float* pyy,
-                         float* pde, float* pdx, float* pdy, float* pdz)
+int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* ppeaks)
 {
-  // This method replaces methods GetTotalEnergy, GetMoments,
-  // GetCorrPos, GetGlobalPos, GetErrors
-
-  *pe = GetTotalEnergy();
-  GetMoments(pxcg, pycg, pxx, pxy, pyy);
-  fOwner->CorrectPosition(*pe, *pxcg, *pycg, pxc, pyc);
-  fOwner->SectorToGlobal(*pxc, *pyc, 0, pxg, pyg, pzg);
-  fOwner->CalculateErrors(*pe, *pxc, *pyc, pde, pdx, pdy, pdz);
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
-{
-  // Splits the cluster onto peakarea's
-  // The number of peakarea's is equal to the number of Local Maxima
-  // in the cluster. Local Maxima can have the energy not less then
+  // Splits the cluster onto subclusters
+  // The number of subclusters is equal to the number of Local Maxima in a cluster.
+  // Local Maxima can have the energy not less then
   // defined in fgMinPeakEnergy
   //
-  // Output: PkList - vector of peakarea's
-  //         ppeaks - vector of peak EmcModules (one for each peakarea)
+  // Output: PkList - vector of subclusters
+  //         ppeaks - vector of peak EmcModules (one for each subcluster)
   //
   // Returns: >= 0 Number of Peaks;
   //	      -1 The number of Peaks is greater then fgMaxNofPeaks;
@@ -572,7 +311,7 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
   float ratio, eg, dx, dy, a;
   float *Energy[fgMaxNofPeaks], *totEnergy, *tmpEnergy;
   EmcModule *phit, *hlist, *vv;
-  EmcPeakarea peak(fOwner);
+  EmcCluster peak(fOwner);
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hl;
 
@@ -629,7 +368,9 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
       if (npk >= fgMaxNofPeaks)
       {
         delete[] hlist;
-        printf("!!! Error in EmcCluster::GetPeaks(): too many peaks in a cluster (>%d). May need tower energy threshold increase for clustering.\n", fgMaxNofPeaks);
+        cout << "!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>"
+             << fgMaxNofPeaks
+             << "). May need tower energy threshold increase for clustering." << endl;
         return -1;
       }
 
@@ -643,7 +384,7 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
   /*
   for( ipk=0; ipk<npk; ipk++ ) {
     ic = PeakCh[ipk];
-    printf("  %d: E=%f\n", ipk, hlist[ic].amp);
+    cout << "  " << ipk << ": E = " << hlist[ic].amp << endl;
   }
   */
 
@@ -751,7 +492,7 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
 
       xpk[ipk] = xpk[ipk] / epk[ipk] + ixpk;
       ypk[ipk] = ypk[ipk] / epk[ipk] + iypk;
-      fOwner->SetProfileParameters(0, epk[ipk], xpk[ipk], ypk[ipk]);
+      //      fOwner->SetProfileParameters(0, epk[ipk], xpk[ipk], ypk[ipk]);
 
       for (in = 0; in < nhit; in++)
       {
@@ -764,7 +505,8 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
 
         // predict energy within 2.5 cell square around local peak
         if (ABS(dx) < 2.5 && ABS(dy) < 2.5)
-          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, -1);
+	  //          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
+          a = epk[ipk] * fOwner->PredictEnergy(epk[ipk], xpk[ipk], ypk[ipk], ix, iy);
 
         Energy[ipk][in] = a;
         tmpEnergy[in] += a;
@@ -803,15 +545,7 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
         {
           phit[nh].ich = ixy;
           phit[nh].amp = a;
-          phit[nh].tof = hlist[in].tof;          // Not necessary here
-          phit[nh].deadmap = hlist[in].deadmap;  // Not necessary here
-          phit[nh].warnmap = hlist[in].warnmap;  // MV 2002/02/18 bugfix
-
-          // MV 2002/03/12 bugfix: let adc, tdc=0 for split clusters
-          //	  phit[nh].adc=0.; // MV 2002/03/12 bugfix
-          //	  phit[nh].tac=0.; // MV 2002/03/12 bugfix
-          phit[nh].adc = hlist[in].adc;  // GD 04/12/2006
-          phit[nh].tac = hlist[in].tac;  // GD 04/12/2006
+          phit[nh].tof = hlist[in].tof;  // Not necessary here
 
           nh++;
         }
@@ -851,8 +585,9 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
     ig = igmpk1[ipk];
     if (ig >= 0)
     {
-      //      printf("  %d: X=%f Y=%f\n",ipk,xpk[ig], ypk[ig]);
-      fOwner->SetProfileParameters(0, epk[ig], xpk[ig], ypk[ig]);
+      //      cout << "  " << ipk << ": X = " << xpk[ig]
+      //           << " Y = " << ypk[ig] << endl;
+      //      fOwner->SetProfileParameters(0, epk[ig], xpk[ig], ypk[ig]);
       for (in = 0; in < nhit; in++)
       {
         Energy[ipk][in] = 0;
@@ -863,7 +598,8 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
           ix = ixy - iy * fOwner->GetNx();
           dx = fOwner->fTowerDist(float(ix), xpk[ig]);
           dy = ypk[ig] - iy;
-          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
+	  //          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
+          a = epk[ig] * fOwner->PredictEnergy(epk[ig], xpk[ig], ypk[ig], ix, iy);
           Energy[ipk][in] += a;
           tmpEnergy[in] += a;
         }
@@ -886,14 +622,6 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
           phit[nh].ich = ixy;
           phit[nh].amp = a;
           phit[nh].tof = hlist[in].tof;
-          phit[nh].deadmap = hlist[in].deadmap;
-          phit[nh].warnmap = hlist[in].warnmap;  // MV 2002/02/18 bugfix
-
-          // MV 2002/03/12 bugfix: let adc, tdc=0 for split clusters
-          //	  phit[nh].adc=0.; // MV 2002/03/12 bugfix
-          //	  phit[nh].tac=0.; // MV 2002/03/12 bugfix
-          phit[nh].adc = hlist[in].adc;  // GD 04/12/2006
-          phit[nh].tac = hlist[in].tac;  // GD 04/12/2006
 
           nh++;
         }
@@ -918,276 +646,4 @@ int EmcCluster::GetPeaks(vector<EmcPeakarea>* PkList, vector<EmcModule>* ppeaks)
   delete[] tmpEnergy;
 
   return nn;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-// EmcPeakarea member functions
-
-void EmcPeakarea::GetChar(float* pe, float* pec,
-                          float* pecore, float* pecorec,
-                          float* pxcg, float* pycg,            // center of gravity
-                          float* pxcgmin, float* pycgmin,      //
-                          float* pxc, float* pyc,              // Local (Sector) coords
-                          float* pxg, float* pyg, float* pzg,  // Global coords
-                          float* pxx, float* pxy, float* pyy,  // moments
-                          float* pchi,
-                          float* pde, float* pdx, float* pdy, float* pdz)
-// This method replaces "cluster" methods GetTotalEnergy, GetMoments,
-// GetCorrPos, GetGlobalPos, GetErrors and "EmcPeakarea" methods GetCGmin, GetChi2
-{
-  float chi, chi0;
-  float e1, x1, y1, e2, x2, y2;
-  int nh;
-  EmcModule *phit, *vv;
-  vector<EmcModule>::iterator ph;
-  vector<EmcModule> hl;
-  float tmplvalue;  // temporary lvalue
-
-  *pe = 0;
-  hl = fHitList;
-  nh = hl.size();
-  if (nh <= 0) return;
-
-  phit = new EmcModule[nh];
-
-  ph = hl.begin();
-  vv = phit;
-  while (ph != hl.end()) *vv++ = *ph++;
-
-  chi = fgChisq * 1000;
-  int ndf;  // Gamma parameter list changed MV 28.01.00
-  fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
-  fNdf = ndf;
-  *pchi = chi0;
-
-  // Calculate CL
-  tmplvalue = fOwner->Chi2Correct(chi0, ndf) * ndf;  // nh->ndf MV 28.01.00
-  if (tmplvalue > 0.)
-    fCL = TMath::Prob(tmplvalue, ndf);
-  else
-    fCL = 1.;  // nothing to say about this peak area
-
-  // Shower Center of Gravity after shower profile fit
-  *pxcgmin = x1 * fOwner->GetModSizex();
-  *pycgmin = y1 * fOwner->GetModSizey();
-
-  *pe = GetTotalEnergy();
-  *pecore = GetECore();
-  GetMoments(pxcg, pycg, pxx, pxy, pyy);
-  fOwner->CorrectPosition(*pe, *pxcgmin, *pycgmin, pxc, pyc);
-  fOwner->SectorToGlobal(*pxc, *pyc, 0, pxg, pyg, pzg);
-  fOwner->CalculateErrors(*pe, *pxc, *pyc, pde, pdx, pdy, pdz);
-  //    fOwner->CorrectEnergy( *pe, *pxcg, *pycg, pec ); // MM 02.11.2000
-  fOwner->CorrectECore(*pecore, *pxc, *pyc, pecorec);
-
-  delete[] phit;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-float EmcPeakarea::GetChi2()
-// Returns Hi2 after its minimization fluctuating CG position
-// (i.e. after shower profile fit)
-{
-  float chi, chi0;
-  float e1, x1, y1, e2, x2, y2;
-  int nh;
-  EmcModule *phit, *vv;
-  vector<EmcModule>::iterator ph;
-  vector<EmcModule> hl;
-
-  hl = fHitList;
-  nh = hl.size();
-  if (nh <= 0) return 0;
-
-  phit = new EmcModule[nh];
-
-  ph = hl.begin();
-  vv = phit;
-  while (ph != hl.end()) *vv++ = *ph++;
-
-  chi = fgChisq * 1000;
-  int ndf;  // Gamma parameter list changed MV 28.01.00
-  fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
-  fNdf = ndf;
-  delete[] phit;
-  return chi0;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-float EmcPeakarea::GetCLNew()
-// Conf. Level based on new chi2 calculation
-{
-  float xcg, ycg, xx, xy, yy;
-  float e1, e2, e3, e4;
-  float e1m, e2m, e3m, e4m;
-  float e1p, e2p, e3p, e4p;
-  float s1, s2, s3, s4;
-  float dx, dy, etot, sc;
-  float chi2, pr;
-  int ix0, iy0, isx, isy, ndf;
-
-  etot = GetTotalEnergy();
-  GetMoments(&xcg, &ycg, &xx, &xy, &yy);
-  xcg /= fOwner->GetModSizex();
-  ycg /= fOwner->GetModSizey();
-  ix0 = int(xcg + 0.5);
-  iy0 = int(ycg + 0.5);
-  dx = ABS(xcg - ix0);
-  dy = ABS(ycg - iy0);
-
-  isx = 1;
-  if (xcg - ix0 < 0) isx = -1;
-  isy = 1;
-  if (ycg - iy0 < 0) isy = -1;
-
-  e1 = GetTowerEnergy(ix0, iy0);
-  e2 = GetTowerEnergy(ix0 + isx, iy0);
-  e3 = GetTowerEnergy(ix0 + isx, iy0 + isy);
-  e4 = GetTowerEnergy(ix0, iy0 + isy);
-
-  if (dy > dx)
-  {
-    float et = e2;
-    e2 = e4;
-    e4 = et;
-    float dt = dx;
-    dx = dy;
-    dy = dt;
-  }
-
-  e1m = e1 + e2 + e3 + e4;
-  e2m = e1 + e2 - e3 - e4;
-  e3m = e1 - e2 - e3 + e4;
-  e4m = e4 - e3;
-
-  e1p = 0.932;
-  e2p = 0.835 - 2 * dy * dy / (dy + 0.099);
-  e3p = 0.835 - 2 * dx * dx / (dx + 0.099);
-  e4p = 0.02;
-
-  sc = sqrt(0.1 * 0.1 / etot + 0.03 * 0.03) / 0.04;
-  s1 = sc * 0.02;
-  sc = sqrt(0.1 * 0.1 / etot + 0.02 * 0.02) / 0.04;
-  s2 = sc * (0.056 - 0.026 * e2p);
-  s3 = sc * (0.056 - 0.026 * e2p);
-  s4 = sc * 0.03;
-
-  chi2 = 0.;
-  chi2 += (e1p * etot - e1m) * (e1p * etot - e1m) / s1 / s1 / etot / etot;
-  chi2 += (e2p * etot - e2m) * (e2p * etot - e2m) / s2 / s2 / etot / etot;
-  chi2 += (e3p * etot - e3m) * (e3p * etot - e3m) / s3 / s3 / etot / etot;
-  chi2 += (e4p * etot - e4m) * (e4p * etot - e4m) / s4 / s4 / etot / etot;
-  chi2 /= 0.7;
-
-  ndf = 4;
-  pr = TMath::Prob(chi2, ndf);
-  return pr;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-float EmcPeakarea::GetChi2New()
-// Conf. Level based on new chi2 calculation
-{
-  float xcg, ycg, xx, xy, yy;
-  float e1, e2, e3, e4;
-  float e1m, e2m, e3m, e4m;
-  float e1p, e2p, e3p, e4p;
-  float s1, s2, s3, s4;
-  float dx, dy, etot, sc;
-  float chi2;
-  int ix0, iy0, isx, isy, ndf;
-
-  etot = GetTotalEnergy();
-  GetMoments(&xcg, &ycg, &xx, &xy, &yy);
-  xcg /= fOwner->GetModSizex();
-  ycg /= fOwner->GetModSizey();
-  ix0 = int(xcg + 0.5);
-  iy0 = int(ycg + 0.5);
-  dx = ABS(xcg - ix0);
-  dy = ABS(ycg - iy0);
-
-  isx = 1;
-  if (xcg - ix0 < 0) isx = -1;
-  isy = 1;
-  if (ycg - iy0 < 0) isy = -1;
-
-  e1 = GetTowerEnergy(ix0, iy0);
-  e2 = GetTowerEnergy(ix0 + isx, iy0);
-  e3 = GetTowerEnergy(ix0 + isx, iy0 + isy);
-  e4 = GetTowerEnergy(ix0, iy0 + isy);
-
-  if (dy > dx)
-  {
-    float et = e2;
-    e2 = e4;
-    e4 = et;
-    float dt = dx;
-    dx = dy;
-    dy = dt;
-  }
-
-  e1m = e1 + e2 + e3 + e4;
-  e2m = e1 + e2 - e3 - e4;
-  e3m = e1 - e2 - e3 + e4;
-  e4m = e4 - e3;
-
-  e1p = 0.932;
-  e2p = 0.835 - 2 * dy * dy / (dy + 0.099);
-  e3p = 0.835 - 2 * dx * dx / (dx + 0.099);
-  e4p = 0.02;
-
-  sc = sqrt(0.1 * 0.1 / etot + 0.03 * 0.03) / 0.04;
-  s1 = sc * 0.02;
-  sc = sqrt(0.1 * 0.1 / etot + 0.02 * 0.02) / 0.04;
-  s2 = sc * (0.056 - 0.026 * e2p);
-  s3 = sc * (0.056 - 0.026 * e2p);
-  s4 = sc * 0.03;
-
-  chi2 = 0.;
-  chi2 += (e1p * etot - e1m) * (e1p * etot - e1m) / s1 / s1 / etot / etot;
-  chi2 += (e2p * etot - e2m) * (e2p * etot - e2m) / s2 / s2 / etot / etot;
-  chi2 += (e3p * etot - e3m) * (e3p * etot - e3m) / s3 / s3 / etot / etot;
-  chi2 += (e4p * etot - e4m) * (e4p * etot - e4m) / s4 / s4 / etot / etot;
-  chi2 /= 0.7;
-
-  ndf = 4;
-  return chi2 / ndf;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcPeakarea::GetCGmin(float* px, float* py)
-{
-  // Gets CG coordinates corresponding to min Hi2 (after shower shape fit)
-
-  float chi, chi0;
-  float e1, x1, y1, e2, x2, y2;
-  int nh;
-  EmcModule *phit, *vv;
-  vector<EmcModule>::iterator ph;
-  vector<EmcModule> hl;
-
-  *px = fgXABSURD;
-  *py = fgYABSURD;
-  hl = fHitList;
-  nh = hl.size();
-  if (nh <= 0) return;
-
-  phit = new EmcModule[nh];
-
-  ph = hl.begin();
-  vv = phit;
-  while (ph != hl.end()) *vv++ = *ph++;
-
-  chi = fgChisq * 1000;
-  int ndf;  // Gamma parameter list changed MV 28.01.00
-  fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
-  fNdf = ndf;
-  *px = x1 * fOwner->GetModSizex();
-  *py = y1 * fOwner->GetModSizey();
-
-  delete[] phit;
 }

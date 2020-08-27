@@ -23,8 +23,7 @@
 using namespace std;
 
 TowerJetInput::TowerJetInput(Jet::SRC input)
-  : _verbosity(0)
-  , _input(input)
+  : _input(input)
 {
 }
 
@@ -46,7 +45,7 @@ void TowerJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (_verbosity > 0) cout << "TowerJetInput::process_event -- entered" << endl;
+  if (Verbosity() > 0) cout << "TowerJetInput::process_event -- entered" << endl;
 
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
@@ -233,7 +232,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (_verbosity > 0) cout << "TowerJetInput::process_event -- exited" << endl;
+  if (Verbosity() > 0) cout << "TowerJetInput::process_event -- exited" << endl;
 
   return pseudojets;
 }

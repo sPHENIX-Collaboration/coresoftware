@@ -17,6 +17,7 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
+class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
@@ -55,10 +56,13 @@ class SvtxClusterEval
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits(TrkrDefs::cluskey cluster);
   PHG4Hit* max_truth_hit_by_energy(TrkrDefs::cluskey);
+  std::set<std::shared_ptr<TrkrCluster> > all_truth_clusters(TrkrDefs::cluskey cluster_key);
+  std::shared_ptr<TrkrCluster> max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key);
 
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles(TrkrDefs::cluskey);
   PHG4Particle* max_truth_particle_by_energy(TrkrDefs::cluskey);
+  PHG4Particle* max_truth_particle_by_cluster_energy(TrkrDefs::cluskey);
 
   // forwardtrace through to SvtxClusters
   std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Particle* truthparticle);
@@ -68,6 +72,8 @@ class SvtxClusterEval
   // overlap calculations
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
+
+  TrkrCluster* reco_cluster_from_truth_cluster(std::shared_ptr<TrkrCluster> gclus);
 
   unsigned int get_errors() { return _errors + _hiteval.get_errors(); }
 
@@ -98,14 +104,29 @@ class SvtxClusterEval
 
   bool _do_cache;
   std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::map<TrkrDefs::cluskey, std::set<std::shared_ptr<TrkrCluster> > > _cache_all_truth_clusters;
   std::map<TrkrDefs::cluskey, PHG4Hit*> _cache_max_truth_hit_by_energy;
+  std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > _cache_max_truth_cluster_by_energy;
   std::map<TrkrDefs::cluskey, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_energy;
+  std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_cluster_energy;
   std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_particle;
   std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_g4hit;
   std::map<PHG4Hit*, TrkrDefs::cluskey> _cache_best_cluster_from_g4hit;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
+  std::map<std::shared_ptr<TrkrCluster>, TrkrCluster* > _cache_reco_cluster_from_truth_cluster;
+
+  // measured for low occupancy events, all in cm
+  const float sig_tpc_rphi_inner = 220e-04;
+  const float sig_tpc_rphi_mid = 155e-04;
+  const float sig_tpc_rphi_outer = 165e-04;
+  const float sig_tpc_z = 750e-04;
+  const float sig_intt_rphi = 17e-04;
+  const float range_intt_z = 0.9;
+  const float sig_mvtx_rphi = 4.0e-04;
+  const float sig_mvtx_z = 4.7e-04;
+
 
 #if !defined(__CINT__) || defined(__CLING__)
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad

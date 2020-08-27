@@ -1,10 +1,10 @@
 #include "PHField3DCylindrical.h"
 
-#include <TDirectory.h>                        // for TDirectory, gDirectory
+#include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include <CLHEP/Units/SystemOfUnits.h>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -18,7 +18,6 @@
 #include <utility>
 
 using namespace std;
-using namespace CLHEP;  // units
 
 PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)

@@ -5,13 +5,13 @@
 
 #include <ffaobjects/SyncObject.h>
 
-#include <phool/phool.h>            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <cstdlib>
-#include <iostream>                 // for operator<<, endl, basic_ostream
-#include <list>                     // for list<>::const_iterator, _List_con...
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <list>      // for list<>::const_iterator, _List_con...
 #include <string>
-#include <utility>                  // for pair
+#include <utility>  // for pair
 #include <vector>
 
 using namespace std;

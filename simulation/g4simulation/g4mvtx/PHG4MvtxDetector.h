@@ -53,6 +53,10 @@ class PHG4MvtxDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructMvtx(G4LogicalVolume* sandwich);
   int ConstructMvtx_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
+  int ConstructMvtxPassiveVol(G4LogicalVolume*& lv);
+
+  G4LogicalVolume* GetMvtxOuterShell(G4LogicalVolume*& trackerenvelope);
+
   void SetDisplayProperty(G4AssemblyVolume* av);
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
@@ -75,14 +79,13 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<int, n_Layers> m_N_staves;
   std::array<double, n_Layers> m_nominal_radius;
   std::array<double, n_Layers> m_nominal_phitilt;
-  // sensor parameters
-  double m_PixelX;
-  double m_PixelZ;
-  double m_PixelThickness;
+  std::array<double, n_Layers> m_nominal_phi0;
 
   std::string m_Detector;
   std::string m_SuperDetector;
   std::string m_StaveGeometryFile;
+  std::string m_EndWheelsSideS;
+  std::string m_EndWheelsSideN;
 };
 
 #endif

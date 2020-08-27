@@ -102,8 +102,8 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // returns
   //  1 if in ladder belonging to this layer
   //  0 if not
-  int layer_id = NAN;
-  int stave_id = NAN;
+  int layer_id = -9999;
+  int stave_id = -9999;
   //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
   whichactive = m_Detector->IsInMvtx(vstave, layer_id, stave_id);
@@ -222,7 +222,6 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     G4ThreeVector worldPosition;  // localPosition;
     G4TouchableHandle theTouchable;
-    G4VPhysicalVolume* vol1;
 
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
@@ -255,7 +254,7 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         theTouchable = prePoint->GetTouchableHandle();
         cout << "entering: depth = " << theTouchable->GetHistory()->GetDepth() << endl;
-        vol1 = theTouchable->GetVolume();
+        G4VPhysicalVolume *vol1 = theTouchable->GetVolume();
         cout << "entering volume name = " << vol1->GetName() << endl;
       }
 

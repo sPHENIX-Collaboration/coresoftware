@@ -31,10 +31,6 @@ class PHG4Cell: public PHObject
   typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
   typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
 
-  typedef std::pair<unsigned short,std::map<int,int>> tpccompress;
-  typedef std::map<unsigned short,tpccompress> tpctod;
-
-
   virtual ~PHG4Cell() {}
 
   virtual void identify(std::ostream& os = std::cout) const;

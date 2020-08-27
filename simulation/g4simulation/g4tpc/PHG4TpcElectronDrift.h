@@ -26,6 +26,7 @@ class TFile;
 class TTree;
 class TGraph;
 class TNtuple;
+class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 class Fun4AllHistoManager;
@@ -98,8 +99,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodiff;
   TH2 *deltarnodist;
   TH2 *deltaz;
+  TFile *m_outf;
   TNtuple *nt;
   TNtuple *nthit;
+  TNtuple *ntfinalhit;
   TNtuple *ntpad;
   std::string detector;
   std::string hitnodename;

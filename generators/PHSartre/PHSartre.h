@@ -27,9 +27,9 @@ class PHSartre : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_config_file(const char *cfg_file)
+  void set_config_file(const std::string &cfg_file)
   {
-    if (cfg_file) _configFile = cfg_file;
+    _configFile = cfg_file;
   }
 
   void print_config() const;
