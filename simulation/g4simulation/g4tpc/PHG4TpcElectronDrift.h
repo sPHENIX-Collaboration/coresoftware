@@ -47,8 +47,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void set_seed(const unsigned int iseed);
   
   //! space charge distortions
-  void set_add_distortions( bool value )
-  { m_add_distortions = value; }
+  void set_enable_distortions( bool value )
+  { m_enable_distortions = value; }
   
   //! distortion filename
   void set_distortion_filename( const std::string& value )
@@ -68,10 +68,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   //! space charge distortion file name
-  bool m_add_distortions = false;
+  bool m_enable_distortions = false;
   std::string m_distortion_filename;
-  std::unique_ptr<TFile> m_distortion_tfile;
-  
+  TFile *m_distortion_tfile = nullptr;
+
   //!@name space charge distortion histograms
   //@{
   TH3 *hDRint = nullptr;
