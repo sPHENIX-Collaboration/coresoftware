@@ -19,9 +19,16 @@
 class PHG4TpcPadPlane;
 class PHCompositeNode;
 class TH1;
+class TH2;
+class TH3F;
+class TAxis;
+class TFile;
+class TTree;
+class TGraph;
 class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class Fun4AllHistoManager;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -29,10 +36,18 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift();
   int Init(PHCompositeNode *topNode);
+  int DistortionIntegral(double radstart,double phistart,double z_start,double* rad_final, double* phi_final);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-
+  int event_num;
+  TH3F *TimehDR;
+  TH3F *TimehDP;
+  TH3F *TimehDZ;
+  TH3F *TimeInthDR;
+  TH3F *TimeInthDP;
+  TH3F *TimeInthDZ;
+    
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { detector = d; }
@@ -41,13 +56,48 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
+
  private:
   TrkrHitSetContainer *hitsetcontainer;
   TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
   PHG4TpcPadPlane *padplane;
+  // Fun4AllHistoManager *hm;
+  TFile *DistFile;
+  TFile *TimeDistFile;
+  TFile *CMFile;
+  TTree *TimeTree;
+  TH3F *hDRint;
+  TH3F *hDPint;
+  TH3F *hDZint;
+  TH3F *hDRdiff;
+  TH3F *hDPdiff;
+  TH3F *hDZdiff;
+  TH3F *three_d_startmap;
+  TGraph *Graph;
+  TGraph *CM;
+  TAxis *xaxis, *yaxis, *zaxis; 
   TH1 *dlong;
   TH1 *dtrans;
+  TH1 *deltatime; 
+  TH2 *hitmapstart;
+  TH2 *hitmapend;
+  TH2 *z_startmap;
+  TH2 *deltaphi;
+  TH2 *deltaphiint;
+  TH2 *deltaphidiff;
+  TH2 *deltaphidifference;
+  TH2 *deltaphidifferencepercent;
+  TH2 *deltar;
+  TH2 *deltarint;
+  TH2 *deltardiff;
+  TH2 *deltardifference;
+  TH2 *deltardifferencepercent;
+  TH2 *deltaphinodiff;
+  TH2 *deltaphinodist;
+  TH2 *deltarnodiff;
+  TH2 *deltarnodist;
+  TH2 *deltaz;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntpad;
@@ -55,6 +105,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string hitnodename;
   std::string seggeonodename;
   unsigned int seed;
+  int nBinZ, nBinR,nBinP;
+  double Start_x;
+  double Start_y;
+  double Start_z;
   double diffusion_trans;
   double added_smear_sigma_trans;
   double diffusion_long;
