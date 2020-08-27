@@ -63,7 +63,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
   PHG4TpcPadPlane *padplane;
-  // Fun4AllHistoManager *hm;
   TFile *DistFile;
   TFile *TimeDistFile;
   TFile *CMFile;
@@ -100,6 +99,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodist;
   TH2 *deltaz;
   TFile *m_outf;
+  TFile *outf;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntfinalhit;
