@@ -59,7 +59,7 @@
 #include <iostream>
 #include <map>                                          // for _Rb_tree_cons...
 #include <utility>                                      // for pair
-#
+
 using namespace std;
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
@@ -71,6 +71,11 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , padplane(nullptr)
   , dlong(nullptr)
   , dtrans(nullptr)
+  , m_outf(nullptr)
+  , nt(nullptr)
+  , nthit(nullptr)
+  , ntfinalhit(nullptr)
+  , ntpad(nullptr)
   , diffusion_trans(NAN)
   , diffusion_long(NAN)
   , drift_velocity(NAN)
@@ -92,29 +97,29 @@ PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
   gsl_rng_free(RandomGenerator);
   delete padplane;
-  delete temp_hitsetcontainer;
+delete temp_hitsetcontainer;
 }
-
-int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
+  
+  int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
-  padplane->Init(topNode);
-  event_num = 0;
-  if(event_num != 0)
+padplane->Init(topNode);
+event_num = 0;
+if(event_num != 0)
     {
-      cout << "somehow event_num is non-zero" << endl;
-    }
-  return Fun4AllReturnCodes::EVENT_OK;
+cout << "somehow event_num is non-zero" << endl;
 }
+return Fun4AllReturnCodes::EVENT_OK;
+}
+	      
+	      int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
+	      {
+PHNodeIterator iter(topNode);
 
-int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
-{
-  PHNodeIterator iter(topNode);
-
-  // Looking for the DST node
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
+// Looking for the DST node
+PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+if (!dstNode)
   {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
@@ -129,21 +134,21 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
     topNode->print();
     gSystem->Exit(1);
-    exit(1);
-  }
+exit(1);
+}
 
-  // new containers
-  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
+// new containers
+hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+if(!hitsetcontainer)
     {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
+PHNodeIterator dstiter(dstNode);
+PHCompositeNode *DetNode =
         dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
+if (!DetNode)
+  {
+DetNode = new PHCompositeNode("TRKR");
+dstNode->addNode(DetNode);
+}
 
       hitsetcontainer = new TrkrHitSetContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
@@ -236,7 +241,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   max_active_radius = get_double_param("max_active_radius");
   
 
-  TFile *StaticDistFile=new TFile("Smooth.50kHz.real_B0.5_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root");//includes Trees of TH3Fs                                     
+  TFile *StaticDistFile=new TFile("zSmooth.50kHz.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root");//includes Trees of TH3Fs                                     
    if(StaticDistFile->GetSize() == -1)
    {
      cout << "Distortion file could not be opened!" << endl;
@@ -273,51 +278,61 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
-  hitmapstart = new TH2F("hitmapstart","g4hit starting X-Y locations",1560,-78,78,1560,-78,78);
-  se->registerHisto(hitmapstart);
-  hitmapend = new TH2F("hitmapend","g4hit final X-Y locations",1560,-78,78,1560,-78,78);
-  se->registerHisto(hitmapend);
-  z_startmap = new TH2F("z_startmap","g4hit starting Z vs. R locations",2000,-100,100,780,0,78);
-  se->registerHisto(z_startmap);
-  deltaphi = new TH2F("deltaphi","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
-  se->registerHisto(deltaphi);   
-  deltaphidiff = new TH2F("deltaphidiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
-  se->registerHisto(deltaphidiff); 
-  deltaphidifference = new TH2F("deltaphidifference","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
-  se->registerHisto(deltaphidifference); 
-  deltaphidifferencepercent = new TH2F("deltaphidifferencepercent","Total delta phi percent; phi (rad);#Delta phi percent",600,0,2*M_PI,1000,-20,20);
-  se->registerHisto(deltaphidifferencepercent); 
-  deltaphiint = new TH2F("deltaphiint","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
-  se->registerHisto(deltaphiint); 
-  deltatime = new TH1F("deltatime","Total time difference between integrated and differential runtimes per G4hit in us",300,-15,15);
-  se->registerHisto(deltatime);
-  deltaz = new TH2F("deltaz","Total delta z; z (cm);#Delta z (cm)",1000,0,100,1000,-.5,.5);
-  se->registerHisto(deltaz); 
-  deltaphinodiff = new TH2F("deltaphinodiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
-  se->registerHisto(deltaphinodiff); 
-  deltaphinodist = new TH2F("deltaphinodist","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
-  se->registerHisto(deltaphinodist); 
-  deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
-  se->registerHisto(deltar);
-  deltardiff = new TH2F("deltardiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
-  se->registerHisto(deltardiff);
-  deltardifference = new TH2F("deltardifference","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.005,.005);
-  se->registerHisto(deltardifference);
-  deltardifferencepercent = new TH2F("deltardifferencepercent","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-20,20);
-  se->registerHisto(deltardifferencepercent);
-
-  deltarint = new TH2F("deltarint","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
-  se->registerHisto(deltarint);
-  deltarnodiff = new TH2F("deltarnodiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
-  se->registerHisto(deltarnodiff);
-  deltarnodist = new TH2F("deltarnodist","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
-  se->registerHisto(deltarnodist);
-  nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
-  nthit = new TNtuple("nthit", "hit stuff", "hit:layer:phi:phicenter:z_gem:zcenter:weight");
-  ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
-  se->registerHisto(nt);
-  se->registerHisto(nthit);
-  se->registerHisto(ntpad);
+  if(true) //Set verbosity later
+    {
+      TFile *outf = new TFile("ElectronDriftQA.root", "recreate");
+      hitmapstart = new TH2F("hitmapstart","g4hit starting X-Y locations",1560,-78,78,1560,-78,78);
+      se->registerHisto(hitmapstart);
+      hitmapend = new TH2F("hitmapend","g4hit final X-Y locations",1560,-78,78,1560,-78,78);
+      se->registerHisto(hitmapend);
+      z_startmap = new TH2F("z_startmap","g4hit starting Z vs. R locations",2000,-100,100,780,0,78);
+      se->registerHisto(z_startmap);
+      deltaphi = new TH2F("deltaphi","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      se->registerHisto(deltaphi);   
+      deltaphidiff = new TH2F("deltaphidiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
+      se->registerHisto(deltaphidiff); 
+      deltaphidifference = new TH2F("deltaphidifference","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      se->registerHisto(deltaphidifference); 
+      deltaphidifferencepercent = new TH2F("deltaphidifferencepercent","Total delta phi percent; phi (rad);Delta phi percent",600,0,2*M_PI,1000,-20,20);
+      se->registerHisto(deltaphidifferencepercent); 
+      deltaphiint = new TH2F("deltaphiint","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
+      se->registerHisto(deltaphiint); 
+      deltatime = new TH1F("deltatime","Total time difference between integrated and differential runtimes per G4hit in us",300,-15,15);
+      se->registerHisto(deltatime);
+      deltaz = new TH2F("deltaz","Total delta z; z (cm);#Delta z (cm)",1000,0,100,1000,-.5,.5);
+      se->registerHisto(deltaz); 
+      deltaphinodiff = new TH2F("deltaphinodiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      se->registerHisto(deltaphinodiff); 
+      deltaphinodist = new TH2F("deltaphinodist","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
+      se->registerHisto(deltaphinodist); 
+      deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
+      se->registerHisto(deltar);
+      deltardiff = new TH2F("deltardiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      se->registerHisto(deltardiff);
+      deltardifference = new TH2F("deltardifference","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.005,.005);
+      se->registerHisto(deltardifference);
+      deltardifferencepercent = new TH2F("deltardifferencepercent","Total Delta r; r (cm);% difference in #Delta r between integrated and differential",580,20,78,1000,-20,20);
+      se->registerHisto(deltardifferencepercent);
+      deltarint = new TH2F("deltarint","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      se->registerHisto(deltarint);
+      deltarnodiff = new TH2F("deltarnodiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
+      se->registerHisto(deltarnodiff);
+      deltarnodist = new TH2F("deltarnodist","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      se->registerHisto(deltarnodist);
+     }
+     
+if (Verbosity())
+    {
+      // eval tree only when verbosity is on
+      m_outf = new TFile("nt_out.root", "recreate");
+      nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
+      nthit = new TNtuple("nthit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
+      ntfinalhit = new TNtuple("ntfinalhit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
+      ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
+      se->registerHisto(nt);
+      se->registerHisto(nthit);
+      se->registerHisto(ntpad);
+    }
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
@@ -354,8 +369,8 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
 	binz=2; // Eliminates double counting of first z bin in case findbin puts into bin 1 instead of 2 (since they contain the same values)                                                            
       }
     
-    distr = hDRdiff->Interpolate(newp,newr,binz)+TimehDR->Interpolate(newp,newr,binz); //If any of these goes into bin 1, this gives an error due to bin "below" being non-existent, for phi need to implement periodic BCs                        
-    distrp = hDPdiff->Interpolate(newp,newr,binz)+TimehDP->Interpolate(newp,newr,binz);
+    distr = hDRdiff->Interpolate(newp,newr,binz);//+TimehDR->Interpolate(newp,newr,binz); //If any of these goes into bin 1, this gives an error due to bin "below" being non-existent, for phi need to implement periodic BCs                        
+    distrp = hDPdiff->Interpolate(newp,newr,binz);//+TimehDP->Interpolate(newp,newr,binz);
 
     newr += distr; // Sum over r-distortions                                                                                                                                                              
     newp += distrp/newr; // Sum over phi distortions (distrp is r*phi, need to divide by r to get phi)                                                                                                    
@@ -385,8 +400,8 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   //Get SC maps corresponding to event_num
-  TimeTree->GetEntry(event_num);
-  event_num += 1;
+  // TimeTree->GetEntry(event_num);
+  //event_num += 1;
   
   //
   //Declare stopwatches for time performance characterization
@@ -405,8 +420,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   PHG4HitContainer::ConstIterator hiter;
-  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();    
-
+  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
+    
+  double ecollectedhits = 0.0;
+  int ncollectedhits = 0;
   double ihit = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -427,14 +444,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
            << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
            << endl;
 
-    if (n_electrons <= 0)
+    if (n_electrons == 0)
       {
-	if (n_electrons < 0)
-	  {
-	    cout << "really bad number of electrons: " << n_electrons
-		 << ", eion: " << eion
-		 << endl;
-	  }
 	continue;
       }
     
@@ -497,17 +508,18 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	  z_start = fabs(z_start);// Eventually will require two maps for pos and neg Z 
 	}
       //cout << "phistart is " << phistart+M_PI << " radstart is " << radstart <<" z_start is " << z_start << endl;
-      bool do_diff_SC_Distortion = true;
+  
       double r_final_diff = 0;
       double phi_final_diff = 0;
       double r_final_int = 0;
       double phi_final_int = 0;
+      bool do_diff_SC_Distortion = true;  
       bool do_Int_SC_Distortion = true; // Decide whether or not to do space charge distortion     
       if (do_Int_SC_Distortion)
 	{
 	  intwatch->Start(false);
-	  rad_final = radstart+hDRint->Interpolate(phistart+M_PI,radstart,z_start)+TimeInthDR->Interpolate(phistart+M_PI,radstart,z_start);
-	  phi_final = phistart+M_PI+(hDPint->Interpolate(phistart+M_PI,radstart,z_start)/radstart)+(TimeInthDP->Interpolate(phistart+M_PI,radstart,z_start)/radstart);
+	  rad_final = radstart+hDRint->Interpolate(phistart+M_PI,radstart,z_start);//+TimeInthDR->Interpolate(phistart+M_PI,radstart,z_start);
+	  phi_final = phistart+M_PI+(hDPint->Interpolate(phistart+M_PI,radstart,z_start)/radstart);//+(TimeInthDP->Interpolate(phistart+M_PI,radstart,z_start)/radstart);
 	  x_final = rad_final*cos(phi_final-M_PI)+rantrans*cos(ranphi);
 	  y_final = rad_final*sin(phi_final-M_PI)+rantrans*sin(ranphi);
 	  deltarint->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
@@ -516,7 +528,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	  phi_final_int = phi_final;
 	  intwatch->Stop();
 	}
-  if(do_diff_SC_Distortion)
+      if(do_diff_SC_Distortion)
 	{
 	  diffwatch->Start(false);
 	  DistortionIntegral(radstart,phistart,z_start,&rad_final,&phi_final);
@@ -529,11 +541,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	  diffwatch->Stop();	
 	}
     
-      //  cout << "phi_final before filling is " << phi_final <<" phi_final_diff - phi_final_int before filling is " << phi_final_diff - phi_final_int << endl;
+      //cout << "phi_final_diff before filling is " << phi_final_diff <<" phi_final_diff - phi_final_int before filling is " << phi_final_diff - phi_final_int << endl;
+      // cout << "rad_final_diff before filling is " << r_final_diff <<" r_final_diff - rad_final_int before filling is " << r_final_diff - r_final_int << endl;
       deltardifference->Fill(rad_final,r_final_diff - r_final_int);
-      deltardifferencepercent->Fill(rad_final,100*(r_final_diff - r_final_int)/r_final_diff);
+      deltardifferencepercent->Fill(rad_final,100*((r_final_diff-radstart) - (r_final_int-radstart))/(r_final_diff-radstart));
       deltaphidifference->Fill(phi_final,phi_final_diff - phi_final_int);
-      deltaphidifferencepercent->Fill(phi_final,100*(phi_final_diff - phi_final_int)/phi_final_diff);
+      deltaphidifferencepercent->Fill(phi_final,100*((phi_final_diff-phistart) - (phi_final_int-phistart))/(phi_final_diff-phistart));
       
       // Diagnostic plots, written into ElectronDriftQA.root, some won't make sense if do_SC_Distortion set to false
       hitmapstart->Fill(x_start,y_start); // G4Hit starting positions
@@ -570,8 +583,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }
 
       if (Verbosity() > 0)
-        nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
-
+	{
+	  assert(nt);
+	  nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
+	}
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
@@ -697,11 +712,23 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 
   if (true) // choose verbosity later
   {
+    if (Verbosity() > 0)
+      {
+	assert(m_outf);
+	assert(nt);
+	assert(ntpad);
+	assert(nthit);
+	assert(ntfinalhit);
+	
+	m_outf->cd();
+	nt->Write();
+	ntpad->Write();
+	nthit->Write();
+	ntfinalhit->Write();
+	m_outf->Close();
+      }
     
-    TFile *outf = new TFile("ElectronDriftQA.root", "recreate");
-    outf->WriteTObject(nt);
-    outf->WriteTObject(ntpad);
-    outf->WriteTObject(nthit);
+    outf->cd();
     // TimehDR->Write();
     // TimehDP->Write();
     deltar->Write();
@@ -759,8 +786,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
-  set_default_double_param("added_smear_trans", 0.12);  // cm
-  set_default_double_param("added_smear_long", 0.15);   // cm
+  set_default_double_param("added_smear_trans", 0.085);  // cm
+  set_default_double_param("added_smear_long", 0.105);   // cm
 
   return;
 }
