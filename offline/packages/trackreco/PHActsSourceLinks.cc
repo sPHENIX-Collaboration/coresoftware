@@ -654,7 +654,7 @@ void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
 	for(int j = 0; j < 3; j++)
 	  worldErr(i,j) = vertex->get_error(i, j);
 
-      if(Verbosity() == 0)
+      if(Verbosity() > 1)
 	{
 	  std::cout << "global cov xx, yy, zz: " << worldErr(0,0) 
 		    << ", " << worldErr(1,1) << ", " << worldErr(2,2)
