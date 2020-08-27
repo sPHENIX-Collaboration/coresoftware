@@ -214,10 +214,10 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   max_active_radius = get_double_param("max_active_radius");
 
   // space charge distortions from external file
-  if( m_add_distortions )
+  if( m_enable_distortions )
   {
     std::cout << "PHG4TpcElectronDrift::InitRun - reading distortions from " << m_distortion_filename << std::endl;
-    m_distortion_tfile.reset(TFile::Open( m_distortion_filename.c_str() ));
+    m_distortion_tfile = TFile::Open( m_distortion_filename.c_str());
     if( !m_distortion_tfile )
     {
       std::cout << "PHG4TpcElectronDrift::InitRun - cannot open " << m_distortion_filename << std::endl;
@@ -228,6 +228,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
     hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
     hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );    
+    
+    // dump axis limits
+    for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
+    { std::cout << "PHG4TpcElectronDrift::InitRun - axis: " << axis->GetTitle() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
+    
   }
   
   auto se = Fun4AllServer::instance();
@@ -308,65 +313,69 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       for (unsigned int i = 0; i < n_electrons; i++)
 	{
-	  // We choose the electron starting position at random from a flat distribution along the path length
-	  // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
+    // We choose the electron starting position at random from a flat distribution along the path length
+    // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
     const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
     const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
     const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
     const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
-	  const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
+    const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
     const double radstart = std::sqrt(square(x_start) + square(y_start));
-	  const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
-	  double rantrans = gsl_ran_gaussian(RandomGenerator.get(), r_sigma);
-	  rantrans += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
+    const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
+    double rantrans = gsl_ran_gaussian(RandomGenerator.get(), r_sigma);
+    rantrans += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
-	  const double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
+    const double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
     const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - fabs(z_start)) / drift_velocity;
-	  double rantime = gsl_ran_gaussian(RandomGenerator.get(), t_sigma);
-	  rantime += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
+    double rantime = gsl_ran_gaussian(RandomGenerator.get(), t_sigma);
+    rantime += gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
 
     // drift time
     const double t_final = t_start + t_path + rantime;
-	  if (t_final < min_time || t_final > max_time) continue;
+    if (t_final < min_time || t_final > max_time) continue;
 
-	  double z_final = 0;
-	  if (z_start < 0) z_final = -tpc_length / 2. + t_final * drift_velocity;
-	  else z_final = tpc_length / 2. - t_final * drift_velocity;
-     
+    double z_final = 0;
+    if (z_start < 0) z_final = -tpc_length / 2. + t_final * drift_velocity;
+    else z_final = tpc_length / 2. - t_final * drift_velocity;
+    
     double x_final = 0;
     double y_final = 0;  
     double rad_final = 0;
-	  const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
-    if( m_add_distortions )
+    const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
+    if( m_enable_distortions )
     {
-      // start azimuth angle
-      const double phistart = std::atan2(y_start,x_start);
-
+      // get starting azimuth angle. Convert to [0,2pi[ to match histograms
+      const double z_abs = std::abs( z_start );
+      double phistart = std::atan2(y_start,x_start);
+      if( phistart < 0 ) phistart += 2*M_PI;
+      
       // add radial distortion
-      // TODO: double check the M_PI with Henry
-      rad_final = radstart+hDRint->Interpolate(phistart+M_PI,radstart,z_start);      
-      const double phi_final = phistart+(hDPint->Interpolate(phistart+M_PI,radstart,z_start)/radstart);
+      const double dr = hDRint->Interpolate(phistart,radstart,z_abs);
+      rad_final = radstart+dr;
+      std::cout << "PHG4TpcElectronDrift::process_event - delta r: " << dr << std::endl;
+      
+      const double phi_final = phistart+(hDPint->Interpolate(phistart,radstart,z_abs)/radstart);
       
       // also update z
-      z_final += hDZint->Interpolate(phistart+M_PI,radstart,z_start);
+      // z_final += hDZint->Interpolate(phistart,radstart,z_abs);
       
       // convert back to cartesian coordinates, add diffusion
-      x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
-      y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
+      x_final = rad_final*std::cos(phi_final)+rantrans*cos(ranphi);
+      y_final = rad_final*std::sin(phi_final)+rantrans*sin(ranphi);
     } else {
       x_final = x_start + rantrans * cos(ranphi);
       y_final = y_start + rantrans * sin(ranphi);
       rad_final = std::sqrt(square(x_final) + square(y_final));    
     }
     
-	  // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
-	  if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
+    // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
+    if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
     { continue; }
 
-	  if (Verbosity() > 1000)
-	    {
+    if (Verbosity() > 1000)
+    {
 	      cout << "ihit " << ihit << " electron " << i << " g4hitid " << hiter->first << " f " << f << endl;
 	      cout << "radstart " << radstart << " x_start: " << x_start
 		   << ", y_start: " << y_start
