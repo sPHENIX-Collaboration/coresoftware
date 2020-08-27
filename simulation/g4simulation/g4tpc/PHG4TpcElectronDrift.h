@@ -16,6 +16,7 @@
 class PHG4TpcPadPlane;
 class PHCompositeNode;
 class TH1;
+class TH3;
 class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
@@ -26,24 +27,57 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift() = default;
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode*);
+  int InitRun(PHCompositeNode*);
+  int process_event(PHCompositeNode*);
+  int End(PHCompositeNode*);
 
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) { detector = d; }
-  std::string Detector() const { return detector; }
+  //! detector name
+  void Detector(const std::string &d) 
+  { detector = d; }
+
+  //! detector name
+  std::string Detector() const 
+  { return detector; }
+  
+  //! random seed
   void set_seed(const unsigned int iseed);
-  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  
+  //! space charge distortions
+  void set_add_distortions( bool value )
+  { m_add_distortions = value; }
+  
+  //! distortion filename
+  void set_distortion_filename( const std::string& value )
+  { m_distortion_filename = value; }
+  
+  //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
+  
+  //! map a given x,y,z coordinates to plane hits
+  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
+
+  //! space charge distortion file name
+  bool m_add_distortions = false;
+  std::string m_distortion_filename;
+  std::unique_ptr<TFile> m_distortion_tfile;
+  
+  //!@name space charge distortion histograms
+  //@{
+  TH3 *hDRint = nullptr;
+  TH3 *hDPint = nullptr;
+  TH3 *hDZint = nullptr;
+  //@}
+  
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
   TFile *m_outf = nullptr;
