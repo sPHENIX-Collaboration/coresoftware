@@ -146,7 +146,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     // just set to 10 ns for now?
     const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = -track->get_charge();  // charge is set in PHHoughTrackSeeding, copied over in PHGenFitTrkProp. Sign convention is apparently opposite here. Mag field sign?
+    const int trackQ = track->get_charge();
 
     const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
 					trackQ * Acts::UnitConstants::e, 

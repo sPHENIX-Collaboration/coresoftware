@@ -208,14 +208,14 @@ int PHActsTrkProp::Process()
 	/// If we are resetting the covariance and the space point
 	/// to the vertex, the POCA should have the covariance of the
 	/// vertex
-	covariance << 25 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-	  0., 25 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-	  0., 0., 0.005, 0., 0., 0.,
-	  0., 0., 0., 0.005, 0., 0.,
-	  0., 0., 0., 0., trackSeed.charge() * 0.0001, 0.,
-	  0., 0., 0., 0., 0., 1.;
+	covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	              0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	              0., 0., 0.01, 0., 0., 0.,
+	              0., 0., 0., 0.01, 0., 0.,
+	              0., 0., 0., 0., 0.0001, 0.,
+	              0., 0., 0., 0., 0., 1.;
 
-	Acts::Vector3D newPos(trackSeed.getVertex());
+	Acts::Vector3D newPos(track.getVertex());
 
 	FW::TrackParameters trackSeedNewCov(covariance,
 					    newPos,
