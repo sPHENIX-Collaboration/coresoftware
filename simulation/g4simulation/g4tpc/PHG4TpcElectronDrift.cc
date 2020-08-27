@@ -354,7 +354,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // add radial distortion
       const double dr = hDRint->Interpolate(phistart,radstart,z_abs);
       rad_final = radstart+dr;
-      std::cout << "PHG4TpcElectronDrift::process_event - delta r: " << dr << std::endl;
+      // std::cout << "PHG4TpcElectronDrift::process_event - delta r: " << dr << std::endl;
       
       const double phi_final = phistart+(hDPint->Interpolate(phistart,radstart,z_abs)/radstart);
       
