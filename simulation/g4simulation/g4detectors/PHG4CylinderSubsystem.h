@@ -5,7 +5,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <array>  // for array
+#include <array>   // for array
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -43,9 +43,9 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const  override { return m_SteppingAction; }
+  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
   void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
     m_ColorArray[0] = red;
@@ -56,12 +56,12 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   // this method is used to check if it can be used as mothervolume
   // Subsystems which can be mothervolume need to implement this
   // and return true
-  virtual bool CanBeMotherSubsystem() const  override { return true; }
+  virtual bool CanBeMotherSubsystem() const override { return true; }
 
-// this is just needed for use as reference plane for projections
-// this is the only detector using this - there is no need to add
-// this to our parameters
-  void SaveAllHits(bool i = true) {m_SaveAllHitsFlag = i;}
+  // this is just needed for use as reference plane for projections
+  // this is the only detector using this - there is no need to add
+  // this to our parameters
+  void SaveAllHits(bool i = true) { m_SaveAllHitsFlag = i; }
 
  private:
   void SetDefaultParameters() override;
