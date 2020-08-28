@@ -23,3 +23,4 @@ AM_CONDITIONAL([MAKEROOT6],[test `root-config --version | awk '{print $1>=6.?"1"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+
