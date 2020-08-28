@@ -37,11 +37,16 @@ class PHFlag
   virtual int get_IntFlag(const std::string &name, const int defaultval);
   virtual void set_IntFlag(const std::string &name, const int flag);
 
+  virtual const std::string get_StringFlag(const std::string &name) const {return get_CharFlag(name);}
+  virtual const std::string get_StringFlag(const std::string &name, const std::string &defaultval) {return get_CharFlag(name, defaultval);}
+  virtual void set_StringFlag(const std::string &name, const std::string &flag) {set_CharFlag(name, flag);}
+
   virtual void Print() const;
   virtual void PrintDoubleFlags() const;
   virtual void PrintIntFlags() const;
   virtual void PrintFloatFlags() const;
   virtual void PrintCharFlags() const;
+  virtual void PrintStringFlags() const {PrintCharFlags();}
   virtual void ReadFromFile(const std::string &name);
   virtual void WriteToFile(const std::string &name);
 
