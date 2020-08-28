@@ -100,8 +100,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodist;
   TH2 *deltaz;
   TFile *m_outf;
-  TFile *outf;
-  TFile *coutf;
+  TFile *EDrift_outf;
+  TFile *CM_outf;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntfinalhit;

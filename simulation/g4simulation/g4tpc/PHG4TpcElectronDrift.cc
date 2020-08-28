@@ -292,32 +292,33 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   if(do_Centralmem)
     { 
       cout << "beginning of central membrane initialization" << endl;
-      //double e_num,x_start,y_start,x_final,y_final;
-      TFile *coutf = new TFile("CM_PositionTree.root", "recreate");
-      if(coutf->GetSize() == -1)
-	{
-	  cout << "CM out file could not be opened!" << endl;
-	}
+      double x_start,y_start,x_final,y_final;
       
       TFile *CMFile=new TFile("Centralmem.root");//includes TGraph
       if(CMFile->GetSize() == -1)
 	{
 	  cout << "CM in file could not be opened!" << endl;
 	}
+      CM_outf = new TFile("CM_PositionTree.root", "recreate");
+      if(CM_outf->GetSize() == -1)
+	{
+	  cout << "CM out file could not be opened!" << endl;
+	}
+      
       CM=(TGraph*)CMFile->Get("Graph");
-      TTree *CMTimeDists = new TTree("CMTimeDists","Tree w/ event_num, x_i, y_i, x_f, y_f");
-      TBranch *event_num = CMTimeDists->Branch("event_num",&event_num,"event_num/I");
-      TBranch *x_start = CMTimeDists->Branch("x_start",&x_start,"x_start/B");
-      TBranch *y_start = CMTimeDists->Branch("y_start",&y_start,"y_start/B");
-      TBranch *x_final = CMTimeDists->Branch("x_final",&x_final,"x_final/B");
-      TBranch *y_final = CMTimeDists->Branch("y_final",&y_final,"y_final/B");
+      CMTimeDists = new TTree("CMTimeDists","Tree w/ event_num, x_i, y_i, x_f, y_f");
+      CMTimeDists->Branch("event_num",&event_num,"event_num/I");
+      CMTimeDists->Branch("x_start",&x_start,"x_start/B");
+      CMTimeDists->Branch("y_start",&y_start,"y_start/B");
+      CMTimeDists->Branch("x_final",&x_final,"x_final/B");
+      CMTimeDists->Branch("y_final",&y_final,"y_final/B");
       cout << "end of central membrane initialization" << endl;    
     }
 
   if(true) //Set verbosity later
     {
-      TFile *outf = new TFile("ElectronDriftQA.root", "recreate");
-      if(outf->GetSize() == -1)
+      EDrift_outf = new TFile("ElectronDriftQA.root", "recreate");
+      if(EDrift_outf->GetSize() == -1)
 	{
 	  cout << "EDriftQA file could not be opened!" << endl;
 	}
@@ -469,6 +470,10 @@ if (!g4hit)
   double ecollectedhits = 0.0;
   int ncollectedhits = 0;
   double ihit = 0;
+  if(do_Centralmem)
+    {
+      hit_begin_end.second = std::next(hit_begin_end.first);
+    }
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     double t0 = fmax(hiter->second->get_t(0), hiter->second->get_t(1));
@@ -514,8 +519,8 @@ if (!g4hit)
       // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
       double f = gsl_ran_flat(RandomGenerator, 0.0, 1.0);
 
-      double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
-      double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
+      x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
+      y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
       double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
       if(do_Centralmem)
@@ -600,7 +605,12 @@ if (!g4hit)
 	  diffwatch->Stop();	
 	}
       cout << "no segfault before filling CMTimeDists" << "Values of branch variables are: event_num,x_start,y_start,x_final,y_final " << event_num << " , " << x_start << " , " << y_start << " , " << x_final << " , " << y_final <<  endl;
+
+
       CMTimeDists->Fill();
+
+
+
       cout << "no segfault after filling CMTimeDists" << endl;
       //cout << "phi_final_diff before filling is " << phi_final_diff <<" phi_final_diff - phi_final_int before filling is " << phi_final_diff - phi_final_int << endl;
       // cout << "rad_final_diff before filling is " << r_final_diff <<" r_final_diff - rad_final_int before filling is " << r_final_diff - r_final_int << endl;
@@ -799,10 +809,15 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 	ntfinalhit->Write();
 	m_outf->Close();
       }
-    coutf->cd();
+    cout << "Fine before writing CMTimeDists" << endl;
+
+    CM_outf->cd();
     CMTimeDists->Write();
-    coutf->Close();
-    outf->cd();
+    CM_outf->Close();
+
+    cout << "Fine after writing CMTimeDists" << endl;
+
+    EDrift_outf->cd();
     // TimehDR->Write();
     // TimehDP->Write();
     deltar->Write();
@@ -824,8 +839,9 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
     hitmapstart->Write();
     hitmapend->Write();
     z_startmap->Write();
-    outf->Close();
-  }
+    EDrift_outf->Close();
+    cout << "Fine after writing EDriftOut" << endl;  
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
