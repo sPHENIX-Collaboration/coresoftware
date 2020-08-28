@@ -146,28 +146,28 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
       string bdef = bname + "/F";
       m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_proj_p_vec[iter->second][i], bdef.c_str());
     }
-          string nodename = "G4HIT_" + iter->first;
-          PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-	  if (hits)
-	  {
-    for (int i = 0; i < 3; i++)
+    string nodename = "G4HIT_" + iter->first;
+    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+    if (hits)
     {
-      string bname = iter->first + "_" + xyz[i];
-      string bdef = bname + "/F";
-      m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_ref_vec[iter->second][i], bdef.c_str());
-    }
-    for (int i = 0; i < 3; i++)
-    {
-      string bname = iter->first + "_p" + xyz[i];
-      string bdef = bname + "/F";
+      for (int i = 0; i < 3; i++)
+      {
+        string bname = iter->first + "_" + xyz[i];
+        string bdef = bname + "/F";
+        m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_ref_vec[iter->second][i], bdef.c_str());
+      }
+      for (int i = 0; i < 3; i++)
+      {
+        string bname = iter->first + "_p" + xyz[i];
+        string bdef = bname + "/F";
 
-      m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_ref_p_vec[iter->second][i], bdef.c_str());
+        m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_ref_p_vec[iter->second][i], bdef.c_str());
+      }
     }
-	  }
-	  if (! hits)
-	  {
-	    cout << "InitRun: could not find " << nodename << endl;
-	  }
+    if (!hits)
+    {
+      cout << "InitRun: could not find " << nodename << endl;
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -263,7 +263,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
       if (!temp)
       {
         if (Verbosity())
-        {  
+        {
           std::cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
           track_itr->second->identify();
         }
@@ -330,17 +330,17 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
         {
           //	  cout << "found " << trkstates->second->get_name() << endl;
           // setting the projection (xyz and pxpypz)
-	  for (int i=0; i<3; i++)
-	  {
-m_TTree_proj_vec[iter->second][i] = trkstates->second->get_pos(i);
-m_TTree_proj_p_vec[iter->second][i] = trkstates->second->get_mom(i);
-	  }
+          for (int i = 0; i < 3; i++)
+          {
+            m_TTree_proj_vec[iter->second][i] = trkstates->second->get_pos(i);
+            m_TTree_proj_p_vec[iter->second][i] = trkstates->second->get_mom(i);
+          }
 
           string nodename = "G4HIT_" + trkstates->second->get_name();
           PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
           if (!hits)
           {
-//            cout << "could not find " << nodename << endl;
+            //            cout << "could not find " << nodename << endl;
             continue;
           }
           //	  cout << "number of hits: " << hits->size() << endl;
@@ -356,12 +356,12 @@ m_TTree_proj_p_vec[iter->second][i] = trkstates->second->get_mom(i);
                 cout << "bad index: " << iter->second << endl;
                 gSystem->Exit(1);
               }
-m_TTree_ref_vec[iter->second][0] = hit_iter->second->get_x(0);
-m_TTree_ref_vec[iter->second][1] = hit_iter->second->get_y(0);
-m_TTree_ref_vec[iter->second][2] = hit_iter->second->get_z(0);
-m_TTree_ref_p_vec[iter->second][0] = hit_iter->second->get_px(0);
-m_TTree_ref_p_vec[iter->second][1] = hit_iter->second->get_py(0);
-m_TTree_ref_p_vec[iter->second][2] = hit_iter->second->get_pz(0);
+              m_TTree_ref_vec[iter->second][0] = hit_iter->second->get_x(0);
+              m_TTree_ref_vec[iter->second][1] = hit_iter->second->get_y(0);
+              m_TTree_ref_vec[iter->second][2] = hit_iter->second->get_z(0);
+              m_TTree_ref_p_vec[iter->second][0] = hit_iter->second->get_px(0);
+              m_TTree_ref_p_vec[iter->second][1] = hit_iter->second->get_py(0);
+              m_TTree_ref_p_vec[iter->second][2] = hit_iter->second->get_pz(0);
             }
           }
         }
@@ -513,10 +513,10 @@ void PHG4TrackFastSimEval::reset_variables()
   m_TTree_DeltaVz = NAN;
   m_TTree_nTracks = -9999;
   m_TTree_nFromTruth = -9999;
-for(auto &elem : m_TTree_proj_vec) std::fill(elem.begin(), elem.end(), -9999);
-for(auto &elem : m_TTree_proj_p_vec) std::fill(elem.begin(), elem.end(), -9999);
-for(auto &elem : m_TTree_ref_vec) std::fill(elem.begin(), elem.end(), -9999);
-for(auto &elem : m_TTree_ref_p_vec) std::fill(elem.begin(), elem.end(), -9999);
+  for (auto &elem : m_TTree_proj_vec) std::fill(elem.begin(), elem.end(), -9999);
+  for (auto &elem : m_TTree_proj_p_vec) std::fill(elem.begin(), elem.end(), -9999);
+  for (auto &elem : m_TTree_ref_vec) std::fill(elem.begin(), elem.end(), -9999);
+  for (auto &elem : m_TTree_ref_p_vec) std::fill(elem.begin(), elem.end(), -9999);
 }
 
 //----------------------------------------------------------------------------//
@@ -560,13 +560,13 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
 
 void PHG4TrackFastSimEval::AddProjection(const string &name)
 {
-    vector<float> floatvec {-9999,-9999,-9999};
-    m_TTree_proj_vec.push_back(floatvec);
-    m_TTree_proj_p_vec.push_back(floatvec);
-    m_TTree_ref_vec.push_back(floatvec);
-    m_TTree_ref_p_vec.push_back(floatvec);
-// using m_ProjectionNameMap.size() makes sure it starts with 0 and then increments by 1
-// for each additional projection
+  vector<float> floatvec{-9999, -9999, -9999};
+  m_TTree_proj_vec.push_back(floatvec);
+  m_TTree_proj_p_vec.push_back(floatvec);
+  m_TTree_ref_vec.push_back(floatvec);
+  m_TTree_ref_p_vec.push_back(floatvec);
+  // using m_ProjectionNameMap.size() makes sure it starts with 0 and then increments by 1
+  // for each additional projection
   m_ProjectionNameMap.insert(make_pair(name, m_ProjectionNameMap.size()));
   return;
 }

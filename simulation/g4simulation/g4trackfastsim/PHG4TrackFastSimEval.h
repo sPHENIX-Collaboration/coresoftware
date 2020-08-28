@@ -128,10 +128,10 @@ class PHG4TrackFastSimEval : public SubsysReco
 
   // names and index of projections
   std::map<std::string, unsigned int> m_ProjectionNameMap;
-// projections to cylinders and planes
+  // projections to cylinders and planes
   std::vector<std::vector<float>> m_TTree_proj_vec;
   std::vector<std::vector<float>> m_TTree_proj_p_vec;
-// hits on reference cylinders and planes
+  // hits on reference cylinders and planes
   std::vector<std::vector<float>> m_TTree_ref_vec;
   std::vector<std::vector<float>> m_TTree_ref_p_vec;
 };
