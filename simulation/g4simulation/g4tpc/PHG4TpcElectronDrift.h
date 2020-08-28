@@ -22,9 +22,9 @@ class TH1;
 class TH2;
 class TH3F;
 class TAxis;
+class TGraph;
 class TFile;
 class TTree;
-class TGraph;
 class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
@@ -67,6 +67,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TFile *TimeDistFile;
   TFile *CMFile;
   TTree *TimeTree;
+  TTree *CMTimeDists;
   TH3F *hDRint;
   TH3F *hDPint;
   TH3F *hDZint;
@@ -100,6 +101,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltaz;
   TFile *m_outf;
   TFile *outf;
+  TFile *coutf;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntfinalhit;
@@ -107,8 +109,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
+  bool do_Centralmem;
   unsigned int seed,print_layer;
-  int nBinZ, nBinR,nBinP;
+  int nBinZ, nBinR,nBinP,e_num;
+  double x_start,y_start,x_final,y_final; 
   double Start_x;
   double Start_y;
   double Start_z;

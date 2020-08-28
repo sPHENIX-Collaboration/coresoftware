@@ -44,6 +44,7 @@
 #include <TH2.h>
 #include <TH3F.h>
 #include <TAxis.h>
+#include <TGraph.h>
 #include <TStopwatch.h>
 #include <TTimeStamp.h>
 #include <TString.h>
@@ -85,43 +86,46 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , min_time(NAN)
   , max_time(NAN)
 {
-  //cout << "Constructor of PHG4TpcElectronDrift" << endl;
+  cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
-
+  cout << "Constructor of PHG4TpcElectronDrift survived until return" << endl;
   return;
 }
 
 PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
+  cout << "Destructor of PHG4TpcElectronDrift" << endl;
   gsl_rng_free(RandomGenerator);
   delete padplane;
-delete temp_hitsetcontainer;
+  delete temp_hitsetcontainer;
+  cout << "Destructor of PHG4TpcElectronDrift survived" << endl;
 }
   
   int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
-padplane->Init(topNode);
-event_num = 0;
-if(event_num != 0)
+  cout << "does init survive?" << endl;
+  padplane->Init(topNode);
+  event_num = 0;
+  if(event_num != 0)
     {
-cout << "somehow event_num is non-zero" << endl;
-}
-return Fun4AllReturnCodes::EVENT_OK;
+      cout << "somehow event_num is non-zero" << endl;
+    }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 	      
-	      int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
-	      {
-PHNodeIterator iter(topNode);
-
-// Looking for the DST node
-PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-if (!dstNode)
-  {
-std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    exit(1);
-  }
+int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
+{
+  PHNodeIterator iter(topNode);
+  
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      exit(1);
+    }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   string paramnodename = "G4CELLPARAM_" + detector;
@@ -130,31 +134,31 @@ std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
-  {
-    cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
-    topNode->print();
-    gSystem->Exit(1);
-exit(1);
-}
-
-// new containers
-hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-if(!hitsetcontainer)
     {
-PHNodeIterator dstiter(dstNode);
-PHCompositeNode *DetNode =
+      cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
+      topNode->print();
+    gSystem->Exit(1);
+    exit(1);
+    }
+  
+  // new containers
+  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!hitsetcontainer)
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
         dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-if (!DetNode)
-  {
-DetNode = new PHCompositeNode("TRKR");
-dstNode->addNode(DetNode);
-}
-
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+      
       hitsetcontainer = new TrkrHitSetContainer();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
       DetNode->addNode(newNode);
     }
-
+  
   hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
   if(!hittruthassoc)
     {
@@ -171,59 +175,59 @@ dstNode->addNode(DetNode);
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
-
+  
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
   if (!seggeo)
-  {
-    seggeo = new PHG4CylinderCellGeomContainer();
-    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
-    runNode->addNode(newNode);
-  }
-
+    {
+      seggeo = new PHG4CylinderCellGeomContainer();
+      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+      runNode->addNode(newNode);
+    }
+  
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
   if (!RunDetNode)
-  {
-    RunDetNode = new PHCompositeNode(detector);
-    runNode->addNode(RunDetNode);
-  }
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
   SaveToNodeTree(RunDetNode, paramnodename);
-
+  
   // save this to the parNode for use
   PHNodeIterator parIter(parNode);
   PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
   if (!ParDetNode)
-  {
-    ParDetNode = new PHCompositeNode(detector);
-    parNode->addNode(ParDetNode);
-  }
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
   PutOnParNode(ParDetNode, geonodename);
-
+  
   // find Tpc Geo
   PHNodeIterator tpcpariter(ParDetNode);
   PHParametersContainer *tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode, tpcgeonodename);
   if (!tpcparams)
-  {
-    string runparamname = "G4GEOPARAM_" + detector;
-    PdbParameterMapContainer *tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode, runparamname);
-    if (tpcpdbparams)
     {
-      tpcparams = new PHParametersContainer(detector);
-      if (Verbosity()) tpcpdbparams->print();
-      tpcparams->CreateAndFillFrom(tpcpdbparams, detector);
-      ParDetNode->addNode(new PHDataNode<PHParametersContainer>(tpcparams, tpcgeonodename));
+      string runparamname = "G4GEOPARAM_" + detector;
+      PdbParameterMapContainer *tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode, runparamname);
+      if (tpcpdbparams)
+	{
+	  tpcparams = new PHParametersContainer(detector);
+	  if (Verbosity()) tpcpdbparams->print();
+	  tpcparams->CreateAndFillFrom(tpcpdbparams, detector);
+	  ParDetNode->addNode(new PHDataNode<PHParametersContainer>(tpcparams, tpcgeonodename));
+	}
+      else
+	{
+	  cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
     }
-    else
-    {
-      cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  }
   assert(tpcparams);
-
+  
   if (Verbosity()) tpcparams->Print();
   const PHParameters *tpcparam = tpcparams->GetParameters(0);
   assert(tpcparam);
@@ -240,21 +244,21 @@ dstNode->addNode(DetNode);
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
   
-
+  
   TFile *StaticDistFile=new TFile("zSmooth.50kHz.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root");//includes Trees of TH3Fs                                     
-   if(StaticDistFile->GetSize() == -1)
-   {
-     cout << "Distortion file could not be opened!" << endl;
-   }
+  if(StaticDistFile->GetSize() == -1)
+    {
+      cout << "Distortion file could not be opened!" << endl;
+    }
  
   //Open Static Space Charge Maps
-   hDPint=(TH3F*)StaticDistFile->Get("hIntDistortionP"); // Open TH3F files only once that contain distortions due to space charge
-   hDRint=(TH3F*)StaticDistFile->Get("hIntDistortionR");
-   hDZint=(TH3F*)StaticDistFile->Get("hIntDistortionZ");
-   hDPdiff=(TH3F*)StaticDistFile->Get("hDistortionP"); // Open TH3F files only once that contain distortions due to space charge
-   hDRdiff=(TH3F*)StaticDistFile->Get("hDistortionR");
-   hDZdiff=(TH3F*)StaticDistFile->Get("hDistortionZ");
-   cout << "no segfault after staticDistFile opening" << endl;
+  hDPint=(TH3F*)StaticDistFile->Get("hIntDistortionP"); // Open TH3F files only once that contain distortions due to space charge
+  hDRint=(TH3F*)StaticDistFile->Get("hIntDistortionR");
+  hDZint=(TH3F*)StaticDistFile->Get("hIntDistortionZ");
+  hDPdiff=(TH3F*)StaticDistFile->Get("hDistortionP"); // Open TH3F files only once that contain distortions due to space charge
+  hDRdiff=(TH3F*)StaticDistFile->Get("hDistortionR");
+  hDZdiff=(TH3F*)StaticDistFile->Get("hDistortionZ");
+  cout << "no segfault after staticDistFile opening" << endl;
   
   //Open time ordered maps
   TFile *TimeDistFile=new TFile("TimeOrderedDistortions.root");//includes Trees of TH3Fs                                                                                               
@@ -262,6 +266,12 @@ dstNode->addNode(DetNode);
     {
       cout << "TimeOrderedDistortion file could not be opened!" << endl;
     }
+  TimehDR=0;
+  TimehDP=0;
+  TimehDZ=0;
+  TimeInthDR=0;
+  TimeInthDP=0;
+  TimeInthDZ=0;
   TimeTree = (TTree*)TimeDistFile->Get("TimeDists");
   TimeTree->SetBranchAddress("hDistortionR",&TimehDR);
   TimeTree->SetBranchAddress("hDistortionP",&TimehDP);
@@ -270,9 +280,9 @@ dstNode->addNode(DetNode);
   TimeTree->SetBranchAddress("hIntDistortionP",&TimeInthDP);
   TimeTree->SetBranchAddress("hIntDistortionZ",&TimeInthDZ);
   cout << "no segfault after TimeDistFile opening" << endl;
-//
- 
- Fun4AllServer *se = Fun4AllServer::instance();
+  //
+  
+  Fun4AllServer *se = Fun4AllServer::instance();
   //Add all diagnostic histograms
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
@@ -280,13 +290,28 @@ dstNode->addNode(DetNode);
   se->registerHisto(dtrans);
   bool do_Centralmem = true;
   if(do_Centralmem)
-    {
+    { 
+      cout << "beginning of central membrane initialization" << endl;
+      //double e_num,x_start,y_start,x_final,y_final;
+      TFile *coutf = new TFile("CM_PositionTree.root", "recreate");
+      if(coutf->GetSize() == -1)
+	{
+	  cout << "CM out file could not be opened!" << endl;
+	}
+      
+      TFile *CMFile=new TFile("Centralmem.root");//includes TGraph
+      if(CMFile->GetSize() == -1)
+	{
+	  cout << "CM in file could not be opened!" << endl;
+	}
+      CM=(TGraph*)CMFile->Get("Graph");
       TTree *CMTimeDists = new TTree("CMTimeDists","Tree w/ event_num, x_i, y_i, x_f, y_f");
-      TBranch *e_num = TimeDists->Branch("event_num", &event_num, "event_num/I");
-      TBranch *x_initial = TimeDists->Branch("x_initial", &x_start, "x_start/F");
-      TBranch *y_initial = TimeDists->Branch("y_initial", &y_start, "y_start/F");
-      TBranch *x_final = TimeDists->Branch("x_final", &x_final, "x_final/F");
-      TBranch *y_final = TimeDists->Branch("y_final", &y_final, "y_final/F");
+      TBranch *event_num = CMTimeDists->Branch("event_num",&event_num,"event_num/I");
+      TBranch *x_start = CMTimeDists->Branch("x_start",&x_start,"x_start/B");
+      TBranch *y_start = CMTimeDists->Branch("y_start",&y_start,"y_start/B");
+      TBranch *x_final = CMTimeDists->Branch("x_final",&x_final,"x_final/B");
+      TBranch *y_final = CMTimeDists->Branch("y_final",&y_final,"y_final/B");
+      cout << "end of central membrane initialization" << endl;    
     }
 
   if(true) //Set verbosity later
@@ -416,8 +441,10 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   //Get SC maps corresponding to event_num
+  cout << "event num is " << event_num << endl;
   TimeTree->GetEntry(event_num);
-  event_num += 1;
+  cout << "no segfault after getting event_num entry of TimeTree" << endl;
+
   
   //
   //Declare stopwatches for time performance characterization
@@ -430,10 +457,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   
   
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if(do_Centralmem)
-    {
-      *g4hit = ; 
-    }
 if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -480,6 +503,10 @@ if (!g4hit)
         cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
     }
+  if(do_Centralmem)
+    {
+      n_electrons = 7668;
+    }
 
     for (unsigned int i = 0; i < n_electrons; i++)
     {
@@ -491,8 +518,19 @@ if (!g4hit)
       double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
       double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
-      
-      
+      if(do_Centralmem)
+	{
+	  Double_t ax[7668],ay[7668];
+	  CM->GetPoint(i,ax[i],ay[i]);
+	  cout<<i<<"th element of X array: "<<ax[i]<<endl;
+	  cout<<i<<"th element of Y array: "<<ay[i]<<endl;
+	  x_start = ax[i]*.1;//[i];                                                   
+	  cout << "x_start is " << x_start << endl;
+	  y_start = ay[i]*.1;//[i];                                                                                                                        
+	  cout << "y_start is " << y_start << endl;
+	  z_start = 0;
+	}
+      cout << "no segfault after central mem variable initialization" << endl;
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -509,11 +547,11 @@ if (!g4hit)
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
 
-      if (t_final < min_time || t_final > max_time)
-      {
+      //if (t_final < min_time || t_final > max_time)
+      // {
         //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
-        continue;
-      }
+      // continue;
+      // }
 
       double radstart = sqrt(x_start * x_start + y_start * y_start);
       double phistart = atan2(y_start,x_start);
@@ -561,7 +599,9 @@ if (!g4hit)
 	  phi_final_diff = phi_final;
 	  diffwatch->Stop();	
 	}
-    
+      cout << "no segfault before filling CMTimeDists" << "Values of branch variables are: event_num,x_start,y_start,x_final,y_final " << event_num << " , " << x_start << " , " << y_start << " , " << x_final << " , " << y_final <<  endl;
+      CMTimeDists->Fill();
+      cout << "no segfault after filling CMTimeDists" << endl;
       //cout << "phi_final_diff before filling is " << phi_final_diff <<" phi_final_diff - phi_final_int before filling is " << phi_final_diff - phi_final_int << endl;
       // cout << "rad_final_diff before filling is " << r_final_diff <<" r_final_diff - rad_final_int before filling is " << r_final_diff - r_final_int << endl;
       deltardifference->Fill(rad_final,r_final_diff - r_final_int);
@@ -615,6 +655,7 @@ if (!g4hit)
    
     deltatime->Fill(diffwatch->RealTime() - intwatch->RealTime());
     // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
+    double eg4hit = 0.0;
     TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
     for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
 	 temp_hitset_iter != temp_hitset_range.second;
@@ -666,6 +707,9 @@ if (!g4hit)
 	    hittruthassoc->findOrAddAssoc(node_hitsetkey, temp_hitkey, hiter->first);
 	    
 	  }  // end loop over temp hits
+	if(Verbosity() > 100 && layer == print_layer)
+	  cout << "  ihit " << ihit << " collected energy = " << eg4hit << endl;
+
       } // end loop over temp hitsets
 
     // erase all entries in the temp hitsetcontainer
@@ -724,6 +768,7 @@ if (!g4hit)
       cout << "non-drifting time in PHG4ElectronDrift is " << (totwatch->RealTime()-(diffwatch->RealTime()+intwatch->RealTime())) << endl;
       cout << "total time in PHG4ElectronDrift is " << (totwatch->RealTime()) << endl;
     }
+  event_num += 1;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -754,7 +799,9 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 	ntfinalhit->Write();
 	m_outf->Close();
       }
-    
+    coutf->cd();
+    CMTimeDists->Write();
+    coutf->Close();
     outf->cd();
     // TimehDR->Write();
     // TimehDP->Write();
