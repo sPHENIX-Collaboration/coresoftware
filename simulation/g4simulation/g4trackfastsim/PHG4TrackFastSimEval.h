@@ -14,6 +14,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 //Forward declarations
 class PHCompositeNode;
@@ -34,6 +35,9 @@ class PHG4TrackFastSimEval : public SubsysReco
 
   //Initialization, called for initialization
   int Init(PHCompositeNode*);
+
+  //Initialization, called for initialization
+  int InitRun(PHCompositeNode*);
 
   //Process Event, called for each event
   int process_event(PHCompositeNode*);
@@ -106,14 +110,6 @@ class PHG4TrackFastSimEval : public SubsysReco
   float m_TTree_pcaz;
   float m_TTree_dca2d;
 
-  static const int m_MaxNumberProjections = 3;
-  // projections hits/mom
-  float m_TTree_proj[3][m_MaxNumberProjections];
-  float m_TTree_proj_p[3][m_MaxNumberProjections];
-  // hits/mom at reference
-  float m_TTree_ref[3][m_MaxNumberProjections];
-  float m_TTree_ref_p[3][m_MaxNumberProjections];
-
   //vertex
   float m_TTree_vx;
   float m_TTree_vy;
@@ -131,7 +127,13 @@ class PHG4TrackFastSimEval : public SubsysReco
   std::string m_TrackMapName;
 
   // names and index of projections
-  std::map<std::string, int> m_ProjectionNameMap;
+  std::map<std::string, unsigned int> m_ProjectionNameMap;
+// projections to cylinders and planes
+  std::vector<std::vector<float>> m_TTree_proj_vec;
+  std::vector<std::vector<float>> m_TTree_proj_p_vec;
+// hits on reference cylinders and planes
+  std::vector<std::vector<float>> m_TTree_ref_vec;
+  std::vector<std::vector<float>> m_TTree_ref_p_vec;
 };
 
 #endif  //* G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H *//
