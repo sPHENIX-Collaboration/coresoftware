@@ -32,9 +32,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   m_ColorArray.fill(NAN);
   InitializeParameters();
@@ -138,6 +135,10 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   else if (GetParams()->get_int_param("blackhole"))
   {
     m_SteppingAction = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
+  }
+  if (m_SteppingAction)
+  {
+    (dynamic_cast<PHG4CylinderSteppingAction *>(m_SteppingAction))->SaveAllHits(m_SaveAllHitsFlag);
   }
   return 0;
 }

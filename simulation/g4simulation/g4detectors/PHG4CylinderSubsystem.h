@@ -29,23 +29,23 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! Print info (from SubsysReco)
-  void Print(const std::string& what = "ALL") const;
+  void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
+  PHG4Detector* GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const  override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
   void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
     m_ColorArray[0] = red;
@@ -56,23 +56,29 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   // this method is used to check if it can be used as mothervolume
   // Subsystems which can be mothervolume need to implement this
   // and return true
-  virtual bool CanBeMotherSubsystem() const { return true; }
+  virtual bool CanBeMotherSubsystem() const  override { return true; }
+
+// this is just needed for use as reference plane for projections
+// this is the only detector using this - there is no need to add
+// this to our parameters
+  void SaveAllHits(bool i = true) {m_SaveAllHitsFlag = i;}
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4CylinderDetector* m_Detector;
+  PHG4CylinderDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
+  bool m_SaveAllHitsFlag = false;
   //! Color setting if we want to override the default
   std::array<double, 4> m_ColorArray;
 };

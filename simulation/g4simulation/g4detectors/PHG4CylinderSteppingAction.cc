@@ -298,8 +298,8 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill ||
         m_UseG4StepsFlag > 0)
     {
-      // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      // save only hits with energy deposit (or -1 for geantino) or if save all hits flag is set
+      if (m_Hit->get_edep() || m_SaveAllHitsFlag)
       {
         m_HitContainer->AddHit(layer_id, m_Hit);
         if (m_SaveShower)
