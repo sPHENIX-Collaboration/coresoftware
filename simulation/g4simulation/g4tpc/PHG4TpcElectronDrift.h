@@ -107,7 +107,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
-  unsigned int seed;
+  unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP;
   double Start_x;
   double Start_y;
