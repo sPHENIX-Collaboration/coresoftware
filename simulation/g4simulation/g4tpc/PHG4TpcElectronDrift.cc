@@ -86,26 +86,22 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , min_time(NAN)
   , max_time(NAN)
 {
-  cout << "Constructor of PHG4TpcElectronDrift" << endl;
+  //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
-  cout << "Constructor of PHG4TpcElectronDrift survived until return" << endl;
   return;
 }
 
 PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
-  cout << "Destructor of PHG4TpcElectronDrift" << endl;
   gsl_rng_free(RandomGenerator);
   delete padplane;
   delete temp_hitsetcontainer;
-  cout << "Destructor of PHG4TpcElectronDrift survived" << endl;
 }
   
   int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
-  cout << "does init survive?" << endl;
   padplane->Init(topNode);
   event_num = 0;
   if(event_num != 0)
@@ -266,7 +262,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     {
       cout << "TimeOrderedDistortion file could not be opened!" << endl;
     }
-  TimehDR=0;
+  TimehDR=0; // Initialize branches 
   TimehDP=0;
   TimehDZ=0;
   TimeInthDR=0;
@@ -283,17 +279,10 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   //
   
   Fun4AllServer *se = Fun4AllServer::instance();
-  //Add all diagnostic histograms
-  dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
-  se->registerHisto(dlong);
-  dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
-  se->registerHisto(dtrans);
   bool do_Centralmem = true;
   if(do_Centralmem)
     { 
-      cout << "beginning of central membrane initialization" << endl;
       double x_start,y_start,x_final,y_final;
-      
       TFile *CMFile=new TFile("Centralmem.root");//includes TGraph
       if(CMFile->GetSize() == -1)
 	{
@@ -312,17 +301,20 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       CMTimeDists->Branch("y_start",&y_start,"y_start/B");
       CMTimeDists->Branch("x_final",&x_final,"x_final/B");
       CMTimeDists->Branch("y_final",&y_final,"y_final/B");
-      cout << "end of central membrane initialization" << endl;    
     }
-
+  
   if(true) //Set verbosity later
     {
+      //Add all diagnostic histograms
+      dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
+      se->registerHisto(dlong);
+      dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
+      se->registerHisto(dtrans);
       EDrift_outf = new TFile("ElectronDriftQA.root", "recreate");
       if(EDrift_outf->GetSize() == -1)
 	{
 	  cout << "EDriftQA file could not be opened!" << endl;
 	}
-  
       hitmapstart = new TH2F("hitmapstart","g4hit starting X-Y locations",1560,-78,78,1560,-78,78);
       se->registerHisto(hitmapstart);
       hitmapend = new TH2F("hitmapend","g4hit final X-Y locations",1560,-78,78,1560,-78,78);
@@ -387,12 +379,9 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
   double newp=0;
   double newr=0;
 
-  
   Int_t binp = TimehDP->GetXaxis()->FindBin(phistart+M_PI);
   Int_t binr = TimehDR->GetYaxis()->FindBin(radstart);
   z_startmap->Fill(z_start,radstart);
-
-  // cout << "bin in phi = " << binp << " bin in r = " << binr << endl;
 
   int nBinZ=TimehDR->GetNbinsZ();// Only need to get number of bins in Z, but nice to see them all as a sanity check                                                                                     
   int nBinR=TimehDR->GetNbinsY();
@@ -425,7 +414,7 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
  
   if(Verbosity() > 100){
     cout << "inside DistortionIntegral, starting positions r(20-78cm),p(0-2*pi rad),z(0-100cm) = " << radstart <<" "<< phistart+M_PI <<" " << z_start << endl;
-    // cout << "bin containing phi = 0 is " <<  TimehDP->GetXaxis()->FindBin(0.0001) << "bin containing phi = 2*pi " <<  TimehDP->GetXaxis()->FindBin(6.28) << endl;
+    cout << "bin containing phi = 0 is " <<  TimehDP->GetXaxis()->FindBin(0.0001) << "bin containing phi = 2*pi " <<  TimehDP->GetXaxis()->FindBin(6.28) << endl;
     cout << "final p = " << newp << endl;
     cout << "delta p =" << newp-(phistart+M_PI) << endl;
     cout << "final r = " << newr << endl;
@@ -441,12 +430,10 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  //Get SC maps corresponding to event_num
-  cout << "event num is " << event_num << endl;
-  TimeTree->GetEntry(event_num);
-  cout << "no segfault after getting event_num entry of TimeTree" << endl;
 
-  
+  //Get SC maps corresponding to event_num
+  //cout << "event num is " << event_num << endl;
+  TimeTree->GetEntry(event_num);
   //
   //Declare stopwatches for time performance characterization
   TStopwatch *diffwatch = new TStopwatch();
@@ -527,15 +514,14 @@ if (!g4hit)
 	{
 	  Double_t ax[7668],ay[7668];
 	  CM->GetPoint(i,ax[i],ay[i]);
-	  cout<<i<<"th element of X array: "<<ax[i]<<endl;
-	  cout<<i<<"th element of Y array: "<<ay[i]<<endl;
+	  //cout<<i<<"th element of X array: "<<ax[i]<<endl;
+	  // cout<<i<<"th element of Y array: "<<ay[i]<<endl;
 	  x_start = ax[i]*.1;//[i];                                                   
-	  cout << "x_start is " << x_start << endl;
+	  // cout << "x_start is " << x_start << endl;
 	  y_start = ay[i]*.1;//[i];                                                                                                                        
-	  cout << "y_start is " << y_start << endl;
+	  //cout << "y_start is " << y_start << endl;
 	  z_start = 0;
 	}
-      cout << "no segfault after central mem variable initialization" << endl;
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -552,11 +538,11 @@ if (!g4hit)
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
 
-      //if (t_final < min_time || t_final > max_time)
-      // {
-        //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
-      // continue;
-      // }
+      if ((t_final < min_time || t_final > max_time) && !do_Centralmem)
+       {
+      cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
+       continue;
+       }
 
       double radstart = sqrt(x_start * x_start + y_start * y_start);
       double phistart = atan2(y_start,x_start);
@@ -571,8 +557,7 @@ if (!g4hit)
 	{
 	  z_start = fabs(z_start);// Eventually will require two maps for pos and neg Z 
 	}
-      //cout << "phistart is " << phistart+M_PI << " radstart is " << radstart <<" z_start is " << z_start << endl;
-  
+        
       double r_final_diff = 0;
       double phi_final_diff = 0;
       double r_final_int = 0;
@@ -604,16 +589,9 @@ if (!g4hit)
 	  phi_final_diff = phi_final;
 	  diffwatch->Stop();	
 	}
-      cout << "no segfault before filling CMTimeDists" << "Values of branch variables are: event_num,x_start,y_start,x_final,y_final " << event_num << " , " << x_start << " , " << y_start << " , " << x_final << " , " << y_final <<  endl;
-
-
+      //cout << "Values of branch variables before filling are: event_num,x_start,y_start,x_final,y_final " << event_num << " , " << x_start << " , " << y_start << " , " << x_final << " , " << y_final <<  endl;
       CMTimeDists->Fill();
-
-
-
-      cout << "no segfault after filling CMTimeDists" << endl;
-      //cout << "phi_final_diff before filling is " << phi_final_diff <<" phi_final_diff - phi_final_int before filling is " << phi_final_diff - phi_final_int << endl;
-      // cout << "rad_final_diff before filling is " << r_final_diff <<" r_final_diff - rad_final_int before filling is " << r_final_diff - r_final_int << endl;
+            
       deltardifference->Fill(rad_final,r_final_diff - r_final_int);
       deltardifferencepercent->Fill(rad_final,100*((r_final_diff-radstart) - (r_final_int-radstart))/(r_final_diff-radstart));
       deltaphidifference->Fill(phi_final,phi_final_diff - phi_final_int);
@@ -809,13 +787,10 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 	ntfinalhit->Write();
 	m_outf->Close();
       }
-    cout << "Fine before writing CMTimeDists" << endl;
-
+    
     CM_outf->cd();
     CMTimeDists->Write();
     CM_outf->Close();
-
-    cout << "Fine after writing CMTimeDists" << endl;
 
     EDrift_outf->cd();
     // TimehDR->Write();
@@ -840,9 +815,7 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
     hitmapend->Write();
     z_startmap->Write();
     EDrift_outf->Close();
-    cout << "Fine after writing EDriftOut" << endl;  
-}
-
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
