@@ -164,7 +164,7 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
         m_TracksEvalTree->Branch(bname.c_str(), &m_TTree_ref_p_vec[iter->second][i], bdef.c_str());
       }
     }
-    if (!hits)
+    if (!hits && Verbosity() > 0)
     {
       cout << "InitRun: could not find " << nodename << endl;
     }
