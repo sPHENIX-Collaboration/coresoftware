@@ -21,23 +21,12 @@ ROOTDICTS = \
   PHObject_Dict.cc \
   PHTimeStamp_Dict.cc
 
-if MAKEROOT6
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   PHObject_Dict_rdict.pcm \
   PHTimeStamp_Dict_rdict.pcm
 
-else
-ROOT5DICTS = \
-  PHMessage_Dict.cc \
-  PHRandomSeed_Dict.cc \
-  PHFlag_Dict.cc \
-  PHTimeServer_Dict.cc \
-  recoConsts_Dict.cc
-endif
-
 libphool_la_SOURCES = \
-  $(ROOT5DICTS) \
   $(ROOTDICTS) \
   PHCompositeNode.cc \
   PHFlag.cc \
@@ -103,7 +92,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
