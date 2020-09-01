@@ -22,7 +22,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsCovarianceRotater.h \
+  ActsTransformations.h \
   ActsTrack.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
@@ -42,6 +42,7 @@ pkginclude_HEADERS = \
   PHActsTracks.h \
   PHActsTrkProp.h \
   PHActsTrkFitter.h \
+  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -112,13 +113,14 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsCovarianceRotater.cc \
+  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  PHActsVertexFitter.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \

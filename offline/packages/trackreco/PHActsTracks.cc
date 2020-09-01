@@ -1,5 +1,5 @@
 #include "PHActsTracks.h"
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -80,7 +80,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   std::vector<SourceLink> trackSourceLinks;
   std::vector<FW::TrackParameters> trackSeeds;
 
-  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();

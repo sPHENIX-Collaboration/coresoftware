@@ -20,7 +20,6 @@ class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
-class SvtxEvalStack;
 
 /// \class QAG4SimulationTracking
 class QAG4SimulationTracking : public SubsysReco

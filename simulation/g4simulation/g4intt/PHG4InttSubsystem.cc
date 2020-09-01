@@ -301,11 +301,6 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_outer_radius", 11.43);
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_length", 0.6370);
 
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness", 0.18);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length", 42.);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness", 0.01);
-
     set_default_double_param(SUPPORTPARAMS, "rail_dphi", 90.);  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
     set_default_double_param(SUPPORTPARAMS, "rail_length", 410);  // tpc length

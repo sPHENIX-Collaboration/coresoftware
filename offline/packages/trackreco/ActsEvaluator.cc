@@ -38,11 +38,13 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_truthInfo(nullptr)
   , m_trackMap(nullptr)
   , m_svtxEvalStack(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
   , m_vertexMap(nullptr)
+  , m_evalCKF(false)
 {
 }
 
@@ -79,11 +81,10 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   m_svtxEvalStack = new SvtxEvalStack(topNode);
-
   m_svtxEvalStack->next_event(topNode);
 
   evaluateTrackFits(topNode);
-
+    
   m_eventNr++;
 
   if (Verbosity() > 1)
@@ -92,42 +93,30 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 {
+  if(Verbosity() > 5)
+    std::cout << "Evaluating Acts track fits" << std::endl;
 
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
-  std::map<const unsigned int, Trajectory>::iterator trackIter;
+  std::map<const unsigned int, Trajectory>::iterator trajIter;
   int iTraj = 0;
   int iTrack = 0;
 
-  for (trackIter = m_actsFitResults->begin();
-       trackIter != m_actsFitResults->end();
-       ++trackIter)
+  for (trajIter = m_actsFitResults->begin();
+       trajIter != m_actsFitResults->end();
+       ++trajIter)
   {
-    /// Get the track information
-    const unsigned int trackKey = trackIter->first;
-    const Trajectory traj = trackIter->second;
-    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
-    SvtxTrack *track = svtxTrackIter->second;
-    PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
-    const unsigned int vertexId = track->get_vertex_id();
-    const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    
-    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm,
-			  svtxVertex->get_y() * Acts::UnitConstants::cm,
-			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+    /// Get the trajectory information
+    unsigned int trackKey = trajIter->first;
+    Trajectory traj = trajIter->second;
 
-    if(Verbosity() > 1)
-      {
-	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
-	track->identify();
-	std::cout << "TruthParticle : " << g4particle->get_px()
-		  << ", " << g4particle->get_py() << ", "
-		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
-		  << std::endl;
-      }
+    if(Verbosity() > 2)
+      std::cout << "Starting trajectory " << iTraj 
+		<< " with trackKey corresponding to track seed "
+		<< trackKey << std::endl;
 
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTraj;
@@ -138,37 +127,96 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
       if (Verbosity() > 1)
         std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
-    }
-    
+    }  
    
     iTrack = 0;
-    /// For the KF this iterates once. For the CKF it may iterate 
-    /// multiple times per Trajectory
+   
+    /// Track seed always is related to the trajectory->trackkey
+    /// mapping for KF (by definition) and CKF
+    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
+    /// Get the map of track tips->trackKeys for this trajectory
+    std::map<const size_t, const unsigned int> trackKeyMap;
+    if(m_evalCKF)
+      trackKeyMap = m_actsTrackKeyMap->find(trackKey)->second;
+
+    /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
+	if(Verbosity() > 2)
+	  std::cout << "beginning trackTip " << trackTip 
+		    << " corresponding to track " << iTrack 
+		    << " in trajectroy " << iTraj << std::endl;
+
+	/// The CKF has a trackTip == trackKey correspondence, rather
+	/// than a trajectory == trackKey correspondence. So need to
+	/// grab the correct key from the extra map
+	if(m_evalCKF)
+	  {
+	    std::map<const size_t, const unsigned int>::iterator ckfiter 
+	      = trackKeyMap.find(trackTip);
+	    if(ckfiter == trackKeyMap.end())
+	      {
+		if(Verbosity() > 2)
+		  std::cout << "Track result flagged as bad, continuing"
+			    << std::endl;
+		continue;
+	      }
+	    trackKey = ckfiter->second;
+	  }
+
+	if(Verbosity() > 2)
+	  std::cout<<"Evaluating track key " << trackKey 
+		   << " for track tip " << trackTip << std::endl;
+
+	SvtxTrack *track = m_trackMap->find(trackKey)->second;
+	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
+	const unsigned int vertexId = track->get_vertex_id();
+	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+	Acts::Vector3D vertex;
+	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
+	vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
+	vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
+	
+	if(Verbosity() > 1)
+	  {
+	    std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
+        
+	    std::cout << "TruthParticle : " << g4particle->get_px()
+		      << ", " << g4particle->get_py() << ", "
+		      << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		      << std::endl;
+	  }
+	
 	m_trackNr = iTrack;
-        iTrack++;
+  
+	
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
 	if(Verbosity() > 1)
 	  {
-	    std::cout << "Analyzing trajectory with trackTip " << trackTip
-		      << std::endl;
 	    if(traj.hasTrackParameters(trackTip))
 	      {
 		std::cout << "Fitted params : " 
 			  << traj.trackParameters(trackTip).position() 
-			  << "   " << traj.trackParameters(trackTip).momentum()
+			  << std::endl << traj.trackParameters(trackTip).momentum()
 			  << std::endl;
+		std::cout << "Track has " << trajState.nMeasurements
+			  << " measurements and " << trajState.nHoles
+			  << " holes and " << trajState.nOutliers 
+			  << " outliers and " << trajState.nStates
+			  << " states " << std::endl;
 	      }
 	  }
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
+	m_nOutliers = trajState.nOutliers;
+	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
-	
+       
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
 	fillFittedTrackParams(traj, trackTip, vertex);
@@ -178,15 +226,24 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	
 	/// Start fresh for the next track
 	clearTrackVariables();
+	if(Verbosity() > 1)
+	  std::cout << "Finished track " << iTrack <<std::endl;
+
+	iTrack++;
       }
     
-    ++iTraj;
+   
     if(Verbosity() > 1)
       {
 	std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
 		  << iTraj << std::endl;
       }
+    
+    ++iTraj;
   }
+  
+  if(Verbosity () > 5)
+    std::cout << "Finished evaluating track fits" << std::endl;
 
   return;
 }
@@ -208,10 +265,14 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 }
 
 
+
 void ActsEvaluator::visitTrackStates(const Trajectory traj, 
 				     const size_t &trackTip,
 				     PHCompositeNode *topNode)
 {
+
+  if(Verbosity() > 2)
+    std::cout << "Begin visit track states" << std::endl;
 
   const auto &[trackTips, mj] = traj.trajectory();
 
@@ -228,6 +289,11 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
+
+    if(Verbosity() > 3)
+      std::cout << "Cluster volume : layer : sensitive " << geoID.volume()
+		<< " : " << geoID.layer() << " : " 
+		<< geoID.sensitive() << std::endl;
 
     auto meas = std::get<Measurement>(*state.uncalibrated());
 
@@ -523,6 +589,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       m_pT_flt.push_back(parameter.pT());
       m_eta_flt.push_back(eta(parameter.position()));
       m_chi2.push_back(state.chi2());
+      
     }
     else
     {
@@ -681,6 +748,10 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
   }   /// Finish lambda function
   );  /// Finish multi trajectory visitBackwards call
 
+
+  if(Verbosity() > 2)
+    std::cout << "Finished track states" << std::endl;
+
   return;
 }
 
@@ -741,6 +812,10 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 
 void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 {
+
+  if(Verbosity() > 2)
+    std::cout << "Filling proto track seed quantities" << std::endl;
+  
   FW::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
   
@@ -752,6 +827,14 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
   m_protoTrackX  = position(0);
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
+
+  auto cov = params.covariance().value();
+  m_protoD0Cov = cov(0,0);
+  m_protoZ0Cov = cov(1,1);
+  m_protoPhiCov = cov(2,2);
+  m_protoThetaCov = cov(3,3);
+  m_protoQopCov = cov(4,4);
+  
 
   for(int i = 0; i < sourceLinks.size(); ++i)
     {
@@ -797,9 +880,11 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       m_t_SL_gy.push_back(gy);
       m_t_SL_gz.push_back(gz);
       
-
-
+  
     }
+
+  if(Verbosity() > 2)
+    std::cout << "Filled proto track" << std::endl;
 
 }
 
@@ -808,6 +893,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
 					  const Acts::Vector3D vertex)
 {
   m_hasFittedParams = false;
+
+  if(Verbosity() > 2)
+    std::cout << "Filling fitted track parameters" << std::endl;
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
@@ -865,6 +953,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_x_fit = -9999;
   m_y_fit = -9999;
   m_z_fit = -9999;
+
+  if(Verbosity() > 2)
+    std::cout << "Finished fitted track params" << std::endl;
 
   return;
 }
@@ -933,8 +1024,8 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
     if(Verbosity() > 1)
-      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
-		<< ")" << std::endl;
+      std::cout << "truth vertex : (" << m_t_vx << ", " << m_t_vy 
+		<< ", " << m_t_vz << ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -970,7 +1061,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
     {
-      std::cout << PHWHERE << "SvtxVertexMAp not found, cannot continue!" 
+      std::cout << PHWHERE << "SvtxVertexMap not found, cannot continue!" 
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -1005,13 +1096,28 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const unsigned int,
+				         std::map<const size_t, 
+						  const unsigned int>>>
+    (topNode, "ActsTrackKeys");
+
+  if (!m_actsTrackKeyMap)
+    {
+      if(Verbosity() > 1)
+	std::cout << PHWHERE << "No acts CKF track map on node tree."
+		  << std::endl 
+		  << "If you are analyzing the CKF, your results will be incorrect."
+		  << std::endl;
+
+    }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
+                     (topNode, "ActsFitResults");
 
   if (!m_actsFitResults)
   {
-    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing"
+    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing."
               << std::endl;
-
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -1189,7 +1295,11 @@ void ActsEvaluator::clearTrackVariables()
   m_protoTrackX  = -9999.;
   m_protoTrackY  = -9999.;
   m_protoTrackZ  = -9999.;
-
+  m_protoD0Cov   = -9999.;
+  m_protoZ0Cov   = -9999.;
+  m_protoPhiCov  = -9999.;
+  m_protoThetaCov= -9999.;
+  m_protoQopCov  = -9999.;
 
   return;
 }
@@ -1233,6 +1343,8 @@ void ActsEvaluator::initializeTree()
 
 
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
+  m_trackTree->Branch("chi2_fit", &m_chi2_fit);
+  m_trackTree->Branch("ndf_fit", &m_ndf_fit);
   m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
   m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
   m_trackTree->Branch("ePHI_fit", &m_ePHI_fit);
@@ -1263,6 +1375,11 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
   m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
   m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
+  m_trackTree->Branch("g_protoTrackD0Cov", &m_protoD0Cov);
+  m_trackTree->Branch("g_protoTrackZ0Cov", &m_protoZ0Cov);
+  m_trackTree->Branch("g_protoTrackPhiCov", &m_protoPhiCov);
+  m_trackTree->Branch("g_protoTrackThetaCov", &m_protoThetaCov);
+  m_trackTree->Branch("g_protoTrackQopCov", &m_protoQopCov);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);
@@ -1274,6 +1391,8 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
+  m_trackTree->Branch("nHoles", &m_nHoles);
+  m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
   m_trackTree->Branch("volume_id", &m_volumeID);

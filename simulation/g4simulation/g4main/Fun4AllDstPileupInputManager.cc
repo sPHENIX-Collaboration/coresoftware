@@ -927,12 +927,14 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
     }
 
     // vertex embed flags
+    /* embed flag is stored only for primary vertices, consistently with PHG4TruthEventAction */
     for( const auto& pair:vtxid_map )
-    { m_g4truthinfo->AddEmbededVtxId(pair.second,new_embed_id); }
+    { if(pair.first>0) m_g4truthinfo->AddEmbededVtxId(pair.second,new_embed_id); }
 
     // track embed flags
+    /* embed flag is stored only for primary tracks, consistently with PHG4TruthEventAction */
     for( const auto& pair:trkid_map )
-    { m_g4truthinfo->AddEmbededTrkId(pair.second,new_embed_id); }
+    { if(pair.first>0) m_g4truthinfo->AddEmbededTrkId(pair.second,new_embed_id); }
 
   }
 

@@ -52,6 +52,7 @@ class SvtxTrackMap;     // lines 204-204
 class SvtxVertex;
 class SvtxVertexMap;    // lines 206-206
 
+enum skip_layers {on, off};
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -76,30 +77,23 @@ typedef std::array<coordKey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
 #endif
 
-enum skip_layers {on, off};
-
 class PHCASeeding : public PHTrackSeeding
 {
  public:
   PHCASeeding(
       const std::string &name = "PHCASeeding",
+      unsigned int start_layer = 7,
+      unsigned int end_layer = 55,
       const unsigned int nlayers_maps = 3,
       const unsigned int nlayers_intt = 4,
       const unsigned int nlayers_tpc = 48,
-      unsigned int start_layer = 7,
-      unsigned int end_layer = 55,
       float cluster_z_error = 0.015,
       float cluster_alice_y_error = 0.015,
-      float neighbor_phi_width = .05,
-      float neighbor_eta_width = .05,
+      float neighbor_phi_width = .02,
+      float neighbor_eta_width = .01,
       float maxSinPhi = 0.999,
-      float Bz = 14*0.000299792458f);
-
-#if !defined(__CINT__) || defined(__CLING__)
-  double chisq(const double *xx);
-#endif
-  void set_phi_scale(float scale) { _phi_scale = scale; }
-  void set_z_scale(float scale) { _z_scale = scale; }
+      float Bz = 14*0.000299792458f,
+      float cosTheta_limit = -0.8);
 
   virtual ~PHCASeeding()
   {
@@ -123,9 +117,6 @@ class PHCASeeding : public PHTrackSeeding
   int *_hit_used_map;
   int _hit_used_map_size;
 
-  //seed searching parameters
-  double phisr, etasr, phist, etast, phixt, etaxt;
-
   std::vector<float> _radii_all;
 
   double phiadd(double phi1, double phi2);
@@ -134,22 +125,21 @@ class PHCASeeding : public PHTrackSeeding
 #if !defined(__CINT__) || defined(__CLING__)
   void FillTree(std::vector<pointKey> clusters);
   std::vector<coordKey> FindLinkedClusters(TNtuple* NT, PHTimer* t_seed);
-  int FindSeedsLayerSkip(TNtuple* NT, PHTimer* t_seed);
+  int FindSeedsWithMerger(TNtuple* NT, PHTimer* t_seed);
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(std::vector<coordKey> clusters, PHTimer* t_seed, int mode = skip_layers::off);
   std::vector<std::vector<keylink>> FindBiLinks(std::vector<std::unordered_set<keylink>> belowLinks, std::vector<std::unordered_set<keylink>> aboveLinks, PHTimer* t_seed);
   std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> bidirectionalLinks, PHTimer* t_seed);
   int ALICEKalmanFilter(std::vector<keylist> trackSeedKeyLists, TNtuple* NT, PHTimer* t_seed);
-  double pointKeyToTuple(pointKey *pK);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
   pointKey toPointKey(coordKey v);
   std::vector<pointKey> toPointKey(std::vector<coordKey> v);
   coordKey fromPointKey(pointKey p);
   std::vector<coordKey> fromPointKey(std::vector<pointKey> p);
-  bool samepoint(point a, point b);
-  bool samepointKey(const pointKey &a, const pointKey &b);
   Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v1 &track);
   bool covIsPosDef(SvtxTrack_v1 &track);
   void repairCovariance(SvtxTrack_v1 &track);
+  std::vector<keylist> MergeSeeds(std::vector<keylist> seeds, PHTimer* t_seed);
+  pointKey makepointKey(TrkrDefs::cluskey k);
 #endif
 
  private:
@@ -172,8 +162,6 @@ class PHCASeeding : public PHTrackSeeding
   float _neighbor_eta_width;
   float _max_sin_phi;
   float _Bz;
-  float _phi_scale;
-  float _z_scale;
   float _cosTheta_limit;
   //std::vector<float> _radii_all;
 

@@ -1,4 +1,4 @@
-#include "PHG4MvtxDetector.h"
+#include "PHG4EICMvtxDetector.h"
 
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
@@ -33,8 +33,6 @@
 #include <Geant4/G4Transform3D.hh>      // for G4Transform3D
 #include <Geant4/G4Types.hh>            // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4Tubs.hh>
 
 #include <cmath>
 #include <cstdio>    // for sprintf
@@ -46,31 +44,16 @@
 
 using namespace std;
 
-namespace mvtxGeomDef
-{
-  double mvtx_shell_inner_radius            =  4.8  * cm;
-  double skin_thickness                     =  0.01 * cm;
-  double foam_core_thickness                =  0.18 * cm;
-  double mvtx_shell_length                  = 50.   * cm;
-  double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
-
-  double wrap_rmin = 2.1 * cm;
-  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness;
-  double wrap_zlen = mvtx_shell_length;
-};
-
-PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
+PHG4EICMvtxDetector::PHG4EICMvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4MvtxDisplayAction*>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
   , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("stave_geometry_file"))
-  , m_EndWheelsSideS(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("end_wheels_sideS"))
-  , m_EndWheelsSideN(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("end_wheels_sideN"))
 {
   //  Verbosity(2);
 
   if (Verbosity() > 0)
-    cout << "PHG4MvtxDetector constructor called" << endl;
+    cout << "PHG4EICMvtxDetector constructor called" << endl;
 
   if (Verbosity() > 10)
     cout << " cm " << cm << " mm " << mm << endl;
@@ -93,13 +76,13 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   */
   if (Verbosity() > 0)
   {
-    cout << "PHG4MvtxDetector constructor: making Mvtx detector. " << endl;
+    cout << "PHG4EICMvtxDetector constructor: making Mvtx detector. " << endl;
   }
 }
 
 //_______________________________________________________________
 //_______________________________________________________________
-int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume* volume) const
+int PHG4EICMvtxDetector::IsSensor(G4VPhysicalVolume* volume) const
 {
   // Is this volume one of the sensors?
   // Checks if pointer matches one of our stored sensors for this layer
@@ -117,7 +100,7 @@ int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-int PHG4MvtxDetector::IsInMvtx(G4VPhysicalVolume* volume, int& layer, int& stave) const
+int PHG4EICMvtxDetector::IsInMvtx(G4VPhysicalVolume* volume, int& layer, int& stave) const
 {
   // Does this stave belong to this layer?
   // Since the Assembly volume read from GDML does not give unique pointers
@@ -128,7 +111,7 @@ int PHG4MvtxDetector::IsInMvtx(G4VPhysicalVolume* volume, int& layer, int& stave
     tie(layer, stave) = iter->second;
     if (Verbosity() > 0)
     {
-      cout << " -- PHG4MvtxDetector::IsInMvtx --" << endl;
+      cout << " -- PHG4EICMvtxDetector::IsInMvtx --" << endl;
       cout << " layer: " << layer << endl;
       cout << " stave: " << stave << endl;
       cout << " volume Name : " << volume->GetName() << endl;
@@ -141,7 +124,7 @@ int PHG4MvtxDetector::IsInMvtx(G4VPhysicalVolume* volume, int& layer, int& stave
   return 0;
 }
 
-int PHG4MvtxDetector::get_layer(int index) const
+int PHG4EICMvtxDetector::get_layer(int index) const
 {
   // Get Mvtx layer from stave index in the Mvtx
   // Mvtx stave index start from 0, i.e index = 0 for stave 0 in layer 0
@@ -154,7 +137,7 @@ int PHG4MvtxDetector::get_layer(int index) const
   return lay;
 }
 
-int PHG4MvtxDetector::get_stave(int index) const
+int PHG4EICMvtxDetector::get_stave(int index) const
 {
   // Get stave index in the layer from stave index in the Mvtx
   int lay = 0;
@@ -166,37 +149,29 @@ int PHG4MvtxDetector::get_stave(int index) const
   return index;
 }
 
-void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
+void PHG4EICMvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   // This is called from PHG4PhenixDetector::Construct()
 
   if (Verbosity() > 0)
   {
     cout << endl
-         << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
+         << "PHG4EICMvtxDetector::Construct called for Mvtx " << endl;
   }
-
-  //Create a wrapper volume
-  auto tube = new G4Tubs("sol_MVTX_Wrapper", mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmax,
-                         mvtxGeomDef::wrap_zlen / 2.0, -M_PI, 2.0 * M_PI);
-  auto world_mat = logicWorld->GetMaterial();
-  auto logicMVTX = new G4LogicalVolume(tube, world_mat, "log_MVTX_Wrapper");
-  new G4PVPlacement(new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
-
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
   // this reads in the ITS stave geometry from a file and constructs the layer from it
-  ConstructMvtx(logicMVTX);
-  ConstructMvtxPassiveVol(logicMVTX);
+  ConstructMvtx(logicWorld);
 
+  // This object provides the strip center locations when given the ladder segment and strip internal cordinates in the sensor
   AddGeometryNode();
   return;
 }
 
-int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
+int PHG4EICMvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
 {
   if (Verbosity() > 0)
   {
-    cout << " PHG4MvtxDetector::ConstructMvtx:" << endl;
+    cout << " PHG4EICMvtxDetector::ConstructMvtx:" << endl;
     cout << endl;
   }
   //===================================
@@ -236,7 +211,7 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
   return 0;
 }
 
-int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUStave, G4LogicalVolume*& trackerenvelope)
+int PHG4EICMvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUStave, G4LogicalVolume*& trackerenvelope)
 {
   //=========================================
   // Now we populate the whole layer with the staves
@@ -333,113 +308,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   return 0;
 }
 
-int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
-{
-  if (Verbosity() > 0)
-  {
-    cout << " PHG4MvtxDetector::ConstructMvtxServices:" << endl;
-    cout << endl;
-  }
-
-  //=======================================================
-  // Add an outer shell for the MVTX - moved it from INTT PHG4InttDetector.cc
-  //=======================================================
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = GetMvtxOuterShell(lv);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
-                    "mvtx_shell_outer_skin_volume", lv, false, 0, OverlapCheck());
-
-  //===================================
-  // Construct Services geometry
-  //===================================
-  if ( (! m_EndWheelsSideN.empty()) && (!m_EndWheelsSideS.empty()) )
-  {
-    // import the end_wheels from the geometry file
-    std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
-    G4GDMLParser gdmlParser(reader.get());
-
-    G4RotationMatrix Ra;
-    Ra.rotateY(M_PI);
-    G4ThreeVector Ta;
-
-    Ta.setZ(-30);
-    G4Transform3D TrS(Ra, Ta);
-
-    gdmlParser.Read(m_EndWheelsSideS, false);
-    G4AssemblyVolume* av_EW_S = reader->GetAssembly("EndWheelsSideA");
-    av_EW_S->MakeImprint(lv, TrS, 0, OverlapCheck());
-
-    Ta.setZ(20);
-    G4Transform3D TrN(Ra, Ta);
-
-    gdmlParser.Read(m_EndWheelsSideN, false);
-    G4AssemblyVolume* av_EW_N = reader->GetAssembly("EndWheelsSideC");
-    av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
-  }
-  return 0;
-}
-
-G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackerenvelope)
-{
-  // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
-  //mvtx_outer_shell
-  G4Tubs* mvtx_outer_shell_tube = new G4Tubs("mvtx_outer_shell",
-                                              mvtxGeomDef::mvtx_shell_inner_radius,
-                                              mvtxGeomDef::mvtx_shell_inner_radius + mvtxGeomDef::mvtx_shell_thickness,
-                                              mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *mvtx_outer_shell_volume = new G4LogicalVolume(mvtx_outer_shell_tube,
-                                                                 trackerenvelope->GetMaterial(),
-                                                                 "mvtx_outer_shell_volume", 0, 0, 0);
-
-
-  double mvtx_shell_inner_skin_inner_radius = mvtxGeomDef::mvtx_shell_inner_radius;
-  double mvtx_shell_foam_core_inner_radius  = mvtx_shell_inner_skin_inner_radius + mvtxGeomDef::skin_thickness;
-  double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius  + mvtxGeomDef::foam_core_thickness;
-
-  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs("mvtx_shell_inner_skin",
-                                                  mvtx_shell_inner_skin_inner_radius,
-                                                  mvtx_shell_inner_skin_inner_radius + mvtxGeomDef::skin_thickness,
-                                                  mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube,
-                                                                      G4Material::GetMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_inner_skin_volume", 0, 0, 0);
-
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
-                    "mvtx_shell_inner_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
-  //m_DisplayAction->AddVolume(mvtx_shell_inner_skin_volume, "Rail");
-
-  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
-                                                 mvtx_shell_foam_core_inner_radius,
-                                                 mvtx_shell_foam_core_inner_radius + mvtxGeomDef::foam_core_thickness,
-                                                 mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube,
-                                                                     G4Material::GetMaterial("ROHACELL_FOAM_110"),
-                                                                     "mvtx_shell_foam_core_volume", 0, 0, 0);
-
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
-                    "mvtx_shell_foam_core", mvtx_outer_shell_volume, false, 0, OverlapCheck());
-  //m_DisplayAction->AddVolume(mvtx_shell_foam_core_volume, "Rail");
-
-  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
-                                                  mvtx_shell_outer_skin_inner_radius,
-                                                  mvtx_shell_outer_skin_inner_radius + mvtxGeomDef::skin_thickness,
-                                                  mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube,
-                                                                      G4Material::GetMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_outer_skin_volume", 0, 0, 0);
-
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
-                    "mvtx_shell_outer_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
-  //m_DisplayAction->AddVolume(mvtx_shell_outer_skin_volume, "");
-
-  return mvtx_outer_shell_volume;
-}
-
-
-void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
+void PHG4EICMvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
 {
   //  cout <<"SetDisplayProperty - G4AssemblyVolume w/ TotalImprintedVolumes "<<av->TotalImprintedVolumes()
   //   <<"/"<<av->GetImprintsCount()<<endl;
@@ -457,7 +326,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
   }
 }
 
-void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
+void PHG4EICMvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
 {
   string material_name(lv->GetMaterial()->GetName());
 
@@ -497,7 +366,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   }
 }
 
-void PHG4MvtxDetector::AddGeometryNode()
+void PHG4EICMvtxDetector::AddGeometryNode()
 {
   int active = 0;
   for (auto& isAct : m_IsLayerActive)
@@ -537,7 +406,7 @@ void PHG4MvtxDetector::AddGeometryNode()
   }  //is active
 }  // AddGeometryNode
 
-void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume* av)
+void PHG4EICMvtxDetector::FillPVArray(G4AssemblyVolume* av)
 {
   if (Verbosity() > 0)
   {
@@ -581,7 +450,7 @@ void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume* av)
   }
 }
 
-void PHG4MvtxDetector::FindSensor(G4LogicalVolume* lv)
+void PHG4EICMvtxDetector::FindSensor(G4LogicalVolume* lv)
 {
   int nDaughters = lv->GetNoDaughters();
   for (int i = 0; i < nDaughters; ++i)
