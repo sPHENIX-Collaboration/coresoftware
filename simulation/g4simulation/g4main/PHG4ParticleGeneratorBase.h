@@ -5,10 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 #include <string>                // for string
 #include <vector>
@@ -55,17 +52,15 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   double get_mass(const int pdgcode) const;
   void CheckAndCreateParticleVector();
   void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
+  gsl_rng *RandomGenerator;
   int embedflag;
   int reuse_existing_vertex;
   double vtx_x;
   double vtx_y;
   double vtx_z;
   double t0;
-  std::vector<PHG4Particle *> particlelist;
   unsigned int seed;
-#if !defined(__CINT__) || defined(__CLING__)
-  gsl_rng *RandomGenerator;
-#endif
+  std::vector<PHG4Particle *> particlelist;
 };
 
 #endif
