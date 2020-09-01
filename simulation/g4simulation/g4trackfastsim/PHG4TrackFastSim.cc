@@ -1059,16 +1059,17 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
   else
   {
     cout << PHWHERE << " Invalid stateName " << stateName << endl;
-    cout << "implemented are for cylinders" << endl;
+    cout << endl << "These are implemented for cylinders" << endl;
     for (auto iter :  reserved_cylinder_projection_names)
     {
       cout << iter << endl;
     }
-    cout << "implemented are for zplanes" << endl;
+    cout << endl << "These are implemented are for zplanes" << endl;
     for (auto iter :  reserved_zplane_projection_names)
     {
       cout << iter << endl;
     }
+    gSystem->Exit(1);
   }
   return;
 }
@@ -1078,8 +1079,8 @@ void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const do
   if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
       reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
-    cout << PHWHERE << ": " << stateName << " is reserved, used different name" << endl;
-    return;
+    cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << endl;
+    gSystem->Exit(1);
   }
   m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
   return;
@@ -1090,8 +1091,8 @@ void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const doub
   if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
       reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
-    cout << PHWHERE << ": " << stateName << " is reserved, used different name" << endl;
-    return;
+    cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << endl;
+    gSystem->Exit(1);
   }
  m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
   return;
