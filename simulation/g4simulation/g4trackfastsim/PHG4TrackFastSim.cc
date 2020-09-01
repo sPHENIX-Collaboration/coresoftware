@@ -1082,6 +1082,11 @@ void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const do
     cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << endl;
     gSystem->Exit(1);
   }
+  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
+    gSystem->Exit(1);
+  }
   m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
   return;
 }
@@ -1092,6 +1097,11 @@ void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const doub
       reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
     cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << endl;
+    gSystem->Exit(1);
+  }
+  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
     gSystem->Exit(1);
   }
  m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
