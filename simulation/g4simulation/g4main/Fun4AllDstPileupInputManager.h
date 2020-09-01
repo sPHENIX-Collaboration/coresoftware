@@ -10,16 +10,19 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 
+#include <phool/PHCompositeNode.h>        // for PHCompositeNode
+#include <phool/PHNodeIOManager.h>        // for PHNodeIOManager
+
+#include <cstdint>                        // for int64_t
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>                         // for vector
 
 class EventHeader;
-class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
-class PHNodeIOManager;
 class SyncObject;
 
 class Fun4AllDstPileupInputManager : public Fun4AllInputManager

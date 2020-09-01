@@ -6,15 +6,16 @@
 #include "Fun4AllDstPileupInputManager.h"
 
 #include "PHG4HitContainer.h"
+#include "PHG4Hit.h"                     // for PHG4Hit
 #include "PHG4Hitv1.h"
+#include "PHG4Particle.h"                // for PHG4Particle
 #include "PHG4Particlev3.h"
-#include "PHG4Shower.h"
 #include "PHG4TruthInfoContainer.h"
+#include "PHG4VtxPoint.h"                // for PHG4VtxPoint
 #include "PHG4VtxPointv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/SubsysReco.h>
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
@@ -25,8 +26,11 @@
 #include <frog/FROG.h>
 
 #include <phhepmc/PHHepMCGenEventMap.h>
+#include <phhepmc/PHHepMCGenEvent.h>     // for PHHepMCGenEvent
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNode.h>                // for PHNode
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
 #include <phool/PHNodeIterator.h>   // for PHNodeIterator
@@ -40,11 +44,12 @@
 #include <HepMC/GenEvent.h>
 
 #include <cassert>
+#include <climits>
 #include <cstdlib>
+#include <cstdint>
 #include <iostream>                 // for operator<<, basic_ostream, endl
-#include <utility>                  // for pair
-
-class TBranch;
+#include <iterator>                      // for reverse_iterator, operator!=
+ #include <utility>                  // for pair
 
 // convenient aliases for deep copying nodes
 namespace

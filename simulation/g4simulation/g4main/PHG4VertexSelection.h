@@ -12,7 +12,6 @@
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
 
-#include <memory>
 #include <string>                              // for string
 
 class PHCompositeNode;

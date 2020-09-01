@@ -6,11 +6,9 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#if !defined(__CINT__) || defined (__CLING__)
+#include <climits>       // for INT_MIN, ULONG_LONG_MAX
+#include <cmath>
 #include <cstdint>
-#else
-#include <stdint.h>
-#endif
 #include <iostream>
 #include <map>
 

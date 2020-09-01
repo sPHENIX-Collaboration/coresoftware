@@ -1,6 +1,7 @@
 #include "PHG4TrackUserInfoV1.h"
 
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <boost/lexical_cast.hpp>
 

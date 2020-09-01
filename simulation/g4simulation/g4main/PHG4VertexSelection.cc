@@ -11,7 +11,10 @@
 #include "PHG4VtxPoint.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
+
+#include <iostream>                      // for operator<<, basic_ostream, endl
 
 //____________________________________________________________________________
 PHG4VertexSelection::PHG4VertexSelection(const std::string &name)
