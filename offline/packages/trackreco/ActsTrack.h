@@ -18,6 +18,8 @@ class ActsTrack
 {
 
  public:
+  ActsTrack();
+
   ActsTrack(FW::TrackParameters params, 
 	    const std::vector<SourceLink> &links,
 	    Acts::Vector3D vertex)

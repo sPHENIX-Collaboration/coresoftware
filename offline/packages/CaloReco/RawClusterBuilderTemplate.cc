@@ -6,6 +6,9 @@
 #include "BEmcRecEEMC.h"
 #include "BEmcRecFEMC.h"
 
+#include <g4vertex/GlobalVertex.h>
+#include <g4vertex/GlobalVertexMap.h>
+
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
@@ -50,6 +53,7 @@ RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   , BINY0(0)
   , NBINY(0)
   , bPrintGeom(false)
+  , bProfProb(false)
 {
 }
 
@@ -85,10 +89,10 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
     bemc = new BEmcRec();
   }
 
-  // Define vertex ... not used now
+  // Set vertex
   float vertex[3] = {0, 0, 0};
   bemc->SetVertex(vertex);
-  // Define threshold ... not used now
+  // Set threshold
   bemc->SetTowerThreshold(0);
 }
 
@@ -196,7 +200,6 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     ix -= BINX0;
     iy -= BINY0;
     bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
-    //    }
   }
 
   if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;
@@ -262,6 +265,30 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  // Get vertex
+  float vx = 0;
+  float vy = 0;
+  float vz = 0;
+  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");  
+  if (vertexmap)
+  {
+    if (!vertexmap->empty())
+    {
+      GlobalVertex* vertex = (vertexmap->begin()->second);
+      vx = vertex->get_x();
+      vy = vertex->get_y();
+      vz = vertex->get_z();
+    }
+  }
+
+  // Set vertex
+  float vertex[3] = {vx, vy, vz};
+  bemc->SetVertex(vertex);
+  // Set threshold
+  bemc->SetTowerThreshold(_min_tower_e);
+
+  bemc->SetProfileProb(bProfProb);
 
   // _clusters->Reset(); // !!! Not sure if it is necessarry to do it - ask Chris
 

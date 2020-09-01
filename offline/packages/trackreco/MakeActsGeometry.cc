@@ -66,7 +66,6 @@
 
 using namespace std;
 
-
 MakeActsGeometry::MakeActsGeometry(const string &name)
   : m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
@@ -298,13 +297,15 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-
-  // Can hard code geometry options since the TGeo options are fixed by our detector design
-  const int argc = 33;
+  const int argc = 7;
   char *arg[argc];
-  //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "XZY", "YZX", "YZX", "--bf-values", "0", "0", "1.4"};
 
+  // Response file contains arguments necessary for geometry building
+  const std::string argstr[argc]{
+    "-n1", "-l0", 
+      "--response-file=tgeo-sphenix.response",
+      "--bf-values", "0", "0", "1.4"
+      };
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -312,8 +313,9 @@ void MakeActsGeometry::buildActsSurfaces()
     // need a copy, since .c_str() returns a const char * and process geometry will not take a const
     arg[i] = strdup(argstr[i].c_str());
   }
-
-  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
+  
+  // We replicate the relevant functionality of  
+  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
   makeGeometry(argc, arg, m_detector);
@@ -345,10 +347,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   m_contextDecorators = geometry.second;
 
   m_magneticField = FW::Options::readBField(vm);
-
-  /// The detectors
-  /// "MVTX" and "Silicon" and "TPC"
-  read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   size_t ievt = 0;
   size_t ialg = 0;
@@ -803,7 +801,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 
   if (!m_geoManager)
   {
-    cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
+    std::cout << PHWHERE << " Did not find TGeoManager, quit! " << std::endl;
     return;
   }
   TGeoVolume *topVol = m_geoManager->GetTopVolume();
@@ -815,7 +813,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     TGeoNode *node = dynamic_cast<TGeoNode *>(obj);
     std::string node_str = node->GetName();
 
-    std::string mvtx("av_1");
+    std::string mvtx("MVTX_Wrapper");
     std::string intt("ladder");
     std::string intt_ext("ladderext");
     std::string tpc("tpc_envelope");
@@ -823,8 +821,23 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the MVTX" << endl;
-      getMvtxKeyFromNode(node);
+	std::cout << " node " << node->GetName() << " is the MVTX wrapper" 
+		  << std::endl;
+  
+      /// The Mvtx has an additional wrapper that needs to be unpacked
+      TObjArray *mvtxArray = node->GetNodes();
+      TIter mvtxObj(mvtxArray);
+      while(TObject *mvtx = mvtxObj())
+	{
+	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
+	  if(m_verbosity > 2)
+	    std::cout << "mvtx node name is " << mvtxNode->GetName() << std::endl;
+	  std::string mvtxav1("av_1");
+	  std::string mvtxNodeName = mvtxNode->GetName();
+	  /// We only want the av_1 nodes
+	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
+	    getMvtxKeyFromNode(mvtxNode);
+	}
     }
     else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
     {
@@ -833,7 +846,8 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
         continue;
 
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the INTT" << endl;
+	std::cout << " node " << node->GetName() << " is in the INTT" 
+		  << std::endl;
       getInttKeyFromNode(node);
     }
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?

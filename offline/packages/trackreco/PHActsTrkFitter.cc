@@ -8,7 +8,7 @@
 #include "PHActsTrkFitter.h"
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -39,6 +39,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+
 using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
@@ -64,7 +65,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -74,7 +75,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 2)
+  if(Verbosity() > 0)
     logger = Acts::Logging::VERBOSE;
 
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
@@ -88,7 +89,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
       h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
     }		 
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 0)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -99,7 +100,7 @@ int PHActsTrkFitter::Process()
   auto startTime = high_resolution_clock::now();
   m_event++;
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
@@ -117,14 +118,37 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-    
+  
+    /// Acts cares about the track covariance as it helps the KF
+    /// know whether or not to trust the initial track seed or not.
+    /// We reset it here to some loose values as it helps Acts improve
+    /// the fitting. 
+    /// If the covariance is too loose, it won't be able to propagate,
+    /// but if it is too tight, it will just "believe" the track seed over
+    /// the hit data
+    Acts::BoundSymMatrix cov;
+    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., 0.00005 , 0.,
+           0., 0., 0., 0., 0., 1.;
+
+
+    FW::TrackParameters newTrackSeed(cov,
+				     trackSeed.position(),
+				     trackSeed.momentum(),
+				     trackSeed.charge(),
+				     trackSeed.time());
+
+
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
     /// the initial vertex estimation
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 		          track.getVertex());
    
-    if(Verbosity() > 1)
+    if(Verbosity() > 0)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position() << std::endl 
@@ -148,7 +172,7 @@ int PHActsTrkFitter::Process()
       Acts::VoidOutlierFinder(),
       &(*pSurface));
   
-    auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
+    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -216,17 +240,23 @@ int PHActsTrkFitter::Process()
   }
 
   auto stopTime = high_resolution_clock::now();
-  auto eventTime = duration_cast<milliseconds>(stopTime - startTime);
+  auto eventTime = duration_cast<microseconds>(stopTime - startTime);
 
   if(m_timeAnalysis)
     h_eventTime->Fill(eventTime.count());
+
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter::process_event finished" 
+	      << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
 {
+
   m_actsFitResults->clear();
+
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
@@ -247,7 +277,7 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
 
   std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
@@ -302,9 +332,12 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
+  ActsTransformations *rotater = new ActsTransformations();
+  rotater->setVerbosity(Verbosity());
+  
   if(params.covariance())
     {
-      ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+   
       Acts::BoundSymMatrix rotatedCov = 
 	rotater->rotateActsCovToSvtxTrack(params);
       
@@ -322,7 +355,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3DxyCov = -9999.;
   float dca3DzCov = -9999.;
 
-  calculateDCA(params, vertex, 
+  rotater->calculateDCA(params, vertex, 
 	       dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
  
   // convert from mm to cm
@@ -333,7 +366,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
-  fillSvtxTrackStates(traj, trackTip, track);  
+  rotater->fillSvtxTrackStates(traj, trackTip, track,
+			       m_tGeometry->geoContext,
+			       m_hitIdClusKey);  
 
   if(Verbosity() > 2)
     {  
@@ -346,162 +381,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-void PHActsTrkFitter::fillSvtxTrackStates(const Trajectory traj, const size_t &trackTip, SvtxTrack *svtx_track)
-{
-  const auto &[trackTips, mj] = traj.trajectory();
-  
-  mj.visitBackwards(trackTip, [&](const auto &state) {
-      /// Only fill the track states with non-outlier measurement
-      auto typeFlags = state.typeFlags();
-      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-	{
-	  return true;
-	}
-      
-      auto meas = std::get<Measurement>(*state.uncalibrated());
-
-      /// Get the surface, if we need geometry information
-      ///auto stateSurface = meas.referenceSurface();
-
-      /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-			   meas.parameters()[Acts::ParDef::eLOC_1]);
-      /// Get global position
-      Acts::Vector3D global(0, 0, 0);
-      /// This is an arbitrary vector. Doesn't matter in coordinate transformation
-      /// in Acts code
-      Acts::Vector3D mom(1, 1, 1);
-      meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
-					    local, mom, global);
-      
-      float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v1 out( pathlength );
-      out.set_x(global.x() / Acts::UnitConstants::cm);
-      out.set_y(global.y() / Acts::UnitConstants::cm);
-      out.set_z(global.z() /  Acts::UnitConstants::cm);
-
-      // I assume we want the smoothed for the final track states?      
-      if (state.hasSmoothed())
-	{
-	  Acts::BoundParameters parameter(m_tGeometry->geoContext,
-					  state.smoothedCovariance(), state.smoothed(),
-					  state.referenceSurface().getSharedPtr());
-	  
-	  out.set_px(parameter.momentum().x());
-	  out.set_py(parameter.momentum().y());
-	  out.set_pz(parameter.momentum().z());
-
-	  /// Get measurement covariance    
-	  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
-	  rotater->setVerbosity(Verbosity());
-
-	  Acts::BoundSymMatrix globalCov = rotater->rotateActsCovToSvtxTrack(parameter);
-	  for (int i = 0; i < 6; i++)
-	    {
-	      for (int j = 0; j < 6; j++)
-		{ 
-		  out.set_error(i, j, globalCov(i,j)); 
-		}
-	    }
-	  	  
-	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = getClusKey(hitId);
-	  svtx_track->insert_cluster_key(cluskey);
-	  
-	  if(Verbosity() > 2)
-	    {
-	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
-			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
-			<< global.z() /  Acts::UnitConstants::cm 
-			<< " pathlength " << pathlength
-			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
-			<< " cluskey " << cluskey << std::endl
-			<< "covariance " << globalCov << std::endl; 
-	    }
-	  
-	  svtx_track->insert_state(&out);      
-	}
-  
-      return true;      
-    }
-    );
-
-  return;
-}
-
-TrkrDefs::cluskey PHActsTrkFitter::getClusKey(const unsigned int hitID)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = m_hitIdClusKey->begin();
-  while (hitIter != m_hitIdClusKey->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
-}
     
-void PHActsTrkFitter::calculateDCA(const Acts::BoundParameters param,
-				   Acts::Vector3D vertex,
-				   float &dca3Dxy,
-				   float &dca3Dz,
-				   float &dca3DxyCov,
-				   float &dca3DzCov)
-{
-  Acts::Vector3D pos = param.position();
-  Acts::Vector3D mom = param.momentum();
-
-  /// Correct for initial vertex estimation
-  pos -= vertex;
-
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-  if(param.covariance())
-    cov = param.covariance().value();
-
-  Acts::ActsSymMatrixD<3> posCov;
-  for(int i = 0; i < 3; ++i)
-    {
-      for(int j = 0; j < 3; ++j)
-	{
-	  posCov(i,j) = cov(i,j);
-	} 
-    }
-
-  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
-  float phi = atan2(r(1), r(0));
-
-  Acts::RotationMatrix3D rot;
-  Acts::RotationMatrix3D rot_T;
-  rot(0,0) = cos(phi);
-  rot(0,1) = -sin(phi);
-  rot(0,2) = 0;
-  rot(1,0) = sin(phi);
-  rot(1,1) = cos(phi);
-  rot(1,2) = 0;
-  rot(2,0) = 0;
-  rot(2,1) = 0;
-  rot(2,2) = 1;
-  
-  rot_T = rot.transpose();
-
-  Acts::Vector3D pos_R = rot * pos;
-  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
-
-  dca3Dxy = pos_R(0);
-  dca3Dz = pos_R(2);
-  dca3DxyCov = rotCov(0,0);
-  dca3DzCov = rotCov(2,2);
-  
-}
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
@@ -524,7 +404,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
   
   if(!m_actsFitResults)
     {
@@ -539,7 +419,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       svtxNode->addNode(fitNode);
       
     }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

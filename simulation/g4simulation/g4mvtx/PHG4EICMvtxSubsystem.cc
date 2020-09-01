@@ -1,9 +1,9 @@
-#include "PHG4MvtxSubsystem.h"
+#include "PHG4EICMvtxSubsystem.h"
 
 #include "PHG4MvtxDefs.h"
-#include "PHG4MvtxDetector.h"
+#include "PHG4EICMvtxDetector.h"
 #include "PHG4MvtxDisplayAction.h"
-#include "PHG4MvtxSteppingAction.h"
+#include "PHG4EICMvtxSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -36,7 +36,7 @@ using namespace std;
 using namespace PHG4MvtxDefs;
 
 //_______________________________________________________________________
-PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layers)
+PHG4EICMvtxSubsystem::PHG4EICMvtxSubsystem(const std::string& name, const int _n_layers)
   : PHG4DetectorGroupSubsystem(name)
   , m_Detector(nullptr)
   , steppingAction_(nullptr)
@@ -56,16 +56,16 @@ PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layer
 }
 
 //_______________________________________________________________________
-PHG4MvtxSubsystem::~PHG4MvtxSubsystem()
+PHG4EICMvtxSubsystem::~PHG4EICMvtxSubsystem()
 {
   delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
-int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
+int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
-    cout << "PHG4MvtxSubsystem::Init started" << endl;
+    cout << "PHG4EICMvtxSubsystem::Init started" << endl;
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -78,7 +78,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   {
     cout << "    create Mvtx detector with " << n_layers << " layers." << endl;
   }
-  m_Detector = new PHG4MvtxDetector(this, topNode, GetParamsContainer(), Name());
+  m_Detector = new PHG4EICMvtxDetector(this, topNode, GetParamsContainer(), Name());
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(detector_type);
@@ -156,21 +156,21 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4MvtxSteppingAction(m_Detector);
+    steppingAction_ = new PHG4EICMvtxSteppingAction(m_Detector);
     steppingAction_->Verbosity(Verbosity());
   }
   else
   {
     if (blackhole)
     {
-      steppingAction_ = new PHG4MvtxSteppingAction(m_Detector);
+      steppingAction_ = new PHG4EICMvtxSteppingAction(m_Detector);
     }
   }
   return 0;
 }
 
 //_______________________________________________________________________
-int PHG4MvtxSubsystem::process_event(PHCompositeNode* topNode)
+int PHG4EICMvtxSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -182,19 +182,19 @@ int PHG4MvtxSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4MvtxSubsystem::GetDetector(void) const
+PHG4Detector* PHG4EICMvtxSubsystem::GetDetector(void) const
 {
   return m_Detector;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4MvtxSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4EICMvtxSubsystem::GetSteppingAction(void) const
 {
   return steppingAction_;
 }
 
 //_______________________________________________________________________
-void PHG4MvtxSubsystem::SetDefaultParameters()
+void PHG4EICMvtxSubsystem::SetDefaultParameters()
 {
   for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
   {
@@ -213,10 +213,6 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
   }
 
   set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
-  set_default_string_param(GLOBAL, "end_wheels_sideS",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideA_mod_PEEK.gdml"));
-  set_default_string_param(GLOBAL, "end_wheels_sideN",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideC_PEEK.gdml"));
   /*
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);

@@ -318,7 +318,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 {
   // this is a dumb protection against executing this twice.
   // we have cases (currently detector display or material scan) where
-  // we need the detector bu have not run any events (who wants to wait
+  // we need the detector but have not run any events (who wants to wait
   // for processing an event if you just want a detector display?).
   // Then the InitRun is executed from a macro. But if you decide to run events
   // afterwards, the InitRun is executed by the framework together with all
@@ -336,6 +336,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   recoConsts *rc = recoConsts::instance();
+
+  rc->set_StringFlag("WorldMaterial", m_WorldMaterial);
+
+  rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
+  rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
+  rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
   //setup the global field
   const int field_ret = InitField(topNode);
@@ -367,9 +373,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-  rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
-  rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
-  rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
   BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
