@@ -208,8 +208,8 @@ int PHActsTrkProp::Process()
 	/// If we are resetting the covariance and the space point
 	/// to the vertex, the POCA should have the covariance of the
 	/// vertex
-	covariance << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-	              0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	covariance << 50 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	              0., 25 * Acts::UnitConstants::um, 0., 0., 0., 0.,
 	              0., 0., 0.01, 0., 0., 0.,
 	              0., 0., 0., 0.01, 0., 0.,
 	              0., 0., 0., 0., 0.0001, 0.,
