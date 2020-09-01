@@ -91,7 +91,10 @@ class PHActsTrkProp : public PHTrackPropagating
   void setVolumeMaxChi2(const int vol, const float maxChi2);
   void setVolumeLayerMaxChi2(const int vol, const int layer,
 			     const float maxChi2);
+  void resetCovariance(bool resetCovariance){m_resetCovariance = resetCovariance;}
+
  private:
+
   /// Event counter
   int m_event;
 
@@ -133,6 +136,8 @@ class PHActsTrkProp : public PHTrackPropagating
   std::vector<SourceLink> getEventSourceLinks();
 
   ActsTrackingGeometry *m_tGeometry;
+
+  bool m_resetCovariance;
 
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;

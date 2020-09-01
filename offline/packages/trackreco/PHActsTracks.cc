@@ -97,7 +97,12 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       track->identify();
     }
 
-    const unsigned int vertexId = track->get_vertex_id();
+    unsigned int vertexId = track->get_vertex_id();
+
+    /// hack for now since TPC seeders don't set vertex id
+    if(vertexId == UINT_MAX)
+      vertexId = 0;
+
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
@@ -141,7 +146,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     // just set to 10 ns for now?
     const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = -track->get_charge();  // charge is set in PHHoughTrackSeeding, copied over in PHGenFitTrkProp. Sign convention is apparently opposite here. Mag field sign?
+    const int trackQ = track->get_charge();
 
     const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
 					trackQ * Acts::UnitConstants::e, 
