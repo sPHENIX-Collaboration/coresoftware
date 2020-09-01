@@ -64,7 +64,6 @@ class HepMCNodeReader : public SubsysReco
   double width_vx;
   double width_vy;
   double width_vz;
-
 };
 
 #endif

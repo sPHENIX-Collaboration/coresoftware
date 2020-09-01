@@ -1,6 +1,6 @@
 #include "PHG4ParticleGeneratorBase.h"
 
-#include "PHG4Particle.h"                  // for PHG4Particle
+#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev1.h"
 
 #include "PHG4InEvent.h"
@@ -10,30 +10,30 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>              // for PHDataNode
-#include <phool/PHNode.h>                  // for PHNode
-#include <phool/PHNodeIterator.h>          // for PHNodeIterator
-#include <phool/PHObject.h>                // for PHObject
+#include <phool/PHDataNode.h>      // for PHDataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
-#include <phool/phool.h>                   // for PHWHERE
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <HepMC/SimpleVector.h>            // for FourVector
+#include <HepMC/SimpleVector.h>  // for FourVector
 
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
-#include <cstdlib>                        // for exit
-#include <iostream>                        // for operator<<, basic_ostream
-#include <iterator>                        // for operator!=, reverse_iterator
-#include <map>                             // for map<>::const_iterator, map
-#include <utility>                         // for pair
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, basic_ostream
+#include <iterator>  // for operator!=, reverse_iterator
+#include <map>       // for map<>::const_iterator, map
+#include <utility>   // for pair
 
 using namespace std;
 
