@@ -372,16 +372,16 @@ class TrackingEvaluator_hp : public SubsysReco
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
 
-  // get G4Particle id of max contributor to a given track
+  //! get G4Particle id of max contributor to a given track
   std::pair<int,int> get_max_contributor( SvtxTrack* ) const;
 
-  // get embedded id for given g4track
+  //! get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
-  // cluster array
+  //! evaluation node
   Container* m_container = nullptr;
 
-  // flags
+  //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks | EvalTrackPairs;
 
   //! hits
