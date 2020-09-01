@@ -96,8 +96,8 @@ using namespace std;
 // names of our implemented calorimeters where the projections are done
 // at 1/2 of their depth, not at the surface
 // this is used to avoid user added projections with identical names
-set<string> reserved_cylinder_projection_names {"CEMC", "HCALIN", "HCALOUT"};
-set<string> reserved_zplane_projection_names {"FEMC","FHCAL","EEMC"};
+set<string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT"};
+set<string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC"};
 
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
@@ -909,7 +909,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     switch (iter->second.first)
     {
     case DETECTOR_TYPE::Cylinder:
-      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.),TVector3(0., 0., 1.), 0);
+      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.), TVector3(0., 0., 1.), 0);
       break;
     case DETECTOR_TYPE::Vertical_Plane:
       pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter->second.second), TVector3(0, 0., 1.), 0);
@@ -1059,13 +1059,15 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
   else
   {
     cout << PHWHERE << " Invalid stateName " << stateName << endl;
-    cout << endl << "These are implemented for cylinders" << endl;
-    for (auto iter :  reserved_cylinder_projection_names)
+    cout << endl
+         << "These are implemented for cylinders" << endl;
+    for (auto iter : reserved_cylinder_projection_names)
     {
       cout << iter << endl;
     }
-    cout << endl << "These are implemented are for zplanes" << endl;
-    for (auto iter :  reserved_zplane_projection_names)
+    cout << endl
+         << "These are implemented are for zplanes" << endl;
+    for (auto iter : reserved_zplane_projection_names)
     {
       cout << iter << endl;
     }
@@ -1104,6 +1106,6 @@ void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const doub
     cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
     gSystem->Exit(1);
   }
- m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
+  m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
   return;
 }

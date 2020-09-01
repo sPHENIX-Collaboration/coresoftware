@@ -15,7 +15,7 @@
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TVector3.h>
 
-// #include <phgenfit/Track.h> is needed, it crashes on Ubuntu using 
+// #include <phgenfit/Track.h> is needed, it crashes on Ubuntu using
 // singularity with local cvmfs install
 // shared pointer later on uses this, forward declaration does not cut it
 #include <phgenfit/Track.h>
