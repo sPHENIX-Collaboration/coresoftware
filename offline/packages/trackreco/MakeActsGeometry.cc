@@ -801,7 +801,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 
   if (!m_geoManager)
   {
-    cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
+    std::cout << PHWHERE << " Did not find TGeoManager, quit! " << std::endl;
     return;
   }
   TGeoVolume *topVol = m_geoManager->GetTopVolume();
@@ -813,7 +813,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     TGeoNode *node = dynamic_cast<TGeoNode *>(obj);
     std::string node_str = node->GetName();
 
-    std::string mvtx("av_1");
+    std::string mvtx("MVTX_Wrapper");
     std::string intt("ladder");
     std::string intt_ext("ladderext");
     std::string tpc("tpc_envelope");
@@ -821,8 +821,23 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the MVTX" << endl;
-      getMvtxKeyFromNode(node);
+	std::cout << " node " << node->GetName() << " is the MVTX wrapper" 
+		  << std::endl;
+  
+      /// The Mvtx has an additional wrapper that needs to be unpacked
+      TObjArray *mvtxArray = node->GetNodes();
+      TIter mvtxObj(mvtxArray);
+      while(TObject *mvtx = mvtxObj())
+	{
+	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
+	  if(m_verbosity > 2)
+	    std::cout << "mvtx node name is " << mvtxNode->GetName() << std::endl;
+	  std::string mvtxav1("av_1");
+	  std::string mvtxNodeName = mvtxNode->GetName();
+	  /// We only want the av_1 nodes
+	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
+	    getMvtxKeyFromNode(mvtxNode);
+	}
     }
     else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
     {
@@ -831,7 +846,8 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
         continue;
 
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the INTT" << endl;
+	std::cout << " node " << node->GetName() << " is in the INTT" 
+		  << std::endl;
       getInttKeyFromNode(node);
     }
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?

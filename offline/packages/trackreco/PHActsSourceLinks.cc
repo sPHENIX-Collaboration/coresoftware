@@ -14,6 +14,8 @@
 #include <tpc/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -47,6 +49,7 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
+  , m_useVertexMeasurement(false)
   , m_clusterMap(nullptr)
   , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
@@ -78,7 +81,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   /// Check if Acts geometry has been built and is on the node tree
   m_actsGeometry = new MakeActsGeometry();
   
-  m_actsGeometry->setVerbosity(0);
+  m_actsGeometry->setVerbosity(Verbosity());
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree
@@ -110,6 +113,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
 
+if(m_useVertexMeasurement){
+  addVerticesAsSourceLinks(topNode, hitId);
+
+ }
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
@@ -312,7 +319,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
-  // lengths in mm
+  /// lengths in mm
   Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
@@ -592,7 +599,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
     std::cout << "   world; " << world[0] << " "
               << world[1] << " " << world[2] << std::endl;
     std::cout << "   our local; " << local[0] * 10 << " "
-              << local[1] * 10<< " " << local[2] * 10 << std::endl;
+              << local[1] * 10 << " " << local[2] * 10 << std::endl;
     std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
     std::cout << "Our global : " << x * 10 << "  " << y * 10 << "   " << z * 10 
 	      << std::endl;
@@ -604,6 +611,105 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
   localErr = getMvtxCovarLocal(layer, staveId, chipId, worldErr);
 
   return surface;
+}
+
+void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
+						 unsigned int &hitId)
+{
+  SvtxVertexMap *vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+
+  if(!vertexMap)
+    {
+      std::cout << PHWHERE << "Can't get vertex map to add source links. Vertices won't be added as source links"
+		<< std::endl;
+      return;
+    }
+
+  for(SvtxVertexMap::Iter vertexIter = vertexMap->begin();
+      vertexIter != vertexMap->end();
+      ++vertexIter)
+    {
+
+      const SvtxVertex *vertex = vertexIter->second;
+
+      const Acts::Vector3D globalPos(vertex->get_x() * Acts::UnitConstants::cm,
+				     vertex->get_y() * Acts::UnitConstants::cm,
+				     vertex->get_z() * Acts::UnitConstants::cm);
+
+      /// Make a perigee surface corresponding to the vertex for the 
+      /// "measurement" to live on
+      auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+				     globalPos);
+
+      Acts::Vector2D loc(0,0); 
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+
+      pSurface->globalToLocal(m_actsGeometry->getGeoContext(),
+			      globalPos,
+			      pSurface->normal(m_actsGeometry->getGeoContext()),
+			      loc);
+
+      TMatrixD worldErr(3,3);
+      for(int i = 0; i < 3; i++)
+	for(int j = 0; j < 3; j++)
+	  worldErr(i,j) = vertex->get_error(i, j);
+
+      if(Verbosity() > 1)
+	{
+	  std::cout << "global cov xx, yy, zz: " << worldErr(0,0) 
+		    << ", " << worldErr(1,1) << ", " << worldErr(2,2)
+		    << std::endl;
+	}
+
+      const float phi = atan2(vertex->get_y(), vertex->get_x());
+      
+      TMatrixD localErr(3,3);
+      localErr = transformCovarToLocal(phi, worldErr);
+
+      if(Verbosity() > 1)
+	{
+	  std::cout << "local cov rphi, z " << localErr[0][0]
+		    << ", " << localErr[2][2] << std::endl;
+	}
+
+      Acts::BoundVector location = Acts::BoundVector::Zero();
+      location[Acts::eLOC_0] = loc(0);
+      location[Acts::eLOC_1] = loc(1);
+      
+      cov(Acts::eLOC_0, Acts::eLOC_0) =
+	localErr[0][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_1, Acts::eLOC_0) =
+	localErr[2][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_0, Acts::eLOC_1) =
+	localErr[0][2] * Acts::UnitConstants::cm2;
+      cov(Acts::eLOC_1, Acts::eLOC_1) =
+	localErr[2][2] * Acts::UnitConstants::cm2;
+      
+      if(Verbosity() > 1)
+	{
+	  Acts::Vector3D center = pSurface->center(m_actsGeometry->getGeoContext());
+	  Acts::Vector3D normal = pSurface->normal(m_actsGeometry->getGeoContext());
+
+	  std::cout << "Adding vertex as a measurement in track fitting"
+		    << std::endl
+		    << "global loc: (" << globalPos(0) << ", " << globalPos(1)
+		    << ", " << globalPos(2) << ")" << std::endl
+		    << "local pos (" << loc(0) << ", " << loc(1) << ") " 
+		    << std::endl << "surface center: (" << center(0)
+		    << ", " << center(1) << ", " << center(2) << ")" << std::endl
+		    << "surface normal : (" << normal(0) << ", " << normal(1)
+		    << ", " << normal(2) << ") " << std::endl;
+	}
+
+      SourceLink vertexSL(hitId, pSurface, location, cov);
+      
+      m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId,vertexSL));
+
+      hitId++;
+    }
+
+  return;
+
 }
 
 int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
@@ -773,7 +879,10 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   return surface;
 }
 
-Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, const unsigned int staveId, const unsigned int chipId, TMatrixD worldErr)
+Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, 
+						       const unsigned int staveId,
+						       const unsigned int chipId, 
+						       TMatrixD worldErr)
 {
   TMatrixD localErr(3, 3);
 
