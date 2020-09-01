@@ -63,6 +63,13 @@ namespace
   template<class T> inline constexpr T square(const T& x) { return x*x; }
 }
 
+
+//_____________________________________________________________________
+void PHG4TpcElectronDrift::Container::Reset()
+{
+  _distortions.clear();
+}
+
 //_____________________________________________________________
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
@@ -155,6 +162,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     runNode->addNode(newNode);
   }
 
+  // Local evaluators
+  if( m_enable_distortions )
+  {
+    // get EVAL node
+    iter = PHNodeIterator(dstNode);
+    auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+    if( !evalNode )
+    {
+      // create
+      std::cout << "PHG4TpcElectronDrift::InitRun - EVAL node missing - creating" << std::endl;
+      evalNode = new PHCompositeNode( "EVAL" );
+      dstNode->addNode(evalNode);
+    }
+    
+    auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
+    evalNode->addNode(newNode);
+  }
+  
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
@@ -263,6 +288,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   unsigned int print_layer = 18;  
 
+  // container for local evaluations
+  m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
+  if( m_container ) m_container->Reset();
+  
+  // g4hits
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
@@ -354,7 +384,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // add radial distortion
       const double dr = hDRint->Interpolate(phistart,radstart,z_abs);
       rad_final = radstart+dr;
-      // std::cout << "PHG4TpcElectronDrift::process_event - delta r: " << dr << std::endl;
       
       const double phi_final = phistart+(hDPint->Interpolate(phistart,radstart,z_abs)/radstart);
       
@@ -364,6 +393,20 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // convert back to cartesian coordinates, add diffusion
       x_final = rad_final*std::cos(phi_final)+rantrans*cos(ranphi);
       y_final = rad_final*std::sin(phi_final)+rantrans*sin(ranphi);
+      
+      // fill
+      if( m_container )
+      {
+        DistortionStruct distortion;
+        distortion._r = radstart;
+        distortion._phi = phistart;
+        distortion._z = z_abs;
+        distortion._dr = dr;
+        distortion._dphi = phi_final - phistart;
+        distortion._dz = 0;
+        m_container->addDistortion( distortion );
+      }
+      
     } else {
       x_final = x_start + rantrans * cos(ranphi);
       y_final = y_start + rantrans * sin(ranphi);

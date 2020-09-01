@@ -28,11 +28,64 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift() = default;
-  int Init(PHCompositeNode*);
-  int InitRun(PHCompositeNode*);
-  int process_event(PHCompositeNode*);
-  int End(PHCompositeNode*);
+  virtual int Init(PHCompositeNode*);
+  virtual int InitRun(PHCompositeNode*);
+  virtual int process_event(PHCompositeNode*);
+  virtual int End(PHCompositeNode*);
 
+  class DistortionStruct
+  {
+    
+    public:
+    using List = std::vector<DistortionStruct>;
+    
+    /// constructor
+    DistortionStruct() = default;
+    
+    float _r = 0;
+    float _phi = 0;
+    float _z = 0;
+    
+    float _dr = 0;
+    float _dphi = 0;
+    float _dz = 0;
+  };
+ 
+  /// track container
+  class Container: public PHObject
+  {
+
+    public:
+
+    /// constructor
+    explicit Container() = default;
+
+    /// copy constructor
+    explicit Container(const Container &) = delete;
+
+    /// assignment operator
+    Container& operator = ( const Container& ) = delete;
+
+    /// reset
+    virtual void Reset();
+
+    /// distrotions
+    const DistortionStruct::List& distortions() const
+    { return _distortions; }
+    
+    /// add distortion
+    void addDistortion( const DistortionStruct& distortion )
+    { _distortions.push_back( distortion ); }
+
+    private:
+
+    /// event struct
+    DistortionStruct::List _distortions;
+
+    ClassDef(Container,1)
+
+  };
+  
   void SetDefaultParameters();
 
   //! detector name
@@ -66,6 +119,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
+
+  //! evaluation node
+  Container* m_container = nullptr;
 
   //! space charge distortion file name
   bool m_enable_distortions = false;
