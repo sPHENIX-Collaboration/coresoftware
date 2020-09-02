@@ -17,7 +17,7 @@ PHG4InnerHcalDisplayAction::PHG4InnerHcalDisplayAction(const string &name)
 
 PHG4InnerHcalDisplayAction::~PHG4InnerHcalDisplayAction()
 {
-  for (auto &it:m_VisAttVec)
+  for (auto &it : m_VisAttVec)
   {
     delete it;
   }
@@ -27,7 +27,7 @@ PHG4InnerHcalDisplayAction::~PHG4InnerHcalDisplayAction()
 
 void PHG4InnerHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
-  for (auto &it:m_ScintiLogVolSet)
+  for (auto &it : m_ScintiLogVolSet)
   {
     if (it->GetVisAttributes())
     {
