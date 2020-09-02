@@ -8,7 +8,7 @@
 
 using namespace std;
 
-PHG4InnerHcalDisplayAction::PHG4InnerHcalDisplayAction(const std::string &name)
+PHG4InnerHcalDisplayAction::PHG4InnerHcalDisplayAction(const string &name)
   : PHG4DisplayAction(name)
   , m_MyTopVolume(nullptr)
   , m_SteelVol(nullptr)
