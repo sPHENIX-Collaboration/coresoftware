@@ -108,5 +108,11 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ -noIncludePaths  -inlineInputHeader -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm
