@@ -23,6 +23,7 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/PHTimer.h>
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -86,7 +87,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if(m_timeAnalysis)
     {
       m_timeFile = new TFile("ActsTimeFile.root","RECREATE");
-      h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
+      h_eventTime = new TH1F("h_eventTime",";time [ms]",100000,0,10000);
+      h_fitTime = new TH1F("h_fitTime",";time [ms]",100000,0,10000);
+      h_updateTime = new TH1F("h_updateTime",";time [ms]",
+			      100000,0,10000);
     }		 
   
   if(Verbosity() > 0)
@@ -97,7 +101,8 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::Process()
 {
-  auto startTime = high_resolution_clock::now();
+  auto startEventTime = high_resolution_clock::now();
+
   m_event++;
 
   if (Verbosity() > 0)
@@ -171,8 +176,14 @@ int PHActsTrkFitter::Process()
       m_tGeometry->calibContext,
       Acts::VoidOutlierFinder(),
       &(*pSurface));
-  
+
+    auto startTime = high_resolution_clock::now();
     auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
+    auto stopTime = high_resolution_clock::now();
+    auto eventTime = duration_cast<microseconds>(stopTime - startTime);
+
+    if(m_timeAnalysis)
+      h_fitTime->Fill(eventTime.count() / 1000.);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -205,8 +216,17 @@ int PHActsTrkFitter::Process()
 
       /// Get position, momentum from the Acts output. Update the values of
       /// the proto track
+      
+      auto startUpdateTime = high_resolution_clock::now();
       if(fitOutput.fittedParameters)
 	updateSvtxTrack(trajectory, trackKey, track.getVertex());
+
+      auto stopUpdateTime = high_resolution_clock::now();
+      auto updateTime = duration_cast<microseconds>
+	(stopUpdateTime - startUpdateTime);
+
+      if(m_timeAnalysis)
+	h_updateTime->Fill(updateTime.count() / 1000.);
 
       /// Insert a new entry into the map
       m_actsFitResults->insert(
@@ -238,12 +258,15 @@ int PHActsTrkFitter::Process()
     
 
   }
-
-  auto stopTime = high_resolution_clock::now();
-  auto eventTime = duration_cast<microseconds>(stopTime - startTime);
-
+  
+  
+  auto stopEventTime = high_resolution_clock::now();
   if(m_timeAnalysis)
-    h_eventTime->Fill(eventTime.count());
+    {    
+      auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
+  
+      h_eventTime->Fill(eventTime.count()/1000.);
+    }
 
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter::process_event finished" 
@@ -270,7 +293,9 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
   if(m_timeAnalysis)
     {
       m_timeFile->cd();
+      h_fitTime->Write();
       h_eventTime->Write();
+      h_updateTime->Write();
       m_timeFile->Write();
       m_timeFile->Close();
     } 

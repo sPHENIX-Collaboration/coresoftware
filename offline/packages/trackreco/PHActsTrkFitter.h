@@ -110,7 +110,8 @@ class PHActsTrkFitter : public PHTrackFitting
   bool m_timeAnalysis;
   TFile *m_timeFile;
   TH1 *h_eventTime;
-  
+  TH1 *h_fitTime;
+  TH1 *h_updateTime;
 };
 
 #endif
