@@ -552,15 +552,15 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  double Ne_dEdx = 1.56;   // keV/cm
-  double CF4_dEdx = 7.00;  // keV/cm
+  static constexpr double Ne_dEdx = 1.56;   // keV/cm
+  static constexpr double CF4_dEdx = 7.00;  // keV/cm
   // double Ne_NPrimary = 12;    // Number/cm
   // double CF4_NPrimary = 51;   // Number/cm
-  double Ne_NTotal = 43;    // Number/cm
-  double CF4_NTotal = 100;  // Number/cm
-  double Tpc_NTot = 0.9 * Ne_NTotal + 0.1 * CF4_NTotal;
-  double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
-  double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  static constexpr double Ne_NTotal = 43;    // Number/cm
+  static constexpr double CF4_NTotal = 100;  // Number/cm
+  static constexpr double Tpc_NTot = 0.5*Ne_NTotal + 0.5*CF4_NTotal;
+  static constexpr double Tpc_dEdx = 0.5*Ne_dEdx + 0.5*CF4_dEdx;
+  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   set_default_double_param("diffusion_long", 0.012);   // cm/SQRT(cm)
   set_default_double_param("diffusion_trans", 0.004);  // cm/SQRT(cm)
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
