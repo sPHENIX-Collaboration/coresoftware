@@ -33,8 +33,7 @@ class TpcClusterizer : public SubsysReco
  private:
   bool is_local_maximum(int phi, int z, std::vector<std::vector<double>> &adcval);
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
-  void get_cluster(int phibin, int zbin, int &phiup, int &phidown, int &zup, int &zdown, std::vector<std::vector<double>> &adcval);
-  void get_cluster2(int phibin, int zbin, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list);
+  void get_cluster(int phibin, int zbin, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list);
   void find_z_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& zdown, int& zup);
   void find_phi_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& phidown, int& phiup);
   void remove_hit(double adc, int phibin, int zbin, std::multimap<double, ihit> &all_hit_map, std::vector<std::vector<double>> &adcval );
