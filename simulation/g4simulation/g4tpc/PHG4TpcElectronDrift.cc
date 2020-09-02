@@ -550,8 +550,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 {
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
-  // diffusion and drift velocity for 400kV for NeCF4 90/10 from calculations:
-  // https://www.phenix.bnl.gov/WWW/p/draft/prakhar/tpc/HTML_Gas_Linear/Ne_CF4_90_10.html
+  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
+  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
   double Ne_dEdx = 1.56;   // keV/cm
   double CF4_dEdx = 7.00;  // keV/cm
   // double Ne_NPrimary = 12;    // Number/cm
@@ -561,8 +561,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   double Tpc_NTot = 0.9 * Ne_NTotal + 0.1 * CF4_NTotal;
   double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
   double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  set_default_double_param("diffusion_long", 0.015);   // cm/SQRT(cm)
-  set_default_double_param("diffusion_trans", 0.006);  // cm/SQRT(cm)
+  set_default_double_param("diffusion_long", 0.012);   // cm/SQRT(cm)
+  set_default_double_param("diffusion_trans", 0.004);  // cm/SQRT(cm)
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
