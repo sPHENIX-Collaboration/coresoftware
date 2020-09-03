@@ -10,16 +10,19 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 
+#include <phool/PHCompositeNode.h>  // for PHCompositeNode
+#include <phool/PHNodeIOManager.h>  // for PHNodeIOManager
+
+#include <cstdint>  // for int64_t
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>  // for vector
 
 class EventHeader;
-class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
-class PHNodeIOManager;
 class SyncObject;
 
 class Fun4AllDstPileupInputManager : public Fun4AllInputManager
@@ -39,27 +42,29 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //! store event bunch crossing ids
   /*! bunch crossings are used to decide which pile-up events should be merged to a given "trigger" event */
-  void setBunchCrossingList( const std::vector<int64_t>& value ) { m_bunchCrossings = value; }
+  void setBunchCrossingList(const std::vector<int64_t> &value) { m_bunchCrossings = value; }
 
   //! store event offset
   /*! offste is added to the current event number to look for the corresponding event timestamp */
-  void setEventOffset( int value ) { m_event_offset = value; }
+  void setEventOffset(int value) { m_event_offset = value; }
 
   //! set time window for pileup events (ns)
-  void setPileupTimeWindow( double tmin, double tmax )
-  { m_tmin = tmin; m_tmax = tmax; }
+  void setPileupTimeWindow(double tmin, double tmax)
+  {
+    m_tmin = tmin;
+    m_tmax = tmax;
+  }
 
  protected:
   int ReadNextEventSyncObject();
   void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
 
  private:
-
   //! load nodes
-  void load_nodes(PHCompositeNode*);
+  void load_nodes(PHCompositeNode *);
 
   //! copy background event
-  void copy_background_event(PHCompositeNode*, double delta_t);
+  void copy_background_event(PHCompositeNode *, double delta_t);
 
   //!@name event counters
   //@{
@@ -76,10 +81,10 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   std::string m_syncbranchname;
 
   //! dst node from TopNode
-  PHCompositeNode* m_dstNode = nullptr;
+  PHCompositeNode *m_dstNode = nullptr;
 
   //! run node from TopNode
-  PHCompositeNode* m_runNode = nullptr;
+  PHCompositeNode *m_runNode = nullptr;
 
   //! internal dst node to copy background events
   std::unique_ptr<PHCompositeNode> m_dstNodeInternal;
@@ -122,18 +127,16 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   double m_tmax = 13500;
 
   //! event header
-  EventHeader* m_eventheader = nullptr;
+  EventHeader *m_eventheader = nullptr;
 
   //! hepmc
-  PHHepMCGenEventMap* m_geneventmap = nullptr;
+  PHHepMCGenEventMap *m_geneventmap = nullptr;
 
   //! maps g4hit containers to node names
-  std::map<std::string, PHG4HitContainer*> m_g4hitscontainers;
+  std::map<std::string, PHG4HitContainer *> m_g4hitscontainers;
 
   //! truth information
-  PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
-
-
+  PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
 };
 
 #endif /* __Fun4AllDstPileupInputManager_H__ */
