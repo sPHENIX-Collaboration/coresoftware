@@ -27,6 +27,7 @@
 #include <string>
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 
 namespace FW
 {
@@ -110,8 +111,10 @@ class PHActsTrkFitter : public PHTrackFitting
   bool m_timeAnalysis;
   TFile *m_timeFile;
   TH1 *h_eventTime;
-  TH1 *h_fitTime;
+  TH2 *h_fitTime;
   TH1 *h_updateTime;
+  TH1 *h_stateTime;
+  TH1 *h_rotTime;
 };
 
 #endif
