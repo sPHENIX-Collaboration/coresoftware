@@ -74,6 +74,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -124,7 +125,7 @@ int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 {
-  cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
+  if (Verbosity() >= 1) cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
 
   _svtxEvalStack = new SvtxEvalStack(topNode);
   _svtxEvalStack->next_event(topNode);
@@ -140,7 +141,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
        ++phtrk_iter)
     {
       _tracklet = phtrk_iter->second;
-      //if (Verbosity() >= 1)
+      if (Verbosity() >= 1)
 	{
 	  std::cout
 	    << __LINE__
@@ -155,7 +156,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       // Reject short seed tracks
       if(_tracklet->size_cluster_keys() < _min_clusters_per_track)
 	{
-	  std::cout << " --- reject track  number " << phtrk_iter->first << std::endl;
+	  if (Verbosity() >= 1) std::cout << " --- reject track  number " << phtrk_iter->first << std::endl;
 	  //continue;
 	}
 
@@ -198,10 +199,21 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	unsigned int ivert = 0;
 	_tracklet->set_vertex_id(ivert);
 
-	_tracklet->identify(); 
-	std::cout << " new cluster keys size " << _tracklet->size_cluster_keys() << endl;
+	// set the track position to the vertex position
+	const SvtxVertex *svtxVertex = _vertex_map->get(ivert);
+	
+	_tracklet->set_x(svtxVertex->get_x());
+	_tracklet->set_y(svtxVertex->get_y());
+	_tracklet->set_z(svtxVertex->get_z());
+ 
+      if (Verbosity() >= 1)
+	{
+	  _tracklet->identify(); 
+	  std::cout << " new cluster keys size " << _tracklet->size_cluster_keys() << endl;
+	}
 
-	std::cout << "Done with track " << phtrk_iter->first << std::endl;
+	      if (Verbosity() >= 1)
+		std::cout << "Done with track " << phtrk_iter->first << std::endl;
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -254,13 +266,13 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  //  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  //if (!_vertex_map)
-  //{
-  //cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-  //return Fun4AllReturnCodes::ABORTEVENT;
-  //}
-
+  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_vertex_map)
+    {
+      cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   _track_map = findNode::getClass<SvtxTrackMap>(topNode,  "SvtxTrackMap");
   if (!_track_map)
   {

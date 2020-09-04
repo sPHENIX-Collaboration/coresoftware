@@ -10,6 +10,7 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class SvtxVertexMap;
 class TrkrClusterContainer;
 class SvtxEvaluator;
 class SvtxEvalStack;
@@ -70,6 +71,7 @@ class PHTruthSiliconAssociation : public SubsysReco
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;
   SvtxTrack *_tracklet;
+  SvtxVertexMap * _vertex_map;
 
   int _ntrack = 0;
   const int  _min_clusters_per_track = 20;
