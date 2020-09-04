@@ -1,66 +1,3 @@
-//____________________________________________________________________________..
-//
-// This is a template for a Fun4All SubsysReco module with all methods from the
-// $OFFLINE_MAIN/include/fun4all/SubsysReco.h baseclass
-// You do not have to implement all of them, you can just remove unused methods
-// here and in PHTruthSiliconAssociation.h.
-//
-// PHTruthSiliconAssociation(const std::string &name = "PHTruthSiliconAssociation")
-// everything is keyed to PHTruthSiliconAssociation, duplicate names do work but it makes
-// e.g. finding culprits in logs difficult or getting a pointer to the module
-// from the command line
-//
-// PHTruthSiliconAssociation::~PHTruthSiliconAssociation()
-// this is called when the Fun4AllServer is deleted at the end of running. Be
-// mindful what you delete - you do loose ownership of object you put on the node tree
-//
-// int PHTruthSiliconAssociation::Init(PHCompositeNode *topNode)
-// This method is called when the module is registered with the Fun4AllServer. You
-// can create historgrams here or put objects on the node tree but be aware that
-// modules which haven't been registered yet did not put antyhing on the node tree
-//
-// int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
-// This method is called when the first event is read (or generated). At
-// this point the run number is known (which is mainly interesting for raw data
-// processing). Also all objects are on the node tree in case your module's action
-// depends on what else is around. Last chance to put nodes under the DST Node
-// We mix events during readback if branches are added after the first event
-//
-// int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
-// called for every event. Return codes trigger actions, you find them in
-// $OFFLINE_MAIN/include/fun4all/Fun4AllReturnCodes.h
-//   everything is good:
-//     return Fun4AllReturnCodes::EVENT_OK
-//   abort event reconstruction, clear everything and process next event:
-//     return Fun4AllReturnCodes::ABORT_EVENT; 
-//   proceed but do not save this event in output (needs output manager setting):
-//     return Fun4AllReturnCodes::DISCARD_EVENT; 
-//   abort processing:
-//     return Fun4AllReturnCodes::ABORT_RUN
-// all other integers will lead to an error and abort of processing
-//
-// int PHTruthSiliconAssociation::ResetEvent(PHCompositeNode *topNode)
-// If you have internal data structures (arrays, stl containers) which needs clearing
-// after each event, this is the place to do that. The nodes under the DST node are cleared
-// by the framework
-//
-// int PHTruthSiliconAssociation::EndRun(const int runnumber)
-// This method is called at the end of a run when an event from a new run is
-// encountered. Useful when analyzing multiple runs (raw data). Also called at
-// the end of processing (before the End() method)
-//
-// int PHTruthSiliconAssociation::End(PHCompositeNode *topNode)
-// This is called at the end of processing. It needs to be called by the macro
-// by Fun4AllServer::End(), so do not forget this in your macro
-//
-// int PHTruthSiliconAssociation::Reset(PHCompositeNode *topNode)
-// not really used - it is called before the dtor is called
-//
-// void PHTruthSiliconAssociation::Print(const std::string &what) const
-// Called from the command line - useful to print information when you need it
-//
-//____________________________________________________________________________..
-
 #include "PHTruthSiliconAssociation.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -95,19 +32,18 @@ using namespace std;
 PHTruthSiliconAssociation::PHTruthSiliconAssociation(const std::string &name):
  SubsysReco(name)
 {
-  cout << "PHTruthSiliconAssociation::PHTruthSiliconAssociation(const std::string &name) Calling ctor" << endl;
+  //cout << "PHTruthSiliconAssociation::PHTruthSiliconAssociation(const std::string &name) Calling ctor" << endl;
 }
 
 //____________________________________________________________________________..
 PHTruthSiliconAssociation::~PHTruthSiliconAssociation()
 {
-  cout << "PHTruthSiliconAssociation::~PHTruthSiliconAssociation() Calling dtor" << endl;
+
 }
 
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::Init(PHCompositeNode *topNode)
 {
-  cout << "PHTruthSiliconAssociation::Init(PHCompositeNode *topNode) Initializing" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -115,7 +51,6 @@ int PHTruthSiliconAssociation::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 {
-  cout << "PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
 
   GetNodes(topNode);
 
@@ -125,7 +60,8 @@ int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= 1) cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
+  if (Verbosity() >= 1) 
+    cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
 
   _svtxEvalStack = new SvtxEvalStack(topNode);
   _svtxEvalStack->next_event(topNode);
@@ -148,24 +84,26 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	    << ": Processing seed itrack: " << phtrk_iter->first
 	    << ": nhits: " << _tracklet-> size_cluster_keys()
 	    << ": Total tracks: " << _track_map->size()
+	    << ": phi: " << _tracklet->get_phi()
 	    << endl;
 	}
 
-      _tracklet->identify(); 
-     
-      // Reject short seed tracks
-      if(_tracklet->size_cluster_keys() < _min_clusters_per_track)
-	{
-	  if (Verbosity() >= 1) std::cout << " --- reject track  number " << phtrk_iter->first << std::endl;
-	  //continue;
-	}
+
+      if (Verbosity() >= 1) 
+	_tracklet->identify(); 
 
       // identify the best truth track match for this seed track 
 
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(_tracklet);
 
-	// identify the clusters that are associated with this g4particle
+	if (Verbosity() >= 1)
+	  std::cout << "   g4particleID " << g4particle->get_track_id() 
+		    << " px " <<  g4particle->get_px() 
+		    << " py " <<  g4particle->get_py() 
+		    << " phi " << atan2(g4particle->get_py(), g4particle->get_px() )
+		    << std::endl;
 
+	// identify the clusters that are associated with this g4particle
 	std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(g4particle);
 
 	for (std::set<TrkrDefs::cluskey>::iterator jter = clusters.begin();
@@ -175,21 +113,19 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	    TrkrDefs::cluskey cluster_key = *jter;
 	    unsigned int layer = TrkrDefs::getLayer(cluster_key);
 	    unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	    std::cout << "     found cluster with key: " << cluster_key << " in layer " << layer << std::endl;
-	    //TrkrCluster *cluster = clustermap->findCluster(cluster_key);
-	    //cluster->identify();
+	     if (Verbosity() >= 1)  std::cout << "     found cluster with key: " << cluster_key << " in layer " << layer << std::endl;
 	    
 	    // Identify the MVTX and INTT clusters and add them to the SvtxTrack cluster key list
 	    if(trkrid == TrkrDefs::mvtxId)
 	      {
-		std::cout << "            cluster belongs to MVTX, add to track " << std::endl;
+		 if (Verbosity() >= 1)  std::cout << "            cluster belongs to MVTX, add to track " << std::endl;
 		_tracklet->insert_cluster_key(cluster_key);
 		_assoc_container->SetClusterTrackAssoc(cluster_key, _tracklet->get_id());
 	      }
 	    
 	    if(trkrid == TrkrDefs::inttId)
 	      {
-		std::cout << "            cluster belongs to INTT, add to track " << std::endl;
+		 if (Verbosity() >= 1) std::cout << "            cluster belongs to INTT, add to track " << std::endl;
 		  _tracklet->insert_cluster_key(cluster_key);
 		_assoc_container->SetClusterTrackAssoc(cluster_key, _tracklet->get_id());
 	      }
@@ -212,10 +148,13 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	  std::cout << " new cluster keys size " << _tracklet->size_cluster_keys() << endl;
 	}
 
-	      if (Verbosity() >= 1)
-		std::cout << "Done with track " << phtrk_iter->first << std::endl;
+      if (Verbosity() >= 1)
+	std::cout << "Done with track " << phtrk_iter->first << std::endl;
     }
-  
+
+  if (Verbosity() >= 1)
+    cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -229,21 +168,18 @@ int PHTruthSiliconAssociation::ResetEvent(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::EndRun(const int runnumber)
 {
-  //cout << "PHTruthSiliconAssociation::EndRun(const int runnumber) Ending Run for Run " << runnumber << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::End(PHCompositeNode *topNode)
 {
-  //cout << "PHTruthSiliconAssociation::End(PHCompositeNode *topNode) This is the End..." << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::Reset(PHCompositeNode *topNode)
 {
-  //cout << "PHTruthSiliconAssociation::Reset(PHCompositeNode *topNode) being Reset" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

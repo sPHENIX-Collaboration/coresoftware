@@ -72,11 +72,6 @@ class PHTruthSiliconAssociation : public SubsysReco
   AssocInfoContainer *_assoc_container;
   SvtxTrack *_tracklet;
   SvtxVertexMap * _vertex_map;
-
-  int _ntrack = 0;
-  const int  _min_clusters_per_track = 20;
-
-
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H
