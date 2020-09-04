@@ -33,13 +33,15 @@ namespace
   void print_vector( const std::string& name, const std::vector<T> values )
   {
     std::cout << "  " << name << "[" << values.size() << "] = {" << std::endl << "    ";
-    int count = 0;
+    int current = 0;
+    int total = 0;
     for( const auto& value:values )
     {
-      if( count ) std::cout << ", ";
       std::cout << value;
-      ++count;
-      if( count == 10 ) { std::cout << std::endl << "    "; count = 0; }
+      if( total < values.size()-1 ) std::cout << ", ";
+      ++current;
+      ++total;
+      if( current == 10 ) { std::cout << std::endl << "    "; current = 0; }
     }
     std::cout << " };" << std::endl;
   };
@@ -281,17 +283,23 @@ void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
   std::vector<int> phibins;
   std::vector<int> zbins;
   std::vector<float> thickness;
+  std::vector<float> radius;
   const range_adaptor<PHG4CylinderCellGeomContainer::ConstIterator> range(std::move( container->get_begin_end()));
   for( const auto&pair:range )
   {
     phibins.push_back( pair.second->get_phibins() );
     zbins.push_back( pair.second->get_zbins() );
     thickness.push_back( pair.second->get_thickness() );
+    radius.push_back(pair.second->get_radius()-0.5*pair.second->get_thickness());
   }
 
+  // add end radius for last layer
+  radius.push_back( radius.back() + thickness.back() );
+  
   print_vector( "phibins", phibins );
   print_vector( "zbins", zbins );
   print_vector( "thickness", thickness );
+  print_vector( "radius", radius );
 
 }
 
