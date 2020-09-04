@@ -793,8 +793,12 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("zigzag_pads", 1);
 
-  set_default_double_param("gem_amplification", 2000); // GEM Gain
-
+  // GEM Gain
+  /*
+  hp (2020/09/04): gain changed from 2000 to 1400, to accomodate gas mixture change 
+  from Ne/CF4 90/10 to Ne/CF4 50/50, and keep the average charge per particle per pad constant
+  */
+  set_default_double_param("gem_amplification", 1400); 
   return;
 }
 
