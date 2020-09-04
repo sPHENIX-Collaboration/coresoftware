@@ -28,7 +28,6 @@
 #include <TMatrixT.h>       // for TMatrixT, ope...
 #include <TMatrixTUtils.h>  // for TMatrixTRow
 
-#include <TNtuple.h>  
 #include <TFile.h>  
 
 #include <cmath>  // for sqrt, cos, sin
@@ -61,8 +60,6 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , NPhiBinsMin(0)
   , NZBinsMax(0)
   , NZBinsMin(0)
-  , hit_nt(nullptr)
-  , cluster_nt(nullptr)
 {
 }
 
@@ -689,14 +686,5 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
 int TpcClusterizer::End(PHCompositeNode *topNode)
 {
-  /*
-  if (Verbosity() > 10)
-  {
-    TFile *outf = new TFile("cluster_nt_out.root", "recreate");
-    outf->WriteTObject(hit_nt);
-    outf->WriteTObject(cluster_nt);
-    outf->Close();
-  }
-  */
   return Fun4AllReturnCodes::EVENT_OK;
 }

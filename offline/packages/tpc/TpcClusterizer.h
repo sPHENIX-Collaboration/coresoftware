@@ -11,7 +11,6 @@ class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class TNtuple;
 class PHG4CylinderCellGeom;
 
 typedef std::pair<int, int> iphiz;
@@ -56,8 +55,6 @@ class TpcClusterizer : public SubsysReco
   int NZBinsMax;
   int NZBinsMin;
 
-  TNtuple *hit_nt;
-  TNtuple *cluster_nt;
 };
 
 #endif
