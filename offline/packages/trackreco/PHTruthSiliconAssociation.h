@@ -4,19 +4,25 @@
 #define PHTRUTHSILICONASSOCIATION_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <string>
+#include <set>
 
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class TrkrClusterContainer;
-class SvtxEvaluator;
-class SvtxEvalStack;
+//class SvtxEvaluator;
+//class SvtxEvalStack;
 class SvtxClusterEval;
 class PHG4TruthInfoContainer;
+class PHG4HitContainer;
+class PHG4Particle;
 class AssocInfoContainer;
+class TrkrClusterHitAssoc;
+class TrkrHitTruthAssoc;
 
 class PHTruthSiliconAssociation : public SubsysReco
 {
@@ -63,15 +69,25 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-  SvtxEvaluator *_svtxEvaluator{nullptr};
+  PHG4Particle* getG4PrimaryParticle(SvtxTrack *track);
+  std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
+  
+  //SvtxEvaluator *_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *_truthInfo{nullptr};
+  PHG4HitContainer *_g4hits_tpc{nullptr};
+  PHG4HitContainer *_g4hits_mvtx{nullptr};
+  PHG4HitContainer *_g4hits_intt{nullptr};
   
   TrkrClusterContainer *_cluster_map;
-  SvtxEvalStack *_svtxEvalStack;
+  TrkrClusterHitAssoc *_cluster_hit_map;
+  TrkrHitTruthAssoc *_hit_truth_map;
+  //SvtxEvalStack *_svtxEvalStack;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;
   SvtxTrack *_tracklet;
   SvtxVertexMap * _vertex_map;
+  PHG4TruthInfoContainer *_truthinfo;
+
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H
