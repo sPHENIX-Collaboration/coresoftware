@@ -15,11 +15,6 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-//#include <g4eval/SvtxClusterEval.h>
-//#include <g4eval/SvtxEvalStack.h>
-//#include <g4eval/SvtxEvaluator.h>
-//#include <g4eval/SvtxTrackEval.h>
-
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
 #include <g4main/PHG4HitContainer.h>
@@ -53,10 +48,9 @@ int PHTruthSiliconAssociation::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 {
+  int ret = GetNodes(topNode);
 
-  GetNodes(topNode);
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return ret;
 }
 
 //____________________________________________________________________________..
@@ -64,12 +58,6 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() >= 1) 
     cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
-
-  //  _svtxEvalStack = new SvtxEvalStack(topNode);
-  //_svtxEvalStack->next_event(topNode);
-
-  //SvtxTrackEval *trackeval = _svtxEvalStack->get_track_eval();
-  //SvtxClusterEval *clustereval = _svtxEvalStack->get_cluster_eval();
 
   // Loop over all SvtxTracks from the CA seeder
   // These should contain all TPC clusters already
@@ -94,12 +82,8 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= 1) 
 	_tracklet->identify(); 
       
-      // identify the best truth track match for this seed track 
-      
+      // identify the best truth track match for this seed track       
       PHG4Particle *g4particle = getG4PrimaryParticle(_tracklet);
-      
-      //std::cout << " g4particle " << g4particle->get_track_id() << endl;
-      //PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(_tracklet);
       
       if (Verbosity() >= 1)
 	std::cout << "   g4particleID " << g4particle->get_track_id() 
@@ -109,7 +93,6 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 		  << std::endl;
       
       // identify the clusters that are associated with this g4particle
-      //std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(g4particle);
       std::set<TrkrDefs::cluskey> clusters = getSiliconClustersFromParticle(g4particle);
       
       for (std::set<TrkrDefs::cluskey>::iterator jter = clusters.begin();
@@ -137,12 +120,15 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	      }
 	  }
 
-	// the vertex id from the seeder is nonsense, use vertex 0
-	unsigned int ivert = 0;
-	_tracklet->set_vertex_id(ivert);
+      unsigned int vertexId = _tracklet->get_vertex_id();
+      // if the vertex id from the seeder is nonsense, use vertex 0
+      if(vertexId == UINT_MAX)
+	  vertexId = 0;
+
+      _tracklet->set_vertex_id(vertexId);
 
 	// set the track position to the vertex position
-	const SvtxVertex *svtxVertex = _vertex_map->get(ivert);
+	const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);
 	
 	_tracklet->set_x(svtxVertex->get_x());
 	_tracklet->set_y(svtxVertex->get_y());
@@ -152,10 +138,8 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	{
 	  _tracklet->identify(); 
 	  std::cout << " new cluster keys size " << _tracklet->size_cluster_keys() << endl;
+	  std::cout << "Done with track " << phtrk_iter->first << std::endl;
 	}
-
-      if (Verbosity() >= 1)
-	std::cout << "Done with track " << phtrk_iter->first << std::endl;
     }
 
   if (Verbosity() >= 1)
@@ -246,17 +230,17 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
   _g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
-
- _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-
+  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
 {
+  // Find the best g4particle match to the clusters associated with this reco track
+
   PHG4Particle* g4part = 0;
   std::set<int> pid;
-  //std::vector<int> pid_count;
   std::multimap<int, int> pid_count;
 
   // loop over associated clusters to get hits
@@ -267,7 +251,6 @@ PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
       TrkrDefs::cluskey cluster_key = *iter;
 
       // get all truth hits for this cluster
-      //_cluster_hit_map->identify();
       TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
       for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	{
@@ -293,8 +276,9 @@ PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
 		}
 	      if( g4hit )
 		{
-		  // get the g4particle for this g4hit
+		  // get the g4particle ID for this g4hit
 		  pid.insert(g4hit->get_trkid());
+		  // this is for counting the number of times this g4particle was associated
 		  int cnt = 1;
 		  pid_count.insert(std::make_pair(g4hit->get_trkid(), cnt));
 		}
@@ -309,7 +293,6 @@ PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
       std::pair<std::multimap<int, int>::iterator, std::multimap<int,int>::iterator> this_pid = pid_count.equal_range(*it);
       for(auto it = this_pid.first; it != this_pid.second; ++it)
 	{
-	  //std::cout << " pid = " << it->first << " pid_count " << it->second << endl;	  
 	  nfound++;	  
 	}
       if(nfound > maxfound)
@@ -318,7 +301,6 @@ PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
 	  g4part = _truthinfo->GetParticle(*it);
 	}
     }
-  //std::cout << " Best g4paricle ID is : " << g4part->get_track_id() << endl;; 
 
   return g4part;
   
@@ -326,6 +308,7 @@ PHG4Particle* PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxTrack *track)
 
 std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromParticle(PHG4Particle* g4particle)
 {
+  // Find the reco clusters in the silicon layers from this g4particle
 
   std::set<TrkrDefs::cluskey> clusters;
 
@@ -336,9 +319,9 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
        ++iter)
   {
     TrkrDefs::cluskey cluster_key = iter->first;
-
     unsigned int layer = TrkrDefs::getLayer(cluster_key);
-    if(layer > 6) continue;  // silicon layers only
+
+    if(layer > 6) continue;  // we need the silicon layers only
 
     // get all truth hits for this cluster
     TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
@@ -369,16 +352,12 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
 		  int trkid = g4hit->get_trkid();	
 		  if(trkid == g4particle->get_track_id())
 		    {
-		      //std::cout << "   layer " << layer << " g4hit trkid " << trkid << " g4particle track_id " << g4particle->get_track_id() << endl;
 		      clusters.insert(cluster_key);
-		      break;
 		    }		    
 		}
 	    } // end loop over g4hits associated with hitsetkey and hitkey
       } // end loop over hits associated with cluskey  
-    
-    
-  }
+  } // end loop over all cluster keys in silicon layers
   
   return clusters;
   
