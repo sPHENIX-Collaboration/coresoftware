@@ -70,7 +70,7 @@ class PHTruthSiliconAssociation : public SubsysReco
   PHG4Particle* getG4PrimaryParticle(SvtxTrack *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
   
-  PHG4TruthInfoContainer *_truthInfo{nullptr};
+  PHG4TruthInfoContainer *_truthinfo{nullptr};
   PHG4HitContainer *_g4hits_tpc{nullptr};
   PHG4HitContainer *_g4hits_mvtx{nullptr};
   PHG4HitContainer *_g4hits_intt{nullptr};
@@ -82,8 +82,6 @@ class PHTruthSiliconAssociation : public SubsysReco
   AssocInfoContainer *_assoc_container{nullptr};
   SvtxTrack *_tracklet{nullptr};
   SvtxVertexMap * _vertex_map{nullptr};
-  PHG4TruthInfoContainer *_truthinfo{nullptr};
-
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H
