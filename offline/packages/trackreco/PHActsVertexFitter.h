@@ -4,7 +4,7 @@
 #include <fun4all/SubsysReco.h>
 #include "PHActsSourceLinks.h"
 
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -15,7 +15,7 @@ namespace Acts
 class TrackParameters;
 }
 
-using Trajectory = FW::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
 class PHActsVertexFitter : public SubsysReco
 {

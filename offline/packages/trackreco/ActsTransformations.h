@@ -10,9 +10,9 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -20,13 +20,13 @@
 #include <memory>
 #include <utility>
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
-using Trajectory = FW::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundParametersIndices,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+                                      Acts::ParDef::eBoundLoc0,
+                                      Acts::ParDef::eBoundLoc1>;
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -37,20 +37,22 @@ using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
  */
 class ActsTransformations
 {
-  public:
-  ActsTransformations()
-    : m_verbosity(false)
-    {}
+ public:
+ ActsTransformations()
+   : m_verbosity(false)
+  {}
   virtual ~ActsTransformations(){}
   
   /// Rotates an SvtxTrack covariance matrix from (x,y,z,px,py,pz) global
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track);
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track,
+						Acts::GeometryContext geoCtxt);
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(const Acts::BoundParameters params);
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(const Acts::BoundParameters params,
+						Acts::GeometryContext geoCtxt);
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
@@ -60,6 +62,7 @@ class ActsTransformations
   /// vertex
   void calculateDCA(const Acts::BoundParameters param,
 		    Acts::Vector3D vertex,
+		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,
 		    float &dca3Dz,
 		    float &dca3DxyCov,

@@ -35,12 +35,12 @@
 #include <Acts/TrackFinder/CombinatorialKalmanFilter.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 
-#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
-#include <ACTFW/Plugins/BField/ScalableBField.hpp>
-#include <ACTFW/Framework/ProcessCode.hpp>
-#include <ACTFW/Framework/WhiteBoard.hpp>
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Framework/AlgorithmContext.hpp>
+#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
+#include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+#include <ActsExamples/Framework/ProcessCode.hpp>
+#include <ActsExamples/Framework/WhiteBoard.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/Framework/AlgorithmContext.hpp>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -109,6 +109,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   /// Individual layers should only have one SL per layer
   for(int vol = 0; vol < m_volLayerMaxChi2.size(); ++vol)
     for(std::pair<const int, const float> element : m_volLayerMaxChi2.at(vol))
+      ///Vol IDs are 7, 9, 11, hence vol*2+7
       sourceLinkSelectors.push_back({makeId(vol*2.+7, element.first),
 	                            {element.second, 1}});
 	      
@@ -125,15 +126,10 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 		    << std::endl;
 	}
     }
-	     
-  auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 5)
-    logger = Acts::Logging::VERBOSE;
 
-  findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
-                   m_tGeometry->tGeometry,
-		   m_tGeometry->magField,
-		   logger);
+  findCfg.finder = ActsExamples::TrkrClusterFindingAlgorithm::makeFinderFunction(
+			         m_tGeometry->tGeometry,
+				 m_tGeometry->magField);
 
   if(m_timeAnalysis)
     {
@@ -178,12 +174,18 @@ int PHActsTrkProp::Process()
   
   m_event++;
 
+
+  auto logLevel = Acts::Logging::INFO;
+
   if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkProp::process_event" << std::endl;
+    logLevel = Acts::Logging::VERBOSE;
   }
-
+  
+  auto logger = Acts::getDefaultLogger("PHActsTrkProp", logLevel);
+    
   /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks = getEventSourceLinks();
 
@@ -197,7 +199,7 @@ int PHActsTrkProp::Process()
     ActsTrack track = trackIter->second;
     const unsigned int trackKey = trackIter->first;
 
-    FW::TrackParameters trackSeed = track.getTrackParams();
+    ActsExamples::TrackParameters trackSeed = track.getTrackParams();
 
     if(m_resetCovariance)
       {
@@ -217,7 +219,7 @@ int PHActsTrkProp::Process()
 
 	Acts::Vector3D newPos(track.getVertex());
 
-	FW::TrackParameters trackSeedNewCov(covariance,
+	ActsExamples::TrackParameters trackSeedNewCov(covariance,
 					    newPos,
 					    trackSeed.momentum(),
 					    trackSeed.charge(),
@@ -234,7 +236,8 @@ int PHActsTrkProp::Process()
     if(Verbosity() > 0)
       {
 	std::cout << "Processing track seed with positon: "
-		  << trackSeed.position().transpose() << std::endl
+		  << trackSeed.position(m_tGeometry->geoContext).transpose() 
+		  << std::endl
 		  << "momentum: " << trackSeed.momentum().transpose() 
 		  << std::endl
 		  << "charge: " << trackSeed.charge() << std::endl
@@ -252,7 +255,8 @@ int PHActsTrkProp::Process()
 	        m_tGeometry->geoContext, 
 		m_tGeometry->magFieldContext, 
 		m_tGeometry->calibContext, 
-		m_sourceLinkSelectorConfig, 
+		m_sourceLinkSelectorConfig,
+		Acts::LoggerWrapper(*logger),
 		&(*pSurface));
 
     /// Run the CKF for all source links and the constructed track seed
@@ -275,7 +279,7 @@ int PHActsTrkProp::Process()
     else
       {
 	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
-				 (trackKey, FW::TrkrClusterMultiTrajectory()));
+				 (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
 		
 	m_nBadFits++;
       }
@@ -394,9 +398,12 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       
       const auto& fittedParameters = traj.trackParameters(trackTip);
     
-      float x  = fittedParameters.position()(0) / Acts::UnitConstants::cm;
-      float y  = fittedParameters.position()(1) / Acts::UnitConstants::cm;
-      float z  = fittedParameters.position()(2) / Acts::UnitConstants::cm;
+      float x  = fittedParameters.position(m_tGeometry->geoContext)(0) 
+	/ Acts::UnitConstants::cm;
+      float y  = fittedParameters.position(m_tGeometry->geoContext)(1) 
+	/ Acts::UnitConstants::cm;
+      float z  = fittedParameters.position(m_tGeometry->geoContext)(2) 
+	/ Acts::UnitConstants::cm;
       float px = fittedParameters.momentum()(0);
       float py = fittedParameters.momentum()(1);
       float pz = fittedParameters.momentum()(2);
@@ -404,9 +411,10 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       if(Verbosity() > 0)
 	{
 	  std::cout << "Track fit returned a track with: " << std::endl
-		    << "momentum : " << fittedParameters.momentum().transpose()
-		    << std::endl
-		    << "position : " << fittedParameters.position().transpose()
+		    << "momentum : " 
+		    << fittedParameters.momentum().transpose()<< std::endl
+		    << "position : " 
+		    << fittedParameters.position(m_tGeometry->geoContext).transpose()
 		    << std::endl
 		    << "charge : " << fittedParameters.charge() << std::endl;
 	  std::cout << "Track has " << nStates << " states and " 
@@ -421,7 +429,8 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       if(fittedParameters.covariance())
 	{
 	  rotater->setVerbosity(0);
-	  rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters);
+	  rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters, 
+							 m_tGeometry->geoContext);
 	}
       
       float DCA3Dxy = -9999;
@@ -429,7 +438,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       float DCA3DxyCov = -9999;
       float DCA3DzCov = -9999;
       
-      rotater->calculateDCA(fittedParameters, vertex,
+      rotater->calculateDCA(fittedParameters, vertex, m_tGeometry->geoContext,
 			    DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
       
       /// If it is the first track, just update the original track seed

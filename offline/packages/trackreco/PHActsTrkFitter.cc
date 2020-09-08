@@ -32,8 +32,8 @@
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Framework/AlgorithmContext.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/Framework/AlgorithmContext.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -74,14 +74,9 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  auto logger = Acts::Logging::INFO;
-  if(Verbosity() > 0)
-    logger = Acts::Logging::VERBOSE;
-
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
+  fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
-	       m_tGeometry->magField,
-	       logger);
+	       m_tGeometry->magField);
 
   if(m_timeAnalysis)
     {
@@ -100,11 +95,16 @@ int PHActsTrkFitter::Process()
   auto startTime = high_resolution_clock::now();
   m_event++;
 
+  auto logLevel = Acts::Logging::INFO;
+
   if (Verbosity() > 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
+    logLevel = Acts::Logging::VERBOSE;
   }
+
+  auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
   std::map<unsigned int, ActsTrack>::iterator trackIter;
 
@@ -117,7 +117,7 @@ int PHActsTrkFitter::Process()
     const unsigned int trackKey = trackIter->first;
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
-    FW::TrackParameters trackSeed = track.getTrackParams();
+    ActsExamples::TrackParameters trackSeed = track.getTrackParams();
   
     /// Acts cares about the track covariance as it helps the KF
     /// know whether or not to trust the initial track seed or not.
@@ -135,7 +135,7 @@ int PHActsTrkFitter::Process()
            0., 0., 0., 0., 0., 1.;
 
 
-    FW::TrackParameters newTrackSeed(cov,
+    ActsExamples::TrackParameters newTrackSeed(cov,
 				     trackSeed.position(),
 				     trackSeed.momentum(),
 				     trackSeed.charge(),
@@ -170,6 +170,7 @@ int PHActsTrkFitter::Process()
       m_tGeometry->magFieldContext,
       m_tGeometry->calibContext,
       Acts::VoidOutlierFinder(),
+      Acts::LoggerWrapper(*logger),
       &(*pSurface));
   
     auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
@@ -183,7 +184,7 @@ int PHActsTrkFitter::Process()
       /// analysis tool
       std::vector<size_t> trackTips;
       trackTips.push_back(fitOutput.trackTip);
-      FW::IndexedParams indexedParams;
+      ActsExamples::IndexedParams indexedParams;
       if (fitOutput.fittedParameters)
       {
 	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
@@ -192,7 +193,7 @@ int PHActsTrkFitter::Process()
         {
 	  const auto& params = fitOutput.fittedParameters.value();
           std::cout << "Fitted parameters for track" << std::endl;
-          std::cout << " position : " << params.position().transpose()
+          std::cout << " position : " << params.position(m_tGeometry->geoContext).transpose()
                     << std::endl;
 	  std::cout << "charge: "<<params.charge()<<std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
@@ -219,7 +220,7 @@ int PHActsTrkFitter::Process()
 	  std::cout<<"Track fit failed"<<std::endl;
 	/// Insert an empty track fit output into the map since the fit failed
        	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
-				 (trackKey, FW::TrkrClusterMultiTrajectory()));
+				 (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
 
 	/// Mark the SvtxTrack as bad, for better analysis
 	/// can remove later
@@ -321,9 +322,12 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   const auto& params = traj.trackParameters(trackTip);
 
   /// Acts default unit is mm. So convert to cm
-  track->set_x(params.position()(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position()(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position()(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_tGeometry->geoContext)(0)
+	       / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_tGeometry->geoContext)(1)
+	       / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_tGeometry->geoContext)(2)
+	       / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -339,7 +343,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
     {
    
       Acts::BoundSymMatrix rotatedCov = 
-	rotater->rotateActsCovToSvtxTrack(params);
+	rotater->rotateActsCovToSvtxTrack(params,
+					  m_tGeometry->geoContext);
       
       for(int i = 0; i < 6; i++)
 	{
@@ -355,8 +360,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3DxyCov = -9999.;
   float dca3DzCov = -9999.;
 
-  rotater->calculateDCA(params, vertex, 
-	       dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
+  rotater->calculateDCA(params, vertex, m_tGeometry->geoContext, 
+			dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
  
   // convert from mm to cm
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
