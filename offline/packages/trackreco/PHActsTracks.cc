@@ -1,5 +1,5 @@
 #include "PHActsTracks.h"
-#include "ActsCovarianceRotater.h"
+#include "ActsTransformations.h"
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -78,9 +78,9 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
   /// Vector to hold source links for a particular track
   std::vector<SourceLink> trackSourceLinks;
-  std::vector<FW::TrackParameters> trackSeeds;
+  std::vector<ActsExamples::TrackParameters> trackSeeds;
 
-  ActsCovarianceRotater *rotater = new ActsCovarianceRotater();
+  ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
@@ -97,7 +97,12 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       track->identify();
     }
 
-    const unsigned int vertexId = track->get_vertex_id();
+    unsigned int vertexId = track->get_vertex_id();
+
+    /// hack for now since TPC seeders don't set vertex id
+    if(vertexId == UINT_MAX)
+      vertexId = 0;
+
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
@@ -114,10 +119,13 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
-          rotater->rotateSvtxTrackCovToActs(track);
+      rotater->rotateSvtxTrackCovToActs(track,
+					m_tGeometry->geoContext);
+
     const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
                                  track->get_y()  * Acts::UnitConstants::cm,
                                  track->get_z()  * Acts::UnitConstants::cm);
+    
     const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
                                  track->get_py() * Acts::UnitConstants::GeV,
                                  track->get_pz() * Acts::UnitConstants::GeV);
@@ -141,9 +149,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     // just set to 10 ns for now?
     const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = -track->get_charge();  // charge is set in PHHoughTrackSeeding, copied over in PHGenFitTrkProp. Sign convention is apparently opposite here. Mag field sign?
+    const int trackQ = track->get_charge();
 
-    const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
+    const ActsExamples::TrackParameters trackSeed(
+                                        seedCov, 
+					seedPos, seedMom, 
 					trackQ * Acts::UnitConstants::e, 
 					trackTime);
 
@@ -167,7 +177,8 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 		    << " has hitid " << hitId
 		    << std::endl;
 	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(
+				    m_tGeometry->geoContext, std::cout);
 	}
     }
 

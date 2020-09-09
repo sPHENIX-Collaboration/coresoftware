@@ -5,46 +5,51 @@
 
 #include "Fun4AllDstPileupInputManager.h"
 
+#include "PHG4Hit.h"  // for PHG4Hit
 #include "PHG4HitContainer.h"
 #include "PHG4Hitv1.h"
+#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev3.h"
-#include "PHG4Shower.h"
 #include "PHG4TruthInfoContainer.h"
+#include "PHG4VtxPoint.h"  // for PHG4VtxPoint
 #include "PHG4VtxPointv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/SubsysReco.h>
 
+#include <ffaobjects/EventHeader.h>
+#include <ffaobjects/EventHeaderv2.h>
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
-#include <ffaobjects/EventHeader.h>
-#include <ffaobjects/EventHeaderv2.h>
 
 #include <frog/FROG.h>
 
+#include <phhepmc/PHHepMCGenEvent.h>  // for PHHepMCGenEvent
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>  // for PHIODataNode
+#include <phool/PHNode.h>        // for PHNode
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
-#include <phool/PHNodeIterator.h>   // for PHNodeIterator
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHNodeOperation.h>
-#include <phool/PHObject.h>         // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
 #include <HepMC/GenEvent.h>
 
 #include <cassert>
+#include <climits>
+#include <cstdint>
 #include <cstdlib>
-#include <iostream>                 // for operator<<, basic_ostream, endl
-#include <utility>                  // for pair
-
-class TBranch;
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <iterator>  // for reverse_iterator, operator!=
+#include <utility>   // for pair
 
 // convenient aliases for deep copying nodes
 namespace
@@ -54,57 +59,56 @@ namespace
   using PHG4Hit_t = PHG4Hitv1;
 
   //! utility class to find all PHG4Hit container nodes from the DST node
-  class FindG4HitContainer: public PHNodeOperation
+  class FindG4HitContainer : public PHNodeOperation
   {
-
-    public:
-
+   public:
     //! container map alias
-    using ContainerMap = std::map<std::string, PHG4HitContainer*>;
+    using ContainerMap = std::map<std::string, PHG4HitContainer *>;
 
     //! get container map
-    const ContainerMap& containers() const
-    { return m_containers; }
-
-    protected:
-
-    //! iterator action
-    void perform( PHNode* node ) override
+    const ContainerMap &containers() const
     {
-
-      // check type name. Only load PHIODataNode
-      if( node->getType() != "PHIODataNode" ) return;
-
-      // cast to IODataNode and check data
-      auto ionode = static_cast<PHIODataNode<TObject>*>(node);
-      auto data = dynamic_cast<PHG4HitContainer*>( ionode->getData() );
-      if( data )
-      { m_containers.insert( std::make_pair( node->getName(), data ) ); }
+      return m_containers;
     }
 
-    private:
+   protected:
+    //! iterator action
+    void perform(PHNode *node) override
+    {
+      // check type name. Only load PHIODataNode
+      if (node->getType() != "PHIODataNode") return;
 
+      // cast to IODataNode and check data
+      auto ionode = static_cast<PHIODataNode<TObject> *>(node);
+      auto data = dynamic_cast<PHG4HitContainer *>(ionode->getData());
+      if (data)
+      {
+        m_containers.insert(std::make_pair(node->getName(), data));
+      }
+    }
+
+   private:
     //! container map
     ContainerMap m_containers;
   };
 
-}
+}  // namespace
 
 //_____________________________________________________________________________
 Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-{}
+{
+}
 
 //_____________________________________________________________________________
 int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 {
-
   Fun4AllServer *se = Fun4AllServer::instance();
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
-         << FileName()
-         << " and opening " << filenam << std::endl;
+              << FileName()
+              << " and opening " << filenam << std::endl;
     fileclose();
   }
   FileName(filenam);
@@ -119,11 +123,11 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   if (m_IManager)
   {
     std::cout << PHWHERE << " IManager pointer is not nullptr but " << m_IManager.get()
-         << std::endl;
+              << std::endl;
     std::cout << "Send mail to off-l with this printout and the macro you used"
-         << std::endl;
+              << std::endl;
     std::cout << "Trying to execute IManager->print() to display more info"
-         << std::endl;
+              << std::endl;
     std::cout << "Code will probably segfault now" << std::endl;
     m_IManager->print();
     std::cout << "Have someone look into this problem - Exiting now" << std::endl;
@@ -132,7 +136,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   // first read the runnode if not disabled
   if (m_ReadRunTTree)
   {
-    m_IManager.reset( new PHNodeIOManager(m_fullfilename, PHReadOnly, PHRunTree) );
+    m_IManager.reset(new PHNodeIOManager(m_fullfilename, PHReadOnly, PHRunTree));
     if (m_IManager->isFunctional())
     {
       m_runNode = se->getNode(m_RunNode, TopNodeName());
@@ -148,9 +152,9 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
       if (m_runNodeCopy)
       {
         std::cout << PHWHERE
-             << " The impossible happened, we have a valid copy of the run node "
-             << m_runNodeCopy->getName() << " which should be a nullptr"
-             << std::endl;
+                  << " The impossible happened, we have a valid copy of the run node "
+                  << m_runNodeCopy->getName() << " which should be a nullptr"
+                  << std::endl;
         gSystem->Exit(1);
       }
       m_runNodeCopy.reset(new PHCompositeNode("RUNNODECOPY"));
@@ -181,9 +185,9 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   }
 
   // create internal dst node
-  if( !m_dstNodeInternal )
+  if (!m_dstNodeInternal)
   {
-    m_dstNodeInternal.reset( new PHCompositeNode("DST_INTERNAL") );
+    m_dstNodeInternal.reset(new PHCompositeNode("DST_INTERNAL"));
   }
 
   // update dst node from fun4all server
@@ -199,7 +203,9 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
-  } else {
+  }
+  else
+  {
     std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
     m_IManager.reset();
     m_IManager_background.reset();
@@ -216,7 +222,9 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
     {
       if (Verbosity() > 0) std::cout << Name() << ": No Input file open" << std::endl;
       return -1;
-    } else {
+    }
+    else
+    {
       if (OpenNextFile())
       {
         std::cout << Name() << ": No Input file from filelist opened" << std::endl;
@@ -226,7 +234,9 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
   }
 
   if (Verbosity() > 3)
-  { std::cout << "Getting Event from " << Name() << std::endl; }
+  {
+    std::cout << "Getting Event from " << Name() << std::endl;
+  }
 
 readagain:
 
@@ -243,30 +253,32 @@ readagain:
   if (!dummy)
   {
     fileclose();
-    if (!OpenNextFile()) goto readagain;
-    else return -1;
+    if (!OpenNextFile())
+      goto readagain;
+    else
+      return -1;
   }
 
   m_ievent_total += ncount;
   m_ievent_thisfile += ncount;
-  
+
   // check events consistency
-  if( m_ievent_thisfile != static_cast<int>( m_IManager->getEventNumber() ) )
+  if (m_ievent_thisfile != static_cast<int>(m_IManager->getEventNumber()))
   {
     std::cout << PHWHERE
-      << " inconsistent event counters between inputmanager and ionode manager: " 
-      << " m_ievent_thisfile: " << m_ievent_thisfile
-      << " m_IManager->getEventNumber(): " << m_IManager->getEventNumber()
-      << std::endl;
-    gSystem->Exit(1);    
+              << " inconsistent event counters between inputmanager and ionode manager: "
+              << " m_ievent_thisfile: " << m_ievent_thisfile
+              << " m_IManager->getEventNumber(): " << m_IManager->getEventNumber()
+              << std::endl;
+    gSystem->Exit(1);
   }
-  
+
   // get bunchCrossing  associated to this event
   const size_t ievent = m_ievent_total + m_event_offset - 1;
-  if( ievent >= m_bunchCrossings.size() ) return Fun4AllReturnCodes::ABORTRUN;
+  if (ievent >= m_bunchCrossings.size()) return Fun4AllReturnCodes::ABORTRUN;
 
   const auto bunchCrossing = m_bunchCrossings[ievent];
-  if( m_events_accepted > 0 && bunchCrossing == m_last_bunchCrossing )
+  if (m_events_accepted > 0 && bunchCrossing == m_last_bunchCrossing)
   {
     // reject if event belongs to the same bunch crossing as the last accepted event
     std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
@@ -285,25 +297,25 @@ readagain:
 
   // store bunch crossing both inside the event header and as the last bunch crossing
   load_nodes(m_dstNode);
-  if( m_eventheader ) m_eventheader->set_BunchCrossing( bunchCrossing );
+  if (m_eventheader) m_eventheader->set_BunchCrossing(bunchCrossing);
   m_last_bunchCrossing = bunchCrossing;
 
   // fetch past events falling into the TPC integration time
   int neventspast = 0;
-  for( int ieventpast = ievent-1; ieventpast>=0; ieventpast-- )
+  for (int ieventpast = ievent - 1; ieventpast >= 0; ieventpast--)
   {
     // check time
-    const double delta_t = m_time_between_crossings*(m_bunchCrossings[ieventpast] - bunchCrossing);
-    if( delta_t < m_tmin ) break;
+    const double delta_t = m_time_between_crossings * (m_bunchCrossings[ieventpast] - bunchCrossing);
+    if (delta_t < m_tmin) break;
 
     // get relevant event in file index
-    const int ievent_thisfile = m_ievent_thisfile+ieventpast-ievent-1;
+    const int ievent_thisfile = m_ievent_thisfile + ieventpast - ievent - 1;
 
     // try read
-    if( ievent_thisfile < 0 || !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
+    if (ievent_thisfile < 0 || !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile)) break;
 
     // merge
-    copy_background_event( m_dstNodeInternal.get(), delta_t );
+    copy_background_event(m_dstNodeInternal.get(), delta_t);
 
     // increment number of read events
     std::cout << "Fun4AllDstPileupInputManager::run - merged past event " << ievent_thisfile << std::endl;
@@ -312,20 +324,20 @@ readagain:
 
   // fetch future events falling into the TPC integration time
   int neventsfuture = 0;
-  for( size_t ieventfuture = ievent+1; ieventfuture < m_bunchCrossings.size(); ++ieventfuture )
+  for (size_t ieventfuture = ievent + 1; ieventfuture < m_bunchCrossings.size(); ++ieventfuture)
   {
     // check time
-    const double delta_t = m_time_between_crossings*(m_bunchCrossings[ieventfuture] - bunchCrossing);
-    if( delta_t > m_tmax ) break;
+    const double delta_t = m_time_between_crossings * (m_bunchCrossings[ieventfuture] - bunchCrossing);
+    if (delta_t > m_tmax) break;
 
     // get relevant event in file index
-    const int ievent_thisfile = m_ievent_thisfile+ieventfuture-ievent-1;
+    const int ievent_thisfile = m_ievent_thisfile + ieventfuture - ievent - 1;
 
     // try read
-    if( !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
+    if (!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile)) break;
 
     // merge
-    copy_background_event( m_dstNodeInternal.get(), delta_t );
+    copy_background_event(m_dstNodeInternal.get(), delta_t);
 
     // increment number of read events
     std::cout << "Fun4AllDstPileupInputManager::run - merged future event " << ievent_thisfile << std::endl;
@@ -366,7 +378,7 @@ int Fun4AllDstPileupInputManager::GetSyncObject(SyncObject **mastersync)
   {
     if (m_syncobject)
     {
-      *mastersync = dynamic_cast<SyncObject *> (m_syncobject->CloneMe());
+      *mastersync = dynamic_cast<SyncObject *>(m_syncobject->CloneMe());
       assert(*mastersync);
     }
   }
@@ -387,7 +399,7 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
     std::cout << "opened by the Fun4AllDstPileupInputManager with Name " << Name() << " has one" << std::endl;
     std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
     std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   int iret = m_syncobject->Different(mastersync);
@@ -403,17 +415,17 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
       if (Verbosity() > 3)
       {
         std::cout
-          << "Need to Resync, mastersync evt no: " << mastersync->EventNumber()
-          << ", this Event no: " << m_syncobject->EventNumber()
-          << std::endl;
+            << "Need to Resync, mastersync evt no: " << mastersync->EventNumber()
+            << ", this Event no: " << m_syncobject->EventNumber()
+            << std::endl;
         std::cout
-          << "mastersync evt counter: " << mastersync->EventCounter()
-          << ", this Event counter: " << m_syncobject->EventCounter()
-          << std::endl;
+            << "mastersync evt counter: " << mastersync->EventCounter()
+            << ", this Event counter: " << m_syncobject->EventCounter()
+            << std::endl;
         std::cout
-          << "mastersync run number: " << mastersync->RunNumber()
-          << ", this run number: " << m_syncobject->RunNumber()
-          << std::endl;
+            << "mastersync run number: " << mastersync->RunNumber()
+            << ", this run number: " << m_syncobject->RunNumber()
+            << std::endl;
       }
       while (m_syncobject->RunNumber() < mastersync->RunNumber())
       {
@@ -421,14 +433,14 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
         if (Verbosity() > 2)
         {
           std::cout
-            << Name() << " Run Number: " << m_syncobject->RunNumber()
-            << ", master: " << mastersync->RunNumber()
-            << std::endl;
+              << Name() << " Run Number: " << m_syncobject->RunNumber()
+              << ", master: " << mastersync->RunNumber()
+              << std::endl;
         }
         int iret = ReadNextEventSyncObject();
         if (iret) return iret;
       }
-      bool igood( m_syncobject->RunNumber() == mastersync->RunNumber() );
+      bool igood(m_syncobject->RunNumber() == mastersync->RunNumber());
 
       // only run up the Segment Number if run numbers are identical
       while (igood && m_syncobject->SegmentNumber() < mastersync->SegmentNumber())
@@ -437,8 +449,8 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
         if (Verbosity() > 2)
         {
           std::cout << Name() << " Segment Number: " << m_syncobject->SegmentNumber()
-               << ", master: " << mastersync->SegmentNumber()
-               << std::endl;
+                    << ", master: " << mastersync->SegmentNumber()
+                    << std::endl;
         }
         int iret = ReadNextEventSyncObject();
         if (iret)
@@ -448,15 +460,15 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
       }
       // only run up the Event Counter if run number and segment number are identical
       igood = (m_syncobject->SegmentNumber() == mastersync->SegmentNumber() && m_syncobject->RunNumber() == mastersync->RunNumber());
-      while(igood && m_syncobject->EventCounter() < mastersync->EventCounter())
+      while (igood && m_syncobject->EventCounter() < mastersync->EventCounter())
       {
         m_events_skipped_during_sync++;
         if (Verbosity() > 2)
         {
           std::cout << Name()
-               << ", EventCounter: " << m_syncobject->EventCounter()
-               << ", master: " << mastersync->EventCounter()
-               << std::endl;
+                    << ", EventCounter: " << m_syncobject->EventCounter()
+                    << ", master: " << mastersync->EventCounter()
+                    << std::endl;
         }
         int iret = ReadNextEventSyncObject();
         if (iret)
@@ -493,7 +505,7 @@ int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
         return Fun4AllReturnCodes::SYNC_FAIL;
       }
       int iret = m_syncobject->Different(mastersync);  // final check if they really agree
-      if (iret)                                      // if not things are severely wrong
+      if (iret)                                        // if not things are severely wrong
       {
         std::cout << PHWHERE << " MasterSync and SyncObject of " << Name() << " are different" << std::endl;
         std::cout << "This Event will not be processed further, here is some debugging info:" << std::endl;
@@ -533,7 +545,9 @@ readnextsync:
     for (auto bIter = m_IManager->GetBranchMap()->begin(); bIter != m_IManager->GetBranchMap()->end(); ++bIter)
     {
       if (Verbosity() > 2)
-      { std::cout << Name() << ": branch: " << bIter->first << std::endl; }
+      {
+        std::cout << Name() << ": branch: " << bIter->first << std::endl;
+      }
 
       const auto pos = bIter->first.find("/Sync");
       if (pos != std::string::npos)
@@ -548,7 +562,9 @@ readnextsync:
       std::cout << "Please check for it in the following list of branch names and" << std::endl;
       std::cout << "PLEASE NOTIFY PHENIX-OFF-L and post the macro you used" << std::endl;
       for (auto bIter = m_IManager->GetBranchMap()->begin(); bIter != m_IManager->GetBranchMap()->end(); ++bIter)
-      { std::cout << bIter->first << std::endl; }
+      {
+        std::cout << bIter->first << std::endl;
+      }
       return Fun4AllReturnCodes::SYNC_FAIL;
     }
   }
@@ -697,7 +713,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of selected branches in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
 
     std::map<const std::string, int>::const_iterator iter;
@@ -719,7 +735,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "PHNodeIOManager print in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
     m_IManager->print();
   }
@@ -740,17 +756,16 @@ int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
     return 0;
   }
   std::cout << PHWHERE << Name() << ": could not push back events, Imanager is NULL"
-       << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << std::endl;
+            << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << std::endl;
   return -1;
 }
 
 //_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode* dstNode )
+void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
 {
-
   // event header
   m_eventheader = findNode::getClass<EventHeader>(dstNode, "EventHeader");
-  if(!m_eventheader)
+  if (!m_eventheader)
   {
     std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating EventHeader" << std::endl;
     m_eventheader = new EventHeaderv2();
@@ -759,7 +774,7 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode* dstNode )
 
   // hep mc
   m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
-  if(!m_geneventmap)
+  if (!m_geneventmap)
   {
     std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating PHHepMCGenEventMap" << std::endl;
     m_geneventmap = new PHHepMCGenEventMap();
@@ -768,22 +783,21 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode* dstNode )
 
   // find all G4Hit containers under dstNode
   FindG4HitContainer nodeFinder;
-  PHNodeIterator( dstNode ).forEach( nodeFinder );
+  PHNodeIterator(dstNode).forEach(nodeFinder);
   m_g4hitscontainers = nodeFinder.containers();
 
   // g4 truth info
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
-  if( !m_g4truthinfo )
+  if (!m_g4truthinfo)
   {
     std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating node G4TruthInfo" << std::endl;
     m_g4truthinfo = new PHG4TruthInfoContainer();
     dstNode->addNode(new PHIODataNode<PHObject>(m_g4truthinfo, "G4TruthInfo", "PHObject"));
   }
-
 }
 
 //_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNode, double delta_t )
+void Fun4AllDstPileupInputManager::copy_background_event(PHCompositeNode *dstNode, double delta_t)
 {
   // copy PHHepMCGenEventMap
   const auto map = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
@@ -791,9 +805,9 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
   // keep track of new embed id, after insertion as background event
   int new_embed_id = 0;
 
-  if( map && m_geneventmap )
+  if (map && m_geneventmap)
   {
-    if( map->size() != 1 )
+    if (map->size() != 1)
     {
       std::cout << "Fun4AllDstPileupInputManager::copy_background_event - cannot merge events that contain more than one PHHepMCGenEventMap" << std::endl;
       return;
@@ -801,42 +815,41 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
 
     // get event and insert in new map
     auto genevent = map->get_map().begin()->second;
-    auto newevent = m_geneventmap->insert_background_event( genevent );
+    auto newevent = m_geneventmap->insert_background_event(genevent);
 
     /*
      * this hack prevents a crash when writting out
      * it boils down to root trying to write deleted items from the HepMC::GenEvent copy if the source has been deleted
      * it does not happen if the source gets written while the copy is deleted
      */
-    newevent->getEvent()->swap( *genevent->getEvent() );
+    newevent->getEvent()->swap(*genevent->getEvent());
 
     // shift vertex time and store new embed id
-    newevent->moveVertex( 0, 0, 0, delta_t );
-    new_embed_id = genevent->get_embedding_id();
+    newevent->moveVertex(0, 0, 0, delta_t);
+    new_embed_id = newevent->get_embedding_id();
   }
 
   // copy truth container
   // keep track of the correspondance between source index and destination index for vertices, tracks and showers
-  using ConversionMap = std::map<int,int>;
+  using ConversionMap = std::map<int, int>;
   ConversionMap vtxid_map;
   ConversionMap trkid_map;
 
   const auto container = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
-  if( container && m_g4truthinfo )
+  if (container && m_g4truthinfo)
   {
-
     {
       // primary vertices
       auto key = m_g4truthinfo->maxvtxindex();
       const auto range = container->GetPrimaryVtxRange();
-      for( auto iter = range.first; iter != range.second; ++iter )
+      for (auto iter = range.first; iter != range.second; ++iter)
       {
         // clone vertex, insert in map, and add index conversion
-        const auto& sourceVertex = iter->second;
+        const auto &sourceVertex = iter->second;
         auto newVertex = new PHG4VtxPoint_t(sourceVertex);
-        newVertex->set_t( sourceVertex->get_t() + delta_t );
-        m_g4truthinfo->AddVertex( ++key, newVertex );
-        vtxid_map.insert( std::make_pair( sourceVertex->get_id(), key ) );
+        newVertex->set_t(sourceVertex->get_t() + delta_t);
+        m_g4truthinfo->AddVertex(++key, newVertex);
+        vtxid_map.insert(std::make_pair(sourceVertex->get_id(), key));
       }
     }
 
@@ -846,17 +859,17 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
       const auto range = container->GetSecondaryVtxRange();
 
       // loop from last to first to preserve order with respect to the original event
-      for(
-        auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.second);
-        iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.first);
-        ++iter )
+      for (
+          auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.second);
+          iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstVtxIterator>(range.first);
+          ++iter)
       {
         // clone vertex, shift time, insert in map, and add index conversion
-        const auto& sourceVertex = iter->second;
+        const auto &sourceVertex = iter->second;
         auto newVertex = new PHG4VtxPoint_t(sourceVertex);
-        newVertex->set_t( sourceVertex->get_t() + delta_t );
-        m_g4truthinfo->AddVertex( --key, newVertex );
-        vtxid_map.insert( std::make_pair( sourceVertex->get_id(), key ) );
+        newVertex->set_t(sourceVertex->get_t() + delta_t);
+        m_g4truthinfo->AddVertex(--key, newVertex);
+        vtxid_map.insert(std::make_pair(sourceVertex->get_id(), key));
       }
     }
 
@@ -864,26 +877,28 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
       // primary particles
       auto key = m_g4truthinfo->maxtrkindex();
       const auto range = container->GetPrimaryParticleRange();
-      for( auto iter = range.first; iter != range.second; ++iter )
+      for (auto iter = range.first; iter != range.second; ++iter)
       {
-        const auto& source = iter->second;
-        auto dest = new PHG4Particle_t( source );
-        m_g4truthinfo->AddParticle( ++key, dest );
-        dest->set_track_id( key );
+        const auto &source = iter->second;
+        auto dest = new PHG4Particle_t(source);
+        m_g4truthinfo->AddParticle(++key, dest);
+        dest->set_track_id(key);
 
         // set parent to zero
         dest->set_parent_id(0);
 
         // set primary to itself
-        dest->set_primary_id( dest->get_track_id());
+        dest->set_primary_id(dest->get_track_id());
 
         // update vertex
-        const auto keyiter = vtxid_map.find( source->get_vtx_id() );
-        if( keyiter != vtxid_map.end() ) dest->set_vtx_id( keyiter->second );
-        else std::cout << "Fun4AllDstPileupInputManager::copy_background_event - vertex id " << source->get_vtx_id() << " not found in map" << std::endl;
+        const auto keyiter = vtxid_map.find(source->get_vtx_id());
+        if (keyiter != vtxid_map.end())
+          dest->set_vtx_id(keyiter->second);
+        else
+          std::cout << "Fun4AllDstPileupInputManager::copy_background_event - vertex id " << source->get_vtx_id() << " not found in map" << std::endl;
 
         // insert in map
-        trkid_map.insert( std::make_pair( source->get_track_id(), dest->get_track_id() ) );
+        trkid_map.insert(std::make_pair(source->get_track_id(), dest->get_track_id()));
       }
     }
 
@@ -896,60 +911,71 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
        * loop from last to first to preserve order with respect to the original event
        * also this ensures that for a given particle its parent has already been converted and thus found in the map
        */
-      for( 
-        auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.second); 
-        iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.first);
-        ++iter )
+      for (
+          auto iter = std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.second);
+          iter != std::reverse_iterator<PHG4TruthInfoContainer::ConstIterator>(range.first);
+          ++iter)
       {
-        const auto& source = iter->second;
-        auto dest = new PHG4Particle_t( source );
-        m_g4truthinfo->AddParticle( --key, dest );
-        dest->set_track_id( key );
+        const auto &source = iter->second;
+        auto dest = new PHG4Particle_t(source);
+        m_g4truthinfo->AddParticle(--key, dest);
+        dest->set_track_id(key);
 
         // update parent id
-        auto keyiter = trkid_map.find( source->get_parent_id() );
-        if( keyiter != trkid_map.end() ) dest->set_parent_id( keyiter->second );
-        else std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " << source->get_parent_id() << " not found in map" << std::endl;
+        auto keyiter = trkid_map.find(source->get_parent_id());
+        if (keyiter != trkid_map.end())
+          dest->set_parent_id(keyiter->second);
+        else
+          std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " << source->get_parent_id() << " not found in map" << std::endl;
 
         // update primary id
-        keyiter = trkid_map.find( source->get_primary_id() );
-        if( keyiter != trkid_map.end() ) dest->set_primary_id( keyiter->second );
-        else std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " << source->get_primary_id() << " not found in map" << std::endl;
+        keyiter = trkid_map.find(source->get_primary_id());
+        if (keyiter != trkid_map.end())
+          dest->set_primary_id(keyiter->second);
+        else
+          std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " << source->get_primary_id() << " not found in map" << std::endl;
 
         // update vertex
-        keyiter = vtxid_map.find( source->get_vtx_id() );
-        if( keyiter != vtxid_map.end() ) dest->set_vtx_id( keyiter->second );
-        else std::cout << "Fun4AllDstPileupInputManager::copy_background_event - vertex id " << source->get_vtx_id() << " not found in map" << std::endl;
+        keyiter = vtxid_map.find(source->get_vtx_id());
+        if (keyiter != vtxid_map.end())
+          dest->set_vtx_id(keyiter->second);
+        else
+          std::cout << "Fun4AllDstPileupInputManager::copy_background_event - vertex id " << source->get_vtx_id() << " not found in map" << std::endl;
 
         // insert in map
-        trkid_map.insert( std::make_pair( source->get_track_id(), dest->get_track_id() ) );
+        trkid_map.insert(std::make_pair(source->get_track_id(), dest->get_track_id()));
       }
     }
 
     // vertex embed flags
-    for( const auto& pair:vtxid_map )
-    { m_g4truthinfo->AddEmbededVtxId(pair.second,new_embed_id); }
+    /* embed flag is stored only for primary vertices, consistently with PHG4TruthEventAction */
+    for (const auto &pair : vtxid_map)
+    {
+      if (pair.first > 0) m_g4truthinfo->AddEmbededVtxId(pair.second, new_embed_id);
+    }
 
     // track embed flags
-    for( const auto& pair:trkid_map )
-    { m_g4truthinfo->AddEmbededTrkId(pair.second,new_embed_id); }
-
+    /* embed flag is stored only for primary tracks, consistently with PHG4TruthEventAction */
+    for (const auto &pair : trkid_map)
+    {
+      if (pair.first > 0) m_g4truthinfo->AddEmbededTrkId(pair.second, new_embed_id);
+    }
   }
 
   // copy g4hits
   // loop over registered maps
-  for( const auto& pair:m_g4hitscontainers )
+  for (const auto &pair : m_g4hitscontainers)
   {
     // check destination node
-    if( !pair.second )
+    if (!pair.second)
     {
       std::cout << "Fun4AllDstPileupInputManager::copy_background_event - invalid destination container " << pair.first << std::endl;
       continue;
     }
 
     // find source node
-    auto container = findNode::getClass<PHG4HitContainer>( dstNode, pair.first );
-    if( !container )
+    auto container = findNode::getClass<PHG4HitContainer>(dstNode, pair.first);
+    if (!container)
     {
       std::cout << "Fun4AllDstPileupInputManager::copy_background_event - invalid source container " << pair.first << std::endl;
       continue;
@@ -958,20 +984,22 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
     {
       // hits
       const auto range = container->getHits();
-      for( auto iter = range.first; iter != range.second; ++iter )
+      for (auto iter = range.first; iter != range.second; ++iter)
       {
         // clone hit
-        const auto& sourceHit = iter->second;
-        auto newHit = new PHG4Hit_t( sourceHit );
+        const auto &sourceHit = iter->second;
+        auto newHit = new PHG4Hit_t(sourceHit);
 
         // shift time
-        newHit->set_t(0, sourceHit->get_t(0)+delta_t);
-        newHit->set_t(1, sourceHit->get_t(1)+delta_t);
+        newHit->set_t(0, sourceHit->get_t(0) + delta_t);
+        newHit->set_t(1, sourceHit->get_t(1) + delta_t);
 
         // update track id
-        const auto keyiter = trkid_map.find( sourceHit->get_trkid() );
-        if( keyiter != trkid_map.end() ) newHit->set_trkid( keyiter->second );
-        else std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " <<  sourceHit->get_trkid() << " not found in map" << std::endl;
+        const auto keyiter = trkid_map.find(sourceHit->get_trkid());
+        if (keyiter != trkid_map.end())
+          newHit->set_trkid(keyiter->second);
+        else
+          std::cout << "Fun4AllDstPileupInputManager::copy_background_event - track id " << sourceHit->get_trkid() << " not found in map" << std::endl;
 
         /*
          * reset shower ids
@@ -984,18 +1012,17 @@ void Fun4AllDstPileupInputManager::copy_background_event( PHCompositeNode* dstNo
          * this will generate a new key for the hit and assign it to the hit
          * this ensures that there is no conflict with the hits from the 'main' event
          */
-        pair.second->AddHit( newHit->get_detid(), newHit );
+        pair.second->AddHit(newHit->get_detid(), newHit);
       }
     }
 
     {
       // layers
       const auto range = container->getLayers();
-      for(auto iter = range.first; iter != range.second; ++iter)
-      { pair.second->AddLayer(*iter); }
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        pair.second->AddLayer(*iter);
+      }
     }
-
   }
-
-
 }

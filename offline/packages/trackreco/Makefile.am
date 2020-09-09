@@ -19,10 +19,10 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
-  ActsCovarianceRotater.h \
+  ActsTransformations.h \
   ActsTrack.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
   PHActsTrkProp.h \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
+  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -54,6 +55,7 @@ pkginclude_HEADERS = \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
+  PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   VertexFitter.h \
   PHRaveVertexing.h \
@@ -91,6 +93,7 @@ else
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
+    PHTruthSiliconAssociation_Dict.cc \
     PHHoughSeeding_Dict.cc \
     PHRTreeSeeding_Dict.cc \
     PHCASeeding_Dict.cc \
@@ -113,14 +116,19 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsCovarianceRotater.cc \
+  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
-  PHActsVertexFinder.cc
+  PHActsVertexFinder.cc \
+  PHActsVertexFitter.cc
+
+$OFFLINE_MAIN/share:
+dist_data_DATA = \
+  tgeo-sphenix.response
 
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
@@ -151,6 +159,7 @@ libtrack_reco_la_SOURCES = \
   PH3DVertexing.cc \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
+  PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
   PHCASeeding.cc \

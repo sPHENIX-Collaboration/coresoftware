@@ -20,9 +20,9 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -32,18 +32,18 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class MakeActsGeometry;
 
-namespace FW
+namespace ActsExamples
 {
-class IBaseDetector;
+  class IBaseDetector;
 }
 
 namespace Acts
 {
-class Surface;
+  class Surface;
 }
 
 using Surface = std::shared_ptr<const Acts::Surface>;
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 /**
  * A struct to carry around Acts geometry on node tree, so as to not put 
@@ -52,7 +52,7 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-		       FW::Options::BFieldVariant mag,
+		       ActsExamples::Options::BFieldVariant mag,
 		       Acts::CalibrationContext calib,
 		       Acts::GeometryContext geoCtxt,
 		       Acts::MagneticFieldContext magFieldCtxt)
@@ -64,7 +64,7 @@ struct ActsTrackingGeometry{
   {}
   /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
-  FW::Options::BFieldVariant magField;
+  ActsExamples::Options::BFieldVariant magField;
 
   /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
@@ -95,7 +95,9 @@ class PHActsSourceLinks : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
-  
+  void useVertexAsMeasurement(bool useVertexMeasurement)
+    {m_useVertexMeasurement = useVertexMeasurement;}
+
  private:
   /**
    * Functions
@@ -148,9 +150,14 @@ class PHActsSourceLinks : public SubsysReco
                             const TrkrCluster *cluster,
                             const TrkrDefs::cluskey clusKey);
 
+  void addVerticesAsSourceLinks(PHCompositeNode *topNode,
+				unsigned int &hitId);
+
   /**
    * Member variables
    */
+
+  bool m_useVertexMeasurement;
 
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap;

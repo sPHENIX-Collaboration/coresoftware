@@ -9,7 +9,7 @@
 using namespace std;
 
 BEmcRecCEMC::BEmcRecCEMC()
-  : _emcprof(nullptr)
+//  : _emcprof(nullptr)
 {
   Name("BEmcRecCEMC");
   SetCylindricalGeometry();
@@ -18,7 +18,7 @@ BEmcRecCEMC::BEmcRecCEMC()
 BEmcRecCEMC::~BEmcRecCEMC()
 {
   // you can delete null pointers
-  delete _emcprof;
+  //  delete _emcprof;
 }
 
 void BEmcRecCEMC::LoadProfile(const string& fname)
@@ -27,6 +27,24 @@ void BEmcRecCEMC::LoadProfile(const string& fname)
   _emcprof = new BEmcProfile(fname);
 }
 
+
+void BEmcRecCEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
+{
+  theta = 0;
+  phi = 0;
+
+  //  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  float rg = sqrt(xg*xg+yg*yg);
+  float theta_twr;
+  if( fabs(zg)<=15 ) theta_twr = 0;
+  else if( zg>15 )   theta_twr = atan2(zg-15,rg);
+  else               theta_twr = atan2(zg+15,rg);
+  float theta_tr = atan2(zg-fVz,rg);
+  theta = fabs(theta_tr - theta_twr);
+  //  phi = atan2(yg,xg);
+}
+
+/*
 float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
 {
   chi2 = 0;
@@ -50,7 +68,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
 
   return prob;
 }
-
+*/
 /*
 float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
 // et, xg, yg, zg not used here

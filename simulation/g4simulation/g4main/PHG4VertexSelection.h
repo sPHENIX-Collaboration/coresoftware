@@ -12,19 +12,17 @@
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
 
-#include <memory>
-#include <string>                              // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
 class PHG4VertexSelection : public SubsysReco, public PHParameterInterface
 {
-
-  public:
+ public:
   PHG4VertexSelection(const std::string &name = "PHG4VertexSelection");
 
   //! run initialization
-  int InitRun(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode *) override;
 
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
@@ -32,11 +30,9 @@ class PHG4VertexSelection : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
-  private:
-
+ private:
   // z vertex cut (cm)
   double m_vertex_zcut = 10;
-  
 };
 
 #endif

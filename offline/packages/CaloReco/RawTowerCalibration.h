@@ -74,6 +74,12 @@ class RawTowerCalibration : public SubsysReco
     _calib_const_GeV_ADC = calibConstGeVAdc;
   }
 
+  void
+  set_variable_GeV_ADC(const bool value)
+  {
+    _GeV_ADC_file = value;
+  }
+
   std::string
   get_calib_tower_node_prefix() const
   {
@@ -96,6 +102,12 @@ class RawTowerCalibration : public SubsysReco
   set_pedstal_ADC(double pedstalAdc)
   {
     _pedstal_ADC = pedstalAdc;
+  }
+
+  void
+  set_variable_pedestal(const bool value)
+  {
+    _pedestal_file = value;
   }
 
   std::string
@@ -146,8 +158,14 @@ class RawTowerCalibration : public SubsysReco
   //! pedstal in unit of ADC
   double _pedstal_ADC;
 
+  //! pedestal from file
+  bool _pedestal_file;
+
   //! calibration constant in unit of GeV per ADC
   double _calib_const_GeV_ADC;
+
+  //! GeV per ADC from file
+  bool _GeV_ADC_file;
 
   //! tower type to act on
   int _tower_type;

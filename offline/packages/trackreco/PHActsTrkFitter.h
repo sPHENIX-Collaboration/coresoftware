@@ -20,33 +20,31 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
 #include <TFile.h>
 #include <TH1.h>
 
-namespace FW
+namespace ActsExamples
 {
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
-}  // namespace FW
+  class TrkrClusterSourceLink;
+}
 
 class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundParametersIndices,
+                                      Acts::ParDef::eBoundLoc0,
+                                      Acts::ParDef::eBoundLoc1>;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -67,25 +65,9 @@ class PHActsTrkFitter : public PHTrackFitting
 
   int ResetEvent(PHCompositeNode *topNode);
 
-  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+  void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
 
  private:
-
-  /// Calculate the fitted track DCA 
-  void calculateDCA(const Acts::BoundParameters param,
-		    Acts::Vector3D vertex,
-		    float &dca3Dxy,
-		    float &dca3Dz,
-		    float &dca3DxyCov,
-		    float &dca3DzCov);
-
-  /// Reset the SvtxTrack states with the new track fit states
-  void fillSvtxTrackStates(const Trajectory traj, 
-			   const size_t &trackTip,
-			   SvtxTrack *svtx_track);
-
-  /// Get the cluster key for the corresponding hitID from the map 
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   /// Event counter
   int m_event;
@@ -111,7 +93,7 @@ class PHActsTrkFitter : public PHTrackFitting
   ActsTrackingGeometry *m_tGeometry;
 
   /// Configuration containing the fitting function instance
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
+  ActsExamples::TrkrClusterFittingAlgorithm::Config fitCfg;
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
