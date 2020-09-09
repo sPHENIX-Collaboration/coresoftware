@@ -11,9 +11,13 @@ class PHActsVertexFinder: public PHInitVertexing
 {
   
  public:
-  PHActsVertexFinder()
+  PHActsVertexFinder(const std::string &name);
   virtual ~PHActsVertexFinder() {}
   
+ protected:
+  int Setup(PHCompositeNode *topNode) override;
+  int Process(PHCompositeNode *topNode) override;
+
  private:
   
   

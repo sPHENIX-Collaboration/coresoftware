@@ -6,7 +6,8 @@
 
 
 
-PHActsVertexFinder::PHActsVertexFinder()
+PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
+  : PHInitVertexing(name)
 {
 
 }
