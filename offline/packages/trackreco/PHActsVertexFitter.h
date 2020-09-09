@@ -12,7 +12,7 @@ class SvtxTrackMap;
 
 namespace Acts
 {
-class TrackParameters;
+  class TrackParameters;
 }
 
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
