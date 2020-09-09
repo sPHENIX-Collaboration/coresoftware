@@ -241,7 +241,7 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 {
   
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-    (topNode, "ActsTrajectories");
+    (topNode, "ActsFitResults");
   if(!m_actsFitResults)
     {
       std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."

@@ -205,7 +205,7 @@ std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
 
 int PHActsVertexFitter::getNodes(PHCompositeNode *topNode)
 {
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
   if(!m_actsFitResults)
     {
       std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."
