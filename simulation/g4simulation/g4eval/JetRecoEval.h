@@ -85,6 +85,8 @@ class JetRecoEval
   /// get a copy of the lower level eval and its memory cache
   CaloEvalStack* get_fhcal_eval_stack() { return _jettrutheval.get_fhcal_eval_stack(); }
 
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_eemc_eval_stack() { return _jettrutheval.get_eemc_eval_stack(); }
   // ---reduced sim node or better----------------------------------------------
 
   /// what truth showers contributed to this reconstructed jet?
@@ -145,6 +147,8 @@ class JetRecoEval
   RawClusterContainer* _femcclusters;
   RawTowerContainer* _fhcaltowers;
   RawClusterContainer* _fhcalclusters;
+  RawTowerContainer* _eemctowers;
+  RawClusterContainer* _eemcclusters;
 
   bool _strict;
   int _verbosity;
