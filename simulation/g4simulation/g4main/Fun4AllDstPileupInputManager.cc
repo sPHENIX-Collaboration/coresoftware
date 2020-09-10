@@ -285,6 +285,13 @@ readagain:
     goto readagain;
   }
 
+  if (m_events_accepted > 0 && bunchCrossing < m_last_bunchCrossing + m_minBunchCrossing_trigger )
+  {
+    // reject if event if too close to previous trigger
+    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+    goto readagain;
+  }
+  
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
