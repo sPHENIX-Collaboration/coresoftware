@@ -256,7 +256,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     
     // dump axis limits
     for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
-    { std::cout << "PHG4TpcElectronDrift::InitRun - axis: " << axis->GetTitle() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
+    { std::cout << "PHG4TpcElectronDrift::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
     
   }
   
