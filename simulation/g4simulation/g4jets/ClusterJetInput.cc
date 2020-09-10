@@ -36,6 +36,8 @@ void ClusterJetInput::identify(std::ostream &os)
   os << "   ClusterJetInput: ";
   if (_input == Jet::CEMC_CLUSTER)
     os << "CLUSTER_CEMC to Jet::CEMC_CLUSTER";
+  if (_input == Jet::EEMC_CLUSTER)
+    os << "CLUSTER_EEMC to Jet::EEMC_CLUSTER";
   else if (_input == Jet::HCALIN_CLUSTER)
     os << "CLUSTER_HCALIN to Jet::HCALIN_CLUSTER";
   else if (_input == Jet::HCALOUT_CLUSTER)
@@ -66,6 +68,14 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   if (_input == Jet::CEMC_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+  else if (_input == Jet::EEMC_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_EEMC");
     if (!clusters)
     {
       return std::vector<Jet *>();
