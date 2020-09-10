@@ -78,7 +78,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
   /// Vector to hold source links for a particular track
   std::vector<SourceLink> trackSourceLinks;
-  std::vector<FW::TrackParameters> trackSeeds;
+  std::vector<ActsExamples::TrackParameters> trackSeeds;
 
   ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
@@ -119,10 +119,13 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
-          rotater->rotateSvtxTrackCovToActs(track);
+      rotater->rotateSvtxTrackCovToActs(track,
+					m_tGeometry->geoContext);
+
     const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
                                  track->get_y()  * Acts::UnitConstants::cm,
                                  track->get_z()  * Acts::UnitConstants::cm);
+    
     const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
                                  track->get_py() * Acts::UnitConstants::GeV,
                                  track->get_pz() * Acts::UnitConstants::GeV);
@@ -148,7 +151,9 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     const double trackTime = 10 * Acts::UnitConstants::ns;
     const int trackQ = track->get_charge();
 
-    const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
+    const ActsExamples::TrackParameters trackSeed(
+                                        seedCov, 
+					seedPos, seedMom, 
 					trackQ * Acts::UnitConstants::e, 
 					trackTime);
 
@@ -172,7 +177,8 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 		    << " has hitid " << hitId
 		    << std::endl;
 	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(
+				    m_tGeometry->geoContext, std::cout);
 	}
     }
 

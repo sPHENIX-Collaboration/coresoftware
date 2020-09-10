@@ -13,8 +13,8 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 #include "ActsTrack.h"
 
@@ -28,7 +28,7 @@ class SvtxTrack;
 class SvtxVertexMap;
 class MakeActsGeometry;
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 
 /**

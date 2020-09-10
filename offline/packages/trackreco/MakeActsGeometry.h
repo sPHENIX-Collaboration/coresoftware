@@ -19,9 +19,9 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
+#include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
 #include <map>
 #include <memory>            
@@ -35,7 +35,7 @@ class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
 
-namespace FW {
+namespace ActsExamples {
   class IBaseDetector;
   class IContextDecorator;
 }
@@ -84,12 +84,12 @@ class MakeActsGeometry
   std::map<TrkrDefs::hitsetkey, TGeoNode*> getTGeoNodeMap()
     { return m_clusterNodeMap; }
    
-  std::vector<std::shared_ptr<FW::IContextDecorator>> getContextDecorators()
+  std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
   
   /// Getters for acts geometry that is needed by fitter functions
   TrackingGeometry getTGeometry(){ return m_tGeometry; }
-  FW::Options::BFieldVariant getMagField(){ return m_magneticField; }
+  ActsExamples::Options::BFieldVariant getMagField(){ return m_magneticField; }
   Acts::MagneticFieldContext getMagFieldContext() { return m_magFieldContext; }
   Acts::CalibrationContext getCalibContext() { return m_calibContext; }
   Acts::GeometryContext getGeoContext() { return m_geoCtxt; }
@@ -111,7 +111,8 @@ class MakeActsGeometry
   void buildActsSurfaces();
 
   /// Function that mimics ActsFW::GeometryExampleBase
-  void makeGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+  void makeGeometry(int argc, char* argv[], 
+		    ActsExamples::IBaseDetector& detector);
   
   /// Get hitsetkey from TGeoNode for each detector geometry
   void getInttKeyFromNode(TGeoNode *gnode);
@@ -145,7 +146,8 @@ class MakeActsGeometry
   TGeoManager* m_geoManager; 
 
   /// Acts Context decorators, which may contain e.g. calibration information
-  std::vector<std::shared_ptr<FW::IContextDecorator> > m_contextDecorators;
+  std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
+    m_contextDecorators;
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
@@ -189,7 +191,7 @@ class MakeActsGeometry
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
-  FW::Options::BFieldVariant m_magneticField;
+  ActsExamples::Options::BFieldVariant m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;
