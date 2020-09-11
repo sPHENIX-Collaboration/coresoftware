@@ -16,7 +16,7 @@ class CaloEvalStack;
 class PHCompositeNode;
 class TFile;
 class TNtuple;
-class TTree; //Added by Barak
+class TTree;  //Added by Barak
 
 /// \class CaloEvaluator
 ///
@@ -112,7 +112,7 @@ class CaloEvaluator : public SubsysReco
   TNtuple *_ntp_gpoint;
   TNtuple *_ntp_gshower;
   TNtuple *_ntp_tower;
-  TTree *_tower_debug; //Added by Barak
+  TTree *_tower_debug;  //Added by Barak
   TNtuple *_ntp_cluster;
 
   // evaluator output file

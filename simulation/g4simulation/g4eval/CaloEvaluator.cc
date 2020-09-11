@@ -1,7 +1,7 @@
 #include "CaloEvaluator.h"
 
-#include "CaloRawClusterEval.h"
 #include "CaloEvalStack.h"
+#include "CaloRawClusterEval.h"
 #include "CaloRawTowerEval.h"
 #include "CaloTruthEval.h"
 
@@ -45,15 +45,15 @@ CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const s
   : SubsysReco(name)
   , _caloname(caloname)
   , _ievent(0)
-  ,_towerID_debug(0)
-  ,_ieta_debug(0)
-  ,_iphi_debug(0)
-  ,_eta_debug(0)
-  ,_phi_debug(0)
-  ,_e_debug(0)
-  ,_x_debug(0)
-  ,_y_debug(0)
-  ,_z_debug(0)
+  , _towerID_debug(0)
+  , _ieta_debug(0)
+  , _iphi_debug(0)
+  , _eta_debug(0)
+  , _phi_debug(0)
+  , _e_debug(0)
+  , _x_debug(0)
+  , _y_debug(0)
+  , _z_debug(0)
   , _truth_trace_embed_flags()
   , _truth_e_threshold(0.0)
   ,  // 0 GeV before reco is traced
@@ -89,32 +89,32 @@ int CaloEvaluator::Init(PHCompositeNode* topNode)
                                                    "event:gparticleID:gflavor:gnhits:"
                                                    "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
                                                    "clusterID:ntowers:eta:x:y:z:phi:e:efromtruth");
-  
+
   //Barak: Added TTree to will allow the TowerID to be set correctly as integer
-  if (_do_tower_eval){
+  if (_do_tower_eval)
+  {
     _ntp_tower = new TNtuple("ntp_tower", "tower => max truth primary",
-                                               "event:towerID:ieta:iphi:eta:phi:e:x:y:z:"
-                                               "gparticleID:gflavor:gnhits:"
-                                               "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-                                               "gembed:gedep:"
-                                               "efromtruth");
+                             "event:towerID:ieta:iphi:eta:phi:e:x:y:z:"
+                             "gparticleID:gflavor:gnhits:"
+                             "geta:gphi:ge:gpt:gvx:gvy:gvz:"
+                             "gembed:gedep:"
+                             "efromtruth");
 
     //Make Tree
-    _tower_debug = new TTree("tower_debug","tower => max truth primary");
+    _tower_debug = new TTree("tower_debug", "tower => max truth primary");
 
-    _tower_debug->Branch("event",&_ievent,"event/I");
-    _tower_debug->Branch("towerID",&_towerID_debug,"towerID/I");
-    _tower_debug->Branch("ieta",&_ieta_debug,"ieta/I");
-    _tower_debug->Branch("iphi",&_iphi_debug,"iphi/I");
-    _tower_debug->Branch("eta",&_eta_debug,"eta/F");
-    _tower_debug->Branch("phi",&_phi_debug,"phi/F");
-    _tower_debug->Branch("e",&_e_debug,"e/F");
-    _tower_debug->Branch("x",&_x_debug,"x/F");
-    _tower_debug->Branch("y",&_y_debug,"y/F");
-    _tower_debug->Branch("z",&_z_debug,"z/F");
-
+    _tower_debug->Branch("event", &_ievent, "event/I");
+    _tower_debug->Branch("towerID", &_towerID_debug, "towerID/I");
+    _tower_debug->Branch("ieta", &_ieta_debug, "ieta/I");
+    _tower_debug->Branch("iphi", &_iphi_debug, "iphi/I");
+    _tower_debug->Branch("eta", &_eta_debug, "eta/F");
+    _tower_debug->Branch("phi", &_phi_debug, "phi/F");
+    _tower_debug->Branch("e", &_e_debug, "e/F");
+    _tower_debug->Branch("x", &_x_debug, "x/F");
+    _tower_debug->Branch("y", &_y_debug, "y/F");
+    _tower_debug->Branch("z", &_z_debug, "z/F");
   }
-  
+
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "cluster => max truth primary",
                                                    "event:clusterID:ntowers:eta:x:y:z:phi:e:"
                                                    "gparticleID:gflavor:gnhits:"
@@ -167,7 +167,11 @@ int CaloEvaluator::End(PHCompositeNode* topNode)
 
   if (_do_gpoint_eval) _ntp_gpoint->Write();
   if (_do_gshower_eval) _ntp_gshower->Write();
-  if (_do_tower_eval) { _ntp_tower->Write();_tower_debug->Write();}
+  if (_do_tower_eval)
+  {
+    _ntp_tower->Write();
+    _tower_debug->Write();
+  }
   if (_do_cluster_eval) _ntp_cluster->Write();
 
   _tfile->Close();
@@ -352,8 +356,8 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
         RawCluster* cluster = (*clusiter);
 
         float ntowers = cluster->getNTowers();
-	float x = cluster->get_x();
-	float y = cluster->get_y();
+        float x = cluster->get_x();
+        float y = cluster->get_y();
         float z = cluster->get_z();
         float phi = cluster->get_phi();
         float e = cluster->get_energy();
@@ -362,11 +366,11 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
         cout << " => #" << cluster->get_id() << " (x,y,z,phi,e) = (";
         cout.width(5);
-	cout << x;
-	cout << ",";
+        cout << x;
+        cout << ",";
         cout.width(5);
-	cout << y;
-	cout << ",";
+        cout << y;
+        cout << ",";
         cout.width(5);
         cout << z;
         cout << ",";
@@ -516,7 +520,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         clusterID = cluster->get_id();
         ntowers = cluster->getNTowers();
-	x = cluster->get_x();
+        x = cluster->get_x();
         y = cluster->get_y();
         z = cluster->get_z();
         phi = cluster->get_phi();
@@ -555,8 +559,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                              clusterID,
                              ntowers,
                              eta,
-			     x,
-			     y,
+                             x,
+                             y,
                              z,
                              phi,
                              e,
@@ -686,31 +690,31 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       float tower_data[] = {(float) _ievent,
-			    towerid,
-			    ieta,
-			    iphi,
-			    eta,
-			    phi,
-			    e,
-			    x,
-			    y,
-			    z,
-			    gparticleID,
-			    gflavor,
-			    gnhits,
-			    geta,
-			    gphi,
-			    ge,
-			    gpt,
-			    gvx,
-			    gvy,
-			    gvz,
-			    gembed,
-			    gedep,
-			    efromtruth};
+                            towerid,
+                            ieta,
+                            iphi,
+                            eta,
+                            phi,
+                            e,
+                            x,
+                            y,
+                            z,
+                            gparticleID,
+                            gflavor,
+                            gnhits,
+                            geta,
+                            gphi,
+                            ge,
+                            gpt,
+                            gvx,
+                            gvy,
+                            gvz,
+                            gembed,
+                            gedep,
+                            efromtruth};
 
       _ntp_tower->Fill(tower_data);
-      _tower_debug->Fill(); //Added by Barak (see above for explanation)
+      _tower_debug->Fill();  //Added by Barak (see above for explanation)
     }
   }
 
@@ -830,8 +834,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               clusterID,
                               ntowers,
                               eta,
-			      x,
-			      y,
+                              x,
+                              y,
                               z,
                               phi,
                               e,
