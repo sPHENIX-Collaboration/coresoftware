@@ -70,7 +70,7 @@ class SvtxTrackEval
   unsigned int get_nwrongclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
   unsigned int get_errors() { return _errors + _clustereval.get_errors(); }
 
-  void set_track_nodename(const std::string &name) {m_TrackNodeName = name;}
+  void set_track_nodename(const std::string& name) { m_TrackNodeName = name; }
 
  private:
   void get_node_pointers(PHCompositeNode* topNode);

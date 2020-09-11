@@ -65,9 +65,9 @@ class SvtxVertexEval
 
   unsigned int get_errors() { return _errors + _trackeval.get_errors(); }
 
-  void set_use_initial_vertex(bool use_init_vertex) {_use_initial_vertex= use_init_vertex;}
+  void set_use_initial_vertex(bool use_init_vertex) { _use_initial_vertex = use_init_vertex; }
 
-  void set_track_nodename(const std::string &name);
+  void set_track_nodename(const std::string& name);
 
  private:
   void get_node_pointers(PHCompositeNode* topNode);
