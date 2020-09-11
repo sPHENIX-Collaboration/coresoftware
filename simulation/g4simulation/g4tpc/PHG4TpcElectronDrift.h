@@ -109,7 +109,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
-  bool do_Centralmem;
+  bool do_Centralmem,do_diff_SC_Distortion,do_Int_SC_Distortion;
   unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP,e_num;
   double x_start,y_start,x_final,y_final; 
