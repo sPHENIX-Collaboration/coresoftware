@@ -29,6 +29,7 @@
 
 #include <TFile.h>
 #include <TNtuple.h>
+#include <TTree.h>
 
 #include <CLHEP/Vector/ThreeVector.h>
 
