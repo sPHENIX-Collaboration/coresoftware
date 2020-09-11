@@ -6,6 +6,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <map>
+#include <memory>                // for shared_ptr, less
 #include <set>
 #include <utility>
 
@@ -23,8 +24,7 @@ class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxTruthEval;
 
-using namespace std;
-typedef multimap<float, TrkrDefs::cluskey> innerMap;
+typedef std::multimap<float, TrkrDefs::cluskey> innerMap;
 
 class SvtxClusterEval
 {
