@@ -8,6 +8,8 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
+#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGroupSubsystem
+
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/PHCompositeNode.h>
@@ -25,7 +27,8 @@ PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
   InitializeParameters();
 }
 
-int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node) {
+int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
+{
   PHParametersContainer* params = GetParamsContainer();
   std::string const& name = Name();
 
@@ -43,12 +46,13 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node) {
   std::string label = "G4HIT_" + ((superdet != "NONE") ? superdet : name);
 
   PHCompositeNode* dst = dynamic_cast<PHCompositeNode*>(
-    PHNodeIterator(node).findFirst("PHCompositeNode", "DST"));
+      PHNodeIterator(node).findFirst("PHCompositeNode", "DST"));
 
   PHCompositeNode* det = dynamic_cast<PHCompositeNode*>(
-    PHNodeIterator(dst).findFirst("PHCompositeNode", superdet));
+      PHNodeIterator(dst).findFirst("PHCompositeNode", superdet));
 
-  if (det == nullptr) {
+  if (det == nullptr)
+  {
     det = new PHCompositeNode(superdet);
 
     dst->addNode(det);
@@ -56,26 +60,30 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node) {
 
   if (findNode::getClass<PHG4HitContainer>(node, label.data()) == nullptr)
     det->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer(label),
-      label.data(), "PHObject"));
+                                            label.data(), "PHObject"));
 
   return 0;
 }
 
-int32_t PHG4EPDSubsystem::process_event(PHCompositeNode* node) {
+int32_t PHG4EPDSubsystem::process_event(PHCompositeNode* node)
+{
   if (m_stepaction != nullptr)
     m_stepaction->SetInterfacePointers(node);
 
   return 0;
 }
 
-PHG4Detector *PHG4EPDSubsystem::GetDetector() const {
+PHG4Detector* PHG4EPDSubsystem::GetDetector() const
+{
   return m_detector;
 }
 
-PHG4SteppingAction *PHG4EPDSubsystem::GetSteppingAction() const {
+PHG4SteppingAction* PHG4EPDSubsystem::GetSteppingAction() const
+{
   return m_stepaction;
 }
 
-void PHG4EPDSubsystem::SetDefaultParameters() {
+void PHG4EPDSubsystem::SetDefaultParameters()
+{
   set_default_int_param(-1, "active", 1);
 }
