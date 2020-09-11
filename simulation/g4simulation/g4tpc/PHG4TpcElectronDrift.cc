@@ -235,7 +235,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
   min_time = 0.0;
-  max_time = (tpc_length / 2.) / drift_velocity;
+  max_time = (tpc_length / 1.75) / drift_velocity;
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
@@ -275,11 +275,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   TimeTree->SetBranchAddress("hIntDistortionR",&TimeInthDR);
   TimeTree->SetBranchAddress("hIntDistortionP",&TimeInthDP);
   TimeTree->SetBranchAddress("hIntDistortionZ",&TimeInthDZ);
-  cout << "no segfault after TimeDistFile opening" << endl;
+  // cout << "no segfault after TimeDistFile opening" << endl;
   //
   
-  do_diff_SC_Distortion = false;  // Decide whether or not to do space charge distortion using differential distortion file    
-  do_Int_SC_Distortion = false; // Decide whether or not to do space charge distortion using integrated distortion file        
+  do_diff_SC_Distortion = true;  // Decide whether or not to do space charge distortion using differential distortion file    
+  do_Int_SC_Distortion = true; // Decide whether or not to do space charge distortion using integrated distortion file        
   do_Centralmem = false; // Determines whether or not to drift electrons ONLY from the central membrane for calibration purposes
   if(do_Centralmem)
     { 
@@ -322,37 +322,41 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       se->registerHisto(hitmapend);
       z_startmap = new TH2F("z_startmap","g4hit starting Z vs. R locations",2000,-100,100,780,0,78);
       se->registerHisto(z_startmap);
-      deltaphi = new TH2F("deltaphi","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      deltaphi = new TH2F("deltaphi","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
       se->registerHisto(deltaphi);   
-      deltaphidiff = new TH2F("deltaphidiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
+      deltaRphinodiff = new TH2F("deltaRphinodiff","Total delta R*phi, no diffusion; r (cm);#Delta R*phi (cm",600,20,80,1000,-2,2);
+      se->registerHisto(deltaRphinodiff);   
+      deltaphivsRnodiff = new TH2F("deltaphivsRnodiff","Total delta phi vs. R; phi (rad);#Delta phi (rad)",600,20,80,1000,-.1,.1);
+      se->registerHisto(deltaphivsRnodiff);   
+      deltaphidiff = new TH2F("deltaphidiff","Total delta phi (from differential file); phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
       se->registerHisto(deltaphidiff); 
-      deltaphidifference = new TH2F("deltaphidifference","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      deltaphiint = new TH2F("deltaphiint","Total delta phi (integrated file); phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
+      se->registerHisto(deltaphiint);      
+      deltaphidifference = new TH2F("deltaphidifference","Delta phi (difference between differential and intergrated files); phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
       se->registerHisto(deltaphidifference); 
-      deltaphidifferencepercent = new TH2F("deltaphidifferencepercent","Total delta phi percent; phi (rad);Delta phi percent",600,0,2*M_PI,1000,-20,20);
+      deltaphidifferencepercent = new TH2F("deltaphidifferencepercent","diff btw delta phi in int and diff files in percent; phi (rad);Delta phi percent",600,0,2*M_PI,1000,-20,20);
       se->registerHisto(deltaphidifferencepercent); 
-      deltaphiint = new TH2F("deltaphiint","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.07,.07);
-      se->registerHisto(deltaphiint); 
       deltatime = new TH1F("deltatime","Total time difference between integrated and differential runtimes per G4hit in us",300,-15,15);
       se->registerHisto(deltatime);
       deltaz = new TH2F("deltaz","Total delta z; z (cm);#Delta z (cm)",1000,0,100,1000,-.5,.5);
       se->registerHisto(deltaz); 
-      deltaphinodiff = new TH2F("deltaphinodiff","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.01,.01);
+      deltaphinodiff = new TH2F("deltaphinodiff","Total delta phi (no diffusion, only SC distortion); phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
       se->registerHisto(deltaphinodiff); 
-      deltaphinodist = new TH2F("deltaphinodist","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
+      deltaphinodist = new TH2F("deltaphinodist","Total delta phi (no SC distortion, only diffusion); phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
       se->registerHisto(deltaphinodist); 
-      deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-1,1);
+      deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-3,3);
       se->registerHisto(deltar);
-      deltardiff = new TH2F("deltardiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      deltardiff = new TH2F("deltardiff","Total Delta r (from differential file); r (cm);#Delta r (cm)",580,20,78,1000,-3,3);
       se->registerHisto(deltardiff);
-      deltardifference = new TH2F("deltardifference","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.005,.005);
+      deltardifference = new TH2F("deltardifference","Difference of Delta r between differential and integrated files; r (cm);#Delta r (cm)",580,20,78,1000,-.005,.005);
       se->registerHisto(deltardifference);
-      deltardifferencepercent = new TH2F("deltardifferencepercent","Total Delta r; r (cm);% difference in #Delta r between integrated and differential",580,20,78,1000,-20,20);
+      deltardifferencepercent = new TH2F("deltardifferencepercent","delta r difference btw int and diff maps in pct; r (cm);#Delta r (cm)",580,20,78,1000,-20,20);
       se->registerHisto(deltardifferencepercent);
-      deltarint = new TH2F("deltarint","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      deltarint = new TH2F("deltarint","Delta r from integrated file; r (cm);#Delta r (cm)",580,20,78,1000,-3,3);
       se->registerHisto(deltarint);
-      deltarnodiff = new TH2F("deltarnodiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
+      deltarnodiff = new TH2F("deltarnodiff","Delta r (no diffusion, only SC distortion); r (cm);#Delta r (cm)",580,20,78,1000,-1,3);
       se->registerHisto(deltarnodiff);
-      deltarnodist = new TH2F("deltarnodist","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
+      deltarnodist = new TH2F("deltarnodist","Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)",580,20,78,1000,-1,3);
       se->registerHisto(deltarnodist);
     }
   
@@ -523,7 +527,7 @@ if (!g4hit)
 	  // cout << "x_start is " << x_start << endl;
 	  y_start = ay[i]*.1;//[i];                                                                                                                        
 	  //cout << "y_start is " << y_start << endl;
-	  z_start = 0;
+	  z_start = 53;
 	}
       
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
@@ -542,9 +546,9 @@ if (!g4hit)
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
 
-      if ((t_final < min_time || t_final > max_time) && !do_Centralmem)
+      if ((t_final < min_time || t_final > max_time))
        {
-      cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
+       cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
        continue;
        }
 
@@ -573,27 +577,25 @@ if (!g4hit)
       
       if (do_Int_SC_Distortion)
 	{
-	  cout << "inside int sc " << endl;
 	  intwatch->Start(false);
 	  rad_final = radstart+TimeInthDR->Interpolate(phistart,radstart,z_start);
 	  phi_final = phistart+(TimeInthDP->Interpolate(phistart,radstart,z_start)/radstart);
 	  x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
 	  y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
 	  deltarint->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
-	  deltaphiint->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi	
+	  deltaphiint->Fill(phistart,atan2(y_final,x_final)-phistart); // total delta phi	
 	  r_final_int = rad_final;
 	  phi_final_int = phi_final;
 	  intwatch->Stop();
 	}
       if(do_diff_SC_Distortion)
 	{
-	  cout << "inside int sc " << endl;
 	  diffwatch->Start(false);
 	  DistortionIntegral(radstart,phistart,z_start,&rad_final,&phi_final);
 	  x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
 	  y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
 	  deltardiff->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
-	  deltaphidiff->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi
+	  deltaphidiff->Fill(phistart,atan2(y_final,x_final)-phistart); // total delta phi
 	  r_final_diff = rad_final;
 	  phi_final_diff = phi_final;
 	  diffwatch->Stop();	
@@ -616,19 +618,21 @@ if (!g4hit)
       
       deltaphinodist->Fill(phistart,rantrans/rad_final); // delta phi no distortion, just diffusion+smear
       deltarnodist->Fill(radstart,rantrans); // delta r no distortion, just diffusion+smear
-      deltaphinodiff->Fill(phistart,phistart-phi_final); //delta phi no diffusion, just distortion
-      deltarnodiff->Fill(radstart,(rad_final-radstart));//delta r no diffusion, just distortion      
+      deltaphinodiff->Fill(phistart,phi_final-phistart); //delta phi no diffusion, just distortion
+      deltaRphinodiff->Fill(radstart,radstart*(phi_final-phistart)); //delta phi no diffusion, just distortion
+      deltaphivsRnodiff->Fill(radstart,phi_final-phistart); //delta phi no diffusion, just distortion
+      deltarnodiff->Fill(radstart,rad_final-radstart);//delta r no diffusion, just distortion      
       deltaz->Fill(z_start,hDZint->Interpolate(phistart,radstart,z_start)); // map of distortion in Z (time)
       
-      if(phistart > M_PI)
+      if(phistart > M_PI) //to get values of angles right
 	{
-	  cout << "phistart + pi is " << phistart<< "  atan2(x_final,y_final)+2pi is " << 2*M_PI+atan2(y_final,x_final) << endl;
-	  deltaphi->Fill(phistart,phistart-(2*M_PI+atan2(y_final,x_final))); // total delta phi
+	  // cout << "phistart + pi is " << phistart<< "  atan2(x_final,y_final)+2pi is " << 2*M_PI+atan2(y_final,x_final) << endl;
+	  deltaphi->Fill(phistart,(2*M_PI+atan2(y_final,x_final))-phistart); // total delta phi
 	}
       else
 	{
-	  cout << "phistart " << phistart<< " phistart-atan2(y_final,x_final) is " << atan2(y_final,x_final) << endl;
-	  deltaphi->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi
+	  // cout << "phistart " << phistart<< " phistart-atan2(y_final,x_final) is " << atan2(y_final,x_final) << endl;
+	  deltaphi->Fill(phistart,atan2(y_final,x_final)-phistart); // total delta phi
 	}
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
@@ -834,6 +838,8 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
     deltaphinodist->Write();
     deltarnodiff->Write();
     deltaphinodiff->Write();
+    deltaRphinodiff->Write();
+    deltaphivsRnodiff->Write();
     hitmapstart->Write();
     hitmapend->Write();
     z_startmap->Write();
@@ -860,11 +866,11 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   // double CF4_NPrimary = 51;   // Number/cm
   double Ne_NTotal = 43;    // Number/cm
   double CF4_NTotal = 100;  // Number/cm
-  double Tpc_NTot = 0.9 * Ne_NTotal + 0.1 * CF4_NTotal;
-  double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
+  double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
+  double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  set_default_double_param("diffusion_long", 0.015);   // cm/SQRT(cm)
-  set_default_double_param("diffusion_trans", 0.006);  // cm/SQRT(cm)
+  set_default_double_param("diffusion_long", 0.012);   // cm/SQRT(cm)
+  set_default_double_param("diffusion_trans", 0.004);  // cm/SQRT(cm)
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm

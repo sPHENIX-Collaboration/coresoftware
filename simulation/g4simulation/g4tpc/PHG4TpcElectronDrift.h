@@ -95,6 +95,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltardifference;
   TH2 *deltardifferencepercent;
   TH2 *deltaphinodiff;
+  TH2 *deltaRphinodiff;
+  TH2 *deltaphivsRnodiff;
   TH2 *deltaphinodist;
   TH2 *deltarnodiff;
   TH2 *deltarnodist;
