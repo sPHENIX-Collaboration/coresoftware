@@ -99,8 +99,8 @@ PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
   delete padplane;
   delete temp_hitsetcontainer;
 }
-  
-  int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
+
+int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
   event_num = 0;
@@ -110,7 +110,7 @@ PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
     }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-	      
+
 int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -133,8 +133,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     {
       cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
       topNode->print();
-    gSystem->Exit(1);
-    exit(1);
+      gSystem->Exit(1);
+      exit(1);
     }
   
   // new containers
@@ -239,7 +239,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
-  
+  Fun4AllServer *se = Fun4AllServer::instance();
   
   TFile *StaticDistFile=new TFile("zSmooth.50kHz.flat_B1.4_E-400.0.ross_phislice_lookup_r16xp36xz40.distortion_map.hist.root");//includes Trees of TH3Fs                                     
   if(StaticDistFile->GetSize() == -1)
@@ -278,8 +278,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   cout << "no segfault after TimeDistFile opening" << endl;
   //
   
-  Fun4AllServer *se = Fun4AllServer::instance();
-  bool do_Centralmem = true;
+  do_diff_SC_Distortion = false;  // Decide whether or not to do space charge distortion using differential distortion file    
+  do_Int_SC_Distortion = false; // Decide whether or not to do space charge distortion using integrated distortion file        
+  do_Centralmem = false; // Determines whether or not to drift electrons ONLY from the central membrane for calibration purposes
   if(do_Centralmem)
     { 
       double x_start,y_start,x_final,y_final;
@@ -339,7 +340,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       se->registerHisto(deltaphinodiff); 
       deltaphinodist = new TH2F("deltaphinodist","Total delta phi; phi (rad);#Delta phi (rad)",600,0,2*M_PI,1000,-.1,.1);
       se->registerHisto(deltaphinodist); 
-      deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-.01,.01);
+      deltar = new TH2F("deltar","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-1,1);
       se->registerHisto(deltar);
       deltardiff = new TH2F("deltardiff","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
       se->registerHisto(deltardiff);
@@ -353,9 +354,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       se->registerHisto(deltarnodiff);
       deltarnodist = new TH2F("deltarnodist","Total Delta r; r (cm);#Delta r (cm)",580,20,78,1000,-6,6);
       se->registerHisto(deltarnodist);
-     }
-     
-if (Verbosity())
+    }
+  
+  if (Verbosity())
     {
       // eval tree only when verbosity is on
       m_outf = new TFile("nt_out.root", "recreate");
@@ -369,7 +370,7 @@ if (Verbosity())
     }
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, double z_start, double* radaddress, double* phiaddress)
@@ -378,11 +379,11 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
   double distr=0;
   double newp=0;
   double newr=0;
-
-  Int_t binp = TimehDP->GetXaxis()->FindBin(phistart+M_PI);
+  
+  Int_t binp = TimehDP->GetXaxis()->FindBin(phistart);
   Int_t binr = TimehDR->GetYaxis()->FindBin(radstart);
   z_startmap->Fill(z_start,radstart);
-
+  
   int nBinZ=TimehDR->GetNbinsZ();// Only need to get number of bins in Z, but nice to see them all as a sanity check                                                                                     
   int nBinR=TimehDR->GetNbinsY();
   int nBinP=TimehDR->GetNbinsX();
@@ -391,27 +392,27 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
     cout << "total nbins r = " << nBinR << " total nbins p = " << nBinP << " total nbins z = " << nBinZ << endl;
   }
   newr=radstart;// placeholders for comparing original vs distorted values                                                                                                                                 
-  newp=phistart+M_PI;
+  newp=phistart;
   double newz=abs(z_start); //z_start not positive definite                       
-  for(Int_t binz = TimehDR->GetZaxis()->FindBin(newz); binz<=TimehDR->GetNbinsZ()-1; binz++) // Sum over steps in Z starting at some Z specified from process_event, additional complication due to TH3 having extr\a bins on outside for interpolation      
-  {
-    if (binz==1)
-      {
-	binz=2; // Eliminates double counting of first z bin in case findbin puts into bin 1 instead of 2 (since they contain the same values)                                                            
-      }
-    
-    distr = TimehDR->Interpolate(newp,newr,binz);//+TimehDR->Interpolate(newp,newr,binz); //If any of these goes into bin 1, this gives an error due to bin "below" being non-existent, for phi need to implement periodic BCs                        
-    distrp = TimehDP->Interpolate(newp,newr,binz);//+TimehDP->Interpolate(newp,newr,binz);
-
-    newr += distr; // Sum over r-distortions                                                                                                                                                              
-    newp += distrp/newr; // Sum over phi distortions (distrp is r*phi, need to divide by r to get phi)                                                                                                    
-
-        if(Verbosity() > 100)
-     {
-	cout << "distortion in rphi is " << distrp << " distortion in r is " << distr << " bin number of phi,r,z is " << binp << " " << binr << " " << binz << endl;
-     }
-  }
  
+  // now sum over steps in Z starting at some Z specified from process_event, 
+  // Note that TH3s have extra bins all around outside for interpolation    
+  for(Int_t binz = TimehDR->GetZaxis()->FindBin(newz); binz<=TimehDR->GetNbinsZ()-1; binz++) 
+    {
+      if (binz==1)
+	{
+	  binz=2; // Eliminates double counting of first z bin in case findbin puts into bin 1 instead of 2 (since they contain the same values)  
+	}
+      distr = TimehDR->Interpolate(newp,newr,binz);//If any of these goes into bin 1, this gives an error due to bin "below" being non-existent, for phi need to implement periodic BCs    
+      distrp = TimehDP->Interpolate(newp,newr,binz);
+      newr += distr; // Sum over r-distortions                                                                                                            
+      newp += distrp/newr; // Sum over phi distortions (distrp is r*phi, need to divide by r to get phi)                              
+      if(Verbosity() > 100)
+	{
+	  cout << "distortion in rphi is " << distrp << " distortion in r is " << distr << " bin number of phi,r,z is " << binp << " " << binr << " " << binz << endl;
+	}
+    }
+  
   if(Verbosity() > 100){
     cout << "inside DistortionIntegral, starting positions r(20-78cm),p(0-2*pi rad),z(0-100cm) = " << radstart <<" "<< phistart+M_PI <<" " << z_start << endl;
     cout << "bin containing phi = 0 is " <<  TimehDP->GetXaxis()->FindBin(0.0001) << "bin containing phi = 2*pi " <<  TimehDP->GetXaxis()->FindBin(6.28) << endl;
@@ -420,10 +421,9 @@ int PHG4TpcElectronDrift::DistortionIntegral(double radstart, double phistart, d
     cout << "final r = " << newr << endl;
     cout << "delta r =" << newr-radstart << endl;
   }
-
-
+  
   *radaddress = newr;
-  *phiaddress = newp; // using addresses to allow passing more than one value from inside the function                                                                                                      
+  *phiaddress = newp; // using addresses to allow passing more than one value from inside the function                                                                           
 
   return 0;
 }
@@ -434,6 +434,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   //Get SC maps corresponding to event_num
   //cout << "event num is " << event_num << endl;
   TimeTree->GetEntry(event_num);
+  
   //
   //Declare stopwatches for time performance characterization
   TStopwatch *diffwatch = new TStopwatch();
@@ -468,7 +469,7 @@ if (!g4hit)
     {
       continue;
     }
-
+    
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
 
@@ -497,7 +498,7 @@ if (!g4hit)
     }
   if(do_Centralmem)
     {
-      n_electrons = 7668;
+      n_electrons = 7668; // Hardcoded number to match number of points in TGraph of central membrane stripe locations
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
@@ -508,20 +509,23 @@ if (!g4hit)
 
       x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
       y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
+      
       double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
+      
       if(do_Centralmem)
 	{
 	  Double_t ax[7668],ay[7668];
 	  CM->GetPoint(i,ax[i],ay[i]);
 	  //cout<<i<<"th element of X array: "<<ax[i]<<endl;
-	  // cout<<i<<"th element of Y array: "<<ay[i]<<endl;
+	  //cout<<i<<"th element of Y array: "<<ay[i]<<endl;
 	  x_start = ax[i]*.1;//[i];                                                   
 	  // cout << "x_start is " << x_start << endl;
 	  y_start = ay[i]*.1;//[i];                                                                                                                        
 	  //cout << "y_start is " << y_start << endl;
 	  z_start = 0;
 	}
+      
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -546,6 +550,10 @@ if (!g4hit)
 
       double radstart = sqrt(x_start * x_start + y_start * y_start);
       double phistart = atan2(y_start,x_start);
+      if(phistart<0)
+	{
+	  phistart=phistart+2*M_PI;
+	}
       double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
       double rad_final,phi_final,x_final,y_final;
       z_startmap->Fill(z_start,radstart); // map of starting location in Z vs. R
@@ -562,36 +570,40 @@ if (!g4hit)
       double phi_final_diff = 0;
       double r_final_int = 0;
       double phi_final_int = 0;
-      bool do_diff_SC_Distortion = true;  
-      bool do_Int_SC_Distortion = true; // Decide whether or not to do space charge distortion     
+      
       if (do_Int_SC_Distortion)
 	{
+	  cout << "inside int sc " << endl;
 	  intwatch->Start(false);
-	  rad_final = radstart+TimeInthDR->Interpolate(phistart+M_PI,radstart,z_start);
-	  phi_final = phistart+M_PI+(TimeInthDP->Interpolate(phistart+M_PI,radstart,z_start)/radstart);
-	  x_final = rad_final*cos(phi_final-M_PI)+rantrans*cos(ranphi);
-	  y_final = rad_final*sin(phi_final-M_PI)+rantrans*sin(ranphi);
+	  rad_final = radstart+TimeInthDR->Interpolate(phistart,radstart,z_start);
+	  phi_final = phistart+(TimeInthDP->Interpolate(phistart,radstart,z_start)/radstart);
+	  x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
+	  y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
 	  deltarint->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
-	  deltaphiint->Fill(phistart+M_PI,phistart-atan2(y_final,x_final)); // total delta phi	
+	  deltaphiint->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi	
 	  r_final_int = rad_final;
 	  phi_final_int = phi_final;
 	  intwatch->Stop();
 	}
       if(do_diff_SC_Distortion)
 	{
+	  cout << "inside int sc " << endl;
 	  diffwatch->Start(false);
 	  DistortionIntegral(radstart,phistart,z_start,&rad_final,&phi_final);
-	  x_final = rad_final*cos(phi_final-M_PI)+rantrans*cos(ranphi);
-	  y_final = rad_final*sin(phi_final-M_PI)+rantrans*sin(ranphi);
+	  x_final = rad_final*cos(phi_final)+rantrans*cos(ranphi);
+	  y_final = rad_final*sin(phi_final)+rantrans*sin(ranphi);
 	  deltardiff->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
-	  deltaphidiff->Fill(phistart+M_PI,phistart-atan2(y_final,x_final)); // total delta phi
+	  deltaphidiff->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi
 	  r_final_diff = rad_final;
 	  phi_final_diff = phi_final;
 	  diffwatch->Stop();	
 	}
+      
       //cout << "Values of branch variables before filling are: event_num,x_start,y_start,x_final,y_final " << event_num << " , " << x_start << " , " << y_start << " , " << x_final << " , " << y_final <<  endl;
-      CMTimeDists->Fill();
-            
+      if(do_Centralmem)
+	{
+	  CMTimeDists->Fill(); //Fills a TTree with initial and final electron locations starting from the central membrane
+	}   
       deltardifference->Fill(rad_final,r_final_diff - r_final_int);
       deltardifferencepercent->Fill(rad_final,100*((r_final_diff-radstart) - (r_final_int-radstart))/(r_final_diff-radstart));
       deltaphidifference->Fill(phi_final,phi_final_diff - phi_final_int);
@@ -601,18 +613,28 @@ if (!g4hit)
       hitmapstart->Fill(x_start,y_start); // G4Hit starting positions
       hitmapend->Fill(x_final,y_final);//INcludes diffusion and distortion          
       deltar->Fill(radstart,sqrt(pow(x_final,2)+pow(y_final,2))-sqrt(pow(x_start,2)+pow(y_start,2))); //total delta r
-      deltaphi->Fill(phistart+M_PI,phistart-atan2(y_final,x_final)); // total delta phi
-      deltaphinodist->Fill(phistart+M_PI,rantrans/rad_final); // delta phi no distortion, just diffusion+smear
+      
+      deltaphinodist->Fill(phistart,rantrans/rad_final); // delta phi no distortion, just diffusion+smear
       deltarnodist->Fill(radstart,rantrans); // delta r no distortion, just diffusion+smear
-      deltaphinodiff->Fill(phistart+M_PI,(phistart+M_PI)-phi_final); //delta phi no diffusion, just distortion
+      deltaphinodiff->Fill(phistart,phistart-phi_final); //delta phi no diffusion, just distortion
       deltarnodiff->Fill(radstart,(rad_final-radstart));//delta r no diffusion, just distortion      
-      deltaz->Fill(z_start,hDZint->Interpolate(phistart+M_PI,radstart,z_start)); // map of distortion in Z (time)
-   
+      deltaz->Fill(z_start,hDZint->Interpolate(phistart,radstart,z_start)); // map of distortion in Z (time)
+      
+      if(phistart > M_PI)
+	{
+	  cout << "phistart + pi is " << phistart<< "  atan2(x_final,y_final)+2pi is " << 2*M_PI+atan2(y_final,x_final) << endl;
+	  deltaphi->Fill(phistart,phistart-(2*M_PI+atan2(y_final,x_final))); // total delta phi
+	}
+      else
+	{
+	  cout << "phistart " << phistart<< " phistart-atan2(y_final,x_final) is " << atan2(y_final,x_final) << endl;
+	  deltaphi->Fill(phistart,phistart-atan2(y_final,x_final)); // total delta phi
+	}
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
-      {
-        continue;
-      }
+	{
+	  continue;
+	}
 
       if (Verbosity() > 1000)
       {
@@ -787,11 +809,12 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 	ntfinalhit->Write();
 	m_outf->Close();
       }
-    
-    CM_outf->cd();
-    CMTimeDists->Write();
-    CM_outf->Close();
-
+    if(do_Centralmem)
+      {
+	CM_outf->cd();
+	CMTimeDists->Write();
+	CM_outf->Close();
+      }
     EDrift_outf->cd();
     // TimehDR->Write();
     // TimehDP->Write();
