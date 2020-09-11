@@ -29,11 +29,13 @@ pkginclude_HEADERS = \
   PHG4TpcPadPlaneReadout.h \
   PHG4TpcDigitizer.h \
   PHG4TpcSubsystem.h \
+  PHG4TpcEndCapSubsystem.h \
   PHG4TpcDistortion.h \
   PHG4TpcSpaceChargeDistortion.h 
 
 libg4tpc_la_SOURCES = \
   PHG4TpcDetector.cc \
+  PHG4TpcEndCapDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDisplayAction.cc \
   PHG4TpcDistortion.cc \
@@ -42,7 +44,9 @@ libg4tpc_la_SOURCES = \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSpaceChargeDistortion.cc \
   PHG4TpcSteppingAction.cc \
-  PHG4TpcSubsystem.cc
+  PHG4TpcEndCapSteppingAction.cc \
+  PHG4TpcSubsystem.cc \
+  PHG4TpcEndCapSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
