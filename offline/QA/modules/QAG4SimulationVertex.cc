@@ -1,4 +1,5 @@
 #include "QAG4SimulationVertex.h"
+
 #include "QAHistManagerDef.h"
 
 #include <g4eval/SvtxEvalStack.h>
@@ -13,6 +14,7 @@
 
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <g4main/PHG4Particle.h>
@@ -31,6 +33,7 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <utility>     // for pair
 #include <vector>
 
 using namespace std;
