@@ -32,20 +32,7 @@ pkginclude_HEADERS = \
   PHG4TpcDistortion.h \
   PHG4TpcSpaceChargeDistortion.h 
 
-if MAKEROOT6
-else
-  ROOT5_DICTS = \
-    PHG4TpcElectronDrift_Dict.cc \
-    PHG4TpcPadPlane_Dict.cc \
-    PHG4TpcPadPlaneReadout_Dict.cc \
-    PHG4TpcDigitizer_Dict.cc \
-    PHG4TpcSubsystem_Dict.cc \
-    PHG4TpcDistortion_Dict.cc\
-    PHG4TpcSpaceChargeDistortion_Dict.cc 
-endif
-
 libg4tpc_la_SOURCES = \
-  $(ROOT5_DICTS) \
   PHG4TpcDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDisplayAction.cc \
