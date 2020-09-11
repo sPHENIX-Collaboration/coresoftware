@@ -12,11 +12,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
-
 #include <boost/smart_ptr.hpp>
-
-#endif
 
 #include <set>
 #include <string>
@@ -122,8 +118,6 @@ class PHG4DSTReader : public SubsysReco
   //  std::vector<std::string> _node_name;
   int nblocks;
 
-#if !defined(__CINT__) || defined(__CLING__)
-
   typedef boost::shared_ptr<TClonesArray> arr_ptr;
 
   struct record
@@ -145,7 +139,6 @@ class PHG4DSTReader : public SubsysReco
   };
   typedef std::vector<record> records_t;
   records_t _records;
-#endif
 
   int _event;
 
@@ -173,13 +166,9 @@ class PHG4DSTReader : public SubsysReco
   //! zero suppression for all calorimeters
   double _tower_zero_sup;
 
-#if !defined(__CINT__) || defined(__CLING__)
-
   //! add a particle and associated vertex if _save_vertex
   void
   add_particle(record &rec, PHG4Particle *part);
-
-#endif
 
   void
   build_tree();

@@ -9,23 +9,28 @@
 #include <g4main/PHG4Particle.h>
 
 #include <trackbase/TrkrClusterv1.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <tpc/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>               // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
+
 #include <intt/CylinderGeomIntt.h>
 
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <TVector3.h>
 
 #include <cassert>
-#include <cfloat>
+#include <cmath>                                       // for sqrt, NAN, fabs
+#include <cstdlib>                                     // for abs
 #include <iostream>
 #include <map>
 #include <set>
