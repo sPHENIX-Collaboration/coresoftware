@@ -67,6 +67,8 @@ class SvtxVertexEval
 
   void set_use_initial_vertex(bool use_init_vertex) {_use_initial_vertex= use_init_vertex;}
 
+  void set_track_nodename(const std::string &name);
+
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
@@ -88,6 +90,7 @@ class SvtxVertexEval
   std::map<PHG4VtxPoint*, std::set<SvtxVertex*> > _cache_all_vertexes_from_point;
   std::map<PHG4VtxPoint*, SvtxVertex*> _cache_best_vertex_from_point;
   std::map<std::pair<SvtxVertex*, PHG4VtxPoint*>, unsigned int> _cache_get_ntracks_contribution;
+  std::string m_TrackNodeName;
 };
 
 #endif  // G4EVAL_SVTXVERTEXEVAL_H

@@ -36,6 +36,8 @@ class SvtxEvalStack
 
   unsigned int get_errors() { return _vertexeval.get_errors(); }
 
+  void set_track_nodename(const std::string &name) {_vertexeval.set_track_nodename(name);}
+
  private:
   SvtxVertexEval _vertexeval;  // right now this is the top-level eval
 };

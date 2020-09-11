@@ -27,17 +27,7 @@ SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   , _errors(0)
   , _do_cache(true)
   , _cache_track_from_cluster_exists(false)
-  , _cache_all_truth_hits()
-  , _cache_all_truth_particles()
-  , _cache_max_truth_particle_by_nclusters()
-  , _cache_all_tracks_from_particle()
-  , _cache_best_track_from_particle()
-  , _cache_all_tracks_from_g4hit()
-  , _cache_all_tracks_from_cluster()
-  , _cache_best_track_from_cluster()
-  , _cache_get_nclusters_contribution()
-  , _cache_get_nclusters_contribution_by_layer()
-  , _cache_get_nwrongclusters_contribution()
+  , m_TrackNodeName("SvtxTrackMap") // typically set upstream by SvtxVertexEval
 {
   get_node_pointers(topNode);
 }
@@ -880,7 +870,7 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
 void SvtxTrackEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _trackmap = findNode::getClass<SvtxTrackMap>(topNode,  m_TrackNodeName);
 
   return;
 }
