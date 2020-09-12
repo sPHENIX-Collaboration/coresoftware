@@ -60,7 +60,6 @@ int PHSiliconTpcTrackMatching::Process()
 
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
-
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
@@ -81,7 +80,7 @@ int PHSiliconTpcTrackMatching::Process()
       
       _tracklet_tpc = phtrk_iter->second;
       
-      //if (Verbosity() >= 1)
+      if (Verbosity() >= 1)
 	{
 	  std::cout
 	    << __LINE__
@@ -133,20 +132,34 @@ int PHSiliconTpcTrackMatching::Process()
 	      cout << "      tpc_phi " << tpc_phi << " si_phi " << si_phi << " tpc_eta " << tpc_eta << " si_eta " << si_eta << endl;
 	    }
 
+	  bool eta_match = false;
+	  bool phi_match = false;
+	  if( fabs(tpc_eta - si_eta) < _eta_search_win ) eta_match = true;
+	  if( fabs(tpc_phi - si_phi) < _phi_search_win) phi_match = true;
 	  // NOTE: have to guard against change of sign at +/- pi
-	  if( fabs(tpc_eta - si_eta) < _eta_search_win )
-	    if( fabs(tpc_phi - si_phi) < _phi_search_win || fabs(tpc_phi - si_phi) - 2.0*M_PI < _phi_search_win) 
-	      {
-		// got a match, add to the list
-		//if(Verbosity() >= 1)  
+	  if( fabs( fabs(tpc_phi - si_phi) - 2.0*M_PI) < _phi_search_win)  phi_match = true; 
+
+	  if(Verbosity() >= 1)
+	    {
+	      if(phi_match || eta_match)
+		cout << "         Try:  tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match
+		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+	    }
+
+	  if(eta_match && phi_match)
+	    {
+	      // got a match, add to the list
+	      if(Verbosity() >= 1)  
+		{
 		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
-		  cout << "          tpc_phi " << tpc_phi << " si_phi " << si_phi << " tpc_eta " << tpc_eta << " si_eta " << si_eta << endl;
-		si_matches.insert(_tracklet_si->get_id());
-	      }
-	  
+		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
+		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+		}
+	      si_matches.insert(_tracklet_si->get_id());
+	    }	  
 	}
       // if we did not get a match, sound the alarm
-      if(si_matches.size() == 0)
+      if(Verbosity() >= 1 && si_matches.size() == 0)
 	cout << "Did not find a silicon track stub to match TPC seed track " << _tracklet_tpc->get_id() << endl;
  
       // Add the silicon clusters to the track
@@ -181,11 +194,10 @@ int PHSiliconTpcTrackMatching::Process()
 	    {
 	      // more than one si stub matches
 	      // make a copy of the TPC track, update it and add it to the end of the node tree 
-	      cout << "Extra match, add a new track to node tree" << endl;
 	      
 	      SvtxTrack *newTrack = new SvtxTrack_v1();
 	      const unsigned int lastTrackKey = _track_map->end()->first + isi - 1; 
-	      std::cout << "   extra track key " << lastTrackKey << std::endl;
+	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
 	      newTrack->set_id(lastTrackKey);
 	      newTrack->set_vertex_id(vertexId);
@@ -219,14 +231,12 @@ int PHSiliconTpcTrackMatching::Process()
 	      // now add the new si clusters
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
-		  cout << "   inserting cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
+		  if(Verbosity() >= 1) cout << "   inserting cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
 		  newTrack->insert_cluster_key(*clus_iter);
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
 
 	      _track_map->insert(newTrack);
-
-	      std::cout << "  added new copy of track " << lastTrackKey << std::endl;
 	    }
 	  
 	  isi++;

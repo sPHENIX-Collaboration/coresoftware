@@ -40,31 +40,14 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   int Process() override;
 
   int End() override;
-
-  //int Init(PHCompositeNode *topNode) override;
-  //int InitRun(PHCompositeNode *topNode) override;
-  //int process_event(PHCompositeNode *topNode) override;
-  //int ResetEvent(PHCompositeNode *topNode) override;
-  //int EndRun(const int runnumber) override;
-  //int End(PHCompositeNode *topNode) override;
-  //int Reset(PHCompositeNode * /*topNode*/) override;
-  //void Print(const std::string &what = "ALL") const override;
   
  private:
 
   int GetNodes(PHCompositeNode* topNode);
 
-  //std::vector<PHG4Particle*> getG4PrimaryParticle(SvtxTrack *track);
-  //std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
-  
-  //PHG4TruthInfoContainer *_truthinfo{nullptr};
-  //PHG4HitContainer *_g4hits_tpc{nullptr};
-  //PHG4HitContainer *_g4hits_mvtx{nullptr};
-  //PHG4HitContainer *_g4hits_intt{nullptr};
-
   std::string _track_map_name_silicon;
-  double _phi_search_win = 0.02;
-  double _eta_search_win = 0.01;
+  double _phi_search_win = 0.05;
+  double _eta_search_win = 0.02;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
