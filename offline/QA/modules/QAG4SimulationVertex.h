@@ -13,6 +13,7 @@
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
+class SvtxTrackMap;
 
 class QAG4SimulationVertex : public SubsysReco
 {

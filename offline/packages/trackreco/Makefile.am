@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
@@ -122,6 +123,7 @@ ACTS_SOURCES = \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
+  PHActsVertexFinder.cc \
   PHActsVertexFitter.cc
 
 $OFFLINE_MAIN/share:

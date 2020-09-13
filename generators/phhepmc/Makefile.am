@@ -46,7 +46,7 @@ ROOT_DICTS = \
   PHHepMC_io_Dict.cc \
   PHHepMCGenEvent_Dict.cc \
   PHHepMCGenEventMap_Dict.cc
-if MAKEROOT6
+
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   PHGenIntegral_Dict_rdict.pcm \
@@ -54,20 +54,8 @@ nobase_dist_pcm_DATA = \
   PHHepMC_io_Dict_rdict.pcm \
   PHHepMCGenEvent_Dict_rdict.pcm \
   PHHepMCGenEventMap_Dict_rdict.pcm
-else
-ROOT5_DICTS = \
-  Fun4AllHepMCInputManager_Dict.cc \
-  Fun4AllHepMCPileupInputManager_Dict.cc \
-  Fun4AllHepMCOutputManager_Dict.cc \
-  Fun4AllOscarInputManager_Dict.cc \
-  HepMCFlowAfterBurner_Dict.cc \
-  PHHepMCGenHelper_Dict.cc \
-  PHHepMCParticleSelectorDecayProductChain_Dict.cc
-
-endif
 
 libphhepmc_la_SOURCES = \
-  $(ROOT5_DICTS) \
   Fun4AllHepMCInputManager.cc \
   Fun4AllHepMCPileupInputManager.cc \
   Fun4AllHepMCOutputManager.cc \

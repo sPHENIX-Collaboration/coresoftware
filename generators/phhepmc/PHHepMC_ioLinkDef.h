@@ -21,9 +21,6 @@
 #include <HepMC/TempParticleMap.h>
 #include <HepMC/WeightContainer.h>
 
-using namespace HepMC;
-using namespace std;
-
 #ifdef __CINT__
 typedef long size_type;
 
