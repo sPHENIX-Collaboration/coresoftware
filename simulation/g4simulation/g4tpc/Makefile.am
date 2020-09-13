@@ -38,6 +38,7 @@ libg4tpc_la_SOURCES = \
   PHG4TpcEndCapDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDisplayAction.cc \
+  PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcDistortion.cc \
   PHG4TpcElectronDrift.cc \
   PHG4TpcPadPlane.cc \

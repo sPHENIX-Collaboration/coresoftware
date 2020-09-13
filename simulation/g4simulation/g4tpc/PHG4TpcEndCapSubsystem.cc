@@ -11,16 +11,17 @@
 #include "PHG4TpcEndCapSubsystem.h"
 
 #include "PHG4TpcEndCapDetector.h"
+#include "PHG4TpcEndCapDisplayAction.h"
 #include "PHG4TpcEndCapSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h> 
+#include <g4main/PHG4SteppingAction.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h> 
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
@@ -32,17 +33,29 @@ PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
+  , m_DisplayAction(nullptr)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
   InitializeParameters();
 }
+
+PHG4TpcEndCapSubsystem::~PHG4TpcEndCapSubsystem()
+{
+  if (m_DisplayAction)
+    delete m_DisplayAction;
+}
+
 //_______________________________________________________________________
 int PHG4TpcEndCapSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   PHNodeIterator dstIter(dstNode);
+
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4TpcEndCapDisplayAction(Name());
+
   if (GetParams()->get_int_param("active"))
   {
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", Name()));
@@ -109,9 +122,12 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_x", 20.);
-  set_default_double_param("size_y", 20.);
-  set_default_double_param("size_z", 20.);
+
+  set_default_double_param("envelop_r_min", 20.);
+  set_default_double_param("envelop_r_max", 80.);
+  set_default_double_param("envelop_front_surface_z", 105.);
+
+  set_default_int_param("n_GEM_layers", 4);
 
   set_default_string_param("material", "G4_Cu");
 }

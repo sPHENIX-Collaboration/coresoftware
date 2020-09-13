@@ -9,6 +9,7 @@ class PHCompositeNode;
 class PHG4Detector;
 class PHG4TpcEndCapDetector;
 class PHG4SteppingAction;
+class PHG4DisplayAction;
 
 /**
    * \brief Detector Subsystem module
@@ -27,7 +28,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   PHG4TpcEndCapSubsystem(const std::string& name = "PHG4TpcEndCap");
 
   //! destructor
-  virtual ~PHG4TpcEndCapSubsystem() {}
+  virtual ~PHG4TpcEndCapSubsystem() ;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -55,11 +56,15 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
  private:
   //! detector construction
   /*! derives from PHG4Detector */
-  PHG4TpcEndCapDetector  *m_Detector;
+  PHG4TpcEndCapDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 };
 
-#endif // PHG4TPCENDCAPSUBSYSTEM_H
+#endif  // PHG4TPCENDCAPSUBSYSTEM_H
