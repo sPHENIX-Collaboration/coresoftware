@@ -9,6 +9,7 @@
 #include <TFile.h>
 #include <TH3.h>
 
+#include <bitset>
 #include <math.h>
 
 namespace
@@ -40,13 +41,15 @@ int TpcSpaceChargeCorrection_hp::InitRun(PHCompositeNode*)
   hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
   hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );
 
+  // coordinates
+  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - coordinates: " << std::bitset<3>(m_coordinates) << std::endl;
+
   m_fullzrange = (hDPint->GetZaxis()->GetXmin() == -hDPint->GetZaxis()->GetXmax());
+  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - m_fullzrange = " << m_fullzrange << std::endl;
 
   // dump axis limits
   for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
   { std::cout << "TpcSpaceChargeCorrection_hp::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
-
-  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - m_fullzrange = " << m_fullzrange << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -100,12 +103,13 @@ void TpcSpaceChargeCorrection_hp::transform_cluster( TrkrCluster* cluster )
   const auto zmap = m_fullzrange ? z:std::abs(z);
 
   // apply corrections
-  const auto phi_new = phi - hDPint->Interpolate(phi,r,zmap)/r;
-  const auto r_new = r - hDRint->Interpolate(phi,r,zmap);
+  const auto phi_new = (m_coordinates & COORD_PHI) ? phi - hDPint->Interpolate(phi,r,zmap)/r : phi;
+
+  // dont move r for the moment
+  const auto r_new = (m_coordinates & COORD_R) ? r - hDRint->Interpolate(phi,r,zmap) : r;
 
   // dont move z for the moment
-  // const auto z_new = z - hDZint->Interpolate(phi,r,zmap);
-  const auto z_new = z;
+  const auto z_new = (m_coordinates & COORD_R) ? z - hDZint->Interpolate(phi,r,zmap) : z;
 
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
