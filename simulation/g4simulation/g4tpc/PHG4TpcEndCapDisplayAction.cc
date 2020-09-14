@@ -40,25 +40,24 @@ void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       continue;
     }
+
     G4VisAttributes *visatt = new G4VisAttributes();
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-                                    //    if (it.second == "SectorDetector")
-                                    //    {
-    PHG4Utils::SetColour(visatt, it.first->GetMaterial()->GetName());
-    //    }
-    //    else if (it.second == "DetectorBox")
-    //    {
-    //      visatt->SetColour(G4Colour::White());
-    //      visatt->SetForceWireframe(true);
-    //      visatt->SetForceLineSegmentsPerCircle(50);
-    //    }
-    //    else
-    //    {
-    //      cout << "unknown logical volume " << it.second << endl;
-    //      gSystem->Exit(1);
-    //    }
+
+    if (it.second == "G10")
+    {
+      visatt->SetColour(G4Colour(0.0, .8, 0.0));
+    }
+    else if (it.second == "wagon_wheel")
+    {
+      visatt->SetColour(G4Colour(.8, 0.0, 0.0));
+    }
+    else
+    {
+      PHG4Utils::SetColour(visatt, it.first->GetMaterial()->GetName());
+    }
     logvol->SetVisAttributes(visatt);
   }
   return;

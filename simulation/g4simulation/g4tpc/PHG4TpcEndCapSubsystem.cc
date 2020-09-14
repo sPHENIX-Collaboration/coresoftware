@@ -132,10 +132,14 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   const double inch_to_cm = 2.54;
 
   set_default_int_param("n_sectors", 12);
+  set_default_int_param("n_radial_modules", 3);
 
   set_default_string_param("wagon_wheel_material", "G4_Al");
 
+  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 0);
+
   set_default_double_param("wagon_wheel_front_frame_thickness", inch_to_cm * .38);
+  set_default_double_param("wagon_wheel_front_frame_spoke_width", inch_to_cm * 1.12);
 
   set_default_double_param("wagon_wheel_front_frame_R_inner", inch_to_cm * 15.74 / 2.);
   set_default_double_param("wagon_wheel_front_frame_R_outer", inch_to_cm * 30.7);
@@ -148,4 +152,8 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_double_param("wagon_wheel_front_frame_R_R3_inner", inch_to_cm * 23.36);
   set_default_double_param("wagon_wheel_front_frame_R_R3_outer", inch_to_cm * 29.02);
+
+  set_default_double_param("wagon_wheel_rim_outer_Rin", inch_to_cm * 29.58);
+  set_default_double_param("wagon_wheel_rim_outer_Rout", inch_to_cm * 60.49/2.);
+  set_default_double_param("wagon_wheel_rim_outer_thickness", inch_to_cm * (4.5 - .38));
 }

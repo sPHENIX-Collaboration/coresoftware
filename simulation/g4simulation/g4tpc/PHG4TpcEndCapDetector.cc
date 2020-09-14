@@ -50,6 +50,7 @@
 #include <Geant4/G4VSolid.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <CLHEP/Vector/RotationZ.h>
 #include <boost/format.hpp>
 
 #include <cassert>
@@ -175,13 +176,13 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
     starting_z += 0.2 * cm;
   }
 
-  // 16 layer readout plane TTM
+  // 16 layer readout plane by TTM
   // https://indico.bnl.gov/event/8307/contributions/36744/attachments/27646/42337/R3-Review.pptx
   const int n_PCB_layers(16);
   // 35 um / layer Cu
   AddLayer(assmeblyvol, starting_z, G4String("PCBCu"), "G4_Cu", 0.0035 * cm * n_PCB_layers, 80);
   // 7 mil / layer board
-  AddLayer(assmeblyvol, starting_z, "Facesheet", "G10", 0.00254 * cm * 7 * n_PCB_layers, 100);
+  AddLayer(assmeblyvol, starting_z, "PCBBase", "G10", 0.00254 * cm * 7 * n_PCB_layers, 100);
 
   ConstructWagonWheel(assmeblyvol, starting_z);
 
@@ -233,15 +234,23 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);
+  const int n_radial_modules = m_Params->get_int_param("n_radial_modules");
+  assert(n_radial_modules >= 1);
 
-  auto material = G4Material::GetMaterial(m_Params->get_string_param("wagon_wheel_material"));
+  const string material_name(m_Params->get_string_param("wagon_wheel_material"));
+  auto material = G4Material::GetMaterial(material_name);
   if (material == nullptr)
   {
     cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("wagon_wheel_material") << endl;
     assert(material);
   }
+  const G4double wagon_wheel_sector_phi_offset = m_Params->get_double_param("wagon_wheel_sector_phi_offset_degree") * degree;
 
+  ///////////////////////////////////////////////
+  // wagon_wheel_front_frame ring
+  ///////////////////////////////////////////////
   const G4double wagon_wheel_front_frame_thickness = m_Params->get_double_param("wagon_wheel_front_frame_thickness") * cm;
+  const G4double wagon_wheel_front_frame_spoke_width = m_Params->get_double_param("wagon_wheel_front_frame_spoke_width") * cm;
 
   z_start += wagon_wheel_front_frame_thickness / 2.;
   G4ThreeVector g4vec_wagon_wheel_front_frame(0, 0, z_start);
@@ -250,7 +259,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   const G4double wagon_wheel_front_frame_R_inner = m_Params->get_double_param("wagon_wheel_front_frame_R_inner") * cm;
   const G4double wagon_wheel_front_frame_R_outer = m_Params->get_double_param("wagon_wheel_front_frame_R_outer") * cm;
 
-  for (int ring_id = 0; ring_id <= n_sectors; ++ring_id)
+  for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
   {
     G4double Rin = wagon_wheel_front_frame_R_inner;
     G4double Rout = wagon_wheel_front_frame_R_outer;
@@ -258,17 +267,17 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     if (ring_id > 0)
     {
       Rin = m_Params->get_double_param(
-                boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id))) *
+                boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id))) *
             cm;
     }
-    if (ring_id < n_sectors)
+    if (ring_id < n_radial_modules)
     {
       Rout = m_Params->get_double_param(
-                 boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id + 1))) *
+                 boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id + 1))) *
              cm;
     }
 
-    string name_base = boost::str(boost::format("%1%_%2%_Ring%2%") % GetName() % "wagon_wheel_front_frame" % ring_id);
+    string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "wagon_wheel_front_frame" % ring_id);
 
     G4VSolid *solid_wagon_wheel_front_frame = new G4Tubs(
         name_base,
@@ -282,7 +291,86 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_front_frame,
                                  g4vec_wagon_wheel_front_frame,
                                  nullptr);
-  }
+    assert(m_DisplayAction);
+    m_DisplayAction->AddVolume(log_solid_wagon_wheel_front_frame, "wagon_wheel");
+
+  }  // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
+
+  ///////////////////////////////////////////////
+  // wagon_wheel_front_frame spoke
+  ///////////////////////////////////////////////
+  for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
+  {
+    G4double Rout =
+        m_Params->get_double_param(
+            boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id))) *
+        cm;
+    G4double Rin =
+        m_Params->get_double_param(
+            boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id))) *
+        cm;
+
+    const G4double reduced_height = sqrt(Rout * Rout - wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2);
+
+    std::vector<G4TwoVector> vertexes;
+    vertexes.push_back(G4TwoVector(-wagon_wheel_front_frame_spoke_width / 2, Rin));
+    vertexes.push_back(G4TwoVector(+wagon_wheel_front_frame_spoke_width / 2, Rin));
+    vertexes.push_back(G4TwoVector(+wagon_wheel_front_frame_spoke_width / 2, reduced_height));
+    vertexes.push_back(G4TwoVector(-wagon_wheel_front_frame_spoke_width / 2, reduced_height));
+
+    G4TwoVector zero(0, 0);
+
+    string name_base_spoke = boost::str(boost::format("%1%_%2%_Ring%3%_spoke") % GetName() % "wagon_wheel_front_frame" % ring_id);
+
+    G4VSolid *solid_wagon_wheel_front_frame_spoke = new G4ExtrudedSolid(name_base_spoke,
+                                                                        vertexes,
+                                                                        wagon_wheel_front_frame_thickness / 2.,
+                                                                        zero, 1.0,
+                                                                        zero, 1.0);
+    G4LogicalVolume *log_solid_wagon_wheel_front_frame_spoke = new G4LogicalVolume(solid_wagon_wheel_front_frame_spoke, material, name_base_spoke);
+
+    const G4double sector_dphi = CLHEP::twopi / n_sectors;
+    for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+    {
+      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id), g4vec_wagon_wheel_front_frame);
+
+      assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_front_frame_spoke,
+                                   trans_spoke);
+      assert(m_DisplayAction);
+      m_DisplayAction->AddVolume(log_solid_wagon_wheel_front_frame_spoke, "wagon_wheel");
+
+    }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+
+  }  //  for (int ring_id = 0; ring_id < n_radial_modules; ++ring_id)
+
+  ///////////////////////////////////////////////
+  // wagon_wheel_rim_outer
+  ///////////////////////////////////////////////
+  {
+    const G4double wagon_wheel_rim_outer_Rin = m_Params->get_double_param("wagon_wheel_rim_outer_Rin") * cm;
+    const G4double wagon_wheel_rim_outer_Rout = m_Params->get_double_param("wagon_wheel_rim_outer_Rout") * cm;
+    const G4double wagon_wheel_rim_outer_thickness = m_Params->get_double_param("wagon_wheel_rim_outer_thickness") * cm;
+
+    G4ThreeVector g4vec_wagon_wheel_rim_outer(0, 0, z_start + wagon_wheel_rim_outer_thickness / 2.);
+
+    string name_base = boost::str(boost::format("%1%_wagon_wheel_rim_outer") % GetName());
+
+    G4VSolid *solid_wagon_wheel = new G4Tubs(
+        name_base,
+        wagon_wheel_rim_outer_Rin,
+        wagon_wheel_rim_outer_Rout,
+        wagon_wheel_rim_outer_thickness / 2.,
+        0, CLHEP::twopi);
+
+    G4LogicalVolume *log_solid_wagon_wheel = new G4LogicalVolume(solid_wagon_wheel, material, name_base);
+
+    assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel,
+                                 g4vec_wagon_wheel_rim_outer,
+                                 nullptr);
+    assert(m_DisplayAction);
+    m_DisplayAction->AddVolume(log_solid_wagon_wheel, "wagon_wheel");
+
+  }  // wagon_wheel_rim_outer
 }
 
 //_______________________________________________________________
