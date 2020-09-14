@@ -52,7 +52,11 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   G4AssemblyVolume *m_EndCapAssembly = nullptr;
 
   G4AssemblyVolume *ConstructEndCapAssembly();
+
   void ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
+      G4double &z_start);
+
+  void ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       G4double &z_start);
 
   void

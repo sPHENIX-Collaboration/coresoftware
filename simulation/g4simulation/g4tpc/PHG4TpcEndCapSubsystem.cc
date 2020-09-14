@@ -112,6 +112,7 @@ PHG4Detector *PHG4TpcEndCapSubsystem::GetDetector(void) const
 //_______________________________________________________________________
 void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 {
+  set_default_int_param("construction_verbosity", 0);
   // sizes are in cm
   // angles are in deg
   // units should be converted to G4 units when used
@@ -125,7 +126,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_double_param("envelop_r_min", 20.);
   set_default_double_param("envelop_r_max", 79.);
-  set_default_double_param("envelop_front_surface_z", 211./2.);
+  set_default_double_param("envelop_front_surface_z", 211. / 2.);
 
   set_default_int_param("n_GEM_layers", 4);
 
@@ -145,7 +146,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_double_param("wagon_wheel_front_frame_R_outer", inch_to_cm * 30.7);
 
   set_default_double_param("wagon_wheel_front_frame_R_R1_inner", inch_to_cm * 9.81);
-  set_default_double_param("wagon_wheel_front_frame_R_R1_outer", inch_to_cm * 15.74);
+  set_default_double_param("wagon_wheel_front_frame_R_R1_outer", inch_to_cm * 15.47);
 
   set_default_double_param("wagon_wheel_front_frame_R_R2_inner", inch_to_cm * 16.59);
   set_default_double_param("wagon_wheel_front_frame_R_R2_outer", inch_to_cm * 22.24);
@@ -154,6 +155,36 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_double_param("wagon_wheel_front_frame_R_R3_outer", inch_to_cm * 29.02);
 
   set_default_double_param("wagon_wheel_rim_outer_Rin", inch_to_cm * 29.58);
-  set_default_double_param("wagon_wheel_rim_outer_Rout", inch_to_cm * 60.49/2.);
+  set_default_double_param("wagon_wheel_rim_outer_Rout", inch_to_cm * 60.49 / 2.);
   set_default_double_param("wagon_wheel_rim_outer_thickness", inch_to_cm * (4.5 - .38));
+
+  set_default_double_param("wagon_wheel_spoke_width", inch_to_cm * .36);
+  set_default_double_param("wagon_wheel_spoke_height_inner", inch_to_cm * (1.715 - .38));
+  set_default_double_param("wagon_wheel_spoke_height_outer", inch_to_cm * (4.5 - .38));
+  set_default_double_param("wagon_wheel_spoke_R_inner", inch_to_cm * 9);
+  set_default_double_param("wagon_wheel_spoke_R_outer", inch_to_cm * 29.5);
+
+  set_default_int_param("electronics_nFEE_R1", 6);
+  set_default_int_param("electronics_nFEE_R2", 8);
+  set_default_int_param("electronics_nFEE_R3", 12);
+
+  set_default_double_param("electronics_FEE_depth", inch_to_cm * 15.74 / 2.);
+  set_default_double_param("electronics_FEE_Cu_thickness", 35e-4);
+  set_default_double_param("electronics_FEE_PCB_thickness", 0.2);
+  set_default_double_param("electronics_FEE_Al_thickness", 0.2);
+
+  set_default_string_param("electronics_cooling_block_material", "G4_Al");
+  set_default_double_param("electronics_cooling_block_thickness", inch_to_cm * 3.5);
+
+  set_default_double_param("electronics_cooling_block_R_inner", inch_to_cm * 9.26);
+  set_default_double_param("electronics_cooling_block_R_outer", inch_to_cm * 29.57);
+
+  set_default_double_param("electronics_cooling_block_R_R1_inner", inch_to_cm * 9.81);
+  set_default_double_param("electronics_cooling_block_R_R1_outer", inch_to_cm * 15.47);
+
+  set_default_double_param("electronics_cooling_block_R_R2_inner", inch_to_cm * 16.59);
+  set_default_double_param("electronics_cooling_block_R_R2_outer", inch_to_cm * 22.24);
+
+  set_default_double_param("electronics_cooling_block_R_R3_inner", inch_to_cm * 23.36);
+  set_default_double_param("electronics_cooling_block_R_R3_outer", inch_to_cm * 29.02);
 }

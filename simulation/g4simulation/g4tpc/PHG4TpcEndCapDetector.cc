@@ -74,6 +74,7 @@ PHG4TpcEndCapDetector::PHG4TpcEndCapDetector(PHG4Subsystem *subsys,
 {
   assert(subsys->GetDisplayAction());
   assert(m_DisplayAction);
+  Verbosity(m_Params->get_int_param("construction_verbosity"));
 }
 
 PHG4TpcEndCapDetector::
@@ -185,6 +186,7 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   AddLayer(assmeblyvol, starting_z, "PCBBase", "G10", 0.00254 * cm * 7 * n_PCB_layers, 100);
 
   ConstructWagonWheel(assmeblyvol, starting_z);
+  ConstructElectronics(assmeblyvol, starting_z);
 
   return assmeblyvol;
 }
@@ -249,6 +251,11 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   ///////////////////////////////////////////////
   // wagon_wheel_front_frame ring
   ///////////////////////////////////////////////
+  if (Verbosity())
+  {
+    cout << __PRETTY_FUNCTION__ << " - wagon_wheel_front_frame z_start = " << z_start << endl;
+  }
+
   const G4double wagon_wheel_front_frame_thickness = m_Params->get_double_param("wagon_wheel_front_frame_thickness") * cm;
   const G4double wagon_wheel_front_frame_spoke_width = m_Params->get_double_param("wagon_wheel_front_frame_spoke_width") * cm;
 
@@ -346,6 +353,11 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   ///////////////////////////////////////////////
   // wagon_wheel_rim_outer
   ///////////////////////////////////////////////
+  if (Verbosity())
+  {
+    cout << __PRETTY_FUNCTION__ << " - wagon_wheel_rim_outer z_start = " << z_start << endl;
+  }
+
   {
     const G4double wagon_wheel_rim_outer_Rin = m_Params->get_double_param("wagon_wheel_rim_outer_Rin") * cm;
     const G4double wagon_wheel_rim_outer_Rout = m_Params->get_double_param("wagon_wheel_rim_outer_Rout") * cm;
@@ -371,6 +383,143 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     m_DisplayAction->AddVolume(log_solid_wagon_wheel, "wagon_wheel");
 
   }  // wagon_wheel_rim_outer
+
+  ///////////////////////////////////////////////
+  // wagon_wheel_spoke
+  ///////////////////////////////////////////////
+  {
+    const G4double wagon_wheel_spoke_width = m_Params->get_double_param("wagon_wheel_spoke_width") * cm;
+    const G4double wagon_wheel_spoke_height_inner = m_Params->get_double_param("wagon_wheel_spoke_height_inner") * cm;
+    const G4double wagon_wheel_spoke_height_outer = m_Params->get_double_param("wagon_wheel_spoke_height_outer") * cm;
+    const G4double wagon_wheel_spoke_R_inner = m_Params->get_double_param("wagon_wheel_spoke_R_inner") * cm;
+    const G4double wagon_wheel_spoke_R_outer = m_Params->get_double_param("wagon_wheel_spoke_R_outer") * cm;
+
+    string name_base = boost::str(boost::format("%1%_wagon_wheel_spoke") % GetName());
+
+    std::vector<G4TwoVector> vertexes;
+    vertexes.push_back(G4TwoVector(0, wagon_wheel_spoke_R_inner));
+    vertexes.push_back(G4TwoVector(0, wagon_wheel_spoke_R_outer));
+    vertexes.push_back(G4TwoVector(wagon_wheel_spoke_height_outer, wagon_wheel_spoke_R_outer));
+    vertexes.push_back(G4TwoVector(wagon_wheel_spoke_height_inner, wagon_wheel_spoke_R_inner));
+    G4TwoVector zero(0, 0);
+
+    G4VSolid *solid_wagon_wheel_spoke = new G4ExtrudedSolid(name_base,
+                                                            vertexes,
+                                                            wagon_wheel_spoke_width / 2.,
+                                                            zero, 1.0,
+                                                            zero, 1.0);
+    G4LogicalVolume *log_solid_wagon_wheel_spoke = new G4LogicalVolume(solid_wagon_wheel_spoke, material, name_base);
+
+    G4ThreeVector g4vec_wagon_wheel_spoke(0, 0, z_start + wagon_wheel_spoke_width / 2.);
+
+    const G4double sector_dphi = CLHEP::twopi / n_sectors;
+    for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+    {
+      G4RotateY3D rotm_spoke(-90 * deg);
+      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id),
+                                g4vec_wagon_wheel_spoke);
+      G4Transform3D trans_spoke_final = trans_spoke * rotm_spoke;
+
+      assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_spoke,
+                                   trans_spoke_final);
+      assert(m_DisplayAction);
+      m_DisplayAction->AddVolume(log_solid_wagon_wheel_spoke, "wagon_wheel");
+
+    }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+
+  }  // wagon_wheel_rim_outer
+}
+
+void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
+                                                 G4double &z_start)
+{
+  const int n_sectors = m_Params->get_int_param("n_sectors");
+  assert(n_sectors >= 1);
+  const int n_radial_modules = m_Params->get_int_param("n_radial_modules");
+  assert(n_radial_modules >= 1);
+  const G4double wagon_wheel_sector_phi_offset = m_Params->get_double_param("wagon_wheel_sector_phi_offset_degree") * degree;
+
+  ///////////////////////////////////////////////
+  // electronics_cooling_block_material ring
+  ///////////////////////////////////////////////
+  const G4double electronics_cooling_block_thickness = m_Params->get_double_param("electronics_cooling_block_thickness") * cm;
+  if (electronics_cooling_block_thickness > 0)
+  {
+    if (Verbosity())
+    {
+      cout << __PRETTY_FUNCTION__ << " - electronics_cooling_block_material z_start = " << z_start << endl;
+    }
+
+    const string electronics_cooling_block_material_name(m_Params->get_string_param("electronics_cooling_block_material"));
+    auto material = G4Material::GetMaterial(electronics_cooling_block_material_name);
+    if (material == nullptr)
+    {
+      cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("electronics_cooling_block_material_name") << endl;
+      assert(material);
+    }
+
+    const G4double electronics_cooling_block_thickness = m_Params->get_double_param("electronics_cooling_block_thickness") * cm;
+
+    G4ThreeVector g4vec_electronics_cooling_block(0, 0, z_start + electronics_cooling_block_thickness / 2.);
+
+    const G4double electronics_cooling_block_R_inner = m_Params->get_double_param("electronics_cooling_block_R_inner") * cm;
+    const G4double electronics_cooling_block_R_outer = m_Params->get_double_param("electronics_cooling_block_R_outer") * cm;
+    const G4double wagon_wheel_spoke_width = m_Params->get_double_param("wagon_wheel_spoke_width") * cm;
+
+    for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
+    {
+      G4double Rin = electronics_cooling_block_R_inner;
+      G4double Rout = electronics_cooling_block_R_outer;
+
+      if (ring_id > 0)
+      {
+        Rin = m_Params->get_double_param(
+                  boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
+              cm;
+      }
+      if (ring_id < n_radial_modules)
+      {
+        Rout = m_Params->get_double_param(
+                   boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id + 1))) *
+               cm;
+      }
+
+      string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "electronics_cooling_block" % ring_id);
+
+      const G4double spoke_phi = atan2(wagon_wheel_spoke_width, Rin);
+
+      const G4double sector_dphi = CLHEP::twopi / n_sectors;
+
+      G4VSolid *solid = new G4Tubs(
+          name_base,
+          Rin,
+          Rout,
+          electronics_cooling_block_thickness / 2.,
+          spoke_phi, sector_dphi - 2 * spoke_phi);
+
+      if (Verbosity())
+      {
+        cout << __PRETTY_FUNCTION__ << " - electronics_cooling_block " << name_base
+             << " Rin = " << Rin << " Rout = " << Rout
+             << " phi = " << spoke_phi << " to " << (sector_dphi - spoke_phi) << endl;
+      }
+
+      //
+      G4LogicalVolume *log_vol = new G4LogicalVolume(solid, material, name_base);
+      for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+      {
+        G4Transform3D trans(
+            CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id),
+            g4vec_electronics_cooling_block);
+        //
+        assmeblyvol->AddPlacedVolume(log_vol,
+                                     trans);
+        assert(m_DisplayAction);
+        m_DisplayAction->AddVolume(log_vol, "cooling_block");
+
+      }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+    }    // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
+  }      // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
 }
 
 //_______________________________________________________________

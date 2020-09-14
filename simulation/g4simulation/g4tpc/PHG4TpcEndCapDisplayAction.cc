@@ -53,6 +53,12 @@ void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     else if (it.second == "wagon_wheel")
     {
       visatt->SetColour(G4Colour(.8, 0.0, 0.0));
+      visatt->SetForceLineSegmentsPerCircle(100);
+    }
+    else if (it.second == "cooling_block")
+    {
+      visatt->SetColour(G4Colour(.8, .8, .8));
+      visatt->SetForceLineSegmentsPerCircle(100);
     }
     else
     {
