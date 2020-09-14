@@ -49,6 +49,8 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
+  PHG4DisplayAction *GetDisplayAction()   const override { return m_DisplayAction; }
+
  protected:
   // \brief Set default parameter values
   void SetDefaultParameters() override;

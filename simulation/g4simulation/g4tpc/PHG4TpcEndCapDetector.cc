@@ -35,6 +35,7 @@
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MultiUnion.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -70,6 +71,8 @@ PHG4TpcEndCapDetector::PHG4TpcEndCapDetector(PHG4Subsystem *subsys,
   , m_DisplayAction(dynamic_cast<PHG4TpcEndCapDisplayAction *>(subsys->GetDisplayAction()))
 
 {
+  assert(subsys->GetDisplayAction());
+  assert(m_DisplayAction);
 }
 
 PHG4TpcEndCapDetector::
@@ -100,32 +103,7 @@ int PHG4TpcEndCapDetector::IsInDetector(G4VPhysicalVolume *volume) const
 //_______________________________________________________________
 void PHG4TpcEndCapDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  //  //begin implement your own here://
-  //  // Do not forget to multiply the parameters with their respective CLHEP/G4 unit !
-  //  double xdim = m_Params->get_double_param("size_x") * cm;
-  //  double ydim = m_Params->get_double_param("size_y") * cm;
-  //  double zdim = m_Params->get_double_param("size_z") * cm;
-  //  G4VSolid *solidbox = new G4Box("PHG4TpcEndCapSolid", xdim / 2., ydim / 2., zdim / 2.);
-  //  G4LogicalVolume *logical = new G4LogicalVolume(solidbox, G4Material::GetMaterial(m_Params->get_string_param("material")), "PHG4TpcEndCapLogical");
-  //
-  //  //  G4VisAttributes *vis = new G4VisAttributes(G4Color(G4Colour::Grey()));  // grey is good to see the tracks in the display
-  //  //  vis->SetForceSolid(true);
-  //  //  logical->SetVisAttributes(vis);
-  //  G4RotationMatrix *rotm = new G4RotationMatrix();
-  //  rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
-  //  rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
-  //  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
-  //
-  //  G4VPhysicalVolume *phy = new G4PVPlacement(
-  //      rotm,
-  //      G4ThreeVector(m_Params->get_double_param("place_x") * cm,
-  //                    m_Params->get_double_param("place_y") * cm,
-  //                    m_Params->get_double_param("place_z") * cm),
-  //      logical, "PHG4TpcEndCap", logicWorld, 0, false, OverlapCheck());
-  //  // add it to the list of placed volumes so the IsInDetector method
-  //  // picks them up
-  //  m_PhysicalVolumesSet.insert(phy);
-  //  //end implement your own here://
+  assert(m_DisplayAction);
 
   assert(m_EndCapAssembly == nullptr);
   m_EndCapAssembly = ConstructEndCapAssembly();
@@ -197,14 +175,15 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
     starting_z += 0.2 * cm;
   }
 
-  //  PCB Kapton 28.6 0.005 100 0.017
-  AddLayer(assmeblyvol, starting_z, G4String("PCBKapton"), "G4_KAPTON", 0.005 * cm, 100);
+  // 16 layer readout plane TTM
+  // https://indico.bnl.gov/event/8307/contributions/36744/attachments/27646/42337/R3-Review.pptx
+  const int n_PCB_layers(16);
+  // 35 um / layer Cu
+  AddLayer(assmeblyvol, starting_z, G4String("PCBCu"), "G4_Cu", 0.0035 * cm * n_PCB_layers, 80);
+  // 7 mil / layer board
+  AddLayer(assmeblyvol, starting_z, "Facesheet", "G10", 0.00254 * cm * 7 * n_PCB_layers, 100);
 
-  //  PCB Copper 1.43 0.0005 80 0.028
-  AddLayer(assmeblyvol, starting_z, G4String("PCBCu"), "G4_Cu", 0.0005 * cm, 80);
-
-  //  Facesheet FR4 17.1 0.025x2 100 0.292
-  AddLayer(assmeblyvol, starting_z, "Facesheet", "G10", 0.025 * 2 * cm, 100);
+  ConstructWagonWheel(assmeblyvol, starting_z);
 
   return assmeblyvol;
 }
@@ -218,18 +197,18 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
     double _percentage_filled  //! percentage filled//
 )
 {
-  z_start += _depth / 2;
+  z_start += _depth / 2.;
   G4ThreeVector g4vec(0, 0, z_start);
-  z_start += _depth / 2;
+  z_start += _depth / 2.;
 
   string name_base =
       boost::str(boost::format("%1%_Layer_%2%") % GetName() % _name);
 
-  G4VSolid *solid_grid = new G4Tubs(
+  G4VSolid *solid_layer = new G4Tubs(
       name_base,
       m_Params->get_double_param("envelop_r_min") * cm,
       m_Params->get_double_param("envelop_r_max") * cm,
-      _depth * _percentage_filled / 2,
+      _depth * _percentage_filled / 100. / 2.,
       0, CLHEP::twopi);
 
   auto material = G4Material::GetMaterial(_material);
@@ -239,14 +218,71 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
     assert(material);
   }
 
-  G4LogicalVolume *logical_grid = new G4LogicalVolume(solid_grid, material, name_base);
+  G4LogicalVolume *logical_layer = new G4LogicalVolume(solid_layer, material, name_base);
 
-  assmeblyvol->AddPlacedVolume(logical_grid, g4vec, nullptr);
+  assmeblyvol->AddPlacedVolume(logical_layer, g4vec, nullptr);
 
   assert(m_DisplayAction);
-  m_DisplayAction->AddVolume(logical_grid, _material);
+  m_DisplayAction->AddVolume(logical_layer, _material);
 
   return;
+}
+
+void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
+                                                G4double &z_start)
+{
+  const int n_sectors = m_Params->get_int_param("n_sectors");
+  assert(n_sectors >= 1);
+
+  auto material = G4Material::GetMaterial(m_Params->get_string_param("wagon_wheel_material"));
+  if (material == nullptr)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("wagon_wheel_material") << endl;
+    assert(material);
+  }
+
+  const G4double wagon_wheel_front_frame_thickness = m_Params->get_double_param("wagon_wheel_front_frame_thickness") * cm;
+
+  z_start += wagon_wheel_front_frame_thickness / 2.;
+  G4ThreeVector g4vec_wagon_wheel_front_frame(0, 0, z_start);
+  z_start += wagon_wheel_front_frame_thickness / 2.;
+
+  const G4double wagon_wheel_front_frame_R_inner = m_Params->get_double_param("wagon_wheel_front_frame_R_inner") * cm;
+  const G4double wagon_wheel_front_frame_R_outer = m_Params->get_double_param("wagon_wheel_front_frame_R_outer") * cm;
+
+  for (int ring_id = 0; ring_id <= n_sectors; ++ring_id)
+  {
+    G4double Rin = wagon_wheel_front_frame_R_inner;
+    G4double Rout = wagon_wheel_front_frame_R_outer;
+
+    if (ring_id > 0)
+    {
+      Rin = m_Params->get_double_param(
+                boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id))) *
+            cm;
+    }
+    if (ring_id < n_sectors)
+    {
+      Rout = m_Params->get_double_param(
+                 boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id + 1))) *
+             cm;
+    }
+
+    string name_base = boost::str(boost::format("%1%_%2%_Ring%2%") % GetName() % "wagon_wheel_front_frame" % ring_id);
+
+    G4VSolid *solid_wagon_wheel_front_frame = new G4Tubs(
+        name_base,
+        Rin,
+        Rout,
+        wagon_wheel_front_frame_thickness / 2.,
+        0, CLHEP::twopi);
+
+    G4LogicalVolume *log_solid_wagon_wheel_front_frame = new G4LogicalVolume(solid_wagon_wheel_front_frame, material, name_base);
+
+    assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_front_frame,
+                                 g4vec_wagon_wheel_front_frame,
+                                 nullptr);
+  }
 }
 
 //_______________________________________________________________

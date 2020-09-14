@@ -16,6 +16,7 @@ class PHG4Subsystem;
 class PHParameters;
 class G4AssemblyVolume;
 class PHG4TpcEndCapDisplayAction;
+class G4VSolid;
 
 class PHG4TpcEndCapDetector : public PHG4Detector
 {
@@ -51,6 +52,8 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   G4AssemblyVolume *m_EndCapAssembly = nullptr;
 
   G4AssemblyVolume *ConstructEndCapAssembly();
+  void ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
+      G4double &z_start);
 
   void
   AddLayer(                            //
