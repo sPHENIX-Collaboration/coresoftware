@@ -21,7 +21,7 @@ pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
   TpcClusterizer.h \
-  TpcMisaligner_hp.h
+  TpcSpaceChargeCorrection_hp.h
 
 ROOTDICTS = \
   TpcHit_Dict.cc
@@ -38,7 +38,7 @@ endif
 libtpc_la_SOURCES = \
   $(ROOT5_DICTS) \
   TpcClusterizer.cc \
-  TpcMisaligner_hp.cc
+  TpcSpaceChargeCorrection_hp.cc
 
 
 libtpc_la_LIBADD = \
