@@ -28,6 +28,17 @@ class TpcSpaceChargeCorrection_hp : public SubsysReco
   void set_distortion_filename( const std::string& value )
   { m_distortion_filename = value; }
 
+  enum CoordMask
+  {
+    COORD_PHI = 1<<0,
+    COORD_R = 1<<1,
+    COORD_Z = 1<<2
+  };
+
+  // use corrections on specific set of coordinates
+  void set_coordinates( unsigned int value )
+  { m_coordinates = value; }
+
   private:
 
   //! load nodes
@@ -58,6 +69,9 @@ class TpcSpaceChargeCorrection_hp : public SubsysReco
    assume it only contains positive z otherwise
   */
   bool m_fullzrange = true;
+
+  //* coordinated for which corrections are applied
+  unsigned int m_coordinates = COORD_PHI|COORD_R|COORD_Z;
 
 };
 
