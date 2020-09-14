@@ -41,7 +41,7 @@ class TpcSpaceChargeCorrection_hp : public SubsysReco
 
   //! cluster container
   TrkrClusterContainer* _cluster_map = nullptr;
-  
+
   //! space charge correction file name
   std::string m_distortion_filename;
   TFile *m_distortion_tfile = nullptr;
@@ -52,6 +52,12 @@ class TpcSpaceChargeCorrection_hp : public SubsysReco
   TH3 *hDPint = nullptr;
   TH3 *hDZint = nullptr;
   //@}
+
+  /*! \brief
+   true if the maps contain the full z range
+   assume it only contains positive z otherwise
+  */
+  bool m_fullzrange = true;
 
 };
 
