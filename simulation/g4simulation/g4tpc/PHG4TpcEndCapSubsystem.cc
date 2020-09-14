@@ -125,7 +125,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_double_param("envelop_r_min", 20.);
   set_default_double_param("envelop_r_max", 79.);
-  set_default_double_param("envelop_front_surface_z", 105.);
+  set_default_double_param("envelop_front_surface_z", 211./2.);
 
   set_default_int_param("n_GEM_layers", 4);
 
