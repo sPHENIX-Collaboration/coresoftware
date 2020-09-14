@@ -11,7 +11,7 @@
 
 #include <math.h>
 
-namespace 
+namespace
 {
   //_____________________________________________________________________
   template<class T> constexpr T square( const T& x ) { return x*x; }
@@ -24,8 +24,8 @@ TpcSpaceChargeCorrection_hp::TpcSpaceChargeCorrection_hp( const std::string& nam
 
 //_____________________________________________________________________
 int TpcSpaceChargeCorrection_hp::InitRun(PHCompositeNode*)
-{ 
-  
+{
+
   std::cout << "TpcSpaceChargeCorrection_hp::InitRun - reading distortions from " << m_distortion_filename << std::endl;
   m_distortion_tfile = TFile::Open( m_distortion_filename.c_str());
   if( !m_distortion_tfile )
@@ -33,18 +33,22 @@ int TpcSpaceChargeCorrection_hp::InitRun(PHCompositeNode*)
     std::cout << "TpcSpaceChargeCorrection_hp::InitRun - cannot open " << m_distortion_filename << std::endl;
     exit(1);
   }
-  
-  
+
+
   // Open TH3F files only once that contain distortions due to space charge
   hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
   hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
-  hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );    
+  hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );
+
+  m_fullzrange = (hDPint->GetZaxis()->GetXmin() == -hDPint->GetZaxis()->GetXmax());
 
   // dump axis limits
   for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
   { std::cout << "TpcSpaceChargeCorrection_hp::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
-  
-  return Fun4AllReturnCodes::EVENT_OK; 
+
+  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - m_fullzrange = " << m_fullzrange << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
@@ -93,11 +97,15 @@ void TpcSpaceChargeCorrection_hp::transform_cluster( TrkrCluster* cluster )
   if( phi < 0 ) phi += 2*M_PI;
 
   const auto z = cluster->getZ();
-  
-  // apply corrections 
-  const auto phi_new = phi - hDPint->Interpolate(phi,r,z);
-  const auto r_new = r - hDRint->Interpolate(phi,r,z);
-  const auto z_new = z - hDZint->Interpolate(phi,r,z);
+  const auto zmap = m_fullzrange ? z:std::abs(z);
+
+  // apply corrections
+  const auto phi_new = phi - hDPint->Interpolate(phi,r,zmap)/r;
+  const auto r_new = r - hDRint->Interpolate(phi,r,zmap);
+
+  // dont move z for the moment
+  // const auto z_new = z - hDZint->Interpolate(phi,r,zmap);
+  const auto z_new = z;
 
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
