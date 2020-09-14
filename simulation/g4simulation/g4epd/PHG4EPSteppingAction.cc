@@ -13,6 +13,7 @@
 #include <g4main/PHG4SteppingAction.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>
@@ -65,6 +66,9 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   G4Track const* track = step->GetTrack();
 
+  auto particle = track->GetParticleDefinition();
+  bool geantino = (particle->GetPDGEncoding() == 0 && particle->GetParticleName().find("geantino") != std::string::npos);
+
   if ((prestatus == fPostStepDoItProc && poststatus == fGeomBoundary) || prestatus == fGeomBoundary || prestatus == fUndefined)
   {
     if (m_hit == nullptr)
@@ -104,7 +108,7 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
   if (poststatus != fGeomBoundary && poststatus != fWorldBoundary && poststatus != fAtRestDoItProc && track->GetTrackStatus() != fStopAndKill)
     return true;
 
-  if (m_hit->get_edep() <= 0)
+  if (m_hit->get_edep() <= 0 && !geantino)
   {
     m_hit->Reset();
 
@@ -121,6 +125,12 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   if (userinfo != nullptr)
     userinfo->SetKeep(1);
+
+  if (geantino)
+  {
+    m_hit->set_edep(-1.);
+    m_hit->set_eion(-1.);
+  }
 
   m_hit_container->AddHit(tile_id, m_hit);
 
