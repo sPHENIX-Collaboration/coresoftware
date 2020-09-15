@@ -435,9 +435,13 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);
+
+  const G4double sector_dphi = CLHEP::twopi / n_sectors;
+
   const int n_radial_modules = m_Params->get_int_param("n_radial_modules");
   assert(n_radial_modules >= 1);
   const G4double wagon_wheel_sector_phi_offset = m_Params->get_double_param("wagon_wheel_sector_phi_offset_degree") * degree;
+  const G4double wagon_wheel_spoke_width = m_Params->get_double_param("wagon_wheel_spoke_width") * cm;
 
   ///////////////////////////////////////////////
   // electronics_cooling_block_material ring
@@ -464,7 +468,6 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
     const G4double electronics_cooling_block_R_inner = m_Params->get_double_param("electronics_cooling_block_R_inner") * cm;
     const G4double electronics_cooling_block_R_outer = m_Params->get_double_param("electronics_cooling_block_R_outer") * cm;
-    const G4double wagon_wheel_spoke_width = m_Params->get_double_param("wagon_wheel_spoke_width") * cm;
 
     for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
     {
@@ -488,7 +491,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
       const G4double spoke_phi = atan2(wagon_wheel_spoke_width, Rin);
 
-      const G4double sector_dphi = CLHEP::twopi / n_sectors;
+      //      const G4double sector_dphi = CLHEP::twopi / n_sectors;
 
       G4VSolid *solid = new G4Tubs(
           name_base,
@@ -520,6 +523,128 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
     }    // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
   }      // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
+
+  ///////////////////////////////////////////////
+  // electronics
+  ///////////////////////////////////////////////
+  const G4double electronics_FEE_depth = m_Params->get_double_param("electronics_FEE_depth") * cm;
+  const G4double electronics_FEE_Cu_thickness = m_Params->get_double_param("electronics_FEE_Cu_thickness") * cm;
+  const G4double electronics_FEE_PCB_thickness = m_Params->get_double_param("electronics_FEE_PCB_thickness") * cm;
+  const G4double electronics_FEE_Al_thickness = m_Params->get_double_param("electronics_FEE_Al_thickness") * cm;
+  const G4double electronics_assemly_thickness = electronics_FEE_Cu_thickness + electronics_FEE_PCB_thickness + electronics_FEE_Al_thickness;
+
+  if (m_Params->get_int_param("electronics_enable") != 0)
+    for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
+    {
+      const G4double Rout =
+          m_Params->get_double_param(
+              boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
+              cm -
+          electronics_assemly_thickness;
+      const G4double Rin =
+          m_Params->get_double_param(
+              boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
+              cm +
+          electronics_assemly_thickness;
+      const int nFEE =
+          m_Params->get_int_param(
+              boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)));
+
+      if (nFEE <= 0)
+      {
+        cout << __PRETTY_FUNCTION__ << " warning : ignore FEE construction for module " << ring_id << " as "
+             << boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)) << " = " << nFEE << endl;
+
+        continue;
+      }
+
+      G4AssemblyVolume *assmeblyvol_electronics = new G4AssemblyVolume();
+      G4double starting_electronics(0);
+      string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "electronics" % ring_id);
+
+      {
+        if (Verbosity())
+        {
+          cout << __PRETTY_FUNCTION__ << " - electronics G4_Cu z_start = " << z_start
+               << " starting_electronics = " << starting_electronics << endl;
+        }
+        starting_electronics += electronics_FEE_Cu_thickness / 2.;
+        G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+        starting_electronics += electronics_FEE_Cu_thickness / 2.;
+
+        G4VSolid *solid_electronics = new G4Box(name_base + "_Cu",
+                                                electronics_FEE_Cu_thickness / 2.,
+                                                (Rout - Rin) / 2.,
+                                                electronics_FEE_depth / 2.);
+
+        G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
+                                                               G4Material::GetMaterial("G4_Cu"), name_base + "_Cu");
+
+        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                                 g4vec_electronics, nullptr);
+        m_DisplayAction->AddVolume(log_electronics, "Cu");
+      }
+      {
+        if (Verbosity())
+        {
+          cout << __PRETTY_FUNCTION__ << " - electronics G4_PCB z_start = " << z_start
+               << " starting_electronics = " << starting_electronics << endl;
+        }
+        starting_electronics += electronics_FEE_PCB_thickness / 2.;
+        G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+        starting_electronics += electronics_FEE_PCB_thickness / 2.;
+
+        G4VSolid *solid_electronics = new G4Box(name_base + "_PCB",
+                                                electronics_FEE_PCB_thickness / 2.,
+                                                (Rout - Rin) / 2.,
+                                                electronics_FEE_depth / 2.);
+
+        G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
+                                                               G4Material::GetMaterial("G10"), name_base + "_PCB");
+
+        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                                 g4vec_electronics, nullptr);
+        m_DisplayAction->AddVolume(log_electronics, "G10");
+      }
+      {
+        if (Verbosity())
+        {
+          cout << __PRETTY_FUNCTION__ << " - electronics Al z_start = " << z_start
+               << " starting_electronics = " << starting_electronics << endl;
+        }
+        starting_electronics += electronics_FEE_Al_thickness / 2.;
+        G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+        starting_electronics += electronics_FEE_Al_thickness / 2.;
+
+        G4VSolid *solid_electronics = new G4Box(name_base + "_Al",
+                                                electronics_FEE_Al_thickness / 2.,
+                                                (Rout - Rin) / 2.,
+                                                electronics_FEE_depth / 2.);
+
+        G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
+                                                               G4Material::GetMaterial("G4_Al"), name_base + "_Al");
+
+        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                                 g4vec_electronics, nullptr);
+        m_DisplayAction->AddVolume(log_electronics, "cooling_block");
+      }
+
+      for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+      {
+        const G4double sector_phi_shift = wagon_wheel_sector_phi_offset + sector_dphi * sector_id;
+        const G4double spoke_phi = atan2(wagon_wheel_spoke_width, Rin);
+        const G4double board_dphi = (sector_dphi - 2 * spoke_phi) / (nFEE + 1);
+        const G4double board_phi_start = sector_phi_shift + spoke_phi + board_dphi;
+
+        for (int board_id = 0; board_id < nFEE; ++board_id)
+        {
+          G4Transform3D trans_electronic = G4RotateZ3D(board_phi_start + board_dphi * board_id);
+
+          assmeblyvol->AddPlacedAssembly(assmeblyvol_electronics, trans_electronic);
+        }
+      }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
+
+    }  //  for (int ring_id = 0; ring_id < n_radial_modules; ++ring_id)
 }
 
 //_______________________________________________________________

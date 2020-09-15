@@ -164,6 +164,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_double_param("wagon_wheel_spoke_R_inner", inch_to_cm * 9);
   set_default_double_param("wagon_wheel_spoke_R_outer", inch_to_cm * 29.5);
 
+  set_default_int_param("electronics_enable", 1);
   set_default_int_param("electronics_nFEE_R1", 6);
   set_default_int_param("electronics_nFEE_R2", 8);
   set_default_int_param("electronics_nFEE_R3", 12);
