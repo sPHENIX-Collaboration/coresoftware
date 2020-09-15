@@ -183,7 +183,7 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   // 35 um / layer Cu
   AddLayer(assmeblyvol, starting_z, G4String("PCBCu"), "G4_Cu", 0.0035 * cm * n_PCB_layers, 80);
   // 7 mil / layer board
-  AddLayer(assmeblyvol, starting_z, "PCBBase", "G10", 0.00254 * cm * 7 * n_PCB_layers, 100);
+  AddLayer(assmeblyvol, starting_z, "PCBBase", "FR4", 0.00254 * cm * 7 * n_PCB_layers, 100);
 
   ConstructWagonWheel(assmeblyvol, starting_z);
   ConstructElectronics(assmeblyvol, starting_z);
@@ -548,7 +548,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
           electronics_assemly_thickness;
       const int nFEE =
           m_Params->get_int_param(
-              boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)));
+              boost::str(boost::format("electronics_nFEE_R%1%") % (ring_id)));
 
       if (nFEE <= 0)
       {
@@ -565,12 +565,34 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       {
         if (Verbosity())
         {
+          cout << __PRETTY_FUNCTION__ << " - electronics G4_PCB z_start = " << z_start
+               << " starting_electronics = " << starting_electronics << endl;
+        }
+        starting_electronics -= electronics_FEE_PCB_thickness / 2.;
+        G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+        starting_electronics -= electronics_FEE_PCB_thickness / 2.;
+
+        G4VSolid *solid_electronics = new G4Box(name_base + "_PCB",
+                                                electronics_FEE_PCB_thickness / 2.,
+                                                (Rout - Rin) / 2.,
+                                                electronics_FEE_depth / 2.);
+
+        G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
+                                                               G4Material::GetMaterial("FR4"), name_base + "_PCB");
+
+        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                                 g4vec_electronics, nullptr);
+        m_DisplayAction->AddVolume(log_electronics, "FR4");
+      }
+      {
+        if (Verbosity())
+        {
           cout << __PRETTY_FUNCTION__ << " - electronics G4_Cu z_start = " << z_start
                << " starting_electronics = " << starting_electronics << endl;
         }
-        starting_electronics += electronics_FEE_Cu_thickness / 2.;
+        starting_electronics -= electronics_FEE_Cu_thickness / 2.;
         G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics += electronics_FEE_Cu_thickness / 2.;
+        starting_electronics -= electronics_FEE_Cu_thickness / 2.;
 
         G4VSolid *solid_electronics = new G4Box(name_base + "_Cu",
                                                 electronics_FEE_Cu_thickness / 2.,
@@ -587,34 +609,12 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       {
         if (Verbosity())
         {
-          cout << __PRETTY_FUNCTION__ << " - electronics G4_PCB z_start = " << z_start
-               << " starting_electronics = " << starting_electronics << endl;
-        }
-        starting_electronics += electronics_FEE_PCB_thickness / 2.;
-        G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics += electronics_FEE_PCB_thickness / 2.;
-
-        G4VSolid *solid_electronics = new G4Box(name_base + "_PCB",
-                                                electronics_FEE_PCB_thickness / 2.,
-                                                (Rout - Rin) / 2.,
-                                                electronics_FEE_depth / 2.);
-
-        G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
-                                                               G4Material::GetMaterial("G10"), name_base + "_PCB");
-
-        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
-                                                 g4vec_electronics, nullptr);
-        m_DisplayAction->AddVolume(log_electronics, "G10");
-      }
-      {
-        if (Verbosity())
-        {
           cout << __PRETTY_FUNCTION__ << " - electronics Al z_start = " << z_start
                << " starting_electronics = " << starting_electronics << endl;
         }
-        starting_electronics += electronics_FEE_Al_thickness / 2.;
+        starting_electronics -= electronics_FEE_Al_thickness / 2.;
         G4ThreeVector g4vec_electronics(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics += electronics_FEE_Al_thickness / 2.;
+        starting_electronics -= electronics_FEE_Al_thickness / 2.;
 
         G4VSolid *solid_electronics = new G4Box(name_base + "_Al",
                                                 electronics_FEE_Al_thickness / 2.,

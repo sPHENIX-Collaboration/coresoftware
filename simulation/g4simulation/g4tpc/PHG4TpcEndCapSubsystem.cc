@@ -169,10 +169,11 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   set_default_int_param("electronics_nFEE_R2", 8);
   set_default_int_param("electronics_nFEE_R3", 12);
 
-  set_default_double_param("electronics_FEE_depth", inch_to_cm * 15.74 / 2.);
-  set_default_double_param("electronics_FEE_Cu_thickness", 35e-4);
-  set_default_double_param("electronics_FEE_PCB_thickness", 0.2);
-  set_default_double_param("electronics_FEE_Al_thickness", 0.2);
+  // 10 layer PCB: https://indico.bnl.gov/event/8332/
+  set_default_double_param("electronics_FEE_depth", inch_to_cm * 5.57);
+  set_default_double_param("electronics_FEE_Cu_thickness", 35e-4 * 10 * .8);  // 1.4mil Copper 80% filling factor
+  set_default_double_param("electronics_FEE_PCB_thickness", inch_to_cm * 0.07);
+  set_default_double_param("electronics_FEE_Al_thickness", inch_to_cm * .13);
 
   set_default_string_param("electronics_cooling_block_material", "G4_Al");
   set_default_double_param("electronics_cooling_block_thickness", inch_to_cm * 3.5);

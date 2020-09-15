@@ -54,18 +54,18 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   G4AssemblyVolume *ConstructEndCapAssembly();
 
   void ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
-      G4double &z_start);
+                           G4double &z_start);
 
   void ConstructElectronics(G4AssemblyVolume *assmeblyvol,
-      G4double &z_start);
+                            G4double &z_start);
 
   void
-  AddLayer(                            //
-      G4AssemblyVolume * assmeblyvol,
-      G4double & z_start,
+  AddLayer(  //
+      G4AssemblyVolume *assmeblyvol,
+      G4double &z_start,
       std::string _name,               //! name base for this layer
       std::string _material,           //! material name in G4
-      G4double _depth,                   //! depth in G4 units
+      G4double _depth,                 //! depth in G4 units
       double _percentage_filled = 100  //! percentage filled//
   );
 };
