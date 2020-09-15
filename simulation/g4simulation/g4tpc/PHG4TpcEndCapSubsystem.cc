@@ -137,7 +137,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_string_param("wagon_wheel_material", "G4_Al");
 
-  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 0);
+  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 360./12./2.);
 
   set_default_double_param("wagon_wheel_front_frame_thickness", inch_to_cm * .38);
   set_default_double_param("wagon_wheel_front_frame_spoke_width", inch_to_cm * 1.12);

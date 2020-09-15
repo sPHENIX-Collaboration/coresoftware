@@ -48,7 +48,7 @@ void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 
     if (it.second == "G10" or it.second == "FR4")
     {
-      visatt->SetColour(G4Colour(0.0, .8, 0.0));
+      visatt->SetColour(G4Colour(0.0, .5, 0.0));
     }
     else if (it.second == "wagon_wheel")
     {
