@@ -301,14 +301,16 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 7;
+  const int argc = 11;
   char *arg[argc];
 
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file=tgeo-sphenix.response",
-      "--bf-values", "0", "0", "1.4"
+      "--bf-values", "0", "0", "1.4",
+      "--mat-input-type","file",
+      "--mat-input-file","sphenix-prelim-material-map.json"
       };
 
   // Set vector of chars to arguments needed
@@ -330,7 +332,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 {
   /// setup and parse options
   auto desc = ActsExamples::Options::makeDefaultOptions();
-  ActsExamples::Options::addSequencerOptions(desc);
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addObjWriterOptions(desc);
