@@ -171,7 +171,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 
 	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-	const unsigned int vertexId = track->get_vertex_id();
+	unsigned int vertexId = track->get_vertex_id();
+	if(vertexId == UINT_MAX)
+	  vertexId = 0;
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
 	Acts::Vector3D vertex;
 	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
