@@ -171,7 +171,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 
 	SvtxTrack *track = m_trackMap->find(trackKey)->second;
 	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-	const unsigned int vertexId = track->get_vertex_id();
+	unsigned int vertexId = track->get_vertex_id();
+	if(vertexId == UINT_MAX)
+	  vertexId = 0;
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
 	Acts::Vector3D vertex;
 	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
@@ -199,7 +201,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	    if(traj.hasTrackParameters(trackTip))
 	      {
 		std::cout << "Fitted params : " 
-			  << traj.trackParameters(trackTip).position() 
+			  << traj.trackParameters(trackTip).position(m_tGeometry->geoContext) 
 			  << std::endl << traj.trackParameters(trackTip).momentum()
 			  << std::endl;
 		std::cout << "Track has " << trajState.nMeasurements
@@ -285,7 +287,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     }
 
     /// Get the geometry ID
-    auto geoID = state.referenceSurface().geoID();
+    auto geoID = state.referenceSurface().geometryId();
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
@@ -380,11 +382,12 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       predicted = true;
       m_nPredicted++;
+      
       Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.predictedCovariance(),
-          state.predicted(),
-          state.referenceSurface().getSharedPtr());
+	        state.referenceSurface().getSharedPtr(),
+		state.predicted(),
+		state.predictedCovariance());
+
       auto covariance = state.predictedCovariance();
 
       /// Local hit residual info
@@ -461,14 +464,14 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
           (parameter.parameters()[Acts::ParDef::eT] - truthTIME) /
           sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
 
-      m_x_prt.push_back(parameter.position().x());
-      m_y_prt.push_back(parameter.position().y());
-      m_z_prt.push_back(parameter.position().z());
+      m_x_prt.push_back(parameter.position(m_tGeometry->geoContext).x());
+      m_y_prt.push_back(parameter.position(m_tGeometry->geoContext).y());
+      m_z_prt.push_back(parameter.position(m_tGeometry->geoContext).z());
       m_px_prt.push_back(parameter.momentum().x());
       m_py_prt.push_back(parameter.momentum().y());
       m_pz_prt.push_back(parameter.momentum().z());
       m_pT_prt.push_back(parameter.pT());
-      m_eta_prt.push_back(eta(parameter.position()));
+      m_eta_prt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
     }
     else
     {
@@ -519,10 +522,12 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       filtered = true;
       m_nFiltered++;
+
       Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.filteredCovariance(), state.filtered(),
-          state.referenceSurface().getSharedPtr());
+	    state.referenceSurface().getSharedPtr(),
+	    state.filtered(),
+	    state.filteredCovariance());
+
       auto covariance = state.filteredCovariance();
 
       m_eLOC0_flt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0]);
@@ -580,14 +585,14 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
           sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
 
       /// Other filtered parameter info
-      m_x_flt.push_back(parameter.position().x());
-      m_y_flt.push_back(parameter.position().y());
-      m_z_flt.push_back(parameter.position().z());
+      m_x_flt.push_back(parameter.position(m_tGeometry->geoContext).x());
+      m_y_flt.push_back(parameter.position(m_tGeometry->geoContext).y());
+      m_z_flt.push_back(parameter.position(m_tGeometry->geoContext).z());
       m_px_flt.push_back(parameter.momentum().x());
       m_py_flt.push_back(parameter.momentum().y());
       m_pz_flt.push_back(parameter.momentum().z());
       m_pT_flt.push_back(parameter.pT());
-      m_eta_flt.push_back(eta(parameter.position()));
+      m_eta_flt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
       m_chi2.push_back(state.chi2());
       
     }
@@ -633,10 +638,12 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       smoothed = true;
       m_nSmoothed++;
+
       Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.smoothedCovariance(), state.smoothed(),
-          state.referenceSurface().getSharedPtr());
+	    state.referenceSurface().getSharedPtr(),
+	    state.smoothed(),
+	    state.smoothedCovariance());
+
       auto covariance = state.smoothedCovariance();
 
       m_eLOC0_smt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0]);
@@ -693,14 +700,14 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
           (parameter.parameters()[Acts::ParDef::eT] - truthTIME) /
           sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
 
-      m_x_smt.push_back(parameter.position().x());
-      m_y_smt.push_back(parameter.position().y());
-      m_z_smt.push_back(parameter.position().z());
+      m_x_smt.push_back(parameter.position(m_tGeometry->geoContext).x());
+      m_y_smt.push_back(parameter.position(m_tGeometry->geoContext).y());
+      m_z_smt.push_back(parameter.position(m_tGeometry->geoContext).z());
       m_px_smt.push_back(parameter.momentum().x());
       m_py_smt.push_back(parameter.momentum().y());
       m_pz_smt.push_back(parameter.momentum().z());
       m_pT_smt.push_back(parameter.pT());
-      m_eta_smt.push_back(eta(parameter.position()));
+      m_eta_smt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
     }
     else
     {
@@ -816,10 +823,10 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
   if(Verbosity() > 2)
     std::cout << "Filling proto track seed quantities" << std::endl;
   
-  FW::TrackParameters params = track.getTrackParams();
+  ActsExamples::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
   
-  Acts::Vector3D position = params.position();
+  Acts::Vector3D position = params.position(m_tGeometry->geoContext);
   Acts::Vector3D momentum = params.momentum();
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);
@@ -924,9 +931,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_px_fit = boundParam.momentum()(0);
     m_py_fit = boundParam.momentum()(1);
     m_pz_fit = boundParam.momentum()(2);
-    m_x_fit  = boundParam.position()(0);
-    m_y_fit  = boundParam.position()(1);
-    m_z_fit  = boundParam.position()(2);
+    m_x_fit  = boundParam.position(m_tGeometry->geoContext)(0);
+    m_y_fit  = boundParam.position(m_tGeometry->geoContext)(1);
+    m_z_fit  = boundParam.position(m_tGeometry->geoContext)(2);
     
     calculateDCA(boundParam, vertex);
 
@@ -964,7 +971,7 @@ void ActsEvaluator::calculateDCA(const Acts::BoundParameters param,
 				 const Acts::Vector3D vertex)
 {
 
-  Acts::Vector3D pos = param.position();
+  Acts::Vector3D pos = param.position(m_tGeometry->geoContext);
   Acts::Vector3D mom = param.momentum();
   
   /// Correct for vertex position

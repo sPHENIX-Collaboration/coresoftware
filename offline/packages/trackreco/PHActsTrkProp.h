@@ -18,11 +18,11 @@
 
 #include <Acts/EventData/MeasurementHelpers.hpp>
 
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
-#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
+#include <ActsExamples/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
 
 #include <memory>
 #include <string>
@@ -37,12 +37,9 @@ class SvtxTrackMap;
 class TFile;
 class TH1;
 
-namespace FW
+namespace ActsExamples
 {
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
+  class TrkrClusterSourceLink;  
 }
 namespace Acts
 {
@@ -52,18 +49,18 @@ namespace Acts
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
 using Surface = std::shared_ptr<const Acts::Surface>;
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 using SourceLinkSelector = Acts::CKFSourceLinkSelector;
 using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
 using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundParametersIndices,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+                                      Acts::ParDef::eBoundLoc0,
+                                      Acts::ParDef::eBoundLoc1>;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -168,7 +165,7 @@ class PHActsTrkProp : public PHTrackPropagating
   SourceLinkSelectorConfig m_sourceLinkSelectorConfig;
  
   /// Configuration containing the finding function instance
-  FW::TrkrClusterFindingAlgorithm::Config findCfg;
+  ActsExamples::TrkrClusterFindingAlgorithm::Config findCfg;
 
 
 };

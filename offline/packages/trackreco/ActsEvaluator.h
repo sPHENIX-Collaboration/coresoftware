@@ -9,9 +9,9 @@
 
 #include <Acts/Utilities/Helpers.hpp>
 
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
 class TTree;
 class TFile;
@@ -27,13 +27,13 @@ class SvtxEvaluator;
 #include <string>
 #include <vector>
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundParametersIndices,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+                                      Acts::ParDef::eBoundLoc0,
+                                      Acts::ParDef::eBoundLoc1>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;

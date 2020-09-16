@@ -10,15 +10,12 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <set>
-#include <vector>
 
 class PHCompositeNode;
 class PHTimer;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
-class PHG4Hit;
 
 /// \class SvtxEvaluator
 ///

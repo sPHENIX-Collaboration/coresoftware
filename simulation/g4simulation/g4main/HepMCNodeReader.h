@@ -6,9 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 // rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 #include <string>
 
@@ -54,6 +52,9 @@ class HepMCNodeReader : public SubsysReco
  private:
   double smeargauss(const double width);
   double smearflat(const double width);
+
+  gsl_rng *RandomGenerator;
+
   int use_seed;
   unsigned int seed;
   double vertex_pos_x;
@@ -63,10 +64,6 @@ class HepMCNodeReader : public SubsysReco
   double width_vx;
   double width_vy;
   double width_vz;
-
-#if !defined(__CINT__) || defined(__CLING__)
-  gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif
