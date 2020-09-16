@@ -1,16 +1,19 @@
-AC_INIT(phhepmc,[1.0])
+AC_INIT(g4epd, [1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
+
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-undefined-var-template"
+ ;;
+ g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
-
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
-AC_SUBST(CINTDEFS)
+ ;;
+esac
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

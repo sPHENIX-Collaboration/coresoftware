@@ -115,4 +115,4 @@ testexternals.cc:
 %_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)
