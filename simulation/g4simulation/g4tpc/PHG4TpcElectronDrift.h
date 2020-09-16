@@ -107,6 +107,17 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void set_distortion_filename( const std::string& value )
   { m_distortion_filename = value; }
   
+  enum CoordMask
+  {
+    COORD_PHI = 1<<0,
+    COORD_R = 1<<1,
+    COORD_Z = 1<<2
+  };
+
+  // use corrections on specific set of coordinates
+  void set_coordinates( unsigned int value )
+  { m_coordinates = value; }
+
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
@@ -156,6 +167,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
+
+  //* coordinated for which corrections are applied
+  unsigned int m_coordinates = COORD_PHI|COORD_R|COORD_Z;
 
   //! rng de-allocator
   class Deleter

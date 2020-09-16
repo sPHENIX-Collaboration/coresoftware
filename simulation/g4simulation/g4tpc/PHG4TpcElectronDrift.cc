@@ -48,6 +48,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
 
+#include <bitset>
 #include <cassert>
 #include <cmath>                                       // for sqrt, fabs, NAN
 #include <cstdlib>                                     // for exit
@@ -253,6 +254,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
     hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
     hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );    
+
+    // coordinates
+    std::cout << "PHG4TpcElectronDrift::InitRun - coordinates: " << std::bitset<3>(m_coordinates) << std::endl;
     
     // dump axis limits
     for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
@@ -383,12 +387,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       
       // add radial distortion
       const double dr = hDRint->Interpolate(phistart,radstart,z_abs);
-      rad_final = radstart+dr;
+      rad_final = radstart + (m_coordinates&COORD_R) ? dr:0;
       
-      const double phi_final = phistart+(hDPint->Interpolate(phistart,radstart,z_abs)/radstart);
+      const double phi_final = phistart + (m_coordinates&COORD_PHI) ? (hDPint->Interpolate(phistart,radstart,z_abs)/radstart) : 0;
       
       // also update z
-      // z_final += hDZint->Interpolate(phistart,radstart,z_abs);
+      z_final += (m_coordinates&COORD_Z) ? hDZint->Interpolate(phistart,radstart,z_abs) : 0;
       
       // convert back to cartesian coordinates, add diffusion
       x_final = rad_final*std::cos(phi_final)+rantrans*cos(ranphi);
