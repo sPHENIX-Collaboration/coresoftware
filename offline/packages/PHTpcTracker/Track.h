@@ -136,13 +136,7 @@ namespace PHGenFit2
     //SMART(genfit::Track) getGenFitTrack() {return _track;}
 
    private:
-#if defined(__CINT__) && !defined(__CLING__)
-    Track operator=(Track& trk)
-    {
-    }
-#else
     Track operator=(Track& trk) = delete;
-#endif
 
     int verbosity;
 
