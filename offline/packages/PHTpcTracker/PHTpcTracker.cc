@@ -23,10 +23,10 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>               // for cluskey
+#include <trackbase/TrkrDefs.h>  // for cluskey
 
-#include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
 
 #include <trackreco/PHTrackSeeding.h>
 
@@ -39,17 +39,17 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-#include <TMatrixDSymfwd.h>                   // for TMatrixDSym
-#include <TMatrixTSym.h>                      // for TMatrixTSym
-#include <TMatrixTUtils.h>                    // for TMatrixTRow
-#include <TVectorDfwd.h>                      // for TVectorD
-#include <TVectorT.h>                         // for TVectorT
-#include <TVector3.h>  // for TVector3
+#include <TMatrixDSymfwd.h>  // for TMatrixDSym
+#include <TMatrixTSym.h>     // for TMatrixTSym
+#include <TMatrixTUtils.h>   // for TMatrixTRow
+#include <TVector3.h>        // for TVector3
+#include <TVectorDfwd.h>     // for TVectorD
+#include <TVectorT.h>        // for TVectorT
 
-#include <iostream>                           // for operator<<, endl, basic...
-#include <limits>  // for numeric_limits
-#include <memory>                             // for shared_ptr, __shared_ptr
-#include <vector>  // for vector
+#include <iostream>  // for operator<<, endl, basic...
+#include <limits>    // for numeric_limits
+#include <memory>    // for shared_ptr, __shared_ptr
+#include <vector>    // for vector
 
 class PHCompositeNode;
 
@@ -97,7 +97,6 @@ PHTpcTracker::~PHTpcTracker()
 
 int PHTpcTracker::Setup(PHCompositeNode* topNode)
 {
-
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -140,9 +139,10 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
   // write tracks to fun4all server
   //  cout<<  gtracks[1]->get_vertex_id() << endl;
-  for (int i = 0, ilen = gtracks.size(); i < ilen; i++){
+  for (int i = 0, ilen = gtracks.size(); i < ilen; i++)
+  {
     //  for (auto it = gtracks.begin(); it != gtracks.end(); ++it)
-    std::shared_ptr<SvtxTrack_v1> svtx_track( new SvtxTrack_v1() );
+    std::shared_ptr<SvtxTrack_v1> svtx_track(new SvtxTrack_v1());
     ////// from here:
 
     svtx_track->Reset();
@@ -154,25 +154,27 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
     TMatrixDSym cov = gtracks[i]->getGenFitTrack()->getCovSeed();
     //cout<< "pt: " << pos.Perp() << endl;
 
-    for(int k=0; k<6; k++){
-      for(int j=0; j<6; j++){
-	svtx_track->set_error(k, j, cov[k][j]);
+    for (int k = 0; k < 6; k++)
+    {
+      for (int j = 0; j < 6; j++)
+      {
+        svtx_track->set_error(k, j, cov[k][j]);
       }
     }
-    
+
     svtx_track->set_px(mom.Px());
     svtx_track->set_py(mom.Py());
     svtx_track->set_pz(mom.Pz());
-    
+
     svtx_track->set_x(pos.X());
     svtx_track->set_y(pos.Y());
     svtx_track->set_z(pos.Z());
-    
+
     for (TrkrDefs::cluskey cluster_key : gtracks[i]->get_cluster_keys())
-      {
-	svtx_track->insert_cluster_key(cluster_key);
-      }
-  
+    {
+      svtx_track->insert_cluster_key(cluster_key);
+    }
+
     _track_map->insert(svtx_track.get());
   }
 
@@ -197,7 +199,6 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 PHField* PHTpcTracker::getMagField(PHCompositeNode* topNode, double& B)
 {

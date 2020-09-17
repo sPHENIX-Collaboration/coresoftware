@@ -585,7 +585,7 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
           break;
         }
         TVector3 pos2 = p2.first->getPos();
-	delete p2.first;
+        delete p2.first;
         LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "projected point: " << pos2.X() << ", " << pos2.Y() << ", " << pos2.Z() << ", radius: " << pos.Perp();
         LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "distance to hit: " << std::sqrt(std::pow(pos2.X() - (*hit)[0], 2) + std::pow(pos2.Y() - (*hit)[1], 2) + std::pow(pos2.Z() - (*hit)[2], 2));
 
@@ -632,7 +632,7 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
             continue;
           }
           TVector3 pos2 = p2.first->getPos();
-	  delete p2.first;
+          delete p2.first;
           double dist2 = std::sqrt(std::pow(pos2.X() - (*hit)[0], 2) + std::pow(pos2.Y() - (*hit)[1], 2) + std::pow(pos2.Z() - (*hit)[2], 2));
           LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "projected point: " << pos2.X() << ", " << pos2.Y() << ", " << pos2.Z() << ", radius: " << pos.Perp();
           LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "distance to hit: " << dist2;
