@@ -80,7 +80,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
-  set_seed(PHRandomSeed());  
+  set_seed(PHRandomSeed());
   return;
 }
 
@@ -176,11 +176,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       evalNode = new PHCompositeNode( "EVAL" );
       dstNode->addNode(evalNode);
     }
-    
+
     auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
     evalNode->addNode(newNode);
   }
-  
+
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
@@ -253,17 +253,17 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     // Open TH3F files only once that contain distortions due to space charge
     hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
     hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
-    hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );    
+    hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );
 
     // coordinates
     std::cout << "PHG4TpcElectronDrift::InitRun - coordinates: " << std::bitset<3>(m_coordinates) << std::endl;
-    
+
     // dump axis limits
     for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
     { std::cout << "PHG4TpcElectronDrift::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
-    
+
   }
-  
+
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
@@ -290,12 +290,12 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 18;  
+  unsigned int print_layer = 18;
 
   // container for local evaluations
   m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
   if( m_container ) m_container->Reset();
-  
+
   // g4hits
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -373,9 +373,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     double z_final = 0;
     if (z_start < 0) z_final = -tpc_length / 2. + t_final * drift_velocity;
     else z_final = tpc_length / 2. - t_final * drift_velocity;
-    
+
     double x_final = 0;
-    double y_final = 0;  
+    double y_final = 0;
     double rad_final = 0;
     const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
     if( m_enable_distortions )
@@ -384,20 +384,23 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double z_abs = std::abs( z_start );
       double phistart = std::atan2(y_start,x_start);
       if( phistart < 0 ) phistart += 2*M_PI;
-      
+
       // add radial distortion
       const double dr = hDRint->Interpolate(phistart,radstart,z_abs);
-      rad_final = radstart + (m_coordinates&COORD_R) ? dr:0;
-      
-      const double phi_final = phistart + (m_coordinates&COORD_PHI) ? (hDPint->Interpolate(phistart,radstart,z_abs)/radstart) : 0;
-      
-      // also update z
+      rad_final = (m_coordinates&COORD_R) ? radstart+dr : radstart;
+
+      // add azimutal distortion
+      const double phi_final = (m_coordinates&COORD_PHI) ?
+        phistart + hDPint->Interpolate(phistart,radstart,z_abs)/radstart :
+        phistart;
+
+      // add z distortion
       z_final += (m_coordinates&COORD_Z) ? hDZint->Interpolate(phistart,radstart,z_abs) : 0;
-      
+
       // convert back to cartesian coordinates, add diffusion
       x_final = rad_final*std::cos(phi_final)+rantrans*cos(ranphi);
       y_final = rad_final*std::sin(phi_final)+rantrans*sin(ranphi);
-      
+
       // fill
       if( m_container )
       {
@@ -410,13 +413,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         distortion._dz = 0;
         m_container->addDistortion( distortion );
       }
-      
+
     } else {
       x_final = x_start + rantrans * cos(ranphi);
       y_final = y_start + rantrans * sin(ranphi);
-      rad_final = std::sqrt(square(x_final) + square(y_final));    
+      rad_final = std::sqrt(square(x_final) + square(y_final));
     }
-    
+
     // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
     if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
     { continue; }
@@ -449,7 +452,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	}  // end loop over electrons for this g4hit
 
       if(Verbosity() > 100)
-	cout << "Finished drifting " << n_electrons << " electrons from ihit " << ihit 
+	cout << "Finished drifting " << n_electrons << " electrons from ihit " << ihit
 	     << " now process temp_hitsetcontainer  " << endl;
 
       // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
@@ -484,7 +487,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 	      if(Verbosity() > 100 && layer == print_layer)
 		{
-		  cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey) 
+		  cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
 		       << " z bin " << TpcDefs::getTBin(temp_hitkey)
 		       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << endl;
 
@@ -517,9 +520,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 	  if(Verbosity() > 100 && layer == print_layer)
 	    cout << "  ihit " << ihit << " collected energy = " << eg4hit << endl;
-	  
+
 	} // end loop over temp hitsets
-      
+
       // erase all entries in the temp hitsetcontainer
       temp_hitsetcontainer->Reset();
 
@@ -569,8 +572,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 		}
 	    }
 	}
-  
-      cout << " eallhits = " << eallhits << " nallhits " << nallhits << " for print_layer " << print_layer 
+
+      cout << " eallhits = " << eallhits << " nallhits " << nallhits << " for print_layer " << print_layer
 	   << " ecollectedhits = " << ecollectedhits << " ncollectedhits " << ncollectedhits << endl;
     }
 
