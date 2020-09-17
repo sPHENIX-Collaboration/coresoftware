@@ -58,6 +58,8 @@ class PHTpcTracker : public PHTrackSeeding
 
   int Process(PHCompositeNode* topNode);
 
+  int End() {return 0;}
+
   PHField* getMagField(PHCompositeNode* topNode, double& B);
 
  private:
