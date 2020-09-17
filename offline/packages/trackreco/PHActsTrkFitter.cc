@@ -55,7 +55,10 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
-  
+  , h_fitTime(nullptr)
+  , h_updateTime(nullptr)
+  , h_stateTime(nullptr)
+  , h_rotTime(nullptr)
 {
   Verbosity(0);
 }
