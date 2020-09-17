@@ -487,7 +487,7 @@ std::pair<genfit::MeasuredStateOnPlane*, double> PHTpcTrackFollower::get_project
 {
   // project from last fitted point to radius
   double pathlength = 0;
-  genfit::MeasuredStateOnPlane* state = 0;
+  genfit::MeasuredStateOnPlane* state = nullptr;
 
   try
   {
@@ -560,10 +560,8 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
     {
       break;
     }  // can't project to cylinder, likely curler track
-    genfit::MeasuredStateOnPlane* state = p.first;
-    TVector3 pos = state->getPos();
-    delete state;
-    state = 0;
+    TVector3 pos = p.first->getPos();
+    delete p.first;
 
     LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "projected position: " << pos.X() << ", " << pos.Y() << ", " << pos.Z() << ", radius: " << pos.Perp();
 
@@ -586,8 +584,8 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
           LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "cannot project to point, skipping";
           break;
         }
-        state = p2.first;
-        TVector3 pos2 = state->getPos();
+        TVector3 pos2 = p2.first->getPos();
+	delete p2.first;
         LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "projected point: " << pos2.X() << ", " << pos2.Y() << ", " << pos2.Z() << ", radius: " << pos.Perp();
         LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "distance to hit: " << std::sqrt(std::pow(pos2.X() - (*hit)[0], 2) + std::pow(pos2.Y() - (*hit)[1], 2) + std::pow(pos2.Z() - (*hit)[2], 2));
 
@@ -633,8 +631,8 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
           {
             continue;
           }
-          state = p2.first;
-          TVector3 pos2 = state->getPos();
+          TVector3 pos2 = p2.first->getPos();
+	  delete p2.first;
           double dist2 = std::sqrt(std::pow(pos2.X() - (*hit)[0], 2) + std::pow(pos2.Y() - (*hit)[1], 2) + std::pow(pos2.Z() - (*hit)[2], 2));
           LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "projected point: " << pos2.X() << ", " << pos2.Y() << ", " << pos2.Z() << ", radius: " << pos.Perp();
           LOG_DEBUG("tracking.PHTpcTrackFollower.followTrack") << "distance to hit: " << dist2;
@@ -673,8 +671,6 @@ int PHTpcTrackFollower::followTrack(PHGenFit2::Track* track, PHTpcLookup* lookup
         }
       }
     }  // else => no hits, scan next layer
-
-    delete state;
 
     layer += dir;
     if (layer < 0 || layer >= PHTpcConst::TPC_LAYERS_MAX)
