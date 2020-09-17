@@ -312,10 +312,9 @@ void MakeActsGeometry::buildActsSurfaces()
       + std::string("/share/tgeo-sphenix.response"),
       "--bf-values", "0", "0", "1.4",
       "--mat-input-type","file",
-      //std::string("--mat-input-file "),
-      //std::string(getenv("CALIBRATIONROOT"))
-      //+ std::string("/ACTS/sphenix-material.json")
-      "--mat-input-file","sphenix-prelim-material-map.json"
+      std::string("--mat-input-file"),
+      std::string(getenv("CALIBRATIONROOT"))
+      + std::string("/ACTS/sphenix-material.json")
       };
 
   // Set vector of chars to arguments needed
