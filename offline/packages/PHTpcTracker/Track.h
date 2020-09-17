@@ -133,20 +133,17 @@ namespace PHGenFit2
       this->verbosity = verbosity;
     }
 
-    //SMART(genfit::Track) getGenFitTrack() {return _track;}
-
    private:
     Track operator=(Track& trk) = delete;
 
     int verbosity;
 
     genfit::Track* _track;
-    //std::vector<PHGenFit::Measurement*> _measurements;
+
     std::vector<unsigned int> _clusterIDs;
     std::vector<TrkrDefs::cluskey> _clusterkeys;
     unsigned int _vertex_id;
 
-    //SMART(genfit::Track) _track;
   };
 }  // namespace PHGenFit2
 
