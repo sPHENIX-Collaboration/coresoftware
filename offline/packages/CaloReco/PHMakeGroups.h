@@ -13,7 +13,6 @@
 #include <map>
 #include <vector>
 
-//#define BOOST_NO_HASH // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
 #include <boost/bind.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -22,8 +21,7 @@ template <class Hit>
 int PHMakeGroups(std::vector<Hit>& hits,
                  std::multimap<int, Hit>& groups)
 {
-  using namespace boost;
-  typedef adjacency_list<vecS, vecS, undirectedS> Graph;
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
 
   Graph G;
 

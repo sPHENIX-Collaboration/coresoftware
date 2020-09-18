@@ -12,15 +12,18 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrDefs.h>                     // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TH1F.h>
+#include <TAxis.h>                                  // for TAxis
+#include <TH1.h>
 #include <TString.h>  // for Form
 
 #include <cassert>
