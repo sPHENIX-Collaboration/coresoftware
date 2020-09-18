@@ -103,6 +103,30 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 
       if(g4particle_vec.size() < 1) continue;
 
+      bool test_phi_matching = false;   // normally false
+      if(test_phi_matching)
+	{
+	  // for getting the pT dependence of dphi  to eliminate the bias in phi from PHTpcTracker
+	  if(g4particle_vec.size() == 1)
+	    {
+	      // print out the eta and phi values for analysis in case where match is unique
+	      
+	      double si_phi = atan2(g4particle_vec[0]->get_py(), g4particle_vec[0]->get_px());
+	      double si_eta = asinh(g4particle_vec[0]->get_pz() / sqrt( pow(g4particle_vec[0]->get_px(),2)+pow( g4particle_vec[0]->get_py(),2)));
+	      double si_pt = sqrt(pow(g4particle_vec[0]->get_px(),2)+pow( g4particle_vec[0]->get_py(),2));
+	      
+	      double tpc_phi = atan2(_tracklet->get_py(), _tracklet->get_px());
+	      double tpc_eta = _tracklet->get_eta();
+	      
+	      int phi_match = 0;
+	      int eta_match = 0;
+	      
+	      cout << "         Try: " << "  pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match
+		   << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+	      
+	    }
+	}
+      
       // make copies of the original track for later use
       std::vector<SvtxTrack*> extraTrack; 
       for(int ig4=0;ig4 < g4particle_vec.size()-1; ++ig4)
@@ -130,7 +154,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 		}
 	    }
 
-	  // loop over associated clusters to get hits
+	  // loop over associated clusters to get hits for original TPC track, copy to new track
 	  for (SvtxTrack::ConstClusterKeyIter iter = _tracklet->begin_cluster_keys();
 	       iter != _tracklet->end_cluster_keys();
 	       ++iter)
