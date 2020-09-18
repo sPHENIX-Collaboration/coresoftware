@@ -44,14 +44,13 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
-  cout << "Enter PHSiliconTpcTrackMatching::Setup " << endl;
-
-  cout << "       Search windows: phi " << _phi_search_win << " eta " << _eta_search_win << endl;
+  // put these in the output file
+  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " << _par2 << " Search windows: phi " << _phi_search_win << " eta " << _eta_search_win << endl;
 
   fdphi = new TF1("f1", "[0] + [1]/x^[2]");
-  fdphi->SetParameter(0, par0);
-  fdphi->SetParameter(1, par1);
-  fdphi->SetParameter(2, par2);
+  fdphi->SetParameter(0, _par0);
+  fdphi->SetParameter(1, _par1);
+  fdphi->SetParameter(2, _par2);
 		  
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -65,20 +64,16 @@ int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::Process()
 {
-  if (Verbosity() >= 1) 
-    cout << "PHSiliconTpcTrackMatching::process() started " << endl;
-
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
-  cout << " TPC track map size " << _track_map->size() << endl;
-  cout << " Silicon track map size " << _track_map->size() << endl;
+  if(Verbosity() >= 0)
+    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map->size() << endl;
 
  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
-  //std::cout << " track map last key = " <<  original_track_map_lastkey << std::endl;
 
   // loop over the original TPC tracks
   for (auto phtrk_iter = _track_map->begin();
@@ -275,8 +270,9 @@ int PHSiliconTpcTrackMatching::Process()
 	  isi++;
 	}
     }
-  
-  cout << " Final track map size " << _track_map->size() << endl;
+
+  if(Verbosity() >= 0)  
+    cout << " Final track map size " << _track_map->size() << endl;
   
   if (Verbosity() >= 1)
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  

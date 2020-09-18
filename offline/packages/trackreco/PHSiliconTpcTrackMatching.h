@@ -36,7 +36,7 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   void set_track_map_name_silicon(const std::string &map_name) { _track_map_name_silicon = map_name; }
   void set_phi_search_window(const double win){_phi_search_win = win;}
   void set_eta_search_window(const double win){_eta_search_win = win;}
-  void set_search_par_values(const double p0, const double p1, const double p2){   ;}
+  void set_search_par_values(const double p0, const double p1, const double p2){_par0 = p0; _par1 = p1; _par2 = p2; }
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -50,7 +50,9 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   int GetNodes(PHCompositeNode* topNode);
 
   std::string _track_map_name_silicon;
-  double _phi_search_win = 0.03;
+
+  // default values, can be replaced from the macro
+  double _phi_search_win = 0.02;
   double _eta_search_win = 0.02;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
@@ -58,9 +60,10 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   SvtxTrack *_tracklet_si{nullptr};
 
   TF1 *fdphi{nullptr};
-  double par0 =  -0.000650;
-  double par1 =  0.13373;
-  double par2 =  0.98298;
+  // default values, can be replaced from the macro
+  double _par0 =  -0.000650;
+  double _par1 =  0.13373;
+  double _par2 =  0.98298;
 
 };
 
