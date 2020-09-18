@@ -86,4 +86,5 @@ PHG4SteppingAction* PHG4EPDSubsystem::GetSteppingAction() const
 void PHG4EPDSubsystem::SetDefaultParameters()
 {
   set_default_int_param(-1, "active", 1);
+  set_default_double_param(-1, "z_position", 300.);
 }

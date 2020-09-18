@@ -22,6 +22,9 @@ pkginclude_HEADERS = \
   PHTpcTracker.h
 
 
+##############################################
+# please add new classes in alphabetical order
+
 libPHTpcTracker_la_SOURCES = \
   Fitter.cc \
   PHTpcEventExporter.cc \
@@ -46,14 +49,6 @@ libPHTpcTracker_la_LIBADD = \
   -ltrack_reco \
   -ltrack_io
 
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
-
 ################################################
 # linking tests
 
@@ -74,8 +69,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-##############################################
-# please add new classes in alphabetical order
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)
