@@ -218,7 +218,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
-       
+	m_quality = track->get_quality();
+
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
 	fillFittedTrackParams(traj, trackTip, vertex);
@@ -1351,6 +1352,7 @@ void ActsEvaluator::initializeTree()
 
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
   m_trackTree->Branch("chi2_fit", &m_chi2_fit);
+  m_trackTree->Branch("quality", &m_quality);
   m_trackTree->Branch("ndf_fit", &m_ndf_fit);
   m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
   m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);

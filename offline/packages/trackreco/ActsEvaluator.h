@@ -187,6 +187,7 @@ class ActsEvaluator : public SubsysReco
   float m_y_fit{-99.};            /// fitted parameter global PCA y
   float m_z_fit{-99.};            /// fitted parameter global PCA z
   float m_chi2_fit{-99.};         /// fitted parameter chi2
+  float m_quality{-99.};          /// SvtxTrack quality parameter
   float m_ndf_fit{-99.};          /// fitted parameter ndf
   float m_dca3Dxy{-99.};          /// fitted parameter 3D DCA in xy plane
   float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane

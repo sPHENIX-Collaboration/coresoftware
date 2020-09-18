@@ -147,10 +147,10 @@ int PHActsTrkFitter::Process()
            0., 0., 0., 0., 0., 1.;
 
     ActsExamples::TrackParameters newTrackSeed(cov,
-				     trackSeed.position(),
-				     trackSeed.momentum(),
-				     trackSeed.charge(),
-				     trackSeed.time());
+					       trackSeed.position(),
+					       trackSeed.momentum(),
+					       trackSeed.charge(),
+					       trackSeed.time());
 
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
