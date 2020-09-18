@@ -1583,6 +1583,8 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
+        if( !trpoint ) continue;
+
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         gf_state = *kfi->getForwardUpdate();
         pathlength = gf_state.extrapolateToPoint( pos );
@@ -1600,6 +1602,8 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+        if( !trpoint ) continue;
+
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         genfit::KalmanFittedStateOnPlane gf_state_backward = *kfi->getBackwardUpdate();
         gf_state_backward.extrapolateToPlane( gf_state.getPlane() );
