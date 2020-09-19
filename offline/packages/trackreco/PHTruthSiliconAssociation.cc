@@ -129,7 +129,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       
       // make copies of the original track for later use
       std::vector<SvtxTrack*> extraTrack; 
-      for(int ig4=0;ig4 < g4particle_vec.size()-1; ++ig4)
+      for(unsigned int ig4=0;ig4 < g4particle_vec.size()-1; ++ig4)
 	{      
 	  SvtxTrack *newTrack = new SvtxTrack_v1();
 	  // Not the first g4particle in the list, we need to add a new copy of the track to the track map and add the silicon clusters to that
@@ -209,7 +209,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       // now add any extra copies of the track      
       if(g4particle_vec.size() > 1)
 	{
-	  for(int ig4=0;ig4 < g4particle_vec.size()-1; ++ ig4)
+	  for(unsigned int ig4=0;ig4 < g4particle_vec.size()-1; ++ ig4)
 	    {      
 	      PHG4Particle* g4particle = g4particle_vec[ig4];
 	      
