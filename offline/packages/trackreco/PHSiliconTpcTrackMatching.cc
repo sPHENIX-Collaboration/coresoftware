@@ -113,6 +113,10 @@ int PHSiliconTpcTrackMatching::Process()
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
+      // phi correction for TPC tracks is charge dependent
+      // this correction is positive for positive charge tracks, but kludged right now because charge sign out of PHTpcTracker is flipped to make Acts happy
+      double sign_phi_correction = _tracklet_tpc->get_charge() * -1.0;  // FIXME: corrects for wrong sign (temporary kludge) from PHTpcTracker
+
       // hard code this here for now
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
@@ -140,8 +144,8 @@ int PHSiliconTpcTrackMatching::Process()
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
 	  double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
-	  double phi_search_win_lo = fdphi->Eval(si_pt) - _phi_search_win * mag;
-	  double phi_search_win_hi = fdphi->Eval(si_pt) + _phi_search_win * mag;
+	  double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
+	  double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
 
 	  //cout << " si_pt " << si_pt << " phi search win low " << phi_search_win_lo << " phi_search_win_hi " << phi_search_win_hi << endl; 
 
@@ -168,11 +172,22 @@ int PHSiliconTpcTrackMatching::Process()
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
 		}
 	      si_matches.insert(_tracklet_si->get_id());
-	    }	  
+	    }
+	  else
+	    {
+	      if(Verbosity() >= 10) 
+		{ 
+		  cout << " no match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
+		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
+		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+		}	  
+	    }
 	}
       // if we did not get a match, sound the alarm
       if(Verbosity() >= 1 && si_matches.size() == 0)
-	cout << "Did not find a silicon track stub to match TPC seed track " << _tracklet_tpc->get_id() << endl;
+	{
+	  cout << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
+	}
  
       // Add the silicon clusters to the track
       unsigned int isi = 0;
