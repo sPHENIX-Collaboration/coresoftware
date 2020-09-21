@@ -95,7 +95,7 @@ int PHSiliconTpcTrackMatching::Process()
 	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << endl;
 	}
-
+      /*
       // if the vertex id from the seeder is nonsense, use vertex 0
       unsigned int vertexId = _tracklet_tpc->get_vertex_id();
       if(vertexId == UINT_MAX)
@@ -103,11 +103,11 @@ int PHSiliconTpcTrackMatching::Process()
       _tracklet_tpc->set_vertex_id(vertexId);
 
       // set the track position to the vertex position
-      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);
-      
+      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
       _tracklet_tpc->set_x(svtxVertex->get_x());
       _tracklet_tpc->set_y(svtxVertex->get_y());
       _tracklet_tpc->set_z(svtxVertex->get_z());
+      */
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
@@ -147,8 +147,6 @@ int PHSiliconTpcTrackMatching::Process()
 	  double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
 	  double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
 
-	  //cout << " si_pt " << si_pt << " phi search win low " << phi_search_win_lo << " phi_search_win_hi " << phi_search_win_hi << endl; 
-
 	  if(Verbosity() >= 10)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
@@ -183,10 +181,24 @@ int PHSiliconTpcTrackMatching::Process()
 		}	  
 	    }
 	}
-      // if we did not get a match, sound the alarm
-      if(Verbosity() >= 1 && si_matches.size() == 0)
+      // we did not get a match, sound the alarm
+      if(si_matches.size() == 0)
 	{
-	  cout << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
+	  if(Verbosity() >= 1)
+	    {
+	      cout << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
+	    }
+
+	  // set the track vertex arbitrarily to vertex 0 if one does not exist already
+	  unsigned int vertexId = _tracklet_tpc->get_vertex_id();
+	  if(vertexId == UINT_MAX)  vertexId = 0;
+	  _tracklet_tpc->set_vertex_id(vertexId);
+	  
+	  // set the track position to the vertex position
+	  const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
+	  _tracklet_tpc->set_x(svtxVertex->get_x());
+	  _tracklet_tpc->set_y(svtxVertex->get_y());
+	  _tracklet_tpc->set_z(svtxVertex->get_z());
 	}
  
       // Add the silicon clusters to the track
@@ -213,6 +225,17 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(isi == 0)
 	    {
 	      // update the original track on the node tree
+
+	      // the track takes its vertex from the si stub
+	      unsigned int vertexId = _tracklet_si->get_vertex_id();
+	      _tracklet_tpc->set_vertex_id(vertexId);
+
+	      // set the track position to the vertex position
+	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
+	      _tracklet_tpc->set_x(svtxVertex->get_x());
+	      _tracklet_tpc->set_y(svtxVertex->get_y());
+	      _tracklet_tpc->set_z(svtxVertex->get_z());
+	      
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
 		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into exisiting TPC track " << _tracklet_tpc->get_id() << endl;
@@ -229,12 +252,19 @@ int PHSiliconTpcTrackMatching::Process()
 	      // make a copy of the TPC track, update it and add it to the end of the node tree 
 	      
 	      SvtxTrack *newTrack = new SvtxTrack_v1();
-	      //const unsigned int lastTrackKey = _track_map->end()->first + isi - 1; 
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
 	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
 	      newTrack->set_id(lastTrackKey);
+
+	      unsigned int vertexId = _tracklet_si->get_vertex_id();
 	      newTrack->set_vertex_id(vertexId);
+
+	      // set the track position to the vertex position
+	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
+	      newTrack->set_x(svtxVertex->get_x());
+	      newTrack->set_y(svtxVertex->get_y());
+	      newTrack->set_z(svtxVertex->get_z());
 	      
 	      newTrack->set_charge(_tracklet_tpc->get_charge());
 	      newTrack->set_px(_tracklet_tpc->get_px());

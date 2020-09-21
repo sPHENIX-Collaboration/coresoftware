@@ -240,8 +240,9 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       svtx_track->set_id(_track_map->size());
       svtx_track->set_truth_track_id(trk_clusters_itr->first);
 
-      // assume vertex 0 for now
-      unsigned int vertexId = 0;
+      // assign truth particle vertex ID to this silicon track stub
+      PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
+      int vertexId = particle->get_vtx_id() - 1;  // Geant likes to count from 1
       svtx_track->set_vertex_id(vertexId);
 
       // set the track position to the vertex position
@@ -249,9 +250,14 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       svtx_track->set_x(svtxVertex->get_x());
       svtx_track->set_y(svtxVertex->get_y());
       svtx_track->set_z(svtxVertex->get_z()); 
-    
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << " truth track vertex id is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
+	  std::cout << "    track position x,y,z = " << svtxVertex->get_x() << ", " << svtxVertex->get_y() << ", " << svtxVertex->get_z() << std::endl;	  
+	}
+
       // set momentum to the truth value
-      PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
       svtx_track->set_px(particle->get_px());
       svtx_track->set_py(particle->get_py());
       svtx_track->set_pz(particle->get_pz());
