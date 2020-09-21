@@ -255,7 +255,10 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       svtx_track->set_px(particle->get_px());
       svtx_track->set_py(particle->get_py());
       svtx_track->set_pz(particle->get_pz());
-      
+
+      if(Verbosity() > 0)
+	std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl;
+    
       // add the silicon clusters
       for (TrkrCluster* cluster : trk_clusters_itr->second)
       {

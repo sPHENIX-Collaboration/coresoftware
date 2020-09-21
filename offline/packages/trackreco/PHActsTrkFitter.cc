@@ -377,6 +377,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
   
+  track->set_charge(params.charge());
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
