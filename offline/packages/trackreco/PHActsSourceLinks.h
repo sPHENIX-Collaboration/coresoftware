@@ -176,6 +176,7 @@ class PHActsSourceLinks : public SubsysReco
   /// Map for source hitid:sourcelink, to be put on node tree by this module
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
+  /// Magnetic field components to set Acts magnetic field
   std::string m_magField;
   double m_magFieldRescale;
 
