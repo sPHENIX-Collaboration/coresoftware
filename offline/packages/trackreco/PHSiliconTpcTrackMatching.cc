@@ -69,7 +69,7 @@ int PHSiliconTpcTrackMatching::Process()
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
-  if(Verbosity() >= 0)
+  if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map->size() << endl;
 
  // We remember the original size of the TPC track map here
@@ -316,7 +316,7 @@ int PHSiliconTpcTrackMatching::Process()
 	}
     }
 
-  if(Verbosity() >= 0)  
+  if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
   
   if (Verbosity() >= 1)

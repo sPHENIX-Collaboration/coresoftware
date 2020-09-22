@@ -97,6 +97,10 @@ class PHActsSourceLinks : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode);
   void useVertexAsMeasurement(bool useVertexMeasurement)
     {m_useVertexMeasurement = useVertexMeasurement;}
+  void setMagField(std::string magField)
+    {m_magField = magField;}
+  void setMagFieldRescale(double magFieldRescale)
+    {m_magFieldRescale = magFieldRescale;}
 
  private:
   /**
@@ -171,6 +175,9 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Map for source hitid:sourcelink, to be put on node tree by this module
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+  std::string m_magField;
+  double m_magFieldRescale;
 
   /// Tracking geometry objects
   PHG4CylinderGeomContainer *m_geomContainerMvtx;

@@ -54,6 +54,8 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
+  , m_magField("1.4")
+  , m_magFieldRescale(-1.)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -82,6 +84,8 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   m_actsGeometry = new MakeActsGeometry();
   
   m_actsGeometry->setVerbosity(Verbosity());
+  m_actsGeometry->setMagField(m_magField);
+  m_actsGeometry->setMagFieldRescale(m_magFieldRescale);
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree

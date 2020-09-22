@@ -76,6 +76,8 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_nSurfZ(1)
   , m_nSurfPhi(12)
   , m_verbosity(0)
+  , m_magField("1.4")
+  , m_magFieldRescale(1.0)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -301,7 +303,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 12;
+  const int argc = 14;
   char *arg[argc];
 
   // Response file contains arguments necessary for geometry building
@@ -310,7 +312,8 @@ void MakeActsGeometry::buildActsSurfaces()
       "--response-file",
       std::string(getenv("OFFLINE_MAIN")) 
       + std::string("/share/tgeo-sphenix.response"),
-      "--bf-values", "0", "0", "1.4",
+      "--bf-values","0","0",m_magField,
+      "--bf-bscalor",std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
       std::string("--mat-input-file"),
       std::string(getenv("CALIBRATIONROOT"))
