@@ -243,7 +243,11 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       // assign truth particle vertex ID to this silicon track stub
       PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
       int vertexId = particle->get_vtx_id() - 1;  // Geant likes to count from 1
+      if(vertexId < 0) vertexId = 0;    // secondary particle, arbitrarily set vertexId to 0
       svtx_track->set_vertex_id(vertexId);
+
+      if(Verbosity() > 0)
+	std::cout << " truth track vertex id is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
 
       // set the track position to the vertex position
       const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);
