@@ -130,9 +130,14 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
                                  track->get_py() * Acts::UnitConstants::GeV,
                                  track->get_pz() * Acts::UnitConstants::GeV);
 
+    // just set to 10 ns for now?
+    const double trackTime = 10 * Acts::UnitConstants::ns;
+    const int trackQ = track->get_charge();
+    
     if(Verbosity() > 0)
       {
 	std::cout << PHWHERE << std::endl;
+	std::cout << " Seed trackQ " << trackQ << std::endl;
 	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
 	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
 	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
@@ -146,10 +151,6 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	    std::cout << std::endl;
 	  }
       }
-
-    // just set to 10 ns for now?
-    const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = track->get_charge();
 
     const ActsExamples::TrackParameters trackSeed(
                                         seedCov, 

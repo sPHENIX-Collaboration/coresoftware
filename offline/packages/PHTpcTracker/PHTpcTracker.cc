@@ -154,6 +154,11 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
     TMatrixDSym cov = gtracks[i]->getGenFitTrack()->getCovSeed();
     //cout<< "pt: " << pos.Perp() << endl;
 
+    //double charge =  gtracks[i]->get_charge();
+    double charge =  -gtracks[i]->get_charge();   // kludge to get Acts tracking to work - disagreement about magfield sign?
+
+    svtx_track->set_charge(charge);
+
     for (int k = 0; k < 6; k++)
     {
       for (int j = 0; j < 6; j++)
