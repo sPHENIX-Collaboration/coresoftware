@@ -119,6 +119,8 @@ int PHSiliconTpcTrackMatching::Process()
       double sign_phi_correction = _tracklet_tpc->get_charge(); 
 
       /// Correct the correction for the field direction
+      if(_field.find(".root") != std::string::npos)
+	sign_phi_correction *= -1;
       if(_fieldDir > 0)
 	sign_phi_correction *= -1;
 

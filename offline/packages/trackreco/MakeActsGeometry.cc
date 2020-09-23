@@ -309,7 +309,11 @@ void MakeActsGeometry::buildActsSurfaces()
   if(m_verbosity > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
- 
+  if(m_magField.find(".root") != std::string::npos)
+    {
+      m_magFieldRescale*=-1;
+      m_magField = "1.5";
+    }
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
