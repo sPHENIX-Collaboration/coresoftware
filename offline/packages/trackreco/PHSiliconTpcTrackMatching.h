@@ -38,6 +38,13 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   void set_eta_search_window(const double win){_eta_search_win = win;}
   void set_search_par_values(const double p0, const double p1, const double p2){_par0 = p0; _par1 = p1; _par2 = p2; }
 
+  void set_field_dir(const double rescale)
+  {
+    _fieldDir = -1;
+    if(rescale > 0)
+      _fieldDir = 1;     
+  }
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -64,6 +71,8 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   double _par0 =  -0.000650;
   double _par1 =  0.13373;
   double _par2 =  0.98298;
+
+  int _fieldDir = -1;
 
 };
 

@@ -306,19 +306,27 @@ void MakeActsGeometry::buildActsSurfaces()
   const int argc = 14;
   char *arg[argc];
  
-  if(m_verbosity > 0)
+  if(m_verbosity == 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
+ 
+  if(m_magField.find(".root") != std::string::npos)
+    m_magFieldRescale *= -1;
+
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file",
+      //"tgeo-sphenix.response",
       std::string(getenv("OFFLINE_MAIN")) 
       + std::string("/share/tgeo-sphenix.response"),
       "--bf-values","0","0",m_magField,
+      //"--bf-map",
+      //std::string(getenv("CALIBRATIONROOT")) +
+      //std::string("/Field/Map/sPHENIX.2d.root"),
       "--bf-bscalor",std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
-      std::string("--mat-input-file"),
+      "--mat-input-file",
       std::string(getenv("CALIBRATIONROOT"))
       + std::string("/ACTS/sphenix-material.json")
       };

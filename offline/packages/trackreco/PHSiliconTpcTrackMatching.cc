@@ -118,6 +118,11 @@ int PHSiliconTpcTrackMatching::Process()
       // phi correction for TPC tracks is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge(); 
 
+      /// Correct for the field direction
+      std::cout<<"fielddir is " <<_fieldDir<<std::endl;
+      if(_fieldDir > 0)
+	sign_phi_correction *= -1;
+
       // hard code this here for now
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
