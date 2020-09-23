@@ -261,7 +261,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 
     SvtxTrack_FastSim *track = nullptr;
 
-    //std::cout << "TRACKmap size " << m_TrackMap->size() << std::endl;
+    if (Verbosity()) cout << __PRETTY_FUNCTION__ << "TRACKmap size " << m_TrackMap->size() << std::endl;
     for (SvtxTrackMap::ConstIter track_itr = m_TrackMap->begin();
          track_itr != m_TrackMap->end();
          track_itr++)
@@ -277,7 +277,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
         }
         continue;
       }
-      //std::cout << " PARTICLE!" << std::endl;
+      if (Verbosity()) cout << __PRETTY_FUNCTION__ << " PARTICLE!" << std::endl;
 
       if ((temp->get_truth_track_id() - g4particle->get_track_id()) == 0)
       {
@@ -332,11 +332,11 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
            trkstates != track->end_states();
            ++trkstates)
       {
-        //	cout << "checking " << trkstates->second->get_name() << endl;
+        if (Verbosity()) cout << __PRETTY_FUNCTION__ << " checking " << trkstates->second->get_name() << endl;
         map<string, unsigned int>::const_iterator iter = m_ProjectionNameMap.find(trkstates->second->get_name());
         if (iter != m_ProjectionNameMap.end())
         {
-          //	  cout << "found " << trkstates->second->get_name() << endl;
+          if (Verbosity()) cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;
           // setting the projection (xyz and pxpypz)
           for (int i = 0; i < 3; i++)
           {
@@ -350,17 +350,17 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
           PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
           if (!hits)
           {
-            //            cout << "could not find " << nodename << endl;
+            if (Verbosity()) cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
             continue;
           }
-          //	  cout << "number of hits: " << hits->size() << endl;
+          if (Verbosity()) cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
           PHG4HitContainer::ConstRange hit_range = hits->getHits();
           for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
           {
-            //	    cout << "checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
+            if (Verbosity()) cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
             if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
             {
-              //	      cout << "found hit with id " << hit_iter->second->get_trkid() << endl;
+              if (Verbosity()) cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
               if (iter->second > m_ProjectionNameMap.size())
               {
                 cout << "bad index: " << iter->second << endl;
