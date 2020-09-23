@@ -45,7 +45,9 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
   // put these in the output file
-  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " << _par2 << " Search windows: phi " << _phi_search_win << " eta " << _eta_search_win << endl;
+  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " 
+       << _par2 << " Search windows: phi " << _phi_search_win << " eta " 
+       << _eta_search_win << endl;
 
   fdphi = new TF1("f1", "[0] + [1]/x^[2]");
   fdphi->SetParameter(0, _par0);
@@ -114,8 +116,7 @@ int PHSiliconTpcTrackMatching::Process()
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
       // phi correction for TPC tracks is charge dependent
-      // this correction is positive for positive charge tracks, but kludged right now because charge sign out of PHTpcTracker is flipped to make Acts happy
-      double sign_phi_correction = _tracklet_tpc->get_charge() * -1.0;  // FIXME: corrects for wrong sign (temporary kludge) from PHTpcTracker
+      double sign_phi_correction = _tracklet_tpc->get_charge(); 
 
       // hard code this here for now
       // this factor will increase the window size at low pT
