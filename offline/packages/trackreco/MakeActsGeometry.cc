@@ -309,6 +309,9 @@ void MakeActsGeometry::buildActsSurfaces()
   if(m_verbosity > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
+  
+  /// If the 2d fieldmap is provided, for now we just assume a 1.4T
+  /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
   if(m_magField.find(".root") != std::string::npos)
     {
       m_magFieldRescale*=-1;
@@ -318,14 +321,10 @@ void MakeActsGeometry::buildActsSurfaces()
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file",
-      //"tgeo-sphenix.response",
       std::string(getenv("OFFLINE_MAIN")) 
       + std::string("/share/tgeo-sphenix.response"),
       "--bf-values","0","0",m_magField,
-      //"--bf-map",
-      //std::string(getenv("CALIBRATIONROOT")) +
-      //std::string("/Field/Map/sPHENIX.2d.root"),
-      "--bf-bscalor",std::to_string(m_magFieldRescale),
+      "--bf-bscalor", std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
       "--mat-input-file",
       std::string(getenv("CALIBRATIONROOT"))
