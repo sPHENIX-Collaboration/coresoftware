@@ -62,8 +62,11 @@ Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
 
 int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
 {
-
-  int iret = run(nevents, true);
+  int iret = 0;
+  for (int i=0; i<nevents; ++i)
+  {
+  iret |= run(1, true);
+  }
   return iret;
 }
 
@@ -155,7 +158,8 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           if (Verbosity() > 0)
           {
 	    cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
-            cout << "hepmc evt no: " << evt->event_number() << endl;
+	    if (skip) cout << " skip";
+            cout << " hepmc evt no: " << evt->event_number() << endl;
           }
           events_total++;
           events_thisfile++;
