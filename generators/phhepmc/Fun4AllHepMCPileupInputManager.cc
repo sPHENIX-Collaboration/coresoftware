@@ -62,12 +62,20 @@ Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
 
 int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
 {
-  int iret = 0;
   for (int i=0; i<nevents; ++i)
   {
-  iret |= run(1, true);
+    if (m_SignalInputManager)
+    {
+      m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent(i);
+    }
+  cout << "checking skip index " << i << " evt no: " << m_SignalEventNumber << endl;
+  int iret = run(1, true);
+  if (iret)
+  {
+    return iret;
   }
-  return iret;
+  }
+  return 0;
 }
 
 int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
@@ -89,7 +97,10 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       cout << ". Start first event." << endl;
     }
   }
-
+  if (m_SignalInputManager && !skip)
+  {
+    m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent();
+  }
   // toss multiple crossings all the way back
   for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
   {
@@ -137,10 +148,20 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           if (readoscar)
           {
             evt = ConvertFromOscar();
+	    if (evt && m_SignalEventNumber == evt->event_number())
+	    {
+	      delete evt;
+              evt = ConvertFromOscar();
+	    }
           }
           else
           {
             evt = ascii_in->read_next_event();
+	    if (evt && m_SignalEventNumber == evt->event_number())
+	    {
+            delete evt;
+            evt = ascii_in->read_next_event();
+	    }
           }
         }
 
@@ -202,5 +223,11 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 
   }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
 
+  return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::ResetEvent()
+{
+  m_SignalEventNumber = 0;
   return 0;
 }

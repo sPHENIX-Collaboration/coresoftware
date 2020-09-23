@@ -8,12 +8,10 @@
 
 #include <list>
 #include <string>
+#include <type_traits>           // for __decay_and_strip<>::__type
 #include <utility>               // for make_pair, pair
 #include <vector>
 
-#if !defined(__CINT__) || defined (__CLING__)
-#include <type_traits>           // for __decay_and_strip<>::__type
-#endif
 
 class PHCompositeNode;
 class SubsysReco;

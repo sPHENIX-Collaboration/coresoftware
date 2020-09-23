@@ -6,12 +6,12 @@
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <boost/iostreams/filtering_streambuf.hpp>
+
 #include <fstream>
 #include <string>
-
 #include <utility>                                  // for swap
-
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include <vector>
 
 class PHCompositeNode;
 class SyncObject;
@@ -32,6 +32,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   virtual int fileopen(const std::string &filenam);
   virtual int fileclose();
   virtual int run(const int nevents = 0);
+  virtual int ResetEvent();
   void ReadOscar(const int i = 1) { readoscar = i; }
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int i);
@@ -80,8 +81,10 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
   int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
+  int MyCurrentEvent(const unsigned int index=0) const;
 
  protected:
+
 
   int events_total;
   int events_thisfile;
@@ -103,9 +106,8 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
-#if !defined(__CINT__) || defined(__CLING__)
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
-#endif
+  std::vector<int> m_MyEvent;
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

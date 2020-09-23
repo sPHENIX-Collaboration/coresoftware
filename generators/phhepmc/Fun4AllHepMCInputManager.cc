@@ -216,7 +216,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
         cout << "Fun4AllHepMCInputManager::run::" << Name()
              << ": hepmc evt no: " << evt->event_number() << endl;
       }
-
+      m_MyEvent.push_back(evt->event_number());
       PHHepMCGenEventMap::Iter ievt =
           hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
@@ -319,6 +319,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
     }
     else
     {
+      m_MyEvent.push_back(evt->event_number());
       if (Verbosity() > 3)
       {
         cout << "Skipping evt no: " << evt->event_number() << endl;
@@ -403,4 +404,21 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
     evt->print();
   }
   return evt;
+}
+
+int Fun4AllHepMCInputManager::ResetEvent()
+{
+  cout << "clearing event vector of size " <<  m_MyEvent.size() << endl;
+  m_MyEvent.clear();
+  return 0;
+}
+
+int Fun4AllHepMCInputManager::MyCurrentEvent(const unsigned int index) const
+{
+  if (m_MyEvent.empty())
+  {
+    return 0;
+  }
+  cout << "checking event index " << index << " evtno: " << m_MyEvent.at(index) << endl;
+  return m_MyEvent.at(index);
 }
