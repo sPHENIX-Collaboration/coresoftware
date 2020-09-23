@@ -130,6 +130,7 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
         vtx_evt->get_collision_vertex().t());
   }
 
+  cout << "moving vtx for event zwidth: " << _vertex_width_z << endl;
   genevent->moveVertex(
       (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
       (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
@@ -189,4 +190,13 @@ double PHHepMCGenHelper::smear(const double position,
     exit(10);
   }
   return res;
+}
+
+void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper)
+{
+  cout << "copying settings" << endl;
+  helper.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
+  helper.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
+  helper.set_vertex_distribution_mean( _vertex_x, _vertex_y, _vertex_z, _vertex_t);
+  return;
 }

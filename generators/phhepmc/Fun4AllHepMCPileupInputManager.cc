@@ -43,11 +43,6 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
   hepmc_helper.set_embedding_id(-1);
 
-  //! setup default beam diamond to ~Run14 level
-  hepmc_helper.set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
-  hepmc_helper.set_vertex_distribution_mean(0, 0, 0, 0);
-  hepmc_helper.set_vertex_distribution_width(100e-4, 100e-4, 30, 5);  //100um beam lumi width, 30-cm vertex, 5 ns time spread (~Run14 level)
-
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(RandomGenerator, seed);
@@ -68,7 +63,6 @@ int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
     {
       m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent(i);
     }
-  cout << "checking skip index " << i << " evt no: " << m_SignalEventNumber << endl;
   int iret = run(1, true);
   if (iret)
   {
@@ -145,7 +139,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
         }
         else
         {
-          if (readoscar)
+          if (ReadOscar())
           {
             evt = ConvertFromOscar();
 	    if (evt && m_SignalEventNumber == evt->event_number())
@@ -215,6 +209,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       assert(genevent);
       assert(evt);
       genevent->addEvent(evt);
+      cout << "handling event " << evt->event_number() << endl;
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
       genevent->moveVertex(0, 0, 0, t0);

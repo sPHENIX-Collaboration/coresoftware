@@ -44,15 +44,7 @@ static const double toMM = 1.e-12;
 
 Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , events_total(0)
-  , events_thisfile(0)
-  , readoscar(0)
   , topNodeName(topnodename)
-  , ascii_in(nullptr)
-  , evt(nullptr)
-  , save_evt(nullptr)
-  , filestream(nullptr)
-  , unzipstream(nullptr)
 {
   set_embedding_id(0);  // default embedding ID. Welcome to change via macro
 
@@ -105,7 +97,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     cout << Name() << ": opening file " << fname << endl;
   }
 
-  if (readoscar)
+  if (m_ReadOscarFlag)
   {
     theOscarFile.open(fname.c_str());
   }
@@ -188,7 +180,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
     }
     else
     {
-      if (readoscar)
+      if (m_ReadOscarFlag)
       {
         evt = ConvertFromOscar();
       }
@@ -217,15 +209,16 @@ int Fun4AllHepMCInputManager::run(const int nevents)
              << ": hepmc evt no: " << evt->event_number() << endl;
       }
       m_MyEvent.push_back(evt->event_number());
-      PHHepMCGenEventMap::Iter ievt =
-          hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
+      PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
         // override existing event
         ievt->second->addEvent(evt);
       }
       else
+      {
         hepmc_helper.insert_event(evt);
+      }
 
       events_total++;
       events_thisfile++;
@@ -250,7 +243,7 @@ int Fun4AllHepMCInputManager::fileclose()
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
   }
-  if (readoscar)
+  if (m_ReadOscarFlag)
   {
     theOscarFile.close();
   }
@@ -408,7 +401,6 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
 
 int Fun4AllHepMCInputManager::ResetEvent()
 {
-  cout << "clearing event vector of size " <<  m_MyEvent.size() << endl;
   m_MyEvent.clear();
   return 0;
 }
@@ -419,6 +411,10 @@ int Fun4AllHepMCInputManager::MyCurrentEvent(const unsigned int index) const
   {
     return 0;
   }
-  cout << "checking event index " << index << " evtno: " << m_MyEvent.at(index) << endl;
   return m_MyEvent.at(index);
+}
+
+void Fun4AllHepMCInputManager::CopyHelperSettings(Fun4AllHepMCInputManager *source)
+{
+  (source->get_helper()).CopySettings(hepmc_helper);
 }

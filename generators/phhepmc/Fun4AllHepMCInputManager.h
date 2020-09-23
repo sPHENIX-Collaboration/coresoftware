@@ -33,7 +33,8 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   virtual int fileclose();
   virtual int run(const int nevents = 0);
   virtual int ResetEvent();
-  void ReadOscar(const int i = 1) { readoscar = i; }
+  void ReadOscar(const int i) { m_ReadOscarFlag = i; }
+  int ReadOscar() const { return m_ReadOscarFlag;}
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int i);
 
@@ -82,25 +83,26 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 
   int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
   int MyCurrentEvent(const unsigned int index=0) const;
+// copy helper settings from another HepMC Input Manager
+  void CopyHelperSettings(Fun4AllHepMCInputManager *source);
+  PHHepMCGenHelper &get_helper() {return hepmc_helper;}
 
  protected:
-
-
-  int events_total;
-  int events_thisfile;
-  int readoscar;
+  int events_total = 0;
+  int events_thisfile = 0;
+  int m_ReadOscarFlag = 0;
 
   std::string filename;
   std::string topNodeName;
   PHCompositeNode *topNode;
 
-  HepMC::IO_GenEvent *ascii_in;
-  HepMC::GenEvent *evt;
-  HepMC::GenEvent *save_evt;
+  HepMC::IO_GenEvent *ascii_in = nullptr;
+  HepMC::GenEvent *evt = nullptr;
+  HepMC::GenEvent *save_evt = nullptr;
 
   // some pointers for use in decompression handling
-  std::ifstream *filestream;  // holds compressed filestream
-  std::istream *unzipstream;  // feed into HepMc
+  std::ifstream *filestream = nullptr;  // holds compressed filestream
+  std::istream *unzipstream = nullptr;  // feed into HepMc
   std::ifstream theOscarFile;
 
   //! helper for insert HepMC event to DST node and add vertex smearing
