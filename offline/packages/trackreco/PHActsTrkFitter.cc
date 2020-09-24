@@ -259,21 +259,11 @@ int PHActsTrkFitter::Process()
        	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				 (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
 
-	/// Mark the SvtxTrack as bad, for better analysis
-	/// can remove later
-	SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
-	SvtxTrack *track = trackIter->second;
-
-	track->set_x(-9999);
-	track->set_y(-9999);
-	track->set_z(-9999);
-	track->set_px(-9999);
-	track->set_py(-9999);
-	track->set_pz(-9999);
+	  // fit failed, delete the junk SvtxTrack from the node tree so the evaluator does not waste time on it
+	  m_trackMap->erase(trackKey);
 
 	m_nBadFits++;
       }
-    
 
   }
   
@@ -289,6 +279,9 @@ int PHActsTrkFitter::Process()
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter::process_event finished" 
 	      << std::endl;
+
+  // put this in the output file
+  std::cout << " SvtxTrackMap size is now " << m_trackMap->size() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
