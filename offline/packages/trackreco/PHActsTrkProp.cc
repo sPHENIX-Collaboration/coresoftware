@@ -32,7 +32,7 @@
 #include <Acts/Propagator/ActionList.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 #include <Acts/Utilities/Units.hpp>
-#include <Acts/TrackFinder/CombinatorialKalmanFilter.hpp>
+#include <Acts/TrackFinding/CombinatorialKalmanFilter.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 
 #include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
@@ -88,45 +88,14 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  /// The CKF requires a source link selector which helps it identify possible
-  /// SLs to the track. The selections can be added like
-  /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
-  /// We'll just put the max chi2 to 10 
-
-  std::vector<std::pair<Acts::GeometryID,
-			Acts::SourceLinkSelectorCuts>> sourceLinkSelectors;
+  /// Setup the source link selection criteria for the various layers
+  setupSourceLinkSelection();
   
-  /// Global detector criteria
-  sourceLinkSelectors.push_back({makeId(), {100.,53}});
-
-  /// Volume criteria
-  /// Volume IDs - MVTX = 7, INTT = 9, TPC = 11
-  sourceLinkSelectors.push_back({makeId(7), {m_volMaxChi2.find(7)->second, 3}});
-  sourceLinkSelectors.push_back({makeId(9), {m_volMaxChi2.find(9)->second, 2}});
-  sourceLinkSelectors.push_back({makeId(11), {m_volMaxChi2.find(11)->second, 48}});
+  /// Setup the Acts general/generic propagator options
+  /// see struct in acts/Core/include/Acts/Propagator/Propagator.hpp
+  /// for additional options that can be changed
+  m_actsPropPlainOptions = Acts::PropagatorPlainOptions();
   
-  /// Set individual layer criteria (e.g. for first layer of TPC)
-  /// Individual layers should only have one SL per layer
-  for(int vol = 0; vol < m_volLayerMaxChi2.size(); ++vol)
-    for(std::pair<const int, const float> element : m_volLayerMaxChi2.at(vol))
-      ///Vol IDs are 7, 9, 11, hence vol*2+7
-      sourceLinkSelectors.push_back({makeId(vol*2.+7, element.first),
-	                            {element.second, 1}});
-	      
-  m_sourceLinkSelectorConfig = SourceLinkSelectorConfig(sourceLinkSelectors);
-
-  if(Verbosity() > 1)
-    {
-      std::cout << "The source link selection criteria were set to: " << std::endl;
-      for(int i = 0; i < sourceLinkSelectors.size(); i++)
-	{
-	  std::cout << "GeoID : " << sourceLinkSelectors.at(i).first
-		    << " has chi sq selection " 
-		    << sourceLinkSelectors.at(i).second.chi2CutOff
-		    << std::endl;
-	}
-    }
-
   findCfg.finder = ActsExamples::TrkrClusterFindingAlgorithm::makeFinderFunction(
 			         m_tGeometry->tGeometry,
 				 m_tGeometry->magField);
@@ -217,13 +186,18 @@ int PHActsTrkProp::Process()
 	              0., 0., 0., 0., 0.0001, 0.,
 	              0., 0., 0., 0., 0., 1.;
 
-	Acts::Vector3D newPos(track.getVertex());
+	Acts::Vector4D new4Vec(track.getVertex().x(),
+			       track.getVertex().y(),
+			       track.getVertex().z(),
+			       trackSeed.time());
 
-	ActsExamples::TrackParameters trackSeedNewCov(covariance,
-					    newPos,
-					    trackSeed.momentum(),
-					    trackSeed.charge(),
-					    trackSeed.time());
+	ActsExamples::TrackParameters trackSeedNewCov(
+				      new4Vec,
+				      trackSeed.momentum(),
+				      trackSeed.absoluteMomentum(),
+				      trackSeed.charge(),
+				      covariance);
+
 	trackSeed = trackSeedNewCov;
       }
 
@@ -257,6 +231,7 @@ int PHActsTrkProp::Process()
 		m_tGeometry->calibContext, 
 		m_sourceLinkSelectorConfig,
 		Acts::LoggerWrapper(*logger),
+		m_actsPropPlainOptions,
 		&(*pSurface));
 
     /// Run the CKF for all source links and the constructed track seed
@@ -423,7 +398,7 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 		    << std::endl;
 	}
       
-      float qOp = fittedParameters.parameters()[Acts::ParDef::eQOP];
+      float qOp = fittedParameters.parameters()[Acts::eBoundQOverP];
       
       Acts::BoundSymMatrix rotatedCov = Acts::BoundSymMatrix::Zero();
       if(fittedParameters.covariance())
@@ -551,16 +526,61 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
 
 }
 
-Acts::GeometryID PHActsTrkProp::makeId(int volume, 
+
+void PHActsTrkProp::setupSourceLinkSelection()
+{
+  
+  /// The CKF requires a source link selector which helps it identify possible
+  /// SLs to the track. The selections can be added like
+  /// {makeId(volId, layerId), {maxChi2, numSourceLinks}}
+  /// We'll just put the max chi2 to 10 
+
+  std::vector<std::pair<Acts::GeometryIdentifier,
+			Acts::SourceLinkSelectorCuts>> sourceLinkSelectors;
+  
+  /// Global detector criteria
+  sourceLinkSelectors.push_back({makeId(), {100.,53}});
+
+  /// Volume criteria
+  /// Volume IDs - MVTX = 7, INTT = 9, TPC = 11
+  sourceLinkSelectors.push_back({makeId(7), {m_volMaxChi2.find(7)->second, 3}});
+  sourceLinkSelectors.push_back({makeId(9), {m_volMaxChi2.find(9)->second, 2}});
+  sourceLinkSelectors.push_back({makeId(11), {m_volMaxChi2.find(11)->second, 48}});
+  
+  /// Set individual layer criteria (e.g. for first layer of TPC)
+  /// Individual layers should only have one SL per layer
+  for(int vol = 0; vol < m_volLayerMaxChi2.size(); ++vol)
+    for(std::pair<const int, const float> element : m_volLayerMaxChi2.at(vol))
+      ///Vol IDs are 7, 9, 11, hence vol*2+7
+      sourceLinkSelectors.push_back({makeId(vol * 2. + 7, element.first),
+	                            {element.second, 1}});
+
+  m_sourceLinkSelectorConfig = SourceLinkSelectorConfig(sourceLinkSelectors);
+
+  if(Verbosity() > 1)
+    {
+      std::cout << "The source link selection criteria were set to: " << std::endl;
+      for(int i = 0; i < sourceLinkSelectors.size(); i++)
+	{
+	  std::cout << "GeoID : " << sourceLinkSelectors.at(i).first
+		    << " has chi sq selection " 
+		    << sourceLinkSelectors.at(i).second.chi2CutOff
+		    << std::endl;
+	}
+    }
+}
+
+Acts::GeometryIdentifier PHActsTrkProp::makeId(int volume, 
 				       int layer, 
 				       int sensitive)
 {
-  return Acts::GeometryID().setVolume(volume)
-                           .setLayer(layer)
-                           .setSensitive(sensitive);
+  return Acts::GeometryIdentifier().setVolume(volume)
+                                   .setLayer(layer)
+                                   .setSensitive(sensitive);
 }
 
-void PHActsTrkProp::setVolumeLayerMaxChi2(const int vol, const int layer,
+void PHActsTrkProp::setVolumeLayerMaxChi2(const int vol, 
+					  const int layer,
 					  const float maxChi2)
 {
   int volume;

@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
@@ -140,9 +140,9 @@ ACTS_LIBS = \
   -lg4eval \
   -lActsCore \
   -lActsFatras \
-  -lActsTGeoPlugin \
+  -lActsPluginTGeo \
   -lActsExamplesCommon \
-  -lActsJsonPlugin \
+  -lActsPluginJson \
   -lActsExamplesFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \

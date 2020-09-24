@@ -146,11 +146,12 @@ int PHActsTrkFitter::Process()
            0., 0., 0., 0., 0.00005 , 0.,
            0., 0., 0., 0., 0., 1.;
 
-    ActsExamples::TrackParameters newTrackSeed(cov,
-					       trackSeed.position(),
-					       trackSeed.momentum(),
-					       trackSeed.charge(),
-					       trackSeed.time());
+    ActsExamples::TrackParameters newTrackSeed(
+                  trackSeed.fourPosition(m_tGeometry->geoContext),
+		  trackSeed.momentum(),
+		  trackSeed.absoluteMomentum(),
+		  trackSeed.charge(),
+		  cov);
 
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
@@ -161,7 +162,7 @@ int PHActsTrkFitter::Process()
     if(Verbosity() > 0)
       {
 	std::cout << " Processing proto track with position:" 
-		  << trackSeed.position() << std::endl 
+		  << trackSeed.position(m_tGeometry->geoContext) << std::endl 
 		  << "momentum: " << trackSeed.momentum() << std::endl
 		  << "charge : " << trackSeed.charge() << std::endl
 		  << "initial vertex : " << track.getVertex()
@@ -181,10 +182,13 @@ int PHActsTrkFitter::Process()
       m_tGeometry->calibContext,
       Acts::VoidOutlierFinder(),
       Acts::LoggerWrapper(*logger),
+      Acts::PropagatorPlainOptions(),
       &(*pSurface));
 
     auto startTime = high_resolution_clock::now();
+    
     auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
+    
     auto stopTime = high_resolution_clock::now();
     auto fitTime = duration_cast<microseconds>(stopTime - startTime);
  
