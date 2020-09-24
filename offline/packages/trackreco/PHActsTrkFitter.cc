@@ -317,10 +317,10 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
       m_timeFile->Close();
     } 
 
-  std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
-
   if (Verbosity() > 0)
   {
+    std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
+
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
