@@ -5,9 +5,7 @@
 
 #include <string>
 
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 //! Generate pile up collisions based on beam parameter
 //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
@@ -20,7 +18,9 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
                                  const std::string &topnodename = "TOP");
   virtual ~Fun4AllHepMCPileupInputManager();
 
-  int run(const int nevents = 0);
+  int run(const int nevents = 0) {return run(nevents,false);}
+
+  int run(const int nevents, const bool skip);
 
   /// past times are negative, future times are positive
   void set_time_window(double past_nsec, double future_nsec)
@@ -33,6 +33,8 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   void set_collision_rate(double Hz) { _collision_rate = Hz; }
   /// time between bunch crossing in ns
   void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
+
+  int SkipForThisManager(const int nevents);
 
  private:
   /// past times are negative, future times are positive
@@ -50,9 +52,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 
   bool _first_run;
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

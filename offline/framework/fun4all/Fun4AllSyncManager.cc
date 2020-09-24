@@ -242,6 +242,10 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // giving it a negative argument will skip events
     // this is much faster than actually reading the events in
     int iret = m_InManager[0]->PushBackEvents(Npushback);
+    for (unsigned int i=1; i<m_InManager.size(); ++i)
+    {
+      iret += m_InManager[i]->SkipForThisManager(nevnts);
+    }
     if (!iret)
     {
       return 0;

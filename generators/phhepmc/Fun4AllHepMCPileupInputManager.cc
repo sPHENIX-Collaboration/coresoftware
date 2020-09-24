@@ -60,7 +60,17 @@ Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
   gsl_rng_free(RandomGenerator);
 }
 
-int Fun4AllHepMCPileupInputManager::run(const int nevents)
+int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
+{
+  int iret = 0;
+  for (int i=0; i<nevents; ++i)
+  {
+  iret |= run(1, true);
+  }
+  return iret;
+}
+
+int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 {
   if (_first_run)
   {
@@ -145,10 +155,11 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         }
         else
         {
-          MySyncManager()->CurrentEvent(evt->event_number());
           if (Verbosity() > 0)
           {
-            cout << "hepmc evt no: " << evt->event_number() << endl;
+	    cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
+	    if (skip) cout << " skip";
+            cout << " hepmc evt no: " << evt->event_number() << endl;
           }
           events_total++;
           events_thisfile++;
@@ -164,7 +175,8 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
           }
         }
       }  // loop until retrieve a valid event
-
+      if (!skip)
+      {
       PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
       PHHepMCGenEvent *genevent = nullptr;
       if (hepmc_helper.get_embedding_id() > 0)
@@ -185,7 +197,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
       genevent->moveVertex(0, 0, 0, t0);
-
+      }
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
   }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
