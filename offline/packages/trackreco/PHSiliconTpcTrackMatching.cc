@@ -45,7 +45,9 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
   // put these in the output file
-  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " << _par2 << " Search windows: phi " << _phi_search_win << " eta " << _eta_search_win << endl;
+  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " 
+       << _par2 << " Search windows: phi " << _phi_search_win << " eta " 
+       << _eta_search_win << endl;
 
   fdphi = new TF1("f1", "[0] + [1]/x^[2]");
   fdphi->SetParameter(0, _par0);
@@ -69,7 +71,7 @@ int PHSiliconTpcTrackMatching::Process()
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
-  if(Verbosity() >= 0)
+  if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map->size() << endl;
 
  // We remember the original size of the TPC track map here
@@ -114,8 +116,15 @@ int PHSiliconTpcTrackMatching::Process()
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
       // phi correction for TPC tracks is charge dependent
-      // this correction is positive for positive charge tracks, but kludged right now because charge sign out of PHTpcTracker is flipped to make Acts happy
-      double sign_phi_correction = _tracklet_tpc->get_charge() * -1.0;  // FIXME: corrects for wrong sign (temporary kludge) from PHTpcTracker
+      double sign_phi_correction = _tracklet_tpc->get_charge(); 
+
+      /// Correct the correction for the field direction
+      /// Kludge to get the phi matching correct based on the field
+      /// direction
+      if(_field.find(".root") != std::string::npos)
+	sign_phi_correction *= -1;
+      if(_fieldDir > 0)
+	sign_phi_correction *= -1;
 
       // hard code this here for now
       // this factor will increase the window size at low pT
@@ -316,7 +325,7 @@ int PHSiliconTpcTrackMatching::Process()
 	}
     }
 
-  if(Verbosity() >= 0)  
+  if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
   
   if (Verbosity() >= 1)

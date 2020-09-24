@@ -315,7 +315,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
 	  svtxTrack->insert_cluster_key(cluskey);
 	  
-	  if(m_verbosity > 2)
+	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
 			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
