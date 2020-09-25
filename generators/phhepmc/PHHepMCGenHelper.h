@@ -106,7 +106,6 @@ class PHHepMCGenHelper
 
   double smear(const double position, const double width, VTXFUNC dist) const;
 
- private:
   VTXFUNC _vertex_func_x;
   VTXFUNC _vertex_func_y;
   VTXFUNC _vertex_func_z;
