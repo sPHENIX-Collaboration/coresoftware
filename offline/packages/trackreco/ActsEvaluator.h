@@ -31,9 +31,9 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
@@ -82,7 +82,7 @@ class ActsEvaluator : public SubsysReco
 
   void clearTrackVariables();
   
-  void calculateDCA(const Acts::BoundParameters param, 
+  void calculateDCA(const Acts::BoundTrackParameters param, 
 		    const Acts::Vector3D vertex);
 
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 

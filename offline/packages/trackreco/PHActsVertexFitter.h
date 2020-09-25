@@ -30,7 +30,7 @@ class PHActsVertexFitter : public SubsysReco
  private:
   
   int getNodes(PHCompositeNode *topNode);
-  std::vector<const Acts::BoundParameters*> getTracks();  
+  std::vector<const Acts::BoundTrackParameters*> getTracks();  
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   int m_event;

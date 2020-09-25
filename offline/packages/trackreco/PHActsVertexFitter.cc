@@ -72,7 +72,7 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
       logLevel = Acts::Logging::VERBOSE;
     }
   
-  std::vector<const Acts::BoundParameters*> tracks = getTracks();
+  std::vector<const Acts::BoundTrackParameters*> tracks = getTracks();
   
   auto logger = Acts::getDefaultLogger("PHActsVertexFitter", logLevel);
 
@@ -87,7 +87,7 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
       using Stepper = Acts::EigenStepper<MagneticField>;
       using Propagator = Acts::Propagator<Stepper>;
       using PropagatorOptions = Acts::PropagatorOptions<>;
-      using TrackParameters = Acts::BoundParameters;
+      using TrackParameters = Acts::BoundTrackParameters;
       using Linearizer = Acts::HelicalTrackLinearizer<Propagator>;
       using VertexFitter =
 	Acts::FullBilloirVertexFitter<TrackParameters, Linearizer>;
@@ -153,10 +153,10 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 }
 
 
-std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
+std::vector<const Acts::BoundTrackParameters*> PHActsVertexFitter::getTracks()
 {
  
-  std::vector<const Acts::BoundParameters*> trackPtrs;
+  std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
   std::map<const unsigned int, Trajectory>::iterator trackIter;
 
@@ -171,7 +171,7 @@ std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
       {
 	if(traj.hasTrackParameters(trackTip))
 	  {
-	    const Acts::BoundParameters *param = new Acts::BoundParameters(traj.trackParameters(trackTip));
+	    const Acts::BoundTrackParameters *param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
 	 
 	    trackPtrs.push_back(param);
 	  }
@@ -185,10 +185,10 @@ std::vector<const Acts::BoundParameters*> PHActsVertexFitter::getTracks()
 		<< trackPtrs.size()
 		<< std::endl;
       
-      for(std::vector<const Acts::BoundParameters*>::iterator it = trackPtrs.begin();
+      for(std::vector<const Acts::BoundTrackParameters*>::iterator it = trackPtrs.begin();
 	  it != trackPtrs.end(); ++it)
 	{
-	  const Acts::BoundParameters* param = *it;
+	  const Acts::BoundTrackParameters* param = *it;
 	  std::cout << "Track position: (" 
 		    << param->position(m_tGeometry->geoContext)(0)
 		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "

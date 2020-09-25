@@ -11,7 +11,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/Utilities/Units.hpp>
 
@@ -122,24 +121,28 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       rotater->rotateSvtxTrackCovToActs(track,
 					m_tGeometry->geoContext);
 
-    const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
-                                 track->get_y()  * Acts::UnitConstants::cm,
-                                 track->get_z()  * Acts::UnitConstants::cm);
-    
-    const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
-                                 track->get_py() * Acts::UnitConstants::GeV,
-                                 track->get_pz() * Acts::UnitConstants::GeV);
-
-    // just set to 10 ns for now?
+    /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
     const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = track->get_charge();
+
+    const Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
+				  track->get_y()  * Acts::UnitConstants::cm,
+				  track->get_z()  * Acts::UnitConstants::cm,
+				  trackTime);
+    
+    const Acts::Vector3D seedMomVec(track->get_px() * Acts::UnitConstants::GeV,
+				    track->get_py() * Acts::UnitConstants::GeV,
+				    track->get_pz() * Acts::UnitConstants::GeV);
+
+    const double p = track->get_p();
+    
+    const double trackQ = track->get_charge();
     
     if(Verbosity() > 0)
       {
 	std::cout << PHWHERE << std::endl;
 	std::cout << " Seed trackQ " << trackQ << std::endl;
-	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
-	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
+	std::cout << " seed4Vec " << seed4Vec[0] << "  " << seed4Vec[1] << "  " << seed4Vec[2] << std::endl;
+	std::cout << " seedMomVec " << seedMomVec[0] << "  " << seedMomVec[1] << "  " << seedMomVec[2] << std::endl;
 	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
 	std::cout << " seedCov: " << std::endl;
 	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
@@ -151,12 +154,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	    std::cout << std::endl;
 	  }
       }
-
-    const ActsExamples::TrackParameters trackSeed(
-                                        seedCov, 
-					seedPos, seedMom, 
-					trackQ * Acts::UnitConstants::e, 
-					trackTime);
+    
+    const ActsExamples::TrackParameters trackSeed(seed4Vec, 
+						  seedMomVec, p,
+						  trackQ * Acts::UnitConstants::e,
+						  seedCov);
 
     /// Start fresh for this track
     trackSourceLinks.clear();

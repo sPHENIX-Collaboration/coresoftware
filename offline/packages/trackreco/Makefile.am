@@ -140,9 +140,9 @@ ACTS_LIBS = \
   -lg4eval \
   -lActsCore \
   -lActsFatras \
-  -lActsTGeoPlugin \
+  -lActsPluginTGeo \
   -lActsExamplesCommon \
-  -lActsJsonPlugin \
+  -lActsPluginJson \
   -lActsExamplesFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
