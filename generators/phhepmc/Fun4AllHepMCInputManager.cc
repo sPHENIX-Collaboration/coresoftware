@@ -178,7 +178,9 @@ int Fun4AllHepMCInputManager::run(const int nevents)
     {
 //      hepmc_helper.get_geneventmap()->get_map().clear();
       cout << "save evt: " << save_evt << ", evt: " << evt << endl;
-      evt = save_evt;
+      evt = new HepMC::GenEvent(*save_evt);
+//evt = ascii_in->read_next_event();
+      delete save_evt;
       save_evt = nullptr;
     }
     else
@@ -190,6 +192,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       else
       {
         evt = ascii_in->read_next_event();
+        save_evt = new HepMC::GenEvent(*evt);
       }
     }
 
@@ -215,6 +218,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
+	cout << "embedding id " << ievt->first << " exists" << endl;
         // override existing event
         ievt->second->addEvent(evt);
       }
@@ -282,10 +286,10 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
       {
         cout << Name() << ": pushing back evt no " << evt->event_number() << endl;
       }
-      if (!save_evt)
-      {
-        save_evt = new HepMC::GenEvent(*evt);
-      }
+      // if (!save_evt)
+      // {
+      //   save_evt = new HepMC::GenEvent(*evt);
+      // }
       return 0;
     }
     cout << PHWHERE << Name()
@@ -406,6 +410,9 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
 
 int Fun4AllHepMCInputManager::ResetEvent()
 {
+  cout << "Calling ResetEvent" << endl;
+  delete save_evt;
+  save_evt = nullptr;
   m_MyEvent.clear();
   return 0;
 }
