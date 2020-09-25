@@ -48,39 +48,80 @@ void KFParticle_nTuple::initializeVariables()
   //m_calculated_mother_cov = -99;
 }
 
-void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
+void KFParticle_nTuple::initializeBranches()
 {
 
   m_tree = new TTree("DecayTree", "DecayTree");
 
-  m_tree->Branch( "mother_mass",           &m_calculated_mother_mass,         "mother_mass/F" );
-  m_tree->Branch( "mother_massErr",        &m_calculated_mother_mass_err,     "mother_massErr/F" );
-  m_tree->Branch( "mother_lifetime",       &m_calculated_mother_lifetime,     "mother_lifetime/F" );
-  m_tree->Branch( "mother_lifetimeErr",    &m_calculated_mother_lifetime_err, "mother_lifetimeErr/F" );
-  m_tree->Branch( "mother_DIRA",           &m_calculated_mother_dira,         "mother_DIRA/F" );
-  m_tree->Branch( "mother_FDchi2",         &m_calculated_mother_fdchi2,       "mother_FDchi2/F" );
-  m_tree->Branch( "mother_IP",             &m_calculated_mother_ip,           "mother_IP/F" );
-  m_tree->Branch( "mother_IPchi2",         &m_calculated_mother_ipchi2,       "mother_IPchi2/F" );
-  m_tree->Branch( "mother_x",              &m_calculated_mother_x,            "mother_x/F" );
-  m_tree->Branch( "mother_y",              &m_calculated_mother_y,            "mother_y/F" );
-  m_tree->Branch( "mother_z",              &m_calculated_mother_z,            "mother_z/F" );
-  m_tree->Branch( "mother_px",             &m_calculated_mother_px,           "mother_px/F" );
-  m_tree->Branch( "mother_py",             &m_calculated_mother_py,           "mother_py/F" );
-  m_tree->Branch( "mother_pz",             &m_calculated_mother_pz,           "mother_pz/F" );
-  m_tree->Branch( "mother_pE",             &m_calculated_mother_pe,           "mother_pE/F" );
-  m_tree->Branch( "mother_p",              &m_calculated_mother_p,            "mother_p/F" );
-  m_tree->Branch( "mother_pT",             &m_calculated_mother_pt,           "mother_pT/F" );
-  m_tree->Branch( "mother_S",              &m_calculated_mother_s,            "mother_S/F" );
-  m_tree->Branch( "mother_charge",         &m_calculated_mother_q,            "mother_charge/C" );
-  m_tree->Branch( "mother_pseudorapidity", &m_calculated_mother_eta,          "mother_pseudorapidity/F" );
-  m_tree->Branch( "mother_rapidity",       &m_calculated_mother_rapidity,     "mother_rapidity/F" );
-  m_tree->Branch( "mother_theta",          &m_calculated_mother_theta,        "mother_theta/F" );
-  m_tree->Branch( "mother_phi",            &m_calculated_mother_phi,          "mother_phi/F" );
-  m_tree->Branch( "mother_chi2",           &m_calculated_mother_chi2,         "mother_chi2/F" );
-  m_tree->Branch( "mother_nDoF",           &m_calculated_mother_ndof,         "mother_nDoF/I" );
-  m_tree->Branch( "mother_Covariance",      m_calculated_mother_cov,          "mother_Covariance[21]/F", 21 );
+  m_tree->Branch( "mother_mass",           &m_calculated_mother_mass,            "mother_mass/F" );
+  m_tree->Branch( "mother_massErr",        &m_calculated_mother_mass_err,        "mother_massErr/F" );
+  m_tree->Branch( "mother_decayTime",      &m_calculated_mother_decaytime,       "mother_decayTime/F" );
+  m_tree->Branch( "mother_decayTimeErr",   &m_calculated_mother_decaytime_err,   "mother_decayTimeErr/F" );
+  m_tree->Branch( "mother_decayLength",    &m_calculated_mother_decaylength,     "mother_decayLength/F" );
+  m_tree->Branch( "mother_decayLengthErr", &m_calculated_mother_decaylength_err, "mother_decayLengthErr/F" );
+  m_tree->Branch( "mother_DIRA",           &m_calculated_mother_dira,            "mother_DIRA/F" );
+  m_tree->Branch( "mother_FDchi2",         &m_calculated_mother_fdchi2,          "mother_FDchi2/F" );
+  m_tree->Branch( "mother_IP",             &m_calculated_mother_ip,              "mother_IP/F" );
+  m_tree->Branch( "mother_IPchi2",         &m_calculated_mother_ipchi2,          "mother_IPchi2/F" );
+  m_tree->Branch( "mother_x",              &m_calculated_mother_x,               "mother_x/F" );
+  m_tree->Branch( "mother_y",              &m_calculated_mother_y,               "mother_y/F" );
+  m_tree->Branch( "mother_z",              &m_calculated_mother_z,               "mother_z/F" );
+  m_tree->Branch( "mother_px",             &m_calculated_mother_px,              "mother_px/F" );
+  m_tree->Branch( "mother_py",             &m_calculated_mother_py,              "mother_py/F" );
+  m_tree->Branch( "mother_pz",             &m_calculated_mother_pz,              "mother_pz/F" );
+  m_tree->Branch( "mother_pE",             &m_calculated_mother_pe,              "mother_pE/F" );
+  m_tree->Branch( "mother_p",              &m_calculated_mother_p,               "mother_p/F" );
+  m_tree->Branch( "mother_pErr",           &m_calculated_mother_p_err,           "mother_pErr/F" );
+  m_tree->Branch( "mother_pT",             &m_calculated_mother_pt,              "mother_pT/F" );
+  m_tree->Branch( "mother_pTErr",          &m_calculated_mother_pt_err,          "mother_pTErr/F" );
+  m_tree->Branch( "mother_S",              &m_calculated_mother_s,               "mother_S/F" );
+  m_tree->Branch( "mother_charge",         &m_calculated_mother_q,               "mother_charge/I" );
+  m_tree->Branch( "mother_pseudorapidity", &m_calculated_mother_eta,             "mother_pseudorapidity/F" );
+  m_tree->Branch( "mother_rapidity",       &m_calculated_mother_rapidity,        "mother_rapidity/F" );
+  m_tree->Branch( "mother_theta",          &m_calculated_mother_theta,           "mother_theta/F" );
+  m_tree->Branch( "mother_phi",            &m_calculated_mother_phi,             "mother_phi/F" );
+  m_tree->Branch( "mother_chi2",           &m_calculated_mother_chi2,            "mother_chi2/F" );
+  m_tree->Branch( "mother_nDoF",           &m_calculated_mother_ndof,            "mother_nDoF/I" );
+  //m_tree->Branch( "mother_Covariance",      m_calculated_mother_cov,          "mother_Covariance[21]/F", 21 );
 
- for (int i = 0; i < nTracks; ++i)
+  if ( m_has_intermediates_nTuple )
+  {
+    for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
+    {
+      std::string intermediate_number = "intermediate_" + std::to_string(i + 1);
+     
+      m_tree->Branch( TString(intermediate_number) + "_mass",           &m_calculated_intermediate_mass[i],            TString(intermediate_number) + "_mass/F" );
+      m_tree->Branch( TString(intermediate_number) + "_massErr",        &m_calculated_intermediate_mass_err[i],        TString(intermediate_number) + "_massErr/F" );
+      m_tree->Branch( TString(intermediate_number) + "_decayTime",      &m_calculated_intermediate_decaytime[i],       TString(intermediate_number) + "_decayTime/F" );
+      m_tree->Branch( TString(intermediate_number) + "_decayTimeErr",   &m_calculated_intermediate_decaytime_err[i],   TString(intermediate_number) + "_decayTimeErr/F" );
+      m_tree->Branch( TString(intermediate_number) + "_decayLength",    &m_calculated_intermediate_decaylength[i],     TString(intermediate_number) + "_decayLength/F" );
+      m_tree->Branch( TString(intermediate_number) + "_decayLengthErr", &m_calculated_intermediate_decaylength_err[i], TString(intermediate_number) + "_decayLengthErr/F" );
+      m_tree->Branch( TString(intermediate_number) + "_IP",             &m_calculated_intermediate_ip[i],              TString(intermediate_number) + "_IP/F" );
+      m_tree->Branch( TString(intermediate_number) + "_IPchi2",         &m_calculated_intermediate_ipchi2[i],          TString(intermediate_number) + "_IPchi2/F" );
+      m_tree->Branch( TString(intermediate_number) + "_x",              &m_calculated_intermediate_x[i],               TString(intermediate_number) + "_x/F" );
+      m_tree->Branch( TString(intermediate_number) + "_y",              &m_calculated_intermediate_y[i],               TString(intermediate_number) + "_y/F" );
+      m_tree->Branch( TString(intermediate_number) + "_z",              &m_calculated_intermediate_z[i],               TString(intermediate_number) + "_z/F" );
+      m_tree->Branch( TString(intermediate_number) + "_px",             &m_calculated_intermediate_px[i],              TString(intermediate_number) + "_px/F" );
+      m_tree->Branch( TString(intermediate_number) + "_py",             &m_calculated_intermediate_py[i],              TString(intermediate_number) + "_py/F" );
+      m_tree->Branch( TString(intermediate_number) + "_pz",             &m_calculated_intermediate_pz[i],              TString(intermediate_number) + "_pz/F" );
+      m_tree->Branch( TString(intermediate_number) + "_pE",             &m_calculated_intermediate_pe[i],              TString(intermediate_number) + "_pE/F" );
+      m_tree->Branch( TString(intermediate_number) + "_p",              &m_calculated_intermediate_p[i],               TString(intermediate_number) + "_p/F" );
+      m_tree->Branch( TString(intermediate_number) + "_pErr",           &m_calculated_intermediate_p_err[i],           TString(intermediate_number) + "_pErr/F" );
+      m_tree->Branch( TString(intermediate_number) + "_pT",             &m_calculated_intermediate_pt[i],              TString(intermediate_number) + "_pT/F" );
+      m_tree->Branch( TString(intermediate_number) + "_pTErr",          &m_calculated_intermediate_pt_err[i],          TString(intermediate_number) + "_pTErr/F" );
+      m_tree->Branch( TString(intermediate_number) + "_S",              &m_calculated_intermediate_s[i],               TString(intermediate_number) + "_S/F" );
+      m_tree->Branch( TString(intermediate_number) + "_charge",         &m_calculated_intermediate_q[i],               TString(intermediate_number) + "_charge/I" );
+      m_tree->Branch( TString(intermediate_number) + "_pseudorapidity", &m_calculated_intermediate_eta[i],             TString(intermediate_number) + "_pseudorapidity/F" );
+      m_tree->Branch( TString(intermediate_number) + "_rapidity",       &m_calculated_intermediate_rapidity[i],        TString(intermediate_number) + "_rapidity/F" );
+      m_tree->Branch( TString(intermediate_number) + "_theta",          &m_calculated_intermediate_theta[i],           TString(intermediate_number) + "_theta/F" );
+      m_tree->Branch( TString(intermediate_number) + "_phi",            &m_calculated_intermediate_phi[i],             TString(intermediate_number) + "_phi/F" );
+      m_tree->Branch( TString(intermediate_number) + "_chi2",           &m_calculated_intermediate_chi2[i],            TString(intermediate_number) + "_chi2/F" );
+      m_tree->Branch( TString(intermediate_number) + "_nDoF",           &m_calculated_intermediate_ndof[i],            TString(intermediate_number) + "_nDoF/I" );
+      //m_tree->Branch( TString(intermediate_number) + "_Covariance",      m_calculated_intermediate_cov[i],      TString(intermediate_number) + "_Covariance[21]/F", 21 );     
+    }
+  }
+
+ for (int i = 0; i < m_num_tracks_nTuple; ++i)
  {
     std::string daughter_number = "daughter_" + std::to_string(i + 1);
 
@@ -97,39 +138,42 @@ void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
     m_tree->Branch( TString(daughter_number) + "_p",              &m_calculated_daughter_p[i],        TString(daughter_number) + "_p/F" );
     m_tree->Branch( TString(daughter_number) + "_pT",             &m_calculated_daughter_pt[i],       TString(daughter_number) + "_pT/F" );
     m_tree->Branch( TString(daughter_number) + "_S",              &m_calculated_daughter_s[i],        TString(daughter_number) + "_S/F" );
-    m_tree->Branch( TString(daughter_number) + "_charge",         &m_calculated_daughter_q[i],        TString(daughter_number) + "_charge/C" );
+    m_tree->Branch( TString(daughter_number) + "_charge",         &m_calculated_daughter_q[i],        TString(daughter_number) + "_charge/I" );
     m_tree->Branch( TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i],      TString(daughter_number) + "_pseudorapidity/F" );
     m_tree->Branch( TString(daughter_number) + "_rapidity",       &m_calculated_daughter_rapidity[i], TString(daughter_number) + "_rapidity/F" );
     m_tree->Branch( TString(daughter_number) + "_theta",          &m_calculated_daughter_theta[i],    TString(daughter_number) + "_theta/F" );
     m_tree->Branch( TString(daughter_number) + "_phi",            &m_calculated_daughter_phi[i],      TString(daughter_number) + "_phi/F" );
     m_tree->Branch( TString(daughter_number) + "_chi2",           &m_calculated_daughter_chi2[i],     TString(daughter_number) + "_chi2/F" );
     m_tree->Branch( TString(daughter_number) + "_nDoF",           &m_calculated_daughter_ndof[i],     TString(daughter_number) + "_nDoF/I" );
-    m_tree->Branch( TString(daughter_number) + "_Covariance",      m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
+    m_tree->Branch( TString(daughter_number) + "_trackID",        &m_calculated_daughter_trid[i],     TString(daughter_number) + "_trackID/I" );
+    //m_tree->Branch( TString(daughter_number) + "_Covariance",      m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
     if ( m_truth_matching ) initializeTruthBranches( i ); 
     if ( m_detector_info )  initializeDetectorBranches( i );
  }
 
-    m_tree->Branch( "d12_DCA_3D", &m_d12_DCA_3D, "d12_DCA_3D/F");
-  if ( nTracks > 2)
+  int iter = 0;
+  for (int i = 0; i < m_num_tracks_nTuple; ++i) 
   {
-    m_tree->Branch( "d13_DCA_3D", &m_d13_DCA_3D, "d13_DCA_3D/F");
-    m_tree->Branch( "d23_DCA_3D", &m_d23_DCA_3D, "d23_DCA_3D/F");
-  }
-  if ( nTracks > 3)
-  {
-    m_tree->Branch( "d14_DCA_3D", &m_d14_DCA_3D, "d14_DCA_3D/F");
-    m_tree->Branch( "d24_DCA_3D", &m_d24_DCA_3D, "d24_DCA_3D/F");
-    m_tree->Branch( "d34_DCA_3D", &m_d34_DCA_3D, "d34_DCA_3D/F");
+    for(int j = 0; j < m_num_tracks_nTuple; ++j)
+    {
+      if( i < j )
+      {
+        std::string dca_branch_name = "d" + std::to_string(i + 1) + std::to_string(j + 1) + "_DCA_3D";
+        std::string dca_leaf_name = dca_branch_name + "/F";
+        m_tree->Branch( dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str() );
+        ++iter;
+      }
+    }
   }
   
-  m_tree->Branch( "primary_vertex_x",              &m_calculated_vertex_x,            "vertex_x/F" );
-  m_tree->Branch( "primary_vertex_y",              &m_calculated_vertex_y,            "vertex_y/F" );
-  m_tree->Branch( "primary_vertex_z",              &m_calculated_vertex_z,            "vertex_z/F" );
-  m_tree->Branch( "primary_vertex_Covariance",      m_calculated_vertex_cov,          "vertex_Covariance[6]/F", 6 );
+  m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,   "primary_vertex_x/F" );
+  m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,   "primary_vertex_y/F" );
+  m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,   "primary_vertex_z/F" );
+  //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
 
-  m_tree->Branch( "nPrimaryVertices",     &m_nPVs,                            "nPrimaryVertices/I" );
-  m_tree->Branch( "nEventTracks",         &m_multiplicity,                    "nEventTracks/I" );
+  m_tree->Branch( "nPrimaryVertices", &m_nPVs,         "nPrimaryVertices/I" );
+  m_tree->Branch( "nEventTracks",     &m_multiplicity, "nEventTracks/I" );
 
 }
 
@@ -137,19 +181,14 @@ void KFParticle_nTuple::initializeBranches( int nTracks = 2 )
 void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
                                     KFParticle motherParticle, 
                                     KFParticle vertex,
-                                    int nTracks, 
                                     std::vector<KFParticle> daughters,
+                                    std::vector<KFParticle> intermediates,
                                     int nPVs, int multiplicity )
 {
-
   KFPVertex *kfpVertex = new KFPVertex; 
   kfpVertex->SetXYZ( vertex.Parameters() );
   kfpVertex->SetCovarianceMatrix( vertex.CovarianceMatrix() ); 
-
-  m_calculated_mother_mass         = motherParticle.GetMass();
-  m_calculated_mother_mass_err     = motherParticle.GetErrMass();
-  m_calculated_mother_lifetime     = motherParticle.GetLifeTime();
-  m_calculated_mother_lifetime_err = motherParticle.GetErrLifeTime();
+  
   m_calculated_mother_dira         = kfpTupleTools.eventDIRA( motherParticle, *kfpVertex );
   m_calculated_mother_fdchi2       = kfpTupleTools.flightDistanceChi2( motherParticle, *kfpVertex );
   m_calculated_mother_ip           = motherParticle.GetDistanceFromVertex( vertex );
@@ -162,7 +201,9 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_calculated_mother_pz           = motherParticle.GetPz();
   m_calculated_mother_pe           = motherParticle.GetE();
   m_calculated_mother_p            = motherParticle.GetP();
+  m_calculated_mother_p_err        = motherParticle.GetErrP();
   m_calculated_mother_pt           = motherParticle.GetPt();
+  m_calculated_mother_pt_err       = motherParticle.GetErrPt();
   m_calculated_mother_s            = motherParticle.GetS();
   m_calculated_mother_q            = (Int_t) motherParticle.Q();
   m_calculated_mother_eta          = motherParticle.GetEta();
@@ -171,15 +212,55 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_calculated_mother_phi          = motherParticle.GetPhi();
   m_calculated_mother_chi2         = motherParticle.GetChi2();
   m_calculated_mother_ndof         = motherParticle.GetNDF();
-  m_calculated_mother_cov          = &motherParticle.CovarianceMatrix()[0];
+  //m_calculated_mother_cov          = &motherParticle.CovarianceMatrix()[0];
+  
+  motherParticle.GetMass( m_calculated_mother_mass, m_calculated_mother_mass_err);
+  motherParticle.SetProductionVertex( vertex );
+  motherParticle.GetLifeTime( m_calculated_mother_decaytime, m_calculated_mother_decaytime_err );
+  motherParticle.GetDecayLength( m_calculated_mother_decaylength, m_calculated_mother_decaylength_err );
 
+  if ( m_has_intermediates_nTuple)
+  {
+    KFParticle* intermediateArray = &intermediates[0];
+
+    for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
+    {
+      m_calculated_intermediate_ip[i]           = intermediateArray[i].GetDistanceFromVertex( vertex );
+      m_calculated_intermediate_ipchi2[i]       = intermediateArray[i].GetDeviationFromVertex( vertex );
+      m_calculated_intermediate_x[i]            = intermediateArray[i].GetX();
+      m_calculated_intermediate_y[i]            = intermediateArray[i].GetY();
+      m_calculated_intermediate_z[i]            = intermediateArray[i].GetZ();
+      m_calculated_intermediate_px[i]           = intermediateArray[i].GetPx();
+      m_calculated_intermediate_py[i]           = intermediateArray[i].GetPy();
+      m_calculated_intermediate_pz[i]           = intermediateArray[i].GetPz();
+      m_calculated_intermediate_pe[i]           = intermediateArray[i].GetE();
+      m_calculated_intermediate_p[i]            = intermediateArray[i].GetP();
+      m_calculated_intermediate_p_err[i]        = intermediateArray[i].GetErrP();
+      m_calculated_intermediate_pt[i]           = intermediateArray[i].GetPt();
+      m_calculated_intermediate_pt_err[i]       = intermediateArray[i].GetErrPt();
+      m_calculated_intermediate_s[i]            = intermediateArray[i].GetS();
+      m_calculated_intermediate_q[i]            = (Int_t) intermediateArray[i].Q();
+      m_calculated_intermediate_eta[i]          = intermediateArray[i].GetEta();
+      m_calculated_intermediate_rapidity[i]     = intermediateArray[i].GetRapidity();
+      m_calculated_intermediate_theta[i]        = intermediateArray[i].GetTheta();
+      m_calculated_intermediate_phi[i]          = intermediateArray[i].GetPhi();
+      m_calculated_intermediate_chi2[i]         = intermediateArray[i].GetChi2();
+      m_calculated_intermediate_ndof[i]         = intermediateArray[i].GetNDF();
+      //m_calculated_intermediate_cov[i]          = &intermediateArray[i].CovarianceMatrix()[0];
+      
+      intermediateArray[i].GetMass( m_calculated_intermediate_mass[i], m_calculated_intermediate_mass_err[i]);
+      intermediateArray[i].SetProductionVertex( motherParticle );
+      intermediateArray[i].GetLifeTime( m_calculated_intermediate_decaytime[i], m_calculated_intermediate_decaytime_err[i] );
+      intermediateArray[i].GetDecayLength( m_calculated_intermediate_decaylength[i], m_calculated_intermediate_decaylength_err[i] );
+    }
+  }
 
   KFParticle temp;
   KFParticle* daughterArray = &daughters[0];
 
-  for( int i = 0; i < nTracks; i++ ) //This section of code should rearrange daughter particles by mass
+  for( int i = 0; i < m_num_tracks_nTuple; i++ ) //This section of code should rearrange daughter particles by mass
   {
-    for( int j = i + 1; j < nTracks; j++ )
+    for( int j = i + 1; j < m_num_tracks_nTuple; j++ )
     {
       if( daughterArray[i].GetMass() > daughterArray[j].GetMass() )
       {
@@ -190,7 +271,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
     }
   }
 
-  for ( int i = 0; i < nTracks; ++i )
+  for ( int i = 0; i < m_num_tracks_nTuple; ++i )
   {
       m_calculated_daughter_mass[i]         = daughterArray[i].GetMass();
       m_calculated_daughter_ip[i]           = daughterArray[i].GetDistanceFromVertex( vertex );
@@ -212,29 +293,22 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_daughter_phi[i]          = daughterArray[i].GetPhi();
       m_calculated_daughter_chi2[i]         = daughterArray[i].GetChi2();
       m_calculated_daughter_ndof[i]         = daughterArray[i].GetNDF();
-      m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
+      m_calculated_daughter_trid[i]         = daughterArray[i].Id(); 
+      //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
 
       if ( m_truth_matching ) fillTruthBranch( topNode, daughterArray[i], i ); 
       if ( m_detector_info )  fillDetectorBranch(topNode, daughterArray[i], i );
   }
 
-    m_d12_DCA_3D = daughterArray[0].GetDistanceFromParticle( daughterArray[1] );
-  if ( nTracks > 2 )
-  {
-    m_d13_DCA_3D = daughterArray[0].GetDistanceFromParticle( daughterArray[2] );
-    m_d23_DCA_3D = daughterArray[1].GetDistanceFromParticle( daughterArray[2] );
-  }
-  if ( nTracks > 3 )
-  {
-    m_d14_DCA_3D = daughterArray[0].GetDistanceFromParticle( daughterArray[3] );
-    m_d24_DCA_3D = daughterArray[1].GetDistanceFromParticle( daughterArray[3] );
-    m_d34_DCA_3D = daughterArray[2].GetDistanceFromParticle( daughterArray[3] );
-  }
+  int iter = 0;
+  for (int i = 0; i < m_num_tracks_nTuple; ++i) 
+    for(int j = 0; j < m_num_tracks_nTuple; ++j)
+      if( i < j ) { m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle( daughterArray[j] ); ++iter; }
 
   m_calculated_vertex_x            = vertex.GetX();
   m_calculated_vertex_y            = vertex.GetY();
   m_calculated_vertex_z            = vertex.GetZ();
-  m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
+  //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
 
   m_nPVs         = nPVs;
   m_multiplicity = multiplicity;

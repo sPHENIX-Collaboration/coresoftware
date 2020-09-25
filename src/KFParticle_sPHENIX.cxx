@@ -58,7 +58,7 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
   if ( m_save_output )
   {
      m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-     initializeBranches( m_num_tracks );
+     initializeBranches();
   }
 
   if ( m_require_mva ) 
@@ -81,7 +81,8 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
 
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i) 
     { 
-      if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], m_num_tracks, daughters[i], nPVs, multiplicity );
+      if ( !m_has_intermediates_sPHENIX ) intermediates.push_back( daughters[i] ); //This is done to avoid a crash, nothing is written to files 
+      if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity );
     }
     return Fun4AllReturnCodes::EVENT_OK;
 }

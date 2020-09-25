@@ -24,12 +24,12 @@ class KFParticle_nTuple
     ~KFParticle_nTuple(); //Destructor
 
     void initializeVariables();
-    void initializeBranches( int nTracks);
+    void initializeBranches();
     void fillBranch( PHCompositeNode *topNode,
                      KFParticle motherParticle,
                      KFParticle vertex,
-                     int nTracks,
                      std::vector<KFParticle> daughters,
+                     std::vector<KFParticle> intermediates,
                      int nPVs, int multiplicity );
 
     SvtxTrack* getTrack( unsigned int track_id, SvtxTrackMap *trackmap );
@@ -46,8 +46,10 @@ class KFParticle_nTuple
 
     float m_calculated_mother_mass;
     float m_calculated_mother_mass_err;
-    float m_calculated_mother_lifetime;
-    float m_calculated_mother_lifetime_err;
+    float m_calculated_mother_decaytime;
+    float m_calculated_mother_decaytime_err;
+    float m_calculated_mother_decaylength;
+    float m_calculated_mother_decaylength_err;
     float m_calculated_mother_dira;
     float m_calculated_mother_fdchi2;
     float m_calculated_mother_ip;
@@ -60,7 +62,9 @@ class KFParticle_nTuple
     float m_calculated_mother_pz;
     float m_calculated_mother_pe;
     float m_calculated_mother_p;
+    float m_calculated_mother_p_err;
     float m_calculated_mother_pt;
+    float m_calculated_mother_pt_err;
     float m_calculated_mother_s;
     int   m_calculated_mother_q;
     float m_calculated_mother_eta;
@@ -69,62 +73,90 @@ class KFParticle_nTuple
     float m_calculated_mother_phi;
     float m_calculated_mother_chi2;
     int   m_calculated_mother_ndof;
-    float *m_calculated_mother_cov;
+    //float *m_calculated_mother_cov;
 
-    float m_calculated_daughter_mass[4];
-    float m_calculated_daughter_ip[4];
-    float m_calculated_daughter_ipchi2[4];
-    float m_calculated_daughter_x[4];
-    float m_calculated_daughter_y[4];
-    float m_calculated_daughter_z[4];
-    float m_calculated_daughter_px[4];
-    float m_calculated_daughter_py[4];
-    float m_calculated_daughter_pz[4];
-    float m_calculated_daughter_pe[4];
-    float m_calculated_daughter_p[4];
-    float m_calculated_daughter_pt[4];
-    float m_calculated_daughter_s[4];
-    int   m_calculated_daughter_q[4];
-    float m_calculated_daughter_eta[4];
-    float m_calculated_daughter_rapidity[4];
-    float m_calculated_daughter_theta[4];
-    float m_calculated_daughter_phi[4];
-    float m_calculated_daughter_chi2[4];
-    int   m_calculated_daughter_ndof[4];
-    float *m_calculated_daughter_cov[4];
+    float m_calculated_intermediate_mass[8];
+    float m_calculated_intermediate_mass_err[8];
+    float m_calculated_intermediate_decaytime[8];
+    float m_calculated_intermediate_decaytime_err[8];
+    float m_calculated_intermediate_decaylength[8];
+    float m_calculated_intermediate_decaylength_err[8];
+    float m_calculated_intermediate_ip[8];
+    float m_calculated_intermediate_ipchi2[8];
+    float m_calculated_intermediate_x[8];
+    float m_calculated_intermediate_y[8];
+    float m_calculated_intermediate_z[8];
+    float m_calculated_intermediate_px[8];
+    float m_calculated_intermediate_py[8];
+    float m_calculated_intermediate_pz[8];
+    float m_calculated_intermediate_pe[8];
+    float m_calculated_intermediate_p[8];
+    float m_calculated_intermediate_p_err[8];
+    float m_calculated_intermediate_pt[8];
+    float m_calculated_intermediate_pt_err[8];
+    float m_calculated_intermediate_s[8];
+    float m_calculated_intermediate_q[8];
+    float m_calculated_intermediate_eta[8];
+    float m_calculated_intermediate_rapidity[8];
+    float m_calculated_intermediate_theta[8];
+    float m_calculated_intermediate_phi[8];
+    float m_calculated_intermediate_chi2[8];
+    float m_calculated_intermediate_ndof[8];
+    //float *m_calculated_intermediate_cov[8];
 
-    float m_true_daughter_px[4];
-    float m_true_daughter_py[4];
-    float m_true_daughter_pz[4];
+    float m_calculated_daughter_mass[20];
+    float m_calculated_daughter_ip[20];
+    float m_calculated_daughter_ipchi2[20];
+    float m_calculated_daughter_x[20];
+    float m_calculated_daughter_y[20];
+    float m_calculated_daughter_z[20];
+    float m_calculated_daughter_px[20];
+    float m_calculated_daughter_py[20];
+    float m_calculated_daughter_pz[20];
+    float m_calculated_daughter_pe[20];
+    float m_calculated_daughter_p[20];
+    float m_calculated_daughter_pt[20];
+    float m_calculated_daughter_s[20];
+    int   m_calculated_daughter_q[20];
+    float m_calculated_daughter_eta[20];
+    float m_calculated_daughter_rapidity[20];
+    float m_calculated_daughter_theta[20];
+    float m_calculated_daughter_phi[20];
+    float m_calculated_daughter_chi2[20];
+    int   m_calculated_daughter_ndof[20];
+    int   m_calculated_daughter_trid[20];
+    //float *m_calculated_daughter_cov[20];
 
-    float m_d12_DCA_3D;
-    float m_d13_DCA_3D;
-    float m_d23_DCA_3D;
-    float m_d14_DCA_3D;
-    float m_d24_DCA_3D;
-    float m_d34_DCA_3D;
+    float m_true_daughter_px[20];
+    float m_true_daughter_py[20];
+    float m_true_daughter_pz[20];
+
+    float m_daughter_dca[99];
     
     float m_calculated_vertex_x;
     float m_calculated_vertex_y;
     float m_calculated_vertex_z;
-    float *m_calculated_vertex_cov;
+    //float *m_calculated_vertex_cov;
    
     int m_nPVs;
     int m_multiplicity;
 
-    std::vector<float> detector_local_x[4]; // 7 subdetector including outer and inner hcal plus 4th tracker
-    std::vector<float> detector_local_y[4];
-    std::vector<float> detector_local_z[4];
-    std::vector<int> detector_layer[4];
-    std::vector<int> mvtx_staveID[4];
-    std::vector<int> mvtx_chipID[4];
-    std::vector<int> intt_ladderZID[4];
-    std::vector<int> intt_ladderPhiID[4];
-    std::vector<int> tpc_sectorID[4];
-    std::vector<int> tpc_side[4];
+    std::vector<float> detector_local_x[20]; // 7 subdetector including outer and inner hcal plus 4th tracker
+    std::vector<float> detector_local_y[20];
+    std::vector<float> detector_local_z[20];
+    std::vector<int> detector_layer[20];
+    std::vector<int> mvtx_staveID[20];
+    std::vector<int> mvtx_chipID[20];
+    std::vector<int> intt_ladderZID[20];
+    std::vector<int> intt_ladderPhiID[20];
+    std::vector<int> tpc_sectorID[20];
+    std::vector<int> tpc_side[20];
 
  protected:
 
+    bool m_has_intermediates_nTuple;
+    int m_num_tracks_nTuple;
+    int m_num_intermediate_states_nTuple;
     bool m_truth_matching;
     bool m_detector_info;
     SvtxEvalStack *m_svtx_evalstack;

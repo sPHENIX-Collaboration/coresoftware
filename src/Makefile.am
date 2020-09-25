@@ -15,25 +15,25 @@ AM_CPPFLAGS = \
   
 
 pkginclude_HEADERS = \
-  KFParticle_sPHENIX.h \
+  KFParticle_nTuple.h \
   KFParticle_Tools.h \
   KFParticle_MVA.h \
-  KFParticle_nTuple.h
+  KFParticle_sPHENIX.h
 
 if ! MAKEROOT6
   ROOT5_DICTS = \
-    KFParticle_sPHENIX_Dict.cc \
+    KFParticle_nTuple_Dict.cc \
     KFParticle_Tools_Dict.cc \
     KFParticle_MVA_Dict.cc \
-    KFParticle_nTuple_Dict.cc
+    KFParticle_sPHENIX_Dict.cc
 endif
 
 libkfparticle_sphenix_la_SOURCES = \
   $(ROOT5_DICTS) \
-  KFParticle_sPHENIX.cxx \
+  KFParticle_nTuple.cxx \
   KFParticle_Tools.cxx \
   KFParticle_MVA.cxx \
-  KFParticle_nTuple.cxx 
+  KFParticle_sPHENIX.cxx
 
 libkfparticle_sphenix_la_LDFLAGS = \
   -L$(libdir) \

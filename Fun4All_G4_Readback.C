@@ -22,6 +22,7 @@
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/Fun4AllHepMCInputManager.h>
 #include <kfparticle_sphenix/KFParticle_sPHENIX.h>
+#include <numeric>
 
 R__LOAD_LIBRARY(libkfparticle_sphenix.so)
 R__LOAD_LIBRARY(libfun4all.so)
@@ -31,11 +32,7 @@ R__LOAD_LIBRARY(libg4dst.so)
 
 using namespace std;
 
-int Fun4All_G4_Readback(
-    const int nEvents = 5e4,
-    const char *inputFile = "/sphenix/data/data03/sphnxpro/user/jinhuang/HF-production-meson-pp200-tracking/D0_piK/D0_piK_3001.cfg.root",
-    const char *outputFile = "G4sPHENIX_Readback.root")
-{
+int Fun4All_G4_Readback(){
   //---------------
   // Load libraries
   //---------------
@@ -45,71 +42,204 @@ int Fun4All_G4_Readback(
   //---------------
   // Fun4All server
   //---------------
-
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->Verbosity(5);
+  se->Verbosity(4);
+
+  //---------------
+  // Choose reco
+  //---------------
+  map<string, int> reconstructionChannel;
+  reconstructionChannel["D02K-pi+"] = 1;
+  reconstructionChannel["Bs2Jpsiphi"] = 0;
+  reconstructionChannel["Bd2D-pi+"] = 0;
+  reconstructionChannel["Upsilon"] = 0;
+  reconstructionChannel["testSpace"] = 0;
+
+  const int numberOfActiveRecos = accumulate( begin(reconstructionChannel), end(reconstructionChannel), 0, 
+                                              [](const int previous, const pair<const string, int>& element) 
+                                              { return previous + element.second; });
+
+  if (numberOfActiveRecos != 1)
+  {
+    if (numberOfActiveRecos == 0) printf("*\n*\n*\n* You have not enabled any reconstruction, exiting!\n*\n*\n*\n");
+    else
+    {
+        printf("*\n*\n*\n* You have more than one active reconstruction, exiting!\n*\n*\n*\n");
+        std::map<string, int>::iterator it;
+        for ( it = reconstructionChannel.begin(); it != reconstructionChannel.end(); it++ )
+            printf("You have set channel %s to %u\n", it->first.c_str(), it->second);
+    }
+    delete se;
+    gSystem->Exit(0);
+    return 1;
+  }
 
   //--------------
   // IO management
   //--------------
   // Hits file
   Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
-  //hitsin->fileopen(inputFile);
-  hitsin->AddListFile("fileList_zhaozhong.txt");
-  //hitsin->AddListFile("fileList.txt");
+  string fileList;
+  if (reconstructionChannel["D02K-pi+"] or reconstructionChannel["testSpace"]) fileList = "fileList_d2kpi.txt";
+  if (reconstructionChannel["Bs2Jpsiphi"]) fileList = "fileList_bs2jpsiphi.txt";
+  if (reconstructionChannel["Bd2D-pi+"] or reconstructionChannel["Upsilon"]) fileList = "fileList_bbbar.txt"; 
+  hitsin->AddListFile(fileList.c_str());
   se->registerInputManager(hitsin);
 
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
 
-  kfparticle->setNumberOfTracks(4);
-  std::pair<std::string, int> daughterList[99];
-  daughterList[0] = make_pair("electron", -1);
-  daughterList[1] = make_pair("electron", +1);
-  daughterList[2] = make_pair("kaon", -1);
-  daughterList[3] = make_pair("kaon", +1);
-  kfparticle->setDaughters( daughterList );
+  //General configurations
 
-  kfparticle->hasIntermediateStates(true);
-  std::pair<std::string, int> intermediateList[99];
-  intermediateList[0] = make_pair("J/psi", 0);
-  intermediateList[1] = make_pair("phi", 0);
-  kfparticle->setIntermediateStates( intermediateList );
-  std::pair<float, float> intermediateMassRange[99];
-  intermediateMassRange[0] = make_pair(3, 3.2);
-  intermediateMassRange[1] = make_pair(0.9, 1.2);
-  kfparticle->setIntermediateMassRange( intermediateMassRange );
-  int nIntTracks[99];
-  nIntTracks[0] = 2;
-  nIntTracks[1] = 2;
-  kfparticle->setNumberTracksFromIntermeditateState( nIntTracks );
-  float intPt[99];
-  intPt[0] = 0;
-  intPt[1] = 0;
-  kfparticle->setIntermediateMinPT( intPt );
+  const int nEvents = 1e3;
 
-  kfparticle->setMinimumMass(5.0);
-  kfparticle->setMaximumMass(5.6);
-  /*kfparticle->setMinimumTrackPT(0.10);
-  kfparticle->setMinimumTrackIPchi2(15);
+  kfparticle->setMinimumTrackPT(0.1);
+  kfparticle->setMinimumTrackIPchi2(10);
   kfparticle->setMaximumTrackchi2nDOF(1.5);
   kfparticle->setMaximumVertexchi2nDOF(5);
-  kfparticle->setMaximumDaughterDCA(0.3);
+  kfparticle->setMaximumDaughterDCA(0.03);
   kfparticle->setFlightDistancechi2(60);
   kfparticle->setMinDIRA(0.8);
-  kfparticle->setMotherPT(0);*/
-  kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(0);
-  kfparticle->setMaximumTrackchi2nDOF(100);
-  kfparticle->setMaximumVertexchi2nDOF(100);
-  kfparticle->setMaximumDaughterDCA(3);
-  kfparticle->setFlightDistancechi2(0);
-  kfparticle->setMinDIRA(0.);
   kfparticle->setMotherPT(0);
 
+  kfparticle->saveOutput(1);
   kfparticle->doTruthMatching(0);
   kfparticle->getDetectorInfo(0);
-  se->registerSubsystem(kfparticle);
 
+  std::pair<std::string, int> daughterList[99];
+  std::pair<std::string, int> intermediateList[99];
+  std::pair<float, float> intermediateMassRange[99];
+  int nIntTracks[99];
+  float intPt[99];
+
+
+  //D2Kpi reco
+  if (reconstructionChannel["D02K-pi+"])
+  {
+      kfparticle->setMinimumMass(1.7);
+      kfparticle->setMaximumMass(2.0);
+      kfparticle->setNumberOfTracks(2);
+      kfparticle->setMotherIPchi2(50);
+    
+      kfparticle->hasIntermediateStates(false);
+      daughterList[0] = make_pair("kaon", -1);
+      daughterList[1] = make_pair("pion", +1);
+
+      kfparticle->setOutputName("outputData_D2Kpi_example.root");
+  }
+
+
+  //Bs2Jpsiphi reco
+  if (reconstructionChannel["Bs2Jpsiphi"])
+  {
+      kfparticle->setMinimumMass(4.8);
+      kfparticle->setMaximumMass(6.0);
+      kfparticle->setNumberOfTracks(4);
+    
+    
+      kfparticle->hasIntermediateStates(true);
+      kfparticle->constrainIntermediateMasses(true);
+      kfparticle->setNumberOfIntermediateStates(2);
+    
+      intermediateList[0] = make_pair("J/psi", 0);
+      daughterList[0]     = make_pair("electron", -1);
+      daughterList[1]     = make_pair("electron", +1);
+      intermediateMassRange[0] = make_pair(2.5, 3.2);
+      nIntTracks[0] = 2;
+      intPt[0] = 0;
+    
+      intermediateList[1] = make_pair("phi", 0);
+      daughterList[2]     = make_pair("kaon", -1);
+      daughterList[3]     = make_pair("kaon", +1);
+      intermediateMassRange[1] = make_pair(0.9, 1.2);
+      nIntTracks[1] = 2;
+      intPt[1] = 0;
+
+      kfparticle->setOutputName("outputData_Bs2Jpsiphi_example.root");
+  }
+
+
+  //Bd2D-pi+ reco
+  if (reconstructionChannel["Bd2D-pi+"])
+  {
+      kfparticle->setMinimumMass(4.8);
+      kfparticle->setMaximumMass(6.0);
+      kfparticle->setNumberOfTracks(4);
+
+
+      kfparticle->hasIntermediateStates(true);
+      kfparticle->setNumberOfIntermediateStates(1);
+
+      intermediateList[0] = make_pair("D-", -1);
+      daughterList[0]     = make_pair("kaon", +1);
+      daughterList[1]     = make_pair("pion", -1);
+      daughterList[2]     = make_pair("pion", -1);
+      intermediateMassRange[0] = make_pair(1.7, 2.0);
+      nIntTracks[0] = 3;
+      intPt[0] = 0.;
+
+      daughterList[3] = make_pair("pion", +1);
+
+      kfparticle->setOutputName("outputData_Bd2Dmpip_example.root");
+  }
+
+
+  //Upsilon reco
+  if (reconstructionChannel["Upsilon"])
+  {
+      kfparticle->setMinimumMass(9);
+      kfparticle->setMaximumMass(11);
+      kfparticle->setNumberOfTracks(8);
+     
+     
+      kfparticle->hasIntermediateStates(true);
+      kfparticle->setNumberOfIntermediateStates(2);
+     
+      intermediateList[0] = make_pair("B0", 0);
+      daughterList[0]     = make_pair("kaon", +1);
+      daughterList[1]     = make_pair("pion", -1);
+      daughterList[2]     = make_pair("pion", -1);
+      daughterList[3]     = make_pair("pion", +1);
+      intermediateMassRange[0] = make_pair(4.8, 6);
+      nIntTracks[0] = 4;
+      intPt[0] = 0;
+     
+      intermediateList[1] = make_pair("B0", 0);
+      daughterList[4] = daughterList[0];
+      daughterList[5] = daughterList[1];
+      daughterList[6] = daughterList[2];
+      daughterList[7] = daughterList[3];
+      intermediateMassRange[1] = make_pair(4.8, 6);
+      nIntTracks[1] = 4;
+      intPt[1] = 0;
+
+      kfparticle->setOutputName("outputData_Upsilon_example.root");
+  }
+
+
+  //testSpace
+  if (reconstructionChannel["testSpace"])
+  {
+      kfparticle->setMinimumMass(1.7);
+      kfparticle->setMaximumMass(2.0);
+      kfparticle->setNumberOfTracks(3);
+    
+      kfparticle->hasIntermediateStates(false);
+      daughterList[0] = make_pair("kaon", -1);
+      daughterList[1] = make_pair("pion", +1);
+      daughterList[2] = make_pair("pion", +1);
+
+      kfparticle->setOutputName("testSpace.root");
+  }
+
+
+  //More general setup
+  kfparticle->setDaughters( daughterList );
+  kfparticle->setIntermediateStates( intermediateList );
+  kfparticle->setIntermediateMassRange( intermediateMassRange );
+  kfparticle->setNumberTracksFromIntermeditateState( nIntTracks );
+  kfparticle->setIntermediateMinPT( intPt );
+
+  se->registerSubsystem(kfparticle);
   //-----------------
   // Event processing
   //-----------------
