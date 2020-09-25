@@ -44,7 +44,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int RejectEvent();
   void Repeat(const int i = -1) { m_Repeat = i; }
   virtual void setSyncManager(Fun4AllSyncManager *master) { m_MySyncManager = master; }
-  int ResetFileList();
+  virtual int ResetFileList();
   virtual int ResetEvent() { return 0; }
   virtual void SetRunNumber(const int runno) { m_MyRunNumber = runno; }
   virtual int RunNumber() const { return m_MyRunNumber; }
