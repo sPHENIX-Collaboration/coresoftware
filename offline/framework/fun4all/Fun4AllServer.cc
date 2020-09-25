@@ -1359,11 +1359,11 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       // if the node tree needs resetting, we just push the current
       // event(s) (which are all properly synced at this point)
       // back into the input managers and just read again.
-      ResetNodeTree();
       for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
       {
         (*iter)->PushBackInputMgrsEvents(1);
       }
+      ResetNodeTree();
       continue;
     }
     if (iret)
