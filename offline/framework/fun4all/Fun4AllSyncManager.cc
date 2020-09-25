@@ -127,11 +127,21 @@ int Fun4AllSyncManager::run(const int nevnts)
       // read was successful (iret = 0) we push the event back
       if (iret)
       {
+        unsigned inputmgr_cnt = 0;
         vector<Fun4AllInputManager *>::const_iterator InIter;
+// set in the macro for Sync Manager. Permanently enabled (default when using syncman->Repeat(),
+// m_Repeat = -1 so the m_Repeat--; is not called, this is used when you give it a positive number of
+// repetitions
         if (m_Repeat)
         {
           for (InIter = m_InManager.begin(); InIter != m_InManager.end(); ++InIter)
           {
+	    if (m_iretInManager[inputmgr_cnt] == Fun4AllReturnCodes::EVENT_OK)
+	    {
+	      (*InIter)->PushBackEvents(1);
+	    }
+	    else
+	    {
             if ((*InIter)->IsOpen())
             {
               (*InIter)->fileclose();
@@ -142,6 +152,8 @@ int Fun4AllSyncManager::run(const int nevnts)
               cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
               exit(1);
             }
+	    inputmgr_cnt++;
+	    }
           }
           if (m_Repeat > 0)
           {
