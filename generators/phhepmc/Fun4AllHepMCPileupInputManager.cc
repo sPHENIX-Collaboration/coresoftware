@@ -130,7 +130,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
             }
           }
         }
-
         if (save_evt)
         {  // if an event was pushed back, copy saved pointer and
            // reset save_evt pointer
@@ -209,7 +208,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       assert(genevent);
       assert(evt);
       genevent->addEvent(evt);
-      cout << "handling event " << evt->event_number() << endl;
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
       genevent->moveVertex(0, 0, 0, t0);
@@ -217,7 +215,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
   }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
-
   return 0;
 }
 
@@ -225,4 +222,25 @@ int Fun4AllHepMCPileupInputManager::ResetEvent()
 {
   m_SignalEventNumber = 0;
   return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
+{
+  if (i == 1)
+  {
+  PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+  for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
+  {
+    cout << "key: " << iter->first << ", evtno: " << ((iter->second)->getEvent())->event_number() << endl;
+    if (iter->first < 0) // just background events from this input manager
+    {
+      m_SaveEventVector.push_back((iter->second)->getEvent());
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  }
+  return -1;
 }

@@ -36,10 +36,13 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 
   int SkipForThisManager(const int nevents);
   void SignalInputManager(Fun4AllHepMCInputManager *in) {m_SignalInputManager = in;}
+  int PushBackEvents(const int i);
 
  private:
   Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
+  std::vector<HepMC::GenEvent *> m_SaveEventVector;
   int m_SignalEventNumber = 0;
+  HepMC::GenEvent *save_evt = nullptr;
   /// past times are negative, future times are positive
   double _min_integration_time;
   double _max_integration_time;
