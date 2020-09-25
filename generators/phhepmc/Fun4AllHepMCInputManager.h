@@ -81,7 +81,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
-  int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
+  virtual int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
   int MyCurrentEvent(const unsigned int index=0) const;
 // copy helper settings from another HepMC Input Manager
   void CopyHelperSettings(Fun4AllHepMCInputManager *source);
@@ -98,7 +98,6 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 
   HepMC::IO_GenEvent *ascii_in = nullptr;
   HepMC::GenEvent *evt = nullptr;
-  HepMC::GenEvent *save_evt = nullptr;
 
   // some pointers for use in decompression handling
   std::ifstream *filestream = nullptr;  // holds compressed filestream
@@ -109,7 +108,12 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   PHHepMCGenHelper hepmc_helper;
 
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+
+private:
+
+  HepMC::GenEvent *save_evt = nullptr;
   std::vector<int> m_MyEvent;
+
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

@@ -73,6 +73,7 @@ Fun4AllHepMCInputManager::~Fun4AllHepMCInputManager()
   delete ascii_in;
   delete filestream;
   delete unzipstream;
+  delete save_evt;
 }
 
 int Fun4AllHepMCInputManager::fileopen(const string &filenam)
@@ -175,6 +176,8 @@ int Fun4AllHepMCInputManager::run(const int nevents)
 
     if (save_evt)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
     {
+//      hepmc_helper.get_geneventmap()->get_map().clear();
+      cout << "save evt: " << save_evt << ", evt: " << evt << endl;
       evt = save_evt;
       save_evt = nullptr;
     }
@@ -232,8 +235,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
         break;  // have a good event, move on
     }
   }  // attempt to retrieve a valid event from inputs
-
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int Fun4AllHepMCInputManager::fileclose()
@@ -280,7 +282,10 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
       {
         cout << Name() << ": pushing back evt no " << evt->event_number() << endl;
       }
-      save_evt = evt;
+      if (!save_evt)
+      {
+        save_evt = new HepMC::GenEvent(*evt);
+      }
       return 0;
     }
     cout << PHWHERE << Name()
