@@ -112,6 +112,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 private:
 
   HepMC::GenEvent *save_evt = nullptr;
+  int m_EventPushedBackFlag = 0;
   std::vector<int> m_MyEvent;
 
 };

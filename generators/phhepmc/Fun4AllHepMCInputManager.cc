@@ -27,6 +27,9 @@
 
 #include <TPRegexp.h>
 #include <TString.h>
+#include <TSystem.h>
+#include <TDirectory.h>
+#include <TROOT.h>
 
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -174,14 +177,17 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       }
     }
 
-    if (save_evt)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
+    if (m_EventPushedBackFlag)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
     {
-//      hepmc_helper.get_geneventmap()->get_map().clear();
-      cout << "save evt: " << save_evt << ", evt: " << evt << endl;
-      evt = new HepMC::GenEvent(*save_evt);
-//evt = ascii_in->read_next_event();
-      delete save_evt;
-      save_evt = nullptr;
+HepMC::IO_GenEvent ascii_tmp_in("hepmc.evt", std::ios::in);
+ ascii_tmp_in>> evt;
+ m_EventPushedBackFlag = 0;
+
+//     evt = new HepMC::GenEvent(*save_evt);
+      cout << "save_evt: " << save_evt << ", evt: " << evt << endl;
+// it will be deleted in ResetEvent which is executed after a successful read of all input managers
+      //delete save_evt;
+      //save_evt = nullptr;
     }
     else
     {
@@ -193,6 +199,9 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       {
         evt = ascii_in->read_next_event();
         save_evt = new HepMC::GenEvent(*evt);
+	// evt->print();
+	// cout << "save evt" << endl;
+	// save_evt->print();
       }
     }
 
@@ -218,8 +227,9 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
-	cout << "embedding id " << ievt->first << " exists" << endl;
+//        hepmc_helper.get_geneventmap()->erase(ievt->first);
         // override existing event
+        //hepmc_helper.insert_event(evt);
         ievt->second->addEvent(evt);
       }
       else
@@ -282,18 +292,20 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
   {
     if (i == 1 && evt)  // check on evt pointer makes sure it is not done from the cmd line
     {
+// root barfs when writing the node to the output. 
+// Saving the pointer - even using a deep copy and reusing it did not work
+// The hackaround which works is to write this event into a temporary file and read it back
+ HepMC::IO_GenEvent ascii_io ("hepmc.evt", std::ios::out);
+ascii_io << evt;
+m_EventPushedBackFlag = 1;
       if (Verbosity() > 3)
       {
         cout << Name() << ": pushing back evt no " << evt->event_number() << endl;
       }
-      // if (!save_evt)
-      // {
-      //   save_evt = new HepMC::GenEvent(*evt);
-      // }
       return 0;
     }
     cout << PHWHERE << Name()
-         << " Fun4AllHepMCInputManager cannot pop back events into file"
+         << " Fun4AllHepMCInputManager cannot pop back more than 1 event"
          << endl;
     return -1;
   }
@@ -410,7 +422,9 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
 
 int Fun4AllHepMCInputManager::ResetEvent()
 {
-  cout << "Calling ResetEvent" << endl;
+// delete our internal deep copy again
+// we need to keep this around in case an input manager
+// returns an error and recovers
   delete save_evt;
   save_evt = nullptr;
   m_MyEvent.clear();
