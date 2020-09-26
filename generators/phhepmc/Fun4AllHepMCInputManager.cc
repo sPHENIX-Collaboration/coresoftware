@@ -76,7 +76,6 @@ Fun4AllHepMCInputManager::~Fun4AllHepMCInputManager()
   delete ascii_in;
   delete filestream;
   delete unzipstream;
-  delete save_evt;
 }
 
 int Fun4AllHepMCInputManager::fileopen(const string &filenam)
@@ -177,17 +176,12 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       }
     }
 
-    if (m_EventPushedBackFlag)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
+    if (m_EventPushedBackFlag)  // if an event was pushed back, reuse save copy
     {
 HepMC::IO_GenEvent ascii_tmp_in("hepmc.evt", std::ios::in);
  ascii_tmp_in>> evt;
  m_EventPushedBackFlag = 0;
 
-//     evt = new HepMC::GenEvent(*save_evt);
-      cout << "save_evt: " << save_evt << ", evt: " << evt << endl;
-// it will be deleted in ResetEvent which is executed after a successful read of all input managers
-      //delete save_evt;
-      //save_evt = nullptr;
     }
     else
     {
@@ -198,10 +192,6 @@ HepMC::IO_GenEvent ascii_tmp_in("hepmc.evt", std::ios::in);
       else
       {
         evt = ascii_in->read_next_event();
-        save_evt = new HepMC::GenEvent(*evt);
-	// evt->print();
-	// cout << "save evt" << endl;
-	// save_evt->print();
       }
     }
 
@@ -243,6 +233,7 @@ HepMC::IO_GenEvent ascii_tmp_in("hepmc.evt", std::ios::in);
       // check if the local SubsysReco discards this event
       if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
       {
+	m_MyEvent.pop_back();
         ResetEvent();
       }
       else
@@ -286,7 +277,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
   // PushBackEvents is supposedly pushing events back on the stack which works
   // easily with root trees (just grab a different entry) but hard in these HepMC ASCII files.
   // A special case is when the synchronization fails and we need to only push back a single
-  // event. In this case we save the evt pointer as save_evt which is used in the run method
+  // event. In this case we save the evt in a temporary file which is read back in the run method
   // instead of getting the next event.
   if (i > 0)
   {
@@ -298,6 +289,8 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
  HepMC::IO_GenEvent ascii_io ("hepmc.evt", std::ios::out);
 ascii_io << evt;
 m_EventPushedBackFlag = 1;
+	m_MyEvent.pop_back();
+
       if (Verbosity() > 3)
       {
         cout << Name() << ": pushing back evt no " << evt->event_number() << endl;
@@ -422,11 +415,6 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
 
 int Fun4AllHepMCInputManager::ResetEvent()
 {
-// delete our internal deep copy again
-// we need to keep this around in case an input manager
-// returns an error and recovers
-  delete save_evt;
-  save_evt = nullptr;
   m_MyEvent.clear();
   return 0;
 }
