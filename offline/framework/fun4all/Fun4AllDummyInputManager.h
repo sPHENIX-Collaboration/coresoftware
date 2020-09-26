@@ -19,12 +19,13 @@ class Fun4AllDummyInputManager : public Fun4AllInputManager
   virtual ~Fun4AllDummyInputManager() {}
   int fileopen(const std::string&) {return 0;}
   int fileclose() { return 0; }
-  int isOpen() { return 1; }
+  int IsOpen() const { return 1; }
   int run(const int /*nevents=0*/);
   int GetSyncObject(SyncObject** /*mastersync*/) { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
   int SyncIt(const SyncObject* /*mastersync*/) { return Fun4AllReturnCodes::SYNC_OK; }
   void setSyncManager(Fun4AllSyncManager* master);
   int PushBackEvents(const int nevt);
+  int NoSyncPushBackEvents(const int nevt) {return PushBackEvents(nevt);}
   int ResetFileList(); 
 
  private:
