@@ -1345,7 +1345,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       // their data. This is why
       // the whole node tree is resetted whenever one of the Sync Managers
       // requires it.
-      if (retval == 1)
+      if (retval == Fun4AllReturnCodes::RESET_NODE_TREE)
       {
         resetnodetree = 1;
       }
@@ -1364,7 +1364,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         (*iter)->PushBackInputMgrsEvents(1);
       }
       ResetNodeTree();
-      continue;
+      continue; // go back to run loop
     }
     if (iret)
     {
@@ -1454,6 +1454,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     }
 
     ++icnt;  // completed one event processing
+
     if (require_nevents)
     {
       if (std::find(RetCodes.begin(),
