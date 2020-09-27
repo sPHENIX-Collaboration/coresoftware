@@ -39,14 +39,6 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_rphi_search_window_lyr2(const double win){_rphi_search_win_2 = win;}
   void set_z_search_window_lyr2(const double win){_z_search_win_2 = win;}
 
-  void set_field_dir(const double rescale)
-  {
-    _fieldDir = -1;
-    if(rescale > 0)
-      _fieldDir = 1;     
-  }
-  void set_field(const std::string field) { _field = field;}
-
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -58,12 +50,11 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 
   int GetNodes(PHCompositeNode* topNode);
 
-  float line_circle_intersection(float x[], float y[], float z[], float radius);
-  void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
+   void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
   void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
   
   // default values, can be replaced from the macro, all in cm
-  double _rphi_search_win_1 = 0.20; 
+  double _rphi_search_win_1 = 0.25; 
   double _z_search_win_1 = 13.0;
   double _rphi_search_win_2 = 13.0;  
   double _z_search_win_2 = 0.25;
@@ -74,14 +65,12 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   double _yplus[2] = {0, 0};
   double _xminus[2] = {0, 0};
   double _yminus[2] = {0, 0};
+  double _z[2] = {0, 0};
 
   double _min_tpc_layer = 45;
   double _min_mm_layer = 55;
   
   SvtxTrack *_tracklet_tpc{nullptr};
-
-  std::string _field;
-  int _fieldDir = -1;
 
 };
 

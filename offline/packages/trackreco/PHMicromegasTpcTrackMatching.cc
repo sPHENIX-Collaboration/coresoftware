@@ -118,12 +118,15 @@ int PHMicromegasTpcTrackMatching::Process()
 	    std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
 		      << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " outer_clusters.size() " << outer_clusters.size() << std::endl;
 	}
-      
+
+
+      // need at least 3 clusters to fit a circle
       if(outer_clusters.size() < 3)
 	{
 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough outer clusters " << std::endl; 
 	  continue;
 	}
+
 
       // fit a circle to the clusters
       double R, X0, Y0;
@@ -133,14 +136,11 @@ int PHMicromegasTpcTrackMatching::Process()
       // toss tracks for which the fitted circle could not have come from the vertex
       if(R < 40.0) continue;
 
-      // make the function to extrapolate linearly to the micromegas layers
-      // find the most extreme layers
-      TrkrCluster *clus_layers[2];      
+      // get the line to project the track Z to the micromegas layers
       unsigned int max_layer = 0;
       unsigned int min_layer = 100;
       TrkrCluster *clus_min_layer = 0;      
       TrkrCluster *clus_max_layer = 0;
-
       for(auto clus_iter=outer_clusters.begin(); clus_iter != outer_clusters.end(); ++clus_iter)
 	{
 	  unsigned int layer = clus_iter->first;	  
@@ -156,20 +156,11 @@ int PHMicromegasTpcTrackMatching::Process()
 	    }
 	}
 
-      clus_layers[0] = clus_min_layer;
-      clus_layers[1] = clus_max_layer;
-
       // get the straight line representing the z trajectory in the form of z vs radius
       double zclus1= clus_min_layer->getZ();
       double rclus1 = sqrt(clus_min_layer->getX()*clus_min_layer->getX() + clus_min_layer->getY()*clus_min_layer->getY() );
       double zclus2 = clus_max_layer->getZ();
       double rclus2 = sqrt(clus_max_layer->getX()*clus_max_layer->getX() + clus_max_layer->getY()*clus_max_layer->getY() );
-
-      // define the straight line joining the two clusters
-      // make sure the cluster in the inner layer is in [0]
-      float xl[2] = {clus_layers[0]->getX(), clus_layers[1]->getX()};
-      float yl[2] = {clus_layers[0]->getY(), clus_layers[1]->getY()};
-      float zl[2] = {clus_layers[0]->getZ(), clus_layers[1]->getZ()};
 
       // Project this TPC tracklet  to the two micromegas layers and store the projections
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
@@ -190,10 +181,15 @@ int PHMicromegasTpcTrackMatching::Process()
 	    std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
 	    continue;
 	  }
+
 	_xplus[imm] = xplus;
 	_yplus[imm] = yplus;
 	_xminus[imm] = xminus;
 	_yminus[imm] = yminus;
+
+	// project z position
+	_z[imm] = zclus2 + (zclus2 - zclus1) / (rclus2-rclus1) * (_mm_layer_radius[imm] - rclus2);
+
       }
 
       // loop over the micromegas clusters and find any within the search windows
@@ -224,68 +220,37 @@ int PHMicromegasTpcTrackMatching::Process()
 	  double mm_radius = sqrt(pow(mm_clus->getX(), 2) + pow(mm_clus->getY(), 2) );
 	  double mm_clus_rphi = mm_radius * atan2(mm_clus->getY(), mm_clus->getX());
 
-	  float x_proj, y_proj, z_proj, rphi_proj,radius_proj;
+	  double x_proj, y_proj, z_proj, rphi_proj,radius_proj;
+
+	  // z projection is unique
+	  z_proj = _z[imm];
 
 	  // choose the circle fit answer closest to the micromegas cluster in phi
 	  double rphi_plus = mm_radius* atan2(_yplus[imm], _xplus[imm]);
 	  double rphi_minus = mm_radius * atan2(_yminus[imm], _xminus[imm]);
-	  double x_proj_circle;
-	  double y_proj_circle;
-	  double rphi_proj_circle;
 	  if( fabs(rphi_plus - mm_clus_rphi) < fabs(rphi_minus - mm_clus_rphi) )
 	    {
-	      rphi_proj_circle = rphi_plus; 
-	      x_proj_circle = _xplus[imm];
-	      y_proj_circle = _yplus[imm];
+	      rphi_proj = rphi_plus; 
+	      x_proj = _xplus[imm];
+	      y_proj = _yplus[imm];
 	    }
 	  else
 	    {
-	      rphi_proj_circle = rphi_minus; 
-	      x_proj_circle = _xminus[imm];
-	      y_proj_circle = _yminus[imm];
+	      rphi_proj = rphi_minus; 
+	      x_proj = _xminus[imm];
+	      y_proj = _yminus[imm];
 	    }
 
-	  double radius_proj_circle;
-	  radius_proj_circle = sqrt(x_proj_circle*x_proj_circle + y_proj_circle*y_proj_circle);
-
-	  // find where z projects to on the micromegas layer
-	  double z_proj_circle = zclus2 + (mm_radius - rclus2) * (zclus2 - zclus1) / (rclus2 - rclus1) ;
+	  radius_proj = sqrt(x_proj*x_proj + y_proj*y_proj);
 
 	  if(Verbosity() > 3)
-	    std::cout << "     circle:  radius_proj " << radius_proj_circle << " x_proj " << x_proj_circle 
-		      << " y_proj " << y_proj_circle << " z_proj " << z_proj_circle  
-		      << " rphi_proj " << rphi_proj_circle << std::endl;
+	    std::cout << "     circle:  radius_proj " << radius_proj << " x_proj " << x_proj 
+		      << " y_proj " << y_proj << " z_proj " << z_proj  
+		      << " rphi_proj " << rphi_proj << std::endl;
 
-	  float t = NAN;	  
-	  t = line_circle_intersection(xl, yl, zl, mm_radius);
-	  if (t > 0)
-	    {
-	      x_proj = xl[0] + t * (xl[1] - xl[0]);
-	      y_proj = yl[0] + t * (yl[1] - yl[0]);
-	      z_proj = zl[0] + t * (zl[1] - zl[0]);
-	      rphi_proj = atan2(y_proj, x_proj) * mm_radius;	  
-	      radius_proj = sqrt(x_proj*x_proj + y_proj * y_proj);
+	  rphi_proj = rphi_proj;
 
-	      if(Verbosity() > 3)
-		{
-		  std::cout << "     linear:  radius_proj " << radius_proj << " x_proj " << x_proj 
-			    << " y_proj " << y_proj << " z_proj " << z_proj << " rphi_proj " << rphi_proj 
-			    << std::endl;
-		}
-	    }
-	  else
-	    {
-	      std::cout << "    line-circle intersetion fit failed, skip this micromegas cluster " << endl;
-	    continue;
-	    }
-
-	  bool use_circle = true;
-	  if(use_circle)
-	    {
-	      rphi_proj = rphi_proj_circle;
-	      z_proj = z_proj_circle;
-	    }
-
+	  
 	  if(layer == 55)
 	    {
 	      if(Verbosity() > 3)
@@ -377,43 +342,6 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
   
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-float  PHMicromegasTpcTrackMatching::line_circle_intersection(float x[], float y[], float z[], float radius)
-{
-  // parameterize the line in terms of t (distance along the line segment, from 0-1) as
-  // x = x0 + t * (x1-x0); y=y0 + t * (y1-y0); z = z0 + t * (z1-z0)
-  // parameterize the cylinder (centered at x,y = 0,0) as  x^2 + y^2 = radius^2,   then
-  // (x0 + t*(x1-z0))^2 + (y0+t*(y1-y0))^2 = radius^2
-  // (x0^2 + y0^2 - radius^2) + (2x0*(x1-x0) + 2y0*(y1-y0))*t +  ((x1-x0)^2 + (y1-y0)^2)*t^2 = 0 = C + B*t + A*t^2
-  // quadratic with:  A = (x1-x0)^2+(y1-y0)^2 ;  B = 2x0*(x1-x0) + 2y0*(y1-y0);  C = x0^2 + y0^2 - radius^2
-  // solution: t = (-B +/- sqrt(B^2 - 4*A*C)) / (2*A)
-
-  float A = (x[1] - x[0]) * (x[1] - x[0]) + (y[1] - y[0]) * (y[1] - y[0]);
-  float B = 2.0 * x[0] * (x[1] - x[0]) + 2.0 * y[0] * (y[1] - y[0]);
-  float C = x[0] * x[0] + y[0] * y[0] - radius * radius;
-  float tup = (-B + sqrt(B * B - 4.0 * A * C)) / (2.0 * A);
-  float tdn = (-B - sqrt(B * B - 4.0 * A * C)) / (2.0 * A);
-
-  // The limits are 0 and 1, but we allow a little for floating point precision
-  float t;
-  if (tdn >= 0)
-    t = tdn;
-  else if (tup > 0)
-    t = tup;
-  else
-  {
-    cout << PHWHERE << "   **** Oops! No valid solution for tup or tdn, tdn = " << tdn << " tup = " << tup << endl;
-    cout << "   radius " << radius << " rbegin " << sqrt(x[0] * x[0] + y[0] * y[0]) << " rend " << sqrt(x[1] * x[1] + y[1] * y[1]) << endl;
-    cout << "   x0 " << x[0] << " x1 " << x[1] << endl;
-    cout << "   y0 " << y[0] << " y1 " << y[1] << endl;
-    cout << "   z0 " << z[0] << " z1 " << z[1] << endl;
-    cout << "   A " << A << " B " << B << " C " << C << endl;
-
-    t = -1;
-  }
-
-  return t;
 }
 
 void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0)
