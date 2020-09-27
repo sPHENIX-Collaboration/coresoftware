@@ -37,6 +37,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
+  DumpPHHepMCGenEventMap.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
@@ -60,6 +61,7 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lg4detectors_io \
   -lg4jets_io \
+  -lHepMC \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io \
