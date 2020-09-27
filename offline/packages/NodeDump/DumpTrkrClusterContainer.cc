@@ -36,14 +36,14 @@ int DumpTrkrClusterContainer::process_Node(PHNode *myNode)
     for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
     {
       TrkrCluster *trkrcluster = hiter->second;
-	*fout << "getX: " << trkrcluster->getX() << endl;
-	*fout << "getY: " << trkrcluster->getY() << endl;
-	*fout << "getZ: " << trkrcluster->getZ() << endl;
-	*fout << "getAdc: " << trkrcluster->getAdc() << endl;
-	*fout << "getPhiSize: " << trkrcluster->getPhiSize() << endl;
-	*fout << "getPhiError: " << trkrcluster->getPhiError() << endl;
-	*fout << "getRPhiError: " << trkrcluster->getRPhiError() << endl;
-	*fout << "getZError: " << trkrcluster->getZError() << endl;
+      *fout << "getX: " << trkrcluster->getX() << endl;
+      *fout << "getY: " << trkrcluster->getY() << endl;
+      *fout << "getZ: " << trkrcluster->getZ() << endl;
+      *fout << "getAdc: " << trkrcluster->getAdc() << endl;
+      *fout << "getPhiSize: " << trkrcluster->getPhiSize() << endl;
+      *fout << "getPhiError: " << trkrcluster->getPhiError() << endl;
+      *fout << "getRPhiError: " << trkrcluster->getRPhiError() << endl;
+      *fout << "getZError: " << trkrcluster->getZError() << endl;
     }
   }
   return 0;
