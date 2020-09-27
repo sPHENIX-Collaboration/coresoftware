@@ -283,7 +283,7 @@ int Fun4AllServer::unregisterSubsystem(SubsysReco *subsystem)
 
 int Fun4AllServer::unregisterSubsystemsNow()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator sysiter, removeiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter, removeiter;
   for (removeiter = DeleteSubsystems.begin();
        removeiter != DeleteSubsystems.end();
        ++removeiter)
@@ -330,7 +330,7 @@ int Fun4AllServer::unregisterSubsystemsNow()
 SubsysReco *
 Fun4AllServer::getSubsysReco(const string &name)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator sysiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter;
   for (sysiter = Subsystems.begin(); sysiter != Subsystems.end(); ++sysiter)
   {
     if ((*sysiter).first->Name() == name)
@@ -386,7 +386,7 @@ int Fun4AllServer::registerOutputManager(Fun4AllOutputManager *manager)
 int Fun4AllServer::UpdateEventSelector(Fun4AllOutputManager *manager)
 {
   vector<string>::iterator striter;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator subsysiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator subsysiter;
 
 tryagain:
   manager->RecoModuleIndex()->clear();
@@ -499,7 +499,6 @@ TNamed *Fun4AllServer::getHisto(const string &hname) const
 {
   return (ServerHistoManager->getHisto(hname));
 }
-
 
 int Fun4AllServer::process_event()
 {
@@ -749,7 +748,7 @@ int Fun4AllServer::ResetNodeTree()
 int Fun4AllServer::Reset()
 {
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
@@ -800,7 +799,7 @@ int Fun4AllServer::BeginRun(const int runno)
     beginruntimestamp->print();
     cout << endl;
   }
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   int iret;
 
   // check if any registered SubsysReco wants to be dropped and
@@ -964,7 +963,7 @@ int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
 
 int Fun4AllServer::EndRun(const int runno)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
@@ -1018,7 +1017,7 @@ int Fun4AllServer::End()
   recoConsts *rc = recoConsts::instance();
   EndRun(rc->get_IntFlag("RUNNUMBER"));  // call SubsysReco EndRun methods for current run
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
@@ -1121,7 +1120,7 @@ void Fun4AllServer::Print(const string &what) const
          << endl;
     cout << "List of Subsystems in Fun4AllServer:" << endl;
 
-    vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator miter;
+    vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator miter;
     for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
     {
       cout << (*miter).first->Name()
@@ -1364,7 +1363,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         (*iter)->PushBackInputMgrsEvents(1);
       }
       ResetNodeTree();
-      continue; // go back to run loop
+      continue;  // go back to run loop
     }
     if (iret)
     {
@@ -1476,13 +1475,13 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 int Fun4AllServer::skip(const int nevnts)
 {
   int iret = 0;
-  if (nevnts > 0) // do not execute for nevnts == 0
+  if (nevnts > 0)  // do not execute for nevnts == 0
   {
-  vector<Fun4AllSyncManager *>::const_iterator iter;
-  for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
-  {
-    iret += (*iter)->skip(nevnts);
-  }
+    vector<Fun4AllSyncManager *>::const_iterator iter;
+    for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
+    {
+      iret += (*iter)->skip(nevnts);
+    }
   }
   return iret;
 }
@@ -1596,7 +1595,7 @@ void Fun4AllServer::GetOutputManagerList(std::vector<std::string> &names) const
 void Fun4AllServer::GetModuleList(std::vector<std::string> &names) const
 {
   names.clear();
-  vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     names.push_back((*iter).first->Name());
