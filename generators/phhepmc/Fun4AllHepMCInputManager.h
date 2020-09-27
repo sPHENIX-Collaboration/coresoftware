@@ -30,7 +30,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   Fun4AllHepMCInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   virtual ~Fun4AllHepMCInputManager();
   virtual int fileopen(const std::string &filenam);
-  virtual int fileclose();
+  int fileclose();
   virtual int run(const int nevents = 0);
   virtual int ResetEvent();
   void ReadOscar(const int i) { m_ReadOscarFlag = i; }

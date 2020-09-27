@@ -34,6 +34,7 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -363,7 +364,7 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
   vector<HepMC::FourVector> theVtxVec;
   while (getline(theOscarFile, theLine))
   {
-    if (theLine.find("#") == 0) continue;
+    if (theLine.compare(0,1,"#") == 0) continue;
     vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
     double number = NAN;
     for (istringstream numbers_iss(theLine); numbers_iss >> number;)
