@@ -52,7 +52,7 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   set_embedding_id(0);  // default embedding ID. Welcome to change via macro
 
   Fun4AllServer *se = Fun4AllServer::instance();
-  topNode = se->topNode(topNodeName.c_str());
+  topNode = se->topNode(topNodeName);
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = se->getNode(InputNode(), topNodeName);
 
@@ -94,7 +94,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
   }
   filename = filenam;
   FROG frog;
-  string fname(frog.location(filename.c_str()));
+  string fname(frog.location(filename));
   if (Verbosity() > 0)
   {
     cout << Name() << ": opening file " << fname << endl;
@@ -102,7 +102,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
 
   if (m_ReadOscarFlag)
   {
-    theOscarFile.open(fname.c_str());
+    theOscarFile.open(fname);
   }
   else
   {
@@ -112,7 +112,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     if (tstr.Contains(bzip_ext))
     {
       // use boost iosteam library to decompress bz2 on the fly
-      filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+      filestream = new ifstream(fname, std::ios::in | std::ios::binary);
       zinbuffer.push(boost::iostreams::bzip2_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
@@ -121,7 +121,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     else if (tstr.Contains(gzip_ext))
     {
       // use boost iosream to decompress the gzip file on the fly
-      filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+      filestream = new ifstream(fname, std::ios::in | std::ios::binary);
       zinbuffer.push(boost::iostreams::gzip_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
@@ -217,9 +217,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
-//        hepmc_helper.get_geneventmap()->erase(ievt->first);
         // override existing event
-        //hepmc_helper.insert_event(evt);
         ievt->second->addEvent(evt);
       }
       else
