@@ -174,12 +174,18 @@ if(m_useVertexMeasurement){
 	continue;
       }
     }
+    else if (trkrId == TrkrDefs::micromegasId)
+      {
+	// skip micromegas for now
+	continue;
+      }
     else
     {
       std::cout << "Invalid trkrId found in " << PHWHERE
                 << std::endl
                 << "Skipping this cluster"
                 << std::endl;
+	continue;
     }
 
     /// ====================================================

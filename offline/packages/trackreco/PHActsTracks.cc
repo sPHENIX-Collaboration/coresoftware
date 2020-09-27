@@ -166,6 +166,14 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     {
       const TrkrDefs::cluskey key = *clusIter;
 
+      // skip micromegas layers for now
+      unsigned int layer = TrkrDefs::getLayer(key);
+      if(layer > 54)
+	{
+	  std::cout << PHWHERE << "Found micromegas layer " << layer << " in track " << std::endl;
+	  continue;
+	}
+
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
  
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
