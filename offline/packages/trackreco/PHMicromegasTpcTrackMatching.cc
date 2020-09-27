@@ -45,10 +45,10 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
 
   std::cout << std::endl << PHWHERE 
-	    << " rphi_search_win_1 " << _rphi_search_win_1
-	    << " z_search_win_1 " << _z_search_win_1
-	    << " rphi_search_win_2 " << _rphi_search_win_2
-	    << " z_search_win_2 " << _z_search_win_2
+	    << " rphi_search_win inner layer " << _rphi_search_win[0]
+	    << " z_search_win inner layer " << _z_search_win[0]
+	    << " rphi_search_win outer layer " << _rphi_search_win[1]
+	    << " z_search_win outer layer " << _z_search_win[1]
 	    << endl;
 
   int ret = PHTrackPropagating::Setup(topNode);
@@ -69,6 +69,8 @@ int PHMicromegasTpcTrackMatching::Process()
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << endl;
+
+  bool test_search_windows = false;   // testing only
 
  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
@@ -193,8 +195,7 @@ int PHMicromegasTpcTrackMatching::Process()
       }
 
       // loop over the micromegas clusters and find any within the search windows
-      std::vector<TrkrDefs::cluskey> mm_matches_1;
-      std::vector<TrkrDefs::cluskey> mm_matches_2;
+      std::vector<TrkrDefs::cluskey> mm_matches[2];
       TrkrDefs::TrkrId mm_trkrid = TrkrDefs::micromegasId;; 
       TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters(mm_trkrid);
        for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
@@ -244,55 +245,33 @@ int PHMicromegasTpcTrackMatching::Process()
 	  radius_proj = sqrt(x_proj*x_proj + y_proj*y_proj);
 
 	  if(Verbosity() > 3)
-	    std::cout << "     circle:  radius_proj " << radius_proj << " x_proj " << x_proj 
+	    std::cout << "     radius_proj " << radius_proj << " x_proj " << x_proj 
 		      << " y_proj " << y_proj << " z_proj " << z_proj  
 		      << " rphi_proj " << rphi_proj << std::endl;
 
 	  rphi_proj = rphi_proj;
 
-	  
-	  if(layer == 55)
+	  if(Verbosity() > 3)
 	    {
-	      if(Verbosity() > 3)
-		{
-		  std::cout << "     test for match in layer " << layer << " _rphi_search_win_1 " << _rphi_search_win_1
-			    << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z
-			    << " _z_search_win_1 " << _z_search_win_1 
-			    << std::endl;
-		}
-	      
-	      
-	      if(fabs(rphi_proj - mm_clus_rphi) < _rphi_search_win_1 && fabs(z_proj - mm_clus_z) < _z_search_win_1)
-		{
-		  std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
-			    << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << std::endl;
-		  mm_matches_1.push_back(mm_cluskey);
-		}
+	      std::cout << "     test for match in layer " << layer << " _rphi_search_win_1 " << _rphi_search_win[imm]
+			<< " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z
+			<< " _z_search_win " << _z_search_win[imm] 
+			<< std::endl;
 	    }
 	  
-	  if(layer == 56)
+	  if(fabs(rphi_proj - mm_clus_rphi) < _rphi_search_win[imm] && fabs(z_proj - mm_clus_z) < _z_search_win[imm])
 	    {
-	      if(Verbosity() > 3)
-		{
-		  std::cout << "     test for match in layer " << layer << " _rphi_search_win_2 " << _rphi_search_win_2
-			    << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z
-			    << " _z_search_win_2 " << _z_search_win_2 
-			    << std::endl;
-		}
-	      
-	      
-	      if(fabs(z_proj - mm_clus_z) < _z_search_win_2 && fabs(rphi_proj - mm_clus_rphi) < _rphi_search_win_2)
-		{
-		  std::cout << "    deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
-			    << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << std::endl;
-		  mm_matches_2.push_back(mm_cluskey);
-		}
-	    }	  
+	      mm_matches[imm].push_back(mm_cluskey);
+
+	      if(test_search_windows)
+		std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
+			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
+	    }
 	}
-      
-      // skip no match or multiple match cases for now
-      if(mm_matches_1.size() != 1) continue;
-      if(mm_matches_2.size() != 1) continue;
+       
+       // skip no match or multiple match cases for now
+       if(mm_matches[0].size() != 1) continue;
+      if(mm_matches[1].size() != 1) continue;
       
       if(Verbosity() > 3)
 	{
@@ -301,23 +280,17 @@ int PHMicromegasTpcTrackMatching::Process()
 	}
       
       // Add the micromegas clusters to the track
-      
-      if(Verbosity() > 3)
-	std::cout << "  insert cluster key " << mm_matches_1[0] << " into tracklet " << _tracklet_tpc->get_id() << std::endl;
-      /*
-      // don't do this until surfaces are in Acts geometry
-      _tracklet_tpc->insert_cluster_key(mm_matches_1[0]);
-      _assoc_container->SetClusterTrackAssoc(mm_matches_1[0], _tracklet_tpc->get_id());
-      */
-      
-      if(Verbosity() > 3)
-	std::cout << "  insert cluster key " << mm_matches_2[0] << " into tracklet " << _tracklet_tpc->get_id() << std::endl;
-      
-      /*
-      // don't do this until surfaces are in Acts geometry
-      _tracklet_tpc->insert_cluster_key(mm_matches_2[0]);
-      _assoc_container->SetClusterTrackAssoc(mm_matches_2[0], _tracklet_tpc->get_id());
-      */
+
+      for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
+	{      
+	  if(Verbosity() > 3)
+	    std::cout << "  insert cluster key " << mm_matches[imm][0] << " into tracklet " << _tracklet_tpc->get_id() << std::endl;
+	  
+	  // don't run Acts tracking until surfaces are in Acts geometry
+	  _tracklet_tpc->insert_cluster_key(mm_matches[imm][0]);
+	  _assoc_container->SetClusterTrackAssoc(mm_matches[imm][0], _tracklet_tpc->get_id());
+	}
+
       if(Verbosity() > 3)
 	_tracklet_tpc->identify();
       
