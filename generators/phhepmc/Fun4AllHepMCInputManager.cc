@@ -286,12 +286,13 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
 // The hackaround which works is to write this event into a temporary file and read it back
       if (m_HepMCTmpFile.empty())
       {
+        // we need to create this filename just once, we reuse it. Do it only if we need it
 	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + to_string(getpid()) + ".evt";
       }
       HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
-ascii_io << evt;
-m_EventPushedBackFlag = 1;
-	m_MyEvent.pop_back();
+      ascii_io << evt;
+      m_EventPushedBackFlag = 1;
+      m_MyEvent.pop_back();
 
       if (Verbosity() > 3)
       {
@@ -343,13 +344,12 @@ m_EventPushedBackFlag = 1;
 HepMC::GenEvent *
 Fun4AllHepMCInputManager::ConvertFromOscar()
 {
-  delete evt;
-  evt = nullptr;
   if (theOscarFile.eof())  // if the file is exhausted bail out during this next read
   {
-    return evt;
+    return nullptr;
   }
 
+  delete evt;
   //use PHENIX unit
   evt = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::CM);
 
