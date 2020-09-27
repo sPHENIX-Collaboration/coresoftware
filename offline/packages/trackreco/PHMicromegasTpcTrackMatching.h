@@ -34,10 +34,10 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 
   virtual ~PHMicromegasTpcTrackMatching();
 
-  void set_rphi_search_window_1(const double win){_rphi_search_win_1 = win;}
-  void set_z_search_window_1(const double win){_z_search_win_1 = win;}
-  void set_rphi_search_window_2(const double win){_rphi_search_win_2 = win;}
-  void set_z_search_window_2(const double win){_z_search_win_2 = win;}
+  void set_rphi_search_window_lyr1(const double win){_rphi_search_win_1 = win;}
+  void set_z_search_window_lyr1(const double win){_z_search_win_1 = win;}
+  void set_rphi_search_window_lyr2(const double win){_rphi_search_win_2 = win;}
+  void set_z_search_window_lyr2(const double win){_z_search_win_2 = win;}
 
   void set_field_dir(const double rescale)
   {
@@ -63,23 +63,22 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
   
   // default values, can be replaced from the macro, all in cm
-  double _rphi_search_win_1 = 0.15; 
+  double _rphi_search_win_1 = 0.20; 
   double _z_search_win_1 = 13.0;
   double _rphi_search_win_2 = 13.0;  
   double _z_search_win_2 = 0.25;
-  
+
+  unsigned int _n_mm_layers = 2;
+  double _mm_layer_radius[2] = { 82.2565, 82.6998};
+  double _xplus[2] = {0, 0};
+  double _yplus[2] = {0, 0};
+  double _xminus[2] = {0, 0};
+  double _yminus[2] = {0, 0};
+
   double _min_tpc_layer = 45;
   double _min_mm_layer = 55;
   
   SvtxTrack *_tracklet_tpc{nullptr};
-
-  /*
-  TF1 *fdphi{nullptr};
-  // default values, can be replaced from the macro
-  double _par0 =  -0.000650;
-  double _par1 =  0.13373;
-  double _par2 =  0.98298;
-  */
 
   std::string _field;
   int _fieldDir = -1;

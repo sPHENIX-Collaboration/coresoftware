@@ -130,8 +130,10 @@ int PHMicromegasTpcTrackMatching::Process()
       CircleFitByTaubin(clusters, R, X0, Y0);
       if(Verbosity() > 3) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
+      // toss tracks for which the fitted circle could not have come from the vertex
+      if(R < 40.0) continue;
 
-      // make the function to extrapolate to the micromegas layers
+      // make the function to extrapolate linearly to the micromegas layers
       // find the most extreme layers
       TrkrCluster *clus_layers[2];      
       unsigned int max_layer = 0;
@@ -169,18 +171,47 @@ int PHMicromegasTpcTrackMatching::Process()
       float yl[2] = {clus_layers[0]->getY(), clus_layers[1]->getY()};
       float zl[2] = {clus_layers[0]->getZ(), clus_layers[1]->getZ()};
 
+      // Project this TPC tracklet  to the two micromegas layers and store the projections
+      for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
+      {
+	// method to find where fitted circle intersects this layer
+
+	double xplus = 0;
+	double xminus = 0;
+	double yplus = 0;
+	double yminus = 0;
+	// finds the intersection of the fitted circle with the micromegas layer
+	circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
+	
+	// We only need to check xplus for failure, skip this track in that case
+	if(isnan(xplus)) 
+	  {
+	    std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
+	    std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	    continue;
+	  }
+	_xplus[imm] = xplus;
+	_yplus[imm] = yplus;
+	_xminus[imm] = xminus;
+	_yminus[imm] = yminus;
+      }
+
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches_1;
       std::vector<TrkrDefs::cluskey> mm_matches_2;
-      //TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters(TrkrDefs::micromegasId);
-      TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters();
-      for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
+      TrkrDefs::TrkrId mm_trkrid = TrkrDefs::micromegasId;; 
+      TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters(mm_trkrid);
+       for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
 	{
 	  TrkrDefs::cluskey mm_cluskey = clusiter->first;
 	  unsigned int layer = TrkrDefs::getLayer(mm_cluskey);
 	  TrkrCluster *mm_clus = clusiter->second;
 
-	  if(layer < _min_mm_layer) continue;
+	  int imm;
+	  if(layer == 55) 
+	    imm = 0;
+	  else
+	    imm = 1;
 
 	  if(Verbosity() > 3)
 	    {
@@ -195,37 +226,23 @@ int PHMicromegasTpcTrackMatching::Process()
 
 	  float x_proj, y_proj, z_proj, rphi_proj,radius_proj;
 
-	  // method to find where fitted circle intersects this layer
-	  double xplus = 0;
-	  double xminus = 0;
-	  double yplus = 0;
-	  double yminus = 0;
-	  // finds the intersection of the fitted circle with the micromegas layer
-	  circle_circle_intersection(mm_radius, R, X0, Y0, xplus, yplus, xminus, yminus);
-	  // choose the answer closest to the micromegas cluster in phi
-	  double rphi_plus = mm_radius* atan2(yplus, xplus);
-	  double rphi_minus = mm_radius * atan2(yminus, xminus);
+	  // choose the circle fit answer closest to the micromegas cluster in phi
+	  double rphi_plus = mm_radius* atan2(_yplus[imm], _xplus[imm]);
+	  double rphi_minus = mm_radius * atan2(_yminus[imm], _xminus[imm]);
 	  double x_proj_circle;
 	  double y_proj_circle;
 	  double rphi_proj_circle;
 	  if( fabs(rphi_plus - mm_clus_rphi) < fabs(rphi_minus - mm_clus_rphi) )
 	    {
 	      rphi_proj_circle = rphi_plus; 
-	      x_proj_circle = xplus;
-	      y_proj_circle = yplus;
+	      x_proj_circle = _xplus[imm];
+	      y_proj_circle = _yplus[imm];
 	    }
 	  else
 	    {
 	      rphi_proj_circle = rphi_minus; 
-	      x_proj_circle = xminus;
-	      y_proj_circle = yminus;
-	    }
-
-	  // understand why this happens occasionally
-	  if(isnan(rphi_proj_circle)) 
-	    {
-	      std::cout << " rphi_proj_circle is nan. xplus " << xplus << " yplus " << yplus << " xminus " << xminus << " yminus " << yminus << std::endl; 
-	      continue;
+	      x_proj_circle = _xminus[imm];
+	      y_proj_circle = _yminus[imm];
 	    }
 
 	  double radius_proj_circle;
@@ -279,10 +296,11 @@ int PHMicromegasTpcTrackMatching::Process()
 			    << std::endl;
 		}
 	      
-	      std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z << std::endl;
 	      
 	      if(fabs(rphi_proj - mm_clus_rphi) < _rphi_search_win_1 && fabs(z_proj - mm_clus_z) < _z_search_win_1)
 		{
+		  std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
+			    << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << std::endl;
 		  mm_matches_1.push_back(mm_cluskey);
 		}
 	    }
@@ -297,10 +315,11 @@ int PHMicromegasTpcTrackMatching::Process()
 			    << std::endl;
 		}
 	      
-	      std::cout << "    deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z << std::endl;
 	      
 	      if(fabs(z_proj - mm_clus_z) < _z_search_win_2 && fabs(rphi_proj - mm_clus_rphi) < _rphi_search_win_2)
 		{
+		  std::cout << "    deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
+			    << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << std::endl;
 		  mm_matches_2.push_back(mm_cluskey);
 		}
 	    }	  
