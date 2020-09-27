@@ -113,6 +113,7 @@ private:
 
   int m_EventPushedBackFlag = 0;
   std::vector<int> m_MyEvent;
+  std::string m_HepMCTmpFile;
 
 };
 

@@ -178,10 +178,10 @@ int Fun4AllHepMCInputManager::run(const int nevents)
 
     if (m_EventPushedBackFlag)  // if an event was pushed back, reuse save copy
     {
-HepMC::IO_GenEvent ascii_tmp_in("hepmc.evt", std::ios::in);
- ascii_tmp_in>> evt;
- m_EventPushedBackFlag = 0;
-
+      HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
+      ascii_tmp_in>> evt;
+      m_EventPushedBackFlag = 0;
+      remove(m_HepMCTmpFile.c_str());
     }
     else
     {
@@ -286,7 +286,11 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
 // root barfs when writing the node to the output. 
 // Saving the pointer - even using a deep copy and reusing it did not work
 // The hackaround which works is to write this event into a temporary file and read it back
- HepMC::IO_GenEvent ascii_io ("hepmc.evt", std::ios::out);
+      if (m_HepMCTmpFile.empty())
+      {
+	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + to_string(getpid()) + ".evt";
+      }
+      HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
 ascii_io << evt;
 m_EventPushedBackFlag = 1;
 	m_MyEvent.pop_back();
