@@ -37,15 +37,15 @@ int DumpPHHepMCGenEventMap::process_Node(PHNode *myNode)
     *fout << "size: " << phhepmcgeneventmap->size() << endl;
     for (PHHepMCGenEventMap::ConstIter iter = iter_beg; iter != iter_end; ++iter)
     {
-      *fout << "map entry: " << iter->first << endl; 
+      *fout << "map entry: " << iter->first << endl;
       PHHepMCGenEvent *genevt = iter->second;
       HepMC::GenEvent *evt = genevt->getEvent();
       *fout << "Embedding id " << genevt->get_embedding_id() << endl;
       *fout << "is simulated " << genevt->is_simulated() << endl;
-      *fout << "Collision vertex x: " <<  genevt->get_collision_vertex().x() << endl;
-      *fout << "Collision vertex y: " <<  genevt->get_collision_vertex().y() << endl;
-      *fout << "Collision vertex z: " <<  genevt->get_collision_vertex().z() << endl;
-      *fout << "Collision vertex t: " <<  genevt->get_collision_vertex().t() << endl;
+      *fout << "Collision vertex x: " << genevt->get_collision_vertex().x() << endl;
+      *fout << "Collision vertex y: " << genevt->get_collision_vertex().y() << endl;
+      *fout << "Collision vertex z: " << genevt->get_collision_vertex().z() << endl;
+      *fout << "Collision vertex t: " << genevt->get_collision_vertex().t() << endl;
       evt->print(*fout);
     }
   }
