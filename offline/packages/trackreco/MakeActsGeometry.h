@@ -70,10 +70,11 @@ class MakeActsGeometry
   
   /// Functions to edit TGeoManager to include TPC boxes
   void editTPCGeometry(PHCompositeNode *topNode);
-  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *geoManager);
+  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
+			  TGeoManager *geoManager);
 
   void setVerbosity(int verbosity)
-  { m_verbosity = verbosity; }
+    { m_verbosity = verbosity; }
 
   std::map<TrkrDefs::hitsetkey,Surface> getSurfaceMapSilicon()
     { return m_clusterSurfaceMapSilicon; }
@@ -89,15 +90,24 @@ class MakeActsGeometry
   
   /// Getters for acts geometry that is needed by fitter functions
   TrackingGeometry getTGeometry(){ return m_tGeometry; }
-  ActsExamples::Options::BFieldVariant getMagField(){ return m_magneticField; }
-  Acts::MagneticFieldContext getMagFieldContext() { return m_magFieldContext; }
-  Acts::CalibrationContext getCalibContext() { return m_calibContext; }
-  Acts::GeometryContext getGeoContext() { return m_geoCtxt; }
+  ActsExamples::Options::BFieldVariant getMagField()
+    { return m_magneticField; }
+  Acts::MagneticFieldContext getMagFieldContext() 
+    { return m_magFieldContext; }
+  Acts::CalibrationContext getCalibContext() 
+    { return m_calibContext; }
+  Acts::GeometryContext getGeoContext() 
+    { return m_geoCtxt; }
   
   /// Gets tpc surface from a cluster coordinate and hitsetkey. Necessary
   /// since there are many tpc surfaces per read out module
   Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
     std::vector<double> &world);
+
+  void setMagField(std::string magField)
+    {m_magField = magField;}
+  void setMagFieldRescale(double magFieldRescale)
+    {m_magFieldRescale = magFieldRescale;}
 
  private:
   
@@ -198,6 +208,10 @@ class MakeActsGeometry
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity;
+
+  /// Magnetic field components to set Acts magnetic field
+  std::string m_magField;
+  double m_magFieldRescale;
 };
 
 #endif

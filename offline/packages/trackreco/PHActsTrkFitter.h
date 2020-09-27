@@ -27,6 +27,7 @@
 #include <string>
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 
 namespace ActsExamples
 {
@@ -42,9 +43,9 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -107,7 +108,10 @@ class PHActsTrkFitter : public PHTrackFitting
   bool m_timeAnalysis;
   TFile *m_timeFile;
   TH1 *h_eventTime;
-  
+  TH2 *h_fitTime;
+  TH1 *h_updateTime;
+  TH1 *h_stateTime;
+  TH1 *h_rotTime;
 };
 
 #endif

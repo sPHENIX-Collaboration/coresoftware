@@ -76,6 +76,8 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_nSurfZ(1)
   , m_nSurfPhi(12)
   , m_verbosity(0)
+  , m_magField("1.4")
+  , m_magFieldRescale(-1.0)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -301,15 +303,32 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 7;
+  const int argc = 14;
   char *arg[argc];
-
+ 
+  if(m_verbosity > 0)
+    std::cout << PHWHERE << "Magnetic field " << m_magField 
+	      << " with rescale " << m_magFieldRescale << std::endl;
+  
+  /// If the 2d fieldmap is provided, for now we just assume a 1.4T
+  /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
+  if(m_magField.find(".root") != std::string::npos)
+    {
+      m_magFieldRescale*=-1;
+      m_magField = "1.5";
+    }
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
-      std::string("--response-file=") + std::string(getenv("OFFLINE_MAIN")) 
+      "--response-file",
+      std::string(getenv("OFFLINE_MAIN")) 
       + std::string("/share/tgeo-sphenix.response"),
-      "--bf-values", "0", "0", "1.4"
+      "--bf-values","0","0",m_magField,
+      "--bf-bscalor", std::to_string(m_magFieldRescale),
+      "--mat-input-type","file",
+      "--mat-input-file",
+      std::string(getenv("CALIBRATIONROOT"))
+      + std::string("/ACTS/sphenix-material.json")
       };
 
   // Set vector of chars to arguments needed
@@ -331,7 +350,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 {
   /// setup and parse options
   auto desc = ActsExamples::Options::makeDefaultOptions();
-  ActsExamples::Options::addSequencerOptions(desc);
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addObjWriterOptions(desc);

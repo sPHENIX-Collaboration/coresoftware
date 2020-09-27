@@ -23,6 +23,7 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/PHTimer.h>
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -54,7 +55,10 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
-  
+  , h_fitTime(nullptr)
+  , h_updateTime(nullptr)
+  , h_stateTime(nullptr)
+  , h_rotTime(nullptr)
 {
   Verbosity(0);
 }
@@ -80,8 +84,15 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
   if(m_timeAnalysis)
     {
-      m_timeFile = new TFile("ActsTimeFile.root","RECREATE");
-      h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
+      m_timeFile = new TFile(Name().c_str(), "RECREATE");
+      h_eventTime = new TH1F("h_eventTime",";time [ms]",100000,0,10000);
+      h_fitTime = new TH2F("h_fitTime",";p_{T} [GeV];time [ms]",80,0,40,100000,0,1000);
+      h_updateTime = new TH1F("h_updateTime",";time [ms]",
+			      100000,0,1000);
+      
+      h_rotTime = new TH1F("h_rotTime",";time [ms]",100000,0,1000);
+      h_stateTime = new TH1F("h_stateTime",";time [ms]",
+			     100000,0,1000);			     
     }		 
   
   if(Verbosity() > 0)
@@ -92,7 +103,8 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::Process()
 {
-  auto startTime = high_resolution_clock::now();
+  auto startEventTime = high_resolution_clock::now();
+
   m_event++;
 
   auto logLevel = Acts::Logging::INFO;
@@ -134,13 +146,12 @@ int PHActsTrkFitter::Process()
            0., 0., 0., 0., 0.00005 , 0.,
            0., 0., 0., 0., 0., 1.;
 
-
-    ActsExamples::TrackParameters newTrackSeed(cov,
-				     trackSeed.position(),
-				     trackSeed.momentum(),
-				     trackSeed.charge(),
-				     trackSeed.time());
-
+    ActsExamples::TrackParameters newTrackSeed(
+                  trackSeed.fourPosition(m_tGeometry->geoContext),
+		  trackSeed.momentum(),
+		  trackSeed.absoluteMomentum(),
+		  trackSeed.charge(),
+		  cov);
 
     /// Construct a perigee surface as the target surface
     /// This surface is what Acts fits with respect to, so we set it to
@@ -151,11 +162,11 @@ int PHActsTrkFitter::Process()
     if(Verbosity() > 0)
       {
 	std::cout << " Processing proto track with position:" 
-		  << trackSeed.position() << std::endl 
+		  << trackSeed.position(m_tGeometry->geoContext) << std::endl 
 		  << "momentum: " << trackSeed.momentum() << std::endl
-		  << "charge : "<<trackSeed.charge() << std::endl
-		  << "initial vertex : "<<track.getVertex()
-		  << " corresponding to SvtxTrack key "<< trackKey
+		  << "charge : " << trackSeed.charge() << std::endl
+		  << "initial vertex : " << track.getVertex()
+		  << " corresponding to SvtxTrack key " << trackKey
 		  << std::endl;
 	std::cout << "proto track covariance " << std::endl
 		  << trackSeed.covariance().value() << std::endl;
@@ -171,15 +182,21 @@ int PHActsTrkFitter::Process()
       m_tGeometry->calibContext,
       Acts::VoidOutlierFinder(),
       Acts::LoggerWrapper(*logger),
+      Acts::PropagatorPlainOptions(),
       &(*pSurface));
-  
-    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
 
+    auto startTime = high_resolution_clock::now();
+    
+    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
+    
+    auto stopTime = high_resolution_clock::now();
+    auto fitTime = duration_cast<microseconds>(stopTime - startTime);
+ 
     /// Check that the track fit result did not return an error
     if (result.ok())
     {  
       const FitResult& fitOutput = result.value();
-
+   
       /// Make a trajectory state for storage, which conforms to Acts track fit
       /// analysis tool
       std::vector<size_t> trackTips;
@@ -188,12 +205,21 @@ int PHActsTrkFitter::Process()
       if (fitOutput.fittedParameters)
       {
 	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
-
-        if (Verbosity() > 2)
+	const auto& params = fitOutput.fittedParameters.value();
+        
+	if(m_timeAnalysis)
+	{
+	  float px = params.momentum()(0);
+	  float py = params.momentum()(1);
+	  float pt = sqrt(px*px+py*py);
+	  h_fitTime->Fill(pt,fitTime.count() / 1000.);
+	}
+        
+	if (Verbosity() > 2)
         {
-	  const auto& params = fitOutput.fittedParameters.value();
           std::cout << "Fitted parameters for track" << std::endl;
           std::cout << " position : " << params.position(m_tGeometry->geoContext).transpose()
+
                     << std::endl;
 	  std::cout << "charge: "<<params.charge()<<std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
@@ -206,8 +232,23 @@ int PHActsTrkFitter::Process()
 
       /// Get position, momentum from the Acts output. Update the values of
       /// the proto track
+      
+      auto startUpdateTime = high_resolution_clock::now();
       if(fitOutput.fittedParameters)
 	updateSvtxTrack(trajectory, trackKey, track.getVertex());
+
+      auto stopUpdateTime = high_resolution_clock::now();
+      auto updateTime = duration_cast<microseconds>
+	(stopUpdateTime - startUpdateTime);
+
+      if(m_timeAnalysis)
+	h_updateTime->Fill(updateTime.count() / 1000.);
+
+      if(Verbosity() > 4)
+	std::cout << "Fit time == " << fitTime.count() / 1000. << " ms" 
+		  << std::endl
+		  << "Update SvtxTrack time == " << updateTime.count() / 1000. 
+		  << " ms " << std::endl; 
 
       /// Insert a new entry into the map
       m_actsFitResults->insert(
@@ -222,33 +263,29 @@ int PHActsTrkFitter::Process()
        	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
 				 (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
 
-	/// Mark the SvtxTrack as bad, for better analysis
-	/// can remove later
-	SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
-	SvtxTrack *track = trackIter->second;
-
-	track->set_x(-9999);
-	track->set_y(-9999);
-	track->set_z(-9999);
-	track->set_px(-9999);
-	track->set_py(-9999);
-	track->set_pz(-9999);
+	  // fit failed, delete the junk SvtxTrack from the node tree so the evaluator does not waste time on it
+	  m_trackMap->erase(trackKey);
 
 	m_nBadFits++;
       }
-    
 
   }
-
-  auto stopTime = high_resolution_clock::now();
-  auto eventTime = duration_cast<microseconds>(stopTime - startTime);
-
+  
+  
+  auto stopEventTime = high_resolution_clock::now();
   if(m_timeAnalysis)
-    h_eventTime->Fill(eventTime.count());
+    {    
+      auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
+  
+      h_eventTime->Fill(eventTime.count()/1000.);
+    }
 
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter::process_event finished" 
 	      << std::endl;
+
+  // put this in the output file
+  std::cout << " SvtxTrackMap size is now " << m_trackMap->size() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -271,15 +308,19 @@ int PHActsTrkFitter::End(PHCompositeNode *topNode)
   if(m_timeAnalysis)
     {
       m_timeFile->cd();
+      h_fitTime->Write();
       h_eventTime->Write();
+      h_rotTime->Write();
+      h_stateTime->Write();
+      h_updateTime->Write();
       m_timeFile->Write();
       m_timeFile->Close();
     } 
 
-  std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
-
   if (Verbosity() > 0)
   {
+    std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
+
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -333,11 +374,14 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
   
+  track->set_charge(params.charge());
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
   ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
+  
+  auto startRotTime = high_resolution_clock::now();
   
   if(params.covariance())
     {
@@ -354,7 +398,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	    }
 	}
     }
-
+ 
   float dca3Dxy = -9999.;
   float dca3Dz = -9999.;
   float dca3DxyCov = -9999.;
@@ -363,6 +407,13 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   rotater->calculateDCA(params, vertex, m_tGeometry->geoContext, 
 			dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
  
+  auto stopRotTime = high_resolution_clock::now();
+  auto rotTime = duration_cast<microseconds>(stopRotTime - startRotTime);
+
+  if(m_timeAnalysis)
+    h_rotTime->Fill(rotTime.count() / 1000.);
+
+
   // convert from mm to cm
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
@@ -371,9 +422,18 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
+
+  auto stateStartTime = high_resolution_clock::now();
+  
   rotater->fillSvtxTrackStates(traj, trackTip, track,
 			       m_tGeometry->geoContext,
 			       m_hitIdClusKey);  
+
+  auto stateStopTime = high_resolution_clock::now();
+  auto stateTime = duration_cast<microseconds>(stateStopTime - stateStartTime);
+  
+  if(m_timeAnalysis)
+    h_stateTime->Fill(stateTime.count() / 1000.);
 
   if(Verbosity() > 2)
     {  
