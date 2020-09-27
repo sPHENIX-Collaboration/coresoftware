@@ -231,11 +231,14 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       // check if the local SubsysReco discards this event
       if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
       {
+        // if this event is discarded we only need to remove the event from the list of event numbers
+        // the new event will overwrite the event on the node tree without issues
 	m_MyEvent.pop_back();
-        ResetEvent();
       }
       else
+      {
         break;  // have a good event, move on
+      }
     }
   }  // attempt to retrieve a valid event from inputs
   return Fun4AllReturnCodes::EVENT_OK;
