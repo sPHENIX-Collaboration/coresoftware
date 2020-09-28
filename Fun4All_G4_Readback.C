@@ -49,10 +49,10 @@ int Fun4All_G4_Readback(){
   // Choose reco
   //---------------
   map<string, int> reconstructionChannel;
-  reconstructionChannel["D02K-pi+"] = 1;
+  reconstructionChannel["D02K-pi+"] = 0;
   reconstructionChannel["D02K+pi-"] = 0;
   reconstructionChannel["Bs2Jpsiphi"] = 0;
-  reconstructionChannel["Bd2D-pi+"] = 0;
+  reconstructionChannel["Bd2D-pi+"] = 1;
   reconstructionChannel["Upsilon"] = 0;
   reconstructionChannel["testSpace"] = 0;
 
@@ -91,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 1e3;
+  const int nEvents = 1e6;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
@@ -126,7 +126,7 @@ int Fun4All_G4_Readback(){
       kfparticle->hasIntermediateStates(false);
       kfparticle->getChargeConjugate(false);
 
-      if (reconstructionChannel["D02K-pi+"]
+      if (reconstructionChannel["D02K-pi+"])
       {
         daughterList[0] = make_pair("kaon", -1);
         daughterList[1] = make_pair("pion", +1);
