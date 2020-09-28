@@ -195,6 +195,7 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrackbase_historic_io \
