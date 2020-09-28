@@ -81,7 +81,7 @@ int Fun4All_G4_Readback(){
   // Hits file
   Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
   string fileList;
-  if (reconstructionChannel["D02K-pi+"] or reconstructionChannel["testSpace"]) fileList = "fileList_d2kpi.txt";
+  if (reconstructionChannel["D02K-pi+"] or reconstructionChannel["D02K+pi-"] or reconstructionChannel["testSpace"]) fileList = "fileList_d2kpi.txt";
   if (reconstructionChannel["Bs2Jpsiphi"]) fileList = "fileList_bs2jpsiphi.txt";
   if (reconstructionChannel["Bd2D-pi+"] or reconstructionChannel["Upsilon"]) fileList = "fileList_bbbar.txt"; 
   hitsin->AddListFile(fileList.c_str());
@@ -91,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 2e4;
+  const int nEvents = 1e3;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
