@@ -85,7 +85,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
-			        const Acts::BoundParameters params,
+			        const Acts::BoundTrackParameters params,
 				Acts::GeometryContext geoCtxt)
 {
 
@@ -196,7 +196,7 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 
-void ActsTransformations::calculateDCA(const Acts::BoundParameters param,
+void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				   Acts::Vector3D vertex,
 				   Acts::GeometryContext geoCtxt,
 				   float &dca3Dxy,
@@ -272,17 +272,15 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
       auto meas = std::get<Measurement>(*state.uncalibrated());
 
       /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-			   meas.parameters()[Acts::ParDef::eLOC_1]);
-
-      /// Get global position
-      Acts::Vector3D global(0., 0., 0.);
+      Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
+			   meas.parameters()[Acts::eBoundLoc1]);
 
       /// This is an arbitrary vector. Doesn't matter in coordinate transformation
       /// in Acts code
       Acts::Vector3D mom(1., 1., 1.);
-      meas.referenceObject().localToGlobal(geoContext,
-					    local, mom, global);
+      Acts::Vector3D global = meas.referenceObject().localToGlobal(
+					    geoContext,
+					    local, mom);
       
       float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
       SvtxTrackState_v1 out( pathlength );
@@ -292,7 +290,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     
       if (state.hasSmoothed())
 	{
-	  Acts::BoundParameters parameter(state.referenceSurface().getSharedPtr(),
+	  Acts::BoundTrackParameters parameter(state.referenceSurface().getSharedPtr(),
 					  state.smoothed(),
 					  state.smoothedCovariance());
 	  out.set_px(parameter.momentum().x());
@@ -315,7 +313,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
 	  svtxTrack->insert_cluster_key(cluskey);
 	  
-	  if(m_verbosity > 2)
+	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
 			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 

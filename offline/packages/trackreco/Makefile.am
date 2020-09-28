@@ -50,6 +50,8 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
+  PHSiliconTpcTrackMatching.h \
+  PHSiliconTruthTrackSeeding.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -94,6 +96,8 @@ else
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
+    PHSikiconTpcTrackMatching_Dict.cc \
+    PHSiliconTruthTrackSeeding_Dict.cc \
     PHTruthSiliconAssociation_Dict.cc \
     PHHoughSeeding_Dict.cc \
     PHRTreeSeeding_Dict.cc \
@@ -137,9 +141,9 @@ ACTS_LIBS = \
   -lg4eval \
   -lActsCore \
   -lActsFatras \
-  -lActsTGeoPlugin \
+  -lActsPluginTGeo \
   -lActsExamplesCommon \
-  -lActsJsonPlugin \
+  -lActsPluginJson \
   -lActsExamplesFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
@@ -160,7 +164,9 @@ libtrack_reco_la_SOURCES = \
   PH3DVertexing.cc \
   PHTruthClustering_hp.cc \
   PHTruthVertexing.cc \
+  PHSiliconTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
+  PHSiliconTruthTrackSeeding.cc \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \

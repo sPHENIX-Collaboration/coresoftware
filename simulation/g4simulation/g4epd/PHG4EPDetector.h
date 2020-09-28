@@ -42,6 +42,8 @@ class PHG4EPDetector : public PHG4Detector
   std::map<G4VPhysicalVolume*, uint32_t> m_volumes;
 
   std::string superdetector;
+
+  double m_z_position;
 };
 
 #endif /* G4EPD_PHG4EPDETECTOR_H */

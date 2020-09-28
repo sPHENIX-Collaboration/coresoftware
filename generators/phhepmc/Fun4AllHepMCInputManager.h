@@ -11,9 +11,7 @@
 
 #include <utility>                                  // for swap
 
-#if !defined(__CINT__) || defined (__CLING__)
 #include <boost/iostreams/filtering_streambuf.hpp>
-#endif
 
 class PHCompositeNode;
 class SyncObject;
@@ -80,6 +78,8 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
+
+  int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
 
  protected:
 

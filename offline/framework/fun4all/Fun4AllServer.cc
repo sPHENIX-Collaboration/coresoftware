@@ -500,15 +500,10 @@ TNamed *Fun4AllServer::getHisto(const string &hname) const
   return (ServerHistoManager->getHisto(hname));
 }
 
-int Fun4AllServer::process_event(PHCompositeNode * /*topNode*/)
-{
-  int iret = process_event();
-  return iret;
-}
 
 int Fun4AllServer::process_event()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   unsigned icnt = 0;
   int eventbad = 0;
   if (ScreamEveryEvent)
@@ -1423,7 +1418,6 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-
     if (Verbosity() >= VERBOSITY_SOME)
     {
       // print event cycle counter in log scale if VERBOSITY_SOME
