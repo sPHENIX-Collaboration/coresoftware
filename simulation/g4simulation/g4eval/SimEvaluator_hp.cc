@@ -388,6 +388,17 @@ void SimEvaluator_hp::fill_particles()
   // clear vertices from previous event
   m_container->clearParticleList();
 
+  // get the set of embeded ids from truth info
+  {
+    std::set<int> embed_ids;
+    auto range = m_g4truthinfo->GetEmbeddedTrkIds();
+    for( auto iter = range.first; iter != range.second; ++iter ) { embed_ids.insert( iter->second ); }
+    
+    std::cout << "SimEvaluator_hp::fill_particles - embedding ids: " << embed_ids.size() << std::endl;
+    for( const auto& id:embed_ids ) std::cout << " " << id;
+    std::cout << std::endl;
+  }
+  
   auto range = m_g4truthinfo->GetPrimaryParticleRange();
   for( auto iter = range.first; iter != range.second; ++iter )
   {
