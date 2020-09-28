@@ -177,7 +177,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
 	
 	// We only need to check xplus for failure, skip this track in that case
-	if(isnan(xplus)) 
+	if(isnan(xplus) == 1) 
 	  {
 	    std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
 	    std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
@@ -248,8 +248,6 @@ int PHMicromegasTpcTrackMatching::Process()
 	    std::cout << "     radius_proj " << radius_proj << " x_proj " << x_proj 
 		      << " y_proj " << y_proj << " z_proj " << z_proj  
 		      << " rphi_proj " << rphi_proj << std::endl;
-
-	  rphi_proj = rphi_proj;
 
 	  if(Verbosity() > 3)
 	    {
@@ -331,7 +329,7 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
        Nikolai Chernov  (September 2012)
 */
 {
-  int i,iter,IterMAX=99;
+  int iter,IterMAX=99;
   
   double Xi,Yi,Zi;
   double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
@@ -356,7 +354,7 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
   
   Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
   
-  for (i=0; i<clusters.size(); i++)
+  for (unsigned int i=0; i<clusters.size(); i++)
     {
       Xi = clusters[i]->getX() - meanX;   //  centered x-coordinates
       Yi = clusters[i]->getY() - meanY;   //  centered y-coordinates
