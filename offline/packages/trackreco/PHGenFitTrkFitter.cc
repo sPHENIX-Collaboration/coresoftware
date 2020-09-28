@@ -981,8 +981,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     TrkrDefs::cluskey cluster_key = iter->second;
     const int layer = TrkrDefs::getLayer(cluster_key);
 
-    std::cout << "PHGenFitTrkFitter::ReFitTrack - adding layer: " << ((int)layer) << std::endl;
-    
     // skip disabled layers
     if( _disabled_layers.find( layer ) != _disabled_layers.end() )
     { continue; }
