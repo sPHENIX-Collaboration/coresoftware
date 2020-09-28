@@ -8,12 +8,10 @@
 
 #include <list>
 #include <string>
+#include <type_traits>           // for __decay_and_strip<>::__type
 #include <utility>               // for make_pair, pair
 #include <vector>
 
-#if !defined(__CINT__) || defined (__CLING__)
-#include <type_traits>           // for __decay_and_strip<>::__type
-#endif
 
 class PHCompositeNode;
 class SubsysReco;
@@ -46,7 +44,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int RejectEvent();
   void Repeat(const int i = -1) { m_Repeat = i; }
   virtual void setSyncManager(Fun4AllSyncManager *master) { m_MySyncManager = master; }
-  int ResetFileList();
+  virtual int ResetFileList();
   virtual int ResetEvent() { return 0; }
   virtual void SetRunNumber(const int runno) { m_MyRunNumber = runno; }
   virtual int RunNumber() const { return m_MyRunNumber; }

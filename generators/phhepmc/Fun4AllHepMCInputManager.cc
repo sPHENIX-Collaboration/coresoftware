@@ -27,10 +27,14 @@
 
 #include <TPRegexp.h>
 #include <TString.h>
+#include <TSystem.h>
+#include <TDirectory.h>
+#include <TROOT.h>
 
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -44,20 +48,12 @@ static const double toMM = 1.e-12;
 
 Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , events_total(0)
-  , events_thisfile(0)
-  , readoscar(0)
   , topNodeName(topnodename)
-  , ascii_in(nullptr)
-  , evt(nullptr)
-  , save_evt(nullptr)
-  , filestream(nullptr)
-  , unzipstream(nullptr)
 {
   set_embedding_id(0);  // default embedding ID. Welcome to change via macro
 
   Fun4AllServer *se = Fun4AllServer::instance();
-  topNode = se->topNode(topNodeName.c_str());
+  topNode = se->topNode(topNodeName);
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = se->getNode(InputNode(), topNodeName);
 
@@ -99,15 +95,15 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
   }
   filename = filenam;
   FROG frog;
-  string fname(frog.location(filename.c_str()));
+  string fname(frog.location(filename));
   if (Verbosity() > 0)
   {
     cout << Name() << ": opening file " << fname << endl;
   }
 
-  if (readoscar)
+  if (m_ReadOscarFlag)
   {
-    theOscarFile.open(fname.c_str());
+    theOscarFile.open(fname);
   }
   else
   {
@@ -117,7 +113,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     if (tstr.Contains(bzip_ext))
     {
       // use boost iosteam library to decompress bz2 on the fly
-      filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+      filestream = new ifstream(fname, std::ios::in | std::ios::binary);
       zinbuffer.push(boost::iostreams::bzip2_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
@@ -126,7 +122,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     else if (tstr.Contains(gzip_ext))
     {
       // use boost iosream to decompress the gzip file on the fly
-      filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+      filestream = new ifstream(fname, std::ios::in | std::ios::binary);
       zinbuffer.push(boost::iostreams::gzip_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
@@ -181,14 +177,16 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       }
     }
 
-    if (save_evt)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
+    if (m_EventPushedBackFlag)  // if an event was pushed back, reuse save copy
     {
-      evt = save_evt;
-      save_evt = nullptr;
+      HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
+      ascii_tmp_in>> evt;
+      m_EventPushedBackFlag = 0;
+      remove(m_HepMCTmpFile.c_str());
     }
     else
     {
-      if (readoscar)
+      if (m_ReadOscarFlag)
       {
         evt = ConvertFromOscar();
       }
@@ -216,16 +214,17 @@ int Fun4AllHepMCInputManager::run(const int nevents)
         cout << "Fun4AllHepMCInputManager::run::" << Name()
              << ": hepmc evt no: " << evt->event_number() << endl;
       }
-
-      PHHepMCGenEventMap::Iter ievt =
-          hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
+      m_MyEvent.push_back(evt->event_number());
+      PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
         // override existing event
         ievt->second->addEvent(evt);
       }
       else
+      {
         hepmc_helper.insert_event(evt);
+      }
 
       events_total++;
       events_thisfile++;
@@ -233,14 +232,17 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       // check if the local SubsysReco discards this event
       if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
       {
-        ResetEvent();
+        // if this event is discarded we only need to remove the event from the list of event numbers
+        // the new event will overwrite the event on the node tree without issues
+	m_MyEvent.pop_back();
       }
       else
+      {
         break;  // have a good event, move on
+      }
     }
   }  // attempt to retrieve a valid event from inputs
-
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int Fun4AllHepMCInputManager::fileclose()
@@ -250,7 +252,7 @@ int Fun4AllHepMCInputManager::fileclose()
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
   }
-  if (readoscar)
+  if (m_ReadOscarFlag)
   {
     theOscarFile.close();
   }
@@ -277,21 +279,33 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
   // PushBackEvents is supposedly pushing events back on the stack which works
   // easily with root trees (just grab a different entry) but hard in these HepMC ASCII files.
   // A special case is when the synchronization fails and we need to only push back a single
-  // event. In this case we save the evt pointer as save_evt which is used in the run method
+  // event. In this case we save the evt in a temporary file which is read back in the run method
   // instead of getting the next event.
   if (i > 0)
   {
     if (i == 1 && evt)  // check on evt pointer makes sure it is not done from the cmd line
     {
+// root barfs when writing the node to the output. 
+// Saving the pointer - even using a deep copy and reusing it did not work
+// The hackaround which works is to write this event into a temporary file and read it back
+      if (m_HepMCTmpFile.empty())
+      {
+        // we need to create this filename just once, we reuse it. Do it only if we need it
+	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + to_string(getpid()) + ".evt";
+      }
+      HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
+      ascii_io << evt;
+      m_EventPushedBackFlag = 1;
+      m_MyEvent.pop_back();
+
       if (Verbosity() > 3)
       {
         cout << Name() << ": pushing back evt no " << evt->event_number() << endl;
       }
-      save_evt = evt;
       return 0;
     }
     cout << PHWHERE << Name()
-         << " Fun4AllHepMCInputManager cannot pop back events into file"
+         << " Fun4AllHepMCInputManager cannot pop back more than 1 event"
          << endl;
     return -1;
   }
@@ -319,6 +333,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
     }
     else
     {
+      m_MyEvent.push_back(evt->event_number());
       if (Verbosity() > 3)
       {
         cout << "Skipping evt no: " << evt->event_number() << endl;
@@ -333,13 +348,12 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
 HepMC::GenEvent *
 Fun4AllHepMCInputManager::ConvertFromOscar()
 {
-  delete evt;
-  evt = nullptr;
   if (theOscarFile.eof())  // if the file is exhausted bail out during this next read
   {
-    return evt;
+    return nullptr;
   }
 
+  delete evt;
   //use PHENIX unit
   evt = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::CM);
 
@@ -350,7 +364,7 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
   vector<HepMC::FourVector> theVtxVec;
   while (getline(theOscarFile, theLine))
   {
-    if (theLine.find("#") == 0) continue;
+    if (theLine.compare(0,1,"#") == 0) continue;
     vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
     double number = NAN;
     for (istringstream numbers_iss(theLine); numbers_iss >> number;)
@@ -403,4 +417,24 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
     evt->print();
   }
   return evt;
+}
+
+int Fun4AllHepMCInputManager::ResetEvent()
+{
+  m_MyEvent.clear();
+  return 0;
+}
+
+int Fun4AllHepMCInputManager::MyCurrentEvent(const unsigned int index) const
+{
+  if (m_MyEvent.empty())
+  {
+    return 0;
+  }
+  return m_MyEvent.at(index);
+}
+
+void Fun4AllHepMCInputManager::CopyHelperSettings(Fun4AllHepMCInputManager *source)
+{
+  (source->get_helper()).CopySettings(hepmc_helper);
 }

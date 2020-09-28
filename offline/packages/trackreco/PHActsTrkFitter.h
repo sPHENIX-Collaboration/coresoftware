@@ -43,9 +43,9 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:

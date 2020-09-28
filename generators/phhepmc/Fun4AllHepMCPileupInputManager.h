@@ -21,7 +21,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int run(const int nevents = 0) {return run(nevents,false);}
 
   int run(const int nevents, const bool skip);
-
+  int ResetEvent();
   /// past times are negative, future times are positive
   void set_time_window(double past_nsec, double future_nsec)
   {
@@ -35,8 +35,14 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
 
   int SkipForThisManager(const int nevents);
+  void SignalInputManager(Fun4AllHepMCInputManager *in) {m_SignalInputManager = in;}
+  int PushBackEvents(const int i);
 
  private:
+  Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
+  std::vector<HepMC::GenEvent *> m_SaveEventVector;
+  int m_SignalEventNumber = 0;
+  HepMC::GenEvent *save_evt = nullptr;
   /// past times are negative, future times are positive
   double _min_integration_time;
   double _max_integration_time;

@@ -6,7 +6,6 @@
 
 #include <fun4all/Fun4AllBase.h>         // for Fun4AllBase::VERBOSITY_SOME
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllSyncManager.h>
 
 #include <phool/PHRandomSeed.h>
 
@@ -43,11 +42,6 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
   hepmc_helper.set_embedding_id(-1);
 
-  //! setup default beam diamond to ~Run14 level
-  hepmc_helper.set_vertex_distribution_function(PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus, PHHepMCGenHelper::Gaus);
-  hepmc_helper.set_vertex_distribution_mean(0, 0, 0, 0);
-  hepmc_helper.set_vertex_distribution_width(100e-4, 100e-4, 30, 5);  //100um beam lumi width, 30-cm vertex, 5 ns time spread (~Run14 level)
-
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(RandomGenerator, seed);
@@ -62,12 +56,19 @@ Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
 
 int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
 {
-  int iret = 0;
   for (int i=0; i<nevents; ++i)
   {
-  iret |= run(1, true);
+    if (m_SignalInputManager)
+    {
+      m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent(i);
+    }
+  int iret = run(1, true);
+  if (iret)
+  {
+    return iret;
   }
-  return iret;
+  }
+  return 0;
 }
 
 int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
@@ -89,7 +90,10 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       cout << ". Start first event." << endl;
     }
   }
-
+  if (m_SignalInputManager && !skip)
+  {
+    m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent();
+  }
   // toss multiple crossings all the way back
   for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
   {
@@ -125,7 +129,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
             }
           }
         }
-
         if (save_evt)
         {  // if an event was pushed back, copy saved pointer and
            // reset save_evt pointer
@@ -134,13 +137,23 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
         }
         else
         {
-          if (readoscar)
+          if (ReadOscar())
           {
             evt = ConvertFromOscar();
+	    if (evt && m_SignalEventNumber == evt->event_number())
+	    {
+	      delete evt;
+              evt = ConvertFromOscar();
+	    }
           }
           else
           {
             evt = ascii_in->read_next_event();
+	    if (evt && m_SignalEventNumber == evt->event_number())
+	    {
+            delete evt;
+            evt = ascii_in->read_next_event();
+	    }
           }
         }
 
@@ -201,6 +214,32 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
   }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
-
   return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::ResetEvent()
+{
+  m_SignalEventNumber = 0;
+  return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
+{
+  if (i == 1)
+  {
+  PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+  for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
+  {
+    cout << "key: " << iter->first << ", evtno: " << ((iter->second)->getEvent())->event_number() << endl;
+    if (iter->first < 0) // just background events from this input manager
+    {
+      m_SaveEventVector.push_back((iter->second)->getEvent());
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  }
+  return -1;
 }

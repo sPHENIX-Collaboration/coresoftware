@@ -15,6 +15,7 @@
 #include "DumpPHG4InEvent.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
+#include "DumpPHHepMCGenEventMap.h"
 #include "DumpPdbParameterMap.h"
 #include "DumpPdbParameterMapContainer.h"
 #include "DumpRawClusterContainer.h"
@@ -229,6 +230,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
       {
         newdump = new DumpPHG4TruthInfoContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("PHHepMCGenEventMap"))
+      {
+        newdump = new DumpPHHepMCGenEventMap(NodeName);
       }
       else if (tmp->InheritsFrom("RawClusterContainer"))
       {
