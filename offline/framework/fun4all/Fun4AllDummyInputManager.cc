@@ -56,11 +56,5 @@ int Fun4AllDummyInputManager::run(const int nevents)
     }
    cout << endl;
   }
-  if (!(m_NumEvents%4))
-  {
-    cout << "RETURN FAILURE " << endl;
-    return -1;
-  }
-  cout << "RETURN OK" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
