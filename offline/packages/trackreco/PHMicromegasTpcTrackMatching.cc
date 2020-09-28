@@ -177,7 +177,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
 	
 	// We only need to check xplus for failure, skip this track in that case
-	if(isnan(xplus) == 1) 
+	if(std::isnan(xplus)) 
 	  {
 	    std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
 	    std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
