@@ -86,6 +86,15 @@ int Fun4AllSyncManager::run(const int nevnts)
   int icnt = 0;
   int iretsync = 0;
   int resetnodetree = 0;
+  // on read errors (assumed to be caused that a file is empty and we need to open the next one)
+  // we have to go through this 3 times
+  // 1st pass: The error is detected (for all input mgrs), for the failed input manager(s) a fileclose(), fileopen() is executed, if this fails control goes back to Fun4All since we are done. For input managers without errors, the event is pushed back, so it is read again in the next pass
+  // 2nd pass: Events are read from all input managers. If no errors all input managers are pushed back
+  // The reason for this is that we opened a new files with maybe different content and we need to clean
+  // the node tree so we do not propagate old objects from the previous event
+  // The node tree reset is done by the Fun4AllServer so we give control back and signal via resetnodetree return code
+  // 3rd pass: read from every input manager and go back to Fun4All
+
   while (!iret)
   {
     unsigned iman = 0;
@@ -119,7 +128,7 @@ int Fun4AllSyncManager::run(const int nevnts)
     if (iret || iretsync)
     {
       // tell the server to reset the node tree
-      resetnodetree = 1;
+      resetnodetree = Fun4AllReturnCodes::RESET_NODE_TREE;
 
       // if there was an io error (file exhausted) we nee to push back
       // the events from files which are not exhausted yet into the root files
@@ -127,20 +136,32 @@ int Fun4AllSyncManager::run(const int nevnts)
       // read was successful (iret = 0) we push the event back
       if (iret)
       {
+        unsigned inputmgr_cnt = 0;
         vector<Fun4AllInputManager *>::const_iterator InIter;
+        // set in the macro for Sync Manager. Permanently enabled (default when using syncman->Repeat(),
+        // m_Repeat = -1 so the m_Repeat--; is not called, this is used when you give it a positive number of
+        // repetitions
         if (m_Repeat)
         {
           for (InIter = m_InManager.begin(); InIter != m_InManager.end(); ++InIter)
           {
-            if ((*InIter)->IsOpen())
+            if (m_iretInManager[inputmgr_cnt] == Fun4AllReturnCodes::EVENT_OK)
             {
-              (*InIter)->fileclose();
+              (*InIter)->PushBackEvents(1);
             }
-            int ireset = (*InIter)->ResetFileList();
-            if (ireset)
+            else
             {
-              cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
-              exit(1);
+              if ((*InIter)->IsOpen())
+              {
+                (*InIter)->fileclose();
+              }
+              int ireset = (*InIter)->ResetFileList();
+              if (ireset)
+              {
+                cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
+                exit(1);
+              }
+              inputmgr_cnt++;
             }
           }
           if (m_Repeat > 0)
@@ -148,7 +169,7 @@ int Fun4AllSyncManager::run(const int nevnts)
             m_Repeat--;
           }
           iret = 0;
-          continue;
+          continue;  // got back and run again
         }
         // push back events where the Imanager did not report an error
         InIter = m_InManager.begin();
@@ -181,8 +202,12 @@ int Fun4AllSyncManager::run(const int nevnts)
         continue;
       }
     }
-
-    m_EventsTotal++;
+    if (!resetnodetree)
+    {
+      m_EventsTotal++;
+    }
+    // this check is meaningless nowadays since we call this method with 1 event every time
+    // so we can just break here but maybe this changes in the future
     if (nevnts > 0 && ++icnt >= nevnts)
     {
       break;
@@ -242,7 +267,7 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // giving it a negative argument will skip events
     // this is much faster than actually reading the events in
     int iret = m_InManager[0]->PushBackEvents(Npushback);
-    for (unsigned int i=1; i<m_InManager.size(); ++i)
+    for (unsigned int i = 1; i < m_InManager.size(); ++i)
     {
       iret += m_InManager[i]->SkipForThisManager(nevnts);
     }
