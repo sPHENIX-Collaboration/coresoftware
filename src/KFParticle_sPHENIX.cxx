@@ -19,28 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** Mass Hypothesis Codes
- ** These are the codes used in the PDG to identify different particles
- ** that have also been coded into KFParticle
- ** PDG Code | Mass Index | Particle
- **         11 |  0 | Electron
- **         13 |  1 | Muon
- **         19 |  1 | Muon
- **        211 |  2 | Pion ( Charged )
- **        321 |  3 | Kaon ( Charged )
- **       2212 |  4 | Proton
- ** 1000010020 |  5 | Deuteron
- ** 1000010030 |  6 | Triton
- ** 1000020030 |  7 | Helium-3
- ** 1000020040 |  8 | Helium-4
- **       3112 |  9 | Sigma ( - )
- **       3222 | 10 | Sigma ( + )
- **       3312 | 11 | Xi
- **       3334 | 12 | Omega
- ** Use PDG codes in your analysis
- ** All other codes return a pion
- **/
-
 #include "KFParticle_sPHENIX.h"
 
 /// KFParticle constructor

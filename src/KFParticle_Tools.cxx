@@ -25,28 +25,6 @@
 /* cdean@bnl.gov */ 
 /*****************/
 
-/** Mass Hypothesis Codes
- ** These are the codes used in the PDG to identify different particles
- ** that have also been coded into KFParticle
- ** PDG Code | Mass Index | Particle
- **         11 |  0 | Electron
- **         13 |  1 | Muon
- **         19 |  1 | Muon
- **        211 |  2 | Pion ( Charged )
- **        321 |  3 | Kaon ( Charged )
- **       2212 |  4 | Proton
- ** 1000010020 |  5 | Deuteron
- ** 1000010030 |  6 | Triton
- ** 1000020030 |  7 | Helium-3
- ** 1000020040 |  8 | Helium-4
- **       3112 |  9 | Sigma ( - )
- **       3222 | 10 | Sigma ( + )
- **       3312 | 11 | Xi
- **       3334 | 12 | Omega
- ** Use PDG codes in your analysis
- ** All other codes return a pion
- **/
-
 #include "KFParticle_Tools.h"
 
 //KFParticle stuff
@@ -57,30 +35,11 @@
 #include "KFParticleDatabase.h"
 
 /// Create necessary objects 
-KFParticleDatabase kfpDatabase;
+//KFParticleDatabase kfpDatabase;
+KFParticle_particleList kfp_particleList;
 
 //Particle masses are in GeV
-std::map<std::string, float> particleMasses = 
-{ 
-  { "electron", kfpDatabase.GetMass( 11 ) },
-  { "muon",     kfpDatabase.GetMass( 13 ) },
-  { "pion",     kfpDatabase.GetMass( 211 ) },
-  { "kaon",     kfpDatabase.GetMass( 321 ) },
-  { "proton",   kfpDatabase.GetMass( 2212 ) },
-  { "pi0",      kfpDatabase.GetPi0Mass() },
-  //{ "D0",       kfpDatabase.GetD0Mass() },
-  //{ "Dplus",    kfpDatabase.GetDPlusMass() },
-  { "J/psi",    3.09690 },
-  { "phi",      1.019461 },
-  { "D+",       1.86965},
-  { "D-",       1.86965},
-  { "D0",       1.86483},
-  { "B+",       5.279},
-  { "B-",       5.279},
-  { "B0",       5.279},
-  { "Bs0",      5.366}
- };
-
+std::map<std::string, float> particleMasses = kfp_particleList.getParticleList(); 
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools():
@@ -105,6 +64,7 @@ KFParticle_Tools::KFParticle_Tools():
     m_mother_ipchi2( FLT_MAX ),
     m_constrain_to_vertex( true ),
     m_constrain_int_mass( false ), 
+    m_get_charge_conjugate( true ), 
     m_dst_vertexmap(),
     m_dst_trackmap(),
     m_dst_vertex(),
@@ -700,7 +660,9 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother( KFParticle vDaughter
       if ( inputTracks[ i ].GetMass() == 0 ) daughterMassCheck = false;
       unique_vertexID += vDaughters[ i ].GetQ()*particleMasses.find( daughterOrder[ i ].c_str() )->second;
     }
-   bool chargeCheck = std::abs(unique_vertexID) == std::abs(required_vertexID) ? 1 : 0;
+   bool chargeCheck;
+   if (m_get_charge_conjugate) chargeCheck = std::abs(unique_vertexID) == std::abs(required_vertexID) ? 1 : 0;
+   else chargeCheck = unique_vertexID == required_vertexID ? 1 : 0;
 
    for ( int j = 0; j < nTracks; ++j ) inputTracks[ j ].SetProductionVertex( mother );
 
@@ -807,11 +769,3 @@ void KFParticle_Tools::removeDuplicates( std::vector<std::vector<std::string>> &
   }
   v.erase( end, v.end() );
 }
-
-
-float KFParticle_Tools::returnPDGMass( const int pdgIndex ) ///Return mother masses from KFParticleDatabase ( pdg.lbl.gov/2019/reviews/rpp2019-rev-monte-carlo-numbering.pdf )
-{ 
-   float mass, width;
-   kfpDatabase.GetMotherMass( pdgIndex, mass, width );
-   return mass;
- }

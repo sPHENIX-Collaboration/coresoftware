@@ -50,6 +50,7 @@ int Fun4All_G4_Readback(){
   //---------------
   map<string, int> reconstructionChannel;
   reconstructionChannel["D02K-pi+"] = 1;
+  reconstructionChannel["D02K+pi-"] = 0;
   reconstructionChannel["Bs2Jpsiphi"] = 0;
   reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
@@ -90,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 1e3;
+  const int nEvents = 2e4;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
@@ -113,29 +114,41 @@ int Fun4All_G4_Readback(){
 
 
   //D2Kpi reco
-  if (reconstructionChannel["D02K-pi+"])
+  if (reconstructionChannel["D02K-pi+"]
+  or  reconstructionChannel["D02K+pi-"])
   {
+      kfparticle->setMotherName("D0");  
       kfparticle->setMinimumMass(1.7);
       kfparticle->setMaximumMass(2.0);
       kfparticle->setNumberOfTracks(2);
       kfparticle->setMotherIPchi2(50);
     
       kfparticle->hasIntermediateStates(false);
-      daughterList[0] = make_pair("kaon", -1);
-      daughterList[1] = make_pair("pion", +1);
+      kfparticle->getChargeConjugate(false);
 
-      kfparticle->setOutputName("outputData_D2Kpi_example.root");
+      if (reconstructionChannel["D02K-pi+"]
+      {
+        daughterList[0] = make_pair("kaon", -1);
+        daughterList[1] = make_pair("pion", +1);
+        kfparticle->setOutputName("outputData_D02Kmpip_example.root");
+      }
+      else
+      {
+        daughterList[0] = make_pair("kaon", +1);
+        daughterList[1] = make_pair("pion", -1);
+        kfparticle->setOutputName("outputData_D0bar2Kppim_example.root");
+      }
   }
 
 
   //Bs2Jpsiphi reco
   if (reconstructionChannel["Bs2Jpsiphi"])
   {
+      kfparticle->setMotherName("Bs0");  
       kfparticle->setMinimumMass(4.8);
       kfparticle->setMaximumMass(6.0);
       kfparticle->setNumberOfTracks(4);
-    
-    
+     
       kfparticle->hasIntermediateStates(true);
       kfparticle->constrainIntermediateMasses(true);
       kfparticle->setNumberOfIntermediateStates(2);

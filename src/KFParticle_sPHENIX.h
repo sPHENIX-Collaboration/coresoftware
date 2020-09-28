@@ -50,10 +50,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   int End(PHCompositeNode *topNode);
 
   ///Parameters for the user to vary
+  void setMotherName( std::string mother_name ) { m_mother_name = mother_name; }
+  void useIntermediateName( bool use_intermediate_name ) { m_use_intermediate_name = use_intermediate_name; }
   void hasIntermediateStates( bool has_intermediates ) { m_has_intermediates = has_intermediates; m_has_intermediates_nTuple = has_intermediates; m_has_intermediates_sPHENIX = has_intermediates; }
   void setNumberOfTracks( int num_tracks ) { m_num_tracks = num_tracks; m_num_tracks_nTuple = num_tracks;  }
   void setNumberTracksFromIntermeditateState( int num_tracks[99]) { for ( int i = 0; i < 99; ++i) m_num_tracks_from_intermediate[i] = num_tracks[i]; }
   void setNumberOfIntermediateStates( int n_intermediates ) { m_num_intermediate_states = n_intermediates; m_num_intermediate_states_nTuple = n_intermediates;  }
+  void getChargeConjugate( bool get_charge_conjugate ) { m_get_charge_conjugate = get_charge_conjugate; }
   void setDaughters( std::pair<std::string, int> daughter_list[99] ) 
   {
     for ( int i = 0; i < 99; ++i)
@@ -67,6 +70,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   {
     for ( int i = 0; i < 99; ++i)
     {
+      m_intermediate_name_ntuple[i] = intermediate_list[i].first;
       m_intermediate_name[i] = intermediate_list[i].first;
       m_intermediate_charge[i] = intermediate_list[i].second;
     }

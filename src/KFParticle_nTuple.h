@@ -159,6 +159,9 @@ class KFParticle_nTuple
     int m_num_intermediate_states_nTuple;
     bool m_truth_matching;
     bool m_detector_info;
+    std::string m_mother_name;
+    bool m_use_intermediate_name;
+    std::string m_intermediate_name_ntuple[99];
     SvtxEvalStack *m_svtx_evalstack;
     TrkrClusterContainer* dst_clustermap;
 };

@@ -29,6 +29,7 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <phool/getClass.h>
 #include <KFParticle_MVA.h>
+#include <KFParticle_particleList.h>
 
 //ROOT stuff
 #include "TMatrixD.h"
@@ -52,7 +53,7 @@ class KFParticleSIMD;
 class KFPVertex;
 class KFParticleDatabase;
 
-class KFParticle_Tools : protected KFParticle_MVA 
+class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MVA 
 {
  public:
   
@@ -153,6 +154,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   float m_mva_cut_value;
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
+  bool m_get_charge_conjugate;
   SvtxVertexMap *m_dst_vertexmap;
   SvtxTrackMap *m_dst_trackmap;
   SvtxVertex *m_dst_vertex;
@@ -161,8 +163,6 @@ class KFParticle_Tools : protected KFParticle_MVA
 
  private:
  
-  float returnPDGMass( const int pdgIndex);
-
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
