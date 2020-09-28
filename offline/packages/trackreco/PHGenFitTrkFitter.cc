@@ -22,6 +22,7 @@
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 
+#include <micromegas/MicromegasDefs.h>
 #include <mvtx/MvtxDefs.h>
 
 #include <intt/InttDefs.h>
@@ -966,6 +967,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
+  /* 
+  need to store micromegas separately before adding them to the track. 
+  this is because they only measure one coordinate. One needs to add the other coordinate for each cluster
+  in order to facilitate the fit, event if the uncertainty on that quantity remains large
+  */
+  std::map<TrkrDefs::cluskey, TrkrCluster*> clusters_mm;
+  
   for (auto iter = m_r_cluster_id.begin();
        iter != m_r_cluster_id.end();
        ++iter)
@@ -973,6 +981,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     TrkrDefs::cluskey cluster_key = iter->second;
     const int layer = TrkrDefs::getLayer(cluster_key);
 
+    std::cout << "PHGenFitTrkFitter::ReFitTrack - adding layer: " << ((int)layer) << std::endl;
+    
     // skip disabled layers
     if( _disabled_layers.find( layer ) != _disabled_layers.end() )
     { continue; }
@@ -1015,8 +1025,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   int chip_index = MvtxDefs::getChipId(cluster_key);
 
   double ladder_location[3] = {0.0, 0.0, 0.0};
-  CylinderGeom_Mvtx* geom =
-          dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+  auto geom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
   // returns the center of the sensor in world coordinates - used to get the ladder phi location
   geom->find_sensor_center(stave_index, 0,
          0, chip_index, ladder_location);
@@ -1028,8 +1037,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       }
     else if(trkrid == TrkrDefs::inttId)
       {
-  CylinderGeomIntt* geom =
-          dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+  auto geom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
   double hit_location[3] = {0.0, 0.0, 0.0};
   geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
           InttDefs::getLadderPhiId(cluster_key), hit_location);
@@ -1038,26 +1046,98 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
   n.SetXYZ(hit_location[0], hit_location[1], 0);
   n.RotateZ(geom->get_strip_phi_tilt());
+      } else if( trkrid == TrkrDefs::micromegasId ) {
+      
+      clusters_mm.insert( std::make_pair( cluster_key, cluster ) );
+      
       }
-    // end new
-    //-----------------
 
-    PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+    auto meas = new PHGenFit::PlanarMeasurement(pos, n,
                   cluster->getRPhiError(), cluster->getZError());
-
+    
     if(Verbosity() > 10)
-      {
-  cout << "Add meas layer " << layer << " cluskey " << cluster_key
-       << endl
-       << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-       << "  n.X " <<  n.X() << " n.Y " << n.Y()
-       << " RPhiErr " << cluster->getRPhiError()
-       << " ZErr " << cluster->getZError()
-       << endl;
-      }
-      measurements.push_back(meas);
+    {
+      cout << "Add meas layer " << layer << " cluskey " << cluster_key
+        << endl
+        << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
+        << "  n.X " <<  n.X() << " n.Y " << n.Y()
+        << " RPhiErr " << cluster->getRPhiError()
+        << " ZErr " << cluster->getZError()
+        << endl;
+    }
+    measurements.push_back(meas);
   }
 
+  // special handling of the micromegas clusters
+  {
+    bool has_phi = false;
+    bool has_z = false;
+    float phi = 0;
+    float z = 0;
+    
+    // first loop to store precise z and rphi coordinates
+    for( const auto& pair:clusters_mm )
+    {
+      const auto& cluster = pair.second;
+      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
+      switch( segmentationType )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
+        if( !has_phi )
+        { 
+          has_phi = true; 
+          phi = std::atan2( cluster->getY(), cluster->getX() );
+        }
+        break;
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
+        if( !has_z )
+        { 
+          has_z = true; 
+          z = cluster->getZ();
+        }
+        break;
+      }
+      
+      if( has_phi && has_z ) break;
+    }
+        
+    // second loop to update the coordinate that is not measured and add measurement to track
+    for( const auto& pair:clusters_mm )
+    {
+      
+      // keep cluster
+      const auto& cluster = pair.second;
+      
+      // update the coordinate that is not measured
+      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
+      switch( segmentationType )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
+        if( has_z ) cluster->setZ(z);
+        break;
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
+        if( has_phi )
+        { 
+          const auto radius = std::sqrt( square(cluster->getX()) + square(cluster->getY()) );
+          cluster->setX(radius*std::cos(phi));
+          cluster->setY(radius*std::sin(phi));
+        }
+        break;
+      }
+        
+      // create measurement
+      TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+      seed_mom.SetPhi(pos.Phi());
+      seed_mom.SetTheta(pos.Theta());
+      
+      TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
+      auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+      measurements.push_back(meas);
+      
+    }
+  
+  }
+  
   /*!
    * mu+:	-13
    * mu-:	13
