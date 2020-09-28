@@ -271,6 +271,8 @@ int Fun4AllHepMCInputManager::fileclose()
 void Fun4AllHepMCInputManager::Print(const string &what) const
 {
   Fun4AllInputManager::Print(what);
+  cout << Name() << " Vertex Settings: " << endl;
+  hepmc_helper.Print(what);
   return;
 }
 

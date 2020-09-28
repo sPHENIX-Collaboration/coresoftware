@@ -13,6 +13,8 @@
 
 #include <gsl/gsl_rng.h>
 
+#include <string>
+
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
@@ -100,6 +102,8 @@ class PHHepMCGenHelper
   }
 
   void CopySettings(PHHepMCGenHelper &helper);
+
+  void Print(const std::string &what = "ALL") const;
 
  private:
   gsl_rng *RandomGenerator;
