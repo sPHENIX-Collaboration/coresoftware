@@ -91,6 +91,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   int events_total = 0;
   int events_thisfile = 0;
   int m_ReadOscarFlag = 0;
+  int m_EventPushedBackFlag = 0;
 
   std::string filename;
   std::string topNodeName;
@@ -109,11 +110,11 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 
+  std::string m_HepMCTmpFile;
+
 private:
 
-  int m_EventPushedBackFlag = 0;
   std::vector<int> m_MyEvent;
-  std::string m_HepMCTmpFile;
 
 };
 
