@@ -358,9 +358,15 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     }
   else
     {
-      std::cout << PHWHERE << "Global to local ACTS transformation failed... skipping this cluster"
+      /*
+      std::cout << PHWHERE 
+		<< "Global to local ACTS transformation failed... skipping this cluster" 
+		<< vecResult.error() 
 		<< std::endl;
-      return nullptr;
+      */
+      local2D(0) = rClusPhi - surfRphiCenter;
+      local2D(1) = zTpc - surfZCenter;
+      //return nullptr;
     }
 
   /// Test that Acts surface transforms correctly back
@@ -596,7 +602,6 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
 						 chipId,
 						 world);
 
-
   Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
@@ -610,9 +615,11 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
     }
   else
     {
-      std::cout << PHWHERE << "Global to local ACTS transformation failed... skipping this cluster"
-		<< std::endl;
-      return nullptr;
+      local2D(0) = local[0] * Acts::UnitConstants::cm;
+      local2D(1) = local[2] * Acts::UnitConstants::cm;
+      //std::cout << PHWHERE << "Global to local ACTS transformation failed... skipping this cluster" << vecResult.error()
+      //<< std::endl;
+      //return nullptr;
     }
 
   /// Test that Acts surface transforms correctly back
