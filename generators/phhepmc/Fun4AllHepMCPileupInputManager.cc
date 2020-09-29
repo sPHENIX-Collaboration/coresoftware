@@ -103,11 +103,9 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
     if (m_EventPushedBackFlag > 0)
     {
     HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
-    cout << "rd state: " << ascii_tmp_in.rdstate() << endl;
     HepMC::GenEvent *evttmp = ascii_tmp_in.read_next_event();
     while(ascii_tmp_in.rdstate() == 0)
     {
-      cout << "reading back " << evttmp->event_number() << ", ptr: " << evttmp << endl;
       if (evttmp->event_number()  != m_SignalEventNumber)
       {
 	double crossing_time = m_EventNumberMap.find(evttmp->event_number())->second;
@@ -195,17 +193,19 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 	    if (skip) cout << " skip";
             cout << " hepmc evt no: " << evt->event_number() << endl;
           }
-          m_EventNumberMap.insert(make_pair(evt->event_number(),crossing_time));
           events_total++;
           events_thisfile++;
           // check if the local SubsysReco discards this event
           if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
           {
+            delete evt;
+	    evt = nullptr;
             ResetEvent();
             //	goto readagain;
           }
           else
           {
+            m_EventNumberMap.insert(make_pair(evt->event_number(),crossing_time));
             break;  // got the evt, move on
           }
         }
@@ -244,7 +244,6 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
       if (m_EventNumberMap.find((iter->second)->getEvent()->event_number()) != m_EventNumberMap.end())
       {
         m_EventPushedBackFlag = 1;
- 	cout << "key: " << iter->first << ", evtno: " << (iter->second)->getEvent()->event_number() << endl;
 	HepMC::GenEvent *evttmp = (iter->second)->getEvent();
 	ascii_io << evttmp;
       }
@@ -272,7 +271,6 @@ int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const doub
       }
       assert(genevent);
       assert(evt);
-      cout << "Fun4AllHepMCPileupInputManager: adding event " << evt->event_number() << endl;
       genevent->addEvent(evt);
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
