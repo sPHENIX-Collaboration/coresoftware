@@ -358,15 +358,9 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     }
   else
     {
-      /*
-      std::cout << PHWHERE 
-		<< "Global to local ACTS transformation failed... skipping this cluster" 
-		<< vecResult.error() 
-		<< std::endl;
-      */
+      /// Otherwise use manual calculation, which is the same as Acts
       local2D(0) = rClusPhi - surfRphiCenter;
       local2D(1) = zTpc - surfZCenter;
-      //return nullptr;
     }
 
   /// Test that Acts surface transforms correctly back
@@ -493,9 +487,9 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
     }
   else
     {
-      std::cout << PHWHERE << "Global to local ACTS transformation failed... skipping this cluster" 
-		<< std::endl;
-      return nullptr;
+      /// Otherwise use manual calculation, same as Acts
+      local2D(0) = local[1] * Acts::UnitConstants::cm;
+      local2D(1) = local[2] * Acts::UnitConstants::cm;
     }
 
   /// Test that Acts surface transforms correctly back
@@ -515,8 +509,8 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
               << " " << segcent[1] << " " << segcent[2] << std::endl;
     std::cout << "   world; " << world[0] << " " << world[1]
               << " " << world[2] << std::endl;
-    std::cout << "   local; " << local[0] << " " << local[1]
-              << " " << local[2] << std::endl;
+    std::cout << "   local; " << local[0] * 10.<< " " << local[1] * 10.
+              << " " << local[2] * 10. << std::endl;
     std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
     std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
 	      << z * 10 << "  " << std::endl;
@@ -615,11 +609,9 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
     }
   else
     {
+      /// Otherwise use our by hand calculation - they are the same as Acts
       local2D(0) = local[0] * Acts::UnitConstants::cm;
       local2D(1) = local[2] * Acts::UnitConstants::cm;
-      //std::cout << PHWHERE << "Global to local ACTS transformation failed... skipping this cluster" << vecResult.error()
-      //<< std::endl;
-      //return nullptr;
     }
 
   /// Test that Acts surface transforms correctly back
