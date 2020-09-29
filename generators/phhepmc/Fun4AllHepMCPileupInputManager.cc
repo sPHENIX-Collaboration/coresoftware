@@ -19,22 +19,9 @@
 #include <fstream>
 #include <iostream>
 
-using namespace std;
-
 Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
-    const string &name, const string &nodename, const string &topnodename)
+    const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllHepMCInputManager(name, nodename, topnodename)
-  , _min_integration_time(-17500.0)
-  , _max_integration_time(+17500.0)
-  , _collision_rate(100.0e3)
-  , _time_between_crossings(106.0)
-  , _ave_coll_per_crossing(1.0)
-  ,  // recalculated
-  _min_crossing(0)
-  ,  // recalculated
-  _max_crossing(0)
-  ,  // recalculated
-  _first_run(true)
 {
   //! repeatedly read the input file
   Repeat(1);
@@ -83,11 +70,11 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 
     if (Verbosity() >= VERBOSITY_SOME)
     {
-      cout << "Fun4AllHepMCPileupInputManager::run:first event:  - ";
-      cout << " _ave_coll_per_crossing = " << _ave_coll_per_crossing;
-      cout << " _min_crossing = " << _min_crossing;
-      cout << " _max_crossing = " << _max_crossing;
-      cout << ". Start first event." << endl;
+      std::cout << "Fun4AllHepMCPileupInputManager::run:first event:  - ";
+      std::cout << " _ave_coll_per_crossing = " << _ave_coll_per_crossing;
+      std::cout << " _min_crossing = " << _min_crossing;
+      std::cout << " _max_crossing = " << _max_crossing;
+      std::cout << ". Start first event." << std::endl;
     }
   }
   if (m_SignalInputManager && !skip)
@@ -130,7 +117,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 
     for (int icollision = 0; icollision < ncollisions; ++icollision)
     {
-      double t0 = crossing_time;
       HepMC::GenEvent *evt = nullptr;
 
       // loop until retrieve a valid event
@@ -142,7 +128,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           {
             if (Verbosity() > 0)
             {
-              cout << Name() << ": No Input file open" << endl;
+              std::cout << Name() << ": No Input file open" << std::endl;
             }
             return -1;
           }
@@ -150,7 +136,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           {
             if (OpenNextFile())
             {
-              cout << Name() << ": No Input file from filelist opened" << endl;
+              std::cout << Name() << ": No Input file from filelist opened" << std::endl;
               return -1;
             }
           }
@@ -180,8 +166,8 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
         {
           if (Verbosity() > 1)
           {
-            cout << "error type: " << ascii_in->error_type()
-                 << ", rdstate: " << ascii_in->rdstate() << endl;
+            std::cout << "error type: " << ascii_in->error_type()
+                 << ", rdstate: " << ascii_in->rdstate() << std::endl;
           }
           fileclose();
         }
@@ -189,9 +175,9 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
         {
           if (Verbosity() > 0)
           {
-            cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
-            if (skip) cout << " skip";
-            cout << " hepmc evt no: " << evt->event_number() << endl;
+            std::cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
+            if (skip) std::cout << " skip";
+            std::cout << " hepmc evt no: " << evt->event_number() << std::endl;
           }
           events_total++;
           events_thisfile++;
@@ -204,7 +190,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           }
           else
           {
-            m_EventNumberMap.insert(make_pair(evt->event_number(), crossing_time));
+            m_EventNumberMap.insert(std::make_pair(evt->event_number(), crossing_time));
             break;  // got the evt, move on
           }
         }
@@ -233,7 +219,7 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
     if (m_HepMCTmpFile.empty())
     {
       // we need to create this filename just once, we reuse it. Do it only if we need it
-      m_HepMCTmpFile = "/tmp/HepMCTmpPileEvent-" + Name() + "-" + to_string(getpid()) + ".hepmc";
+      m_HepMCTmpFile = "/tmp/HepMCTmpPileEvent-" + Name() + "-" + std::to_string(getpid()) + ".hepmc";
     }
     m_EventPushedBackFlag = -1;
     HepMC::IO_GenEvent ascii_io(m_HepMCTmpFile, std::ios::out);

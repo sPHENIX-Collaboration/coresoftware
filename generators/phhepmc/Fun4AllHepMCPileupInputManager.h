@@ -41,25 +41,26 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 
  private:
   int InsertEvent(HepMC::GenEvent *evt, const double crossing_time);
+
   Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
-  std::vector<HepMC::GenEvent *> m_SaveEventVector;
-  int m_SignalEventNumber = 0;
   HepMC::GenEvent *save_evt = nullptr;
   gsl_rng *RandomGenerator = nullptr;
+
+  int m_SignalEventNumber = 0;
   /// past times are negative, future times are positive
-  double _min_integration_time;
-  double _max_integration_time;
+  double _min_integration_time = -17500.0;
+  double _max_integration_time = 17500.0;
   /// collision rate in Hz
-  double _collision_rate;
+  double _collision_rate = 100.0e3;
   /// time between bunch crossing in ns
-  double _time_between_crossings;
+  double _time_between_crossings = 106.0;
 
   //derived parameters
-  double _ave_coll_per_crossing;
-  int _min_crossing;
-  int _max_crossing;
+  double _ave_coll_per_crossing = 1.;
+  int _min_crossing = 0;
+  int _max_crossing = 0;
 
-  bool _first_run;
+  bool _first_run = true;
 
   std::map<int, double> m_EventNumberMap;
 };
