@@ -3,9 +3,11 @@
 
 #include "Fun4AllHepMCInputManager.h"
 
+#include <gsl/gsl_rng.h>
+
+#include <map>
 #include <string>
 
-#include <gsl/gsl_rng.h>
 
 //! Generate pile up collisions based on beam parameter
 //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
@@ -39,10 +41,12 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int PushBackEvents(const int i);
 
  private:
+  int InsertEvent(HepMC::GenEvent *evt, const double crossing_time);
   Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
   std::vector<HepMC::GenEvent *> m_SaveEventVector;
   int m_SignalEventNumber = 0;
   HepMC::GenEvent *save_evt = nullptr;
+  gsl_rng *RandomGenerator = nullptr;
   /// past times are negative, future times are positive
   double _min_integration_time;
   double _max_integration_time;
@@ -58,7 +62,8 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 
   bool _first_run;
 
-  gsl_rng *RandomGenerator;
+
+  std::map<int, double> m_EventNumberMap;
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

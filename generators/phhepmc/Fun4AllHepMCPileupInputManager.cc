@@ -129,9 +129,9 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
             }
           }
         }
-        if (save_evt)
-        {  // if an event was pushed back, copy saved pointer and
-           // reset save_evt pointer
+        if (m_EventPushedBackFlag)
+        { 
+          
           evt = save_evt;
           save_evt = nullptr;
         }
@@ -174,6 +174,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 	    if (skip) cout << " skip";
             cout << " hepmc evt no: " << evt->event_number() << endl;
           }
+          m_EventNumberMap.insert(make_pair(evt->event_number(),crossing_time));
           events_total++;
           events_thisfile++;
           // check if the local SubsysReco discards this event
@@ -190,6 +191,49 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       }  // loop until retrieve a valid event
       if (!skip)
       {
+	InsertEvent(evt,crossing_time);
+      }
+    }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
+
+  }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
+  return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::ResetEvent()
+{
+  m_EventNumberMap.clear();
+  m_SignalEventNumber = 0;
+  return 0;
+}
+
+int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
+{
+  if (i == 1)
+  {
+    if (m_HepMCTmpFile.empty())
+    {
+      // we need to create this filename just once, we reuse it. Do it only if we need it
+      m_HepMCTmpFile = "/tmp/HepMCTmpPileEvent-" + Name() + "-" + to_string(getpid()) + ".hepmc";
+    }
+    m_EventPushedBackFlag = 1;
+    HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
+    PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+    for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
+    {
+      if (m_EventNumberMap.find((iter->second)->getEvent()->event_number()) != m_EventNumberMap.end())
+      {
+	cout << "key: " << iter->first << ", evtno: " << (iter->second)->getEvent()->event_number() << endl;
+	HepMC::GenEvent *evt = (iter->second)->getEvent();
+	ascii_io << evt;
+      }
+    }
+    return 0;
+  }
+  return -1;
+}
+int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const double crossing_time)
+{
+
       PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
       PHHepMCGenEvent *genevent = nullptr;
       if (hepmc_helper.get_embedding_id() > 0)
@@ -209,37 +253,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       genevent->addEvent(evt);
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
-      genevent->moveVertex(0, 0, 0, t0);
-      }
-    }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
-
-  }  //  for (int icrossing = _min_crossing; icrossing <= _max_crossing; ++icrossing)
-  return 0;
-}
-
-int Fun4AllHepMCPileupInputManager::ResetEvent()
-{
-  m_SignalEventNumber = 0;
-  return 0;
-}
-
-int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
-{
-  if (i == 1)
-  {
-  PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
-  for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
-  {
-    cout << "key: " << iter->first << ", evtno: " << ((iter->second)->getEvent())->event_number() << endl;
-    if (iter->first < 0) // just background events from this input manager
-    {
-      m_SaveEventVector.push_back((iter->second)->getEvent());
-    }
-    else
-    {
+      genevent->moveVertex(0, 0, 0, crossing_time);
       return 0;
-    }
-  }
-  }
-  return -1;
 }
