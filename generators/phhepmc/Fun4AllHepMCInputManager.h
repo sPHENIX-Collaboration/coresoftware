@@ -98,7 +98,6 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   PHCompositeNode *topNode;
 
   HepMC::IO_GenEvent *ascii_in = nullptr;
-  HepMC::GenEvent *evt = nullptr;
 
   // some pointers for use in decompression handling
   std::ifstream *filestream = nullptr;  // holds compressed filestream
@@ -114,6 +113,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 
 private:
 
+  HepMC::GenEvent *evt = nullptr;
   std::vector<int> m_MyEvent;
 
 };
