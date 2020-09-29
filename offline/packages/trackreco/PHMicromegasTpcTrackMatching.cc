@@ -70,7 +70,7 @@ int PHMicromegasTpcTrackMatching::Process()
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << endl;
 
-  bool test_search_windows = false;   // testing only
+  bool test_search_windows = false;   // true for testing only
 
  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
@@ -129,7 +129,6 @@ int PHMicromegasTpcTrackMatching::Process()
 	  continue;
 	}
 
-
       // fit a circle to the clusters
       double R, X0, Y0;
       CircleFitByTaubin(clusters, R, X0, Y0);
@@ -138,31 +137,10 @@ int PHMicromegasTpcTrackMatching::Process()
       // toss tracks for which the fitted circle could not have come from the vertex
       if(R < 40.0) continue;
 
-      // get the line to project the track Z to the micromegas layers
-      unsigned int max_layer = 0;
-      unsigned int min_layer = 100;
-      TrkrCluster *clus_min_layer = 0;      
-      TrkrCluster *clus_max_layer = 0;
-      for(auto clus_iter=outer_clusters.begin(); clus_iter != outer_clusters.end(); ++clus_iter)
-	{
-	  unsigned int layer = clus_iter->first;	  
-	  if(layer > max_layer)
-	    { 
-	      max_layer = layer;
-	      clus_max_layer = clus_iter->second;	      
-	    }
-	  if(layer < min_layer) 
-	    {
-	      min_layer = layer;
-	      clus_min_layer = clus_iter->second;
-	    }
-	}
-
       // get the straight line representing the z trajectory in the form of z vs radius
-      double zclus1= clus_min_layer->getZ();
-      double rclus1 = sqrt(clus_min_layer->getX()*clus_min_layer->getX() + clus_min_layer->getY()*clus_min_layer->getY() );
-      double zclus2 = clus_max_layer->getZ();
-      double rclus2 = sqrt(clus_max_layer->getX()*clus_max_layer->getX() + clus_max_layer->getY()*clus_max_layer->getY() );
+      double A = 0; double B = 0;
+      line_fit(clusters, A, B);
+      if(Verbosity() > 3) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the two micromegas layers and store the projections
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
@@ -179,8 +157,11 @@ int PHMicromegasTpcTrackMatching::Process()
 	// We only need to check xplus for failure, skip this track in that case
 	if(std::isnan(xplus)) 
 	  {
-	    std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
-	    std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	    if(Verbosity() > 3)
+	      {
+		std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
+		std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	      }
 	    continue;
 	  }
 
@@ -190,8 +171,8 @@ int PHMicromegasTpcTrackMatching::Process()
 	_yminus[imm] = yminus;
 
 	// project z position
-	_z[imm] = zclus2 + (zclus2 - zclus1) / (rclus2-rclus1) * (_mm_layer_radius[imm] - rclus2);
-
+	_z[imm] = B + A * _mm_layer_radius[imm] ;
+	
       }
 
       // loop over the micromegas clusters and find any within the search windows
@@ -261,23 +242,24 @@ int PHMicromegasTpcTrackMatching::Process()
 	    {
 	      mm_matches[imm].push_back(mm_cluskey);
 
+	      // prints out a line that can be grep-ed from the output file to feed to a display macro
 	      if(test_search_windows)
 		std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
 			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
 	    }
 	}
        
-       // skip no match or multiple match cases for now
+       // skip no-match or multiple-match cases for now
        if(mm_matches[0].size() != 1) continue;
-      if(mm_matches[1].size() != 1) continue;
+       if(mm_matches[1].size() != 1) continue;
       
-      if(Verbosity() > 3)
-	{
-	  cout << "Original TPC tracklet:" << endl;
-	  _tracklet_tpc->identify();
-	}
-      
-      // Add the micromegas clusters to the track
+       if(Verbosity() > 3)
+	 {
+	   cout << "Original TPC tracklet:" << endl;
+	   _tracklet_tpc->identify();
+	 }
+       
+       // Add the micromegas clusters to the track
 
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
 	{      
@@ -444,3 +426,34 @@ void PHMicromegasTpcTrackMatching::circle_circle_intersection(double r1, double 
 
 }
 
+void  PHMicromegasTpcTrackMatching::line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b)
+{
+  // copied from: https://www.bragitoff.com
+  // we want to fit z vs radius
+  
+   double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
+   for (unsigned int i=0; i<clusters.size(); ++i)
+    {
+      double z = clusters[i]->getZ();
+      double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+
+      xsum=xsum+r;                        //calculate sigma(xi)
+      ysum=ysum+z;                        //calculate sigma(yi)
+      x2sum=x2sum+pow(r,2);                //calculate sigma(x^2i)
+      xysum=xysum+r*z;                    //calculate sigma(xi*yi)
+    }
+   a=(clusters.size()*xysum-xsum*ysum)/(clusters.size()*x2sum-xsum*xsum);            //calculate slope
+   b=(x2sum*ysum-xsum*xysum)/(x2sum*clusters.size()-xsum*xsum);            //calculate intercept
+
+   if(Verbosity() > 3)
+     {
+       for (unsigned int i=0;i<clusters.size(); ++i)
+	 {
+	   double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+	   double z_fit = a * r + b;                    //to calculate y(fitted) at given x points
+	   std::cout << " r " << r << " z " << clusters[i]->getZ() << " z_fit " << z_fit << std::endl; 
+	 } 
+     }
+
+    return;
+}   

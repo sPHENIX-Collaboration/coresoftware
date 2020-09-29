@@ -38,6 +38,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_z_search_window_lyr1(const double win){_z_search_win[0] = win;}
   void set_rphi_search_window_lyr2(const double win){_rphi_search_win[1] = win;}
   void set_z_search_window_lyr2(const double win){_z_search_win[1] = win;}
+  void set_min_tpc_layer(const unsigned int layer){_min_tpc_layer = layer;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -52,6 +53,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 
    void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
   void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
+  void  line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b);
 
   unsigned int _n_mm_layers = 2;
   
@@ -67,8 +69,8 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   double _z[2] = {0, 0};
 
   // range of TPC layers to use in projection to micromegas
-  double _min_tpc_layer = 45;
-  double _min_mm_layer = 55;
+  unsigned int _min_tpc_layer = 45;
+  unsigned int _min_mm_layer = 55;
   
   SvtxTrack *_tracklet_tpc{nullptr};
 
