@@ -2,9 +2,9 @@
 
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
-#include "PHHepMCGenHelper.h"            // for PHHepMCGenHelper, PHHepMCGen...
+#include "PHHepMCGenHelper.h"  // for PHHepMCGenHelper, PHHepMCGen...
 
-#include <fun4all/Fun4AllBase.h>         // for Fun4AllBase::VERBOSITY_SOME
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_SOME
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHRandomSeed.h>
@@ -15,7 +15,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
-#include <cassert>                      // for assert
+#include <cassert>  // for assert
 #include <fstream>
 #include <iostream>
 
@@ -56,17 +56,17 @@ Fun4AllHepMCPileupInputManager::~Fun4AllHepMCPileupInputManager()
 
 int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
 {
-  for (int i=0; i<nevents; ++i)
+  for (int i = 0; i < nevents; ++i)
   {
     if (m_SignalInputManager)
     {
       m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent(i);
     }
-  int iret = run(1, true);
-  if (iret)
-  {
-    return iret;
-  }
+    int iret = run(1, true);
+    if (iret)
+    {
+      return iret;
+    }
   }
   return 0;
 }
@@ -94,25 +94,25 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
   {
     m_SignalEventNumber = m_SignalInputManager->MyCurrentEvent();
   }
-// if we have pushed back events we read them here and return
+  // if we have pushed back events we read them here and return
   if (m_EventPushedBackFlag)
   {
-// if m_EventPushedBackFlag = -1 we have no events but still created the temporary HepMC file
-// so we still need to remove it
-// if m_EventPushedBackFlag > 0 we have events pushed back which need to be recovered
+    // if m_EventPushedBackFlag = -1 we have no events but still created the temporary HepMC file
+    // so we still need to remove it
+    // if m_EventPushedBackFlag > 0 we have events pushed back which need to be recovered
     if (m_EventPushedBackFlag > 0)
     {
-    HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
-    HepMC::GenEvent *evttmp = ascii_tmp_in.read_next_event();
-    while(ascii_tmp_in.rdstate() == 0)
-    {
-      if (evttmp->event_number()  != m_SignalEventNumber)
+      HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
+      HepMC::GenEvent *evttmp = ascii_tmp_in.read_next_event();
+      while (ascii_tmp_in.rdstate() == 0)
       {
-	double crossing_time = m_EventNumberMap.find(evttmp->event_number())->second;
-	InsertEvent(evttmp,crossing_time);
+        if (evttmp->event_number() != m_SignalEventNumber)
+        {
+          double crossing_time = m_EventNumberMap.find(evttmp->event_number())->second;
+          InsertEvent(evttmp, crossing_time);
+        }
+        evttmp = ascii_tmp_in.read_next_event();
       }
-      evttmp = ascii_tmp_in.read_next_event();
-    }
     }
     m_EventNumberMap.clear();
     m_EventPushedBackFlag = 0;
@@ -159,20 +159,20 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           if (ReadOscar())
           {
             evt = ConvertFromOscar();
-	    if (evt && m_SignalEventNumber == evt->event_number())
-	    {
-	      delete evt;
+            if (evt && m_SignalEventNumber == evt->event_number())
+            {
+              delete evt;
               evt = ConvertFromOscar();
-	    }
+            }
           }
           else
           {
             evt = ascii_in->read_next_event();
-	    if (evt && m_SignalEventNumber == evt->event_number())
-	    {
-            delete evt;
-            evt = ascii_in->read_next_event();
-	    }
+            if (evt && m_SignalEventNumber == evt->event_number())
+            {
+              delete evt;
+              evt = ascii_in->read_next_event();
+            }
           }
         }
 
@@ -189,8 +189,8 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
         {
           if (Verbosity() > 0)
           {
-	    cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
-	    if (skip) cout << " skip";
+            cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
+            if (skip) cout << " skip";
             cout << " hepmc evt no: " << evt->event_number() << endl;
           }
           events_total++;
@@ -199,20 +199,19 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
           if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
           {
             delete evt;
-	    evt = nullptr;
+            evt = nullptr;
             ResetEvent();
-            //	goto readagain;
           }
           else
           {
-            m_EventNumberMap.insert(make_pair(evt->event_number(),crossing_time));
+            m_EventNumberMap.insert(make_pair(evt->event_number(), crossing_time));
             break;  // got the evt, move on
           }
         }
       }  // loop until retrieve a valid event
       if (!skip)
       {
-	InsertEvent(evt,crossing_time);
+        InsertEvent(evt, crossing_time);
       }
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
@@ -237,15 +236,15 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
       m_HepMCTmpFile = "/tmp/HepMCTmpPileEvent-" + Name() + "-" + to_string(getpid()) + ".hepmc";
     }
     m_EventPushedBackFlag = -1;
-    HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
+    HepMC::IO_GenEvent ascii_io(m_HepMCTmpFile, std::ios::out);
     PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
     for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
     {
       if (m_EventNumberMap.find((iter->second)->getEvent()->event_number()) != m_EventNumberMap.end())
       {
         m_EventPushedBackFlag = 1;
-	HepMC::GenEvent *evttmp = (iter->second)->getEvent();
-	ascii_io << evttmp;
+        HepMC::GenEvent *evttmp = (iter->second)->getEvent();
+        ascii_io << evttmp;
       }
     }
     return 0;
@@ -254,26 +253,25 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
 }
 int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const double crossing_time)
 {
+  PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+  PHHepMCGenEvent *genevent = nullptr;
+  if (hepmc_helper.get_embedding_id() > 0)
+  {
+    //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 
-      PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
-      PHHepMCGenEvent *genevent = nullptr;
-      if (hepmc_helper.get_embedding_id() > 0)
-      {
-        //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
+    genevent = geneventmap->insert_active_event();
+  }
+  else
+  {
+    //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
 
-        genevent = geneventmap->insert_active_event();
-      }
-      else
-      {
-        //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
-
-        genevent = geneventmap->insert_background_event();
-      }
-      assert(genevent);
-      assert(evt);
-      genevent->addEvent(evt);
-      hepmc_helper.move_vertex(genevent);
-      // place to the crossing center in time
-      genevent->moveVertex(0, 0, 0, crossing_time);
-      return 0;
+    genevent = geneventmap->insert_background_event();
+  }
+  assert(genevent);
+  assert(evt);
+  genevent->addEvent(evt);
+  hepmc_helper.move_vertex(genevent);
+  // place to the crossing center in time
+  genevent->moveVertex(0, 0, 0, crossing_time);
+  return 0;
 }

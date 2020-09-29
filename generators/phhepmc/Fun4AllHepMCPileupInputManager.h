@@ -8,7 +8,6 @@
 #include <map>
 #include <string>
 
-
 //! Generate pile up collisions based on beam parameter
 //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
 //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
@@ -20,7 +19,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
                                  const std::string &topnodename = "TOP");
   virtual ~Fun4AllHepMCPileupInputManager();
 
-  int run(const int nevents = 0) {return run(nevents,false);}
+  int run(const int nevents = 0) { return run(nevents, false); }
 
   int run(const int nevents, const bool skip);
   int ResetEvent();
@@ -37,7 +36,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
 
   int SkipForThisManager(const int nevents);
-  void SignalInputManager(Fun4AllHepMCInputManager *in) {m_SignalInputManager = in;}
+  void SignalInputManager(Fun4AllHepMCInputManager *in) { m_SignalInputManager = in; }
   int PushBackEvents(const int i);
 
  private:
@@ -61,7 +60,6 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int _max_crossing;
 
   bool _first_run;
-
 
   std::map<int, double> m_EventNumberMap;
 };
