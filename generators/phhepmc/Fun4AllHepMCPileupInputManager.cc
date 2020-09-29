@@ -117,8 +117,6 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
 
     for (int icollision = 0; icollision < ncollisions; ++icollision)
     {
-      HepMC::GenEvent *evt = nullptr;
-
       // loop until retrieve a valid event
       while (true)
       {
@@ -198,6 +196,11 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
       if (!skip)
       {
         InsertEvent(evt, crossing_time);
+      }
+      else
+      {
+	delete evt;
+	evt = nullptr;
       }
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
