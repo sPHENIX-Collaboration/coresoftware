@@ -285,7 +285,9 @@ int PHActsTrkFitter::Process()
 	      << std::endl;
 
   // put this in the output file
-  std::cout << " SvtxTrackMap size is now " << m_trackMap->size() << std::endl;
+  if(Verbosity() > 0)
+    std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
+	      << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
