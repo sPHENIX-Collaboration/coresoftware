@@ -293,7 +293,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
       if (m_HepMCTmpFile.empty())
       {
         // we need to create this filename just once, we reuse it. Do it only if we need it
-	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + to_string(getpid()) + ".evt";
+	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + Name() + "-" + to_string(getpid()) + ".evt";
       }
       HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
       ascii_io << evt;
