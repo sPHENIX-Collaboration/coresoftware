@@ -17,6 +17,8 @@
 
 #include <tpc/TpcDefs.h>
 
+#include <micromegas/MicromegasDefs.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
@@ -222,9 +224,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   //====================
   // The micromegas detectors have both layers in the same tile. The inner and outer sides are mirrored
   // The detector details are (printed from Init method), where the thickness corresponds to the drift volume:
-  // layer 55: Phi segmented, radius: 82.2565cm, thickness: 0.3cm, zmin: -110cm, zmax: 110cm, pitch: 0.0976562cm
+  // layer 55: Phi segmented, radius: 82.2565 cm, thickness: 0.3 cm, zmin: -110cm, zmax: 110cm, pitch: 0.0976562cm
   // layer: 55 volume: MICROMEGAS_55_Gas2_inner_phys
-  // layer 56: radius: z segmented, 82.6998cm, thickness: 0.3cm, zmin: -110cm, zmax: 110cm, pitch: 0.195312cm
+  // layer 56: radius: z segmented, 82.6998 cm, thickness: 0.3 cm, zmin: -110cm, zmax: 110cm, pitch: 0.195312cm
   // layer: 56 volume: MICROMEGAS_55_Gas2_outer_phys
 
   TGeoNode *micromegas_envelope_node = nullptr;
@@ -233,8 +235,8 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
 
-    //if (m_verbosity)
-    cout << "EditTPCGeometry - searching node " << node_name << endl;
+    if (m_verbosity)
+      cout << "EditTPCGeometry - searching node " << node_name << endl;
 
     if (node_name.BeginsWith("MICROMEGAS"))
     {
@@ -263,11 +265,17 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
       
       TGeoNode *micromegas_node = nullptr;
       micromegas_node = micromegas_envelope_vol->GetNode(i);
+
+      int mm_layer;
+      if( node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") )
+	mm_layer = 0;
+      else
+	mm_layer = 1;
       
       TGeoVolume *micromegas_vol = micromegas_node->GetVolume();
       assert(micromegas_vol);
       
-      addActsMicromegasSurfaces(micromegas_vol, geoManager);
+      addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
     }
   }
   
@@ -279,18 +287,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
 }
 
-void MakeActsGeometry::addActsMicromegasSurfaces(TGeoVolume *micromegas_vol, TGeoManager *geoManager)
+void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, TGeoManager *geoManager)
 {
-  //TODO:
-  // either:					
-  //   Pass the volumes for both layers to this module
-  // or:
-  //   figure out which layer corresponds to this volume and drop the loop over layers, replace it with ilayer = 0 or 1
- 
-
-
-
-  // The input micromegas_vol is either the inner or outer layer drift volume
+  // The input micromegas_vol is either the inner (mm_layer 0) or outer (mm_layer 1) drift volume
 
   // The surfaces for both inner (phi segmented) and outer (z segmented) Micromegas detectors are long in z and small in phi
   // ---- We cannot approximate a cylinder with surfaces that are long in phi.
@@ -298,46 +297,49 @@ void MakeActsGeometry::addActsMicromegasSurfaces(TGeoVolume *micromegas_vol, TGe
   TGeoMedium *micromegas_medium = micromegas_vol->GetMedium();
   assert(micromegas_medium);
 
-  TGeoVolume *micromegas_measurement_vol[m_nMmLayers];
+  TGeoVolume *micromegas_measurement_vol;
 
   // we use the same phi steps as for the TPC, for the same reasons
   // There are 12*10 phi locations for the surfaces, just as for the TPC
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
+  double box_z_length = 110.0 * 2 - 0.01;
 
-  for(unsigned int ilayer = 0; ilayer < m_nMmLayers; ++ilayer)
+
+  // make a box for this layer
+  char bname[500];
+  sprintf(bname,"micromegas_measurement_%i",mm_layer);
+  
+  // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
+  // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
+  double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[mm_layer] - m_mmLayerThickness[mm_layer] / 2.0);
+  
+  
+  double box_thickness =  m_mmLayerThickness[mm_layer] -  1.0;  // makes it 2 cm thick inside 3 cm thick cylinder
+  
+  micromegas_measurement_vol = geoManager->MakeBox(bname, micromegas_medium, 
+							   box_thickness / 2.0, 
+							   box_r_phi*half_width_clearance_phi / 2.0, 
+							   box_z_length / 2.0);
+  
+  micromegas_measurement_vol->SetLineColor(kBlack);
+  micromegas_measurement_vol->SetFillColor(kYellow);
+  micromegas_measurement_vol->SetVisibility(kTRUE);
+  
+  //if(m_verbosity > 30)
     {
-      // make a box for this layer
-      char bname[500];
-      sprintf(bname,"micromegas_measurement_%i",ilayer);
+      cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
+	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
+      micromegas_measurement_vol->Print();
+    }      
 
-      // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
-      // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
-      double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[ilayer] - m_mmLayerThickness[ilayer] / 2.0);
-      
-     micromegas_measurement_vol[ilayer] = geoManager->MakeBox(bname, micromegas_medium, 
-							    m_mmLayerThickness[ilayer]*half_width_clearance_thick, 
-							    box_r_phi*half_width_clearance_phi, 
-							    m_surfStepZ*half_width_clearance_z);
-      
-      micromegas_measurement_vol[ilayer]->SetLineColor(kBlack);
-      micromegas_measurement_vol[ilayer]->SetFillColor(kYellow);
-      micromegas_measurement_vol[ilayer]->SetVisibility(kTRUE);
-      
-      if(m_verbosity > 30)
-	{
-	  cout << m_verbosity << " Made box for Micromegas layer " << ilayer << " with dx " << m_mmLayerThickness[ilayer] << " dy " 
-	       << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[ilayer] << " dz " << m_surfStepZ << endl;
-	  micromegas_measurement_vol[ilayer]->Print();
-	}      
-    }
   
   // place the boxes inside the micromegas drift volume cylinders
 
   int copy = 0;	      
   for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
     {
-      // The (half) micromegas volume is 110 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
-      double z_center = -110/2.0 + m_surfStepZ / 2.0 + (double) iz * m_surfStepZ;
+      // The (half) micromegas volume is 2 * 110 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      double z_center = 0.0;
 
       for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
 	{
@@ -347,32 +349,30 @@ void MakeActsGeometry::addActsMicromegasSurfaces(TGeoVolume *micromegas_vol, TGe
 	      double phi_center = min_phi + m_surfStepPhi / 2.0;
 	      double phi_center_degrees = phi_center * 180.0 / M_PI;
 	      
-	      for (unsigned int ilayer = 0; ilayer < m_nMmLayers; ++ilayer)
+	      copy++;
+		  
+	      // place copies of the gas volume to fill up the layer
+	      
+	      double x_center = m_mmLayerRadius[mm_layer] * cos(phi_center);
+	      double y_center = m_mmLayerRadius[mm_layer] * sin(phi_center);
+	      
+	      char rot_name[500];
+	      sprintf(rot_name,"micromegas_rotation_%i", copy);
+	      TGeoCombiTrans *micromegas_measurement_location = new TGeoCombiTrans(x_center, y_center, z_center,
+										   new TGeoRotation(rot_name,phi_center_degrees, 0, 0));
+	      
+	      micromegas_vol->AddNode(micromegas_measurement_vol, copy, micromegas_measurement_location);
+	      
+	      //if(m_verbosity > 30) 
 		{
-		  copy++;
-		  
-		  // place copies of the gas volume to fill up the layer
-		  
-		  double x_center = m_mmLayerRadius[ilayer] * cos(phi_center);
-		  double y_center = m_mmLayerRadius[ilayer] * sin(phi_center);
-		  
-		  char rot_name[500];
-		  sprintf(rot_name,"micromegas_rotation_%i", copy);
-		  TGeoCombiTrans *micromegas_measurement_location = new TGeoCombiTrans(x_center, y_center, z_center,
-										       new TGeoRotation(rot_name,phi_center_degrees, 0, 0));
-		  
-		  micromegas_vol->AddNode(micromegas_measurement_vol[ilayer], copy, micromegas_measurement_location);
-		  
-		  if(m_verbosity > 30 && ilayer == 30) 
-		    {
-		      cout << " Made copy " << copy << " iz " << iz << " micromegas ilayer " << ilayer << " iphi " << iphi << endl;
-		      cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
-		    }
+		  cout << " Made copy " << copy << " micromegas ilayer " << mm_layer << " iphi " << iphi << endl;
+		  cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
 		}
 	    }
 	}
     }
 }
+
 
 void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *geoManager)
 {
@@ -568,7 +568,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  if(m_verbosity > 10 )
+  //if(m_verbosity > 10 )
     {
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
@@ -608,6 +608,10 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   auto tpcVolume = volumeVector.at(1);
   
   makeTpcMapPairs(tpcVolume);
+
+  // Mm has ?? volumes
+  auto mmVolume = volumeVector.at(1);
+  makeMmMapPairs(mmVolume);
 
   return;
 }
@@ -658,6 +662,58 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
 		std::make_pair(hitsetkey, dumvec);
 	      m_clusterSurfaceMapTpcEdit.insert(tmp);
+	    }
+	  
+	}
+    }
+
+}
+
+void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
+{
+  auto mmLayerArray = mmVolume->confinedLayers();
+  auto mmLayerVector = mmLayerArray->arrayObjects();
+
+  /// Need to unfold each layer that Acts builds
+  for(unsigned int i = 0; i < mmLayerVector.size(); i++)
+    {
+      auto surfaceArray = mmLayerVector.at(i)->surfaceArray();
+      if(surfaceArray == NULL){
+	continue;
+      }
+      /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
+      /// that acts builds
+      auto surfaceVector = surfaceArray->surfaces();
+      for( unsigned int j = 0; j < surfaceVector.size(); j++)
+	{
+	  auto surf = surfaceVector.at(j)->getSharedPtr();
+	  auto vec3d = surf->center(m_geoCtxt);
+	  
+
+	  /// convert to cm
+	  std::vector<double> world_center = {vec3d(0) / 10.0, 
+					      vec3d(1) / 10.0,
+					      vec3d(2) / 10.0};
+	
+	  TrkrDefs::hitsetkey hitsetkey = getMmHitSetKeyFromCoords(world_center);
+
+	  /// If there is already an entry for this hitsetkey, add the surface
+	  /// to its corresponding vector
+	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+	  mapIter = m_clusterSurfaceMapMmEdit.find(hitsetkey);
+	  
+	  if(mapIter != m_clusterSurfaceMapMmEdit.end())
+	    {
+	      mapIter->second.push_back(surf);
+	    }
+	  else
+	    {
+	      /// Otherwise make a new map entry
+	      std::vector<Surface> dumvec;
+	      dumvec.push_back(surf);
+	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
+		std::make_pair(hitsetkey, dumvec);
+	      m_clusterSurfaceMapMmEdit.insert(tmp);
 	    }
 	  
 	}
@@ -868,6 +924,47 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
 
 }
 
+Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
+{
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = m_clusterSurfaceMapMmEdit.find(hitsetkey);
+  
+  if(mapIter == m_clusterSurfaceMapMmEdit.end())
+    {
+      cout << PHWHERE << "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " << hitsetkey << endl;
+      return nullptr;
+    }
+
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+  
+      auto vec3d = this_surf->center(m_geoCtxt);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+      if( (world_phi > surf_phi - m_surfStepPhi / 2.0 && world_phi < surf_phi + m_surfStepPhi / 2.0 ) &&
+	  (world_z > surf_z -m_surfStepZ / 2.0 && world_z < surf_z + m_surfStepZ / 2.0) )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+  if(surf_index == 999)
+    {
+      cout << PHWHERE << "Error: Micromegas surface index not defined, skipping cluster!" << endl;
+      return nullptr;
+    }
+ 
+  return surf_vec[surf_index];
+
+}
+
 
 TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
@@ -922,6 +1019,65 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
   if(m_verbosity > 3)
     if(layer == 30)
       cout << "   world = " << world[0] << "  " << world[1] << "  " << world[2] << " phi_world " << phi_world*180/3.14159 << " layer " << layer << " readout_mod " << readout_mod << " side " << side << " hitsetkey " << hitset_key<< endl;
+  
+  return hitset_key;
+}
+
+TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<double> &world)
+{
+  // Look up micromegas surface index values from world position of surface center
+
+  // layer
+  unsigned int layer = 999;
+  double layer_rad = sqrt(pow(world[0],2) + pow(world[1],2));
+  for(unsigned int ilayer=0;ilayer<m_nMmLayers;++ilayer)
+    {
+      double ref_radius_low = m_mmLayerRadius[ilayer] - m_mmLayerThickness[ilayer] / 2.0;
+      double ref_radius_high = m_mmLayerRadius[ilayer] + m_mmLayerThickness[ilayer] / 2.0;
+      if(layer_rad >= ref_radius_low && layer_rad < ref_radius_high)
+	{
+	  layer = ilayer;
+	  break;
+	}
+    }
+  if(layer >= m_nMmLayers) 
+    {
+      cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  // we have lumped all surfacrs into one layer
+  /*
+  unsigned int readout_mod = 999;
+  double phi_world = atan2(world[1], world[0]);
+  for(unsigned int imod=0; imod<m_nTpcModulesPerLayer; ++imod)
+    {
+      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi;
+      double max_phi = m_modulePhiStart + (double) (imod+1) * m_moduleStepPhi;
+      if(phi_world >=min_phi && phi_world < max_phi)
+	{
+	  readout_mod = imod;
+	  break;
+	}
+    }
+  if(readout_mod >= m_nTpcModulesPerLayer)
+    {
+      cout << PHWHERE << "Error: readout_mod is undefined, do nothing  phi_world = " << phi_world << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  */
+  int tile = 0;   // assign all surfaces to tile 0
+  MicromegasDefs::SegmentationType segtype;
+  if(layer == 55)
+    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+  else
+    MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+
+  /// Get the surface key to find the surface from the map
+  TrkrDefs::hitsetkey hitset_key = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+
+  if(m_verbosity > 3)
+    cout << PHWHERE << "    micromegas layer " << layer << " hitsetkey " << hitset_key<< endl;
   
   return hitset_key;
 }
@@ -994,6 +1150,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     std::string intt("ladder");
     std::string intt_ext("ladderext");
     std::string tpc("tpc_envelope");
+    std::string micromegas("MICROMEGAS_55");
 
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
@@ -1033,17 +1190,23 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 	  cout << " node " << node->GetName() << " is in the TPC " << endl;
 	getTpcKeyFromNode(node);
       }
+    else if (node_str.compare(0, micromegas.length(), micromegas) == 0)  // is it in the Micromegas?
+      {
+	//if(m_verbosity > 2)
+	  cout << " node " << node->GetName() << " is in the TPC " << endl;
+	  //getTpcKeyFromNode(node);
+      }
     else
       continue;
 
-    bool print_sensor_paths = true;  // normally false
+    bool print_sensor_paths = false;  // normally false
     if (print_sensor_paths)
     {
       // Descends the node tree to find the active silicon nodes - used for information only
       cout << " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName() << endl;
       //cout << " Top Node mother volume name is " << node->GetMotherVolume()->GetName() << endl;
 
-      int nmax_print = 200;
+      int nmax_print = 20;
       isActive(node, nmax_print);
     }
   }
@@ -1206,7 +1369,7 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
   std::string intt_refactive("siactive");
   std::string mvtx_refactive("MVTXSensor");
   std::string tpc_refactive("tpc_gas_measurement");
-  //std::string micromegas_refactive("");
+  std::string micromegas_refactive("MICROMEGAS_55");
 
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
   {
@@ -1236,7 +1399,13 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
 
     return;
   }
-  /*
+  else if (node_str.compare(0, micromegas_refactive.length(), micromegas_refactive) == 0)
+  {
+    cout << "          ******* Found Micromegas  active volume,  node is " << gnode->GetName()
+         << " volume name is " << gnode->GetVolume()->GetName() << endl;
+
+    return;
+  }
   else
     {
       if(nprint_tpc < nmax_print)
@@ -1248,7 +1417,7 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
       
       return;      
     }
-  */
+
 
   int ndaught = gnode->GetNdaughters();
 
