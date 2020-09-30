@@ -11,7 +11,7 @@ sub CreateConfigure;
 
 if ($#ARGV < 0)
 {
-    print "Repo Location: offline/framework/fun4all\n";
+    print "Repo + Location: coresoftware:offline/framework/fun4all\n";
     print "Usage:\n";
     print "CreateSubsysRecoModule.pl <Module Name>\n";
     print "options:\n";
