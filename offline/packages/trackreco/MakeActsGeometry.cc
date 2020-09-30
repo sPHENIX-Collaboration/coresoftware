@@ -134,6 +134,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 
 void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 {
+  // Because we reset and rebuild the geomNode, we do edits of the TPC and Micromegas geometry in the same module
   
   PHGeomTGeo *geomNode = PHGeomUtility::GetGeomTGeoNode(topNode, true);
   assert(geomNode);
@@ -152,6 +153,10 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   assert(geoManager);
   
   TGeoVolume *World_vol = geoManager->GetTopVolume();
+
+  // TPC geometry edits
+  //===============
+
   TGeoNode *tpc_envelope_node = nullptr;
   TGeoNode *tpc_gas_north_node = nullptr;
 
@@ -213,11 +218,160 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
 
+  // Micromegas geometry edits
+  //====================
+  // The micromegas detectors have both layers in the same tile. The inner and outer sides are mirrored
+  // The detector details are (printed from Init method), where the thickness corresponds to the drift volume:
+  // layer 55: Phi segmented, radius: 82.2565cm, thickness: 0.3cm, zmin: -110cm, zmax: 110cm, pitch: 0.0976562cm
+  // layer: 55 volume: MICROMEGAS_55_Gas2_inner_phys
+  // layer 56: radius: z segmented, 82.6998cm, thickness: 0.3cm, zmin: -110cm, zmax: 110cm, pitch: 0.195312cm
+  // layer: 56 volume: MICROMEGAS_55_Gas2_outer_phys
+
+  TGeoNode *micromegas_envelope_node = nullptr;
+
+  for (int i = 0; i < World_vol->GetNdaughters(); i++)
+  {
+    TString node_name = World_vol->GetNode(i)->GetName();
+
+    //if (m_verbosity)
+    cout << "EditTPCGeometry - searching node " << node_name << endl;
+
+    if (node_name.BeginsWith("MICROMEGAS"))
+    {
+      if (m_verbosity)
+        cout << "EditTPCGeometry - found micromegas node " << node_name << endl;
+
+      micromegas_envelope_node = World_vol->GetNode(i);
+      break;
+    }
+  }
+  assert(micromegas_envelope_node);
+
+  TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
+  assert(micromegas_envelope_vol);
+
+  // Get inner and outer volume and edit them
+  for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
+  {
+    TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
+
+    // this gets both inner and outer
+    if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
+    {
+      //if (m_verbosity)
+      cout << "EditTPCGeometry - found Micromegas node " << node_name << endl;
+      
+      TGeoNode *micromegas_node = nullptr;
+      micromegas_node = micromegas_envelope_vol->GetNode(i);
+      
+      TGeoVolume *micromegas_vol = micromegas_node->GetVolume();
+      assert(micromegas_vol);
+      
+      addActsMicromegasSurfaces(micromegas_vol, geoManager);
+    }
+  }
+  
+  // done
   geoManager->CloseGeometry();
 
   // save the edited geometry to DST persistent IO node for downstream DST files
   PHGeomUtility::UpdateIONode(topNode);
 
+}
+
+void MakeActsGeometry::addActsMicromegasSurfaces(TGeoVolume *micromegas_vol, TGeoManager *geoManager)
+{
+  //TODO:
+  // either:					
+  //   Pass the volumes for both layers to this module
+  // or:
+  //   figure out which layer corresponds to this volume and drop the loop over layers, replace it with ilayer = 0 or 1
+ 
+
+
+
+  // The input micromegas_vol is either the inner or outer layer drift volume
+
+  // The surfaces for both inner (phi segmented) and outer (z segmented) Micromegas detectors are long in z and small in phi
+  // ---- We cannot approximate a cylinder with surfaces that are long in phi.
+
+  TGeoMedium *micromegas_medium = micromegas_vol->GetMedium();
+  assert(micromegas_medium);
+
+  TGeoVolume *micromegas_measurement_vol[m_nMmLayers];
+
+  // we use the same phi steps as for the TPC, for the same reasons
+  // There are 12*10 phi locations for the surfaces, just as for the TPC
+  double tan_half_phi = tan(m_surfStepPhi / 2.0);
+
+  for(unsigned int ilayer = 0; ilayer < m_nMmLayers; ++ilayer)
+    {
+      // make a box for this layer
+      char bname[500];
+      sprintf(bname,"micromegas_measurement_%i",ilayer);
+
+      // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
+      // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
+      double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[ilayer] - m_mmLayerThickness[ilayer] / 2.0);
+      
+     micromegas_measurement_vol[ilayer] = geoManager->MakeBox(bname, micromegas_medium, 
+							    m_mmLayerThickness[ilayer]*half_width_clearance_thick, 
+							    box_r_phi*half_width_clearance_phi, 
+							    m_surfStepZ*half_width_clearance_z);
+      
+      micromegas_measurement_vol[ilayer]->SetLineColor(kBlack);
+      micromegas_measurement_vol[ilayer]->SetFillColor(kYellow);
+      micromegas_measurement_vol[ilayer]->SetVisibility(kTRUE);
+      
+      if(m_verbosity > 30)
+	{
+	  cout << m_verbosity << " Made box for Micromegas layer " << ilayer << " with dx " << m_mmLayerThickness[ilayer] << " dy " 
+	       << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[ilayer] << " dz " << m_surfStepZ << endl;
+	  micromegas_measurement_vol[ilayer]->Print();
+	}      
+    }
+  
+  // place the boxes inside the micromegas drift volume cylinders
+
+  int copy = 0;	      
+  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
+    {
+      // The (half) micromegas volume is 110 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      double z_center = -110/2.0 + m_surfStepZ / 2.0 + (double) iz * m_surfStepZ;
+
+      for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
+	{
+      	  for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
+	    {	  
+	      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
+	      double phi_center = min_phi + m_surfStepPhi / 2.0;
+	      double phi_center_degrees = phi_center * 180.0 / M_PI;
+	      
+	      for (unsigned int ilayer = 0; ilayer < m_nMmLayers; ++ilayer)
+		{
+		  copy++;
+		  
+		  // place copies of the gas volume to fill up the layer
+		  
+		  double x_center = m_mmLayerRadius[ilayer] * cos(phi_center);
+		  double y_center = m_mmLayerRadius[ilayer] * sin(phi_center);
+		  
+		  char rot_name[500];
+		  sprintf(rot_name,"micromegas_rotation_%i", copy);
+		  TGeoCombiTrans *micromegas_measurement_location = new TGeoCombiTrans(x_center, y_center, z_center,
+										       new TGeoRotation(rot_name,phi_center_degrees, 0, 0));
+		  
+		  micromegas_vol->AddNode(micromegas_measurement_vol[ilayer], copy, micromegas_measurement_location);
+		  
+		  if(m_verbosity > 30 && ilayer == 30) 
+		    {
+		      cout << " Made copy " << copy << " iz " << iz << " micromegas ilayer " << ilayer << " iphi " << iphi << endl;
+		      cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
+		    }
+		}
+	    }
+	}
+    }
 }
 
 void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *geoManager)
@@ -882,7 +1036,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     else
       continue;
 
-    bool print_sensor_paths = false;  // normally false
+    bool print_sensor_paths = true;  // normally false
     if (print_sensor_paths)
     {
       // Descends the node tree to find the active silicon nodes - used for information only
@@ -1052,6 +1206,7 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
   std::string intt_refactive("siactive");
   std::string mvtx_refactive("MVTXSensor");
   std::string tpc_refactive("tpc_gas_measurement");
+  //std::string micromegas_refactive("");
 
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
   {
@@ -1081,6 +1236,19 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
 
     return;
   }
+  /*
+  else
+    {
+      if(nprint_tpc < nmax_print)
+	{
+	  cout << "          ******* Found  node " << gnode->GetName()
+	       << " volume name is " << gnode->GetVolume()->GetName() << endl;
+	}
+      nprint_tpc++;
+      
+      return;      
+    }
+  */
 
   int ndaught = gnode->GetNdaughters();
 

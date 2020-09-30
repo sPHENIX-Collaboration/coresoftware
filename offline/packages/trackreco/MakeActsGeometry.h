@@ -72,6 +72,8 @@ class MakeActsGeometry
   void editTPCGeometry(PHCompositeNode *topNode);
   void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 			  TGeoManager *geoManager);
+  void addActsMicromegasSurfaces(TGeoVolume *micromegas_vol, 
+				 TGeoManager *geoManager);
 
   void setVerbosity(int verbosity)
     { m_verbosity = verbosity; }
@@ -190,6 +192,11 @@ class MakeActsGeometry
   double layer_thickness_sector[m_nTpcSectors] = {0};
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
+
+  // Micromegas box surfacrs use same phi and z segmentation as TPC, but layer details are different
+  const static int m_nMmLayers = 2;
+  double m_mmLayerRadius[m_nMmLayers] = {82.2565, 82.6998};
+  double m_mmLayerThickness[m_nMmLayers] = {0.3};
 
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;

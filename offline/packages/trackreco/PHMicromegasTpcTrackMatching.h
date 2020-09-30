@@ -39,6 +39,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_rphi_search_window_lyr2(const double win){_rphi_search_win[1] = win;}
   void set_z_search_window_lyr2(const double win){_z_search_win[1] = win;}
   void set_min_tpc_layer(const unsigned int layer){_min_tpc_layer = layer;}
+  void print_test_windows_data(const bool test){_test_search_windows = test;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -69,8 +70,10 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   double _z[2] = {0, 0};
 
   // range of TPC layers to use in projection to micromegas
-  unsigned int _min_tpc_layer = 45;
+  unsigned int _min_tpc_layer = 38;
   unsigned int _min_mm_layer = 55;
+
+  bool _test_search_windows = false;   // true for testing only
   
   SvtxTrack *_tracklet_tpc{nullptr};
 
