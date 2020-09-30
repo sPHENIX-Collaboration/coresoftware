@@ -19,6 +19,7 @@ sub CreateConfigure;
 
 if ($#ARGV < 0)
 {
+    print "Repo + Location: coresoftware:simulation/g4simulation/g4detectors\n";
     print "Usage:\n";
     print "CreateG4Subsystem.pl <Detector Name>\n";
     print "options:\n";
@@ -245,9 +246,6 @@ sub CreateSteppingActionImplementation()
     print F "class PHCompositeNode;\n";
     print F "\n";
 
-    print F "using namespace std;\n";
-    print F "\n";
-
     print F "//____________________________________________________________________________..\n";
     print F "$steppingclassname\:\:$steppingclassname($detectorclassname *detector, const PHParameters *parameters)\n";
     print F "  : PHG4SteppingAction(detector->GetName())\n";
@@ -322,7 +320,7 @@ sub CreateSteppingActionImplementation()
     print F "  // geantino or chargedgeantino has pid=0\n";
     print F "  if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&\n";
     print F "      aTrack->GetParticleDefinition()->GetParticleName().find(\"geantino\") !=\n";
-    print F "          string::npos)  // this also accounts for \"chargedgeantino\"\n";
+    print F "          std::string::npos)  // this also accounts for \"chargedgeantino\"\n";
     print F "  {\n";
     print F "    geantino = true;\n";
     print F "  }\n";
@@ -354,21 +352,21 @@ sub CreateSteppingActionImplementation()
     print F "    {\n";
     print F "      // this is an impossible G4 Step print out diagnostic to help debug, not sure if\n";
     print F "      // this is still with us\n";
-    print F "      cout << GetName() << \": New Hit for  \" << endl;\n";
-    print F "      cout << \"prestep status: \"\n";
+    print F "      std::cout << GetName() << \": New Hit for  \" << std::endl;\n";
+    print F "      std::cout << \"prestep status: \"\n";
     print F "           << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())\n";
     print F "           << \", poststep status: \"\n";
     print F "           << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())\n";
     print F "           << \", last pre step status: \"\n";
     print F "           << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)\n";
     print F "           << \", last post step status: \"\n";
-    print F "           << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;\n";
-    print F "      cout << \"last track: \" << m_SaveTrackId\n";
-    print F "           << \", current trackid: \" << aTrack->GetTrackID() << endl;\n";
-    print F "      cout << \"phys pre vol: \" << volume->GetName()\n";
-    print F "           << \" post vol : \" << touchpost->GetVolume()->GetName() << endl;\n";
-    print F "      cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
-    print F "           << \" previous phys post vol: \" << m_SaveVolPost->GetName() << endl;\n";
+    print F "           << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;\n";
+    print F "      std::cout << \"last track: \" << m_SaveTrackId\n";
+    print F "           << \", current trackid: \" << aTrack->GetTrackID() << std::endl;\n";
+    print F "      std::cout << \"phys pre vol: \" << volume->GetName()\n";
+    print F "           << \" post vol : \" << touchpost->GetVolume()->GetName() << std::endl;\n";
+    print F "      std::cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
+    print F "           << \" previous phys post vol: \" << m_SaveVolPost->GetName() << std::endl;\n";
     print F "    }\n";
     print F "// These are the normal cases\n";
     print F "  case fGeomBoundary:\n";
@@ -403,7 +401,7 @@ sub CreateSteppingActionImplementation()
     print F "    }\n";
     print F "    else\n";
     print F "    {\n";
-    print F "      cout << \"implement stuff for whichactive < 0 (inactive volumes)\" << endl;\n";
+    print F "      std::cout << \"implement stuff for whichactive < 0 (inactive volumes)\" << std::endl;\n";
     print F "      gSystem->Exit(1);\n";
     print F "    }\n";
     print F "    // this is for the tracking of the truth info\n";
@@ -425,34 +423,34 @@ sub CreateSteppingActionImplementation()
     print F "  // This section is called for every step\n";
     print F "  // some sanity checks for inconsistencies (aka bugs) we have seen over the years\n";
     print F "  // check if this hit was created, if not print out last post step status\n";
-    print F "  if (!m_Hit || !isfinite(m_Hit->get_x(0)))\n";
+    print F "  if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))\n";
     print F "  {\n";
-    print F "    cout << GetName() << \": hit was not created\" << endl;\n";
-    print F "    cout << \"prestep status: \"\n";
+    print F "    std::cout << GetName() << \": hit was not created\" << std::endl;\n";
+    print F "    std::cout << \"prestep status: \"\n";
     print F "         << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())\n";
     print F "         << \", poststep status: \"\n";
     print F "         << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())\n";
     print F "         << \", last pre step status: \"\n";
     print F "         << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)\n";
     print F "         << \", last post step status: \"\n";
-    print F "         << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;\n";
-    print F "    cout << \"last track: \" << m_SaveTrackId\n";
-    print F "         << \", current trackid: \" << aTrack->GetTrackID() << endl;\n";
-    print F "    cout << \"phys pre vol: \" << volume->GetName()\n";
-    print F "         << \" post vol : \" << touchpost->GetVolume()->GetName() << endl;\n";
-    print F "    cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
-    print F "         << \" previous phys post vol: \" << m_SaveVolPost->GetName() << endl;\n";
+    print F "         << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;\n";
+    print F "    std::cout << \"last track: \" << m_SaveTrackId\n";
+    print F "         << \", current trackid: \" << aTrack->GetTrackID() << std::endl;\n";
+    print F "    std::cout << \"phys pre vol: \" << volume->GetName()\n";
+    print F "         << \" post vol : \" << touchpost->GetVolume()->GetName() << std::endl;\n";
+    print F "    std::cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
+    print F "         << \" previous phys post vol: \" << m_SaveVolPost->GetName() << std::endl;\n";
     print F "    // This is fatal - a hit from nowhere. This needs to be looked at and fixed\n";
     print F "    gSystem->Exit(1);\n";
     print F "  }\n";
     print F "  // check if track id matches the initial one when the hit was created\n";
     print F "  if (aTrack->GetTrackID() != m_SaveTrackId)\n";
     print F "  {\n";
-    print F "    cout << GetName() << \": hits do not belong to the same track\" << endl;\n";
-    print F "    cout << \"saved track: \" << m_SaveTrackId\n";
+    print F "    std::cout << GetName() << \": hits do not belong to the same track\" << std::endl;\n";
+    print F "    std::cout << \"saved track: \" << m_SaveTrackId\n";
     print F "         << \", current trackid: \" << aTrack->GetTrackID()\n";
     print F "         << \", prestep status: \" << prePoint->GetStepStatus()\n";
-    print F "         << \", previous post step status: \" << m_SavePostStepStatus << endl;\n";
+    print F "         << \", previous post step status: \" << m_SavePostStepStatus << std::endl;\n";
     print F "    // This is fatal - a hit from nowhere. This needs to be looked at and fixed\n";
     print F "    gSystem->Exit(1);\n";
     print F "  }\n";
@@ -546,7 +544,7 @@ sub CreateSteppingActionImplementation()
     print F "//____________________________________________________________________________..\n";
     print F "void $steppingclassname\:\:SetInterfacePointers(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  string hitnodename = \"G4HIT_\" + m_Detector->GetName();\n";
+    print F "  std::string hitnodename = \"G4HIT_\" + m_Detector->GetName();\n";
 
     print F "  // now look for the map and grab a pointer to it.\n";
     print F "  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);\n";
@@ -675,11 +673,11 @@ sub CreateDetectorImplementation()
     print F "//_______________________________________________________________\n";
     print F "void $detectorclassname\:\:Print(const std::string &what) const\n";
     print F "{\n";
-    print F "  cout << \"$detectorname Detector:\" << endl;\n";
+    print F "  std::cout << \"$detectorname Detector:\" << std::endl;\n";
     print F "  if (what == \"ALL\" || what == \"VOLUME\")\n";
     print F "  {\n";
-    print F "    cout << \"Version 0.1\" << endl;\n";
-    print F "    cout << \"Parameters:\" << endl;\n";
+    print F "    std::cout << \"Version 0.1\" << std::endl;\n";
+    print F "    std::cout << \"Parameters:\" << std::endl;\n";
     print F "    m_Params->Print();\n";
     print F "  }\n";
     print F "  return;\n";
@@ -906,7 +904,7 @@ sub CreateSubsystemImplementation()
     print F "      DetNode = new PHCompositeNode(Name());\n";
     print F "      dstNode->addNode(DetNode);\n";
     print F "    }\n";
-    print F "    string g4hitnodename = \"G4HIT_\" + Name();\n";
+    print F "    std::string g4hitnodename = \"G4HIT_\" + Name();\n";
     print F "    PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(DetNode, g4hitnodename);\n";
     print F "    if (!g4_hits)\n";
     print F "    {\n";
