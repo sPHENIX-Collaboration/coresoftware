@@ -43,7 +43,6 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int InsertEvent(HepMC::GenEvent *evt, const double crossing_time);
 
   Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
-  HepMC::GenEvent *save_evt = nullptr;
   gsl_rng *RandomGenerator = nullptr;
 
   int m_SignalEventNumber = 0;
