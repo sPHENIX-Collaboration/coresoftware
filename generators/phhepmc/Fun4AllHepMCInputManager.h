@@ -81,39 +81,48 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
-  virtual int SkipForThisManager(const int nevents) {return PushBackEvents(nevents);}
+  virtual int SkipForThisManager(const int nevents) {return PushBackEvents(-nevents);}
   int MyCurrentEvent(const unsigned int index=0) const;
 // copy helper settings from another HepMC Input Manager
   void CopyHelperSettings(Fun4AllHepMCInputManager *source);
   PHHepMCGenHelper &get_helper() {return hepmc_helper;}
 
  protected:
-  int events_total = 0;
-  int events_thisfile = 0;
-  int m_ReadOscarFlag = 0;
-
-  std::string filename;
-  std::string topNodeName;
-  PHCompositeNode *topNode;
-
-  HepMC::IO_GenEvent *ascii_in = nullptr;
   HepMC::GenEvent *evt = nullptr;
 
-  // some pointers for use in decompression handling
-  std::ifstream *filestream = nullptr;  // holds compressed filestream
-  std::istream *unzipstream = nullptr;  // feed into HepMc
-  std::ifstream theOscarFile;
+  int events_total = 0;
+  int events_thisfile = 0;
+  int m_EventPushedBackFlag = 0;
+
+
+  HepMC::IO_GenEvent *ascii_in = nullptr;
+
 
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
-  boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+
+  std::string m_HepMCTmpFile;
 
 private:
 
-  int m_EventPushedBackFlag = 0;
+
+  PHCompositeNode *topNode = nullptr;
+
+  // some pointers for use in decompression handling
+  std::ifstream *filestream = nullptr;  // holds compressed filestream
+  std::istream *unzipstream = nullptr;  // feed into HepMc
+
+  int m_ReadOscarFlag = 0;
+
   std::vector<int> m_MyEvent;
-  std::string m_HepMCTmpFile;
+
+  boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+
+  std::ifstream theOscarFile;
+
+  std::string filename;
+  std::string topNodeName;
 
 };
 
