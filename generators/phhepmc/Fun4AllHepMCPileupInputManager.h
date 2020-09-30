@@ -19,10 +19,10 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
                                  const std::string &topnodename = "TOP");
   virtual ~Fun4AllHepMCPileupInputManager();
 
-  int run(const int nevents = 0) { return run(nevents, false); }
+  int run(const int nevents = 0) override { return run(nevents, false); }
 
   int run(const int nevents, const bool skip);
-  int ResetEvent();
+  int ResetEvent() override;
   /// past times are negative, future times are positive
   void set_time_window(double past_nsec, double future_nsec)
   {
@@ -35,9 +35,9 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   /// time between bunch crossing in ns
   void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
 
-  int SkipForThisManager(const int nevents);
+  int SkipForThisManager(const int nevents) override;
   void SignalInputManager(Fun4AllHepMCInputManager *in) { m_SignalInputManager = in; }
-  int PushBackEvents(const int i);
+  int PushBackEvents(const int i) override;
 
  private:
   int InsertEvent(HepMC::GenEvent *evt, const double crossing_time);
