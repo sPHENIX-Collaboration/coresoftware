@@ -125,12 +125,13 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   makeTGeoNodeMap(topNode);
 
   /// Export the new geometry to a root file for examination
-  //if(m_verbosity > 3){
-    /// Export as root file
-    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
-    /// Export as gdml file for material mapping
-    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
-    //}
+  if(m_verbosity > 3)
+    {
+      /// Export as root file
+      PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
+      /// Export as gdml file for material mapping
+      PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
