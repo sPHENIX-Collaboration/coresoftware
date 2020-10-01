@@ -71,7 +71,11 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const std::string &name, cons
 Fun4AllHepMCInputManager::~Fun4AllHepMCInputManager()
 {
   fileclose();
-
+  if (!m_HepMCTmpFile.empty())
+  {
+    // okay if the file does not exist
+    remove(m_HepMCTmpFile.c_str());
+  }
   delete ascii_in;
   delete filestream;
   delete unzipstream;
