@@ -80,6 +80,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_verbosity(0)
   , m_magField("1.4")
   , m_magFieldRescale(-1.0)
+  , m_buildMMs(false)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -124,12 +125,12 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   makeTGeoNodeMap(topNode);
 
   /// Export the new geometry to a root file for examination
-  if(m_verbosity){
+  //if(m_verbosity > 3){
     /// Export as root file
     PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
     /// Export as gdml file for material mapping
     PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
-  }
+    //}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -219,6 +220,10 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
+
+  /// If we are building the MicroMegas, keep going on
+  if(!m_buildMMs)
+    return;
 
   // Micromegas geometry edits
   //====================

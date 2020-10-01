@@ -61,7 +61,7 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
   , m_tGeometry(nullptr)
- 
+  , m_buildMMs(false)
 {
   Verbosity(0);
 }
@@ -87,6 +87,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setVerbosity(Verbosity());
   m_actsGeometry->setMagField(m_magField);
   m_actsGeometry->setMagFieldRescale(m_magFieldRescale);
+  m_actsGeometry->buildMicroMegas(m_buildMMs);
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree

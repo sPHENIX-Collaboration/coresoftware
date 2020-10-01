@@ -102,6 +102,8 @@ class PHActsSourceLinks : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  void buildMicroMegas(bool buildMMs){m_buildMMs = buildMMs;}
+
  private:
   /**
    * Functions
@@ -191,6 +193,8 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
   ActsTrackingGeometry *m_tGeometry;
+
+  bool m_buildMMs;
 
 };
 
