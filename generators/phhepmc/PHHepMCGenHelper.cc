@@ -198,3 +198,24 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper)
   helper.set_vertex_distribution_mean( _vertex_x, _vertex_y, _vertex_z, _vertex_t);
   return;
 }
+
+void PHHepMCGenHelper::Print(const std::string &what) const
+{
+  map<VTXFUNC,string> vtxfunc = {{VTXFUNC::Uniform,"Uniform"},{VTXFUNC::Gaus,"Gaus"}};
+  cout << "Vertex distribution width x: " << _vertex_width_x
+       << ", y: " << _vertex_width_y
+       << ", z: " << _vertex_width_z
+       << ", t: " << _vertex_width_t
+       << endl;
+  cout << "Vertex distribution function x: " << vtxfunc[_vertex_func_x]
+       << ", y: " << vtxfunc[_vertex_func_y]
+       << ", z: " << vtxfunc[_vertex_func_z]
+       << ", t: " << vtxfunc[_vertex_func_t]
+       << endl;
+  cout << "Vertex distribution mean x: " << _vertex_x
+       << ", y: " << _vertex_y
+       << ", z: " << _vertex_z
+       << ", t: " << _vertex_t
+       << endl;
+  return;
+}

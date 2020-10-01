@@ -67,13 +67,7 @@ class MakeActsGeometry
 
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
-  
-  /// Functions to edit TGeoManager to include TPC boxes
-  void editTPCGeometry(PHCompositeNode *topNode);
-  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
-			  TGeoManager *geoManager);
-  void addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, 
-				 TGeoManager *geoManager);
+  void buildMicroMegas(bool buildMMs){m_buildMMs = buildMMs;}
 
   void setVerbosity(int verbosity)
     { m_verbosity = verbosity; }
@@ -122,6 +116,14 @@ class MakeActsGeometry
   //!Create New nodes
   int createNodes(PHCompositeNode*);
   
+  /// Functions to edit TGeoManager to include TPC boxes
+  void editTPCGeometry(PHCompositeNode *topNode);
+  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
+			  TGeoManager *geoManager);
+  void addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, 
+				 TGeoManager *geoManager);
+
+
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
 
@@ -202,7 +204,7 @@ class MakeActsGeometry
   const static int m_nMmLayers = 2;
   const unsigned int m_mmLayerNumber[m_nMmLayers] = {55, 56};
   double m_mmLayerRadius[m_nMmLayers] = {82.2565, 82.6998};
-  double m_mmLayerThickness[m_nMmLayers] = {3.0, 3.0};  // cm
+  double m_mmLayerThickness[m_nMmLayers] = {0.3, 0.3};  // cm
 
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;
@@ -225,6 +227,8 @@ class MakeActsGeometry
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField;
   double m_magFieldRescale;
+
+  bool m_buildMMs;
 };
 
 #endif

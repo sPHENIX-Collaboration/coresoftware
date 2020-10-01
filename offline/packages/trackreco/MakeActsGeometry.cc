@@ -80,6 +80,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_verbosity(0)
   , m_magField("1.4")
   , m_magFieldRescale(-1.0)
+  , m_buildMMs(false)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -125,12 +126,13 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   makeTGeoNodeMap(topNode);
 
   /// Export the new geometry to a root file for examination
-  if(m_verbosity){
-    /// Export as root file
-    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
-    /// Export as gdml file for material mapping
-    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
-  }
+  if(m_verbosity > 3)
+    {
+      /// Export as root file
+      PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
+      /// Export as gdml file for material mapping
+      PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -220,6 +222,10 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
+
+  /// If we are building the MicroMegas, keep going on
+  //if(!m_buildMMs)
+  //return;
 
   // Micromegas geometry edits
   // These will only be made if the Micromegas nodes are found in the node tree
@@ -314,26 +320,26 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   
   // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
   // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
-  double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[mm_layer] - m_mmLayerThickness[mm_layer] / 2.0);
+  double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[mm_layer] - m_mmLayerThickness[mm_layer] / 2.0 ) - 0.0001;
   
   
-  double box_thickness =  m_mmLayerThickness[mm_layer] -  1.0;  // makes it 2 cm thick inside 3 cm thick cylinder
+  double box_thickness =  m_mmLayerThickness[mm_layer] -  0.1;  // makes it 2 mm thick inside 3 mm thick cylinder
   
   micromegas_measurement_vol = geoManager->MakeBox(bname, micromegas_medium, 
 							   box_thickness / 2.0, 
-							   box_r_phi*half_width_clearance_phi / 2.0, 
+							   box_r_phi / 2.0, 
 							   box_z_length / 2.0);
   
   micromegas_measurement_vol->SetLineColor(kBlack);
   micromegas_measurement_vol->SetFillColor(kYellow);
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  //  if(m_verbosity > 30)
-    {
-      cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
-	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
-      micromegas_measurement_vol->Print();
-    }      
+  //if(m_verbosity > 30)
+  //{
+  cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
+       << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
+  micromegas_measurement_vol->Print();
+  //}      
 
   
   // place the boxes inside the micromegas drift volume cylinders
