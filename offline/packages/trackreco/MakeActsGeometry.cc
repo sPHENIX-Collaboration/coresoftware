@@ -586,7 +586,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  //if(m_verbosity > 10 )
+  if(m_verbosity > 10 )
     {
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
@@ -595,9 +595,22 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 	}
     }
 
-  /// This actually contains the silicon volumes
-  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
+  auto nextVolumes = topVolumesVector.at(1)->confinedVolumes();
+  auto nextVolumesVector = nextVolumes->arrayObjects();
   
+  if(m_verbosity > 10)
+    {
+      for(long unsigned int i =0; i<nextVolumesVector.size(); i++)
+	{
+	  std::cout << "nextVolumeName: " 
+		    << nextVolumes->arrayObjects().at(i)->volumeName()
+		    << std::endl;
+	}
+    }
+ 
+  /// This actually contains the silicon volumes
+  auto siliconVolumes = nextVolumesVector.at(0)->confinedVolumes();
+
   if(m_verbosity > 10 )
     {
       for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
@@ -606,11 +619,20 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 		  << std::endl;
       }
     }
-
+      
   /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
   /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
-  
-  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
+  auto siliconVolume = siliconVolumes->arrayObjects().at(1)->confinedVolumes();
+
+  if(m_verbosity > 10)
+    {
+      for(long unsigned int i =0; i<siliconVolume->arrayObjects().size(); i++)
+	std::cout << "Next siliconVolumeName: "
+		  << siliconVolume->arrayObjects().at(i)->volumeName()
+		  << std::endl;
+    }
+
+  auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
   auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
   auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
 
@@ -618,13 +640,11 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   /// INTT only has one volume, so there is not an added volume extraction
   /// like for the MVTX
-  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
-
+  auto inttVolume =  siliconVolume->arrayObjects().at(1);
   makeInttMapPairs(inttVolume);
 
   /// Same for the TPC - only one volume
-  auto tpcVolume = volumeVector.at(1);
-  
+  auto tpcVolume = nextVolumes->arrayObjects().at(1);
   makeTpcMapPairs(tpcVolume);
 
   // Mm has 1 volume
@@ -705,7 +725,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 	{
 	  auto surf = surfaceVector.at(j)->getSharedPtr();
 	  auto vec3d = surf->center(m_geoCtxt);
-	  
+        
 
 	  /// convert to cm
 	  std::vector<double> world_center = {vec3d(0) / 10.0, 
@@ -735,7 +755,6 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 	  
 	}
     }
-
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
