@@ -154,6 +154,11 @@ class PHActsSourceLinks : public SubsysReco
                             const TrkrCluster *cluster,
                             const TrkrDefs::cluskey clusKey);
 
+  Surface getMmLocalCoords(Acts::Vector2D &local2D,
+                                             Acts::BoundMatrix &localErr,
+                                             const TrkrCluster *cluster,
+			   const TrkrDefs::cluskey clusKey);
+
   void addVerticesAsSourceLinks(PHCompositeNode *topNode,
 				unsigned int &hitId);
 

@@ -70,8 +70,6 @@ int PHMicromegasTpcTrackMatching::Process()
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << endl;
 
-  bool test_search_windows = false;   // true for testing only
-
  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
 
@@ -243,7 +241,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	      mm_matches[imm].push_back(mm_cluskey);
 
 	      // prints out a line that can be grep-ed from the output file to feed to a display macro
-	      if(test_search_windows)
+	      if( _test_search_windows )
 		std::cout << "     deltas " << layer  << " drphi " << rphi_proj - mm_clus_rphi << " dz " << z_proj - mm_clus_z 
 			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
 	    }

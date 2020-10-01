@@ -72,6 +72,8 @@ class MakeActsGeometry
   void editTPCGeometry(PHCompositeNode *topNode);
   void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 			  TGeoManager *geoManager);
+  void addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, 
+				 TGeoManager *geoManager);
 
   void setVerbosity(int verbosity)
     { m_verbosity = verbosity; }
@@ -104,6 +106,9 @@ class MakeActsGeometry
   Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
     std::vector<double> &world);
 
+  Surface getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
   void setMagField(std::string magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
@@ -134,6 +139,7 @@ class MakeActsGeometry
   void makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume);
   void makeInttMapPairs(TrackingVolumePtr &inttVolume);
   void makeTpcMapPairs(TrackingVolumePtr &tpcVolume);
+  void makeMmMapPairs(TrackingVolumePtr &tpcVolume);
   
   /// Get subdetector hitsetkey from the local sensor unit coordinates
   TrkrDefs::hitsetkey getMvtxHitSetKeyFromCoords(unsigned int layer, 
@@ -141,6 +147,7 @@ class MakeActsGeometry
   TrkrDefs::hitsetkey getInttHitSetKeyFromCoords(unsigned int layer,
 						 std::vector<double> &world);
   TrkrDefs::hitsetkey getTpcHitSetKeyFromCoords(std::vector<double> &world);
+  TrkrDefs::hitsetkey getMmHitSetKeyFromCoords(std::vector<double> &world);
 
   /// Helper diagnostic function for identifying active layers in subdetectors
   void isActive(TGeoNode *gnode, int nmax_print);
@@ -163,7 +170,8 @@ class MakeActsGeometry
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;
-  std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapMmEdit;
+  //std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
   
   /// These don't change, we are building the tpc this way!
   const static unsigned int m_nTpcLayers = 48;
@@ -190,6 +198,11 @@ class MakeActsGeometry
   double layer_thickness_sector[m_nTpcSectors] = {0};
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
+
+  // Micromegas box surfacrs use same phi and z segmentation as TPC, but layer details are different
+  const static int m_nMmLayers = 2;
+  double m_mmLayerRadius[m_nMmLayers] = {82.2565, 82.6998};
+  double m_mmLayerThickness[m_nMmLayers] = {3.0, 3.0};  // cm
 
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;
