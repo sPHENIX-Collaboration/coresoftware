@@ -22,17 +22,12 @@ using namespace std;
 //__________________________________________________________
 PHPy6JetTrigger::PHPy6JetTrigger(const std::string &name)
   : PHPy6GenTrigger(name)
-  , m_theEtaHigh(4.0)
-  , m_theEtaLow(1.0)
-  , m_minPt(10.0)
-  , m_R(1.0)
-  , m_nconst(0)
 {
 }
 
 PHPy6JetTrigger::~PHPy6JetTrigger()
 {
-  if (_verbosity > 0) PrintConfig();
+  if (Verbosity() > 0) PrintConfig();
 }
 
 bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
@@ -91,7 +86,7 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
     }
   }
 
-  if (_verbosity > 2)
+  if (Verbosity() > 2)
   {
     cout << "PHPy6JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << endl;
   }
