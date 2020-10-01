@@ -320,7 +320,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[mm_layer] - m_mmLayerThickness[mm_layer] / 2.0);
   
   
-  double box_thickness =  m_mmLayerThickness[mm_layer] -  1.0;  // makes it 2 cm thick inside 3 cm thick cylinder
+  double box_thickness =  m_mmLayerThickness[mm_layer] -  0.1;  // makes it 2 mm thick inside 3 mm thick cylinder
   
   micromegas_measurement_vol = geoManager->MakeBox(bname, micromegas_medium, 
 							   box_thickness / 2.0, 
@@ -332,11 +332,11 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
   //if(m_verbosity > 30)
-    {
+  //{
       cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
 	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
       micromegas_measurement_vol->Print();
-    }      
+      //}      
 
   
   // place the boxes inside the micromegas drift volume cylinders

@@ -204,7 +204,7 @@ class MakeActsGeometry
   // Micromegas box surfacrs use same phi and z segmentation as TPC, but layer details are different
   const static int m_nMmLayers = 2;
   double m_mmLayerRadius[m_nMmLayers] = {82.2565, 82.6998};
-  double m_mmLayerThickness[m_nMmLayers] = {3.0, 3.0};  // cm
+  double m_mmLayerThickness[m_nMmLayers] = {0.3, 0.3};  // cm
 
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;
