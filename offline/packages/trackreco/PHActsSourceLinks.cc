@@ -177,7 +177,7 @@ if(m_useVertexMeasurement){
     }
     else if (trkrId == TrkrDefs::micromegasId)
       {
-	std::cout << " found micromegas cluster " << clusKey << std::endl;
+	std::cout << PHWHERE << " found micromegas cluster " << clusKey << " in layer " << layer << std::endl;
 
 	surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
 	
@@ -457,9 +457,8 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
 
   // need information to find the surface from the map
-
-  // The hitsetkey contains the tile ID. that is not what we want, right?
-
+  // the surface map is (for now) just a list of surfaces for each layer
+  // use a dummy tile number of 0 and generate a fake hitsetkey
 
   int tile = 0;   // assign all surfaces to tile 0
   MicromegasDefs::SegmentationType segtype;

@@ -171,7 +171,6 @@ class MakeActsGeometry
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapMmEdit;
-  //std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
   
   /// These don't change, we are building the tpc this way!
   const static unsigned int m_nTpcLayers = 48;
@@ -199,8 +198,9 @@ class MakeActsGeometry
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
 
-  // Micromegas box surfacrs use same phi and z segmentation as TPC, but layer details are different
+  // Micromegas box surfaces use same phi and z segmentation as TPC, but layer details are different
   const static int m_nMmLayers = 2;
+  const unsigned int m_mmLayerNumber[m_nMmLayers] = {55, 56};
   double m_mmLayerRadius[m_nMmLayers] = {82.2565, 82.6998};
   double m_mmLayerThickness[m_nMmLayers] = {3.0, 3.0};  // cm
 

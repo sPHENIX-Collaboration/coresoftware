@@ -59,8 +59,9 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   unsigned int _n_mm_layers = 2;
   
   // default values, can be replaced from the macro, all in cm
+  // rhese correspond to the "baseline" configuration tiles
   double _rphi_search_win[2] = {0.25, 13.0}; 
-  double _z_search_win[2] = {13.0, 0.25};
+  double _z_search_win[2] = {26.0, 0.25};
 
   double _mm_layer_radius[2] = { 82.2565, 82.6998};
   double _xplus[2] = {0, 0};

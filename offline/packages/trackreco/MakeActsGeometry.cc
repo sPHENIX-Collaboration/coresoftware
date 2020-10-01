@@ -109,8 +109,9 @@ MakeActsGeometry::~MakeActsGeometry()
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
 
-  /// Add the TPC surfaces to the copy of the TGeoManager. Do this before
-  /// anything else so that the geometry is finalized
+  /// Add the TPC surfaces to the copy of the TGeoManager. 
+  // this also adds the micromegas surfaces
+  // Do this before anything else, so that the geometry is finalized
   editTPCGeometry(topNode);
 
   getNodes(topNode);  // for geometry nodes
@@ -221,6 +222,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
 
   // Micromegas geometry edits
+  // These will only be made if the Micromegas nodes are found in the node tree
   //====================
   // The micromegas detectors have both layers in the same tile. The inner and outer sides are mirrored
   // The detector details are (printed from Init method), where the thickness corresponds to the drift volume:
@@ -247,41 +249,42 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
       break;
     }
   }
-  assert(micromegas_envelope_node);
-
-  TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
-  assert(micromegas_envelope_vol);
-
-  // Get inner and outer volume and edit them
-  for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
-  {
-    TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
-
-    // this gets both inner and outer
-    if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
+  if(micromegas_envelope_node)
     {
-      //if (m_verbosity)
-      cout << "EditTPCGeometry - found Micromegas node " << node_name << endl;
+      TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
+      assert(micromegas_envelope_vol);
       
-      TGeoNode *micromegas_node = nullptr;
-      micromegas_node = micromegas_envelope_vol->GetNode(i);
-
-      int mm_layer;
-      if( node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") )
-	mm_layer = 0;
-      else
-	mm_layer = 1;
-      
-      TGeoVolume *micromegas_vol = micromegas_node->GetVolume();
-      assert(micromegas_vol);
-      
-      addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
+      // Get inner and outer volume and edit them
+      for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
+	{
+	  TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
+	  
+	  // this gets both inner and outer
+	  if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
+	    {
+	      if (m_verbosity)
+		cout << "EditTPCGeometry - found Micromegas node " << node_name << endl;
+	      
+	      TGeoNode *micromegas_node = nullptr;
+	      micromegas_node = micromegas_envelope_vol->GetNode(i);
+	      
+	      int mm_layer;
+	      if( node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") )
+		mm_layer = 0;
+	      else
+		mm_layer = 1;
+	      
+	      TGeoVolume *micromegas_vol = micromegas_node->GetVolume();
+	      assert(micromegas_vol);
+	      
+	      addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
+	    }
+	}
     }
-  }
   
   // done
   geoManager->CloseGeometry();
-
+  
   // save the edited geometry to DST persistent IO node for downstream DST files
   PHGeomUtility::UpdateIONode(topNode);
 
@@ -300,7 +303,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   TGeoVolume *micromegas_measurement_vol;
 
   // we use the same phi steps as for the TPC, for the same reasons
-  // There are 12*10 phi locations for the surfaces, just as for the TPC
+  // There are 12*12 phi locations for the surfaces, just as for the TPC
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
   double box_z_length = 110.0 * 2 - 0.01;
 
@@ -325,7 +328,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   micromegas_measurement_vol->SetFillColor(kYellow);
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  //if(m_verbosity > 30)
+  //  if(m_verbosity > 30)
     {
       cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
 	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
@@ -610,7 +613,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   makeTpcMapPairs(tpcVolume);
 
   // Mm has ?? volumes
-  auto mmVolume = volumeVector.at(1);
+  auto mmVolume = volumeVector.at(1);   //  should be at(2) once micromegas are in the Acts geometry
   makeMmMapPairs(mmVolume);
 
   return;
@@ -1037,41 +1040,23 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<doubl
       if(layer_rad >= ref_radius_low && layer_rad < ref_radius_high)
 	{
 	  layer = ilayer;
+	  std::cout << "   cluster in micromegas ilayer " << ilayer << " radius " <<   m_mmLayerRadius[ilayer]  << " thickness " <<  m_mmLayerThickness[ilayer]  << std::endl;
 	  break;
 	}
     }
-  if(layer >= m_nMmLayers) 
+  if(layer != 55 && layer != 56) 
     {
-      cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
+      //cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  // we have lumped all surfacrs into one layer
-  /*
-  unsigned int readout_mod = 999;
-  double phi_world = atan2(world[1], world[0]);
-  for(unsigned int imod=0; imod<m_nTpcModulesPerLayer; ++imod)
-    {
-      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi;
-      double max_phi = m_modulePhiStart + (double) (imod+1) * m_moduleStepPhi;
-      if(phi_world >=min_phi && phi_world < max_phi)
-	{
-	  readout_mod = imod;
-	  break;
-	}
-    }
-  if(readout_mod >= m_nTpcModulesPerLayer)
-    {
-      cout << PHWHERE << "Error: readout_mod is undefined, do nothing  phi_world = " << phi_world << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  */
+  // we have lumped all surfacrs into one layer, so we use a fake hitsetkey with the real layer number and segmentation type, but with a dummy value for the tile
   int tile = 0;   // assign all surfaces to tile 0
   MicromegasDefs::SegmentationType segtype;
-  if(layer == 55)
-    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+  if(layer == m_mmLayerNumber[0])
+    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
   else
-    MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+    MicromegasDefs::SegmentationType::SEGMENTATION_Z;
 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey hitset_key = MicromegasDefs::genHitSetKey(layer, segtype, tile);
