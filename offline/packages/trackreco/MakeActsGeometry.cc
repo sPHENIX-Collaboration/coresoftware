@@ -484,8 +484,9 @@ void MakeActsGeometry::buildActsSurfaces()
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file",
-      std::string(getenv("OFFLINE_MAIN")) 
-      + std::string("/share/tgeo-sphenix.response"),
+      //std::string(getenv("OFFLINE_MAIN")) 
+      //+ std::string("/share/tgeo-sphenix.response"),
+      std::string("./tgeo-sphenix.response"),
       "--bf-values","0","0",m_magField,
       "--bf-bscalor", std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
@@ -581,7 +582,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
     {
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
-	  std::cout<< "TopVolume name: " 
+	  std::cout<< "Top volumes vector at " << i << " TopVolume name: " 
 		   << topVolumesVector.at(i)->volumeName() << std::endl;
 	}
     }
