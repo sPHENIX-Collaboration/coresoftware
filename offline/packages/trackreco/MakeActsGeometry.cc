@@ -324,7 +324,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   
   micromegas_measurement_vol = geoManager->MakeBox(bname, micromegas_medium, 
 							   box_thickness / 2.0, 
-							   box_r_phi*half_width_clearance_phi / 2.0, 
+							   box_r_phi / 2.0 -0.001, 
 							   box_z_length / 2.0);
   
   micromegas_measurement_vol->SetLineColor(kBlack);
@@ -477,12 +477,14 @@ void MakeActsGeometry::buildActsSurfaces()
       m_magFieldRescale*=-1;
       m_magField = "1.5";
     }
+
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file",
-      std::string(getenv("OFFLINE_MAIN")) 
-      + std::string("/share/tgeo-sphenix.response"),
+      //std::string(getenv("OFFLINE_MAIN")) 
+      //+ std::string("/share/tgeo-sphenix.response"),
+      "tgeo-sphenix.response",
       "--bf-values","0","0",m_magField,
       "--bf-bscalor", std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
@@ -569,6 +571,16 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   /// volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
+  if(m_verbosity > 10)
+    {
+      for(long unsigned int i = 0; i < volumeVector.size(); i++)
+	std::cout << "Next highest volume name : " 
+		  << volumeVector.at(i)->volumeName()
+		  << std::endl;
+    }
+
+  /// MMs are in highest volume
+  auto mmBarrel = volumeVector.at(1);
 
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
@@ -615,9 +627,8 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   
   makeTpcMapPairs(tpcVolume);
 
-  // Mm has ?? volumes
-  auto mmVolume = volumeVector.at(1);
-  makeMmMapPairs(mmVolume);
+  // Mm has 1 volume
+  makeMmMapPairs(mmBarrel);
 
   return;
 }
