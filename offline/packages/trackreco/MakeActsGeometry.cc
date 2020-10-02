@@ -480,13 +480,14 @@ void MakeActsGeometry::buildActsSurfaces()
       m_magFieldRescale*=-1;
       m_magField = "1.5";
     }
+
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file",
       //std::string(getenv("OFFLINE_MAIN")) 
       //+ std::string("/share/tgeo-sphenix.response"),
-      std::string("./tgeo-sphenix.response"),
+      "tgeo-sphenix.response",
       "--bf-values","0","0",m_magField,
       "--bf-bscalor", std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
@@ -573,31 +574,24 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   /// volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
+  if(m_verbosity > 10)
+    {
+      for(long unsigned int i = 0; i < volumeVector.size(); i++)
+	std::cout << "Next highest volume name : " 
+		  << volumeVector.at(i)->volumeName()
+		  << std::endl;
+    }
 
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  //if(m_verbosity > 10 )
-    {
-      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
-	{
-	  std::cout<< "Top volumes vector at " << i << " TopVolume name: " 
-		   << topVolumesVector.at(i)->volumeName() << std::endl;
-	}
-    }
-
   /// This actually contains the silicon volumes
   auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
   
-  if(m_verbosity > 10 )
-    {
-      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
-	std::cout << "SiliconVolumeName: " 
-		  << siliconVolumes->arrayObjects().at(i)->volumeName()
-		  << std::endl;
-      }
-    }
+
+  /// MMs are in highest volume
+  auto mmBarrel = volumeVector.at(1);
 
   /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
   /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
@@ -611,7 +605,6 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   /// INTT only has one volume, so there is not an added volume extraction
   /// like for the MVTX
   auto inttVolume =  siliconVolumes->arrayObjects().at(1);
-
   makeInttMapPairs(inttVolume);
 
   /// Same for the TPC - only one volume
@@ -619,9 +612,8 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   
   makeTpcMapPairs(tpcVolume);
 
-  // Mm has ?? volumes
-  auto mmVolume = volumeVector.at(1);   //  should be at(2) once micromegas are in the Acts geometry
-  makeMmMapPairs(mmVolume);
+  // Mm has 1 volume
+  makeMmMapPairs(mmBarrel);
 
   return;
 }
