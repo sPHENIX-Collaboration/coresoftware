@@ -264,7 +264,6 @@ int PHMicromegasTpcTrackMatching::Process()
 	  if(Verbosity() > 3)
 	    std::cout << "  insert cluster key " << mm_matches[imm][0] << " into tracklet " << _tracklet_tpc->get_id() << std::endl;
 	  
-	  // don't run Acts tracking until surfaces are in Acts geometry
 	  _tracklet_tpc->insert_cluster_key(mm_matches[imm][0]);
 	  _assoc_container->SetClusterTrackAssoc(mm_matches[imm][0], _tracklet_tpc->get_id());
 	}

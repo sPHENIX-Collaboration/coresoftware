@@ -156,7 +156,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
 	  double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
 
-	  if(Verbosity() >= 10)
+	  if(Verbosity() >= 2)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
 	      cout << "      tpc_phi " << tpc_phi << " si_phi " << si_phi << " tpc_eta " << tpc_eta << " si_eta " << si_eta << endl;
@@ -195,7 +195,7 @@ int PHSiliconTpcTrackMatching::Process()
 	{
 	  if(Verbosity() >= 1)
 	    {
-	      cout << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
+	      cout << PHWHERE << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
 	    }
 
 	  // set the track vertex arbitrarily to vertex 0 if one does not exist already

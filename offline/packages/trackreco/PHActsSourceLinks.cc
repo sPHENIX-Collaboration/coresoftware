@@ -464,9 +464,9 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   int tile = 0;   // assign all surfaces to tile 0
   MicromegasDefs::SegmentationType segtype;
   if(layer == 55)
-    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
   else
-    MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+    MicromegasDefs::SegmentationType::SEGMENTATION_Z;
 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);

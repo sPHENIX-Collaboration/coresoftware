@@ -334,13 +334,13 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   micromegas_measurement_vol->SetFillColor(kYellow);
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  //if(m_verbosity > 30)
-  //{
-  cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
-       << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
-  micromegas_measurement_vol->Print();
-  //}      
-
+  if(m_verbosity > 30)
+    {
+      cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
+	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
+      micromegas_measurement_vol->Print();
+    }      
+  
   
   // place the boxes inside the micromegas drift volume cylinders
 
@@ -372,7 +372,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
 	      
 	      micromegas_vol->AddNode(micromegas_measurement_vol, copy, micromegas_measurement_location);
 	      
-	      //if(m_verbosity > 30) 
+	      if(m_verbosity > 30) 
 		{
 		  cout << " Made copy " << copy << " micromegas ilayer " << mm_layer << " iphi " << iphi << endl;
 		  cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
@@ -582,21 +582,62 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 		  << std::endl;
     }
 
+  /// MMs are in highest volume
+  auto mmBarrel = volumeVector.at(1);
+  std::cout << " mmBarrel name " << mmBarrel->volumeName() << std::endl;
+
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  /// This actually contains the silicon volumes
-  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
-  
+  //  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
+	{
+	  std::cout<< "TopVolume name: " 
+		   << topVolumesVector.at(i)->volumeName() << std::endl;
+	}
+    }
 
-  /// MMs are in highest volume
-  auto mmBarrel = volumeVector.at(1);
+  auto nextVolumes = topVolumesVector.at(1)->confinedVolumes();
+  auto nextVolumesVector = nextVolumes->arrayObjects();
+  
+  //if(m_verbosity > 10)
+    {
+      for(long unsigned int i =0; i<nextVolumesVector.size(); i++)
+	{
+	  std::cout << "nextVolumeName: " 
+		    << nextVolumes->arrayObjects().at(i)->volumeName()
+		    << std::endl;
+	}
+    }
+ 
+  /// This actually contains the silicon volumes
+  auto siliconVolumes = nextVolumesVector.at(0)->confinedVolumes();
+
+  //if(m_verbosity > 10 )
+    {
+      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
+	std::cout << "SiliconVolumeName: " 
+		  << siliconVolumes->arrayObjects().at(i)->volumeName()
+		  << std::endl;
+      }
+    }
+      
 
   /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
   /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
-  
-  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
+  auto siliconVolume = siliconVolumes->arrayObjects().at(1)->confinedVolumes();
+
+  //if(m_verbosity > 10)
+    {
+      for(long unsigned int i =0; i<siliconVolume->arrayObjects().size(); i++)
+	std::cout << "Next siliconVolumeName: "
+		  << siliconVolume->arrayObjects().at(i)->volumeName()
+		  << std::endl;
+    }
+
+  auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
   auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
   auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
 
@@ -604,12 +645,11 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   /// INTT only has one volume, so there is not an added volume extraction
   /// like for the MVTX
-  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
-  makeInttMapPairs(inttVolume);
+  auto inttVolume =  siliconVolume->arrayObjects().at(1);
+ makeInttMapPairs(inttVolume);
 
   /// Same for the TPC - only one volume
-  auto tpcVolume = volumeVector.at(1);
-  
+  auto tpcVolume = nextVolumes->arrayObjects().at(1);
   makeTpcMapPairs(tpcVolume);
 
   // Mm has 1 volume
@@ -690,13 +730,13 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 	{
 	  auto surf = surfaceVector.at(j)->getSharedPtr();
 	  auto vec3d = surf->center(m_geoCtxt);
-	  
+        
 
 	  /// convert to cm
 	  std::vector<double> world_center = {vec3d(0) / 10.0, 
 					      vec3d(1) / 10.0,
 					      vec3d(2) / 10.0};
-	
+	  //std::cout << "  get mm hitsetkey from world " << world_center[0] << "  " << world_center[1] << "  " << world_center[2] << std::endl;	
 	  TrkrDefs::hitsetkey hitsetkey = getMmHitSetKeyFromCoords(world_center);
 
 	  /// If there is already an entry for this hitsetkey, add the surface
@@ -720,7 +760,6 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 	  
 	}
     }
-
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
@@ -1038,14 +1077,15 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<doubl
       double ref_radius_high = m_mmLayerRadius[ilayer] + m_mmLayerThickness[ilayer] / 2.0;
       if(layer_rad >= ref_radius_low && layer_rad < ref_radius_high)
 	{
-	  layer = ilayer;
-	  std::cout << "   cluster in micromegas ilayer " << ilayer << " radius " <<   m_mmLayerRadius[ilayer]  << " thickness " <<  m_mmLayerThickness[ilayer]  << std::endl;
+	  layer =  m_mmLayerNumber[ilayer];
+	  //std::cout << "   position in micromegas ilayer " << ilayer << " layer " << layer << " radius " <<   m_mmLayerRadius[ilayer]  
+	  // << " thickness " <<  m_mmLayerThickness[ilayer]  << std::endl;
 	  break;
 	}
     }
-  if(layer != 55 && layer != 56) 
+  if(layer != m_mmLayerNumber[0] && layer != m_mmLayerNumber[1]) 
     {
-      //cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
+      cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
