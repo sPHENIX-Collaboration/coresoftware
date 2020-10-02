@@ -120,7 +120,7 @@ bool PHPy6ParticleTrigger::Apply(const HepMC::GenEvent *evt)
         if (_doPzHighCut && (*p)->momentum().pz() > _thePzHigh) continue;
         if (_doPzLowCut && (*p)->momentum().pz() < _thePzLow) continue;
 
-        if (_verbosity > 5)
+        if (Verbosity() > 5)
         {
           cout << "stable " << (*p)->pdg_id()
                << "  pt: " << p_pT
@@ -141,7 +141,7 @@ bool PHPy6ParticleTrigger::Apply(const HepMC::GenEvent *evt)
             if (abs((*p_parent)->pdg_id()) == abs(_theParents[k]))
             {
               passedParents = true;
-              if (_verbosity > 5) cout << "found parent!" << endl;
+              if (Verbosity() > 5) cout << "found parent!" << endl;
               break;
             }
           }  //moms for loop
