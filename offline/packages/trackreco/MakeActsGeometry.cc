@@ -243,9 +243,10 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
 
+    /*
     if (m_verbosity)
       cout << "EditTPCGeometry - searching node " << node_name << endl;
-
+    */
     if (node_name.BeginsWith("MICROMEGAS"))
     {
       if (m_verbosity)
@@ -334,7 +335,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
   micromegas_measurement_vol->SetFillColor(kYellow);
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  if(m_verbosity > 30)
+  if(m_verbosity > 1)
     {
       cout << m_verbosity << " Made box for Micromegas layer " << mm_layer << " with dx " << box_thickness << " dy " 
 	   << box_r_phi << " ref arc " << m_surfStepPhi*m_mmLayerRadius[mm_layer] << " dz " << box_z_length << endl;
@@ -372,7 +373,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micro
 	      
 	      micromegas_vol->AddNode(micromegas_measurement_vol, copy, micromegas_measurement_location);
 	      
-	      if(m_verbosity > 30) 
+	      if(m_verbosity > 10) 
 		{
 		  cout << " Made copy " << copy << " micromegas ilayer " << mm_layer << " iphi " << iphi << endl;
 		  cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
@@ -814,7 +815,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (m_verbosity > 0)
+      if (m_verbosity > 10)
       {
         // check it is in there
         unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
@@ -894,7 +895,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (m_verbosity > 1)
+      if (m_verbosity > 10)
       {
         unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
         unsigned int chip = MvtxDefs::getChipId(hitsetkey);

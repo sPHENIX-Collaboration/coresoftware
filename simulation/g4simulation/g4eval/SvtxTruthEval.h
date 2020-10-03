@@ -77,12 +77,14 @@ class SvtxTruthEval
 
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer* _g4hits_svtx;
+  PHG4HitContainer* _g4hits_mms;
   PHG4HitContainer* _g4hits_tracker;
   PHG4HitContainer* _g4hits_maps;
 
   PHG4CylinderCellGeomContainer* _tpc_geom_container;
   PHG4CylinderGeomContainer *_intt_geom_container;
   PHG4CylinderGeomContainer* _mvtx_geom_container;
+  PHG4CylinderGeomContainer* _mms_geom_container;
 
   bool _strict;
   int _verbosity;

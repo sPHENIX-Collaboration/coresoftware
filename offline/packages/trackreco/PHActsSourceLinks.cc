@@ -108,7 +108,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    std::cout << "Start PHActsSourceLinks process_event" << std::endl;
+    std::cout << std::endl << "Start PHActsSourceLinks process_event" << std::endl;
   }
 
   /// Get the nodes from the node tree
@@ -206,7 +206,7 @@ if(m_useVertexMeasurement){
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       std::cout << "    layer " << layer << std::endl;
       for (int i = 0; i < 2; ++i)
@@ -224,7 +224,7 @@ if(m_useVertexMeasurement){
     loc[Acts::eBoundLoc0] = local2D[0];
     loc[Acts::eBoundLoc1] = local2D[1];
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "Layer " << layer
                 << " create measurement for trkrid " << trkrId
@@ -329,7 +329,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 		<< std::endl;
       return nullptr;
     }
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
       surface->toStream(m_tGeometry->geoContext, std::cout);
@@ -347,7 +347,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     std::cout << std::endl << "surface center readback:   x " << center[0]
               << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
@@ -383,7 +383,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     std::cout << "cluster readback (mm):  x " << x*Acts::UnitConstants::cm <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
 	      << " radius " << radius << std::endl;
@@ -411,7 +411,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
     {
       for (int i = 0; i < 3; ++i)
 	{
@@ -484,7 +484,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
 		<< std::endl;
       return nullptr;
     }
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
     {
       std::cout << "Stream of found micromegas surface: " << std::endl;
       surface->toStream(m_tGeometry->geoContext, std::cout);
@@ -504,7 +504,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   
   if (Verbosity() > 0)
   {
-    std::cout << std::endl << "surface center readback:   x " << center[0]
+    std::cout << PHWHERE << std::endl << "Micromegas surface center readback:   x " << center[0]
               << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
     std::cout << "Surface normal vector : "<< normal(0) << ", " 
 	      << normal(1) << ", " << normal(2) << std::endl;
@@ -540,7 +540,8 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
 
   if (Verbosity() > 0)
   {
-    std::cout << "micromegas cluster readback (mm):  x " << x*Acts::UnitConstants::cm <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
+    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " << x*Acts::UnitConstants::cm 
+	      <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
 	      << " radius " << radius << std::endl;
     std::cout << " cluster phi " << clusPhi << " cluster z " << zMm << " r*clusphi " << rClusPhi << std::endl;
     std::cout << " local phi " << clusPhi - surfPhiCenter
@@ -566,7 +567,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
     sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
     {
       for (int i = 0; i < 3; ++i)
 	{
@@ -669,7 +670,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
 
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     double segcent[3];
     layerGeom->find_segment_center(ladderZId, ladderPhiId, segcent);
@@ -791,7 +792,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
 
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     double segcent[3];
     std::cout << "Acts normal vector: "<<normal(0) << ", " << normal(1) 
@@ -1041,7 +1042,7 @@ TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey
   if (mapIter != clusterNodeMap.end())
   {
     sensorNode = mapIter->second;
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "Found TGeoNode in clusterNodeMap for hitsetkey "
                 << hitSetKey
@@ -1074,7 +1075,7 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   if (surfaceIter != clusterSurfaceMap.end())
   {
     surface = surfaceIter->second;
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "Got surface pair " << surface->name()
                 << " surface type " << surface->type()
@@ -1110,7 +1111,7 @@ Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer,
 
   localErr = transformCovarToLocal(ladderPhi, worldErr);
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     for (int i = 0; i < 3; ++i)
     {

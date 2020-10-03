@@ -103,7 +103,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 
       if(g4particle_vec.size() < 1) continue;
 
-      bool test_phi_matching = false;   // normally false
+      bool test_phi_matching = true;   // normally false
       if(test_phi_matching)
 	{
 	  // for getting the pT dependence of dphi  to eliminate the bias in phi from PHTpcTracker
@@ -118,11 +118,8 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	      double tpc_phi = atan2(_tracklet->get_py(), _tracklet->get_px());
 	      double tpc_eta = _tracklet->get_eta();
 	      
-	      int phi_match = 0;
-	      int eta_match = 0;
-	      
-	      cout << "         Try: " << "  pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match
-		   << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+	      cout << "         Try: " << "  pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " <<  si_phi 
+		   << " tpc_eta " << tpc_eta << " si_eta " << si_eta << endl;
 	      
 	    }
 	}
@@ -187,7 +184,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 	  TrkrDefs::cluskey cluster_key = *jter;
 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	  if (Verbosity() >= 1)  std::cout << "     found cluster with key: " << cluster_key << " in layer " << layer << std::endl;
+	  if (Verbosity() >= 1)  std::cout << "     found silicon cluster with key: " << cluster_key << " in layer " << layer << std::endl;
 	  
 	  // Identify the MVTX and INTT clusters and add them to the SvtxTrack cluster key list
 	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
