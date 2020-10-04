@@ -59,19 +59,19 @@ namespace
     const std::pair<T,T> m_range;
   };
 
-  /// square
+  //! square
   template<class T> T square( T x ) { return x*x; }
 
-  /// pt
+  //! pt
   template<class T> T get_pt( T px, T py ) { return std::sqrt( square(px) + square(py) ); }
 
-  /// p
+  //! p
   template<class T> T get_p( T px, T py, T pz ) { return std::sqrt( square(px) + square(py) + square(pz) ); }
 
-  /// eta
+  //! eta
   template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
 
-  /// true if particle is primary
+  //! true if particle is primary
   inline bool is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
 
@@ -114,8 +114,7 @@ namespace
     return eventStruct;
   }
 
-  //_____________________________________________________________________
-  /// create track struct from struct from svx track
+  //! create track struct from struct from svx track
   SimEvaluator_hp::VertexStruct create_vertex( PHG4VtxPoint* vertex )
   {
     SimEvaluator_hp::VertexStruct vertexStruct;
@@ -126,8 +125,7 @@ namespace
     return vertexStruct;
   }
 
-  //_____________________________________________________________________
-  /// create track struct from struct from svx track
+  //! create track struct from struct from svx track
   SimEvaluator_hp::ParticleStruct create_particle( PHG4Particle* particle )
   {
     SimEvaluator_hp::ParticleStruct particleStruct;
@@ -143,8 +141,7 @@ namespace
     return particleStruct;
   }
 
-  //_____________________________________________________________________
-  /// create g4hit struct from G4Hit
+  //! create g4hit struct from G4Hit
   SimEvaluator_hp::G4HitStruct create_g4hit( PHG4Hit* g4hit )
   {
     SimEvaluator_hp::G4HitStruct g4hitstruct;
@@ -155,7 +152,6 @@ namespace
     return g4hitstruct;
   }
 
-  //_____________________________________________________________________
   std::ostream& operator << (std::ostream& out, const PHG4VtxPoint& vertex )
   {
     out << "( " << vertex.get_x() << ", " << vertex.get_y() << ", " << vertex.get_z() << ", " << vertex.get_t() << ")";
@@ -218,7 +214,6 @@ int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
 //_____________________________________________________________________
 int SimEvaluator_hp::process_event(PHCompositeNode* topnode)
 {
-
   // load nodes
   auto res =  load_nodes(topnode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
@@ -275,7 +270,6 @@ int SimEvaluator_hp::load_nodes( PHCompositeNode* topnode )
 //_____________________________________________________________________
 void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
 {
-
   // get relevant node
   const auto container = findNode::getClass<PHG4CylinderCellGeomContainer>(topnode, "CYLINDERCELLGEOM_SVTX");
   if( !container ) return;
@@ -334,7 +328,6 @@ void SimEvaluator_hp::check_genevent()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
-
   if( !( m_container && m_geneventmap ) ) return;
 
   // clear vertices from previous event
@@ -348,7 +341,6 @@ void SimEvaluator_hp::fill_event()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_vertices()
 {
-
   if( !( m_container && m_g4truthinfo ) )
   {
     std::cerr << "SimEvaluator_hp::fill_vertices - nodes not found." << std::endl;
@@ -393,10 +385,9 @@ void SimEvaluator_hp::fill_particles()
     std::set<int> embed_ids;
     auto range = m_g4truthinfo->GetEmbeddedTrkIds();
     for( auto iter = range.first; iter != range.second; ++iter ) { embed_ids.insert( iter->second ); }
-    
-    std::cout << "SimEvaluator_hp::fill_particles - embedding ids: " << embed_ids.size() << std::endl;
-    for( const auto& id:embed_ids ) std::cout << " " << id;
-    std::cout << std::endl;
+//     std::cout << "SimEvaluator_hp::fill_particles - embedding ids: " << embed_ids.size() << std::endl;
+//     for( const auto& id:embed_ids ) std::cout << " " << id;
+//     std::cout << std::endl;
   }
   
   auto range = m_g4truthinfo->GetPrimaryParticleRange();

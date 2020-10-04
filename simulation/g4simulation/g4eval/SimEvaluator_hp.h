@@ -19,19 +19,19 @@ class SimEvaluator_hp : public SubsysReco
 {
   public:
 
-  /// constructor
+  //! constructor
   SimEvaluator_hp( const std::string& = "SimEvaluator_hp" );
 
-  /// global initialization
+  //! global initialization
   virtual int Init(PHCompositeNode*);
 
-  /// run initialization
+  //! run initialization
   virtual int InitRun(PHCompositeNode*);
 
-  /// event processing
+  //! event processing
   virtual int process_event(PHCompositeNode*);
 
-  /// end of processing
+  //! end of processing
   virtual int End(PHCompositeNode*);
 
   // event information
@@ -108,19 +108,19 @@ class SimEvaluator_hp : public SubsysReco
 
     public:
 
-    /// constructor
+    //! constructor
     explicit Container() = default;
 
-    /// copy constructor
+    //! copy constructor
     explicit Container(const Container &) = delete;
 
-    /// assignment operator
+    //! assignment operator
     Container& operator = ( const Container& ) = delete;
 
-    /// reset
+    //! reset
     virtual void Reset();
 
-    ///@name accessors
+    //!@name accessors
     //@{
 
     const EventStruct::List& events() const
@@ -137,7 +137,7 @@ class SimEvaluator_hp : public SubsysReco
 
     //@}
 
-    ///@name modifiers
+    //!@name modifiers
     //@{
 
     void addEvent( const EventStruct& event )
@@ -168,7 +168,7 @@ class SimEvaluator_hp : public SubsysReco
 
     private:
 
-    /// event struct
+    //! event struct
     EventStruct::List _events;
 
     //* vertex list
@@ -193,37 +193,37 @@ class SimEvaluator_hp : public SubsysReco
     PrintVertices = 1<<4
   };
 
-  /// set flags. Should be a bitwise or of Flags enum
+  //! set flags. Should be a bitwise or of Flags enum
   void set_flags( int flags )
   { m_flags = flags; }
 
   private:
 
-  /// load nodes
+  //! load nodes
   int load_nodes( PHCompositeNode* );
 
-  /// print TPC geometry
+  //! print TPC geometry
   void print_tpc( PHCompositeNode* );
 
-  /// fill MC track map
+  //! fill MC track map
   void fill_g4particle_map();
 
-  /// genevent
+  //! genevent
   void check_genevent();
 
-  /// fill event struct
+  //! fill event struct
   void fill_event();
 
-  /// fill vertices
+  //! fill vertices
   void fill_vertices();
 
-  /// fill particles
+  //! fill particles
   void fill_particles();
 
-  /// fill hits
+  //! fill hits
   void fill_hits();
 
-  /// print vertices
+  //! print vertices
   void print_vertices();
 
   // get embedded id for given g4hit

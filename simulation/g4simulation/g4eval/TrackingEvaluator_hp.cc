@@ -33,33 +33,33 @@
 namespace
 {
 
-  /// square
+  //! square
   template<class T> inline constexpr T square( T x ) { return x*x; }
 
-  /// radius
+  //! radius
   template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
 
-  /// pt
+  //! pt
   template<class T> T get_pt( T px, T py ) { return std::sqrt( square(px) + square(py) ); }
 
-  /// p
+  //! p
   template<class T> T get_p( T px, T py, T pz ) { return std::sqrt( square(px) + square(py) + square(pz) ); }
 
-  /// eta
+  //! eta
   template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
 
-  /// radius
+  //! radius
   float get_r( PHG4Hit* hit, int i )
   {  return get_r( hit->get_x(i), hit->get_y(i) ); }
 
-  /// phi
+  //! phi
   template<class T> T get_phi( T x, T y ) { return std::atan2( y, x ); }
 
-  /// phi
+  //! phi
   float get_phi( PHG4Hit* hit, int i )
   {  return get_phi( hit->get_x(i), hit->get_y(i) ); }
 
-  /// calculate the average of member function called on all members in collection
+  //! calculate the average of member function called on all members in collection
   template< float (PHG4Hit::*accessor)(int) const>
   float interpolate( std::set<PHG4Hit*> hits, float rextrap )
   {
@@ -102,11 +102,11 @@ namespace
     return ( alpha*rextrap + beta )/denom;
   }
 
-  /// true if a track is a primary
+  //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
 
-  /// get mask from track clusters
+  //! get mask from track clusters
   int64_t get_mask( SvtxTrack* track )
   { return std::accumulate( track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
       []( int64_t value, const TrkrDefs::cluskey& key ) {
@@ -114,7 +114,7 @@ namespace
       } );
   }
 
-  /// return number of clusters of a given type
+  //! return number of clusters of a given type
   template<int type>
     int get_clusters( SvtxTrack* track )
   {
@@ -123,11 +123,11 @@ namespace
   }
 
 
-  /// true if given layer is in mask
+  //! true if given layer is in mask
   bool has_layer( int64_t mask, int layer )
   { return mask & (1LL<<layer); }
 
-  /// create track struct from struct from svx track
+  //! create track struct from struct from svx track
   TrackingEvaluator_hp::TrackStruct create_track( SvtxTrack* track )
   {
     TrackingEvaluator_hp::TrackStruct trackStruct;
@@ -159,7 +159,7 @@ namespace
     return trackStruct;
   }
 
-  /// create track struct from struct from svx track
+  //! create track struct from struct from svx track
   TrackingEvaluator_hp::TrackPairStruct create_track_pair( SvtxTrack* first, SvtxTrack* second )
   {
     TrackingEvaluator_hp::TrackPairStruct trackpair_struct;
@@ -185,7 +185,7 @@ namespace
     return trackpair_struct;
   }
 
-  /// create cluster struct from svx cluster
+  //! create cluster struct from svx cluster
   TrackingEvaluator_hp::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
   {
     TrackingEvaluator_hp::ClusterStruct cluster_struct;
@@ -201,7 +201,7 @@ namespace
     return cluster_struct;
   }
 
-  /// add track information
+  //! add track information
   void add_trk_information( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state )
   {
     // need to extrapolate to the right r
@@ -234,7 +234,7 @@ namespace
     cluster._trk_z_error = state->get_z_error();
   }
 
-  /// number of hits associated to cluster
+  //! number of hits associated to cluster
   void add_cluster_size( TrackingEvaluator_hp::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   {
     if( !cluster_hit_map ) return;

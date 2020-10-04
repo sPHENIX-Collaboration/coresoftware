@@ -26,19 +26,19 @@ class TrackingEvaluator_hp : public SubsysReco
 {
   public:
 
-  /// constructor
+  //! constructor
   TrackingEvaluator_hp( const std::string& = "TrackingEvaluator_hp" );
 
-  /// global initialization
+  //! global initialization
   virtual int Init(PHCompositeNode*);
 
-  /// run initialization
+  //! run initialization
   virtual int InitRun(PHCompositeNode*);
 
-  /// event processing
+  //! event processing
   virtual int process_event(PHCompositeNode*);
 
-  /// end of processing
+  //! end of processing
   virtual int End(PHCompositeNode*);
 
   // event information
@@ -90,20 +90,20 @@ class TrackingEvaluator_hp : public SubsysReco
 
     using List = std::vector<ClusterStruct>;
 
-    /// cluster layer
+    //! cluster layer
     unsigned int _layer = 0;
 
-    /// number of hits belonging to the cluster
+    //! number of hits belonging to the cluster
     unsigned int _size = 0;
 
-    /// number of g4hits associated to this cluster
+    //! number of g4hits associated to this cluster
     unsigned int _truth_size = 0;
 
-    /// number of hits along phi and along z
+    //! number of hits along phi and along z
     int _phi_size = 0;
     int _z_size = 0;
 
-    ///@name cluster position
+    //!@name cluster position
     //@{
     float _x = 0;
     float _y = 0;
@@ -114,7 +114,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _z_error = 0;
     //@}
 
-    ///@name track position at cluster
+    //!@name track position at cluster
     //@{
     float _trk_x = 0;
     float _trk_y = 0;
@@ -122,19 +122,19 @@ class TrackingEvaluator_hp : public SubsysReco
     float _trk_r = 0;
     float _trk_phi = 0;
 
-    /// track errors
+    //! track errors
     float _trk_phi_error = 0;
     float _trk_z_error = 0;
 
-    /// track inclination at cluster in r,phi plane
+    //! track inclination at cluster in r,phi plane
     float _trk_alpha = 0;
 
-    /// track inclination at cluster in r,z plane
+    //! track inclination at cluster in r,z plane
     float _trk_beta = 0;
 
     //@}
 
-    ///@name truth position
+    //!@name truth position
     //@{
     float _truth_x = 0;
     float _truth_y = 0;
@@ -142,10 +142,10 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_r = 0;
     float _truth_phi = 0;
 
-    /// track inclination at cluster in r,phi plane
+    //! track inclination at cluster in r,phi plane
     float _truth_alpha = 0;
 
-    /// track inclination at cluster in r,z plane
+    //! track inclination at cluster in r,z plane
     float _truth_beta = 0;
     //@}
 
@@ -178,7 +178,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _chisquare = 0;
     int _ndf = 0;
 
-    ///@name position
+    //!@name position
     //@{
     float _x = 0;
     float _y = 0;
@@ -187,7 +187,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _phi = 0;
     //@}
 
-    ///@name momentum
+    //!@name momentum
     //@{
     float _px = 0;
     float _py = 0;
@@ -197,7 +197,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _eta = 0;
     //@}
 
-    ///@name truth momentum
+    //!@name truth momentum
     //@{
     int _pid = 0;
     int _embed = 0;
@@ -227,7 +227,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     int _charge = 0;
 
-    ///@name momentum
+    //!@name momentum
     //@{
     float _px = 0;
     float _py = 0;
@@ -243,25 +243,25 @@ class TrackingEvaluator_hp : public SubsysReco
     //@}
   };
 
-  /// track container
+  //! track container
   class Container: public PHObject
   {
 
     public:
 
-    /// constructor
+    //! constructor
     explicit Container() = default;
 
-    /// copy constructor
+    //! copy constructor
     explicit Container(const Container &) = delete;
 
-    /// assignment operator
+    //! assignment operator
     Container& operator = ( const Container& ) = delete;
 
-    /// reset
+    //! reset
     virtual void Reset();
 
-    ///@name accessors
+    //!@name accessors
     //@{
 
     const EventStruct::List& events() const
@@ -278,7 +278,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //@}
 
-    ///@name modifiers
+    //!@name modifiers
     //@{
 
     void addEvent( const EventStruct& event )
@@ -309,16 +309,16 @@ class TrackingEvaluator_hp : public SubsysReco
 
     private:
 
-    /// event struct
+    //! event struct
     EventStruct::List _events;
 
-    /// clusters array
+    //! clusters array
     ClusterStruct::List _clusters;
 
-    /// tracks array
+    //! tracks array
     TrackStruct::List _tracks;
 
-    /// track pairs array
+    //! track pairs array
     TrackPairStruct::List _track_pairs;
 
     ClassDef(Container,1)
@@ -335,37 +335,37 @@ class TrackingEvaluator_hp : public SubsysReco
     PrintTracks = 1<<5
   };
 
-  /// set flags. Should be a bitwise or of Flags enum
+  //! set flags. Should be a bitwise or of Flags enum
   void set_flags( int flags )
   { m_flags = flags; }
 
   private:
 
-  /// load nodes
+  //! load nodes
   int load_nodes( PHCompositeNode* );
 
-  /// evaluate evens
+  //! evaluate event
   void evaluate_event();
 
-  /// evaluate clusters
+  //! evaluate clusters
   void evaluate_clusters();
 
-  /// evaluate tracks
+  //! evaluate tracks
   void evaluate_tracks();
 
-  /// evaluate track pairs
+  //! evaluate track pairs
   void evaluate_track_pairs();
 
-  /// print clusters
+  //! print clusters
   void print_clusters() const;
 
-  /// print tracks
+  //! print tracks
   void print_tracks() const;
 
-  /// print cluster and association
+  //! print cluster and association
   void print_cluster( TrkrDefs::cluskey, TrkrCluster* ) const;
 
-  /// print track content
+  //! print track content
   void print_track( SvtxTrack* ) const;
 
   // get geant hits associated to a cluster
