@@ -1045,9 +1045,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   n.SetXYZ(hit_location[0], hit_location[1], 0);
   n.RotateZ(geom->get_strip_phi_tilt());
       } else if( trkrid == TrkrDefs::micromegasId ) {
-      
-      clusters_mm.insert( std::make_pair( cluster_key, cluster ) );
-      
+  clusters_mm.insert( std::make_pair( cluster_key, cluster ) );
+  continue;
       }
 
     auto meas = new PHGenFit::PlanarMeasurement(pos, n,
