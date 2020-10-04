@@ -26,7 +26,7 @@
 namespace
 {
 
-  /// square
+  //! square
   template<class T> inline constexpr T square( T x ) { return x*x; }
 
   //* converninece trait for underlying type
@@ -39,7 +39,20 @@ namespace
     to_underlying_type(T value) noexcept
   { return static_cast<underlying_type_t<T>>(value);}
 
-  /// create cluster struct from svx cluster
+  //! create g4hit struct from G4Hit
+  MicromegasEvaluator_hp::G4HitStruct create_g4hit( PHG4Hit* g4hit )
+  {
+    MicromegasEvaluator_hp::G4HitStruct g4hitstruct;
+    g4hitstruct._edep = g4hit->get_edep();
+    g4hitstruct._eion = g4hit->get_eion();
+    g4hitstruct._t = g4hit->get_avg_t();
+    g4hitstruct._x = g4hit->get_avg_x();
+    g4hitstruct._y = g4hit->get_avg_y();
+    g4hitstruct._z = g4hit->get_avg_z();
+    return g4hitstruct;
+  }
+  
+  //! create cluster struct from svx cluster
   MicromegasEvaluator_hp::HitStruct create_hit( TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey, TrkrHit* hit )
   {
     MicromegasEvaluator_hp::HitStruct hit_struct;
@@ -55,7 +68,11 @@ namespace
 
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::Container::Reset()
-{ _hits.clear(); }
+{ 
+  _events.clear();
+  _g4hits.clear();
+  _hits.clear(); 
+}
 
 //_____________________________________________________________________
 MicromegasEvaluator_hp::MicromegasEvaluator_hp( const std::string& name ):
@@ -116,8 +133,8 @@ int MicromegasEvaluator_hp::process_event(PHCompositeNode* topNode)
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
   if( m_container ) m_container->Reset();
 
-  evaluate_g4hits();
-  evaluate_hits();
+  if( m_flags & EvalG4Hits ) evaluate_g4hits();
+  if( m_flags & EvalHits ) evaluate_hits();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -129,7 +146,6 @@ int MicromegasEvaluator_hp::End(PHCompositeNode* )
 //_____________________________________________________________________
 int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
-
   // geometry
   const std::string geonodename = "CYLINDERGEOM_MICROMEGAS";
   m_geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -151,12 +167,19 @@ int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::evaluate_g4hits()
 {
-
   if( !( m_g4hits_micromegas && m_container ) ) return;
 
+  // clear array
+  m_container->clearEvents();
+  m_container->clearG4Hits();
+
+  // create event struct
+  EventStruct eventStruct;
+  
   // loop over layers in the g4hit container
+  uint layer_index = 0;
   auto layer_range = m_g4hits_micromegas->getLayers();
-  for( auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it )
+  for( auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it, ++layer_index )
   {
 
     // get layer
@@ -173,7 +196,7 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
     for( auto g4hit_it = g4hit_range.first; g4hit_it != g4hit_range.second; ++g4hit_it )
     {
       // get hit
-      PHG4Hit* g4hit = g4hit_it->second;
+      auto g4hit = g4hit_it->second;
 
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
@@ -188,30 +211,36 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       if( tileid < 0 || stripnum < 0 ) continue;
 
       // create G4Hit struct
-      G4HitStruct g4hit_struct;
-      g4hit_struct._layer = layer;
-      g4hit_struct._tile = tileid;
-      g4hit_struct._eion = g4hit->get_eion();
-
+      auto g4hitstruct = create_g4hit( g4hit );
+      g4hitstruct._layer = layer;
+      g4hitstruct._tile = tileid;
+     
+      eventStruct._edep_total[layer_index] += g4hitstruct._edep;
+      eventStruct._eion_total[layer_index] += g4hitstruct._eion;
+      
       // copied from PHG4MicromegasHitReco
       static constexpr double electrons_per_gev = 3.73252e+07;
       static constexpr double gain = 2000;
 
       // generate number of primary electrons
-      g4hit_struct._nprimary = gsl_ran_poisson(m_rng.get(), g4hit_struct._eion*electrons_per_gev);
+      g4hitstruct._nprimary = gsl_ran_poisson(m_rng.get(), g4hitstruct._eion*electrons_per_gev);
 
       // calculate total number of electrons and assign
       uint ntot = 0;
-      for( uint i = 0; i < g4hit_struct._nprimary; ++i )
+      for( uint i = 0; i < g4hitstruct._nprimary; ++i )
       { ntot += gsl_ran_exponential(m_rng.get(), gain); }
 
-      g4hit_struct._nelectron = ntot;
+      g4hitstruct._nelectron = ntot;
 
       // store
-      m_container->addG4Hit( g4hit_struct );
+      m_container->addG4Hit( g4hitstruct );
 
     }
+
   }
+  
+  // store event struct
+  m_container->addEvent( eventStruct );
 
 }
 
