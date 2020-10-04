@@ -94,6 +94,7 @@ class SvtxTruthEval
   const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
   const unsigned int _nlayers_tpc = 48;
+  const unsigned int _nlayers_mms = 2;
 
   std::multimap<TrkrDefs::cluskey, PHG4Hit*> _truth_cluster_truth_hit_map;
 

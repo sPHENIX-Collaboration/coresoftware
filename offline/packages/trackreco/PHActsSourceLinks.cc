@@ -135,6 +135,7 @@ if(m_useVertexMeasurement){
 
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
+    std::cout << PHWHERE << "layer " << layer << " trkrId " << trkrId << " insert cluskey " << clusKey << " and hitid " << hitId << " into map " << std::endl; 
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
 
     /// Local coordinates and surface to be set by the correct tracking
@@ -466,7 +467,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   if(layer == 55)
     segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
   else
-    MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+    segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);

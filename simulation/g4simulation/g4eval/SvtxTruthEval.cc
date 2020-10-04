@@ -12,6 +12,9 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <tpc/TpcDefs.h>
+#include <intt/InttDefs.h>
+#include <mvtx/MvtxDefs.h>
+#include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -289,10 +292,10 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   //std::map<unsigned int, TrkrCluster*> truth_clusters;
   std::map<unsigned int, std::shared_ptr<TrkrCluster>> truth_clusters;
 
-  // convert truth hits for this particle to truth clusters in each TPC layer
+  // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
-
-  for(float layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++layer)
+  unsigned int layer;
+  for(layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc +_nlayers_mms; ++layer)
     {
       float gx = NAN;
       float gy = NAN;
@@ -309,15 +312,42 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   
       // we have the cluster in this layer from this truth particle
       // add the cluster to a TrkrCluster object
+      TrkrDefs::cluskey ckey;
+      if(layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)  // in TPC
+	{      
+	  unsigned int side = 0;
+	  if(gz > 0) side = 1;	  
+	  // need dummy sector here
+	  unsigned int sector = 0;
+	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
+	}
+      else if(layer < _nlayers_maps)  // in MVTX
+	{
+	  unsigned int stave = 0;
+	  unsigned int chip = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	}
+      else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
+	{
+	  // dummy ladder and phi ID
+	  unsigned int ladderzid = 0;
+	  unsigned int ladderphiid = 0;
+	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,iclus); 
+	}
+      else if(layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)    // in MICROMEGAS
+	{
+	  unsigned int tile = 0;
+	  MicromegasDefs::SegmentationType segtype;
+	  segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+	  TrkrDefs::hitsetkey hkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+  	  ckey = MicromegasDefs::genClusterKey(hkey, iclus);
+	}
+      else
+	{
+	  std::cout << PHWHERE << "Bad layer number: " << layer << std::endl;
+	  continue;
+	}
       
-      unsigned int side = 0;
-      if(gz > 0) side = 1;
-
-      // need sector here
-      unsigned int sector = 0;
-
-      TrkrDefs::cluskey ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
-      //TrkrClusterv1 *clus = new TrkrClusterv1();
       std::shared_ptr<TrkrClusterv1> clus(new TrkrClusterv1());
       clus->setClusKey(ckey);
       iclus++;
@@ -687,7 +717,7 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
   double sigmas = 2.0;
 
   double radius = (inner_radius + outer_radius)/2.;
-  if(radius > 28)  // TPC
+  if(radius > 28 && radius < 80)  // TPC
     {
       PHG4CylinderCellGeom*layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
 
@@ -788,6 +818,12 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
 	cout << " INTT: layer " << layer << " strips " << strips << " strip pitch " <<  layergeom->get_strip_y_spacing() << " g4phisize "<< g4phisize 
 	     << " columns " << cols << " strip_z_spacing " <<  layergeom->get_strip_z_spacing() << " g4zsize " << g4zsize << endl;
       */
+    }
+  else if(radius > 80)  // MICROMEGAS
+    {
+      // made up for now
+      g4phisize = 300e-04;
+      g4zsize = 300e-04;
     }
   else  // MVTX
     {

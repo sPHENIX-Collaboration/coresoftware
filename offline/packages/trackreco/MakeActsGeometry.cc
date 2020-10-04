@@ -1096,7 +1096,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<doubl
   if(layer == m_mmLayerNumber[0])
     segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
   else
-    MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+    segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey hitset_key = MicromegasDefs::genHitSetKey(layer, segtype, tile);

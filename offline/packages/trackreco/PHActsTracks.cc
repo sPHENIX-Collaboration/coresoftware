@@ -178,7 +178,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       */
 
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
- 
+      std::cout << PHWHERE << " lookup gave hitid " << hitId << " for cluskey " << key << std::endl; 
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
       //if (Verbosity() > 0)
