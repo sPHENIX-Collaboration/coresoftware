@@ -80,7 +80,6 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_verbosity(0)
   , m_magField("1.4")
   , m_magFieldRescale(-1.0)
-  , m_buildMMs(false)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -222,10 +221,6 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
-
-  /// If we are building the MicroMegas, keep going on
-  //if(!m_buildMMs)
-  //return;
 
   // Micromegas geometry edits
   // These will only be made if the Micromegas nodes are found in the node tree
@@ -585,13 +580,12 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   /// MMs are in highest volume
   auto mmBarrel = volumeVector.at(1);
-  std::cout << " mmBarrel name " << mmBarrel->volumeName() << std::endl;
-
+ 
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  //  if(m_verbosity > 10 )
+  if(m_verbosity > 10 )
     {
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
@@ -603,7 +597,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   auto nextVolumes = topVolumesVector.at(1)->confinedVolumes();
   auto nextVolumesVector = nextVolumes->arrayObjects();
   
-  //if(m_verbosity > 10)
+  if(m_verbosity > 10)
     {
       for(long unsigned int i =0; i<nextVolumesVector.size(); i++)
 	{
@@ -616,7 +610,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   /// This actually contains the silicon volumes
   auto siliconVolumes = nextVolumesVector.at(0)->confinedVolumes();
 
-  //if(m_verbosity > 10 )
+  if(m_verbosity > 10 )
     {
       for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
 	std::cout << "SiliconVolumeName: " 
@@ -630,7 +624,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
   auto siliconVolume = siliconVolumes->arrayObjects().at(1)->confinedVolumes();
 
-  //if(m_verbosity > 10)
+  if(m_verbosity > 10)
     {
       for(long unsigned int i =0; i<siliconVolume->arrayObjects().size(); i++)
 	std::cout << "Next siliconVolumeName: "
@@ -732,12 +726,11 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 	  auto surf = surfaceVector.at(j)->getSharedPtr();
 	  auto vec3d = surf->center(m_geoCtxt);
         
-
 	  /// convert to cm
 	  std::vector<double> world_center = {vec3d(0) / 10.0, 
 					      vec3d(1) / 10.0,
 					      vec3d(2) / 10.0};
-	  //std::cout << "  get mm hitsetkey from world " << world_center[0] << "  " << world_center[1] << "  " << world_center[2] << std::endl;	
+
 	  TrkrDefs::hitsetkey hitsetkey = getMmHitSetKeyFromCoords(world_center);
 
 	  /// If there is already an entry for this hitsetkey, add the surface
@@ -973,7 +966,9 @@ Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
   
   if(mapIter == m_clusterSurfaceMapMmEdit.end())
     {
-      cout << PHWHERE << "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " << hitsetkey << endl;
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " 
+		<< hitsetkey << std::endl;
       return nullptr;
     }
 
@@ -990,9 +985,11 @@ Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);
       double surf_z = surf_center[2];
+  
       if( (world_phi > surf_phi - m_surfStepPhi / 2.0 && world_phi < surf_phi + m_surfStepPhi / 2.0 ) &&
 	  (world_z > surf_z -m_surfStepZ / 2.0 && world_z < surf_z + m_surfStepZ / 2.0) )
 	{
+
 	  surf_index = i;	  
 	  break;
 	}
@@ -1209,17 +1206,19 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 		  << std::endl;
       getInttKeyFromNode(node);
     }
+    /// Put placeholders for the TPC and MMs. Because we modify the geometry
+    /// within TGeoVolume, we don't need a mapping to the TGeoNode
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
       {
 	if(m_verbosity > 2)
-	  cout << " node " << node->GetName() << " is in the TPC " << endl;
-	getTpcKeyFromNode(node);
+	  std::cout << " node " << node->GetName() 
+		    << " is in the TPC " << std::endl;
       }
     else if (node_str.compare(0, micromegas.length(), micromegas) == 0)  // is it in the Micromegas?
       {
-	//if(m_verbosity > 2)
-	  cout << " node " << node->GetName() << " is in the TPC " << endl;
-	  //getTpcKeyFromNode(node);
+	if(m_verbosity > 2)
+	  std::cout << " node " << node->GetName() 
+		    << " is in the MMs " << std::endl;
       }
     else
       continue;

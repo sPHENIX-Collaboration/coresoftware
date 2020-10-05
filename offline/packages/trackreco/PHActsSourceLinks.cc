@@ -61,13 +61,14 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
   , m_tGeometry(nullptr)
-  , m_buildMMs(false)
 {
   Verbosity(0);
 }
 
 int PHActsSourceLinks::Init(PHCompositeNode *topNode)
 {
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -87,7 +88,6 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setVerbosity(Verbosity());
   m_actsGeometry->setMagField(m_magField);
   m_actsGeometry->setMagFieldRescale(m_magFieldRescale);
-  m_actsGeometry->buildMicroMegas(m_buildMMs);
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree
@@ -115,14 +115,15 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  /// Arbitrary hitId that is used to mape between cluster key and an
+  /// Arbitrary hitId that is used to map between cluster key and an
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
 
-if(m_useVertexMeasurement){
-  addVerticesAsSourceLinks(topNode, hitId);
-
- }
+  if(m_useVertexMeasurement)
+    {
+      addVerticesAsSourceLinks(topNode, hitId);      
+    }
+  
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
@@ -135,7 +136,7 @@ if(m_useVertexMeasurement){
 
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-    std::cout << PHWHERE << "layer " << layer << " trkrId " << trkrId << " insert cluskey " << clusKey << " and hitid " << hitId << " into map " << std::endl; 
+ 
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
 
     /// Local coordinates and surface to be set by the correct tracking
@@ -179,8 +180,6 @@ if(m_useVertexMeasurement){
     }
     else if (trkrId == TrkrDefs::micromegasId)
       {
-	std::cout << PHWHERE << " found micromegas cluster " << clusKey << " in layer " << layer << std::endl;
-
 	surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
 	
 	if (!surface)
@@ -455,7 +454,6 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   const double radius = sqrt(x * x + y * y) * Acts::UnitConstants::cm;
   const double rClusPhi = radius * clusPhi;
   const double zMm = world[2] * Acts::UnitConstants::cm;
-
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
 
   // need information to find the surface from the map
@@ -472,6 +470,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
   std::vector<double> worldVec = {world[0], world[1], world[2]};
+
   /// MakeActsGeometry has a helper function since many surfaces can exist on
   /// a given readout module
   Surface surface = m_actsGeometry->getMmSurfaceFromCoords(mmHitSetKey,

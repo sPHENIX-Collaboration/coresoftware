@@ -67,8 +67,7 @@ class MakeActsGeometry
 
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
-  void buildMicroMegas(bool buildMMs){m_buildMMs = buildMMs;}
-
+ 
   void setVerbosity(int verbosity)
     { m_verbosity = verbosity; }
 
@@ -228,7 +227,6 @@ class MakeActsGeometry
   std::string m_magField;
   double m_magFieldRescale;
 
-  bool m_buildMMs;
 };
 
 #endif
