@@ -116,6 +116,7 @@ class MakeActsGeometry
   int createNodes(PHCompositeNode*);
   
   /// Functions to edit TGeoManager to include TPC boxes
+  void setPlanarSurfaceDivisions();
   void editTPCGeometry(PHCompositeNode *topNode);
   void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 			  TGeoManager *geoManager);
