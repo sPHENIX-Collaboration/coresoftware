@@ -542,7 +542,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
       auto vec3d = surf->center(m_geoCtxt);
 
-      double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
+      double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       /// The Acts geometry builder combines layers 4 and 5 together, 

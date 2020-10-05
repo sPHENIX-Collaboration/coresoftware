@@ -16,6 +16,8 @@
 #include <iostream>         // for cout, ostream
 #include <string>           // for string
 
+class PHObject;
+
 /*!
  * \brief PHGenIntegralv1
  */

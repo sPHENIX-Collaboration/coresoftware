@@ -3,9 +3,10 @@
 
 #include "Fun4AllHepMCInputManager.h"
 
-#include <string>
-
 #include <gsl/gsl_rng.h>
+
+#include <map>
+#include <string>
 
 //! Generate pile up collisions based on beam parameter
 //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
@@ -18,10 +19,10 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
                                  const std::string &topnodename = "TOP");
   virtual ~Fun4AllHepMCPileupInputManager();
 
-  int run(const int nevents = 0) {return run(nevents,false);}
+  int run(const int nevents = 0) override { return run(nevents, false); }
 
   int run(const int nevents, const bool skip);
-
+  int ResetEvent() override;
   /// past times are negative, future times are positive
   void set_time_window(double past_nsec, double future_nsec)
   {
@@ -34,25 +35,33 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   /// time between bunch crossing in ns
   void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
 
-  int SkipForThisManager(const int nevents);
+  int SkipForThisManager(const int nevents) override;
+  void SignalInputManager(Fun4AllHepMCInputManager *in) { m_SignalInputManager = in; }
+  int PushBackEvents(const int i) override;
 
  private:
+  int InsertEvent(HepMC::GenEvent *evt, const double crossing_time);
+
+  Fun4AllHepMCInputManager *m_SignalInputManager = nullptr;
+  gsl_rng *RandomGenerator = nullptr;
+
+  int m_SignalEventNumber = 0;
   /// past times are negative, future times are positive
-  double _min_integration_time;
-  double _max_integration_time;
+  double _min_integration_time = -17500.0;
+  double _max_integration_time = 17500.0;
   /// collision rate in Hz
-  double _collision_rate;
+  double _collision_rate = 100.0e3;
   /// time between bunch crossing in ns
-  double _time_between_crossings;
+  double _time_between_crossings = 106.0;
 
   //derived parameters
-  double _ave_coll_per_crossing;
-  int _min_crossing;
-  int _max_crossing;
+  double _ave_coll_per_crossing = 1.;
+  int _min_crossing = 0;
+  int _max_crossing = 0;
 
-  bool _first_run;
+  bool _first_run = true;
 
-  gsl_rng *RandomGenerator;
+  std::map<int, double> m_EventNumberMap;
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

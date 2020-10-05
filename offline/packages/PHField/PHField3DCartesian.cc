@@ -120,7 +120,7 @@ PHField3DCartesian::PHField3DCartesian(const string &fname, const float magfield
   ystepsize = (ymax - ymin) / (yvals.size() - 1);
   zstepsize = (zmax - zmin) / (zvals.size() - 1);
 
-  if (rootinput) rootinput->Close();
+  rootinput->Close();
 
   cout << "\n================= End Construct Mag Field ======================\n"
        << endl;

@@ -51,6 +51,7 @@ pkginclude_HEADERS = \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHSiliconTpcTrackMatching.h \
+  PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
@@ -97,6 +98,7 @@ else
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
     PHSikiconTpcTrackMatching_Dict.cc \
+    PHMicromegasTpcTrackMatching_Dict.cc \
     PHSiliconTruthTrackSeeding_Dict.cc \
     PHTruthSiliconAssociation_Dict.cc \
     PHHoughSeeding_Dict.cc \
@@ -165,6 +167,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthClustering_hp.cc \
   PHTruthVertexing.cc \
   PHSiliconTpcTrackMatching.cc \
+  PHMicromegasTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
   PHSiliconTruthTrackSeeding.cc \
   PHTruthSiliconAssociation.cc \
@@ -197,6 +200,7 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrackbase_historic_io \

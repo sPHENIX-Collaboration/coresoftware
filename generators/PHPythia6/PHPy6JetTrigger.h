@@ -16,9 +16,7 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
   PHPy6JetTrigger(const std::string& name = "PHPy6JetTrigger");
   virtual ~PHPy6JetTrigger();
 
-#if !defined(__CINT__) || defined(__CLING__)
   bool Apply(const HepMC::GenEvent* evt);
-#endif
 
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt) { m_minPt = minPt; }
@@ -28,11 +26,11 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
   void PrintConfig();
 
  private:
-  double m_theEtaHigh;
-  double m_theEtaLow;
-  double m_minPt;
-  double m_R;
-  int m_nconst;
+  double m_theEtaHigh = 4.;
+  double m_theEtaLow = 1.;
+  double m_minPt = 10.;
+  double m_R = 1.;
+  int m_nconst = 0;
 };
 
 #endif
