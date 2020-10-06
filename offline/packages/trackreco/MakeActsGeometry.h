@@ -157,8 +157,7 @@ class MakeActsGeometry
   /// Makes map of TrkrHitSetKey<-->TGeoNode
   void makeTGeoNodeMap(PHCompositeNode *topNode);
   
-  void unpackVolumesWithoutMMs();
-  void unpackVolumesWithMMs();
+  void unpackVolumes();
 
   /// Subdetector geometry containers for getting layer information
   PHG4CylinderGeomContainer* m_geomContainerMvtx;  

@@ -586,16 +586,12 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   m_magFieldContext = context.magFieldContext;
   m_geoCtxt = context.geoContext;
     
-  if(!m_buildMMs)
-    unpackVolumesWithoutMMs();
-  else
-    unpackVolumesWithMMs();
-
+  unpackVolumes();
   
   return;
 }
 
-void MakeActsGeometry::unpackVolumesWithoutMMs()
+void MakeActsGeometry::unpackVolumes()
 {
   /// m_tGeometry is a TrackingGeometry pointer
   /// vol is a TrackingVolume pointer  
@@ -605,12 +601,14 @@ void MakeActsGeometry::unpackVolumesWithoutMMs()
     std::cout << "Highest Tracking Volume is "
 	      << vol->volumeName() << std::endl;
 
-  /// Get the confined volumes in the highest tracking volume
-  /// confinedVolumes is a shared_ptr<TrackingVolumeArray>
-  auto confinedVolumes = vol->confinedVolumes();
-
   /// volumeVector is a std::vector<TrackingVolumePtrs>
-  auto volumeVector = confinedVolumes->arrayObjects();
+  auto volumeVector = vol->confinedVolumes()->arrayObjects();
+
+  if(m_buildMMs)
+    {
+      auto mmBarrel = volumeVector.at(1);
+      makeMmMapPairs(mmBarrel);
+    }
 
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
@@ -621,13 +619,13 @@ void MakeActsGeometry::unpackVolumesWithoutMMs()
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
 	  std::cout<< "TopVolume name: " 
-		   << topVolumesVector.at(i)->volumeName() << std::endl;
+		   << topVolumesVector.at(i)->volumeName() 
+		   << std::endl;
 	}
     }
 
-  /// This actually contains the silicon volumes
   auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
-  
+  auto siliconVolumesVector = siliconVolumes->arrayObjects();
   if(m_verbosity > 10 )
     {
       for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
@@ -637,130 +635,54 @@ void MakeActsGeometry::unpackVolumesWithoutMMs()
       }
     }
 
-  /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
-  /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
-  
-  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
-  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
-  auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-
-  makeMvtxMapPairs(mvtxBarrel);
-
-  /// INTT only has one volume, so there is not an added volume extraction
-  /// like for the MVTX
-  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
-
-  makeInttMapPairs(inttVolume);
-
-  /// Same for the TPC - only one volume
-  auto tpcVolume = volumeVector.at(1);
-  
-  makeTpcMapPairs(tpcVolume);
-
-  return;
-}
-
-void MakeActsGeometry::unpackVolumesWithMMs()
-{
-  /// m_tGeometry is a TrackingGeometry pointer
-  /// vol is a TrackingVolume pointer  
-  auto vol = m_tGeometry->highestTrackingVolume();
-  
- 
-  
-  
-  if(m_verbosity > 10 )
-    std::cout << "Highest Tracking Volume is "
-	      << vol->volumeName() << std::endl;
-
-  /// Get the confined volumes in the highest tracking volume
-  /// confinedVolumes is a shared_ptr<TrackingVolumeArray>
-  auto confinedVolumes = vol->confinedVolumes();
-
-  /// volumeVector is a std::vector<TrackingVolumePtrs>
-  auto volumeVector = confinedVolumes->arrayObjects();
-  if(m_verbosity > 10)
-    {
-      for(long unsigned int i = 0; i < volumeVector.size(); i++)
-	std::cout << "Next highest volume name : " 
-		  << volumeVector.at(i)->volumeName()
-		  << std::endl;
-    }
-
-  /// MMs are in highest volume
-  auto mmBarrel = volumeVector.at(1);
- 
-  /// We have several volumes to walk through with the tpc and silicon
-  auto firstVolumes = volumeVector.at(0)->confinedVolumes();
-  auto topVolumesVector = firstVolumes->arrayObjects();
-  
-  if(m_verbosity > 10 )
-    {
-      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
-	{
-	  std::cout<< "TopVolume name: " 
-		   << topVolumesVector.at(i)->volumeName() << std::endl;
-	}
-    }
-
-  auto nextVolumes = topVolumesVector.at(1)->confinedVolumes();
-  auto nextVolumesVector = nextVolumes->arrayObjects();
-  
-  if(m_verbosity > 10)
-    {
-      for(long unsigned int i =0; i<nextVolumesVector.size(); i++)
-	{
-	  std::cout << "nextVolumeName: " 
-		    << nextVolumes->arrayObjects().at(i)->volumeName()
-		    << std::endl;
-	}
-    }
- 
+  /// Depending on whether or not the MMs are being built, the 
+  /// Silicon and TPC volumes are packed differently
   /// This actually contains the silicon volumes
-  auto siliconVolumes = nextVolumesVector.at(0)->confinedVolumes();
-
-  if(m_verbosity > 10 )
+  if(!m_buildMMs)
     {
-      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
-	std::cout << "SiliconVolumeName: " 
-		  << siliconVolumes->arrayObjects().at(i)->volumeName()
-		  << std::endl;
-      }
-    }
-      
+      auto mvtxVolumes = siliconVolumesVector.at(0);
+      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
 
-  /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
-  /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
-  auto siliconVolume = siliconVolumes->arrayObjects().at(1)->confinedVolumes();
+      makeMvtxMapPairs(mvtxBarrel);
 
-  if(m_verbosity > 10)
-    {
-      for(long unsigned int i =0; i<siliconVolume->arrayObjects().size(); i++)
-	std::cout << "Next siliconVolumeName: "
-		  << siliconVolume->arrayObjects().at(i)->volumeName()
-		  << std::endl;
-    }
+      /// INTT only has one volume, so there is not an added volume extraction
+      /// like for the MVTX
+      auto inttVolume =  siliconVolumesVector.at(1);
 
-  auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
-  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
-  auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+      makeInttMapPairs(inttVolume);
 
-  makeMvtxMapPairs(mvtxBarrel);
-
-  /// INTT only has one volume, so there is not an added volume extraction
-  /// like for the MVTX
-  auto inttVolume =  siliconVolume->arrayObjects().at(1);
- makeInttMapPairs(inttVolume);
-
-  /// Same for the TPC - only one volume
-  auto tpcVolume = nextVolumes->arrayObjects().at(1);
-  makeTpcMapPairs(tpcVolume);
-
-  // Mm has 1 volume
-  makeMmMapPairs(mmBarrel);
+      /// Same for the TPC - only one volume
+      auto tpcVolume = volumeVector.at(1);
   
+      makeTpcMapPairs(tpcVolume);
+    }
+  else
+    {
+      /// Additional layer unpacking if MMs were built
+      auto nextSiliconVolumes = siliconVolumesVector.at(0)->confinedVolumes();
+      auto siliconVolume = nextSiliconVolumes->arrayObjects().at(1)->confinedVolumes();
+      
+      auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
+      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+      
+      makeMvtxMapPairs(mvtxBarrel);
+      
+      /// INTT only has one volume, so there is not an added volume extraction
+      /// like for the MVTX
+      auto inttVolume =  siliconVolume->arrayObjects().at(1);
+      makeInttMapPairs(inttVolume);
+      
+      /// Same for the TPC - only one volume. Buried under silicon
+      /// volume array
+      auto tpcVolume = siliconVolumes->arrayObjects().at(1);
+      makeTpcMapPairs(tpcVolume);
+    }
+
   return;
 }
+
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 {
 
