@@ -983,7 +983,8 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
 
 }
 
-Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
+Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+						 std::vector<double> &world)
 {
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = m_clusterSurfaceMapMmEdit.find(hitsetkey);
@@ -1009,11 +1010,16 @@ Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);
       double surf_z = surf_center[2];
-  
-      if( (world_phi > surf_phi - m_surfStepPhi / 2.0 && world_phi < surf_phi + m_surfStepPhi / 2.0 ) &&
-	  (world_z > surf_z -m_surfStepZ / 2.0 && world_z < surf_z + m_surfStepZ / 2.0) )
-	{
 
+      /// Check if the cluster is geometrically within the surface boundaries
+      /// The MMs surfaces span the entire length in z, so we don't divide
+      /// by 2 in the z direction since the center of the surface is z=0
+      bool withinPhi = world_phi >= surf_phi - m_surfStepPhi / 2.0
+	&& world_phi < surf_phi + m_surfStepPhi / 2.0;
+      bool withinZ = world_z > surf_z - m_surfStepZ 
+	&& world_z < surf_z + m_surfStepZ;
+      if( withinPhi && withinZ )
+	{
 	  surf_index = i;	  
 	  break;
 	}
@@ -1023,6 +1029,7 @@ Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
       std::cout << PHWHERE 
 		<< "Error: Micromegas surface index not defined, skipping cluster!" 
 		<< std::endl;
+    
       return nullptr;
     }
  
