@@ -135,7 +135,6 @@ if(m_useVertexMeasurement){
 
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-    std::cout << PHWHERE << "layer " << layer << " trkrId " << trkrId << " insert cluskey " << clusKey << " and hitid " << hitId << " into map " << std::endl; 
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
 
     /// Local coordinates and surface to be set by the correct tracking
@@ -179,8 +178,6 @@ if(m_useVertexMeasurement){
     }
     else if (trkrId == TrkrDefs::micromegasId)
       {
-	std::cout << PHWHERE << " found micromegas cluster " << clusKey << " in layer " << layer << std::endl;
-
 	surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
 	
 	if (!surface)
@@ -207,7 +204,7 @@ if(m_useVertexMeasurement){
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
-    if (Verbosity() > 1)
+    if (Verbosity() > 10)
     {
       std::cout << "    layer " << layer << std::endl;
       for (int i = 0; i < 2; ++i)
@@ -225,13 +222,15 @@ if(m_useVertexMeasurement){
     loc[Acts::eBoundLoc0] = local2D[0];
     loc[Acts::eBoundLoc1] = local2D[1];
 
-    if (Verbosity() > 10)
+    if (Verbosity() > 1)
     {
-      std::cout << "Layer " << layer
-                << " create measurement for trkrid " << trkrId
-                << " surface " << surface->name() << " surface type "
-                << surface->type() << " local x " << loc[Acts::eBoundLoc0]
-                << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
+      if(layer > 54)
+	std::cout << "Layer " << layer
+		  << " create measurement for trkrid " << trkrId
+		  << " cluskey " << clusKey
+		  << " surface " << surface->name() << " surface type "
+		  << surface->type() << " local x " << loc[Acts::eBoundLoc0]
+		  << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
     }
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
@@ -462,7 +461,7 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   // the surface map is (for now) just a list of surfaces for each layer
   // use a dummy tile number of 0 and generate a fake hitsetkey
 
-  int tile = 0;   // assign all surfaces to tile 0
+  unsigned int tile = 0;   // assign all surfaces to tile 0
   MicromegasDefs::SegmentationType segtype;
   if(layer == 55)
     segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;

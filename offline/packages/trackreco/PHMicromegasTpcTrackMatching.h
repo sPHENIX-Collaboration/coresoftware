@@ -64,17 +64,14 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   double _z_search_win[2] = {26.0, 0.25};
 
   double _mm_layer_radius[2] = { 82.2565, 82.6998};
-  double _xplus[2] = {0, 0};
-  double _yplus[2] = {0, 0};
-  double _xminus[2] = {0, 0};
-  double _yminus[2] = {0, 0};
-  double _z[2] = {0, 0};
 
   // range of TPC layers to use in projection to micromegas
   unsigned int _min_tpc_layer = 38;
   unsigned int _min_mm_layer = 55;
 
   bool _test_search_windows = false;   // true for testing only
+
+  int _event = -1;
   
   SvtxTrack *_tracklet_tpc{nullptr};
 
