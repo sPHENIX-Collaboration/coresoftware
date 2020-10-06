@@ -80,6 +80,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_verbosity(0)
   , m_magField("1.4")
   , m_magFieldRescale(-1.0)
+  , m_buildMMs(false)
 {
   setPlanarSurfaceDivisions();
   nprint_tpc = 0;
@@ -229,6 +230,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
   if(micromegas_envelope_node)
     {
+      /// If the node was found, we're building the MMs
+      m_buildMMs = true;
+
       TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
       assert(micromegas_envelope_vol);
       
@@ -481,7 +485,7 @@ void MakeActsGeometry::buildActsSurfaces()
   /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magFieldRescale*=-1;
+      m_magFieldRescale *= -1;
       m_magField = "1.5";
     }
 
@@ -494,8 +498,12 @@ void MakeActsGeometry::buildActsSurfaces()
   file.open(responseFile);
   if(!file)
     {
-      responseFile = std::string(getenv("OFFLINE_MAIN")) +
-	std::string("/share/tgeo-sphenix.response");
+      if(m_buildMMs)
+	responseFile = std::string(getenv("OFFLINE_MAIN")) +
+	  std::string("/share/tgeo-sphenix-mms.response");
+      else
+	responseFile = std::string(getenv("OFFLINE_MAIN")) +
+	  std::string("/share/tgeo-sphenix.response");
     }
 
   file.open(materialFile);
@@ -504,7 +512,15 @@ void MakeActsGeometry::buildActsSurfaces()
       materialFile = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/ACTS/sphenix-material.json");
     }
-
+  
+  if(m_verbosity > 4)
+    {
+      std::cout << "using material file : " << materialFile 
+		<< std::endl;
+      std::cout << "Using response file : " << responseFile
+		<< std::endl;
+    }
+  
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
@@ -519,10 +535,10 @@ void MakeActsGeometry::buildActsSurfaces()
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
-  {
-    // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-    arg[i] = strdup(argstr[i].c_str());
-  }
+    {
+      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
+      arg[i] = strdup(argstr[i].c_str());
+    }
   
   // We replicate the relevant functionality of  
   //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
@@ -534,6 +550,7 @@ void MakeActsGeometry::buildActsSurfaces()
 void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
 				    ActsExamples::IBaseDetector &detector)
 {
+  
   /// setup and parse options
   auto desc = ActsExamples::Options::makeDefaultOptions();
   ActsExamples::Options::addGeometryOptions(desc);
@@ -569,10 +586,89 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   m_magFieldContext = context.magFieldContext;
   m_geoCtxt = context.geoContext;
     
+  if(!m_buildMMs)
+    unpackVolumesWithoutMMs();
+  else
+    unpackVolumesWithMMs();
+
+  
+  return;
+}
+
+void MakeActsGeometry::unpackVolumesWithoutMMs()
+{
   /// m_tGeometry is a TrackingGeometry pointer
   /// vol is a TrackingVolume pointer  
   auto vol = m_tGeometry->highestTrackingVolume();
 
+  if(m_verbosity > 10 )
+    std::cout << "Highest Tracking Volume is "
+	      << vol->volumeName() << std::endl;
+
+  /// Get the confined volumes in the highest tracking volume
+  /// confinedVolumes is a shared_ptr<TrackingVolumeArray>
+  auto confinedVolumes = vol->confinedVolumes();
+
+  /// volumeVector is a std::vector<TrackingVolumePtrs>
+  auto volumeVector = confinedVolumes->arrayObjects();
+
+  /// We have several volumes to walk through with the tpc and silicon
+  auto firstVolumes = volumeVector.at(0)->confinedVolumes();
+  auto topVolumesVector = firstVolumes->arrayObjects();
+  
+  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
+	{
+	  std::cout<< "TopVolume name: " 
+		   << topVolumesVector.at(i)->volumeName() << std::endl;
+	}
+    }
+
+  /// This actually contains the silicon volumes
+  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
+  
+  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
+	std::cout << "SiliconVolumeName: " 
+		  << siliconVolumes->arrayObjects().at(i)->volumeName()
+		  << std::endl;
+      }
+    }
+
+  /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
+  /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
+  
+  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
+  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+  auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+
+  makeMvtxMapPairs(mvtxBarrel);
+
+  /// INTT only has one volume, so there is not an added volume extraction
+  /// like for the MVTX
+  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
+
+  makeInttMapPairs(inttVolume);
+
+  /// Same for the TPC - only one volume
+  auto tpcVolume = volumeVector.at(1);
+  
+  makeTpcMapPairs(tpcVolume);
+
+  return;
+}
+
+void MakeActsGeometry::unpackVolumesWithMMs()
+{
+  /// m_tGeometry is a TrackingGeometry pointer
+  /// vol is a TrackingVolume pointer  
+  auto vol = m_tGeometry->highestTrackingVolume();
+  
+ 
+  
+  
   if(m_verbosity > 10 )
     std::cout << "Highest Tracking Volume is "
 	      << vol->volumeName() << std::endl;
@@ -662,10 +758,9 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 
   // Mm has 1 volume
   makeMmMapPairs(mmBarrel);
-
+  
   return;
 }
-
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 {
 
