@@ -2,6 +2,8 @@
 
 #include "PHHepMCGenEvent.h"
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <cstdlib>           // for exit
 #include <iterator>           // for reverse_iterator
@@ -28,10 +30,11 @@ PHHepMCGenEventMap::~PHHepMCGenEventMap()
 
 void PHHepMCGenEventMap::Reset()
 {
-  
   // delete all events
   for( const auto& pair:_map )
-  { delete pair.second; }
+  {
+    delete pair.second;
+  }
   
   // clear map
   _map.clear();
@@ -85,18 +88,16 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_background_event(const PHHepMCGenEve
 
 PHHepMCGenEvent* PHHepMCGenEventMap::insert_event(const int index, const PHHepMCGenEvent* event)
 {
-  const auto iter = _map.lower_bound( index );
-  if( iter != _map.end() && iter->first == index )
+  auto newEvent = event ? static_cast<PHHepMCGenEvent*>(event->CloneMe()): new PHHepMCGenEvent();
+  newEvent->set_embedding_id(index);
+  auto ret =  _map.insert(std::make_pair(index, newEvent ));
+  if (ret.second == false)
   {
     std::cout 
       << "PHHepMCGenEventMap::insert_event - Fatal Error -"
       << "embedding ID " << index << " is already used in the PHHepMCGenEventMap. Print map:";
     identify();
-    exit(10);
+    gSystem->Exit(10);
   }
-  
-  auto newEvent = event ? static_cast<PHHepMCGenEvent*>(event->CloneMe()): new PHHepMCGenEvent();
-  newEvent->set_embedding_id(index);
-  _map.insert(iter, std::make_pair(index, newEvent ));
   return newEvent;
 }

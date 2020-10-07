@@ -2,7 +2,7 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4detectors/PHG4Cell.h>                   // for PHG4Cell::EdepCon...
+#include <g4detectors/PHG4Cell.h>  // for PHG4Cell::EdepCon...
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 

@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
@@ -49,11 +50,15 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
+  PHSiliconTpcTrackMatching.h \
+  PHMicromegasTpcTrackMatching.h \
+  PHSiliconTruthTrackSeeding.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
+  PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   VertexFitter.h \
   PHRaveVertexing.h \
@@ -91,6 +96,10 @@ else
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
+    PHSikiconTpcTrackMatching_Dict.cc \
+    PHMicromegasTpcTrackMatching_Dict.cc \
+    PHSiliconTruthTrackSeeding_Dict.cc \
+    PHTruthSiliconAssociation_Dict.cc \
     PHHoughSeeding_Dict.cc \
     PHRTreeSeeding_Dict.cc \
     PHCASeeding_Dict.cc \
@@ -120,6 +129,7 @@ ACTS_SOURCES = \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
+  PHActsVertexFinder.cc \
   PHActsVertexFitter.cc
 
 $OFFLINE_MAIN/share:
@@ -132,9 +142,9 @@ ACTS_LIBS = \
   -lg4eval \
   -lActsCore \
   -lActsFatras \
-  -lActsTGeoPlugin \
+  -lActsPluginTGeo \
   -lActsExamplesCommon \
-  -lActsJsonPlugin \
+  -lActsPluginJson \
   -lActsExamplesFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
@@ -154,7 +164,11 @@ libtrack_reco_la_SOURCES = \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
   PHTruthVertexing.cc \
+  PHSiliconTpcTrackMatching.cc \
+  PHMicromegasTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
+  PHSiliconTruthTrackSeeding.cc \
+  PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
   PHCASeeding.cc \
@@ -184,6 +198,7 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrackbase_historic_io \

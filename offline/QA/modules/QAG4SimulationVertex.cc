@@ -1,9 +1,8 @@
 #include "QAG4SimulationVertex.h"
+
 #include "QAHistManagerDef.h"
 
 #include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxTrackEval.h>
-#include <g4eval/SvtxTruthEval.h>
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxVertexEval.h>
 
@@ -11,40 +10,30 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h> // for cluskey
 
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <TFile.h>
-#include <TNtuple.h>
 #include <TVector3.h>
-#include <TAxis.h>
-#include <TDatabasePDG.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
-#include <TParticlePDG.h>  // for TParticlePDG
 #include <TString.h>
 
-#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <iterator>
 #include <map>
-#include <utility>
+#include <utility>     // for pair
 #include <vector>
 
 using namespace std;

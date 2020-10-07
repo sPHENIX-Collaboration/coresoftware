@@ -14,6 +14,8 @@
 #include <tpc/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -31,7 +33,7 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Utilities/Units.hpp>
 
-#include <ACTFW/Utilities/Options.hpp>
+#include <ActsExamples/Utilities/Options.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -47,10 +49,13 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
+  , m_useVertexMeasurement(false)
   , m_clusterMap(nullptr)
   , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
+  , m_magField("1.4")
+  , m_magFieldRescale(-1.0)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -78,7 +83,9 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   /// Check if Acts geometry has been built and is on the node tree
   m_actsGeometry = new MakeActsGeometry();
   
-  m_actsGeometry->setVerbosity(0);
+  m_actsGeometry->setVerbosity(Verbosity());
+  m_actsGeometry->setMagField(m_magField);
+  m_actsGeometry->setMagFieldRescale(m_magFieldRescale);
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree
@@ -110,6 +117,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
 
+if(m_useVertexMeasurement){
+  addVerticesAsSourceLinks(topNode, hitId);
+
+ }
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
@@ -163,12 +174,18 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 	continue;
       }
     }
+    else if (trkrId == TrkrDefs::micromegasId)
+      {
+	// skip micromegas for now
+	continue;
+      }
     else
     {
       std::cout << "Invalid trkrId found in " << PHWHERE
                 << std::endl
                 << "Skipping this cluster"
                 << std::endl;
+	continue;
     }
 
     /// ====================================================
@@ -195,16 +212,16 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Cluster positions on GeoObject/Surface
     Acts::BoundVector loc = Acts::BoundVector::Zero();
-    loc[Acts::eLOC_0] = local2D[0];
-    loc[Acts::eLOC_1] = local2D[1];
+    loc[Acts::eBoundLoc0] = local2D[0];
+    loc[Acts::eBoundLoc1] = local2D[1];
 
     if (Verbosity() > 0)
     {
       std::cout << "Layer " << layer
                 << " create measurement for trkrid " << trkrId
                 << " surface " << surface->name() << " surface type "
-                << surface->type() << " local x " << loc[Acts::eLOC_0]
-                << " local y " << loc[Acts::eLOC_1] << std::endl << std::endl;
+                << surface->type() << " local x " << loc[Acts::eBoundLoc0]
+                << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
     }
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
@@ -312,7 +329,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
-  // lengths in mm
+  /// lengths in mm
   Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
@@ -337,14 +354,25 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
-			 surface->normal(m_actsGeometry->getGeoContext()),
-			 local2D);
-  
+  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), 
+		        globalPos,
+		        surface->normal(m_actsGeometry->getGeoContext()));
+
+  if(vecResult.ok())
+    {
+      local2D = vecResult.value();
+    }
+  else
+    {
+      /// Otherwise use manual calculation, which is the same as Acts
+      local2D(0) = rClusPhi - surfRphiCenter;
+      local2D(1) = zTpc - surfZCenter;
+    }
+
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal(0,0,0);
-  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
-			 Acts::Vector3D(1,1,1), actsGlobal);
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+						     local2D, 
+						     Acts::Vector3D(1,1,1));
 
   if (Verbosity() > 0)
   {
@@ -364,13 +392,13 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   TMatrixD sPhenixLocalErr = transformCovarToLocal(clusPhi, worldErr);
 
   /// Get the 2D location covariance uncertainty for the cluster (y and z)
-  localErr(Acts::eLOC_0, Acts::eLOC_0) = 
+  localErr(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
     sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_1, Acts::eLOC_0) = 
+  localErr(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
     sPhenixLocalErr[2][1] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_0, Acts::eLOC_1) = 
+  localErr(Acts::eBoundLoc0, Acts::eBoundLoc1) = 
     sPhenixLocalErr[1][2] * Acts::UnitConstants::cm2;
-  localErr(Acts::eLOC_1, Acts::eLOC_1) = 
+  localErr(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
     sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
 
@@ -457,14 +485,23 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
-			 surface->normal(m_actsGeometry->getGeoContext()),
-			 local2D);
+  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
+			 surface->normal(m_actsGeometry->getGeoContext()));
+  if(vecResult.ok())
+    {
+      local2D = vecResult.value();
+    }
+  else
+    {
+      /// Otherwise use manual calculation, same as Acts
+      local2D(0) = local[1] * Acts::UnitConstants::cm;
+      local2D(1) = local[2] * Acts::UnitConstants::cm;
+    }
 
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal(0,0,0);
-  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
-			 Acts::Vector3D(1,1,1), actsGlobal);
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+						     local2D, 
+						     Acts::Vector3D(1,1,1));
 
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
   
@@ -478,8 +515,8 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
               << " " << segcent[1] << " " << segcent[2] << std::endl;
     std::cout << "   world; " << world[0] << " " << world[1]
               << " " << world[2] << std::endl;
-    std::cout << "   local; " << local[0] << " " << local[1]
-              << " " << local[2] << std::endl;
+    std::cout << "   local; " << local[0] * 10.<< " " << local[1] * 10.
+              << " " << local[2] * 10. << std::endl;
     std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
     std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
 	      << z * 10 << "  " << std::endl;
@@ -565,19 +602,28 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
 						 chipId,
 						 world);
 
-
   Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
-			 surface->normal(m_actsGeometry->getGeoContext()),
-			 local2D);
+  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
+			 surface->normal(m_actsGeometry->getGeoContext()));
+
+  if(vecResult.ok())
+    {
+      local2D = vecResult.value();
+    }
+  else
+    {
+      /// Otherwise use our by hand calculation - they are the same as Acts
+      local2D(0) = local[0] * Acts::UnitConstants::cm;
+      local2D(1) = local[2] * Acts::UnitConstants::cm;
+    }
 
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal(0,0,0);
-  surface->localToGlobal(m_actsGeometry->getGeoContext(), local2D, 
-			 Acts::Vector3D(1,1,1), actsGlobal);
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+						     local2D, 
+						     Acts::Vector3D(1,1,1));
 
   Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
 
@@ -592,7 +638,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
     std::cout << "   world; " << world[0] << " "
               << world[1] << " " << world[2] << std::endl;
     std::cout << "   our local; " << local[0] * 10 << " "
-              << local[1] * 10<< " " << local[2] * 10 << std::endl;
+              << local[1] * 10 << " " << local[2] * 10 << std::endl;
     std::cout << " acts local " << local2D(0) << "  " << local2D(1) << std::endl;
     std::cout << "Our global : " << x * 10 << "  " << y * 10 << "   " << z * 10 
 	      << std::endl;
@@ -604,6 +650,115 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
   localErr = getMvtxCovarLocal(layer, staveId, chipId, worldErr);
 
   return surface;
+}
+
+void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
+						 unsigned int &hitId)
+{
+  SvtxVertexMap *vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+
+  if(!vertexMap)
+    {
+      std::cout << PHWHERE << "Can't get vertex map to add source links. Vertices won't be added as source links"
+		<< std::endl;
+      return;
+    }
+
+  for(SvtxVertexMap::Iter vertexIter = vertexMap->begin();
+      vertexIter != vertexMap->end();
+      ++vertexIter)
+    {
+
+      const SvtxVertex *vertex = vertexIter->second;
+
+      const Acts::Vector3D globalPos(vertex->get_x() * Acts::UnitConstants::cm,
+				     vertex->get_y() * Acts::UnitConstants::cm,
+				     vertex->get_z() * Acts::UnitConstants::cm);
+
+      /// Make a perigee surface corresponding to the vertex for the 
+      /// "measurement" to live on
+      auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+				     globalPos);
+
+      Acts::Vector2D loc(0,0); 
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+
+      auto vecResult = pSurface->globalToLocal(m_actsGeometry->getGeoContext(),
+			      globalPos,
+			      pSurface->normal(m_actsGeometry->getGeoContext()));
+
+      if(vecResult.ok())
+	{
+	  loc = vecResult.value();
+	}
+      else
+	{
+	  std::cout << PHWHERE << "Can't add this vertex as a source link... skipping"
+		    << std::endl;
+	  continue;
+	}
+
+      TMatrixD worldErr(3,3);
+      for(int i = 0; i < 3; i++)
+	for(int j = 0; j < 3; j++)
+	  worldErr(i,j) = vertex->get_error(i, j);
+
+      if(Verbosity() > 1)
+	{
+	  std::cout << "global cov xx, yy, zz: " << worldErr(0,0) 
+		    << ", " << worldErr(1,1) << ", " << worldErr(2,2)
+		    << std::endl;
+	}
+
+      const float phi = atan2(vertex->get_y(), vertex->get_x());
+      
+      TMatrixD localErr(3,3);
+      localErr = transformCovarToLocal(phi, worldErr);
+
+      if(Verbosity() > 1)
+	{
+	  std::cout << "local cov rphi, z " << localErr[0][0]
+		    << ", " << localErr[2][2] << std::endl;
+	}
+
+      Acts::BoundVector location = Acts::BoundVector::Zero();
+      location[Acts::eBoundLoc0] = loc(0);
+      location[Acts::eBoundLoc1] = loc(1);
+      
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) =
+	localErr[0][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) =
+	localErr[2][0] * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	localErr[0][2] * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) =
+	localErr[2][2] * Acts::UnitConstants::cm2;
+      
+      if(Verbosity() > 1)
+	{
+	  Acts::Vector3D center = pSurface->center(m_actsGeometry->getGeoContext());
+	  Acts::Vector3D normal = pSurface->normal(m_actsGeometry->getGeoContext());
+
+	  std::cout << "Adding vertex as a measurement in track fitting"
+		    << std::endl
+		    << "global loc: (" << globalPos(0) << ", " << globalPos(1)
+		    << ", " << globalPos(2) << ")" << std::endl
+		    << "local pos (" << loc(0) << ", " << loc(1) << ") " 
+		    << std::endl << "surface center: (" << center(0)
+		    << ", " << center(1) << ", " << center(2) << ")" << std::endl
+		    << "surface normal : (" << normal(0) << ", " << normal(1)
+		    << ", " << normal(2) << ") " << std::endl;
+	}
+
+      SourceLink vertexSL(hitId, pSurface, location, cov);
+      
+      m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId,vertexSL));
+
+      hitId++;
+    }
+
+  return;
+
 }
 
 int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
@@ -773,7 +928,10 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   return surface;
 }
 
-Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, const unsigned int staveId, const unsigned int chipId, TMatrixD worldErr)
+Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, 
+						       const unsigned int staveId,
+						       const unsigned int chipId, 
+						       TMatrixD worldErr)
 {
   TMatrixD localErr(3, 3);
 
@@ -804,13 +962,13 @@ Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer,
   Acts::BoundMatrix matrix = Acts::BoundMatrix::Zero();
 
   /// Get the 2D location covariance uncertainty for the cluster (x and z) 
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = 
+  matrix(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
     localErr[0][0] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_1, Acts::eLOC_0) = 
+  matrix(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
     localErr[2][0] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_0, Acts::eLOC_1) = 
+  matrix(Acts::eBoundLoc0, Acts::eBoundLoc1) = 
     localErr[0][2] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = 
+  matrix(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
     localErr[2][2] * Acts::UnitConstants::cm2;
 
   return matrix;
@@ -844,13 +1002,13 @@ Acts::BoundMatrix PHActsSourceLinks::getInttCovarLocal(const unsigned int layer,
 
   Acts::BoundMatrix matrix = Acts::BoundMatrix::Zero();
   /// Get the 2D location covariance uncertainty for the cluster (y and z)
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = 
+  matrix(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
     localErr[1][1] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_1, Acts::eLOC_0) = 
+  matrix(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
     localErr[2][1] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_0, Acts::eLOC_1) = 
+  matrix(Acts::eBoundLoc0, Acts::eBoundLoc1) = 
     localErr[1][2] * Acts::UnitConstants::cm2;
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = 
+  matrix(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
     localErr[2][2] * Acts::UnitConstants::cm2;
 
   return matrix;

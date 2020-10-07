@@ -31,9 +31,6 @@
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-#include <intt/CylinderGeomIntt.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -51,6 +48,8 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <memory>                                       // for shared_ptr
+#include <set>                                          // for _Rb_tree_cons...
 #include <utility>
 #include <vector>
 
@@ -1595,6 +1594,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    float hit_data[] = {
 	      event,
+              (float) _iseed,
 	      hitID,
 	      e,
 	      adc,

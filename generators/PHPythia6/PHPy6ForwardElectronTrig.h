@@ -19,9 +19,7 @@ class PHPy6ForwardElectronTrig : public PHPy6GenTrigger
   //! destructor
   ~PHPy6ForwardElectronTrig(void) {}
 
-#if !defined(__CINT__) || defined(__CLING__)
   bool Apply(const HepMC::GenEvent* evt);
-#endif
 
   void set_electrons_required(int n)
   {

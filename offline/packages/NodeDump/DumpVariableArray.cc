@@ -7,7 +7,6 @@
 #include <ostream>
 #include <string>
 
-
 using namespace std;
 
 typedef PHIODataNode<VariableArray> MyNode_t;

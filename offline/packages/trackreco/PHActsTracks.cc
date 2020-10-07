@@ -11,7 +11,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/Utilities/Units.hpp>
 
@@ -78,7 +77,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
   /// Vector to hold source links for a particular track
   std::vector<SourceLink> trackSourceLinks;
-  std::vector<FW::TrackParameters> trackSeeds;
+  std::vector<ActsExamples::TrackParameters> trackSeeds;
 
   ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
@@ -97,7 +96,12 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       track->identify();
     }
 
-    const unsigned int vertexId = track->get_vertex_id();
+    unsigned int vertexId = track->get_vertex_id();
+
+    /// hack for now since TPC seeders don't set vertex id
+    if(vertexId == UINT_MAX)
+      vertexId = 0;
+
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
     Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
@@ -114,19 +118,31 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
-          rotater->rotateSvtxTrackCovToActs(track);
-    const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
-                                 track->get_y()  * Acts::UnitConstants::cm,
-                                 track->get_z()  * Acts::UnitConstants::cm);
-    const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
-                                 track->get_py() * Acts::UnitConstants::GeV,
-                                 track->get_pz() * Acts::UnitConstants::GeV);
+      rotater->rotateSvtxTrackCovToActs(track,
+					m_tGeometry->geoContext);
 
+    /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
+    const double trackTime = 10 * Acts::UnitConstants::ns;
+
+    const Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
+				  track->get_y()  * Acts::UnitConstants::cm,
+				  track->get_z()  * Acts::UnitConstants::cm,
+				  trackTime);
+    
+    const Acts::Vector3D seedMomVec(track->get_px() * Acts::UnitConstants::GeV,
+				    track->get_py() * Acts::UnitConstants::GeV,
+				    track->get_pz() * Acts::UnitConstants::GeV);
+
+    const double p = track->get_p();
+    
+    const double trackQ = track->get_charge();
+    
     if(Verbosity() > 0)
       {
 	std::cout << PHWHERE << std::endl;
-	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
-	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
+	std::cout << " Seed trackQ " << trackQ << std::endl;
+	std::cout << " seed4Vec " << seed4Vec[0] << "  " << seed4Vec[1] << "  " << seed4Vec[2] << std::endl;
+	std::cout << " seedMomVec " << seedMomVec[0] << "  " << seedMomVec[1] << "  " << seedMomVec[2] << std::endl;
 	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
 	std::cout << " seedCov: " << std::endl;
 	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
@@ -138,14 +154,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	    std::cout << std::endl;
 	  }
       }
-
-    // just set to 10 ns for now?
-    const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = -track->get_charge();  // charge is set in PHHoughTrackSeeding, copied over in PHGenFitTrkProp. Sign convention is apparently opposite here. Mag field sign?
-
-    const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
-					trackQ * Acts::UnitConstants::e, 
-					trackTime);
+    
+    const ActsExamples::TrackParameters trackSeed(seed4Vec, 
+						  seedMomVec, p,
+						  trackQ * Acts::UnitConstants::e,
+						  seedCov);
 
     /// Start fresh for this track
     trackSourceLinks.clear();
@@ -154,6 +167,14 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
          ++clusIter)
     {
       const TrkrDefs::cluskey key = *clusIter;
+
+      // skip micromegas layers for now
+      unsigned int layer = TrkrDefs::getLayer(key);
+      if(layer > 54)
+	{
+	  std::cout << PHWHERE << "Found micromegas layer " << layer << " in track " << std::endl;
+	  continue;
+	}
 
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
  
@@ -167,7 +188,8 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 		    << " has hitid " << hitId
 		    << std::endl;
 	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(
+				    m_tGeometry->geoContext, std::cout);
 	}
     }
 

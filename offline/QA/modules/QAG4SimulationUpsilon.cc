@@ -27,6 +27,7 @@
 #include <TVector3.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/ThreeVector.h>       // for Hep3Vector
 
 #include <cassert>
 #include <cmath>

@@ -20,34 +20,32 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 
-namespace FW
+namespace ActsExamples
 {
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
-}  // namespace FW
+  class TrkrClusterSourceLink;
+}
 
 class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -96,7 +94,7 @@ class PHActsTrkFitter : public PHTrackFitting
   ActsTrackingGeometry *m_tGeometry;
 
   /// Configuration containing the fitting function instance
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
+  ActsExamples::TrkrClusterFittingAlgorithm::Config fitCfg;
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
@@ -110,7 +108,10 @@ class PHActsTrkFitter : public PHTrackFitting
   bool m_timeAnalysis;
   TFile *m_timeFile;
   TH1 *h_eventTime;
-  
+  TH2 *h_fitTime;
+  TH1 *h_updateTime;
+  TH1 *h_stateTime;
+  TH1 *h_rotTime;
 };
 
 #endif
