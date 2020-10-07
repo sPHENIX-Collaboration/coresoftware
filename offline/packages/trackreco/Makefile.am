@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsSiliconMicromegasFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
@@ -125,6 +126,7 @@ ACTS_SOURCES = \
   ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsSiliconMicromegasFitter.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \

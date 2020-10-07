@@ -31,7 +31,6 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
-#include <Acts/Utilities/Definitions.hpp>
 
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/Framework/AlgorithmContext.hpp>
@@ -78,7 +77,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField);
 
@@ -187,7 +186,7 @@ int PHActsTrkFitter::Process()
 
     auto startTime = high_resolution_clock::now();
     
-    auto result = fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
+    auto result = m_fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
     
     auto stopTime = high_resolution_clock::now();
     auto fitTime = duration_cast<microseconds>(stopTime - startTime);

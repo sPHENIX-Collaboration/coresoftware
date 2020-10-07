@@ -56,7 +56,7 @@ class PHActsTrkFitter : public PHTrackFitting
   ~PHActsTrkFitter();
 
   /// End, write and close files
-  int End(PHCompositeNode*);
+  int End(PHCompositeNode *topNode);
 
   /// Get and create nodes
   int Setup(PHCompositeNode* topNode);
@@ -88,13 +88,13 @@ class PHActsTrkFitter : public PHTrackFitting
     *m_actsFitResults;
 
   /// Map of acts tracks and track key created by PHActsTracks
-  std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrkrClusterFittingAlgorithm::Config fitCfg;
+  ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
