@@ -18,6 +18,7 @@ class PHCompositeNode;
 
 //class SvtxClusterMap;
 class TrkrClusterContainer;
+class TrkrClusterHitAssoc;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -54,6 +55,7 @@ class PHTrackSeeding : public SubsysReco
   virtual int End() = 0;
 
   TrkrClusterContainer *_cluster_map;
+  TrkrClusterHitAssoc *_cluster_hit_map;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;

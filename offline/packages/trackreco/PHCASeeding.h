@@ -84,6 +84,8 @@ class PHCASeeding : public PHTrackSeeding
       const std::string &name = "PHCASeeding",
       unsigned int start_layer = 7,
       unsigned int end_layer = 55,
+      unsigned int min_nhits_per_cluster = 2,
+      unsigned int min_clusters_per_track = 20,
       const unsigned int nlayers_maps = 3,
       const unsigned int nlayers_intt = 4,
       const unsigned int nlayers_tpc = 48,
@@ -98,7 +100,10 @@ class PHCASeeding : public PHTrackSeeding
   virtual ~PHCASeeding()
   {
   }
-
+  void SetLayerRange(unsigned int layer_low, unsigned int layer_up) {_start_layer = layer_low; _end_layer = layer_up;}
+  void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
+  void SetMinHitsPerCluster(int minHits) {_min_nhits_per_cluster = minHits;}
+  void SetMinClustersPerTrack(int minClus) {_min_clusters_per_track = minClus;}
  protected:
   virtual int Setup(PHCompositeNode *topNode);
   virtual int Process(PHCompositeNode *topNode);
@@ -156,6 +161,8 @@ class PHCASeeding : public PHTrackSeeding
   const unsigned int _nlayers_tpc;
   unsigned int _start_layer;
   unsigned int _end_layer;
+  unsigned int _min_nhits_per_cluster;
+  unsigned int _min_clusters_per_track;
   float _cluster_z_error;
   float _cluster_alice_y_error;
   float _neighbor_phi_width;
