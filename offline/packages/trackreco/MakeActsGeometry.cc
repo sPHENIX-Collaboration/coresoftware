@@ -1187,6 +1187,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   {
     std::cout << PHWHERE << "Did not get layergeom for layer " 
 	      << layer << std::endl;
+    return 0;
   }
 
   double location[3] = {world[0], world[1], world[2]};
