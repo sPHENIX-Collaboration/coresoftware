@@ -16,8 +16,7 @@
  * A struct to carry around Acts geometry on node tree, so as to not put 
  * all of the MakeActsGeometry tree
  */
-class ActsTrackingGeometry{
- public:
+struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
 		       ActsExamples::Options::BFieldVariant mag,
