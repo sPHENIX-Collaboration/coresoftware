@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSVERTEXFITTER_H
 
 #include <fun4all/SubsysReco.h>
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 

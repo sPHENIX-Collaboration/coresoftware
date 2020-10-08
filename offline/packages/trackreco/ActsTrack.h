@@ -3,6 +3,7 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
+#include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;

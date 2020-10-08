@@ -1,8 +1,6 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
-#include "PHActsSourceLinks.h" 
-
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -17,6 +15,7 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 #include "ActsTrack.h"
+#include "ActsTrackingGeometry.h"
 
 #include <map>
 #include <string>
