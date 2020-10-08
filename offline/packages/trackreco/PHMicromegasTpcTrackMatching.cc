@@ -74,6 +74,18 @@ int PHMicromegasTpcTrackMatching::Process()
   if(Verbosity() > 0)
     cout << PHWHERE << " Event " << _event << " TPC track map size " << _track_map->size() << endl;
 
+  // get the micromegas clusters for this event
+  TrkrDefs::TrkrId mm_trkrid = TrkrDefs::micromegasId;; 
+  TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters(mm_trkrid);
+
+  // for diagnostics only
+  std::map<TrkrDefs::cluskey, int> cluster_matches;
+  for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
+    {
+      TrkrDefs::cluskey mm_cluskey = clusiter->first;
+      cluster_matches.insert(make_pair(mm_cluskey, 0));
+    }
+  
  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
 
@@ -192,8 +204,6 @@ int PHMicromegasTpcTrackMatching::Process()
       
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches[2];
-      TrkrDefs::TrkrId mm_trkrid = TrkrDefs::micromegasId;; 
-      TrkrClusterContainer::ConstRange mm_clusrange = _cluster_map->getClusters(mm_trkrid);
        for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
 	{
 	  TrkrDefs::cluskey mm_cluskey = clusiter->first;
@@ -208,9 +218,11 @@ int PHMicromegasTpcTrackMatching::Process()
 
 	  if(Verbosity() > 3)
 	    {
-	      std::cout << " Found Micromegas cluster in layer " << layer  << " cluskey " << mm_cluskey << " radius, x, y, z " 
+	      std::cout << " Found Micromegas cluster in layer " << layer  << " cluskey " << mm_cluskey << " radius, x, y, z, phi, rphi " 
 			<< sqrt(pow(mm_clus->getX(), 2) + pow(mm_clus->getY(), 2)) << "  "
-			<< mm_clus->getX() << "  " << mm_clus->getY() << "  " << mm_clus->getZ() << std::endl;
+			<< mm_clus->getX() << "  " << mm_clus->getY() << "  " << mm_clus->getZ() << "  " 
+			<< atan2(mm_clus->getY(), mm_clus->getX()) << "  "
+			<<  sqrt(pow(mm_clus->getX(), 2) + pow(mm_clus->getY(), 2))  * atan2(mm_clus->getY(), mm_clus->getX()) << std::endl;
 	    }
 
 	  double mm_clus_z = mm_clus->getZ();
@@ -221,8 +233,9 @@ int PHMicromegasTpcTrackMatching::Process()
 	  
 	  if(Verbosity() > 3)
 	    {
-	      std::cout << "     test for match in layer " << layer << " _rphi_search_win_1 " << _rphi_search_win[imm]
-			<< " drphi " << rphi_proj[imm] - mm_clus_rphi << " dz " << z_proj[imm] - mm_clus_z
+	      std::cout << "   tracklet " << _tracklet_tpc->get_id() << " test for match in layer " << layer << " _rphi_search_win_1 " << _rphi_search_win[imm]
+			<< " phi_proj " << rphi_proj[imm] / radius_proj << " drphi " << rphi_proj[imm] - mm_clus_rphi << " z_proj " << z_proj[imm] 
+			<< " dz " << z_proj[imm] - mm_clus_z
 			<< " _z_search_win " << _z_search_win[imm] 
 			<< std::endl;
 	    }
@@ -230,6 +243,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	  if(fabs(rphi_proj[imm] - mm_clus_rphi) < _rphi_search_win[imm] && fabs(z_proj[imm] - mm_clus_z) < _z_search_win[imm])
 	    {
 	      mm_matches[imm].push_back(mm_cluskey);
+	      cluster_matches.find(mm_cluskey)->second++;
 
 	      if(Verbosity() > 3)
 		std::cout << "     radius_proj " << radius_proj << " x_proj " << x_proj 
@@ -244,7 +258,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	    }
 	}
 
-       // We need to modify the Micromegas cluster position for the unmeasured coordinates so they have the projected phi position, instead of the middle of the tile
+       // We need to modify the Micromegas cluster position for the unmeasured coordinates so they have the projected position, instead of the middle of the tile
        // this is so that the cluster will be associated in PHActsSourceLinks with the surface that Acts will project the track to
        // This kludge is only necessary until we implement the Micromegas tiles properly in Geant
        
@@ -275,9 +289,8 @@ int PHMicromegasTpcTrackMatching::Process()
 	     }
 	 }
        
-       // skip multiple-match TPC tracklets for now
-       //if(mm_matches[0].size() > 1) continue;
-       //if(mm_matches[1].size() > 1) continue;
+       // keep multiple-matches to TPC tracklets and let the tracxker sort it out
+
        if(mm_matches[0].size() == 0 && mm_matches[1].size() == 0) continue;
 
        if(Verbosity() > 3)
@@ -301,12 +314,30 @@ int PHMicromegasTpcTrackMatching::Process()
       
        if(Verbosity() > 3)
 	 _tracklet_tpc->identify();
-       
     }
-  
+
+  /*
+  // temporary diagnostics
+  for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
+    {
+      TrkrDefs::cluskey mm_cluskey = clusiter->first;
+      unsigned int layer = TrkrDefs::getLayer(mm_cluskey);
+      TrkrCluster *mm_clus = clusiter->second;
+      
+      int got_it = cluster_matches.find(mm_cluskey)->second;
+      TrkrDefs::hitsetkey this_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(mm_cluskey);
+      unsigned int this_tileid = MicromegasDefs::getTileId(this_hitsetkey);
+
+      if(got_it == 0)      
+	std::cout << " got_it " << got_it << " micromegas cluster in layer " << layer  << " cluskey " << mm_cluskey << " tileid " << this_tileid << " radius, x, y, z " 
+		  << sqrt(pow(mm_clus->getX(), 2) + pow(mm_clus->getY(), 2)) << "  "
+		  << mm_clus->getX() << "  " << mm_clus->getY() << "  " << mm_clus->getZ() << std::endl;
+    }
+  */
+      
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
-  
+      
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

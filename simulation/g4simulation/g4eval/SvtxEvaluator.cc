@@ -166,17 +166,17 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
 						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:ng4hits:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
-                                                 "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms"
+                                                 "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
                                                  "gnintt1:gnintt2:gnintt3:gnintt4:"
                                                  "gnintt5:gnintt6:gnintt7:gnintt8:"
-                                                 "gntpc:gnlmaps:gnlintt:gnltpc:gnlmms"
+                                                 "gntpc:gnlmaps:gnlintt:gnltpc:gnlmms:"
                                                  "gpx:gpy:gpz:gpt:geta:gphi:"
                                                  "gvx:gvy:gvz:gvt:"
                                                  "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                                                  "gembed:gprimary:"
                                                  "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
-                                                 "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:"
-                                                 "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
+                                                 "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
+                                                 "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
@@ -187,7 +187,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                "cemcdphi:cemcdeta:cemce3x3:cemce:"
                                                "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
                                                "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
-                                               "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnlmaps:gnlintt:gnltpc:"
+                                               "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
                                                "gpx:gpy:gpz:gpt:geta:gphi:"
                                                "gvx:gvy:gvz:gvt:"
                                                "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -903,7 +903,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 			   nhit_tpc_all,
 			   nhit_tpc_in,
 			   nhit_tpc_mid,
-			   nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+			   nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
         _ntp_info->Fill(info_data);
       }
@@ -1079,7 +1079,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nhit_tpc_all,
                                nhit_tpc_in,
                                nhit_tpc_mid,
-                               nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                               nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps,nclus_mms};
 
         _ntp_vertex->Fill(vertex_data);
       }
@@ -1141,7 +1141,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                  nhit_tpc_all,
                                  nhit_tpc_in,
                                  nhit_tpc_mid,
-                                 nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                                 nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
           _ntp_vertex->Fill(vertex_data);
         }
@@ -1227,7 +1227,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                  nhit_tpc_all,
                                  nhit_tpc_in,
                                  nhit_tpc_mid,
-                                 nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                                 nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
           _ntp_gpoint->Fill(gpoint_data);
         }
@@ -1442,7 +1442,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                             nhit_tpc_all,
                             nhit_tpc_in,
                             nhit_tpc_mid,
-                            nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                            nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
       _ntp_g4hit->Fill(g4hit_data);
     }
@@ -1637,7 +1637,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      nhit_tpc_all,
 	      nhit_tpc_in,
 	      nhit_tpc_mid,
-	      nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+	      nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 	    
 	    _ntp_hit->Fill(hit_data);
 	  }
@@ -1863,7 +1863,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 nhit_tpc_all,
                                 nhit_tpc_in,
                                 nhit_tpc_mid,
-                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
         _ntp_cluster->Fill(cluster_data);
       }
@@ -2077,7 +2077,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 nhit_tpc_all,
                                 nhit_tpc_in,
                                 nhit_tpc_mid,
-                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
           _ntp_cluster->Fill(cluster_data);
         }
@@ -2291,6 +2291,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float ng4hits = g4clusters.size();
         unsigned int ngmaps = 0;
+        unsigned int ngmms = 0;
         unsigned int ngintt = 0;
         unsigned int ngintt1 = 0;
         unsigned int ngintt2 = 0;
@@ -2331,7 +2332,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             lmaps[layer] = 1;
             ngmaps++;
           }
-
+          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          {
+            lmms[layer - _nlayers_tpc - _nlayers_intt - _nlayers_maps] = 1;
+            ngmms++;
+          }
           if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
           {
             lintt[layer - _nlayers_maps] = 1;
@@ -2650,6 +2655,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                ng4hits,
                                (float) ngmaps,
                                (float) ngintt,
+                               (float) ngmms,
                                (float) ngintt1,
                                (float) ngintt2,
                                (float) ngintt3,
@@ -2700,6 +2706,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nmaps,
                                nintt,
 			       ntpc,
+			       nmms,
                                ntpc1,
                                ntpc11,
                                ntpc2,
@@ -2707,6 +2714,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nlmaps,
                                nlintt,
                                nltpc,
+			       nlmms,
                                dca2d,
                                dca2dsigma,
                                dca3dxy,
@@ -2721,6 +2729,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                ntrumaps,
                                ntruintt,
                                ntrutpc,
+			       ntrumms,
                                ntrutpc1,
                                ntrutpc11,
                                ntrutpc2,
@@ -2729,7 +2738,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nhit_tpc_all,
                                nhit_tpc_in,
                                nhit_tpc_mid,
-                               nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                               nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
         /*
 	cout << " ievent " << _ievent
@@ -3161,6 +3170,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               ntrumaps,
                               ntruintt,
                               ntrutpc,
+			      ntrumms,
                               ntrutpc1,
                               ntrutpc11,
                               ntrutpc2,
@@ -3169,7 +3179,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               nhit_tpc_all,
                               nhit_tpc_in,
                               nhit_tpc_mid,
-                              nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                              nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 
         /*
 	cout << "ievent " << _ievent
@@ -3336,7 +3346,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					nhit_tpc_all,
 					nhit_tpc_in,
 					nhit_tpc_mid,
-					nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+					nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
 		  
 		  _ntp_gseed->Fill(gseed_data);
 		}
