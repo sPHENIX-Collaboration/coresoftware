@@ -302,7 +302,7 @@ int PHMicromegasTpcTrackMatching::Process()
        // Add the micromegas clusters to the track
        for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
 	 {      	  
-	   for(int imatch = 0; imatch < mm_matches[imm].size(); ++imatch)
+	   for(unsigned int imatch = 0; imatch < mm_matches[imm].size(); ++imatch)
 	     {
 	       if(Verbosity() > 3) 
 		 std::cout << "   inserting Micromegas cluster with key " << mm_matches[imm][0] << std::endl;
