@@ -104,7 +104,7 @@ class MakeActsGeometry
   Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
     std::vector<double> &world);
 
-  void setMagField(std::string magField)
+  void setMagField(const std::string &magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}

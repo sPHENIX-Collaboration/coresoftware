@@ -551,10 +551,10 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 4; ++i)
+      for (unsigned int k = 0; k < 4; ++k)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i + 3;
+        if (fabs(layer_rad - ref_rad[k]) < 0.1)
+          layer = k + 3;
       }
 
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
@@ -630,10 +630,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 3; ++i)
+      for (unsigned int k = 0; k < 3; ++k)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i;
+        if (fabs(layer_rad - ref_rad[k]) < 0.1)
+          layer = k;
       }
 
       TrkrDefs::hitsetkey hitsetkey = getMvtxHitSetKeyFromCoords(layer, world_center);
@@ -802,6 +802,8 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   if (!layergeom)
   {
     std::cout << PHWHERE << "Did not get layergeom for layer " << layer << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   double location[3] = {world[0], world[1], world[2]};

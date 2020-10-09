@@ -268,11 +268,11 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
            << svtx_track->get_truth_track_id() << endl;
 
       //Print associated clusters;
-      for (SvtxTrack::ConstClusterKeyIter iter =
+      for (SvtxTrack::ConstClusterKeyIter iter_clus =
                svtx_track->begin_cluster_keys();
-           iter != svtx_track->end_cluster_keys(); ++iter)
+           iter_clus != svtx_track->end_cluster_keys(); ++iter_clus)
       {
-        TrkrDefs::cluskey cluster_key = *iter;
+        TrkrDefs::cluskey cluster_key = *iter_clus;
         TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
         float radius = sqrt(
             cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());

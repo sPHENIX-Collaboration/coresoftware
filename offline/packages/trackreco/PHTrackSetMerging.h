@@ -54,16 +54,16 @@ class PHTrackSetMerging : public SubsysReco
   virtual int End() = 0;
 
   //SvtxClusterMap *_cluster_map;
-  TrkrClusterContainer *_cluster_map;
-  SvtxVertexMap *_vertex_map;
-  SvtxTrackMap *_track_map_in1;
-  SvtxTrackMap *_track_map_in2;
-  SvtxTrackMap *_track_map_out;
-  AssocInfoContainer *_assoc_container;
+  TrkrClusterContainer *_cluster_map = nullptr;
+  SvtxVertexMap *_vertex_map = nullptr;
+  SvtxTrackMap *_track_map_in1 = nullptr;
+  SvtxTrackMap *_track_map_in2 = nullptr;
+  SvtxTrackMap *_track_map_out = nullptr;
+  AssocInfoContainer *_assoc_container = nullptr;
 
-  std::string _track_map_name_in1;
-  std::string _track_map_name_in2;
-  std::string _track_map_name_out;
+  std::string _track_map_name_in1 = "SvtxTrackMap1";
+  std::string _track_map_name_in2 = "SvtxTrackMap2";
+  std::string _track_map_name_out = "SvtxTrackMapMerged";
 
  private:
   /// create new node output pointers
