@@ -53,3 +53,16 @@
 --geo-tgeo-clayer-r-split 1. 
 --geo-tgeo-clayer-z-split -1.
 #
+# Detector : MicroMegas
+--geo-detector-volume MICROMEGAS
+--geo-tgeo-sfbin-r-tolerance 5:5
+--geo-tgeo-sfbin-z-tolerance 5:5
+--geo-tgeo-sfbin-phi-tolerance 0.01:0.01
+--geo-tgeo-clayers 1
+--geo-tgeo-cvolume-name *
+--geo-tgeo-cmodule-name micromegas_measurement*
+--geo-tgeo-cmodule-axes YZX
+--geo-tgeo-clayer-r-range 0:1000
+--geo-tgeo-clayer-z-range -3000:3000
+--geo-tgeo-clayer-r-split 1. 
+--geo-tgeo-clayer-z-split -1.

@@ -156,6 +156,8 @@ class MakeActsGeometry
 
   /// Makes map of TrkrHitSetKey<-->TGeoNode
   void makeTGeoNodeMap(PHCompositeNode *topNode);
+  
+  void unpackVolumes();
 
   /// Subdetector geometry containers for getting layer information
   PHG4CylinderGeomContainer* m_geomContainerMvtx;  
@@ -227,6 +229,8 @@ class MakeActsGeometry
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField;
   double m_magFieldRescale;
+
+  bool m_buildMMs;
 
 };
 
