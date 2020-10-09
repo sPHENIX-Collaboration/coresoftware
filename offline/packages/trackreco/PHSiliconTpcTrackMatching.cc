@@ -116,7 +116,10 @@ int PHSiliconTpcTrackMatching::Process()
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
       // phi correction for TPC tracks is charge dependent
-      double sign_phi_correction = _tracklet_tpc->get_charge(); 
+      double sign_phi_correction = _tracklet_tpc->get_charge();
+      double charge =  _tracklet_tpc->get_charge();
+      _tracklet_tpc->set_charge(-charge);   // kluge for PHCASeeder only! Get's charge sign right for Acts
+      std::cout << "tracklet charge " << _tracklet_tpc->get_charge() << " sign_phi_correction " << sign_phi_correction << std::endl;
 
       /// Correct the correction for the field direction
       /// Kludge to get the phi matching correct based on the field
@@ -152,9 +155,14 @@ int PHSiliconTpcTrackMatching::Process()
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
+	  /*
 	  double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
 	  double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
 	  double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
+	  cout << " Try: pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+	  */
+	  double phi_search_win_lo = _phi_search_win * mag;
+	  double phi_search_win_hi = _phi_search_win * mag;
 
 	  if(Verbosity() >= 2)
 	    {
@@ -166,9 +174,10 @@ int PHSiliconTpcTrackMatching::Process()
 	  bool eta_match = false;
 	  bool phi_match = false;
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag) eta_match = true;
-	  if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;
+	  //if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;
+	  if(  fabs(tpc_phi - si_phi) < phi_search_win_lo) phi_match = true;
 	  // NOTE: have to guard against change of sign in either angle at +/- pi
-	  if( (fabs(tpc_phi - si_phi) - 2.0*M_PI) > phi_search_win_lo &&  (fabs(tpc_phi - si_phi) - 2.0*M_PI) < phi_search_win_hi )  phi_match = true; 
+	  //if( (fabs(tpc_phi - si_phi) - 2.0*M_PI) > phi_search_win_lo &&  (fabs(tpc_phi - si_phi) - 2.0*M_PI) < phi_search_win_hi )  phi_match = true; 
 
 	  if(eta_match && phi_match)
 	    {
