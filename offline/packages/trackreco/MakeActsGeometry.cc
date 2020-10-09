@@ -494,16 +494,22 @@ void MakeActsGeometry::buildActsSurfaces()
   file.open(responseFile);
   if(!file)
     {
+      std::cout << responseFile << " not found locally, use repo version" << std::endl;
       responseFile = std::string(getenv("OFFLINE_MAIN")) +
 	std::string("/share/tgeo-sphenix.response");
     }
-
+  else
+    std::cout << responseFile << " found locally, using local version" << std::endl;
+    
   file.open(materialFile);
   if(!file)
     {
+      std::cout << materialFile << " not found locally, use repo version" << std::endl;
       materialFile = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/ACTS/sphenix-material.json");
     }
+  else
+    std::cout << materialFile << " found locally, using local version" << std::endl;
 
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
