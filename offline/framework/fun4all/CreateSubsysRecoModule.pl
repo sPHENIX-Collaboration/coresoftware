@@ -354,7 +354,8 @@ sub CreateMakefile()
 
     print F "AM_LDFLAGS = \\\n";
     print F "  -L\$(libdir) \\\n";
-    print F "  -L\$(OFFLINE_MAIN)/lib\n";
+    print F "  -L\$(OFFLINE_MAIN)/lib \\\n";
+    print F "  -L\$(OFFLINE_MAIN)/lib64\n";
     print F "\n";
 
     print F "pkginclude_HEADERS = \\\n";
