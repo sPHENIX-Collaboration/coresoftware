@@ -97,7 +97,7 @@ class PHActsSourceLinks : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode);
   void useVertexAsMeasurement(bool useVertexMeasurement)
     {m_useVertexMeasurement = useVertexMeasurement;}
-  void setMagField(std::string magField)
+  void setMagField(const std::string &magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}

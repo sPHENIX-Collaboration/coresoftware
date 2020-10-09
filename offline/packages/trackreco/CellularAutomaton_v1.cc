@@ -632,9 +632,9 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
                 			if (ll<3){
                 			init_track.hits[ll] = layer_sorted[ll][(*cur_seg)[i].hits[ll]];
                 			}else {
-                			auto search = _hits_map.find((*cur_seg)[i].hits[ll]);
-                			SimpleHit3D cluster = search->second;
-                			init_track.hits[ll] = cluster;
+                                        auto search1 = _hits_map.find((*cur_seg)[i].hits[ll]);
+                                        SimpleHit3D cluster = search1->second;
+                                        init_track.hits[ll] = cluster;
                 			}
 		                }
 			}
