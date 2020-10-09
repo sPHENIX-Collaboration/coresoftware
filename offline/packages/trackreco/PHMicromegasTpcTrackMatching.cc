@@ -157,7 +157,7 @@ int PHMicromegasTpcTrackMatching::Process()
       if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the two micromegas layers and store the projections
-      double z_proj[2]={0,0}; y_proj[2]={0,0}; x_proj[2]={0,0}; rphi_proj[2]={0,0};
+      double z_proj[2]={0,0}; double y_proj[2]={0,0}; double x_proj[2]={0,0}; double rphi_proj[2]={0,0};
       bool skip_tracklet = false;
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
       {
@@ -170,7 +170,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	// finds the intersection of the fitted circle with the micromegas layer
 	circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
 	
-	// We only need to check xplus for failure, skip this track in that case
+	// We only need to check xplus for failure, skip this TPC track in that case
 	if(std::isnan(xplus)) 
 	  {
 	    if(Verbosity() > 10)
@@ -178,8 +178,9 @@ int PHMicromegasTpcTrackMatching::Process()
 		std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
 		std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
 	      }
+	    skip_tracklet = true;
 	  }
-	if(skip_tracklet = true)
+	if(skip_tracklet == true)
 	  continue;   // skips to the next layer
 
 	// we can figure out which solution is correct based on the last cluster position in the TPC
@@ -203,10 +204,10 @@ int PHMicromegasTpcTrackMatching::Process()
 	// z projection is unique
 	z_proj[imm] = B + A * _mm_layer_radius[imm] ;
       }
-
-      if(skip_tracklet = true)
+      
+      if(skip_tracklet == true)
 	continue;   // skips to the next TPC tracklet
-
+      
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches[2];
        for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
@@ -216,11 +217,11 @@ int PHMicromegasTpcTrackMatching::Process()
 	  TrkrCluster *mm_clus = clusiter->second;
 
 	  unsigned int imm;
-	  if(layer == min_micromegas_layer) 
+	  if(layer == _min_mm_layer) 
 	    imm = 0;
 	  else
 	    imm = 1;
-
+	  
 	  if(Verbosity() > 3)
 	    {
 	      std::cout << " Found Micromegas cluster in layer " << layer  << " cluskey " << mm_cluskey << " radius, x, y, z, phi, rphi " 

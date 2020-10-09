@@ -80,6 +80,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_verbosity(0)
   , m_magField("1.4")
   , m_magFieldRescale(-1.0)
+  , m_buildMMs(false)
 {
   setPlanarSurfaceDivisions();
   nprint_tpc = 0;
@@ -229,6 +230,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
   if(micromegas_envelope_node)
     {
+      /// If the node was found, we're building the MMs
+      m_buildMMs = true;
+
       TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
       assert(micromegas_envelope_vol);
       
@@ -481,7 +485,7 @@ void MakeActsGeometry::buildActsSurfaces()
   /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magFieldRescale*=-1;
+      m_magFieldRescale *= -1;
       m_magField = "1.5";
     }
 
@@ -494,16 +498,30 @@ void MakeActsGeometry::buildActsSurfaces()
   file.open(responseFile);
   if(!file)
     {
-      responseFile = std::string(getenv("OFFLINE_MAIN")) +
-	std::string("/share/tgeo-sphenix.response");
+      if(m_buildMMs)
+	responseFile = std::string(getenv("OFFLINE_MAIN")) +
+	  std::string("/share/tgeo-sphenix-mms.response");
+      else
+	responseFile = std::string(getenv("OFFLINE_MAIN")) +
+	  std::string("/share/tgeo-sphenix.response");
     }
-
+    
   file.open(materialFile);
   if(!file)
     {
+      std::cout << materialFile << " not found locally, use repo version" << std::endl;
       materialFile = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/ACTS/sphenix-material.json");
     }
+  
+  if(m_verbosity > 4)
+    {
+      std::cout << "using material file : " << materialFile 
+		<< std::endl;
+      std::cout << "Using response file : " << responseFile
+		<< std::endl;
+    }
+  
 
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
@@ -519,10 +537,10 @@ void MakeActsGeometry::buildActsSurfaces()
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
-  {
-    // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-    arg[i] = strdup(argstr[i].c_str());
-  }
+    {
+      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
+      arg[i] = strdup(argstr[i].c_str());
+    }
   
   // We replicate the relevant functionality of  
   //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
@@ -534,6 +552,7 @@ void MakeActsGeometry::buildActsSurfaces()
 void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
 				    ActsExamples::IBaseDetector &detector)
 {
+  
   /// setup and parse options
   auto desc = ActsExamples::Options::makeDefaultOptions();
   ActsExamples::Options::addGeometryOptions(desc);
@@ -569,6 +588,13 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   m_magFieldContext = context.magFieldContext;
   m_geoCtxt = context.geoContext;
     
+  unpackVolumes();
+  
+  return;
+}
+
+void MakeActsGeometry::unpackVolumes()
+{
   /// m_tGeometry is a TrackingGeometry pointer
   /// vol is a TrackingVolume pointer  
   auto vol = m_tGeometry->highestTrackingVolume();
@@ -577,23 +603,15 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
     std::cout << "Highest Tracking Volume is "
 	      << vol->volumeName() << std::endl;
 
-  /// Get the confined volumes in the highest tracking volume
-  /// confinedVolumes is a shared_ptr<TrackingVolumeArray>
-  auto confinedVolumes = vol->confinedVolumes();
-
   /// volumeVector is a std::vector<TrackingVolumePtrs>
-  auto volumeVector = confinedVolumes->arrayObjects();
-  if(m_verbosity > 10)
+  auto volumeVector = vol->confinedVolumes()->arrayObjects();
+
+  if(m_buildMMs)
     {
-      for(long unsigned int i = 0; i < volumeVector.size(); i++)
-	std::cout << "Next highest volume name : " 
-		  << volumeVector.at(i)->volumeName()
-		  << std::endl;
+      auto mmBarrel = volumeVector.at(1);
+      makeMmMapPairs(mmBarrel);
     }
 
-  /// MMs are in highest volume
-  auto mmBarrel = volumeVector.at(1);
- 
   /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
@@ -603,26 +621,13 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
 	  std::cout<< "TopVolume name: " 
-		   << topVolumesVector.at(i)->volumeName() << std::endl;
+		   << topVolumesVector.at(i)->volumeName() 
+		   << std::endl;
 	}
     }
 
-  auto nextVolumes = topVolumesVector.at(1)->confinedVolumes();
-  auto nextVolumesVector = nextVolumes->arrayObjects();
-  
-  if(m_verbosity > 10)
-    {
-      for(long unsigned int i =0; i<nextVolumesVector.size(); i++)
-	{
-	  std::cout << "nextVolumeName: " 
-		    << nextVolumes->arrayObjects().at(i)->volumeName()
-		    << std::endl;
-	}
-    }
- 
-  /// This actually contains the silicon volumes
-  auto siliconVolumes = nextVolumesVector.at(0)->confinedVolumes();
-
+  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
+  auto siliconVolumesVector = siliconVolumes->arrayObjects();
   if(m_verbosity > 10 )
     {
       for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
@@ -631,37 +636,51 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
 		  << std::endl;
       }
     }
-      
 
-  /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
-  /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
-  auto siliconVolume = siliconVolumes->arrayObjects().at(1)->confinedVolumes();
-
-  if(m_verbosity > 10)
+  /// Depending on whether or not the MMs are being built, the 
+  /// Silicon and TPC volumes are packed differently
+  /// This actually contains the silicon volumes
+  if(!m_buildMMs)
     {
-      for(long unsigned int i =0; i<siliconVolume->arrayObjects().size(); i++)
-	std::cout << "Next siliconVolumeName: "
-		  << siliconVolume->arrayObjects().at(i)->volumeName()
-		  << std::endl;
+      auto mvtxVolumes = siliconVolumesVector.at(0);
+      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+
+      makeMvtxMapPairs(mvtxBarrel);
+
+      /// INTT only has one volume, so there is not an added volume extraction
+      /// like for the MVTX
+      auto inttVolume =  siliconVolumesVector.at(1);
+
+      makeInttMapPairs(inttVolume);
+
+      /// Same for the TPC - only one volume
+      auto tpcVolume = volumeVector.at(1);
+  
+      makeTpcMapPairs(tpcVolume);
     }
-
-  auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
-  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
-  auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-
-  makeMvtxMapPairs(mvtxBarrel);
-
-  /// INTT only has one volume, so there is not an added volume extraction
-  /// like for the MVTX
-  auto inttVolume =  siliconVolume->arrayObjects().at(1);
- makeInttMapPairs(inttVolume);
-
-  /// Same for the TPC - only one volume
-  auto tpcVolume = nextVolumes->arrayObjects().at(1);
-  makeTpcMapPairs(tpcVolume);
-
-  // Mm has 1 volume
-  makeMmMapPairs(mmBarrel);
+  else
+    {
+      /// Additional layer unpacking if MMs were built
+      auto nextSiliconVolumes = siliconVolumesVector.at(0)->confinedVolumes();
+      auto siliconVolume = nextSiliconVolumes->arrayObjects().at(1)->confinedVolumes();
+      
+      auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
+      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+      
+      makeMvtxMapPairs(mvtxBarrel);
+      
+      /// INTT only has one volume, so there is not an added volume extraction
+      /// like for the MVTX
+      auto inttVolume =  siliconVolume->arrayObjects().at(1);
+      makeInttMapPairs(inttVolume);
+      
+      /// Same for the TPC - only one volume. Buried under silicon
+      /// volume array
+      auto tpcVolume = siliconVolumes->arrayObjects().at(1);
+      makeTpcMapPairs(tpcVolume);
+    }
 
   return;
 }

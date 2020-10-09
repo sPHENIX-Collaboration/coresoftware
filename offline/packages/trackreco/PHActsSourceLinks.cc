@@ -67,8 +67,6 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
 
 int PHActsSourceLinks::Init(PHCompositeNode *topNode)
 {
-
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
