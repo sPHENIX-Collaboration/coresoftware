@@ -140,7 +140,7 @@ int PHMicromegasTpcTrackMatching::Process()
       if(outer_clusters.size() < 3)
 	{
 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough outer clusters " << std::endl; 
-	  continue;
+	  continue;  // skip to the next TPC tracklet
 	}
 
       // fit a circle to the clusters
@@ -157,7 +157,8 @@ int PHMicromegasTpcTrackMatching::Process()
       if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the two micromegas layers and store the projections
-      double z_proj[2], y_proj[2], x_proj[2], rphi_proj[2];
+      double z_proj[2]={0,0}; double y_proj[2]={0,0}; double x_proj[2]={0,0}; double rphi_proj[2]={0,0};
+      bool skip_tracklet = false;
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
       {
 	// method to find where fitted circle intersects this layer
@@ -169,7 +170,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	// finds the intersection of the fitted circle with the micromegas layer
 	circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
 	
-	// We only need to check xplus for failure, skip this track in that case
+	// We only need to check xplus for failure, skip this TPC track in that case
 	if(std::isnan(xplus)) 
 	  {
 	    if(Verbosity() > 10)
@@ -177,9 +178,11 @@ int PHMicromegasTpcTrackMatching::Process()
 		std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
 		std::cout << " mm_radius " << _mm_layer_radius[imm] << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
 	      }
-	    continue;
+	    skip_tracklet = true;
 	  }
-
+	if(skip_tracklet == true)
+	  continue;   // skips to the next layer
+	
 	// we can figure out which solution is correct based on the last cluster position in the TPC
 	unsigned int nlast = clusters.size() -1;
 	double last_clus_phi = atan2(clusters[nlast]->getY(), clusters[nlast]->getX());
@@ -198,9 +201,12 @@ int PHMicromegasTpcTrackMatching::Process()
 	    y_proj[imm] = yminus;
 	  }
 
-	  // z projection is unique
-	  z_proj[imm] = B + A * _mm_layer_radius[imm] ;
+	// z projection is unique
+	z_proj[imm] = B + A * _mm_layer_radius[imm] ;
       }
+      
+      if(skip_tracklet == true)
+	continue;   // skips to the next TPC tracklet
       
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches[2];
@@ -210,12 +216,12 @@ int PHMicromegasTpcTrackMatching::Process()
 	  unsigned int layer = TrkrDefs::getLayer(mm_cluskey);
 	  TrkrCluster *mm_clus = clusiter->second;
 
-	  int imm;
-	  if(layer == 55) 
+	  unsigned int imm;
+	  if(layer == _min_mm_layer) 
 	    imm = 0;
 	  else
 	    imm = 1;
-
+	  
 	  if(Verbosity() > 3)
 	    {
 	      std::cout << " Found Micromegas cluster in layer " << layer  << " cluskey " << mm_cluskey << " radius, x, y, z, phi, rphi " 
@@ -269,7 +275,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	       TrkrCluster *cluster = _cluster_map->findCluster(mm_matches[imm][imatch]);
 	       
 	       // update the coordinate that is not measured
-	       const auto segmentationType(MicromegasDefs::getSegmentationType(mm_matches[imm][0]));
+	       const auto segmentationType(MicromegasDefs::getSegmentationType(mm_matches[imm][imatch]));
 	       switch( segmentationType )
 		 {
 		 case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 	      
@@ -290,7 +296,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	 }
        
        // keep multiple-matches to TPC tracklets and let the tracxker sort it out
-
+       // but if there are no matches we are done with this track
        if(mm_matches[0].size() == 0 && mm_matches[1].size() == 0) continue;
 
        if(Verbosity() > 3)
@@ -305,10 +311,10 @@ int PHMicromegasTpcTrackMatching::Process()
 	   for(unsigned int imatch = 0; imatch < mm_matches[imm].size(); ++imatch)
 	     {
 	       if(Verbosity() > 3) 
-		 std::cout << "   inserting Micromegas cluster with key " << mm_matches[imm][0] << std::endl;
+		 std::cout << "   inserting Micromegas cluster with key " << mm_matches[imm][imatch] << std::endl;
 
-	       _tracklet_tpc->insert_cluster_key(mm_matches[imm][0]);
-	       _assoc_container->SetClusterTrackAssoc(mm_matches[imm][0], _tracklet_tpc->get_id());
+	       _tracklet_tpc->insert_cluster_key(mm_matches[imm][imatch]);
+	       _assoc_container->SetClusterTrackAssoc(mm_matches[imm][imatch], _tracklet_tpc->get_id());
 	     }
 	 }
       
