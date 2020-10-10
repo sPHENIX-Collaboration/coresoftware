@@ -65,6 +65,11 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 
   double _mm_layer_radius[2] = { 82.2565, 82.6998};
 
+  double _z_proj[2]={0,0}; 
+  double _y_proj[2]={0,0}; 
+  double _x_proj[2]={0,0}; 
+  double _rphi_proj[2]={0,0};
+
   // range of TPC layers to use in projection to micromegas
   unsigned int _min_tpc_layer = 38;
   unsigned int _min_mm_layer = 55;

@@ -157,7 +157,6 @@ int PHMicromegasTpcTrackMatching::Process()
       if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the two micromegas layers and store the projections
-      double z_proj[2]={0,0}; double y_proj[2]={0,0}; double x_proj[2]={0,0}; double rphi_proj[2]={0,0};
       bool skip_tracklet = false;
       for(unsigned int imm = 0; imm < _n_mm_layers; ++imm)
       {
@@ -190,19 +189,19 @@ int PHMicromegasTpcTrackMatching::Process()
 	double minus_phi = atan2(yminus, xminus);
 	if(fabs(last_clus_phi - plus_phi) < fabs(last_clus_phi - minus_phi))
 	  {
-	    rphi_proj[imm] = plus_phi * _mm_layer_radius[imm]; 
-	    x_proj[imm] = xplus;
-	    y_proj[imm] = yplus;
+	    _rphi_proj[imm] = plus_phi * _mm_layer_radius[imm]; 
+	    _x_proj[imm] = xplus;
+	    _y_proj[imm] = yplus;
 	  }
 	else
 	  {
-	    rphi_proj[imm] = minus_phi * _mm_layer_radius[imm]; 
-	    x_proj[imm] = xminus;
-	    y_proj[imm] = yminus;
+	    _rphi_proj[imm] = minus_phi * _mm_layer_radius[imm]; 
+	    _x_proj[imm] = xminus;
+	    _y_proj[imm] = yminus;
 	  }
 
 	// z projection is unique
-	z_proj[imm] = B + A * _mm_layer_radius[imm] ;
+	_z_proj[imm] = B + A * _mm_layer_radius[imm] ;
       }
       
       if(skip_tracklet == true)
@@ -235,31 +234,31 @@ int PHMicromegasTpcTrackMatching::Process()
 	  double mm_radius = sqrt(pow(mm_clus->getX(), 2) + pow(mm_clus->getY(), 2) );
 	  double mm_clus_rphi = mm_radius * atan2(mm_clus->getY(), mm_clus->getX());
 
-	  double radius_proj = sqrt(x_proj[imm]*x_proj[imm] + y_proj[imm]*y_proj[imm]);
+	  double radius_proj = sqrt(_x_proj[imm]*_x_proj[imm] + _y_proj[imm]*_y_proj[imm]);
 	  
 	  if(Verbosity() > 3)
 	    {
 	      std::cout << "   tracklet " << _tracklet_tpc->get_id() << " test for match in layer " << layer << " _rphi_search_win_1 " << _rphi_search_win[imm]
-			<< " phi_proj " << rphi_proj[imm] / radius_proj << " drphi " << rphi_proj[imm] - mm_clus_rphi << " z_proj " << z_proj[imm] 
-			<< " dz " << z_proj[imm] - mm_clus_z
+			<< " phi_proj " << _rphi_proj[imm] / radius_proj << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " _z_proj " << _z_proj[imm] 
+			<< " dz " << _z_proj[imm] - mm_clus_z
 			<< " _z_search_win " << _z_search_win[imm] 
 			<< std::endl;
 	    }
 	  
-	  if(fabs(rphi_proj[imm] - mm_clus_rphi) < _rphi_search_win[imm] && fabs(z_proj[imm] - mm_clus_z) < _z_search_win[imm])
+	  if(fabs(_rphi_proj[imm] - mm_clus_rphi) < _rphi_search_win[imm] && fabs(_z_proj[imm] - mm_clus_z) < _z_search_win[imm])
 	    {
 	      mm_matches[imm].push_back(mm_cluskey);
 	      cluster_matches.find(mm_cluskey)->second++;
 
 	      if(Verbosity() > 3)
-		std::cout << "     radius_proj " << radius_proj << " x_proj " << x_proj 
-			  << " y_proj " << y_proj << " z_proj " << z_proj[imm]  
-			  << " rphi_proj " << rphi_proj[imm] << std::endl;
+		std::cout << "     radius_proj " << radius_proj << " _x_proj " << _x_proj 
+			  << " _y_proj " << _y_proj << " _z_proj " << _z_proj[imm]  
+			  << " _rphi_proj " << _rphi_proj[imm] << std::endl;
 	      
 
 	      // prints out a line that can be grep-ed from the output file to feed to a display macro
 	      if( _test_search_windows )
-		std::cout << "     deltas " << layer  << " drphi " << rphi_proj[imm] - mm_clus_rphi << " dz " << z_proj[imm] - mm_clus_z 
+		std::cout << "     deltas " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " dz " << _z_proj[imm] - mm_clus_z 
 			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
 	    }
 	}
@@ -279,12 +278,12 @@ int PHMicromegasTpcTrackMatching::Process()
 	       switch( segmentationType )
 		 {
 		 case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 	      
-		   cluster->setZ(z_proj[imm]);
+		   cluster->setZ(_z_proj[imm]);
 		   break;
 		 case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
 		   const auto radius = std::sqrt( pow(cluster->getX(), 2) + pow(cluster->getY(), 2) );
-		   cluster->setX(radius*std::cos(rphi_proj[imm] / radius));
-		   cluster->setY(radius*std::sin(rphi_proj[imm] / radius));
+		   cluster->setX(radius*std::cos(_rphi_proj[imm] / radius));
+		   cluster->setY(radius*std::sin(_rphi_proj[imm] / radius));
 		   break;
 		 }
 	       
