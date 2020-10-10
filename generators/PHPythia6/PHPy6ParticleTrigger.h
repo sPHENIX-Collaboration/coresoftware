@@ -28,9 +28,7 @@ class PHPy6ParticleTrigger : public PHPy6GenTrigger
   //! destructor
   ~PHPy6ParticleTrigger(void) {}
 
-#if !defined(__CINT__) || defined(__CLING__)
   bool Apply(const HepMC::GenEvent *evt);
-#endif
 
   void AddParticles(const std::string &particles);
   void AddParticles(int particle);

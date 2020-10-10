@@ -40,15 +40,15 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/Detector/IBaseDetector.hpp>
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Framework/AlgorithmContext.hpp>
-#include <ACTFW/Framework/IContextDecorator.hpp>
-#include <ACTFW/Framework/WhiteBoard.hpp>
-#include <ACTFW/Geometry/CommonGeometry.hpp>
-#include <ACTFW/Options/CommonOptions.hpp>
-#include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
-#include <ACTFW/Utilities/Options.hpp>
+#include <ActsExamples/Detector/IBaseDetector.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/Framework/AlgorithmContext.hpp>
+#include <ActsExamples/Framework/IContextDecorator.hpp>
+#include <ActsExamples/Framework/WhiteBoard.hpp>
+#include <ActsExamples/Geometry/CommonGeometry.hpp>
+#include <ActsExamples/Options/CommonOptions.hpp>
+#include <ActsExamples/Plugins/Obj/ObjWriterOptions.hpp>
+#include <ActsExamples/Utilities/Options.hpp>
 
 #include <TGeoManager.h>
 #include <TMatrixT.h>
@@ -66,7 +66,6 @@
 
 using namespace std;
 
-
 MakeActsGeometry::MakeActsGeometry(const string &name)
   : m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
@@ -75,8 +74,10 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_minSurfZ(0.0)
   , m_maxSurfZ(105.5)
   , m_nSurfZ(1)
-  , m_nSurfPhi(10)
+  , m_nSurfPhi(12)
   , m_verbosity(0)
+  , m_magField("1.4")
+  , m_magFieldRescale(-1.0)
 {
   /// These are arbitrary tpc subdivisions, and may change
   /// Setup how TPC boxes will be built for Acts::Surfaces
@@ -106,19 +107,27 @@ MakeActsGeometry::~MakeActsGeometry()
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
 
-   // Add the TPC surfaces to the copy of the TGeoManager. Do this before
-  // anything else so that the geometry is finalized
+  /// Add the TPC surfaces to the copy of the TGeoManager. Do this before
+  /// anything else so that the geometry is finalized
   editTPCGeometry(topNode);
 
   getNodes(topNode);  // for geometry nodes
 
   createNodes(topNode);  // for writing surface map
 
-  // run Acts layer builder
+  /// Run Acts layer builder
   buildActsSurfaces();
 
-  // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
+  /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   makeTGeoNodeMap(topNode);
+
+  /// Export the new geometry to a root file for examination
+  if(m_verbosity){
+    /// Export as root file
+    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
+    /// Export as gdml file for material mapping
+    PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -259,7 +268,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 
 	      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
 	      double phi_center = min_phi + m_surfStepPhi / 2.0;
-	      double phi_center_degrees = phi_center * 180.0 / 3.14159;
+	      double phi_center_degrees = phi_center * 180.0 / M_PI;
 	      
 	      for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
 		{
@@ -294,14 +303,33 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-
-  // Can hard code geometry options since the TGeo options are fixed by our detector design
-  const int argc = 33;
+  const int argc = 14;
   char *arg[argc];
-  //TPC +mvtx + intt args
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "xzy", "--bf-values", "0", "0", "1.4"};
-  //intt + mvtx args
-  //const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--bf-values", "0", "0", "1.4"};
+ 
+  if(m_verbosity > 0)
+    std::cout << PHWHERE << "Magnetic field " << m_magField 
+	      << " with rescale " << m_magFieldRescale << std::endl;
+  
+  /// If the 2d fieldmap is provided, for now we just assume a 1.4T
+  /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
+  if(m_magField.find(".root") != std::string::npos)
+    {
+      m_magFieldRescale*=-1;
+      m_magField = "1.5";
+    }
+  // Response file contains arguments necessary for geometry building
+  const std::string argstr[argc]{
+    "-n1", "-l0", 
+      "--response-file",
+      std::string(getenv("OFFLINE_MAIN")) 
+      + std::string("/share/tgeo-sphenix.response"),
+      "--bf-values","0","0",m_magField,
+      "--bf-bscalor", std::to_string(m_magFieldRescale),
+      "--mat-input-type","file",
+      "--mat-input-file",
+      std::string(getenv("CALIBRATIONROOT"))
+      + std::string("/ACTS/sphenix-material.json")
+      };
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -309,53 +337,49 @@ void MakeActsGeometry::buildActsSurfaces()
     // need a copy, since .c_str() returns a const char * and process geometry will not take a const
     arg[i] = strdup(argstr[i].c_str());
   }
-
-  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
+  
+  // We replicate the relevant functionality of  
+  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
   makeGeometry(argc, arg, m_detector);
 }
 
 void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
-				    FW::IBaseDetector &detector)
+				    ActsExamples::IBaseDetector &detector)
 {
   /// setup and parse options
-  auto desc = FW::Options::makeDefaultOptions();
-  FW::Options::addSequencerOptions(desc);
-  FW::Options::addGeometryOptions(desc);
-  FW::Options::addMaterialOptions(desc);
-  FW::Options::addObjWriterOptions(desc);
-  FW::Options::addOutputOptions(desc);
-  FW::Options::addBFieldOptions(desc);
+  auto desc = ActsExamples::Options::makeDefaultOptions();
+  ActsExamples::Options::addGeometryOptions(desc);
+  ActsExamples::Options::addMaterialOptions(desc);
+  ActsExamples::Options::addObjWriterOptions(desc);
+  ActsExamples::Options::addOutputOptions(desc);
+  ActsExamples::Options::addBFieldOptions(desc);
 
   /// Add specific options for this geometry
   detector.addOptions(desc);
-  auto vm = FW::Options::parse(desc, argc, argv);
+  auto vm = ActsExamples::Options::parse(desc, argc, argv);
 
   /// Now read the standard options
-  auto logLevel = FW::Options::readLogLevel(vm);
+  auto logLevel = ActsExamples::Options::readLogLevel(vm);
 
   /// The geometry, material and decoration
-  auto geometry = FW::Geometry::build(vm, detector);
+  auto geometry = ActsExamples::Geometry::build(vm, detector);
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
 
-  m_magneticField = FW::Options::readBField(vm);
-
-  /// The detectors
-  /// "MVTX" and "Silicon" and "TPC"
-  read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
+  m_magneticField = ActsExamples::Options::readBField(vm);
 
   size_t ievt = 0;
   size_t ialg = 0;
 
   /// Setup the event and algorithm context
-  FW::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(ievt),
+  ActsExamples::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(ievt),
                                                    logLevel));
 
   /// The geometry context
-  FW::AlgorithmContext context(ialg, ievt, eventStore);
+  ActsExamples::AlgorithmContext context(ialg, ievt, eventStore);
 
   m_calibContext = context.calibContext;
   m_magFieldContext = context.magFieldContext;
@@ -364,7 +388,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   /// Decorate the context
   for (auto &cdr : m_contextDecorators)
   {
-    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+    if (cdr->decorate(context) != ActsExamples::ProcessCode::SUCCESS)
       throw std::runtime_error("Failed to decorate event context");
   }
 
@@ -518,7 +542,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
       auto vec3d = surf->center(m_geoCtxt);
 
-      double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
+      double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       /// The Acts geometry builder combines layers 4 and 5 together, 
@@ -682,8 +706,8 @@ Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
     }
   if(surf_index == 999)
     {
-      cout << PHWHERE << "Error: surface index not defined, can't go on!" << endl;
-      exit(1);
+      cout << PHWHERE << "Error: TPC surface index not defined, skipping cluster!" << endl;
+      return nullptr;
     }
  
   return surf_vec[surf_index];
@@ -800,7 +824,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 
   if (!m_geoManager)
   {
-    cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
+    std::cout << PHWHERE << " Did not find TGeoManager, quit! " << std::endl;
     return;
   }
   TGeoVolume *topVol = m_geoManager->GetTopVolume();
@@ -812,7 +836,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     TGeoNode *node = dynamic_cast<TGeoNode *>(obj);
     std::string node_str = node->GetName();
 
-    std::string mvtx("av_1");
+    std::string mvtx("MVTX_Wrapper");
     std::string intt("ladder");
     std::string intt_ext("ladderext");
     std::string tpc("tpc_envelope");
@@ -820,8 +844,23 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the MVTX" << endl;
-      getMvtxKeyFromNode(node);
+	std::cout << " node " << node->GetName() << " is the MVTX wrapper" 
+		  << std::endl;
+  
+      /// The Mvtx has an additional wrapper that needs to be unpacked
+      TObjArray *mvtxArray = node->GetNodes();
+      TIter mvtxObj(mvtxArray);
+      while(TObject *mvtx = mvtxObj())
+	{
+	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
+	  if(m_verbosity > 2)
+	    std::cout << "mvtx node name is " << mvtxNode->GetName() << std::endl;
+	  std::string mvtxav1("av_1");
+	  std::string mvtxNodeName = mvtxNode->GetName();
+	  /// We only want the av_1 nodes
+	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
+	    getMvtxKeyFromNode(mvtxNode);
+	}
     }
     else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
     {
@@ -830,7 +869,8 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
         continue;
 
       if (m_verbosity > 2) 
-	cout << " node " << node->GetName() << " is in the INTT" << endl;
+	std::cout << " node " << node->GetName() << " is in the INTT" 
+		  << std::endl;
       getInttKeyFromNode(node);
     }
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?

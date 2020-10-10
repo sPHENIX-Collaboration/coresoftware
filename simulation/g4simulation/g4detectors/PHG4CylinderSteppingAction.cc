@@ -1,5 +1,7 @@
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4CylinderDetector.h"
+#include "PHG4CylinderSubsystem.h"
+
 #include "PHG4StepStatusDecode.h"
 
 #include <phparameter/PHParameters.h>
@@ -8,7 +10,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -17,33 +19,34 @@
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fPostSt...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fPostSt...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <boost/io/ios_state.hpp>
 
-#include <cmath>                               // for isfinite, copysign
-#include <cstdlib>                            // for exit
+#include <cmath>    // for isfinite, copysign
+#include <cstdlib>  // for exit
 #include <iomanip>
 #include <iostream>
-#include <string>                              // for operator<<, char_traits
+#include <string>  // for operator<<, char_traits
 
 class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHParameters* parameters)
-  :  PHG4SteppingAction(detector->GetName())
+PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderSubsystem* subsys, PHG4CylinderDetector* detector, const PHParameters* parameters)
+  : PHG4SteppingAction(detector->GetName())
+  , m_Subsystem(subsys)
   , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
@@ -192,11 +195,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         }
       }
 
-      if (m_Hit->get_z(0) * cm > m_Zmax || m_Hit->get_z(0) * cm < m_Zmin)
+      if (!hasMotherSubsystem() && (m_Hit->get_z(0) * cm > m_Zmax || m_Hit->get_z(0) * cm < m_Zmin))
       {
         boost::io::ios_precision_saver ips(cout);
         cout << m_Detector->SuperDetector() << std::setprecision(9)
-             << "PHG4CylinderSteppingAction: Entry hit z " << m_Hit->get_z(0) * cm
+             << " PHG4CylinderSteppingAction: Entry hit z " << m_Hit->get_z(0) * cm
              << " outside acceptance,  zmin " << m_Zmin
              << ", zmax " << m_Zmax << ", layer: " << layer_id << endl;
       }
@@ -247,7 +250,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
     //sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin)
+    if (!hasMotherSubsystem() && (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin))
     {
       cout << m_Detector->SuperDetector() << std::setprecision(9)
            << " PHG4CylinderSteppingAction: Exit hit z " << m_Hit->get_z(1) * cm
@@ -295,8 +298,8 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill ||
         m_UseG4StepsFlag > 0)
     {
-      // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      // save only hits with energy deposit (or -1 for geantino) or if save all hits flag is set
+      if (m_Hit->get_edep() || m_SaveAllHitsFlag)
       {
         m_HitContainer->AddHit(layer_id, m_Hit);
         if (m_SaveShower)
@@ -345,4 +348,13 @@ void PHG4CylinderSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
+}
+
+bool PHG4CylinderSteppingAction::hasMotherSubsystem() const
+{
+  if (m_Subsystem->GetMotherSubsystem())
+  {
+    return true;
+  }
+  return false;
 }

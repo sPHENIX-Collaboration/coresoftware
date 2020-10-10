@@ -20,27 +20,32 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <memory>
 #include <string>
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 
-namespace FW
+namespace ActsExamples
 {
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
-}  // namespace FW
+  class TrkrClusterSourceLink;
+}
 
 class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
-using SourceLink = FW::Data::TrkrClusterSourceLink;
 
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
+using FitResult = Acts::KalmanFitterResult<SourceLink>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -59,9 +64,12 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Process each event by calling the fitter
   int Process();
 
-  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+  int ResetEvent(PHCompositeNode *topNode);
+
+  void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
 
  private:
+
   /// Event counter
   int m_event;
 
@@ -71,12 +79,13 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
-  /// Rotate the covariance from Acts local coordinates back to 
-  /// sPHENIX global coordinates
-  Acts::BoundSymMatrix rotateCovarianceLocalToGlobal(const Acts::KalmanFitterResult<SourceLink>& fitOutput);
-
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
+		       Acts::Vector3D vertex);
+
+  /// Map of Acts fit results and track key to be placed on node tree
+  std::map<const unsigned int, Trajectory> 
+    *m_actsFitResults;
 
   /// Map of acts tracks and track key created by PHActsTracks
   std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
@@ -85,16 +94,24 @@ class PHActsTrkFitter : public PHTrackFitting
   ActsTrackingGeometry *m_tGeometry;
 
   /// Configuration containing the fitting function instance
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
+  ActsExamples::TrkrClusterFittingAlgorithm::Config fitCfg;
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
+
+  // map relating acts hitid's to clusterkeys
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+
+  int m_nBadFits;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
   TFile *m_timeFile;
   TH1 *h_eventTime;
-  
+  TH2 *h_fitTime;
+  TH1 *h_updateTime;
+  TH1 *h_stateTime;
+  TH1 *h_rotTime;
 };
 
 #endif

@@ -18,7 +18,6 @@ class PHLog
  public:
   static void Init()
   {
-    std::cout << "..logger_init.." << std::endl;
     const std::string initFileName = "phlog.conf";
     const char* env_file = std::getenv("PHLOGCONF");
     if (_file_exists(initFileName))
@@ -40,7 +39,7 @@ class PHLog
       log4cpp::Appender* appender1 = new log4cpp::OstreamAppender("console", &std::cout);
       appender1->setLayout(layout1);
       log4cpp::Category& root = log4cpp::Category::getRoot();
-      root.setPriority(log4cpp::Priority::INFO);
+      root.setPriority(log4cpp::Priority::FATAL);
       root.addAppender(appender1);
     }
   };

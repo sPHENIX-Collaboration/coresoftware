@@ -5,6 +5,7 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <iostream>
 #include <string>
 
 class PHCompositeNode;
@@ -73,6 +74,12 @@ class RawTowerCalibration : public SubsysReco
     _calib_const_GeV_ADC = calibConstGeVAdc;
   }
 
+  void
+  set_variable_GeV_ADC(const bool value)
+  {
+    _GeV_ADC_file = value;
+  }
+
   std::string
   get_calib_tower_node_prefix() const
   {
@@ -97,6 +104,12 @@ class RawTowerCalibration : public SubsysReco
     _pedstal_ADC = pedstalAdc;
   }
 
+  void
+  set_variable_pedestal(const bool value)
+  {
+    _pedestal_file = value;
+  }
+
   std::string
   get_raw_tower_node_prefix() const
   {
@@ -109,16 +122,12 @@ class RawTowerCalibration : public SubsysReco
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
 
-  double
-  get_zero_suppression_GeV() const
-  {
-    return _zero_suppression_GeV;
-  }
-
   void
-  set_zero_suppression_GeV(double zeroSuppressionGeV)
+  set_zero_suppression_GeV(double)
   {
-    _zero_suppression_GeV = zeroSuppressionGeV;
+    std::cout << "RawTowerCalibration::set_zero_suppression_GeV is deprecated!" << std::endl
+              << "  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867" << std::endl
+              << std::endl;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
@@ -149,11 +158,14 @@ class RawTowerCalibration : public SubsysReco
   //! pedstal in unit of ADC
   double _pedstal_ADC;
 
+  //! pedestal from file
+  bool _pedestal_file;
+
   //! calibration constant in unit of GeV per ADC
   double _calib_const_GeV_ADC;
 
-  //! zero suppression in unit of GeV
-  double _zero_suppression_GeV;
+  //! GeV per ADC from file
+  bool _GeV_ADC_file;
 
   //! tower type to act on
   int _tower_type;

@@ -277,16 +277,14 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
 	int clusid = *clusiter;
-	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,
-		      multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid);
-	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
+	auto clusrange = clusters.equal_range(clusid);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster id " << clusid << endl;
 
 	// make the cluster directly in the node tree
-	TrkrDefs::cluskey ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+  auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
+  auto clus = (m_clusterlist->findOrAddCluster(ckey))->second;
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
@@ -296,7 +294,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double xsum = 0.0;
 	double ysum = 0.0;
 	double zsum = 0.0;
-	unsigned nhits = 0;
+	const unsigned int nhits = std::distance( clusrange.first, clusrange.second );
 
 	double clusx = NAN;
 	double clusy = NAN;
@@ -304,14 +302,14 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	// we need the geometry object for this layer to get the global positions
 	int layer = TrkrDefs::getLayer(ckey);
-	CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
+	auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
 	if (!layergeom)
 	  exit(1);
 
 	int chip = MvtxDefs::getChipId(ckey);
 	int stave =  MvtxDefs::getStaveId(ckey);
 
-	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
+	for ( auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // size
 	    int col =  MvtxDefs::getCol( (mapiter->second).first);
@@ -319,18 +317,20 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    zbins.insert(col);
 	    phibins.insert(row);
 
-	    //int pixnum = layergeom->get_pixel_number_from_xbin_zbin(row, col);
-	    //cout << "   new mvtx clusterizer: cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave
-	    //	 << " row " << row << " col " << col << " pixnum " << pixnum << endl;;
+      // get local coordinates, in stafe reference frame, for hit
+      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
 
-	    //TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
-	    TVector3 world_coords = layergeom->get_world_from_local_coords(stave,
-                                                                     chip,
-                                                                     layergeom->get_local_coords_from_pixel(row,col)
-                                                                    );
-	    //cout << "   new: world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
+      /*
+      manually offset position along y (thickness of the sensor),
+      to account for effective hit position in the sensor, resulting from diffusion.
+      Effective position corresponds to 1um above the middle of the sensor
+      */
+      local_coords.SetY( 1e-4 );
 
-	    // find the center of the pixel in local coords
+      // convert to world coordinates
+      const auto world_coords = layergeom->get_world_from_local_coords( stave, chip, local_coords );
+
+      // update cluster position
 	    xsum += world_coords.X();
 	    ysum += world_coords.Y();
 	    zsum += world_coords.Z();
@@ -338,7 +338,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    // add the association between this cluster key and this hitkey to the table
 	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 
-	    ++nhits;
 	  }  //mapiter
 
 
@@ -354,11 +353,11 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setPosition(2, clusz);
 	clus->setGlobal();
 
-	double thickness = layergeom->get_pixel_thickness();
-	double pitch = layergeom->get_pixel_x();
-	double length = layergeom->get_pixel_z();
-	double phisize = phibins.size() * pitch;
-	double zsize = zbins.size() * length;
+	const double thickness = layergeom->get_pixel_thickness();
+	const double pitch = layergeom->get_pixel_x();
+	const double length = layergeom->get_pixel_z();
+	const double phisize = phibins.size() * pitch;
+	const double zsize = zbins.size() * length;
 
   static const double invsqrt12 = 1./std::sqrt(12);
 

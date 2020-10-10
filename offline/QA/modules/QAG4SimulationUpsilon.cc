@@ -1,17 +1,10 @@
 #include "QAG4SimulationUpsilon.h"
 #include "QAHistManagerDef.h"
 
-#include <g4eval/CaloEvalStack.h>
-#include <g4eval/CaloRawClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-
-#include <calobase/RawCluster.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 
@@ -29,17 +22,18 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
+#include <TParticlePDG.h>  // for TParticlePDG
 #include <TString.h>
 #include <TVector3.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/ThreeVector.h>       // for Hep3Vector
 
 #include <cassert>
 #include <cmath>
+#include <cstdlib>  // for abs
 #include <iostream>
-#include <iterator>  // for reverse_iterator
-#include <utility>   // for pair
-#include <vector>
+#include <utility>  // for pair
 
 using namespace std;
 

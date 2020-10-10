@@ -6,7 +6,6 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 
-
 #include <limits.h>
 #include <map>
 #include <ostream>

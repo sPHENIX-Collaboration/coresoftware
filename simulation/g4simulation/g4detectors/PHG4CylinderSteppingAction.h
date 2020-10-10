@@ -9,6 +9,7 @@ class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CylinderDetector;
+class PHG4CylinderSubsystem;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -18,7 +19,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CylinderSteppingAction(PHG4CylinderDetector *, const PHParameters *parameters);
+  PHG4CylinderSteppingAction(PHG4CylinderSubsystem *subsys, PHG4CylinderDetector *detector, const PHParameters *parameters);
 
   //! destructor
   virtual ~PHG4CylinderSteppingAction();
@@ -31,10 +32,22 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 
   void SaveLightYield(const int i = 1) { m_SaveLightYieldFlag = i; }
 
+  // needed for hit position crosschecks, if this volume is inside
+  // another volume the absolut hit coordinates in our G4Hits and
+  // the local coordinates differ, so checking against our place in z
+  // goes wrong
+  bool hasMotherSubsystem() const;
+
+  // this is just needed for use as reference plane for projections
+  // this is the only detector using this - there is no need to add
+  // this to our parameters
+  void SaveAllHits(bool i = true) { m_SaveAllHitsFlag = i; }
+
  private:
+  //! pointer to the Subsystem
+  PHG4CylinderSubsystem *m_Subsystem;
   //! pointer to the detector
   PHG4CylinderDetector *m_Detector;
-
   const PHParameters *m_Params;
 
   //! pointer to hit container
@@ -43,6 +56,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4Shower *m_SaveShower;
   G4VPhysicalVolume *m_SaveVolPre;
   G4VPhysicalVolume *m_SaveVolPost;
+  bool m_SaveAllHitsFlag = false;
   int m_SaveLightYieldFlag;
   int m_SaveTrackId;
   int m_SavePreStepStatus;

@@ -8,18 +8,9 @@
 #include <string>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
-
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class PHG4Particle;
-class CaloEvalStack;
 class SvtxEvalStack;
-class SvtxTrack;
 
 /// \class QAG4SimulationUpsilon
 class QAG4SimulationUpsilon : public SubsysReco
@@ -57,11 +48,9 @@ class QAG4SimulationUpsilon : public SubsysReco
   }
 
  private:
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
+
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
-#endif
   std::pair<double, double> m_etaRange;
 
   PHG4TruthInfoContainer *_truthContainer;

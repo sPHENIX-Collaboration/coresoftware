@@ -24,7 +24,6 @@ class TowerJetInput : public JetInput
   std::vector<Jet*> get_input(PHCompositeNode* topNode);
 
  private:
-  int _verbosity;
   Jet::SRC _input;
 };
 

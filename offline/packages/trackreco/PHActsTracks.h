@@ -13,8 +13,8 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 #include "ActsTrack.h"
 
@@ -25,9 +25,10 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class SvtxVertexMap;
 class MakeActsGeometry;
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 
 /**
@@ -62,8 +63,6 @@ class PHActsTracks : public SubsysReco
   /// Get nodes off node tree needed to execute module
   int getNodes(PHCompositeNode *topNode);
 
-  Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
-
   /**
    * Member variables
    */
@@ -77,12 +76,16 @@ class PHActsTracks : public SubsysReco
   /// Trackmap that contains SvtxTracks
   SvtxTrackMap *m_trackMap;
 
+  /// VertexMap that contains the initial vertexing estimates
+  SvtxVertexMap *m_vertexMap;
+
   /// Map between cluster key and arbitrary hit id created in PHActsSourceLinks
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
+  /// Acts TrackingGeometry necessary for various contexts
   ActsTrackingGeometry *m_tGeometry;
 };
 

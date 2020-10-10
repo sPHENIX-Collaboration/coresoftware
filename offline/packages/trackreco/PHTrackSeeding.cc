@@ -7,6 +7,7 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                  // for SubsysReco
@@ -25,11 +26,6 @@ using namespace std;
 
 PHTrackSeeding::PHTrackSeeding(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
-  , _vertex_map(nullptr)
-  , _track_map(nullptr)
-  , _assoc_container(nullptr)
-  , _track_map_name("SvtxTrackMap")
 {
 }
 
@@ -123,6 +119,12 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
   {
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  if (!_cluster_hit_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
   }
 
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");

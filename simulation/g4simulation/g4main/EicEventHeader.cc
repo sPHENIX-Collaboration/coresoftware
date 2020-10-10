@@ -3,7 +3,6 @@
 #include <TSystem.h>
 
 #include <cassert>
-#include <cmath>
 #include <cstdlib>
 
 using namespace std;

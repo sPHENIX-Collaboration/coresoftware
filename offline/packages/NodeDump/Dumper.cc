@@ -4,8 +4,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
 
 #include <vector>
 

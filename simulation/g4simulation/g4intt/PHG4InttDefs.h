@@ -25,8 +25,8 @@ static const int HDI_COPPER = -4;
 static const int HDIEXT_KAPTON = -5;
 static const int HDIEXT_COPPER = -6;
 static const int FPHX = -7;
-static const int PGS = -8;
-static const int PGSEXT = -9;
+static const int STAVE_BOTTOM_COOLER = -8; // changed from PGS
+static const int STAVEEXT_BOTTOM_COOLER = -9;  // changed from PGSEXT
 static const int STAVE_CURVE = -10;
 static const int STAVEEXT_CURVE = -11;
 static const int STAVE_STRAIGHT_OUTER = -12;
@@ -35,10 +35,14 @@ static const int STAVE_STRAIGHT_INNER = -14;
 static const int STAVEEXT_STRAIGHT_INNER = -15;
 static const int STAVE_STRAIGHT_COOLER = -16;
 static const int STAVEEXT_STRAIGHT_COOLER = -17;
+
 static const int SUPPORT_RAIL = -18;
 static const int INTT_OUTER_SKIN = -19;
 static const int INTT_INNER_SKIN = -20;
 
+static const int SI_GLUE = -21; // new 29/05/2020
+static const int FPHX_GLUE = -22; // new 29/05/2020
+ 
 // detid of support structures
 static const int SUPPORT_DETID = 100;
 

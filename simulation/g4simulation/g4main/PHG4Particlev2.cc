@@ -1,6 +1,6 @@
 #include "PHG4Particlev2.h"
 
-class PHG4Particle;
+#include "PHG4Particle.h"  // for PHG4Particle
 
 using namespace std;
 
@@ -26,11 +26,11 @@ PHG4Particlev2::PHG4Particlev2(const string &name, const int pid, const double p
 
 PHG4Particlev2::PHG4Particlev2(const PHG4Particle *in)
   : PHG4Particlev1(in)
-  , trkid(0)
-  , vtxid(0)
-  , parentid(0)
-  , primaryid(0xFFFFFFFF)
-  , fe(0.0)
+  , trkid(in->get_track_id())
+  , vtxid(in->get_vtx_id())
+  , parentid(in->get_parent_id())
+  , primaryid(in->get_primary_id())
+  , fe(in->get_e())
 {
 }
 

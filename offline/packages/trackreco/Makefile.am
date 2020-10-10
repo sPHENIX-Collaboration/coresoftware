@@ -22,7 +22,9 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsTransformations.h \
   ActsTrack.h \
+  ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
@@ -39,18 +41,24 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsVertexFinder.h \
   PHActsTrkFitter.h \
+  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
+  PHSiliconTpcTrackMatching.h \
+  PHMicromegasTpcTrackMatching.h \
+  PHSiliconTruthTrackSeeding.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
+  PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   VertexFitter.h \
   PHRaveVertexing.h \
@@ -88,6 +96,10 @@ else
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
+    PHSikiconTpcTrackMatching_Dict.cc \
+    PHMicromegasTpcTrackMatching_Dict.cc \
+    PHSiliconTruthTrackSeeding_Dict.cc \
+    PHTruthSiliconAssociation_Dict.cc \
     PHHoughSeeding_Dict.cc \
     PHRTreeSeeding_Dict.cc \
     PHCASeeding_Dict.cc \
@@ -110,21 +122,31 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
+  ActsTransformations.cc \
+  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  PHActsVertexFinder.cc \
+  PHActsVertexFitter.cc
+
+$OFFLINE_MAIN/share:
+dist_data_DATA = \
+  tgeo-sphenix.response
 
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
+  -lg4eval \
   -lActsCore \
   -lActsFatras \
-  -lActsTGeoPlugin \
+  -lActsPluginTGeo \
   -lActsExamplesCommon \
-  -lActsTGeoPlugin \
+  -lActsPluginJson \
   -lActsExamplesFitting \
+  -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \
@@ -142,7 +164,11 @@ libtrack_reco_la_SOURCES = \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
   PHTruthVertexing.cc \
+  PHSiliconTpcTrackMatching.cc \
+  PHMicromegasTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
+  PHSiliconTruthTrackSeeding.cc \
+  PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
   PHCASeeding.cc \
@@ -172,6 +198,7 @@ libtrack_reco_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
   -ltrackbase_historic_io \
