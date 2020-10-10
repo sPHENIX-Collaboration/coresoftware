@@ -97,19 +97,6 @@ int PHSiliconTpcTrackMatching::Process()
 	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << endl;
 	}
-      /*
-      // if the vertex id from the seeder is nonsense, use vertex 0
-      unsigned int vertexId = _tracklet_tpc->get_vertex_id();
-      if(vertexId == UINT_MAX)
-	vertexId = 0;
-      _tracklet_tpc->set_vertex_id(vertexId);
-
-      // set the track position to the vertex position
-      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-      _tracklet_tpc->set_x(svtxVertex->get_x());
-      _tracklet_tpc->set_y(svtxVertex->get_y());
-      _tracklet_tpc->set_z(svtxVertex->get_z());
-      */
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
@@ -117,7 +104,6 @@ int PHSiliconTpcTrackMatching::Process()
 
       // phi correction for TPC tracks is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge();
-      std::cout << "tracklet charge " << _tracklet_tpc->get_charge() << " sign_phi_correction " << sign_phi_correction << std::endl;
 
       /// Correct the correction for the field direction
       /// Kludge to get the phi matching correct based on the field
