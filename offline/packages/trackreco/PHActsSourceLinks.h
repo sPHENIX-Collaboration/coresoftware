@@ -32,6 +32,7 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class MakeActsGeometry;
 
+
 namespace ActsExamples
 {
   class IBaseDetector;
@@ -102,6 +103,7 @@ class PHActsSourceLinks : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+ 
  private:
   /**
    * Functions
@@ -153,6 +155,11 @@ class PHActsSourceLinks : public SubsysReco
 			    Acts::BoundMatrix &localErr,
                             const TrkrCluster *cluster,
                             const TrkrDefs::cluskey clusKey);
+
+  Surface getMmLocalCoords(Acts::Vector2D &local2D,
+                                             Acts::BoundMatrix &localErr,
+                                             const TrkrCluster *cluster,
+			   const TrkrDefs::cluskey clusKey);
 
   void addVerticesAsSourceLinks(PHCompositeNode *topNode,
 				unsigned int &hitId);

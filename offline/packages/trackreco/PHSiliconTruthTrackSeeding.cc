@@ -51,7 +51,8 @@ PHSiliconTruthTrackSeeding::PHSiliconTruthTrackSeeding(const std::string& name)
 
 int PHSiliconTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
-  cout << "Enter PHSiliconTruthTrackSeeding:: Setup" << endl;
+  if(Verbosity() > 0)
+    std::cout << "Enter PHSiliconTruthTrackSeeding:: Setup" << std::endl;
 
   // we use a separate track map node for the silicon track stubs
   std::string track_map_node_name = {"SvtxSiliconTrackMap"};

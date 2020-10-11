@@ -162,40 +162,37 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     /// Start fresh for this track
     trackSourceLinks.clear();
+
     for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
          clusIter != track->end_cluster_keys();
          ++clusIter)
     {
       const TrkrDefs::cluskey key = *clusIter;
 
-      // skip micromegas layers for now
-      unsigned int layer = TrkrDefs::getLayer(key);
-      if(layer > 54)
-	{
-	  std::cout << PHWHERE << "Found micromegas layer " << layer << " in track " << std::endl;
-	  continue;
-	}
-
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
- 
+
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
-      if (Verbosity() > 100)
+      if (Verbosity() > 0)
 	{
-
-	  
-	  std::cout << std::endl << "cluskey " << key
-		    << " has hitid " << hitId
-		    << std::endl;
-	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(
-				    m_tGeometry->geoContext, std::cout);
+	  std::cout << PHWHERE << " lookup gave hitid " << hitId 
+		    << " for cluskey " << key << std::endl; 
+	  unsigned int layer = TrkrDefs::getLayer(key);
+	  if(layer > 54)
+	    {	  
+	      std::cout << std::endl << PHWHERE << std::endl << " layer " << layer << " cluskey " << key
+			<< " has hitid " << hitId
+			<< std::endl;
+	      std::cout << "Adding the following surface for this SL" << std::endl;
+	      m_sourceLinks->find(hitId)->second.referenceSurface()
+		.toStream(m_tGeometry->geoContext, std::cout);
+	    }
 	}
     }
-
+    
     if (Verbosity() > 0)
-    {
-      for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
+      {
+	for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
       {
         std::cout << "proto_track readback: hitid " << trackSourceLinks.at(i).hitID() << std::endl;
       }

@@ -206,6 +206,20 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
 		  return candidate_truth_cluster;;
 		}
 	    }
+	  else if(cluster_layer == 55)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_mms_rphi_55)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
+	  else if(cluster_layer == 56)
+	    {
+	      if(fabs(dz) < 4.0 * sig_mms_z_56)
+		{
+		  return candidate_truth_cluster;;
+		}
+	    }
 	  else
 	    {
 	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
@@ -317,6 +331,20 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
 		  return this_cluster;;
 		}
 	    }
+	  else if(truth_layer == 55)
+	    {
+	      if(fabs(drphi) < 4.0 * sig_mms_rphi_55)
+		{
+		  return this_cluster;;
+		}
+	    }
+	  else if(truth_layer == 56)
+	    {
+	      if(fabs(dz) < 4.0 * sig_mms_z_56)
+		{
+		  return this_cluster;;
+		}
+	    }
 	  else
 	    {
 	      if(fabs(drphi) < 4.0 * sig_intt_rphi &&
@@ -375,6 +403,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
     case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
     case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
     case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
+    case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
     default: break;
    }
 	  if( g4hit ) truth_hits.insert(g4hit);	      
@@ -901,6 +930,7 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   return;
 }
