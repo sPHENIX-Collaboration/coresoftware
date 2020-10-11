@@ -12,8 +12,6 @@ libFROG_la_LIBADD = \
   -L$(OPT_SPHENIX)/lib \
   -lodbc++
 
-noinst_HEADERS = FROGLinkDef.h
-
 pkginclude_HEADERS = \
   FROG.h
 
