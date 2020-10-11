@@ -54,13 +54,13 @@ class PHTrackSeeding : public SubsysReco
   /// Called in SubsysReco::End
   virtual int End() = 0;
 
-  TrkrClusterContainer *_cluster_map;
-  TrkrClusterHitAssoc *_cluster_hit_map;
-  SvtxVertexMap *_vertex_map;
-  SvtxTrackMap *_track_map;
-  AssocInfoContainer *_assoc_container;
+  TrkrClusterContainer *_cluster_map = nullptr;
+  TrkrClusterHitAssoc *_cluster_hit_map = nullptr;
+  SvtxVertexMap *_vertex_map = nullptr;
+  SvtxTrackMap *_track_map = nullptr;
+  AssocInfoContainer *_assoc_container = nullptr;
 
-  std::string _track_map_name;
+  std::string _track_map_name = "SvtxTrackMap";
 
  private:
   /// create new node output pointers
