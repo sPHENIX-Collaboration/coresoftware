@@ -17,19 +17,8 @@ noinst_HEADERS = FROGLinkDef.h
 pkginclude_HEADERS = \
   FROG.h
 
-if ! MAKEROOT6
-ROOT5DICTS = \
-  FROG_Dict.cc
-libFROG_la_LDFLAGS = \
-  `root-config --libs`
-endif
-
 libFROG_la_SOURCES = \
-  $(ROOT5DICTS) \
   FROG.cc
-
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 noinst_PROGRAMS = testexternals
 
@@ -49,4 +38,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)
