@@ -33,7 +33,8 @@ class SvtxEvaluator : public SubsysReco
                 const std::string &trackmapname = "SvtxTrackMap",
                 unsigned int nlayers_maps = 3,
                 unsigned int nlayers_intt = 8,
-                unsigned int nlayers_tpc = 60);
+                unsigned int nlayers_tpc = 48,
+                unsigned int nlayers_mms = 2);
   virtual ~SvtxEvaluator();
 
   int Init(PHCompositeNode *topNode);
@@ -89,7 +90,8 @@ class SvtxEvaluator : public SubsysReco
 
   unsigned int _nlayers_maps = 3;
   unsigned int _nlayers_intt = 8;
-  unsigned int _nlayers_tpc = 60;
+  unsigned int _nlayers_tpc = 48;
+  unsigned int _nlayers_mms = 2;
 
   TNtuple *_ntp_info;
   TNtuple *_ntp_vertex;
