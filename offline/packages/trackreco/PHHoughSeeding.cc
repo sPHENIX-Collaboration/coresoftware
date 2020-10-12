@@ -1118,8 +1118,8 @@ int PHHoughSeeding::translate_input()
       
       if(Verbosity() > 40)
 	{
-	  unsigned int layer =   TrkrDefs::getLayer(cluster->getClusKey());
-	  cout << "     found in seeding layer # " << ilayer << " layer " << layer <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluster->getClusKey());
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
 	}
       
       hit3d.set_layer(ilayer);
@@ -2391,9 +2391,9 @@ int PHHoughSeeding::CleanupSeeds()
                       v_related_tracks.push_back(it->second);
 #ifdef _DEBUG_
                       cout << __LINE__ << ": rel track: " << it->second << ": {";
-                      for (SimpleHit3D hit : _tracks[it->second].hits)
+                      for (SimpleHit3D hit_3d : _tracks[it->second].hits)
                       {
-                        cout << hit.get_id() << ", ";
+                        cout << hit_3d.get_id() << ", ";
                       }
                       cout << "}" << endl;
 #endif
