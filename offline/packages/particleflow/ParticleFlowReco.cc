@@ -52,9 +52,13 @@ std::pair<float, float> ParticleFlowReco::get_expected_signature( int trk ) {
 
 //____________________________________________________________________________..
 ParticleFlowReco::ParticleFlowReco(const std::string &name):
- SubsysReco(name)
+  SubsysReco(name),
+  _energy_match_Nsigma( 1.5 ) ,
+  _emulate_efficiency( 1.1 )
 {
-  std::cout << "ParticleFlowReco::ParticleFlowReco(const std::string &name) Calling ctor" << std::endl;
+  
+  _tr_eff = new TRandom3();
+  
 }
 
 //____________________________________________________________________________..
@@ -82,6 +86,8 @@ int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 {
+
+  std::cout << "ParticleFlowReco::process_event with Nsigma = " << _energy_match_Nsigma << " , emulate efficiency = " << _emulate_efficiency << std::endl;
 
   // get handle to pflow node
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
@@ -182,6 +188,18 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       // only keep charged truth particles
       if ( truth_pid != 211 && truth_pid != 321 && truth_pid != 2212 ) continue;
+
+      // if emulating finite efficiency, roll the dice here 
+      if ( _emulate_efficiency < 1.0 ) {
+
+	float this_eff = _tr_eff->Uniform( );
+
+	if ( this_eff > _emulate_efficiency ) {
+	  // lost this track due to inefficiency
+	  continue;
+	}
+
+      }
 
       _pflow_TRK_p.push_back( truth_p );
       _pflow_TRK_eta.push_back( truth_eta );
@@ -746,10 +764,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     
   
   
-    if ( total_expected_E + 1.5 * total_expected_E_err > total_EMHAD_E ) {
+    if ( total_expected_E + _energy_match_Nsigma * total_expected_E_err > total_EMHAD_E ) {
       
       if ( Verbosity() > 5 ) {
-	std::cout << " -> -> calo compatible within 1.5 sigma, remove and keep tracks " << std::endl;
+	std::cout << " -> -> calo compatible within Nsigma = " << _energy_match_Nsigma << " , remove and keep tracks " << std::endl;
       }
 
       // PFlow elements already created from tracks above, no more needs to be done
@@ -851,10 +869,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       std::cout << " -> Total track Sum p = " << total_TRK_p << " , expected calo Sum E = " << total_expected_E << " +/- " << total_expected_E_err << " , observed EM Sum E = " << total_EM_E << std::endl;
     }
       
-    if ( total_expected_E + 1.5 * total_expected_E_err > total_EM_E ) {
+    if ( total_expected_E + _energy_match_Nsigma * total_expected_E_err > total_EM_E ) {
       
       if ( Verbosity() > 5 ) {
-	std::cout << " -> -> calo compatible within 1.5 sigma, remove and keep tracks " << std::endl;
+	std::cout << " -> -> calo compatible within Nsigma = " << _energy_match_Nsigma << "  , remove and keep tracks " << std::endl;
       }
 
       // PFlow elements already created from tracks above, no more needs to be done
