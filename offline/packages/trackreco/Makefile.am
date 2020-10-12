@@ -68,46 +68,22 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
-  HelixHoughSpace_Dict.cc \
-  HelixHoughSpace_v1_Dict.cc \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
-  HelixHoughFuncs_v1_Dict.cc 
+  HelixHoughFuncs_v1_Dict.cc \
+  HelixHoughSpace_Dict.cc \
+  HelixHoughSpace_v1_Dict.cc
 
-if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
-  HelixHoughSpace_Dict_rdict.pcm \
-  HelixHoughSpace_v1_Dict_rdict.pcm \
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
-  HelixHoughFuncs_v1_Dict_rdict.pcm 
-else
-  ROOT5_DICTS = \
-    PHInitVertexing_Dict.cc \
-    PHInitZVertexing_Dict.cc \
-    PHTrackSeeding_Dict.cc \
-    PHTrackSetMerging_Dict.cc \
-    PHTrackPropagating_Dict.cc \
-    PHTrackFitting_Dict.cc \
-    PH3DVertexing_Dict.cc \
-    PHTruthVertexing_Dict.cc \
-    PHTruthTrackSeeding_Dict.cc \
-    PHSikiconTpcTrackMatching_Dict.cc \
-    PHMicromegasTpcTrackMatching_Dict.cc \
-    PHSiliconTruthTrackSeeding_Dict.cc \
-    PHTruthSiliconAssociation_Dict.cc \
-    PHHoughSeeding_Dict.cc \
-    PHRTreeSeeding_Dict.cc \
-    PHCASeeding_Dict.cc \
-    PHGenFitTrkProp_Dict.cc \
-    PHGenFitTrkFitter_Dict.cc \
-    PHGenFitTrackProjection_Dict.cc \
-    PHRaveVertexing_Dict.cc
-endif
+  HelixHoughFuncs_v1_Dict_rdict.pcm \
+  HelixHoughSpace_Dict_rdict.pcm \
+  HelixHoughSpace_v1_Dict_rdict.pcm
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -155,7 +131,6 @@ ACTS_LIBS = \
 endif
 
 libtrack_reco_la_SOURCES = \
-  $(ROOT5_DICTS) \
   $(ACTS_SOURCES) \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
@@ -209,7 +184,7 @@ libtrack_reco_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

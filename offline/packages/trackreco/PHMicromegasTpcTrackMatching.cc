@@ -377,10 +377,9 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
 {
   int iter,IterMAX=99;
   
-  double Xi,Yi,Zi;
   double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
   double A0,A1,A2,A22,A3,A33;
-  double Dy,xnew,x,ynew,y;
+  double x,y;
   double DET,Xcenter,Ycenter;
   
   // Compute x- and y- sample means   
@@ -402,9 +401,9 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
   
   for (unsigned int i=0; i<clusters.size(); i++)
     {
-      Xi = clusters[i]->getX() - meanX;   //  centered x-coordinates
-      Yi = clusters[i]->getY() - meanY;   //  centered y-coordinates
-      Zi = Xi*Xi + Yi*Yi;
+      double Xi = clusters[i]->getX() - meanX;   //  centered x-coordinates
+      double Yi = clusters[i]->getY() - meanY;   //  centered y-coordinates
+      double Zi = Xi*Xi + Yi*Yi;
       
       Mxy += Xi*Yi;
       Mxx += Xi*Xi;
@@ -438,10 +437,10 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
   
   for (x=0.,y=A0,iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
     {
-      Dy = A1 + x*(A22 + A33*x);
-      xnew = x - y/Dy;
+      double Dy = A1 + x*(A22 + A33*x);
+      double xnew = x - y/Dy;
       if ((xnew == x)||(!isfinite(xnew))) break;
-      ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
+      double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
       if (abs(ynew)>=abs(y))  break;
       x = xnew;  y = ynew;
     }

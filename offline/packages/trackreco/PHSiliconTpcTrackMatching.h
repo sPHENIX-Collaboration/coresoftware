@@ -45,7 +45,7 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
     if(rescale > 0)
       _fieldDir = 1;     
   }
-  void set_field(const std::string field) { _field = field;}
+  void set_field(const std::string &field) { _field = field;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
