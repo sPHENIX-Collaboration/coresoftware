@@ -9,7 +9,8 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "PHTrackFitting.h"
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
+#include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
