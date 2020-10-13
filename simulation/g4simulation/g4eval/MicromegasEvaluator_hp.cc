@@ -51,7 +51,7 @@ namespace
     g4hitstruct._z = g4hit->get_avg_z();
     return g4hitstruct;
   }
-  
+
   //! create cluster struct from svx cluster
   MicromegasEvaluator_hp::HitStruct create_hit( TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey, TrkrHit* hit )
   {
@@ -68,10 +68,10 @@ namespace
 
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::Container::Reset()
-{ 
+{
   _events.clear();
   _g4hits.clear();
-  _hits.clear(); 
+  _hits.clear();
 }
 
 //_____________________________________________________________________
@@ -153,14 +153,13 @@ int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 
   // g4hit container
   m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
-  assert(m_g4hits_micromegas);
 
   // hitset container
   m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  assert(m_hitsetcontainer);
 
   // local container
   m_container = findNode::getClass<Container>(topNode, "MicromegasEvaluator_hp::Container");
+  assert(m_container);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -175,7 +174,7 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
 
   // create event struct
   EventStruct eventStruct;
-  
+
   // loop over layers in the g4hit container
   uint layer_index = 0;
   auto layer_range = m_g4hits_micromegas->getLayers();
@@ -214,10 +213,10 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       auto g4hitstruct = create_g4hit( g4hit );
       g4hitstruct._layer = layer;
       g4hitstruct._tile = tileid;
-     
+
       eventStruct._edep_total[layer_index] += g4hitstruct._edep;
       eventStruct._eion_total[layer_index] += g4hitstruct._eion;
-      
+
       // copied from PHG4MicromegasHitReco
       static constexpr double electrons_per_gev = 3.73252e+07;
       static constexpr double gain = 2000;
@@ -238,7 +237,7 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
     }
 
   }
-  
+
   // store event struct
   m_container->addEvent( eventStruct );
 
