@@ -94,6 +94,14 @@ class PHCASeeding : public PHTrackSeeding
   void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
   void SetMinHitsPerCluster(int minHits) {_min_nhits_per_cluster = minHits;}
   void SetMinClustersPerTrack(int minClus) {_min_clusters_per_track = minClus;}
+
+  void set_field_dir(const double rescale)
+  {
+    _fieldDir = -1;
+    if(rescale > 0)
+      _fieldDir = 1;     
+  }
+
  protected:
   virtual int Setup(PHCompositeNode *topNode);
   virtual int Process(PHCompositeNode *topNode);
@@ -160,6 +168,7 @@ class PHCASeeding : public PHTrackSeeding
   float _Bz;
   float _cosTheta_limit;
   //std::vector<float> _radii_all;
+  double _fieldDir = 1;
 
   bgi::rtree<pointKey, bgi::quadratic<16>> _rtree;
 };
