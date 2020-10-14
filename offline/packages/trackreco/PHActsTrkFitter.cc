@@ -52,7 +52,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_nBadFits(0)
-  , m_directedNavigation(false)
+  , m_fitSiliconMMs(false)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
@@ -117,7 +117,7 @@ int PHActsTrkFitter::Process()
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
-    logLevel = Acts::Logging::VERBOSE;
+    //logLevel = Acts::Logging::VERBOSE;
   }
 
   loopTracks(logLevel);
@@ -198,9 +198,26 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     /// If using directed navigation, collect surface list to navigate
     SurfaceVec surfaces;
-    if(m_directedNavigation)
+    if(m_fitSiliconMMs)
       {	
 	sourceLinks = getSurfaceVector(sourceLinks, surfaces);
+	/// Check to see if there is a track to fit, if not skip it
+	if(surfaces.size() == 0)
+	  continue;
+	bool MMsurface = false;
+	for(auto surf : surfaces)
+	  {
+	    if(surf->geometryId().volume() == 16)
+	      {
+		MMsurface = true;
+		break;
+	      }
+	  }
+	/// If there's not a MM surface, we don't want to fit only
+	/// the silicon
+	if(!MMsurface)
+	  continue;
+
       }
 
     /// Acts cares about the track covariance as it helps the KF
@@ -326,18 +343,19 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Insert a new entry into the map
       m_actsFitResults->insert(
 	   std::pair<const unsigned int, Trajectory>(trackKey, trajectory));
-  
     }
     else
       {
 	if(Verbosity() > 10)
 	  std::cout<<"Track fit failed"<<std::endl;
 	/// Insert an empty track fit output into the map since the fit failed
-       	m_actsFitResults->insert(std::pair<const unsigned int, Trajectory>
-				 (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
+       	m_actsFitResults->insert(
+			  std::pair<const unsigned int, Trajectory>
+			  (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
 
-	  // fit failed, delete the junk SvtxTrack from the node tree so the evaluator does not waste time on it
-	  m_trackMap->erase(trackKey);
+	// fit failed, delete the junk SvtxTrack from the node tree 
+	// so the evaluator does not waste time on it
+	m_trackMap->erase(trackKey);
 
 	m_nBadFits++;
       }
@@ -354,7 +372,7 @@ ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrac
 	         kfOptions, 
 	  const SurfaceVec& surfSequence)
 {
-  if(m_directedNavigation) 
+  if(m_fitSiliconMMs) 
     return m_fitCfg.dFit(sourceLinks, seed, kfOptions, surfSequence);  
   else
     return m_fitCfg.fit(sourceLinks, seed, kfOptions);

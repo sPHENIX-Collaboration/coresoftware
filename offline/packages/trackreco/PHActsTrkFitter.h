@@ -71,8 +71,8 @@ class PHActsTrkFitter : public PHTrackFitting
   int ResetEvent(PHCompositeNode *topNode);
 
   void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
-  void directedNavigation(bool directedNavigation)
-       {m_directedNavigation = directedNavigation;}
+  void fitSiliconMMs(bool fitSiliconMMs)
+       {m_fitSiliconMMs = fitSiliconMMs;}
  private:
 
   /// Event counter
@@ -91,7 +91,7 @@ class PHActsTrkFitter : public PHTrackFitting
 		       Acts::Vector3D vertex);
 
   /// Helper function to call either the regular navigation or direct
-  /// navigation, depending on m_directedNavigation
+  /// navigation, depending on m_fitSiliconMMs
   ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(const SourceLinkVec& sourceLinks, 
 		     const ActsExamples::TrackParameters& seed,
 		     const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
@@ -127,8 +127,8 @@ class PHActsTrkFitter : public PHTrackFitting
   int m_nBadFits;
 
   /// Boolean to use normal tracking geometry navigator or the
-  /// Acts::DirectedNavigator with a list of sorted surfaces
-  bool m_directedNavigation;
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fitSiliconMMs;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
