@@ -34,7 +34,6 @@ ROOT_DICTS = \
 # i/o classes. For root5 we need only dictionaries but
 # those for i/o and classes available on the cmd line
 # MAKEROOT6 is set in the configure.ac, true for root6
-if MAKEROOT6
 # this is a tweak to install files in $(libdir), automake refuses
 # to install other files in libdir, this construct gets around this
   pcmdir = $(libdir)
@@ -46,22 +45,10 @@ if MAKEROOT6
     PdbParameterError_Dict_rdict.pcm \
     PdbParameterMap_Dict_rdict.pcm \
     PdbParameterMapContainer_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-    PdbApplication_Dict.cc \
-    PdbApplicationFactory_Dict.cc \
-    PdbBankList_Dict.cc \
-    PdbBankListIterator_Dict.cc \
-    PdbBankManager_Dict.cc \
-    PdbBankManagerFactory_Dict.cc \
-    PdbCalBankIterator_Dict.cc \
-    RunToTime_Dict.cc
-endif
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
   $(ROOT_DICTS) \
-  $(ROOT5_DICTS) \
   PdbApplication.cc \
   PdbBankID.cc \
   PdbBankManager.cc \
@@ -111,7 +98,7 @@ testexternals.C:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

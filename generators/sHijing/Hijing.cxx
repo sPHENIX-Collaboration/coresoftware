@@ -67,6 +67,8 @@ atl_ran(int *)
 {
   return (float) CLHEP::RandFlat::shoot (engine);
 }
+// This prevents cppcheck to flag the next line as error
+// cppcheck-suppress *
 FCALLSCFUN1 (FLOAT, atl_ran, ATL_RAN, atl_ran, PINT)
 
 typedef HepGeom::Point3D < double > HepPoint3D;

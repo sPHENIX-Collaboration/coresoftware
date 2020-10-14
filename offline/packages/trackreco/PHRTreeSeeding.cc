@@ -516,7 +516,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
                          point(2 * M_PI, 3, ((double) _start_layer + 0.5)))),
                  std::back_inserter(StartLayerClusters));
 
-    for (vector<pointKey>::iterator StartCluster = StartLayerClusters.begin(); StartCluster != StartLayerClusters.end(); StartCluster++)
+    for (vector<pointKey>::iterator StartCluster = StartLayerClusters.begin(); StartCluster != StartLayerClusters.end(); ++StartCluster)
     {
       double StartPhi = StartCluster->first.get<0>();
       double StartEta = StartCluster->first.get<1>();

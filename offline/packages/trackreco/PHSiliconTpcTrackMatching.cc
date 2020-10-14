@@ -97,26 +97,13 @@ int PHSiliconTpcTrackMatching::Process()
 	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << endl;
 	}
-      /*
-      // if the vertex id from the seeder is nonsense, use vertex 0
-      unsigned int vertexId = _tracklet_tpc->get_vertex_id();
-      if(vertexId == UINT_MAX)
-	vertexId = 0;
-      _tracklet_tpc->set_vertex_id(vertexId);
-
-      // set the track position to the vertex position
-      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-      _tracklet_tpc->set_x(svtxVertex->get_x());
-      _tracklet_tpc->set_y(svtxVertex->get_y());
-      _tracklet_tpc->set_z(svtxVertex->get_z());
-      */
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
       // phi correction for TPC tracks is charge dependent
-      double sign_phi_correction = _tracklet_tpc->get_charge(); 
+      double sign_phi_correction = _tracklet_tpc->get_charge();
 
       /// Correct the correction for the field direction
       /// Kludge to get the phi matching correct based on the field
@@ -152,24 +139,41 @@ int PHSiliconTpcTrackMatching::Process()
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
-	  double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
-	  double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
-	  double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
 
 	  if(Verbosity() >= 2)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
-	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
-	      cout << " phi_search_win_lo " << phi_search_win_lo << " phi_search_win_hi " << phi_search_win_hi << " _eta_search_win " << _eta_search_win << endl;
+	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta 
+		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
 	    }
+
+	  /*
+	    cout << " Try: pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
+	         << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+	  */
 
 	  bool eta_match = false;
 	  bool phi_match = false;
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag) eta_match = true;
-	  if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;
-	  // NOTE: have to guard against change of sign in either angle at +/- pi
-	  if( (fabs(tpc_phi - si_phi) - 2.0*M_PI) > phi_search_win_lo &&  (fabs(tpc_phi - si_phi) - 2.0*M_PI) < phi_search_win_hi )  phi_match = true; 
 
+	  // PHTpcTracker has a bias in the tracklet phi that depends on charge sign, PHCASeeding does not
+	  if(_is_ca_seeder)
+	    {
+	      if(  fabs(tpc_phi - si_phi) < _phi_search_win * mag) phi_match = true;
+	    }
+	  else
+	    {
+	      // PHTpcTracker
+	      double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
+	      double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
+	      double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
+
+	      if(Verbosity() > 10) 
+		cout << " phi_search_win_lo " << phi_search_win_lo << " phi_search_win_hi " << phi_search_win_hi << endl;
+
+	      if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;	      
+	    }
+	  
 	  if(eta_match && phi_match)
 	    {
 	      // got a match, add to the list

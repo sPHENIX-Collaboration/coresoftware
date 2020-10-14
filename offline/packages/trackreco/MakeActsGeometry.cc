@@ -57,6 +57,7 @@
 #include <TObject.h>
 #include <TSystem.h>
 #include <TVector3.h>
+
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -66,9 +67,7 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
-MakeActsGeometry::MakeActsGeometry(const string &name)
+MakeActsGeometry::MakeActsGeometry(const std::string &name)
   : m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -493,7 +492,7 @@ void MakeActsGeometry::buildActsSurfaces()
   std::string materialFile = "sphenix-material.json";
 
   /// Check to see if files exist locally - if not, use defaults
-  ifstream file;
+  std::ifstream file;
 
   file.open(responseFile);
   if(!file)
@@ -505,10 +504,11 @@ void MakeActsGeometry::buildActsSurfaces()
 	responseFile = std::string(getenv("OFFLINE_MAIN")) +
 	  std::string("/share/tgeo-sphenix.response");
     }
-
+    
   file.open(materialFile);
   if(!file)
     {
+      std::cout << materialFile << " not found locally, use repo version" << std::endl;
       materialFile = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/ACTS/sphenix-material.json");
     }
@@ -521,6 +521,7 @@ void MakeActsGeometry::buildActsSurfaces()
 		<< std::endl;
     }
   
+
   // Response file contains arguments necessary for geometry building
   const std::string argstr[argc]{
     "-n1", "-l0", 
@@ -1204,6 +1205,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   {
     std::cout << PHWHERE << "Did not get layergeom for layer " 
 	      << layer << std::endl;
+    return 0;
   }
 
   double location[3] = {world[0], world[1], world[2]};
@@ -1371,8 +1373,8 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
   TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, 
 							ladder_phi);
 
-  std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = make_pair(node_key, 
-							     sensor_node);
+  std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = std::make_pair(
+					         node_key, sensor_node);
   m_clusterNodeMap.insert(tmp);
 
   if (m_verbosity > 1)
@@ -1453,8 +1455,8 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 
       // add sensor node to map
       TGeoNode *sensor_node = module_node->GetDaughter(i)->GetDaughter(0);
-      std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = make_pair(node_key,
-								 sensor_node);
+      std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = std::make_pair(
+						       node_key, sensor_node);
       m_clusterNodeMap.insert(tmp);
 
       if (m_verbosity > 3)
