@@ -1,6 +1,6 @@
 #include "PHActsSiliconMicromegasFitter.h"
 #include "MakeActsGeometry.h"
-
+#include "ActsTransformations.h"
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -48,9 +48,8 @@ int PHActsSiliconMicromegasFitter::Setup(PHCompositeNode *topNode)
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  outfile = new TFile("siliconMMoutfile.root","recreate");
-  h_nClus = new TH2I("h_nClus",";N_{clus}^{in}; N_{clus}^{out}",
-		     10,0,10,10,0,10);
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Call the directed navigator fitter function
   m_fitCfg.dFit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
@@ -77,6 +76,7 @@ int PHActsSiliconMicromegasFitter::Process()
   
   for(auto trackIter : *m_actsProtoTracks)
     {
+      auto trackKey = trackIter.first;
       auto track = trackIter.second;
       auto sourceLinks = track.getSourceLinks();
       auto trackSeed = track.getTrackParams();
@@ -131,8 +131,6 @@ int PHActsSiliconMicromegasFitter::Process()
       auto result = m_fitCfg.dFit(siliconMMsSls, newTrackSeed,
 				  kfOptions, surfaces);
 
-      int nInSurf = surfaces.size();
-      
       if(result.ok())
 	{
 	  auto fitOutput = result.value();
@@ -145,14 +143,12 @@ int PHActsSiliconMicromegasFitter::Process()
 	    {
 	      indexedParams.emplace(fitOutput.trackTip, 
 				    fitOutput.fittedParameters.value());
-	      //const auto& params = fitOutput.fittedParameters.value();
-	      
 	    }
 	  
 	  Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
-	  int nOutSurf = checkClusterKeys(trajectory,fitOutput.trackTip);
-	 
-	  h_nClus->Fill(nInSurf, nOutSurf);
+	  
+	  if(fitOutput.fittedParameters)
+	    updateSvtxTrack(trajectory, trackKey, track.getVertex());
 	}
       
     }
@@ -167,43 +163,109 @@ int PHActsSiliconMicromegasFitter::Process()
 
 }
 
-int PHActsSiliconMicromegasFitter::checkClusterKeys(Trajectory traj, 
-						     const size_t trackTip)
+void PHActsSiliconMicromegasFitter::updateSvtxTrack(Trajectory traj, 
+						    const unsigned int trackKey,
+						    Acts::Vector3D vertex)
 {
-  int nOutSurf = 0;
   const auto &[trackTips, mj] = traj.trajectory();
+  /// only one track tip in the track fit Trajectory
+  auto &trackTip = trackTips.front();
+
+  SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
+  SvtxTrack *track = trackIter->second;
+  
+  if(Verbosity() > 2)
+    {
+      std::cout << "Identify (proto) track before updating with acts results " << std::endl;
+      track->identify();
+      std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
+    }
+
+  // The number of associated clusters may have changed - start over
+  track->clear_states();
+  track->clear_cluster_keys();
+
+  // create a state at pathlength = 0.0
+  // This state holds the track parameters, which will be updated below
+  float pathlength = 0.0;
+  SvtxTrackState_v1 out(pathlength);
+  out.set_x(0.0);
+  out.set_y(0.0);
+  out.set_z(0.0);
+  track->insert_state(&out);   
+
+  auto trajState =
+    Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
  
-  mj.visitBackwards(trackTip, [&](const auto &state) {
-      /// Only fill the track states with non-outlier measurement
-      auto typeFlags = state.typeFlags();
-      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-	{
-	  return true;
-	}
-      
-      auto meas = std::get<Measurement>(*state.uncalibrated());
+  const auto& params = traj.trackParameters(trackTip);
 
-      nOutSurf++;
+  /// Acts default unit is mm. So convert to cm
+  track->set_x(params.position(m_tGeometry->geoContext)(0)
+	       / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_tGeometry->geoContext)(1)
+	       / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_tGeometry->geoContext)(2)
+	       / Acts::UnitConstants::cm);
 
-      if(Verbosity() > 0)
-	std::cout << "obtained surface with geoID : "
-		  << meas.referenceObject().geometryId() << std::endl;
-      /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
-			   meas.parameters()[Acts::eBoundLoc1]);
+  track->set_px(params.momentum()(0));
+  track->set_py(params.momentum()(1));
+  track->set_pz(params.momentum()(2));
+  
+  track->set_charge(params.charge());
+  track->set_chisq(trajState.chi2Sum);
+  track->set_ndf(trajState.NDF);
 
-      /// This is an arbitrary vector. Doesn't matter in coordinate transformation
-      /// in Acts code
-      Acts::Vector3D mom(1., 1., 1.);
-      Acts::Vector3D global = meas.referenceObject().localToGlobal(
-					    m_tGeometry->geoContext,
-					    local, mom);
+  ActsTransformations *rotater = new ActsTransformations();
+  rotater->setVerbosity(Verbosity());
+  
+  if(params.covariance())
+    {
    
-      return true;
-    });
+      Acts::BoundSymMatrix rotatedCov = 
+	rotater->rotateActsCovToSvtxTrack(params,
+					  m_tGeometry->geoContext);
+      
+      for(int i = 0; i < 6; i++)
+	{
+	  for(int j = 0; j < 6; j++)
+	    {
+	      track->set_error(i,j, rotatedCov(i,j));
+	    }
+	}
+    }
+ 
+  float dca3Dxy = -9999.;
+  float dca3Dz = -9999.;
+  float dca3DxyCov = -9999.;
+  float dca3DzCov = -9999.;
 
-  return nOutSurf;
+  rotater->calculateDCA(params, vertex, m_tGeometry->geoContext, 
+			dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
+
+  // convert from mm to cm
+  track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
+  track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
+  track->set_dca3d_xy_error(dca3DxyCov / Acts::UnitConstants::cm);
+  track->set_dca3d_z_error(dca3DzCov / Acts::UnitConstants::cm);
+  
+  // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
+  // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
+
+  rotater->fillSvtxTrackStates(traj, trackTip, track,
+			       m_tGeometry->geoContext,
+			       m_hitIdClusKey);  
+
+  if(Verbosity() > 2)
+    {  
+      std::cout << " Identify fitted track after updating track states:" << std::endl;
+      track->identify();
+      std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
+    }
+ 
+ return;
+  
 }
+
 
 
 int PHActsSiliconMicromegasFitter::ResetEvent(PHCompositeNode *topNode)
@@ -213,9 +275,7 @@ int PHActsSiliconMicromegasFitter::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsSiliconMicromegasFitter::End(PHCompositeNode *topNode)
 {
-  outfile->cd();
-  h_nClus->Write();
-  outfile->Close();
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -292,6 +352,47 @@ void PHActsSiliconMicromegasFitter::checkSurfaceVec(SurfaceVec &surfaces)
 	    }
 	}
     } 
+}
+
+int PHActsSiliconMicromegasFitter::createNodes(PHCompositeNode *topNode)
+{
+  
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+  }
+  
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
+  
+  if(!m_actsFitResults)
+    {
+      m_actsFitResults = new std::map<const unsigned int, Trajectory>;
+
+      PHDataNode<std::map<const unsigned int, 
+			  Trajectory>> *fitNode = 
+		 new PHDataNode<std::map<const unsigned int, 
+				    Trajectory>>
+		 (m_actsFitResults, "ActsFitResults");
+
+      svtxNode->addNode(fitNode);
+      
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 int PHActsSiliconMicromegasFitter::getNodes(PHCompositeNode *topNode)

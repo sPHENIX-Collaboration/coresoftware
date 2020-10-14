@@ -55,19 +55,18 @@ class PHActsSiliconMicromegasFitter : public PHTrackFitting
  private:
 
  int getNodes(PHCompositeNode *topNode);
-
+ int createNodes(PHCompositeNode *topNode);
  SourceLinkVec getSiliconMMsSls(SourceLinkVec trackSls, 
 			        SurfaceVec &surfaces);
  void checkSurfaceVec(SurfaceVec &surfaces);
- int checkClusterKeys(Trajectory traj, const size_t trackTip);
- 
- TFile *outfile;
- TH2 *h_nClus;
+ void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
+		      Acts::Vector3D vertex);
+
  int m_event;
  SvtxTrackMap *m_trackMap;
  
  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
- 
+std::map<const unsigned int, Trajectory> *m_actsFitResults;
  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
  ActsTrackingGeometry *m_tGeometry;
  ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
