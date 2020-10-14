@@ -5,6 +5,8 @@
 #include "PHActsSourceLinks.h"
 #include "ActsTrack.h"
 
+#include <trackbase/TrkrDefs.h>
+
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
@@ -20,6 +22,9 @@
 #include <memory>
 #include <string>
 
+class TFile;
+class TH1;
+class TH2;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using SourceLinkVec = std::vector<SourceLink>;
@@ -49,12 +54,15 @@ class PHActsSiliconMicromegasFitter : public PHTrackFitting
 
  private:
 
-
  int getNodes(PHCompositeNode *topNode);
 
  SourceLinkVec getSiliconMMsSls(SourceLinkVec trackSls, 
 			        SurfaceVec &surfaces);
+ void checkSurfaceVec(SurfaceVec &surfaces);
+ int checkClusterKeys(Trajectory traj, const size_t trackTip);
  
+ TFile *outfile;
+ TH2 *h_nClus;
  int m_event;
  SvtxTrackMap *m_trackMap;
  
