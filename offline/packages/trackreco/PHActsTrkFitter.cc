@@ -52,6 +52,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_nBadFits(0)
+  , m_directedNavigation(false)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
@@ -80,6 +81,9 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   
   m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
+	       m_tGeometry->magField);
+
+  m_fitCfg.dFit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
 	       m_tGeometry->magField);
 
   if(m_timeAnalysis)
@@ -116,6 +120,67 @@ int PHActsTrkFitter::Process()
     logLevel = Acts::Logging::VERBOSE;
   }
 
+  loopTracks(logLevel);
+  
+  auto stopEventTime = high_resolution_clock::now();
+  if(m_timeAnalysis)
+    {    
+      auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
+  
+      h_eventTime->Fill(eventTime.count()/1000.);
+    }
+
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter::process_event finished" 
+	      << std::endl;
+
+  // put this in the output file
+  if(Verbosity() > 0)
+    std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
+	      << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
+{
+
+  m_actsFitResults->clear();
+
+  if(Verbosity() > 1)
+    {
+      std::cout << "Reset PHActsTrkFitter" << std::endl;
+
+    }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsTrkFitter::End(PHCompositeNode *topNode)
+{
+  if(m_timeAnalysis)
+    {
+      m_timeFile->cd();
+      h_fitTime->Write();
+      h_eventTime->Write();
+      h_rotTime->Write();
+      h_stateTime->Write();
+      h_updateTime->Write();
+      m_timeFile->Write();
+      m_timeFile->Close();
+    } 
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "The Acts track fitter had " << m_nBadFits 
+	      << " fits return an error" << std::endl;
+
+    std::cout << "Finished PHActsTrkFitter" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
+{
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
   std::map<unsigned int, ActsTrack>::iterator trackIter;
@@ -130,7 +195,14 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     ActsExamples::TrackParameters trackSeed = track.getTrackParams();
-  
+
+    /// If using directed navigation, collect surface list to navigate
+    SurfaceVec surfaces;
+    if(m_directedNavigation)
+      {	
+	sourceLinks = getSurfaceVector(sourceLinks, surfaces);
+      }
+
     /// Acts cares about the track covariance as it helps the KF
     /// know whether or not to trust the initial track seed or not.
     /// We reset it here to some loose values as it helps Acts improve
@@ -187,8 +259,9 @@ int PHActsTrkFitter::Process()
 
     auto startTime = high_resolution_clock::now();
     
-    auto result = m_fitCfg.fit(sourceLinks, newTrackSeed, kfOptions);
-    
+    auto result = fitTrack(sourceLinks, newTrackSeed, kfOptions,
+			   surfaces);
+
     auto stopTime = high_resolution_clock::now();
     auto fitTime = duration_cast<microseconds>(stopTime - startTime);
  
@@ -270,62 +343,97 @@ int PHActsTrkFitter::Process()
       }
 
   }
-  
-  
-  auto stopEventTime = high_resolution_clock::now();
-  if(m_timeAnalysis)
-    {    
-      auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
-  
-      h_eventTime->Fill(eventTime.count()/1000.);
-    }
-
-  if(Verbosity() > 0)
-    std::cout << "PHActsTrkFitter::process_event finished" 
-	      << std::endl;
-
-  // put this in the output file
-  if(Verbosity() > 0)
-    std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
-	      << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
+  return;
 }
 
-int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
+
+ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrack(
+          const SourceLinkVec& sourceLinks, 
+	  const ActsExamples::TrackParameters& seed,
+	  const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
+	         kfOptions, 
+	  const SurfaceVec& surfSequence)
 {
-
-  m_actsFitResults->clear();
-
-  if(Verbosity() > 1)
-    {
-      std::cout << "Reset PHActsTrkFitter" << std::endl;
-
-    }
-  return Fun4AllReturnCodes::EVENT_OK;
+  if(m_directedNavigation) 
+    return m_fitCfg.dFit(sourceLinks, seed, kfOptions, surfSequence);  
+  else
+    return m_fitCfg.fit(sourceLinks, seed, kfOptions);
 }
 
-int PHActsTrkFitter::End(PHCompositeNode *topNode)
+SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
+						SurfaceVec& surfaces)
 {
-  if(m_timeAnalysis)
+   SourceLinkVec siliconMMSls;
+
+  if(Verbosity() > 0)
+    std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
+  
+  for(auto sl : sourceLinks)
     {
-      m_timeFile->cd();
-      h_fitTime->Write();
-      h_eventTime->Write();
-      h_rotTime->Write();
-      h_stateTime->Write();
-      h_updateTime->Write();
-      m_timeFile->Write();
-      m_timeFile->Close();
+      auto volume = sl.referenceSurface().geometryId().volume();
+      
+      /// If volume is not the TPC add it to the list
+      if(volume != 14)
+	{
+	  siliconMMSls.push_back(sl);
+	  surfaces.push_back(&sl.referenceSurface());
+	  if(Verbosity() > 0)
+	    std::cout << "Adding surface to sequence with geoID : "
+		      << sl.referenceSurface().geometryId() << std::endl;
+	}
+    }
+
+  /// Surfaces need to be sorted in order, i.e. from smallest to
+  /// largest radius extending from target surface
+  /// Add a check to ensure this
+  if(surfaces.size() > 0)
+    checkSurfaceVec(surfaces);
+
+  return siliconMMSls;
+
+}
+
+
+void PHActsTrkFitter::checkSurfaceVec(SurfaceVec &surfaces)
+{
+  for(int i = 0; i < surfaces.size() - 1; i++)
+    {
+      auto surface = surfaces.at(i);
+      auto thisVolume = surface->geometryId().volume();
+      auto thisLayer  = surface->geometryId().layer();
+      
+      auto nextSurface = surfaces.at(i+1);
+      auto nextVolume = nextSurface->geometryId().volume();
+      auto nextLayer = nextSurface->geometryId().layer();
+      
+      /// Implement a check to ensure surfaces are sorted
+      if(nextVolume == thisVolume) 
+	{
+	  if(nextLayer < thisLayer)
+	    {
+	      std::cout << PHWHERE 
+			<< "Surface not in order... removing surface" 
+			<< std::endl;
+	      surfaces.erase(surfaces.begin() + i);
+	      /// Subtract one so we don't skip a surface
+	      i--;
+	      continue;
+	    }
+	}
+      else 
+	{
+	  if(nextVolume < thisVolume)
+	    {
+	      std::cout << PHWHERE 
+			<< "Volume not in order... removing surface" 
+			<< std::endl;
+	      surfaces.erase(surfaces.begin() + i);
+	      /// Subtract one so we don't skip a surface
+	      i--;
+	      continue;
+	    }
+	}
     } 
-
-  if (Verbosity() > 0)
-  {
-    std::cout<<"The Acts track fitter had " << m_nBadFits <<" fits return an error"<<std::endl;
-
-    std::cout << "Finished PHActsTrkFitter" << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 

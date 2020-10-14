@@ -47,6 +47,9 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundIndices,
                                       Acts::eBoundLoc0,
                                       Acts::eBoundLoc1>;
+using SurfaceVec = std::vector<const Acts::Surface*>;
+using SourceLinkVec = std::vector<SourceLink>;
+
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -68,21 +71,38 @@ class PHActsTrkFitter : public PHTrackFitting
   int ResetEvent(PHCompositeNode *topNode);
 
   void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
-
+  void directedNavigation(bool directedNavigation)
+       {m_directedNavigation = directedNavigation;}
  private:
 
   /// Event counter
   int m_event;
 
   /// Get all the nodes
-  int getNodes(PHCompositeNode*);
+  int getNodes(PHCompositeNode *topNode);
 
   /// Create new nodes
-  int createNodes(PHCompositeNode*);
+  int createNodes(PHCompositeNode *topNode);
+
+  void loopTracks(Acts::Logging::Level logLevel);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
 		       Acts::Vector3D vertex);
+
+  /// Helper function to call either the regular navigation or direct
+  /// navigation, depending on m_directedNavigation
+  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(const SourceLinkVec& sourceLinks, 
+		     const ActsExamples::TrackParameters& seed,
+		     const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
+		           kfOptions,
+		     const SurfaceVec& surfSequence);
+
+  /// Functions to get list of sorted surfaces for direct navigation, if
+  /// applicable
+  SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
+				 SurfaceVec& surfaces);
+  void checkSurfaceVec(SurfaceVec& surfaces);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
@@ -103,7 +123,12 @@ class PHActsTrkFitter : public PHTrackFitting
   // map relating acts hitid's to clusterkeys
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
+  /// Number of acts fits that returned an error
   int m_nBadFits;
+
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted surfaces
+  bool m_directedNavigation;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
