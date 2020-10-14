@@ -39,7 +39,6 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHActsSiliconMicromegasFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
@@ -103,7 +102,6 @@ ACTS_SOURCES = \
   ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
-  PHActsSiliconMicromegasFitter.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
