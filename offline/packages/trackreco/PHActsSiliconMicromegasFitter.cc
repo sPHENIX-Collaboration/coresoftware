@@ -81,16 +81,15 @@ int PHActsSiliconMicromegasFitter::Process()
       auto sourceLinks = track.getSourceLinks();
       auto trackSeed = track.getTrackParams();
 
-
       /// Get the surfaces and SLs for the silicon+MMs
       SurfaceVec surfaces;
-      if(Verbosity() > 0)
-	std::cout << "Sort surfaces" << std::endl;
       auto siliconMMsSls = getSiliconMMsSls(sourceLinks, surfaces);
 
       /// If no silicon+MM surfaces in this track, continue to next track
       if(surfaces.size() == 0)
 	continue;
+
+      /// We only care about fitting tracks with a MM surface
       bool MMsurface = false;
       for(auto surf : surfaces)
 	{
@@ -100,8 +99,6 @@ int PHActsSiliconMicromegasFitter::Process()
       if(!MMsurface)
 	continue;
 
-      if(Verbosity() > 0)
-	std::cout << "Got sorted surfaces" << std::endl;
       /// Reset track covariance matrix to something Acts can work with
       Acts::BoundSymMatrix cov;
       cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
@@ -118,8 +115,6 @@ int PHActsSiliconMicromegasFitter::Process()
 		   trackSeed.charge(),
 		   cov);
 
-      if(Verbosity() > 0)
-	std::cout << "Setup and call fitter" << std::endl;
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
         	      track.getVertex());
 
@@ -135,8 +130,7 @@ int PHActsSiliconMicromegasFitter::Process()
       
       auto result = m_fitCfg.dFit(siliconMMsSls, newTrackSeed,
 				  kfOptions, surfaces);
-      if(Verbosity() > 0)
-	std::cout << "finished fit"<<std::endl;
+
       int nInSurf = surfaces.size();
       
       if(result.ok())
@@ -156,8 +150,6 @@ int PHActsSiliconMicromegasFitter::Process()
 	    }
 	  
 	  Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
-	  if(Verbosity() > 0)
-	    std::cout << "Checking clusterkeys" << std::endl;
 	  int nOutSurf = checkClusterKeys(trajectory,fitOutput.trackTip);
 	 
 	  h_nClus->Fill(nInSurf, nOutSurf);
@@ -206,9 +198,7 @@ int PHActsSiliconMicromegasFitter::checkClusterKeys(Trajectory traj,
       Acts::Vector3D global = meas.referenceObject().localToGlobal(
 					    m_tGeometry->geoContext,
 					    local, mom);
-      if(Verbosity() > 0)
-	std::cout << "Cluster radius : " 
-		  << sqrt(global(0)*global(0) + global(1)*global(1)) << std::endl;
+   
       return true;
     });
 
@@ -253,10 +243,6 @@ SourceLinkVec PHActsSiliconMicromegasFitter::getSiliconMMsSls(SourceLinkVec trac
 	}
     }
 
-  if(Verbosity() > 0)
-    std::cout << "Check surface vec with size " << surfaces.size()
-	      << std::endl;
-  
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
