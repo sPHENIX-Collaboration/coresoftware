@@ -117,7 +117,7 @@ int PHActsTrkFitter::Process()
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
-    //logLevel = Acts::Logging::VERBOSE;
+    logLevel = Acts::Logging::VERBOSE;
   }
 
   loopTracks(logLevel);

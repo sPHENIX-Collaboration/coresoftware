@@ -70,7 +70,10 @@ class PHActsTrkFitter : public PHTrackFitting
 
   int ResetEvent(PHCompositeNode *topNode);
 
+  /// Do some internal time benchmarking analysis
   void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
+
+  /// Run the direct navigator to fit only tracks with silicon+MM hits
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
  private:
