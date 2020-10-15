@@ -7,18 +7,16 @@
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <cmath>
+#include <memory>
 #include <phparameter/PHParameterInterface.h>
-
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
-
 #include <string>                              // for string
 
 class PHG4TpcPadPlane;
 class PHCompositeNode;
 class TH1;
+class TH3;
 class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
@@ -28,51 +26,159 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  virtual ~PHG4TpcElectronDrift();
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  virtual ~PHG4TpcElectronDrift() = default;
+  virtual int Init(PHCompositeNode*);
+  virtual int InitRun(PHCompositeNode*);
+  virtual int process_event(PHCompositeNode*);
+  virtual int End(PHCompositeNode*);
 
+  class DistortionStruct
+  {
+    
+    public:
+    using List = std::vector<DistortionStruct>;
+    
+    /// constructor
+    DistortionStruct() = default;
+    
+    float _r = 0;
+    float _phi = 0;
+    float _z = 0;
+    
+    float _dr = 0;
+    float _dphi = 0;
+    float _dz = 0;
+  };
+ 
+  /// track container
+  class Container: public PHObject
+  {
+
+    public:
+
+    /// constructor
+    explicit Container() = default;
+
+    /// copy constructor
+    explicit Container(const Container &) = delete;
+
+    /// assignment operator
+    Container& operator = ( const Container& ) = delete;
+
+    /// reset
+    virtual void Reset();
+
+    /// distrotions
+    const DistortionStruct::List& distortions() const
+    { return _distortions; }
+    
+    /// add distortion
+    void addDistortion( const DistortionStruct& distortion )
+    { _distortions.push_back( distortion ); }
+
+    private:
+
+    /// event struct
+    DistortionStruct::List _distortions;
+
+    ClassDef(Container,1)
+
+  };
+  
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) { detector = d; }
-  std::string Detector() const { return detector; }
+  //! detector name
+  void Detector(const std::string &d) 
+  { detector = d; }
+
+  //! detector name
+  std::string Detector() const 
+  { return detector; }
+  
+  //! random seed
   void set_seed(const unsigned int iseed);
-  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  
+  //! space charge distortions
+  void set_enable_distortions( bool value )
+  { m_enable_distortions = value; }
+  
+  //! distortion filename
+  void set_distortion_filename( const std::string& value )
+  { m_distortion_filename = value; }
+  
+  enum CoordMask
+  {
+    COORD_PHI = 1<<0,
+    COORD_R = 1<<1,
+    COORD_Z = 1<<2
+  };
+
+  // use corrections on specific set of coordinates
+  void set_coordinates( unsigned int value )
+  { m_coordinates = value; }
+
+  //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-  TrkrHitSetContainer *hitsetcontainer;
-  TrkrHitSetContainer *temp_hitsetcontainer;
-  TrkrHitTruthAssoc *hittruthassoc;
-  PHG4TpcPadPlane *padplane;
-  TH1 *dlong;
-  TH1 *dtrans;
-  TFile *m_outf;
-  TNtuple *nt;
-  TNtuple *nthit;
-  TNtuple *ntfinalhit;
-  TNtuple *ntpad;
+  
+  //! map a given x,y,z coordinates to plane hits
+  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+
+  TrkrHitSetContainer *hitsetcontainer = nullptr;
+  TrkrHitTruthAssoc *hittruthassoc = nullptr;
+  std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
+  std::unique_ptr<PHG4TpcPadPlane> padplane;
+
+  //! evaluation node
+  Container* m_container = nullptr;
+
+  //! space charge distortion file name
+  bool m_enable_distortions = false;
+  std::string m_distortion_filename;
+  TFile *m_distortion_tfile = nullptr;
+
+  //!@name space charge distortion histograms
+  //@{
+  TH3 *hDRint = nullptr;
+  TH3 *hDPint = nullptr;
+  TH3 *hDZint = nullptr;
+  //@}
+  
+  TH1 *dlong = nullptr;
+  TH1 *dtrans = nullptr;
+  TFile *m_outf = nullptr;
+  TNtuple *nt = nullptr;
+  TNtuple *nthit = nullptr;
+  TNtuple *ntfinalhit = nullptr;
+  TNtuple *ntpad = nullptr;
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
-  unsigned int seed;
-  double diffusion_trans;
-  double added_smear_sigma_trans;
-  double diffusion_long;
-  double added_smear_sigma_long;
-  double drift_velocity;
-  double tpc_length;
-  double electrons_per_gev;
-  double min_active_radius;
-  double max_active_radius;
-  double min_time;
-  double max_time;
+  double diffusion_trans = NAN;
+  double added_smear_sigma_trans = NAN;
+  double diffusion_long = NAN;
+  double added_smear_sigma_long = NAN;
+  double drift_velocity = NAN;
+  double tpc_length = NAN;
+  double electrons_per_gev = NAN;
+  double min_active_radius = NAN;
+  double max_active_radius = NAN;
+  double min_time = NAN;
+  double max_time = NAN;
 
-#if !defined(__CINT__) || defined(__CLING__)
-  gsl_rng *RandomGenerator;
-#endif
+  //* coordinated for which corrections are applied
+  unsigned int m_coordinates = COORD_PHI|COORD_R|COORD_Z;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+  std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
+  
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H

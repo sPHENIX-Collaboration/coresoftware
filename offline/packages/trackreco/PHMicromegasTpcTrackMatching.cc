@@ -255,11 +255,10 @@ int PHMicromegasTpcTrackMatching::Process()
 			  << " _y_proj " << _y_proj << " _z_proj " << _z_proj[imm]  
 			  << " _rphi_proj " << _rphi_proj[imm] << std::endl;
 	      
-
 	      // prints out a line that can be grep-ed from the output file to feed to a display macro
-	      if( _test_search_windows )
-		std::cout << "     deltas " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " dz " << _z_proj[imm] - mm_clus_z 
-			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
+	      if( _test_windows )
+		std::cout << "  Try_mms: " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " dz " << _z_proj[imm] - mm_clus_z 
+			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " rphi_proj " <<  _rphi_proj[imm] << " z_proj " << _z_proj[imm] << std::endl;
 	    }
 	}
 

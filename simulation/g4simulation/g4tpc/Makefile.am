@@ -41,6 +41,7 @@ libg4tpc_la_SOURCES = \
   PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcDistortion.cc \
   PHG4TpcElectronDrift.cc \
+  PHG4TpcElectronDrift_Dict.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSpaceChargeDistortion.cc \
