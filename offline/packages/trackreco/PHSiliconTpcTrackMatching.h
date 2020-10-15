@@ -47,6 +47,8 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   }
   void set_field(const std::string &field) { _field = field;}
 
+  void set_test_windows(const bool test){_test_windows = test ;}
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -79,6 +81,7 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   std::string _field;
   int _fieldDir = -1;
 
+  bool _test_windows = false;
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

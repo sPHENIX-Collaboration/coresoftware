@@ -139,6 +139,7 @@ int PHSiliconTpcTrackMatching::Process()
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
+	  double si_pt = sqrt(pow(_tracklet_si->get_px(), 2) + pow(_tracklet_si->get_py(), 2) );
 
 	  if(Verbosity() >= 2)
 	    {
@@ -146,11 +147,6 @@ int PHSiliconTpcTrackMatching::Process()
 	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta 
 		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
 	    }
-
-	  /*
-	    cout << " Try: pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
-	         << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
-	  */
 
 	  bool eta_match = false;
 	  bool phi_match = false;
@@ -183,6 +179,11 @@ int PHSiliconTpcTrackMatching::Process()
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
 		}
+
+	      if(_test_windows)
+		cout << " Try_silicon:  pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
+		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+
 	      si_matches.insert(_tracklet_si->get_id());
 	    }
 	  else
