@@ -6,7 +6,6 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "MakeActsGeometry.h"
 #include "ActsTrack.h"
 #include "ActsTransformations.h"
 

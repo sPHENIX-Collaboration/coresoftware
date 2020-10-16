@@ -25,6 +25,7 @@
 #include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
 #include "ActsTrackingGeometry.h"
+#include "ActsSurfaceMaps.h"
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -32,7 +33,6 @@ class TrkrCluster;
 class TGeoNode;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
-class MakeActsGeometry;
 
 
 namespace ActsExamples
@@ -139,6 +139,15 @@ class PHActsSourceLinks : public SubsysReco
   void addVerticesAsSourceLinks(PHCompositeNode *topNode,
 				unsigned int &hitId);
 
+  /// Gets tpc surface from a cluster coordinate and hitsetkey. Necessary
+  /// since there are many tpc surfaces per read out module
+  Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
+  Surface getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
+
   /**
    * Member variables
    */
@@ -147,9 +156,6 @@ class PHActsSourceLinks : public SubsysReco
 
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap;
-
-  /// Geometry object to create all acts geometry
-  MakeActsGeometry *m_actsGeometry;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
@@ -168,7 +174,7 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
   ActsTrackingGeometry *m_tGeometry;
-
+  ActsSurfaceMaps *m_surfMaps;
 };
 
 #endif

@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
   ActsTransformations.h \
   ActsTrack.h \
   ActsTrackingGeometry.h \
+  ActsSurfaceMaps.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \

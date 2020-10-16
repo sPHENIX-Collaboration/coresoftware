@@ -11,6 +11,9 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
+#include "ActsTrackingGeometry.h"
+#include "ActsSurfaceMaps.h"
+
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
 #include <Acts/Utilities/Logger.hpp>                           
@@ -35,12 +38,14 @@ class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
 
-namespace ActsExamples {
+namespace ActsExamples 
+{
   class IBaseDetector;
   class IContextDecorator;
 }
 
-namespace Acts {
+namespace Acts 
+{
   class Surface;
 }
 
@@ -55,7 +60,7 @@ using TrackingVolumePtr = std::shared_ptr<const Acts::TrackingVolume>;
  * This class puts several nodes on the node tree which relate Acts::Surfaces
  * to sPHENIX TGeo objects, for use in building Acts SourceLinks.
  */
-class MakeActsGeometry
+class MakeActsGeometry : public SubsysReco
 {
  public:
 
@@ -65,50 +70,26 @@ class MakeActsGeometry
   //! Destructor
   ~MakeActsGeometry();
 
-  /// Main function to build all acts geometry for use in the fitting modules
-  int buildAllGeometry(PHCompositeNode *topNode);
- 
-  void setVerbosity(int verbosity)
-    { m_verbosity = verbosity; }
+  int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
-  std::map<TrkrDefs::hitsetkey,Surface> getSurfaceMapSilicon()
-    { return m_clusterSurfaceMapSilicon; }
-  
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> getSurfaceMapTpc()
-    { return m_clusterSurfaceMapTpcEdit; }
-  
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> getTGeoNodeMap()
-    { return m_clusterNodeMap; }
-   
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
-  
-  /// Getters for acts geometry that is needed by fitter functions
-  TrackingGeometry getTGeometry(){ return m_tGeometry; }
-  ActsExamples::Options::BFieldVariant getMagField()
-    { return m_magneticField; }
-  Acts::MagneticFieldContext getMagFieldContext() 
-    { return m_magFieldContext; }
-  Acts::CalibrationContext getCalibContext() 
-    { return m_calibContext; }
-  Acts::GeometryContext getGeoContext() 
-    { return m_geoCtxt; }
-  
-  /// Gets tpc surface from a cluster coordinate and hitsetkey. Necessary
-  /// since there are many tpc surfaces per read out module
-  Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
-    std::vector<double> &world);
-
-  Surface getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
-    std::vector<double> &world);
 
   void setMagField(const std::string &magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  int getSurfStepPhi() {return m_surfStepPhi;}
+  int getSurfStepZ() {return m_surfStepZ;}
+
  private:
-  
+  /// Main function to build all acts geometry for use in the fitting modules
+  int buildAllGeometry(PHCompositeNode *topNode);
+ 
   //! Get all the nodes
   int getNodes(PHCompositeNode*);
   
@@ -222,6 +203,10 @@ class MakeActsGeometry
   Acts::GeometryContext  m_geoCtxt;  
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;
+
+  /// Structs to put on the node tree which carry around ActsGeom info
+  ActsTrackingGeometry *m_actsGeometry;
+  ActsSurfaceMaps *m_surfMaps;
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity;
