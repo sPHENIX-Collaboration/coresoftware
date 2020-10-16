@@ -83,8 +83,8 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
-  int getSurfStepPhi() {return m_surfStepPhi;}
-  int getSurfStepZ() {return m_surfStepZ;}
+  double getSurfStepPhi() {return m_surfStepPhi;}
+  double getSurfStepZ() {return m_surfStepZ;}
 
  private:
   /// Main function to build all acts geometry for use in the fitting modules

@@ -709,7 +709,6 @@ void MakeActsGeometry::unpackVolumes()
       auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
       auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
       auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-      
       makeMvtxMapPairs(mvtxBarrel);
       
       /// INTT only has one volume, so there is not an added volume extraction
@@ -720,6 +719,7 @@ void MakeActsGeometry::unpackVolumes()
       /// Same for the TPC - only one volume. Buried under silicon
       /// volume array
       auto tpcVolume = siliconVolumes->arrayObjects().at(1);
+
       makeTpcMapPairs(tpcVolume);
     }
 
@@ -728,7 +728,9 @@ void MakeActsGeometry::unpackVolumes()
 
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 {
-
+  if(Verbosity() > 1)
+    std::cout << "Building TPC with " << tpcVolume->volumeName() << std::endl;
+   
   auto tpcLayerArray = tpcVolume->confinedLayers();
   auto tpcLayerVector = tpcLayerArray->arrayObjects();
 
@@ -781,6 +783,11 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
+
+  if(Verbosity() > 1)
+    std::cout << "Building MMs with " << mmVolume->volumeName() << std::endl;
+    
+
   auto mmLayerArray = mmVolume->confinedLayers();
   auto mmLayerVector = mmLayerArray->arrayObjects();
 
@@ -844,8 +851,6 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
   // inttLayerVector is a std::vector<LayerPtr>
   for (unsigned int i = 0; i < inttLayerVector.size(); i++)
   {
-    //auto vol = inttLayerVector.at(i)->trackingVolume();
-
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
     auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
     if (surfaceArray == NULL)
@@ -890,9 +895,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
         std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ
                   << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
-        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
         std::cout << " surface type " << surf->type() << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
         auto assoc_layer = surf->associatedLayer();
         std::cout << std::endl
                   << " Layer type " << assoc_layer->layerType() << std::endl;
@@ -978,7 +981,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
         std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
         std::cout << " surface type " << surf_iter->second->type() 
 		  << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
         auto assoc_layer = surf->associatedLayer();
         std::cout << std::endl << " Layer type " 
 		  << assoc_layer->layerType() << std::endl;
@@ -1501,7 +1503,6 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
-
   for(unsigned int isector = 0; isector < 3; ++isector)
     {
       layer_thickness_sector[isector] = 

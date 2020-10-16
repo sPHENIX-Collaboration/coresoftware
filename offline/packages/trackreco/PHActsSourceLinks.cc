@@ -1228,8 +1228,8 @@ Surface PHActsSourceLinks::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
 
   /// Get some geometry values from the geom builder for parsing surfaces
   MakeActsGeometry *geom = new MakeActsGeometry();
-  int surfStepPhi = geom->getSurfStepPhi();
-  int surfStepZ = geom->getSurfStepZ();
+  double surfStepPhi = geom->getSurfStepPhi();
+  double surfStepZ = geom->getSurfStepZ();
 
   for(unsigned int i=0;i<surf_vec.size(); ++i)
     {
@@ -1287,8 +1287,8 @@ Surface PHActsSourceLinks::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey
   unsigned int surf_index = 999;
 
   MakeActsGeometry *geom = new MakeActsGeometry();
-  int surfStepPhi = geom->getSurfStepPhi();
-  int surfStepZ = geom->getSurfStepZ();
+  double surfStepPhi = geom->getSurfStepPhi();
+  double surfStepZ = geom->getSurfStepZ();
 
   for(unsigned int i=0;i<surf_vec.size(); ++i)
     {
@@ -1298,6 +1298,7 @@ Surface PHActsSourceLinks::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);
       double surf_z = surf_center[2];
+ 
       if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
 	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
 	{
