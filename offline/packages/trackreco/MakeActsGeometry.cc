@@ -73,17 +73,6 @@
 
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
 : SubsysReco(name)
-  , m_geomContainerMvtx(nullptr)
-  , m_geomContainerIntt(nullptr)
-  , m_geomContainerTpc(nullptr)
-  , m_geoManager(nullptr)
-  , m_minSurfZ(0.0)
-  , m_maxSurfZ(105.5)
-  , m_nSurfZ(1)
-  , m_nSurfPhi(12)
-  , m_magField("1.4")
-  , m_magFieldRescale(-1.0)
-  , m_buildMMs(false)
 {
   setPlanarSurfaceDivisions();
   nprint_tpc = 0;

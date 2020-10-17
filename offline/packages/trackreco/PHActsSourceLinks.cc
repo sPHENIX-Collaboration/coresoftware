@@ -52,16 +52,6 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
-  , m_useVertexMeasurement(false)
-  , m_clusterMap(nullptr)
-  , m_hitIdClusKey(nullptr)
-  , m_sourceLinks(nullptr)
-  , m_magField("1.4")
-  , m_magFieldRescale(-1.0)
-  , m_geomContainerMvtx(nullptr)
-  , m_geomContainerIntt(nullptr)
-  , m_geomContainerTpc(nullptr)
-  , m_tGeometry(nullptr)
 {
   Verbosity(0);
 }

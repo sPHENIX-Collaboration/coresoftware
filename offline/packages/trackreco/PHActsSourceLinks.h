@@ -152,29 +152,29 @@ class PHActsSourceLinks : public SubsysReco
    * Member variables
    */
 
-  bool m_useVertexMeasurement;
+  bool m_useVertexMeasurement = false;
 
   /// SvtxCluster node
-  TrkrClusterContainer *m_clusterMap;
+  TrkrClusterContainer *m_clusterMap = nullptr;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey = nullptr;
 
   /// Map for source hitid:sourcelink, to be put on node tree by this module
-  std::map<unsigned int, SourceLink> *m_sourceLinks;
+  std::map<unsigned int, SourceLink> *m_sourceLinks = nullptr;
 
   /// Magnetic field components to set Acts magnetic field
-  std::string m_magField;
-  double m_magFieldRescale;
+  std::string m_magField = "1.4";
+  double m_magFieldRescale = -1.;
 
   /// Tracking geometry objects
-  PHG4CylinderGeomContainer *m_geomContainerMvtx;
-  PHG4CylinderGeomContainer *m_geomContainerIntt;
-  PHG4CylinderCellGeomContainer *m_geomContainerTpc;
+  PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
+  PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
+  PHG4CylinderCellGeomContainer *m_geomContainerTpc = nullptr;
 
-  ActsTrackingGeometry *m_tGeometry;
-  ActsSurfaceMaps *m_surfMaps;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
 };
 
 #endif

@@ -141,11 +141,11 @@ class MakeActsGeometry : public SubsysReco
   void unpackVolumes();
 
   /// Subdetector geometry containers for getting layer information
-  PHG4CylinderGeomContainer* m_geomContainerMvtx;  
-  PHG4CylinderGeomContainer* m_geomContainerIntt;
-  PHG4CylinderCellGeomContainer* m_geomContainerTpc;
+  PHG4CylinderGeomContainer* m_geomContainerMvtx = nullptr;
+  PHG4CylinderGeomContainer* m_geomContainerInt = nullptrt;
+  PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
 
-  TGeoManager* m_geoManager; 
+  TGeoManager* m_geoManager = nullptr;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
@@ -163,10 +163,10 @@ class MakeActsGeometry : public SubsysReco
   const unsigned int m_nTpcSides = 2;
 
   /// TPC Acts::Surface subdivisions
-  double m_minSurfZ;
-  double m_maxSurfZ;
-  unsigned int m_nSurfZ;
-  unsigned int m_nSurfPhi;
+  double m_minSurfZ = 0.;
+  double m_maxSurfZ = 105.5;
+  unsigned int m_nSurfZ = 1;
+  unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi;
   double m_surfStepZ;
   double m_moduleStepPhi;
@@ -205,17 +205,17 @@ class MakeActsGeometry : public SubsysReco
   Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
-  ActsTrackingGeometry *m_actsGeometry;
-  ActsSurfaceMaps *m_surfMaps;
+  ActsTrackingGeometry *m_actsGeometry = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
-  int m_verbosity;
+  int m_verbosity = 0;
 
   /// Magnetic field components to set Acts magnetic field
-  std::string m_magField;
-  double m_magFieldRescale;
+  std::string m_magField ="1.4" ;
+  double m_magFieldRescale = -1.;
 
-  bool m_buildMMs;
+  bool m_buildMMs = false;
 
 };
 
