@@ -47,7 +47,9 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   }
   void set_field(const std::string &field) { _field = field;}
 
-  void set_test_windows(const bool test){_test_windows = test ;}
+  void set_test_windows_printout(const bool test){_test_windows = test ;}
+  void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
+  void set_collision_rate(const double rate){_collision_rate = rate;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -64,24 +66,34 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
 
   // default values, can be replaced from the macro
   double _phi_search_win = 0.02;
-  double _eta_search_win = 0.02;
+  double _eta_search_win = 0.015;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
 
+  // correction function for PHTpcTracker track phi bias
   TF1 *fdphi{nullptr};
   // default values, can be replaced from the macro
   double _par0 =  -0.000650;
   double _par1 =  0.13373;
   double _par2 =  0.98298;
 
+  // correction factor for TPC tracklet phi offset due to space charge in TPC
+  TF1 *fscdphi{nullptr};
+  double _parsc0 =  0.0366293;
+  double _parsc1 =   -0.0133073;
+
+  double _collision_rate = 50e3;  // input rate for phi correction
+  double _reference_collision_rate = 50e3;  // reference rate for phi correction
+
   bool _is_ca_seeder = false;
+  bool _sc_calib_flag = false;
+  bool _test_windows = false;
 
   std::string _field;
   int _fieldDir = -1;
 
-  bool _test_windows = false;
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H
