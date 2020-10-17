@@ -6,7 +6,6 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "MakeActsGeometry.h"
 #include "ActsTrack.h"
 #include "ActsTransformations.h"
 
@@ -197,7 +196,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     ActsExamples::TrackParameters trackSeed = track.getTrackParams();
 
     /// If using directed navigation, collect surface list to navigate
-    SurfaceVec surfaces;
+    SurfacePtrVec surfaces;
     if(m_fitSiliconMMs)
       {	
 	sourceLinks = getSurfaceVector(sourceLinks, surfaces);
@@ -370,7 +369,7 @@ ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrac
 	  const ActsExamples::TrackParameters& seed,
 	  const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
 	         kfOptions, 
-	  const SurfaceVec& surfSequence)
+	  const SurfacePtrVec& surfSequence)
 {
   if(m_fitSiliconMMs) 
     return m_fitCfg.dFit(sourceLinks, seed, kfOptions, surfSequence);  
@@ -379,7 +378,7 @@ ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrac
 }
 
 SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
-						SurfaceVec& surfaces)
+						SurfacePtrVec& surfaces)
 {
    SourceLinkVec siliconMMSls;
 
@@ -412,7 +411,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
 }
 
 
-void PHActsTrkFitter::checkSurfaceVec(SurfaceVec &surfaces)
+void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 {
   for(int i = 0; i < surfaces.size() - 1; i++)
     {

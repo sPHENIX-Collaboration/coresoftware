@@ -1,6 +1,8 @@
-
 #ifndef TRACKRECO_PHACTSSOURCELINKS_H
 #define TRACKRECO_PHACTSSOURCELINKS_H
+
+#include "ActsTrackingGeometry.h"
+#include "ActsSurfaceMaps.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -24,7 +26,6 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
-#include "ActsTrackingGeometry.h"
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -32,7 +33,6 @@ class TrkrCluster;
 class TGeoNode;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
-class MakeActsGeometry;
 
 
 namespace ActsExamples
@@ -139,17 +139,23 @@ class PHActsSourceLinks : public SubsysReco
   void addVerticesAsSourceLinks(PHCompositeNode *topNode,
 				unsigned int &hitId);
 
+  /// Gets tpc surface from a cluster coordinate and hitsetkey. Necessary
+  /// since there are many tpc surfaces per read out module
+  Surface getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
+  Surface getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
+
   /**
    * Member variables
    */
 
-  bool m_useVertexMeasurement;
+  bool m_useVertexMeasurement = false;
 
   /// SvtxCluster node
-  TrkrClusterContainer *m_clusterMap;
-
-  /// Geometry object to create all acts geometry
-  MakeActsGeometry *m_actsGeometry;
+  TrkrClusterContainer *m_clusterMap = nullptr;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
@@ -159,16 +165,16 @@ class PHActsSourceLinks : public SubsysReco
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Magnetic field components to set Acts magnetic field
-  std::string m_magField;
-  double m_magFieldRescale;
+  std::string m_magField = "1.4";
+  double m_magFieldRescale = -1.;
 
   /// Tracking geometry objects
-  PHG4CylinderGeomContainer *m_geomContainerMvtx;
-  PHG4CylinderGeomContainer *m_geomContainerIntt;
-  PHG4CylinderCellGeomContainer *m_geomContainerTpc;
+  PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
+  PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
+  PHG4CylinderCellGeomContainer *m_geomContainerTpc = nullptr;
 
-  ActsTrackingGeometry *m_tGeometry;
-
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
 };
 
 #endif
