@@ -1,6 +1,8 @@
-
 #ifndef TRACKRECO_PHACTSSOURCELINKS_H
 #define TRACKRECO_PHACTSSOURCELINKS_H
+
+#include "ActsTrackingGeometry.h"
+#include "ActsSurfaceMaps.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -24,8 +26,6 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
-#include "ActsTrackingGeometry.h"
-#include "ActsSurfaceMaps.h"
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -159,10 +159,10 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey = nullptr;
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   /// Map for source hitid:sourcelink, to be put on node tree by this module
-  std::map<unsigned int, SourceLink> *m_sourceLinks = nullptr;
+  std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";

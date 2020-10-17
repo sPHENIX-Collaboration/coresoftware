@@ -142,7 +142,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// Subdetector geometry containers for getting layer information
   PHG4CylinderGeomContainer* m_geomContainerMvtx = nullptr;
-  PHG4CylinderGeomContainer* m_geomContainerInt = nullptrt;
+  PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
 
   TGeoManager* m_geoManager = nullptr;

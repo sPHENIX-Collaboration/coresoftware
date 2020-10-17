@@ -52,6 +52,8 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
+  , m_hitIdClusKey(nullptr)
+  , m_sourceLinks(nullptr)
 {
   Verbosity(0);
 }
