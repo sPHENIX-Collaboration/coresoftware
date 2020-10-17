@@ -212,7 +212,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	    // rough correction for space charge distortion, just to allow tighter matching windows
 	    _rphi_proj[imm] -= fdrphi->Eval(_z_proj[imm]);
 	  }
-      }
+      }   // end loop over Micromegas layers
       
       if(skip_tracklet == true)
 	continue;   // skips to the next TPC tracklet

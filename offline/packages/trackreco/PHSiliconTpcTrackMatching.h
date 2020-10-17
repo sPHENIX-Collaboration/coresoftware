@@ -65,8 +65,8 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
-  double _phi_search_win = 0.02;
-  double _eta_search_win = 0.015;
+  double _phi_search_win = 0.01;
+  double _eta_search_win = 0.004;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
