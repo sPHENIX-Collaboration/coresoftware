@@ -24,17 +24,10 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
 
   virtual ~PHG4TpcPadPlane() {}
 
-#if !defined(__CINT__) || defined(__CLING__)
   int process_event(PHCompositeNode *) final
   {
     return 0;
   }
-#else
-  int process_event(PHCompositeNode *)
-  {
-    return 0;
-  }
-#endif
   int InitRun(PHCompositeNode *topNode);
   virtual int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) { return 0; }
   virtual void UpdateInternalParameters() { return; }

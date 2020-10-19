@@ -29,7 +29,11 @@
 #include <phgeom/PHGeomTGeo.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -68,18 +72,7 @@
 #include <vector>
 
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
-  : m_geomContainerMvtx(nullptr)
-  , m_geomContainerIntt(nullptr)
-  , m_geomContainerTpc(nullptr)
-  , m_geoManager(nullptr)
-  , m_minSurfZ(0.0)
-  , m_maxSurfZ(105.5)
-  , m_nSurfZ(1)
-  , m_nSurfPhi(12)
-  , m_verbosity(0)
-  , m_magField("1.4")
-  , m_magFieldRescale(-1.0)
-  , m_buildMMs(false)
+: SubsysReco(name)
 {
   setPlanarSurfaceDivisions();
   nprint_tpc = 0;
@@ -87,6 +80,42 @@ MakeActsGeometry::MakeActsGeometry(const std::string &name)
 
 MakeActsGeometry::~MakeActsGeometry()
 {}
+
+int MakeActsGeometry::Init(PHCompositeNode *topNode)
+{  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
+{
+
+  if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
+
+  /// Set the actsGeometry struct to be put on the node tree
+  m_actsGeometry->tGeometry = m_tGeometry;
+  m_actsGeometry->magField = m_magneticField;
+  m_actsGeometry->calibContext = m_calibContext;
+  m_actsGeometry->magFieldContext = m_magFieldContext;
+  m_actsGeometry->geoContext = m_geoCtxt;
+
+  /// Same for the surface maps
+  m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
+  m_surfMaps->tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
+  m_surfMaps->tGeoNodeMap = m_clusterNodeMap;
+  m_surfMaps->mmSurfaceMap = m_clusterSurfaceMapMmEdit;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
+}
+
+int MakeActsGeometry::process_event(PHCompositeNode *topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+int MakeActsGeometry::End(PHCompositeNode *topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
@@ -96,9 +125,11 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // Do this before anything else, so that the geometry is finalized
   editTPCGeometry(topNode);
 
-  getNodes(topNode);  
-
-  createNodes(topNode);
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;  
+  
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Run Acts layer builder
   buildActsSurfaces();
@@ -107,7 +138,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   makeTGeoNodeMap(topNode);
 
   /// Export the new geometry to a root file for examination
-  if(m_verbosity > 3)
+  if(Verbosity() > 3)
     {
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root"); 
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
@@ -145,7 +176,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoNode *tpc_gas_north_node = nullptr;
 
   // find tpc north gas volume at path of World*/tpc_envelope*
-  if (m_verbosity)
+  if (Verbosity())
   {
     std::cout << "EditTPCGeometry - searching under volume: ";
     World_vol->Print();
@@ -156,7 +187,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
     if (node_name.BeginsWith("tpc_envelope"))
     {
-      if (m_verbosity)
+      if (Verbosity())
         std::cout << "EditTPCGeometry - found " << node_name << std::endl;
 
       tpc_envelope_node = World_vol->GetNode(i);
@@ -168,7 +199,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // find tpc north gas volume at path of World*/tpc_envelope*/tpc_gas_north*
   TGeoVolume *tpc_envelope_vol = tpc_envelope_node->GetVolume();
   assert(tpc_envelope_vol);
-  if (m_verbosity)
+  if (Verbosity())
     {
       std::cout << "EditTPCGeometry - searching under volume: ";
       tpc_envelope_vol->Print();
@@ -180,7 +211,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
       
       if (node_name.BeginsWith("tpc_gas_north"))
 	{
-	  if (m_verbosity)
+	  if (Verbosity())
 	    std::cout << "EditTPCGeometry - found " << node_name << std::endl;
 	  
 	  tpc_gas_north_node = tpc_envelope_vol->GetNode(i);
@@ -192,7 +223,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
   assert(tpc_gas_north_vol);
 
-  if (m_verbosity)
+  if (Verbosity())
   {
     std::cout << "EditTPCGeometry - gas volume: ";
     tpc_gas_north_vol->Print();
@@ -219,7 +250,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
     if (node_name.BeginsWith("MICROMEGAS"))
     {
-      if (m_verbosity)
+      if (Verbosity())
         std::cout << "EditTPCGeometry - found micromegas node " << node_name << std::endl;
 
       micromegas_envelope_node = World_vol->GetNode(i);
@@ -243,7 +274,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 	  // this gets both inner and outer
 	  if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
 	    {
-	      if (m_verbosity)
+	      if (Verbosity())
 		std::cout << "EditTPCGeometry - found Micromegas node " << node_name << std::endl;
 	      
 	      TGeoNode *micromegas_node = nullptr;
@@ -311,9 +342,9 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer,
   micromegas_measurement_vol->SetFillColor(kYellow);
   micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  if(m_verbosity > 1)
+  if(Verbosity() > 1)
     {
-      std::cout << m_verbosity << " Made box for Micromegas layer " 
+      std::cout << Verbosity() << " Made box for Micromegas layer " 
 		<< mm_layer << " with dx " << box_thickness << " dy " 
 		<< box_r_phi << " ref arc " 
 		<< m_surfStepPhi * m_mmLayerRadius[mm_layer] << " dz " 
@@ -358,7 +389,7 @@ void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer,
 	      micromegas_vol->AddNode(micromegas_measurement_vol, copy, 
 				      micromegas_measurement_location);
 	      
-	      if(m_verbosity > 10) 
+	      if(Verbosity() > 10) 
 		{
 		  std::cout << " Made copy " << copy << mm_layer << " iphi " 
 			    << iphi << std::endl;
@@ -402,9 +433,9 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-      if(m_verbosity > 30)
+      if(Verbosity() > 30)
 	{
-	  std::cout << m_verbosity << " Made box for layer " << ilayer 
+	  std::cout << Verbosity() << " Made box for layer " << ilayer 
 		    << " with dx " << m_layerThickness[ilayer] << " dy " 
 		    << box_r_phi << " ref arc " 
 		    << m_surfStepPhi * m_layerRadius[ilayer] << " dz " 
@@ -450,7 +481,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 		  tpc_gas_vol->AddNode(tpc_gas_measurement_vol[ilayer], 
 				       copy, tpc_gas_measurement_location);
 		  
-		  if(m_verbosity > 30 && ilayer == 30) 
+		  if(Verbosity() > 30 && ilayer == 30) 
 		    {
 		      std::cout << " Made copy " << copy << " iz " << iz 
 				<< " imod " << imod << " ilayer " << ilayer
@@ -476,7 +507,7 @@ void MakeActsGeometry::buildActsSurfaces()
   const int argc = 14;
   char *arg[argc];
  
-  if(m_verbosity > 0)
+  if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
   
@@ -513,7 +544,7 @@ void MakeActsGeometry::buildActsSurfaces()
 	std::string("/ACTS/sphenix-material.json");
     }
   
-  if(m_verbosity > 4)
+  if(Verbosity() > 4)
     {
       std::cout << "using material file : " << materialFile 
 		<< std::endl;
@@ -598,7 +629,7 @@ void MakeActsGeometry::unpackVolumes()
   /// vol is a TrackingVolume pointer  
   auto vol = m_tGeometry->highestTrackingVolume();
 
-  if(m_verbosity > 10 )
+  if(Verbosity() > 10 )
     std::cout << "Highest Tracking Volume is "
 	      << vol->volumeName() << std::endl;
 
@@ -615,7 +646,7 @@ void MakeActsGeometry::unpackVolumes()
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
-  if(m_verbosity > 10 )
+  if(Verbosity() > 10 )
     {
       for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
 	{
@@ -627,7 +658,7 @@ void MakeActsGeometry::unpackVolumes()
 
   auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
   auto siliconVolumesVector = siliconVolumes->arrayObjects();
-  if(m_verbosity > 10 )
+  if(Verbosity() > 10 )
     {
       for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
 	std::cout << "SiliconVolumeName: " 
@@ -667,7 +698,6 @@ void MakeActsGeometry::unpackVolumes()
       auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
       auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
       auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-      
       makeMvtxMapPairs(mvtxBarrel);
       
       /// INTT only has one volume, so there is not an added volume extraction
@@ -678,6 +708,7 @@ void MakeActsGeometry::unpackVolumes()
       /// Same for the TPC - only one volume. Buried under silicon
       /// volume array
       auto tpcVolume = siliconVolumes->arrayObjects().at(1);
+
       makeTpcMapPairs(tpcVolume);
     }
 
@@ -686,7 +717,9 @@ void MakeActsGeometry::unpackVolumes()
 
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 {
-
+  if(Verbosity() > 1)
+    std::cout << "Building TPC with " << tpcVolume->volumeName() << std::endl;
+   
   auto tpcLayerArray = tpcVolume->confinedLayers();
   auto tpcLayerVector = tpcLayerArray->arrayObjects();
 
@@ -739,6 +772,11 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
+
+  if(Verbosity() > 1)
+    std::cout << "Building MMs with " << mmVolume->volumeName() << std::endl;
+    
+
   auto mmLayerArray = mmVolume->confinedLayers();
   auto mmLayerVector = mmLayerArray->arrayObjects();
 
@@ -790,7 +828,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 {
   
-  if(m_verbosity > 10)
+  if(Verbosity() > 10)
     {
       std::cout << "intt volume name: "  << inttVolume->volumeName()
 		<< std::endl;
@@ -802,8 +840,6 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
   // inttLayerVector is a std::vector<LayerPtr>
   for (unsigned int i = 0; i < inttLayerVector.size(); i++)
   {
-    //auto vol = inttLayerVector.at(i)->trackingVolume();
-
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
     auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
     if (surfaceArray == NULL)
@@ -840,7 +876,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (m_verbosity > 10)
+      if (Verbosity() > 10)
       {
         // check it is in there
         unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
@@ -848,9 +884,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
         std::cout << "Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ
                   << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
-        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
         std::cout << " surface type " << surf->type() << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
         auto assoc_layer = surf->associatedLayer();
         std::cout << std::endl
                   << " Layer type " << assoc_layer->layerType() << std::endl;
@@ -876,7 +910,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 {
   
-  if(m_verbosity > 10)
+  if(Verbosity() > 10)
     {
       std::cout << "MVTX Barrel name to step surfaces through is " 
 	      << mvtxVolume->volumeName() << std::endl;
@@ -922,7 +956,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (m_verbosity > 10)
+      if (Verbosity() > 10)
       {
         unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
         unsigned int chip = MvtxDefs::getChipId(hitsetkey);
@@ -936,7 +970,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
         std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
         std::cout << " surface type " << surf_iter->second->type() 
 		  << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
         auto assoc_layer = surf->associatedLayer();
         std::cout << std::endl << " Layer type " 
 		  << assoc_layer->layerType() << std::endl;
@@ -957,104 +990,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     }
   }
 }
-
-Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
-{
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-  mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
-  
-  if(mapIter == m_clusterSurfaceMapTpcEdit.end())
-    {
-      std::cout << PHWHERE << "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " << hitsetkey << std::endl;
-      return nullptr;
-    }
-
-  double world_phi = atan2(world[1], world[0]);
-  double world_z = world[2];
-  
-  std::vector<Surface> surf_vec = mapIter->second;
-  unsigned int surf_index = 999;
-  for(unsigned int i=0;i<surf_vec.size(); ++i)
-    {
-      Surface this_surf = surf_vec[i];
-  
-      auto vec3d = this_surf->center(m_geoCtxt);
-      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double surf_phi = atan2(surf_center[1], surf_center[0]);
-      double surf_z = surf_center[2];
-      if( (world_phi > surf_phi - m_surfStepPhi / 2.0 && world_phi < surf_phi + m_surfStepPhi / 2.0 ) &&
-	  (world_z > surf_z -m_surfStepZ / 2.0 && world_z < surf_z + m_surfStepZ / 2.0) )
-	{
-	  surf_index = i;	  
-	  break;
-	}
-    }
-  if(surf_index == 999)
-    {
-      std::cout << PHWHERE 
-		<< "Error: TPC surface index not defined, skipping cluster!" 
-		<< std::endl;
-      return nullptr;
-    }
- 
-  return surf_vec[surf_index];
-
-}
-
-Surface MakeActsGeometry::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
-						 std::vector<double> &world)
-{
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-  mapIter = m_clusterSurfaceMapMmEdit.find(hitsetkey);
-  
-  if(mapIter == m_clusterSurfaceMapMmEdit.end())
-    {
-      std::cout << PHWHERE 
-		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = " 
-		<< hitsetkey << std::endl;
-      return nullptr;
-    }
-
-  double world_phi = atan2(world[1], world[0]);
-  double world_z = world[2];
-  
-  std::vector<Surface> surf_vec = mapIter->second;
-  unsigned int surf_index = 999;
-  for(unsigned int i=0;i<surf_vec.size(); ++i)
-    {
-      Surface this_surf = surf_vec[i];
-  
-      auto vec3d = this_surf->center(m_geoCtxt);
-      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double surf_phi = atan2(surf_center[1], surf_center[0]);
-      double surf_z = surf_center[2];
-
-      /// Check if the cluster is geometrically within the surface boundaries
-      /// The MMs surfaces span the entire length in z, so we don't divide
-      /// by 2 in the z direction since the center of the surface is z=0
-      bool withinPhi = world_phi >= surf_phi - m_surfStepPhi / 2.0
-	&& world_phi < surf_phi + m_surfStepPhi / 2.0;
-      bool withinZ = world_z > surf_z - m_surfStepZ 
-	&& world_z < surf_z + m_surfStepZ;
-      if( withinPhi && withinZ )
-	{
-	  surf_index = i;	  
-	  break;
-	}
-    }
-  if(surf_index == 999)
-    {
-      std::cout << PHWHERE 
-		<< "Error: Micromegas surface index not defined, skipping cluster!" 
-		<< std::endl;
-    
-      return nullptr;
-    }
- 
-  return surf_vec[surf_index];
-
-}
-
 
 TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
@@ -1115,7 +1050,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
     }
 
   TrkrDefs::hitsetkey hitset_key = TpcDefs::genHitSetKey(layer, readout_mod, side);
-  if(m_verbosity > 3)
+  if(Verbosity() > 3)
     if(layer == 30)
       std::cout << "   world = " << world[0] << "  " << world[1] 
 		<< "  " << world[2] << " phi_world " 
@@ -1166,7 +1101,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<doubl
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey hitset_key = MicromegasDefs::genHitSetKey(layer, segtype, tile);
 
-  if(m_verbosity > 3)
+  if(Verbosity() > 3)
     std::cout << PHWHERE << "    micromegas layer " << layer 
 	      << " hitsetkey " << hitset_key<< std::endl;
   
@@ -1249,7 +1184,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
-      if (m_verbosity > 2) 
+      if (Verbosity() > 2) 
 	std::cout << " node " << node->GetName() << " is the MVTX wrapper" 
 		  << std::endl;
   
@@ -1259,7 +1194,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
       while(TObject *mvtx = mvtxObj())
 	{
 	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
-	  if(m_verbosity > 2)
+	  if(Verbosity() > 2)
 	    std::cout << "mvtx node name is " << mvtxNode->GetName() 
 		      << std::endl;
 	  std::string mvtxav1("av_1");
@@ -1276,7 +1211,7 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
       if (node_str.compare(0, intt_ext.length(), intt_ext) == 0)
         continue;
 
-      if (m_verbosity > 2) 
+      if (Verbosity() > 2) 
 	std::cout << " node " << node->GetName() << " is in the INTT" 
 		  << std::endl;
       getInttKeyFromNode(node);
@@ -1285,13 +1220,13 @@ void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
     /// within TGeoVolume, we don't need a mapping to the TGeoNode
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
       {
-	if(m_verbosity > 2)
+	if(Verbosity() > 2)
 	  std::cout << " node " << node->GetName() 
 		    << " is in the TPC " << std::endl;
       }
     else if (node_str.compare(0, micromegas.length(), micromegas) == 0)  // is it in the Micromegas?
       {
-	if(m_verbosity > 2)
+	if(Verbosity() > 2)
 	  std::cout << " node " << node->GetName() 
 		    << " is in the MMs " << std::endl;
       }
@@ -1377,7 +1312,7 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
 					         node_key, sensor_node);
   m_clusterNodeMap.insert(tmp);
 
-  if (m_verbosity > 1)
+  if (Verbosity() > 1)
     std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi 
 	      << " itype " << itype << " zposneg " << zposneg 
 	      << " ladder_z " << ladder_z << " name " 
@@ -1444,7 +1379,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
     std::string dstr = module_node->GetDaughter(i)->GetName();
     if (dstr.compare(0, mvtx_chip.length(), mvtx_chip) == 0)
     {
-      if (m_verbosity > 3)
+      if (Verbosity() > 3)
         std::cout << "Found MVTX layer " << layer << " stave " << stave 
 		  << " chip  " << i << " with node name " 
 		  << module_node->GetDaughter(i)->GetName() << std::endl;
@@ -1459,7 +1394,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 						       node_key, sensor_node);
       m_clusterNodeMap.insert(tmp);
 
-      if (m_verbosity > 3)
+      if (Verbosity() > 3)
         std::cout << " MVTX layer " << layer << " stave " << stave 
 		  << " chip " << chip << " name " 
 		  << sensor_node->GetName() << std::endl;
@@ -1557,7 +1492,6 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
-
   for(unsigned int isector = 0; isector < 3; ++isector)
     {
       layer_thickness_sector[isector] = 
@@ -1577,6 +1511,49 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
 {
+  PHNodeIterator iter(topNode);
+
+  /// Get the DST Node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  
+  /// Check that it is there
+  if (!dstNode)
+    {
+      std::cerr << "DST Node missing, quitting" << std::endl;
+      throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+    }
+  
+  /// Get the tracking subnode
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  
+  /// Check that it is there
+  if (!svtxNode)
+    {
+      svtxNode = new PHCompositeNode("SVTX");
+      dstNode->addNode(svtxNode);
+    }
+
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						   "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      m_surfMaps = new ActsSurfaceMaps();
+      PHDataNode<ActsSurfaceMaps> *node
+	= new PHDataNode<ActsSurfaceMaps>(m_surfMaps, "ActsSurfaceMaps");
+      svtxNode->addNode(node);
+
+    }
+
+  m_actsGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
+							    "ActsTrackingGeometry");
+  if(!m_actsGeometry)
+    {
+      m_actsGeometry = new ActsTrackingGeometry();
+      PHDataNode<ActsTrackingGeometry> *tGeoNode 
+	= new PHDataNode<ActsTrackingGeometry>(m_actsGeometry, "ActsTrackingGeometry");
+      svtxNode->addNode(tGeoNode);
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -47,7 +47,7 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundIndices,
                                       Acts::eBoundLoc0,
                                       Acts::eBoundLoc1>;
-using SurfaceVec = std::vector<const Acts::Surface*>;
+using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
 
 class PHActsTrkFitter : public PHTrackFitting
@@ -99,13 +99,13 @@ class PHActsTrkFitter : public PHTrackFitting
 		     const ActsExamples::TrackParameters& seed,
 		     const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
 		           kfOptions,
-		     const SurfaceVec& surfSequence);
+		     const SurfacePtrVec& surfSequence);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
   SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
-				 SurfaceVec& surfaces);
-  void checkSurfaceVec(SurfaceVec& surfaces);
+				 SurfacePtrVec& surfaces);
+  void checkSurfaceVec(SurfacePtrVec& surfaces);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
