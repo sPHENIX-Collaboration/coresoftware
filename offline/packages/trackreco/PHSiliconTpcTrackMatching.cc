@@ -113,9 +113,9 @@ int PHSiliconTpcTrackMatching::Process()
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
-      double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
+      //double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
-      // phi correction for TPC tracks is charge dependent
+      // phi correction for PHTpcTracker tracklets is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge();
 
       /// Correct the correction for the field direction
@@ -131,8 +131,8 @@ int PHSiliconTpcTrackMatching::Process()
       // otherwise the matching efficiency drops off at low pT
       // not well optimized yet - smaller may work
       double mag = 1.0;
-      if(tpc_pt < 5) mag = 2.0;
-      if(tpc_pt < 2) mag = 4.0;
+      //if(tpc_pt < 5) mag = 2.0;
+      //if(tpc_pt < 2) mag = 4.0;
 
       if(Verbosity() > 3)
 	{

@@ -10,7 +10,9 @@
 #include <cmath>
 #include <memory>
 #include <phparameter/PHParameterInterface.h>
+
 #include <gsl/gsl_rng.h>
+
 #include <string>                              // for string
 
 class PHG4TpcPadPlane;
@@ -155,6 +157,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
+
   double diffusion_trans = NAN;
   double added_smear_sigma_trans = NAN;
   double diffusion_long = NAN;

@@ -497,9 +497,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
   //======================================================  
   if(Verbosity() > 2) 
+  {
     cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end before cleaning:" << endl;
-
-    std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
+  }
+  std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
 
   // Clean up undigitized hits - we want all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
