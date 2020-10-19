@@ -14,9 +14,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Random/RandomEngine.h>
-
 #include <iostream>
 #include <iterator>                           // for operator!=, reverse_ite...
 #include <set>                                // for set, _Rb_tree_const_ite...
@@ -26,7 +23,7 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
-
+#include <gsl/gsl_rng.h> 
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenParticle.h>  // for GenParticle
@@ -44,41 +41,38 @@
 
 using namespace std;
 using namespace HepMC;
-namespace CLHEP
-{
-class HepRandomEngine;
-}
+
 namespace HepMC { class GenEvent; }
 CLHEP::HepRandomEngine *engine = nullptr;
 //____________________________________________________________________________..
 FermimotionAfterburner::FermimotionAfterburner(const std::string &name):
   SubsysReco(name)
-  , seed(0)
-  , randomSeed(11793)
+  
 {
-
-
+  
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 //____________________________________________________________________________..
 FermimotionAfterburner::~FermimotionAfterburner()
 {
-  
+  gsl_rng_free(RandomGenerator);
 }
 
 //____________________________________________________________________________..
 int FermimotionAfterburner::Init(PHCompositeNode *topNode)
 {
- 
-  engine = new CLHEP::MTwistEngine(randomSeed);
-
+  
+  unsigned int seed = PHRandomSeed();  
+  gsl_rng_set(RandomGenerator, seed);
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int FermimotionAfterburner::InitRun(PHCompositeNode *topNode)
 {
- 
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -91,7 +85,7 @@ int FermimotionAfterburner::process_event(PHCompositeNode *topNode)
    
   return Fun4AllReturnCodes::EVENT_OK;
   
-   
+  
 }
 
 //____________________________________________________________________________..
@@ -149,7 +143,7 @@ PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, 
 	  cout << PHWHERE << " no evt pointer under HEPMC Node found" << endl;
 	}
       cout<<"applying fermimotion"<<std::endl;
-      FermiMotion(evt,engine);
+      FermiMotion(evt,RandomGenerator);
    
     }
   

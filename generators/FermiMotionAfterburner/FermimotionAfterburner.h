@@ -6,10 +6,9 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-
+#include <gsl/gsl_rng.h>
 class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
 class PHHepMCGenEventMap;
 
 
@@ -52,16 +51,15 @@ class FermimotionAfterburner : public SubsysReco
   /// Reset
   int Reset(PHCompositeNode * /*topNode*/) override;
 
-  void Print(const std::string &what = "ALL") const override;
+void Print(const std::string &what = "ALL") const override;
  
  private:
  
 
   void AddpF(PHCompositeNode *);
  
-
-  long seed;
-  long randomSeed;
+ 
+  gsl_rng *RandomGenerator;
 
 };
 
