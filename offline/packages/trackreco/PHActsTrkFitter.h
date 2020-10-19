@@ -95,17 +95,24 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(const SourceLinkVec& sourceLinks, 
-		     const ActsExamples::TrackParameters& seed,
-		     const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
-		           kfOptions,
-		     const SurfacePtrVec& surfSequence);
+  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(
+           const SourceLinkVec& sourceLinks, 
+	   const ActsExamples::TrackParameters& seed,
+	   const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
+	         kfOptions,
+	   const SurfacePtrVec& surfSequence);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
   SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
+
+  void getTrackFitResult(const FitResult& fitOutput, 
+			 const unsigned int trackKey,
+			 const Acts::Vector3D vertex);
+  void updateActsTrack(const FitResult& fitOutput,
+		       std::map<unsigned int, ActsTrack>::iterator iter);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 

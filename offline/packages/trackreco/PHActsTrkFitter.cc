@@ -285,63 +285,24 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     if (result.ok())
     {  
       const FitResult& fitOutput = result.value();
-   
-      /// Make a trajectory state for storage, which conforms to Acts track fit
-      /// analysis tool
-      std::vector<size_t> trackTips;
-      trackTips.push_back(fitOutput.trackTip);
-      ActsExamples::IndexedParams indexedParams;
-      if (fitOutput.fittedParameters)
-      {
-	indexedParams.emplace(fitOutput.trackTip, fitOutput.fittedParameters.value());
-	const auto& params = fitOutput.fittedParameters.value();
-        
-	if(m_timeAnalysis)
+    
+      if(m_timeAnalysis)
 	{
+	  const auto& params = fitOutput.fittedParameters.value();
+      	
 	  float px = params.momentum()(0);
 	  float py = params.momentum()(1);
 	  float pt = sqrt(px*px+py*py);
-	  h_fitTime->Fill(pt,fitTime.count() / 1000.);
+	  h_fitTime->Fill(pt, fitTime.count() / 1000.);
 	}
-        
-	if (Verbosity() > 2)
-        {
-          std::cout << "Fitted parameters for track" << std::endl;
-          std::cout << " position : " << params.position(m_tGeometry->geoContext).transpose()
-
-                    << std::endl;
-	  std::cout << "charge: "<<params.charge()<<std::endl;
-          std::cout << " momentum : " << params.momentum().transpose()
-                    << std::endl;
-	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
-        }
-      }
-
-      Trajectory trajectory(fitOutput.fittedStates, trackTips, indexedParams);
-
-      /// Get position, momentum from the Acts output. Update the values of
-      /// the proto track
-      
-      auto startUpdateTime = high_resolution_clock::now();
-      if(fitOutput.fittedParameters)
-	updateSvtxTrack(trajectory, trackKey, track.getVertex());
-
-      auto stopUpdateTime = high_resolution_clock::now();
-      auto updateTime = duration_cast<microseconds>
-	(stopUpdateTime - startUpdateTime);
-
-      if(m_timeAnalysis)
-	h_updateTime->Fill(updateTime.count() / 1000.);
-
-      if(Verbosity() > 4)
-	std::cout << "Fit time == " << fitTime.count() / 1000. << " ms" 
-		  << std::endl
-		  << "Update SvtxTrack time == " << updateTime.count() / 1000. 
-		  << " ms " << std::endl; 
-
-      /// Insert a new entry into the map
-      m_actsFitResults->insert(
-	   std::pair<const unsigned int, Trajectory>(trackKey, trajectory));
+    
+      if(m_fitSiliconMMs)
+	{
+	  updateActsTrack(fitOutput, trackIter);
+	}
+      else
+	getTrackFitResult(fitOutput, trackKey, track.getVertex());
+            
     }
     else
       {
@@ -363,6 +324,83 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   return;
 }
 
+void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
+		  std::map<unsigned int, ActsTrack>::iterator iter)
+{
+
+  const auto& params = fitOutput.fittedParameters.value();
+  auto fourVec = params.fourPosition(m_tGeometry->geoContext);
+  auto momVec = params.momentum();
+  auto p = params.absoluteMomentum();
+  auto q = params.charge();
+  Acts::BoundSymMatrix cov;
+  cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., 0.00005 , 0.,
+           0., 0., 0., 0., 0., 1.;
+
+  if(params.covariance())
+    cov = params.covariance().value();
+
+  const ActsExamples::TrackParameters siliconMMFit(fourVec, momVec, 
+						   p, q, cov);
+  iter->second.setTrackParams(siliconMMFit);
+}
+
+void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
+					const unsigned int trackKey,
+					const Acts::Vector3D vertex)
+{
+  /// Make a trajectory state for storage, which conforms to Acts track fit
+  /// analysis tool
+  std::vector<size_t> trackTips;
+  trackTips.push_back(fitOutput.trackTip);
+  ActsExamples::IndexedParams indexedParams;
+  if (fitOutput.fittedParameters)
+    {
+      indexedParams.emplace(fitOutput.trackTip, 
+			    fitOutput.fittedParameters.value());
+      const auto& params = fitOutput.fittedParameters.value();
+      
+      if (Verbosity() > 2)
+        {
+          std::cout << "Fitted parameters for track" << std::endl;
+          std::cout << " position : " << params.position(m_tGeometry->geoContext).transpose()
+	    
+                    << std::endl;
+	  std::cout << "charge: "<<params.charge()<<std::endl;
+          std::cout << " momentum : " << params.momentum().transpose()
+                    << std::endl;
+	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
+        }
+    }
+  
+  Trajectory trajectory(fitOutput.fittedStates, 
+			trackTips, indexedParams);
+  
+  /// Get position, momentum from the Acts output. Update the values of
+  /// the proto track
+  
+  auto startUpdateTime = high_resolution_clock::now();
+  if(fitOutput.fittedParameters)
+    updateSvtxTrack(trajectory, trackKey, vertex);
+  
+  auto stopUpdateTime = high_resolution_clock::now();
+  auto updateTime = duration_cast<microseconds>
+    (stopUpdateTime - startUpdateTime);
+  
+  if(m_timeAnalysis)
+    h_updateTime->Fill(updateTime.count() / 1000.);
+  
+  /// Insert a new entry into the map
+  m_actsFitResults->insert(
+        std::pair<const unsigned int, Trajectory>(trackKey, 
+						  trajectory));
+  
+  return;
+}
 
 ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrack(
           const SourceLinkVec& sourceLinks, 
@@ -388,7 +426,8 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   for(auto sl : sourceLinks)
     {
       auto volume = sl.referenceSurface().geometryId().volume();
-      
+      if(Verbosity() > 0)
+	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
       /// If volume is not the TPC add it to the list
       if(volume != 14)
 	{
