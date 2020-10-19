@@ -53,6 +53,10 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
 	    << " z_search_win outer layer " << _z_search_win[1]
 	    << endl;
 
+  fdrphi = new TF1("fdrphi", "[0] + [1]*fabs(x)");
+  fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
+  fdrphi->SetParameter(1, _par1);
+
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -202,14 +206,20 @@ int PHMicromegasTpcTrackMatching::Process()
 
 	// z projection is unique
 	_z_proj[imm] = B + A * _mm_layer_radius[imm] ;
-      }
+
+	if(_sc_calib_mode)
+	  {
+	    // rough correction for space charge distortion, just to allow tighter matching windows
+	    _rphi_proj[imm] -= fdrphi->Eval(_z_proj[imm]);
+	  }
+      }   // end loop over Micromegas layers
       
       if(skip_tracklet == true)
 	continue;   // skips to the next TPC tracklet
-      
+
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches[2];
-       for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
+      for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
 	{
 	  TrkrDefs::cluskey mm_cluskey = clusiter->first;
 	  unsigned int layer = TrkrDefs::getLayer(mm_cluskey);
@@ -244,7 +254,7 @@ int PHMicromegasTpcTrackMatching::Process()
 			<< " _z_search_win " << _z_search_win[imm] 
 			<< std::endl;
 	    }
-	  
+
 	  if(fabs(_rphi_proj[imm] - mm_clus_rphi) < _rphi_search_win[imm] && fabs(_z_proj[imm] - mm_clus_z) < _z_search_win[imm])
 	    {
 	      mm_matches[imm].push_back(mm_cluskey);
@@ -257,7 +267,7 @@ int PHMicromegasTpcTrackMatching::Process()
 	      
 	      // prints out a line that can be grep-ed from the output file to feed to a display macro
 	      if( _test_windows )
-		std::cout << "  Try_mms: " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " dz " << _z_proj[imm] - mm_clus_z 
+		std::cout << "  Try_mms: " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi  << " dz " << _z_proj[imm] - mm_clus_z 
 			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " rphi_proj " <<  _rphi_proj[imm] << " z_proj " << _z_proj[imm] << std::endl;
 	    }
 	}
