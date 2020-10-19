@@ -59,6 +59,7 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   G4double deposit = step->GetTotalEnergyDeposit() / GeV;
   G4double ionising = deposit - step->GetNonIonizingEnergyDeposit() / GeV;
+  G4double light_yield = GetVisibleEnergyDeposition(step) / GeV;
 
   auto prestatus = prestep->GetStepStatus();
 
@@ -96,12 +97,16 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
     m_hit->set_edep(0);
     m_hit->set_eion(0);
+    m_hit->set_light_yield(0);
   }
 
   m_hit->set_edep(m_hit->get_edep() + deposit);
   m_hit->set_eion(m_hit->get_eion() + ionising);
 
   G4StepPoint* poststep = step->GetPostStepPoint();
+  auto postpos = poststep->GetPosition();
+
+  m_hit->set_light_yield(m_hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
 
   poststatus = poststep->GetStepStatus();
 
@@ -130,6 +135,7 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
   {
     m_hit->set_edep(-1.);
     m_hit->set_eion(-1.);
+    m_hit->set_light_yield(-1.);
   }
 
   m_hit_container->AddHit(tile_id, m_hit);
