@@ -183,19 +183,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
   
   unsigned int seed;
-  double diffusion_trans;
-  double added_smear_sigma_trans;
-  double diffusion_long;
-  double added_smear_sigma_long;
-  double drift_velocity;
-  double tpc_length;
-  double electrons_per_gev;
-  double min_active_radius;
-  double max_active_radius;
-  double min_time;
-  double max_time;
 
-  gsl_rng *RandomGenerator;
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H
