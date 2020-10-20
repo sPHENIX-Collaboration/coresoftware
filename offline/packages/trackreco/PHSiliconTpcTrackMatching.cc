@@ -147,6 +147,10 @@ int PHSiliconTpcTrackMatching::Process()
 	{
 	  tpc_phi -= fscdphi->Eval(tpc_eta);
 	}
+      // the distortion correction can push tpc_phi outside +/- M_PI
+      if(tpc_phi < - M_PI) tpc_phi += 2.0*M_PI;
+      if(tpc_phi > M_PI) tpc_phi -= 2.0*M_PI;
+
 
       // Now search the silicon track list for a match in eta and phi
       // NOTE: we will take the combined track vertex from the vertex associated with the silicon stub, once the match is made
@@ -165,8 +169,8 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(Verbosity() >= 2)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
-	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta 
-		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win  << " tpc_eta " << tpc_eta 
+		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win << endl;
 	    }
 
 	  bool eta_match = false;
