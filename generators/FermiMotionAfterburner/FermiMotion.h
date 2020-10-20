@@ -3,14 +3,11 @@
 
 #include <gsl/gsl_rng.h>
 
-namespace HepMC { 
-class GenEvent; 
+namespace HepMC
+{
+  class GenEvent;
 }
 
-
-
-
-  int FermiMotion (HepMC::GenEvent *event, gsl_rng *RandomGenerator);
-
+int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator);
 
 #endif
