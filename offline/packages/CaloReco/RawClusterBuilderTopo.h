@@ -28,7 +28,7 @@ class RawClusterBuilderTopo : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_nodename( std::string nodename ) {
+  void set_nodename( const std::string &nodename ) {
 
     ClusterNodeName = nodename;
 

@@ -25,12 +25,6 @@ using namespace std;
 
 PHTrackSetMerging::PHTrackSetMerging(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
-  , _vertex_map(nullptr)
-  , _assoc_container(nullptr)
-  , _track_map_name_in1("SvtxTrackMap1")
-  , _track_map_name_in2("SvtxTrackMap2")
-  , _track_map_name_out("SvtxTrackMapMerged")
 {
 }
 

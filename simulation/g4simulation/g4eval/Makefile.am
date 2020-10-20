@@ -27,10 +27,7 @@ libg4eval_la_LIBADD = \
   -lmvtx_io \
   -lintt_io \
   -lmicromegas_io \
-  -lphg4hit \
-  -lphhepmc \
-  -lgsl \
-  -lgslcblas
+  -lphg4hit 
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \

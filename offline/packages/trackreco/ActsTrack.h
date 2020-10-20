@@ -3,6 +3,7 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
+#include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
@@ -34,7 +35,7 @@ class ActsTrack
   void setTrackParams(ActsExamples::TrackParameters params) { m_trackParams = params; }
 
   std::vector<SourceLink> getSourceLinks(){ return m_sourceLinks; }
-  void setSourceLinks(std::vector<SourceLink> srcLinks)
+  void setSourceLinks(const std::vector<SourceLink> &srcLinks)
   { m_sourceLinks = srcLinks; }
   
   Acts::Vector3D  getVertex() { return m_vertex;}
