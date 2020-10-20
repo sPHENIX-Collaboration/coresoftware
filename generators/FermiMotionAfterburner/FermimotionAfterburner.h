@@ -11,11 +11,9 @@
 
 class PHCompositeNode;
 
-
 class FermimotionAfterburner : public SubsysReco
 {
  public:
-
   FermimotionAfterburner(const std::string &name = "FermimotionAfterburner");
 
   virtual ~FermimotionAfterburner();
@@ -51,16 +49,12 @@ class FermimotionAfterburner : public SubsysReco
   /// Reset
   int Reset(PHCompositeNode * /*topNode*/) override;
 
-void Print(const std::string &what = "ALL") const override;
- 
+  void Print(const std::string &what = "ALL") const override;
+
  private:
- 
-
   void AddpF(PHCompositeNode *);
- 
- 
-  gsl_rng *RandomGenerator;
 
+  gsl_rng *RandomGenerator;
 };
 
-#endif // FERMIMOTIONAFTERBURNER_H
+#endif  // FERMIMOTIONAFTERBURNER_H
