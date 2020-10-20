@@ -3,6 +3,7 @@
 #include "PHG4InEvent.h"
 #include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev2.h"
+#include "PHG4Utils.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -27,35 +28,6 @@ using namespace std;
 
 PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name)
   : PHG4ParticleGeneratorBase(name)
-  , _particle_codes()
-  , _particle_names()
-  , _vertex_func_x(Uniform)
-  , _vertex_func_y(Uniform)
-  , _vertex_func_z(Uniform)
-  , _t0(0.0)
-  , _vertex_x(0.0)
-  , _vertex_y(0.0)
-  , _vertex_z(0.0)
-  , _vertex_width_x(0.0)
-  , _vertex_width_y(0.0)
-  , _vertex_width_z(0.0)
-  , _vertex_offset_x(0.0)
-  , _vertex_offset_y(0.0)
-  , _vertex_offset_z(0.0)
-  , _vertex_size_func_r(Uniform)
-  , _vertex_size_mean(0.0)
-  , _vertex_size_width(0.0)
-  , _eta_min(-1.25)
-  , _eta_max(1.25)
-  , _phi_min(-M_PI)
-  , _phi_max(M_PI)
-  , _pt_min(0.0)
-  , _pt_max(10.0)
-  , _pt_gaus_width(0.0)
-  , _p_min(NAN)
-  , _p_max(NAN)
-  , _p_gaus_width(NAN)
-  , _ineve(nullptr)
 {
   return;
 }
@@ -77,10 +49,31 @@ void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max)
   if (min > max)
   {
     cout << "not setting eta bc etamin " << min << " > etamax: " << max << endl;
-    return;
+    gSystem->Exit(1);
   }
   _eta_min = min;
   _eta_max = max;
+  _theta_min = NAN;
+  _theta_max = NAN;
+  return;
+}
+
+void PHG4SimpleEventGenerator::set_theta_range(const double min, const double max)
+{
+  if (min > max)
+  {
+    cout << "not setting theta bc thetamin " << min << " > thetamax: " << max << endl;
+    gSystem->Exit(1);
+  }
+  if (min < 0 || max > 2*M_PI)
+  {
+    std::cout << "min or max outside range (range is 0 to 2pi) min: " << min << ", max: " << max  << std::endl;
+    gSystem->Exit(1);
+  }
+  _theta_min = min;
+  _theta_max = max;
+  _eta_min = NAN;
+  _eta_max = NAN;
   return;
 }
 
@@ -89,8 +82,15 @@ void PHG4SimpleEventGenerator::set_phi_range(const double min, const double max)
   if (min > max)
   {
     cout << "not setting phi bc phimin " << min << " > phimax: " << max << endl;
+    gSystem->Exit(1);
     return;
   }
+  if (min < -M_PI || max > M_PI)
+  {
+    std::cout << "min or max outside range (range is -pi to pi), min: " << min << ", max: " << max << std::endl;
+    gSystem->Exit(1);
+  }
+
   _phi_min = min;
   _phi_max = max;
   return;
@@ -251,7 +251,14 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
     cout << ")" << endl;
     cout << " Vertex size (mean) = (" << _vertex_size_mean << ")" << endl;
     cout << " Vertex size (width) = (" << _vertex_size_width << ")" << endl;
+    if (isfinite(_eta_min) && isfinite(_eta_max))
+    {
     cout << " Eta range = " << _eta_min << " - " << _eta_max << endl;
+    }
+    if (isfinite(_theta_min) && isfinite(_theta_max))
+    {
+    cout << " Theta range = " << _theta_min << " - " << _theta_max << endl;
+    }
     cout << " Phi range = " << _phi_min << " - " << _phi_max << endl;
     if (isfinite(_pt_min) && isfinite(_pt_max))
     {
@@ -338,7 +345,23 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
 
       ++trackid;
 
-      double eta = (_eta_max - _eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
+      double eta;
+      if (!std::isnan(_eta_min) && !std::isnan(_eta_max))
+      {
+        eta = (_eta_max - _eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
+      }
+      else if (!std::isnan(_theta_min) && !std::isnan(_theta_max))
+      {
+	double theta = (_theta_max - _theta_min) * gsl_rng_uniform_pos(RandomGenerator) + _theta_min;
+        eta = PHG4Utils::get_eta(theta);
+      }
+      else
+      {
+        cout << PHWHERE << "Error: neither eta range or theta range was specified" << endl;
+	cout << "That should not happen, please inform the software group howthis happened" << std::endl;
+        exit(-1);
+      }
+
       double phi = (_phi_max - _phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
 
       double pt;
