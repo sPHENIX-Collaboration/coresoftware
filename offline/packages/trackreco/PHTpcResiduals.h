@@ -43,6 +43,9 @@ class PHTpcResiduals : public SubsysReco
   TFile *outfile;
   TH2 *h_rphiResid;
   TH2 *h_zResid;
+  TH2 *h_etaResidLayer;
+  TH2 *h_zResidLayer;
+  TH2 *h_etaResid;
 
 };
 

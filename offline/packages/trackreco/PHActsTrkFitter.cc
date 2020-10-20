@@ -116,7 +116,8 @@ int PHActsTrkFitter::Process()
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
-    logLevel = Acts::Logging::VERBOSE;
+    if(Verbosity() > 4)
+      logLevel = Acts::Logging::VERBOSE;
   }
 
   loopTracks(logLevel);
@@ -300,9 +301,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	{
 	  updateActsTrack(fitOutput, trackIter);
 	}
-      else
+      //else
 	getTrackFitResult(fitOutput, trackKey, track.getVertex());
-            
+	
     }
     else
       {

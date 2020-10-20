@@ -26,11 +26,17 @@ int PHTpcResiduals::Init(PHCompositeNode *topNode)
 {
   outfile = new TFile(std::string(Name() + ".root").c_str(), 
 		      "recreate");
+  
   h_rphiResid = new TH2F("rphiResid",";r [cm]; #Deltar#phi [mm]",
-			 50,30,80,50,-5,5);
+			 60,20,80,50,-10,10);
   h_zResid = new TH2F("zResid",";z [cm]; #Deltaz [mm]",
-		      200,-100,100,100,-50,50);
-
+		      200,-100,100,100,-100,100);
+  h_etaResid = new TH2F("etaResid",";#eta;#Delta#eta",
+			20,-1,1,50,-0.2,0.2);
+  h_etaResidLayer = new TH2F("etaResidLayer",";r [cm]; #Delta#eta",
+			     60,20,80,50,-0.2,0.2);
+  h_zResidLayer = new TH2F("zResidLayer",";r [cm]; #Deltaz [mm]",
+			   60,20,80,100,-100,100);
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -47,8 +53,6 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 {
 
   int returnVal = getTpcResiduals(topNode);
-
-  
 
   return returnVal;
 }
@@ -120,10 +124,13 @@ void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceL
       double rphiResid = measRPhi - fitRPhi;
       double zResid = measZ - fitZ;
 
+      double measEta = atanh(globalPos.z() / globalPos.norm());
+      double fitEta = atanh(momentum.z() / momentum.norm());
+
+      double etaResid = measEta - fitEta;
 
       if(Verbosity() > 0)
 	{
-	  double fitEta = atanh(momentum.z() / momentum.norm());
 	  std::cout << "Fit eta/phi : " 
 		    << fitEta << "  " << siMMFitPhi
 		    << std::endl;
@@ -132,12 +139,15 @@ void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceL
 		    << 2. * atan(exp(-fitEta)) << std::endl;
 	  std::cout << "Meas, fit Z : " << measZ << ", " << fitZ 
 		    << std::endl;
-	  std::cout << "rphi, z residuals: " << rphiResid << ", "
-		  << zResid << " mm" << std::endl;
+	  std::cout << "rphi, z, eta residuals: " << rphiResid << ", "
+		    << zResid << " mm" << "  " << etaResid << std::endl;
 	}
+
       h_rphiResid->Fill(measR / Acts::UnitConstants::cm, rphiResid);
       h_zResid->Fill(measZ / Acts::UnitConstants::cm, zResid);
-
+      h_etaResid->Fill(measEta, etaResid);
+      h_etaResidLayer->Fill(measR / Acts::UnitConstants::cm, etaResid);
+      h_zResidLayer->Fill(measR / Acts::UnitConstants::cm, zResid);
     }
 
   return;
@@ -171,6 +181,9 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 {
   outfile->cd();
   h_rphiResid->Write();
+  h_etaResid->Write();
+  h_zResidLayer->Write();
+  h_etaResidLayer->Write();
   h_zResid->Write();
   outfile->Write();
   outfile->Close();
