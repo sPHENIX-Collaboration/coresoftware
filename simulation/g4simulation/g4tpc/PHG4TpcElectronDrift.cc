@@ -410,7 +410,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         distortion._z = z_abs;
         distortion._dr = dr;
         distortion._dphi = phi_final - phistart;
-        distortion._dz = 0;
+        distortion._dz = z_final - z_start;
         m_container->addDistortion( distortion );
       }
 
