@@ -344,6 +344,11 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
   if(params.covariance())
     cov = params.covariance().value();
 
+  if(Verbosity() > 0)
+    std::cout << "Updating track seed with (" 
+	      << momVec.x() << ", " << momVec.y() << ", " 
+	      << momVec.z() << ")" << std::endl;
+
   const ActsExamples::TrackParameters siliconMMFit(fourVec, momVec, 
 						   p, q, cov);
   iter->second.setTrackParams(siliconMMFit);

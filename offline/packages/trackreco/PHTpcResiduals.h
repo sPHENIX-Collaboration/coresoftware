@@ -1,11 +1,19 @@
 #ifndef TRACKRECO_PHTPCRESIDUALS_H
-#define TRACKRECO_PHTPCSRESIDUALS_H
+#define TRACKRECO_PHTPCRESIDUALS_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
+#include "ActsTrack.h"
+#include "ActsTrackingGeometry.h"
+
 class PHCompositeNode;
 
+#include <memory>
+#include <map>
+#include <TFile.h>
+#include <TH2.h>
+#include <TH1.h>
 
 class PHTpcResiduals : public SubsysReco
 {
@@ -22,8 +30,19 @@ class PHTpcResiduals : public SubsysReco
 
  private:
 
+  int getNodes(PHCompositeNode *topNode);
 
+  int getTpcResiduals(PHCompositeNode *topNode);
 
+  void calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
+			     const Acts::Vector3D momentum);
+
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
+  ActsTrackingGeometry *m_tGeometry;
+
+  TFile *outfile;
+  TH2 *h_rphiResid;
+  TH2 *h_zResid;
 
 };
 
