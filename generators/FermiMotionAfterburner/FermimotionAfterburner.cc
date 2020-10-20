@@ -94,7 +94,6 @@ void FermimotionAfterburner::Print(const std::string &what) const
 //____________________________________________________________________________..
 
 void FermimotionAfterburner::AddpF(PHCompositeNode *topNode)
-
 {
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   std::cout << "looping over events" << std::endl;
