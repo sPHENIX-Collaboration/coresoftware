@@ -6,38 +6,25 @@
 
 //include the header file here
 #include "FermiMotion.h"
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_roots.h>
-#include <gsl/gsl_randist.h>
+
 #include <gsl/gsl_rng.h> 
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenParticle.h>  // for GenParticle
-#include <HepMC/GenRanges.h>
 #include <HepMC/GenVertex.h>      // for GenVertex, GenVertex::part...
 #include <HepMC/HeavyIon.h>       // for HeavyIon
-#include <HepMC/IteratorRange.h>  // for children, descendants
 #include <HepMC/SimpleVector.h>   // for FourVector
 
 
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
-#include <map>  // for map
 #include <iostream>
-#include <iterator>                           // for operator!=, reverse_ite...
-#include <set>                                // for set, _Rb_tree_const_ite...
-#include <string>
-#include <utility>
 
 
 //____________________________________________________________________________..
 
 
-using namespace HepMC;
-
-namespace HepMC { class GenEvent; }
 //this method is use to find out the spectator neutron loss prob
 //using the parameterization in the PHENIX Glauber
 //Monte Carlo code written by Klaus Reygers to model 
@@ -99,7 +86,7 @@ int FermiMotion (HepMC::GenEvent *event, gsl_rng *RandomGenerator){
   //now loop over all particles and find spectator neutrons
 
  std::cout<<"looping over particles"<<std::endl;
- for ( GenEvent::particle_const_iterator p = event->particles_begin(),prev=event->particles_end();  p != event->particles_end(); prev=p, ++p ){
+ for ( HepMC::GenEvent::particle_const_iterator p = event->particles_begin(),prev=event->particles_end();  p != event->particles_end(); prev=p, ++p ){
     int id=(*p)->pdg_id();
     bool havedelete=false;
     //if not neutron, skip
@@ -139,15 +126,6 @@ int FermiMotion (HepMC::GenEvent *event, gsl_rng *RandomGenerator){
      if(prev != event->particles_end()) p=prev;
    } 
  }
- 
 
   return 0;
 }
-
-
-
-
-
-
-
-
