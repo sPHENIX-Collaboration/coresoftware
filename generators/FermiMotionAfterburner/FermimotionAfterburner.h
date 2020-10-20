@@ -5,11 +5,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
 #include <gsl/gsl_rng.h>
-class Fun4AllHistoManager;
+
+#include <string>
+
 class PHCompositeNode;
-class PHHepMCGenEventMap;
 
 
 class FermimotionAfterburner : public SubsysReco
