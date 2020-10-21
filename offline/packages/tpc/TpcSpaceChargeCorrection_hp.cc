@@ -104,12 +104,8 @@ void TpcSpaceChargeCorrection_hp::transform_cluster( TrkrCluster* cluster )
 
   // apply corrections
   const auto phi_new = (m_coordinates & COORD_PHI) ? phi - hDPint->Interpolate(phi,r,zmap)/r : phi;
-
-  // dont move r for the moment
   const auto r_new = (m_coordinates & COORD_R) ? r - hDRint->Interpolate(phi,r,zmap) : r;
-
-  // dont move z for the moment
-  const auto z_new = (m_coordinates & COORD_R) ? z - hDZint->Interpolate(phi,r,zmap) : z;
+  const auto z_new = (m_coordinates & COORD_Z) ? z - hDZint->Interpolate(phi,r,zmap) : z;
 
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
