@@ -22,7 +22,6 @@ libg4jets_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
   -lcalo_io \
-  -lcalo_util \
   -lg4vertex_io \
   -lCGAL \
   -lfastjet \

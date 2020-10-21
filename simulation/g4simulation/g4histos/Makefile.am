@@ -10,7 +10,6 @@ AM_LDFLAGS = \
 libg4histos_la_LDFLAGS = \
    -L$(libdir) \
    -L$(OFFLINE_MAIN)/lib \
-   -lcalo_util \
    -lfun4all \
    -lphg4hit \
    -lg4detectors \

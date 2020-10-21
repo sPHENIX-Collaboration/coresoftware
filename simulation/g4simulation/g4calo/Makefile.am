@@ -39,8 +39,7 @@ libg4calo_la_LIBADD = \
   -lphparameter \
   -lgsl \
   -lgslcblas \
-  -lcalo_io \
-  -lcalo_util
+  -lcalo_io
 
 ################################################
 # linking tests

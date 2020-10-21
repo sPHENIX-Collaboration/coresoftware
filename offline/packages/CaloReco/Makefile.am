@@ -18,7 +18,6 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
-  -lcalo_util  \
   -lphparameter
 
 AM_CPPFLAGS = \

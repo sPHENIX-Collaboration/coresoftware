@@ -19,7 +19,6 @@ libjetbackground_io_la_LIBADD = \
 libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
-  -lcalo_util \
   -lConstituentSubtractor \
   -lg4jets_io \
   -lCGAL \
