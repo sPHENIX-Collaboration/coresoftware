@@ -220,20 +220,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       }
 
-    /// Acts cares about the track covariance as it helps the KF
-    /// know whether or not to trust the initial track seed or not.
-    /// We reset it here to some loose values as it helps Acts improve
-    /// the fitting. 
-    /// If the covariance is too loose, it won't be able to propagate,
-    /// but if it is too tight, it will just "believe" the track seed over
-    /// the hit data
-    Acts::BoundSymMatrix cov;
-    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.00005 , 0.,
-           0., 0., 0., 0., 0., 1.;
+    Acts::BoundSymMatrix cov = setDefaultCovariance();
 
     ActsExamples::TrackParameters newTrackSeed(
                   trackSeed.fourPosition(m_tGeometry->geoContext),
@@ -609,15 +596,48 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   if(Verbosity() > 2)
     {  
-      std::cout << " Identify fitted track after updating track states:" << std::endl;
+      std::cout << " Identify fitted track after updating track states:" 
+		<< std::endl;
       track->identify();
-      std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
+      std::cout << " cluster keys size " << track->size_cluster_keys() 
+		<< std::endl;  
     }
  
  return;
   
 }
 
+Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance()
+{
+  Acts::BoundSymMatrix cov;
+   
+  /// Acts cares about the track covariance as it helps the KF
+  /// know whether or not to trust the initial track seed or not.
+  /// We reset it here to some loose values as it helps Acts improve
+  /// the fitting. 
+  /// If the covariance is too loose, it won't be able to propagate,
+  /// but if it is too tight, it will just "believe" the track seed over
+  /// the hit data
+ 
+  /// If we are using distortions, then we need to blow up the covariance
+  /// a bit since the seed was created with distorted TPC clusters
+  if(m_fitSiliconMMs)
+    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.1, 0., 0., 0.,
+           0., 0., 0., 0.1, 0., 0.,
+           0., 0., 0., 0., 0.005 , 0.,
+           0., 0., 0., 0., 0., 1.;
+  else
+    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., 0.00005 , 0.,
+           0., 0., 0., 0., 0., 1.;
+
+  return cov;
+}
     
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)

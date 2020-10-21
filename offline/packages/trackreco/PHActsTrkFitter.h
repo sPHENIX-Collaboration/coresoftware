@@ -114,6 +114,8 @@ class PHActsTrkFitter : public PHTrackFitting
   void updateActsTrack(const FitResult& fitOutput,
 		       std::map<unsigned int, ActsTrack>::iterator iter);
 
+  Acts::BoundSymMatrix setDefaultCovariance();
+
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
     *m_actsFitResults;
