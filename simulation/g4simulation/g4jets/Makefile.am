@@ -46,40 +46,19 @@ pkginclude_HEADERS = \
   FastJetAlgo.h \
   JetHepMCLoader.h
 
-#pkginclude_HEADERS = $(include_HEADERS)
-# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
-# pcm files in addition. If someone can figure out how to make a list
-# so this list of dictionaries is transformed into a list of pcm files
-# following a simple naming convention, please change this accordingly and
-# let me know
 ROOTDICTS = \
   Jet_Dict.cc \
   Jetv1_Dict.cc \
   JetMap_Dict.cc \
   JetMapv1_Dict.cc
-# for root6 we need pcm and dictionaries but only for
-# i/o classes. For root5 we need only dictionaries but
-# those for i/o and classes available on the cmd line
-# MAKEROOT6 is set in the configure.ac, true for root6
-if MAKEROOT6
-# this is a tweak to install files in $(libdir), automake refuses
-# to install other files in libdir, this construct gets around this
+
 pcmdir = $(libdir)
+
 nobase_dist_pcm_DATA = \
   Jet_Dict_rdict.pcm \
   Jetv1_Dict_rdict.pcm \
   JetMap_Dict_rdict.pcm \
   JetMapv1_Dict_rdict.pcm
-else
-  ROOT5DICTS = \
-    ClusterJetInput_Dict.cc \
-    FastJetAlgo_Dict.cc \
-    JetReco_Dict.cc \
-    JetHepMCLoader_Dict.cc \
-    TowerJetInput_Dict.cc \
-    TrackJetInput_Dict.cc \
-    TruthJetInput_Dict.cc
-endif
 
 libg4jets_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -89,7 +68,6 @@ libg4jets_io_la_SOURCES = \
   JetMapv1.cc
 
 libg4jets_la_SOURCES = \
-  $(ROOT5DICTS) \
   ClusterJetInput.cc \
   FastJetAlgo.cc \
   JetReco.cc \
@@ -99,7 +77,7 @@ libg4jets_la_SOURCES = \
   TruthJetInput.cc
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
