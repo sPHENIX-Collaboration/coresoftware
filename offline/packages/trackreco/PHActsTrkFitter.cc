@@ -276,19 +276,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     
       if(m_timeAnalysis)
 	{
-	  const auto& params = fitOutput.fittedParameters.value();
-      	
-	  float px = params.momentum()(0);
-	  float py = params.momentum()(1);
-	  float pt = sqrt(px*px+py*py);
-	  h_fitTime->Fill(pt, fitTime.count() / 1000.);
+	  h_fitTime->Fill(fitOutput.fittedParameters.value()
+			  .transverseMomentum(), 
+			  fitTime.count() / 1000.);
 	}
-    
       if(m_fitSiliconMMs)
-	{
-	  updateActsTrack(fitOutput, trackIter);
-	}
-      //else
+	updateActsTrack(fitOutput, trackIter);
+      else
 	getTrackFitResult(fitOutput, trackKey, track.getVertex());
 	
     }
@@ -340,6 +334,8 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
   const ActsExamples::TrackParameters siliconMMFit(fourVec, momVec, 
 						   p, q, cov);
   iter->second.setTrackParams(siliconMMFit);
+  iter->second.setFittedStates(fitOutput.fittedStates);
+  std::cout<<"Begins at tracktip : "<<fitOutput.trackTip<<std::endl;
 }
 
 void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
@@ -355,10 +351,11 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
     {
       indexedParams.emplace(fitOutput.trackTip, 
 			    fitOutput.fittedParameters.value());
-      const auto& params = fitOutput.fittedParameters.value();
-      
+
       if (Verbosity() > 2)
         {
+	  const auto& params = fitOutput.fittedParameters.value();
+      
           std::cout << "Fitted parameters for track" << std::endl;
           std::cout << " position : " << params.position(m_tGeometry->geoContext).transpose()
 	    

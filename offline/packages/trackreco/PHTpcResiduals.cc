@@ -101,17 +101,17 @@ void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceL
 		       local,
 		       momentum);
   
-      double measPhi = atan2(globalPos.y(), globalPos.x());
-      double measR = sqrt(globalPos.x() * globalPos.x() + 
+      const double measPhi = atan2(globalPos.y(), globalPos.x());
+      const double measR = sqrt(globalPos.x() * globalPos.x() + 
 			       globalPos.y() * globalPos.y());
-      double measRPhi = measPhi * measR;
-      double siMMFitPhi = atan2(momentum.y(), momentum.x());
+      const double measRPhi = measPhi * measR;
+      const double siMMFitPhi = atan2(momentum.y(), momentum.x());
       
       /// Measurement is confined to a surface in R, so evaluate
       /// the rphi of the track at this radius
-      double fitRPhi = measR * siMMFitPhi;
+      const double fitRPhi = measR * siMMFitPhi;
    
-      double measZ = globalPos.z();
+      const double measZ = globalPos.z();
       
       double siMMFitTheta = acos(momentum.z() / momentum.norm());
       
@@ -120,14 +120,14 @@ void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceL
       siMMFitTheta -= M_PI / 2.;
 
       /// Need negative sign to correct for flipped theta convention
-      double fitZ = -1 * measR * tan(siMMFitTheta);
-      double rphiResid = measRPhi - fitRPhi;
-      double zResid = measZ - fitZ;
+      const double fitZ = -1 * measR * tan(siMMFitTheta);
+      const double rphiResid = measRPhi - fitRPhi;
+      const double zResid = measZ - fitZ;
 
-      double measEta = atanh(globalPos.z() / globalPos.norm());
-      double fitEta = atanh(momentum.z() / momentum.norm());
+      const double measEta = atanh(globalPos.z() / globalPos.norm());
+      const double fitEta = atanh(momentum.z() / momentum.norm());
 
-      double etaResid = measEta - fitEta;
+      const double etaResid = measEta - fitEta;
 
       if(Verbosity() > 0)
 	{

@@ -2,6 +2,7 @@
 #define ACTSTRACK_H
 
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/EventData/MultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
@@ -41,6 +42,11 @@ class ActsTrack
   Acts::Vector3D  getVertex() { return m_vertex;}
   void setVertex(Acts::Vector3D vertex){m_vertex = vertex;}
 
+  Acts::MultiTrajectory<SourceLink> getFittedStates()
+    { return m_fittedStates; }
+  void setFittedStates(Acts::MultiTrajectory<SourceLink> fittedStates)
+  {m_fittedStates = fittedStates;}
+
  private:
   /// Initial track seed parameters
   ActsExamples::TrackParameters m_trackParams;
@@ -50,6 +56,10 @@ class ActsTrack
 
   /// Initial x,y,z vertex estimate
   Acts::Vector3D m_vertex;
+
+  /// Fitted states, if applicable for initial silicon+MM distortion
+  /// fit result
+  Acts::MultiTrajectory<SourceLink> m_fittedStates;
 
 };
 
