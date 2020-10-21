@@ -1,14 +1,10 @@
 #ifndef CALOBASE_RAWTOWERDEFS_H
 #define CALOBASE_RAWTOWERDEFS_H
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdlib>
-#else
-#include <stdlib.h>
-#endif
 
 /*! Namespace with functions to encode / decode CaloTowerID. The highest 8 bits of the tower ID encode a unique ID
  * for the calorimeter the tower is in. The lower 24 bits uniquely identify the tower within a calorimeter.

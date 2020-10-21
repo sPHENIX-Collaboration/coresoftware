@@ -11,10 +11,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 #include <string>                // for string
 
@@ -47,9 +44,7 @@ class GlobalVertexFastSimReco : public SubsysReco
   float _y_smear;
   float _z_smear;
   float _t_smear;
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXFASTSIMRECO_H

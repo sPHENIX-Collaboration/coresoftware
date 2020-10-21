@@ -7,11 +7,7 @@
 #ifndef TRACKBASE_TRKRDEFUTIL_H
 #define TRACKBASE_TRKRDEFUTIL_H
 
-#if defined(__CINT__) && !defined(__CLING__)
-#include <stdint.h>
-#else
 #include <cstdint>
-#endif
 #include <iostream>
 
 /**
@@ -25,7 +21,6 @@ namespace TrkrDefs
   typedef uint64_t cluskey;     // 64 but TrkrCluster id type
   typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
 
-#if !defined(__CINT__) || defined(__CLING__)
 
   /// Max values for keys (used as defaults or invalid values)
   static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
@@ -45,7 +40,6 @@ namespace TrkrDefs
   //  cluster id lower 32 bits
   static const unsigned int kBitShiftClusId __attribute__((unused)) = 32;
 
-#endif
 
   /// Enumeration for tracker id to easily maintain consistency
   enum TrkrId
