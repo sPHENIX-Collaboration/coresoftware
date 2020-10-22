@@ -44,21 +44,19 @@ ROOTDICTS = \
   SvtxVertexMap_Dict.cc \
   SvtxVertexMap_v1_Dict.cc 
 
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    SvtxTrack_Dict_rdict.pcm \
-    SvtxTrackState_Dict_rdict.pcm \
-    SvtxTrackState_v1_Dict_rdict.pcm \
-    SvtxTrack_v1_Dict_rdict.pcm \
-    SvtxTrack_FastSim_Dict_rdict.pcm \
-    SvtxTrackMap_Dict_rdict.pcm \
-    SvtxTrackMap_v1_Dict_rdict.pcm \
-    SvtxVertex_Dict_rdict.pcm \
-    SvtxVertex_v1_Dict_rdict.pcm \
-    SvtxVertexMap_Dict_rdict.pcm \
-    SvtxVertexMap_v1_Dict_rdict.pcm 
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  SvtxTrack_Dict_rdict.pcm \
+  SvtxTrackState_Dict_rdict.pcm \
+  SvtxTrackState_v1_Dict_rdict.pcm \
+  SvtxTrack_v1_Dict_rdict.pcm \
+  SvtxTrack_FastSim_Dict_rdict.pcm \
+  SvtxTrackMap_Dict_rdict.pcm \
+  SvtxTrackMap_v1_Dict_rdict.pcm \
+  SvtxVertex_Dict_rdict.pcm \
+  SvtxVertex_v1_Dict_rdict.pcm \
+  SvtxVertexMap_Dict_rdict.pcm \
+  SvtxVertexMap_v1_Dict_rdict.pcm 
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
@@ -79,7 +77,7 @@ libtrackbase_historic_io_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

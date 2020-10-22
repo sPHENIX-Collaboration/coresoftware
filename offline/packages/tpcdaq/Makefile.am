@@ -29,21 +29,12 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TPCFEETestRecov1_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    TPCFEETestRecov1_Dict_rdict.pcm
-else
-  ROOT5_IO_DICTS = \
-    MvtxDefs_Dict.cc
 
-  ROOT5_DICTS = \
-    TPCIntegratedCharge_Dict.cc \
-    TPCDataStreamEmulator_Dict.cc
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TPCFEETestRecov1_Dict_rdict.pcm
 
 libtpcdaq_la_SOURCES = \
-  $(ROOT5_DICTS) \
   TPCIntegratedCharge.cc \
   TPCDataStreamEmulator.cc \
   TPCDaqDefs.cc \
@@ -55,7 +46,7 @@ libtpcdaq_io_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

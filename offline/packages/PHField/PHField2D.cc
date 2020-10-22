@@ -205,8 +205,7 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
 
   }  // end loop over root field map file
 
-  if (rootinput)
-    rootinput->Close();
+  rootinput->Close();
 
   if (Verbosity() > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
   if (Verbosity() > 0) cout << "  Mag field r max boundary: " << r_map_.back() / cm << " cm" << endl;

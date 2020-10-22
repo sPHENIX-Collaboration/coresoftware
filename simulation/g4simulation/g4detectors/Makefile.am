@@ -48,7 +48,6 @@ pkginclude_HEADERS = \
   PHG4BlockSubsystem.h \
   PHG4Cell.h \
   PHG4Cellv1.h \
-  PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
   PHG4EventActionClearZeroEdep.h \
@@ -106,7 +105,6 @@ ROOT_IO_DICTS = \
   PHG4BlockGeomv1_Dict.cc \
   PHG4Cell_Dict.cc \
   PHG4Cellv1_Dict.cc \
-  PHG4Cellv2_Dict.cc \
   PHG4CellContainer_Dict.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1_Dict.cc \
@@ -138,7 +136,6 @@ nobase_dist_pcm_DATA = \
   PHG4BlockGeomv1_Dict_rdict.pcm \
   PHG4Cell_Dict_rdict.pcm \
   PHG4Cellv1_Dict_rdict.pcm \
-  PHG4Cellv2_Dict_rdict.pcm \
   PHG4CellContainer_Dict_rdict.pcm \
   PHG4CylinderGeom_Dict_rdict.pcm \
   PHG4CylinderGeomv1_Dict_rdict.pcm \
@@ -170,7 +167,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4BlockGeomContainer.cc \
   PHG4Cell.cc \
   PHG4Cellv1.cc \
-  PHG4Cellv2.cc \
   PHG4CellContainer.cc \
   PHG4CellDefs.cc \
   PHG4CylinderGeom.cc \

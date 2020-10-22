@@ -24,9 +24,9 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -51,8 +51,9 @@ class ActsTransformations
 						Acts::GeometryContext geoCtxt);
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(const Acts::BoundParameters params,
-						Acts::GeometryContext geoCtxt);
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
+                       const Acts::BoundTrackParameters params,
+		       Acts::GeometryContext geoCtxt);
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
@@ -60,7 +61,7 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
-  void calculateDCA(const Acts::BoundParameters param,
+  void calculateDCA(const Acts::BoundTrackParameters param,
 		    Acts::Vector3D vertex,
 		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,

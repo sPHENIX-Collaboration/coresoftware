@@ -103,7 +103,7 @@ testexternals.cc:
 # Rule for generating table CINT dictionaries.
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
@@ -111,7 +111,7 @@ testexternals.cc:
 PHHepMC_io_Dict.cc: \
   $(OFFLINE_MAIN)/include/HepMC/*.h \
   PHHepMC_ioLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm 

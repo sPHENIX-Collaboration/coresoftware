@@ -566,10 +566,10 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
                  ::tolower);
   boost::filesystem::path targetDir(dir);
 
-  boost::filesystem::recursive_directory_iterator iter(targetDir), eod;
+  boost::filesystem::recursive_directory_iterator diriter(targetDir), eod;
   boost::char_separator<char> sep("-.");
   map<unsigned int, string> calibfiles;
-  BOOST_FOREACH (boost::filesystem::path const &i, make_pair(iter, eod))
+  BOOST_FOREACH (boost::filesystem::path const &i, make_pair(diriter, eod))
   {
     if (is_regular_file(i))
     {

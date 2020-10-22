@@ -5,13 +5,11 @@
 
 
 // Helix Hough includes
-#if !defined(__CINT__) || defined(__CLING__)
 #include "VertexFitter.h"
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixKalmanState.h>
 #include <Eigen/Core>            // for Matrix
-#endif
 
 #include <trackbase/TrkrDefs.h>
 
@@ -137,7 +135,6 @@ public:
 	void set_nzooms() {nzooms = zooms_vec.size();}
 	void reset_zooms() {zooms_vec.clear();}
 
-#if !defined(__CINT__) || defined(__CLING__)
 
  protected:
 
@@ -263,7 +260,6 @@ private:
 	/// recorded layer indexes to internal sequential indexes
 	std::map<int, unsigned int> _layer_ilayer_map;
 
-#if !defined(__CINT__) || defined(__CLING__) // shield ROOT5 CINT from Eigen
 	// object storage
 	std::vector<SimpleTrack3D> _temp_tracks;
         std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
@@ -279,7 +275,6 @@ private:
 
 
 	VertexFitter _vertex_finder;
-#endif
 
   	HelixHoughSpace* _hough_space;
 	HelixHoughFuncs* _hough_funcs;
@@ -321,7 +316,6 @@ private:
 	int helicity;
 	int n_vtx_tracks;
 	
-#endif // !defined(__CINT__) || defined(__CLING__)
 };
 
 #endif // TRACKRECO_PHG4INITZVERTEXING_H

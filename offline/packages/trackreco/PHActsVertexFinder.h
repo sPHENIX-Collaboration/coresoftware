@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSVERTEXFINDER_H
 
 #include "PHInitVertexing.h"
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 
 #include <trackbase/TrkrDefs.h>
 
@@ -37,7 +37,7 @@ class PHActsVertexFinder: public PHInitVertexing
   
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
-  std::vector<const Acts::BoundParameters*> getTracks();
+  std::vector<const Acts::BoundTrackParameters*> getTracks();
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   int m_event;

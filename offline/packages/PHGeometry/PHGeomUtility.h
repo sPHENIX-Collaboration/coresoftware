@@ -77,15 +77,8 @@ class PHGeomUtility
   }
 
  private:
-#if defined(__CINT__) && !defined(__CLING__)
-  PHGeomUtility()
-  {
-  }
-  ~PHGeomUtility() {}
-#else
   PHGeomUtility() = delete;
   ~PHGeomUtility() = delete;
-#endif
 };
 
 #endif

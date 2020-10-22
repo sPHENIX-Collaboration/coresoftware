@@ -254,9 +254,9 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				//mom.SetXYZ(1,0,0);
 
 				TMatrixDSym cov(6);
-				for (int i = 0; i < 6; ++i) {
+				for (int k = 0; k < 6; ++k) {
 					for (int j = 0; j < 6; ++j) {
-						cov[i][j] = trackstate->get_error(i, j);
+						cov[k][j] = trackstate->get_error(k, j);
 					}
 				}
 
