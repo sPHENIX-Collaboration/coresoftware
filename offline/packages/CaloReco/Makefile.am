@@ -12,13 +12,13 @@ libcalo_reco_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcalo_reco_la_LIBADD = \
+  -lCLHEP \
   -lphool \
   -lSubsysReco \
   -lgsl \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
-  -lcalo_util  \
   -lphparameter
 
 AM_CPPFLAGS = \

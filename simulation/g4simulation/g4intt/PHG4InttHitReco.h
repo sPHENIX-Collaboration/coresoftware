@@ -7,9 +7,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_vector.h>  // for gsl_vector
-#endif
 
 #include <string>
 
@@ -41,11 +39,9 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   double m_Tmin;
   double m_Tmax;
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_vector *m_LocalOutVec;
   gsl_vector *m_PathVec;
   gsl_vector *m_SegmentVec;
-#endif
 };
 
 #endif
