@@ -68,8 +68,15 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
       auto track = trackIter->second;
       auto sourceLinks = track.getSourceLinks();
       const auto trackParams = track.getTrackParams();
+      const auto trajectory = track.getTrajectory();
       const auto momentumVec = trackParams.momentum();
       
+      for(auto sl : sourceLinks)
+	{
+	  propagateTrackState(trajectory, sl);
+	  //calculateTpcResiduals(sl, state);
+	}
+
       calculateTpcResiduals(sourceLinks, momentumVec);
       
 
@@ -78,6 +85,13 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHTpcResiduals::propagateTrackState(const Trajectory& traj,
+					 const SourceLink& sl)
+{
+  
+
+  return;
+}
 void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
 					   const Acts::Vector3D momentum)
 {

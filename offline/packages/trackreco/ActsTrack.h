@@ -6,9 +6,10 @@
 
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
-
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
 /**
  * A class that contains an Acts track seed and the corresponding source links.
@@ -32,20 +33,22 @@ class ActsTrack
 
   ~ActsTrack(){}
 
-  ActsExamples::TrackParameters getTrackParams(){ return m_trackParams; }
-  void setTrackParams(ActsExamples::TrackParameters params) { m_trackParams = params; }
+  ActsExamples::TrackParameters getTrackParams()
+    { return m_trackParams; }
+  void setTrackParams(ActsExamples::TrackParameters params) 
+    { m_trackParams = params; }
 
   std::vector<SourceLink> getSourceLinks(){ return m_sourceLinks; }
   void setSourceLinks(const std::vector<SourceLink> &srcLinks)
-  { m_sourceLinks = srcLinks; }
+    { m_sourceLinks = srcLinks; }
   
   Acts::Vector3D  getVertex() { return m_vertex;}
   void setVertex(Acts::Vector3D vertex){m_vertex = vertex;}
 
-  Acts::MultiTrajectory<SourceLink> getFittedStates()
-    { return m_fittedStates; }
-  void setFittedStates(Acts::MultiTrajectory<SourceLink> fittedStates)
-  {m_fittedStates = fittedStates;}
+  Trajectory getTrajectory()
+  { return m_fittedTraj; }
+  void setTrajectory(Trajectory fittedTraj)
+    { m_fittedTraj = fittedTraj;}
 
  private:
   /// Initial track seed parameters
@@ -57,9 +60,9 @@ class ActsTrack
   /// Initial x,y,z vertex estimate
   Acts::Vector3D m_vertex;
 
-  /// Fitted states, if applicable for initial silicon+MM distortion
-  /// fit result
-  Acts::MultiTrajectory<SourceLink> m_fittedStates;
+  /// Fitted trajectory, if applicable for initial silicon+MM 
+  /// distortion fit result
+  Trajectory m_fittedTraj;
 
 };
 

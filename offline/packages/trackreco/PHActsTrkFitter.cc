@@ -280,9 +280,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			  .transverseMomentum(), 
 			  fitTime.count() / 1000.);
 	}
+   
       if(m_fitSiliconMMs)
 	updateActsTrack(fitOutput, trackIter);
-      else
+      //else
 	getTrackFitResult(fitOutput, trackKey, track.getVertex());
 	
     }
@@ -333,9 +334,21 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
 
   const ActsExamples::TrackParameters siliconMMFit(fourVec, momVec, 
 						   p, q, cov);
+  
+  /// Update the track seed parameters
   iter->second.setTrackParams(siliconMMFit);
-  iter->second.setFittedStates(fitOutput.fittedStates);
-  std::cout<<"Begins at tracktip : "<<fitOutput.trackTip<<std::endl;
+
+  std::vector<size_t> trackTip;
+  trackTip.push_back(fitOutput.trackTip);
+  ActsExamples::IndexedParams iParams;
+  if(fitOutput.fittedParameters)
+    iParams.emplace(fitOutput.trackTip, 
+		   fitOutput.fittedParameters.value());
+  Trajectory traj(fitOutput.fittedStates, trackTip, iParams);
+  auto trajectory = iter->second.getTrajectory();
+  std::cout<<"Track tip is " << fitOutput.trackTip<<std::endl;
+  /// Update the actual fitted trajectory states
+  iter->second.setTrajectory(traj);
 }
 
 void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
@@ -416,17 +429,20 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   for(auto sl : sourceLinks)
     {
       auto volume = sl.referenceSurface().geometryId().volume();
+
       if(Verbosity() > 0)
 	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
-      /// If volume is not the TPC add it to the list
+
+      /// If volume is not the TPC add the SL to the list
       if(volume != 14)
 	{
 	  siliconMMSls.push_back(sl);
-	  surfaces.push_back(&sl.referenceSurface());
-	  if(Verbosity() > 0)
-	    std::cout << "Adding surface to sequence with geoID : "
-		      << sl.referenceSurface().geometryId() << std::endl;
 	}
+      
+      /// We add all the surfaces so that the propagator visits each
+      /// surface and creates a track state there. The fitter will
+      /// only consider those surfaces with source links on them
+      surfaces.push_back(&sl.referenceSurface());
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to

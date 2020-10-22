@@ -15,6 +15,8 @@ class PHCompositeNode;
 #include <TH2.h>
 #include <TH1.h>
 
+
+
 class PHTpcResiduals : public SubsysReco
 {
 
@@ -36,6 +38,9 @@ class PHTpcResiduals : public SubsysReco
 
   void calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
 			     const Acts::Vector3D momentum);
+
+  void propagateTrackState(const Trajectory& traj, 
+			   const SourceLink& sl);
 
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
   ActsTrackingGeometry *m_tGeometry;
