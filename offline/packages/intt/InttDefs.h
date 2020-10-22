@@ -19,7 +19,6 @@
  */
 namespace InttDefs
 {
-#if !defined(__CINT__) || defined(__CLING__)
 // hitsetkey layout:
 //  Intt specific lower 16 bits
 //   24 - 32  tracker id
@@ -31,8 +30,6 @@ static const unsigned int kBitShiftLadderPhiId __attribute__((unused)) = 0;
 // bit shift for hitkey
 static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
 static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-
-#endif  // __CINT__
 
 /**
    * @brief Get the ladder id from hitsetkey

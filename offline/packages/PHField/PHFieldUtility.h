@@ -49,15 +49,8 @@ class PHFieldUtility
 
  private:
   // static tool sets only
-#if defined(__CINT__) && !defined(__CLING__)
-  PHFieldUtility()
-  {
-  }
-  ~PHFieldUtility() {}
-#else
   PHFieldUtility() = delete;
   ~PHFieldUtility() = delete;
-#endif
 };
 
 #endif

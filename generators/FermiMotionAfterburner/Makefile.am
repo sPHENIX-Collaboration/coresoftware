@@ -1,44 +1,36 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libphoolraw.la
-
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I`root-config --incdir`
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libphoolraw_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs`
+pkginclude_HEADERS = \
+  FermimotionAfterburner.h
 
-libphoolraw_la_LIBADD = \
+lib_LTLIBRARIES = \
+  libFermimotionAfterburner.la
+
+libFermimotionAfterburner_la_SOURCES = \
+  FermimotionAfterburner.cc \
+  FermiMotion.cc
+
+libFermimotionAfterburner_la_LIBADD = \
   -lphool \
-  -lEvent
+  -lSubsysReco \
+  -lphhepmc
 
-libphoolraw_la_SOURCES = \
-  PHRawDataNode.cc \
-  PHRawOManager.cc
-
-pkginclude_HEADERS =  \
-  PHRawOManager.h
-
-BUILT_SOURCES = \
-  testexternals.cc
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
 
-
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = \
-  libphoolraw.la
+testexternals_LDADD   = libFermimotionAfterburner.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -25,21 +25,15 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TpcHit_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
     TpcHit_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-    TpcClusterizer_Dict.cc
-endif
 
 # sources for tpc library
 libtpc_la_SOURCES = \
-  $(ROOT5_DICTS) \
   TpcClusterizer.cc \
   TpcSpaceChargeCorrection_hp.cc
-
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -60,7 +54,7 @@ libtpc_io_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

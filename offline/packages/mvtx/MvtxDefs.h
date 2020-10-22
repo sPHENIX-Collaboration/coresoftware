@@ -19,7 +19,6 @@
  */
 namespace MvtxDefs
 {
-#if !defined(__CINT__) || defined(__CLING__)
 // hitsetkey layout:
 //  Mvtx specific lower 16 bits
 //   24 - 32  tracker id
@@ -36,8 +35,6 @@ static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
 // max values for col and row index in chip
 static const uint16_t MAXCOL __attribute__((unused)) = 1024;
 static const uint16_t MAXROW __attribute__((unused)) = 512;
-
-#endif  // __CINT__
 
 /**
    * @brief Get the stave id from hitsetkey

@@ -14,8 +14,5 @@ case $CXX in
  ;;
 esac
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
-AC_SUBST(CINTDEFS)
-
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
