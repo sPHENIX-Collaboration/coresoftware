@@ -69,6 +69,7 @@ PHG4BbcSteppingAction::~PHG4BbcSteppingAction()
 bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_used)
 {
   //cout << PHWHERE << " In PHG4BbcSteppingAction::UserSteppingAction()" << endl;
+
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
