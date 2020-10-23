@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSVERTEXFITTER_H
 
 #include <fun4all/SubsysReco.h>
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
@@ -30,7 +30,7 @@ class PHActsVertexFitter : public SubsysReco
  private:
   
   int getNodes(PHCompositeNode *topNode);
-  std::vector<const Acts::BoundParameters*> getTracks();  
+  std::vector<const Acts::BoundTrackParameters*> getTracks();  
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
   int m_event;

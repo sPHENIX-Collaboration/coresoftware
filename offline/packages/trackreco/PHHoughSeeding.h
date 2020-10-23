@@ -11,12 +11,10 @@
 #include "PHTrackSeeding.h"
 
 // Helix Hough includes
-#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
 #include <Eigen/Core>                  // for Matrix
-#endif
 
 
 // standard includes
@@ -330,7 +328,6 @@ class PHHoughSeeding : public PHTrackSeeding
     _min_combo_hits = minNlayersSeeding;
   }
 
-#if !defined(__CINT__) || defined(__CLING__)
 
  private:
   //--------------
@@ -537,7 +534,6 @@ class PHHoughSeeding : public PHTrackSeeding
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::vector<float> _radii_all;
 
-#endif  // __CINT__
 };
 
 #endif

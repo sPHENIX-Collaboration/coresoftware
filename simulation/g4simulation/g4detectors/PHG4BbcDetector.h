@@ -35,11 +35,11 @@ class PHG4BbcDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
  
 protected:
-  int IsActive;
-  int IsAbsorberActive;
-  PHParameters *m_Params;
+  int IsActive = 1;
+  int IsAbsorberActive = 0;
+  PHParameters *m_Params = nullptr;
 
-  G4float m_bbcz;  // z-location of mid-point of quartz ckov crystals
+  G4float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
 
   std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 

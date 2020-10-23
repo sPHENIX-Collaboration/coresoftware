@@ -4,7 +4,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 #include "ActsTrack.h"
 
 #include <Acts/Utilities/Helpers.hpp>
@@ -31,9 +31,9 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
@@ -82,7 +82,7 @@ class ActsEvaluator : public SubsysReco
 
   void clearTrackVariables();
   
-  void calculateDCA(const Acts::BoundParameters param, 
+  void calculateDCA(const Acts::BoundTrackParameters param, 
 		    const Acts::Vector3D vertex);
 
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
@@ -187,6 +187,7 @@ class ActsEvaluator : public SubsysReco
   float m_y_fit{-99.};            /// fitted parameter global PCA y
   float m_z_fit{-99.};            /// fitted parameter global PCA z
   float m_chi2_fit{-99.};         /// fitted parameter chi2
+  float m_quality{-99.};          /// SvtxTrack quality parameter
   float m_ndf_fit{-99.};          /// fitted parameter ndf
   float m_dca3Dxy{-99.};          /// fitted parameter 3D DCA in xy plane
   float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane

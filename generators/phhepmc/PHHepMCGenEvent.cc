@@ -65,7 +65,9 @@ const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
 {
-  if (_theEvt) delete _theEvt;
+// clean up old event if it exists,
+// no check needed, one can delete null pointers
+  delete _theEvt;
 
   _theEvt = evt;
   if (!_theEvt) return false;

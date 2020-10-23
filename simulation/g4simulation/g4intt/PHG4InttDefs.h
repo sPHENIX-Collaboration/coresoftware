@@ -11,12 +11,8 @@ static const int SEGMENTATION_Z = -1;
 static const int SEGMENTATION_PHI = -2;
 static const int SUPPORTPARAMS = -3;
 
-// this set only exists so we can iterate over the enum
-// yes it can be made more fancy but this will do
-// and yes stupid CINT does not understand C++11
-#if !defined(__CINT__) || defined(__CLING__)
 static std::set<int> m_SensorSegmentationSet{SEGMENTATION_Z, SEGMENTATION_PHI};
-#endif
+
 // passive volume indices
 static const int SI_WAFER = -1;     // strips are distributed on wafer, there are gaps
 static const int SI_INACTIVE = -2;  // inactive si (guard ring etc. I guess)

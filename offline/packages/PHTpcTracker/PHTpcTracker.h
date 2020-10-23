@@ -7,8 +7,8 @@
 #ifndef PHTPCTRACKER_H_
 #define PHTPCTRACKER_H_
 
-// PHENIX includes
-//#include <fun4all/SubsysReco.h>
+// sPHENIX includes
+
 #include <trackreco/PHTrackSeeding.h>
 
 #include <cmath>    // for M_PI
@@ -39,8 +39,6 @@ class PHTpcTracker : public PHTrackSeeding
   PHTpcTracker(const std::string& name = "PHTpcTracker");
   ~PHTpcTracker();
 
-  // int process_event(PHCompositeNode* topNode);
-
   void set_seed_finder_options(double maxdistance1 = 3.0, double tripletangle1 = M_PI / 8, size_t minhits1 = 10,
                                double maxdistance2 = 6.0, double tripletangle2 = M_PI / 8, size_t minhits2 = 5, size_t nthreads = 1);
   void set_seed_finder_optimization_remove_loopers(bool opt = false, double minr = 10.0, double maxr = 70.0);
@@ -60,7 +58,7 @@ class PHTpcTracker : public PHTrackSeeding
 
   int Process(PHCompositeNode* topNode);
 
-  int End();
+  int End() {return 0;}
 
   PHField* getMagField(PHCompositeNode* topNode, double& B);
 

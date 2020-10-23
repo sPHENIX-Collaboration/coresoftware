@@ -8,6 +8,7 @@
 
 #include <string>
 #include <set>
+#include <vector>
 
 class PHCompositeNode;
 class SvtxTrackMap;
@@ -67,7 +68,7 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-  PHG4Particle* getG4PrimaryParticle(SvtxTrack *track);
+  std::vector<PHG4Particle*> getG4PrimaryParticle(SvtxTrack *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
   
   PHG4TruthInfoContainer *_truthinfo{nullptr};

@@ -209,6 +209,7 @@ pkginclude_HEADERS = \
   PHG4PrimaryGeneratorAction.h \
   PHG4Reco.h \
   PHG4RegionInformation.h \
+  PHG4ScoringManager.h \
   PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \

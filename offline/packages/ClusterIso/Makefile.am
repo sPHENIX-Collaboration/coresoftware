@@ -16,11 +16,6 @@ libclusteriso_la_LDFLAGS = \
 lib_LTLIBRARIES = \
   libclusteriso.la
 
-if ! MAKEROOT6
-ROOT5_DICTS = \
-  ClusterIso_Dict.cc 
-endif
-
 libclusteriso_la_SOURCES = \
   ClusterIso.cc
 
@@ -50,12 +45,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
 clean-local:
-	rm -f *Dict*  $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

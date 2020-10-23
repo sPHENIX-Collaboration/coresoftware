@@ -12,14 +12,7 @@ pkginclude_HEADERS = \
   DumpObject.h \
   PHNodeDump.h
 
-if ! MAKEROOT6
- ROOT5_DICTS = \
-  Dumper_Dict.cc \
-  PHNodeDump_Dict.cc
-endif
-
 libphnodedump_la_SOURCES = \
-  $(ROOT5_DICTS) \
   Dumper.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
@@ -37,6 +30,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
+  DumpPHHepMCGenEventMap.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
@@ -60,19 +54,13 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lg4detectors_io \
   -lg4jets_io \
+  -lHepMC \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io \
   -ltrack_io \
   -lvararray
 
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
 
 noinst_PROGRAMS = \
   testexternals
@@ -92,4 +80,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

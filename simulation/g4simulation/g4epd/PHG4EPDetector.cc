@@ -4,6 +4,9 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
+
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -26,6 +29,8 @@ PHG4EPDetector::PHG4EPDetector(PHG4Subsystem* subsys,
                                std::string const& name)
   : PHG4Detector(subsys, node, name)
 {
+  PHParameters const* pars = params->GetParameters(-1);
+  m_z_position = pars->get_double_param("z_position");
 }
 
 void PHG4EPDetector::ConstructMe(G4LogicalVolume* world)
@@ -38,8 +43,8 @@ void PHG4EPDetector::ConstructMe(G4LogicalVolume* world)
   attrs->SetForceSolid(true);
   attrs->SetColour(G4Colour::Red());
 
-  G4ThreeVector positive(0., 0., 300. * cm);
-  G4ThreeVector negative(0., 0., -300. * cm);
+  G4ThreeVector positive(0., 0., m_z_position * cm);
+  G4ThreeVector negative(0., 0., -m_z_position * cm);
 
   constexpr int32_t ntiles = 31;
   constexpr int32_t nslices = 12;

@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 #include "ActsTrack.h"
 
 #include <fun4all/SubsysReco.h>
@@ -12,9 +12,9 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <Acts/Geometry/GeometryID.hpp>
+#include <Acts/Geometry/GeometryIdentifier.hpp>
 
-#include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
+#include <Acts/TrackFinding/CKFSourceLinkSelector.hpp>
 
 #include <Acts/EventData/MeasurementHelpers.hpp>
 
@@ -58,9 +58,9 @@ using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
 using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eBoundLoc0,
-                                      Acts::ParDef::eBoundLoc1>;
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -120,9 +120,9 @@ class PHActsTrkProp : public PHTrackPropagating
   void createNodes(PHCompositeNode *topNode);
 
   /// Helper function to make an Acts::GeometryID for SL selection
-  Acts::GeometryID makeId(int volume = 0, 
-			  int layer = 0, 
-			  int sensitive = 0);
+  Acts::GeometryIdentifier makeId(int volume = 0, 
+				  int layer = 0, 
+				  int sensitive = 0);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
   void updateSvtxTrack(Trajectory traj, 
@@ -131,6 +131,9 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
+
+  /// Setup the source link selector criteria
+  void setupSourceLinkSelection();
 
   ActsTrackingGeometry *m_tGeometry;
 
@@ -167,7 +170,7 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Configuration containing the finding function instance
   ActsExamples::TrkrClusterFindingAlgorithm::Config findCfg;
 
-
+  Acts::PropagatorPlainOptions m_actsPropPlainOptions;
 };
 
 #endif

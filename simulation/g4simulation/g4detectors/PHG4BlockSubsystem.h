@@ -5,10 +5,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#if !defined(__CINT__) || defined(__CLING__)
 #include <array>   // for array
-#endif
-
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -75,11 +72,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
   //! Color setting if we want to override the default
-#if !defined(__CINT__) || defined(__CLING__)
   std::array<double, 4> m_ColorArray;
-#else
-  double m_ColorArray[4];
-#endif
 };
 
 #endif

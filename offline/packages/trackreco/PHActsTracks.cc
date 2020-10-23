@@ -11,7 +11,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/Utilities/Units.hpp>
 
@@ -122,19 +121,31 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       rotater->rotateSvtxTrackCovToActs(track,
 					m_tGeometry->geoContext);
 
-    const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
-                                 track->get_y()  * Acts::UnitConstants::cm,
-                                 track->get_z()  * Acts::UnitConstants::cm);
-    
-    const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
-                                 track->get_py() * Acts::UnitConstants::GeV,
-                                 track->get_pz() * Acts::UnitConstants::GeV);
+    /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
+    const double trackTime = 10 * Acts::UnitConstants::ns;
 
+    const Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
+				  track->get_y()  * Acts::UnitConstants::cm,
+				  track->get_z()  * Acts::UnitConstants::cm,
+				  trackTime);
+    
+    const Acts::Vector3D seedMomVec(track->get_px() * Acts::UnitConstants::GeV,
+				    track->get_py() * Acts::UnitConstants::GeV,
+				    track->get_pz() * Acts::UnitConstants::GeV);
+
+    const double p = track->get_p();
+    
+    const double trackQ = track->get_charge();
+    
     if(Verbosity() > 0)
       {
 	std::cout << PHWHERE << std::endl;
-	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
-	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
+	std::cout << "Seed track momentum " << p << std::endl;
+	std::cout << " Seed trackQ " << trackQ << std::endl;
+	std::cout << " seed Pos " << seed4Vec(0) << "  " << seed4Vec(1) 
+		  << "  " << seed4Vec(2) << std::endl;
+	std::cout << " seedMomVec " << seedMomVec(0) << "  " 
+		  << seedMomVec(1) << "  " << seedMomVec(2) << std::endl;
 	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
 	std::cout << " seedCov: " << std::endl;
 	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
@@ -146,19 +157,28 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	    std::cout << std::endl;
 	  }
       }
-
-    // just set to 10 ns for now?
-    const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = track->get_charge();
-
-    const ActsExamples::TrackParameters trackSeed(
-                                        seedCov, 
-					seedPos, seedMom, 
-					trackQ * Acts::UnitConstants::e, 
-					trackTime);
+    
+    /// Skip this track seed if the seed somehow got screwed up
+    if(std::isnan(p))
+      {
+	std::cout << PHWHERE << "Bad track seed got passed to ACTS... diagnostic:"
+		  << std::endl << "Seed 4vec: (" << seed4Vec(0) << ", " 
+		  << seed4Vec(1) << ", " << seed4Vec(2) << ", " 
+		  << seed4Vec(3) << ")" << std::endl 
+		  << "Seed momentum vec: (" << seedMomVec(0) << ", "
+		  << seedMomVec(1) << ", " << seedMomVec(2) << ")"
+		  << std::endl << "Seed charge " << trackQ << std::endl;
+		  
+	continue;
+      }
+    const ActsExamples::TrackParameters trackSeed(seed4Vec, 
+						  seedMomVec, p,
+						  trackQ * Acts::UnitConstants::e,
+						  seedCov);
 
     /// Start fresh for this track
     trackSourceLinks.clear();
+
     for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
          clusIter != track->end_cluster_keys();
          ++clusIter)
@@ -166,25 +186,29 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       const TrkrDefs::cluskey key = *clusIter;
 
       const unsigned int hitId = m_hitIdClusKey->find(key)->second;
- 
+
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
-      if (Verbosity() > 100)
+      if (Verbosity() > 0)
 	{
-
-	  
-	  std::cout << std::endl << "cluskey " << key
-		    << " has hitid " << hitId
-		    << std::endl;
-	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(
-				    m_tGeometry->geoContext, std::cout);
+	  std::cout << PHWHERE << " lookup gave hitid " << hitId 
+		    << " for cluskey " << key << std::endl; 
+	  unsigned int layer = TrkrDefs::getLayer(key);
+	  if(layer > 54)
+	    {	  
+	      std::cout << std::endl << PHWHERE << std::endl << " layer " << layer << " cluskey " << key
+			<< " has hitid " << hitId
+			<< std::endl;
+	      std::cout << "Adding the following surface for this SL" << std::endl;
+	      m_sourceLinks->find(hitId)->second.referenceSurface()
+		.toStream(m_tGeometry->geoContext, std::cout);
+	    }
 	}
     }
-
+    
     if (Verbosity() > 0)
-    {
-      for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
+      {
+	for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
       {
         std::cout << "proto_track readback: hitid " << trackSourceLinks.at(i).hitID() << std::endl;
       }

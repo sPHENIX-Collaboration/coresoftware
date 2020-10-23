@@ -13,10 +13,7 @@
 #include <utility>                 // for pair, make_pair
 #include <vector>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 class PHCompositeNode;
 
@@ -73,10 +70,8 @@ class PHG4TpcDigitizer : public SubsysReco
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
 
-#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif

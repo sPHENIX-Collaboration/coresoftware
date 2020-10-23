@@ -33,17 +33,12 @@ ROOTDICTS = \
   BbcVertexv1_Dict.cc \
   BbcVertexMap_Dict.cc \
   BbcVertexMapv1_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    BbcVertex_Dict_rdict.pcm \
-    BbcVertexv1_Dict_rdict.pcm \
-    BbcVertexMap_Dict_rdict.pcm \
-    BbcVertexMapv1_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-    BbcVertexFastSimReco_Dict.cc
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  BbcVertex_Dict_rdict.pcm \
+  BbcVertexv1_Dict_rdict.pcm \
+  BbcVertexMap_Dict_rdict.pcm \
+  BbcVertexMapv1_Dict_rdict.pcm
 
 libg4bbc_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -51,12 +46,11 @@ libg4bbc_io_la_SOURCES = \
   BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \
-  $(ROOT5_DICTS) \
   BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
