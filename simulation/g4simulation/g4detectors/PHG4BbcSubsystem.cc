@@ -46,7 +46,7 @@ PHG4BbcSubsystem::PHG4BbcSubsystem(const std::string &name)
 //_______________________________________________________________________
 int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-  cout << PHWHERE << endl;
+  cout << PHWHERE << " Initializing BBC Subsystem" << endl;
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
