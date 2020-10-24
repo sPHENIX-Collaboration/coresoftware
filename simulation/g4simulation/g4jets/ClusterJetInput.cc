@@ -14,13 +14,13 @@
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
 
-#include <CLHEP/Vector/ThreeVector.h>        // for Hep3Vector
+#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
 // standard includes
 #include <cassert>
 #include <iostream>
-#include <map>                               // for _Rb_tree_const_iterator
-#include <utility>                           // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
 using namespace std;
