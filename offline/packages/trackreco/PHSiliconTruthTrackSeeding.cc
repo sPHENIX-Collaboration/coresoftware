@@ -248,9 +248,6 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       int vertexId = particle->get_vtx_id() - 1;  // Geant likes to count from 1 for both vertex and g4particle ID, _vertex_map counts from 0
       if(vertexId < 0)
 	{
-	  // secondary particle, arbitrarily set vertexId to 0
-	  //vertexId = 0;    
-
 	  // Secondary particle, will have the same gembed value as the corresponding primary vertex
 	  int track_embed = _g4truth_container->isEmbeded(trk_clusters_itr->first);
 	  auto vrange =  _g4truth_container->GetPrimaryVtxRange();
@@ -260,7 +257,8 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 	      int vert_embed =  _g4truth_container->isEmbededVtx(point_id);
 	      if(vert_embed == track_embed)
 		vertexId = point_id - 1;  // Geant starts counting vertices at 1
-	      std::cout << " track_embed " << track_embed << " vert_embed " << vert_embed << " G4 point id " << point_id << " SvtxMap vertexId " << vertexId << std::endl; 
+	      if(Verbosity() > 3)
+		std::cout << " track_embed " << track_embed << " vert_embed " << vert_embed << " G4 point id " << point_id << " SvtxMap vertexId " << vertexId << std::endl; 
 	    }
 	}
       if(vertexId < 0)  // should not be possible
@@ -269,7 +267,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       svtx_track->set_vertex_id(vertexId);
 
       if(Verbosity() > 0)
-	std::cout << " truth track G4 point id is " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
+	std::cout << " truth track G4 point id " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
 		  << " gembed is " <<  _g4truth_container->isEmbeded(trk_clusters_itr->first) << " for truth particle " << trk_clusters_itr->first << std::endl;
 
       // set the track position to the vertex position
