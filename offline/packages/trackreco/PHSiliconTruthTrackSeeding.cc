@@ -246,11 +246,31 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       // assign truth particle vertex ID to this silicon track stub
       PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
       int vertexId = particle->get_vtx_id() - 1;  // Geant likes to count from 1 for both vertex and g4particle ID, _vertex_map counts from 0
-      if(vertexId < 0) vertexId = 0;    // secondary particle, arbitrarily set vertexId to 1
+      if(vertexId < 0)
+	{
+	  // secondary particle, arbitrarily set vertexId to 0
+	  //vertexId = 0;    
+
+	  // Secondary particle, will have the same gembed value as the corresponding primary vertex
+	  int track_embed = _g4truth_container->isEmbeded(trk_clusters_itr->first);
+	  auto vrange =  _g4truth_container->GetPrimaryVtxRange();
+	  for (auto iter = vrange.first; iter != vrange.second; ++iter)  // all primary vertexes
+	    {
+	      const int point_id = iter->first;
+	      int vert_embed =  _g4truth_container->isEmbededVtx(point_id);
+	      if(vert_embed == track_embed)
+		vertexId = point_id - 1;  // Geant starts counting vertices at 1
+	      std::cout << " track_embed " << track_embed << " vert_embed " << vert_embed << " G4 point id " << point_id << " SvtxMap vertexId " << vertexId << std::endl; 
+	    }
+	}
+      if(vertexId < 0)  // should not be possible
+	vertexId = 0;
+
       svtx_track->set_vertex_id(vertexId);
 
       if(Verbosity() > 0)
-	std::cout << " truth track vertex id is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
+	std::cout << " truth track G4 point id is " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
+		  << " gembed is " <<  _g4truth_container->isEmbeded(trk_clusters_itr->first) << " for truth particle " << trk_clusters_itr->first << std::endl;
 
       // set the track position to the vertex position
       const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);
@@ -265,7 +285,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
       if(Verbosity() > 0)
 	{
-	  std::cout << " truth track vertex id is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
+	  std::cout << " truth track SvtxMap vertexid is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
 	  std::cout << "    track position x,y,z = " << svtxVertex->get_x() << ", " << svtxVertex->get_y() << ", " << svtxVertex->get_z() << std::endl;	  
 	}
 
