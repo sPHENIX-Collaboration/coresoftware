@@ -1,31 +1,28 @@
 #include "PHMicromegasTpcTrackMatching.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
+#include "AssocInfoContainer.h"
+#include "PHTrackPropagating.h"     // for PHTrackPropagating
 
 #include <micromegas/MicromegasDefs.h>
 
 /// Tracking includes
-#include <trackbase/TrkrClusterv1.h>
+
+#include <trackbase/TrkrCluster.h>            // for TrkrCluster
+#include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
-#include <g4main/PHG4Hit.h>  // for PHG4Hit
-#include <g4main/PHG4Particle.h>  // for PHG4Particle
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4HitDefs.h>  // for keytype
-#include <g4main/PHG4TruthInfoContainer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-#include "AssocInfoContainer.h"
+#include <phool/phool.h>
 
-#include <TF1.h>
+#include <cmath>                              // for sqrt, fabs, atan2, cos
+#include <iostream>                           // for operator<<, basic_ostream
+#include <map>                                // for map
+#include <set>                                // for _Rb_tree_const_iterator
+#include <utility>                            // for pair, make_pair
 
 using namespace std;
 

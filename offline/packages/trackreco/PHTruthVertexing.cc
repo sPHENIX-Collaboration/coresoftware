@@ -64,7 +64,7 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       std::cout << "embed only: " << std::boolalpha << _embed_only << std::endl;
     }
   auto vrange =  _g4truth_container->GetPrimaryVtxRange();
-  set<int> gembed_set;
+  //set<int> gembed_set;
   for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
@@ -86,10 +86,10 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       // skip particles that are not primary
       if( sqrt(pos[0]*pos[0]+pos[1]*pos[1])  > 0.1) continue;
 
-      // check to see if we have this vertex already      
-      if(gembed_set.find(gembed) != gembed_set.end()) continue;
+      // We take all primary vertices and copy them to the vertex map, regardless of track embedding ID 
+      //if(gembed_set.find(gembed) != gembed_set.end()) continue;
 
-      gembed_set.insert(gembed);
+      //gembed_set.insert(gembed);
       
       pos[0] += _vertex_error[0] * gsl_ran_ugaussian(m_RandomGenerator);
       pos[1] += _vertex_error[1] * gsl_ran_ugaussian(m_RandomGenerator);
