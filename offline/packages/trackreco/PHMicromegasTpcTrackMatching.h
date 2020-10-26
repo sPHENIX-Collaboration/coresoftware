@@ -3,28 +3,16 @@
 #ifndef PHMICROMEGASTPCTRACKMATCHING_H
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
-#include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
+#include <trackreco/PHTrackPropagating.h>
 
 #include <string>
-#include <set>
 #include <vector>
 
 class PHCompositeNode;
-class SvtxTrackMap;
 class SvtxTrack;
-class SvtxVertexMap;
-class TrkrClusterContainer;
 class TrkrCluster;
-class TrkrClusterHitAssoc;
-class TrkrHitTruthAssoc;
-class PHG4TruthInfoContainer;
-class PHG4HitContainer;
-class PHG4Particle;
-class AssocInfoContainer;
 class TF1;
 
-#include <trackreco/PHTrackPropagating.h>
 
 class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 {
@@ -39,6 +27,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_rphi_search_window_lyr2(const double win){_rphi_search_win[1] = win;}
   void set_z_search_window_lyr2(const double win){_z_search_win[1] = win;}
   void set_min_tpc_layer(const unsigned int layer){_min_tpc_layer = layer;}
+  void print_test_windows_data(const bool test){_test_search_windows = test;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -58,19 +47,24 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   unsigned int _n_mm_layers = 2;
   
   // default values, can be replaced from the macro, all in cm
+  // rhese correspond to the "baseline" configuration tiles
   double _rphi_search_win[2] = {0.25, 13.0}; 
-  double _z_search_win[2] = {13.0, 0.25};
+  double _z_search_win[2] = {26.0, 0.25};
 
   double _mm_layer_radius[2] = { 82.2565, 82.6998};
-  double _xplus[2] = {0, 0};
-  double _yplus[2] = {0, 0};
-  double _xminus[2] = {0, 0};
-  double _yminus[2] = {0, 0};
-  double _z[2] = {0, 0};
+
+  double _z_proj[2]={0,0}; 
+  double _y_proj[2]={0,0}; 
+  double _x_proj[2]={0,0}; 
+  double _rphi_proj[2]={0,0};
 
   // range of TPC layers to use in projection to micromegas
-  unsigned int _min_tpc_layer = 45;
+  unsigned int _min_tpc_layer = 38;
   unsigned int _min_mm_layer = 55;
+
+  bool _test_search_windows = false;   // true for testing only
+
+  int _event = -1;
   
   SvtxTrack *_tracklet_tpc{nullptr};
 

@@ -17,33 +17,24 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include <TNtuple.h>
+
 #include <boost/geometry/geometries/box.hpp>    // for box
 #include <boost/geometry/geometries/point.hpp>  // for point
 #include <boost/geometry/index/rtree.hpp>       // for ca
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#endif
 
 #include <cmath>     // for M_PI
 #include <map>       // for map
-#include <stdint.h>  // for uint64_t
+#include <cstdint>  // for uint64_t
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
 #include <set>
 
-#include <TNtuple.h>
 
-// rootcint does not like M_PI in the default arguments (the dict.cc file
-// translates this into a string and does not convert M_PI to its definition)
-// This kludge defines it to Root's Pi() for rootcint use 
-#if defined(__CINT__) && ! defined(__CLING__)
-#include <TMath.h>
-#ifndef M_PI
-#define M_PI TMath::Pi()
-#endif
-#endif
  
 class PHCompositeNode;  // lines 196-196
 class SvtxClusterMap;   // lines 202-202
@@ -66,7 +57,6 @@ enum skip_layers {on, off};
 
 //end
 
-#if !defined(__CINT__) || defined(__CLING__)
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -75,7 +65,7 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 typedef std::pair<std::array<float,3>, TrkrDefs::cluskey> coordKey;
 typedef std::array<coordKey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
-#endif
+
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -104,6 +94,14 @@ class PHCASeeding : public PHTrackSeeding
   void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
   void SetMinHitsPerCluster(int minHits) {_min_nhits_per_cluster = minHits;}
   void SetMinClustersPerTrack(int minClus) {_min_clusters_per_track = minClus;}
+
+  void set_field_dir(const double rescale)
+  {
+    _fieldDir = -1;
+    if(rescale > 0)
+      _fieldDir = 1;     
+  }
+
  protected:
   virtual int Setup(PHCompositeNode *topNode);
   virtual int Process(PHCompositeNode *topNode);
@@ -127,7 +125,6 @@ class PHCASeeding : public PHTrackSeeding
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
   void FillTree();
-#if !defined(__CINT__) || defined(__CLING__)
   void FillTree(std::vector<pointKey> clusters);
   std::vector<coordKey> FindLinkedClusters(TNtuple* NT, PHTimer* t_seed);
   int FindSeedsWithMerger(TNtuple* NT, PHTimer* t_seed);
@@ -145,7 +142,7 @@ class PHCASeeding : public PHTrackSeeding
   void repairCovariance(SvtxTrack_v1 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds, PHTimer* t_seed);
   pointKey makepointKey(TrkrDefs::cluskey k);
-#endif
+
 
  private:
   std::map<int, unsigned int> _layer_ilayer_map_all;
@@ -171,10 +168,9 @@ class PHCASeeding : public PHTrackSeeding
   float _Bz;
   float _cosTheta_limit;
   //std::vector<float> _radii_all;
+  double _fieldDir = 1;
 
-#if !defined(__CINT__) || defined(__CLING__)
   bgi::rtree<pointKey, bgi::quadratic<16>> _rtree;
-#endif  // __CINT__
 };
 
 #endif

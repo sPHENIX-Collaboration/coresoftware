@@ -7,11 +7,14 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <intt/CylinderGeomIntt.h>
 #include <intt/InttDefs.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
 #include <tpc/TpcDefs.h>
+#include <micromegas/MicromegasDefs.h>
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -49,18 +52,8 @@
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
-  , m_useVertexMeasurement(false)
-  , m_clusterMap(nullptr)
-  , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
-  , m_magField("1.4")
-  , m_magFieldRescale(-1.0)
-  , m_geomContainerMvtx(nullptr)
-  , m_geomContainerIntt(nullptr)
-  , m_geomContainerTpc(nullptr)
-  , m_tGeometry(nullptr)
- 
 {
   Verbosity(0);
 }
@@ -81,20 +74,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   createNodes(topNode);
 
   /// Check if Acts geometry has been built and is on the node tree
-  m_actsGeometry = new MakeActsGeometry();
-  
-  m_actsGeometry->setVerbosity(Verbosity());
-  m_actsGeometry->setMagField(m_magField);
-  m_actsGeometry->setMagFieldRescale(m_magFieldRescale);
-  m_actsGeometry->buildAllGeometry(topNode);
-
-  /// Set the tGeometry struct to be put on the node tree
-  m_tGeometry->tGeometry = m_actsGeometry->getTGeometry();
-  m_tGeometry->magField = m_actsGeometry->getMagField();
-  m_tGeometry->calibContext = m_actsGeometry->getCalibContext();
-  m_tGeometry->magFieldContext = m_actsGeometry->getMagFieldContext();
-  m_tGeometry->geoContext = m_actsGeometry->getGeoContext();
-
+ 
   if (Verbosity() > 10)
   {
     std::cout << "Finished PHActsSourceLinks::InitRun" << std::endl;
@@ -106,21 +86,22 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    std::cout << "Start PHActsSourceLinks process_event" << std::endl;
+    std::cout << std::endl << "Start PHActsSourceLinks process_event" << std::endl;
   }
 
   /// Get the nodes from the node tree
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  /// Arbitrary hitId that is used to mape between cluster key and an
+  /// Arbitrary hitId that is used to map between cluster key and an
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
 
-if(m_useVertexMeasurement){
-  addVerticesAsSourceLinks(topNode, hitId);
-
- }
+  if(m_useVertexMeasurement)
+    {
+      addVerticesAsSourceLinks(topNode, hitId);      
+    }
+  
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
@@ -133,6 +114,7 @@ if(m_useVertexMeasurement){
 
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
+
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
 
     /// Local coordinates and surface to be set by the correct tracking
@@ -176,8 +158,13 @@ if(m_useVertexMeasurement){
     }
     else if (trkrId == TrkrDefs::micromegasId)
       {
-	// skip micromegas for now
-	continue;
+	surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
+	
+	if (!surface)
+	  {
+	    /// if we couldn't find the surface (shouldn't happen) just skip this hit
+	    continue;
+	  }
       }
     else
     {
@@ -197,7 +184,7 @@ if(m_useVertexMeasurement){
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "    layer " << layer << std::endl;
       for (int i = 0; i < 2; ++i)
@@ -215,13 +202,15 @@ if(m_useVertexMeasurement){
     loc[Acts::eBoundLoc0] = local2D[0];
     loc[Acts::eBoundLoc1] = local2D[1];
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
-      std::cout << "Layer " << layer
-                << " create measurement for trkrid " << trkrId
-                << " surface " << surface->name() << " surface type "
-                << surface->type() << " local x " << loc[Acts::eBoundLoc0]
-                << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
+      if(layer > 54)
+	std::cout << "Layer " << layer
+		  << " create measurement for trkrid " << trkrId
+		  << " cluskey " << clusKey
+		  << " surface " << surface->name() << " surface type "
+		  << surface->type() << " local x " << loc[Acts::eBoundLoc0]
+		  << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
     }
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
@@ -307,10 +296,10 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
   std::vector<double> worldVec = {world[0], world[1], world[2]};
-  /// MakeActsGeometry has a helper function since many surfaces can exist on
+  /// Use helper function since many surfaces can exist on
   /// a given readout module
-  Surface surface = m_actsGeometry->getTpcSurfaceFromCoords(tpcHitSetKey,
-							    worldVec);
+  Surface surface = getTpcSurfaceFromCoords(tpcHitSetKey,
+					    worldVec);
 
   /// If surface can't be found (shouldn't happen) return nullptr and skip this cluster
   if(!surface)
@@ -320,7 +309,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 		<< std::endl;
       return nullptr;
     }
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
       surface->toStream(m_tGeometry->geoContext, std::cout);
@@ -330,15 +319,15 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
   /// lengths in mm
-  Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
-  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
+  Acts::Vector3D center = surface->center(m_tGeometry->geoContext);
+  Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
   
   double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
   double surfPhiCenter = atan2(center[1], center[0]);
   double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     std::cout << std::endl << "surface center readback:   x " << center[0]
               << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
@@ -354,9 +343,9 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), 
+  auto vecResult = surface->globalToLocal(m_tGeometry->geoContext, 
 		        globalPos,
-		        surface->normal(m_actsGeometry->getGeoContext()));
+		        surface->normal(m_tGeometry->geoContext));
 
   if(vecResult.ok())
     {
@@ -370,11 +359,11 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     }
 
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_tGeometry->geoContext, 
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     std::cout << "cluster readback (mm):  x " << x*Acts::UnitConstants::cm <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
 	      << " radius " << radius << std::endl;
@@ -402,7 +391,163 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
     sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
 
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 10)
+    {
+      for (int i = 0; i < 3; ++i)
+	{
+	  for (int j = 0; j < 3; j++)
+	    {
+	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << sPhenixLocalErr[i][j] << std::endl;
+	    }
+	}
+    }
+
+  return surface;
+}
+
+Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
+                                             Acts::BoundMatrix &localErr,
+                                             const TrkrCluster *cluster,
+                                             const TrkrDefs::cluskey clusKey)
+{
+  // cm
+  const float x = cluster->getPosition(0);
+  const float y = cluster->getPosition(1);
+  const float z = cluster->getPosition(2);
+
+  // In local coords the covariances are in the  r*phi vs z frame
+  // They have been rotated into global coordinates in TrkrCluster
+  TMatrixD worldErr(3, 3);
+  for (int i = 0; i < 3; ++i)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      worldErr[i][j] = cluster->getError(i, j);  // this is the cov error squared
+    }
+  }
+
+  /// Extract detector element IDs to access the correct Surface
+  TVector3 world(x, y, z);
+
+  /// Get some geometry values (lengths in mm)
+  const double clusPhi = atan2(world[1], world[0]);
+  const double radius = sqrt(x * x + y * y) * Acts::UnitConstants::cm;
+  const double rClusPhi = radius * clusPhi;
+  const double zMm = world[2] * Acts::UnitConstants::cm;
+  const unsigned int layer = TrkrDefs::getLayer(clusKey);
+
+  // need information to find the surface from the map
+  // the surface map is (for now) just a list of surfaces for each layer
+  // use a dummy tile number of 0 and generate a fake hitsetkey
+
+  unsigned int tile = 0;   // assign all surfaces to tile 0
+  MicromegasDefs::SegmentationType segtype;
+  if(layer == 55)
+    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+  else
+    segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+
+  /// Get the surface key to find the surface from the map
+  TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+  std::vector<double> worldVec = {world[0], world[1], world[2]};
+
+  /// Use helper function since many surfaces can exist on
+  /// a given readout module
+  Surface surface = getMmSurfaceFromCoords(mmHitSetKey,
+					   worldVec);
+
+  /// If surface can't be found (shouldn't happen) return nullptr and skip this cluster
+  if(!surface)
+    {
+      std::cout << PHWHERE
+		<< "Failed to find associated surface element - should be impossible! Skipping measurement."
+		<< std::endl;
+      return nullptr;
+    }
+  if(Verbosity() > 10)
+    {
+      std::cout << "Stream of found micromegas surface: " << std::endl;
+      surface->toStream(m_tGeometry->geoContext, std::cout);
+    }
+
+  /// Transformation of cluster to local surface coords
+  /// Coords are r*phi relative to surface r-phi center, and z
+  /// relative to surface z center
+  /// lengths in mm
+  Acts::Vector3D center = surface->center(m_tGeometry->geoContext);
+  Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
+  
+  double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
+  double surfPhiCenter = atan2(center[1], center[0]);
+  double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
+  double surfZCenter = center[2];
+  
+  if (Verbosity() > 0)
+  {
+    std::cout << PHWHERE << std::endl << "Micromegas surface center readback:   x " << center[0]
+              << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
+    std::cout << "Surface normal vector : "<< normal(0) << ", " 
+	      << normal(1) << ", " << normal(2) << std::endl;
+    std::cout << " surface center  phi " << atan2(center[1], center[0]) 
+              << " surface center r*phi " << surfRphiCenter
+              << " surface center z  " << surfZCenter
+              << std::endl;
+  }
+
+  Acts::Vector3D globalPos(x * Acts::UnitConstants::cm,
+			   y * Acts::UnitConstants::cm,
+			   z * Acts::UnitConstants::cm);
+  
+  auto vecResult = surface->globalToLocal(m_tGeometry->geoContext, 
+		        globalPos,
+		        surface->normal(m_tGeometry->geoContext));
+
+  if(vecResult.ok())
+    {
+      local2D = vecResult.value();
+    }
+  else
+    {
+      /// Otherwise use manual calculation, which is the same as Acts
+      local2D(0) = rClusPhi - surfRphiCenter;
+      local2D(1) = zMm - surfZCenter;
+    }
+
+  /// Test that Acts surface transforms correctly back
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_tGeometry->geoContext, 
+						     local2D, 
+						     Acts::Vector3D(1,1,1));
+
+  if (Verbosity() > 0)
+  {
+    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " << x*Acts::UnitConstants::cm 
+	      <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
+	      << " radius " << radius << std::endl;
+    std::cout << " cluster phi " << clusPhi << " cluster z " << zMm << " r*clusphi " << rClusPhi << std::endl;
+    std::cout << " local phi " << clusPhi - surfPhiCenter
+              << " local rphi " << rClusPhi-surfRphiCenter 
+ 	      << " local z " << zMm - surfZCenter  << std::endl;
+    std::cout << " acts local : " <<local2D(0) <<"  "<<local2D(1) << std::endl;
+    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
+	      << z * 10 << "  " << std::endl;
+    std::cout << " acts global : " << actsGlobal(0) << "  " << actsGlobal(1) 
+	      << "  " << actsGlobal(2) << std::endl;
+  }
+
+  TMatrixD sPhenixLocalErr = transformCovarToLocal(clusPhi, worldErr);
+
+  /// Get the 2D location covariance uncertainty for the cluster (y and z)
+  localErr(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+    sPhenixLocalErr[1][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+    sPhenixLocalErr[2][1] * Acts::UnitConstants::cm2;
+  localErr(Acts::eBoundLoc0, Acts::eBoundLoc1) = 
+    sPhenixLocalErr[1][2] * Acts::UnitConstants::cm2;
+  localErr(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+    sPhenixLocalErr[2][2] * Acts::UnitConstants::cm2;
+
+
+  if(Verbosity() > 10)
     {
       for (int i = 0; i < 3; ++i)
 	{
@@ -485,8 +630,8 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
-			 surface->normal(m_actsGeometry->getGeoContext()));
+  auto vecResult = surface->globalToLocal(m_tGeometry->geoContext, globalPos,
+			 surface->normal(m_tGeometry->geoContext));
   if(vecResult.ok())
     {
       local2D = vecResult.value();
@@ -499,13 +644,13 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
     }
 
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_tGeometry->geoContext, 
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
+  Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     double segcent[3];
     layerGeom->find_segment_center(ladderZId, ladderPhiId, segcent);
@@ -606,8 +751,8 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
 			   y * Acts::UnitConstants::cm,
 			   z * Acts::UnitConstants::cm);
   
-  auto vecResult = surface->globalToLocal(m_actsGeometry->getGeoContext(), globalPos,
-			 surface->normal(m_actsGeometry->getGeoContext()));
+  auto vecResult = surface->globalToLocal(m_tGeometry->geoContext, globalPos,
+			 surface->normal(m_tGeometry->geoContext));
 
   if(vecResult.ok())
     {
@@ -621,13 +766,13 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
     }
 
   /// Test that Acts surface transforms correctly back
-  Acts::Vector3D actsGlobal = surface->localToGlobal(m_actsGeometry->getGeoContext(), 
+  Acts::Vector3D actsGlobal = surface->localToGlobal(m_tGeometry->geoContext, 
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  Acts::Vector3D normal = surface->normal(m_actsGeometry->getGeoContext());
+  Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     double segcent[3];
     std::cout << "Acts normal vector: "<<normal(0) << ", " << normal(1) 
@@ -683,9 +828,9 @@ void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
       Acts::Vector2D loc(0,0); 
       Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
 
-      auto vecResult = pSurface->globalToLocal(m_actsGeometry->getGeoContext(),
+      auto vecResult = pSurface->globalToLocal(m_tGeometry->geoContext,
 			      globalPos,
-			      pSurface->normal(m_actsGeometry->getGeoContext()));
+			      pSurface->normal(m_tGeometry->geoContext));
 
       if(vecResult.ok())
 	{
@@ -736,8 +881,8 @@ void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
       
       if(Verbosity() > 1)
 	{
-	  Acts::Vector3D center = pSurface->center(m_actsGeometry->getGeoContext());
-	  Acts::Vector3D normal = pSurface->normal(m_actsGeometry->getGeoContext());
+	  Acts::Vector3D center = pSurface->center(m_tGeometry->geoContext);
+	  Acts::Vector3D normal = pSurface->normal(m_tGeometry->geoContext);
 
 	  std::cout << "Adding vertex as a measurement in track fitting"
 		    << std::endl
@@ -763,6 +908,27 @@ void PHActsSourceLinks::addVerticesAsSourceLinks(PHCompositeNode *topNode,
 
 int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 {
+
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						   "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE 
+		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, 
+							 "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE 
+		<< "ActsTrackingGeometry not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterMap)
   {
@@ -851,22 +1017,12 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     svtxNode->addNode(sourceLinkNode);
   }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
-  if(!m_tGeometry)
-    {
-      m_tGeometry = new ActsTrackingGeometry();
-      PHDataNode<ActsTrackingGeometry> *tGeoNode = new PHDataNode<ActsTrackingGeometry>(m_tGeometry,
-								 "ActsTrackingGeometry");
-      svtxNode->addNode(tGeoNode);
-    }
-
-
   return;
 }
 
 TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_actsGeometry->getTGeoNodeMap();
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_surfMaps->tGeoNodeMap;
 
   /// Get the TGeoNode for this hit set key
   std::map<TrkrDefs::hitsetkey, TGeoNode *>::iterator mapIter;
@@ -877,7 +1033,7 @@ TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey
   if (mapIter != clusterNodeMap.end())
   {
     sensorNode = mapIter->second;
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "Found TGeoNode in clusterNodeMap for hitsetkey "
                 << hitSetKey
@@ -899,7 +1055,7 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
 {
   Surface surface;
   std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
-    m_actsGeometry->getSurfaceMapSilicon();
+    m_surfMaps->siliconSurfaceMap;
 
   std::map<TrkrDefs::hitsetkey, Surface>::iterator
       surfaceIter;
@@ -910,7 +1066,7 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   if (surfaceIter != clusterSurfaceMap.end())
   {
     surface = surfaceIter->second;
-    if (Verbosity() > 0)
+    if (Verbosity() > 10)
     {
       std::cout << "Got surface pair " << surface->name()
                 << " surface type " << surface->type()
@@ -946,7 +1102,7 @@ Acts::BoundMatrix PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer,
 
   localErr = transformCovarToLocal(ladderPhi, worldErr);
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 10)
   {
     for (int i = 0; i < 3; ++i)
     {
@@ -1039,4 +1195,117 @@ TMatrixD PHActsSourceLinks::transformCovarToLocal(const double ladderPhi,
   localErr = ROT * worldErr * ROT_T;
 
   return localErr;
+}
+
+
+Surface PHActsSourceLinks::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+						  std::vector<double> &world)
+{
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = m_surfMaps->mmSurfaceMap.find(hitsetkey);
+  
+  if(mapIter == m_surfMaps->mmSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+
+  /// Get some geometry values from the geom builder for parsing surfaces
+  MakeActsGeometry *geom = new MakeActsGeometry();
+  double surfStepPhi = geom->getSurfStepPhi();
+  double surfStepZ = geom->getSurfStepZ();
+
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+  
+      auto vec3d = this_surf->center(m_tGeometry->geoContext);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+
+      /// Check if the cluster is geometrically within the surface boundaries
+      /// The MMs surfaces span the entire length in z, so we don't divide
+      /// by 2 in the z direction since the center of the surface is z=0
+      bool withinPhi = world_phi >= surf_phi - surfStepPhi / 2.0
+	&& world_phi < surf_phi + surfStepPhi / 2.0;
+      bool withinZ = world_z > surf_z - surfStepZ 
+	&& world_z < surf_z + surfStepZ;
+      if( withinPhi && withinZ )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+  if(surf_index == 999)
+    {
+      std::cout << PHWHERE 
+		<< "Error: Micromegas surface index not defined, skipping cluster!" 
+		<< std::endl;
+    
+      return nullptr;
+    }
+ 
+  return surf_vec[surf_index];
+
+}
+
+Surface PHActsSourceLinks::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
+						   std::vector<double> &world)
+{
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  
+  if(mapIter == m_surfMaps->tpcSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+
+  MakeActsGeometry *geom = new MakeActsGeometry();
+  double surfStepPhi = geom->getSurfStepPhi();
+  double surfStepZ = geom->getSurfStepZ();
+
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+  
+      auto vec3d = this_surf->center(m_tGeometry->geoContext);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+ 
+      if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+  if(surf_index == 999)
+    {
+      std::cout << PHWHERE 
+		<< "Error: TPC surface index not defined, skipping cluster!" 
+		<< std::endl;
+      return nullptr;
+    }
+ 
+  return surf_vec[surf_index];
+
 }

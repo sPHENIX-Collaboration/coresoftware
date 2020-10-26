@@ -96,6 +96,7 @@ class SvtxClusterEval
   PHG4HitContainer * _g4hits_tpc;
   PHG4HitContainer * _g4hits_intt;
   PHG4HitContainer * _g4hits_mvtx;
+  PHG4HitContainer * _g4hits_mms;
 
 
   bool _strict;
@@ -126,6 +127,8 @@ class SvtxClusterEval
   const float range_intt_z = 0.9;
   const float sig_mvtx_rphi = 4.0e-04;
   const float sig_mvtx_z = 4.7e-04;
+  const float sig_mms_rphi_55 = 100e-04;
+  const float sig_mms_z_56 = 200e-04;
 
 
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad

@@ -15,11 +15,9 @@
 #include <iostream>
 #include <map>
 #include <string>                        // for string
+#include <type_traits>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <type_traits>
-#endif
 
 class RawCluster : public PHObject
 {
