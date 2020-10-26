@@ -667,6 +667,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -791,6 +792,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -856,6 +858,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -896,6 +899,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -929,7 +933,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
-    
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_EM_PARTICLE );
+
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
     
@@ -956,6 +961,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_NEUTRAL_HADRON );
 
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
@@ -983,6 +989,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_CHARGED_HADRON );
 
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
