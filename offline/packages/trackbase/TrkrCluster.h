@@ -11,14 +11,10 @@
 
 #include <phool/PHObject.h>
 
+#include <climits>
 #include <cmath>
 #include <iostream>
 
-#if defined(__CINT__) && !defined(__CLING__)
-#include <limits.h>
-#else
-#include <climits>
-#endif
 
 
 /**

@@ -49,13 +49,6 @@ libg4tpc_la_SOURCES = \
   PHG4TpcSubsystem.cc \
   PHG4TpcEndCapSubsystem.cc
 
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
 ################################################
 # linking tests
 
@@ -75,4 +68,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

@@ -3,11 +3,7 @@
 #ifndef G4DETECTORS_PHG4CELLDEFS_H
 #define G4DETECTORS_PHG4CELLDEFS_H
 
-#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 namespace PHG4CellDefs
 {
@@ -17,8 +13,6 @@ namespace PHG4CellDefs
 // are currently implemented as 64 bit
   typedef uint64_t keytype;
 
-  // CINT does not know the __attribute__((unused))
-#if !defined(__CINT__) || defined(__CLING__)
   // key layout
   // bit
   // 48-64 detector id (scintillator slat id, layer,...)
@@ -37,7 +31,6 @@ namespace PHG4CellDefs
   static unsigned int bitshift_upperkey __attribute__((unused)) = 16;
   static unsigned int bitshift_row __attribute__((unused)) = 16;
   static unsigned int bitshift_phi __attribute__((unused)) = 16;
-#endif
 
   enum CellBinning {undefined = 0, sizebinning = 1, etaphibinning = 2, etaslatbinning = 3, spacalbinning = 4, scintillatorslatbinning = 5, etaxsizebinning = 6, mvtxbinning = 7, tpcbinning = 8};
   bool has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);

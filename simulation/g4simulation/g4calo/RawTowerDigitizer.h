@@ -14,10 +14,7 @@ class RawTowerDeadMap;
 
 class RawTower;
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 //! simple tower digitizer which sum all cell to produce photon yield and pedstal noises
 //! default input DST node is TOWER_SIM_DETECTOR
@@ -225,9 +222,7 @@ class RawTowerDigitizer : public SubsysReco
 
   PHParameters _tower_params;
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *m_RandomGenerator;
-#endif
 };
 
 #endif /* G4CALO_RAWTOWERDIGITIZER_H */

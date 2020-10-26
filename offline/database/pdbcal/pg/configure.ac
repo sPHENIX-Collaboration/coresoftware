@@ -16,7 +16,7 @@ dnl odbc++ has issues
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wno-overloaded-virtual"
  ;;
  g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
  ;;
 esac
 
