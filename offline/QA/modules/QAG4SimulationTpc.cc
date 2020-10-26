@@ -39,6 +39,8 @@
 #include <utility>   // for pair, make_pair
 #include <vector>    // for vector
 
+using namespace std;
+
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
   : SubsysReco(name)

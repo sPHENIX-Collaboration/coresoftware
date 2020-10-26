@@ -9,10 +9,7 @@
 
 #include <phparameter/PHParameterInterface.h>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 #include <string>                              // for string
 
@@ -128,9 +125,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time;
   double max_time;
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H

@@ -87,11 +87,6 @@ ROOTHITDICTS = \
   PHG4VtxPointv1_Dict.cc \
   PHG4TruthInfoContainer_Dict.cc
 
-# for root6 we need pcm and dictionaries but only for
-# i/o classes. For root5 we need only dictionaries but
-# those for i/o and classes available on the cmd line
-# MAKEROOT6 is set in the configure.ac, true for root6
-if MAKEROOT6
 # this is a tweak to install files in $(libdir), automake refuses
 # to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
@@ -114,37 +109,9 @@ nobase_dist_pcm_DATA = \
   PHG4VtxPoint_Dict_rdict.pcm \
   PHG4VtxPointv1_Dict_rdict.pcm \
   PHG4TruthInfoContainer_Dict_rdict.pcm
-else
-  ROOT5HITDICTS = PHG4HitDefs_Dict.cc
-  ROOT5TBDICTS = \
-    Fun4AllDstPileupInputManager_Dict.cc \
-    HepMCNodeReader_Dict.cc \
-    PHG4ConsistencyCheck_Dict.cc \
-    PHG4HeadReco_Dict.cc \
-    PHG4InEventCompress_Dict.cc \
-    PHG4InEventReadBack_Dict.cc \
-    PHG4InputFilter_Dict.cc \
-    PHG4IonGun_Dict.cc \
-    PHG4ParticleGenerator_Dict.cc \
-    PHG4ParticleGeneratorBase_Dict.cc \
-    PHG4ParticleGeneratorVectorMeson_Dict.cc \
-    PHG4ParticleGeneratorD0_Dict.cc \
-    PHG4ParticleGun_Dict.cc \
-    PHG4Reco_Dict.cc \
-    PHG4ScoringManager_Dict.cc \
-    PHG4SimpleEventGenerator_Dict.cc \
-    PHG4PileupGenerator_Dict.cc \
-    PHG4Subsystem_Dict.cc \
-    PHG4TruthSubsystem_Dict.cc \
-    PHG4Utils_Dict.cc \
-    PHG4VertexSelection_Dict.cc \
-    ReadEICFiles_Dict.cc \
-    PHG4HitReadBack_Dict.cc
-endif
 
 libphg4hit_la_SOURCES = \
   $(ROOTHITDICTS) \
-  $(ROOT5HITDICTS) \
   EicEventHeader.cc \
   EicEventHeaderv1.cc \
   PHG4EventHeaderv1.cc \
@@ -164,7 +131,6 @@ libphg4hit_la_SOURCES = \
   PHG4VtxPointv1.cc
 
 libg4testbench_la_SOURCES = \
-  $(ROOT5TBDICTS) \
   Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
@@ -243,6 +209,7 @@ pkginclude_HEADERS = \
   PHG4PrimaryGeneratorAction.h \
   PHG4Reco.h \
   PHG4RegionInformation.h \
+  PHG4ScoringManager.h \
   PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
@@ -282,7 +249,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

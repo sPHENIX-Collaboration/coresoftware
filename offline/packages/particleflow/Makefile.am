@@ -21,13 +21,11 @@ ROOTDICTS = \
   ParticleFlowElementv1_Dict.cc \
   ParticleFlowElementContainer_Dict.cc
 
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    ParticleFlowElement_Dict_rdict.pcm \
-    ParticleFlowElementv1_Dict_rdict.pcm \
-    ParticleFlowElementContainer_Dict_rdict.pcm 
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  ParticleFlowElement_Dict_rdict.pcm \
+  ParticleFlowElementv1_Dict_rdict.pcm \
+  ParticleFlowElementContainer_Dict_rdict.pcm 
 
 lib_LTLIBRARIES = \
   libparticleflow_io.la \
@@ -40,7 +38,6 @@ libparticleflow_io_la_SOURCES = \
   ParticleFlowElementContainer.cc
 
 libparticleflow_la_SOURCES = \
-  $(ROOTDICTS) \
   ParticleFlowReco.cc \
   ParticleFlowJetInput.cc
 
@@ -55,7 +52,7 @@ libparticleflow_la_LIBADD = \
   -lSubsysReco
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

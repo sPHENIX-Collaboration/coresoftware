@@ -24,13 +24,6 @@ ROOTDICTS = \
   EventHeaderv1_Dict.cc \
   EventHeaderv2_Dict.cc
 
-# for root6 we need pcm and dictionaries but only for
-# i/o classes. For root5 we need only dictionaries but
-# those for i/o and classes available on the cmd line
-# MAKEROOT6 is set in the configure.ac, true for root6
-if MAKEROOT6
-# this is a tweak to install files in $(libdir), automake refuses
-# to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   FlagSave_Dict_rdict.pcm \
@@ -41,7 +34,6 @@ nobase_dist_pcm_DATA = \
   EventHeader_Dict_rdict.pcm \
   EventHeaderv1_Dict_rdict.pcm \
   EventHeaderv2_Dict_rdict.pcm
-endif
 
 pkginclude_HEADERS = \
   FlagSave.h \
@@ -83,7 +75,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

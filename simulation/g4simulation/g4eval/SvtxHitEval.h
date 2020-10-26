@@ -79,6 +79,7 @@ class SvtxHitEval
   PHG4HitContainer* _g4hits_tpc;
   PHG4HitContainer* _g4hits_intt;
   PHG4HitContainer* _g4hits_mvtx;
+  PHG4HitContainer* _g4hits_mms;
 
   PHG4TruthInfoContainer* _truthinfo;
 

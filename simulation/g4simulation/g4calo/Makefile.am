@@ -19,16 +19,7 @@ pkginclude_HEADERS = \
   RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h
 
-if ! MAKEROOT6
-  ROOT5_DICTS = \
-    HcalRawTowerBuilder_Dict.cc \
-    RawTowerBuilder_Dict.cc \
-    RawTowerBuilderByHitIndex_Dict.cc \
-    RawTowerDigitizer_Dict.cc
-endif
-
 libg4calo_la_SOURCES = \
-  $(ROOT5_DICTS) \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
@@ -48,12 +39,7 @@ libg4calo_la_LIBADD = \
   -lphparameter \
   -lgsl \
   -lgslcblas \
-  -lcalo_io \
-  -lcalo_util
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+  -lcalo_io
 
 ################################################
 # linking tests
@@ -77,4 +63,4 @@ testexternals.cc:
 # please add new classes in alphabetical order
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

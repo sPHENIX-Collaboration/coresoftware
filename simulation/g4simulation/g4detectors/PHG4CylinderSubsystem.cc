@@ -18,6 +18,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream, endl
@@ -31,9 +32,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   m_ColorArray.fill(NAN);
   InitializeParameters();
@@ -58,6 +56,12 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   else
   {
     GetParams()->set_int_param("lengthviarapidity", 0);
+  }
+  // use world material if material was not set so far
+  if (GetParams()->get_string_param("material") == "WorldMaterial")
+  {
+    recoConsts *rc = recoConsts::instance();
+    GetParams()->set_string_param("material", rc->get_StringFlag("WorldMaterial"));
   }
   // create display settings before detector
   PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());
@@ -132,6 +136,10 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     m_SteppingAction = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
   }
+  if (m_SteppingAction)
+  {
+    (dynamic_cast<PHG4CylinderSteppingAction *>(m_SteppingAction))->SaveAllHits(m_SaveAllHitsFlag);
+  }
   return 0;
 }
 
@@ -163,7 +171,8 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_int_param("lightyield", 0);
   set_default_int_param("use_g4steps", 0);
 
-  set_default_string_param("material", "G4_Galactic");
+  // place holder, will be replaced by world material if not set by other means (macro)
+  set_default_string_param("material", "WorldMaterial");
 }
 
 PHG4Detector *

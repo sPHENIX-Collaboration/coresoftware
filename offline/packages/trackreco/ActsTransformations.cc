@@ -2,7 +2,8 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
-	             const SvtxTrack *track)
+			        const SvtxTrack *track,
+				Acts::GeometryContext geoCtxt)
 {
   Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
@@ -84,7 +85,8 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
-                     const Acts::BoundParameters params)
+			        const Acts::BoundTrackParameters params,
+				Acts::GeometryContext geoCtxt)
 {
 
   auto covarianceMatrix = *params.covariance();
@@ -96,9 +98,9 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   const double pz = params.momentum()(2);
   const double p = sqrt(px * px + py * py + pz * pz);
   
-  const double x = params.position()(0);
-  const double y = params.position()(1);
-  const double z = params.position()(2);
+  const double x = params.position(geoCtxt)(0);
+  const double y = params.position(geoCtxt)(1);
+  const double z = params.position(geoCtxt)(2);
   const double r = sqrt(x*x + y*y + z*z);
 
   const double posCosTheta = z / r;
@@ -194,14 +196,15 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 
-void ActsTransformations::calculateDCA(const Acts::BoundParameters param,
+void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				   Acts::Vector3D vertex,
+				   Acts::GeometryContext geoCtxt,
 				   float &dca3Dxy,
 				   float &dca3Dz,
 				   float &dca3DxyCov,
 				   float &dca3DzCov)
 {
-  Acts::Vector3D pos = param.position();
+  Acts::Vector3D pos = param.position(geoCtxt);
   Acts::Vector3D mom = param.momentum();
 
   /// Correct for initial vertex estimation
@@ -269,15 +272,15 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
       auto meas = std::get<Measurement>(*state.uncalibrated());
 
       /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-			   meas.parameters()[Acts::ParDef::eLOC_1]);
-      /// Get global position
-      Acts::Vector3D global(0., 0., 0.);
+      Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
+			   meas.parameters()[Acts::eBoundLoc1]);
+
       /// This is an arbitrary vector. Doesn't matter in coordinate transformation
       /// in Acts code
       Acts::Vector3D mom(1., 1., 1.);
-      meas.referenceObject().localToGlobal(geoContext,
-					    local, mom, global);
+      Acts::Vector3D global = meas.referenceObject().localToGlobal(
+					    geoContext,
+					    local, mom);
       
       float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
       SvtxTrackState_v1 out( pathlength );
@@ -287,17 +290,17 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     
       if (state.hasSmoothed())
 	{
-	  Acts::BoundParameters parameter(geoContext,
-					  state.smoothedCovariance(), state.smoothed(),
-					  state.referenceSurface().getSharedPtr());
-	  
+	  Acts::BoundTrackParameters parameter(state.referenceSurface().getSharedPtr(),
+					  state.smoothed(),
+					  state.smoothedCovariance());
 	  out.set_px(parameter.momentum().x());
 	  out.set_py(parameter.momentum().y());
 	  out.set_pz(parameter.momentum().z());
 
 	  /// Get measurement covariance    
 
-	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter);
+	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter,
+								    geoContext);
 	  for (int i = 0; i < 6; i++)
 	    {
 	      for (int j = 0; j < 6; j++)
@@ -310,7 +313,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
 	  svtxTrack->insert_cluster_key(cluskey);
 	  
-	  if(m_verbosity > 2)
+	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
 			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 

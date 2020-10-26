@@ -5,12 +5,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#include <array>
-#endif
 
+#include <array>
 #include <climits>
 #include <cmath>
 #include <string>                     // for string
@@ -47,7 +44,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins(const double z, const std::array<double,2>& cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
 
-#if !defined(__CINT__) || defined(__CLING__)
   std::string seggeonodename;
 
   PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
@@ -84,8 +80,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double averageGEMGain = NAN;
 
-#endif
-
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
@@ -93,9 +87,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
-#endif
+
 };
 
 #endif

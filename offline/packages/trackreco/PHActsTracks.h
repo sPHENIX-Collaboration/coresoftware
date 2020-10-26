@@ -1,8 +1,6 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
-#include "PHActsSourceLinks.h" 
-
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -13,10 +11,11 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 #include "ActsTrack.h"
+#include "ActsTrackingGeometry.h"
 
 #include <map>
 #include <string>
@@ -28,7 +27,7 @@ class SvtxTrack;
 class SvtxVertexMap;
 class MakeActsGeometry;
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 
 /**
