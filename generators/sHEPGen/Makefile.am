@@ -31,8 +31,7 @@ libsHEPGen_la_LIBADD = \
   -lCGAL
 
 libsHEPGen_la_SOURCES = \
-  sHEPGen.C \
-  sHEPGen_Dict.C
+  sHEPGen.C
 
 BUILT_SOURCES = \
   testexternals.C
@@ -50,11 +49,5 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-sHEPGen_Dict.C: \
-  sHEPGen.h \
-  sHEPGenLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 clean-local:
-	rm -f *Dict*
-	rm -f testexternals*
+	rm -f $(BUILT_SOURCES)

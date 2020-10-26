@@ -3,9 +3,10 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 
 /**
@@ -20,7 +21,7 @@ class ActsTrack
  public:
   ActsTrack();
 
-  ActsTrack(FW::TrackParameters params, 
+  ActsTrack(ActsExamples::TrackParameters params, 
 	    const std::vector<SourceLink> &links,
 	    Acts::Vector3D vertex)
     : m_trackParams(params)
@@ -30,11 +31,11 @@ class ActsTrack
 
   ~ActsTrack(){}
 
-  FW::TrackParameters getTrackParams(){ return m_trackParams; }
-  void setTrackParams(FW::TrackParameters params) { m_trackParams = params; }
+  ActsExamples::TrackParameters getTrackParams(){ return m_trackParams; }
+  void setTrackParams(ActsExamples::TrackParameters params) { m_trackParams = params; }
 
   std::vector<SourceLink> getSourceLinks(){ return m_sourceLinks; }
-  void setSourceLinks(std::vector<SourceLink> srcLinks)
+  void setSourceLinks(const std::vector<SourceLink> &srcLinks)
   { m_sourceLinks = srcLinks; }
   
   Acts::Vector3D  getVertex() { return m_vertex;}
@@ -42,7 +43,7 @@ class ActsTrack
 
  private:
   /// Initial track seed parameters
-  FW::TrackParameters m_trackParams;
+  ActsExamples::TrackParameters m_trackParams;
 
   /// SourceLinks associated to this track
   std::vector<SourceLink> m_sourceLinks;

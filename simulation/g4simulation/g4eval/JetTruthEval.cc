@@ -28,6 +28,7 @@ JetTruthEval::JetTruthEval(PHCompositeNode* topNode,
   , _hcaloutevalstack(topNode, "HCALOUT")
   , _femcevalstack(topNode, "FEMC")
   , _fhcalevalstack(topNode, "FHCAL")
+  , _eemcevalstack(topNode, "EEMC")
   , _truthinfo(nullptr)
   , _truthjets(nullptr)
   , _strict(false)

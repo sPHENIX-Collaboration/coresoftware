@@ -19,7 +19,6 @@ libjetbackground_io_la_LIBADD = \
 libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
-  -lcalo_util \
   -lConstituentSubtractor \
   -lg4jets_io \
   -lCGAL \
@@ -41,28 +40,17 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TowerBackground_Dict.cc \
   TowerBackgroundv1_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    TowerBackground_Dict_rdict.pcm \
-    TowerBackgroundv1_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-    CopyAndSubtractJets_Dict.cc \
-    DetermineTowerBackground_Dict.cc \
-    FastJetAlgoSub_Dict.cc \
-    RetowerCEMC_Dict.cc \
-    SubtractTowers_Dict.cc \
-    SubtractTowersCS_Dict.cc
 
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TowerBackground_Dict_rdict.pcm \
+  TowerBackgroundv1_Dict_rdict.pcm
 
 libjetbackground_io_la_SOURCES = \
   $(ROOTDICTS) \
   TowerBackgroundv1.cc
 
 libjetbackground_la_SOURCES = \
-  $(ROOT5_DICTS) \
   CopyAndSubtractJets.cc \
   DetermineTowerBackground.cc \
   FastJetAlgoSub.cc \
@@ -72,7 +60,7 @@ libjetbackground_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

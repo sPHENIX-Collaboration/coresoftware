@@ -26,6 +26,7 @@
 #include <cmath>                        // for fmod
 #include <cstdlib>                      // for exit, abs
 #include <iostream>                      // for operator<<, endl, basic_ostream
+#include <sstream>
 
 class PHHepMCGenEvent;
 

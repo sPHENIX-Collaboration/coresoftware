@@ -2,7 +2,6 @@
 #define PHPYTHIA6_PHPY6GENTRIGGER_H
 
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -20,28 +19,25 @@ class PHPy6GenTrigger
  public:
   virtual ~PHPy6GenTrigger();
 
-#if !defined(__CINT__) || defined(__CLING__)
   virtual bool Apply(const HepMC::GenEvent* evt)
   {
-    std::cout << "PHPy8GenTrigger::Apply - in virtual function" << std::endl;
+    std::cout << "PHPy6GenTrigger::Apply - in virtual function" << std::endl;
     return false;
   }
-#endif
 
   virtual std::string GetName()
   {
-    return _name;
+    return m_Name;
   }
 
   std::vector<int> convertToInts(std::string s);
 
-  void Verbosity(int v) { _verbosity = v; }
-
- protected:
-  int _verbosity;
+  void Verbosity(int v) { m_Verbosity = v; }
+  int Verbosity() const {return m_Verbosity;}
 
  private:
-  std::string _name;
+  int m_Verbosity = 0;
+  std::string m_Name;
 };
 
 #endif

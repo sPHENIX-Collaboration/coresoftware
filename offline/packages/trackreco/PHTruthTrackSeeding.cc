@@ -12,6 +12,11 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
+#include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxEvaluator.h>
+#include <g4eval/SvtxTrackEval.h>
+
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
 #include <g4main/PHG4HitContainer.h>
@@ -263,11 +268,11 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
            << svtx_track->get_truth_track_id() << endl;
 
       //Print associated clusters;
-      for (SvtxTrack::ConstClusterKeyIter iter =
+      for (SvtxTrack::ConstClusterKeyIter iter_clus =
                svtx_track->begin_cluster_keys();
-           iter != svtx_track->end_cluster_keys(); ++iter)
+           iter_clus != svtx_track->end_cluster_keys(); ++iter_clus)
       {
-        TrkrDefs::cluskey cluster_key = *iter;
+        TrkrDefs::cluskey cluster_key = *iter_clus;
         TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
         float radius = sqrt(
             cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
