@@ -283,7 +283,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
    
       if(m_fitSiliconMMs)
 	updateActsTrack(fitOutput, trackIter);
-      //else
+      else
 	getTrackFitResult(fitOutput, trackKey, track.getVertex());
 	
     }
@@ -337,18 +337,6 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
   
   /// Update the track seed parameters
   iter->second.setTrackParams(siliconMMFit);
-
-  std::vector<size_t> trackTip;
-  trackTip.push_back(fitOutput.trackTip);
-  ActsExamples::IndexedParams iParams;
-  if(fitOutput.fittedParameters)
-    iParams.emplace(fitOutput.trackTip, 
-		   fitOutput.fittedParameters.value());
-  Trajectory traj(fitOutput.fittedStates, trackTip, iParams);
-  auto trajectory = iter->second.getTrajectory();
-  std::cout<<"Track tip is " << fitOutput.trackTip<<std::endl;
-  /// Update the actual fitted trajectory states
-  iter->second.setTrajectory(traj);
 }
 
 void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,

@@ -68,12 +68,11 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
       auto track = trackIter->second;
       auto sourceLinks = track.getSourceLinks();
       const auto trackParams = track.getTrackParams();
-      const auto trajectory = track.getTrajectory();
       const auto momentumVec = trackParams.momentum();
       
       for(auto sl : sourceLinks)
 	{
-	  propagateTrackState(trajectory, sl);
+	  auto result = propagateTrackState(trackParams, sl);
 	  //calculateTpcResiduals(sl, state);
 	}
 
@@ -85,9 +84,23 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTpcResiduals::propagateTrackState(const Trajectory& traj,
+void PHTpcResiduals::propagateTrackState(const ActsExamples::TrackParameters& params,
 					 const SourceLink& sl)
 {
+
+  std::visit([](auto && inputField) {
+      using InputMagneticField = typename std::decay_t<decltype(inputField)>::element_type;
+      using MagneticField      = Acts::SharedBField<InputMagneticField>;
+      using Stepper            = Acts::EigenStepper<MagneticField>;
+
+      MagneticField field(std::move(inputField));
+      Stepper stepper(std::move(field));
+      Propagator propagator(std::move(stepper));
+      
+      auto result = propagator->propagate(params, sl.referenceSurface(), options);
+
+    },
+    std::move(m_tGeometry->magField));
   
 
   return;

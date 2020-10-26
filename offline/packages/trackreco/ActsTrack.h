@@ -45,11 +45,6 @@ class ActsTrack
   Acts::Vector3D  getVertex() { return m_vertex;}
   void setVertex(Acts::Vector3D vertex){m_vertex = vertex;}
 
-  Trajectory getTrajectory()
-  { return m_fittedTraj; }
-  void setTrajectory(Trajectory fittedTraj)
-    { m_fittedTraj = fittedTraj;}
-
  private:
   /// Initial track seed parameters
   ActsExamples::TrackParameters m_trackParams;
@@ -59,10 +54,6 @@ class ActsTrack
 
   /// Initial x,y,z vertex estimate
   Acts::Vector3D m_vertex;
-
-  /// Fitted trajectory, if applicable for initial silicon+MM 
-  /// distortion fit result
-  Trajectory m_fittedTraj;
 
 };
 

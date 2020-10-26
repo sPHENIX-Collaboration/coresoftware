@@ -39,7 +39,7 @@ class PHTpcResiduals : public SubsysReco
   void calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
 			     const Acts::Vector3D momentum);
 
-  void propagateTrackState(const Trajectory& traj, 
+  void propagateTrackState(const ActsExamples::TrackParameters& params, 
 			   const SourceLink& sl);
 
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
