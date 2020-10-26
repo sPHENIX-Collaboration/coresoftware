@@ -31,18 +31,18 @@ class TFile;
 class PHG4TpcDistortion
 {
  public:
-  explicit PHG4TpcDistortion(int verbose = 0);
+  explicit PHG4TpcDistortion(int verbose = 0,int event_num, bool do_time_ordered_distortion, bool do_static_distortion);
 
   virtual ~PHG4TpcDistortion();
 
   //! x distortion for a given truth location of the primary ionization
-  double get_x_distortion(double x, double y, double z, int event_num);
+  double get_x_distortion(double x, double y, double z, int event_num,bool do_time_ordered_distortion, bool do_static_distortion);
 
   //! y distortion for a given truth location of the primary ionization
-  double get_y_distortion(double x, double y, double z, int event_num);
+  double get_y_distortion(double x, double y, double z, int event_num,bool do_time_ordered_distortion, bool do_static_distortion);
 
   //! z distortion for a given truth location of the primary ionization
-  double get_z_distortion(double x, double y, double z, int event_num);
+  double get_z_distortion(double x, double y, double z, int event_num, bool do_time_ordered_distortion, bool do_static_distortion);
 
   //! Sets the verbosity of this module (0 by default=quiet).
   virtual void
