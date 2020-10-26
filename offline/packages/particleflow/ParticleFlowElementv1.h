@@ -26,8 +26,11 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   void Reset();
   int isValid() const;
   
-  // jet info
+  // pflow element info
 
+  ParticleFlowElement::PFLOWTYPE get_type() const {return _type; }
+  void set_type( ParticleFlowElement::PFLOWTYPE type ) { _type = type; }
+  
   unsigned int get_id() const { return _id; }
   void set_id(unsigned int id) { _id = id; }
   
@@ -53,6 +56,9 @@ class ParticleFlowElementv1 : public ParticleFlowElement
  private:
   /// unique identifier within container
   unsigned int _id;
+
+  // particle flow type 
+  ParticleFlowElement::PFLOWTYPE _type;
   
   /// pflow momentum vector (px,py,pz)
   float _mom[3];
