@@ -37,8 +37,8 @@ class ParticleFlowElement : public PHObject
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int id) { return; }
 
+  virtual ParticleFlowElement::PFLOWTYPE get_type() const {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
   virtual void set_type( ParticleFlowElement::PFLOWTYPE ) { return; }
-  virtual ParticleFlowElement::PFLOWTYPE get_type() {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
 
   virtual float get_px() const { return NAN; }
   virtual void set_px(float px) { return; }
