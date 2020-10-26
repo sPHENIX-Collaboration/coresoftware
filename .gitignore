@@ -16,7 +16,7 @@ stamp-h1
 config.guess
 config.sub
 ltmain.sh
-PHG4TpcElectronDrift_old.cc
+
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
