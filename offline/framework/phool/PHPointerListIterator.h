@@ -19,13 +19,7 @@ class PHPointerListIterator
   size_t pos() const { return m_Index; }
 
  private:
-#if defined(__CINT__) && !defined(__CLING__)
-  PHPointerListIterator()
-  {
-  }
-#else
   PHPointerListIterator() = delete;
-#endif
   const PHPointerList<T>& m_List;
   size_t m_Index;
 };

@@ -56,7 +56,6 @@ class Fun4AllServer : public Fun4AllBase
   void InitAll();
   int BeginRunTimeStamp(PHTimeStamp &TimeStp);
   int dumpHistos(const std::string &filename, const std::string &openmode = "RECREATE");
-  int process_event(PHCompositeNode *topNode);
   int Reset();
   virtual int BeginRun(const int runno);
   virtual int EndRun(const int runno = 0);

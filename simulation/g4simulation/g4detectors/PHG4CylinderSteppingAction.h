@@ -32,11 +32,16 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
 
   void SaveLightYield(const int i = 1) { m_SaveLightYieldFlag = i; }
 
-// needed for hit position crosschecks, if this volume is inside
-// another volume the absolut hit coordinates in our G4Hits and
-// the local coordinates differ, so checking against our place in z
-// goes wrong
+  // needed for hit position crosschecks, if this volume is inside
+  // another volume the absolut hit coordinates in our G4Hits and
+  // the local coordinates differ, so checking against our place in z
+  // goes wrong
   bool hasMotherSubsystem() const;
+
+  // this is just needed for use as reference plane for projections
+  // this is the only detector using this - there is no need to add
+  // this to our parameters
+  void SaveAllHits(bool i = true) { m_SaveAllHitsFlag = i; }
 
  private:
   //! pointer to the Subsystem
@@ -51,6 +56,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4Shower *m_SaveShower;
   G4VPhysicalVolume *m_SaveVolPre;
   G4VPhysicalVolume *m_SaveVolPost;
+  bool m_SaveAllHitsFlag = false;
   int m_SaveLightYieldFlag;
   int m_SaveTrackId;
   int m_SavePreStepStatus;

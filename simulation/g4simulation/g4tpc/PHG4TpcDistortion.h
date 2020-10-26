@@ -11,14 +11,13 @@
 #ifndef G4TPC_PHG4TPCDISTORTION_H
 #define G4TPC_PHG4TPCDISTORTION_H
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #include <TFile.h>
 #include <TH3.h>
 #include <TTree.h>
 using namespace std;
 #endif
+
 
 /*!
  * \brief PHG4TpcDistortion is a virtual interface to apply distortion to a primary ionization in Tpc
@@ -71,10 +70,8 @@ class PHG4TpcDistortion
   //! The verbosity level. 0 means not verbose at all.
   int verbosity;
 
-#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
-#endif
 };
 
 #endif /* G4TPC_PHG4TPCDISTORTION_H */

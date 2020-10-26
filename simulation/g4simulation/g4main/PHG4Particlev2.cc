@@ -1,6 +1,6 @@
 #include "PHG4Particlev2.h"
 
-class PHG4Particle;
+#include "PHG4Particle.h"  // for PHG4Particle
 
 using namespace std;
 

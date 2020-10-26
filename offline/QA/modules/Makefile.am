@@ -15,7 +15,6 @@ libqa_modules_la_LDFLAGS = \
 
 libqa_modules_la_LIBADD = \
   -lcalo_io \
-  -lcalo_util \
   -lfun4all \
   -lg4detectors_io \
   -lg4eval \
@@ -69,4 +68,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.cc
+	rm -f $(BUILT_SOURCES)

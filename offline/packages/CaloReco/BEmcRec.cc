@@ -147,7 +147,7 @@ bool BEmcRec::CompleteTowerGeometry()
 
   std::map<int, TowerGeom>::iterator it;
 
-  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); it++)
+  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); ++it)
   {
     int ich = it->first;
     TowerGeom geom0 = it->second;
@@ -508,7 +508,7 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
       yy += a * idy * idy;
       yx += a * idx * idy;
     }
-    ph++;
+    ++ph;
   }
   pe = e;
 

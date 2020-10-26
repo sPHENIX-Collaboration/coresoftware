@@ -6,6 +6,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <map>
+#include <memory>                // for shared_ptr, less
 #include <set>
 #include <utility>
 
@@ -23,8 +24,7 @@ class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxTruthEval;
 
-using namespace std;
-typedef multimap<float, TrkrDefs::cluskey> innerMap;
+typedef std::multimap<float, TrkrDefs::cluskey> innerMap;
 
 class SvtxClusterEval
 {
@@ -96,6 +96,7 @@ class SvtxClusterEval
   PHG4HitContainer * _g4hits_tpc;
   PHG4HitContainer * _g4hits_intt;
   PHG4HitContainer * _g4hits_mvtx;
+  PHG4HitContainer * _g4hits_mms;
 
 
   bool _strict;
@@ -126,14 +127,14 @@ class SvtxClusterEval
   const float range_intt_z = 0.9;
   const float sig_mvtx_rphi = 4.0e-04;
   const float sig_mvtx_z = 4.7e-04;
+  const float sig_mms_rphi_55 = 100e-04;
+  const float sig_mms_z_56 = 200e-04;
 
 
-#if !defined(__CINT__) || defined(__CLING__)
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad
   static constexpr float _clusters_searching_window = 0.1f;
   std::multimap<unsigned int, innerMap> _clusters_per_layer;
 //  std::multimap<unsigned int, PHG4Hit*> _g4hits_per_layer;
-#endif
 };
 
 #endif  // G4EVAL_SVTXCLUSTEREVAL_H

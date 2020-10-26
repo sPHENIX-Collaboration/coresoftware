@@ -9,9 +9,8 @@
 
 
 // rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
+
 #include <string>             // for string
 #include <vector>
 
@@ -69,9 +68,7 @@ class PHTruthVertexing : public PHInitVertexing
 
   bool _embed_only;
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *m_RandomGenerator;
-#endif
 };
 
 #endif

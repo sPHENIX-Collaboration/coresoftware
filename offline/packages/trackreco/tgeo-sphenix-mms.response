@@ -1,0 +1,68 @@
+# Response file to build the sPHENIX detector
+#
+# Screen Output Level for building 
+#--geo-surface-loglevel 3 
+#--geo-layer-loglevel 3
+#--geo-volume-loglevel 3
+#
+# General input
+--geo-tgeo-filename none
+--geo-tgeo-worldvolume "World"
+#
+
+#
+# Detector : MVTX
+--geo-detector-volume MVTX
+--geo-tgeo-sfbin-r-tolerance 5:5
+--geo-tgeo-sfbin-z-tolerance 5:5
+--geo-tgeo-sfbin-phi-tolerance 0.05:0.05
+--geo-tgeo-clayers 1
+--geo-tgeo-cvolume-name *
+--geo-tgeo-cmodule-name MVTXSensor*
+--geo-tgeo-cmodule-axes XZY
+--geo-tgeo-clayer-r-range 0:500
+--geo-tgeo-clayer-z-range -3000:3000
+--geo-tgeo-clayer-r-split 1. 
+--geo-tgeo-clayer-z-split -1.
+#
+# Detector : Silicon
+--geo-detector-volume Silicon
+--geo-tgeo-sfbin-r-tolerance 5:5
+--geo-tgeo-sfbin-z-tolerance 5:5
+--geo-tgeo-sfbin-phi-tolerance 0.05:0.05
+--geo-tgeo-clayers 1
+--geo-tgeo-cvolume-name *
+--geo-tgeo-cmodule-name siactive*
+--geo-tgeo-cmodule-axes YZX
+--geo-tgeo-clayer-r-range 0:500
+--geo-tgeo-clayer-z-range -3000:3000
+--geo-tgeo-clayer-r-split 1. 
+--geo-tgeo-clayer-z-split -1.
+#
+# Detector : TPC
+--geo-detector-volume TPC
+--geo-tgeo-sfbin-r-tolerance 5:5
+--geo-tgeo-sfbin-z-tolerance 5:5
+--geo-tgeo-sfbin-phi-tolerance 0.01:0.01
+--geo-tgeo-clayers 1
+--geo-tgeo-cvolume-name *
+--geo-tgeo-cmodule-name tpc_gas_measurement*
+--geo-tgeo-cmodule-axes YZX
+--geo-tgeo-clayer-r-range 0:1000
+--geo-tgeo-clayer-z-range -3000:3000
+--geo-tgeo-clayer-r-split 1. 
+--geo-tgeo-clayer-z-split -1.
+#
+# Detector : MicroMegas
+--geo-detector-volume MICROMEGAS
+--geo-tgeo-sfbin-r-tolerance 5:5
+--geo-tgeo-sfbin-z-tolerance 5:5
+--geo-tgeo-sfbin-phi-tolerance 0.01:0.01
+--geo-tgeo-clayers 1
+--geo-tgeo-cvolume-name *
+--geo-tgeo-cmodule-name micromegas_measurement*
+--geo-tgeo-cmodule-axes YZX
+--geo-tgeo-clayer-r-range 0:1000
+--geo-tgeo-clayer-z-range -3000:3000
+--geo-tgeo-clayer-r-split 1. 
+--geo-tgeo-clayer-z-split -1.

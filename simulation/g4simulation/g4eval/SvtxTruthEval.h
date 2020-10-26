@@ -75,14 +75,16 @@ class SvtxTruthEval
 
   BaseTruthEval _basetrutheval;
 
-  PHG4TruthInfoContainer* _truthinfo;
-  PHG4HitContainer* _g4hits_svtx;
-  PHG4HitContainer* _g4hits_tracker;
-  PHG4HitContainer* _g4hits_maps;
+  PHG4TruthInfoContainer* _truthinfo{nullptr};
+  PHG4HitContainer* _g4hits_svtx{nullptr};
+  PHG4HitContainer* _g4hits_mms{nullptr};
+  PHG4HitContainer* _g4hits_tracker{nullptr};
+  PHG4HitContainer* _g4hits_maps{nullptr};
 
   PHG4CylinderCellGeomContainer* _tpc_geom_container;
   PHG4CylinderGeomContainer *_intt_geom_container;
   PHG4CylinderGeomContainer* _mvtx_geom_container;
+  PHG4CylinderGeomContainer* _mms_geom_container;
 
   bool _strict;
   int _verbosity;
@@ -92,6 +94,7 @@ class SvtxTruthEval
   const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
   const unsigned int _nlayers_tpc = 48;
+  const unsigned int _nlayers_mms = 2;
 
   std::multimap<TrkrDefs::cluskey, PHG4Hit*> _truth_cluster_truth_hit_map;
 

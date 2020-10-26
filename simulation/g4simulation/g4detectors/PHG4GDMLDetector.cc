@@ -33,6 +33,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, degree
 
+#include <cassert>
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 #include <memory>
