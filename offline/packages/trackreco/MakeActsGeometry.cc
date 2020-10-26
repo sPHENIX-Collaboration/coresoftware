@@ -521,6 +521,8 @@ void MakeActsGeometry::buildActsSurfaces()
 
   std::string responseFile = "tgeo-sphenix.response";
   std::string materialFile = "sphenix-material.json";
+  if(m_buildMMs)
+    materialFile = "sphenix-mm-material.json";
 
   /// Check to see if files exist locally - if not, use defaults
   std::ifstream file;
@@ -544,7 +546,7 @@ void MakeActsGeometry::buildActsSurfaces()
 	std::string("/ACTS/sphenix-material.json");
     }
   
-  if(Verbosity() > 4)
+  if(Verbosity() == 0)
     {
       std::cout << "using material file : " << materialFile 
 		<< std::endl;
@@ -737,7 +739,6 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	{
 	  auto surf = surfaceVector.at(j)->getSharedPtr();
 	  auto vec3d = surf->center(m_geoCtxt);
-	  
 
 	  /// convert to cm
 	  std::vector<double> world_center = {vec3d(0) / 10.0, 
@@ -851,7 +852,6 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
-
       auto vec3d = surf->center(m_geoCtxt);
 
       double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
@@ -938,7 +938,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
-
       auto vec3d = surf->center(m_geoCtxt);
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));

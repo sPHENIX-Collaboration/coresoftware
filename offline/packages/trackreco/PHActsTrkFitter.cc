@@ -432,17 +432,13 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
 
       if(Verbosity() > 0)
 	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
-
+    
       /// If volume is not the TPC add the SL to the list
       if(volume != 14)
 	{
-	  siliconMMSls.push_back(sl);
+	  siliconMMSls.push_back(sl);	
+	  surfaces.push_back(&sl.referenceSurface());
 	}
-      
-      /// We add all the surfaces so that the propagator visits each
-      /// surface and creates a track state there. The fitter will
-      /// only consider those surfaces with source links on them
-      surfaces.push_back(&sl.referenceSurface());
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
@@ -451,10 +447,17 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   if(surfaces.size() > 0)
     checkSurfaceVec(surfaces);
 
+  if(Verbosity() > 0)
+    {
+      for(auto surf : surfaces)
+	{
+	  std::cout << "Surface vector : " << surf->geometryId() << std::endl;
+	}
+    }
+
   return siliconMMSls;
 
 }
-
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 {
@@ -488,7 +491,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 	    {
 	      std::cout << PHWHERE 
 			<< "Volume not in order... removing surface" 
-			<< std::endl;
+			<< surface->geometryId() << std::endl;
 	      surfaces.erase(surfaces.begin() + i);
 	      /// Subtract one so we don't skip a surface
 	      i--;
@@ -496,6 +499,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 	    }
 	}
     } 
+
 }
 
 void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 

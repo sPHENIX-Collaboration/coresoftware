@@ -107,7 +107,6 @@ class PHActsTrkFitter : public PHTrackFitting
   SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
-
   void getTrackFitResult(const FitResult& fitOutput, 
 			 const unsigned int trackKey,
 			 const Acts::Vector3D vertex);
