@@ -1,29 +1,31 @@
 #include "PHSiliconTpcTrackMatching.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
+#include "AssocInfoContainer.h"
 
 /// Tracking includes
-#include <trackbase/TrkrClusterv1.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
-#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for keytype
-#include <g4main/PHG4TruthInfoContainer.h>
 
-#include "AssocInfoContainer.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 
 #include <TF1.h>
+
+#include <climits>                            // for UINT_MAX
+#include <iostream>                            // for operator<<, basic_ostream
+#include <cmath>                              // for fabs, sqrt
+#include <set>                                 // for _Rb_tree_const_iterator
+#include <utility>                             // for pair
 
 using namespace std;
 
