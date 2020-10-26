@@ -12,12 +12,21 @@
 #define G4TPC_PHG4TPCDISTORTION_H
 
 #include <gsl/gsl_rng.h>
+#include <TFile.h>
+#include <TH3.h>
+#include <TTree.h>
+using namespace std;
+#endif
+
 
 /*!
  * \brief PHG4TpcDistortion is a virtual interface to apply distortion to a primary ionization in Tpc
  *
  * IO follow PHENIX units (cm)
  */
+
+
+class TFile;
 class PHG4TpcDistortion
 {
  public:
@@ -25,17 +34,14 @@ class PHG4TpcDistortion
 
   virtual ~PHG4TpcDistortion();
 
-  //! radial distortion for a given truth location of the primary ionization
-  virtual double
-  get_r_distortion(double r, double phi, double z) = 0;
+  //! x distortion for a given truth location of the primary ionization
+  double get_x_distortion(double x, double y, double z, int event_num);
 
-  //! r*phi distortion for a given truth location of the primary ionization
-  virtual double
-  get_rphi_distortion(double r, double phi, double z) = 0;
+  //! y distortion for a given truth location of the primary ionization
+  double get_y_distortion(double x, double y, double z, int event_num);
 
   //! z distortion for a given truth location of the primary ionization
-  virtual double
-  get_z_distortion(double r, double phi, double z) = 0;
+  double get_z_distortion(double x, double y, double z, int event_num);
 
   //! Sets the verbosity of this module (0 by default=quiet).
   virtual void
@@ -50,6 +56,15 @@ class PHG4TpcDistortion
   {
     return verbosity;
   }
+
+  TH3F *hDXint;
+  TH3F *hDYint;
+  TH3F *hDZint;
+  TH3F *TimehDZ;
+  TH3F *TimehDX;
+  TH3F *TimehDY;
+  TTree *TimeTree;
+
 
  protected:
   //! The verbosity level. 0 means not verbose at all.

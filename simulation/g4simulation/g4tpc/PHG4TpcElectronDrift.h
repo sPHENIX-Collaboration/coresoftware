@@ -3,7 +3,7 @@
 
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
-
+#include "PHG4TpcDistortion.h"
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
 
@@ -14,6 +14,7 @@
 #include <string>                              // for string
 
 class PHG4TpcPadPlane;
+class PHG4TpcDistortion;
 class PHCompositeNode;
 class TH1;
 class TH2;
@@ -34,18 +35,25 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift();
   int Init(PHCompositeNode *topNode);
-  int DistortionIntegral(double radstart,double phistart,double z_start,double* rad_final, double* phi_final);
+  //int DistortionIntegral(double radstart,double phistart,double z_start,double* rad_final, double* phi_final);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  PHG4TpcDistortion* DistortionMap = nullptr;
   int event_num;
   TH3F *TimehDR;
   TH3F *TimehDP;
   TH3F *TimehDZ;
+  TH3F *TimehDX;
+  TH3F *TimehDY;
   TH3F *TimeInthDR;
   TH3F *TimeInthDP;
   TH3F *TimeInthDZ;
-    
+  //  TH3F *hDXint;
+  //TH3F *hDYint;
+  //TH3F *hDZint;
+  //TTree *TimeTree;  
+
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { detector = d; }
@@ -60,14 +68,15 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
   PHG4TpcPadPlane *padplane;
+ 
   TFile *DistFile;
   TFile *TimeDistFile;
   TFile *CMFile;
-  TTree *TimeTree;
+  
   TTree *CMTimeDists;
   TH3F *hDRint;
   TH3F *hDPint;
-  TH3F *hDZint;
+
   TH3F *hDRdiff;
   TH3F *hDPdiff;
   TH3F *hDZdiff;
@@ -81,8 +90,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *hitmapstart;
   TH2 *hitmapend;
   TH2 *z_startmap;
+  TH2 *cartcheck;
+  TH2 *cartcheckR;
+  TH2 *cartcheckPhi;
+  TH2 *cartcheckRPhi;
   TH2 *deltaphi;
   TH2 *deltaphiint;
+  TH2 *deltaRphiintnodiff;
   TH2 *deltaphidiff;
   TH2 *deltaphidifference;
   TH2 *deltaphidifferencepercent;
@@ -92,6 +106,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltardifference;
   TH2 *deltardifferencepercent;
   TH2 *deltaphinodiff;
+  TH2 *deltaRphinodiff;
+  TH2 *deltaphivsRnodiff;
   TH2 *deltaphinodist;
   TH2 *deltarnodiff;
   TH2 *deltarnodist;
