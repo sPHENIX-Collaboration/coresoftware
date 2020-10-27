@@ -13,10 +13,8 @@ class PHG4ParticleGun : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGun(const std::string &name = "PGUN");
-  virtual ~PHG4ParticleGun();
+  virtual ~PHG4ParticleGun(){}
   int process_event(PHCompositeNode *topNode);
-
- protected:
 };
 
 #endif

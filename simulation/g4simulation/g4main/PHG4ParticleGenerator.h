@@ -5,6 +5,7 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <cmath>
 #include <string>                       // for string
 
 class PHCompositeNode;
@@ -23,14 +24,14 @@ class PHG4ParticleGenerator : public PHG4ParticleGeneratorBase
   void Print(const std::string &what = "ALL") const;
 
  protected:
-  double z_min;
-  double z_max;
-  double eta_min;
-  double eta_max;
-  double phi_min;
-  double phi_max;
-  double mom_min;
-  double mom_max;
+  double m_ZMin = -10.;
+  double m_ZMax = 10.;
+  double m_EtaMin = -1.;
+  double m_EtaMax = 1.;
+  double m_PhiMin = -M_PI;
+  double m_PhiMax = M_PI;
+  double m_MomMin = 0.;
+  double m_MomMax = 10.;
 };
 
 #endif
