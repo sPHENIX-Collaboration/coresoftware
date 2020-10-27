@@ -39,15 +39,14 @@ using namespace std;
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name)
   : SubsysReco(name)
-  , reuse_existing_vertex(0)
   , vtx_x(0)
   , vtx_y(0)
   , vtx_z(0)
   , t0(0)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  gsl_rng_set(m_RandomGenerator, seed);
+  m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  gsl_rng_set(m_RandomGenerator, m_Seed);
   return;
 }
 
@@ -209,14 +208,14 @@ void PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle *particle, PHG4InEven
 
 void PHG4ParticleGeneratorBase::set_seed(const unsigned int iseed)
 {
-  seed = iseed;
-  cout << Name() << " random seed: " << seed << endl;
-  gsl_rng_set(m_RandomGenerator, seed);
+  m_Seed = iseed;
+  cout << Name() << " random seed: " << m_Seed << endl;
+  gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 
 int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 {
-  if (!reuse_existing_vertex)
+  if (!m_ReUseExistingVertexFlag)
   {
     return 0;
   }

@@ -291,7 +291,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4SimpleEventGenerator::process_event() =====================" << endl;
-    cout << "PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = " << reuse_existing_vertex << endl;
+    cout << "PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = " << get_reuse_existing_vertex() << endl;
   }
 
   // vtx_x, vtx_y and vtx_z are doubles from the base class
@@ -311,7 +311,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "PHG4SimpleEventGenerator::process_event - vertex center" << reuse_existing_vertex
+    cout << "PHG4SimpleEventGenerator::process_event - vertex center" << get_reuse_existing_vertex()
          << vtx_x << ", " << vtx_y << ", " << vtx_z << " cm"
          << endl;
   }
