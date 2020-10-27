@@ -57,14 +57,16 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   std::vector<PHG4Particle *>::iterator particlelist_begin() {return particlelist.begin();}
   std::vector<PHG4Particle *>::iterator particlelist_end() {return particlelist.end();}
   void ResetParticleList();
+
 private:
   gsl_rng *m_RandomGenerator = nullptr;
   int m_EmbedFlag = 0;
   int m_ReUseExistingVertexFlag = 0;
   unsigned int m_Seed = 0;
   std::vector<PHG4Particle *> particlelist;
+
 protected:
-  double vtx_x;
+  double vtx_x = 0.;
   double vtx_y;
   double vtx_z;
   double t0;

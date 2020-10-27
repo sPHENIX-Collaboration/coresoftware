@@ -49,7 +49,7 @@ int PHG4IonGun::process_event(PHCompositeNode *topNode)
   UpdateParticle();
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   ReuseExistingVertex(topNode);  // checks if we should reuse existing vertex
-  int vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
+  int vtxindex = ineve->AddVtx(get_vtx_x(), vtx_y, vtx_z, t0);
   //   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon(Z, A, excitEnergy);
   //G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
   //   cout << "name: " << ion->GetParticleName() << ", pdgcode: " << ion->GetPDGEncoding() << endl;

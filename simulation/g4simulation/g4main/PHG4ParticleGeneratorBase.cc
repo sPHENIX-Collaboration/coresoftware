@@ -39,7 +39,6 @@ using namespace std;
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name)
   : SubsysReco(name)
-  , vtx_x(0)
   , vtx_y(0)
   , vtx_z(0)
   , t0(0)

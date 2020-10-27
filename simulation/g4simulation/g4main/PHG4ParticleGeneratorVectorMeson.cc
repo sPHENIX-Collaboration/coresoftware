@@ -341,13 +341,13 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // If not reusing existing vertex Randomly generate vertex position in z
 
     //                   mean   width
-    vtx_x = smearvtx(_vertex_x, _vertex_width_x, _vertex_func_x);
-    vtx_y = smearvtx(_vertex_y, _vertex_width_y, _vertex_func_y);
-    vtx_z = smearvtx(_vertex_z, _vertex_width_z, _vertex_func_z);
+    set_vtx(smearvtx(_vertex_x, _vertex_width_x, _vertex_func_x),
+	    smearvtx(_vertex_y, _vertex_width_y, _vertex_func_y),
+	    smearvtx(_vertex_z, _vertex_width_z, _vertex_func_z));
   }
-  vtx_x += _vertex_offset_x;
-  vtx_y += _vertex_offset_y;
-  vtx_z += _vertex_offset_z;
+  set_vtx(get_vtx_x() + _vertex_offset_x,
+	  get_vtx_y() + _vertex_offset_y,
+	  get_vtx_z() + _vertex_offset_z);
 
   for (std::map<unsigned int, std::string>::iterator it = decay1_names.begin(); it != decay1_names.end(); ++it)
   {
@@ -374,7 +374,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // 3D Randomized vertex
     if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
     {
-      _vertex_size_mean = sqrt(vtx_x * vtx_x + vtx_y * vtx_y + vtx_z * vtx_z);
+      _vertex_size_mean = sqrt(get_vtx_x() * get_vtx_x() + vtx_y * vtx_y + vtx_z * vtx_z);
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
       double x1 = 0.0;
       double y1 = 0.0;
@@ -383,11 +383,11 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       x1 *= r;
       y1 *= r;
       z1 *= r;
-      vtxindex = ineve->AddVtx(vtx_x + x1, vtx_y + y1, vtx_z + z1, t0);
+      vtxindex = ineve->AddVtx(get_vtx_x() + x1, vtx_y + y1, vtx_z + z1, t0);
     }
     else if (decay_id == 0)
     {
-      vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
+      vtxindex = ineve->AddVtx(get_vtx_x(), vtx_y, vtx_z, t0);
     }
 
     // Now decay it
@@ -452,7 +452,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       cout << endl
            << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << endl;
 
-      cout << "  Vertex for this event (X,Y,Z) is (" << vtx_x << ", " << vtx_y << ", " << vtx_z << ")" << endl;
+      cout << "  Vertex for this event (X,Y,Z) is (" << get_vtx_x() << ", " << vtx_y << ", " << vtx_z << ")" << endl;
       // Print the decay particle kinematics
 
       cout << "  Decay particle 1:"
