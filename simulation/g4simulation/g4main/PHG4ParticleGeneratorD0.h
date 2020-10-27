@@ -5,7 +5,7 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
-#include <string>                       // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class TF1;

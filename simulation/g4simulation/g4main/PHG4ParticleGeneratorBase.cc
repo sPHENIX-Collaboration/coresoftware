@@ -238,8 +238,8 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
       if (Verbosity() > 0)
       {
         std::cout << "PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
-             << vtx.x() << ", " << vtx.y() << ", " << vtx.z() << " cm. Source event:"
-             << std::endl;
+                  << vtx.x() << ", " << vtx.y() << ", " << vtx.z() << " cm. Source event:"
+                  << std::endl;
         hepmc_evt->identify();
       }
 
@@ -288,7 +288,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
     {
       truthInfoList->identify();
       std::cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex in PHG4TruthInfoContainer, but none exists"
-           << std::endl;
+                << std::endl;
       exit(1);
     }
 
@@ -305,7 +305,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
   // I am out of options.....
 
   std::cout << PHWHERE << "::Error we expect an existing truth vertex, but none exists"
-       << std::endl;
+            << std::endl;
   gSystem->Exit(1);
 
   return 0;

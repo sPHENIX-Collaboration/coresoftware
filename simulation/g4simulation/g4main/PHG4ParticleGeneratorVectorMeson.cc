@@ -301,12 +301,12 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
     //                   mean   width
     set_vtx(smearvtx(_vertex_x, _vertex_width_x, _vertex_func_x),
-	    smearvtx(_vertex_y, _vertex_width_y, _vertex_func_y),
-	    smearvtx(_vertex_z, _vertex_width_z, _vertex_func_z));
+            smearvtx(_vertex_y, _vertex_width_y, _vertex_func_y),
+            smearvtx(_vertex_z, _vertex_width_z, _vertex_func_z));
   }
   set_vtx(get_vtx_x() + _vertex_offset_x,
-	  get_vtx_y() + _vertex_offset_y,
-	  get_vtx_z() + _vertex_offset_z);
+          get_vtx_y() + _vertex_offset_y,
+          get_vtx_z() + _vertex_offset_z);
 
   for (std::map<unsigned int, std::string>::iterator it = decay1_names.begin(); it != decay1_names.end(); ++it)
   {
@@ -344,7 +344,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       x1 *= r;
       y1 *= r;
       z1 *= r;
-      vtxindex = ineve->AddVtx(get_vtx_x() + x1, get_vtx_y() + y1, get_vtx_z() + z1,get_t0());
+      vtxindex = ineve->AddVtx(get_vtx_x() + x1, get_vtx_y() + y1, get_vtx_z() + z1, get_t0());
     }
     else if (decay_id == 0)
     {
@@ -410,59 +410,59 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
       // Print some check output
       std::cout << std::endl
-           << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << std::endl;
+                << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << std::endl;
 
       std::cout << "  Vertex for this event (X,Y,Z) is (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << std::endl;
       // Print the decay particle kinematics
 
       std::cout << "  Decay particle 1:"
-           << " px " << v1.Px()
-           << " py " << v1.Py()
-           << " pz " << v1.Pz()
-           << " eta " << v1.PseudoRapidity()
-           << " phi " << v1.Phi()
-           << " theta " << v1.Theta()
-           << " pT " << v1.Pt()
-           << " mass " << v1.M()
-           << " E " << v1.E()
-           << std::endl;
+                << " px " << v1.Px()
+                << " py " << v1.Py()
+                << " pz " << v1.Pz()
+                << " eta " << v1.PseudoRapidity()
+                << " phi " << v1.Phi()
+                << " theta " << v1.Theta()
+                << " pT " << v1.Pt()
+                << " mass " << v1.M()
+                << " E " << v1.E()
+                << std::endl;
 
       std::cout << "  Decay particle 2:"
-           << " px " << v2.Px()
-           << " py " << v2.Py()
-           << " pz " << v2.Pz()
-           << " eta " << v2.PseudoRapidity()
-           << " phi " << v2.Phi()
-           << " theta " << v2.Theta()
-           << " pT " << v2.Pt()
-           << " mass " << v2.M()
-           << " E " << v2.E()
-           << std::endl;
+                << " px " << v2.Px()
+                << " py " << v2.Py()
+                << " pz " << v2.Pz()
+                << " eta " << v2.PseudoRapidity()
+                << " phi " << v2.Phi()
+                << " theta " << v2.Theta()
+                << " pT " << v2.Pt()
+                << " mass " << v2.M()
+                << " E " << v2.E()
+                << std::endl;
 
       // Print the input vector meson kinematics
       std::cout << "  Vector meson input kinematics:     mass " << vm.M()
-           << " px " << vm.Px()
-           << " py " << vm.Py()
-           << " pz " << vm.Pz()
-           << " eta " << vm.PseudoRapidity()
-           << " y " << vm.Rapidity()
-           << " pt " << vm.Pt()
-           << " E " << vm.E()
-           << std::endl;
+                << " px " << vm.Px()
+                << " py " << vm.Py()
+                << " pz " << vm.Pz()
+                << " eta " << vm.PseudoRapidity()
+                << " y " << vm.Rapidity()
+                << " pt " << vm.Pt()
+                << " E " << vm.E()
+                << std::endl;
 
       // Now, as a check, reconstruct the mass from the particle 1 and 2 kinematics
 
       TLorentzVector vreco = v1 + v2;
 
       std::cout << "  Reco'd vector meson kinematics:    mass " << vreco.M()
-           << " px " << vreco.Px()
-           << " py " << vreco.Py()
-           << " pz " << vreco.Pz()
-           << " eta " << vreco.PseudoRapidity()
-           << " y " << vreco.Rapidity()
-           << " pt " << vreco.Pt()
-           << " E " << vreco.E()
-           << std::endl;
+                << " px " << vreco.Px()
+                << " py " << vreco.Py()
+                << " pz " << vreco.Pz()
+                << " eta " << vreco.PseudoRapidity()
+                << " y " << vreco.Rapidity()
+                << " pt " << vreco.Pt()
+                << " E " << vreco.E()
+                << std::endl;
     }
   }  // decay particles
 

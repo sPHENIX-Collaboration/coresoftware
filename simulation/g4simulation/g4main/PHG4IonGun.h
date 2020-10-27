@@ -29,7 +29,7 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
   PHG4Particle *ion = nullptr;
   int A = 0;
   int Z = 0;
-  double mom[3] = {NAN,NAN,NAN};
+  double mom[3] = {NAN, NAN, NAN};
   int ioncharge = 0;
   double excitEnergy = 0.;
 };

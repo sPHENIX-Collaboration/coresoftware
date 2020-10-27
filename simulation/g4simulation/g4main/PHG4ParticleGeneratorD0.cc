@@ -1,24 +1,24 @@
 #include "PHG4ParticleGeneratorD0.h"
 
-#include "PHG4Particle.h"        // for PHG4Particle
-#include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
+#include "PHG4Particle.h"  // for PHG4Particle
+#include "PHG4Particlev1.h"
 
-#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 
 #include <TF1.h>
 #include <TLorentzVector.h>
-#include <TRandom.h>             // for TRandom
+#include <TRandom.h>  // for TRandom
 #include <TRandom3.h>
 
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>         // for gsl_rng_uniform_pos, gsl_rng_uniform
+#include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos, gsl_rng_uniform
 
-#include <cmath>                // for sqrt, sin, cos, M_PI
-#include <iostream>              // for operator<<, basic_ostream, basic_ost...
-#include <vector>                // for vector, vector<>::const_iterator
+#include <cmath>     // for sqrt, sin, cos, M_PI
+#include <iostream>  // for operator<<, basic_ostream, basic_ost...
+#include <vector>    // for vector, vector<>::const_iterator
 
 class PHCompositeNode;
 
@@ -143,7 +143,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(mnow*mnow + pt*pt);
+  double mt = sqrt(mnow * mnow + pt * pt);
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -154,15 +154,15 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   double beta = vd0.Beta();
   double gamma = vd0.Gamma();
   double lifetime = gsl_ran_exponential(RandomGenerator(), 410.1e-03) * 1.0e-12;  // life time in seconds
-  double lifepath = lifetime * gamma * beta * cc;                               // path in cm
+  double lifepath = lifetime * gamma * beta * cc;                                 // path in cm
   if (Verbosity() > 0)
   {
     std::cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << std::endl;
     std::cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath * 1.0e+04 << std::endl;
   }
   set_vtx(vd0.Px() / vd0.P() * lifepath,
-	  vd0.Py() / vd0.P() * lifepath,
-	  get_vtx_z() + vd0.Pz() / vd0.P() * lifepath);
+          vd0.Py() / vd0.P() * lifepath,
+          get_vtx_z() + vd0.Pz() / vd0.P() * lifepath);
   set_t0(lifetime);
   int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   if (Verbosity() > 0)
@@ -173,9 +173,8 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // Now decay it
   // Get the decay energy and momentum in the frame of the D0 - this correctly handles decay particles of any mass.
 
-  double E1 = (mnow*mnow - m2*m2 + m1*m1) / (2.0 * mnow);
-  double p1 = sqrt((mnow*mnow - (m1 + m2)*(m1 + m2)) * (mnow*mnow - (m1 - m2)*(m1 - m2))) / (2.0 * mnow);
-
+  double E1 = (mnow * mnow - m2 * m2 + m1 * m1) / (2.0 * mnow);
+  double p1 = sqrt((mnow * mnow - (m1 + m2) * (m1 + m2)) * (mnow * mnow - (m1 - m2) * (m1 - m2))) / (2.0 * mnow);
 
   // In the frame of the D0, get a random theta and phi angle for particle 1
   // Assume angular distribution in the frame of the decaying D0 that is uniform in phi and goes as sin(theta) in theta
@@ -230,7 +229,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
     // Print some check output
     std::cout << std::endl
-         << "Output some sanity check info from PHG4ParticleGeneratorD0:" << std::endl;
+              << "Output some sanity check info from PHG4ParticleGeneratorD0:" << std::endl;
 
     std::cout << "Event vertex: (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << std::endl;
 

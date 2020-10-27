@@ -1,7 +1,7 @@
 #include "PHG4IonGun.h"
 
 #include "PHG4InEvent.h"
-#include "PHG4Particle.h"                  // for PHG4Particle
+#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev3.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -13,17 +13,18 @@
 #include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <algorithm>                       // for fill
-#include <iostream>                        // for operator<<, basic_ostream
-#include <iterator>                        // for begin, end
-#include <cmath>                          // for NAN
+#include <algorithm>  // for fill
+#include <cmath>      // for NAN
+#include <iostream>   // for operator<<, basic_ostream
+#include <iterator>   // for begin, end
 
 using namespace std;
 
 PHG4IonGun::PHG4IonGun(const string &name)
   : PHG4ParticleGeneratorBase(name)
   , ion(new PHG4Particlev3())
-{}
+{
+}
 
 void PHG4IonGun::SetCharge(const int c)
 {

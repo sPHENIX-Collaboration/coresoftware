@@ -1,11 +1,11 @@
 #include "PHG4ParticleGun.h"
 
-#include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
+#include "PHG4Particlev1.h"
 
 #include <phool/getClass.h>
 
-#include <vector>            // for vector, vector<>::const_iterator
+#include <vector>  // for vector, vector<>::const_iterator
 
 class PHCompositeNode;
 class PHG4Particle;

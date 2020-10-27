@@ -26,7 +26,7 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   virtual void set_pid(const int pid);
   virtual void set_mom(const double x, const double y, const double z);
   virtual void set_vtx(const double x, const double y, const double z);
-  virtual void set_vtx_z(const double z) {m_Vtx_z = z;}
+  virtual void set_vtx_z(const double z) { m_Vtx_z = z; }
   virtual void set_t0(const double t) { m_TZero = t; }
 
   virtual double get_vtx_x() const { return m_Vtx_x; }
@@ -53,13 +53,13 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   double get_mass(const int pdgcode) const;
   void CheckAndCreateParticleVector();
   void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
-  gsl_rng *RandomGenerator() const {return m_RandomGenerator;}
-  int EmbedFlag() const {return m_EmbedFlag;}
-  std::vector<PHG4Particle *>::iterator particlelist_begin() {return particlelist.begin();}
-  std::vector<PHG4Particle *>::iterator particlelist_end() {return particlelist.end();}
+  gsl_rng *RandomGenerator() const { return m_RandomGenerator; }
+  int EmbedFlag() const { return m_EmbedFlag; }
+  std::vector<PHG4Particle *>::iterator particlelist_begin() { return particlelist.begin(); }
+  std::vector<PHG4Particle *>::iterator particlelist_end() { return particlelist.end(); }
   void ResetParticleList();
 
-private:
+ private:
   gsl_rng *m_RandomGenerator = nullptr;
   int m_EmbedFlag = 0;
   int m_ReUseExistingVertexFlag = 0;
@@ -69,8 +69,6 @@ private:
   double m_Vtx_z = 0.;
   double m_TZero = 0.;
   std::vector<PHG4Particle *> particlelist;
-
-protected:
 };
 
 #endif

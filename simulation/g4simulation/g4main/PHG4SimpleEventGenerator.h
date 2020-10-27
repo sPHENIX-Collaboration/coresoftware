@@ -66,7 +66,7 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   void set_existing_vertex_offset_vector(const double x, const double y, const double z);
 
   //! set the distribution function of particles about the vertex
-  void set_vertex_size_function(FUNCTION r) { m_VertexSizeFunc_r = r;}
+  void set_vertex_size_function(FUNCTION r) { m_VertexSizeFunc_r = r; }
 
   //! set the dimensions of the distribution of particles about the vertex
   void set_vertex_size_parameters(const double mean, const double width);
@@ -78,9 +78,9 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes;          // <pdgcode, count>
   std::vector<std::pair<std::string, unsigned int> > _particle_names;  // <names, count>
-// so we can print out the function names without many if's
-// also used to check if function is implemented
-  std::map<FUNCTION, std::string> m_FunctionNames = {{Uniform,"Uniform"},{Gaus,"Gaus"}};
+                                                                       // so we can print out the function names without many if's
+                                                                       // also used to check if function is implemented
+  std::map<FUNCTION, std::string> m_FunctionNames = {{Uniform, "Uniform"}, {Gaus, "Gaus"}};
 
   PHG4InEvent *m_InEvent = nullptr;
   FUNCTION m_VertexFunc_x = Uniform;
@@ -110,7 +110,6 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   double m_P_Min = NAN;
   double m_P_Max = NAN;
   double m_P_GausWidth = NAN;
-
 };
 
 #endif
