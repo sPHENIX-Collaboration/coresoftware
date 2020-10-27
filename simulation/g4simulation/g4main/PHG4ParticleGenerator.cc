@@ -64,9 +64,9 @@ int PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
 
   if (!ReuseExistingVertex(topNode))
   {
-    vtx_z = (z_max - z_min) * gsl_rng_uniform_pos(RandomGenerator()) + z_min;
+    set_vtx_z((z_max - z_min) * gsl_rng_uniform_pos(RandomGenerator()) + z_min);
   }
-  int vtxindex = ineve->AddVtx(get_vtx_x(), vtx_y, vtx_z, t0);
+  int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
 
   vector<PHG4Particle *>::iterator iter;
   for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)

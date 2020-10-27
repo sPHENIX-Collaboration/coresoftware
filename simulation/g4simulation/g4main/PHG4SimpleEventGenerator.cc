@@ -286,9 +286,6 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
     std::cout << "PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = " << get_reuse_existing_vertex() << std::endl;
   }
 
-  // vtx_x, vtx_y and vtx_z are doubles from the base class
-  // common methods modify those, please no private copies
-  // at some point we might rely on them being up to date
   if (!ReuseExistingVertex(topNode))
   {
     // generate a new vertex point

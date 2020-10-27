@@ -39,9 +39,6 @@ using namespace std;
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name)
   : SubsysReco(name)
-  , vtx_y(0)
-  , vtx_z(0)
-  , t0(0)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -122,7 +119,7 @@ void PHG4ParticleGeneratorBase::set_mom(const double x, const double y, const do
 
 void PHG4ParticleGeneratorBase::set_vtx(const double x, const double y, const double z)
 {
-  vtx_x = x;
+  m_Vtx_x = x;
   vtx_y = y;
   vtx_z = z;
   return;

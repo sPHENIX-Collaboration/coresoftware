@@ -124,11 +124,11 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   {
     if (vtx_zmax != vtx_zmin)
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator()) + vtx_zmin;
+      set_vtx_z((vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator()) + vtx_zmin);
     }
     else
     {
-      vtx_z = vtx_zmin;
+      set_vtx_z(vtx_zmin);
     }
   }
   // taken randomly from a fitted pT distribution to Pythia Upsilons
@@ -180,12 +180,12 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   }
   set_vtx(vd0.Px() / vd0.P() * lifepath,
 	  vd0.Py() / vd0.P() * lifepath,
-	  vtx_z + vd0.Pz() / vd0.P() * lifepath);
-  t0 = lifetime;
-  int vtxindex = ineve->AddVtx(get_vtx_x(), vtx_y, vtx_z, t0);
+	  get_vtx_z() + vd0.Pz() / vd0.P() * lifepath);
+  set_t0(lifetime);
+  int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   if (Verbosity() > 0)
   {
-    cout << "  XY vertex: " << sqrt(get_vtx_x() * get_vtx_x() + vtx_y * vtx_y) << " " << sqrt(get_vtx_x() * get_vtx_x() + vtx_y * vtx_y) * 1.0e+04 << endl;
+    cout << "  XY vertex: " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) << " " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) * 1.0e+04 << endl;
   }
 
   // Now decay it
@@ -251,7 +251,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
     cout << endl
          << "Output some sanity check info from PHG4ParticleGeneratorD0:" << endl;
 
-    cout << "Event vertex: (" << get_vtx_x() << ", " << vtx_y << ", " << vtx_z << ")" << endl;
+    cout << "Event vertex: (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << endl;
 
     cout << "Kaon : " << v1.Pt() << " " << v1.PseudoRapidity() << " " << v1.M() << endl;
     cout << "pion : " << v2.Pt() << " " << v2.PseudoRapidity() << " " << v2.M() << endl;
