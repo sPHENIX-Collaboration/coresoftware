@@ -120,8 +120,8 @@ void PHG4ParticleGeneratorBase::set_mom(const double x, const double y, const do
 void PHG4ParticleGeneratorBase::set_vtx(const double x, const double y, const double z)
 {
   m_Vtx_x = x;
-  vtx_y = y;
-  vtx_z = z;
+  m_Vtx_y = y;
+  m_Vtx_z = z;
   return;
 }
 
@@ -304,7 +304,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
   // I am out of options.....
 
-  cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing truth vertex, but none exists"
+  cout << PHWHERE << "::Error we expect an existing truth vertex, but none exists"
        << endl;
   exit(1);
 
