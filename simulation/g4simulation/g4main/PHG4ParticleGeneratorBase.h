@@ -26,13 +26,13 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   virtual void set_pid(const int pid);
   virtual void set_mom(const double x, const double y, const double z);
   virtual void set_vtx(const double x, const double y, const double z);
-  virtual void set_vtx_z(const double z) {vtx_z = z;}
-  virtual void set_t0(const double t) { t0 = t; }
+  virtual void set_vtx_z(const double z) {m_Vtx_z = z;}
+  virtual void set_t0(const double t) { m_TZero = t; }
 
   virtual double get_vtx_x() const { return m_Vtx_x; }
-  virtual double get_vtx_y() const { return vtx_y; }
-  virtual double get_vtx_z() const { return vtx_z; }
-  virtual double get_t0() const { return t0; }
+  virtual double get_vtx_y() const { return m_Vtx_y; }
+  virtual double get_vtx_z() const { return m_Vtx_z; }
+  virtual double get_t0() const { return m_TZero; }
 
   virtual void Print(const std::string &what = "ALL") const { PrintParticles(what); }
   virtual void PrintParticles(const std::string &what = "ALL") const;
@@ -65,9 +65,9 @@ private:
   int m_ReUseExistingVertexFlag = 0;
   unsigned int m_Seed = 0;
   double m_Vtx_x = 0.;
-  double vtx_y = 0.;
-  double vtx_z = 0.;
-  double t0 = 0.;
+  double m_Vtx_y = 0.;
+  double m_Vtx_z = 0.;
+  double m_TZero = 0.;
   std::vector<PHG4Particle *> particlelist;
 
 protected:
