@@ -67,7 +67,7 @@ void PHG4SimpleEventGenerator::set_theta_range(const double min, const double ma
   }
   if (min < 0 || max > M_PI)
   {
-    std::cout << __PRETTY_FUNCTION__ << " min or max outside range (range is 0 to pi) min: " << min << ", max: " << max  << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " min or max outside range (range is 0 to pi) min: " << min << ", max: " << max << std::endl;
     gSystem->Exit(1);
   }
   m_ThetaMin = min;
@@ -105,8 +105,8 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, 
   }
   if (min < 0 || max < 0 || pt_gaus_width < 0)
   {
-    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min 
-	 << ", max: " << max << ", pt_gaus_width: " << pt_gaus_width << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min
+              << ", max: " << max << ", pt_gaus_width: " << pt_gaus_width << std::endl;
     gSystem->Exit(1);
   }
 
@@ -123,13 +123,13 @@ void PHG4SimpleEventGenerator::set_p_range(const double min, const double max, c
 {
   if (min > max)
   {
-    std::cout << __PRETTY_FUNCTION__  << " pmin " << min << " > pmax: " << max << std::endl;
-     gSystem->Exit(1);
+    std::cout << __PRETTY_FUNCTION__ << " pmin " << min << " > pmax: " << max << std::endl;
+    gSystem->Exit(1);
   }
   if (min < 0 || max < 0 || p_gaus_width < 0)
   {
-    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min 
-	 << ", max: " << max << ", p_gaus_width: " << p_gaus_width << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min
+              << ", max: " << max << ", p_gaus_width: " << p_gaus_width << std::endl;
     gSystem->Exit(1);
   }
   m_Pt_Min = NAN;
@@ -231,29 +231,29 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
     else
     {
       std::cout << " Vertex Distribution Function (x,y,z) = ("
-	   << m_FunctionNames.find(m_VertexFunc_x)->second << ","
-	   << m_FunctionNames.find(m_VertexFunc_y)->second << ","
-	   << m_FunctionNames.find(m_VertexFunc_z)->second << ")"
-	   << std::endl;
+                << m_FunctionNames.find(m_VertexFunc_x)->second << ","
+                << m_FunctionNames.find(m_VertexFunc_y)->second << ","
+                << m_FunctionNames.find(m_VertexFunc_z)->second << ")"
+                << std::endl;
       std::cout << " Vertex mean (x,y,z) = (" << m_Vertex_x << "," << m_Vertex_y << "," << m_Vertex_z << ")" << std::endl;
       std::cout << " Vertex width (x,y,z) = (" << m_VertexWidth_x << "," << m_VertexWidth_y << "," << m_VertexWidth_z << ")" << std::endl;
     }
     std::cout << " Vertex size function (r) = ("
-	 << m_FunctionNames.find(m_VertexSizeFunc_r)->second << ")"
-	 << std::endl;
+              << m_FunctionNames.find(m_VertexSizeFunc_r)->second << ")"
+              << std::endl;
     std::cout << " Vertex size (mean) = (" << m_VertexSizeMean << ")" << std::endl;
     std::cout << " Vertex size (width) = (" << m_VertexSizeWidth << ")" << std::endl;
     if (std::isfinite(m_EtaMin) && std::isfinite(m_EtaMax))
     {
-    std::cout << " Eta range = " << m_EtaMin << " - " << m_EtaMax << std::endl;
+      std::cout << " Eta range = " << m_EtaMin << " - " << m_EtaMax << std::endl;
     }
     if (std::isfinite(m_ThetaMin) && std::isfinite(m_ThetaMax))
     {
-    std::cout << " Theta range = " << m_ThetaMin << " - " << m_ThetaMax
-	      << ", deg: " << m_ThetaMin/M_PI*180. << " - " << m_ThetaMax/M_PI*180. <<   std::endl;
+      std::cout << " Theta range = " << m_ThetaMin << " - " << m_ThetaMax
+                << ", deg: " << m_ThetaMin / M_PI * 180. << " - " << m_ThetaMax / M_PI * 180. << std::endl;
     }
-    std::cout << " Phi range = " << m_PhiMin << " - " << m_PhiMax 
-              << ", deg: " << m_PhiMin/M_PI*180. << " - " << m_PhiMax/M_PI*180. << std::endl;
+    std::cout << " Phi range = " << m_PhiMin << " - " << m_PhiMax
+              << ", deg: " << m_PhiMin / M_PI * 180. << " - " << m_PhiMax / M_PI * 180. << std::endl;
     if (std::isfinite(m_Pt_Min) && std::isfinite(m_Pt_Max))
     {
       std::cout << " pT range = " << m_Pt_Min << " - " << m_Pt_Max << std::endl;
@@ -289,23 +289,19 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
   if (!ReuseExistingVertex(topNode))
   {
     // generate a new vertex point
-    double a = smearvtx(m_Vertex_x, m_VertexWidth_x, m_VertexFunc_x);
-    double b = smearvtx(m_Vertex_y, m_VertexWidth_y, m_VertexFunc_y);
-    double c = smearvtx(m_Vertex_z, m_VertexWidth_z, m_VertexFunc_z);
-    set_vtx(a,b,c);
-//    set_vtx(smearvtx(m_Vertex_x, m_VertexWidth_x, m_VertexFunc_x),
-//	    smearvtx(m_Vertex_y, m_VertexWidth_y, m_VertexFunc_y),
-//            smearvtx(m_Vertex_z, m_VertexWidth_z, m_VertexFunc_z));
+    set_vtx(smearvtx(m_Vertex_x, m_VertexWidth_x, m_VertexFunc_x),
+            smearvtx(m_Vertex_y, m_VertexWidth_y, m_VertexFunc_y),
+            smearvtx(m_Vertex_z, m_VertexWidth_z, m_VertexFunc_z));
   }
-      set_vtx(get_vtx_x() + m_VertexOffset_x,
-	      get_vtx_y() + m_VertexOffset_y,
-	      get_vtx_z() + m_VertexOffset_z);
+  set_vtx(get_vtx_x() + m_VertexOffset_x,
+          get_vtx_y() + m_VertexOffset_y,
+          get_vtx_z() + m_VertexOffset_z);
 
   if (Verbosity() > 0)
   {
     std::cout << "PHG4SimpleEventGenerator::process_event - vertex center" << get_reuse_existing_vertex()
-	      << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << " cm"
-         << std::endl;
+              << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << " cm"
+              << std::endl;
   }
 
   int vtxindex = -1;
@@ -346,13 +342,13 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
       }
       else if (!std::isnan(m_ThetaMin) && !std::isnan(m_ThetaMax))
       {
-	double theta = (m_ThetaMax - m_ThetaMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_ThetaMin;
+        double theta = (m_ThetaMax - m_ThetaMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_ThetaMin;
         eta = PHG4Utils::get_eta(theta);
       }
       else
       {
         std::cout << PHWHERE << "Error: neither eta range or theta range was specified" << std::endl;
-	std::cout << "That should not happen, please inform the software group howthis happened" << std::endl;
+        std::cout << "That should not happen, please inform the software group howthis happened" << std::endl;
         exit(-1);
       }
 
@@ -418,8 +414,8 @@ PHG4SimpleEventGenerator::smearvtx(const double position, const double width, FU
   }
   else
   {
-    std::cout << __PRETTY_FUNCTION__ << " invalid distribution function " << dist 
-	      << " (" << m_FunctionNames.find(dist)->second << ")" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " invalid distribution function " << dist
+              << " (" << m_FunctionNames.find(dist)->second << ")" << std::endl;
     gSystem->Exit(1);
   }
   return res;
