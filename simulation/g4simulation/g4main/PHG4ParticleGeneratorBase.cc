@@ -39,16 +39,15 @@ using namespace std;
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name)
   : SubsysReco(name)
-  , embedflag(0)
   , reuse_existing_vertex(0)
   , vtx_x(0)
   , vtx_y(0)
   , vtx_z(0)
   , t0(0)
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  gsl_rng_set(RandomGenerator, seed);
+  gsl_rng_set(m_RandomGenerator, seed);
   return;
 }
 
@@ -59,7 +58,7 @@ PHG4ParticleGeneratorBase::~PHG4ParticleGeneratorBase()
     delete particlelist.back();
     particlelist.pop_back();
   }
-  gsl_rng_free(RandomGenerator);
+  gsl_rng_free(m_RandomGenerator);
   return;
 }
 
@@ -201,9 +200,9 @@ void PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle *particle, PHG4InEven
   {
     particle->set_pid(get_pdgcode(particle->get_name()));
   }
-  if (embedflag)
+  if (m_EmbedFlag)
   {
-    ineve->AddEmbeddedParticle(particle, embedflag);
+    ineve->AddEmbeddedParticle(particle, m_EmbedFlag);
   }
   return;
 }
@@ -212,7 +211,7 @@ void PHG4ParticleGeneratorBase::set_seed(const unsigned int iseed)
 {
   seed = iseed;
   cout << Name() << " random seed: " << seed << endl;
-  gsl_rng_set(RandomGenerator, seed);
+  gsl_rng_set(m_RandomGenerator, seed);
 }
 
 int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)

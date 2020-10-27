@@ -333,7 +333,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
         double x = 0.0;
         double y = 0.0;
         double z = 0.0;
-        gsl_ran_dir_3d(RandomGenerator, &x, &y, &z);
+        gsl_ran_dir_3d(RandomGenerator(), &x, &y, &z);
         x *= r;
         y *= r;
         z *= r;
@@ -350,11 +350,11 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
       double eta;
       if (!std::isnan(_eta_min) && !std::isnan(_eta_max))
       {
-        eta = (_eta_max - _eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
+        eta = (_eta_max - _eta_min) * gsl_rng_uniform_pos(RandomGenerator()) + _eta_min;
       }
       else if (!std::isnan(_theta_min) && !std::isnan(_theta_max))
       {
-	double theta = (_theta_max - _theta_min) * gsl_rng_uniform_pos(RandomGenerator) + _theta_min;
+	double theta = (_theta_max - _theta_min) * gsl_rng_uniform_pos(RandomGenerator()) + _theta_min;
         eta = PHG4Utils::get_eta(theta);
       }
       else
@@ -364,16 +364,16 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
         exit(-1);
       }
 
-      double phi = (_phi_max - _phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
+      double phi = (_phi_max - _phi_min) * gsl_rng_uniform_pos(RandomGenerator()) + _phi_min;
 
       double pt;
       if (!std::isnan(_p_min) && !std::isnan(_p_max) && !std::isnan(_p_gaus_width))
       {
-        pt = ((_p_max - _p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min + gsl_ran_gaussian(RandomGenerator, _p_gaus_width)) / cosh(eta);
+        pt = ((_p_max - _p_min) * gsl_rng_uniform_pos(RandomGenerator()) + _p_min + gsl_ran_gaussian(RandomGenerator(), _p_gaus_width)) / cosh(eta);
       }
       else if (!std::isnan(_pt_min) && !std::isnan(_pt_max) && !std::isnan(_pt_gaus_width))
       {
-        pt = (_pt_max - _pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min + gsl_ran_gaussian(RandomGenerator, _pt_gaus_width);
+        pt = (_pt_max - _pt_min) * gsl_rng_uniform_pos(RandomGenerator()) + _pt_min + gsl_ran_gaussian(RandomGenerator(), _pt_gaus_width);
       }
       else
       {
@@ -399,7 +399,7 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
       particle->set_e(e);
 
       _ineve->AddParticle(vtxindex, particle);
-      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle, embedflag);
+      if (EmbedFlag() != 0) _ineve->AddEmbeddedParticle(particle, EmbedFlag());
     }
   }
 
@@ -418,11 +418,11 @@ PHG4SimpleEventGenerator::smearvtx(const double position, const double width, FU
   double res = position;
   if (dist == Uniform)
   {
-    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * width;
+    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator()) * width;
   }
   else if (dist == Gaus)
   {
-    res = position + gsl_ran_gaussian(RandomGenerator, width);
+    res = position + gsl_ran_gaussian(RandomGenerator(), width);
   }
   return res;
 }

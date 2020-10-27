@@ -64,7 +64,7 @@ int PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
 
   if (!ReuseExistingVertex(topNode))
   {
-    vtx_z = (z_max - z_min) * gsl_rng_uniform_pos(RandomGenerator) + z_min;
+    vtx_z = (z_max - z_min) * gsl_rng_uniform_pos(RandomGenerator()) + z_min;
   }
   int vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
 
@@ -73,9 +73,9 @@ int PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
   {
     PHG4Particle *particle = new PHG4Particlev2(*iter);
     SetParticleId(particle, ineve);
-    double mom = (mom_max - mom_min) * gsl_rng_uniform_pos(RandomGenerator) + mom_min;
-    double eta = (eta_max - eta_min) * gsl_rng_uniform_pos(RandomGenerator) + eta_min;
-    double phi = (phi_max - phi_min) * gsl_rng_uniform_pos(RandomGenerator) + phi_min;
+    double mom = (mom_max - mom_min) * gsl_rng_uniform_pos(RandomGenerator()) + mom_min;
+    double eta = (eta_max - eta_min) * gsl_rng_uniform_pos(RandomGenerator()) + eta_min;
+    double phi = (phi_max - phi_min) * gsl_rng_uniform_pos(RandomGenerator()) + phi_min;
     double pt = mom / cosh(eta);
 
     particle->set_e(mom);

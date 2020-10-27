@@ -318,7 +318,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     y = y_min;
   }
   // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
-  double phi = (2.0 * M_PI) * gsl_rng_uniform(RandomGenerator);
+  double phi = (2.0 * M_PI) * gsl_rng_uniform(RandomGenerator());
 
   // The mass of the meson is taken from a Breit-Wigner lineshape
 
@@ -379,7 +379,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       double x1 = 0.0;
       double y1 = 0.0;
       double z1 = 0.0;
-      gsl_ran_dir_3d(RandomGenerator, &x1, &y1, &z1);
+      gsl_ran_dir_3d(RandomGenerator(), &x1, &y1, &z1);
       x1 *= r;
       y1 *= r;
       z1 *= r;
@@ -402,7 +402,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
     double th1 = fsin->GetRandom();
     // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
-    double phi1 = 2.0 * M_PI * gsl_rng_uniform(RandomGenerator);
+    double phi1 = 2.0 * M_PI * gsl_rng_uniform(RandomGenerator());
 
     // Put particle 1 into a TLorentzVector
 
@@ -437,9 +437,9 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle, ineve);
       ineve->AddParticle(vtxindex, particle);
-      if (embedflag != 0)
+      if (EmbedFlag() != 0)
       {
-        ineve->AddEmbeddedParticle(particle, embedflag);
+        ineve->AddEmbeddedParticle(particle, EmbedFlag());
       }
     }
     // List what has been put into ineve for this event
@@ -522,11 +522,11 @@ PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double w
   double res = position;
   if (dist == Uniform)
   {
-    res = (position - m_Width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * m_Width;
+    res = (position - m_Width) + 2 * gsl_rng_uniform_pos(RandomGenerator()) * m_Width;
   }
   else if (dist == Gaus)
   {
-    res = position + gsl_ran_gaussian(RandomGenerator, m_Width);
+    res = position + gsl_ran_gaussian(RandomGenerator(), m_Width);
   }
   return res;
 }

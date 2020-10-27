@@ -37,7 +37,7 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   virtual void PrintParticles(const std::string &what = "ALL") const;
   virtual void AddParticle(const std::string &particle, const double x, const double y, const double z);
   virtual void AddParticle(const int pid, const double x, const double y, const double z);
-  virtual void Embed(const int i = 1) { embedflag = i; }
+  virtual void Embed(const int i = 1) { m_EmbedFlag = i; }
   virtual int ReuseExistingVertex(PHCompositeNode *topNode);
 
   int get_reuse_existing_vertex() const { return reuse_existing_vertex; }
@@ -52,8 +52,13 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   double get_mass(const int pdgcode) const;
   void CheckAndCreateParticleVector();
   void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
-  gsl_rng *RandomGenerator;
-  int embedflag;
+  gsl_rng *RandomGenerator() const {return m_RandomGenerator;}
+  int EmbedFlag() const {return m_EmbedFlag;}
+
+private:
+  gsl_rng *m_RandomGenerator = nullptr;
+  int m_EmbedFlag = 0;
+protected:
   int reuse_existing_vertex;
   double vtx_x;
   double vtx_y;

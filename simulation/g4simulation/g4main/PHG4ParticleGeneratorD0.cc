@@ -124,7 +124,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   {
     if (vtx_zmax != vtx_zmin)
     {
-      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator) + vtx_zmin;
+      vtx_z = (vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator()) + vtx_zmin;
     }
     else
     {
@@ -155,7 +155,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
     y = y_min;
   }
   // 0 and 2*M_PI identical, so use gsl_rng_uniform which excludes 1.0
-  double phi = (2.0 * M_PI) * gsl_rng_uniform(RandomGenerator);
+  double phi = (2.0 * M_PI) * gsl_rng_uniform(RandomGenerator());
 
   double mnow = mass;
 
@@ -171,7 +171,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   double beta = vd0.Beta();
   double gamma = vd0.Gamma();
-  double lifetime = gsl_ran_exponential(RandomGenerator, 410.1e-03) * 1.0e-12;  // life time in seconds
+  double lifetime = gsl_ran_exponential(RandomGenerator(), 410.1e-03) * 1.0e-12;  // life time in seconds
   double lifepath = lifetime * gamma * beta * cc;                               // path in cm
   if (Verbosity() > 0)
   {
@@ -201,7 +201,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // particle 2 has particle 1 momentum reflected through the origin
 
   double th1 = fsin->GetRandom();
-  double phi1 = 2.0 * M_PI * gsl_rng_uniform_pos(RandomGenerator);
+  double phi1 = 2.0 * M_PI * gsl_rng_uniform_pos(RandomGenerator());
 
   // Put particle 1 into a TLorentzVector
 
@@ -236,9 +236,9 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
     PHG4Particle *particle = new PHG4Particlev1(*iter);
     SetParticleId(particle, ineve);
     ineve->AddParticle(vtxindex, particle);
-    if (embedflag != 0)
+    if (EmbedFlag() != 0)
     {
-      ineve->AddEmbeddedParticle(particle, embedflag);
+      ineve->AddEmbeddedParticle(particle, EmbedFlag());
     }
   }
 
