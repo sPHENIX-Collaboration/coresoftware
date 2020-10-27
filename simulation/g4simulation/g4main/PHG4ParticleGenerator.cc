@@ -69,7 +69,7 @@ int PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
   int vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
 
   vector<PHG4Particle *>::iterator iter;
-  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
+  for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)
   {
     PHG4Particle *particle = new PHG4Particlev2(*iter);
     SetParticleId(particle, ineve);

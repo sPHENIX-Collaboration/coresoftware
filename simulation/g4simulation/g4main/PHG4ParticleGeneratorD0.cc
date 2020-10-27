@@ -231,7 +231,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // Now output the list of boosted decay particles to the node tree
 
   vector<PHG4Particle *>::const_iterator iter;
-  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
+  for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)
   {
     PHG4Particle *particle = new PHG4Particlev1(*iter);
     SetParticleId(particle, ineve);
@@ -311,13 +311,8 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 	   << endl;
 */
   }
-
   // Reset particlelist for the next event
-  while (particlelist.begin() != particlelist.end())
-  {
-    delete particlelist.back();
-    particlelist.pop_back();
-  }
+  ResetParticleList();
 
   return 0;
 }

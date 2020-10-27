@@ -29,7 +29,7 @@ int PHG4ParticleGun::process_event(PHCompositeNode *topNode)
   ReuseExistingVertex(topNode);  // checks if we should reuse existing vertex
   int vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
   vector<PHG4Particle *>::const_iterator iter;
-  for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
+  for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)
   {
     PHG4Particle *particle = new PHG4Particlev1(*iter);
     SetParticleId(particle, ineve);

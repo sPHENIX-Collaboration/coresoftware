@@ -314,3 +314,13 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
   return 0;
 }
+
+void PHG4ParticleGeneratorBase::ResetParticleList()
+{
+  while (particlelist_begin() != particlelist_end())
+  {
+    delete particlelist.back();
+    particlelist.pop_back();
+  }
+  return;
+}
