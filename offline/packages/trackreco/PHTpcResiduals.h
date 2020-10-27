@@ -7,6 +7,7 @@
 #include "ActsTrack.h"
 #include "ActsTrackingGeometry.h"
 
+#include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 
@@ -23,7 +24,12 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 
-
+/**
+ * This class takes preliminary fits from PHActsTrkFitter to the 
+ * silicon + MM clusters and calculates the residuals in the TPC 
+ * from that track fit. The TPC state has to be explicitly determined
+ * here since the Acts::DirectNavigator does not visit the TPC states
+ */
 class PHTpcResiduals : public SubsysReco
 {
 
@@ -34,8 +40,13 @@ class PHTpcResiduals : public SubsysReco
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+
+  void setMaxTrackAlpha(float maxTAlpha) { m_maxTAlpha = maxTAlpha;}
+  void setMaxTrackResidual(float maxResidual) 
+    { m_maxResidual = maxResidual;}
 
  private:
 
@@ -51,8 +62,32 @@ class PHTpcResiduals : public SubsysReco
                      const ActsExamples::TrackParameters& params, 
 		     const SourceLink& sl);
 
+  int getCell(const int actsLayer, const Acts::Vector3D& loc);
+  int getCell(const int iz, const int ir, const int iphi);
+  
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
   ActsTrackingGeometry *m_tGeometry;
+ 
+  float m_maxTAlpha = 0.6;
+  float m_maxResidual = 5;
+
+  /// Tpc geometry
+  const unsigned int m_nlayers_tpc = 48;
+  const float m_zMin = -2120 / 2.; // mm
+  const float m_zMax = -2120 / 2.; // mm
+
+  /// These are grid sizes given by the distortion model
+  const int m_zBins = 50;
+  const int m_phiBins = 72;
+  const int m_rBins = 48;
+  const int m_totalBins = m_zBins * m_phiBins * m_rBins;
+
+  /// Vectors for collecting TPC residual information
+  std::vector<Acts::SymMatrix3D> m_lhs;
+  std::vector<Acts::Vector3D> m_rhs;
+  std::vector<int> m_clusterCount;
+  
+  int m_event = 0;
 
   TFile *outfile;
   TH2 *h_rphiResid;
@@ -63,5 +98,5 @@ class PHTpcResiduals : public SubsysReco
 
 };
 
-
 #endif
+
