@@ -10,6 +10,15 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <Acts/Geometry/GeometryIdentifier.hpp>
+#include <Acts/MagneticField/ConstantBField.hpp>
+#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
+#include <Acts/MagneticField/SharedBField.hpp>
+#include <Acts/Propagator/EigenStepper.hpp>
+#include <Acts/Surfaces/Surface.hpp>
+
+#include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+
 #include <cmath>
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
@@ -72,7 +81,12 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
       
       for(auto sl : sourceLinks)
 	{
-	  auto result = propagateTrackState(trackParams, sl);
+	  /// Only analyze TPC 
+	  if(sl.referenceSurface().geometryId().volume() != 14)
+	    continue;
+	  
+	  //auto result = 
+	  propagateTrackState(trackParams, sl);
 	  //calculateTpcResiduals(sl, state);
 	}
 
@@ -84,29 +98,42 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTpcResiduals::propagateTrackState(const ActsExamples::TrackParameters& params,
-					 const SourceLink& sl)
+void PHTpcResiduals::propagateTrackState(
+			   const ActsExamples::TrackParameters& params,
+			   const SourceLink& sl)
 {
 
-  std::visit([](auto && inputField) {
-      using InputMagneticField = typename std::decay_t<decltype(inputField)>::element_type;
+  std::visit([params, sl, this]
+		     (auto && inputField) { //-> TrackParamPtrResult {
+      using InputMagneticField = 
+	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField      = Acts::SharedBField<InputMagneticField>;
       using Stepper            = Acts::EigenStepper<MagneticField>;
+      using Propagator         = Acts::Propagator<Stepper>;
 
-      MagneticField field(std::move(inputField));
-      Stepper stepper(std::move(field));
-      Propagator propagator(std::move(stepper));
+      MagneticField field(inputField);
+      Stepper stepper(field);
+      Propagator propagator(stepper);
       
-      auto result = propagator->propagate(params, sl.referenceSurface(), options);
+      auto logger = Acts::getDefaultLogger("PHTpcResiduals", 
+					    Acts::Logging::INFO);
+      
+      Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
+					m_tGeometry->magFieldContext,
+					Acts::LoggerWrapper{*logger});
 
+      auto result = propagator.propagate(params, sl.referenceSurface(), 
+					 options);
+
+ 
     },
     std::move(m_tGeometry->magField));
-  
 
   return;
 }
-void PHTpcResiduals::calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
-					   const Acts::Vector3D momentum)
+void PHTpcResiduals::calculateTpcResiduals(
+				 const std::vector<SourceLink> sourceLinks,
+				 const Acts::Vector3D momentum)
 {
 
   for(auto sl : sourceLinks)

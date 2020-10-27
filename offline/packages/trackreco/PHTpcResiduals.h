@@ -7,6 +7,9 @@
 #include "ActsTrack.h"
 #include "ActsTrackingGeometry.h"
 
+#include <Acts/Propagator/Propagator.hpp>
+#include <Acts/Utilities/Result.hpp>
+
 class PHCompositeNode;
 
 #include <memory>
@@ -15,7 +18,10 @@ class PHCompositeNode;
 #include <TH2.h>
 #include <TH1.h>
 
-
+using PropagatorResult = Acts::Result<Acts::PropagatorResult
+  <ActsExamples::TrackParameters>>;
+using TrackParamPtr = std::unique_ptr<const ActsExamples::TrackParameters>;
+using TrackParamPtrResult = Acts::Result<TrackParamPtr>;
 
 class PHTpcResiduals : public SubsysReco
 {
@@ -39,8 +45,9 @@ class PHTpcResiduals : public SubsysReco
   void calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
 			     const Acts::Vector3D momentum);
 
-  void propagateTrackState(const ActsExamples::TrackParameters& params, 
-			   const SourceLink& sl);
+void propagateTrackState(
+                     const ActsExamples::TrackParameters& params, 
+		     const SourceLink& sl);
 
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
   ActsTrackingGeometry *m_tGeometry;
