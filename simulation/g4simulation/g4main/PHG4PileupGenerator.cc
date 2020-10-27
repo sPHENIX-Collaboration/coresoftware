@@ -9,15 +9,8 @@
 using namespace std;
 
 PHG4PileupGenerator::PHG4PileupGenerator(const string &name)
-    : PHG4ParticleGeneratorBase(name),
-      _generator(nullptr),
-      _min_integration_time(-1000.0),
-      _max_integration_time(+1000.0),
-      _collision_rate(100.0),
-      _time_between_crossings(106.0),
-      _ave_coll_per_crossing(1.0), // recalculated
-      _min_crossing(0),            // recalculated
-      _max_crossing(0) {           // recalculated
+    : PHG4ParticleGeneratorBase(name)
+{
   return;
 }
 
@@ -33,7 +26,7 @@ int PHG4PileupGenerator::Init(PHCompositeNode *topNode) {
 
 int PHG4PileupGenerator::InitRun(PHCompositeNode *topNode) {
 
-  cout << "generator ptr: " << _generator << endl;
+  //cout << "generator ptr: " << _generator << endl;
   
   if (!_generator) return Fun4AllReturnCodes::EVENT_OK;
 
@@ -56,7 +49,7 @@ int PHG4PileupGenerator::process_event(PHCompositeNode *topNode) {
   
     double crossing_time = _time_between_crossings * icrossing;
 
-    int ncollisions = gsl_ran_poisson(RandomGenerator,_ave_coll_per_crossing);
+    int ncollisions = gsl_ran_poisson(RandomGenerator(),_ave_coll_per_crossing);
     if (icrossing == 0) --ncollisions;
 
     for (int icollision = 0; icollision < ncollisions; ++icollision) {

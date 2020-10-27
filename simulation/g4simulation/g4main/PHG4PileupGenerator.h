@@ -36,16 +36,16 @@ public:
 
 private:
 
-  PHG4ParticleGeneratorBase* _generator;
+  PHG4ParticleGeneratorBase* _generator = nullptr;
 
-  double _min_integration_time;
-  double _max_integration_time;
-  double _collision_rate;
-  double _time_between_crossings;
+  double _min_integration_time = -1000.;
+  double _max_integration_time = 1000.;
+  double _collision_rate = 100.;  // kHz
+  double _time_between_crossings = 106.;
 
-  double   _ave_coll_per_crossing;
-  int      _min_crossing;
-  int      _max_crossing;
+  double   _ave_coll_per_crossing = 1.; // recalculated
+  int      _min_crossing = 0; // recalculated
+  int      _max_crossing = 0; // recalculated
 };
 
 #endif
