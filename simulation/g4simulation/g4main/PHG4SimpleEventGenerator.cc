@@ -15,6 +15,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <TSystem.h>
+
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
 
