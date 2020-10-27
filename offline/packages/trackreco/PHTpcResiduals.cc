@@ -61,12 +61,12 @@ int PHTpcResiduals::InitRun(PHCompositeNode *topNode)
 int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 {
 
-  int returnVal = getTpcResiduals(topNode);
+  int returnVal = processTracks(topNode);
 
   return returnVal;
 }
 
-int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
+int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
 
   std::map<unsigned int, ActsTrack>::iterator trackIter;
@@ -75,36 +75,51 @@ int PHTpcResiduals::getTpcResiduals(PHCompositeNode *topNode)
       ++trackIter)
     {
       auto track = trackIter->second;
-      auto sourceLinks = track.getSourceLinks();
-      const auto trackParams = track.getTrackParams();
-      const auto momentumVec = trackParams.momentum();
+      processTrack(track);
       
-      for(auto sl : sourceLinks)
-	{
-	  /// Only analyze TPC 
-	  if(sl.referenceSurface().geometryId().volume() != 14)
-	    continue;
-	  
-	  //auto result = 
-	  propagateTrackState(trackParams, sl);
-	  //calculateTpcResiduals(sl, state);
-	}
-
-      calculateTpcResiduals(sourceLinks, momentumVec);
-      
-
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTpcResiduals::propagateTrackState(
+void PHTpcResiduals::processTrack(ActsTrack& track)
+{
+ 
+  auto sourceLinks = track.getSourceLinks();
+  const auto trackParams = track.getTrackParams();
+  
+  for(auto sl : sourceLinks)
+    {
+      /// Only analyze TPC 
+      if(sl.referenceSurface().geometryId().volume() != 14)
+	continue;
+      
+      auto result = propagateTrackState(trackParams, sl);
+      if(result.ok())
+	{
+	  
+	  auto trackStateParams = std::move(**result);
+	  
+	  calculateTpcResiduals(trackStateParams, sl);
+	}
+      else
+	{
+	  if(Verbosity() > 2)
+	    std::cout << PHWHERE << "Propagation failed, check log"
+		      << std::endl;
+	  continue;
+	}
+    } 
+  
+}
+
+BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 			   const ActsExamples::TrackParameters& params,
 			   const SourceLink& sl)
 {
-
-  std::visit([params, sl, this]
-		     (auto && inputField) { //-> TrackParamPtrResult {
+  
+  return std::visit([params, sl, this]
+		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField      = Acts::SharedBField<InputMagneticField>;
@@ -124,85 +139,21 @@ void PHTpcResiduals::propagateTrackState(
 
       auto result = propagator.propagate(params, sl.referenceSurface(), 
 					 options);
+   
+      if(result.ok())
+	return std::move((*result).endParameters);
+      else
+	return result.error();
+   },
+     std::move(m_tGeometry->magField));
 
- 
-    },
-    std::move(m_tGeometry->magField));
-
-  return;
 }
 void PHTpcResiduals::calculateTpcResiduals(
-				 const std::vector<SourceLink> sourceLinks,
-				 const Acts::Vector3D momentum)
+		          const Acts::BoundTrackParameters &params,
+			  const SourceLink& sl)
 {
 
-  for(auto sl : sourceLinks)
-    {
-      auto volume = sl.referenceSurface().geometryId().volume();
-	 
-      /// Only care about TPC source links
-      if(volume != 14)
-	continue;
-      
-      /// Source link returns a 3D vector, and we need a 2D vector for 
-      /// the acts transformations
-      auto localPos  = sl.location();
-      Acts::Vector2D local(localPos.x(), localPos.y());
-
-      
-      auto globalPos = sl.referenceSurface().localToGlobal(
-                       m_tGeometry->geoContext,
-		       local,
-		       momentum);
   
-      const double measPhi = atan2(globalPos.y(), globalPos.x());
-      const double measR = sqrt(globalPos.x() * globalPos.x() + 
-			       globalPos.y() * globalPos.y());
-      const double measRPhi = measPhi * measR;
-      const double siMMFitPhi = atan2(momentum.y(), momentum.x());
-      
-      /// Measurement is confined to a surface in R, so evaluate
-      /// the rphi of the track at this radius
-      const double fitRPhi = measR * siMMFitPhi;
-   
-      const double measZ = globalPos.z();
-      
-      double siMMFitTheta = acos(momentum.z() / momentum.norm());
-      
-      /// Need to convert theta from beam axis to theta from beam
-      /// perpendicular axis
-      siMMFitTheta -= M_PI / 2.;
-
-      /// Need negative sign to correct for flipped theta convention
-      const double fitZ = -1 * measR * tan(siMMFitTheta);
-      const double rphiResid = measRPhi - fitRPhi;
-      const double zResid = measZ - fitZ;
-
-      const double measEta = atanh(globalPos.z() / globalPos.norm());
-      const double fitEta = atanh(momentum.z() / momentum.norm());
-
-      const double etaResid = measEta - fitEta;
-
-      if(Verbosity() > 0)
-	{
-	  std::cout << "Fit eta/phi : " 
-		    << fitEta << "  " << siMMFitPhi
-		    << std::endl;
-	  std::cout << "Fit theta : " << siMMFitTheta << std::endl;
-	  std::cout << "Fit eta from theta : " 
-		    << 2. * atan(exp(-fitEta)) << std::endl;
-	  std::cout << "Meas, fit Z : " << measZ << ", " << fitZ 
-		    << std::endl;
-	  std::cout << "rphi, z, eta residuals: " << rphiResid << ", "
-		    << zResid << " mm" << "  " << etaResid << std::endl;
-	}
-
-      h_rphiResid->Fill(measR / Acts::UnitConstants::cm, rphiResid);
-      h_zResid->Fill(measZ / Acts::UnitConstants::cm, zResid);
-      h_etaResid->Fill(measEta, etaResid);
-      h_etaResidLayer->Fill(measR / Acts::UnitConstants::cm, etaResid);
-      h_zResidLayer->Fill(measR / Acts::UnitConstants::cm, zResid);
-    }
 
   return;
 }

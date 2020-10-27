@@ -18,10 +18,11 @@ class PHCompositeNode;
 #include <TH2.h>
 #include <TH1.h>
 
-using PropagatorResult = Acts::Result<Acts::PropagatorResult
-  <ActsExamples::TrackParameters>>;
-using TrackParamPtr = std::unique_ptr<const ActsExamples::TrackParameters>;
-using TrackParamPtrResult = Acts::Result<TrackParamPtr>;
+
+using BoundTrackParamPtr = 
+  std::unique_ptr<const Acts::BoundTrackParameters>;
+using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+
 
 class PHTpcResiduals : public SubsysReco
 {
@@ -40,12 +41,13 @@ class PHTpcResiduals : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
 
-  int getTpcResiduals(PHCompositeNode *topNode);
+  int processTracks(PHCompositeNode *topNode);
+  void processTrack(ActsTrack& track);
 
-  void calculateTpcResiduals(const std::vector<SourceLink> sourceLinks,
-			     const Acts::Vector3D momentum);
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
+			     const SourceLink& sl);
 
-void propagateTrackState(
+  BoundTrackParamPtrResult propagateTrackState(
                      const ActsExamples::TrackParameters& params, 
 		     const SourceLink& sl);
 
