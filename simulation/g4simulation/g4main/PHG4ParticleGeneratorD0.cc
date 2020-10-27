@@ -22,26 +22,8 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
-PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const string &name)
+PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const std::string &name)
   : PHG4ParticleGeneratorBase(name)
-  , vtx_zmin(-10.)
-  , vtx_zmax(10)
-  , y_min(0.)
-  , y_max(0.)
-  , eta_min(-1.0)
-  , eta_max(1.0)
-  , mom_min(0.0)
-  , mom_max(10.0)
-  , pt_min(4.)
-  , pt_max(4.)
-  , mass(1.86486)
-  , m1(0.493677)
-  , m2(0.13957018)
-  , fsin(nullptr)
-  , frap(nullptr)
-  , fpt(nullptr)
 {
   return;
 }
@@ -91,7 +73,7 @@ void PHG4ParticleGeneratorD0::set_mass(const double mass_in)
 int PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
 {
   unsigned int iseed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
-  cout << Name() << " random seed: " << iseed << endl;
+  std::cout << Name() << " random seed: " << iseed << std::endl;
   gRandom->SetSeed(iseed);
 
   fsin = new TF1("fsin", "sin(x)", 0, M_PI);
@@ -175,8 +157,8 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   double lifepath = lifetime * gamma * beta * cc;                               // path in cm
   if (Verbosity() > 0)
   {
-    cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << endl;
-    cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath * 1.0e+04 << endl;
+    std::cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << std::endl;
+    std::cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath * 1.0e+04 << std::endl;
   }
   set_vtx(vd0.Px() / vd0.P() * lifepath,
 	  vd0.Py() / vd0.P() * lifepath,
@@ -185,7 +167,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   if (Verbosity() > 0)
   {
-    cout << "  XY vertex: " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) << " " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) * 1.0e+04 << endl;
+    std::cout << "  XY vertex: " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) << " " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) * 1.0e+04 << std::endl;
   }
 
   // Now decay it
@@ -229,8 +211,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   // Now output the list of boosted decay particles to the node tree
 
-  vector<PHG4Particle *>::const_iterator iter;
-  for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)
+  for (std::vector<PHG4Particle *>::const_iterator iter = particlelist_begin(); iter != particlelist_end(); ++iter)
   {
     PHG4Particle *particle = new PHG4Particlev1(*iter);
     SetParticleId(particle, ineve);
@@ -248,19 +229,19 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
     ineve->identify();
 
     // Print some check output
-    cout << endl
-         << "Output some sanity check info from PHG4ParticleGeneratorD0:" << endl;
+    std::cout << std::endl
+         << "Output some sanity check info from PHG4ParticleGeneratorD0:" << std::endl;
 
-    cout << "Event vertex: (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << endl;
+    std::cout << "Event vertex: (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << std::endl;
 
-    cout << "Kaon : " << v1.Pt() << " " << v1.PseudoRapidity() << " " << v1.M() << endl;
-    cout << "pion : " << v2.Pt() << " " << v2.PseudoRapidity() << " " << v2.M() << endl;
-    cout << "D0 : " << vd0.Pt() << " " << vd0.PseudoRapidity() << " " << vd0.M() << endl;
+    std::cout << "Kaon : " << v1.Pt() << " " << v1.PseudoRapidity() << " " << v1.M() << std::endl;
+    std::cout << "pion : " << v2.Pt() << " " << v2.PseudoRapidity() << " " << v2.M() << std::endl;
+    std::cout << "D0 : " << vd0.Pt() << " " << vd0.PseudoRapidity() << " " << vd0.M() << std::endl;
     TLorentzVector vreco = v1 + v2;
-    cout << "reconstructed D0 : " << vreco.Pt() << " " << vreco.PseudoRapidity() << " " << vreco.M() << endl;
+    std::cout << "reconstructed D0 : " << vreco.Pt() << " " << vreco.PseudoRapidity() << " " << vreco.M() << std::endl;
 
     /*
-      cout << "  Decay particle 1:"
+      std::cout << "  Decay particle 1:"
 	   << " px " << v1.Px()
 	   << " py " << v1.Py()
 	   << " pz " << v1.Pz()
@@ -270,9 +251,9 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 	   << " pT " << v1.Pt()
 	   << " mass " << v1.M()
 	   << " E " << v1.E()
-	   << endl;
+	   << std::endl;
 
-      cout << "  Decay particle 2:"
+      std::cout << "  Decay particle 2:"
 	   << " px " << v2.Px()
 	   << " py " << v2.Py()
 	   << " pz " << v2.Pz()
@@ -282,10 +263,10 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 	   << " pT " << v2.Pt()
 	   << " mass " << v2.M()
 	   << " E " << v2.E()
-	   << endl; 
+	   << std::endl;
 
       // Print the input vector meson kinematics
-      cout << " D0 input kinematics:     mass " << vd0.M()
+      std::cout << " D0 input kinematics:     mass " << vd0.M()
 	   << " px " << vd0.Px()
   	   << " py " << vd0.Py()
 	   << " pz " << vd0.Pz()
@@ -293,13 +274,13 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 	   << " y " << vd0.Rapidity()
 	   << " pt " << vd0.Pt()
 	   << " E " << vd0.E()
-	   << endl;
+	   << std::endl;
 
       // Now, as a check, reconstruct the mass from the particle 1 and 2 kinematics
 
       TLorentzVector vreco = v1 + v2;
 
-      cout << "  Reconstructed D0 kinematics:    mass " << vreco.M()
+      std::cout << "  Reconstructed D0 kinematics:    mass " << vreco.M()
 	   << " px " << vreco.Px()
 	   << " py " << vreco.Py()
 	   << " pz " << vreco.Pz()
@@ -307,7 +288,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 	   << " y " << vreco.Rapidity()
 	   << " pt " << vreco.Pt()
 	   << " E " << vreco.E()
-	   << endl;
+	   << std::endl;
 */
   }
   // Reset particlelist for the next event

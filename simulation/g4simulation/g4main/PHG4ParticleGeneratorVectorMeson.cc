@@ -28,9 +28,7 @@
 #include <utility>   // for pair
 #include <vector>    // for vector, vector<>::const_iterator
 
-using namespace std;
-
-PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string &name)
+PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const std::string &name)
   : PHG4ParticleGeneratorBase(name)
 {
   set_upsilon_1s();  // make mass and width of 1S default
@@ -55,7 +53,7 @@ void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &na
   }
   else
   {
-    cout << "Invalid decay " << name1 << ", valid is e or mu" << endl;
+    std::cout << "Invalid decay " << name1 << ", valid is e or mu" << std::endl;
     gSystem->Exit(1);
   }
   return;
@@ -76,7 +74,7 @@ void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &na
     decay_vtx_offset_z.insert(std::pair<unsigned int, double>(decay_id, 0.));
     return;
   }
-  cout << "invalid decay channel Y --> " << name1 << " + " << name2 << endl;
+  std::cout << "invalid decay channel Y --> " << name1 << " + " << name2 << std::endl;
   gSystem->Exit(1);
 }
 
@@ -179,7 +177,7 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   }
   else
   {
-    cout << "Do not recognize the decay type " << decay1 << endl;
+    std::cout << "Do not recognize the decay type " << decay1 << std::endl;
     gSystem->Exit(1);
   }
 
@@ -194,7 +192,7 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   }
   else
   {
-    cout << "Do not recognize the decay type " << decay2 << endl;
+    std::cout << "Do not recognize the decay type " << decay2 << std::endl;
     gSystem->Exit(1);
   }
 
@@ -205,7 +203,7 @@ int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << endl;
+    std::cout << "PHG4ParticleGeneratorVectorMeson::InitRun started." << std::endl;
   }
   trand = new TRandom3();
   unsigned int iseed = PHRandomSeed();  // fixed seed handles in PHRandomSeed()
@@ -244,14 +242,14 @@ int PHG4ParticleGeneratorVectorMeson::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << endl;
+    std::cout << "PHG4ParticleGeneratorVectorMeson::InitRun endeded." << std::endl;
   }
   return 0;
 }
 
 int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 {
-  if (!ineve) cout << " G4InEvent not found " << endl;
+  if (!ineve) std::cout << " G4InEvent not found " << std::endl;
 
   // Generate a new set of vectors for the vector meson for each event
   // These are the momentum and direction vectors for the pre-decay vector meson
@@ -328,7 +326,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      cout << PHWHERE << "Decay particles && vertex info can't be found !!" << endl;
+      std::cout << PHWHERE << "Decay particles && vertex info can't be found !!" << std::endl;
       exit(1);
     }
 
@@ -394,8 +392,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
     // Now output the list of boosted decay particles to the node tree
 
-    vector<PHG4Particle *>::const_iterator iter;
-    for (iter = particlelist_begin(); iter != particlelist_end(); ++iter)
+    for (std::vector<PHG4Particle *>::const_iterator iter = particlelist_begin(); iter != particlelist_end(); ++iter)
     {
       PHG4Particle *particle = new PHG4Particlev1(*iter);
       SetParticleId(particle, ineve);
@@ -412,13 +409,13 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
       ineve->identify();
 
       // Print some check output
-      cout << endl
-           << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << endl;
+      std::cout << std::endl
+           << "Output some sanity check info from PHG4ParticleGeneratorVectorMeson:" << std::endl;
 
-      cout << "  Vertex for this event (X,Y,Z) is (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << endl;
+      std::cout << "  Vertex for this event (X,Y,Z) is (" << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << ")" << std::endl;
       // Print the decay particle kinematics
 
-      cout << "  Decay particle 1:"
+      std::cout << "  Decay particle 1:"
            << " px " << v1.Px()
            << " py " << v1.Py()
            << " pz " << v1.Pz()
@@ -428,9 +425,9 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
            << " pT " << v1.Pt()
            << " mass " << v1.M()
            << " E " << v1.E()
-           << endl;
+           << std::endl;
 
-      cout << "  Decay particle 2:"
+      std::cout << "  Decay particle 2:"
            << " px " << v2.Px()
            << " py " << v2.Py()
            << " pz " << v2.Pz()
@@ -440,10 +437,10 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
            << " pT " << v2.Pt()
            << " mass " << v2.M()
            << " E " << v2.E()
-           << endl;
+           << std::endl;
 
       // Print the input vector meson kinematics
-      cout << "  Vector meson input kinematics:     mass " << vm.M()
+      std::cout << "  Vector meson input kinematics:     mass " << vm.M()
            << " px " << vm.Px()
            << " py " << vm.Py()
            << " pz " << vm.Pz()
@@ -451,13 +448,13 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
            << " y " << vm.Rapidity()
            << " pt " << vm.Pt()
            << " E " << vm.E()
-           << endl;
+           << std::endl;
 
       // Now, as a check, reconstruct the mass from the particle 1 and 2 kinematics
 
       TLorentzVector vreco = v1 + v2;
 
-      cout << "  Reco'd vector meson kinematics:    mass " << vreco.M()
+      std::cout << "  Reco'd vector meson kinematics:    mass " << vreco.M()
            << " px " << vreco.Px()
            << " py " << vreco.Py()
            << " pz " << vreco.Pz()
@@ -465,7 +462,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
            << " y " << vreco.Rapidity()
            << " pt " << vreco.Pt()
            << " E " << vreco.E()
-           << endl;
+           << std::endl;
     }
   }  // decay particles
 

@@ -27,23 +27,23 @@ class PHG4ParticleGeneratorD0 : public PHG4ParticleGeneratorBase
   void set_mass(const double mass);
 
  protected:
-  double vtx_zmin;
-  double vtx_zmax;
-  double y_min;
-  double y_max;
-  double eta_min;
-  double eta_max;
-  double mom_min;
-  double mom_max;
-  double pt_min;
-  double pt_max;
-  double mass;
-  double m1;
-  double m2;
+  double vtx_zmin = -10.;
+  double vtx_zmax = 10.;
+  double y_min = 0.;
+  double y_max = 0.;
+  double eta_min = -1.;
+  double eta_max = 1.;
+  double mom_min = 0.;
+  double mom_max = 10.;
+  double pt_min = 4.;
+  double pt_max = 4.;
+  double mass = 1.86486;
+  double m1 = 0.493677;
+  double m2 = 0.13957018;
 
-  TF1 *fsin;
-  TF1 *frap;
-  TF1 *fpt;
+  TF1 *fsin = nullptr;
+  TF1 *frap = nullptr;
+  TF1 *fpt = nullptr;
 };
 
 #endif
