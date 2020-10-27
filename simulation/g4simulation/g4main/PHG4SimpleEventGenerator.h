@@ -6,6 +6,7 @@
 #include "PHG4ParticleGeneratorBase.h"
 
 #include <cmath>
+#include <map>
 #include <string>   // for string
 #include <utility>  // for pair
 #include <vector>
@@ -34,9 +35,6 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
 
   //! interface for adding particle by pid
   void add_particles(const int pid, const unsigned int count);
-
-  //! set the starting time for the event
-  void set_t0(const double t) { _t0 = t; }
 
   //! range of randomized eta values (mutually exclusive with theta range)
   void set_eta_range(const double eta_min, const double eta_max);
@@ -68,47 +66,51 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   void set_existing_vertex_offset_vector(const double x, const double y, const double z);
 
   //! set the distribution function of particles about the vertex
-  void set_vertex_size_function(FUNCTION r);
+  void set_vertex_size_function(FUNCTION r) { m_VertexSizeFunc_r = r;}
 
   //! set the dimensions of the distribution of particles about the vertex
   void set_vertex_size_parameters(const double mean, const double width);
 
  private:
   double smearvtx(const double position, const double width, FUNCTION dist) const;
-  PHG4InEvent *_ineve = nullptr;
-  FUNCTION _vertex_func_x = Uniform;
-  FUNCTION _vertex_func_y = Uniform;
-  FUNCTION _vertex_func_z = Uniform;
-  double _t0 = 0.;
-  double _vertex_x = 0.;
-  double _vertex_y = 0.;
-  double _vertex_z = 0.;
-  double _vertex_width_x = 0.;
-  double _vertex_width_y = 0.;
-  double _vertex_width_z = 0.;
-  double _vertex_offset_x = 0.;
-  double _vertex_offset_y = 0.;
-  double _vertex_offset_z = 0.;
-  FUNCTION _vertex_size_func_r = Uniform;
-  double _vertex_size_mean = 0.;
-  double _vertex_size_width = 0.;
-  double _eta_min = -1.25;
-  double _eta_max = 1.25;
-  double _theta_min = NAN;
-  double _theta_max = NAN;
-  double _phi_min = -M_PI;
-  double _phi_max = M_PI;
-  double _pt_min = 0.;
-  double _pt_max = 10.;
-  double _pt_gaus_width = 0.;
-  double _p_min = NAN;
-  double _p_max = NAN;
-  double _p_gaus_width = NAN;
 
   // these need to be stored separately until run time when the names
   // can be translated using the GEANT4 lookup
   std::vector<std::pair<int, unsigned int> > _particle_codes;          // <pdgcode, count>
   std::vector<std::pair<std::string, unsigned int> > _particle_names;  // <names, count>
+// so we can print out the function names without many if's
+// also used to check if function is implemented
+  std::map<FUNCTION, std::string> m_FunctionNames = {{Uniform,"Uniform"},{Gaus,"Gaus"}};
+
+  PHG4InEvent *m_InEvent = nullptr;
+  FUNCTION m_VertexFunc_x = Uniform;
+  FUNCTION m_VertexFunc_y = Uniform;
+  FUNCTION m_VertexFunc_z = Uniform;
+  double m_Vertex_x = 0.;
+  double m_Vertex_y = 0.;
+  double m_Vertex_z = 0.;
+  double m_VertexWidth_x = 0.;
+  double m_VertexWidth_y = 0.;
+  double m_VertexWidth_z = 0.;
+  double m_VertexOffset_x = 0.;
+  double m_VertexOffset_y = 0.;
+  double m_VertexOffset_z = 0.;
+  FUNCTION m_VertexSizeFunc_r = Uniform;
+  double m_VertexSizeMean = 0.;
+  double m_VertexSizeWidth = 0.;
+  double m_EtaMin = -1.25;
+  double m_EtaMax = 1.25;
+  double m_ThetaMin = NAN;
+  double m_ThetaMax = NAN;
+  double m_PhiMin = -M_PI;
+  double m_PhiMax = M_PI;
+  double m_Pt_Min = 0.;
+  double m_Pt_Max = 10.;
+  double m_Pt_GausWidth = 0.;
+  double m_P_Min = NAN;
+  double m_P_Max = NAN;
+  double m_P_GausWidth = NAN;
+
 };
 
 #endif
