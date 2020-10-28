@@ -28,6 +28,12 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
+  //! add a runwise node in outputmanager
+  virtual int AddRunNode(const std::string & /*nodename*/)
+  {
+    return 0;
+  }
+
   //! not write a node in outputmanager
   virtual int StripNode(const std::string & /*nodename*/)
   {
