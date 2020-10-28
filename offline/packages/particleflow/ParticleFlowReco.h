@@ -9,10 +9,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <string>
 #include <vector>
-
-#include <TRandom3.h>
 
 class PHCompositeNode;
 
@@ -61,7 +61,7 @@ class ParticleFlowReco : public SubsysReco
 
   float _energy_match_Nsigma;
   float _emulate_efficiency;
-  TRandom *_tr_eff;
+  gsl_rng *_tr_eff;
 
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;

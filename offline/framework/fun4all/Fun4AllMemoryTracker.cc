@@ -111,7 +111,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
   {
     for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
     {
-      cout << "SubsysReco/OutputManager: " << iter->first << endl;
+      cout  << iter->first << ": ";
       vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
