@@ -57,13 +57,13 @@ int PHTpcResiduals::Init(PHCompositeNode *topNode)
   h_rphiResid = new TH2F("rphiResid",";r [cm]; #Deltar#phi [mm]",
 			 60,20,80,50,-10,10);
   h_zResid = new TH2F("zResid",";z [cm]; #Deltaz [mm]",
-		      200,-100,100,100,-100,100);
+		      200,-100,100,100,-10,10);
   h_etaResid = new TH2F("etaResid",";#eta;#Delta#eta",
 			20,-1,1,50,-0.2,0.2);
   h_etaResidLayer = new TH2F("etaResidLayer",";r [cm]; #Delta#eta",
 			     60,20,80,50,-0.2,0.2);
   h_zResidLayer = new TH2F("zResidLayer",";r [cm]; #Deltaz [mm]",
-			   60,20,80,100,-100,100);
+			   60,20,80,100,-10,10);
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -83,13 +83,13 @@ int PHTpcResiduals::ResetEvent(PHCompositeNode *topNode)
 
 int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 {
-  if(Verbosity() == 0)
+  if(Verbosity() > 0)
     std::cout <<"Starting PHTpcResiduals event " 
 	      << m_event << std::endl;
 
   int returnVal = processTracks(topNode);
 
-  if(Verbosity() == 0)
+  if(Verbosity() > 0)
     std::cout <<"Finished PHTpcResiduals event " 
 	      << m_event << std::endl;
   
@@ -97,6 +97,25 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 
   return returnVal;
 }
+
+int PHTpcResiduals::End(PHCompositeNode *topNode)
+{
+  if(Verbosity() > 0)
+    std::cout << "Number of bad propagations " 
+	      << m_nBadProps << std::endl;
+
+  outfile->cd();
+  h_rphiResid->Write();
+  h_etaResid->Write();
+  h_zResidLayer->Write();
+  h_etaResidLayer->Write();
+  h_zResid->Write();
+  outfile->Write();
+  outfile->Close();
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 
 int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
@@ -121,15 +140,15 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
   auto sourceLinks = track.getSourceLinks();
   const auto trackParams = track.getTrackParams();
   
+  int initNBadProps = m_nBadProps;
   for(auto sl : sourceLinks)
     {
       /// Only analyze TPC 
       if(sl.referenceSurface().geometryId().volume() != 14)
 	continue;
       
-  
-
       auto result = propagateTrackState(trackParams, sl);
+    
       if(result.ok())
 	{
 	  
@@ -147,32 +166,27 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
 	}
       else
 	{
-	  if(Verbosity() == 0)
-	    {
-	      std::cout << result.error() << std::endl;
-	      std::cout << "Propagating SL on surface " 
-			<< sl.referenceSurface().geometryId()
-			<< std::endl;
-	      const auto surfCent 
-		= sl.referenceSurface().center(m_tGeometry->geoContext);
-	      std::cout << "Starting track params : "
-			<< trackParams.momentum() << std::endl
-			<< "Track params phi/eta " 
-			<< std::atan2(trackParams.momentum().y(), trackParams.momentum().x())
-			<< " and " 
-			<< std::atanh(trackParams.momentum().z() / trackParams.momentum().norm())
-			<< std::endl
-			<< "Surface center " 
-			<< sl.referenceSurface().center(m_tGeometry->geoContext)
-			<< std::endl << "Surface phi/eta " 
-			<< std::atan2(surfCent.y(), surfCent.x()) << " and " 
-			<< std::atanh(surfCent.z() / surfCent.norm()) 
-			<< std::endl;
-		
-	    }
+	  m_nBadProps++;
+	
 	  continue;
 	}
     } 
+
+  if(m_nBadProps > initNBadProps && Verbosity() > 0)
+    {
+      std::cout << "Starting track params position/momentum: "
+		<< trackParams.position(m_tGeometry->geoContext).transpose()
+		<< std::endl << trackParams.momentum().transpose() 
+		<< std::endl
+		<< "Track params phi/eta " 
+		<< std::atan2(trackParams.momentum().y(), 
+			      trackParams.momentum().x())
+		<< " and " 
+		<< std::atanh(trackParams.momentum().z() / 
+			      trackParams.momentum().norm())
+		<< std::endl;
+      
+    }
   
 }
 
@@ -181,6 +195,12 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 			   const SourceLink& sl)
 {
   
+  if(Verbosity() > 1)
+    std::cout << "Propagating silicon+MM fit params momentum: " 
+	      << params.momentum() << " and position " 
+	      << params.position(m_tGeometry->geoContext)
+	      << std::endl;
+
   return std::visit([params, sl, this]
 		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
@@ -192,15 +212,17 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       MagneticField field(inputField);
       Stepper stepper(field);
       Propagator propagator(stepper);
-      Acts::Logging::Level logLevel = Acts::Logging::INFO;
+
+      Acts::Logging::Level logLevel = Acts::Logging::FATAL;
       if(Verbosity() > 3)
 	logLevel = Acts::Logging::VERBOSE;
+
       auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
       
       Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
 					m_tGeometry->magFieldContext,
 					Acts::LoggerWrapper{*logger});
-      options.maxSteps = 100000;
+     
       auto result = propagator.propagate(params, sl.referenceSurface(), 
 					 options);
    
@@ -258,11 +280,12 @@ void PHTpcResiduals::calculateTpcResiduals(
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
   const auto clusEta = std::atanh(clusZ / globalSL.norm());
 
-  h_rphiResid->Fill(clusR, drphi);
-  h_zResid->Fill(stateZ, dz);
+  h_rphiResid->Fill(clusR / Acts::UnitConstants::cm, drphi);
+  h_zResid->Fill(stateZ / Acts::UnitConstants::cm, dz);
   h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR, dz);
-  h_etaResidLayer->Fill(clusR, clusEta - trackEta);
+  h_zResidLayer->Fill(clusR / Acts::UnitConstants::cm, dz);
+  h_etaResidLayer->Fill(clusR / Acts::UnitConstants::cm, 
+			clusEta - trackEta);
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -354,16 +377,3 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTpcResiduals::End(PHCompositeNode *topNode)
-{
-  outfile->cd();
-  h_rphiResid->Write();
-  h_etaResid->Write();
-  h_zResidLayer->Write();
-  h_etaResidLayer->Write();
-  h_zResid->Write();
-  outfile->Write();
-  outfile->Close();
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}

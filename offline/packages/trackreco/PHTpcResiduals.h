@@ -89,6 +89,8 @@ class PHTpcResiduals : public SubsysReco
   
   int m_event = 0;
 
+  int m_nBadProps = 0;
+
   TFile *outfile;
   TH2 *h_rphiResid;
   TH2 *h_zResid;
