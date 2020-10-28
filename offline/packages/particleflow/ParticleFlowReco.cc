@@ -1,27 +1,32 @@
 #include "ParticleFlowReco.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
+#include "ParticleFlowElementContainer.h"
+#include "ParticleFlowElementv1.h"
 
-#include <phool/PHCompositeNode.h>
 
-#include "TLorentzVector.h"
-#include <iostream>
-
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-
-#include <phool/getClass.h>
-
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-#include "ParticleFlowElementContainer.h"
-#include "ParticleFlowElementv1.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
+
+
+#include <TLorentzVector.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
+
+#include <iostream>
 
 // examine second value of std::pair, sort by smallest
 bool sort_by_pair_second_lowest( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
@@ -57,28 +62,25 @@ ParticleFlowReco::ParticleFlowReco(const std::string &name):
   _emulate_efficiency( 1.1 )
 {
   
-  _tr_eff = new TRandom3();
-  
+  _tr_eff = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(_tr_eff,PHRandomSeed());
 }
 
 //____________________________________________________________________________..
 ParticleFlowReco::~ParticleFlowReco()
 {
-  std::cout << "ParticleFlowReco::~ParticleFlowReco() Calling dtor" << std::endl;
+  gsl_rng_free(_tr_eff);
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::Init(PHCompositeNode *topNode)
 {
-  std::cout << "ParticleFlowReco::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 {
-  std::cout << "ParticleFlowReco::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-
   return CreateNode(topNode);
 
 }
@@ -86,9 +88,10 @@ int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 {
-
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::process_event with Nsigma = " << _energy_match_Nsigma << " , emulate efficiency = " << _emulate_efficiency << std::endl;
-
+  }
   // get handle to pflow node
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
   if (!pflowContainer) {
@@ -192,7 +195,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       // if emulating finite efficiency, roll the dice here 
       if ( _emulate_efficiency < 1.0 ) {
 
-	float this_eff = _tr_eff->Uniform( );
+	float this_eff = gsl_rng_uniform_pos(_tr_eff);
 
 	if ( this_eff > _emulate_efficiency ) {
 	  // lost this track due to inefficiency
@@ -1007,7 +1010,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
   }
 
-  std::cout << "ParticleFlowReco::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1051,28 +1053,40 @@ int ParticleFlowReco::CreateNode(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ParticleFlowReco::ResetEvent(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::EndRun(const int runnumber)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::End(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::Reset(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
  std::cout << "ParticleFlowReco::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
