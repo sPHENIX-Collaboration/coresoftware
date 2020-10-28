@@ -3,27 +3,15 @@
 #ifndef PHSILICONTPCTRACKMATCHING_H
 #define PHSILICONTPCTRACKMATCHING_H
 
-#include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
+#include <trackreco/PHTrackPropagating.h>
 
 #include <string>
-#include <set>
-#include <vector>
 
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
-class SvtxVertexMap;
-class TrkrClusterContainer;
-class TrkrClusterHitAssoc;
-class TrkrHitTruthAssoc;
-class PHG4TruthInfoContainer;
-class PHG4HitContainer;
-class PHG4Particle;
-class AssocInfoContainer;
 class TF1;
 
-#include <trackreco/PHTrackPropagating.h>
 
 class PHSiliconTpcTrackMatching : public PHTrackPropagating
 {

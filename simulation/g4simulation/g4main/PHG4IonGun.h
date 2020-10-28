@@ -5,6 +5,7 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <cmath>
 #include <string>
 
 class PHG4Particle;
@@ -25,12 +26,12 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
 
  private:
   void UpdateParticle();
-  PHG4Particle *ion;
-  int A;
-  int Z;
-  double mom[3];
-  int ioncharge;
-  double excitEnergy;
+  PHG4Particle *ion = nullptr;
+  int A = 0;
+  int Z = 0;
+  double mom[3] = {NAN, NAN, NAN};
+  int ioncharge = 0;
+  double excitEnergy = 0.;
 };
 
 #endif

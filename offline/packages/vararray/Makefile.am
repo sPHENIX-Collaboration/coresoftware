@@ -24,12 +24,11 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   VariableArray_Dict.cc \
   VariableArrayContainer_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
   VariableArray_Dict_rdict.pcm \
   VariableArrayContainer_Dict_rdict.pcm
-endif
 
 libvararray_la_SOURCES = \
   $(ROOTDICTS) \
@@ -39,7 +38,7 @@ libvararray_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

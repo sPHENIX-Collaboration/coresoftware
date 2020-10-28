@@ -40,19 +40,10 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   InttDeadMap_Dict.cc \
   InttDeadMapv1_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
   InttDeadMap_Dict_rdict.pcm \
   InttDeadMapv1_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-    PHG4InttDeadMapLoader_Dict.cc \
-    PHG4InttDefs_Dict.cc \
-    PHG4InttDigitizer_Dict.cc \
-    PHG4InttHitReco_Dict.cc \
-    PHG4InttSubsystem_Dict.cc
-endif
 
 libg4intt_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -60,7 +51,6 @@ libg4intt_io_la_SOURCES = \
   InttDeadMapv1.cc
 
 libg4intt_la_SOURCES = \
-  $(ROOT5_DICTS) \
   PHG4InttDeadMapLoader.cc \
   PHG4InttDetector.cc \
   PHG4InttDisplayAction.cc \
@@ -72,7 +62,7 @@ libg4intt_la_SOURCES = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

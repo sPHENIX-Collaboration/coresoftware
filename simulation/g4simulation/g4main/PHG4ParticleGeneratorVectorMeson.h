@@ -5,6 +5,7 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <cmath>
 #include <map>
 #include <string>  // for string
 
@@ -76,45 +77,45 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   std::map<unsigned int, double> decay_vtx_offset_y;
   std::map<unsigned int, double> decay_vtx_offset_z;
 
-  FUNCTION _vertex_func_x;
-  FUNCTION _vertex_func_y;
-  FUNCTION _vertex_func_z;
-  double _vertex_x;         // primary vertex (or mean) x component, cf. vtx_x = track-by-track vertex x component
-  double _vertex_y;         // primary vertex (or mean) y component, cf. vtx_y = track-by-track vertex y component
-  double _vertex_z;         // primary vertex (or mean)z component, cf. vtx_z = track-by-track vertex z component
-  double _vertex_width_x;   // sigma x if not use existing vtx
-  double _vertex_width_y;   // sigma y if not use existing vtx
-  double _vertex_width_z;   // sigma z if not use existing vtx
-  double _vertex_offset_x;  // track-by-track decay vertex offset if use existing vtx
-  double _vertex_offset_y;  // track-by-track decay vertex offset if use existing vtx
-  double _vertex_offset_z;  // track-by-track decay vertex offset if use existing vtx
-  FUNCTION _vertex_size_func_r;
-  double _vertex_size_mean;
-  double _vertex_size_width;
-  bool read_vtx_from_hepmc;
+  FUNCTION _vertex_func_x = Uniform;
+  FUNCTION _vertex_func_y = Uniform;
+  FUNCTION _vertex_func_z = Uniform;
+  double _vertex_x = 0.;         // primary vertex (or mean) x component, cf. vtx_x = track-by-track vertex x component
+  double _vertex_y = 0.;         // primary vertex (or mean) y component, cf. vtx_y = track-by-track vertex y component
+  double _vertex_z = 0.;         // primary vertex (or mean)z component, cf. vtx_z = track-by-track vertex z component
+  double _vertex_width_x = 0.;   // sigma x if not use existing vtx
+  double _vertex_width_y = 0.;   // sigma y if not use existing vtx
+  double _vertex_width_z = 0.;   // sigma z if not use existing vtx
+  double _vertex_offset_x = 0.;  // track-by-track decay vertex offset if use existing vtx
+  double _vertex_offset_y = 0.;  // track-by-track decay vertex offset if use existing vtx
+  double _vertex_offset_z = 0.;  // track-by-track decay vertex offset if use existing vtx
+  FUNCTION _vertex_size_func_r = Uniform;
+  double _vertex_size_mean = 0.;
+  double _vertex_size_width = 0.;
+  bool read_vtx_from_hepmc = true;
 
-  double y_min;
-  double y_max;
-  double eta_min;
-  double eta_max;
-  double mom_min;
-  double mom_max;
-  double pt_min;
-  double pt_max;
-  double mass;
-  double m_Width;
-  double m1;
-  double m2;
-  int _histrand_init;
-  std::string decay1;
-  std::string decay2;
+  double y_min = 0.;
+  double y_max = 0.;
+  double eta_min = -1.;
+  double eta_max = 1.;
+  double mom_min = 0.;
+  double mom_max = 10.;
+  double pt_min = 4.;
+  double pt_max = 4.;
+  double mass = NAN;
+  double m_Width = NAN;
+  double m1 = NAN;
+  double m2 = NAN;
+  int _histrand_init = 0;
+  std::string decay1 = "e+";
+  std::string decay2 = "e-";
 
-  TF1 *fsin;
-  TF1 *frap;
-  TF1 *fpt;
-  TRandom *trand;
+  TF1 *fsin = nullptr;
+  TF1 *frap = nullptr;
+  TF1 *fpt = nullptr;
+  TRandom *trand = nullptr;
 
-  PHG4InEvent *ineve;
+  PHG4InEvent *ineve = nullptr;
 };
 
 #endif

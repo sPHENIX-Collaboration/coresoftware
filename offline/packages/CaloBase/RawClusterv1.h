@@ -7,15 +7,11 @@
 #include <CLHEP/Vector/ThreeVector.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 class PHObject;
 

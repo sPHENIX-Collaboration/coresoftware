@@ -26,20 +26,14 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   InttHit_Dict.cc \
   CylinderGeomIntt_Dict.cc
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
   InttHit_Dict_rdict.pcm \
   CylinderGeomIntt_Dict_rdict.pcm
-else
-  ROOT5_DICTS = \
-  InttClusterizer_Dict.cc
-
-endif
 
 # sources for intt library
 libintt_la_SOURCES = \
-  $(ROOT5_DICTS) \
   InttClusterizer.cc
 
 libintt_la_LIBADD = \
@@ -65,7 +59,7 @@ libintt_io_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

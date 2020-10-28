@@ -14,13 +14,13 @@
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
 
-#include <CLHEP/Vector/ThreeVector.h>        // for Hep3Vector
+#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
 // standard includes
 #include <cassert>
 #include <iostream>
-#include <map>                               // for _Rb_tree_const_iterator
-#include <utility>                           // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
 using namespace std;
@@ -100,6 +100,14 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   else if (_input == Jet::HCAL_TOPO_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_HCAL");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+  else if (_input == Jet::ECAL_TOPO_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_EMCAL");
     if (!clusters)
     {
       return std::vector<Jet *>();

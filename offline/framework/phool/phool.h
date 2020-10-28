@@ -28,7 +28,6 @@ enum PHTreeType
 // General purpose functions
 void PHMessage(const std::string&, int, const std::string&);
 
-#if !defined(__CINT__) || defined(__CLING__)
 #define PHWHERE __FILE__ << ":" << __LINE__ << ": "
 #define PHMESSAGE(x)                          \
   do                                          \
@@ -46,6 +45,5 @@ void PHMessage(const std::string&, int, const std::string&);
   {                                                                                          \
     std::cout << PHWHERE << "using virtual function " << x << " doing nothing" << std::endl; \
   } while (0)
-#endif
 
-#endif /* __PHOOL_H__ */
+#endif /* PHOOL_PHOOL_H */
