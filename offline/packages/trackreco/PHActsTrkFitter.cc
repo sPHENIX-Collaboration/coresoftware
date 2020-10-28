@@ -312,7 +312,15 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
 {
 
   const auto& params = fitOutput.fittedParameters.value();
-  auto fourVec = params.fourPosition(m_tGeometry->geoContext);
+  
+  /// We give the track params the vertex position because sometimes
+  /// the fit returns a good momentum but bad position fit
+  Acts::Vector4D position = Acts::Vector4D::Zero();
+  position(0) = iter->second.getVertex()(0);
+  position(1) = iter->second.getVertex()(1);
+  position(2) = iter->second.getVertex()(2);
+  position(3) = params.fourPosition(m_tGeometry->geoContext)(3);
+  
   auto momVec = params.momentum();
   auto p = params.absoluteMomentum();
   auto q = params.charge();
@@ -332,7 +340,7 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
 	      << momVec.x() << ", " << momVec.y() << ", " 
 	      << momVec.z() << ")" << std::endl;
 
-  const ActsExamples::TrackParameters siliconMMFit(fourVec, momVec, 
+  const ActsExamples::TrackParameters siliconMMFit(position, momVec, 
 						   p, q, cov);
   
   /// Update the track seed parameters
