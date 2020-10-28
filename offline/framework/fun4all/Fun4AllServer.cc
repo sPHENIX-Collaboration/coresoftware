@@ -1071,6 +1071,7 @@ int Fun4AllServer::End()
   {
     if (!OutputManager.empty())  // there are registered IO managers
     {
+      MakeNodesTransient(runNode); // make all nodes transient by default
       vector<Fun4AllOutputManager *>::iterator IOiter;
       for (IOiter = OutputManager.begin(); IOiter != OutputManager.end(); ++IOiter)
       {
