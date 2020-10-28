@@ -3,6 +3,7 @@
 
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcPadPlane.h"                            // for PHG4TpcPadPlane
+#include "DistortedTrackContainer.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -66,9 +67,9 @@ namespace
 
 
 //_____________________________________________________________________
-void PHG4TpcElectronDrift::Container::Reset()
+void PHG4TpcElectronDrift::DistortedTrackListClear()
 {
-  _distortions.clear();
+  m_container->clearDistortions();
 }
 
 //_____________________________________________________________
@@ -177,7 +178,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(evalNode);
     }
 
-    auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
+    //auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
+    auto newNode = new PHIODataNode<PHObject>( new DistortedTrackContainer, "DistortedTrackContainer","PHObject");
     evalNode->addNode(newNode);
   }
 
@@ -293,8 +295,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int print_layer = 18;
 
   // container for local evaluations
-  m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
+  //m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
+  m_container = findNode::getClass<DistortedTrackContainer>(topNode, "DistortedTrackContainer");
+
+
+
   if( m_container ) m_container->Reset();
+  else
+    if(Verbosity() > 3) std::cout << PHWHERE << " no DistortedTrackContainer on node tree " << std::endl;
 
   // g4hits
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -397,6 +405,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // add z distortion
       z_final += (m_coordinates&COORD_Z) ? hDZint->Interpolate(phistart,radstart,z_abs) : 0;
 
+      //std::cout << " radstart  " << radstart << " rad_final "  << rad_final <<  " phistart " << phistart << " phi_final " << phi_final << " zstart " << z_start << " z_final " << z_final << std::endl;
+
       // convert back to cartesian coordinates, add diffusion
       x_final = rad_final*std::cos(phi_final)+rantrans*cos(ranphi);
       y_final = rad_final*std::sin(phi_final)+rantrans*sin(ranphi);
@@ -412,8 +422,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         distortion._dphi = phi_final - phistart;
         distortion._dz = 0;
         m_container->addDistortion( distortion );
+	//std::cout << " Update DistortionStruct: radstart " << distortion._r << " dr " << distortion._dr << " phistart " << distortion._phi << " dphi " << distortion._dphi << " zstart " << distortion._z << " dz " << distortion._dz << std::endl;  
       }
-
     } else {
       x_final = x_start + rantrans * cos(ranphi);
       y_final = y_start + rantrans * sin(ranphi);
