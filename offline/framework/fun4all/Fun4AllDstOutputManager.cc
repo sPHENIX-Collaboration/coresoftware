@@ -7,8 +7,6 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
 
-#include <boost/foreach.hpp>
-
 #include <TSystem.h>
 
 #include <cstdlib>
@@ -93,7 +91,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
       }
       else
       {
-        BOOST_FOREACH (string nodename, stripnodes)
+        for (auto &nodename : stripnodes)
         {
           cout << Name() << ": Node " << nodename << " will be stripped" << endl;
         }
@@ -101,7 +99,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
     }
     else
     {
-      BOOST_FOREACH (string nodename, savenodes)
+      for (auto &nodename : savenodes)
       {
         cout << Name() << ": Node " << nodename << " is written out" << endl;
       }
@@ -124,17 +122,15 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
-  //  vector<string>::iterator iter;
-  PHNode *ChosenNode = 0;
   if (savenodes.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
     se->MakeNodesPersistent(startNode);
     if (!stripnodes.empty())
     {
-      BOOST_FOREACH (string nodename, stripnodes)
+      for (auto &nodename: stripnodes)
       {
-        ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+        PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
         {
           ChosenNode->makeTransient();
@@ -152,9 +148,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    BOOST_FOREACH (string nodename, savenodes)
+    for (auto &nodename : savenodes)
     {
-      ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+      PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
         ChosenNode->makePersistent();
@@ -181,9 +177,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    BOOST_FOREACH (string nodename, savenodes)
+    for (auto &nodename : savenodes)
     {
-      ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+      PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
         ChosenNode->makeTransient();
@@ -204,7 +200,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     se->MakeNodesPersistent(thisNode);
     if (!striprunnodes.empty())
     {
-      BOOST_FOREACH (string nodename, striprunnodes)
+      for (auto &nodename : striprunnodes)
       {
 	PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
 	if (ChosenNode)
@@ -224,9 +220,9 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   }
   else
   {
-    BOOST_FOREACH (string nodename, saverunnodes)
+    for (auto &nodename : saverunnodes)
     {
-      ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+      PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
         ChosenNode->makePersistent();

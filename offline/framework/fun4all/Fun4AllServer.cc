@@ -27,8 +27,6 @@
 #include <TSysEvtHandler.h>  // for ESignals
 #include <TSystem.h>
 
-#include <boost/foreach.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -133,9 +131,9 @@ void Fun4AllServer::InitAll()
   {
     gSystem->IgnoreSignal((ESignals) i);
   }
-  ostringstream histomanagername;
-  histomanagername << Name() << "HISTOS";
-  ServerHistoManager = new Fun4AllHistoManager(histomanagername.str());
+  string histomanagername;
+  histomanagername = Name() + "HISTOS";
+  ServerHistoManager = new Fun4AllHistoManager(histomanagername);
   registerHistoManager(ServerHistoManager);
   double uplim = NFRAMEWORKBINS - 0.5;
   FrameWorkVars = new TH1D("FrameWorkVars", "FrameWorkVars", NFRAMEWORKBINS, -0.5, uplim);
@@ -710,7 +708,7 @@ int Fun4AllServer::process_event()
     }
     (*iter).first->ResetEvent((*iter).second);
   }
-  BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+  for (auto &syncman : SyncManagers)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -1109,7 +1107,7 @@ void Fun4AllServer::Print(const string &what) const
   if (what == "ALL" || what == "HISTOS")
   {
     // loop over the map and print out the content (name and location in memory)
-    BOOST_FOREACH (Fun4AllHistoManager *histoman, HistoManager)
+    for (auto &histoman : HistoManager)
     {
       histoman->Print(what);
     }
@@ -1133,7 +1131,7 @@ void Fun4AllServer::Print(const string &what) const
   if (what == "ALL" || what == "INPUTMANAGER")
   {
     // the input managers are managed by the input singleton
-    BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+    for (auto &syncman : SyncManagers)
     {
       cout << "SyncManager: " << syncman->Name() << endl;
       syncman->Print(what);
@@ -1156,7 +1154,7 @@ void Fun4AllServer::Print(const string &what) const
       string::size_type pos = pass_on.find("%");
       pass_on = pass_on.substr(pos + 1, pass_on.size());
     }
-    BOOST_FOREACH (Fun4AllOutputManager *outman, OutputManager)
+    for (auto &outman : OutputManager)
     {
       outman->Print(pass_on);
     }
@@ -1606,7 +1604,7 @@ void Fun4AllServer::GetModuleList(std::vector<std::string> &names) const
 
 int Fun4AllServer::registerSyncManager(Fun4AllSyncManager *newmaster)
 {
-  BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+  for (auto &syncman : SyncManagers)
   {
     if (syncman->Name() == newmaster->Name())
     {
