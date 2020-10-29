@@ -106,12 +106,9 @@ class PHTpcResiduals : public SubsysReco
   
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
-  std::map<unsigned int, ActsTrack> *m_actsProtoTracks = nullptr;
-  ActsTrackingGeometry *m_tGeometry;
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
  
-  DistortionMap m_distortions;
-  DistortionMap m_distortionErrs;
-
   float m_maxTAlpha = 0.6;
   float m_maxResidual = 5 * Acts::UnitConstants::cm;
 
@@ -140,16 +137,16 @@ class PHTpcResiduals : public SubsysReco
   int m_nBadProps = 0;
 
   /// Container for distortion corrections for node tree
-  DistortionCorrections *m_distortionCorrections;
+  DistortionCorrections *m_distortionCorrections = nullptr;
 
   /// Output root histograms
   int m_outputRoot = false;
-  TFile *outfile;
-  TH2 *h_rphiResid;
-  TH2 *h_zResid;
-  TH2 *h_etaResidLayer;
-  TH2 *h_zResidLayer;
-  TH2 *h_etaResid;
+  TFile *outfile = nullptr;
+  TH2 *h_rphiResid = nullptr;
+  TH2 *h_zResid = nullptr;
+  TH2 *h_etaResidLayer = nullptr;
+  TH2 *h_zResidLayer = nullptr;
+  TH2 *h_etaResid = nullptr;
 
 };
 

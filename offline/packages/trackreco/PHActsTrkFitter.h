@@ -110,7 +110,7 @@ class PHActsTrkFitter : public PHTrackFitting
   void getTrackFitResult(const FitResult& fitOutput, 
 			 const unsigned int trackKey,
 			 const Acts::Vector3D vertex);
-  void updateActsTrack(const FitResult& fitOutput,
+  void updateActsProtoTrack(const FitResult& fitOutput,
 		       std::map<unsigned int, ActsTrack>::iterator iter);
 
   Acts::BoundSymMatrix setDefaultCovariance();

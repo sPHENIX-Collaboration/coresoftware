@@ -546,11 +546,11 @@ void MakeActsGeometry::buildActsSurfaces()
 	std::string("/ACTS/sphenix-material.json");
     }
   
-  if(Verbosity() == 0)
+  if(Verbosity() > -1)
     {
-      std::cout << "using material file : " << materialFile 
+      std::cout << "using Acts material file : " << materialFile 
 		<< std::endl;
-      std::cout << "Using response file : " << responseFile
+      std::cout << "Using Acts TGeoResponse file : " << responseFile
 		<< std::endl;
     }
   

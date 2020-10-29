@@ -290,7 +290,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	}
    
       if(m_fitSiliconMMs)
-	updateActsTrack(fitOutput, trackIter);
+	updateActsProtoTrack(fitOutput, trackIter);
       else
 	getTrackFitResult(fitOutput, trackKey, track.getVertex());
 	
@@ -315,7 +315,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   return;
 }
 
-void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
+void PHActsTrkFitter::updateActsProtoTrack(const FitResult& fitOutput,
 		  std::map<unsigned int, ActsTrack>::iterator iter)
 {
 
@@ -343,7 +343,7 @@ void PHActsTrkFitter::updateActsTrack(const FitResult& fitOutput,
   if(params.covariance())
     cov = params.covariance().value();
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "Updating track seed with (" 
 	      << momVec.x() << ", " << momVec.y() << ", " 
 	      << momVec.z() << ")" << std::endl;
@@ -427,14 +427,14 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
 {
    SourceLinkVec siliconMMSls;
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
   
   for(auto sl : sourceLinks)
     {
       auto volume = sl.referenceSurface().geometryId().volume();
 
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
     
       /// If volume is not the TPC add the SL to the list
@@ -451,7 +451,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   if(surfaces.size() > 0)
     checkSurfaceVec(surfaces);
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     {
       for(auto surf : surfaces)
 	{
@@ -480,9 +480,10 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 	{
 	  if(nextLayer < thisLayer)
 	    {
-	      std::cout << PHWHERE 
-			<< "Surface not in order... removing surface" 
-			<< std::endl;
+	      if(Verbosity() > 2)
+		std::cout << PHWHERE 
+			  << "Surface not in order... removing surface" 
+			  << surface->geometryId() << std::endl;
 	      surfaces.erase(surfaces.begin() + i);
 	      /// Subtract one so we don't skip a surface
 	      i--;
@@ -493,9 +494,10 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 	{
 	  if(nextVolume < thisVolume)
 	    {
-	      std::cout << PHWHERE 
-			<< "Volume not in order... removing surface" 
-			<< surface->geometryId() << std::endl;
+	      if(Verbosity() > 2)
+		std::cout << PHWHERE 
+			  << "Volume not in order... removing surface" 
+			  << surface->geometryId() << std::endl;
 	      surfaces.erase(surfaces.begin() + i);
 	      /// Subtract one so we don't skip a surface
 	      i--;

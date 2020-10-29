@@ -40,6 +40,7 @@ namespace
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
   : SubsysReco(name)
+  , m_actsProtoTracks(nullptr)
 {}
 
 PHTpcResiduals::~PHTpcResiduals()
@@ -72,13 +73,13 @@ int PHTpcResiduals::InitRun(PHCompositeNode *topNode)
 
 int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 {
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout <<"Starting PHTpcResiduals event " 
 	      << m_event << std::endl;
 
   int returnVal = processTracks(topNode);
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout <<"Finished PHTpcResiduals event " 
 	      << m_event << std::endl;
   
@@ -90,7 +91,7 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 int PHTpcResiduals::End(PHCompositeNode *topNode)
 {
   if(Verbosity() > 0)
-    std::cout << "Number of bad propagations " 
+    std::cout << "Number of bad SL propagations " 
 	      << m_nBadProps << std::endl;
 
   calculateDistortions(topNode);
@@ -183,7 +184,7 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
 	}
     } 
 
-  if(m_nBadProps > initNBadProps && Verbosity() > 0)
+  if(m_nBadProps > initNBadProps && Verbosity() > 1)
     {
       std::cout << "Starting track params position/momentum: "
 		<< trackParams.position(m_tGeometry->geoContext).transpose()
