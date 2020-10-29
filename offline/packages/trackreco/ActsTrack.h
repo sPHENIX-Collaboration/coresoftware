@@ -2,12 +2,14 @@
 #define ACTSTRACK_H
 
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/EventData/MultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
-
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
 /**
  * A class that contains an Acts track seed and the corresponding source links.
@@ -31,12 +33,14 @@ class ActsTrack
 
   ~ActsTrack(){}
 
-  ActsExamples::TrackParameters getTrackParams(){ return m_trackParams; }
-  void setTrackParams(ActsExamples::TrackParameters params) { m_trackParams = params; }
+  ActsExamples::TrackParameters getTrackParams()
+    { return m_trackParams; }
+  void setTrackParams(ActsExamples::TrackParameters params) 
+    { m_trackParams = params; }
 
   std::vector<SourceLink> getSourceLinks(){ return m_sourceLinks; }
   void setSourceLinks(const std::vector<SourceLink> &srcLinks)
-  { m_sourceLinks = srcLinks; }
+    { m_sourceLinks = srcLinks; }
   
   Acts::Vector3D  getVertex() { return m_vertex;}
   void setVertex(Acts::Vector3D vertex){m_vertex = vertex;}
