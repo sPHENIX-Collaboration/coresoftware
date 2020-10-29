@@ -886,18 +886,26 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //-----------------------
   if (_ntp_info)
     {
-      if (Verbosity() > 0)
+      if (Verbosity() > 1)
 	{
 	  cout << "Filling ntp_info " << endl;
-    }
+	}
       float ntrk = 0;
       SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
       if (trackmap)
 	ntrk = (float) trackmap->size();
       PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+      int nprim = truthinfo->GetNumPrimaryVertexParticles();
+      if (Verbosity() > 0){
+	cout << "EVENTINFO SEED: " << m_fSeed << endl;
+	cout << "EVENTINFO NHIT: " << nhit_tpc_all << endl;
+	cout << "EVENTINFO NTRKGEN: " << nprim << endl;
+	cout << "EVENTINFO NTRKREC: " << ntrk << endl;
+       
+      }
       float info_data[] = {(float) _ievent,m_fSeed,
 			   occ11,occ116,occ21,occ216,occ31,occ316,
-			   (float)truthinfo->GetNumPrimaryVertexParticles(),
+			   (float) nprim,
 			   0,
 			   ntrk,
 			   nhit_tpc_all,
@@ -1737,7 +1745,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float efromtruth = NAN;
 
-	if(Verbosity() > 0)
+	if(Verbosity() > 1)
 	  {
 	    TrkrDefs::cluskey reco_cluskey = cluster->getClusKey();		  
 	    std::cout << PHWHERE << "  ****   reco: layer " << layer << std::endl;
@@ -1748,7 +1756,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
 	if(truth_cluster)
 	  {
-	    if(Verbosity() > 0)
+	    if(Verbosity() > 1)
 	      {
 		TrkrDefs::cluskey truth_cluskey = truth_cluster->getClusKey();
 		cout << "Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
@@ -1799,7 +1807,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gprimary = trutheval->is_primary(g4particle);
           }  //   if (g4particle){
 	  
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    {
 	      TrkrDefs::cluskey ckey = truth_cluster->getClusKey();		  
 	      cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " efromtruth " << efromtruth << endl;
@@ -1973,7 +1981,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
 	if(truth_cluster)
 	  {
-	    if(Verbosity() > 0)
+	    if(Verbosity() > 1)
 	      {
 		TrkrDefs::cluskey truth_cluskey = truth_cluster->getClusKey();
 		cout << "         Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
@@ -2101,7 +2109,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_g4cluster)
     {
-      if (Verbosity() > 0) 
+      if (Verbosity() > 1) 
 	cout << "Filling ntp_g4cluster " << endl;
 
        PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");      
@@ -2123,7 +2131,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float gembed = trutheval->get_embed(g4particle);
 	  float gprimary = trutheval->is_primary(g4particle);
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " gprimary " << gprimary << endl;
 
 	  // Get the truth clusters from this particle
@@ -2147,7 +2155,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gphi = gpos.Phi();
 	      float geta = gpos.Eta();
 
-	      if(Verbosity() > 0)
+	      if(Verbosity() > 1)
 		{
 		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
@@ -2199,15 +2207,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  
 		  adc = reco_cluster->getAdc();
 
-		  if(Verbosity() > 0)
+		  if(Verbosity() > 1)
 		    {
 		      TrkrDefs::cluskey reco_cluskey = reco_cluster->getClusKey();		  
 		      cout << "              reco cluster key " << reco_cluskey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 		    }
 		}
-	      if(nreco == 0 && Verbosity() > 0)
+	      if(nreco == 0 && Verbosity() > 1)
 		{
-		  if(Verbosity() > 0)
+		  if(Verbosity() > 1)
 		    cout << "   ----------- Failed to find matching reco cluster " << endl;
 		}
 
