@@ -92,8 +92,8 @@ class PHCASeeding : public PHTrackSeeding
   }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up) {_start_layer = layer_low; _end_layer = layer_up;}
   void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
-  void SetMinHitsPerCluster(int minHits) {_min_nhits_per_cluster = minHits;}
-  void SetMinClustersPerTrack(int minClus) {_min_clusters_per_track = minClus;}
+  void SetMinHitsPerCluster(unsigned int minHits) {_min_nhits_per_cluster = minHits;}
+  void SetMinClustersPerTrack(unsigned int minClus) {_min_clusters_per_track = minClus;}
 
   void set_field_dir(const double rescale)
   {
