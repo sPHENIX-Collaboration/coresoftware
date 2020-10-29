@@ -1678,6 +1678,7 @@ void Fun4AllServer::NodeIdentify(const std::string &name)
 void Fun4AllServer::PrintTimer(const string &name)
 {
   map<const string, PHTimer>::const_iterator iter;
+  PHTimer::PRINT(cout, "**");
   if (name.empty())
   {
     for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
