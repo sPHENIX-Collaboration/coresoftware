@@ -36,17 +36,14 @@ namespace
     else 
       return phi;
   }
-
 }
+
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
   : SubsysReco(name)
-{
-}
-
+{}
 
 PHTpcResiduals::~PHTpcResiduals()
-{
-}
+{}
 
 int PHTpcResiduals::Init(PHCompositeNode *topNode)
 {
@@ -56,20 +53,8 @@ int PHTpcResiduals::Init(PHCompositeNode *topNode)
 					 Acts::SymMatrix3D::Zero());
   m_clusterCount = std::vector<int>(m_totalBins, 0);
 
-  if(m_outputRoot)
-    outfile = new TFile(std::string(Name() + ".root").c_str(), 
-			  "recreate");
-  
-  h_rphiResid = new TH2F("rphiResid",";r [cm]; #Deltar#phi [mm]",
-			 60,20,80,50,-10,10);
-  h_zResid = new TH2F("zResid",";z [cm]; #Deltaz [mm]",
-		      200,-100,100,100,-10,10);
-  h_etaResid = new TH2F("etaResid",";#eta;#Delta#eta",
-			20,-1,1,50,-0.2,0.2);
-  h_etaResidLayer = new TH2F("etaResidLayer",";r [cm]; #Delta#eta",
-			     60,20,80,50,-0.2,0.2);
-  h_zResidLayer = new TH2F("zResidLayer",";r [cm]; #Deltaz [mm]",
-			   60,20,80,100,-10,10);
+  makeHistograms();
+
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -79,11 +64,9 @@ int PHTpcResiduals::InitRun(PHCompositeNode *topNode)
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
 
-int PHTpcResiduals::ResetEvent(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -371,92 +354,96 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
   for(int i = 0; i < m_totalBins; ++i)
     {
+      if(m_clusterCount[i] < 10)
+	continue;
       cov[i] = m_lhs[i].inverse();
       delta[i] = m_lhs[i].partialPivLu().solve(m_rhs[i]);
-
-      if(m_lhs[i].sum() != 0 || m_rhs[i].sum() !=0){
-      std::cout << "m_lhs " <<i << std::endl;
-      for(int j =0; j<m_lhs[i].rows(); j++)
-	{
-	  for(int k=0; k< m_lhs[i].cols(); k++)
-	    {
-	      std::cout << m_lhs[i](j,k) << ", ";
-	    }
-	  std::cout<<std::endl;
-	}
-      std::cout << "cov " << std::endl;
-      for(int j =0; j<cov[i].rows(); j++)
-	{
-	  for(int k=0; k< cov[i].cols(); k++)
-	    {
-	      std::cout << cov[i](j,k) << ", ";
-	    }
-	  std::cout<<std::endl;
-	}
-      std::cout << "m_rhs " <<std::endl;
-      for(int j =0; j<m_rhs[i].rows(); j++)
-	{
-	  for(int k=0; k< m_rhs[i].cols(); k++)
-	    {
-	      std::cout << m_rhs[i](j,k) << ", ";
-	    }
-	  std::cout<<std::endl;
-	}
-      std::cout << "delta " << std::endl;
-      for(int j =0; j<delta[i].rows(); j++)
-	{
-	  for(int k=0; k< delta[i].cols(); k++)
-	    {
-	      std::cout << delta[i](j,k) << ", ";
-	    }
-	  std::cout<<std::endl;
-	}
-      }
     }
     
-
   /// Three dimensions for the matrices
   std::vector<std::unique_ptr<TGraphErrors>> 
     graphs(m_zBins * m_phiBins * m_nCoord);
 
+  DistortionMap *distCorr = new DistortionMap;
+  DistortionMap *distCorrErr = new DistortionMap;
+
   for(int iz = 0; iz < m_zBins; ++iz) {
     for(int iphi = 0; iphi < m_phiBins; ++iphi) {
-      for(int icoord = 0; icoord < m_nCoord; ++icoord) {
-	const int tgrIndex = iz + m_zBins * ( iphi + m_phiBins * icoord);
-	
-	graphs[tgrIndex].reset(new TGraphErrors());
-	graphs[tgrIndex]->SetName(Form("tg_%i_%i_%i", iz, iphi, icoord));
-	
-	for(int ir = 0; ir < m_rBins; ++ir) {
-	  /// Get TPC layers in sPHENIX, not Acts, coordinates, hence
-	  /// add 7 to the value
-	  const int innerLayer = 7 + m_nLayersTpc * ir / m_rBins;
-	  const int outerLayer = 7 + m_nLayersTpc * (ir+1) / m_rBins - 1;
-	  
-	  const auto innerRadius = geomContainer->GetLayerCellGeom(innerLayer)->get_radius();
-	  const auto outerRadius = geomContainer->GetLayerCellGeom(outerLayer)->get_radius();
-	  const float r = (innerRadius + outerRadius) / 2.;
-	  
-	  int index = getCell(iz, ir, iphi);
-	  if(!std::isnan(delta[index](icoord,0)) or
-	     !std::isnan(std::sqrt(cov[index](icoord,icoord))))
-	    std::cout << iz<< "  " << iphi << "  " << icoord << "  "<<ir << "  " << r << "  " << delta[index](icoord,0) << "  " << std::sqrt(cov[index](icoord, icoord)) << std::endl; 
-	  graphs[tgrIndex]->SetPoint(ir, r, delta[index](icoord,0));
-	  graphs[tgrIndex]->SetPointError(ir, 0, 
-					 std::sqrt(cov[index](icoord,icoord)));
+      for(int ir = 0; ir < m_rBins; ++ir) {
+	const int index = getCell(iz, ir, iphi);
 
-	}
+	/// Get TPC layers in sPHENIX, not Acts, coordinates, hence
+	/// add 7 to the value
+	const int innerLayer = 7 + m_nLayersTpc * 
+	                       ir / m_rBins;
+	const int outerLayer = 7 + m_nLayersTpc * (ir+1) 
+	                       / m_rBins - 1;
+	
+	const auto innerRadius = geomContainer->
+	  GetLayerCellGeom(innerLayer)->get_radius();
+	const auto outerRadius = geomContainer->
+	  GetLayerCellGeom(outerLayer)->get_radius();
+	const float r = (innerRadius + outerRadius) / 2.;
+	
+	for(unsigned int icoord = 0; 
+	    icoord < m_nCoord; ++icoord) {
+	  const int tgrIndex = iz + m_zBins * 
+	                       ( iphi + m_phiBins * icoord);
+	  graphs[tgrIndex].reset(new TGraphErrors());
+	  graphs[tgrIndex]->SetName(Form("tg_%i_%i_%i", iz, iphi, icoord));
+	  
+	  /// Cut on number of clusters to avoid low 
+	  /// statistics bins
+	  if(m_clusterCount[index]<10)
+	    {
+	      /// Insert correction of 0
+	      distCorr->insert({index, 
+		    std::pair<unsigned int, const double>(0,0)});
+	      distCorrErr->insert({index,
+		    std::pair<unsigned int, const double>(0,0)});
+	      continue;
+	    }
+	  
+	  const double corrVal = delta[index](icoord,0);
+	  const double corrValErr = 
+	    std::sqrt(cov[index](icoord, icoord));
+
+	  auto corr = std::pair<unsigned int,
+				const double>
+	    (icoord, corrVal);
+	  auto corrErr = std::pair<unsigned int,
+				   const double>
+	    (icoord, corrValErr);
+	  distCorr->insert({index, corr});
+	  distCorrErr->insert({index, corrErr});
+	  
+	  graphs[tgrIndex]->SetPoint(ir, r, 
+				     delta[index](icoord,0));
+	  graphs[tgrIndex]->SetPointError(
+		 ir, 0, std::sqrt(cov[index](icoord,icoord)));
+        
+	}	
       }
     }
   }
 
-  TFile *outputFile = new TFile((Name() + "_distortions.root").c_str(), 
-				"RECREATE");
+  /// Set the DistortionCorrections pointer to be put 
+  /// on the node tree
+  m_distortionCorrections->m_distortionMap = distCorr;
+  m_distortionCorrections->m_distortionMapErr = distCorrErr;
+  m_distortionCorrections->m_zBins = m_zBins;
+  m_distortionCorrections->m_phiBins = m_phiBins;
+  m_distortionCorrections->m_rBins = m_rBins;
+  m_distortionCorrections->m_nCoord = m_nCoord;
+  
+
+  /// Create output tgraphs
+  TFile *outputFile = 
+    new TFile((Name() + "_distortions.root").c_str(), "RECREATE");
   outputFile->cd();
   for(auto&& gr : graphs)
     gr->Write();
   outputFile->Close();
-  
 
 }
 
@@ -476,12 +463,53 @@ int PHTpcResiduals::getCell(const int actsLayer,
   return getCell(iz, ir, iphi);
 }
 
-int PHTpcResiduals::getCell(const int iz, const int ir, const int iphi)
+int PHTpcResiduals::getCell(const int iz, const int ir, 
+			    const int iphi)
 {
   if( ir < 0 || ir >= m_rBins ) return -1;
   if( iphi < 0 || iphi >= m_phiBins ) return -1;
   if( iz < 0 || iz >= m_zBins ) return -1;
   return iz + m_zBins*( ir + m_rBins*iphi );
+}
+
+int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
+{
+
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error(
+      "Failed to find DST node in PHActsTracks::createNodes");
+  }
+  
+  PHCompositeNode *svtxNode = 
+    dynamic_cast<PHCompositeNode *>(
+                 iter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+  m_distortionCorrections = 
+    findNode::getClass<DistortionCorrections>(
+              topNode, "DistortionCorrections");
+  
+  if(!m_distortionCorrections)
+    {
+      m_distortionCorrections = new DistortionCorrections();
+      PHDataNode<DistortionCorrections> *distortionNode =
+	new PHDataNode<DistortionCorrections>(
+        m_distortionCorrections, "DistortionCorrections");
+      svtxNode->addNode(distortionNode);
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
@@ -508,3 +536,21 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHTpcResiduals::makeHistograms()
+{
+  if(m_outputRoot)
+    outfile = new TFile(std::string(Name() + ".root").c_str(), 
+			"recreate");
+  
+  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [mm]",
+			 60, 20, 80, 50, -10, 10);
+  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [mm]",
+		      200, -100, 100, 100, -10, 10);
+  h_etaResid = new TH2F("etaResid", ";#eta;#Delta#eta",
+			20, -1, 1, 50, -0.2, 0.2);
+  h_etaResidLayer = new TH2F("etaResidLayer", ";r [cm]; #Delta#eta",
+			     60, 20, 80, 50, -0.2, 0.2);
+  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [mm]",
+			   60, 20, 80, 100, -10, 10);
+
+}
