@@ -500,7 +500,6 @@ TNamed *Fun4AllServer::getHisto(const string &hname) const
 
 int Fun4AllServer::process_event()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   unsigned icnt = 0;
   int eventbad = 0;
   if (ScreamEveryEvent)
@@ -526,7 +525,7 @@ int Fun4AllServer::process_event()
   }
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
-  for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
@@ -700,7 +699,7 @@ int Fun4AllServer::process_event()
       }
     }
   }
-  for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
