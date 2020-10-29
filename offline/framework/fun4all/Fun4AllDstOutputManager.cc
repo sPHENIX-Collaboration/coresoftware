@@ -5,7 +5,7 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
@@ -25,7 +25,7 @@ Fun4AllDstOutputManager::Fun4AllDstOutputManager(const string &myname, const str
     cout << PHWHERE << " Could not open " << fname
          << " exiting now" << endl;
     gSystem->Exit(1);
-    exit(1); // cppcheck does not know gSystem->Exit(1)
+    exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
   dstOut->SetCompressionLevel(3);
   return;
@@ -128,7 +128,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     se->MakeNodesPersistent(startNode);
     if (!stripnodes.empty())
     {
-      for (auto &nodename: stripnodes)
+      for (auto &nodename : stripnodes)
       {
         PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
@@ -166,10 +166,10 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     }
   }
   dstOut->write(startNode);
-// to save some cpu cycles we only make it globally transient if
-// all nodes have been written (savenodes set is empty)
-// else we only make the nodes transient which we have written (all
-// others are transient by construction)
+  // to save some cpu cycles we only make it globally transient if
+  // all nodes have been written (savenodes set is empty)
+  // else we only make the nodes transient which we have written (all
+  // others are transient by construction)
   if (savenodes.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
@@ -202,11 +202,11 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     {
       for (auto &nodename : striprunnodes)
       {
-	PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
-	if (ChosenNode)
-	{
-	  ChosenNode->makeTransient();
-	}
+        PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+        if (ChosenNode)
+        {
+          ChosenNode->makeTransient();
+        }
         else
         {
           if (Verbosity() > 0)

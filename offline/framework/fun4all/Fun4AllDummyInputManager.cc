@@ -54,7 +54,7 @@ int Fun4AllDummyInputManager::run(const int nevents)
     {
       cout << ", Event Sum: " << m_SumEvents;
     }
-   cout << endl;
+    cout << endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

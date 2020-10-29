@@ -32,7 +32,7 @@ Fun4AllUtils::GetRunSegment(const std::string& filename)
   // tokenizer does not have reverse iterator, so fill it in vector
   // and reverse iterate on vector
   vector<string> tokens;
-  for (auto &t : tok)
+  for (auto& t : tok)
   {
     tokens.push_back(t);
   }
