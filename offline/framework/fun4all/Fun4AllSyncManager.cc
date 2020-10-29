@@ -1,6 +1,7 @@
 #include "Fun4AllSyncManager.h"
 
 #include "Fun4AllInputManager.h"
+#include "Fun4AllReturnCodes.h"  // for EVENT_OK, RESET_NODE_TREE
 #include "Fun4AllServer.h"
 
 #include <ffaobjects/SyncObject.h>

@@ -5,7 +5,7 @@
 
 #include "Fun4AllBase.h"
 
-#include <cstddef>       // for size_t
+#include <cstddef>  // for size_t
 #include <string>
 #include <vector>
 
@@ -24,6 +24,12 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! add a node in outputmanager
   virtual int AddNode(const std::string & /*nodename*/)
+  {
+    return 0;
+  }
+
+  //! add a runwise node in outputmanager
+  virtual int AddRunNode(const std::string & /*nodename*/)
   {
     return 0;
   }
