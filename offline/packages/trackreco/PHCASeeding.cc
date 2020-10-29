@@ -371,8 +371,8 @@ void PHCASeeding::FillTree()
     t_fill->stop();
   }
 
-  //std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
-  //std::cout << "number of duplicates : " << n_dupli << std::endl;
+  std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
+  std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
 
 pointKey PHCASeeding::makepointKey(TrkrDefs::cluskey k)
@@ -411,7 +411,7 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
     t_fill->stop();
   }
 
-  //std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
+  std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
 }
 
 pointKey PHCASeeding::toPointKey(coordKey v)
@@ -459,17 +459,17 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   _rtree.clear();
   FillTree();
   t_seed->stop();
-  if(Verbosity() > 0) cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger(NT,t_seed);
   t_seed->stop();
-  if(Verbosity() > 0) cout << "number of seeds " << numberofseeds << endl;
-  if(Verbosity() > 0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "number of seeds " << numberofseeds << endl;
+  cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   fpara.cd();
   NT->Write();
   fpara.Close();
-  
+  cout << "fpara OK\n";
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -490,14 +490,14 @@ vector<coordKey> PHCASeeding::FindLinkedClusters(TNtuple* NT, PHTimer* t_seed)
             _nlayers_maps+_nlayers_intt+_nlayers_tpc+0.5, // layer
             allClusters);
   t_seed->stop();
-    if(Verbosity() > 0) cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   LogDebug(" number of total clusters: " << allClusters.size() << endl);
   t_seed->restart();
 
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters),t_seed);
-    if(Verbosity() > 0) cout << "created links\n";
+  cout << "created links\n";
   vector<vector<keylink>> bidirectionalLinks = FindBiLinks(links.first,links.second,t_seed);
-    if(Verbosity() > 0) cout << "found bilinks\n";
+  cout << "found bilinks\n";
   // extract involved clusters (and locations) from bi-links
   // std::set::insert automatically skips duplicates
   vector<coordKey> clusterCands;
@@ -528,18 +528,18 @@ int PHCASeeding::FindSeedsWithMerger(TNtuple* NT,PHTimer* t_seed)
             _end_layer+0.5, // layer
             allClusters);
   t_seed->stop();
-    if(Verbosity() > 0) cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   LogDebug(" number of clusters: " << allClusters.size() << endl);
   t_seed->restart();
 
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters),t_seed);
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second,t_seed);
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,t_seed);
-  if(Verbosity() > 0) std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
+  std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
   vector<keylist> mergedSeedKeyLists = MergeSeeds(trackSeedKeyLists,t_seed);
-  if(Verbosity() > 0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
+  std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
   mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists,t_seed);
-  if(Verbosity() > 0) std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
+  std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
   int nseeds = ALICEKalmanFilter(mergedSeedKeyLists,NT,t_seed);
   return nseeds;
 }
@@ -765,15 +765,12 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
   }
   t_seed->stop();
-  if(Verbosity() > 0)
-    {
-      cout << "triplet forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
-      cout << "starting cluster setup: " << cluster_find_time / 1000 << " s" << endl;
-      cout << "RTree query: " << rtree_query_time /1000 << " s" << endl;
-      cout << "Transform: " << transform_time /1000 << " s" << endl;
-      cout << "Compute best triplet: " << compute_best_angle_time /1000 << " s" << endl;
-      cout << "Set insert: " << set_insert_time /1000 << " s" << endl;
-    }
+  cout << "triplet forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "starting cluster setup: " << cluster_find_time / 1000 << " s" << endl;
+  cout << "RTree query: " << rtree_query_time /1000 << " s" << endl;
+  cout << "Transform: " << transform_time /1000 << " s" << endl;
+  cout << "Compute best triplet: " << compute_best_angle_time /1000 << " s" << endl;
+  cout << "Set insert: " << set_insert_time /1000 << " s" << endl;
   t_seed->restart();
 
   return make_pair(belowLinks,aboveLinks);
@@ -799,7 +796,7 @@ vector<vector<keylink>> PHCASeeding::FindBiLinks(vector<unordered_set<keylink>> 
     }
   }
   t_seed->stop();
-    if(Verbosity() > 0) cout << "bidirectional link forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "bidirectional link forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
 
   return bidirectionalLinks;
@@ -835,7 +832,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
     }
   }
   t_seed->stop();
-    if(Verbosity() > 0) cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   // assemble track cluster chains from starting cluster keys (ordered from outside in)
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
@@ -858,7 +855,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
     }
   }
   t_seed->stop();
-  if(Verbosity() > 0) cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << endl);
   LogDebug(" track key chain lengths: " << endl);
@@ -900,17 +897,28 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
   }
   LogDebug(" Total large jumps: " << jumpcount << endl);
   t_seed->stop();
-    if(Verbosity() > 0) cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   return trackSeedKeyLists;
+}
+
+bool checknan(float val, std::string name, int num)
+{
+  if(std::isnan(val))
+  {
+    std::cout << "WARNING: " << val << " is NaN for seed " << num << ". Aborting this seed.\n";
+  }
+  return std::isnan(val);
 }
 
 int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT,PHTimer* t_seed)
 {
   int nseeds = 0;
+  std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
     if(trackKeyChain->size() < _min_clusters_per_track) continue;
+    std::cout << "track size: "  << trackKeyChain->size() << "\n";
     // get starting cluster from key
     TrkrCluster* startCluster = _cluster_map->findCluster(trackKeyChain->at(0));
     // Transform sPHENIX coordinates into ALICE-compatible coordinates
@@ -1027,48 +1035,51 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
       #endif
       ++cluster_ctr;
     }
-
-    /*
-      {
-      if( !trackSeed.CheckNumericalQuality() )
-      {
+    
+    if(!trackSeed.CheckNumericalQuality())
+    {
       cout << "ERROR: Track seed failed numerical quality check before conversion to sPHENIX coordinates! Skipping this one.\n";
       continue;
-      } 
-    */
-
+    } 
+    
     //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
     // float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
     float track_pt = fabs( 1./(trackSeed.GetQPt()));
+    if(checknan(track_pt,"pT",nseeds)) continue;
     float track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
+    if(checknan(track_pterr,"pT err",nseeds)) continue;
     LogDebug("Track pterr = " << track_pterr << endl);
     float track_z = trackSeed.GetZ();
+    if(checknan(track_z,"z",nseeds)) continue;
     float track_zerr = sqrt(trackSeed.GetErr2Z());
+    if(checknan(track_zerr,"zerr",nseeds)) continue;
     float track_phi = atan2(trackCartesian_y,trackCartesian_x);
+    if(checknan(track_phi,"phi",nseeds)) continue;
     float last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back())->getPhiError();
     // phi error assuming error in track radial coordinate is zero
     float track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
+    if(checknan(track_phierr,"phierr",nseeds)) continue;
     LogDebug("Track phi = " << track_phi << endl);
     LogDebug("Track phierr = " << track_phierr << endl);
     float track_curvature = trackSeed.GetKappa(_Bz);
+    if(checknan(track_curvature,"curvature",nseeds)) continue;
     float track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bz;
+    if(checknan(track_curverr,"curvature error",nseeds)) continue;
     NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
     SvtxTrack_v1 track;
     track.set_id(nseeds);
+    std::cout << "track size afterward: " << trackKeyChain->size() << "\n";
     for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
     {
       track.insert_cluster_key(trackKeyChain->at(j));
     }
     track.set_ndf(trackSeed.GetNDF());
-
     int track_charge = 0;
-    if(trackSeed.GetQPt()<0) track_charge = -1 * _fieldDir;
-    else track_charge = 1 * _fieldDir;
-    if(Verbosity() > 0) std::cout << " trackSeed.GetQPt " << trackSeed.GetQPt() << "  track charge " << track_charge << std::endl;
+    if(trackSeed.GetQPt()<0) track_charge = -1;
+    else track_charge = 1;
     track.set_charge(track_charge);
-
     TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
     track.set_x(cl->getX());  //track.set_x(cl->getX());
     track.set_y(cl->getY());  //track.set_y(cl->getY());
@@ -1076,13 +1087,19 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
     float s = sin(track_phi);
     float c = cos(track_phi);
     float p = trackSeed.GetSinPhi();
+    if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     float d = trackSeed.GetDzDs();
+    if(checknan(d,"ALICE dz/ds",nseeds)) continue;
     float pY = track_pt*p;
     float pX = sqrt(track_pt*track_pt-pY*pY);
     track.set_px(pX*c-pY*s);
     track.set_py(pX*s+pY*c);
     track.set_pz(track_pt * trackSeed.GetDzDs()); 
     const float* cov = trackSeed.GetCov();
+    for(int i=0;i<15;i++)
+    {
+      if(checknan(cov[i],"covariance element "+std::to_string(i),nseeds)) continue;
+    }
     // make this into an actual Eigen matrix
     Eigen::Matrix<float,5,5> ecov;
     ecov(0,0)=cov[0];
@@ -1157,6 +1174,14 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
     J(5,3) = track_pt; // dpz/d(dz/ds)
     J(5,4) = -track_pt*track_pt*track_charge*d; // dpz/d(Q/pt)
 
+    for(int i=0;i<6;i++)
+    {
+      for(int j=0;j<5;j++)
+      {
+        if(checknan(J(i,j),"covariance rotator element ("+std::to_string(i)+","+std::to_string(j)+")",nseeds)) continue;
+      }
+    }
+
     // the heavy lifting happens here
     Eigen::Matrix<float,6,6> scov = J*ecov*J.transpose();
     
@@ -1210,11 +1235,12 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
     track.set_error(4, 3, track.get_error(3, 4));
     track.set_error(5, 3, track.get_error(3, 5));
     track.set_error(5, 4, track.get_error(4, 5));
+*/
     if(!covIsPosDef(track))
     {
       repairCovariance(track);
     }
-*/
+
     _track_map->insert(&track);
 
     ++nseeds;
@@ -1266,11 +1292,11 @@ void PHCASeeding::repairCovariance(SvtxTrack_v1 &track)
 
 vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds, PHTimer* t)
 {
-  if(Verbosity() > 0) std::cout << "entered merge\n";
+  std::cout << "entered merge\n";
   //initialize vector of flags specifying whether seed is used
   vector<bool> isUsed(seeds.size());
   std::fill(isUsed.begin(),isUsed.end(),false);
-  if(Verbosity() > 0) std::cout << "filled used vector\n";
+  std::cout << "filled used vector\n";
   //get all seed ends
   vector<pointKey> seedEnds;
   vector<pointKey> frontEnds;
@@ -1284,11 +1310,11 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds, PHTimer* t)
     frontEnds.push_back(frontEnd);
     backEnds.push_back(backEnd);
   }
-  if(Verbosity() > 0) std::cout << "gotten seed ends\n";
+  std::cout << "gotten seed ends\n";
   //make RTree with seed ends
   _rtree.clear();
   FillTree(seedEnds);
-  if(Verbosity() > 0) std::cout << "filled rtree\n";
+  std::cout << "filled rtree\n";
   // find seeds that have similar eta, phi, with one layer between them
   vector<keylist> merged;
   for(size_t i=0;i<backEnds.size();i++)
@@ -1333,12 +1359,8 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds, PHTimer* t)
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)
 {
-   if(Verbosity() > 0)
-     {
-      cout << "Called Setup" << endl;
-      cout << "topNode:" << topNode << endl;
-    }
-
+  cout << "Called Setup" << endl;
+  cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
   InitializeGeometry(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1346,6 +1368,6 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
 
 int PHCASeeding::End()
 {
-      //cout << "Called End " << endl;
+  cout << "Called End " << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
