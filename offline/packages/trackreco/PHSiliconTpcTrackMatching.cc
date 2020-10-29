@@ -1,29 +1,31 @@
 #include "PHSiliconTpcTrackMatching.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
+#include "AssocInfoContainer.h"
 
 /// Tracking includes
-#include <trackbase/TrkrClusterv1.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
-#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for keytype
-#include <g4main/PHG4TruthInfoContainer.h>
 
-#include "AssocInfoContainer.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 
 #include <TF1.h>
+
+#include <climits>                            // for UINT_MAX
+#include <iostream>                            // for operator<<, basic_ostream
+#include <cmath>                              // for fabs, sqrt
+#include <set>                                 // for _Rb_tree_const_iterator
+#include <utility>                             // for pair
 
 using namespace std;
 
@@ -113,9 +115,9 @@ int PHSiliconTpcTrackMatching::Process()
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
-      double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
+      //double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
-      // phi correction for TPC tracks is charge dependent
+      // phi correction for PHTpcTracker tracklets is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge();
 
       /// Correct the correction for the field direction
@@ -131,8 +133,8 @@ int PHSiliconTpcTrackMatching::Process()
       // otherwise the matching efficiency drops off at low pT
       // not well optimized yet - smaller may work
       double mag = 1.0;
-      if(tpc_pt < 5) mag = 2.0;
-      if(tpc_pt < 2) mag = 4.0;
+      //if(tpc_pt < 5) mag = 2.0;
+      //if(tpc_pt < 2) mag = 4.0;
 
       if(Verbosity() > 3)
 	{
@@ -147,6 +149,10 @@ int PHSiliconTpcTrackMatching::Process()
 	{
 	  tpc_phi -= fscdphi->Eval(tpc_eta);
 	}
+      // the distortion correction can push tpc_phi outside +/- M_PI
+      if(tpc_phi < - M_PI) tpc_phi += 2.0*M_PI;
+      if(tpc_phi > M_PI) tpc_phi -= 2.0*M_PI;
+
 
       // Now search the silicon track list for a match in eta and phi
       // NOTE: we will take the combined track vertex from the vertex associated with the silicon stub, once the match is made
@@ -165,8 +171,8 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(Verbosity() >= 2)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
-	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  << " tpc_eta " << tpc_eta 
-		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win  << " tpc_eta " << tpc_eta 
+		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win << endl;
 	    }
 
 	  bool eta_match = false;

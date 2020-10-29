@@ -69,7 +69,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -87,18 +87,22 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
   if(m_timeAnalysis)
     {
-      m_timeFile = new TFile(Name().c_str(), "RECREATE");
-      h_eventTime = new TH1F("h_eventTime",";time [ms]",100000,0,10000);
-      h_fitTime = new TH2F("h_fitTime",";p_{T} [GeV];time [ms]",80,0,40,100000,0,1000);
+      m_timeFile = new TFile(std::string(Name() + ".root").c_str(), 
+			     "RECREATE");
+      h_eventTime = new TH1F("h_eventTime", ";time [ms]",
+			     100000, 0, 10000);
+      h_fitTime = new TH2F("h_fitTime",";p_{T} [GeV];time [ms]",
+			   80, 0, 40, 100000, 0, 1000);
       h_updateTime = new TH1F("h_updateTime",";time [ms]",
-			      100000,0,1000);
+			      100000, 0, 1000);
       
-      h_rotTime = new TH1F("h_rotTime",";time [ms]",100000,0,1000);
-      h_stateTime = new TH1F("h_stateTime",";time [ms]",
-			     100000,0,1000);			     
+      h_rotTime = new TH1F("h_rotTime", ";time [ms]",
+			   100000, 0, 1000);
+      h_stateTime = new TH1F("h_stateTime", ";time [ms]",
+			     100000, 0, 1000);			     
     }		 
   
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -112,7 +116,7 @@ int PHActsTrkFitter::Process()
 
   auto logLevel = Acts::Logging::INFO;
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
@@ -123,14 +127,18 @@ int PHActsTrkFitter::Process()
   loopTracks(logLevel);
   
   auto stopEventTime = high_resolution_clock::now();
-  if(m_timeAnalysis)
-    {    
-      auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
-  
-      h_eventTime->Fill(eventTime.count()/1000.);
-    }
+  auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
 
   if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter total event time " 
+	      << eventTime.count() / 1000.
+	      << std::endl;
+
+  if(m_timeAnalysis)     
+    h_eventTime->Fill(eventTime.count()/1000.);
+    
+
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter::process_event finished" 
 	      << std::endl;
 
@@ -235,7 +243,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 		          track.getVertex());
    
-    if(Verbosity() > 0)
+    if(Verbosity() > 2)
       {
 	std::cout << " Processing proto track with position:" 
 		  << trackSeed.position(m_tGeometry->geoContext) << std::endl 
@@ -604,6 +612,10 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   auto stateStopTime = high_resolution_clock::now();
   auto stateTime = duration_cast<microseconds>(stateStopTime - stateStartTime);
   
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter update SvtxTrackStates time "
+	      << stateTime.count() / 1000. << std::endl;
+
   if(m_timeAnalysis)
     h_stateTime->Fill(stateTime.count() / 1000.);
 

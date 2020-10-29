@@ -18,6 +18,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   virtual ~Fun4AllDstOutputManager();
 
   int AddNode(const std::string &nodename);
+  int AddRunNode(const std::string &nodename);
   int StripNode(const std::string &nodename);
   int StripRunNode(const std::string &nodename);
   int outfileopen(const std::string &fname);
@@ -29,9 +30,10 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
 
  private:
   std::set<std::string> savenodes;
+  std::set<std::string> saverunnodes;
   std::set<std::string> stripnodes;
   std::set<std::string> striprunnodes;
-  PHNodeIOManager *dstOut;
+  PHNodeIOManager *dstOut = nullptr;
 };
 
 #endif

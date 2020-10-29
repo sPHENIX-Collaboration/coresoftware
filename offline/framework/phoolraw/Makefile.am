@@ -22,16 +22,6 @@ libphoolraw_la_LIBADD = \
   -lphool \
   -lEvent
 
-ROOTDICTS =
-
-if MAKEROOT6
-pcmdir = $(libdir)
-nobase_dist_pcm_DATA =
-
-else
-ROOT5DICTS =
-endif
-
 libphoolraw_la_SOURCES = \
   PHRawDataNode.cc \
   PHRawOManager.cc
@@ -57,11 +47,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

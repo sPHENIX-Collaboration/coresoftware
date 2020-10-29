@@ -5,9 +5,9 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
-#include <boost/foreach.hpp>
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -24,7 +24,8 @@ Fun4AllDstOutputManager::Fun4AllDstOutputManager(const string &myname, const str
     delete dstOut;
     cout << PHWHERE << " Could not open " << fname
          << " exiting now" << endl;
-    exit(1);
+    gSystem->Exit(1);
+    exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
   dstOut->SetCompressionLevel(3);
   return;
@@ -39,6 +40,12 @@ Fun4AllDstOutputManager::~Fun4AllDstOutputManager()
 int Fun4AllDstOutputManager::AddNode(const string &nodename)
 {
   savenodes.insert(nodename);
+  return 0;
+}
+
+int Fun4AllDstOutputManager::AddRunNode(const string &nodename)
+{
+  saverunnodes.insert(nodename);
   return 0;
 }
 
@@ -84,7 +91,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
       }
       else
       {
-        BOOST_FOREACH (string nodename, stripnodes)
+        for (auto &nodename : stripnodes)
         {
           cout << Name() << ": Node " << nodename << " will be stripped" << endl;
         }
@@ -92,7 +99,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
     }
     else
     {
-      BOOST_FOREACH (string nodename, savenodes)
+      for (auto &nodename : savenodes)
       {
         cout << Name() << ": Node " << nodename << " is written out" << endl;
       }
@@ -115,17 +122,15 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
-  //  vector<string>::iterator iter;
-  PHNode *ChosenNode = 0;
   if (savenodes.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
     se->MakeNodesPersistent(startNode);
     if (!stripnodes.empty())
     {
-      BOOST_FOREACH (string nodename, stripnodes)
+      for (auto &nodename : stripnodes)
       {
-        ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+        PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
         {
           ChosenNode->makeTransient();
@@ -143,9 +148,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    BOOST_FOREACH (string nodename, savenodes)
+    for (auto &nodename : savenodes)
     {
-      ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+      PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
         ChosenNode->makePersistent();
@@ -161,6 +166,10 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     }
   }
   dstOut->write(startNode);
+  // to save some cpu cycles we only make it globally transient if
+  // all nodes have been written (savenodes set is empty)
+  // else we only make the nodes transient which we have written (all
+  // others are transient by construction)
   if (savenodes.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
@@ -168,9 +177,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    BOOST_FOREACH (string nodename, savenodes)
+    for (auto &nodename : savenodes)
     {
-      ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+      PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
         ChosenNode->makeTransient();
@@ -185,21 +194,51 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   delete dstOut;
   dstOut = new PHNodeIOManager(OutFileName(), PHUpdate, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->MakeNodesPersistent(thisNode);
-  if (!striprunnodes.empty())
+  PHNodeIterator nodeiter(thisNode);
+  if (saverunnodes.empty())
   {
-    PHNodeIterator nodeiter(thisNode);
-    BOOST_FOREACH (string nodename, striprunnodes)
+    se->MakeNodesPersistent(thisNode);
+    if (!striprunnodes.empty())
+    {
+      for (auto &nodename : striprunnodes)
+      {
+        PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
+        if (ChosenNode)
+        {
+          ChosenNode->makeTransient();
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+            cout << PHWHERE << Name() << ": Node " << nodename
+                 << " does not exist" << endl;
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    for (auto &nodename : saverunnodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
       {
-        ChosenNode->makeTransient();
+        ChosenNode->makePersistent();
+      }
+      else
+      {
+        if (Verbosity() > 0)
+        {
+          cout << PHWHERE << Name() << ": Node " << nodename
+               << " does not exist" << endl;
+        }
       }
     }
   }
   dstOut->write(thisNode);
-  se->MakeNodesPersistent(thisNode);
+  se->MakeNodesTransient(thisNode);
   delete dstOut;
   dstOut = nullptr;
   return 0;

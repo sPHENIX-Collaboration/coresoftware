@@ -10,7 +10,7 @@
 #include <cmath>
 #include <memory>
 #include <phparameter/PHParameterInterface.h>
-#include <gsl/gsl_rng.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <string>                              // for string
@@ -23,6 +23,7 @@ class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class DistortedTrackContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -34,6 +35,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
+  /*
   class DistortionStruct
   {
     
@@ -86,6 +88,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
     ClassDef(Container,1)
 
   };
+  */
   
   void SetDefaultParameters();
 
@@ -123,6 +126,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
+
+  void DistortedTrackListClear();
   
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
@@ -133,7 +138,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   //! evaluation node
-  Container* m_container = nullptr;
+  DistortedTrackContainer* m_container = nullptr;
 
   //! space charge distortion file name
   bool m_enable_distortions = false;
@@ -182,8 +187,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   };
   std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
   
-  unsigned int seed;
-
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H

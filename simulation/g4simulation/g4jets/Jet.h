@@ -45,8 +45,9 @@ class Jet : public PHObject
     HCALOUT_TOWER_SUB1CS = 19, /* needed for CS subtraction w/ HI jet reco */
     HEPMC_IMPORT = 20,         /*Direct import HEPMC containers, such as sHijing HIJFRG truth jets loaded by JetHepMCLoader*/
     HCAL_TOPO_CLUSTER = 21,    /* I+HOCal 3-D topoCluster input */
-    EEMC_TOWER = 22,
-    EEMC_CLUSTER = 23,
+    ECAL_TOPO_CLUSTER = 22,    /* EMCal 3-D topoCluster input */
+    EEMC_TOWER = 23,
+    EEMC_CLUSTER = 24,
   };
 
   enum PROPERTY
