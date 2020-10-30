@@ -49,6 +49,9 @@
 #include <gsl/gsl_rng.h>
 
 #include <TVector3.h>
+#include <TMatrixFfwd.h>    // for TMatrixF
+//#include <TMatrixT.h>       // for TMatrixT, ope...
+//#include <TMatrixTUtils.h>  // for TMatrixTRow
 
 #include <iostream>                            // for operator<<, basic_ostream
 #include <set>                                 // for _Rb_tree_iterator, set
@@ -73,6 +76,44 @@ int PHTruthClustering::InitRun(PHCompositeNode* topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
+  for(int layer = 0; layer < _nlayers_maps; ++layer)
+    {
+      clus_err_rphi[layer] = mvtx_clus_err_rphi;
+      clus_err_z[layer] = mvtx_clus_err_z;
+    }
+  for(int layer = _nlayers_maps; layer < _nlayers_maps + _nlayers_intt; ++layer) 
+    {
+      clus_err_rphi[layer] = intt_clus_err_rphi;
+      clus_err_z[layer] = intt_clus_err_z;
+    }
+  for(int layer = _nlayers_maps + _nlayers_intt; layer < _nlayers_maps + _nlayers_intt + 16; ++layer) 
+    {
+      clus_err_rphi[layer] = tpc_inner_clus_err_rphi;
+      clus_err_z[layer] = tpc_inner_clus_err_z;
+    }
+  for(int layer = _nlayers_maps + _nlayers_intt + 16; layer < _nlayers_maps + _nlayers_intt +_nlayers_tpc; ++layer) 
+    {
+      clus_err_rphi[layer] = tpc_outer_clus_err_rphi;
+      clus_err_z[layer] = tpc_outer_clus_err_z;
+    }
+  for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
+    {
+      clus_err_rphi[layer] = mms_layer55_clus_err_rphi;
+      clus_err_z[layer] = mms_layer55_clus_err_z;
+    }
+
+for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer) 
+  {
+    clus_err_rphi[layer] = mms_layer56_clus_err_rphi;
+    clus_err_z[layer] = mms_layer56_clus_err_z;
+  }
+ 
+ if(Verbosity() > 0)
+   {
+     for(int layer = 0; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer)
+       std::cout << " layer " << layer << " clus_err _rphi " << clus_err_rphi[layer] << " clus_err_z " << clus_err_z[layer] << std::endl;
+   }
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -115,7 +156,8 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	}
       
       if(Verbosity() > 0)
-	cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " is_primary " << is_primary << " gembed " << gembed << endl;
+	cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " is_primary " << is_primary 
+	     << " gembed " << gembed << endl;
 
       // Get the truth clusters from this particle
       std::map<unsigned int, TrkrCluster* > truth_clusters =  all_truth_clusters(g4particle);
@@ -129,7 +171,6 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	  float gx = gclus->getX();
 	  float gy = gclus->getY();
 	  float gz = gclus->getZ();
-	  float gedep = gclus->getError(0,0);
 	  float ng4hits = gclus->getAdc();
 	  
 	  TVector3 gpos(gx, gy, gz);
@@ -145,7 +186,7 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	    {
 	      std::cout << PHWHERE << "  ****   truth: layer " << layer << "  truth cluster key " << ckey << " ng4hits " << ng4hits << std::endl;
 	      std::cout << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
-			<< " gphi " << gphi << " geta " << geta << " gedep " << gedep << " gphisize " << gphisize << " gzsize " << gzsize << endl;
+			<< " gphi " << gphi << " geta " << geta << " gphisize " << gphisize << " gzsize " << gzsize << endl;
 	    }
 
 	  // add the filled out cluster to the truth cluster node
@@ -161,11 +202,11 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 
 std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4Particle* particle)
 {
-  if(Verbosity() > 0)
-    cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;;
-
   // get all g4hits for this particle
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
+
+  if(Verbosity() > 3)
+    std::cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << " with ng4hits " << g4hits.size() << std::endl;;
 	  
   float ng4hits = g4hits.size();
   if(ng4hits == 0) 
@@ -254,22 +295,98 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
       float g4zsize = NAN;
       G4ClusterSize(layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
+      /*
       for(int i1=0;i1<3;++i1)
 	for(int i2=0;i2<3;++i2)
 	{
 	  clus->setSize(i1, i2, 0.0);
 	  clus->setError(i1, i2, 0.0);
 	}
-      clus->setError(0,0,gedep);  // stores truth energy
+      */
+      /*
       clus->setSize(1, 1, g4phisize);
       clus->setSize(2, 2, g4zsize);
+      */
 
       // make an estimate of the errors
       // We expect roughly 150 microns in r-phi and 700 microns in z
       // we have to rotate the errors into (x,y,z) coords 
-      clus->setError(1, 1, g4phisize/sqrt(12));
-      clus->setError(2, 2, g4zsize/sqrt(12.0));
 
+      double clusphi = atan2(gy, gx);
+
+      TMatrixF DIM(3, 3);
+      DIM[0][0] = 0.0;
+      DIM[0][1] = 0.0;
+      DIM[0][2] = 0.0;
+      DIM[1][0] = 0.0;
+      DIM[1][1] = pow(0.5 * g4phisize, 2);  //cluster_v1 expects 1/2 of actual size
+      DIM[1][2] = 0.0;
+      DIM[2][0] = 0.0;
+      DIM[2][1] = 0.0;
+      DIM[2][2] = pow(0.5 * g4zsize,2);
+      
+      TMatrixF ERR(3, 3);
+      ERR[0][0] = 0.0;
+      ERR[0][1] = 0.0;
+      ERR[0][2] = 0.0;
+      ERR[1][0] = 0.0;
+      ERR[1][1] = pow(clus_err_rphi[layer], 2);  //cluster_v1 expects rad, arc, z as elementsof covariance
+      ERR[1][2] = 0.0;
+      ERR[2][0] = 0.0;
+      ERR[2][1] = 0.0;
+      ERR[2][2] = pow(clus_err_z[layer], 2);
+  
+      TMatrixF ROT(3, 3);
+      ROT[0][0] = cos(clusphi);
+      ROT[0][1] = -sin(clusphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(clusphi);
+      ROT[1][1] = cos(clusphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+      
+      TMatrixF ROT_T(3, 3);
+      ROT_T.Transpose(ROT);
+      
+      TMatrixF COVAR_DIM(3, 3);
+      COVAR_DIM = ROT * DIM * ROT_T;
+      
+      clus->setSize(0, 0, COVAR_DIM[0][0]);
+      clus->setSize(0, 1, COVAR_DIM[0][1]);
+      clus->setSize(0, 2, COVAR_DIM[0][2]);
+      clus->setSize(1, 0, COVAR_DIM[1][0]);
+      clus->setSize(1, 1, COVAR_DIM[1][1]);
+      clus->setSize(1, 2, COVAR_DIM[1][2]);
+      clus->setSize(2, 0, COVAR_DIM[2][0]);
+      clus->setSize(2, 1, COVAR_DIM[2][1]);
+      clus->setSize(2, 2, COVAR_DIM[2][2]);
+      //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
+      
+      TMatrixF COVAR_ERR(3, 3);
+      COVAR_ERR = ROT * ERR * ROT_T;
+      
+      clus->setError(0, 0, COVAR_ERR[0][0]);
+      clus->setError(0, 1, COVAR_ERR[0][1]);
+      clus->setError(0, 2, COVAR_ERR[0][2]);
+      clus->setError(1, 0, COVAR_ERR[1][0]);
+      clus->setError(1, 1, COVAR_ERR[1][1]);
+      clus->setError(1, 2, COVAR_ERR[1][2]);
+      clus->setError(2, 0, COVAR_ERR[2][0]);
+      clus->setError(2, 1, COVAR_ERR[2][1]);
+      clus->setError(2, 2, COVAR_ERR[2][2]);
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << " layer " << layer << " cluskey " << ckey << " cluster phi " << clusphi << " local cluster error rphi  " << clus_err_rphi[layer] 
+		    << " z " << clus_err_z[layer] << std::endl;
+	  std::cout << " global covariance matrix:" << std::endl;
+	  for(int i1=0;i1<3;++i1)
+	    for(int i2=0;i2<3;++i2)
+	      std::cout << "  " << i1 << "  " << i2 << " cov " << clus->getError(i1,i2)  << std::endl;      
+	}
+		
       truth_clusters.insert(make_pair(layer, clus));
 
     }  // end loop over layers for this particle
@@ -304,7 +421,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
 
-      if(Verbosity() > 0)
+      if(Verbosity() > 3)
 	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
 
       // we do not assume that the truth hits know what layer they are in            
@@ -351,7 +468,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
 	    continue;
 
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "     keep g4hit with rbegin " << rbegin << " rend " << rend  
 		   << "         xbegin " <<  xl[0] << " xend " << xl[1]
@@ -406,7 +523,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
 	  gr += (rin + rout) * 0.5 * efrac;
 	  gwt += efrac;
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "      rin  " << rin << " rout " << rout 
 		   << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout 
@@ -446,7 +563,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
       gr = (rbin + rbout) * 0.5;
       gt /= gwt;
 
-      if(Verbosity() > 0)
+      if(Verbosity() > 3)
 	{
 	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << " e " << gwt << endl;
 	}
@@ -505,7 +622,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
 	    }
 
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "      rentry  " << rentry << " rexit " << rexit 
 		   << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << endl;

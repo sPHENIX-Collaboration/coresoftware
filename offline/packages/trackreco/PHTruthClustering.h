@@ -75,6 +75,21 @@ PHG4TruthInfoContainer *_g4truth_container{nullptr};
   const unsigned int _nlayers_tpc = 48;
   const unsigned int _nlayers_mms = 2;
 
+  double clus_err_rphi[57] = {0};
+  double clus_err_z[57] = {0};
+
+  double mvtx_clus_err_rphi = 5e-04;
+  double mvtx_clus_err_z = 5e-04;
+  double intt_clus_err_rphi = 25e-04;
+  double intt_clus_err_z = 1.0;
+  double tpc_inner_clus_err_rphi = 200e-04;
+  double tpc_inner_clus_err_z = 750e-04;
+  double tpc_outer_clus_err_rphi = 150e-04;
+  double tpc_outer_clus_err_z = 500e-04;
+  double mms_layer55_clus_err_rphi = 100e-04;
+  double mms_layer55_clus_err_z = 25.0;
+  double mms_layer56_clus_err_rphi = 12.5;
+  double mms_layer56_clus_err_z = 200e-04;
 };
 
 #endif

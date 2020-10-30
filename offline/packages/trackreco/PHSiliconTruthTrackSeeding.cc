@@ -97,7 +97,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
     if (Verbosity() >= 3)
     {
-      cout <<__PRETTY_FUNCTION__<<" process cluster ";
+      cout << PHWHERE <<" process cluster ";
       cluster->identify();
     }
 
@@ -109,6 +109,11 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
+      if (Verbosity() >= 3)
+	{
+	  cout << PHWHERE <<"      --- process hit with hitkey  " << hitkey << "  hitsetkey " << hitsetkey  << std::endl;
+	}
+
       // get all of the g4hits for this hitkey
       std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
       hittruthassoc->getG4Hits(hitsetkey, hitkey, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
@@ -116,6 +121,12 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       {
         // extract the g4 hit key here and add the hits to the set
         PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+
+	if (Verbosity() >= 3)
+	  {
+	    cout << PHWHERE <<"           --- process g4hit with key  " << g4hitkey << std::endl;
+	  }
+
         PHG4Hit* phg4hit = nullptr;
         switch( trkrid )
         {
@@ -142,7 +153,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
           PHG4Particle* particle = _g4truth_container->GetParticle(particle_id);
           if (!particle)
           {
-            cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "<<particle_id<<". Exiting..."<<endl;
+            cout << PHWHERE <<" - validity check failed: missing truth particle with ID of "<<particle_id<<". Exiting..."<<endl;
             exit(1);
           }
           const double monentum2 =
@@ -155,7 +166,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
           if (Verbosity() >= 10)
           {
-            cout <<__PRETTY_FUNCTION__<<" check momentum for g4particle "<<particle_id<<" -> cluster "<<cluskey
+            cout << PHWHERE <<"             --- check momentum for g4particle "<<particle_id<<" -> cluster "<<cluskey
                 <<" = "<<sqrt(monentum2)<<endl;;
             particle->identify();
           }
@@ -164,7 +175,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
           {
             if (Verbosity() >= 3)
             {
-              cout <<__PRETTY_FUNCTION__<<" ignore low momentum g4particle "<<particle_id<<" -> cluster "<<cluskey<<endl;;
+              cout << PHWHERE <<" ignore low momentum g4particle "<<particle_id<<" -> cluster "<<cluskey<<endl;;
               particle->identify();
             }
             continue;
@@ -176,11 +187,12 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
         if (it != m_trackID_clusters.end())
         {
+	  // the clusters are stored in a set, no need to check if it is in there already
           it->second.insert(cluster);
           if (Verbosity() >= 3)
           {
-            cout <<__PRETTY_FUNCTION__<<" append particle"<<particle_id<<" -> cluster "<<cluskey<<endl;;
-            cluster->identify();
+            cout << PHWHERE <<"                  --- appended to g4particle"<<particle_id<<" new cluster "<<cluskey<<endl;;
+            //cluster->identify();
           }
         }
         else
@@ -192,8 +204,8 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
           if (Verbosity() >= 3)
           {
-            cout <<__PRETTY_FUNCTION__<<" new g4particle "<<particle_id<<" -> cluster "<<cluskey<<endl;;
-            cluster->identify();
+            cout << PHWHERE <<"                  --- added new g4particle "<<particle_id<<" and inserted cluster "<<cluskey<<endl;;
+            //cluster->identify();
           }
 
         }
