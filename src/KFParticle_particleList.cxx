@@ -110,6 +110,7 @@ std::map<std::string, float> KFParticle_particleList::getParticleList()
 
   //Charm-hadrons
   particleMasses["D0"]       = 1.86483;
+  particleMasses["D0bar"]    = 1.86483;
   particleMasses["D+"]       = 1.86965;
   particleMasses["D-"]       = 1.86965;
   particleMasses["Ds+"]      = 1.96834;

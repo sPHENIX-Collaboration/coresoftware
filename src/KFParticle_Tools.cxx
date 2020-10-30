@@ -352,10 +352,10 @@ KFPVertex KFParticle_Tools::makeVertex( PHCompositeNode *topNode )
                       m_dst_vertex->get_z() );
 
    kfp_vertex.SetCovarianceMatrix( m_dst_vertex->get_error( 0,0 ),
-                                   m_dst_vertex->get_error( 1,0 ),
+                                   0,//m_dst_vertex->get_error( 1,0 ),
                                    m_dst_vertex->get_error( 1,1 ),
-                                   m_dst_vertex->get_error( 2,0 ),
-                                   m_dst_vertex->get_error( 2,1 ),
+                                   0,//m_dst_vertex->get_error( 2,0 ),
+                                   0,//m_dst_vertex->get_error( 2,1 ),
                                    m_dst_vertex->get_error( 2,2 ) );
 
    kfp_vertex.SetNDF( m_dst_vertex->get_ndof() );
@@ -395,7 +395,7 @@ KFParticle KFParticle_Tools::makeParticle( PHCompositeNode *topNode ) ///Return 
   unsigned int iterate = 0;
   for (unsigned int i = 0; i < 6; ++i) 
     for (unsigned int j = 0; j <= i; ++j) 
-      { f_trackCovariance[iterate] = m_dst_track->get_error( i,j ); ++iterate;}
+      { f_trackCovariance[iterate] = m_dst_track->get_error( i,j ); if (i != j) f_trackCovariance[iterate] = 0; ++iterate;}
 
   KFParticle kfp_particle;
   kfp_particle.Create( f_trackParameters, f_trackCovariance, (Int_t) m_dst_track->get_charge(), -1);
@@ -513,7 +513,8 @@ std::vector<std::vector<int>>  KFParticle_Tools::findNProngs( std::vector<KFPart
         for ( unsigned int i = 0; i < nProngs - 1; ++i ) 
         {
           if( daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ i ] ] ) > m_comb_DCA ) 
-            { dcaMet *= 0; }
+            { dcaMet = 0; }
+            //{ dcaMet *= 0; }
         }
 
         if( dcaMet )

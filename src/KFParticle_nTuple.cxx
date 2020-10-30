@@ -1,6 +1,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4eval/SvtxTrackEval.h>
 #include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxTruthEval.h>
 #include <g4eval/SvtxEvalStack.h>
 //#include <Acts/Surfaces/Surface.hpp>
 //#include "PHActsSourceLinks.h"
@@ -31,6 +32,7 @@ KFParticle_Tools kfpTupleTools;
 SvtxTrackMap *dst_trackmap;
 SvtxTrackEval *trackeval;
 SvtxClusterEval *clustereval;
+SvtxTruthEval *trutheval;
 SvtxTrack *track;
 PHG4Particle* g4particle;
 //For detector info
@@ -355,16 +357,52 @@ void  KFParticle_nTuple::fillTruthBranch( PHCompositeNode *topNode, KFParticle d
       m_svtx_evalstack->set_strict(true);
       trackeval = m_svtx_evalstack->get_track_eval();
       clustereval = m_svtx_evalstack->get_cluster_eval();
+      trutheval = m_svtx_evalstack->get_truth_eval();
+      trackeval->set_strict(1);
+      clustereval->set_strict(1);
+      trutheval->set_strict(1);
     }
 
     dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
     track = getTrack( daughter.Id(), dst_trackmap );
 
-    SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-    TrkrDefs::cluskey clusKey = *iter;
+    //SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+    //TrkrDefs::cluskey clusKey = *iter;
 
-    if (!clusKey) g4particle = trackeval->max_truth_particle_by_nclusters( track );
-    else g4particle = clustereval->max_truth_particle_by_energy(clusKey);
+    //if (!clusKey) g4particle = trackeval->max_truth_particle_by_nclusters( track ); 
+    //else g4particle = clustereval->max_truth_particle_by_energy(clusKey);
+
+//std::set<PHG4Hit*> hits = trackeval->all_truth_hits(track);
+//std::cout<<"PHG4Hit from trackeval"<<std::endl;
+//    for (std::set<PHG4Hit*>::iterator it=hits.begin(); it!=hits.end(); ++it)
+//        std::cout << ' ' << *it;
+//    std::cout<<"\n";
+//std::cout<<"The hit set size is "<<hits.size()<<std::endl;
+//std::cout<<"The truth tracks parameters are:"<<std::endl;
+//for (std::set<PHG4Hit*>::iterator it=hits.begin(); it!=hits.end(); ++it)
+//{
+//PHG4Particle* g4particle2 = trutheval->get_particle(*it); 
+//g4particle2->identify();
+//if (g4particle2->get_track_id() > 0) g4particle = g4particle2;
+//}
+std::cout<<"Track valid status is "<<track->isValid()<<std::endl;
+track->identify();
+
+for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
+{
+TrkrDefs::cluskey clusKey = *iter;
+//g4particle = trutheval->get_particle(*hits.begin());
+//g4particle = clustereval->max_truth_particle_by_energy(clusKey); 
+const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
+if (trkrId == TrkrDefs::tpcId)
+{
+g4particle = clustereval->max_truth_particle_by_cluster_energy(clusKey); 
+std::cout<<"The trackerID is "<<trkrId<<std::endl;
+if ( g4particle->get_track_id() > 0 ) break;
+}
+}
+//g4particle = trackeval->max_truth_particle_by_nclusters( track );
+g4particle->identify();
 
     m_true_daughter_px[ daughter_id ] = (Float_t) g4particle->get_px();
     m_true_daughter_py[ daughter_id ] = (Float_t) g4particle->get_py();
