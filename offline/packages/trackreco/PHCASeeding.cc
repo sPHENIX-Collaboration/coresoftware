@@ -1078,8 +1078,9 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
     }
     track.set_ndf(trackSeed.GetNDF());
     int track_charge = 0;
-    if(trackSeed.GetQPt()<0) track_charge = -1;
-    else track_charge = 1;
+    if(trackSeed.GetQPt()<0) track_charge = -1 * _fieldDir;
+    else track_charge = 1 * _fieldDir;
+    if(Verbosity() > 0) std::cout << " trackSeed.GetQPt " << trackSeed.GetQPt() << "  track charge " << track_charge << std::endl; 
     track.set_charge(track_charge);
     TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
     track.set_x(cl->getX());  //track.set_x(cl->getX());
