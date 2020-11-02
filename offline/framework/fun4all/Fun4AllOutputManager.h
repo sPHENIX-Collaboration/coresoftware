@@ -46,6 +46,8 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
+  virtual void SaveRunNode(const int i) {return;}
+
   /*! \brief
     add an event selector to the outputmanager.
     event will get written only if all event selectors process_event method
