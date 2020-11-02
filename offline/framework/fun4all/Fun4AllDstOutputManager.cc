@@ -192,6 +192,11 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
+  if (! m_SaveRunNodeFlag)
+  {
+    dstOut = nullptr;
+    return 0;
+  }
   dstOut = new PHNodeIOManager(OutFileName(), PHUpdate, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
