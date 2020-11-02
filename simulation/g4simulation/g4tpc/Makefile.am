@@ -31,7 +31,7 @@ pkginclude_HEADERS = \
   PHG4TpcSubsystem.h \
   PHG4TpcEndCapSubsystem.h \
   PHG4TpcDistortion.h \
-  PHG4TpcSpaceChargeDistortion.h 
+  PHG4TpcSpaceChargeDistortion.h
 
 libg4tpc_la_SOURCES = \
   PHG4TpcDetector.cc \
@@ -54,7 +54,7 @@ libg4tpc_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals 
+  testexternals
 
 BUILT_SOURCES = testexternals.cc
 
@@ -67,6 +67,12 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
+
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ -noIncludePaths  -inlineInputHeader -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
