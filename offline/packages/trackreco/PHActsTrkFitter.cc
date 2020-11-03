@@ -52,6 +52,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_hitIdClusKey(nullptr)
   , m_nBadFits(0)
   , m_fitSiliconMMs(false)
+  , m_fillSvtxTrackStates(true)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
@@ -197,6 +198,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
        trackIter != m_actsProtoTracks->end();
        ++trackIter)
   {
+
+    auto startTrackTime = high_resolution_clock::now();
+
     ActsTrack track = trackIter->second;
     /// Can correlate with the SvtxTrackMap with the key
     const unsigned int trackKey = trackIter->first;
@@ -277,6 +281,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto stopTime = high_resolution_clock::now();
     auto fitTime = duration_cast<microseconds>(stopTime - startTime);
  
+    if(Verbosity() > 0)
+      std::cout << "PHActsTrkFitter Acts fit time "
+		<< fitTime.count() / 1000.
+		<< std::endl;
+
     /// Check that the track fit result did not return an error
     if (result.ok())
     {  
@@ -311,6 +320,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	m_nBadFits++;
       }
 
+    auto stopTrackTime = high_resolution_clock::now();
+    auto trackTime = duration_cast<microseconds>(stopTrackTime - startTrackTime);
+    if(Verbosity() > 0)
+      std::cout << "PHActsTrkFitter total single track time "
+		<< trackTime.count() / 1000. << std::endl;
   }
   return;
 }
@@ -398,6 +412,10 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   auto updateTime = duration_cast<microseconds>
     (stopUpdateTime - startUpdateTime);
   
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter update SvtxTrack time "
+	      << updateTime.count() / 1000. << std::endl;
+
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime.count() / 1000.);
   
@@ -606,10 +624,10 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
   auto stateStartTime = high_resolution_clock::now();
-  
-  rotater->fillSvtxTrackStates(traj, trackTip, track,
-			       m_tGeometry->geoContext,
-			       m_hitIdClusKey);  
+  if(m_fillSvtxTrackStates)
+    rotater->fillSvtxTrackStates(traj, trackTip, track,
+				 m_tGeometry->geoContext,
+				 m_hitIdClusKey);  
 
   auto stateStopTime = high_resolution_clock::now();
   auto stateTime = duration_cast<microseconds>(stateStopTime - stateStartTime);
