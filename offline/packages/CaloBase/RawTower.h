@@ -52,12 +52,18 @@ class RawTower : public PHObject
 
   virtual int get_bineta() const
   {
-    PHOOL_VIRTUAL_WARN("get_ieta()");
+    PHOOL_VIRTUAL_WARN("get_bineta()");
     return -1;
   }
+
+  virtual int get_bintheta() const
+  {
+    return get_bineta();
+  }
+
   virtual int get_binphi() const
   {
-    PHOOL_VIRTUAL_WARN("get_iphi()");
+    PHOOL_VIRTUAL_WARN("get_binphi()");
     return -1;
   }
   virtual int get_column() const
