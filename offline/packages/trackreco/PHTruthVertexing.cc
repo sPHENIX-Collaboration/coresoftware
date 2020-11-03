@@ -58,13 +58,16 @@ int PHTruthVertexing::Setup(PHCompositeNode* topNode)
 
 int PHTruthVertexing::Process(PHCompositeNode* topNode)
 {
-
+  /*
   if(Verbosity() > 1)
     {
       std::cout << "embed only: " << std::boolalpha << _embed_only << std::endl;
     }
+  */
+
+  // we just copy all vertices from the truth container to the SvtxVertexMap
+
   auto vrange =  _g4truth_container->GetPrimaryVtxRange();
-  set<int> gembed_set;
   for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
@@ -80,17 +83,11 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
 
       if(Verbosity() > 1)
 	{
-	  cout << " gembed: " << gembed << " vz " << iter->second->get_z() << endl;
+	  cout << " PHTruthVertexing: gembed: " << gembed << " nominal position: " << " vx " << pos[0] << " vy " << pos[1] << " vz " << pos[2] << endl;
 	}
 
-      // skip particles that are not primary
-      if( sqrt(pos[0]*pos[0]+pos[1]*pos[1])  > 0.1) continue;
+      // We take all primary vertices and copy them to the vertex map, regardless of track embedding ID 
 
-      // check to see if we have this vertex already      
-      if(gembed_set.find(gembed) != gembed_set.end()) continue;
-
-      gembed_set.insert(gembed);
-      
       pos[0] += _vertex_error[0] * gsl_ran_ugaussian(m_RandomGenerator);
       pos[1] += _vertex_error[1] * gsl_ran_ugaussian(m_RandomGenerator);
       pos[2] += _vertex_error[2] * gsl_ran_ugaussian(m_RandomGenerator);
@@ -123,70 +120,12 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       vertex->set_t0(0);
       vertex->set_chisq(0);
       vertex->set_ndof(1);
-      if(_embed_only){
-	if(gembed>0)_vertex_map->insert(vertex);
-      }else{
-	_vertex_map->insert(vertex);
-      }
+      _vertex_map->insert(vertex);
+      
     }
   
   if (Verbosity() > 0)
     _vertex_map->identify();
-
-  /*
-  PHG4VtxPoint* first_point = _g4truth_container->GetPrimaryVtx(
-      _g4truth_container->GetPrimaryVertexIndex());
-
-  std::vector<float> pos;
-
-  pos.clear();
-  pos.assign(3, 0.0);
-
-  pos[0] = first_point->get_x();
-  pos[1] = first_point->get_y();
-  pos[2] = first_point->get_z();
-
-  gsl_rng* RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-                                       //  cout << Name() << " random seed: " << seed << endl;
-  gsl_rng_set(RandomGenerator, seed);
-
-  pos[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
-  pos[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
-  pos[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
-
-  gsl_rng_free(RandomGenerator);
-
-  if (Verbosity() > 1)
-  {
-    cout << __LINE__ << " PHTruthVertexing::Process: {" << pos[0]
-         << ", " << pos[1] << ", " << pos[2] << "} +- {"
-         << _vertex_error[0] << ", " << _vertex_error[1] << ", "
-         << _vertex_error[2] << "}" << endl;
-  }
-
-  SvtxVertex* vertex = new SvtxVertex_v1();
-
-  vertex->set_x(pos[0]);
-  vertex->set_y(pos[1]);
-  vertex->set_z(pos[2]);
-
-  for (int j = 0; j < 3; ++j)
-  {
-    for (int i = j; i < 3; ++i)
-    {
-      vertex->set_error(i, j,
-                        (i == j ? _vertex_error[i] * _vertex_error[i] : 0));
-    }
-  }
-
-  vertex->set_id(0);
-  vertex->set_t0(0);
-  vertex->set_chisq(0);
-  vertex->set_ndof(1);
-
-  _vertex_map->insert(vertex);
-  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

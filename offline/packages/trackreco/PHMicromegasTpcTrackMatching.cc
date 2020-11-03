@@ -1,31 +1,30 @@
 #include "PHMicromegasTpcTrackMatching.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
+#include "AssocInfoContainer.h"
+#include "PHTrackPropagating.h"     // for PHTrackPropagating
 
 #include <micromegas/MicromegasDefs.h>
 
 /// Tracking includes
-#include <trackbase/TrkrClusterv1.h>
+
+#include <trackbase/TrkrCluster.h>            // for TrkrCluster
+#include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
-#include <g4main/PHG4Hit.h>  // for PHG4Hit
-#include <g4main/PHG4Particle.h>  // for PHG4Particle
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4HitDefs.h>  // for keytype
-#include <g4main/PHG4TruthInfoContainer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-#include "AssocInfoContainer.h"
+#include <phool/phool.h>
 
 #include <TF1.h>
+
+#include <cmath>                              // for sqrt, fabs, atan2, cos
+#include <iostream>                           // for operator<<, basic_ostream
+#include <map>                                // for map
+#include <set>                                // for _Rb_tree_const_iterator
+#include <utility>                            // for pair, make_pair
 
 using namespace std;
 
@@ -52,6 +51,10 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
 	    << " rphi_search_win outer layer " << _rphi_search_win[1]
 	    << " z_search_win outer layer " << _z_search_win[1]
 	    << endl;
+
+  fdrphi = new TF1("fdrphi", "[0] + [1]*fabs(x)");
+  fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
+  fdrphi->SetParameter(1, _par1);
 
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -202,14 +205,20 @@ int PHMicromegasTpcTrackMatching::Process()
 
 	// z projection is unique
 	_z_proj[imm] = B + A * _mm_layer_radius[imm] ;
-      }
+
+	if(_sc_calib_mode)
+	  {
+	    // rough correction for space charge distortion, just to allow tighter matching windows
+	    _rphi_proj[imm] -= fdrphi->Eval(_z_proj[imm]);
+	  }
+      }   // end loop over Micromegas layers
       
       if(skip_tracklet == true)
 	continue;   // skips to the next TPC tracklet
-      
+
       // loop over the micromegas clusters and find any within the search windows
       std::vector<TrkrDefs::cluskey> mm_matches[2];
-       for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
+      for(TrkrClusterContainer::ConstIterator clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
 	{
 	  TrkrDefs::cluskey mm_cluskey = clusiter->first;
 	  unsigned int layer = TrkrDefs::getLayer(mm_cluskey);
@@ -244,7 +253,7 @@ int PHMicromegasTpcTrackMatching::Process()
 			<< " _z_search_win " << _z_search_win[imm] 
 			<< std::endl;
 	    }
-	  
+
 	  if(fabs(_rphi_proj[imm] - mm_clus_rphi) < _rphi_search_win[imm] && fabs(_z_proj[imm] - mm_clus_z) < _z_search_win[imm])
 	    {
 	      mm_matches[imm].push_back(mm_cluskey);
@@ -255,11 +264,10 @@ int PHMicromegasTpcTrackMatching::Process()
 			  << " _y_proj " << _y_proj << " _z_proj " << _z_proj[imm]  
 			  << " _rphi_proj " << _rphi_proj[imm] << std::endl;
 	      
-
 	      // prints out a line that can be grep-ed from the output file to feed to a display macro
-	      if( _test_search_windows )
-		std::cout << "     deltas " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi << " dz " << _z_proj[imm] - mm_clus_z 
-			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " match " << mm_matches[imm].size()  << std::endl;
+	      if( _test_windows )
+		std::cout << "  Try_mms: " << layer  << " drphi " << _rphi_proj[imm] - mm_clus_rphi  << " dz " << _z_proj[imm] - mm_clus_z 
+			  << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z << " rphi_proj " <<  _rphi_proj[imm] << " z_proj " << _z_proj[imm] << std::endl;
 	    }
 	}
 

@@ -12,17 +12,17 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
-#include <phool/PHNodeIterator.h>   // for PHNodeIterator
-#include <phool/PHObject.h>         // for PHObject
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
 #include <cassert>
 #include <cstdlib>
-#include <iostream>                 // for operator<<, basic_ostream, endl
-#include <utility>                  // for pair
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <utility>   // for pair
 
 class TBranch;
 
@@ -233,9 +233,9 @@ int Fun4AllDstInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (syncobject) 
+    if (syncobject)
     {
-      *mastersync = dynamic_cast<SyncObject *> (syncobject->CloneMe());
+      *mastersync = dynamic_cast<SyncObject *>(syncobject->CloneMe());
       assert(*mastersync);
     }
   }

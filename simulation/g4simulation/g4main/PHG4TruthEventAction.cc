@@ -371,11 +371,11 @@ void PHG4TruthEventAction::PruneShowers()
 void PHG4TruthEventAction::ProcessShowers()
 {
   PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
-  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
-       iter != range.second;
-       ++iter)
+  for (PHG4TruthInfoContainer::ShowerIterator shwiter = range.first;
+       shwiter != range.second;
+       ++shwiter)
   {
-    PHG4Shower* shower = iter->second;
+    PHG4Shower* shower = shwiter->second;
 
     // Data structures to hold weighted pca
     std::vector<std::vector<float> > points;

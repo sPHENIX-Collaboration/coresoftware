@@ -3,6 +3,7 @@
 #include "PHG4InEvent.h"
 #include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev2.h"
+#include "PHG4Utils.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -14,6 +15,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <TSystem.h>
+
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
 
@@ -23,39 +26,8 @@
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <memory>    // for allocator_traits<>::value_type
 
-using namespace std;
-
-PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name)
+PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const std::string &name)
   : PHG4ParticleGeneratorBase(name)
-  , _particle_codes()
-  , _particle_names()
-  , _vertex_func_x(Uniform)
-  , _vertex_func_y(Uniform)
-  , _vertex_func_z(Uniform)
-  , _t0(0.0)
-  , _vertex_x(0.0)
-  , _vertex_y(0.0)
-  , _vertex_z(0.0)
-  , _vertex_width_x(0.0)
-  , _vertex_width_y(0.0)
-  , _vertex_width_z(0.0)
-  , _vertex_offset_x(0.0)
-  , _vertex_offset_y(0.0)
-  , _vertex_offset_z(0.0)
-  , _vertex_size_func_r(Uniform)
-  , _vertex_size_mean(0.0)
-  , _vertex_size_width(0.0)
-  , _eta_min(-1.25)
-  , _eta_max(1.25)
-  , _phi_min(-M_PI)
-  , _phi_max(M_PI)
-  , _pt_min(0.0)
-  , _pt_max(10.0)
-  , _pt_gaus_width(0.0)
-  , _p_min(NAN)
-  , _p_max(NAN)
-  , _p_gaus_width(NAN)
-  , _ineve(nullptr)
 {
   return;
 }
@@ -76,11 +48,32 @@ void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max)
 {
   if (min > max)
   {
-    cout << "not setting eta bc etamin " << min << " > etamax: " << max << endl;
-    return;
+    std::cout << "not setting eta bc etamin " << min << " > etamax: " << max << std::endl;
+    gSystem->Exit(1);
   }
-  _eta_min = min;
-  _eta_max = max;
+  m_EtaMin = min;
+  m_EtaMax = max;
+  m_ThetaMin = NAN;
+  m_ThetaMax = NAN;
+  return;
+}
+
+void PHG4SimpleEventGenerator::set_theta_range(const double min, const double max)
+{
+  if (min > max)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " thetamin " << min << " > thetamax: " << max << std::endl;
+    gSystem->Exit(1);
+  }
+  if (min < 0 || max > M_PI)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " min or max outside range (range is 0 to pi) min: " << min << ", max: " << max << std::endl;
+    gSystem->Exit(1);
+  }
+  m_ThetaMin = min;
+  m_ThetaMax = max;
+  m_EtaMin = NAN;
+  m_EtaMax = NAN;
   return;
 }
 
@@ -88,11 +81,18 @@ void PHG4SimpleEventGenerator::set_phi_range(const double min, const double max)
 {
   if (min > max)
   {
-    cout << "not setting phi bc phimin " << min << " > phimax: " << max << endl;
+    std::cout << __PRETTY_FUNCTION__ << " phimin " << min << " > phimax: " << max << std::endl;
+    gSystem->Exit(1);
     return;
   }
-  _phi_min = min;
-  _phi_max = max;
+  if (min < -M_PI || max > M_PI)
+  {
+    std::cout << __PRETTY_FUNCTION__ << "min or max outside range (range is -pi to pi), min: " << min << ", max: " << max << std::endl;
+    gSystem->Exit(1);
+  }
+
+  m_PhiMin = min;
+  m_PhiMax = max;
   return;
 }
 
@@ -100,41 +100,47 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, 
 {
   if (min > max)
   {
-    cout << "not setting pt bc ptmin " << min << " > ptmax: " << max << endl;
-    return;
+    std::cout << __PRETTY_FUNCTION__ << " ptmin " << min << " > ptmax: " << max << std::endl;
+    gSystem->Exit(1);
   }
-  assert(pt_gaus_width >= 0);
 
-  _pt_bins.clear();
-  _pt_dist.clear();
+  m_Pt_Bins.clear();
+  m_Pt_Dist.clear();
 
-  _pt_min = min;
-  _pt_max = max;
-  _pt_gaus_width = pt_gaus_width;
-  _p_min = NAN;
-  _p_max = NAN;
-  _p_gaus_width = NAN;
+  if (min < 0 || max < 0 || pt_gaus_width < 0)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min
+              << ", max: " << max << ", pt_gaus_width: " << pt_gaus_width << std::endl;
+    gSystem->Exit(1);
+  }
+
+  m_Pt_Min = min;
+  m_Pt_Max = max;
+  m_Pt_GausWidth = pt_gaus_width;
+  m_P_Min = NAN;
+  m_P_Max = NAN;
+  m_P_GausWidth = NAN;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_pt_range(const std::vector<double>& pt_bins, const std::vector<double>& pt_dist) {
 
   assert( !pt_dist.empty() && pt_bins.size() == pt_dist.size()+1 );
-  _pt_bins = pt_bins;
+  m_Pt_Bins = pt_bins;
 
   // store the cumullated distribution in pt_dist
-  _pt_dist.clear();
+  m_Pt_Dist.clear();
   for( const auto& pt:pt_dist )
   {
-    if( _pt_dist.empty() ) _pt_dist.push_back( pt );
-    else _pt_dist.push_back( _pt_dist.back() + pt );
+    if( m_Pt_Dist.empty() ) m_Pt_Dist.push_back( pt );
+    else m_Pt_Dist.push_back( m_Pt_Dist.back() + pt );
   }
-  _pt_min = NAN;
-  _pt_max = NAN;
-  _pt_gaus_width = NAN;
-  _p_min = NAN;
-  _p_max = NAN;
-  _p_gaus_width = NAN;
+  m_Pt_Min = NAN;
+  m_Pt_Max = NAN;
+  m_Pt_GausWidth = NAN;
+  m_P_Min = NAN;
+  m_P_Max = NAN;
+  m_P_GausWidth = NAN;
   return;
 }
 
@@ -142,154 +148,150 @@ void PHG4SimpleEventGenerator::set_p_range(const double min, const double max, c
 {
   if (min > max)
   {
-    cout << "not setting p bc ptmin " << min << " > ptmax: " << max << endl;
-    return;
+    std::cout << __PRETTY_FUNCTION__ << " pmin " << min << " > pmax: " << max << std::endl;
+    gSystem->Exit(1);
   }
-  assert(p_gaus_width >= 0);
+  if (min < 0 || max < 0 || p_gaus_width < 0)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " values need to be >= 0, min: " << min
+              << ", max: " << max << ", p_gaus_width: " << p_gaus_width << std::endl;
+    gSystem->Exit(1);
+  }
+  m_Pt_Bins.clear();
+  m_Pt_Dist.clear();
 
-  _pt_bins.clear();
-  _pt_dist.clear();
-  _pt_min = NAN;
-  _pt_max = NAN;
-  _pt_gaus_width = NAN;
-  _p_min = min;
-  _p_max = max;
-  _p_gaus_width = p_gaus_width;
+  m_Pt_Min = NAN;
+  m_Pt_Max = NAN;
+  m_Pt_GausWidth = NAN;
+  m_P_Min = min;
+  m_P_Max = max;
+  m_P_GausWidth = p_gaus_width;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_vertex_distribution_function(FUNCTION x, FUNCTION y, FUNCTION z)
 {
-  _vertex_func_x = x;
-  _vertex_func_y = y;
-  _vertex_func_z = z;
+  m_VertexFunc_x = x;
+  m_VertexFunc_y = y;
+  m_VertexFunc_z = z;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_vertex_distribution_mean(const double x, const double y, const double z)
 {
-  _vertex_x = x;
-  _vertex_y = y;
-  _vertex_z = z;
+  m_Vertex_x = x;
+  m_Vertex_y = y;
+  m_Vertex_z = z;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_vertex_distribution_width(const double x, const double y, const double z)
 {
-  _vertex_width_x = x;
-  _vertex_width_y = y;
-  _vertex_width_z = z;
+  m_VertexWidth_x = x;
+  m_VertexWidth_y = y;
+  m_VertexWidth_z = z;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_existing_vertex_offset_vector(const double x, const double y, const double z)
 {
-  _vertex_offset_x = x;
-  _vertex_offset_y = y;
-  _vertex_offset_z = z;
-  return;
-}
-
-void PHG4SimpleEventGenerator::set_vertex_size_function(FUNCTION r)
-{
-  _vertex_size_func_r = r;
+  m_VertexOffset_x = x;
+  m_VertexOffset_y = y;
+  m_VertexOffset_z = z;
   return;
 }
 
 void PHG4SimpleEventGenerator::set_vertex_size_parameters(const double mean, const double width)
 {
-  _vertex_size_mean = mean;
-  _vertex_size_width = width;
+  m_VertexSizeMean = mean;
+  m_VertexSizeWidth = width;
   return;
 }
 
 int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
 {
-  if ((_vertex_func_x != Uniform) && (_vertex_func_x != Gaus))
+  if (m_FunctionNames.find(m_VertexFunc_x) == m_FunctionNames.end())
   {
-    cout << PHWHERE << "::Error - unknown vertex distribution function requested" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << PHWHERE << "::Error - unknown x vertex distribution function requested" << std::endl;
+    gSystem->Exit(1);
   }
-  if ((_vertex_func_y != Uniform) && (_vertex_func_y != Gaus))
+  if (m_FunctionNames.find(m_VertexFunc_y) == m_FunctionNames.end())
   {
-    cout << PHWHERE << "::Error - unknown vertex distribution function requested" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << PHWHERE << "::Error - unknown y vertex distribution function requested" << std::endl;
+    gSystem->Exit(1);
   }
-  if ((_vertex_func_z != Uniform) && (_vertex_func_z != Gaus))
+  if (m_FunctionNames.find(m_VertexFunc_z) == m_FunctionNames.end())
   {
-    cout << PHWHERE << "::Error - unknown vertex distribution function requested" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << PHWHERE << "::Error - unknown z vertex distribution function requested" << std::endl;
+    gSystem->Exit(1);
   }
 
-  _ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!_ineve)
+  m_InEvent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!m_InEvent)
   {
     PHNodeIterator iter(topNode);
     PHCompositeNode *dstNode;
     dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
-    _ineve = new PHG4InEvent();
-    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(_ineve, "PHG4INEVENT", "PHObject");
+    m_InEvent = new PHG4InEvent();
+    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(m_InEvent, "PHG4INEVENT", "PHObject");
     dstNode->addNode(newNode);
   }
 
   if (Verbosity() > 0)
   {
-    cout << "================ PHG4SimpleEventGenerator::InitRun() ======================" << endl;
-    cout << " Random seed = " << get_seed() << endl;
-    cout << " Particles:" << endl;
+    std::cout << "================ PHG4SimpleEventGenerator::InitRun() ======================" << std::endl;
+    std::cout << " Random seed = " << get_seed() << std::endl;
+    std::cout << " Particles:" << std::endl;
     for (unsigned int i = 0; i < _particle_codes.size(); ++i)
     {
-      cout << "    " << _particle_codes[i].first << ", count = " << _particle_codes[i].second << endl;
+      std::cout << "    " << _particle_codes[i].first << ", count = " << _particle_codes[i].second << std::endl;
     }
     for (unsigned int i = 0; i < _particle_names.size(); ++i)
     {
-      cout << "    " << _particle_names[i].first << ", count = " << _particle_names[i].second << endl;
+      std::cout << "    " << _particle_names[i].first << ", count = " << _particle_names[i].second << std::endl;
     }
     if (get_reuse_existing_vertex())
     {
-      cout << " Vertex Distribution: Set to reuse a previously generated sim vertex" << endl;
-      cout << " Vertex offset vector (x,y,z) = (" << _vertex_offset_x << "," << _vertex_offset_y << "," << _vertex_offset_z << ")" << endl;
+      std::cout << " Vertex Distribution: Set to reuse a previously generated sim vertex" << std::endl;
+      std::cout << " Vertex offset vector (x,y,z) = (" << m_VertexOffset_x << "," << m_VertexOffset_y << "," << m_VertexOffset_z << ")" << std::endl;
     }
     else
     {
-      cout << " Vertex Distribution Function (x,y,z) = (";
-      if (_vertex_func_x == Uniform)
-        cout << "Uniform,";
-      else if (_vertex_func_x == Gaus)
-        cout << "Gaus,";
-      if (_vertex_func_y == Uniform)
-        cout << "Uniform,";
-      else if (_vertex_func_y == Gaus)
-        cout << "Gaus,";
-      if (_vertex_func_z == Uniform)
-        cout << "Uniform";
-      else if (_vertex_func_z == Gaus)
-        cout << "Gaus";
-      cout << ")" << endl;
-      cout << " Vertex mean (x,y,z) = (" << _vertex_x << "," << _vertex_y << "," << _vertex_z << ")" << endl;
-      cout << " Vertex width (x,y,z) = (" << _vertex_width_x << "," << _vertex_width_y << "," << _vertex_width_z << ")" << endl;
+      std::cout << " Vertex Distribution Function (x,y,z) = ("
+                << m_FunctionNames.find(m_VertexFunc_x)->second << ","
+                << m_FunctionNames.find(m_VertexFunc_y)->second << ","
+                << m_FunctionNames.find(m_VertexFunc_z)->second << ")"
+                << std::endl;
+      std::cout << " Vertex mean (x,y,z) = (" << m_Vertex_x << "," << m_Vertex_y << "," << m_Vertex_z << ")" << std::endl;
+      std::cout << " Vertex width (x,y,z) = (" << m_VertexWidth_x << "," << m_VertexWidth_y << "," << m_VertexWidth_z << ")" << std::endl;
     }
-    cout << " Vertex size function (r) = (";
-    if (_vertex_size_func_r == Uniform)
-      cout << "Uniform";
-    else if (_vertex_size_func_r == Gaus)
-      cout << "Gaus";
-    cout << ")" << endl;
-    cout << " Vertex size (mean) = (" << _vertex_size_mean << ")" << endl;
-    cout << " Vertex size (width) = (" << _vertex_size_width << ")" << endl;
-    cout << " Eta range = " << _eta_min << " - " << _eta_max << endl;
-    cout << " Phi range = " << _phi_min << " - " << _phi_max << endl;
-    if (isfinite(_pt_min) && isfinite(_pt_max))
+    std::cout << " Vertex size function (r) = ("
+              << m_FunctionNames.find(m_VertexSizeFunc_r)->second << ")"
+              << std::endl;
+    std::cout << " Vertex size (mean) = (" << m_VertexSizeMean << ")" << std::endl;
+    std::cout << " Vertex size (width) = (" << m_VertexSizeWidth << ")" << std::endl;
+    if (std::isfinite(m_EtaMin) && std::isfinite(m_EtaMax))
     {
-      cout << " pT range = " << _pt_min << " - " << _pt_max << endl;
+      std::cout << " Eta range = " << m_EtaMin << " - " << m_EtaMax << std::endl;
     }
-    if (isfinite(_p_min) && isfinite(_p_max))
+    if (std::isfinite(m_ThetaMin) && std::isfinite(m_ThetaMax))
     {
-      cout << " p range = " << _p_min << " - " << _p_max << endl;
+      std::cout << " Theta range = " << m_ThetaMin << " - " << m_ThetaMax
+                << ", deg: " << m_ThetaMin / M_PI * 180. << " - " << m_ThetaMax / M_PI * 180. << std::endl;
     }
-    cout << " t0 = " << _t0 << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << " Phi range = " << m_PhiMin << " - " << m_PhiMax
+              << ", deg: " << m_PhiMin / M_PI * 180. << " - " << m_PhiMax / M_PI * 180. << std::endl;
+    if (std::isfinite(m_Pt_Min) && std::isfinite(m_Pt_Max))
+    {
+      std::cout << " pT range = " << m_Pt_Min << " - " << m_Pt_Max << std::endl;
+    }
+    if (std::isfinite(m_P_Min) && std::isfinite(m_P_Max))
+    {
+      std::cout << " p range = " << m_P_Min << " - " << m_P_Max << std::endl;
+    }
+    std::cout << " t0 = " << get_t0() << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   // the definition table should be filled now, so convert codes into names
@@ -297,8 +299,8 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
   {
     int pdgcode = _particle_codes[i].first;
     unsigned int count = _particle_codes[i].second;
-    string pdgname = get_pdgname(pdgcode);
-    _particle_names.push_back(make_pair(pdgname, count));
+    std::string pdgname = get_pdgname(pdgcode);
+    _particle_names.push_back(std::make_pair(pdgname, count));
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -308,95 +310,106 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4SimpleEventGenerator::process_event() =====================" << endl;
-    cout << "PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = " << reuse_existing_vertex << endl;
+    std::cout << "====================== PHG4SimpleEventGenerator::process_event() =====================" << std::endl;
+    std::cout << "PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = " << get_reuse_existing_vertex() << std::endl;
   }
 
-  // vtx_x, vtx_y and vtx_z are doubles from the base class
-  // common methods modify those, please no private copies
-  // at some point we might rely on them being up to date
   if (!ReuseExistingVertex(topNode))
   {
     // generate a new vertex point
-    vtx_x = smearvtx(_vertex_x, _vertex_width_x, _vertex_func_x);
-    vtx_y = smearvtx(_vertex_y, _vertex_width_y, _vertex_func_y);
-    vtx_z = smearvtx(_vertex_z, _vertex_width_z, _vertex_func_z);
+    set_vtx(smearvtx(m_Vertex_x, m_VertexWidth_x, m_VertexFunc_x),
+            smearvtx(m_Vertex_y, m_VertexWidth_y, m_VertexFunc_y),
+            smearvtx(m_Vertex_z, m_VertexWidth_z, m_VertexFunc_z));
   }
-
-  vtx_x += _vertex_offset_x;
-  vtx_y += _vertex_offset_y;
-  vtx_z += _vertex_offset_z;
+  set_vtx(get_vtx_x() + m_VertexOffset_x,
+          get_vtx_y() + m_VertexOffset_y,
+          get_vtx_z() + m_VertexOffset_z);
 
   if (Verbosity() > 0)
   {
-    cout << "PHG4SimpleEventGenerator::process_event - vertex center" << reuse_existing_vertex
-         << vtx_x << ", " << vtx_y << ", " << vtx_z << " cm"
-         << endl;
+    std::cout << "PHG4SimpleEventGenerator::process_event - vertex center" << get_reuse_existing_vertex()
+              << get_vtx_x() << ", " << get_vtx_y() << ", " << get_vtx_z() << " cm"
+              << std::endl;
   }
 
   int vtxindex = -1;
   int trackid = -1;
   for (unsigned int i = 0; i < _particle_names.size(); ++i)
   {
-    string pdgname = _particle_names[i].first;
+    std::string pdgname = _particle_names[i].first;
     int pdgcode = get_pdgcode(pdgname);
     unsigned int nparticles = _particle_names[i].second;
 
     for (unsigned int j = 0; j < nparticles; ++j)
     {
-      if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
+      if ((m_VertexSizeWidth > 0.0) || (m_VertexSizeMean != 0.0))
       {
-        double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
+        double r = smearvtx(m_VertexSizeMean, m_VertexSizeWidth, m_VertexSizeFunc_r);
 
         double x = 0.0;
         double y = 0.0;
         double z = 0.0;
-        gsl_ran_dir_3d(RandomGenerator, &x, &y, &z);
+        gsl_ran_dir_3d(RandomGenerator(), &x, &y, &z);
         x *= r;
         y *= r;
         z *= r;
 
-        vtxindex = _ineve->AddVtx(vtx_x + x, vtx_y + y, vtx_z + z, _t0);
+        vtxindex = m_InEvent->AddVtx(get_vtx_x() + x, get_vtx_y() + y, get_vtx_z() + z, get_t0());
       }
       else if ((i == 0) && (j == 0))
       {
-        vtxindex = _ineve->AddVtx(vtx_x, vtx_y, vtx_z, _t0);
+        vtxindex = m_InEvent->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
       }
 
       ++trackid;
 
-      double eta = (_eta_max - _eta_min) * gsl_rng_uniform_pos(RandomGenerator) + _eta_min;
-      double phi = (_phi_max - _phi_min) * gsl_rng_uniform_pos(RandomGenerator) + _phi_min;
+      double eta;
+      if (!std::isnan(m_EtaMin) && !std::isnan(m_EtaMax))
+      {
+        eta = (m_EtaMax - m_EtaMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_EtaMin;
+      }
+      else if (!std::isnan(m_ThetaMin) && !std::isnan(m_ThetaMax))
+      {
+        double theta = (m_ThetaMax - m_ThetaMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_ThetaMin;
+        eta = PHG4Utils::get_eta(theta);
+      }
+      else
+      {
+        std::cout << PHWHERE << "Error: neither eta range or theta range was specified" << std::endl;
+        std::cout << "That should not happen, please inform the software group howthis happened" << std::endl;
+        exit(-1);
+      }
 
+      double phi = (m_PhiMax - m_PhiMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_PhiMin;
       double pt = 0;
-      if (!_pt_bins.empty() ) {
+      if (!m_Pt_Bins.empty() ) {
 
         // get a random number between zero and the maximum of the distribution
-        const auto prob = _pt_dist.back()*gsl_rng_uniform(RandomGenerator);
+        const auto prob = m_Pt_Dist.back()*gsl_rng_uniform(RandomGenerator());
 
         // get the first bin with value larger than prob
-        for( size_t i = 0; i < _pt_dist.size(); ++i )
+        for( size_t i = 0; i < m_Pt_Dist.size(); ++i )
         {
-          if( _pt_dist[i] > prob )
+          if( m_Pt_Dist[i] > prob )
           {
             // get a flat random number in the corresponding interval
             /* we use 1.0-gsl_rng_uniform, because we want to exclude 0, and keep 1, to make sure one cannot get a pT of zero */
-            pt = _pt_bins[i] + (_pt_bins[i+1]-_pt_bins[i])*(1.0-gsl_rng_uniform(RandomGenerator));
+            pt = m_Pt_Bins[i] + (m_Pt_Bins[i+1]-m_Pt_Bins[i])*(1.0-gsl_rng_uniform(RandomGenerator()));
             break;
           }
         }
 
-      } else if (!std::isnan(_p_min) && !std::isnan(_p_max) && !std::isnan(_p_gaus_width))
+      } else if (!std::isnan(m_P_Min) && !std::isnan(m_P_Max) && !std::isnan(m_P_GausWidth))
       {
-        pt = ((_p_max - _p_min) * gsl_rng_uniform_pos(RandomGenerator) + _p_min + gsl_ran_gaussian(RandomGenerator, _p_gaus_width)) / cosh(eta);
+        pt = ((m_P_Max - m_P_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_P_Min + gsl_ran_gaussian(RandomGenerator(), m_P_GausWidth)) / cosh(eta);
       }
-      else if (!std::isnan(_pt_min) && !std::isnan(_pt_max) && !std::isnan(_pt_gaus_width))
+      else if (!std::isnan(m_Pt_Min) && !std::isnan(m_Pt_Max) && !std::isnan(m_Pt_GausWidth))
       {
-        pt = (_pt_max - _pt_min) * gsl_rng_uniform_pos(RandomGenerator) + _pt_min + gsl_ran_gaussian(RandomGenerator, _pt_gaus_width);
+        pt = (m_Pt_Max - m_Pt_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_Pt_Min + gsl_ran_gaussian(RandomGenerator(), m_Pt_GausWidth);
       }
       else
       {
-        cout << PHWHERE << "Error: neither a p range or pt range was specified" << endl;
+        std::cout << PHWHERE << "Error: neither a p range or pt range was specified" << std::endl;
         exit(-1);
       }
 
@@ -417,15 +430,15 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
       particle->set_pz(pz);
       particle->set_e(e);
 
-      _ineve->AddParticle(vtxindex, particle);
-      if (embedflag != 0) _ineve->AddEmbeddedParticle(particle, embedflag);
+      m_InEvent->AddParticle(vtxindex, particle);
+      if (EmbedFlag() != 0) m_InEvent->AddEmbeddedParticle(particle, EmbedFlag());
     }
   }
 
   if (Verbosity() > 0)
   {
-    _ineve->identify();
-    cout << "======================================================================================" << endl;
+    m_InEvent->identify();
+    std::cout << "======================================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -437,11 +450,17 @@ PHG4SimpleEventGenerator::smearvtx(const double position, const double width, FU
   double res = position;
   if (dist == Uniform)
   {
-    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * width;
+    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator()) * width;
   }
   else if (dist == Gaus)
   {
-    res = position + gsl_ran_gaussian(RandomGenerator, width);
+    res = position + gsl_ran_gaussian(RandomGenerator(), width);
+  }
+  else
+  {
+    std::cout << __PRETTY_FUNCTION__ << " invalid distribution function " << dist
+              << " (" << m_FunctionNames.find(dist)->second << ")" << std::endl;
+    gSystem->Exit(1);
   }
   return res;
 }

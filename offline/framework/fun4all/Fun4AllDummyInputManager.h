@@ -7,7 +7,7 @@
 
 #include "Fun4AllReturnCodes.h"
 
-#include <string>                 // for string
+#include <string>  // for string
 
 class Fun4AllSyncManager;
 class SyncObject;
@@ -17,7 +17,7 @@ class Fun4AllDummyInputManager : public Fun4AllInputManager
  public:
   Fun4AllDummyInputManager(const std::string& name = "DUMMY", const std::string& nodename = "DST");
   virtual ~Fun4AllDummyInputManager() {}
-  int fileopen(const std::string&) {return 0;}
+  int fileopen(const std::string&) { return 0; }
   int fileclose() { return 0; }
   int IsOpen() const { return 1; }
   int run(const int /*nevents=0*/);
@@ -25,8 +25,8 @@ class Fun4AllDummyInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject* /*mastersync*/) { return Fun4AllReturnCodes::SYNC_OK; }
   void setSyncManager(Fun4AllSyncManager* master);
   int PushBackEvents(const int nevt);
-  int NoSyncPushBackEvents(const int nevt) {return PushBackEvents(nevt);}
-  int ResetFileList(); 
+  int NoSyncPushBackEvents(const int nevt) { return PushBackEvents(nevt); }
+  int ResetFileList();
 
  private:
   int m_NumEvents = 0;

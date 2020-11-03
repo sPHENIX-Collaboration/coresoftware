@@ -55,6 +55,7 @@ pkginclude_HEADERS = \
   PHSiliconTpcTrackMatching.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
+  PHTpcResiduals.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -109,7 +110,8 @@ ACTS_SOURCES = \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
   PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc
+  PHActsVertexFitter.cc \
+  PHTpcResiduals.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \

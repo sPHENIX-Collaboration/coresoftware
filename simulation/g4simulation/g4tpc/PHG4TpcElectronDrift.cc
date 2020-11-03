@@ -3,6 +3,7 @@
 
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcPadPlane.h"                            // for PHG4TpcPadPlane
+#include "DistortedTrackContainer.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -66,9 +67,9 @@ namespace
 
 
 //_____________________________________________________________________
-void PHG4TpcElectronDrift::Container::Reset()
+void PHG4TpcElectronDrift::DistortedTrackListClear()
 {
-  _distortions.clear();
+  m_container->clearDistortions();
 }
 
 //_____________________________________________________________
@@ -177,7 +178,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(evalNode);
     }
 
-    auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
+    //auto newNode = new PHIODataNode<PHObject>( new Container, "PHG4TpcElectronDrift::Container","PHObject");
+    auto newNode = new PHIODataNode<PHObject>( new DistortedTrackContainer, "DistortedTrackContainer","PHObject");
     evalNode->addNode(newNode);
   }
 
@@ -293,7 +295,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int print_layer = 18;
 
   // container for local evaluations
-  m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
+  //m_container = findNode::getClass<Container>(topNode, "PHG4TpcElectronDrift::Container");
+  m_container = findNode::getClass<DistortedTrackContainer>(topNode, "DistortedTrackContainer");
   if( m_container ) m_container->Reset();
 
   // g4hits
@@ -413,7 +416,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         distortion._dz = z_final - z_start;
         m_container->addDistortion( distortion );
       }
-
     } else {
       x_final = x_start + rantrans * cos(ranphi);
       y_final = y_start + rantrans * sin(ranphi);

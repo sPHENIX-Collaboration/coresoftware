@@ -22,6 +22,7 @@ class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class DistortedTrackContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -33,24 +34,25 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
+  /*
   class DistortionStruct
   {
-    
+
     public:
     using List = std::vector<DistortionStruct>;
-    
+
     /// constructor
     DistortionStruct() = default;
-    
+
     float _r = 0;
     float _phi = 0;
     float _z = 0;
-    
+
     float _dr = 0;
     float _dphi = 0;
     float _dz = 0;
   };
- 
+
   /// track container
   class Container: public PHObject
   {
@@ -72,7 +74,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
     /// distrotions
     const DistortionStruct::List& distortions() const
     { return _distortions; }
-    
+
     /// add distortion
     void addDistortion( const DistortionStruct& distortion )
     { _distortions.push_back( distortion ); }
@@ -85,28 +87,29 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
     ClassDef(Container,1)
 
   };
-  
+  */
+
   void SetDefaultParameters();
 
   //! detector name
-  void Detector(const std::string &d) 
+  void Detector(const std::string &d)
   { detector = d; }
 
   //! detector name
-  std::string Detector() const 
+  std::string Detector() const
   { return detector; }
-  
+
   //! random seed
   void set_seed(const unsigned int iseed);
-  
+
   //! space charge distortions
   void set_enable_distortions( bool value )
   { m_enable_distortions = value; }
-  
+
   //! distortion filename
   void set_distortion_filename( const std::string& value )
   { m_distortion_filename = value; }
-  
+
   enum CoordMask
   {
     COORD_PHI = 1<<0,
@@ -122,7 +125,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-  
+
+  void DistortedTrackListClear();
+
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
@@ -132,7 +137,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
   //! evaluation node
-  Container* m_container = nullptr;
+  DistortedTrackContainer* m_container = nullptr;
 
   //! space charge distortion file name
   bool m_enable_distortions = false;
@@ -145,7 +150,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH3 *hDPint = nullptr;
   TH3 *hDZint = nullptr;
   //@}
-  
+
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
   TFile *m_outf = nullptr;
@@ -156,6 +161,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
+
   double diffusion_trans = NAN;
   double added_smear_sigma_trans = NAN;
   double diffusion_long = NAN;
@@ -179,7 +185,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
     void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
   };
   std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
-  
+
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H
