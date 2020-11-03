@@ -277,6 +277,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto stopTime = high_resolution_clock::now();
     auto fitTime = duration_cast<microseconds>(stopTime - startTime);
  
+    if(Verbosity() > 0)
+      std::cout << "PHActsTrkFitter Acts fit time "
+		<< fitTime.count() / 1000.
+		<< std::endl;
+
     /// Check that the track fit result did not return an error
     if (result.ok())
     {  
@@ -398,6 +403,10 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   auto updateTime = duration_cast<microseconds>
     (stopUpdateTime - startUpdateTime);
   
+  if(Verbosity() > 0)
+    std::cout << "PHActsTrkFitter update SvtxTrack time "
+	      << updateTime.count() / 1000. << std::endl;
+
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime.count() / 1000.);
   
