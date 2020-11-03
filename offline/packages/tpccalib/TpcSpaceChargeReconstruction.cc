@@ -12,7 +12,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <TFile.h>
-#include <TGraphErrors.h>
+#include <TH3.h>
 
 #include <memory>
 
@@ -26,13 +26,23 @@ namespace
   template< class T>
     T delta_phi( const T& phi )
   {
-    if( phi > M_PI ) return phi - 2*M_PI;
-    else if( phi <= -M_PI ) return phi + 2*M_PI;
+    if( phi >= M_PI ) return phi - 2*M_PI;
+    else if( phi < -M_PI ) return phi + 2*M_PI;
     else return phi;
   }
 
   /// radius
   template<class T> T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
+
+  /// return number of clusters of a given type that belong to a tracks
+  template<int type>
+    int get_clusters( SvtxTrack* track )
+  {
+    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
+      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
+  }
+
+
 }
 
 //_____________________________________________________________________
@@ -41,19 +51,12 @@ TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& n
 {}
 
 //_____________________________________________________________________
-void TpcSpaceChargeReconstruction::set_tpc_layers( unsigned int first_layer, unsigned int n_layers )
+void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, int zbins )
 {
-  m_firstlayer_tpc = first_layer;
-  m_nlayers_tpc = n_layers;
-}
-
-//_____________________________________________________________________
-void TpcSpaceChargeReconstruction::set_grid_dimensions( int zbins, int rbins, int phibins )
-{
-  m_zbins = zbins;
-  m_rbins = rbins;
   m_phibins = phibins;
-  m_totalbins = zbins*rbins*phibins;
+  m_rbins = rbins;
+  m_zbins = zbins;
+  m_totalbins = phibins*rbins*zbins;
 }
 
 //_____________________________________________________________________
@@ -63,18 +66,27 @@ void TpcSpaceChargeReconstruction::set_outputfile( const std::string& filename )
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
 {
-
   // resize vectors
   m_lhs = std::vector<matrix_t>( m_totalbins, matrix_t::Zero() );
   m_rhs = std::vector<column_t>( m_totalbins, column_t::Zero() );
   m_cluster_count = std::vector<int>( m_totalbins, 0 );
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
-{ return Fun4AllReturnCodes::EVENT_OK; }
+{
+  std::cout
+    << "TpcSpaceChargeReconstruction::InitRun\n"
+    << " m_outputfile: " << m_outputfile << "\n"
+    << " m_use_micromegas: " << std::boolalpha <<  m_use_micromegas << "\n"
+    << " m_phibins: " << m_phibins << "\n"
+    << " m_rbins: " << m_rbins << "\n"
+    << " m_zbins: " << m_zbins << "\n"
+    << " m_totalbins: " << m_totalbins << "\n"
+    << std::endl;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
@@ -108,9 +120,24 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 void TpcSpaceChargeReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
-
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { process_track( iter->second ); }
+  { if( accept_track( iter->second ) ) process_track( iter->second ); }
+}
+
+//_____________________________________________________________________
+bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
+{
+  // ignore tracks whose transverse momentum is too small
+  const auto pt = std::sqrt( square( track->get_px() ) + square( track->get_py() ) );
+  if( pt < 0.5 ) return false;
+
+  // ignore tracks with too few mvtx, intt and micromegas hits
+  if( get_clusters<TrkrDefs::mvtxId>(track) < 2 ) return false;
+  if( get_clusters<TrkrDefs::inttId>(track) < 2 ) return false;
+  if( m_use_micromegas && get_clusters<TrkrDefs::micromegasId>(track) < 2 ) return false;
+
+  // all tests passed
+  return true;
 }
 
 //_____________________________________________________________________
@@ -132,9 +159,9 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       continue;
     }
 
-    // should make sure that cluster belongs to TPC
-    const auto layer = TrkrDefs::getLayer(cluster_key);
-    if( layer < m_firstlayer_tpc || layer >= m_firstlayer_tpc + m_nlayers_tpc ) continue;
+    // make sure
+    const auto detId = TrkrDefs::getTrkrId(cluster_key);
+    if(detId != TrkrDefs::tpcId) continue;
 
     // cluster r, phi and z
     const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
@@ -170,6 +197,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto state = state_iter->second;
 
     // track errors
+    #if 0
     const auto track_rphi_error = state->get_rphi_error();
     const auto track_z_error = state->get_z_error();
 
@@ -177,6 +205,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // warning: smaller errors are probably needed when including outer tracker
     if( track_rphi_error < 0.015 ) continue;
     if( track_z_error < 0.1 ) continue;
+    #endif
 
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
@@ -193,16 +222,25 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_phi = std::atan2( track_y, track_x );
 
     // get residual errors squared
-    const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
-    const auto ez = square(track_z_error) + square(cluster_z_error);
+    // for now we only consider the error on the cluster. Not on the track
+    //     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
+    //     const auto ez = square(track_z_error) + square(cluster_z_error);
+    const auto erp = square(cluster_rphi_error);
+    const auto ez = square(cluster_z_error);
 
     // sanity check
+    // TODO: check whether this happens and fix upstream
     if( std::isnan( erp ) ) continue;
     if( std::isnan( ez ) ) continue;
 
     // get residuals
     const auto drp = cluster_r*delta_phi( track_phi - cluster_phi );
     const auto dz = track_z - cluster_z;
+
+    // sanity checks
+    // TODO: check whether this happens and fix upstream
+    if( std::isnan(drp) ) continue;
+    if( std::isnan(dz) ) continue;
 
     // get track angles
     const auto cosphi( std::cos( track_phi ) );
@@ -213,15 +251,24 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto talpha = -track_pphi/track_pr;
     const auto tbeta = -track_pz/track_pr;
 
+    // sanity check
+    // TODO: check whether this happens and fix upstream
+    if( std::isnan(talpha) ) continue;
+    if( std::isnan(tbeta) ) continue;
+
     // check against limits
-    // TODO: make this configurable
     static constexpr float max_talpha = 0.6;
-    static constexpr float max_residual = 5;
+    static constexpr float max_residual_drphi = 0.5;
     if( std::abs( talpha ) > max_talpha ) continue;
-    if( std::abs( drp ) > max_residual ) continue;
+    if( std::abs( drp ) > max_residual_drphi ) continue;
+
+    static constexpr float max_tbeta = 1.5;
+    static constexpr float max_residual_dz = 0.5;
+    if( std::abs( tbeta ) > max_tbeta ) continue;
+    if( std::abs( dz ) > max_residual_dz ) continue;
 
     // get cell
-    const auto i = get_cell( cluster_key, cluster );
+    const auto i = get_cell( cluster );
 
     if( i < 0 || i >= m_totalbins ) continue;
 
@@ -248,54 +295,61 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-void  TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
+void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
 {
 
-  // get tpc geometry
-  auto *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geom_container)
+  // create output histograms
+  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+
+  // set axis labels
+  for( auto h:{ hentries, hphi, hz, hr } )
   {
-    std::cout << PHWHERE << " can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-    return;
+    h->GetXaxis()->SetTitle( "#phi (rad)" );
+    h->GetYaxis()->SetTitle( "r (cm)" );
+    h->GetZaxis()->SetTitle( "z (cm)" );
   }
 
-  // calculate distortions in each volume elements
-  std::vector<column_t> delta(m_totalbins);
-  std::vector<matrix_t> cov(m_totalbins);
-
-  for( int i = 0; i < m_totalbins; ++i )
-  {
-    cov[i] = m_lhs[i].inverse();
-    delta[i] = m_lhs[i].partialPivLu().solve( m_rhs[i] );
-  }
-
-  // create tgraphs
-  using TGraphPointer = std::unique_ptr<TGraphErrors>;
-  std::vector<TGraphPointer> tg( m_zbins*m_phibins*m_ncoord );
-
-  for( int iz = 0; iz < m_zbins; ++iz )
-    for( int iphi = 0; iphi < m_phibins; ++iphi )
-    for( int icoord = 0; icoord < m_ncoord; ++icoord )
-  {
-
-    const int tgindex = iz + m_zbins*( iphi + m_phibins*icoord );
-    tg[tgindex].reset( new TGraphErrors() );
-    tg[tgindex]->SetName( Form( "tg_%i_%i_%i", iz, iphi, icoord ) );
-
+  // loop over bins
+  for( int iphi = 0; iphi < m_phibins; ++iphi )
     for( int ir = 0; ir < m_rbins; ++ir )
+    for( int iz = 0; iz < m_zbins; ++iz )
+  {
+
+    const auto icell = get_cell( iphi, ir, iz );
+
+    // minimum number of entries per bin
+    static constexpr int min_cluster_count = 10;
+    if( m_cluster_count[icell] < min_cluster_count ) continue;
+
+    // calculate result using linear solving
+    const auto cov = m_lhs[icell].inverse();
+    const auto result = m_lhs[icell].partialPivLu().solve( m_rhs[icell] );
+
+    // fill histograms
+    hentries->SetBinContent( iphi+1, ir+1, iz+1, m_cluster_count[icell] );
+
+    hphi->SetBinContent( iphi+1, ir+1, iz+1, result(0) );
+    hphi->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(0,0) ) );
+
+    hz->SetBinContent( iphi+1, ir+1, iz+1, result(1) );
+    hz->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(1,1) ) );
+
+    hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
+    hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
+
+    if (Verbosity())
     {
-
-      // get layers corresponding to bins
-      const int inner_layer = m_firstlayer_tpc + m_nlayers_tpc*ir/m_rbins;
-      const int outer_layer = m_firstlayer_tpc + m_nlayers_tpc*(ir+1)/m_rbins-1;
-
-      const auto inner_radius = geom_container->GetLayerCellGeom(inner_layer)->get_radius();
-      const auto outer_radius = geom_container->GetLayerCellGeom(outer_layer)->get_radius();
-      const float r = (inner_radius+outer_radius)/2;
-
-      int index = get_cell( iz, ir, iphi );
-      tg[tgindex]->SetPoint( ir, r, delta[index](icoord,0) );
-      tg[tgindex]->SetPointError( ir, 0, std::sqrt(cov[index](icoord,icoord)) );
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - entries: " << m_cluster_count[icell] << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - lhs: " << m_lhs[icell] << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - rhs: " << m_rhs[icell] << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - drphi: " << result(0) << " +/- " << std::sqrt( cov(0,0) ) << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - dz: " << result(1) << " +/- " << std::sqrt( cov(1,1) ) << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - dr: " << result(2) << " +/- " << std::sqrt( cov(2,2) ) << std::endl;
+      std::cout << std::endl;
     }
   }
 
@@ -303,38 +357,48 @@ void  TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topN
   {
     std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
     outputfile->cd();
-    for( auto&& value:tg ) { value->Write(); }
+    for( TObject* value:{ hentries, hphi, hz, hr } ) { value->Write(); }
     outputfile->Close();
   }
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::get_cell( int iz, int ir, int iphi ) const
+int TpcSpaceChargeReconstruction::get_cell( int iphi, int ir, int iz ) const
 {
-  if( ir < 0 || ir >= m_rbins ) return -1;
   if( iphi < 0 || iphi >= m_phibins ) return -1;
+  if( ir < 0 || ir >= m_rbins ) return -1;
   if( iz < 0 || iz >= m_zbins ) return -1;
   return iz + m_zbins*( ir + m_rbins*iphi );
 }
 
-//_____________________________________________________________________
-int TpcSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
+//_________________________________________________________________________
+int TpcSpaceChargeReconstruction::get_cell( float phi, float r, float z ) const
 {
-  // radius
-  const auto layer = TrkrDefs::getLayer(cluster_key);
-  const int ir = m_rbins*(layer - m_firstlayer_tpc)/m_nlayers_tpc;
 
-  // azimuth
-  auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
-  if( cluster_phi >= M_PI ) cluster_phi -= 2*M_PI;
-  const int iphi = m_phibins*(cluster_phi + M_PI)/(2.*M_PI);
+  // phi
+  // bound check
+  while( phi < m_phimin ) phi += 2.*M_PI;
+  while( phi >= m_phimax ) phi -= 2.*M_PI;
+  int iphi = m_phibins*(phi-m_phimin)/(m_phimax-m_phimin);
+
+  // radius
+  if( r < m_rmin || r >= m_rmax ) return -1;
+  int ir = m_rbins*(r-m_rmin)/(m_rmax-m_rmin);
 
   // z
-  // TODO: get TPC dimension from recoconst ?
-  const auto cluster_z = cluster->getZ();
-  static constexpr float z_min = -212/2;
-  static constexpr float z_max = 212/2;
-  const int iz = m_zbins*(cluster_z-z_min)/(z_max-z_min);
+  if( z < m_zmin || z >= m_zmax ) return -1;
+  int iz = m_zbins*(z-m_zmin)/(m_zmax-m_zmin);
 
-  return get_cell( iz, ir, iphi );
+  return get_cell( iphi, ir, iz );
+}
+
+
+//_____________________________________________________________________
+int TpcSpaceChargeReconstruction::get_cell( TrkrCluster* cluster ) const
+{
+  // get cluster radial coordinates
+  const auto phi = std::atan2( cluster->getY(), cluster->getX() );
+  const auto r = get_r( cluster->getX(), cluster->getY() );
+  const auto z = cluster->getZ();
+  return get_cell( phi, r, z );
 }
