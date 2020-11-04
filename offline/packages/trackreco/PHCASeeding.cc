@@ -452,7 +452,7 @@ vector<coordKey> PHCASeeding::fromPointKey(vector<pointKey> p)
 
 int PHCASeeding::Process(PHCompositeNode *topNode)
 {
-  TFile fpara("CA_para.root", "RECREATE");
+//  TFile fpara("CA_para.root", "RECREATE");
   TNtuple *NT = new TNtuple("NT", "NT", "pt:dpt:z:dz:phi:dphi:c:dc:nhit");
   _vertex = _vertex_map->get(0);
 
@@ -470,10 +470,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   t_seed->stop();
   if(Verbosity()>0) cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
-  fpara.cd();
-  NT->Write();
-  fpara.Close();
-  if(Verbosity()>0) cout << "fpara OK\n";
+//  fpara.cd();
+//  NT->Write();
+//  fpara.Close();
+//  if(Verbosity()>0) cout << "fpara OK\n";
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1073,7 +1073,7 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     float track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bz;
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
-    NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
+//    NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
     SvtxTrack_v1 track;
     track.set_id(nseeds);
     for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
