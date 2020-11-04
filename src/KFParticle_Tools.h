@@ -123,6 +123,10 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID );
 
   std::vector<std::vector<std::string>> findUniqueDaughterCombinations( int start, int end );
+
+  Double_t calculateEllipsoidRadius( int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij );
+  
+  Float_t calculateEllipsoidVolume( KFParticle particle );
  
  protected:
  
@@ -163,6 +167,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
  private:
  
+  void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);

@@ -15,6 +15,7 @@
 #include <TTree.h>
 #include "KFParticle.h"
 #include "KFPVertex.h"
+#include "KFVertex.h"
 #include <KFParticle_Tools.h>
 
 std::map<std::string, int> Use = 
@@ -87,9 +88,10 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch( TString(mother_name) + "_rapidity",       &m_calculated_mother_rapidity,        TString(mother_name) + "_rapidity/F" );
   m_tree->Branch( TString(mother_name) + "_theta",          &m_calculated_mother_theta,           TString(mother_name) + "_theta/F" );
   m_tree->Branch( TString(mother_name) + "_phi",            &m_calculated_mother_phi,             TString(mother_name) + "_phi/F" );
+  m_tree->Branch( TString(mother_name) + "_vertex_volume",  &m_calculated_mother_v,               TString(mother_name) + "_vertex_volume/F" );
   m_tree->Branch( TString(mother_name) + "_chi2",           &m_calculated_mother_chi2,            TString(mother_name) + "_chi2/F" );
   m_tree->Branch( TString(mother_name) + "_nDoF",           &m_calculated_mother_ndof,            TString(mother_name) + "_nDoF/I" );
-  //m_tree->Branch( TString(mother_name) + "_Covariance",      m_calculated_mother_cov,          TString(mother_name) + "_Covariance[21]/F", 21 );
+  m_tree->Branch( TString(mother_name) + "_Covariance",     &m_calculated_mother_cov,             TString(mother_name) + "_Covariance[21]/F", 21 );
 
   if ( m_has_intermediates_nTuple )
   {
@@ -128,9 +130,10 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch( TString(intermediate_name) + "_rapidity",       &m_calculated_intermediate_rapidity[i],        TString(intermediate_name) + "_rapidity/F" );
       m_tree->Branch( TString(intermediate_name) + "_theta",          &m_calculated_intermediate_theta[i],           TString(intermediate_name) + "_theta/F" );
       m_tree->Branch( TString(intermediate_name) + "_phi",            &m_calculated_intermediate_phi[i],             TString(intermediate_name) + "_phi/F" );
+      m_tree->Branch( TString(intermediate_name) + "_vertex_volume",  &m_calculated_intermediate_v[i],               TString(intermediate_name) + "_vertex_volume/F" );
       m_tree->Branch( TString(intermediate_name) + "_chi2",           &m_calculated_intermediate_chi2[i],            TString(intermediate_name) + "_chi2/F" );
       m_tree->Branch( TString(intermediate_name) + "_nDoF",           &m_calculated_intermediate_ndof[i],            TString(intermediate_name) + "_nDoF/I" );
-      //m_tree->Branch( TString(intermediate_name) + "_Covariance",      m_calculated_intermediate_cov[i],      TString(intermediate_name) + "_Covariance[21]/F", 21 );     
+      m_tree->Branch( TString(intermediate_name) + "_Covariance",     &m_calculated_intermediate_cov[i],             TString(intermediate_name) + "_Covariance[21]/F", 21 );     
     }
   }
 
@@ -159,7 +162,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch( TString(daughter_number) + "_chi2",           &m_calculated_daughter_chi2[i],     TString(daughter_number) + "_chi2/F" );
     m_tree->Branch( TString(daughter_number) + "_nDoF",           &m_calculated_daughter_ndof[i],     TString(daughter_number) + "_nDoF/I" );
     m_tree->Branch( TString(daughter_number) + "_trackID",        &m_calculated_daughter_trid[i],     TString(daughter_number) + "_trackID/I" );
-    //m_tree->Branch( TString(daughter_number) + "_Covariance",      m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
+    m_tree->Branch( TString(daughter_number) + "_Covariance",     &m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
     if ( m_truth_matching ) initializeTruthBranches( i ); 
     if ( m_detector_info )  initializeDetectorBranches( i );
@@ -180,10 +183,14 @@ void KFParticle_nTuple::initializeBranches()
     }
   }
   
-  m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,   "primary_vertex_x/F" );
-  m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,   "primary_vertex_y/F" );
-  m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,   "primary_vertex_z/F" );
+  m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,    "primary_vertex_x/F" );
+  m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,    "primary_vertex_y/F" );
+  m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,    "primary_vertex_z/F" );
+  m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,    "primary_vertex_volume/F" );
+  m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
+  m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/F");
   //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
+  m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
 
   m_tree->Branch( "nPrimaryVertices", &m_nPVs,         "nPrimaryVertices/I" );
   m_tree->Branch( "nEventTracks",     &m_multiplicity, "nEventTracks/I" );
@@ -223,10 +230,12 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_calculated_mother_rapidity     = motherParticle.GetRapidity();
   m_calculated_mother_theta        = motherParticle.GetTheta();
   m_calculated_mother_phi          = motherParticle.GetPhi();
+  m_calculated_mother_v            = kfpTupleTools.calculateEllipsoidVolume( motherParticle );
   m_calculated_mother_chi2         = motherParticle.GetChi2();
   m_calculated_mother_ndof         = motherParticle.GetNDF();
   //m_calculated_mother_cov          = &motherParticle.CovarianceMatrix()[0];
-  
+  for (int j = 0; j < 21; ++j) m_calculated_mother_cov[j] = motherParticle.GetCovariance(j);
+ 
   motherParticle.GetMass( m_calculated_mother_mass, m_calculated_mother_mass_err);
   motherParticle.SetProductionVertex( vertex );
   motherParticle.GetLifeTime( m_calculated_mother_decaytime, m_calculated_mother_decaytime_err );
@@ -257,9 +266,11 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_intermediate_rapidity[i]     = intermediateArray[i].GetRapidity();
       m_calculated_intermediate_theta[i]        = intermediateArray[i].GetTheta();
       m_calculated_intermediate_phi[i]          = intermediateArray[i].GetPhi();
+      m_calculated_intermediate_v[i]            = kfpTupleTools.calculateEllipsoidVolume( intermediateArray[i] );
       m_calculated_intermediate_chi2[i]         = intermediateArray[i].GetChi2();
       m_calculated_intermediate_ndof[i]         = intermediateArray[i].GetNDF();
       //m_calculated_intermediate_cov[i]          = &intermediateArray[i].CovarianceMatrix()[0];
+      for (int j = 0; j < 21; ++j) m_calculated_intermediate_cov[i][j] = intermediateArray[i].GetCovariance(j);
       
       intermediateArray[i].GetMass( m_calculated_intermediate_mass[i], m_calculated_intermediate_mass_err[i]);
       intermediateArray[i].SetProductionVertex( motherParticle );
@@ -308,6 +319,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_daughter_ndof[i]         = daughterArray[i].GetNDF();
       m_calculated_daughter_trid[i]         = daughterArray[i].Id(); 
       //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
+      for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
       if ( m_truth_matching ) fillTruthBranch( topNode, daughterArray[i], i ); 
       if ( m_detector_info )  fillDetectorBranch(topNode, daughterArray[i], i );
@@ -321,7 +333,11 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_calculated_vertex_x            = vertex.GetX();
   m_calculated_vertex_y            = vertex.GetY();
   m_calculated_vertex_z            = vertex.GetZ();
+  m_calculated_vertex_v            = kfpTupleTools.calculateEllipsoidVolume( vertex );
+  m_calculated_vertex_chi2         = vertex.GetChi2();
+  m_calculated_vertex_ndof         = vertex.GetNDF();
   //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
+  for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
 
   m_nPVs         = nPVs;
   m_multiplicity = multiplicity;

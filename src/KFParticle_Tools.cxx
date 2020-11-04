@@ -352,10 +352,10 @@ KFPVertex KFParticle_Tools::makeVertex( PHCompositeNode *topNode )
                       m_dst_vertex->get_z() );
 
    kfp_vertex.SetCovarianceMatrix( m_dst_vertex->get_error( 0,0 ),
-                                   0,//m_dst_vertex->get_error( 1,0 ),
+                                   m_dst_vertex->get_error( 1,0 ),
                                    m_dst_vertex->get_error( 1,1 ),
-                                   0,//m_dst_vertex->get_error( 2,0 ),
-                                   0,//m_dst_vertex->get_error( 2,1 ),
+                                   m_dst_vertex->get_error( 2,0 ),
+                                   m_dst_vertex->get_error( 2,1 ),
                                    m_dst_vertex->get_error( 2,2 ) );
 
    kfp_vertex.SetNDF( m_dst_vertex->get_ndof() );
@@ -363,7 +363,6 @@ KFPVertex KFParticle_Tools::makeVertex( PHCompositeNode *topNode )
    kfp_vertex.SetChi2( m_dst_vertex->get_chisq() );
 
    return kfp_vertex;
-
 }
 
 
@@ -377,7 +376,7 @@ std::vector<KFPVertex> KFParticle_Tools::makeAllPrimaryVertices( PHCompositeNode
     m_dst_vertex = iter->second;
     primaryVertices.push_back( makeVertex( topNode ) );
   }
-  
+ 
   return primaryVertices;
 }
 
@@ -395,7 +394,7 @@ KFParticle KFParticle_Tools::makeParticle( PHCompositeNode *topNode ) ///Return 
   unsigned int iterate = 0;
   for (unsigned int i = 0; i < 6; ++i) 
     for (unsigned int j = 0; j <= i; ++j) 
-      { f_trackCovariance[iterate] = m_dst_track->get_error( i,j ); if (i != j) f_trackCovariance[iterate] = 0; ++iterate;}
+      { f_trackCovariance[iterate] = m_dst_track->get_error( i,j );  ++iterate;}
 
   KFParticle kfp_particle;
   kfp_particle.Create( f_trackParameters, f_trackCovariance, (Int_t) m_dst_track->get_charge(), -1);
@@ -468,7 +467,6 @@ std::vector<int> KFParticle_Tools::findAllGoodTracks( std::vector<KFParticle> da
 std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs( std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks )
 { 
   std::vector<std::vector<int>> goodTracksThatMeet;
-  KFVertex twoParticleVertex;  
 
   for ( std::vector <int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it )
   { 
@@ -478,11 +476,13 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs( std::vector<KFPar
       {
         if( daughterParticles[*i_it ].GetDistanceFromParticle( daughterParticles[*j_it ] ) < m_comb_DCA ) 
         { 
+          KFVertex twoParticleVertex;  
           twoParticleVertex += daughterParticles[*i_it ];
           twoParticleVertex += daughterParticles[*j_it ];
           float vertexchi2ndof = twoParticleVertex.GetChi2()/twoParticleVertex.GetNDF();
           std::vector<int> combination = { *i_it, *j_it };
           if ( nTracks == 2 && vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
+          else if ( nTracks == 2 && vertexchi2ndof >= m_vertex_chi2ndof ) continue;
           else goodTracksThatMeet.push_back( combination ); 
         }
       }
@@ -498,7 +498,6 @@ std::vector<std::vector<int>>  KFParticle_Tools::findNProngs( std::vector<KFPart
                                                               int nRequiredTracks, unsigned int nProngs )
 {
   unsigned int nGoodProngs = goodTracksThatMeet.size();
-  KFVertex particleVertex;
 
   for ( std::vector <int>::iterator i_it = goodTrackIndex.begin(); i_it != goodTrackIndex.end(); ++i_it )
   {
@@ -514,11 +513,11 @@ std::vector<std::vector<int>>  KFParticle_Tools::findNProngs( std::vector<KFPart
         {
           if( daughterParticles[ *i_it ].GetDistanceFromParticle( daughterParticles[ goodTracksThatMeet[ i_prongs ][ i ] ] ) > m_comb_DCA ) 
             { dcaMet = 0; }
-            //{ dcaMet *= 0; }
         }
 
         if( dcaMet )
         {
+            KFVertex particleVertex;
             particleVertex += daughterParticles[*i_it ];
             std::vector<int> combination; combination.push_back( *i_it );
             for (unsigned int i = 0; i < nProngs - 1; ++i) 
@@ -527,7 +526,8 @@ std::vector<std::vector<int>>  KFParticle_Tools::findNProngs( std::vector<KFPart
               combination.push_back( goodTracksThatMeet[ i_prongs ][ i ] );
             }
             float vertexchi2ndof = particleVertex.GetChi2()/particleVertex.GetNDF();
-            if ( (unsigned int) nRequiredTracks == nProngs &&  vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
+            if ( (unsigned int) nRequiredTracks == nProngs && vertexchi2ndof < m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
+            else if ( (unsigned int) nRequiredTracks == nProngs && vertexchi2ndof >= m_vertex_chi2ndof ) continue;
             else goodTracksThatMeet.push_back( combination );
         }
       }
@@ -739,6 +739,41 @@ std::vector<std::vector<std::string>> KFParticle_Tools::findUniqueDaughterCombin
   return uniqueCombinations;
 }
 
+Double_t KFParticle_Tools::calculateEllipsoidRadius( int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij )
+{ //Note - Only works for a 2D ellipsoid OR rotated nD ellipsoid to avoid projections
+  if (std::abs(posOrNeg) != 1)
+  {
+    printf("You have set posOrNeg to %u. This value must be  +/- 1! Exiting\n", posOrNeg);
+    return 0;
+  }
+  
+  double r_ij = std::sqrt((sigma_ii + sigma_jj)/2 + posOrNeg*(std::sqrt( std::pow(( sigma_ii - sigma_jj )/2, 2) + std::pow(sigma_ij, 2) ) ) );
+
+  return r_ij;
+}
+
+Float_t KFParticle_Tools::calculateEllipsoidVolume( KFParticle particle )
+{
+    TMatrixD cov_matrix(3,3);
+
+    for (int i = 0; i < 3; ++i)
+      for (int j = 0; j < 3; ++j)
+        cov_matrix(i,j) = particle.GetCovariance(i,j); 
+
+    float volume = (4/3) * M_PI * std::sqrt( ( std::abs( cov_matrix.Determinant() ) ) ); //The covariance matrix is error-squared 
+
+    return volume;
+}
+
+void KFParticle_Tools::removeDuplicates( std::vector<double> &v )
+{
+  auto end = v.end();
+  for ( auto it = v.begin(); it != end; ++it )
+  {
+    end = std::remove( it + 1, end, *it );
+  }
+  v.erase( end, v.end() );
+}
 
 void KFParticle_Tools::removeDuplicates( std::vector<int> &v )
 { 

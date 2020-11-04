@@ -71,9 +71,11 @@ class KFParticle_nTuple
     float m_calculated_mother_rapidity;
     float m_calculated_mother_theta;
     float m_calculated_mother_phi;
+    float m_calculated_mother_v;
     float m_calculated_mother_chi2;
     int   m_calculated_mother_ndof;
     //float *m_calculated_mother_cov;
+    float m_calculated_mother_cov[21];
 
     float m_calculated_intermediate_mass[8];
     float m_calculated_intermediate_mass_err[8];
@@ -100,9 +102,11 @@ class KFParticle_nTuple
     float m_calculated_intermediate_rapidity[8];
     float m_calculated_intermediate_theta[8];
     float m_calculated_intermediate_phi[8];
+    float m_calculated_intermediate_v[8];
     float m_calculated_intermediate_chi2[8];
     float m_calculated_intermediate_ndof[8];
     //float *m_calculated_intermediate_cov[8];
+    float m_calculated_intermediate_cov[8][21];
 
     float m_calculated_daughter_mass[20];
     float m_calculated_daughter_ip[20];
@@ -126,6 +130,7 @@ class KFParticle_nTuple
     int   m_calculated_daughter_ndof[20];
     int   m_calculated_daughter_trid[20];
     //float *m_calculated_daughter_cov[20];
+    float m_calculated_daughter_cov[20][21];
 
     float m_true_daughter_px[20];
     float m_true_daughter_py[20];
@@ -136,8 +141,12 @@ class KFParticle_nTuple
     float m_calculated_vertex_x;
     float m_calculated_vertex_y;
     float m_calculated_vertex_z;
+    float m_calculated_vertex_v;  
+    float m_calculated_vertex_chi2;
+    float m_calculated_vertex_ndof;
     //float *m_calculated_vertex_cov;
-   
+    float m_calculated_vertex_cov[6];
+ 
     int m_nPVs;
     int m_multiplicity;
 

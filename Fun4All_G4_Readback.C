@@ -49,10 +49,10 @@ int Fun4All_G4_Readback(){
   // Choose reco
   //---------------
   map<string, int> reconstructionChannel;
-  reconstructionChannel["D02K-pi+"] = 0;
+  reconstructionChannel["D02K-pi+"] = 1;
   reconstructionChannel["D02K+pi-"] = 0;
   reconstructionChannel["Bs2Jpsiphi"] = 0;
-  reconstructionChannel["Bd2D-pi+"] = 1;
+  reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
   reconstructionChannel["testSpace"] = 0;
 
@@ -91,14 +91,14 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 1e6;
+  const int nEvents = 1e3;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
   kfparticle->setMaximumTrackchi2nDOF(1.5);
-  kfparticle->setMaximumVertexchi2nDOF(5);
+  kfparticle->setMaximumVertexchi2nDOF(1);
   kfparticle->setMaximumDaughterDCA(0.03);
-  kfparticle->setFlightDistancechi2(60);
+  kfparticle->setFlightDistancechi2(80);
   kfparticle->setMinDIRA(0.8);
   kfparticle->setMotherPT(0);
 
@@ -232,14 +232,27 @@ int Fun4All_G4_Readback(){
   //testSpace
   if (reconstructionChannel["testSpace"])
   {
-      kfparticle->setMinimumMass(1.7);
-      kfparticle->setMaximumMass(2.0);
-      kfparticle->setNumberOfTracks(3);
-    
-      kfparticle->hasIntermediateStates(false);
-      daughterList[0] = make_pair("kaon", -1);
-      daughterList[1] = make_pair("pion", +1);
-      daughterList[2] = make_pair("pion", +1);
+      kfparticle->setMinimumMass(3.6);
+      kfparticle->setMaximumMass(11);
+      kfparticle->setNumberOfTracks(4);
+
+      kfparticle->hasIntermediateStates(true);
+      kfparticle->setNumberOfIntermediateStates(2);
+      kfparticle->getChargeConjugate(false);
+
+      intermediateList[0] = make_pair("D0", 0);
+      daughterList[0]     = make_pair("kaon", -1);
+      daughterList[1]     = make_pair("pion", +1);
+      intermediateMassRange[0] = make_pair(1.8, 2);
+      nIntTracks[0] = 2;
+      intPt[0] = 0;
+
+      intermediateList[1] = make_pair("D0bar", 0);
+      daughterList[2] = make_pair("kaon", +1);
+      daughterList[3] = make_pair("pion", -1);
+      intermediateMassRange[1] = make_pair(1.8, 2);
+      nIntTracks[1] = 2;
+      intPt[1] = 0;
 
       kfparticle->setOutputName("testSpace.root");
   }
