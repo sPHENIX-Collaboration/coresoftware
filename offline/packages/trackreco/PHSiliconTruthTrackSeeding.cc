@@ -366,6 +366,19 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
 int PHSiliconTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 {
+  /*
+  // If the _use_truth_clusters flag is set, the cluster map now points to the truth clusters
+  // in this module we want to use the reco silicon clusters instead, so we move the pointer
+  if(_use_truth_clusters)
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+  if (!_cluster_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  */
+
   _g4truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!_g4truth_container)
   {

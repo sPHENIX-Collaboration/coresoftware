@@ -346,17 +346,21 @@ void PHCASeeding::FillTree()
     TrkrDefs::cluskey ckey = iter->first;
     unsigned int layer = TrkrDefs::getLayer(ckey);
     if (layer < _start_layer || layer >= _end_layer) continue;
-    
-    TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
-    unsigned int nhits = std::distance(hitrange.first,hitrange.second);
-    if(nhits<_min_nhits_per_cluster) continue;
-    TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
 
+    if(!_use_truth_clusters)
+      {
+	TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
+	unsigned int nhits = std::distance(hitrange.first,hitrange.second);
+	if(nhits<_min_nhits_per_cluster) continue;
+      }
+
+    TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
     double clus_phi = vec.Phi();
     if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
     //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
     double clus_eta = vec.Eta();
     double clus_l = layer;  // _radii_all[layer];
+    if(Verbosity() > 0) std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
 
     vector<pointKey> testduplicate;
     QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);

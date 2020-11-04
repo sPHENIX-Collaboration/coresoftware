@@ -78,6 +78,7 @@ class PHActsSourceLinks : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
  
  private:
   /**
@@ -153,6 +154,7 @@ class PHActsSourceLinks : public SubsysReco
    */
 
   bool m_useVertexMeasurement = false;
+  bool _use_truth_clusters = false;
 
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap = nullptr;

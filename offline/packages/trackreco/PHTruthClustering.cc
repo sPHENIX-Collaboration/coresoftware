@@ -163,6 +163,7 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
       std::map<unsigned int, TrkrCluster* > truth_clusters =  all_truth_clusters(g4particle);
 
       // output the results
+      if(Verbosity() > 0) std::cout << " Truth cluster summary for g4particle " << g4particle->get_track_id() << " by layer: " << std::endl;
       for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
 	{
 	  unsigned int layer = it->first;
@@ -182,6 +183,8 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	  float gzsize = gclus->getSize(2,2);
 
 	  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
+	  const unsigned int trkrId = TrkrDefs::getTrkrId(ckey);
+
 	  if(Verbosity() > 0)
 	    {
 	      std::cout << PHWHERE << "  ****   truth: layer " << layer << "  truth cluster key " << ckey << " ng4hits " << ng4hits << std::endl;
@@ -189,11 +192,44 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 			<< " gphi " << gphi << " geta " << geta << " gphisize " << gphisize << " gzsize " << gzsize << endl;
 	    }
 
-	  // add the filled out cluster to the truth cluster node
-	  TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(gclus);
-	  if(iter->first != ckey)
-	    std::cout << PHWHERE << " -------  Problem:  ckey = " << ckey<< " returned key " << iter->first << std::endl;
+	  if(trkrId == TrkrDefs::tpcId)
+	    {
+	      // add the filled out cluster to the truth cluster node for the TPC (and MM's)
+	      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(gclus);
+	      if(iter->first != ckey)
+		std::cout << PHWHERE << " -------  Problem:  ckey = " << ckey<< " returned key " << iter->first << std::endl;
+	    }
 	}
+    }
+
+  // For the other subsystems, we just copy over all of the the clusters from the reco map
+
+  TrkrClusterContainer::ConstRange clusrange = _reco_cluster_map->getClusters();
+  for (TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
+  {
+    TrkrDefs::cluskey cluskey = clusiter->first;
+    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+    if(trkrid == TrkrDefs::tpcId)  continue;
+
+    // we have to make a copy of the cluster, to avoid problems later
+    TrkrCluster* cluster = (TrkrCluster*) clusiter->second->CloneMe();
+
+    unsigned int layer = TrkrDefs::getLayer(cluskey);
+    if (Verbosity() >= 3)
+    {
+      std::cout << PHWHERE <<" copying cluster in layer " << layer << " from reco clusters to truth clusters " << std::endl;;
+      cluster->identify();
+    }
+
+    TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
+    if(iter->first != cluskey)
+      std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
+ }
+
+  if(Verbosity() >=3)
+    {
+      std::cout << "Final TRKR_CLUSTER_TRUTH clusters:";
+      m_clusterlist->identify();
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -241,8 +277,8 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	{      
 	  unsigned int side = 0;
 	  if(gz > 0) side = 1;	  
-	  // need dummy sector here
-	  unsigned int sector = 0;
+	  // need accurate sector so the hitsetkey will be correct
+	  unsigned int sector = getTpcSector(gx, gy);
 	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
 	}
       else if(layer < _nlayers_maps)  // in MVTX
@@ -987,7 +1023,12 @@ float PHTruthClustering::line_circle_intersection(float x[], float y[], float z[
 
   return t;
 }
-
+unsigned int PHTruthClustering::getTpcSector(double x, double y)
+{
+  double phi = atan2(y, x);
+  unsigned int sector = (int) (12.0 * (phi + M_PI) / (2.0 * M_PI) );
+  return sector;
+}
 
 int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
 {
@@ -1036,6 +1077,12 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
+  _reco_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!_reco_cluster_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

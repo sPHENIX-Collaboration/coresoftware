@@ -18,8 +18,8 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
-//class PHG4VtxPoint;
 class TrkrCluster;
+class TrkrClusterContainer;
 
 
 #include <string>             // for string
@@ -55,10 +55,13 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   void G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
 
   float line_circle_intersection(float x[], float y[], float z[], float radius);
+  unsigned int getTpcSector(double x, double y);
 
   int iclus = 0;
 
-PHG4TruthInfoContainer *_g4truth_container{nullptr};
+  TrkrClusterContainer *_reco_cluster_map{nullptr};
+
+  PHG4TruthInfoContainer *_g4truth_container{nullptr};
 
   PHG4HitContainer* _g4hits_svtx{nullptr};
   PHG4HitContainer* _g4hits_mms{nullptr};
