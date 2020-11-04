@@ -56,7 +56,7 @@ void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, 
   m_phibins = phibins;
   m_rbins = rbins;
   m_zbins = zbins;
-  m_totalbins = phibins*rbins*zbins;
+  m_totalbins = m_phibins*m_rbins*m_zbins;
 }
 
 //_____________________________________________________________________
@@ -97,7 +97,6 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 
   process_tracks();
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 //_____________________________________________________________________
@@ -112,7 +111,10 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 {
   // get necessary nodes
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  assert(m_track_map);
+
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  assert(m_cluster_map);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -234,8 +236,8 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if( std::isnan( ez ) ) continue;
 
     // get residuals
-    const auto drp = cluster_r*delta_phi( track_phi - cluster_phi );
-    const auto dz = track_z - cluster_z;
+    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
+    const auto dz = cluster_z - track_z;
 
     // sanity checks
     // TODO: check whether this happens and fix upstream
@@ -324,9 +326,18 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
     static constexpr int min_cluster_count = 10;
     if( m_cluster_count[icell] < min_cluster_count ) continue;
 
+    if (Verbosity())
+    {
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - entries: " << m_cluster_count[icell] << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - lhs: \n" << m_lhs[icell] << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - rhs: \n" << m_rhs[icell] << std::endl;
+    }
+
     // calculate result using linear solving
     const auto cov = m_lhs[icell].inverse();
-    const auto result = m_lhs[icell].partialPivLu().solve( m_rhs[icell] );
+    auto partialLu = m_lhs[icell].partialPivLu();
+    const auto result = partialLu.solve( m_rhs[icell] );
 
     // fill histograms
     hentries->SetBinContent( iphi+1, ir+1, iz+1, m_cluster_count[icell] );
@@ -342,10 +353,6 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 
     if (Verbosity())
     {
-      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
-      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - entries: " << m_cluster_count[icell] << std::endl;
-      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - lhs: " << m_lhs[icell] << std::endl;
-      std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - rhs: " << m_rhs[icell] << std::endl;
       std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - drphi: " << result(0) << " +/- " << std::sqrt( cov(0,0) ) << std::endl;
       std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - dz: " << result(1) << " +/- " << std::sqrt( cov(1,1) ) << std::endl;
       std::cout << "TpcSpaceChargeReconstruction::calculate_distortions - dr: " << result(2) << " +/- " << std::sqrt( cov(2,2) ) << std::endl;
