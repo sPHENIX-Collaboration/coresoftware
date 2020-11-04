@@ -311,16 +311,12 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		  out.set_error(i, j, globalCov(i,j)); 
 		}
 	    }
-	  	  
-	  
-	  auto startTime = high_resolution_clock::now();
+
 	  const unsigned int hitId = state.uncalibrated().hitID();
 	  TrkrDefs::cluskey cluskey = 
 	    hitIDCluskeyMap->right.find(hitId)->first;
 	  svtxTrack->insert_cluster_key(cluskey);
-	  auto endTime = high_resolution_clock::now();
-	  auto time = duration_cast<microseconds>(endTime - startTime);
-	  std::cout << time.count() / 1000. << std::endl;
+
 	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
@@ -340,26 +336,4 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     );
 
   return;
-}
-
-TrkrDefs::cluskey ActsTransformations::getClusKey(const unsigned int hitID,
-						  std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = hitIDCluskeyMap->begin();
-  while (hitIter != hitIDCluskeyMap->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
 }

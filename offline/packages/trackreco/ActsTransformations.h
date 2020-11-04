@@ -83,10 +83,6 @@ class ActsTransformations
  private:
   int m_verbosity;
 
-  /// Get the cluster key for the corresponding hitID from the map 
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID, 
-			       std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap);
-
 
 };
 
