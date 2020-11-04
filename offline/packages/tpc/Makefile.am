@@ -21,7 +21,7 @@ pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
   TpcClusterizer.h \
-  TpcSpaceChargeCorrection_hp.h
+  TpcSpaceChargeCorrection.h
 
 ROOTDICTS = \
   TpcHit_Dict.cc
@@ -33,7 +33,7 @@ nobase_dist_pcm_DATA = \
 # sources for tpc library
 libtpc_la_SOURCES = \
   TpcClusterizer.cc \
-  TpcSpaceChargeCorrection_hp.cc
+  TpcSpaceChargeCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \

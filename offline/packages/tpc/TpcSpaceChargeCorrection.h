@@ -1,5 +1,5 @@
-#ifndef TPC_TpcSpaceChargeCorrection_hp_H
-#define G4EVAL_TRACKINGEVALUATOR_HP_H
+#ifndef TPC_TPCSPACECHARGECORRECTION_H
+#define TPC_TPCSPACECHARGECORRECTION_H
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
@@ -11,12 +11,12 @@ class TrkrClusterContainer;
 class TFile;
 class TH3;
 
-class TpcSpaceChargeCorrection_hp : public SubsysReco
+class TpcSpaceChargeCorrection : public SubsysReco
 {
   public:
 
   //! constructor
-  TpcSpaceChargeCorrection_hp(  const std::string& = "TpcSpaceChargeCorrection_hp" );
+  TpcSpaceChargeCorrection(  const std::string& = "TpcSpaceChargeCorrection" );
 
   //! global initialization
   virtual int InitRun(PHCompositeNode*);
@@ -59,9 +59,9 @@ class TpcSpaceChargeCorrection_hp : public SubsysReco
 
   //!@name space charge distortion histograms
   //@{
-  TH3 *hDRint = nullptr;
-  TH3 *hDPint = nullptr;
-  TH3 *hDZint = nullptr;
+  TH3 *m_hDRint = nullptr;
+  TH3 *m_hDPint = nullptr;
+  TH3 *m_hDZint = nullptr;
   //@}
 
   /*! \brief

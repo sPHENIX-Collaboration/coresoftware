@@ -1,4 +1,4 @@
-#include "TpcSpaceChargeCorrection_hp.h"
+#include "TpcSpaceChargeCorrection.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
@@ -19,43 +19,43 @@ namespace
 }
 
 //_____________________________________________________________________
-TpcSpaceChargeCorrection_hp::TpcSpaceChargeCorrection_hp( const std::string& name ):
+TpcSpaceChargeCorrection::TpcSpaceChargeCorrection( const std::string& name ):
   SubsysReco( name)
   {}
 
 //_____________________________________________________________________
-int TpcSpaceChargeCorrection_hp::InitRun(PHCompositeNode*)
+int TpcSpaceChargeCorrection::InitRun(PHCompositeNode*)
 {
 
-  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - reading distortions from " << m_distortion_filename << std::endl;
+  std::cout << "TpcSpaceChargeCorrection::InitRun - reading distortions from " << m_distortion_filename << std::endl;
   m_distortion_tfile = TFile::Open( m_distortion_filename.c_str());
   if( !m_distortion_tfile )
   {
-    std::cout << "TpcSpaceChargeCorrection_hp::InitRun - cannot open " << m_distortion_filename << std::endl;
+    std::cout << "TpcSpaceChargeCorrection::InitRun - cannot open " << m_distortion_filename << std::endl;
     exit(1);
   }
 
 
   // Open TH3F files only once that contain distortions due to space charge
-  hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( hDPint );
-  hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( hDRint );
-  hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( hDZint );
+  m_hDPint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionP")); assert( m_hDPint );
+  m_hDRint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionR")); assert( m_hDRint );
+  m_hDZint= dynamic_cast<TH3*>(m_distortion_tfile->Get("hIntDistortionZ")); assert( m_hDZint );
 
   // coordinates
-  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - coordinates: " << std::bitset<3>(m_coordinates) << std::endl;
+  std::cout << "TpcSpaceChargeCorrection::InitRun - coordinates: " << std::bitset<3>(m_coordinates) << std::endl;
 
-  m_fullzrange = (hDPint->GetZaxis()->GetXmin() == -hDPint->GetZaxis()->GetXmax());
-  std::cout << "TpcSpaceChargeCorrection_hp::InitRun - m_fullzrange = " << m_fullzrange << std::endl;
+  m_fullzrange = (m_hDPint->GetZaxis()->GetXmin() == -m_hDPint->GetZaxis()->GetXmax());
+  std::cout << "TpcSpaceChargeCorrection::InitRun - m_fullzrange = " << std::boolalpha << m_fullzrange << std::endl;
 
   // dump axis limits
-  for(const auto& axis:{ hDPint->GetXaxis(), hDPint->GetYaxis(), hDPint->GetZaxis() })
-  { std::cout << "TpcSpaceChargeCorrection_hp::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
+  for(const auto& axis:{ m_hDPint->GetXaxis(), m_hDPint->GetYaxis(), m_hDPint->GetZaxis() })
+  { std::cout << "TpcSpaceChargeCorrection::InitRun - axis: " << axis->GetTitle() << " bins: " << axis->GetNbins() << " limits: " << axis->GetXmin() << " " << axis->GetXmax() << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeCorrection_hp::process_event(PHCompositeNode* topNode)
+int TpcSpaceChargeCorrection::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res =  load_nodes(topNode);
@@ -66,7 +66,7 @@ int TpcSpaceChargeCorrection_hp::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeCorrection_hp::load_nodes( PHCompositeNode* topNode )
+int TpcSpaceChargeCorrection::load_nodes( PHCompositeNode* topNode )
 {
   // cluster map
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -74,7 +74,7 @@ int TpcSpaceChargeCorrection_hp::load_nodes( PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeCorrection_hp::transform_clusters()
+void TpcSpaceChargeCorrection::transform_clusters()
 {
   if( !_cluster_map ) return;
 
@@ -92,7 +92,7 @@ void TpcSpaceChargeCorrection_hp::transform_clusters()
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeCorrection_hp::transform_cluster( TrkrCluster* cluster )
+void TpcSpaceChargeCorrection::transform_cluster( TrkrCluster* cluster )
 {
   // get cluster radius, phi and z
   const auto r = std::sqrt( square( cluster->getX() ) + square( cluster->getY() ) );
@@ -103,9 +103,9 @@ void TpcSpaceChargeCorrection_hp::transform_cluster( TrkrCluster* cluster )
   const auto zmap = m_fullzrange ? z:std::abs(z);
 
   // apply corrections
-  const auto phi_new = (m_coordinates & COORD_PHI) ? phi - hDPint->Interpolate(phi,r,zmap)/r : phi;
-  const auto r_new = (m_coordinates & COORD_R) ? r - hDRint->Interpolate(phi,r,zmap) : r;
-  const auto z_new = (m_coordinates & COORD_Z) ? z - hDZint->Interpolate(phi,r,zmap) : z;
+  const auto phi_new = (m_coordinates & COORD_PHI) ? phi - m_hDPint->Interpolate(phi,r,zmap)/r : phi;
+  const auto r_new = (m_coordinates & COORD_R) ? r - m_hDRint->Interpolate(phi,r,zmap) : r;
+  const auto z_new = (m_coordinates & COORD_Z) ? z - m_hDZint->Interpolate(phi,r,zmap) : z;
 
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
