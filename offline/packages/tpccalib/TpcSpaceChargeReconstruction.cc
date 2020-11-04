@@ -42,6 +42,96 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
+  /**
+   * copy input histogram into output, with new name, while adding two "guarding bins" on
+   * each axis, with identical content and error as the first and last bin of the original histogram
+   * this is necessary for being able to call TH3->Interpolate() when using these histograms
+   * to correct for the space charge distortions.
+   * TODO: is this really necessary ? Possibly one could just use the bin content for the correction rather than using TH3->Interpolate,
+   * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
+   */
+  [[maybe_unused]] TH3* create_histogram( TH3* hin, const TString& name )
+  {
+    std::array<int, 3> bins;
+    std::array<double, 3> x_min;
+    std::array<double, 3> x_max;
+
+    int index = 0;
+    for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
+    {
+      // calculate bin width
+      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
+
+      // increase the number of bins by two
+      bins[index] = axis->GetNbins()+2;
+
+      // update axis limits accordingly
+      x_min[index] = axis->GetXmin()-bin_width;
+      x_max[index] = axis->GetXmax()+bin_width;
+      ++index;
+    }
+
+    // create new histogram
+    auto hout = new TH3F( name, name,
+      bins[0], x_min[0], x_max[0],
+      bins[1], x_min[1], x_max[1],
+      bins[2], x_min[2], x_max[2] );
+
+    // update axis legend
+    hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
+    hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
+    hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
+
+    // copy content
+    const auto phibins = hin->GetXaxis()->GetNbins();
+    const auto rbins = hin->GetYaxis()->GetNbins();
+    const auto zbins = hin->GetZaxis()->GetNbins();
+
+    // fill center
+    for( int iphi = 0; iphi < phibins; ++iphi )
+      for( int ir = 0; ir < rbins; ++ir )
+      for( int iz = 0; iz < zbins; ++iz )
+    {
+      hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
+      hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
+    }
+
+    // fill guarding phi bins
+    for( int ir = 0; ir < rbins+2; ++ir )
+      for( int iz = 0; iz < zbins+2; ++iz )
+    {
+      hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
+      hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
+
+      hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
+      hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
+    }
+
+    // fill guarding r bins
+    for( int iphi = 0; iphi < phibins+2; ++iphi )
+      for( int iz = 0; iz < zbins+2; ++iz )
+    {
+      hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
+      hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
+
+      hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
+      hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
+    }
+
+    // fill guarding z bins
+    for( int iphi = 0; iphi < phibins+2; ++iphi )
+      for( int ir = 0; ir < rbins+2; ++ir )
+    {
+      hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
+      hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
+
+      hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
+      hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
+    }
+
+    return hout;
+
+  }
 
 }
 
@@ -232,8 +322,17 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // sanity check
     // TODO: check whether this happens and fix upstream
-    if( std::isnan( erp ) ) continue;
-    if( std::isnan( ez ) ) continue;
+    if( std::isnan( erp ) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - erp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan( ez ) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - ez nan" << std::endl;
+      continue;
+    }
 
     // get residuals
     const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
@@ -241,8 +340,17 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // sanity checks
     // TODO: check whether this happens and fix upstream
-    if( std::isnan(drp) ) continue;
-    if( std::isnan(dz) ) continue;
+    if( std::isnan(drp) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(dz) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
+      continue;
+    }
 
     // get track angles
     const auto cosphi( std::cos( track_phi ) );
@@ -255,8 +363,17 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // sanity check
     // TODO: check whether this happens and fix upstream
-    if( std::isnan(talpha) ) continue;
-    if( std::isnan(tbeta) ) continue;
+    if( std::isnan(talpha) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(tbeta) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - tbeta nan" << std::endl;
+      continue;
+    }
 
     // check against limits
     static constexpr float max_talpha = 0.6;
@@ -360,13 +477,20 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
     }
   }
 
-  // save to root file
-  {
-    std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
-    outputfile->cd();
-    for( TObject* value:{ hentries, hphi, hz, hr } ) { value->Write(); }
-    outputfile->Close();
-  }
+  // save everything to root file
+  std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
+  outputfile->cd();
+
+  // save histograms
+  for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
+
+  // also create and write histograms suitable for space charge correction
+  create_histogram( hentries, "hentries" )->Write();
+  create_histogram( hphi, "hIntDistortionP" )->Write();
+  create_histogram( hr, "hIntDistortionR" )->Write();
+  create_histogram( hz, "hIntDistortionZ" )->Write();
+  outputfile->Close();
+
 }
 
 //_____________________________________________________________________
