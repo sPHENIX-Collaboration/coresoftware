@@ -185,7 +185,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     {
       const TrkrDefs::cluskey key = *clusIter;
 
-      const unsigned int hitId = m_hitIdClusKey->find(key)->second;
+      const unsigned int hitId = m_hitIdClusKey->left.find(key)->second;
 
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
@@ -306,7 +306,7 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   if (!m_hitIdClusKey)
   {

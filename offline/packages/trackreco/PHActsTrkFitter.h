@@ -24,6 +24,8 @@
 #include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
+#include <boost/bimap.hpp>
+
 #include <memory>
 #include <string>
 #include <TFile.h>
@@ -49,6 +51,9 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::eBoundLoc1>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -136,7 +141,7 @@ class PHActsTrkFitter : public PHTrackFitting
   SvtxTrackMap *m_trackMap;
 
   // map relating acts hitid's to clusterkeys
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Number of acts fits that returned an error
   int m_nBadFits;

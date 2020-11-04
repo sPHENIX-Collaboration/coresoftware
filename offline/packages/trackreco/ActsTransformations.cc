@@ -1,6 +1,9 @@
 #include "ActsTransformations.h"
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
+#include <chrono>
+using namespace std::chrono;
+
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
 				Acts::GeometryContext geoCtxt)
@@ -256,7 +259,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 					      const size_t &trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext geoContext,
-					      std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
+					      CluskeyBimap *hitIDCluskeyMap)
 {
 
  const auto &[trackTips, mj] = traj.trajectory();
@@ -309,10 +312,15 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		}
 	    }
 	  	  
-	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
-	  svtxTrack->insert_cluster_key(cluskey);
 	  
+	  auto startTime = high_resolution_clock::now();
+	  const unsigned int hitId = state.uncalibrated().hitID();
+	  TrkrDefs::cluskey cluskey = 
+	    hitIDCluskeyMap->right.find(hitId)->first;
+	  svtxTrack->insert_cluster_key(cluskey);
+	  auto endTime = high_resolution_clock::now();
+	  auto time = duration_cast<microseconds>(endTime - startTime);
+	  std::cout << time.count() / 1000. << std::endl;
 	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
