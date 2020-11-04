@@ -49,8 +49,13 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   get_phibounds(const int ibin) const;
   std::pair<double, double>
   get_etabounds(const int ibin) const;
+
   double
   get_etacenter(const int ibin) const;
+
+  double
+  get_thetacenter(const int ibin) const;
+
   double
   get_phicenter(const int ibin) const;
 
