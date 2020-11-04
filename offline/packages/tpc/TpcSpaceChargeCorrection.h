@@ -51,7 +51,7 @@ class TpcSpaceChargeCorrection : public SubsysReco
   void transform_cluster( TrkrCluster* );
 
   //! cluster container
-  TrkrClusterContainer* _cluster_map = nullptr;
+  TrkrClusterContainer* m_cluster_map = nullptr;
 
   //! space charge correction file name
   std::string m_distortion_filename;

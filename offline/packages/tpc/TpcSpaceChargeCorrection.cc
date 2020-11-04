@@ -69,16 +69,16 @@ int TpcSpaceChargeCorrection::process_event(PHCompositeNode* topNode)
 int TpcSpaceChargeCorrection::load_nodes( PHCompositeNode* topNode )
 {
   // cluster map
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
 void TpcSpaceChargeCorrection::transform_clusters()
 {
-  if( !_cluster_map ) return;
+  if( !m_cluster_map ) return;
 
-  auto range = _cluster_map->getClusters();
+  auto range = m_cluster_map->getClusters();
   for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
   {
     // check if cluster belongs to TPC
