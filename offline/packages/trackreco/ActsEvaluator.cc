@@ -783,7 +783,7 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  TrkrDefs::cluskey clusKey = m_hitIdClusKey->right.find(hitID)->first;
+  TrkrDefs::cluskey clusKey = m_hitIdClusKey->right.find(hitID)->second;
   
   std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
