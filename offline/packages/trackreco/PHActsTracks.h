@@ -66,6 +66,8 @@ class PHActsTracks : public SubsysReco
   /// Get nodes off node tree needed to execute module
   int getNodes(PHCompositeNode *topNode);
 
+  void printTrackSeed(const ActsExamples::TrackParameters seed);
+
   /**
    * Member variables
    */
