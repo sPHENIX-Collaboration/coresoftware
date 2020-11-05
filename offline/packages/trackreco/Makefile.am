@@ -46,6 +46,7 @@ pkginclude_HEADERS = \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
+  PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -110,6 +111,7 @@ ACTS_SOURCES = \
   PHActsTrkFitter.cc \
   PHActsVertexFinder.cc \
   PHActsVertexFitter.cc \
+  PHActsTrackProjection.cc \
   PHTpcResiduals.cc
 
 $OFFLINE_MAIN/share:
