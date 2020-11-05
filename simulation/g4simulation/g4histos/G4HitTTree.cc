@@ -53,7 +53,7 @@ int G4HitTTree::Init(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   G4RootHitContainer *hits = new G4RootHitContainer();
-  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(hits, _outnodename.c_str(), "PHObject");
+  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(hits, _outnodename, "PHObject");
   dstNode->addNode(node);
   evtno = 0;
   return 0;
@@ -62,8 +62,8 @@ int G4HitTTree::Init(PHCompositeNode *topNode)
 int G4HitTTree::process_event(PHCompositeNode *topNode)
 {
   evtno++;
-  G4RootHitContainer *hits = findNode::getClass<G4RootHitContainer>(topNode, _outnodename.c_str());
-  PHG4HitContainer *g4hits = findNode::getClass<PHG4HitContainer>(topNode, _hitnodename.c_str());
+  G4RootHitContainer *hits = findNode::getClass<G4RootHitContainer>(topNode, _outnodename);
+  PHG4HitContainer *g4hits = findNode::getClass<PHG4HitContainer>(topNode, _hitnodename);
   double etot = 0;
   double eion = 0;
   if (g4hits)
@@ -84,7 +84,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
     etot_hist->Fill(etot);
     eion_etot_hist->Fill(etot, eion);
   }
-  g4hits = findNode::getClass<PHG4HitContainer>(topNode, _absorbernodename.c_str());
+  g4hits = findNode::getClass<PHG4HitContainer>(topNode, _absorbernodename);
   if (g4hits)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();
@@ -100,7 +100,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
     }
   }
   double eleak = 0;
-  g4hits = findNode::getClass<PHG4HitContainer>(topNode, _blackholenodename.c_str());
+  g4hits = findNode::getClass<PHG4HitContainer>(topNode, _blackholenodename);
   if (g4hits)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();

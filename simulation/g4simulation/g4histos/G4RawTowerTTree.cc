@@ -49,7 +49,7 @@ int G4RawTowerTTree::Init(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   G4RootRawTowerContainer *towers = new G4RootRawTowerContainer();
-  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(towers, _outnodename.c_str(), "PHObject");
+  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(towers, _outnodename, "PHObject");
   dstNode->addNode(node);
   evtno = 0;
   return 0;
@@ -58,10 +58,10 @@ int G4RawTowerTTree::Init(PHCompositeNode *topNode)
 int G4RawTowerTTree::process_event(PHCompositeNode *topNode)
 {
   evtno++;
-  G4RootRawTowerContainer *towers = findNode::getClass<G4RootRawTowerContainer>(topNode, _outnodename.c_str());
-  RawTowerGeomContainer *rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, _towergeomnodename.c_str());
+  G4RootRawTowerContainer *towers = findNode::getClass<G4RootRawTowerContainer>(topNode, _outnodename);
+  RawTowerGeomContainer *rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, _towergeomnodename);
 
-  RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename.c_str());
+  RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename);
   if (!g4towers)
   {
     cout << "could not find " << _towernodename << endl;

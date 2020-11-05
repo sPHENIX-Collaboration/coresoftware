@@ -14,6 +14,8 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
+#include <boost/bimap.hpp>
+
 /// std (and the like) includes
 #include <cmath>
 #include <iostream>
@@ -27,6 +29,9 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::BoundIndices,
                                       Acts::eBoundLoc0,
                                       Acts::eBoundLoc1>;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -73,14 +78,10 @@ class ActsTransformations
 			   const size_t &trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext geoContext,
-			   std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap);
+			   CluskeyBimap *hitIDCluskeyMap);
 
  private:
   int m_verbosity;
-
-  /// Get the cluster key for the corresponding hitID from the map 
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID, 
-			       std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap);
 
 
 };
