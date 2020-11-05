@@ -776,27 +776,6 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
   return;
 }
 
-TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = m_hitIdClusKey->begin();
-  while (hitIter != m_hitIdClusKey->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
-}
-
 
 Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode, 
 						const unsigned int hitID,
@@ -804,7 +783,7 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  TrkrDefs::cluskey clusKey = getClusKey(hitID);
+  TrkrDefs::cluskey clusKey = m_hitIdClusKey->right.find(hitID)->second;
   
   std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
@@ -1105,7 +1084,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   if (!m_hitIdClusKey)
   {
