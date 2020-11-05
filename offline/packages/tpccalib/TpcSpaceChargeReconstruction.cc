@@ -50,7 +50,8 @@ namespace
    * TODO: is this really necessary ? Possibly one could just use the bin content for the correction rather than using TH3->Interpolate,
    * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
    */
-  [[maybe_unused]] TH3* create_histogram( TH3* hin, const TString& name )
+  TH3* create_histogram( TH3* hin, const TString& name ) __attribute__((unused));
+  TH3* create_histogram( TH3* hin, const TString& name )
   {
     std::array<int, 3> bins;
     std::array<double, 3> x_min;
