@@ -70,7 +70,7 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout << "Processing calo layer " 
 		  << m_caloNames.at(layer) << std::endl;
 
