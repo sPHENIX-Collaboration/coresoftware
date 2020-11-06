@@ -35,6 +35,7 @@
 
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
+  , m_actsFitResults(nullptr)
 {
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
@@ -45,11 +46,19 @@ PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   m_caloTypes.push_back(SvtxTrack::HCALOUT);
 }
 
-int PHActsTrackProjection::Init(PHCompositeNode *topNode)
+int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
 {
-  int ret = makeCaloSurfacePtrs(topNode);
- 
+  if(Verbosity() > 1)
+    std::cout << "PHActsTrackProjection begin Init" << std::endl;
 
+  int ret = makeCaloSurfacePtrs(topNode);
+
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    ret = Fun4AllReturnCodes::ABORTEVENT;
+
+  if(Verbosity() > 1)
+    std::cout << "PHActsTrackProjection finished Init" << std::endl;
+  
   return ret;
 }
 
@@ -61,11 +70,14 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
+      if(Verbosity() > 0)
+	std::cout << "Processing calo layer " 
+		  << m_caloNames.at(layer) << std::endl;
+
       int ret = projectTracks(topNode, layer);
       if(ret != Fun4AllReturnCodes::EVENT_OK)
 	return Fun4AllReturnCodes::ABORTEVENT;
     }
-
 
   if(Verbosity() > 1)
     std::cout << "PHActsTrackProjection : Finished process_event event "
@@ -76,9 +88,13 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int PHActsTrackProjection::Init(PHCompositeNode *topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int PHActsTrackProjection::End(PHCompositeNode *topNode)
 {
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -86,24 +102,18 @@ int PHActsTrackProjection::End(PHCompositeNode *topNode)
 int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode, 
 					 const int caloLayer)
 {
-  if(setCaloContainerNodes(topNode, caloLayer) 
-     != Fun4AllReturnCodes::EVENT_OK)
+  if (setCaloContainerNodes(topNode, caloLayer) 
+      != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-  
-  std::map<const unsigned int, Trajectory>::iterator trajIter;
-  for(trajIter = m_actsFitResults->begin();
-      trajIter != m_actsFitResults->end();
-      ++trajIter)
+
+  for(const auto& [trackKey, traj] : *m_actsFitResults)
     {
-      const auto trackKey = trajIter->first;
-      const auto traj = trajIter->second;
-
-      const auto &[trackTips, mj] = traj.trajectory();
-
+      const auto& [trackTips, mj] = traj.trajectory();
+ 
       /// Skip failed track fits
       if(trackTips.empty())
 	continue;
-
+ 
       for(const size_t& trackTip : trackTips)
 	{
 	  if(traj.hasTrackParameters(trackTip))
@@ -111,6 +121,7 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
 	      const auto &params = traj.trackParameters(trackTip);
 	      auto cylSurf = 
 		m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
+
 	      auto result = propagateTrack(params, cylSurf);
 
 	      if(result.ok())
@@ -119,10 +130,8 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
 		  updateSvtxTrack(trackStateParams, 
 				  trackKey, caloLayer);
 		}
-
 	    }
 	}
-
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -142,6 +151,17 @@ void PHActsTrackProjection::updateSvtxTrack(
 			     sqrt(projectionPos(0) * projectionPos(0)
 				  + projectionPos(1) * projectionPos(1)));
 
+
+  if(Verbosity() > 2)
+    {
+      double radius = sqrt(projectionPos(0) * projectionPos(0)
+			   + projectionPos(1) * projectionPos(1));
+      std::cout << "Track projection phi/eta " << projectionPhi
+		<< " and " << projectionEta << std::endl
+		<< " projection position " << projectionPos.transpose()
+		<< " and radius is " << radius << std::endl;
+	}
+
   if(fabs(projectionEta) >= 1.1)
     return;
 
@@ -152,6 +172,11 @@ void PHActsTrackProjection::updateSvtxTrack(
   double energy5x5 = 0.0;
 
   getSquareTowerEnergies(phiBin, etaBin, energy3x3, energy5x5);
+
+  if(Verbosity() > 2)
+    std::cout << "3x3/5x5 energy sums " << energy3x3 
+	      << " and " << energy5x5 << std::endl;
+
   svtxTrack->set_cal_energy_3x3(m_caloTypes.at(caloLayer),
 				energy3x3);
   svtxTrack->set_cal_energy_5x5(m_caloTypes.at(caloLayer),
@@ -175,6 +200,12 @@ void PHActsTrackProjection::updateSvtxTrack(
 				    minIndex);
       svtxTrack->set_cal_cluster_e(m_caloTypes.at(caloLayer),
 				   minE);
+      if(Verbosity() > 2)
+	std::cout << "Calo cluster has dphi " << minDphi
+		  << " and deta " << minDeta << " and clusID "
+		  << minIndex << " and energy " << minE 
+		  << std::endl;
+
     }
 
   return;
@@ -187,13 +218,10 @@ void PHActsTrackProjection::getClusterProperties(double phi,
 						 double& minDeta,
 						 double& minE)
 {
-  
   double minR = DBL_MAX;
-  
-  for( const auto& it : m_clusterContainer->getClustersMap())
+  auto clusterMap = m_clusterContainer->getClustersMap();
+  for(const auto& [key, cluster] : clusterMap)
     {
-      const RawCluster *cluster = it.second;
-
       const auto clusterEta = 
 	RawClusterUtility::GetPseudorapidity(*cluster, 
 					     CLHEP::Hep3Vector(0,0,0));
@@ -203,7 +231,7 @@ void PHActsTrackProjection::getClusterProperties(double phi,
 
       if(r < minR)
 	{
-	  minIndex = it.first;
+	  minIndex = key;
 	  minR = r;
 	  minDphi = dphi;
 	  minDeta = deta;
@@ -255,9 +283,16 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 {
   
   if(Verbosity() > 1)
-    std::cout << "Propagating silicon+MM fit params momentum: " 
+    std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
 	      << params.position(m_tGeometry->geoContext)
+	      << std::endl
+	      << "track fit phi/eta "
+	      << atan2(params.momentum()(1), 
+		       params.momentum()(0)) 
+	      << " and " 
+	      << atanh(params.momentum()(2) 
+		       / params.momentum().norm())
 	      << std::endl;
 
   return std::visit([params, targetSurf, this]
@@ -287,8 +322,8 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
    
       if(result.ok())
 	return std::move((*result).endParameters);
-      else
-	return result.error();
+     
+      return result.error();
    },
      std::move(m_tGeometry->magField));
 
@@ -328,10 +363,12 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
-      auto caloRadius = m_towerGeomContainer->get_radius();
-      auto eta = 1.1;
-      auto theta = 2. * atan( exp(-eta));
-      auto halfZ = caloRadius / tan(theta) * Acts::UnitConstants::cm;
+      const auto caloRadius = m_towerGeomContainer->get_radius() 
+	* Acts::UnitConstants::cm;
+      const auto eta = 1.1;
+      const auto theta = 2. * atan(exp(-eta));
+      const auto halfZ = caloRadius / tan(theta) 
+	* Acts::UnitConstants::cm;
       
       /// Make a cylindrical surface at (0,0,0) aligned along the z axis
       auto transform = Acts::Transform3D::Identity();
@@ -345,13 +382,24 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 					   surf));
     }
 
+  if(Verbosity() > 1)
+    {
+      for(const auto& [name, surfPtr] : m_caloSurfaces)
+	{
+	  std::cout << "Cylinder " << name << " has center "
+		    << surfPtr.get()->center(m_tGeometry->geoContext)
+		    << std::endl;
+	}
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
 
 int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
 {
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(
+			  topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
     {
       std::cout << "ActsTrackingGeometry not on node tree. Exiting."
@@ -380,12 +428,6 @@ int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int PHActsTrackProjection::createNodes(PHCompositeNode *topNode)
-{
-  
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 
 double PHActsTrackProjection::deltaPhi(const double& phi)
 {
