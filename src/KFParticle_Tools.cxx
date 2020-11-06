@@ -34,6 +34,13 @@
 #include "KFVertex.h"
 #include "KFParticleDatabase.h"
 
+#include <g4main/PHG4Particle.h>
+#include <g4eval/SvtxTrackEval.h>
+#include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
+SvtxTrackEval *trackeval_2;
+SvtxClusterEval *clustereval_2;
+
 /// Create necessary objects 
 //KFParticleDatabase kfpDatabase;
 KFParticle_particleList kfp_particleList;
@@ -166,7 +173,7 @@ void KFParticle_Tools::buildChain(std::vector<KFParticle>& selectedMother,
         KFParticle candidate;
         bool isGood = false;
 //Need to ensure all loops are run at least once or else internal code wont run
-        unsigned int c, d; c = d = 0;
+        //unsigned int c, d; c = d = 0;
         unsigned int matchIterators[4] = { a, b, c, d };
 
         int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;

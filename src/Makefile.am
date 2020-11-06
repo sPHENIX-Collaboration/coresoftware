@@ -15,6 +15,7 @@ AM_CPPFLAGS = \
   
 
 pkginclude_HEADERS = \
+  KFParticle_truthAndDetTools.h \
   KFParticle_nTuple.h \
   KFParticle_Tools.h \
   KFParticle_particleList.h \
@@ -23,6 +24,7 @@ pkginclude_HEADERS = \
 
 if ! MAKEROOT6
   ROOT5_DICTS = \
+    KFParticle_truthAndDetTools_Dict.cc \
     KFParticle_nTuple_Dict.cc \
     KFParticle_Tools_Dict.cc \
     KFParticle_particleList_Dict.cc \
@@ -32,6 +34,7 @@ endif
 
 libkfparticle_sphenix_la_SOURCES = \
   $(ROOT5_DICTS) \
+  KFParticle_truthAndDetTools.cxx \
   KFParticle_nTuple.cxx \
   KFParticle_Tools.cxx \
   KFParticle_particleList.cxx \

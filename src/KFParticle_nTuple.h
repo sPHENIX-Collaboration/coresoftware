@@ -1,21 +1,14 @@
 #ifndef KFParticle_nTuple_H__
 #define KFParticle_nTuple_H__
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack.h>
-
-class SvtxEvalStack;
-class PHCompositeNode;
-class SvtxTrackMap;
-class SvtxTrack;
-class TrkrClusterContainer;
+#include <KFParticle_truthAndDetTools.h>
 
 class TFile;
 class TTree;
 class KFParticle;
 class KFPVertex;
 
-class KFParticle_nTuple
+class KFParticle_nTuple : public KFParticle_truthAndDetTools
 {
   public:
 
@@ -31,15 +24,6 @@ class KFParticle_nTuple
                      std::vector<KFParticle> daughters,
                      std::vector<KFParticle> intermediates,
                      int nPVs, int multiplicity );
-
-    SvtxTrack* getTrack( unsigned int track_id, SvtxTrackMap *trackmap );
-    void initializeTruthBranches( int daughter_id );
-    void fillTruthBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id );
-
-    void initializeDetectorBranches( int daughter_id );
-    void initializeSubDetectorBranches( std::string detectorName, int daughter_id );
-    void fillDetectorBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id );
-
   private:
 
     TTree *m_tree;
@@ -119,7 +103,9 @@ class KFParticle_nTuple
     float m_calculated_daughter_pz[20];
     float m_calculated_daughter_pe[20];
     float m_calculated_daughter_p[20];
+    float m_calculated_daughter_p_err[20];
     float m_calculated_daughter_pt[20];
+    float m_calculated_daughter_pt_err[20];
     float m_calculated_daughter_s[20];
     int   m_calculated_daughter_q[20];
     float m_calculated_daughter_eta[20];
@@ -131,10 +117,6 @@ class KFParticle_nTuple
     int   m_calculated_daughter_trid[20];
     //float *m_calculated_daughter_cov[20];
     float m_calculated_daughter_cov[20][21];
-
-    float m_true_daughter_px[20];
-    float m_true_daughter_py[20];
-    float m_true_daughter_pz[20];
 
     float m_daughter_dca[99];
     
@@ -150,17 +132,6 @@ class KFParticle_nTuple
     int m_nPVs;
     int m_multiplicity;
 
-    std::vector<float> detector_local_x[20]; // 7 subdetector including outer and inner hcal plus 4th tracker
-    std::vector<float> detector_local_y[20];
-    std::vector<float> detector_local_z[20];
-    std::vector<int> detector_layer[20];
-    std::vector<int> mvtx_staveID[20];
-    std::vector<int> mvtx_chipID[20];
-    std::vector<int> intt_ladderZID[20];
-    std::vector<int> intt_ladderPhiID[20];
-    std::vector<int> tpc_sectorID[20];
-    std::vector<int> tpc_side[20];
-
  protected:
 
     bool m_has_intermediates_nTuple;
@@ -171,9 +142,6 @@ class KFParticle_nTuple
     std::string m_mother_name;
     bool m_use_intermediate_name;
     std::string m_intermediate_name_ntuple[99];
-    SvtxEvalStack *m_svtx_evalstack;
-    TrkrClusterContainer* dst_clustermap;
 };
-
 
 #endif

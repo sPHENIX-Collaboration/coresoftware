@@ -41,6 +41,9 @@
 #include <iomanip>
 #include <cmath>
 
+
+class SvtxEvalStack;
+
 class PHCompositeNode;
 class SvtxVertexMap;
 class SvtxTrackMap;
@@ -167,6 +170,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
  private:
  
+    SvtxEvalStack *m_svtx_evalstack;
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);

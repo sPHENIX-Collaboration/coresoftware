@@ -91,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 1e3;
+  const int nEvents = 5e4;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
@@ -103,7 +103,7 @@ int Fun4All_G4_Readback(){
   kfparticle->setMotherPT(0);
 
   kfparticle->saveOutput(1);
-  kfparticle->doTruthMatching(0);
+  kfparticle->doTruthMatching(1);
   kfparticle->getDetectorInfo(0);
 
   std::pair<std::string, int> daughterList[99];

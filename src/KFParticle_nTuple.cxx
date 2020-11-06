@@ -1,16 +1,3 @@
-#include <g4main/PHG4Particle.h>
-#include <g4eval/SvtxTrackEval.h>
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxTruthEval.h>
-#include <g4eval/SvtxEvalStack.h>
-//#include <Acts/Surfaces/Surface.hpp>
-//#include "PHActsSourceLinks.h"
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrDefs.h>
-#include <mvtx/MvtxDefs.h>
-#include <intt/InttDefs.h>
-#include <tpc/TpcDefs.h>
 #include <KFParticle_nTuple.h>
 #include <TTree.h>
 #include "KFParticle.h"
@@ -18,31 +5,13 @@
 #include "KFVertex.h"
 #include <KFParticle_Tools.h>
 
-std::map<std::string, int> Use = 
-{
-  { "MVTX",  1 },
-  { "INTT",  1 },
-  { "TPC",   1 },
-  { "EMCAL", 0 },
-  { "OHCAL", 0 },
-  { "IHCAL", 0 }
-};
-
 KFParticle_Tools kfpTupleTools;
-//For truth matching
-SvtxTrackMap *dst_trackmap;
-SvtxTrackEval *trackeval;
-SvtxClusterEval *clustereval;
-SvtxTruthEval *trutheval;
-SvtxTrack *track;
-PHG4Particle* g4particle;
-//For detector info
+KFParticle_truthAndDetTools kfpTruthAndDetTools;
 
 KFParticle_nTuple::KFParticle_nTuple():
     m_truth_matching(false),
     m_detector_info(false),
-    m_use_intermediate_name(true),
-    m_svtx_evalstack(nullptr)
+    m_use_intermediate_name(true)
 {} //Constructor
 
 KFParticle_nTuple::~KFParticle_nTuple(){} //Destructor
@@ -152,7 +121,9 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch( TString(daughter_number) + "_pz",             &m_calculated_daughter_pz[i],       TString(daughter_number) + "_pz/F" );
     m_tree->Branch( TString(daughter_number) + "_pE",             &m_calculated_daughter_pe[i],       TString(daughter_number) + "_pE/F" );
     m_tree->Branch( TString(daughter_number) + "_p",              &m_calculated_daughter_p[i],        TString(daughter_number) + "_p/F" );
+    m_tree->Branch( TString(daughter_number) + "_pErr",           &m_calculated_daughter_p_err[i],    TString(daughter_number) + "_pErr/F" );
     m_tree->Branch( TString(daughter_number) + "_pT",             &m_calculated_daughter_pt[i],       TString(daughter_number) + "_pT/F" );
+    m_tree->Branch( TString(daughter_number) + "_pTErr",          &m_calculated_daughter_pt_err[i],   TString(daughter_number) + "_pTErr/F" );
     m_tree->Branch( TString(daughter_number) + "_S",              &m_calculated_daughter_s[i],        TString(daughter_number) + "_S/F" );
     m_tree->Branch( TString(daughter_number) + "_charge",         &m_calculated_daughter_q[i],        TString(daughter_number) + "_charge/I" );
     m_tree->Branch( TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i],      TString(daughter_number) + "_pseudorapidity/F" );
@@ -164,8 +135,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch( TString(daughter_number) + "_trackID",        &m_calculated_daughter_trid[i],     TString(daughter_number) + "_trackID/I" );
     m_tree->Branch( TString(daughter_number) + "_Covariance",     &m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
-    if ( m_truth_matching ) initializeTruthBranches( i ); 
-    if ( m_detector_info )  initializeDetectorBranches( i );
+    if ( m_truth_matching ) kfpTruthAndDetTools.initializeTruthBranches(  m_tree,i ); 
+    if ( m_detector_info )  kfpTruthAndDetTools.initializeDetectorBranches(  m_tree,i );
  }
 
   int iter = 0;
@@ -175,7 +146,7 @@ void KFParticle_nTuple::initializeBranches()
     {
       if( i < j )
       {
-        std::string dca_branch_name = "d" + std::to_string(i + 1) + std::to_string(j + 1) + "_DCA_3D";
+        std::string dca_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA";
         std::string dca_leaf_name = dca_branch_name + "/F";
         m_tree->Branch( dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str() );
         ++iter;
@@ -188,7 +159,7 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,    "primary_vertex_z/F" );
   m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,    "primary_vertex_volume/F" );
   m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
-  m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/F");
+  m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/I");
   //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
   m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
 
@@ -308,7 +279,9 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_daughter_pz[i]           = daughterArray[i].GetPz();
       m_calculated_daughter_pe[i]           = daughterArray[i].GetE();
       m_calculated_daughter_p[i]            = daughterArray[i].GetP();
+      m_calculated_daughter_p_err[i]        = daughterArray[i].GetErrP();
       m_calculated_daughter_pt[i]           = daughterArray[i].GetPt();
+      m_calculated_daughter_pt_err[i]       = daughterArray[i].GetErrPt();
       m_calculated_daughter_s[i]            = daughterArray[i].GetS();
       m_calculated_daughter_q[i]            = (Int_t) daughterArray[i].Q();
       m_calculated_daughter_eta[i]          = daughterArray[i].GetEta();
@@ -321,8 +294,8 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
       for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
-      if ( m_truth_matching ) fillTruthBranch( topNode, daughterArray[i], i ); 
-      if ( m_detector_info )  fillDetectorBranch(topNode, daughterArray[i], i );
+      if ( m_truth_matching ) kfpTruthAndDetTools.fillTruthBranch( topNode, m_tree, daughterArray[i], i ); 
+      if ( m_detector_info )  kfpTruthAndDetTools.fillDetectorBranch(topNode, m_tree, daughterArray[i], i );
   }
 
   int iter = 0;
@@ -343,158 +316,4 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_multiplicity = multiplicity;
 
   m_tree->Fill();
-}
-
-
-SvtxTrack* KFParticle_nTuple::getTrack( unsigned int track_id, SvtxTrackMap *trackmap )
-{
-    SvtxTrack* matched_track = NULL;
-    for ( SvtxTrackMap::Iter iter = trackmap->begin(); iter != trackmap->end(); ++iter )
-    {
-        if (iter->first == track_id) matched_track = iter->second; 
-    }
-    return matched_track;
-}
-
-void KFParticle_nTuple::initializeTruthBranches( int daughter_id )
-{
-  std::string daughter_number = "daughter_" + std::to_string(daughter_id + 1);
-
-  m_tree->Branch( TString(daughter_number) + "_true_px", &m_true_daughter_px[daughter_id], TString(daughter_number) + "_true_px/F" );
-  m_tree->Branch( TString(daughter_number) + "_true_py", &m_true_daughter_py[daughter_id], TString(daughter_number) + "_true_py/F" );
-  m_tree->Branch( TString(daughter_number) + "_true_pz", &m_true_daughter_pz[daughter_id], TString(daughter_number) + "_true_pz/F" );
-}
-
-void  KFParticle_nTuple::fillTruthBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id )
-{
-    if (!m_svtx_evalstack)
-    {
-      m_svtx_evalstack = new SvtxEvalStack(topNode);
-      m_svtx_evalstack->set_strict(true);
-      trackeval = m_svtx_evalstack->get_track_eval();
-      clustereval = m_svtx_evalstack->get_cluster_eval();
-      trutheval = m_svtx_evalstack->get_truth_eval();
-      trackeval->set_strict(1);
-      clustereval->set_strict(1);
-      trutheval->set_strict(1);
-    }
-
-    dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
-    track = getTrack( daughter.Id(), dst_trackmap );
-
-    //SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-    //TrkrDefs::cluskey clusKey = *iter;
-
-    //if (!clusKey) g4particle = trackeval->max_truth_particle_by_nclusters( track ); 
-    //else g4particle = clustereval->max_truth_particle_by_energy(clusKey);
-
-//std::set<PHG4Hit*> hits = trackeval->all_truth_hits(track);
-//std::cout<<"PHG4Hit from trackeval"<<std::endl;
-//    for (std::set<PHG4Hit*>::iterator it=hits.begin(); it!=hits.end(); ++it)
-//        std::cout << ' ' << *it;
-//    std::cout<<"\n";
-//std::cout<<"The hit set size is "<<hits.size()<<std::endl;
-//std::cout<<"The truth tracks parameters are:"<<std::endl;
-//for (std::set<PHG4Hit*>::iterator it=hits.begin(); it!=hits.end(); ++it)
-//{
-//PHG4Particle* g4particle2 = trutheval->get_particle(*it); 
-//g4particle2->identify();
-//if (g4particle2->get_track_id() > 0) g4particle = g4particle2;
-//}
-std::cout<<"Track valid status is "<<track->isValid()<<std::endl;
-track->identify();
-
-for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
-{
-TrkrDefs::cluskey clusKey = *iter;
-//g4particle = trutheval->get_particle(*hits.begin());
-//g4particle = clustereval->max_truth_particle_by_energy(clusKey); 
-const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-if (trkrId == TrkrDefs::tpcId)
-{
-g4particle = clustereval->max_truth_particle_by_cluster_energy(clusKey); 
-std::cout<<"The trackerID is "<<trkrId<<std::endl;
-if ( g4particle->get_track_id() > 0 ) break;
-}
-}
-//g4particle = trackeval->max_truth_particle_by_nclusters( track );
-g4particle->identify();
-
-    m_true_daughter_px[ daughter_id ] = (Float_t) g4particle->get_px();
-    m_true_daughter_py[ daughter_id ] = (Float_t) g4particle->get_py();
-    m_true_daughter_pz[ daughter_id ] = (Float_t) g4particle->get_pz();
-}
-
-void KFParticle_nTuple::initializeDetectorBranches( int daughter_id )
-{
-    std::string daughter_number = "daughter_" + std::to_string(daughter_id + 1);
-
-    m_tree->Branch( TString(daughter_number) + "_local_x", &detector_local_x[ daughter_id ] );
-    m_tree->Branch( TString(daughter_number) + "_local_y", &detector_local_y[ daughter_id ] );
-    m_tree->Branch( TString(daughter_number) + "_local_z", &detector_local_z[ daughter_id ] );
-    m_tree->Branch( TString(daughter_number) +"_layer", &detector_layer[ daughter_id ] );
-
-    for ( auto const& subdetector : Use )
-    {
-      if ( subdetector.second ) initializeSubDetectorBranches( subdetector.first, daughter_id );
-    }
-}
-
-
-void KFParticle_nTuple::initializeSubDetectorBranches( std::string detectorName, int daughter_id )
-{
-    std::string daughter_number = "daughter_" + std::to_string(daughter_id + 1);
-
-    if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_staveID", &mvtx_staveID[ daughter_id ] );
-    if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_chipID", &mvtx_chipID[ daughter_id ] );
-    if (detectorName == "INTT" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_ladderZID", &intt_ladderZID[ daughter_id ] );
-    if (detectorName == "INTT" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_ladderPhiID", &intt_ladderPhiID[ daughter_id ] );
-    if (detectorName == "TPC" )  m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_sectorID", &tpc_sectorID[ daughter_id ] );
-    if (detectorName == "TPC" )  m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_side", &tpc_side[ daughter_id ] );
-}
-
-void KFParticle_nTuple::fillDetectorBranch( PHCompositeNode *topNode, KFParticle daughter, int daughter_id )
-{
-    dst_clustermap = findNode::getClass<TrkrClusterContainer>( topNode, "TRKR_CLUSTER");
-    dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
-    track = getTrack( daughter.Id(), dst_trackmap );
-
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
-    {
-       TrkrDefs::cluskey clusKey = *iter;
-       TrkrCluster *cluster = dst_clustermap->findCluster(clusKey);
-       const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-
-       detector_local_x[ daughter_id ].push_back( cluster->getX() );
-       detector_local_y[ daughter_id ].push_back( cluster->getY() );
-       detector_local_z[ daughter_id ].push_back( cluster->getZ() );
-       detector_layer[ daughter_id ].push_back( TrkrDefs::getLayer(clusKey) );
-       unsigned int staveId, chipId, ladderZId, ladderPhiId, sectorId, side;     
-       staveId = chipId = ladderZId = ladderPhiId = sectorId = side = -99;
-
-      if ( Use["MVTX"] && trkrId == TrkrDefs::mvtxId )
-      {
-        staveId = MvtxDefs::getStaveId(clusKey);
-        chipId = MvtxDefs::getChipId(clusKey);
-      } 
-      else if (  Use["INTT"] && trkrId == TrkrDefs::inttId )
-      {
-        ladderZId = InttDefs::getLadderZId(clusKey);
-        ladderPhiId = InttDefs::getLadderPhiId(clusKey);
-      }
-      else if (  Use["TPC"] && trkrId == TrkrDefs::tpcId )
-      {
-        sectorId = TpcDefs::getSectorId(clusKey);
-        side = TpcDefs::getSide(clusKey);
-      }
-      
-      mvtx_staveID[ daughter_id ].push_back( staveId );
-      mvtx_chipID[ daughter_id ].push_back( chipId );
-      intt_ladderZID[ daughter_id ].push_back( ladderZId );
-      intt_ladderPhiID[ daughter_id ].push_back( ladderPhiId );
-      tpc_sectorID[ daughter_id ].push_back( sectorId );
-      tpc_side[ daughter_id ].push_back( side );
-
-   }
-
 }
