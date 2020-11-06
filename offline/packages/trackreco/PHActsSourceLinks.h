@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/bimap.hpp>
+
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -47,6 +49,8 @@ namespace Acts
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 /**
  * This class is responsible for creating Acts TrkrClusterSourceLinks from
@@ -161,7 +165,7 @@ class PHActsSourceLinks : public SubsysReco
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Map for source hitid:sourcelink, to be put on node tree by this module
   std::map<unsigned int, SourceLink> *m_sourceLinks;

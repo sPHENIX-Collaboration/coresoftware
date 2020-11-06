@@ -51,7 +51,7 @@ int G4EdepNtuple::process_event(PHCompositeNode *topNode)
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
     nodename << "G4HIT_" << *iter;
-    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (hits)
     {
       double esum = 0;

@@ -48,7 +48,7 @@ int G4ScintillatorTowerTTree::Init(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   G4RootScintillatorTowerContainer *towers = new G4RootScintillatorTowerContainer();
-  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(towers, _outnodename.c_str(), "PHObject");
+  PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(towers, _outnodename, "PHObject");
   dstNode->addNode(node);
   evtno = 0;
   return 0;
@@ -57,9 +57,9 @@ int G4ScintillatorTowerTTree::Init(PHCompositeNode *topNode)
 int G4ScintillatorTowerTTree::process_event(PHCompositeNode *topNode)
 {
   evtno++;
-  G4RootScintillatorTowerContainer *towers = findNode::getClass<G4RootScintillatorTowerContainer>(topNode, _outnodename.c_str());
+  G4RootScintillatorTowerContainer *towers = findNode::getClass<G4RootScintillatorTowerContainer>(topNode, _outnodename);
 
-  RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename.c_str());
+  RawTowerContainer *g4towers = findNode::getClass<RawTowerContainer>(topNode, _towernodename);
   if (!g4towers)
   {
     cout << "could not find " << _towernodename << endl;

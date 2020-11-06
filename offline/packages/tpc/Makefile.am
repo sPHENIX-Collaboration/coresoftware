@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -20,7 +20,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
-  TpcClusterizer.h
+  TpcClusterizer.h \
+  TpcSpaceChargeCorrection.h
 
 ROOTDICTS = \
   TpcHit_Dict.cc
@@ -31,8 +32,8 @@ nobase_dist_pcm_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
-  TpcClusterizer.cc
-
+  TpcClusterizer.cc \
+  TpcSpaceChargeCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \

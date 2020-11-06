@@ -417,10 +417,13 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	{
 	  std::cout << " layer " << layer << " cluskey " << ckey << " cluster phi " << clusphi << " local cluster error rphi  " << clus_err_rphi[layer] 
 		    << " z " << clus_err_z[layer] << std::endl;
-	  std::cout << " global covariance matrix:" << std::endl;
-	  for(int i1=0;i1<3;++i1)
-	    for(int i2=0;i2<3;++i2)
-	      std::cout << "  " << i1 << "  " << i2 << " cov " << clus->getError(i1,i2)  << std::endl;      
+	  if(Verbosity() > 10)
+	    {
+	      std::cout << " global covariance matrix:" << std::endl;
+	      for(int i1=0;i1<3;++i1)
+		for(int i2=0;i2<3;++i2)
+		  std::cout << "  " << i1 << "  " << i2 << " cov " << clus->getError(i1,i2)  << std::endl;      
+	    }
 	}
 		
       truth_clusters.insert(make_pair(layer, clus));
@@ -458,7 +461,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
 
       if(Verbosity() > 3)
-	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
+	cout << "      PHTruthClustering::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
 
       // we do not assume that the truth hits know what layer they are in            
       for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();

@@ -115,8 +115,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
 
-    m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
-
+    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
+    
     /// Local coordinates and surface to be set by the correct tracking
     /// detector function below
     TMatrixD localErr(3, 3);
@@ -225,10 +225,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 10)
   {
     //m_hitIdClusKey
-    std::map<TrkrDefs::cluskey, unsigned int>::iterator it = m_hitIdClusKey->begin();
+    CluskeyBimap::const_iterator it = m_hitIdClusKey->begin();
     while (it != m_hitIdClusKey->end())
     {
-      std::cout << "cluskey " << it->first << " has hitid " << it->second
+      std::cout << "cluskey " << it->left << " has hitid " << it->right
                 << std::endl;
       ++it;
     }
@@ -1007,18 +1007,17 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
   }
 
   /// See if the map is already on the node tree
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   /// If not add it
   if (!m_hitIdClusKey)
   {
-    m_hitIdClusKey = new std::map<TrkrDefs::cluskey, unsigned int>;
-    PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>> *hitMapNode =
-        new PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>>(m_hitIdClusKey, "HitIDClusIDActsMap");
+    m_hitIdClusKey = new CluskeyBimap;
+    PHDataNode<CluskeyBimap> *hitMapNode =
+      new PHDataNode<CluskeyBimap>(m_hitIdClusKey, "HitIDClusIDActsMap");
     svtxNode->addNode(hitMapNode);
   }
-
-  /// Do the same for the SourceLink container
+ 
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
 
   if (!m_sourceLinks)

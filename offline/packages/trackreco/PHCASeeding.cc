@@ -360,7 +360,8 @@ void PHCASeeding::FillTree()
     //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
     double clus_eta = vec.Eta();
     double clus_l = layer;  // _radii_all[layer];
-    if(Verbosity() > 0) std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
+    if(Verbosity() > 0) 
+      std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
 
     vector<pointKey> testduplicate;
     QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
@@ -468,7 +469,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger(NT,t_seed);
   t_seed->stop();
-  if(Verbosity()>0) cout << "number of seeds " << numberofseeds << endl;
+  //if(Verbosity()>0) 
+    cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 //  fpara.cd();
 //  NT->Write();
@@ -539,7 +541,8 @@ int PHCASeeding::FindSeedsWithMerger(TNtuple* NT,PHTimer* t_seed)
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters),t_seed);
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second,t_seed);
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,t_seed);
-  if(Verbosity()>0) std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
+  if(Verbosity()>0) 
+    std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
   vector<keylist> mergedSeedKeyLists = MergeSeeds(trackSeedKeyLists,t_seed);
   if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
   mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists,t_seed);
@@ -875,6 +878,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
   for(size_t i=0;i<trackSeedKeyLists.size();++i)
   {
     LogDebug(" seed " << i << ":" << endl);
+
     double lasteta = -100;
     double lastphi = -100;
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
@@ -892,12 +896,19 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
       unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j].second);
       #endif
       if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
-      {
-         LogDebug(" Eta or Phi jump too large! " << endl);
-         ++jumpcount;
-      }
+	{
+           LogDebug(" Eta or Phi jump too large! " << endl);
+           ++jumpcount;
+        }
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
         " (x,y,z) = (" << cl->getPosition(0)-_vertex->get_x() << "," << cl->getPosition(1)-_vertex->get_y() << "," << cl->getPosition(2)-_vertex->get_z() << ")" << endl);
+      
+      if(Verbosity() > 0)
+	{
+            unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
+            std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
+             " (x,y,z) = (" << cl->getPosition(0)-_vertex->get_x() << "," << cl->getPosition(1)-_vertex->get_y() << "," << cl->getPosition(2)-_vertex->get_z() << ")" << std::endl;
+        }
       lasteta = clus_eta;
       lastphi = clus_phi;
     }
@@ -1247,6 +1258,7 @@ int PHCASeeding::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,TNtuple* NT
       repairCovariance(track);
     }
 
+    if(Verbosity() > 0)  track.identify();
     _track_map->insert(&track);
 
     ++nseeds;

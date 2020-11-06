@@ -17,6 +17,8 @@
 #include "ActsTrack.h"
 #include "ActsTrackingGeometry.h"
 
+#include <boost/bimap.hpp>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -28,6 +30,8 @@ class SvtxVertexMap;
 class MakeActsGeometry;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 /**
@@ -79,7 +83,7 @@ class PHActsTracks : public SubsysReco
   SvtxVertexMap *m_vertexMap;
 
   /// Map between cluster key and arbitrary hit id created in PHActsSourceLinks
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
