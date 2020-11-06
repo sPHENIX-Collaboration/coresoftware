@@ -10,6 +10,9 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
+
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTower.h>
@@ -27,37 +30,21 @@
 
 #include <ActsExamples/Plugins/BField/ScalableBField.hpp>
 
+#include <CLHEP/Vector/ThreeVector.h> 
+#include <math.h>
+
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
 {
-  m_caloNames[0] = "CEMC";
-  m_caloNames[1] = "HCALIN";
-  m_caloNames[2] = "HCALOUT";
+  m_caloNames.push_back("CEMC");
+  m_caloNames.push_back("HCALIN");
+  m_caloNames.push_back("HCALOUT");
+
+  m_caloTypes.push_back(SvtxTrack::CEMC);
+  m_caloTypes.push_back(SvtxTrack::HCALIN);
+  m_caloTypes.push_back(SvtxTrack::HCALOUT);
 }
-int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
-{
-  for(int calLayer = 0; calLayer < m_nCaloLayers; calLayer++)
-    {
-      if(setCaloContainerNodes(topNode, calLayer) != Fun4AllReturnCodes::EVENT_OK)
-	return Fun4AllReturnCodes::ABORTEVENT;
-      
-      float caloRadius = m_towerGeomContainer->get_radius();
 
-      //std::shared_ptr<Acts::CylinderSurface> surf = 
-      //Acts::Surface::makeShared<Acts::CylinderSurface>(args);
-      /// Just put a placeholder surf in here for now while figuring
-      /// out the cylinder args
-      std::shared_ptr<Acts::PerigeeSurface> surf = 
-	Acts::Surface::makeShared<Acts::PerigeeSurface>(
-        Acts::Vector3D{0.,0.,caloRadius});
-      m_caloSurfaces.insert(std::make_pair(m_caloNames[calLayer],
-					   surf));
-
-    }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-
-}
 int PHActsTrackProjection::Init(PHCompositeNode *topNode)
 {
   int ret = makeCaloSurfacePtrs(topNode);
@@ -97,9 +84,10 @@ int PHActsTrackProjection::End(PHCompositeNode *topNode)
 
 
 int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode, 
-					 const int calLayer)
+					 const int caloLayer)
 {
-  if(setCaloContainerNodes(topNode, calLayer) != Fun4AllReturnCodes::EVENT_OK)
+  if(setCaloContainerNodes(topNode, caloLayer) 
+     != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   std::map<const unsigned int, Trajectory>::iterator trajIter;
@@ -122,13 +110,14 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
 	    {
 	      const auto &params = traj.trackParameters(trackTip);
 	      auto cylSurf = 
-		m_caloSurfaces.find(m_caloNames[calLayer])->second;
+		m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 	      auto result = propagateTrack(params, cylSurf);
 
 	      if(result.ok())
 		{
 		  auto trackStateParams = std::move(**result);
-		  updateSvtxTrack(trackStateParams, trackKey);
+		  updateSvtxTrack(trackStateParams, 
+				  trackKey, caloLayer);
 		}
 
 	    }
@@ -139,10 +128,125 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrackProjection::updateSvtxTrack(const Acts::BoundTrackParameters& params, const unsigned int trackKey)
+void PHActsTrackProjection::updateSvtxTrack(
+               const Acts::BoundTrackParameters& params, 
+	       const unsigned int trackKey,
+	       const int caloLayer)
+{
+  auto svtxTrack = m_trackMap->find(trackKey)->second;
+  
+  auto projectionPos = params.position(m_tGeometry->geoContext);
+
+  auto projectionPhi = atan2(projectionPos(1), projectionPos(0));
+  auto projectionEta = asinh(projectionPos(2) / 
+			     sqrt(projectionPos(0) * projectionPos(0)
+				  + projectionPos(1) * projectionPos(1)));
+
+  if(fabs(projectionEta) >= 1.1)
+    return;
+
+  auto phiBin = m_towerGeomContainer->get_phibin(projectionPhi);
+  auto etaBin = m_towerGeomContainer->get_etabin(projectionEta);
+  
+  double energy3x3 = 0.0;
+  double energy5x5 = 0.0;
+
+  getSquareTowerEnergies(phiBin, etaBin, energy3x3, energy5x5);
+  svtxTrack->set_cal_energy_3x3(m_caloTypes.at(caloLayer),
+				energy3x3);
+  svtxTrack->set_cal_energy_5x5(m_caloTypes.at(caloLayer),
+				energy5x5);
+
+  double minIndex = NAN;
+  double minDphi = NAN;
+  double minDeta = NAN;
+  double minE = NAN;
+  
+  getClusterProperties(projectionPhi, projectionEta,
+		       minIndex, minDphi, minDeta, minE);
+
+  if(!std::isnan(minIndex))
+    {
+      svtxTrack->set_cal_dphi(m_caloTypes.at(caloLayer),
+			      minDphi);
+      svtxTrack->set_cal_deta(m_caloTypes.at(caloLayer),
+			      minDeta);
+      svtxTrack->set_cal_cluster_id(m_caloTypes.at(caloLayer),
+				    minIndex);
+      svtxTrack->set_cal_cluster_e(m_caloTypes.at(caloLayer),
+				   minE);
+    }
+
+  return;
+}
+
+void PHActsTrackProjection::getClusterProperties(double phi,
+						 double eta,
+						 double& minIndex,
+						 double& minDphi,
+						 double& minDeta,
+						 double& minE)
 {
   
+  double minR = DBL_MAX;
+  
+  for( const auto& it : m_clusterContainer->getClustersMap())
+    {
+      const RawCluster *cluster = it.second;
 
+      const auto clusterEta = 
+	RawClusterUtility::GetPseudorapidity(*cluster, 
+					     CLHEP::Hep3Vector(0,0,0));
+      const auto dphi = deltaPhi(phi - cluster->get_phi());
+      const auto deta = eta - clusterEta;
+      const auto r = sqrt(pow(dphi,2) + pow(deta,2));
+
+      if(r < minR)
+	{
+	  minIndex = it.first;
+	  minR = r;
+	  minDphi = dphi;
+	  minDeta = deta;
+	  minE = cluster->get_energy();
+	}
+    }
+
+  return;
+}
+
+void PHActsTrackProjection::getSquareTowerEnergies(int phiBin, 
+						   int etaBin,
+						   double& energy3x3,
+						   double& energy5x5)
+{
+  for(int iphi = phiBin - 2; iphi <= phiBin + 2; ++iphi) 
+    {
+      for(int ieta = etaBin - 2; ieta <= etaBin + 2; ++ieta)
+	{
+	  /// Check the phi periodic boundary conditions
+	  int wrapPhi = iphi;
+	  if(wrapPhi < 0)
+	    wrapPhi += m_towerGeomContainer->get_phibins();
+	  if(wrapPhi >= m_towerGeomContainer->get_phibins())
+	    wrapPhi -= m_towerGeomContainer->get_phibins();
+	  
+	  /// Check the eta boundary conditions
+	  if (ieta < 0 or ieta >= m_towerGeomContainer->get_etabins())
+	    continue;
+	  
+	  auto tower = m_towerContainer->getTower(ieta, wrapPhi);
+	  
+	  if(!tower)
+	    continue;
+	  
+	  energy5x5 += tower->get_energy();
+	  if(abs(iphi - phiBin) <= 1 and abs(ieta - etaBin) <= 1)
+	    energy3x3 += tower->get_energy();
+	  
+	}
+    }
+
+  return;
 }
 
 BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
@@ -191,11 +295,11 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
-						  const int calLayer)
+						  const int caloLayer)
 {
-  std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames[calLayer];
-  std::string towerNodeName    = "TOWER_CALIB_" + m_caloNames[calLayer];
-  std::string clusterNodeName  = "CLUSTER_" + m_caloNames[calLayer];
+  std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
+  std::string towerNodeName    = "TOWER_CALIB_" + m_caloNames.at(caloLayer);
+  std::string clusterNodeName  = "CLUSTER_" + m_caloNames.at(caloLayer);
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>
     (topNode, towerGeoNodeName.c_str());
@@ -209,12 +313,40 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
   if(!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
     {
       std::cout << PHWHERE 
-		<< "Calo geometry and/or cluster container not found on node tree. Exiting"
+		<< "Calo geometry and/or cluster container not found on node tree. Bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
+{
+  for(int caloLayer = 0; caloLayer < m_nCaloLayers; caloLayer++)
+    {
+      if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
+	return Fun4AllReturnCodes::ABORTEVENT;
+      
+      auto caloRadius = m_towerGeomContainer->get_radius();
+      auto eta = 1.1;
+      auto theta = 2. * atan( exp(-eta));
+      auto halfZ = caloRadius / tan(theta) * Acts::UnitConstants::cm;
+      
+      /// Make a cylindrical surface at (0,0,0) aligned along the z axis
+      auto transform = Acts::Transform3D::Identity();
+
+      std::shared_ptr<Acts::CylinderSurface> surf = 
+	Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
+							 caloRadius,
+							 halfZ);
+  
+      m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),
+					   surf));
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
@@ -238,10 +370,29 @@ int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if(!m_trackMap)
+    {
+      std::cout << PHWHERE << "No SvtxTrackMap on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsTrackProjection::createNodes(PHCompositeNode *topNode)
 {
   
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+double PHActsTrackProjection::deltaPhi(const double& phi)
+{
+  if (phi > M_PI) 
+    return phi - 2. * M_PI;
+  else if (phi <= -M_PI) 
+    return phi + 2.* M_PI;
+  else 
+    return phi;
 }

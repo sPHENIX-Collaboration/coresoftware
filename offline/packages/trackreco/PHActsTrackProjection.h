@@ -4,6 +4,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 #include "ActsTrack.h"
 #include "ActsTrackingGeometry.h"
@@ -17,6 +18,8 @@ class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
+class SvtxTrackMap;
+class SvtxTrack;
 
 #include <memory>
 #include <map>
@@ -44,7 +47,7 @@ class PHActsTrackProjection : public SubsysReco
   
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-  int projectTracks(PHCompositeNode *topNode, int calLayer);
+  int projectTracks(PHCompositeNode *topNode, int caloLayer);
 
   /// Propagate the fitted track parameters to a surface
   BoundTrackParamPtrResult propagateTrack(
@@ -52,18 +55,31 @@ class PHActsTrackProjection : public SubsysReco
 	const SurfacePtr &targetSurf);
 
   int setCaloContainerNodes(PHCompositeNode *topNode,
-			     const int calLayer);
+			     const int caloLayer);
   int makeCaloSurfacePtrs(PHCompositeNode *topNode);
 
   void updateSvtxTrack(const Acts::BoundTrackParameters& params,
-		       const unsigned int trackKey);
+		       const unsigned int trackKey,
+		       const int caloLayer);
+
+  void getSquareTowerEnergies(int phiBin, int etaBin,
+			      double& energy3x3,
+			      double& energy5x5);
+
+  void getClusterProperties(double phi, double eta,
+			    double& minIndex, double& minDphi,
+			    double& minDeta, double& minE);
+
+  double deltaPhi(const double& phi);
 
   ActsTrackingGeometry *m_tGeometry = nullptr;
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
   int m_event = 0;
-
+  SvtxTrackMap *m_trackMap;
+  
   const static int m_nCaloLayers = 3;
-  std::string m_caloNames[m_nCaloLayers];
+  std::vector<std::string> m_caloNames;
+  std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   std::map<std::string, SurfacePtr> m_caloSurfaces;
   
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
