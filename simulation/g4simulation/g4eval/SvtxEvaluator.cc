@@ -163,7 +163,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:ng4hits:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
@@ -2149,7 +2149,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gz = gclus->getZ();
 	      float gt = NAN;
 	      float gedep = gclus->getError(0,0);
-	      float ng4hits = gclus->getAdc();
+	      float gadc = (float) gclus->getAdc();
 
 	      TVector3 gpos(gx, gy, gz);
 	      float gr = sqrt(gx*gx+gy*gy);
@@ -2160,8 +2160,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		{
 		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
-		  cout << "             truth cluster key " << ckey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
-		       << " gphi " << gphi << " gedep " << gedep << endl;
+		  cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
+		       << " gphi " << gphi << " gedep " << gedep << " gadc " << gadc << endl;
 		}
 	      
 	      float gphisize = gclus->getSize(1,1);
@@ -2233,13 +2233,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					gr,
 					gphi,
 					geta,
-					ng4hits,
 					gtrackID,
 					gflavor,
 					gembed,
 					gprimary,
 					gphisize,
 					gzsize,
+					gadc,
 					nreco,
 					x,
 					y,

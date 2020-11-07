@@ -348,7 +348,10 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
       clus->setClusKey(ckey);
       iclus++;
 
-      clus->setAdc(contributing_hits.size());
+      // estimate cluster ADC value
+      unsigned int adc_value = getAdcValue(gedep);
+      //std::cout << " gedep " << gedep << " adc_value " << adc_value << std::endl; 
+      clus->setAdc(adc_value);
       clus->setPosition(0, gx);
       clus->setPosition(1, gy);
       clus->setPosition(2, gz);
@@ -1135,4 +1138,31 @@ float SvtxTruthEval::line_circle_intersection(float x[], float y[], float z[], f
   }
 
   return t;
+}
+
+unsigned int SvtxTruthEval::getAdcValue(double gedep)
+{
+  // see TPC digitizer for algorithm
+  
+  // drift electrons per GeV of energy deposited in the TPC
+  double Ne_dEdx = 1.56;   // keV/cm
+  double CF4_dEdx = 7.00;  // keV/cm
+  double Ne_NTotal = 43;    // Number/cm
+  double CF4_NTotal = 100;  // Number/cm
+  double Tpc_NTot = 0.5*Ne_NTotal + 0.5*CF4_NTotal;
+  double Tpc_dEdx = 0.5*Ne_dEdx + 0.5*CF4_dEdx;
+  double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  double electrons_per_gev = Tpc_ElectronsPerKeV * 1e6;
+  
+  double gem_amplification = 1400; // GEM output electrons per drifted electron
+  double input_electrons = gedep * electrons_per_gev * gem_amplification;
+  
+  // convert electrons after GEM to ADC output
+  double ChargeToPeakVolts = 20;
+  double ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;  // 20 (or 30) mV/fC * fC/electron * scaleup factor 
+  double adc_input_voltage = input_electrons * ADCSignalConversionGain;  // mV, see comments above
+  unsigned int adc_output = (unsigned int) (adc_input_voltage * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+  if (adc_output > 1023) adc_output = 1023;
+    
+  return adc_output;
 }
