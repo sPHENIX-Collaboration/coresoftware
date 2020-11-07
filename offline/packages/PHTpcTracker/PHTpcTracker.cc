@@ -127,15 +127,15 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   }
 
   // ----- Seed finding -----
-  TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  //TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   std::vector<kdfinder::TrackCandidate<double>*> candidates;
-  candidates = mSeedFinder->findSeeds(cluster_map, mB);
+  candidates = mSeedFinder->findSeeds(_cluster_map, mB);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "SeedFinder produced " << candidates.size() << " track seeds";
 
   // ----- Track Following -----
-  mLookup->init(cluster_map);
+  mLookup->init(_cluster_map);
   std::vector<PHGenFit2::Track*> gtracks;
-  gtracks = mTrackFollower->followTracks(cluster_map, candidates, mField, mLookup, mFitter);
+  gtracks = mTrackFollower->followTracks(_cluster_map, candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
   // write tracks to fun4all server
   //  cout<<  gtracks[1]->get_vertex_id() << endl;
@@ -179,6 +179,11 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
       svtx_track->insert_cluster_key(cluster_key);
     }
 
+    if(Verbosity() > 0) 
+      {
+	std::cout << PHWHERE << " track identify: " << std::endl;
+	svtx_track->identify();
+      }
     _track_map->insert(svtx_track.get());
   }
 

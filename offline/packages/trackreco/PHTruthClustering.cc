@@ -108,7 +108,7 @@ for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlaye
     clus_err_z[layer] = mms_layer56_clus_err_z;
   }
  
- if(Verbosity() > 0)
+ if(Verbosity() > 3)
    {
      for(int layer = 0; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer)
        std::cout << " layer " << layer << " clus_err _rphi " << clus_err_rphi[layer] << " clus_err_z " << clus_err_z[layer] << std::endl;
@@ -139,6 +139,10 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
       PHG4Particle* g4particle = iter->second;
       
       float gtrackID = g4particle->get_track_id();
+
+      // switch to discard secondary clusters
+      if(_primary_clusters_only && gtrackID < 0) continue;
+
       float gflavor = g4particle->get_pid();	  
 
       int gembed = 0;
@@ -277,7 +281,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	{      
 	  unsigned int side = 0;
 	  if(gz > 0) side = 1;	  
-	  // need accurate sector so the hitsetkey will be correct
+	  // need accurate sector for the TPC so the hitsetkey will be correct
 	  unsigned int sector = getTpcSector(gx, gy);
 	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
 	}
@@ -312,7 +316,10 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
       clus->setClusKey(ckey);
       iclus++;
 
-      clus->setAdc(contributing_hits.size());
+      // need to convert gedep to ADC value
+      unsigned int adc_output = getAdcValue(gedep);
+
+      clus->setAdc(adc_output);
       clus->setPosition(0, gx);
       clus->setPosition(1, gy);
       clus->setPosition(2, gz);
@@ -332,16 +339,8 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
       G4ClusterSize(layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
       /*
-      for(int i1=0;i1<3;++i1)
-	for(int i2=0;i2<3;++i2)
-	{
-	  clus->setSize(i1, i2, 0.0);
-	  clus->setError(i1, i2, 0.0);
-	}
-      */
-      /*
-      clus->setSize(1, 1, g4phisize);
-      clus->setSize(2, 2, g4zsize);
+      std::cout << PHWHERE << " g4trackID " << particle->get_track_id() << " gedep " << gedep << " adc value " << adc_output 
+		<< " g4phisize " << g4phisize << " g4zsize " << g4zsize << std::endl;
       */
 
       // make an estimate of the errors
@@ -415,7 +414,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 
       if(Verbosity() > 0)
 	{
-	  std::cout << " layer " << layer << " cluskey " << ckey << " cluster phi " << clusphi << " local cluster error rphi  " << clus_err_rphi[layer] 
+	  std::cout << "    layer " << layer << " cluskey " << ckey << " cluster phi " << clusphi << " local cluster error rphi  " << clus_err_rphi[layer] 
 		    << " z " << clus_err_z[layer] << std::endl;
 	  if(Verbosity() > 10)
 	    {
@@ -1031,6 +1030,33 @@ unsigned int PHTruthClustering::getTpcSector(double x, double y)
   double phi = atan2(y, x);
   unsigned int sector = (int) (12.0 * (phi + M_PI) / (2.0 * M_PI) );
   return sector;
+}
+
+unsigned int PHTruthClustering::getAdcValue(double gedep)
+{
+  // see TPC digitizer for algorithm
+  
+  // drift electrons per GeV of energy deposited in the TPC
+  double Ne_dEdx = 1.56;   // keV/cm
+  double CF4_dEdx = 7.00;  // keV/cm
+  double Ne_NTotal = 43;    // Number/cm
+  double CF4_NTotal = 100;  // Number/cm
+  double Tpc_NTot = 0.5*Ne_NTotal + 0.5*CF4_NTotal;
+  double Tpc_dEdx = 0.5*Ne_dEdx + 0.5*CF4_dEdx;
+  double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  double electrons_per_gev = Tpc_ElectronsPerKeV * 1e6;
+  
+  double gem_amplification = 1400; // GEM output electrons per drifted electron
+  double input_electrons = gedep * electrons_per_gev * gem_amplification;
+  
+  // convert electrons after GEM to ADC output
+  double ChargeToPeakVolts = 20;
+  double ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;  // 20 (or 30) mV/fC * fC/electron * scaleup factor 
+  double adc_input_voltage = input_electrons * ADCSignalConversionGain;  // mV, see comments above
+  unsigned int adc_output = (unsigned int) (adc_input_voltage * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+  if (adc_output > 1023) adc_output = 1023;
+    
+  return adc_output;
 }
 
 int PHTruthClustering::GetNodes(PHCompositeNode* topNode)

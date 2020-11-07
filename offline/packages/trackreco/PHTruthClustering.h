@@ -42,6 +42,7 @@ public:
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void UsePrimaryTrackClustersOnly(bool flag) {_primary_clusters_only = flag;}
 
 private:
 /// fetch node pointers
@@ -56,6 +57,8 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
 
   float line_circle_intersection(float x[], float y[], float z[], float radius);
   unsigned int getTpcSector(double x, double y);
+
+  unsigned int getAdcValue(double gedep);
 
   int iclus = 0;
 
@@ -93,6 +96,9 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   double mms_layer55_clus_err_z = 25.0;
   double mms_layer56_clus_err_rphi = 12.5;
   double mms_layer56_clus_err_z = 200e-04;
+
+  bool _primary_clusters_only= false;
+
 };
 
 #endif

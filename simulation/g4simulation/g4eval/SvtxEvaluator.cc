@@ -2160,7 +2160,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		{
 		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
-		  cout << "             truth cluster key " << ckey << " hg4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
+		  cout << "             truth cluster key " << ckey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
 		       << " gphi " << gphi << " gedep " << gedep << endl;
 		}
 	      
