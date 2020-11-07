@@ -29,6 +29,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHTimer.h>
 
 /// Acts includes
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -84,10 +85,14 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 
 int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << std::endl << "Start PHActsSourceLinks process_event" << std::endl;
   }
+  
+  PHTimer *eventTimer = new PHTimer("PHActsSourceLinksTimer");
+  eventTimer->stop();
+  eventTimer->restart();
 
   /// Get the nodes from the node tree
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
@@ -105,7 +110,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
-  for (clusIter = clusRange.first; clusIter != clusRange.second; ++clusIter)
+  for (clusIter = clusRange.first; 
+       clusIter != clusRange.second; ++clusIter)
   {
     const TrkrDefs::cluskey clusKey = clusIter->first;
     const TrkrCluster *cluster = clusIter->second;
@@ -234,6 +240,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     }
   }
 
+  eventTimer->stop();
+  if(Verbosity() > 0)
+    std::cout << "PHActsSourceLinks total event time " 
+	      << eventTimer->get_accumulated_time() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -406,7 +416,9 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 	{
 	  for (int j = 0; j < 3; j++)
 	    {
-	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << sPhenixLocalErr[i][j] << std::endl;
+	      std::cout << "  " << i << " "  << j << " worldErr " 
+			<< worldErr[i][j]  << " localErr " 
+			<< sPhenixLocalErr[i][j] << std::endl;
 	    }
 	}
     }
@@ -491,10 +503,12 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 3)
   {
-    std::cout << PHWHERE << std::endl << "Micromegas surface center readback:   x " << center[0]
-              << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
+    std::cout << PHWHERE << std::endl 
+	      << "Micromegas surface center readback:   x " << center[0]
+              << " y " << center[1]  << " z " << center[2] 
+	      << " radius " << surfRadius << std::endl;
     std::cout << "Surface normal vector : "<< normal(0) << ", " 
 	      << normal(1) << ", " << normal(2) << std::endl;
     std::cout << " surface center  phi " << atan2(center[1], center[0]) 
@@ -527,18 +541,22 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 2)
   {
-    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " << x*Acts::UnitConstants::cm 
-	      <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
+    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " 
+	      << x*Acts::UnitConstants::cm 
+	      <<  " y " << y*Acts::UnitConstants::cm << " z " 
+	      << z*Acts::UnitConstants::cm 
 	      << " radius " << radius << std::endl;
-    std::cout << " cluster phi " << clusPhi << " cluster z " << zMm << " r*clusphi " << rClusPhi << std::endl;
+    std::cout << " cluster phi " << clusPhi << " cluster z " 
+	      << zMm << " r*clusphi " << rClusPhi << std::endl;
     std::cout << " local phi " << clusPhi - surfPhiCenter
               << " local rphi " << rClusPhi-surfRphiCenter 
  	      << " local z " << zMm - surfZCenter  << std::endl;
-    std::cout << " acts local : " <<local2D(0) <<"  "<<local2D(1) << std::endl;
-    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
-	      << z * 10 << "  " << std::endl;
+    std::cout << " acts local : " << local2D(0) << "  " << local2D(1) 
+	      << std::endl;
+    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 
+	      << "  " << z * 10 << "  " << std::endl;
     std::cout << " acts global : " << actsGlobal(0) << "  " << actsGlobal(1) 
 	      << "  " << actsGlobal(2) << std::endl;
   }
