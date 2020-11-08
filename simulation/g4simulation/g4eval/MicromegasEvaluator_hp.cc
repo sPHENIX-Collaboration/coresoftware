@@ -69,9 +69,24 @@ namespace
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::Container::Reset()
 {
-  _events.clear();
+  _tiles.clear();
   _g4hits.clear();
   _hits.clear();
+}
+
+//_____________________________________________________________________
+MicromegasEvaluator_hp::TileStruct& MicromegasEvaluator_hp::Container::findTile( const int layer, const int tile )
+{
+  auto iter = std::find_if( _tiles.begin(), _tiles.end(),
+    [layer, tile]( const TileStruct& tilestruct )
+  { return tilestruct._layer == layer && tilestruct._tile == tile; } );
+
+  if( iter != _tiles.end() ) return *iter;
+  else {
+    _tiles.emplace_back( layer, tile );
+    return _tiles.back();
+  }
+
 }
 
 //_____________________________________________________________________
@@ -169,16 +184,14 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
   if( !( m_g4hits_micromegas && m_container ) ) return;
 
   // clear array
-  m_container->clearEvents();
   m_container->clearG4Hits();
 
-  // create event struct
-  EventStruct eventStruct;
-
   // loop over layers in the g4hit container
-  uint layer_index = 0;
   auto layer_range = m_g4hits_micromegas->getLayers();
-  for( auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it, ++layer_index )
+
+  TileStruct* current_tile = nullptr;
+
+  for( auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it )
   {
 
     // get layer
@@ -214,9 +227,6 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       g4hitstruct._layer = layer;
       g4hitstruct._tile = tileid;
 
-      eventStruct._edep_total[layer_index] += g4hitstruct._edep;
-      eventStruct._eion_total[layer_index] += g4hitstruct._eion;
-
       // copied from PHG4MicromegasHitReco
       static constexpr double electrons_per_gev = 3.73252e+07;
       static constexpr double gain = 2000;
@@ -234,12 +244,17 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       // store
       m_container->addG4Hit( g4hitstruct );
 
+      // also fill tile information
+      if( !( current_tile && current_tile->_layer == layer && current_tile->_tile == tileid ) )
+      { current_tile = &m_container->findTile( layer, tileid ); }
+
+      // fill
+      current_tile->_edep_total += g4hitstruct._edep;
+      current_tile->_eion_total += g4hitstruct._eion;
+
     }
 
   }
-
-  // store event struct
-  m_container->addEvent( eventStruct );
 
 }
 
@@ -251,6 +266,9 @@ void MicromegasEvaluator_hp::evaluate_hits()
 
   // clear array
   m_container->clearHits();
+
+  // keep track of current tile struct
+  TileStruct* current_tile = nullptr;
 
   // loop over micromegas and tpc hitsets
   for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
@@ -279,6 +297,14 @@ void MicromegasEvaluator_hp::evaluate_hits()
 
         // store
         m_container->addHit( hit_struct );
+
+        // also fill tile information
+        if( !( current_tile && current_tile->_layer == hit_struct._layer && current_tile->_tile == hit_struct._tile ) )
+        { current_tile = &m_container->findTile( hit_struct._layer, hit_struct._tile ); }
+
+        // fill
+        current_tile->_electrons_total += hit_struct._energy;
+        ++current_tile->_strips_total;
 
       }
     }

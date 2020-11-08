@@ -34,47 +34,54 @@ class MicromegasEvaluator_hp : public SubsysReco
   //! end of processing
   virtual int End(PHCompositeNode*);
 
-  // event information
-  class EventStruct
+  // tile information
+  class TileStruct
   {
     public:
-    
-    //! impact parameter, when relevant
-    using List = std::vector<EventStruct>;
-    static constexpr size_t nlayers_micromegas = 2;
-    
-    // constructor
-    EventStruct()
-    {
-      for( size_t i = 0; i < nlayers_micromegas; ++i )
-      {
-        _edep_total[i] = 0;
-        _eion_total[i] = 0;
-      }
-    }
-    
-    //! total deposited energy in micromegas
-    float _edep_total[nlayers_micromegas];
 
-    //! total ionization energy in micromegas
-    float _eion_total[nlayers_micromegas];    
-  
+    using List = std::vector<TileStruct>;
+
+    //! default constructor
+    TileStruct() = default;
+
+    //! constructor
+    TileStruct( int layer, int tile ):
+      _layer( layer ),
+      _tile( tile )
+    {}
+
+    //! layer
+    uint _layer = 0;
+
+    //! tile
+    uint _tile = 0;
+
+    //! total deposited energy in tile
+    float _edep_total = 0;
+
+    //! total ionization energy in tile
+    float _eion_total = 0;
+
+    //! total number of electron (after amplification)
+    float _electrons_total = 0;
+
+    //! total number of fired strips
+    int _strips_total = 0;
   };
-  
+
   // g4hit information to be stored in the tree
   class G4HitStruct
   {
-    
     public:
-    
+
     using List = std::vector<G4HitStruct>;
-    
+
     //! layer
     uint _layer = 0;
-    
+
     //! tile
     uint _tile = 0;
-    
+
     // position
     float _x = 0;
     float _y = 0;
@@ -83,42 +90,42 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     //! deposited energy
     float _edep = 0;
-    
+
     //! ionization energy
     float _eion = 0;
-    
+
     //! number of primary electrons
     uint _nprimary = 0;
-    
+
     //! total number of electrons
     uint _nelectron = 0;
-    
+
   };
-  
+
   //! hit information to be stored in tree
   class HitStruct
   {
     public:
-    
+
     using List = std::vector<HitStruct>;
-    
+
     //! layer
     uint _layer = 0;
-    
+
     //! number of hits belonging to the cluster
     uint _tile = 0;
-    
+
     //! strip
     uint _strip = 0;
-    
+
     //! energy
     float _energy = 0;
-    
+
     //! ADC counts
     uint _adc = 0;
-    
+
   };
-  
+
   //! track container
   class Container: public PHObject
   {
@@ -140,8 +147,8 @@ class MicromegasEvaluator_hp : public SubsysReco
     //!@name accessors
     //@{
 
-    const EventStruct::List& events() const
-    { return _events; }
+    const TileStruct::List& tiles() const
+    { return _tiles; }
 
     const G4HitStruct::List& g4hits() const
     { return _g4hits; }
@@ -154,8 +161,9 @@ class MicromegasEvaluator_hp : public SubsysReco
     //!@name modifiers
     //@{
 
-    void addEvent( const EventStruct& event )
-    { _events.push_back( event ); }
+    //! find tile matching given layer and tile id
+    /* create and store new one if not found */
+    TileStruct& findTile( const int layer, const int tile );
 
     void addG4Hit( const G4HitStruct& hit )
     { _g4hits.push_back( hit ); }
@@ -163,8 +171,8 @@ class MicromegasEvaluator_hp : public SubsysReco
     void addHit( const HitStruct& hit )
     { _hits.push_back( hit ); }
 
-    void clearEvents()
-    { _events.clear(); }
+    void clearTiles()
+    { _tiles.clear(); }
 
     void clearHits()
     { _hits.clear(); }
@@ -176,8 +184,8 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     private:
 
-    //! event struct
-    EventStruct::List _events;
+    //! tiles
+    TileStruct::List _tiles;
 
     //! g4hits array
     G4HitStruct::List _g4hits;
