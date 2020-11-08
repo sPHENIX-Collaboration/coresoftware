@@ -38,9 +38,6 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-#include <chrono>
-
-using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
@@ -111,8 +108,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::Process()
 {
-  auto startEventTime = high_resolution_clock::now();
-
+  PHTimer *eventTimer = new PHTimer("eventTimer");
+  eventTimer->stop();
+  eventTimer->restart();
+  
   m_event++;
 
   auto logLevel = Acts::Logging::INFO;
@@ -127,16 +126,15 @@ int PHActsTrkFitter::Process()
 
   loopTracks(logLevel);
   
-  auto stopEventTime = high_resolution_clock::now();
-  auto eventTime = duration_cast<microseconds>(stopEventTime - startEventTime);
+  eventTimer->stop();
+  auto eventTime = eventTimer->get_accumulated_time();
 
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter total event time " 
-	      << eventTime.count() / 1000.
-	      << std::endl;
+	      << eventTime << std::endl;
 
   if(m_timeAnalysis)     
-    h_eventTime->Fill(eventTime.count()/1000.);
+    h_eventTime->Fill(eventTime);
     
 
   if(Verbosity() > 1)
@@ -193,13 +191,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
   std::map<unsigned int, ActsTrack>::iterator trackIter;
-
+ 
   for (trackIter = m_actsProtoTracks->begin();
        trackIter != m_actsProtoTracks->end();
        ++trackIter)
   {
-
-    auto startTrackTime = high_resolution_clock::now();
+    PHTimer *trackTimer = new PHTimer("TrackTimer");
+    trackTimer->stop();
+    trackTimer->restart();
 
     ActsTrack track = trackIter->second;
     /// Can correlate with the SvtxTrackMap with the key
@@ -273,18 +272,18 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::PropagatorPlainOptions(),
       &(*pSurface));
 
-    auto startTime = high_resolution_clock::now();
-    
+    PHTimer *fitTimer = new PHTimer("FitTimer");
+    fitTimer->stop();
+    fitTimer->restart();
     auto result = fitTrack(sourceLinks, newTrackSeed, kfOptions,
 			   surfaces);
 
-    auto stopTime = high_resolution_clock::now();
-    auto fitTime = duration_cast<microseconds>(stopTime - startTime);
- 
+    fitTimer->stop();
+    auto fitTime = fitTimer->get_accumulated_time();
+
     if(Verbosity() > 0)
       std::cout << "PHActsTrkFitter Acts fit time "
-		<< fitTime.count() / 1000.
-		<< std::endl;
+		<< fitTime << std::endl;
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -295,7 +294,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	{
 	  h_fitTime->Fill(fitOutput.fittedParameters.value()
 			  .transverseMomentum(), 
-			  fitTime.count() / 1000.);
+			  fitTime);
 	}
    
       if(m_fitSiliconMMs)
@@ -320,11 +319,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	m_nBadFits++;
       }
 
-    auto stopTrackTime = high_resolution_clock::now();
-    auto trackTime = duration_cast<microseconds>(stopTrackTime - startTrackTime);
+    trackTimer->stop();
+    auto trackTime = trackTimer->get_accumulated_time();
+    
     if(Verbosity() > 0)
       std::cout << "PHActsTrkFitter total single track time "
-		<< trackTime.count() / 1000. << std::endl;
+		<< trackTime << std::endl;
   }
   return;
 }
@@ -404,20 +404,21 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
   
-  auto startUpdateTime = high_resolution_clock::now();
+  PHTimer *updateTrackTimer = new PHTimer("UpdateTrackTimer");
+  updateTrackTimer->stop();
+  updateTrackTimer->restart();
   if(fitOutput.fittedParameters)
     updateSvtxTrack(trajectory, trackKey, vertex);
   
-  auto stopUpdateTime = high_resolution_clock::now();
-  auto updateTime = duration_cast<microseconds>
-    (stopUpdateTime - startUpdateTime);
+  updateTrackTimer->stop();
+  auto updateTime = updateTrackTimer->get_accumulated_time();
   
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter update SvtxTrack time "
-	      << updateTime.count() / 1000. << std::endl;
+	      << updateTime << std::endl;
 
   if(m_timeAnalysis)
-    h_updateTime->Fill(updateTime.count() / 1000.);
+    h_updateTime->Fill(updateTime);
   
   /// Insert a new entry into the map
   m_actsFitResults->insert(
@@ -581,8 +582,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   ActsTransformations *rotater = new ActsTransformations();
   rotater->setVerbosity(Verbosity());
   
-  auto startRotTime = high_resolution_clock::now();
-  
   if(params.covariance())
     {
    
@@ -606,13 +605,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   rotater->calculateDCA(params, vertex, m_tGeometry->geoContext, 
 			dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
- 
-  auto stopRotTime = high_resolution_clock::now();
-  auto rotTime = duration_cast<microseconds>(stopRotTime - startRotTime);
-
-  if(m_timeAnalysis)
-    h_rotTime->Fill(rotTime.count() / 1000.);
-
 
   // convert from mm to cm
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
@@ -623,21 +615,24 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
-  auto stateStartTime = high_resolution_clock::now();
+  PHTimer *trackStateTimer = new PHTimer("trackStateTimer");
+  trackStateTimer->stop();
+  trackStateTimer->restart();
+  
   if(m_fillSvtxTrackStates)
     rotater->fillSvtxTrackStates(traj, trackTip, track,
 				 m_tGeometry->geoContext,
 				 m_hitIdClusKey);  
 
-  auto stateStopTime = high_resolution_clock::now();
-  auto stateTime = duration_cast<microseconds>(stateStopTime - stateStartTime);
+  trackStateTimer->stop();
+  auto stateTime = trackStateTimer->get_accumulated_time();
   
   if(Verbosity() > 0)
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
-	      << stateTime.count() / 1000. << std::endl;
+	      << stateTime << std::endl;
 
   if(m_timeAnalysis)
-    h_stateTime->Fill(stateTime.count() / 1000.);
+    h_stateTime->Fill(stateTime);
 
   if(Verbosity() > 2)
     {  

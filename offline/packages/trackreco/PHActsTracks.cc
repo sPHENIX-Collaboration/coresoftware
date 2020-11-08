@@ -10,6 +10,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHTimer.h>
 
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/Utilities/Units.hpp>
@@ -71,6 +72,10 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     std::cout << "Start process_event in PHActsTracks" << std::endl;
   }
 
+  PHTimer *eventTimer = new PHTimer("PHActsTracksTimer");
+  eventTimer->stop();
+  eventTimer->restart();
+
   /// Check to get the nodes needed
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -115,7 +120,6 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	std::cout << ")" << std::endl;
       }
 
-
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
       rotater->rotateSvtxTrackCovToActs(track,
@@ -136,45 +140,19 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     const double p = track->get_p();
     
     const double trackQ = track->get_charge();
-    
-    if(Verbosity() > 0)
-      {
-	std::cout << PHWHERE << std::endl;
-	std::cout << "Seed track momentum " << p << std::endl;
-	std::cout << " Seed trackQ " << trackQ << std::endl;
-	std::cout << " seed Pos " << seed4Vec(0) << "  " << seed4Vec(1) 
-		  << "  " << seed4Vec(2) << std::endl;
-	std::cout << " seedMomVec " << seedMomVec(0) << "  " 
-		  << seedMomVec(1) << "  " << seedMomVec(2) << std::endl;
-	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
-	std::cout << " seedCov: " << std::endl;
-	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
-	  {
-	    for(unsigned int icol = 0; icol < seedCov.cols(); ++icol)
-	      {
-		std::cout << seedCov(irow,icol) << "  ";
-	      }
-	    std::cout << std::endl;
-	  }
-      }
-    
+        
     /// Skip this track seed if the seed somehow got screwed up
     if(std::isnan(p))
-      {
-	std::cout << PHWHERE << "Bad track seed got passed to ACTS... diagnostic:"
-		  << std::endl << "Seed 4vec: (" << seed4Vec(0) << ", " 
-		  << seed4Vec(1) << ", " << seed4Vec(2) << ", " 
-		  << seed4Vec(3) << ")" << std::endl 
-		  << "Seed momentum vec: (" << seedMomVec(0) << ", "
-		  << seedMomVec(1) << ", " << seedMomVec(2) << ")"
-		  << std::endl << "Seed charge " << trackQ << std::endl;
-		  
 	continue;
-      }
+      
     const ActsExamples::TrackParameters trackSeed(seed4Vec, 
 						  seedMomVec, p,
 						  trackQ * Acts::UnitConstants::e,
 						  seedCov);
+
+      if(Verbosity() > 1)
+      	printTrackSeed(trackSeed);
+      
 
     /// Start fresh for this track
     trackSourceLinks.clear();
@@ -189,7 +167,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
-      if (Verbosity() > 0)
+      if (Verbosity() > 2)
 	{
 	  std::cout << PHWHERE << " lookup gave hitid " << hitId 
 		    << " for cluskey " << key << std::endl; 
@@ -206,13 +184,14 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	}
     }
     
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
       {
 	for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
-      {
-        std::cout << "proto_track readback: hitid " << trackSourceLinks.at(i).hitID() << std::endl;
+	  {
+	    std::cout << "proto_track readback: hitid " 
+		      << trackSourceLinks.at(i).hitID() << std::endl;
+	  }
       }
-    }
 
     ActsTrack actsTrack(trackSeed, trackSourceLinks, vertex);
     m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
@@ -221,6 +200,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 20)
     std::cout << "Finished PHActsTrack::process_event" << std::endl;
 
+  eventTimer->stop();
+  if(Verbosity() > 0)
+    std::cout << "PHActsTracks total event time " 
+	      << eventTimer->get_accumulated_time() << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -316,4 +300,39 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void PHActsTracks::printTrackSeed(const ActsExamples::TrackParameters seed)
+{
+
+  auto position = seed.position(m_tGeometry->geoContext);
+
+  std::cout << PHWHERE << std::endl;
+  std::cout << "Seed track momentum " << seed.absoluteMomentum() 
+	    << std::endl;
+  std::cout << " Seed trackQ " << seed.charge() 
+	    << std::endl;
+  std::cout << " seed Pos " << position(0) << "  " << position(1)
+	    << "  " << position(2) 
+	    << std::endl;
+  std::cout << " seedMomVec " << seed.momentum()(0) << "  " 
+	    << seed.momentum()(1) << "  " << seed.momentum()(2) 
+	    << std::endl;
+
+  // diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
+
+  std::cout << " seedCov: " << std::endl;
+
+  /// This will always have a values since we explicitly set it
+  auto seedCov = seed.covariance().value();
+  for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
+    {
+      for(unsigned int icol = 0; icol < seedCov.cols(); ++icol)
+	{
+	  std::cout << seedCov(irow,icol) << "  ";
+	}
+      std::cout << std::endl;
+    }
+
 }
