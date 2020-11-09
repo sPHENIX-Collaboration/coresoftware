@@ -162,14 +162,13 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
 	{	  
 	  auto trackStateParams = std::move(**result);
 	  if(Verbosity() > 1)
-	    {
-	      std::cout << "Silicon+MM momentum : " 
-			<< trackParams.momentum()
-			<< std::endl
-			<< "Propagator momentum : " 
-			<< trackStateParams.momentum()
-			<< std::endl;
-	    }
+	    std::cout << "Silicon+MM momentum : " 
+		      << trackParams.momentum()
+		      << std::endl
+		      << "Propagator momentum : " 
+		      << trackStateParams.momentum()
+		      << std::endl;
+	  
 
 	  calculateTpcResiduals(trackStateParams, sl);
 	}
@@ -182,20 +181,19 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
     } 
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
-    {
-      std::cout << "Starting track params position/momentum: "
-		<< trackParams.position(m_tGeometry->geoContext).transpose()
-		<< std::endl << trackParams.momentum().transpose() 
-		<< std::endl
-		<< "Track params phi/eta " 
-		<< std::atan2(trackParams.momentum().y(), 
-			      trackParams.momentum().x())
-		<< " and " 
-		<< std::atanh(trackParams.momentum().z() / 
-			      trackParams.momentum().norm())
-		<< std::endl;
+    std::cout << "Starting track params position/momentum: "
+	      << trackParams.position(m_tGeometry->geoContext).transpose()
+	      << std::endl << trackParams.momentum().transpose() 
+	      << std::endl
+	      << "Track params phi/eta " 
+	      << std::atan2(trackParams.momentum().y(), 
+			    trackParams.momentum().x())
+	      << " and " 
+	      << std::atanh(trackParams.momentum().z() / 
+			    trackParams.momentum().norm())
+	      << std::endl;
       
-    }
+    
   
 }
 
@@ -377,14 +375,8 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	const auto cell = getCell(iz, ir, iphi);	
 	
 	if(m_clusterCount.at(cell) < m_minClusCount)
-	  {
-	    std::cout<<"Not enough clusters! " << m_clusterCount.at(cell)
-		     <<std::endl;
-	    continue;
-	  }
-	else
-	  std::cout<<"Num clusters at cell " << cell 
-		   <<"  " << m_clusterCount.at(cell)<<std::endl;
+	  continue;
+	  
 	const auto cov = m_lhs.at(cell).inverse();
 	auto partialLu = m_lhs.at(cell).partialPivLu();
 	const auto result = partialLu.solve(m_rhs.at(cell));
@@ -401,12 +393,14 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	
 	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
 	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
-	
-	std::cout << "Bin settings " << m_clusterCount.at(cell)
-		  <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
-		  <<"  "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
-		  <<"  "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
-		  <<std::endl;
+
+	if(Verbosity() > 1)
+	  std::cout << "Bin setting for index " << cell << " with counts "
+		    << m_clusterCount.at(cell) " has settings : "
+		    <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
+		    <<"  "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
+		    <<"  "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
+		    <<std::endl;
 
       }
     }
@@ -456,40 +450,6 @@ int PHTpcResiduals::getCell(const int iz, const int ir,
 
 int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
 {
-
-  PHNodeIterator iter(topNode);
-  
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
-  if (!dstNode)
-  {
-    std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error(
-      "Failed to find DST node in PHActsTracks::createNodes");
-  }
-  
-  PHCompositeNode *svtxNode = 
-    dynamic_cast<PHCompositeNode *>(
-                 iter.findFirst("PHCompositeNode", "SVTX"));
-
-  if (!svtxNode)
-  {
-    svtxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svtxNode);
-  }
-
-  m_distortionCorrections = 
-    findNode::getClass<DistortionCorrections>(
-              topNode, "DistortionCorrections");
-  
-  if(!m_distortionCorrections)
-    {
-      m_distortionCorrections = new DistortionCorrections();
-      PHDataNode<DistortionCorrections> *distortionNode =
-	new PHDataNode<DistortionCorrections>(
-        m_distortionCorrections, "DistortionCorrections");
-      svtxNode->addNode(distortionNode);
-    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

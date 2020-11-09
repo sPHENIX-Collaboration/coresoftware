@@ -23,26 +23,6 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 
-using DistortionMap = std::map<const int, 
-                               std::pair<unsigned int, 
-                                         const double>>;
-
-/**
- * A struct containing the distortion map correction information
- * to be put on the node tree for other modules
- */
-struct DistortionCorrections
-{
-  DistortionMap *m_distortionMap = nullptr;
-  DistortionMap *m_distortionMapErr = nullptr;
-  
-  /// For definitions see equivalent definitions in PHTpcResiduals
-  int m_zBins = 50;
-  int m_phiBins = 72;
-  int m_rBins = 48;
-  const int m_totalBins = m_zBins * m_phiBins * m_rBins;
-  int m_nCoord = 3;
-};
 
 
 
@@ -155,9 +135,6 @@ class PHTpcResiduals : public SubsysReco
   
   /// Counter for number of bad propagations from propagateTrackState()
   int m_nBadProps = 0;
-
-  /// Container for distortion corrections for node tree
-  DistortionCorrections *m_distortionCorrections = nullptr;
 
   /// Output root histograms
   std::string m_outputfile = "PHTpcResidualsDistortionCorrections.root";
