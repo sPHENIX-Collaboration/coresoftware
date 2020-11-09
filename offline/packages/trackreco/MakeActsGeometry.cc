@@ -541,9 +541,16 @@ void MakeActsGeometry::buildActsSurfaces()
   file.open(materialFile);
   if(!file)
     {
-      std::cout << materialFile << " not found locally, use repo version" << std::endl;
-      materialFile = std::string(getenv("CALIBRATIONROOT")) +
-	std::string("/ACTS/sphenix-material.json");
+      std::cout << materialFile 
+		<< " not found locally, use repo version" 
+		<< std::endl;
+      
+      if(m_buildMMs)
+	materialFile = std::string(getenv("CALIBRATIONROOT")) + 
+	  std::string("/ACTS/sphenix-mm-material.json");
+      else
+	materialFile = std::string(getenv("CALIBRATIONROOT")) +
+	  std::string("/ACTS/sphenix-material.json");
     }
   
   if(Verbosity() > -1)
