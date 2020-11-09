@@ -76,33 +76,33 @@ int PHTruthClustering::InitRun(PHCompositeNode* topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  for(int layer = 0; layer < _nlayers_maps; ++layer)
+  for(unsigned int layer = 0; layer < _nlayers_maps; ++layer)
     {
       clus_err_rphi[layer] = mvtx_clus_err_rphi;
       clus_err_z[layer] = mvtx_clus_err_z;
     }
-  for(int layer = _nlayers_maps; layer < _nlayers_maps + _nlayers_intt; ++layer) 
+  for(unsigned int layer = _nlayers_maps; layer < _nlayers_maps + _nlayers_intt; ++layer) 
     {
       clus_err_rphi[layer] = intt_clus_err_rphi;
       clus_err_z[layer] = intt_clus_err_z;
     }
-  for(int layer = _nlayers_maps + _nlayers_intt; layer < _nlayers_maps + _nlayers_intt + 16; ++layer) 
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt; layer < _nlayers_maps + _nlayers_intt + 16; ++layer) 
     {
       clus_err_rphi[layer] = tpc_inner_clus_err_rphi;
       clus_err_z[layer] = tpc_inner_clus_err_z;
     }
-  for(int layer = _nlayers_maps + _nlayers_intt + 16; layer < _nlayers_maps + _nlayers_intt +_nlayers_tpc; ++layer) 
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt + 16; layer < _nlayers_maps + _nlayers_intt +_nlayers_tpc; ++layer) 
     {
       clus_err_rphi[layer] = tpc_outer_clus_err_rphi;
       clus_err_z[layer] = tpc_outer_clus_err_z;
     }
-  for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
+  for(unsignmed int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
     {
       clus_err_rphi[layer] = mms_layer55_clus_err_rphi;
       clus_err_z[layer] = mms_layer55_clus_err_z;
     }
 
-for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer) 
+for(unsigned int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer) 
   {
     clus_err_rphi[layer] = mms_layer56_clus_err_rphi;
     clus_err_z[layer] = mms_layer56_clus_err_z;
@@ -110,7 +110,7 @@ for(int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlaye
  
  if(Verbosity() > 3)
    {
-     for(int layer = 0; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer)
+     for(unsigned int layer = 0; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer)
        std::cout << " layer " << layer << " clus_err _rphi " << clus_err_rphi[layer] << " clus_err_z " << clus_err_z[layer] << std::endl;
    }
  
