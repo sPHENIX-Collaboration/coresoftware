@@ -767,7 +767,9 @@ Float_t KFParticle_Tools::calculateEllipsoidVolume( KFParticle particle )
       for (int j = 0; j < 3; ++j)
         cov_matrix(i,j) = particle.GetCovariance(i,j); 
 
-    float volume = (4/3) * M_PI * std::sqrt( ( std::abs( cov_matrix.Determinant() ) ) ); //The covariance matrix is error-squared 
+    float volume;
+    if ( cov_matrix(0,0)*cov_matrix(1,1)*cov_matrix(2,2) == 0 ) volume = 0;
+    else volume = (4/3) * M_PI * std::sqrt( ( std::abs( cov_matrix.Determinant() ) ) ); //The covariance matrix is error-squared 
 
     return volume;
 }

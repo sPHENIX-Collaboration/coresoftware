@@ -91,12 +91,12 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 5e4;
+  const int nEvents = 1e3;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
   kfparticle->setMaximumTrackchi2nDOF(1.5);
-  kfparticle->setMaximumVertexchi2nDOF(1);
+  kfparticle->setMaximumVertexchi2nDOF(2);
   kfparticle->setMaximumDaughterDCA(0.03);
   kfparticle->setFlightDistancechi2(80);
   kfparticle->setMinDIRA(0.8);

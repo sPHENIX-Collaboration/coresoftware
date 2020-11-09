@@ -8,6 +8,8 @@
 #include <g4eval/SvtxTruthEval.h>
 #include <g4eval/SvtxVertexEval.h>
 #include <g4eval/SvtxEvalStack.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxVertex.h>

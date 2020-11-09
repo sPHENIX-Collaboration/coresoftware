@@ -1,15 +1,4 @@
-/*
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <g4eval/SvtxTrackEval.h>
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxTruthEval.h>
-#include <g4eval/SvtxEvalStack.h>
-*/
-//#include <Acts/Surfaces/Surface.hpp>
-//#include "PHActsSourceLinks.h"
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrCluster.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <intt/InttDefs.h>
@@ -28,16 +17,7 @@ std::map<std::string, int> Use =
   { "OHCAL", 0 },
   { "IHCAL", 0 }
 };
-/*
-//For truth matching
-SvtxTrackMap *dst_trackmap;
-SvtxTrackEval *trackeval;
-SvtxClusterEval *clustereval;
-SvtxTruthEval *trutheval;
-SvtxTrack *track;
-PHG4Particle* g4particle;
-//For detector info
-*/
+
 KFParticle_truthAndDetTools::KFParticle_truthAndDetTools():
     m_svtx_evalstack(nullptr)
 {} //Constructor
@@ -80,13 +60,7 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
       clustereval = m_svtx_evalstack->get_cluster_eval();
       trutheval = m_svtx_evalstack->get_truth_eval();
       vertexeval = m_svtx_evalstack->get_vertex_eval();
-
-      m_svtx_evalstack->set_strict(true);
-      trackeval->set_strict(true);
-      clustereval->set_strict(true);
-      trutheval->set_strict(true);
-      vertexeval->set_strict(true);
-    }
+   }
 
     m_svtx_evalstack->next_event(topNode);
 
@@ -94,8 +68,7 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     track = getTrack( daughter.Id(), dst_trackmap );
 
     TrkrDefs::cluskey clusKey = *track->begin_cluster_keys();
-    if (!clusKey) g4particle = trackeval->max_truth_particle_by_nclusters( track ); 
-    else g4particle = clustereval->max_truth_particle_by_energy( clusKey );
+    g4particle = clustereval->max_truth_particle_by_cluster_energy( clusKey );
 
     true_px = (Float_t) g4particle->get_px();
     true_py = (Float_t) g4particle->get_py();
@@ -110,22 +83,56 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     m_true_daughter_pt[ daughter_id ] = true_pt;
     m_true_daughter_id[ daughter_id ] = g4particle->get_pid();
 
-    g4vertex_point = trutheval->get_vertex(g4particle);
+    g4vertex_point = trutheval->get_vertex( g4particle );
+    g4vertex_point->identify();
     m_true_daughter_vertex_x[ daughter_id ] = g4vertex_point->get_x();
     m_true_daughter_vertex_y[ daughter_id ] = g4vertex_point->get_y();
     m_true_daughter_vertex_z[ daughter_id ] = g4vertex_point->get_z();
+/*
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    int parentID = g4particle->get_parent_id();
+    if (parentID > 0) 
+    {
+      PHG4Particle *parent = truthinfo->GetParticle( parentID );
+      parent->identify();
+    }
+    else printf("There was no parent ID");
+*/
+/*
+ std::map<int, PHG4Particle*>::const_iterator particle_iter;
 
-    vertex = vertexeval->best_vertex_from(g4vertex_point);
+ PHG4TruthInfoContainer::ConstRange primary_range = truthinfo->GetParticleRange();
+
+ for (PHG4TruthInfoContainer::ConstIterator particle_iter = primary_range.first;
+     particle_iter != primary_range.second; ++particle_iter)
+  {
+   PHG4Particle *particle = particle_iter->second;
+   std::cout<<"The particle PID is "<<particle->get_pid()<<std::endl;;
+  }
+*/
+    //PHG4VtxPoint *vertex2 = truthinfo->GetPrimaryVtx(g4particle->get_vtx_id());
+    //vertex2->identify(); //Gives same as trutheval->get_vertex( g4particle ); but Im testing with D0->Kpi so a decay with intermediates might be different
+/*
+    //vertex = vertexeval->best_vertex_from( g4vertex_point );
+    std::set<SvtxVertex*> vertices = vertexeval->all_vertexes_from( g4vertex_point );
+    for ( std::set<SvtxVertex*>::iterator iter=vertices.begin(); iter!=vertices.end(); ++iter)
+    {
+    vertex = *iter;
     std::set<PHG4Particle*> particles_from_vertex = vertexeval->all_truth_particles(vertex); 	
+
     unsigned int part_num = 0;
     printf("Starting IDing particles in vertex\n");
     for ( std::set<PHG4Particle*>::iterator it=particles_from_vertex.begin(); it!=particles_from_vertex.end(); ++it)
     {
       part_num++;
       printf("Particle %u\n", part_num);
-      //it->identify(); 
+      PHG4Particle *test = *it;
+      test->identify();
+      std::cout<<"The parent id is"<<test->get_parent_id()<<std::endl; 
     }
     printf("Finished IDing particles in vertex\n");
+   }
+*/
 }
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches( TTree *m_tree, int daughter_id )
@@ -156,6 +163,8 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches( TTree *m_tree, 
     if (detectorName == "TPC" )  m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_side",        &tpc_side[ daughter_id ] );
 }
 
+void KFParticle_truthAndDetTools::fillDetectorBranch( PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id )
+{
     dst_clustermap = findNode::getClass<TrkrClusterContainer>( topNode, "TRKR_CLUSTER");
     dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
     track = getTrack( daughter.Id(), dst_trackmap );
