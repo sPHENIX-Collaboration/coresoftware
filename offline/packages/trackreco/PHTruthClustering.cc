@@ -96,7 +96,7 @@ int PHTruthClustering::InitRun(PHCompositeNode* topNode)
       clus_err_rphi[layer] = tpc_outer_clus_err_rphi;
       clus_err_z[layer] = tpc_outer_clus_err_z;
     }
-  for(unsignmed int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
     {
       clus_err_rphi[layer] = mms_layer55_clus_err_rphi;
       clus_err_z[layer] = mms_layer55_clus_err_z;
