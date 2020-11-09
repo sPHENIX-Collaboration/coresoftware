@@ -16,6 +16,7 @@ class PHTimer;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
+//class TrkrClusterContainer;
 
 /// \class SvtxEvaluator
 ///
@@ -66,6 +67,8 @@ class SvtxEvaluator : public SubsysReco
   // eval stack
   SvtxEvalStack *_svtxevalstack;
 
+  //TrkrClusterContainer *cluster_map{nullptr};
+
   //----------------------------------
   // evaluator output ntuples
 
@@ -89,7 +92,7 @@ class SvtxEvaluator : public SubsysReco
   bool _scan_for_embedded;
 
   unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 8;
+  unsigned int _nlayers_intt = 4;
   unsigned int _nlayers_tpc = 48;
   unsigned int _nlayers_mms = 2;
 
