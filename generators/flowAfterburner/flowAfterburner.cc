@@ -157,7 +157,7 @@ float calc_v2(double b, double eta, double pt)
   // JGL 9/9/2019
   // See JS ToG talk at https://indico.bnl.gov/event/6764/
 
-  v2 = (a4 * (temp1 + temp2) + temp3) * exp(-0.5 * eta * eta / 2.0 / 2.0);
+  v2 = (a4 * (temp1 + temp2) + temp3) * exp(-0.5 * eta * eta / 3.43 / 3.43);
 
   return v2;
 }
