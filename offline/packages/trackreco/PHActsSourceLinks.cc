@@ -210,7 +210,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 1)
     {
-      if(layer > 54)
+      //if(layer > 54)
 	std::cout << "Layer " << layer
 		  << " create measurement for trkrid " << trkrId
 		  << " cluskey " << clusKey
@@ -310,15 +310,24 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// a given readout module
   Surface surface = getTpcSurfaceFromCoords(tpcHitSetKey,
 					    worldVec);
-
   /// If surface can't be found (shouldn't happen) return nullptr and skip this cluster
   if(!surface)
     {
       std::cout << PHWHERE
 		<< "Failed to find associated surface element - should be impossible! Skipping measurement."
 		<< std::endl;
+      std::cout << "  tpcHitSetKey " << tpcHitSetKey << " layer " << layer << " sector " << sectorId
+		<< " worldVec[0] " << worldVec[0] << " worldVec[1] " << worldVec [1] << " worldVec[2] " << worldVec[2] << std::endl;
       return nullptr;
     }
+  /*
+  std::cout << PHWHERE
+	    << "Found associated surface element"
+	    << std::endl;
+  std::cout << "  tpcHitSetKey " << tpcHitSetKey << " layer " << layer << " sector " << sectorId
+	    << " worldVec[0] " << worldVec[0] << " worldVec[1] " << worldVec [1] << " worldVec[2] " << worldVec[2] << std::endl;
+  */
+
   if(Verbosity() > 10)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
@@ -947,7 +956,11 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if(_use_truth_clusters)
+    m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  else
+    m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
   if (!m_clusterMap)
   {
     std::cout << PHWHERE
