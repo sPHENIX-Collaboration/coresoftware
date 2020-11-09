@@ -360,7 +360,7 @@ readagain:
   ++m_events_accepted;
 
   // jump event counter to the last background accepted event
-  PushBackEvents( -neventsfuture );
+  if( neventsfuture > 0 ) PushBackEvents( -neventsfuture );
 
   // update syncobject
   m_syncobject = findNode::getClass<SyncObject>(m_dstNode, "Sync");
