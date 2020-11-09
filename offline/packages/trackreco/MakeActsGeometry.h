@@ -82,7 +82,6 @@ class MakeActsGeometry : public SubsysReco
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
-  void buildMMs(bool buildMMs) {m_buildMMs = buildMMs;}
 
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
