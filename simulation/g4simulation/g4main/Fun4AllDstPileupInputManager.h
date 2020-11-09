@@ -48,14 +48,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   /*! offste is added to the current event number to look for the corresponding event timestamp */
   void setEventOffset(int value) { m_event_offset = value; }
 
-  //! max trigger rate
-  /* set to zero if no limit */
-  void setMaxTriggerRate( double value )
-  { 
-    if( value > 0 ) m_minBunchCrossing_trigger = 1./(value*m_time_between_crossings*1e-9); 
-    else m_minBunchCrossing_trigger = 0;
-  }
-  
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)
   {
@@ -119,7 +111,7 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //! time between crossings. This is a RHIC constant (ns)
   static constexpr double m_time_between_crossings = 106;
-  
+
   //! keep track of last accepted event bunch crossing
   /*! it is needed in order not to accept two consecutive events belonging to the same bunch crossing */
   int64_t m_last_bunchCrossing = 0;
@@ -134,10 +126,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   //! max integration time for pileup in the TPC (ns)
   double m_tmax = 13500;
 
-  //* minimum bunch crossing between two trigger events
-  /* default corresponds to 15 kHz */
-  double m_minBunchCrossing_trigger = 1./(15e3*m_time_between_crossings*1e-9); 
-  
   //! event header
   EventHeader *m_eventheader = nullptr;
 
