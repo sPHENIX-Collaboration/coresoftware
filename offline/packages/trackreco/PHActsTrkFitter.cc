@@ -114,7 +114,7 @@ int PHActsTrkFitter::Process()
   
   m_event++;
 
-  auto logLevel = Acts::Logging::INFO;
+  auto logLevel = Acts::Logging::FATAL;
 
   if (Verbosity() > 1)
   {

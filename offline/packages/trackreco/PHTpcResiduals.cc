@@ -10,9 +10,6 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -23,7 +20,8 @@
 #include <ActsExamples/Plugins/BField/ScalableBField.hpp>
 
 #include <cmath>
-#include <TGraphErrors.h>
+#include <TFile.h>
+#include <TH3.h>
 
 namespace 
 {
@@ -96,17 +94,6 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 
   calculateDistortions(topNode);
 
-  if(m_outputRoot)
-    {
-      outfile->cd();
-      h_rphiResid->Write();
-      h_etaResid->Write();
-      h_zResidLayer->Write();
-      h_etaResidLayer->Write();
-      h_zResid->Write();
-      outfile->Write();
-      outfile->Close();
-    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -114,53 +101,63 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
 
-
-  std::map<unsigned int, ActsTrack>::iterator trackIter;
-  for(trackIter = m_actsProtoTracks->begin();
-      trackIter != m_actsProtoTracks->end();
-      ++trackIter)
+  for(auto &[trackKey, track] : *m_actsProtoTracks)
     {
-      auto track = trackIter->second;
-      processTrack(track);
+      if(checkTrack(track))
+	processTrack(track);
       
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTpcResiduals::processTrack(ActsTrack& track)
+bool PHTpcResiduals::checkTrack(ActsTrack& track)
 {
  
-  auto sourceLinks = track.getSourceLinks();
+  if(track.getTrackParams().transverseMomentum() < 0.5)
+    return false;
 
-  /// Check that there are silicon+MM sourcelinks in this
-  /// particular track
-  bool MM = false;
-  bool silicon = false;
-  for(auto sl : sourceLinks)
+  int nMvtxHits = 0;
+  int nInttHits = 0;
+  int nMMHits   = 0;
+ 
+  for(const auto sl : track.getSourceLinks())
     {
-      auto volume = sl.referenceSurface().geometryId().volume();
-      if(volume == 10 or volume == 12)
-	silicon = true;
-      if(volume == 16)
-	MM = true;
+      const auto vol = sl.referenceSurface().geometryId().volume();
+      if(vol == 10) 
+	nMvtxHits++;
+      if(vol == 12) 
+	nInttHits++;
+      if(vol == 16) 
+	nMMHits++;
     }
 
-  if(!MM or !silicon)
-    return;
+  if(Verbosity() > 2)
+    std::cout << "Number of mvtx/intt/MM hits "
+	      << nMvtxHits << "/" << nInttHits << "/" 
+	      << nMMHits << std::endl;
+
+  if(nMvtxHits < 2 || nInttHits < 2 || nMMHits < 2)
+    return false;
+
+  return true;
+
+}
+
+void PHTpcResiduals::processTrack(ActsTrack& track)
+{
 
   const auto trackParams = track.getTrackParams();
   
   int initNBadProps = m_nBadProps;
-  for(auto sl : sourceLinks)
+  for(const auto sl : track.getSourceLinks())
     {
       /// Only analyze TPC 
       if(sl.referenceSurface().geometryId().volume() != 14)
 	continue;
       
-      //std::cout << "Propagating track state" << std::endl;
       auto result = propagateTrackState(trackParams, sl);
-      //std::cout << "finished propagating"<<std::endl;
+
       if(result.ok())
 	{	  
 	  auto trackStateParams = std::move(**result);
@@ -275,6 +272,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
 					     Acts::eBoundLoc1));
  
+  /// We don't have to extrapolate the track parameters to the cluster
+  /// r because the Acts::Propagator already propagated the parameters
+  /// to the surface where the cluster exists (e.g. the same r)
   const auto statePhi = std::atan2(globalStatePos.y(),
 				   globalStatePos.x());
   const auto stateZ = globalStatePos.z();
@@ -309,7 +309,11 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto trackBeta  = -trackPZ / trackPR;
 
   if(std::abs(trackAlpha) > m_maxTAlpha
-     || std::abs(drphi) > m_maxResidual)
+     || std::abs(drphi) > m_maxResidualDrphi)
+    return;
+
+  if(std::abs(trackBeta) > m_maxTBeta
+     || std::abs(dz) > m_maxResidualDz)
     return;
 
   const auto index = getCell(sl.referenceSurface().geometryId().layer(),
@@ -343,107 +347,84 @@ void PHTpcResiduals::calculateTpcResiduals(
 
 void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 {
-  auto *geomContainer = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if(!geomContainer)
+
+ 
+  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phiBins, 
+			    m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
+			    m_zBins, m_zMin, m_zMax );
+  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phiBins, 
+			m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
+			m_zBins, m_zMin, m_zMax );
+  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phiBins, 
+		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
+		      m_zMin, m_zMax );
+  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phiBins, 
+		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
+		      m_zMin, m_zMax );
+
+  for( auto h : { hentries, hphi, hz, hr } )
     {
-      std::cout << PHWHERE << "No CYLINDERCELLGEOM_SVTX node, exiting."
-		<< std::endl;
+      h->GetXaxis()->SetTitle( "#phi [rad]" );
+      h->GetYaxis()->SetTitle( "r [cm]" );
+      h->GetZaxis()->SetTitle( "z [cm]" );
     }
+  
 
-  std::vector<Acts::Vector3D> delta(m_totalBins);
-  std::vector<Acts::SymMatrix3D> cov(m_totalBins);
+  for(int iphi = 0; iphi < m_phiBins; ++iphi) {
+    for(int ir = 0; ir < m_rBins; ++ir) {
+      for(int iz = 0; iz < m_zBins; ++iz) {
 
-  for(int i = 0; i < m_totalBins; ++i)
-    {
-      if(m_clusterCount[i] < 10)
-	continue;
-      cov[i] = m_lhs[i].inverse();
-      delta[i] = m_lhs[i].partialPivLu().solve(m_rhs[i]);
-    }
-    
-  /// Three dimensions for the matrices
-  std::vector<std::unique_ptr<TGraphErrors>> 
-    graphs(m_zBins * m_phiBins * m_nCoord);
-
-  DistortionMap *distCorr = new DistortionMap;
-  DistortionMap *distCorrErr = new DistortionMap;
-
-  for(int iz = 0; iz < m_zBins; ++iz) {
-    for(int iphi = 0; iphi < m_phiBins; ++iphi) {
-      for(int ir = 0; ir < m_rBins; ++ir) {
-	const int index = getCell(iz, ir, iphi);
-
-	/// Get TPC layers in sPHENIX, not Acts, coordinates, hence
-	/// add 7 to the value
-	const int innerLayer = 7 + m_nLayersTpc * 
-	                       ir / m_rBins;
-	const int outerLayer = 7 + m_nLayersTpc * (ir+1) 
-	                       / m_rBins - 1;
+	const auto cell = getCell(iz, ir, iphi);	
 	
-	const auto innerRadius = geomContainer->
-	  GetLayerCellGeom(innerLayer)->get_radius();
-	const auto outerRadius = geomContainer->
-	  GetLayerCellGeom(outerLayer)->get_radius();
-	const float r = (innerRadius + outerRadius) / 2.;
-	
-	for(unsigned int icoord = 0; 
-	    icoord < m_nCoord; ++icoord) {
-	  const int tgrIndex = iz + m_zBins * 
-	                       ( iphi + m_phiBins * icoord);
-	  graphs[tgrIndex].reset(new TGraphErrors());
-	  graphs[tgrIndex]->SetName(Form("tg_%i_%i_%i", iz, iphi, icoord));
-	  
-	  /// Cut on number of clusters to avoid low 
-	  /// statistics bins
-	  if(m_clusterCount[index]<10)
-	    {
-	      /// Insert correction of 0
-	      distCorr->insert({index, 
-		    std::pair<unsigned int, const double>(0,0)});
-	      distCorrErr->insert({index,
-		    std::pair<unsigned int, const double>(0,0)});
-	      continue;
-	    }
-	  
-	  const double corrVal = delta[index](icoord,0);
-	  const double corrValErr = 
-	    std::sqrt(cov[index](icoord, icoord));
+	if(m_clusterCount.at(cell) < m_minClusCount)
+	  {
+	    std::cout<<"Not enough clusters! " << m_clusterCount.at(cell)
+		     <<std::endl;
+	    continue;
+	  }
+	else
+	  std::cout<<"Num clusters at cell " << cell 
+		   <<"  " << m_clusterCount.at(cell)<<std::endl;
+	const auto cov = m_lhs.at(cell).inverse();
+	auto partialLu = m_lhs.at(cell).partialPivLu();
+	const auto result = partialLu.solve(m_rhs.at(cell));
 
-	  auto corr = std::pair<unsigned int,
-				const double>
-	    (icoord, corrVal);
-	  auto corrErr = std::pair<unsigned int,
-				   const double>
-	    (icoord, corrValErr);
-	  distCorr->insert({index, corr});
-	  distCorrErr->insert({index, corrErr});
-	  
-	  graphs[tgrIndex]->SetPoint(ir, r, 
-				     delta[index](icoord,0));
-	  graphs[tgrIndex]->SetPointError(
-		 ir, 0, std::sqrt(cov[index](icoord,icoord)));
-        
-	}	
+	// fill histograms
+	hentries->SetBinContent( iphi+1, ir+1, iz+1, 
+				 m_clusterCount.at(cell) );
+	
+	hphi->SetBinContent( iphi+1, ir+1, iz+1, result(0) );
+	hphi->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(0,0) ) );
+	
+	hz->SetBinContent( iphi+1, ir+1, iz+1, result(1) );
+	hz->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(1,1) ) );
+	
+	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
+	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
+	
+	std::cout << "Bin settings " << m_clusterCount.at(cell)
+		  <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
+		  <<"  "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
+		  <<"  "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
+		  <<std::endl;
+
       }
     }
   }
-
-  /// Set the DistortionCorrections pointer to be put 
-  /// on the node tree
-  m_distortionCorrections->m_distortionMap = distCorr;
-  m_distortionCorrections->m_distortionMapErr = distCorrErr;
-  m_distortionCorrections->m_zBins = m_zBins;
-  m_distortionCorrections->m_phiBins = m_phiBins;
-  m_distortionCorrections->m_rBins = m_rBins;
-  m_distortionCorrections->m_nCoord = m_nCoord;
   
-
-  /// Create output tgraphs
-  TFile *outputFile = 
-    new TFile((Name() + "_distortions.root").c_str(), "RECREATE");
+  /// Create output TH3s
+  TFile *outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
   outputFile->cd();
-  for(auto&& gr : graphs)
-    gr->Write();
+
+  h_rphiResid->Write();
+  h_etaResid->Write();
+  h_zResidLayer->Write();
+  h_etaResidLayer->Write();
+  h_zResid->Write();
+    
+
+  for(const auto& h : {hentries, hphi, hr, hz})
+    h->Write();
   outputFile->Close();
 
 }
@@ -539,10 +520,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 
 void PHTpcResiduals::makeHistograms()
 {
-  if(m_outputRoot)
-    outfile = new TFile(std::string(Name() + ".root").c_str(), 
-			"recreate");
-  
+ 
   h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [mm]",
 			 60, 20, 80, 50, -10, 10);
   h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [mm]",
@@ -553,5 +531,15 @@ void PHTpcResiduals::makeHistograms()
 			     60, 20, 80, 50, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [mm]",
 			   60, 20, 80, 100, -10, 10);
+
+}
+
+void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
+				       const int zBins)
+{
+  m_zBins = zBins;
+  m_phiBins = phiBins;
+  m_rBins = rBins;
+  m_totalBins = m_zBins * m_phiBins * m_rBins;
 
 }

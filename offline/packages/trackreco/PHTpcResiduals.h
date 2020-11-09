@@ -15,9 +15,8 @@ class PHCompositeNode;
 
 #include <memory>
 #include <map>
-#include <TFile.h>
-#include <TH2.h>
 #include <TH1.h>
+#include <TH2.h>
 
 
 using BoundTrackParamPtr = 
@@ -67,13 +66,22 @@ class PHTpcResiduals : public SubsysReco
   int End(PHCompositeNode *topNode);
 
   /// Option for setting distortion correction calculation limits
-  void setMaxTrackAlpha(float maxTAlpha) { m_maxTAlpha = maxTAlpha;}
-  void setMaxTrackResidual(float maxResidual) 
-    { m_maxResidual = maxResidual;}
+  void setMaxTrackAlpha(float maxTAlpha) 
+    { m_maxTAlpha = maxTAlpha;}
   
+  void setMaxTrackResidualDrphi(float maxResidualDrphi) 
+    { m_maxResidualDrphi = maxResidualDrphi;}
+  
+  void setMaxTrackResidualDz(float maxResidualDz)
+    { m_maxResidualDz = maxResidualDz; }
+  
+  void setGridDimensions(const int phiBins, const int rBins,
+			 const int zBins);
+
   /// Option for outputting some basic cluster-track 
   /// distortion histograms
-  void setOutputRoot(bool outputRoot) {m_outputRoot = outputRoot;}
+  void setOutputfile(std::string outputfile) 
+    {m_outputfile = outputfile;}
   
  private:
 
@@ -81,6 +89,8 @@ class PHTpcResiduals : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
 
   int processTracks(PHCompositeNode *topNode);
+
+  bool checkTrack(ActsTrack& track);
   void processTrack(ActsTrack& track);
 
   /// Calculates TPC residuals given an Acts::Propagation result to
@@ -110,19 +120,29 @@ class PHTpcResiduals : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
  
   float m_maxTAlpha = 0.6;
-  float m_maxResidual = 5 * Acts::UnitConstants::cm;
+  float m_maxResidualDrphi = 5.; // mm
+  float m_maxTBeta = 1.5;
+  float m_maxResidualDz = 5.; // mm
+
+  const float m_phiMin = 0;
+  const float m_phiMax = 2. * M_PI;
+
+  const float m_rMin = 200; // mm
+  const float m_rMax = 780; // mm
+
+  const int m_minClusCount = 10;
 
   /// Tpc geometry
   const unsigned int m_nLayersTpc = 48;
-  const float m_zMin = -2120 / 2.; // mm
-  const float m_zMax = 2120 / 2.; // mm
+  const float m_zMin = -1050; // mm
+  const float m_zMax = 1050.; // mm
 
   /// These are grid sizes given by the distortion model
-  const int m_zBins = 50;
-  const int m_phiBins = 72;
-  const int m_rBins = 48;
-  const int m_totalBins = m_zBins * m_phiBins * m_rBins;
-
+  int m_zBins = 50;
+  int m_phiBins = 72;
+  int m_rBins = 48;
+  int m_totalBins = m_zBins * m_phiBins * m_rBins;
+  
   /// Number of dimensions for the residuals below
   const int m_nCoord = 3;
 
@@ -140,8 +160,7 @@ class PHTpcResiduals : public SubsysReco
   DistortionCorrections *m_distortionCorrections = nullptr;
 
   /// Output root histograms
-  int m_outputRoot = false;
-  TFile *outfile = nullptr;
+  std::string m_outputfile = "PHTpcResidualsDistortionCorrections.root";
   TH2 *h_rphiResid = nullptr;
   TH2 *h_zResid = nullptr;
   TH2 *h_etaResidLayer = nullptr;
