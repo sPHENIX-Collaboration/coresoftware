@@ -120,8 +120,6 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-
-    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
     
     /// Local coordinates and surface to be set by the correct tracking
     /// detector function below
@@ -221,7 +219,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
     SourceLink sourceLink(hitId, surface, loc, cov);
-
+    
+    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
     /// Add the sourceLink to the container
     m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId, sourceLink));
 
