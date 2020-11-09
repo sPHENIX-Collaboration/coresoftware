@@ -396,7 +396,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
 	if(Verbosity() > 1)
 	  std::cout << "Bin setting for index " << cell << " with counts "
-		    << m_clusterCount.at(cell) " has settings : "
+		    << m_clusterCount.at(cell) << " has settings : "
 		    <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
 		    <<"  "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
 		    <<"  "<<result(2) <<"+/-" << std::sqrt(cov(2,2))

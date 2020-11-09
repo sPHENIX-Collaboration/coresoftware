@@ -48,7 +48,8 @@ class PHTpcResiduals : public SubsysReco
   /// Option for setting distortion correction calculation limits
   void setMaxTrackAlpha(float maxTAlpha) 
     { m_maxTAlpha = maxTAlpha;}
-  
+  void setMaxTrackBeta(float maxTBeta)
+    { m_maxTBeta = maxTBeta; }
   void setMaxTrackResidualDrphi(float maxResidualDrphi) 
     { m_maxResidualDrphi = maxResidualDrphi;}
   
@@ -114,8 +115,8 @@ class PHTpcResiduals : public SubsysReco
 
   /// Tpc geometry
   const unsigned int m_nLayersTpc = 48;
-  const float m_zMin = -1050; // mm
-  const float m_zMax = 1050.; // mm
+  const float m_zMin = -1050.; // mm
+  const float m_zMax = 1050.;  // mm
 
   /// These are grid sizes given by the distortion model
   int m_zBins = 50;
