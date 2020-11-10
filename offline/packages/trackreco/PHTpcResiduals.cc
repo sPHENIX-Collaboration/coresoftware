@@ -254,29 +254,42 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   /// Get all the relevant information for residual calculation
   const auto clusR = sqrt(pow(globalSL.x(), 2) +
-			  pow(globalSL.y(), 2));
+			  pow(globalSL.y(), 2))
+    / Acts::UnitConstants::cm;
   const auto clusPhi = std::atan2(globalSL.y(), globalSL.x());
-  const auto clusZ = globalSL.z();
+  const auto clusZ = globalSL.z() / Acts::UnitConstants::cm;
   const auto clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
-						Acts::eBoundLoc0));
+						Acts::eBoundLoc0))
+    / Acts::UnitConstants::cm;
   const auto clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1));
+					     Acts::eBoundLoc1))
+    / Acts::UnitConstants::cm;
   
+  if(Verbosity() > 3)
+    std::cout <<"Cluster phi and z " << clusPhi << "+/-" << clusZErr
+	      <<" and " << clusZ << "+/-" << clusZErr << std::endl;
+
 
   const auto globalStatePos = params.position(m_tGeometry->geoContext);
   const auto globalStateCov = *params.covariance();
   const auto stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
-						Acts::eBoundLoc0));
+						Acts::eBoundLoc0))
+    / Acts::UnitConstants::cm;
   const auto stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1));
+					     Acts::eBoundLoc1))
+    / Acts::UnitConstants::cm;
  
   /// We don't have to extrapolate the track parameters to the cluster
   /// r because the Acts::Propagator already propagated the parameters
   /// to the surface where the cluster exists (e.g. the same r)
   const auto statePhi = std::atan2(globalStatePos.y(),
 				   globalStatePos.x());
-  const auto stateZ = globalStatePos.z();
+  const auto stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
   
+  if(Verbosity() > 3)
+    std::cout << "State phi and z " << statePhi << "+/-" << stateRPhiErr
+	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
+
   const auto erp = pow(stateRPhiErr, 2) + pow(clusRPhiErr, 2);
   const auto ez = pow(stateZErr, 2) + pow(clusZErr, 2);
 
@@ -288,14 +301,13 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
-  const auto clusEta = std::atanh(clusZ / globalSL.norm());
+  const auto clusEta = std::atanh(clusZ / (globalSL.norm() / Acts::UnitConstants::cm));
 
-  h_rphiResid->Fill(clusR / Acts::UnitConstants::cm, drphi);
-  h_zResid->Fill(stateZ / Acts::UnitConstants::cm, dz);
+  h_rphiResid->Fill(clusR , drphi);
+  h_zResid->Fill(stateZ , dz);
   h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR / Acts::UnitConstants::cm, dz);
-  h_etaResidLayer->Fill(clusR / Acts::UnitConstants::cm, 
-			clusEta - trackEta);
+  h_zResidLayer->Fill(clusR , dz);
+  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -394,7 +406,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
 	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
 
-	if(Verbosity() > 1)
+	if(Verbosity() > -1)
 	  std::cout << "Bin setting for index " << cell << " with counts "
 		    << m_clusterCount.at(cell) << " has settings : "
 		    <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
@@ -481,16 +493,16 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 void PHTpcResiduals::makeHistograms()
 {
  
-  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [mm]",
-			 60, 20, 80, 50, -10, 10);
-  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [mm]",
-		      200, -100, 100, 100, -10, 10);
+  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]",
+			 60, 20, 80, 50, -2, 2);
+  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]",
+		      200, -100, 100, 100, -2, 2);
   h_etaResid = new TH2F("etaResid", ";#eta;#Delta#eta",
 			20, -1, 1, 50, -0.2, 0.2);
   h_etaResidLayer = new TH2F("etaResidLayer", ";r [cm]; #Delta#eta",
 			     60, 20, 80, 50, -0.2, 0.2);
-  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [mm]",
-			   60, 20, 80, 100, -10, 10);
+  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
+			   60, 20, 80, 100, -2, 2);
 
 }
 

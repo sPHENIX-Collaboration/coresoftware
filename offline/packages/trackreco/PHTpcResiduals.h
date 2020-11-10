@@ -101,22 +101,22 @@ class PHTpcResiduals : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
  
   float m_maxTAlpha = 0.6;
-  float m_maxResidualDrphi = 5.; // mm
+  float m_maxResidualDrphi = 0.5; // cm
   float m_maxTBeta = 1.5;
-  float m_maxResidualDz = 5.; // mm
+  float m_maxResidualDz = 0.5; // cm
 
   const float m_phiMin = 0;
   const float m_phiMax = 2. * M_PI;
 
-  const float m_rMin = 200; // mm
-  const float m_rMax = 780; // mm
+  const float m_rMin = 20; // cm
+  const float m_rMax = 78; // cm
 
   const int m_minClusCount = 10;
 
   /// Tpc geometry
   const unsigned int m_nLayersTpc = 48;
-  const float m_zMin = -1050.; // mm
-  const float m_zMax = 1050.;  // mm
+  const float m_zMin = -105.5; // cm
+  const float m_zMax = 105.5;  // cm
 
   /// These are grid sizes given by the distortion model
   int m_zBins = 50;
