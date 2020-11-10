@@ -109,7 +109,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
-
+  
   for (clusIter = clusRange.first; 
        clusIter != clusRange.second; ++clusIter)
   {
@@ -128,6 +128,9 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     
     Surface surface;
     Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+    
+    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
+    hitId++;
     
     /// Run the detector specific function for getting the local coordinates
     /// of the cluster, as well as the corresponding Acts::Surface
@@ -218,16 +221,17 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     }
 
     /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
-    SourceLink sourceLink(hitId, surface, loc, cov);
+    /// we use hitId-1 since we already incremented the value to keep
+    /// a one-to-one correspondence with clusterkey, in case of missed 
+    /// surfaces
+    SourceLink sourceLink(hitId-1, surface, loc, cov);
     
-    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
     /// Add the sourceLink to the container
-    m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId, sourceLink));
-
-    hitId++;
+    m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId-1, 
+							      sourceLink));
   }
 
-  if (Verbosity() > 10)
+  if (Verbosity() > 5)
   {
     //m_hitIdClusKey
     CluskeyBimap::const_iterator it = m_hitIdClusKey->begin();

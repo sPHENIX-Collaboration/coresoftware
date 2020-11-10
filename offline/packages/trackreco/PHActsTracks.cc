@@ -162,10 +162,14 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
          ++clusIter)
     {
       const TrkrDefs::cluskey key = *clusIter;
-
+    
       const unsigned int hitId = m_hitIdClusKey->left.find(key)->second;
 
-      trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
+      auto index = m_sourceLinks->find(hitId);
+      if(index == m_sourceLinks->end())
+	continue;
+
+      trackSourceLinks.push_back(index->second);
       
       if (Verbosity() > 2)
 	{
