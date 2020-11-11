@@ -10,6 +10,9 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -105,7 +108,6 @@ int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
     {
       if(checkTrack(track))
 	processTrack(track);
-      
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -137,7 +139,8 @@ bool PHTpcResiduals::checkTrack(ActsTrack& track)
 	      << nMvtxHits << "/" << nInttHits << "/" 
 	      << nMMHits << std::endl;
 
-  if(nMvtxHits < 2 || nInttHits < 2 || nMMHits < 2)
+  /// Require at least 2 hits in each detector
+  if(nMvtxHits < 2 or nInttHits < 2 or nMMHits < 2)
     return false;
 
   return true;
@@ -253,27 +256,27 @@ void PHTpcResiduals::calculateTpcResiduals(
 					 Acts::Vector3D(1,1,1));
 
   /// Get all the relevant information for residual calculation
-  const auto clusR = sqrt(pow(globalSL.x(), 2) +
-			  pow(globalSL.y(), 2))
+  const auto clusR = sqrt(pow(globalSL.x() / Acts::UnitConstants::cm, 2) +
+			  pow(globalSL.y() / Acts::UnitConstants::cm, 2))
     / Acts::UnitConstants::cm;
   const auto clusPhi = std::atan2(globalSL.y(), globalSL.x());
   const auto clusZ = globalSL.z() / Acts::UnitConstants::cm;
+
   const auto clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
 						Acts::eBoundLoc0))
     / Acts::UnitConstants::cm;
   const auto clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
 					     Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
-  
+
   if(Verbosity() > 3)
     std::cout <<"Cluster phi and z " << clusPhi << "+/-" << clusZErr
 	      <<" and " << clusZ << "+/-" << clusZErr << std::endl;
 
-
   if(clusRPhiErr < 0.015)
-    continue;
-  if(clusZErr < 0.015)
-    continue;
+    return;
+  if(clusZErr < 0.05)
+    return;
 
   const auto globalStatePos = params.position(m_tGeometry->geoContext);
   const auto globalStateCov = *params.covariance();
@@ -295,8 +298,8 @@ void PHTpcResiduals::calculateTpcResiduals(
     std::cout << "State phi and z " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
-  const auto erp = pow(stateRPhiErr, 2) + pow(clusRPhiErr, 2);
-  const auto ez = pow(stateZErr, 2) + pow(clusZErr, 2);
+  const auto erp = pow(clusRPhiErr, 2);
+  const auto ez = pow(clusZErr, 2);
 
   const auto dPhi = clusPhi - statePhi;
 
@@ -318,17 +321,16 @@ void PHTpcResiduals::calculateTpcResiduals(
     params.momentum()(1) * std::cos(statePhi);
   const auto trackPR = params.momentum()(0) * std::cos(statePhi) +
     params.momentum()(1) * std::sin(statePhi);
-  
   const auto trackPZ    = params.momentum()(1);
   const auto trackAlpha = -trackPPhi / trackPR;
   const auto trackBeta  = -trackPZ / trackPR;
 
   if(std::abs(trackAlpha) > m_maxTAlpha
-     || std::abs(drphi) > m_maxResidualDrphi)
+     or std::abs(drphi) > m_maxResidualDrphi)
     return;
 
   if(std::abs(trackBeta) > m_maxTBeta
-     || std::abs(dz) > m_maxResidualDz)
+     or std::abs(dz) > m_maxResidualDz)
     return;
 
   const auto index = getCell(sl.referenceSurface().geometryId().layer(),
@@ -337,6 +339,11 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(index < 0 || index > m_totalBins)
     return;
 
+  /*
+  std::cout << index << " PHTPCResiduals " << erp << " " << trackAlpha
+	    << " " << ez << " " << trackBeta << " " << drphi
+	    << " " << dz << std::endl;
+  */
   /// Fill distortion matrices
   m_lhs[index](0,0) += 1. / erp;
   m_lhs[index](0,1) += 0;
@@ -478,12 +485,28 @@ int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
+  m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if(!m_clusterMap)
+    {
+      std::cout << PHWHERE << "Svtx cluster map not on node tree. Bailing." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
     {
       std::cout << "ActsTrackingGeometry not on node tree. Exiting."
 		<< std::endl;
       
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
+  if(!m_hitIdClusKey)
+    {
+      std::cout << PHWHERE << "Not hit id cluskey map on node tree. Bailing"
+		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 

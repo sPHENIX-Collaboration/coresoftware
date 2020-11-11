@@ -12,7 +12,9 @@
 #include <Acts/Utilities/Result.hpp>
 
 class PHCompositeNode;
+class TrkrClusterContainer;
 
+#include <boost/bimap.hpp>
 #include <memory>
 #include <map>
 #include <TH1.h>
@@ -23,6 +25,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 
@@ -99,7 +102,9 @@ class PHTpcResiduals : public SubsysReco
   /// track fit
   std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
   ActsTrackingGeometry *m_tGeometry = nullptr;
- 
+  CluskeyBimap *m_hitIdClusKey = nullptr;
+  TrkrClusterContainer *m_clusterMap = nullptr;
+
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm
   float m_maxTBeta = 1.5;
@@ -119,9 +124,9 @@ class PHTpcResiduals : public SubsysReco
   const float m_zMax = 105.5;  // cm
 
   /// These are grid sizes given by the distortion model
-  int m_zBins = 50;
-  int m_phiBins = 72;
-  int m_rBins = 48;
+  int m_zBins = 80;
+  int m_phiBins = 36;
+  int m_rBins = 16;
   int m_totalBins = m_zBins * m_phiBins * m_rBins;
   
   /// Number of dimensions for the residuals below
