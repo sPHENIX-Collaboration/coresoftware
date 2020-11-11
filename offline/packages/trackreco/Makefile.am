@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsSiliconSeeding.h \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
@@ -106,6 +107,7 @@ ACTS_SOURCES = \
   ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsSiliconSeeding.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
