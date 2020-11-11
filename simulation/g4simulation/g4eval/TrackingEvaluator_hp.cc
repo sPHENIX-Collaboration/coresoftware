@@ -289,6 +289,41 @@ namespace
     }
   }
 
+
+  //! hit energy for a given cluster
+  void add_cluster_energy( TrackingEvaluator_hp::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
+    TrkrClusterHitAssoc* cluster_hit_map,
+    TrkrHitSetContainer* hitsetcontainer )
+  {
+
+    // check container
+    if(!(cluster_hit_map && hitsetcontainer)) return;
+
+    // for now this is only filled for micromegas
+    const auto detId = TrkrDefs::getTrkrId(clus_key);
+    if(detId != TrkrDefs::micromegasId) return;
+
+    const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
+    const auto hitset = hitsetcontainer->findHitSet( hitset_key );
+    if( !hitset ) return;
+
+    const auto range = cluster_hit_map->getHits(clus_key);
+    cluster._energy_max = 0;
+    cluster._energy_sum = 0;
+
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+      auto hit = hitset->getHit( iter->second );
+      if( hit )
+      {
+        const auto energy = hit->getEnergy();
+        cluster._energy_sum += energy;
+        if( energy > cluster._energy_max ) cluster._energy_max = energy;
+      }
+    }
+
+  }
+
   // add truth information
   void add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits )
   {
@@ -565,6 +600,7 @@ void TrackingEvaluator_hp::evaluate_clusters()
     // create cluster structure
     auto cluster_struct = create_cluster( key, cluster );
     add_cluster_size( cluster_struct, key, m_cluster_hit_map );
+    add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
 
     // truth information
     const auto g4hits = find_g4hits( key );
@@ -622,6 +658,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
       // create new cluster struct
       auto cluster_struct = create_cluster( cluster_key, cluster );
       add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
+      add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
 
       // truth information
       const auto g4hits = find_g4hits( cluster_key );

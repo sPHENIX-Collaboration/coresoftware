@@ -149,6 +149,17 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_beta = 0;
     //@}
 
+    //!@name charges
+    //@{
+
+    //* maximum charge on strip
+    float _energy_max = 0;
+
+    //* sum of strip charges
+    float _energy_sum = 0;
+
+    //@}
+
   };
 
   // track information to be stored in tree
