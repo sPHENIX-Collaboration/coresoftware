@@ -1,4 +1,5 @@
 #include "PHActsSiliconSeeding.h"
+#include "SphenixActsDetectorCuts.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -21,14 +22,11 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(std::string& name)
 {
 }
 
-
-
-
 int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
 {
-
   m_seedFinderCfg = configureSeeder();
   m_gridCfg = configureSPGrid();
+  
   m_bottomBinFinder = 
     std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>());
   m_topBinFinder = 
@@ -36,6 +34,11 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
 
   Acts::SeedFilterConfig sfCfg;
   sfCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
+
+  SphenixActsDetectorCuts<SpacePoint> detectorCuts =
+    SphenixActsDetectorCuts<SpacePoint>();
+  m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
+     Acts::SeedFilter<SpacePoint>(sfCfg, &detectorCuts));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -47,17 +50,97 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
+
+
+  Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
+  
+  /// Covariance converter tool needed by seed finder
+  auto covConverter = [=](const SpacePoint& sp, float, float, float)
+    -> Acts::Vector2D { return Acts::Vector2D(sp.m_varianceRphi, 
+					      sp.m_varianceZ); 
+  };
+
+  std::vector<const SpacePoint*> spVec;
+  unsigned int siliconHits = 0;
+  
+  for(auto &[hitId, sl] : *m_sourceLinks)
+    {
+      /// collect only source links in silicon
+      auto volume = sl.referenceSurface().geometryId().volume();
+      
+      /// If we run without MMs, volumes are 7, 9, 11 for mvtx, intt, tpc
+      /// If we run with MMs, volumes are 10, 12, 14, 16 for mvtx, intt, tpc, mm
+      if(volume == 11 or volume > 12)
+	continue;
+
+      auto sp = makeSpacePoint(hitId, sl).release();
+      spVec.push_back(sp);
+      siliconHits++;
+    }
+  
+  std::unique_ptr<Acts::SpacePointGrid<SpacePoint>> grid = 
+    Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
+  auto spGroup = Acts::BinnedSPGroup<SpacePoint>( spVec.begin(),
+						  spVec.end(),
+						  covConverter,
+						  m_bottomBinFinder,
+						  m_topBinFinder,
+						  std::move(grid),
+						  m_seedFinderCfg);
+
+  std::vector<std::vector<Acts::Seed<SpacePoint>>> seedVector;
+  auto groupIt = spGroup.begin();
+  auto endGroup = spGroup.end();
+  for(; !(groupIt == endGroup); ++groupIt)
+    {
+      seedVector.push_back(seedFinder.createSeedsForGroup(groupIt.bottom(),
+							  groupIt.middle(),
+							  groupIt.top()));
+    }
+							  
+  int numSeeds = 0;
+  for(auto& outVec : seedVector)
+    numSeeds += outVec.size();
+
+  if(Verbosity() > 0)
+    std::cout << "Total number of hits " << siliconHits 
+	      << " in " << seedVector.size() << " regions gives " 
+	      << numSeeds << " seeds " << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
+						const SourceLink& sl)
+{
+  Acts::Vector2D localPos(sl.location()(0), sl.location()(1));
+  Acts::Vector3D globalPos(0,0,0);
+  Acts::Vector3D mom(1,1,1);
+
+  globalPos = sl.referenceSurface().localToGlobal(m_tGeometry->geoContext,
+						  localPos, mom);
+
+  auto cov = sl.covariance();
+  float x = globalPos.x();
+  float y = globalPos.y();
+  float z = globalPos.z();
+  float r = std::sqrt(x * x + y * y);
+  float varianceRphi = cov(0,0);
+  float varianceZ = cov(1,1);
+  
+  SpacePointPtr spPtr(new SpacePoint{sl.hitID(), x, y, z, r, 
+	sl.referenceSurface().geometryId(), varianceRphi, varianceZ});
+
+  return spPtr;
+
 }
 
 Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
@@ -116,6 +199,15 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "No ActsTrackingGeometry on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
