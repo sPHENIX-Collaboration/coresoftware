@@ -270,6 +270,11 @@ void PHTpcResiduals::calculateTpcResiduals(
 	      <<" and " << clusZ << "+/-" << clusZErr << std::endl;
 
 
+  if(clusRPhiErr < 0.015)
+    continue;
+  if(clusZErr < 0.015)
+    continue;
+
   const auto globalStatePos = params.position(m_tGeometry->geoContext);
   const auto globalStateCov = *params.covariance();
   const auto stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
@@ -386,8 +391,13 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
 	const auto cell = getCell(iz, ir, iphi);	
 	
-	if(m_clusterCount.at(cell) < m_minClusCount)
+	if(m_clusterCount.at(cell) < m_minClusCount) {
+	  if(Verbosity() > -1)
+	    std::cout << "Num clusters in bin " << cell 
+		      << " is " << m_clusterCount.at(cell) 
+		      << std::endl;
 	  continue;
+	}
 	  
 	const auto cov = m_lhs.at(cell).inverse();
 	auto partialLu = m_lhs.at(cell).partialPivLu();
