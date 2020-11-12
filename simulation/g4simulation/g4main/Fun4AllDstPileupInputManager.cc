@@ -859,7 +859,7 @@ void Fun4AllDstPileupInputManager::generateBunchCrossingList( int nevents, float
     time += deltat_crossing;
 
     const auto ntrig = gsl_ran_poisson( rng.get(), mu );
-    for( uint i = 0; i < ntrig; ++i )
+    for( uint i = 0; i < ntrig; ++i, ++ievent )
     {
       m_bunchCrossings.push_back(bunchcrossing);
       if( Verbosity() ) std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - trigger number: " << ievent << " bunch crossing: " << bunchcrossing << " time: " << time << std::endl;
