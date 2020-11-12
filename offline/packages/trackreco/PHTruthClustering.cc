@@ -1,20 +1,28 @@
-#include "SvtxTruthEval.h"
+#include "PHTruthClustering.h"
 
-#include "BaseTruthEval.h"
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
+#include <trackbase_historic/SvtxVertex_v1.h>
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
-#include <g4main/PHG4Particle.h>
-
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterv1.h>
-#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <tpc/TpcDefs.h>
 #include <intt/InttDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
+
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -22,271 +30,231 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-
 #include <intt/CylinderGeomIntt.h>
 
-
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                         // for PHIODataNode
+#include <phool/PHNode.h>                               // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                                // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
+#include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+// gsl
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 
 #include <TVector3.h>
+#include <TMatrixFfwd.h>    // for TMatrixF
+//#include <TMatrixT.h>       // for TMatrixT, ope...
+//#include <TMatrixTUtils.h>  // for TMatrixTRow
 
-#include <cassert>
-#include <cmath>                                       // for sqrt, NAN, fabs
-#include <cstdlib>                                     // for abs
-#include <iostream>
-#include <map>
-#include <set>
-#include <utility>
+#include <iostream>                            // for operator<<, basic_ostream
+#include <set>                                 // for _Rb_tree_iterator, set
+#include <utility>                             // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 
-SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
-  : _basetrutheval(topNode)
-  , _truthinfo(nullptr)
-  , _strict(false)
-  , _verbosity(0)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_hits()
-  , _cache_all_truth_hits_g4particle()
-  , _cache_all_truth_clusters_g4particle()
-  , _cache_get_innermost_truth_hit()
-  , _cache_get_outermost_truth_hit()
-  , _cache_get_primary_particle_g4hit()
+PHTruthClustering::PHTruthClustering(const std::string& name)
+  : SubsysReco(name)
 {
-  get_node_pointers(topNode);
-  iclus = 0;
 }
 
-SvtxTruthEval::~SvtxTruthEval()
+PHTruthClustering::~PHTruthClustering() 
 {
-  if (_verbosity > 0)
-  {
-    if ((_errors > 0) || (_verbosity > 1))
-    {
-      cout << "SvtxTruthEval::~SvtxTruthEval() - Error Count: " << _errors << endl;
-    }
-  }
+
 }
 
-void SvtxTruthEval::next_event(PHCompositeNode* topNode)
+int PHTruthClustering::InitRun(PHCompositeNode* topNode)
 {
-  _cache_all_truth_hits.clear();
-  _cache_all_truth_hits_g4particle.clear();
-  _cache_all_truth_clusters_g4particle.clear();
-  _cache_get_innermost_truth_hit.clear();
-  _cache_get_outermost_truth_hit.clear();
-  _cache_get_primary_particle_g4hit.clear();
+  int ret = GetNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  _basetrutheval.next_event(topNode);
+  for(unsigned int layer = 0; layer < _nlayers_maps; ++layer)
+    {
+      clus_err_rphi[layer] = mvtx_clus_err_rphi;
+      clus_err_z[layer] = mvtx_clus_err_z;
+    }
+  for(unsigned int layer = _nlayers_maps; layer < _nlayers_maps + _nlayers_intt; ++layer) 
+    {
+      clus_err_rphi[layer] = intt_clus_err_rphi;
+      clus_err_z[layer] = intt_clus_err_z;
+    }
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt; layer < _nlayers_maps + _nlayers_intt + 16; ++layer) 
+    {
+      clus_err_rphi[layer] = tpc_inner_clus_err_rphi;
+      clus_err_z[layer] = tpc_inner_clus_err_z;
+    }
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt + 16; layer < _nlayers_maps + _nlayers_intt +_nlayers_tpc; ++layer) 
+    {
+      clus_err_rphi[layer] = tpc_outer_clus_err_rphi;
+      clus_err_z[layer] = tpc_outer_clus_err_z;
+    }
+  for(unsigned int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; ++layer) 
+    {
+      clus_err_rphi[layer] = mms_layer55_clus_err_rphi;
+      clus_err_z[layer] = mms_layer55_clus_err_z;
+    }
 
-  get_node_pointers(topNode);
+for(unsigned int layer = _nlayers_maps + _nlayers_intt +_nlayers_tpc + 1; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer) 
+  {
+    clus_err_rphi[layer] = mms_layer56_clus_err_rphi;
+    clus_err_z[layer] = mms_layer56_clus_err_z;
+  }
+ 
+ if(Verbosity() > 3)
+   {
+     for(unsigned int layer = 0; layer <  _nlayers_maps + _nlayers_intt +_nlayers_tpc + 2; ++layer)
+       std::cout << " layer " << layer << " clus_err _rphi " << clus_err_rphi[layer] << " clus_err_z " << clus_err_z[layer] << std::endl;
+   }
+ 
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/// \todo this copy may be too expensive to call a lot...
-std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits()
+int PHTruthClustering::process_event(PHCompositeNode* topNode)
 {
-  if (!has_node_pointers())
-  {
-    ++_errors;
-    return std::set<PHG4Hit*>();
-  }
+  if (Verbosity() > 0) 
+    cout << "Filling truth cluster node " << endl;
 
-  if (_do_cache)
+  // get node for writing truth clusters
+  TrkrClusterContainer *m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  if (!m_clusterlist)
   {
-    if (!_cache_all_truth_hits.empty())
+    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER_TRUTH" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  
+  PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");      
+  PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+       iter != range.second;
+       ++iter)
     {
-      return _cache_all_truth_hits;
+      PHG4Particle* g4particle = iter->second;
+      
+      float gtrackID = g4particle->get_track_id();
+
+      // switch to discard secondary clusters
+      if(_primary_clusters_only && gtrackID < 0) continue;
+
+      float gflavor = g4particle->get_pid();	  
+
+      int gembed = 0;
+      bool is_primary = false;
+      if (g4particle->get_parent_id() == 0)
+	{
+	  // primary particle
+	  is_primary = true;
+	  gembed = truthinfo->isEmbeded(g4particle->get_track_id());
+	}
+      else
+	{
+	  PHG4Particle* primary = truthinfo->GetPrimaryParticle(g4particle->get_primary_id());
+	  gembed = truthinfo->isEmbeded(primary->get_track_id());
+	}
+      
+      if(Verbosity() > 0)
+	cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " is_primary " << is_primary 
+	     << " gembed " << gembed << endl;
+
+      // Get the truth clusters from this particle
+      std::map<unsigned int, TrkrCluster* > truth_clusters =  all_truth_clusters(g4particle);
+
+      // output the results
+      if(Verbosity() > 0) std::cout << " Truth cluster summary for g4particle " << g4particle->get_track_id() << " by layer: " << std::endl;
+      for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
+	{
+	  unsigned int layer = it->first;
+	  TrkrCluster *gclus = it->second;
+	  
+	  float gx = gclus->getX();
+	  float gy = gclus->getY();
+	  float gz = gclus->getZ();
+	  float ng4hits = gclus->getAdc();
+	  
+	  TVector3 gpos(gx, gy, gz);
+	  float gr = sqrt(gx*gx+gy*gy);
+	  float gphi = gpos.Phi();
+	  float geta = gpos.Eta();
+	  
+	  float gphisize = gclus->getSize(1,1);
+	  float gzsize = gclus->getSize(2,2);
+
+	  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
+	  const unsigned int trkrId = TrkrDefs::getTrkrId(ckey);
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << PHWHERE << "  ****   truth: layer " << layer << "  truth cluster key " << ckey << " ng4hits " << ng4hits << std::endl;
+	      std::cout << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
+			<< " gphi " << gphi << " geta " << geta << " gphisize " << gphisize << " gzsize " << gzsize << endl;
+	    }
+
+	  if(trkrId == TrkrDefs::tpcId)
+	    {
+	      // add the filled out cluster to the truth cluster node for the TPC (and MM's)
+	      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(gclus);
+	      if(iter->first != ckey)
+		std::cout << PHWHERE << " -------  Problem:  ckey = " << ckey<< " returned key " << iter->first << std::endl;
+	    }
+	}
     }
-  }
 
-  // since the SVTX can be composed of two different trackers this is a
-  // handy function to spill out all the g4hits from both "detectors"
+  // For the other subsystems, we just copy over all of the the clusters from the reco map
 
-  std::set<PHG4Hit*> truth_hits;
-
-  // loop over all the g4hits in the cylinder layers
-  if (_g4hits_svtx)
+  TrkrClusterContainer::ConstRange clusrange = _reco_cluster_map->getClusters();
+  for (TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
   {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_svtx->getHits().first;
-         g4iter != _g4hits_svtx->getHits().second;
-         ++g4iter)
+    TrkrDefs::cluskey cluskey = clusiter->first;
+    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+    if(trkrid == TrkrDefs::tpcId)  continue;
+
+    // we have to make a copy of the cluster, to avoid problems later
+    TrkrCluster* cluster = (TrkrCluster*) clusiter->second->CloneMe();
+
+    unsigned int layer = TrkrDefs::getLayer(cluskey);
+    if (Verbosity() >= 3)
     {
-      PHG4Hit* g4hit = g4iter->second;
-      truth_hits.insert(g4hit);
+      std::cout << PHWHERE <<" copying cluster in layer " << layer << " from reco clusters to truth clusters " << std::endl;;
+      cluster->identify();
     }
-  }
 
-  // loop over all the g4hits in the ladder layers
-  if (_g4hits_tracker)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_tracker->getHits().first;
-         g4iter != _g4hits_tracker->getHits().second;
-         ++g4iter)
+    TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
+    if(iter->first != cluskey)
+      std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
+ }
+
+  if(Verbosity() >=3)
     {
-      PHG4Hit* g4hit = g4iter->second;
-      truth_hits.insert(g4hit);
+      std::cout << "Final TRKR_CLUSTER_TRUTH clusters:";
+      m_clusterlist->identify();
     }
-  }
 
-  // loop over all the g4hits in the maps layers
-  if (_g4hits_maps)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
-         g4iter != _g4hits_maps->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      truth_hits.insert(g4hit);
-    }
-  }
-
- // loop over all the g4hits in the maicromegas layers
-  if (_g4hits_mms)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_mms->getHits().first;
-         g4iter != _g4hits_mms->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      truth_hits.insert(g4hit);
-    }
-  }
-
-  if (_do_cache) _cache_all_truth_hits = truth_hits;
-
-  return truth_hits;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
+
+std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4Particle* particle)
 {
-  if (!has_node_pointers())
-  {
-    ++_errors;
-    return std::set<PHG4Hit*>();
-  }
-
-  if (_strict)
-  {
-    assert(particle);
-  }
-  else if (!particle)
-  {
-    ++_errors;
-    return std::set<PHG4Hit*>();
-  }
-
-  if (_do_cache)
-  {
-    std::map<PHG4Particle*, std::set<PHG4Hit*> >::iterator iter =
-        _cache_all_truth_hits_g4particle.find(particle);
-    if (iter != _cache_all_truth_hits_g4particle.end())
-    {
-      return iter->second;
-    }
-  }
-
-  std::set<PHG4Hit*> truth_hits;
-
-  // loop over all the g4hits in the cylinder layers
-  if (_g4hits_svtx)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_svtx->getHits().first;
-         g4iter != _g4hits_svtx->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
-    }
-  }
-
-  // loop over all the g4hits in the ladder layers
-  if (_g4hits_tracker)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_tracker->getHits().first;
-         g4iter != _g4hits_tracker->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
-    }
-  }
-
-  // loop over all the g4hits in the maps ladder layers
-  if (_g4hits_maps)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
-         g4iter != _g4hits_maps->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
-    }
-  }
-
-  // loop over all the g4hits in the micromegas layers
-  if (_g4hits_mms)
-  {
-    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_mms->getHits().first;
-         g4iter != _g4hits_mms->getHits().second;
-         ++g4iter)
-    {
-      PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
-    }
-  }
-
-  if (_do_cache) _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
-
-  return truth_hits;
-}
-
-std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
-{
-  if (!has_node_pointers())
-  {
-    ++_errors;
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
-  }
-
-  if (_strict)
-  {
-    assert(particle);
-  }
-  else if (!particle)
-  {
-    ++_errors;
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
-  }
-
-  if (_do_cache)
-  {
-    std::map<PHG4Particle*, std::map<unsigned int, std::shared_ptr<TrkrCluster> > >::iterator iter =
-        _cache_all_truth_clusters_g4particle.find(particle);
-    if (iter != _cache_all_truth_clusters_g4particle.end())
-    {
-      return iter->second;
-    }
-  }
-
-  if(_verbosity > 0)
-    cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;;
-
   // get all g4hits for this particle
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
+
+  if(Verbosity() > 3)
+    std::cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << " with ng4hits " << g4hits.size() << std::endl;;
 	  
   float ng4hits = g4hits.size();
   if(ng4hits == 0) 
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
+    return std::map<unsigned int, TrkrCluster* >();
 
   // container for storing truth clusters
   //std::map<unsigned int, TrkrCluster*> truth_clusters;
-  std::map<unsigned int, std::shared_ptr<TrkrCluster>> truth_clusters;
+  std::map<unsigned int, TrkrCluster*> truth_clusters;
 
   // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
@@ -313,8 +281,8 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	{      
 	  unsigned int side = 0;
 	  if(gz > 0) side = 1;	  
-	  // need dummy sector here
-	  unsigned int sector = 0;
+	  // need accurate sector for the TPC so the hitsetkey will be correct
+	  unsigned int sector = getTpcSector(gx, gy);
 	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
 	}
       else if(layer < _nlayers_maps)  // in MVTX
@@ -344,52 +312,127 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	  continue;
 	}
       
-      std::shared_ptr<TrkrClusterv1> clus(new TrkrClusterv1());
+      TrkrClusterv1 *clus(new TrkrClusterv1());
       clus->setClusKey(ckey);
       iclus++;
 
-      // estimate cluster ADC value
-      unsigned int adc_value = getAdcValue(gedep);
-      //std::cout << " gedep " << gedep << " adc_value " << adc_value << std::endl; 
-      clus->setAdc(adc_value);
+      // need to convert gedep to ADC value
+      unsigned int adc_output = getAdcValue(gedep);
+
+      clus->setAdc(adc_output);
       clus->setPosition(0, gx);
       clus->setPosition(1, gy);
       clus->setPosition(2, gz);
       clus->setGlobal();
 
+      /*
       // record which g4hits contribute to this truth cluster
       for(unsigned int i=0; i< contributing_hits.size(); ++i)
 	{
 	  _truth_cluster_truth_hit_map.insert(make_pair(ckey,contributing_hits[i]));      
 	}
+      */
 
       // Estimate the size of the truth cluster
       float g4phisize = NAN;
       float g4zsize = NAN;
       G4ClusterSize(layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
-      for(int i1=0;i1<3;++i1)
-	for(int i2=0;i2<3;++i2)
-	{
-	  clus->setSize(i1, i2, 0.0);
-	  clus->setError(i1, i2, 0.0);
-	}
-      clus->setError(0,0,gedep);  // stores truth energy
-      clus->setSize(1, 1, g4phisize);
-      clus->setSize(2, 2, g4zsize);
-      clus->setError(1, 1, g4phisize/sqrt(12));
-      clus->setError(2, 2, g4zsize/sqrt(12.0));
+      /*
+      std::cout << PHWHERE << " g4trackID " << particle->get_track_id() << " gedep " << gedep << " adc value " << adc_output 
+		<< " g4phisize " << g4phisize << " g4zsize " << g4zsize << std::endl;
+      */
 
+      // make an estimate of the errors
+      // We expect roughly 150 microns in r-phi and 700 microns in z
+      // we have to rotate the errors into (x,y,z) coords 
+
+      double clusphi = atan2(gy, gx);
+
+      TMatrixF DIM(3, 3);
+      DIM[0][0] = 0.0;
+      DIM[0][1] = 0.0;
+      DIM[0][2] = 0.0;
+      DIM[1][0] = 0.0;
+      DIM[1][1] = pow(0.5 * g4phisize, 2);  //cluster_v1 expects 1/2 of actual size
+      DIM[1][2] = 0.0;
+      DIM[2][0] = 0.0;
+      DIM[2][1] = 0.0;
+      DIM[2][2] = pow(0.5 * g4zsize,2);
+      
+      TMatrixF ERR(3, 3);
+      ERR[0][0] = 0.0;
+      ERR[0][1] = 0.0;
+      ERR[0][2] = 0.0;
+      ERR[1][0] = 0.0;
+      ERR[1][1] = pow(clus_err_rphi[layer], 2);  //cluster_v1 expects rad, arc, z as elementsof covariance
+      ERR[1][2] = 0.0;
+      ERR[2][0] = 0.0;
+      ERR[2][1] = 0.0;
+      ERR[2][2] = pow(clus_err_z[layer], 2);
+  
+      TMatrixF ROT(3, 3);
+      ROT[0][0] = cos(clusphi);
+      ROT[0][1] = -sin(clusphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(clusphi);
+      ROT[1][1] = cos(clusphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+      
+      TMatrixF ROT_T(3, 3);
+      ROT_T.Transpose(ROT);
+      
+      TMatrixF COVAR_DIM(3, 3);
+      COVAR_DIM = ROT * DIM * ROT_T;
+      
+      clus->setSize(0, 0, COVAR_DIM[0][0]);
+      clus->setSize(0, 1, COVAR_DIM[0][1]);
+      clus->setSize(0, 2, COVAR_DIM[0][2]);
+      clus->setSize(1, 0, COVAR_DIM[1][0]);
+      clus->setSize(1, 1, COVAR_DIM[1][1]);
+      clus->setSize(1, 2, COVAR_DIM[1][2]);
+      clus->setSize(2, 0, COVAR_DIM[2][0]);
+      clus->setSize(2, 1, COVAR_DIM[2][1]);
+      clus->setSize(2, 2, COVAR_DIM[2][2]);
+      //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
+      
+      TMatrixF COVAR_ERR(3, 3);
+      COVAR_ERR = ROT * ERR * ROT_T;
+      
+      clus->setError(0, 0, COVAR_ERR[0][0]);
+      clus->setError(0, 1, COVAR_ERR[0][1]);
+      clus->setError(0, 2, COVAR_ERR[0][2]);
+      clus->setError(1, 0, COVAR_ERR[1][0]);
+      clus->setError(1, 1, COVAR_ERR[1][1]);
+      clus->setError(1, 2, COVAR_ERR[1][2]);
+      clus->setError(2, 0, COVAR_ERR[2][0]);
+      clus->setError(2, 1, COVAR_ERR[2][1]);
+      clus->setError(2, 2, COVAR_ERR[2][2]);
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << "    layer " << layer << " cluskey " << ckey << " cluster phi " << clusphi << " local cluster error rphi  " << clus_err_rphi[layer] 
+		    << " z " << clus_err_z[layer] << std::endl;
+	  if(Verbosity() > 10)
+	    {
+	      std::cout << " global covariance matrix:" << std::endl;
+	      for(int i1=0;i1<3;++i1)
+		for(int i2=0;i2<3;++i2)
+		  std::cout << "  " << i1 << "  " << i2 << " cov " << clus->getError(i1,i2)  << std::endl;      
+	    }
+	}
+		
       truth_clusters.insert(make_pair(layer, clus));
 
     }  // end loop over layers for this particle
 
-  if (_do_cache) _cache_all_truth_clusters_g4particle.insert(make_pair(particle, truth_clusters));
-  
   return truth_clusters;
 }
 
-void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
+void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
   bool use_geo = true;
 
@@ -416,8 +459,8 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
 
-      if(_verbosity > 0)
-	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
+      if(Verbosity() > 3)
+	cout << "      PHTruthClustering::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;  
 
       // we do not assume that the truth hits know what layer they are in            
       for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
@@ -463,7 +506,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	    continue;
 
 
-	  if(_verbosity > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "     keep g4hit with rbegin " << rbegin << " rend " << rend  
 		   << "         xbegin " <<  xl[0] << " xend " << xl[1]
@@ -518,7 +561,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  gr += (rin + rout) * 0.5 * efrac;
 	  gwt += efrac;
 
-	  if(_verbosity > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "      rin  " << rin << " rout " << rout 
 		   << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout 
@@ -558,7 +601,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       gr = (rbin + rbout) * 0.5;
       gt /= gwt;
 
-      if(_verbosity > 0)
+      if(Verbosity() > 3)
 	{
 	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << " e " << gwt << endl;
 	}
@@ -617,7 +660,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	    }
 
 
-	  if(_verbosity > 0)
+	  if(Verbosity() > 3)
 	    {
 	      cout << "      rentry  " << rentry << " rexit " << rexit 
 		   << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << endl;
@@ -672,7 +715,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
   return;
 }
 
-void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+void PHTruthClustering::G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
 
   // sort the contributing g4hits in radius
@@ -877,233 +920,76 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       */
 
     }
-
 }
 
-std::set<PHG4Hit*> SvtxTruthEval::get_truth_hits_from_truth_cluster(TrkrDefs::cluskey ckey)
+std::set<PHG4Hit*> PHTruthClustering::all_truth_hits(PHG4Particle* particle)
 {
-  std::set<PHG4Hit *> g4hit_set;
+  std::set<PHG4Hit*> truth_hits;
 
-
-  std::pair<std::multimap<TrkrDefs::cluskey, PHG4Hit*>::iterator, 
-	    std::multimap<TrkrDefs::cluskey,PHG4Hit*>::iterator>  ret =   _truth_cluster_truth_hit_map.equal_range(ckey);
-
-  for(std::multimap<TrkrDefs::cluskey, PHG4Hit*>::iterator jter = ret.first; jter != ret.second; ++jter)
+  // loop over all the g4hits in the cylinder layers
+  if (_g4hits_svtx)
     {
-      g4hit_set.insert(jter->second);      
+      for (PHG4HitContainer::ConstIterator g4iter = _g4hits_svtx->getHits().first;
+	   g4iter != _g4hits_svtx->getHits().second;
+	   ++g4iter)
+	{
+	  PHG4Hit* g4hit = g4iter->second;
+	  if (g4hit->get_trkid() == particle->get_track_id())
+	    {
+	      truth_hits.insert(g4hit);
+	    }
+	}
     }
-
-  return g4hit_set;
-}
-
-PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle)
-{
-  if (!has_node_pointers())
+  
+  // loop over all the g4hits in the ladder layers
+  if (_g4hits_tracker)
   {
-    ++_errors;
-    return nullptr;
-  }
-
-  if (_strict)
-  {
-    assert(particle);
-  }
-  else if (!particle)
-  {
-    ++_errors;
-    return nullptr;
-  }
-
-  PHG4Hit* innermost_hit = nullptr;
-  float innermost_radius = FLT_MAX;
-
-  std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-       iter != truth_hits.end();
-       ++iter)
-  {
-    PHG4Hit* candidate = *iter;
-    float x = candidate->get_x(0);  // use entry points
-    float y = candidate->get_y(0);  // use entry points
-    float r = sqrt(x * x + y * y);
-    if (r < innermost_radius)
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_tracker->getHits().first;
+         g4iter != _g4hits_tracker->getHits().second;
+         ++g4iter)
     {
-      innermost_radius = r;
-      innermost_hit = candidate;
+      PHG4Hit* g4hit = g4iter->second;
+      if (g4hit->get_trkid() == particle->get_track_id())
+	{
+	  truth_hits.insert(g4hit);
+	}
     }
   }
 
-  return innermost_hit;
-}
-
-PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
-{
-  if (!has_node_pointers())
+  // loop over all the g4hits in the maps ladder layers
+  if (_g4hits_maps)
   {
-    ++_errors;
-    return nullptr;
-  }
-
-  if (_strict)
-  {
-    assert(particle);
-  }
-  else if (!particle)
-  {
-    ++_errors;
-    return nullptr;
-  }
-
-  PHG4Hit* outermost_hit = nullptr;
-  float outermost_radius = FLT_MAX * -1.0;
-
-  if (_do_cache)
-  {
-    std::map<PHG4Particle*, PHG4Hit*>::iterator iter =
-        _cache_get_outermost_truth_hit.find(particle);
-    if (iter != _cache_get_outermost_truth_hit.end())
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
+         g4iter != _g4hits_maps->getHits().second;
+         ++g4iter)
     {
-      return iter->second;
+      PHG4Hit* g4hit = g4iter->second;
+      if (g4hit->get_trkid() == particle->get_track_id())
+	{
+	  truth_hits.insert(g4hit);
+	}
     }
   }
 
-  std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-       iter != truth_hits.end();
-       ++iter)
+  // loop over all the g4hits in the micromegas layers
+  if (_g4hits_mms)
   {
-    PHG4Hit* candidate = *iter;
-    float x = candidate->get_x(1);  // use exit points
-    float y = candidate->get_y(1);  // use exit points
-    float r = sqrt(x * x + y * y);
-    if (r > outermost_radius)
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_mms->getHits().first;
+         g4iter != _g4hits_mms->getHits().second;
+         ++g4iter)
     {
-      outermost_radius = r;
-      outermost_hit = candidate;
-    }
-  }
-  if (_do_cache) _cache_get_outermost_truth_hit.insert(make_pair(particle, outermost_hit));
-
-  return outermost_hit;
-}
-
-PHG4Particle* SvtxTruthEval::get_particle(PHG4Hit* g4hit)
-{
-  return _basetrutheval.get_particle(g4hit);
-}
-
-int SvtxTruthEval::get_embed(PHG4Particle* particle)
-{
-  return _basetrutheval.get_embed(particle);
-}
-
-PHG4VtxPoint* SvtxTruthEval::get_vertex(PHG4Particle* particle)
-{
-  return _basetrutheval.get_vertex(particle);
-}
-
-bool SvtxTruthEval::is_primary(PHG4Particle* particle)
-{
-  return _basetrutheval.is_primary(particle);
-}
-
-PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Hit* g4hit)
-{
-  if (!has_node_pointers())
-  {
-    ++_errors;
-    return nullptr;
-  }
-
-  if (_strict)
-  {
-    assert(g4hit);
-  }
-  else if (!g4hit)
-  {
-    ++_errors;
-    return nullptr;
-  }
-
-  if (_do_cache)
-  {
-    std::map<PHG4Hit*, PHG4Particle*>::iterator iter =
-        _cache_get_primary_particle_g4hit.find(g4hit);
-    if (iter != _cache_get_primary_particle_g4hit.end())
-    {
-      return iter->second;
+      PHG4Hit* g4hit = g4iter->second;
+      if (g4hit->get_trkid() == particle->get_track_id())
+	{
+	  truth_hits.insert(g4hit);
+	}
     }
   }
 
-  PHG4Particle* primary = _basetrutheval.get_primary_particle(g4hit);
-
-  if (_do_cache) _cache_get_primary_particle_g4hit.insert(make_pair(g4hit, primary));
-
-  if (_strict)
-  {
-    assert(primary);
-  }
-  else if (!primary)
-  {
-    ++_errors;
-  }
-
-  return primary;
+  return truth_hits;
 }
 
-PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Particle* particle)
-{
-  return _basetrutheval.get_primary_particle(particle);
-}
-
-bool SvtxTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle)
-{
-  return _basetrutheval.is_g4hit_from_particle(g4hit, particle);
-}
-
-bool SvtxTruthEval::are_same_particle(PHG4Particle* p1, PHG4Particle* p2)
-{
-  return _basetrutheval.are_same_particle(p1, p2);
-}
-
-bool SvtxTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2)
-{
-  return _basetrutheval.are_same_vertex(vtx1, vtx2);
-}
-
-void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
-{
-  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-
-  _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
-  _g4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
-  _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
-  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
-
-  _mms_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
-  _tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-
-  return;
-}
-
-bool SvtxTruthEval::has_node_pointers()
-{
-  if (_strict)
-    assert(_truthinfo);
-  else if (!_truthinfo)
-    return false;
-
-  if (_strict)
-    assert(_g4hits_mms || _g4hits_svtx || _g4hits_tracker || _g4hits_maps);
-  else if (!_g4hits_mms && !_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps)
-    return false;
-
-  return true;
-}
-
-float SvtxTruthEval::line_circle_intersection(float x[], float y[], float z[], float radius)
+float PHTruthClustering::line_circle_intersection(float x[], float y[], float z[], float radius)
 {
   // parameterize the line in terms of t (distance along the line segment, from 0-1) as
   // x = x0 + t * (x1-x0); y=y0 + t * (y1-y0); z = z0 + t * (z1-z0)
@@ -1139,8 +1025,14 @@ float SvtxTruthEval::line_circle_intersection(float x[], float y[], float z[], f
 
   return t;
 }
+unsigned int PHTruthClustering::getTpcSector(double x, double y)
+{
+  double phi = atan2(y, x);
+  unsigned int sector = (int) (12.0 * (phi + M_PI) / (2.0 * M_PI) );
+  return sector;
+}
 
-unsigned int SvtxTruthEval::getAdcValue(double gedep)
+unsigned int PHTruthClustering::getAdcValue(double gedep)
 {
   // see TPC digitizer for algorithm
   
@@ -1165,4 +1057,66 @@ unsigned int SvtxTruthEval::getAdcValue(double gedep)
   if (adc_output > 1023) adc_output = 1023;
     
   return adc_output;
+}
+
+int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
+{
+  _g4truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!_g4truth_container)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node G4TruthInfo" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
+  _g4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
+  _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+
+  _mms_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
+  _tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  // Create the truth cluster node if required
+  PHNodeIterator iter(topNode);
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER_TRUTH");
+  if (!trkrclusters)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    trkrclusters = new TrkrClusterContainer();
+    PHIODataNode<PHObject> *TrkrClusterContainerNode =
+        new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER_TRUTH", "PHObject");
+    DetNode->addNode(TrkrClusterContainerNode);
+  }
+
+  _reco_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!_reco_cluster_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHTruthClustering::End(PHCompositeNode * /*topNode*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
 }

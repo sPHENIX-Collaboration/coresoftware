@@ -278,11 +278,17 @@ readagain:
   if (ievent >= m_bunchCrossings.size()) return Fun4AllReturnCodes::ABORTRUN;
 
   const auto bunchCrossing = m_bunchCrossings[ievent];
-  if (m_events_accepted > 0 && bunchCrossing == m_last_bunchCrossing)
+
+  if (m_events_accepted > 0 )
   {
-    // reject if event belongs to the same bunch crossing as the last accepted event
-    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
-    goto readagain;
+    // reject if event is so close from last included event that the last one would be counted as background to this one
+    const double delta_t = m_time_between_crossings * (m_last_bunchCrossing - bunchCrossing);
+    if( delta_t >= m_tmin )
+    {
+      // reject if event if too close to previous trigger
+      std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+      goto readagain;
+    }
   }
 
   // check if the local SubsysReco discards this event
@@ -298,6 +304,8 @@ readagain:
   // store bunch crossing both inside the event header and as the last bunch crossing
   load_nodes(m_dstNode);
   if (m_eventheader) m_eventheader->set_BunchCrossing(bunchCrossing);
+
+  // store as last used bunch crossing to avoid overlap with next event
   m_last_bunchCrossing = bunchCrossing;
 
   // fetch past events falling into the TPC integration time
@@ -342,10 +350,17 @@ readagain:
     // increment number of read events
     std::cout << "Fun4AllDstPileupInputManager::run - merged future event " << ievent_thisfile << std::endl;
     ++neventsfuture;
+
+    // store as last used bunch crossing to avoid overlap with next event
+    m_last_bunchCrossing = m_bunchCrossings[ieventfuture];
+
   }
 
   // update event counter
   ++m_events_accepted;
+
+  // jump event counter to the last background accepted event
+  if( neventsfuture > 0 ) PushBackEvents( -neventsfuture );
 
   // update syncobject
   m_syncobject = findNode::getClass<SyncObject>(m_dstNode, "Sync");

@@ -170,13 +170,23 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	continue;
 
       trackSourceLinks.push_back(index->second);
+
+      if(Verbosity() > 1)
+	{	  
+	  unsigned int lay = TrkrDefs::getLayer(key);
+	  
+	  std::cout << PHWHERE << " layer " << lay << " cluskey " << key
+		    << " has hitid " << hitId
+		    << std::endl;
+	}
+
       
       if (Verbosity() > 2)
 	{
 	  std::cout << PHWHERE << " lookup gave hitid " << hitId 
 		    << " for cluskey " << key << std::endl; 
 	  unsigned int layer = TrkrDefs::getLayer(key);
-	  if(layer > 54)
+	  if(Verbosity() > 3)
 	    {	  
 	      std::cout << std::endl << PHWHERE << std::endl << " layer " << layer << " cluskey " << key
 			<< " has hitid " << hitId

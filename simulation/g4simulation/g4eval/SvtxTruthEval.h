@@ -73,6 +73,8 @@ class SvtxTruthEval
 
   void G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
 
+  unsigned int getAdcValue(double gedep);
+
   BaseTruthEval _basetrutheval;
 
   PHG4TruthInfoContainer* _truthinfo{nullptr};
