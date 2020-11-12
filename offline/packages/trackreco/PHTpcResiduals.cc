@@ -24,7 +24,6 @@
 
 #include <cmath>
 #include <TFile.h>
-#include <TH3.h>
 
 namespace 
 {
@@ -122,7 +121,7 @@ bool PHTpcResiduals::checkTrack(ActsTrack& track)
   int nMvtxHits = 0;
   int nInttHits = 0;
   int nMMHits   = 0;
- 
+  
   for(const auto sl : track.getSourceLinks())
     {
       const auto vol = sl.referenceSurface().geometryId().volume();
@@ -152,6 +151,12 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
 
   const auto trackParams = track.getTrackParams();
   
+  if(Verbosity() > 1)
+    std::cout << "Propagating silicon+MM fit params momentum: " 
+	      << trackParams.momentum() << " and position " 
+	      << trackParams.position(m_tGeometry->geoContext)
+	      << std::endl;
+
   int initNBadProps = m_nBadProps;
   for(const auto sl : track.getSourceLinks())
     {
@@ -205,12 +210,6 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 			   const SourceLink& sl)
 {
   
-  if(Verbosity() > 1)
-    std::cout << "Propagating silicon+MM fit params momentum: " 
-	      << params.momentum() << " and position " 
-	      << params.position(m_tGeometry->geoContext)
-	      << std::endl;
-
   return std::visit([params, sl, this]
 		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
@@ -224,7 +223,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       Propagator propagator(stepper);
 
       Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-      if(Verbosity() > 3)
+      if(Verbosity() > 10)
 	logLevel = Acts::Logging::VERBOSE;
 
       auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
@@ -268,10 +267,29 @@ void PHTpcResiduals::calculateTpcResiduals(
 					     Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
 
-  if(Verbosity() > 3)
-    std::cout <<"Cluster phi and z " << clusPhi << "+/-" << clusZErr
-	      <<" and " << clusZ << "+/-" << clusZErr << std::endl;
+  const auto clusKey = m_hitIdClusKey->right.find(sl.hitID())->second;
+  const auto cluster = m_clusterMap->findCluster(clusKey);
 
+  if(Verbosity() > 3)
+    {
+      std::cout << "cluster key is " << clusKey <<std::endl;
+      std::cout << "Cluster r phi and z " << clusR << "  " 
+		<< clusPhi << "+/-" << clusRPhiErr
+		<<" and " << clusZ << "+/-" << clusZErr << std::endl;
+      
+      std::cout << "cluskey values " 
+		<< std::atan2(cluster->getY(), cluster->getX())
+		<<" +/- " << cluster->getRPhiError() << " and " 
+		<< cluster->getZ() << " +/- " << cluster->getZError() 
+		<< std::endl;
+      
+      std::cout << "acts global pos " << globalSL.x() / 10. << ", " 
+		<< globalSL.y() /10. << ", " << globalSL.z() /10. << std::endl;
+      std::cout << "clusterkey global pos " << cluster->getX() <<", " 
+		<< cluster->getY() << ", " << cluster->getZ() << std::endl;
+      
+    }
+  
   if(clusRPhiErr < 0.015)
     return;
   if(clusZErr < 0.05)
@@ -294,7 +312,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
   
   if(Verbosity() > 3)
-    std::cout << "State phi and z " << statePhi << "+/-" << stateRPhiErr
+    std::cout << "State r phi and z " << sqrt(pow(globalStatePos.x(), 2) + pow(globalStatePos.y(),2))/10. << "   " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
   const auto erp = pow(clusRPhiErr, 2);
@@ -306,6 +324,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto drphi = clusR * deltaPhi(dPhi);
   const auto dz  = clusZ - stateZ;
 
+  if(Verbosity() > 3)
+    std::cout << "TPC residuals " << drphi << "   " << dz << std::endl;
+  
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
   const auto clusEta = std::atanh(clusZ / (globalSL.norm() / Acts::UnitConstants::cm));
@@ -320,9 +341,14 @@ void PHTpcResiduals::calculateTpcResiduals(
     params.momentum()(1) * std::cos(statePhi);
   const auto trackPR = params.momentum()(0) * std::cos(statePhi) +
     params.momentum()(1) * std::sin(statePhi);
-  const auto trackPZ    = params.momentum()(1);
+  const auto trackPZ    = params.momentum()(2);
   const auto trackAlpha = -trackPPhi / trackPR;
   const auto trackBeta  = -trackPZ / trackPR;
+
+  if(Verbosity() > 3)
+    std::cout << "Track angles " << trackPPhi << ", " << trackPR
+	      << ", " << trackPZ << ", " << trackAlpha << ", " << trackBeta
+	      << std::endl;
 
   if(std::abs(trackAlpha) > m_maxTAlpha
      or std::abs(drphi) > m_maxResidualDrphi)
@@ -368,8 +394,6 @@ void PHTpcResiduals::calculateTpcResiduals(
 
 void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 {
-
- 
   auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phiBins, 
 			    m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
 			    m_zBins, m_zMin, m_zMax );
@@ -398,7 +422,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	const auto cell = getCell(iz, ir, iphi);	
 	
 	if(m_clusterCount.at(cell) < m_minClusCount) {
-	  if(Verbosity() > -1)
+	  if(Verbosity() > 10)
 	    std::cout << "Num clusters in bin " << cell 
 		      << " is " << m_clusterCount.at(cell) 
 		      << std::endl;
@@ -422,7 +446,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
 	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
 
-	if(Verbosity() > -1)
+	if(Verbosity() > 10)
 	  std::cout << "Bin setting for index " << cell << " with counts "
 		    << m_clusterCount.at(cell) << " has settings : "
 		    <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
@@ -447,6 +471,13 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
   for(const auto& h : {hentries, hphi, hr, hz})
     h->Write();
+
+
+  createHistogram(hentries, "hentries")->Write();
+  createHistogram(hphi, "hIntDistortionP")->Write();
+  createHistogram(hr, "hIntDistortionR")->Write();
+  createHistogram(hz, "hIntDistortionZ")->Write();
+
   outputFile->Close();
 
 }
@@ -547,3 +578,90 @@ void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
   m_totalBins = m_zBins * m_phiBins * m_rBins;
 
 }
+
+
+TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
+{
+
+  std::array<int, 3> bins;
+  std::array<double, 3> x_min;
+  std::array<double, 3> x_max;
+  
+  int index = 0;
+  for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
+    {
+      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
+      
+      // increase the number of bins by two
+      bins[index] = axis->GetNbins()+2;
+      
+      // update axis limits accordingly
+      x_min[index] = axis->GetXmin()-bin_width;
+      x_max[index] = axis->GetXmax()+bin_width;
+      ++index;
+    }
+
+  // create new histogram
+  auto hout = new TH3F( name, name,
+			bins[0], x_min[0], x_max[0],
+			bins[1], x_min[1], x_max[1],
+			bins[2], x_min[2], x_max[2] );
+  
+  // update axis legend
+  hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
+  hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
+  hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
+  
+  // copy content
+  const auto phibins = hin->GetXaxis()->GetNbins();
+  const auto rbins = hin->GetYaxis()->GetNbins();
+  const auto zbins = hin->GetZaxis()->GetNbins();
+  
+  // fill center
+  for( int iphi = 0; iphi < phibins; ++iphi )
+    for( int ir = 0; ir < rbins; ++ir )
+      for( int iz = 0; iz < zbins; ++iz )
+	{
+	  hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
+	  hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
+	}
+  
+  // fill guarding phi bins
+  for( int ir = 0; ir < rbins+2; ++ir )
+    for( int iz = 0; iz < zbins+2; ++iz )
+      {
+	hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
+	hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
+	
+	hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
+	hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
+      }
+  
+  // fill guarding r bins
+  for( int iphi = 0; iphi < phibins+2; ++iphi )
+    for( int iz = 0; iz < zbins+2; ++iz )
+      {
+	hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
+	hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
+	
+	hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
+	hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
+      }
+  
+  // fill guarding z bins
+  for( int iphi = 0; iphi < phibins+2; ++iphi )
+    for( int ir = 0; ir < rbins+2; ++ir )
+      {
+	hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
+	hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
+	
+	hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
+	hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
+      }
+  
+  return hout;
+  
+}
+
+
+

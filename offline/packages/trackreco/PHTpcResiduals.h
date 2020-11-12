@@ -19,7 +19,7 @@ class TrkrClusterContainer;
 #include <map>
 #include <TH1.h>
 #include <TH2.h>
-
+#include <TH3.h>
 
 using BoundTrackParamPtr = 
   std::unique_ptr<const Acts::BoundTrackParameters>;
@@ -97,6 +97,7 @@ class PHTpcResiduals : public SubsysReco
   void calculateDistortions(PHCompositeNode *topNode);
   
   void makeHistograms();
+  TH3* createHistogram(TH3* hin, const TString& name);
   
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
