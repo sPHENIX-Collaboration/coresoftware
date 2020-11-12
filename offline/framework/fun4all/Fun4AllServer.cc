@@ -52,14 +52,6 @@ Fun4AllServer *Fun4AllServer::instance()
 Fun4AllServer::Fun4AllServer(const std::string &name)
   : Fun4AllBase(name)
   , ffamemtracker(Fun4AllMemoryTracker::instance())
-  , beginruntimestamp(nullptr)
-  , OutNodeCount(0)
-  , bortime_override(0)
-  , ScreamEveryEvent(0)
-  , unregistersubsystem(0)
-  , runnumber(0)
-  , eventnumber(0)
-  , keep_db_connected(0)
 {
   InitAll();
   return;
@@ -500,6 +492,7 @@ TNamed *Fun4AllServer::getHisto(const string &hname) const
 
 int Fun4AllServer::process_event()
 {
+  eventcounter++;
   unsigned icnt = 0;
   int eventbad = 0;
   if (ScreamEveryEvent)
@@ -774,6 +767,7 @@ int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 
 int Fun4AllServer::BeginRun(const int runno)
 {
+  eventcounter = 0; // reset event counter for every new run
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
   if (!bortime_override)
   {
