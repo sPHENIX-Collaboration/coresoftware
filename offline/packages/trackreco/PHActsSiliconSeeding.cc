@@ -17,7 +17,7 @@
 #include <Acts/Seeding/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
 
-PHActsSiliconSeeding::PHActsSiliconSeeding(std::string& name)
+PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
 {
 }
@@ -55,6 +55,9 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
 int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
 
+  if(Verbosity() > -1)
+    std::cout << "Processing PHActsSiliconSeeding event "
+	      << m_event << std::endl;
 
   Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
   
@@ -66,7 +69,9 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 
   std::vector<const SpacePoint*> spVec;
   unsigned int siliconHits = 0;
-  
+
+  std::cout << "collecting SpacePoints"<<std::endl;
+
   for(auto &[hitId, sl] : *m_sourceLinks)
     {
       /// collect only source links in silicon
@@ -81,9 +86,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
       spVec.push_back(sp);
       siliconHits++;
     }
-  
+
   std::unique_ptr<Acts::SpacePointGrid<SpacePoint>> grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
+
   auto spGroup = Acts::BinnedSPGroup<SpacePoint>( spVec.begin(),
 						  spVec.end(),
 						  covConverter,
@@ -95,21 +101,28 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<Acts::Seed<SpacePoint>>> seedVector;
   auto groupIt = spGroup.begin();
   auto endGroup = spGroup.end();
+  std::cout << "Perform seed finding " << std::endl;
   for(; !(groupIt == endGroup); ++groupIt)
     {
       seedVector.push_back(seedFinder.createSeedsForGroup(groupIt.bottom(),
 							  groupIt.middle(),
 							  groupIt.top()));
     }
-							  
+  std::cout<<"seed finding done"<<std::endl;
   int numSeeds = 0;
   for(auto& outVec : seedVector)
     numSeeds += outVec.size();
 
-  if(Verbosity() > 0)
+  if(Verbosity() > -1)
     std::cout << "Total number of hits " << siliconHits 
 	      << " in " << seedVector.size() << " regions gives " 
 	      << numSeeds << " seeds " << std::endl;
+
+  if(Verbosity()> -1)
+    std::cout << "Finished PHActsSiliconSeeding process_event"
+	      << std::endl;
+
+  m_event++;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -139,6 +152,15 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
   SpacePointPtr spPtr(new SpacePoint{sl.hitID(), x, y, z, r, 
 	sl.referenceSurface().geometryId(), varianceRphi, varianceZ});
 
+  if(Verbosity() > -1)
+    std::cout << "Space point has " 
+	      << x << ", " << y << ", " << z
+	      << " with variances " << varianceRphi 
+	      << ", " << varianceZ 
+	      << " and hit id "
+	      << sl.hitID() << " and geo id "
+	      << sl.referenceSurface().geometryId() << std::endl;
+  
   return spPtr;
 
 }
@@ -146,6 +168,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
 Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
 {
   Acts::SpacePointGridConfig config;
+
 
   config.bFieldInZ = m_bField;
   config.minPt = m_minSeedPt;
@@ -164,18 +187,18 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   
   /// Limiting location of measurements (e.g. detector constraints)
   config.rMax = m_rMax;
-  config.rMin = 2. * Acts::UnitConstants::cm;
+  config.rMin = m_rMin;
   config.zMin = m_zMin;
   config.zMax = m_zMax;
 
   /// Min/max distance between two measurements in one seed
-  config.deltaRMin = 0.4 * Acts::UnitConstants::cm;
+  config.deltaRMin = 3.;
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -15. * Acts::UnitConstants::cm;
-  config.collisionRegionMax = 15. * Acts::UnitConstants::cm;
-  
+  config.collisionRegionMin = -150.;
+  config.collisionRegionMax = 150.;
+  config.sigmaScattering = 3.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
@@ -185,7 +208,7 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.radLengthPerSeed = 0.05;
 
   /// Maximum impact parameter must be smaller than rMin
-  config.impactMax = 1.5 * Acts::UnitConstants::cm;
+  config.impactMax = 3;
 
   return config;
 }

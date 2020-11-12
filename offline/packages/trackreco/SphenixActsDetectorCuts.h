@@ -43,12 +43,14 @@ float SphenixActsDetectorCuts<SpacePoint>::seedWeight(
     const Acts::InternalSpacePoint<SpacePoint>&,
     const Acts::InternalSpacePoint<SpacePoint>& top) const {
   float weight = 0;
+  std::cout<<"Seed weight"<<std::endl;
   if (bottom.radius() > m_cfg.cutRadius) {
     weight = m_cfg.weight_outer;
   }
   if (top.radius() < m_cfg.cutRadius) {
     weight = m_cfg.weight_inner;
   }
+  std::cout<<"returning weight"<<std::endl;
   return weight;
 }
 
@@ -57,6 +59,7 @@ bool SphenixActsDetectorCuts<SpacePoint>::singleSeedCut(
     float weight, const Acts::InternalSpacePoint<SpacePoint>& b,
     const Acts::InternalSpacePoint<SpacePoint>&,
     const Acts::InternalSpacePoint<SpacePoint>&) const {
+  std::cout<<"single seed cut"<<std::endl;
   return !(b.radius() > m_cfg.cutRadius && weight < m_cfg.cutWeight);
 }
 
@@ -68,6 +71,7 @@ SphenixActsDetectorCuts<SpacePoint>::cutPerMiddleSP(
         seeds) const {
   std::vector<std::pair<float, std::unique_ptr<const Acts::InternalSeed<SpacePoint>>>>
       newSeedsVector;
+  std::cout<<"cut per middle sp"<<std::endl;
   if (seeds.size() > 1) {
     newSeedsVector.push_back(std::move(seeds[0]));
     size_t itLength = std::min(seeds.size(), size_t(m_cfg.maxSeedSize));
@@ -80,5 +84,6 @@ SphenixActsDetectorCuts<SpacePoint>::cutPerMiddleSP(
     }
     return newSeedsVector;
   }
+  std::cout<<"return seeds"<<std::endl;
   return seeds;
 }

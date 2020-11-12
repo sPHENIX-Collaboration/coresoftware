@@ -1,5 +1,5 @@
 #ifndef TRACKRECO_PHACTSSILICONSEEDING_H
-#define TRACKRECO_PHACTSILICONSEEDING_H
+#define TRACKRECO_PHACTSSILICONSEEDING_H
 
 #include "ActsTrackingGeometry.h"
 
@@ -50,7 +50,7 @@ using SpacePointPtr = std::unique_ptr<SpacePoint>;
 class PHActsSiliconSeeding : public SubsysReco
 {
  public:
-  PHActsSiliconSeeding(std::string& name);
+  PHActsSiliconSeeding(const std::string& name = "PHActsSiliconSeeding");
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -74,26 +74,32 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SpacePointGridConfig m_gridCfg;
 
   /// Configurable parameters
-  float m_minSeedPt = 0.1 * Acts::UnitConstants::GeV;
+  /// seed pt has to be in MeV
+  float m_minSeedPt = 100;
 
   /// How many seeds a given hit can be the middle hit of the seed
-  int m_maxSeedsPerSpM = 3;
+  int m_maxSeedsPerSpM = 1;
 
   /// Limiting location of measurements (e.g. detector constraints)
-  float m_rMax = 15. * Acts::UnitConstants::cm;
-  float m_zMax = 20. * Acts::UnitConstants::cm;
-  float m_zMin = -20. * Acts::UnitConstants::cm;
+  float m_rMax = 250.;
+  float m_rMin = 25.;
+  float m_zMax = 500.;
+  float m_zMin = -500.;
  
   /// max distance between two measurements in one seed
-  float m_deltaRMax = 15. * Acts::UnitConstants::cm;
+  float m_deltaRMax = 50;
   
   /// Cot of maximum theta angle. Equivalent to eta=1.1 here
   float m_cotThetaMax = 1.335647;
   
   /// B field value in z direction
-  float m_bField = 1.4 * Acts::UnitConstants::T;
+  /// bfield for space point grid neds to be in kiloTesla
+  float m_bField = 1.4 / 1000.;
 
-  std::shared_ptr<Acts::BinFinder<SpacePoint>> m_bottomBinFinder, m_topBinFinder;
+  std::shared_ptr<Acts::BinFinder<SpacePoint>> 
+    m_bottomBinFinder, m_topBinFinder;
+
+  int m_event = 0;
 
 };
 
