@@ -14,6 +14,7 @@ class SyncReco: public SubsysReco
   virtual ~SyncReco() {}
 
   int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
  protected:

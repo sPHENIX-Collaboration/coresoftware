@@ -1,8 +1,4 @@
 #include "SyncReco.h"
-
-#include <phool/PHIODataNode.h>
-#include <phool/PHCompositeNode.h>
-
 #include "EventHeader.h"
 #include "RunHeader.h"
 #include "SyncObject.h"
@@ -11,7 +7,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
+#include <phool/PHIODataNode.h>
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
+
+
 #include <iostream>
 
 using namespace std;
@@ -27,6 +28,14 @@ int SyncReco::Init(PHCompositeNode *topNode)
 {
   int iret = CreateNodeTree(topNode);
   return iret;
+}
+
+int SyncReco::InitRun(PHCompositeNode *topNode)
+{
+  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, SyncNodeName);
+  recoConsts *rc = recoConsts::instance();
+  syncobject->RunNumber(rc->get_IntFlag("RUNNUMBER"));
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int SyncReco::CreateNodeTree(PHCompositeNode *topNode)
@@ -62,20 +71,11 @@ int SyncReco::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  syncobject->EventCounter(se->PrdfEvents());
-
-  EventHeader* eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  if (eventheader)
-    {
-      syncobject->EventNumber(eventheader->get_EvtSequence());
-    }
-
-  RunHeader* runheader = findNode::getClass<RunHeader>(topNode, "RunHeader");
-  if (runheader)
-    {
-      syncobject->RunNumber(runheader->get_RunNumber());
-    }
+  syncobject->EventCounter(se->EventCounter());
+  syncobject->EventNumber(se->EventNumber());
+  syncobject->RunNumber(se->RunNumber());
   syncobject->SegmentNumber(se->SegmentNumber());
+
   if (Verbosity() > 0)
     {
       syncobject->identify();
