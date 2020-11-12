@@ -257,8 +257,7 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   /// Get all the relevant information for residual calculation
   const auto clusR = sqrt(pow(globalSL.x() / Acts::UnitConstants::cm, 2) +
-			  pow(globalSL.y() / Acts::UnitConstants::cm, 2))
-    / Acts::UnitConstants::cm;
+			  pow(globalSL.y() / Acts::UnitConstants::cm, 2));
   const auto clusPhi = std::atan2(globalSL.y(), globalSL.x());
   const auto clusZ = globalSL.z() / Acts::UnitConstants::cm;
 
