@@ -1,6 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libffaobjects.la
+lib_LTLIBRARIES = \
+  libffaobjects_io.la \
+  libffaobjects.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -11,8 +13,13 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libffaobjects_la_LIBADD = \
+libffaobjects_io_la_LIBADD = \
   -lphool
+
+libffaobjects_la_LIBADD = \
+  libffaobjects_io.la \
+  -lfun4all \
+  -lSubsysReco
 
 ROOTDICTS = \
   FlagSave_Dict.cc \
@@ -44,9 +51,10 @@ pkginclude_HEADERS = \
   SyncObjectv1.h \
   EventHeader.h \
   EventHeaderv1.h \
-  EventHeaderv2.h
+  EventHeaderv2.h \
+  SyncReco.h
 
-libffaobjects_la_SOURCES = \
+libffaobjects_io_la_SOURCES = \
   $(ROOTDICTS) \
   FlagSavev1.cc \
   RunHeader.cc \
@@ -56,13 +64,23 @@ libffaobjects_la_SOURCES = \
   EventHeaderv1.cc \
   EventHeaderv2.cc
 
+libffaobjects_la_SOURCES = \
+  SyncReco.cc
+
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_io \
   testexternals
+
+testexternals_io_SOURCES = \
+  testexternals.cc
 
 testexternals_SOURCES = \
   testexternals.cc
+
+testexternals_io_LDADD = \
+  libffaobjects_io.la
 
 testexternals_LDADD = \
   libffaobjects.la
