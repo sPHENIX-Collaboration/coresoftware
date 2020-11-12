@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4CONESUBSYSTEM_H
 #define G4DETECTORS_PHG4CONESUBSYSTEM_H
 
-#include <g4main/PHG4Subsystem.h>
+#include "PHG4DetectorSubsystem.h"
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
@@ -17,7 +17,7 @@ class PHG4Detector;
 class PHG4EventAction;
 class PHG4SteppingAction;
 
-class PHG4ConeSubsystem: public PHG4Subsystem
+class PHG4ConeSubsystem: public PHG4DetectorSubsystem
 {
 
   public:
@@ -35,18 +35,18 @@ class PHG4ConeSubsystem: public PHG4Subsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector( void ) const override;
+  PHG4SteppingAction* GetSteppingAction( void ) const override { return m_SteppingAction; };
 
   //!set inner and outter radius1
   void SetR1(const G4double min, const G4double max)
@@ -76,24 +76,26 @@ class PHG4ConeSubsystem: public PHG4Subsystem
   }
   void SetZRot(const G4double dbl) {rot_in_z = dbl;}
   void SetMaterial(const std::string &mat) {material = mat;}
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
+  PHG4EventAction* GetEventAction() const override {return eventAction_;}
   void SetActive(const int i = 1) {active = i;}
   void SuperDetector(const std::string &name) {superdetector = name;}
 
 // this method is used to check if it can be used as mothervolume
 // Subsystems which can be mothervolume need to implement this 
 // and return true
-  virtual bool CanBeMotherSubsystem() const {return true;}
+  virtual bool CanBeMotherSubsystem() const  override {return true;}
 
   private:
 
+  void SetDefaultParameters() override;
+
   //! detector geometry
-  /*! defives from PHG4Detector */
+  /*! derives from PHG4Detector */
   PHG4ConeDetector* detector_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4ConeSteppingAction* steppingAction_;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
   PHG4EventAction *eventAction_;
 
   G4double place_in_x;

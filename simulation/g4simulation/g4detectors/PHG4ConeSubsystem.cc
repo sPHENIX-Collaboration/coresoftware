@@ -27,9 +27,8 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
-  : PHG4Subsystem(name)
+  : PHG4DetectorSubsystem(name,lyr)
   , detector_(nullptr)
-  , steppingAction_(nullptr)
   , eventAction_(nullptr)
   , place_in_x(0)
   , place_in_y(0)
@@ -48,6 +47,7 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   , detector_type(name)
   , superdetector("NONE")
 {
+  InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
   ostringstream nam;
@@ -56,7 +56,7 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
 }
 
 //_______________________________________________________________________
-int PHG4ConeSubsystem::Init(PHCompositeNode* topNode)
+int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -91,7 +91,7 @@ int PHG4ConeSubsystem::Init(PHCompositeNode* topNode)
       dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
     }
     // create stepping action
-    steppingAction_ = new PHG4ConeSteppingAction(detector_);
+    m_SteppingAction = new PHG4ConeSteppingAction(detector_);
 
     eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
   }
@@ -103,9 +103,9 @@ int PHG4ConeSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -114,12 +114,6 @@ int PHG4ConeSubsystem::process_event(PHCompositeNode* topNode)
 PHG4Detector* PHG4ConeSubsystem::GetDetector(void) const
 {
   return detector_;
-}
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4ConeSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
 }
 
 //_______________________________________________________________________
@@ -136,4 +130,14 @@ void PHG4ConeSubsystem::Set_eta_range(G4double etaMin, G4double etaMax)
 
   rMin2 = z2 * tan(thetaMin);
   rMax2 = z2 * tan(thetaMax);
+}
+
+void PHG4ConeSubsystem::SetDefaultParameters()
+{
+  set_default_double_param("length", NAN);
+  set_default_double_param("place_x", 0.);
+  set_default_double_param("place_y", 0.);
+  set_default_double_param("place_z", 0.);
+
+  set_default_string_param("material", "WorldMaterial");
 }
