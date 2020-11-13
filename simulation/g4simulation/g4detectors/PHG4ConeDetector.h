@@ -93,9 +93,7 @@ class PHG4ConeDetector : public PHG4Detector
   PHParameters *m_Params;
   G4Material* TrackerMaterial;
 
-  G4Cons* block_solid;
-  G4LogicalVolume* block_logic;
-  G4VPhysicalVolume* block_physi;
+  G4VPhysicalVolume* m_ConePhysVol;
 
   G4String material;
   G4double place_in_x;

@@ -29,9 +29,7 @@ PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
   , TrackerMaterial(nullptr)
-  , block_solid(nullptr)
-  , block_logic(nullptr)
-  , block_physi(nullptr)
+  , m_ConePhysVol(nullptr)
   , place_in_x(0 * cm)
   , place_in_y(0 * cm)
   , place_in_z(300 * cm)
@@ -53,7 +51,7 @@ PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
 //_______________________________________________________________
 bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
 {
-  if (volume == block_physi)
+  if (volume == m_ConePhysVol)
   {
     return true;
   }
@@ -77,7 +75,7 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
     exit(-1);
   }
 
-  block_solid = new G4Cons(G4String(GetName().c_str()),
+  G4VSolid *cone_solid = new G4Cons((GetName()+"_SOLID"),
                            m_Params->get_double_param("rmin1")*cm,
 			   m_Params->get_double_param("rmax1")*cm,
                            m_Params->get_double_param("rmin2")*cm,
@@ -86,23 +84,23 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 			   m_Params->get_double_param("sphi")*deg,
 			   m_Params->get_double_param("dphi")*deg);
 
-  block_logic = new G4LogicalVolume(block_solid,
+  G4LogicalVolume *cone_logic = new G4LogicalVolume(cone_solid,
                                     TrackerMaterial,
-                                    G4String(GetName().c_str()),
+                                    G4String(GetName()+"_LOGIC"),
                                     0, 0, 0);
   PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(block_logic);
+  mysys->SetLogicalVolume(cone_logic);
 
   G4VisAttributes *matVis = new G4VisAttributes();
   PHG4Utils::SetColour(matVis, material);
   matVis->SetVisibility(true);
   matVis->SetForceSolid(true);
-  block_logic->SetVisAttributes(matVis);
+  cone_logic->SetVisAttributes(matVis);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateZ(z_rot);
-  block_physi = new G4PVPlacement(rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z),
-                                  block_logic,
-                                  G4String(GetName().c_str()),
+  rotm->rotateZ( m_Params->get_double_param("rot_z")*deg);
+  m_ConePhysVol = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+                                  cone_logic,
+                                  G4String(GetName()),
                                   logicWorld, 0, false, OverlapCheck());
 }
