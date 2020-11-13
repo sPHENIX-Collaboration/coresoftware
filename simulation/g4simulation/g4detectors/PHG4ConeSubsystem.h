@@ -49,33 +49,25 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   PHG4SteppingAction* GetSteppingAction( void ) const override { return m_SteppingAction; };
 
   //!set inner and outter radius1
-  void SetR1(const G4double min, const G4double max)
-  {rMin1 = min; rMax1=max;}
+  void SetR1(const G4double min, const G4double max);
 
   //!set inner and outter radius2
-  void SetR2(const G4double min, const G4double max)
-  {rMin2 = min; rMax2=max;}
+  void SetR2(const G4double min, const G4double max);
 
   //! set length in Z
-  void SetZlength(const G4double a)
-  {dZ = a;}
+  void SetZlength(const G4double a);
 
   //! set phi offset and extention
-  void SetPhi(const G4double a, const G4double b)
-  {sPhi = a; dPhi = b;}
+  void SetPhi(const G4double a, const G4double b);
 
   //! set rmaximum and minimums according to the eta range 
   void Set_eta_range(G4double etaMin, G4double etaMax);
 
-  void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x;
-    place_in_y = place_y;
-    place_in_z = place_z;
-  }
-  void SetZRot(const G4double dbl) {rot_in_z = dbl;}
-  void SetMaterial(const std::string &mat) {material = mat;}
+  void SetPlaceZ(const G4double dbl);
+  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
+
+  void SetZRot(const G4double dbl);
+  void SetMaterial(const std::string &mat);
   PHG4EventAction* GetEventAction() const override {return eventAction_;}
 
 

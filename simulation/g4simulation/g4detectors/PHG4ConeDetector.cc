@@ -1,5 +1,7 @@
 #include "PHG4ConeDetector.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>         // for PHG4Detector
 #include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
@@ -23,8 +25,9 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr)
+PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
+  , m_Params(parameters)
   , TrackerMaterial(nullptr)
   , block_solid(nullptr)
   , block_logic(nullptr)

@@ -19,12 +19,13 @@ class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4Subsystem;
+class PHParameters;
 
 class PHG4ConeDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr = 0);
+  PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam, const int lyr = 0);
 
   //! destructor
   virtual ~PHG4ConeDetector(void)
@@ -89,6 +90,7 @@ class PHG4ConeDetector : public PHG4Detector
   int get_Layer() const { return layer; }
 
  private:
+  PHParameters *m_Params;
   G4Material* TrackerMaterial;
 
   G4Cons* block_solid;
