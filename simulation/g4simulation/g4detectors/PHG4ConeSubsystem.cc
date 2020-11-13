@@ -32,18 +32,6 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
   , detector_(nullptr)
   , eventAction_(nullptr)
-  // , place_in_x(0)
-  // , place_in_y(0)
-  // , place_in_z(0)
-  // , rot_in_z(0)
-  // , rMin1(5 * cm)
-  // , rMax1(100 * cm)
-  // , rMin2(5 * cm)
-  // , rMax2(200 * cm)
-  // , dZ(100 * cm)
-  // , sPhi(0)
-  // , dPhi(2 * M_PI)
-  // , material("Silicon")
   , layer(lyr)
   , detector_type(name)
 {
@@ -117,13 +105,9 @@ void PHG4ConeSubsystem::Set_eta_range(G4double etaMin, G4double etaMax)
   G4double z1 = get_double_param("place_z") - get_double_param("length");
   G4double z2 = get_double_param("place_z") + get_double_param("length");
 
-  // rMin1 = z1 * tan(thetaMin);
-  // rMax1 = z1 * tan(thetaMax);
 set_double_param("rmin1", z1 * tan(thetaMin));
 set_double_param("rmax1", z1 * tan(thetaMax));
 
-  // rMin2 = z2 * tan(thetaMin);
-  // rMax2 = z2 * tan(thetaMax);
 set_double_param("rmin2", z2 * tan(thetaMin));
 set_double_param("rmax2", z2 * tan(thetaMax));
 }
@@ -148,45 +132,34 @@ void PHG4ConeSubsystem::SetDefaultParameters()
 
 void PHG4ConeSubsystem::SetR1(const G4double min, const G4double max)
 {
-  // rMin1 = min; 
-  // rMax1=max;
   set_double_param("rmin1", min);
   set_double_param("rmax1", max);
 }
 
 void PHG4ConeSubsystem::SetR2(const G4double min, const G4double max)
 {
-  // rMin2 = min; 
-  // rMax2=max;
   set_double_param("rmin2", min);
   set_double_param("rmax2", max);
 }
 
 void PHG4ConeSubsystem::SetZlength(const G4double a)
 {
-//  dZ = a;
   set_double_param("length",a);
 }
 
 void PHG4ConeSubsystem::SetPhi(const G4double a, const G4double b)
 {
-// sPhi = a; 
-// dPhi = b;
   set_double_param("sphi", a);
   set_double_param("dphi", b);
 }
 
 void PHG4ConeSubsystem::SetPlaceZ(const G4double dbl)
 {
-//place_in_z = dbl;
 set_double_param("place_z",dbl);
 }
 
   void PHG4ConeSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
   {
-    // place_in_x = place_x;
-    // place_in_y = place_y;
-    // place_in_z = place_z;
 set_double_param("place_x",place_x);
 set_double_param("place_y",place_y);
 set_double_param("place_z",place_z);
@@ -194,12 +167,10 @@ set_double_param("place_z",place_z);
 
 void PHG4ConeSubsystem::SetZRot(const G4double dbl)
 {
-//rot_in_z = dbl;
 set_double_param("rot_z",dbl);
 }
 
 void PHG4ConeSubsystem::SetMaterial(const std::string &mat)
 {
-//material = mat;
 set_string_param("material",mat);
 }

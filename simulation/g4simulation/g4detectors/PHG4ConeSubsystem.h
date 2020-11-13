@@ -88,20 +88,7 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* m_SteppingAction = nullptr;
   PHG4EventAction *eventAction_;
-/*
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_z;
-  G4double rMin1;
-  G4double rMax1;
-  G4double rMin2;
-  G4double rMax2;
-  G4double dZ;
-  G4double sPhi;
-  G4double dPhi;
-  G4String material;
-*/
+
   int layer;
   std::string detector_type;
 };
