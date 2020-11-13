@@ -84,10 +84,10 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       nodename = "G4HIT_" + detector_type + "_" + std::to_string(layer);
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-    if (!block_hits)
+    PHG4HitContainer* cone_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+    if (!cone_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cone_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     // create stepping action
     m_SteppingAction = new PHG4ConeSteppingAction(detector_);
