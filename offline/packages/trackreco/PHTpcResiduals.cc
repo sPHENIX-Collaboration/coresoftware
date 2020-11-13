@@ -209,7 +209,9 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 			   const ActsExamples::TrackParameters& params,
 			   const SourceLink& sl)
 {
-  
+  std::cout << "Propagating to geo id " << sl.referenceSurface().geometryId() << std::endl;
+  if(sl.referenceSurface().associatedDetectorElement() != nullptr)
+    std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
   return std::visit([params, sl, this]
 		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
@@ -222,7 +224,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       Stepper stepper(field);
       Propagator propagator(stepper);
 
-      Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+      Acts::Logging::Level logLevel = Acts::Logging::VERBOSE;
       if(Verbosity() > 10)
 	logLevel = Acts::Logging::VERBOSE;
 
