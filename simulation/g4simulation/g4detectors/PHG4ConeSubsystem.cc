@@ -55,25 +55,44 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
   {
-    ostringstream nodename;
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+
+    string nodename;
     if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector();
+       PHNodeIterator iter_dst(dstNode);
+      PHCompositeNode *superSubNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!superSubNode)
+      {
+        superSubNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(superSubNode);
+      }
+      dstNode = superSubNode;
+      PHNodeIterator iter_run(runNode);
+      superSubNode = dynamic_cast<PHCompositeNode *>(iter_run.findFirst("PHCompositeNode", SuperDetector()));
+      if (!superSubNode)
+      {
+        superSubNode = new PHCompositeNode(SuperDetector());
+        runNode->addNode(superSubNode);
+      }
+     nodename = "G4HIT_" + SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" << detector_type << "_" << layer;
+      nodename = "G4HIT_" + detector_type + "_" + std::to_string(layer);
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     // create stepping action
     m_SteppingAction = new PHG4ConeSteppingAction(detector_);
 
-    eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
+    eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename);
   }
   return 0;
 }
