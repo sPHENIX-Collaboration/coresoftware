@@ -77,7 +77,7 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   void SetZRot(const G4double dbl) {rot_in_z = dbl;}
   void SetMaterial(const std::string &mat) {material = mat;}
   PHG4EventAction* GetEventAction() const override {return eventAction_;}
-  void SetActive(const int i = 1) {active = i;}
+//  void SetActive(const int i = 1) {active = i;}
   void SuperDetector(const std::string &name) {superdetector = name;}
 
 // this method is used to check if it can be used as mothervolume
@@ -110,7 +110,7 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   G4double sPhi;
   G4double dPhi;
   G4String material;
-  int active;
+//  int active;
   int layer;
   std::string detector_type;
   std::string superdetector;

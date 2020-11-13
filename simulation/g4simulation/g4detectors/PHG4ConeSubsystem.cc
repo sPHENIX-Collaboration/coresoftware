@@ -3,6 +3,8 @@
 #include "PHG4ConeSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
 
@@ -42,7 +44,7 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   , sPhi(0)
   , dPhi(2 * M_PI)
   , material("Silicon")
-  , active(0)
+//  , active(0)
   , layer(lyr)
   , detector_type(name)
   , superdetector("NONE")
@@ -70,10 +72,10 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetPlace(place_in_x, place_in_y, place_in_z);
   detector_->SetZRot(rot_in_z);
   detector_->SetMaterial(material);
-  detector_->SetActive(active);
+  detector_->SetActive(GetParams()->get_int_param("active"));
   detector_->SuperDetector(superdetector);
   detector_->OverlapCheck(CheckOverlap());
-  if (active)
+  if (GetParams()->get_int_param("active"))
   {
     ostringstream nodename;
     if (superdetector != "NONE")
