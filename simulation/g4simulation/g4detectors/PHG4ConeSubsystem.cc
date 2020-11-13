@@ -31,14 +31,8 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
   , detector_(nullptr)
   , layer(lyr)
-  , detector_type(name)
 {
   InitializeParameters();
-  // put the layer into the name so we get unique names
-  // for multiple layers
-  ostringstream nam;
-  nam << name << "_" << lyr;
-  Name(nam.str().c_str());
 }
 
 //_______________________________________________________________________
@@ -76,7 +70,7 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
     else
     {
-      nodename = "G4HIT_" + detector_type + "_" + std::to_string(layer);
+      nodename = "G4HIT_" + Name();
     }
     // create hit list
     PHG4HitContainer* cone_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);

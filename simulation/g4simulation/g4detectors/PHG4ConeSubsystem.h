@@ -86,7 +86,6 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   PHG4SteppingAction* m_SteppingAction = nullptr;
 
   int layer;
-  std::string detector_type;
 };
 
 #endif
