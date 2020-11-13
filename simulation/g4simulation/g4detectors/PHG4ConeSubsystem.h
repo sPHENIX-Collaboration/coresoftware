@@ -22,8 +22,7 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   PHG4ConeSubsystem( const std::string &name = "CONE", const int layer = 0 );
 
   //! destructor
-  virtual ~PHG4ConeSubsystem( void )
-  {}
+  virtual ~PHG4ConeSubsystem(void);
 
   //! init runwise stuff
   /*!

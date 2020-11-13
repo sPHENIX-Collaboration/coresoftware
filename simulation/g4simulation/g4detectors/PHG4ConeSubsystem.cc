@@ -1,9 +1,12 @@
 #include "PHG4ConeSubsystem.h"
+
 #include "PHG4ConeDetector.h"
+#include "PHG4ConeDisplayAction.h"
 #include "PHG4ConeSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
 
@@ -33,8 +36,25 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
 }
 
 //_______________________________________________________________________
+PHG4ConeSubsystem::~PHG4ConeSubsystem()
+{
+  delete m_DisplayAction;
+}
+
+//_______________________________________________________________________
 int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
+  // create display settings before detector
+  PHG4ConeDisplayAction *disp_action = new PHG4ConeDisplayAction(Name(), GetParams());
+  if (isfinite(m_ColorArray[0]) &&
+      isfinite(m_ColorArray[1]) &&
+      isfinite(m_ColorArray[2]) &&
+      isfinite(m_ColorArray[3]))
+  {
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
+  }
+  m_DisplayAction = disp_action;
+
   // create detector
   m_Detector = new PHG4ConeDetector(this, topNode, GetParams(), Name(), GetLayer());
   m_Detector->SuperDetector(SuperDetector());
