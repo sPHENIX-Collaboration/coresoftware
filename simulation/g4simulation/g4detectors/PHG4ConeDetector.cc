@@ -69,7 +69,7 @@ bool PHG4ConeDetector::IsInConeInactive(G4VPhysicalVolume *volume)
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  TrackerMaterial = G4Material::GetMaterial(material.c_str());
+  TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
   if (!TrackerMaterial)
   {
@@ -78,7 +78,13 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
 
   block_solid = new G4Cons(G4String(GetName().c_str()),
-                           rMin1, rMax1, rMin2, rMax2, dZ, sPhi, dPhi);
+                           m_Params->get_double_param("rmin1")*cm,
+			   m_Params->get_double_param("rmax1")*cm,
+                           m_Params->get_double_param("rmin2")*cm,
+			   m_Params->get_double_param("rmax2")*cm,
+			   m_Params->get_double_param("length")*cm,
+			   m_Params->get_double_param("sphi")*deg,
+			   m_Params->get_double_param("dphi")*deg);
 
   block_logic = new G4LogicalVolume(block_solid,
                                     TrackerMaterial,
