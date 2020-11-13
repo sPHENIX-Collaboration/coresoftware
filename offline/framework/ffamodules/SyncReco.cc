@@ -1,8 +1,6 @@
 #include "SyncReco.h"
-#include "EventHeader.h"
-#include "RunHeader.h"
-#include "SyncObject.h"
-#include "SyncObjectv1.h"
+#include <ffaobjects/SyncObject.h>
+#include <ffaobjects/SyncObjectv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
