@@ -8,7 +8,7 @@
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
+#include <g4main/PHG4Subsystem.h>  // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -28,8 +28,8 @@ class PHG4SteppingAction;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
-  : PHG4DetectorSubsystem(name,lyr)
+PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string &name, const int lyr)
+  : PHG4DetectorSubsystem(name, lyr)
 {
   m_ColorArray.fill(NAN);
   InitializeParameters();
@@ -42,7 +42,7 @@ PHG4ConeSubsystem::~PHG4ConeSubsystem()
 }
 
 //_______________________________________________________________________
-int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
+int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   // create display settings before detector
   PHG4ConeDisplayAction *disp_action = new PHG4ConeDisplayAction(Name(), GetParams());
@@ -68,7 +68,7 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     string nodename;
     if (SuperDetector() != "NONE")
     {
-       PHNodeIterator iter_dst(dstNode);
+      PHNodeIterator iter_dst(dstNode);
       PHCompositeNode *superSubNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
       if (!superSubNode)
       {
@@ -83,27 +83,26 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
         superSubNode = new PHCompositeNode(SuperDetector());
         runNode->addNode(superSubNode);
       }
-     nodename = "G4HIT_" + SuperDetector();
+      nodename = "G4HIT_" + SuperDetector();
     }
     else
     {
       nodename = "G4HIT_" + Name();
     }
     // create hit list
-    PHG4HitContainer* cone_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+    PHG4HitContainer *cone_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!cone_hits)
     {
       dstNode->addNode(new PHIODataNode<PHObject>(cone_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     // create stepping action
     m_SteppingAction = new PHG4ConeSteppingAction(m_Detector);
-
   }
   return 0;
 }
 
 //_______________________________________________________________________
-int PHG4ConeSubsystem::process_event(PHCompositeNode* topNode)
+int PHG4ConeSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -115,7 +114,7 @@ int PHG4ConeSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4ConeSubsystem::GetDetector(void) const
+PHG4Detector *PHG4ConeSubsystem::GetDetector(void) const
 {
   return m_Detector;
 }
@@ -129,11 +128,11 @@ void PHG4ConeSubsystem::Set_eta_range(const double etaMin, const double etaMax)
   double z1 = get_double_param("place_z") - get_double_param("length");
   double z2 = get_double_param("place_z") + get_double_param("length");
 
-set_double_param("rmin1", z1 * tan(thetaMin));
-set_double_param("rmax1", z1 * tan(thetaMax));
+  set_double_param("rmin1", z1 * tan(thetaMin));
+  set_double_param("rmax1", z1 * tan(thetaMax));
 
-set_double_param("rmin2", z2 * tan(thetaMin));
-set_double_param("rmax2", z2 * tan(thetaMax));
+  set_double_param("rmin2", z2 * tan(thetaMin));
+  set_double_param("rmax2", z2 * tan(thetaMax));
 }
 
 void PHG4ConeSubsystem::SetDefaultParameters()
@@ -148,7 +147,7 @@ void PHG4ConeSubsystem::SetDefaultParameters()
   set_default_double_param("rmin2", NAN);
   set_default_double_param("rmax2", NAN);
   set_default_double_param("sphi", 0.);
-  set_default_double_param("dphi", 360.); // degrees
+  set_default_double_param("dphi", 360.);  // degrees
   set_default_double_param("rot_z", 0);
 
   set_default_string_param("material", "WorldMaterial");
@@ -168,7 +167,7 @@ void PHG4ConeSubsystem::SetR2(const double min, const double max)
 
 void PHG4ConeSubsystem::SetZlength(const double a)
 {
-  set_double_param("length",a);
+  set_double_param("length", a);
 }
 
 void PHG4ConeSubsystem::SetPhi(const double a, const double b)
@@ -179,22 +178,22 @@ void PHG4ConeSubsystem::SetPhi(const double a, const double b)
 
 void PHG4ConeSubsystem::SetPlaceZ(const double dbl)
 {
-set_double_param("place_z",dbl);
+  set_double_param("place_z", dbl);
 }
 
-  void PHG4ConeSubsystem::SetPlace(const double place_x, const double place_y, const double place_z)
-  {
-set_double_param("place_x",place_x);
-set_double_param("place_y",place_y);
-set_double_param("place_z",place_z);
-  }
+void PHG4ConeSubsystem::SetPlace(const double place_x, const double place_y, const double place_z)
+{
+  set_double_param("place_x", place_x);
+  set_double_param("place_y", place_y);
+  set_double_param("place_z", place_z);
+}
 
 void PHG4ConeSubsystem::SetZRot(const double dbl)
 {
-set_double_param("rot_z",dbl);
+  set_double_param("rot_z", dbl);
 }
 
 void PHG4ConeSubsystem::SetMaterial(const std::string &mat)
 {
-set_string_param("material",mat);
+  set_string_param("material", mat);
 }

@@ -58,17 +58,17 @@ void PHG4ConeDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
   }
-// drawing 200 segments per circle makes it look smoother than default
+  // drawing 200 segments per circle makes it look smoother than default
   m_VisAtt->SetForceLineSegmentsPerCircle(200);
   m_MyVolume->SetVisAttributes(m_VisAtt);
   return;
 }
 
-void  PHG4ConeDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
+void PHG4ConeDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
 {
   if (isfinite(red) && isfinite(green) && isfinite(blue) && isfinite(alpha))
   {
-    m_Colour = new G4Colour(red,green,blue,alpha);
+    m_Colour = new G4Colour(red, green, blue, alpha);
   }
   return;
 }

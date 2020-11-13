@@ -3,7 +3,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>         // for PHG4Detector
+#include <g4main/PHG4Detector.h>  // for PHG4Detector
 #include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
@@ -12,7 +12,7 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4String.hh>            // for G4String
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
@@ -56,30 +56,30 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
     exit(-1);
   }
 
-  G4VSolid *cone_solid = new G4Cons((GetName()+"_SOLID"),
-                           m_Params->get_double_param("rmin1")*cm,
-			   m_Params->get_double_param("rmax1")*cm,
-                           m_Params->get_double_param("rmin2")*cm,
-			   m_Params->get_double_param("rmax2")*cm,
-			   m_Params->get_double_param("length")*cm,
-			   m_Params->get_double_param("sphi")*deg,
-			   m_Params->get_double_param("dphi")*deg);
+  G4VSolid *cone_solid = new G4Cons((GetName() + "_SOLID"),
+                                    m_Params->get_double_param("rmin1") * cm,
+                                    m_Params->get_double_param("rmax1") * cm,
+                                    m_Params->get_double_param("rmin2") * cm,
+                                    m_Params->get_double_param("rmax2") * cm,
+                                    m_Params->get_double_param("length") * cm,
+                                    m_Params->get_double_param("sphi") * deg,
+                                    m_Params->get_double_param("dphi") * deg);
 
   G4LogicalVolume *cone_logic = new G4LogicalVolume(cone_solid,
-                                    TrackerMaterial,
-                                    G4String(GetName()+"_LOGIC"),
-                                    0, 0, 0);
+                                                    TrackerMaterial,
+                                                    G4String(GetName() + "_LOGIC"),
+                                                    0, 0, 0);
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cone_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateZ( m_Params->get_double_param("rot_z")*deg);
-  m_ConePhysVol = new G4PVPlacement(rotm, 
-				    G4ThreeVector(m_Params->get_double_param("place_x") * cm,
-						  m_Params->get_double_param("place_y") * cm,
-						  m_Params->get_double_param("place_z") * cm),
-				    cone_logic,
-				    G4String(GetName()),
-				    logicWorld, 0, false, OverlapCheck());
+  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  m_ConePhysVol = new G4PVPlacement(rotm,
+                                    G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+                                                  m_Params->get_double_param("place_y") * cm,
+                                                  m_Params->get_double_param("place_z") * cm),
+                                    cone_logic,
+                                    G4String(GetName()),
+                                    logicWorld, 0, false, OverlapCheck());
   m_DisplayAction->SetMyVolume(cone_logic);
 }

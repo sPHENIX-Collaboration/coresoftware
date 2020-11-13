@@ -25,7 +25,7 @@ class PHG4ConeDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam, const int lyr = 0);
+  PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr = 0);
 
   //! destructor
   virtual ~PHG4ConeDetector(void)
@@ -45,10 +45,10 @@ class PHG4ConeDetector : public PHG4Detector
   int get_Layer() const { return layer; }
 
  private:
-  PHParameters *m_Params = nullptr;
+  PHParameters* m_Params = nullptr;
 
   G4VPhysicalVolume* m_ConePhysVol = nullptr;
-  PHG4ConeDisplayAction *m_DisplayAction = nullptr;
+  PHG4ConeDisplayAction* m_DisplayAction = nullptr;
 
   int layer = -9999;
   std::string superdetector;
