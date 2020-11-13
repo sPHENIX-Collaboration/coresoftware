@@ -44,10 +44,8 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   , sPhi(0)
   , dPhi(2 * M_PI)
   , material("Silicon")
-//  , active(0)
   , layer(lyr)
   , detector_type(name)
-  , superdetector("NONE")
 {
   InitializeParameters();
   // put the layer into the name so we get unique names
@@ -73,14 +71,14 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetZRot(rot_in_z);
   detector_->SetMaterial(material);
   detector_->SetActive(GetParams()->get_int_param("active"));
-  detector_->SuperDetector(superdetector);
+  detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
   {
     ostringstream nodename;
-    if (superdetector != "NONE")
+    if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << superdetector;
+      nodename << "G4HIT_" << SuperDetector();
     }
     else
     {
