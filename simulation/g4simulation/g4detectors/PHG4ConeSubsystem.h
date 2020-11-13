@@ -28,10 +28,10 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   virtual ~PHG4ConeSubsystem( void )
   {}
 
-  //! init
+  //! init runwise stuff
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-  reates the stepping action and place it on the node tree, under "ACTIONS" node
+  creates the m_Detector object
+  creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *) override;
@@ -79,13 +79,13 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4ConeDetector* detector_;
+  PHG4ConeDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* m_SteppingAction = nullptr;
 
-  int layer;
+//  int layer;
 };
 
 #endif

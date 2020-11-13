@@ -29,8 +29,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
-  , detector_(nullptr)
-  , layer(lyr)
+//  , layer(lyr)
 {
   InitializeParameters();
 }
@@ -39,9 +38,9 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
 int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   // create detector
-  detector_ = new PHG4ConeDetector(this, topNode, GetParams(), Name(), layer);
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4ConeDetector(this, topNode, GetParams(), Name(), GetLayer());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator iter(topNode);
@@ -79,7 +78,7 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       dstNode->addNode(new PHIODataNode<PHObject>(cone_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     // create stepping action
-    m_SteppingAction = new PHG4ConeSteppingAction(detector_);
+    m_SteppingAction = new PHG4ConeSteppingAction(m_Detector);
 
   }
   return 0;
@@ -100,7 +99,7 @@ int PHG4ConeSubsystem::process_event(PHCompositeNode* topNode)
 //_______________________________________________________________________
 PHG4Detector* PHG4ConeSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 //_______________________________________________________________________
