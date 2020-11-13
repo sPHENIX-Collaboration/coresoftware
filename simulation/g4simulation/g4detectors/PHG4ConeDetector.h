@@ -37,9 +37,10 @@ class PHG4ConeDetector : public PHG4Detector
   //!@name volume accessors
   //@{
   bool IsInConeActive(G4VPhysicalVolume*);
-  bool IsInConeInactive(G4VPhysicalVolume*);
+//  bool IsInConeInactive(G4VPhysicalVolume*);
   //@}
 
+/*
   //!set inner and outter radius1
   void SetR1(const G4double min, const G4double max)
   {
@@ -76,6 +77,7 @@ class PHG4ConeDetector : public PHG4Detector
     place_in_z = place_z * cm;
   }
   void SetZRot(const G4double z_angle) { z_rot = z_angle * rad; }
+*/
   void SuperDetector(const std::string& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
@@ -86,18 +88,18 @@ class PHG4ConeDetector : public PHG4Detector
 
   G4VPhysicalVolume* m_ConePhysVol;
 
-  G4String material;
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rMin1;
-  G4double rMax1;
-  G4double rMin2;
-  G4double rMax2;
-  G4double dZ;
-  G4double sPhi;
-  G4double dPhi;
-  G4double z_rot;
+  /* G4String material; */
+  /* G4double place_in_x; */
+  /* G4double place_in_y; */
+  /* G4double place_in_z; */
+  /* G4double rMin1; */
+  /* G4double rMax1; */
+  /* G4double rMin2; */
+  /* G4double rMax2; */
+  /* G4double dZ; */
+  /* G4double sPhi; */
+  /* G4double dPhi; */
+  /* G4double z_rot; */
 
   int layer;
   std::string superdetector;

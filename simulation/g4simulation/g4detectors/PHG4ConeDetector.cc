@@ -30,17 +30,17 @@ PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
   , m_Params(parameters)
   , TrackerMaterial(nullptr)
   , m_ConePhysVol(nullptr)
-  , place_in_x(0 * cm)
-  , place_in_y(0 * cm)
-  , place_in_z(300 * cm)
-  , rMin1(5 * cm)
-  , rMax1(100 * cm)
-  , rMin2(5 * cm)
-  , rMax2(200 * cm)
-  , dZ(100 * cm)
-  , sPhi(0)
-  , dPhi(2 * M_PI)
-  , z_rot(0)
+  // , place_in_x(0 * cm)
+  // , place_in_y(0 * cm)
+  // , place_in_z(300 * cm)
+  // , rMin1(5 * cm)
+  // , rMax1(100 * cm)
+  // , rMin2(5 * cm)
+  // , rMax2(200 * cm)
+  // , dZ(100 * cm)
+  // , sPhi(0)
+  // , dPhi(2 * M_PI)
+  // , z_rot(0)
   , layer(lyr)
 {
 }
@@ -56,12 +56,13 @@ bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
   return false;
 }
 
+/*
 //_______________________________________________________________
 bool PHG4ConeDetector::IsInConeInactive(G4VPhysicalVolume *volume)
 {
   return false;
 }
-
+*/
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
@@ -90,7 +91,7 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   mysys->SetLogicalVolume(cone_logic);
 
   G4VisAttributes *matVis = new G4VisAttributes();
-  PHG4Utils::SetColour(matVis, material);
+  PHG4Utils::SetColour(matVis, m_Params->get_string_param("material"));
   matVis->SetVisibility(true);
   matVis->SetForceSolid(true);
   cone_logic->SetVisAttributes(matVis);
