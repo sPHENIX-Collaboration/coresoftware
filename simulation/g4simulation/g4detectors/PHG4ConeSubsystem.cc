@@ -28,6 +28,7 @@ using namespace std;
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
 {
+  m_ColorArray.fill(NAN);
   InitializeParameters();
 }
 

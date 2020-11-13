@@ -5,11 +5,11 @@
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <array>   // for array
 #include <string>                  // for string
 
 class PHCompositeNode;
 class PHG4ConeDetector;
-class PHG4ConeSteppingAction;
 class PHG4Detector;
 class PHG4SteppingAction;
 
@@ -43,6 +43,15 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const override;
   PHG4SteppingAction* GetSteppingAction( void ) const override { return m_SteppingAction; };
+
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
+  void set_color(const double red, const double green, const double blue, const double alpha = 1.)
+  {
+    m_ColorArray[0] = red;
+    m_ColorArray[1] = green;
+    m_ColorArray[2] = blue;
+    m_ColorArray[3] = alpha;
+  }
 
   //!set inner and outter radius1
   void SetR1(const double min, const double max);
@@ -82,6 +91,12 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* m_SteppingAction = nullptr;
 
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  //! Color setting if we want to override the default
+  std::array<double, 4> m_ColorArray;
 };
 
-#endif
+#endif  // G4DETECTORS_PHG4CONESUBSYSTEM_H
