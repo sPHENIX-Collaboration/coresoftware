@@ -5,7 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4Region.hh>
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
@@ -77,14 +76,6 @@ class PHG4ConeDetector : public PHG4Detector
     place_in_z = place_z * cm;
   }
   void SetZRot(const G4double z_angle) { z_rot = z_angle * rad; }
-  virtual G4UserSteppingAction* GetSteppingAction()
-  {
-    if (_region)
-      return _region->GetRegionalSteppingAction();
-    else
-      return 0;
-  }
-  void SetActive(const int i = 1) { active = i; }
   void SuperDetector(const std::string& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
@@ -108,8 +99,6 @@ class PHG4ConeDetector : public PHG4Detector
   G4double dPhi;
   G4double z_rot;
 
-  G4Region* _region;
-  int active;
   int layer;
   std::string superdetector;
 };

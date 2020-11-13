@@ -41,8 +41,6 @@ PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
   , sPhi(0)
   , dPhi(2 * M_PI)
   , z_rot(0)
-  , _region(nullptr)
-  , active(0)
   , layer(lyr)
 {
 }
@@ -99,8 +97,11 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateZ( m_Params->get_double_param("rot_z")*deg);
-  m_ConePhysVol = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
-                                  cone_logic,
-                                  G4String(GetName()),
-                                  logicWorld, 0, false, OverlapCheck());
+  m_ConePhysVol = new G4PVPlacement(rotm, 
+				    G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+						  m_Params->get_double_param("place_y") * cm,
+						  m_Params->get_double_param("place_z") * cm),
+				    cone_logic,
+				    G4String(GetName()),
+				    logicWorld, 0, false, OverlapCheck());
 }

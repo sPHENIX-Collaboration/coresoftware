@@ -70,7 +70,6 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetPlace(place_in_x, place_in_y, place_in_z);
   detector_->SetZRot(rot_in_z);
   detector_->SetMaterial(material);
-  detector_->SetActive(GetParams()->get_int_param("active"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
