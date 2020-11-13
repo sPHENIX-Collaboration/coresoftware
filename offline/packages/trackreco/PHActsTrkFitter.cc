@@ -249,14 +249,17 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     if(Verbosity() > 2)
       {
 	std::cout << " Processing proto track with position:" 
-		  << trackSeed.position(m_tGeometry->geoContext) << std::endl 
-		  << "momentum: " << trackSeed.momentum() << std::endl
-		  << "charge : " << trackSeed.charge() << std::endl
+		  << newTrackSeed.position(m_tGeometry->geoContext) 
+		  << std::endl 
+		  << "momentum: " << newTrackSeed.momentum() 
+		  << std::endl
+		  << "charge : " << newTrackSeed.charge() 
+		  << std::endl
 		  << "initial vertex : " << track.getVertex()
 		  << " corresponding to SvtxTrack key " << trackKey
 		  << std::endl;
 	std::cout << "proto track covariance " << std::endl
-		  << trackSeed.covariance().value() << std::endl;
+		  << newTrackSeed.covariance().value() << std::endl;
      
       }
 
