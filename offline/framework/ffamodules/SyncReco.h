@@ -1,5 +1,5 @@
-#ifndef FFAOBJECTS_SYNCRECO_H
-#define FFAOBJECTS_SYNCRECO_H
+#ifndef FFAMODULES_SYNCRECO_H
+#define FFAMODULES_SYNCRECO_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -22,4 +22,4 @@ class SyncReco: public SubsysReco
 
 };
 
-#endif /* FFAOBJECTS_SYNCRECO_H */
+#endif /* FFAMODULES_SYNCRECO_H */
