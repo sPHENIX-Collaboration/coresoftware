@@ -72,12 +72,6 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cone_logic);
 
-  G4VisAttributes *matVis = new G4VisAttributes();
-  PHG4Utils::SetColour(matVis, m_Params->get_string_param("material"));
-  matVis->SetVisibility(true);
-  matVis->SetForceSolid(true);
-  cone_logic->SetVisAttributes(matVis);
-
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateZ( m_Params->get_double_param("rot_z")*deg);
   m_ConePhysVol = new G4PVPlacement(rotm, 
@@ -87,4 +81,5 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 				    cone_logic,
 				    G4String(GetName()),
 				    logicWorld, 0, false, OverlapCheck());
+  m_DisplayAction->SetMyVolume(cone_logic);
 }
