@@ -211,7 +211,7 @@ libg4detectors_la_SOURCES = \
   PHG4CEmcTestBeamSteppingAction.cc \
   PHG4CEmcTestBeamSubsystem.cc \
   PHG4ConeDetector.cc \
-  PHG4ConeRegionSteppingAction.cc \
+  PHG4ConeDisplayAction.cc \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
   PHG4CrystalCalorimeterDetector.cc \

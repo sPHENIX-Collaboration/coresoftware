@@ -6,7 +6,7 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>             // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -14,9 +14,9 @@
 #include <TH1.h>
 #include <TNtuple.h>
 
-#include <cmath>                           // for atan2, sqrt
+#include <cmath>  // for atan2, sqrt
 #include <sstream>
-#include <utility>                          // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -55,16 +55,24 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
 {
   // get the primary particle which did this to us....
   PHG4TruthInfoContainer *truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-
-  const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
-  double px = primRange.first->second->get_px();
-  double py = primRange.first->second->get_py();
-  double pz = primRange.first->second->get_pz();
-  double e = primRange.first->second->get_e();
-  double pt = sqrt(px * px + py * py);
-  double phi = atan2(py, px);
-  double theta = atan2(pt, pz);
-
+  double px = NAN;
+  double py = NAN;
+  double pz = NAN;
+  double e = NAN;
+  double pt = NAN;
+  double phi = NAN;
+  double theta = NAN;
+  if (truthInfoList)
+  {
+    const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
+    px = primRange.first->second->get_px();
+    py = primRange.first->second->get_py();
+    pz = primRange.first->second->get_pz();
+    e = primRange.first->second->get_e();
+    pt = sqrt(px * px + py * py);
+    phi = atan2(py, px);
+    theta = atan2(pt, pz);
+  }
   ostringstream nodename;
   set<string>::const_iterator iter;
   vector<TH1 *>::const_iterator eiter;
