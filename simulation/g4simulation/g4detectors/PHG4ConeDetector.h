@@ -17,6 +17,7 @@ class G4Material;
 class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4ConeDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
 
@@ -44,12 +45,12 @@ class PHG4ConeDetector : public PHG4Detector
   int get_Layer() const { return layer; }
 
  private:
-  PHParameters *m_Params;
-  G4Material* TrackerMaterial;
+  PHParameters *m_Params = nullptr;
 
-  G4VPhysicalVolume* m_ConePhysVol;
+  G4VPhysicalVolume* m_ConePhysVol = nullptr;
+  PHG4ConeDisplayAction *m_DisplayAction = nullptr;
 
-  int layer;
+  int layer = -9999;
   std::string superdetector;
 };
 

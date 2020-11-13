@@ -1,4 +1,5 @@
 #include "PHG4ConeDetector.h"
+#include "PHG4ConeDisplayAction.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -28,8 +29,7 @@ using namespace std;
 PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
-  , TrackerMaterial(nullptr)
-  , m_ConePhysVol(nullptr)
+  , m_DisplayAction(dynamic_cast<PHG4ConeDisplayAction *>(subsys->GetDisplayAction()))
   , layer(lyr)
 {
 }
@@ -48,7 +48,7 @@ bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
+  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
   if (!TrackerMaterial)
   {
