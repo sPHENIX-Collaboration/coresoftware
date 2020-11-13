@@ -14,9 +14,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4String.hh>         // for G4String
 #include <Geant4/G4SystemOfUnits.hh>  // for cm
-#include <Geant4/G4Types.hh>          // for G4double
 
 #include <cmath>  // for tan, atan, exp, M_PI
 #include <sstream>
@@ -29,7 +27,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
-//  , layer(lyr)
 {
   InitializeParameters();
 }
@@ -103,13 +100,13 @@ PHG4Detector* PHG4ConeSubsystem::GetDetector(void) const
 }
 
 //_______________________________________________________________________
-void PHG4ConeSubsystem::Set_eta_range(G4double etaMin, G4double etaMax)
+void PHG4ConeSubsystem::Set_eta_range(const double etaMin, const double etaMax)
 {
-  G4double thetaMin = 2 * atan(exp(-etaMax));
-  G4double thetaMax = 2 * atan(exp(-etaMin));
+  double thetaMin = 2 * atan(exp(-etaMax));
+  double thetaMax = 2 * atan(exp(-etaMin));
 
-  G4double z1 = get_double_param("place_z") - get_double_param("length");
-  G4double z2 = get_double_param("place_z") + get_double_param("length");
+  double z1 = get_double_param("place_z") - get_double_param("length");
+  double z2 = get_double_param("place_z") + get_double_param("length");
 
 set_double_param("rmin1", z1 * tan(thetaMin));
 set_double_param("rmax1", z1 * tan(thetaMax));
@@ -136,42 +133,42 @@ void PHG4ConeSubsystem::SetDefaultParameters()
   set_default_string_param("material", "WorldMaterial");
 }
 
-void PHG4ConeSubsystem::SetR1(const G4double min, const G4double max)
+void PHG4ConeSubsystem::SetR1(const double min, const double max)
 {
   set_double_param("rmin1", min);
   set_double_param("rmax1", max);
 }
 
-void PHG4ConeSubsystem::SetR2(const G4double min, const G4double max)
+void PHG4ConeSubsystem::SetR2(const double min, const double max)
 {
   set_double_param("rmin2", min);
   set_double_param("rmax2", max);
 }
 
-void PHG4ConeSubsystem::SetZlength(const G4double a)
+void PHG4ConeSubsystem::SetZlength(const double a)
 {
   set_double_param("length",a);
 }
 
-void PHG4ConeSubsystem::SetPhi(const G4double a, const G4double b)
+void PHG4ConeSubsystem::SetPhi(const double a, const double b)
 {
   set_double_param("sphi", a);
   set_double_param("dphi", b);
 }
 
-void PHG4ConeSubsystem::SetPlaceZ(const G4double dbl)
+void PHG4ConeSubsystem::SetPlaceZ(const double dbl)
 {
 set_double_param("place_z",dbl);
 }
 
-  void PHG4ConeSubsystem::SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
+  void PHG4ConeSubsystem::SetPlace(const double place_x, const double place_y, const double place_z)
   {
 set_double_param("place_x",place_x);
 set_double_param("place_y",place_y);
 set_double_param("place_z",place_z);
   }
 
-void PHG4ConeSubsystem::SetZRot(const G4double dbl)
+void PHG4ConeSubsystem::SetZRot(const double dbl)
 {
 set_double_param("rot_z",dbl);
 }
