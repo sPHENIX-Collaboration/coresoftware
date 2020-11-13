@@ -192,7 +192,7 @@ void PHG4ConeSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
   //now look for the map and grab a pointer to it.
   hits_ =  findNode::getClass<PHG4HitContainer>( topNode , hitnodename.c_str() );
 
-  // if we do not find the node we need to make it.
+  // if we do not find the node we need to scream.
   if ( ! hits_ )
     { std::cout << "PHG4ConeSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl; }
 

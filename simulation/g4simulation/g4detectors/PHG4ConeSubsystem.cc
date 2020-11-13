@@ -1,7 +1,6 @@
 #include "PHG4ConeSubsystem.h"
 #include "PHG4ConeDetector.h"
 #include "PHG4ConeSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -31,7 +30,6 @@ using namespace std;
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name,lyr)
   , detector_(nullptr)
-  , eventAction_(nullptr)
   , layer(lyr)
   , detector_type(name)
 {
@@ -46,9 +44,6 @@ PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
 //_______________________________________________________________________
 int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  PHNodeIterator iter(topNode);
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
   // create detector
   detector_ = new PHG4ConeDetector(this, topNode, GetParams(), Name(), layer);
   detector_->SuperDetector(SuperDetector());
@@ -92,7 +87,6 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     // create stepping action
     m_SteppingAction = new PHG4ConeSteppingAction(detector_);
 
-    eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename);
   }
   return 0;
 }

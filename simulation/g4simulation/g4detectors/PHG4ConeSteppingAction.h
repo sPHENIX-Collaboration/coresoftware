@@ -42,4 +42,4 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
 };
 
 
-#endif //__G4PHPHYTHIAREADER_H__
+#endif // G4DETECTORS_PHG4CONESTEPPINGACTION_H

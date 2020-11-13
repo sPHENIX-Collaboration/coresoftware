@@ -343,7 +343,7 @@ void PHG4CylinderSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   //now look for the map and grab a pointer to it.
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
 
-  // if we do not find the node we need to make it.
+  // if we do not find the node we need to scream.
   if (!m_HitContainer && !m_BlackHoleFlag)
   {
     std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;

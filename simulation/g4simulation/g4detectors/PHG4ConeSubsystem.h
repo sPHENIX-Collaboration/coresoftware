@@ -14,7 +14,6 @@ class PHCompositeNode;
 class PHG4ConeDetector;
 class PHG4ConeSteppingAction;
 class PHG4Detector;
-class PHG4EventAction;
 class PHG4SteppingAction;
 
 class PHG4ConeSubsystem: public PHG4DetectorSubsystem
@@ -68,8 +67,6 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
 
   void SetZRot(const G4double dbl);
   void SetMaterial(const std::string &mat);
-  PHG4EventAction* GetEventAction() const override {return eventAction_;}
-
 
 // this method is used to check if it can be used as mothervolume
 // Subsystems which can be mothervolume need to implement this 
@@ -87,7 +84,6 @@ class PHG4ConeSubsystem: public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* m_SteppingAction = nullptr;
-  PHG4EventAction *eventAction_;
 
   int layer;
   std::string detector_type;
