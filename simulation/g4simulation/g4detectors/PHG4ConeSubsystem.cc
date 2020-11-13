@@ -63,13 +63,6 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   // create detector
   detector_ = new PHG4ConeDetector(this, topNode, GetParams(), Name(), layer);
-  // detector_->SetR1(rMin1, rMax1);
-  // detector_->SetR2(rMin2, rMax2);
-  // detector_->SetZlength(dZ);
-  // detector_->SetPhi(sPhi, dPhi);
-  // detector_->SetPlace(place_in_x, place_in_y, place_in_z);
-  // detector_->SetZRot(rot_in_z);
-  // detector_->SetMaterial(material);
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
