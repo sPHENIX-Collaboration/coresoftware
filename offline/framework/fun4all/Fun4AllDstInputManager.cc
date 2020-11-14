@@ -402,8 +402,8 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
 int Fun4AllDstInputManager::ReadNextEventSyncObject()
 {
 readnextsync:
-  static int readfull = 0; // for some reason all the input managers need to see the same (I think, should look at this at some point)
-  if (!IManager)  // in case the old file was exhausted and there is no new file opened
+  static int readfull = 0;  // for some reason all the input managers need to see the same (I think, should look at this at some point)
+  if (!IManager)            // in case the old file was exhausted and there is no new file opened
   {
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
@@ -417,20 +417,20 @@ readnextsync:
       {
         cout << Name() << ": branch: " << bIter->first << endl;
       }
-      string delimeters = phooldefs::branchpathdelim; // + phooldefs::legacypathdelims;
+      string delimeters = phooldefs::branchpathdelim;  // + phooldefs::legacypathdelims;
       vector<string> splitvec;
-      boost::split(splitvec,  bIter->first, boost::is_any_of(delimeters));
+      boost::split(splitvec, bIter->first, boost::is_any_of(delimeters));
       for (size_t ia = 0; ia < splitvec.size(); ia++)  // -1 so we skip the node name
       {
-	if (splitvec[ia] == syncdefs::SYNCNODENAME)
-	{
-        syncbranchname = bIter->first;
-        break;
-	}
+        if (splitvec[ia] == syncdefs::SYNCNODENAME)
+        {
+          syncbranchname = bIter->first;
+          break;
+        }
       }
       if (!syncbranchname.empty())
       {
-	break;
+        break;
       }
     }
     if (syncbranchname.empty())
