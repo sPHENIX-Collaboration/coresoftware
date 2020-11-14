@@ -47,11 +47,11 @@ int SyncReco::CreateNodeTree(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, SyncNodeName);
+  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
   if (!syncobject)
   {
     syncobject = new SyncObjectv1();
-    PHIODataNode<PHObject> *SyncObjectNode = new PHIODataNode<PHObject>(syncobject, SyncNodeName, "PHObject");  // contains PHObject
+    PHIODataNode<PHObject> *SyncObjectNode = new PHIODataNode<PHObject>(syncobject, syncdefs::SYNCNODENAME, "PHObject");  // contains PHObject
     dstNode->addNode(SyncObjectNode);
   }
 
@@ -61,7 +61,7 @@ int SyncReco::CreateNodeTree(PHCompositeNode *topNode)
 int SyncReco::process_event(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, SyncNodeName);
+  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
   if (!syncobject)
   {
     cout << PHWHERE << " No Synchronisation Object, no parallel reading of multiple inputs" << endl;
