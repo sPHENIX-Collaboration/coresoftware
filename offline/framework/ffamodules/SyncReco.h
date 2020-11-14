@@ -7,7 +7,7 @@
 
 class PHCompositeNode;
 
-class SyncReco: public SubsysReco
+class SyncReco : public SubsysReco
 {
  public:
   SyncReco(const std::string &name = "SYNC");
@@ -19,7 +19,6 @@ class SyncReco: public SubsysReco
 
  protected:
   int CreateNodeTree(PHCompositeNode *topNode);
-
 };
 
 #endif /* FFAMODULES_SYNCRECO_H */
