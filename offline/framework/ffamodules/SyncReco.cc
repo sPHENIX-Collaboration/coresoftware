@@ -1,6 +1,8 @@
 #include "SyncReco.h"
+
 #include <ffaobjects/SyncObject.h>
 #include <ffaobjects/SyncObjectv1.h>
+#include <ffaobjects/SyncDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -30,7 +32,7 @@ int SyncReco::Init(PHCompositeNode *topNode)
 
 int SyncReco::InitRun(PHCompositeNode *topNode)
 {
-  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, SyncNodeName);
+  SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
   recoConsts *rc = recoConsts::instance();
   syncobject->RunNumber(rc->get_IntFlag("RUNNUMBER"));
   return Fun4AllReturnCodes::EVENT_OK;
