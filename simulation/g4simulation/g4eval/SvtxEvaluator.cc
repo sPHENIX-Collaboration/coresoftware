@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <map>
 #include <memory>                                       // for shared_ptr
@@ -899,7 +900,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       int nprim = truthinfo->GetNumPrimaryVertexParticles();
       if (Verbosity() > 0){
 	cout << "EVENTINFO SEED: " << m_fSeed << endl;
-	cout << "EVENTINFO NHIT: " << nhit_tpc_all << endl;
+	cout << "EVENTINFO NHIT: " << setprecision(9) << nhit_tpc_all << endl;
 	cout << "EVENTINFO NTRKGEN: " << nprim << endl;
 	cout << "EVENTINFO NTRKREC: " << ntrk << endl;
        
