@@ -224,7 +224,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       Stepper stepper(field);
       Propagator propagator(stepper);
 
-      Acts::Logging::Level logLevel = Acts::Logging::VERBOSE;
+      Acts::Logging::Level logLevel = Acts::Logging::FATAL;
       if(Verbosity() > 10)
 	logLevel = Acts::Logging::VERBOSE;
 
@@ -559,15 +559,15 @@ void PHTpcResiduals::makeHistograms()
 {
  
   h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]",
-			 60, 20, 80, 50, -2, 2);
+			 60, 20, 80, 500, -2, 2);
   h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]",
-		      200, -100, 100, 100, -2, 2);
+		      200, -100, 100, 1000, -2, 2);
   h_etaResid = new TH2F("etaResid", ";#eta;#Delta#eta",
-			20, -1, 1, 50, -0.2, 0.2);
+			20, -1, 1, 500, -0.2, 0.2);
   h_etaResidLayer = new TH2F("etaResidLayer", ";r [cm]; #Delta#eta",
-			     60, 20, 80, 50, -0.2, 0.2);
+			     60, 20, 80, 500, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
-			   60, 20, 80, 100, -2, 2);
+			   60, 20, 80, 1000, -2, 2);
 
 }
 
