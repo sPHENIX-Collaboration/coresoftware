@@ -72,7 +72,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     std::cout << "Start process_event in PHActsTracks" << std::endl;
   }
 
-  PHTimer *eventTimer = new PHTimer("PHActsTracksTimer");
+  auto eventTimer = std::make_unique<PHTimer>("PHActsTracksTimer");
   eventTimer->stop();
   eventTimer->restart();
 
@@ -84,7 +84,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   std::vector<SourceLink> trackSourceLinks;
   std::vector<ActsExamples::TrackParameters> trackSeeds;
 
-  ActsTransformations *rotater = new ActsTransformations();
+  auto rotater = std::make_unique<ActsTransformations>();
   rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
