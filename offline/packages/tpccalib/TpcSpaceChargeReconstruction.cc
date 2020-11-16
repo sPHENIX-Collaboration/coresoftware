@@ -139,6 +139,7 @@ namespace
 //_____________________________________________________________________
 TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& name ):
   SubsysReco( name)
+  , PHParameterInterface(name)
 { InitializeParameters(); }
 
 //_____________________________________________________________________

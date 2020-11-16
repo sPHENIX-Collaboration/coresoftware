@@ -6,7 +6,7 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -33,7 +33,7 @@ class TrkrClusterContainer;
  The inversion is performed in TpcSpaceChargeReconstruction::calculate_distortions
  */
 
-class TpcSpaceChargeReconstruction: public SubsysReco
+class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
 {
   public:
 
