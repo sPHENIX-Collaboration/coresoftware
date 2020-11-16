@@ -216,8 +216,7 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       auto location = (world_in + world_out)*0.5;
 
       // get tile and strip, skip if invalid
-      int tileid, stripnum;
-      std::tie(tileid, stripnum) = layergeom->find_strip( location );
+      const auto [tileid, stripnum] = layergeom->find_strip( location );
 
       // check tile and strip
       if( tileid < 0 || stripnum < 0 ) continue;
