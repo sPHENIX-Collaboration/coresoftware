@@ -169,7 +169,8 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
 int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 {
 
-  // load cut parameters
+  // load parameters
+  UpdateParametersWithMacro();
   m_max_talpha = get_double_param( "spacecharge_max_talpha" );
   m_max_drphi = get_double_param( "spacecharge_max_drphi" );
   m_max_tbeta = get_double_param( "spacecharge_max_tbeta" );
