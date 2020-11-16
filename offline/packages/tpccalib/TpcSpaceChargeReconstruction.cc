@@ -139,7 +139,7 @@ namespace
 //_____________________________________________________________________
 TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& name ):
   SubsysReco( name)
-{}
+{ InitializeParameters(); }
 
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, int zbins )
@@ -167,6 +167,14 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 {
+
+  // load cut parameters
+  m_max_talpha = get_double_param( "spacecharge_max_talpha" );
+  m_max_drphi = get_double_param( "spacecharge_max_drphi" );
+  m_max_tbeta = get_double_param( "spacecharge_max_tbeta" );
+  m_max_dz = get_double_param( "spacecharge_max_dz" );
+
+  // print
   std::cout
     << "TpcSpaceChargeReconstruction::InitRun\n"
     << " m_outputfile: " << m_outputfile << "\n"
@@ -175,7 +183,12 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
     << " m_rbins: " << m_rbins << "\n"
     << " m_zbins: " << m_zbins << "\n"
     << " m_totalbins: " << m_totalbins << "\n"
+    << " m_max_talpha: " << m_max_talpha << "\n"
+    << " m_max_drphi: " << m_max_drphi << "\n"
+    << " m_max_tbeta: " << m_max_tbeta << "\n"
+    << " m_max_dz: " << m_max_dz << "\n"
     << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -195,6 +208,16 @@ int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
   calculate_distortions( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//___________________________________________________________________________
+void TpcSpaceChargeReconstruction::SetDefaultParameters()
+{
+  // residual cuts
+  set_default_double_param( "spacecharge_max_talpha", 0.6 );
+  set_default_double_param( "spacecharge_max_drphi", 0.5 );
+  set_default_double_param( "spacecharge_max_tbeta", 1.5 );
+  set_default_double_param( "spacecharge_max_dz", 0.5 );
 }
 
 //_____________________________________________________________________
@@ -377,15 +400,11 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     }
 
     // check against limits
-    static constexpr float max_talpha = 0.6;
-    static constexpr float max_residual_drphi = 0.5;
-    if( std::abs( talpha ) > max_talpha ) continue;
-    if( std::abs( drp ) > max_residual_drphi ) continue;
+    if( std::abs( talpha ) > m_max_talpha ) continue;
+    if( std::abs( drp ) > m_max_drphi ) continue;
 
-    static constexpr float max_tbeta = 1.5;
-    static constexpr float max_residual_dz = 0.5;
-    if( std::abs( tbeta ) > max_tbeta ) continue;
-    if( std::abs( dz ) > max_residual_dz ) continue;
+    if( std::abs( tbeta ) > m_max_tbeta ) continue;
+    if( std::abs( dz ) > m_max_dz ) continue;
 
     // get cell
     const auto i = get_cell( cluster );

@@ -75,6 +75,9 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   /// end of processing
   virtual int End(PHCompositeNode*);
 
+  //! parameters
+  void SetDefaultParameters() override;
+
   private:
 
   /// load nodes
@@ -116,21 +119,32 @@ class TpcSpaceChargeReconstruction: public SubsysReco
 
   // TODO: could try to get the r and z range from TPC geometry
   // r range
-  float m_rmin = 20;
-  float m_rmax = 78;
+  static constexpr float m_rmin = 20;
+  static constexpr float m_rmax = 78;
 
   // z range
-  float m_zmin = -105.5;
-  float m_zmax = 105.5;
+  static constexpr float m_zmin = -105.5;
+  static constexpr float m_zmax = 105.5;
 
   //@}
 
-  ///@name grid size
+  //!@name grid size
   //@{
   int m_phibins = 36;
   int m_rbins = 16;
   int m_zbins = 80;
   int m_totalbins = m_phibins*m_rbins*m_zbins;
+  //@}
+
+  //!@name selection parameters
+  //@{
+  // residual cuts in r, phi plane
+  float m_max_talpha = 0.6;
+  float m_max_drphi = 0.5;
+
+  // residual cuts in r, z plane
+  float m_max_tbeta = 1.5;
+  float m_max_dz = 0.5;
   //@}
 
   // shortcut for relevant eigen matrices
