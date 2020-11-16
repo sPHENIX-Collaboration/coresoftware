@@ -90,7 +90,7 @@ class PHTpcResiduals : public SubsysReco
 		     const SourceLink& sl);
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const int actsLayer, const Acts::Vector3D& loc);
+  int getCell(const Acts::Vector3D& loc);
   int getCell(const int iz, const int ir, const int iphi);
 
   /// Calculates distortion matrices and updates pointer to node

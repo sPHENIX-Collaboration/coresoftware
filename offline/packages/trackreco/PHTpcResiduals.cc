@@ -209,9 +209,11 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 			   const ActsExamples::TrackParameters& params,
 			   const SourceLink& sl)
 {
+  /*
   std::cout << "Propagating to geo id " << sl.referenceSurface().geometryId() << std::endl;
   if(sl.referenceSurface().associatedDetectorElement() != nullptr)
     std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
+  */
   return std::visit([params, sl, this]
 		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
@@ -314,7 +316,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
   
   if(Verbosity() > 3)
-    std::cout << "State r phi and z " << sqrt(pow(globalStatePos.x(), 2) + pow(globalStatePos.y(),2))/10. << "   " << statePhi << "+/-" << stateRPhiErr
+    std::cout << "State r phi and z " 
+	      << sqrt(pow(globalStatePos.x(), 2) + pow(globalStatePos.y(),2))/10. 
+	      << "   " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
   const auto erp = pow(clusRPhiErr, 2);
@@ -332,12 +336,6 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
   const auto clusEta = std::atanh(clusZ / (globalSL.norm() / Acts::UnitConstants::cm));
-
-  h_rphiResid->Fill(clusR , drphi);
-  h_zResid->Fill(stateZ , dz);
-  h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR , dz);
-  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -360,17 +358,17 @@ void PHTpcResiduals::calculateTpcResiduals(
      or std::abs(dz) > m_maxResidualDz)
     return;
 
-  const auto index = getCell(sl.referenceSurface().geometryId().layer(),
-			     globalSL);
+  const auto index = getCell(globalSL);
 
   if(index < 0 || index > m_totalBins)
     return;
 
-  /*
-  std::cout << index << " PHTPCResiduals " << erp << " " << trackAlpha
-	    << " " << ez << " " << trackBeta << " " << drphi
-	    << " " << dz << std::endl;
-  */
+  h_rphiResid->Fill(clusR , drphi);
+  h_zResid->Fill(stateZ , dz);
+  h_etaResid->Fill(trackEta, clusEta - trackEta);
+  h_zResidLayer->Fill(clusR , dz);
+  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
+
   /// Fill distortion matrices
   m_lhs[index](0,0) += 1. / erp;
   m_lhs[index](0,1) += 0;
@@ -451,9 +449,9 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	if(Verbosity() > 10)
 	  std::cout << "Bin setting for index " << cell << " with counts "
 		    << m_clusterCount.at(cell) << " has settings : "
-		    <<"  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
-		    <<"  "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
-		    <<"  "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
+		    <<" drphi:  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
+		    <<" dz: "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
+		    <<" dr: "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
 		    <<std::endl;
 
       }
@@ -484,17 +482,13 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
 }
 
-int PHTpcResiduals::getCell(const int actsLayer, 
-			    const Acts::Vector3D& loc)
+int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
-  /// Divide by two because ACTS definition is twice ours, subtract
-  /// 1 to get layer number from 0-47 instead of 1-48
-  const auto layer = (actsLayer / 2.) -1;
-  const int ir = m_rBins * layer / m_nLayersTpc;
+  const float r = sqrt(loc(0)*loc(0) + loc(1) * loc(1));
+  const auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
 
-  auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
-  const int iphi = m_phiBins * (clusPhi * M_PI) / (2. * M_PI);
-
+  const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
+  const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
   const int iz = m_zBins * (loc(2) - m_zMin) / (m_zMax - m_zMin);
  
   return getCell(iz, ir, iphi);
@@ -506,7 +500,7 @@ int PHTpcResiduals::getCell(const int iz, const int ir,
   if( ir < 0 || ir >= m_rBins ) return -1;
   if( iphi < 0 || iphi >= m_phiBins ) return -1;
   if( iz < 0 || iz >= m_zBins ) return -1;
-  return iz + m_zBins*( ir + m_rBins*iphi );
+  return iz + m_zBins * ( ir + m_rBins * iphi );
 }
 
 int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
