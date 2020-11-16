@@ -108,7 +108,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::Process()
 {
-  PHTimer *eventTimer = new PHTimer("eventTimer");
+  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
   eventTimer->restart();
   
@@ -196,7 +196,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
        trackIter != m_actsProtoTracks->end();
        ++trackIter)
   {
-    PHTimer *trackTimer = new PHTimer("TrackTimer");
+    auto trackTimer = std::make_unique<PHTimer>("TrackTimer");
     trackTimer->stop();
     trackTimer->restart();
 
@@ -272,7 +272,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::PropagatorPlainOptions(),
       &(*pSurface));
 
-    PHTimer *fitTimer = new PHTimer("FitTimer");
+    auto fitTimer = std::make_unique<PHTimer>("FitTimer");
     fitTimer->stop();
     fitTimer->restart();
     auto result = fitTrack(sourceLinks, newTrackSeed, kfOptions,
@@ -404,7 +404,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
   
-  PHTimer *updateTrackTimer = new PHTimer("UpdateTrackTimer");
+  auto updateTrackTimer = std::make_unique<PHTimer>("UpdateTrackTimer");
   updateTrackTimer->stop();
   updateTrackTimer->restart();
   if(fitOutput.fittedParameters)
@@ -579,7 +579,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
-  ActsTransformations *rotater = new ActsTransformations();
+  auto rotater = std::make_unique<ActsTransformations>();
   rotater->setVerbosity(Verbosity());
   
   if(params.covariance())
@@ -615,7 +615,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
-  PHTimer *trackStateTimer = new PHTimer("trackStateTimer");
+  auto trackStateTimer = std::make_unique<PHTimer>("TrackStateTimer");
   trackStateTimer->stop();
   trackStateTimer->restart();
   
