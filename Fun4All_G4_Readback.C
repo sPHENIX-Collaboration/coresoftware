@@ -49,9 +49,9 @@ int Fun4All_G4_Readback(){
   // Choose reco
   //---------------
   map<string, int> reconstructionChannel;
-  reconstructionChannel["D02K-pi+"] = 1;
+  reconstructionChannel["D02K-pi+"] = 0;
   reconstructionChannel["D02K+pi-"] = 0;
-  reconstructionChannel["Bs2Jpsiphi"] = 0;
+  reconstructionChannel["Bs2Jpsiphi"] = 1;
   reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
   reconstructionChannel["testSpace"] = 0;
@@ -91,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 1e3;
+  const int nEvents = 5e4;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);

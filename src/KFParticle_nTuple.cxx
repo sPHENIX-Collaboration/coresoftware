@@ -163,6 +163,8 @@ void KFParticle_nTuple::initializeBranches()
   //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
   m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
 
+  m_tree->Branch( "secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F" );
+
   m_tree->Branch( "nPrimaryVertices", &m_nPVs,         "nPrimaryVertices/I" );
   m_tree->Branch( "nEventTracks",     &m_multiplicity, "nEventTracks/I" );
 
@@ -312,8 +314,28 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
   for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
 
+  m_sv_mass = calc_secondary_vertex_mass_noPID( daughters );
+
   m_nPVs         = nPVs;
   m_multiplicity = multiplicity;
 
   m_tree->Fill();
+}
+
+float KFParticle_nTuple::calc_secondary_vertex_mass_noPID( std::vector<KFParticle> kfp_daughters )
+{
+  KFParticle mother_noPID; 
+  KFParticle* daughterArray = &kfp_daughters[0];
+  
+  for ( int i = 0; i < m_num_tracks_nTuple; ++i )
+  {
+    KFParticle daughter_noPID;
+    float f_trackParameters[6], f_trackCovariance[21];
+    for (int j = 0; j < 6;  ++j) f_trackParameters[j] = daughterArray[i].GetParameter(j);
+    for (int j = 0; j < 21; ++j) f_trackCovariance[j] = daughterArray[i].GetCovariance(j);
+    daughter_noPID.Create( f_trackParameters, f_trackCovariance, daughterArray[i].Q(), -1); 
+    mother_noPID.AddDaughter( daughter_noPID );
+  }
+
+  return mother_noPID.GetMass();
 }

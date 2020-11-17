@@ -84,7 +84,7 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     m_true_daughter_id[ daughter_id ] = g4particle->get_pid();
 
     g4vertex_point = trutheval->get_vertex( g4particle );
-    g4vertex_point->identify();
+    //g4vertex_point->identify();
     m_true_daughter_vertex_x[ daughter_id ] = g4vertex_point->get_x();
     m_true_daughter_vertex_y[ daughter_id ] = g4vertex_point->get_y();
     m_true_daughter_vertex_z[ daughter_id ] = g4vertex_point->get_z();

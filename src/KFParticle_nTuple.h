@@ -24,6 +24,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
                      std::vector<KFParticle> daughters,
                      std::vector<KFParticle> intermediates,
                      int nPVs, int multiplicity );
+
+  float calc_secondary_vertex_mass_noPID( std::vector<KFParticle> kfp_daughters );
+
   private:
 
     TTree *m_tree;
@@ -128,6 +131,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     float m_calculated_vertex_ndof;
     //float *m_calculated_vertex_cov;
     float m_calculated_vertex_cov[6];
+
+    float m_sv_mass;
  
     int m_nPVs;
     int m_multiplicity;
