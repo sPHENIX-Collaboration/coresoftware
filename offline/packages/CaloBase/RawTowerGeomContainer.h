@@ -120,12 +120,6 @@ class RawTowerGeomContainer : public PHObject
     PHOOL_VIRTUAL_WARN("get_etacenter(const int)");
     return NAN;
   }
-  virtual double get_thetacenter(const int ibin) const
-  {
-    identify();
-    PHOOL_VIRTUAL_WARN("get_thetacenter(const int)");
-    return NAN;
-  }
   virtual double get_phicenter(const int ibin) const
   {
     PHOOL_VIRTUAL_WARN("get_phicenter(const int)");
