@@ -43,6 +43,7 @@
 
 #define f2cFortran
 #define gFortran
+// cppcheck-suppress *
 #include <cfortran.h>
 
 PROTOCCALLSFSUB3 (HIJING, hijing, STRING, FLOAT, FLOAT)
@@ -107,11 +108,69 @@ int
 main (int argc, char **argv)
 {
   string config_filename = "sHijing.xml";
-  if (argc > 1)
+  string output;
+  long randomSeed = 0;
+  bool randomseed_set = false;
+  unsigned int N = 1;
+  bool NEvents_set = false;
+  for (int i = 1; i < argc; ++i) 
+  {
+    std::string optionstring = argv[i];
+    if (optionstring == "-h")
     {
-      config_filename = argv[1];
+      cout << endl << "Usage: sHijing <config xmlfile [sHijing.xml]>" << endl;
+      cout << endl;
+      cout << "Parameters:" << endl;
+      cout << "-n <number of events [1]>" << endl;
+      cout << "-o <outputfile [sHijing.dat]>" << endl;
+      cout << "-s <random seet [std::random_device]>" << endl;
+      exit(0);
     }
-  cout << "using config file: " << config_filename << endl;
+    else if (optionstring == "-o") 
+    {
+      if (i + 1 < argc) 
+      { // Make sure we aren't at the end of argv!
+	output = argv[++i]; // Increment 'i' so we get the argument
+      } 
+      else 
+      { // Uh-oh, there was no argument to the destination option.
+	std::cerr << "-o option requires one argument." << std::endl;
+	exit(1);
+      }
+      continue;
+    }  
+    else if (optionstring == "-s") 
+    {
+      if (i + 1 < argc) 
+      { // Make sure we aren't at the end of argv!
+	randomSeed = std::stol(argv[++i]); // Increment 'i' so get the argument.
+        randomseed_set = true;
+      } else 
+      { // Uh-oh, there was no argument to the destination option.
+	std::cerr << "-s option requires one argument." << std::endl;
+	exit(1);
+      }
+      continue;
+    }  
+    else if (optionstring == "-n") 
+    {
+      if (i + 1 < argc) 
+      { // Make sure we aren't at the end of argv!
+	N = std::stoul(argv[++i]); // Increment 'i' so get the argument.
+        NEvents_set = true;
+      } 
+else 
+      { // Uh-oh, there was no argument to the destination option.
+	std::cerr << "-s option requires one argument." << std::endl;
+	exit(1);
+      }
+      continue;
+    }  
+  else 
+  {
+    config_filename = argv[i];
+  }
+  }
   char frame[] = "        ";
   char proj[]  = "        ";
   char targ[]  = "        ";
@@ -124,8 +183,12 @@ main (int argc, char **argv)
     {
       // Read XML configuration file.
       read_xml (config_file, pt);
+      cout << "using config file: " << config_filename << endl;
     }
-
+  else
+  {
+    cout << "no xml config file - using internal values" << endl;
+  }
   efrm = pt.get ("HIJING.EFRM", 200.0);
   m_frame = pt.get ("HIJING.FRAME", "CMS");
   m_proj = pt.get ("HIJING.PROJ", "A");
@@ -136,12 +199,20 @@ main (int argc, char **argv)
   izt = pt.get ("HIJING.IZT", 79);
   float bmin = pt.get ("HIJING.BMIN", 0.0);
   float bmax = pt.get ("HIJING.BMAX", 0.0);
-  int N = pt.get ("HIJING.N", 1);
+  if (!NEvents_set)
+  {
+    N = pt.get ("HIJING.N", 1);
+  }
   keepSpectators = pt.get("HIJING.KEEP_SPECTATORS", 1);
-  std::string output = pt.get("HIJING.OUTPUT", "sHijing.dat");
-
+  if (output.empty())
+  {
+    output = pt.get("HIJING.OUTPUT", "sHijing.dat");
+  }
+  if (!randomseed_set)
+  {
   std::random_device rdev;
-  long randomSeed = pt.get ("HIJING.RANDOM.SEED", rdev());
+  randomSeed = pt.get ("HIJING.RANDOM.SEED", rdev());
+  }
   engine = new CLHEP::MTwistEngine (randomSeed);
 
   // See if there are any sections for HIPR1, IHPR2
@@ -182,6 +253,9 @@ main (int argc, char **argv)
 
       fastjet_enable_p = 1;
     }
+  cout << "seed: " << randomSeed << endl;
+  cout << "output: " << output << endl;
+  cout << "Number of Events: " << N << endl;
 
   hijfst_control(fastjet_enable_p, algorithm_v, R_v, PID_v, EtaMin_v, EtaMax_v, EtMin_v);
 
@@ -194,7 +268,7 @@ main (int argc, char **argv)
 
   //  int status;
   HepMC::IO_GenEvent ascii_io (output.c_str(), std::ios::out);
-  int events = 0;
+  unsigned int events = 0;
   do 
     {
       HIJING (frame, bmin, bmax);
