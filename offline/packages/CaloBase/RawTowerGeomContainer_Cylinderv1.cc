@@ -200,14 +200,6 @@ RawTowerGeomContainer_Cylinderv1::get_etacenter(const int ibin) const
   return (eta_bound_map[ibin].first + eta_bound_map[ibin].second) / 2.;
 }
 
-double
-RawTowerGeomContainer_Cylinderv1::get_thetacenter(const int ibin) const
-{
-  double etacenter = get_etacenter(ibin);
-  double theta = 2 * atan(exp(-etacenter));
-  return theta;
-}
-
 void RawTowerGeomContainer_Cylinderv1::set_etabounds(const int ibin,
                                                      const std::pair<double, double>& bounds)
 {
