@@ -77,6 +77,10 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
     std::cout <<"Starting PHTpcResiduals event " 
 	      << m_event << std::endl;
 
+  if(m_event % 1000 == 0)
+    std::cout << "PHTpcResiduals processed " << m_event 
+	      << " events" << std::endl;
+
   int returnVal = processTracks(topNode);
 
   if(Verbosity() > 1)
@@ -124,7 +128,11 @@ bool PHTpcResiduals::checkTrack(ActsTrack& track)
   
   for(const auto sl : track.getSourceLinks())
     {
-      const auto vol = sl.referenceSurface().geometryId().volume();
+      const auto vol = 
+	sl.referenceSurface().geometryId().volume();
+
+      /// Volume IDs are fixed for geometry configuration of
+      /// silicon+TPC+MMs
       if(vol == 10) 
 	nMvtxHits++;
       if(vol == 12) 
@@ -160,7 +168,7 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
   int initNBadProps = m_nBadProps;
   for(const auto sl : track.getSourceLinks())
     {
-      /// Only analyze TPC 
+      /// Only propagate to TPC surfaces
       if(sl.referenceSurface().geometryId().volume() != 14)
 	continue;
       
@@ -200,9 +208,7 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
 	      << std::atanh(trackParams.momentum().z() / 
 			    trackParams.momentum().norm())
 	      << std::endl;
-      
-    
-  
+        
 }
 
 BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
@@ -420,7 +426,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
       for(int iz = 0; iz < m_zBins; ++iz) {
 
 	const auto cell = getCell(iz, ir, iphi);	
-	
+
 	if(m_clusterCount.at(cell) < m_minClusCount) {
 	  if(Verbosity() > 10)
 	    std::cout << "Num clusters in bin " << cell 
@@ -484,13 +490,15 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
 int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
-  const float r = sqrt(loc(0)*loc(0) + loc(1) * loc(1));
+  const float r = sqrt(loc(0) * loc(0) + loc(1) * loc(1)) 
+    / Acts::UnitConstants::cm;
   const auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
-
+  const float z = loc(2) / Acts::UnitConstants::cm;
+  
   const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
   const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
-  const int iz = m_zBins * (loc(2) - m_zMin) / (m_zMax - m_zMin);
- 
+  const int iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
+
   return getCell(iz, ir, iphi);
 }
 
@@ -500,6 +508,7 @@ int PHTpcResiduals::getCell(const int iz, const int ir,
   if( ir < 0 || ir >= m_rBins ) return -1;
   if( iphi < 0 || iphi >= m_phiBins ) return -1;
   if( iz < 0 || iz >= m_zBins ) return -1;
+
   return iz + m_zBins * ( ir + m_rBins * iphi );
 }
 
