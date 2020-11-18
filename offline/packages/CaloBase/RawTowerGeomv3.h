@@ -5,12 +5,13 @@
 
 #include "RawTowerDefs.h"
 
+#include <cmath>
 #include <iostream>
 
 class RawTowerGeomv3 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv3();
+  RawTowerGeomv3(){}
   RawTowerGeomv3(RawTowerDefs::keytype id);
   virtual ~RawTowerGeomv3() {}
 
@@ -68,26 +69,23 @@ class RawTowerGeomv3 : public RawTowerGeom
   double get_center_radius() const;
   double get_eta() const;
   double get_phi() const;
+  double get_theta() const;
 
-  void set_tower_type(int tt)
-  {
-    _tower_type = tt;
-    return;
-  }
+  void set_tower_type(int tt) {_tower_type = tt;}
   int get_tower_type() const { return _tower_type; }
 
  protected:
-  RawTowerDefs::keytype _towerid;
+  RawTowerDefs::keytype _towerid = ~0; // complement = 0xFFFFF... independent of integer type (32/64/... bits)
 
-  double _center_x;
-  double _center_y;
-  double _center_z;
+  double _center_x = NAN;
+  double _center_y = NAN;
+  double _center_z =NAN;
 
-  double _size_x;
-  double _size_y;
-  double _size_z;
+  double _size_x = NAN;
+  double _size_y = NAN;
+  double _size_z = NAN;
 
-  int _tower_type;
+  int _tower_type = -1;
 
   ClassDef(RawTowerGeomv3, 4)
 };

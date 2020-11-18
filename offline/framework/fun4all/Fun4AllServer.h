@@ -104,10 +104,13 @@ class Fun4AllServer : public Fun4AllBase
   int registerSyncManager(Fun4AllSyncManager *newmaster);
   int retcodestats(const int iret) { return retcodesmap[iret]; }
   void EventNumber(const int evtno) { eventnumber = evtno; }
+  int EventNumber() const { return eventnumber; }
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
   void PrintMemoryTracker(const std::string &name = "") const;
+  int RunNumber() const {return runnumber;}
+  int EventCounter() const {return eventcounter;}
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
@@ -121,17 +124,18 @@ class Fun4AllServer : public Fun4AllBase
   TH1 *FrameWorkVars;
   Fun4AllMemoryTracker *ffamemtracker;
   Fun4AllHistoManager *ServerHistoManager;
-  PHTimeStamp *beginruntimestamp;
+  PHTimeStamp *beginruntimestamp = nullptr;
   PHCompositeNode *TopNode;
   Fun4AllSyncManager *defaultSyncManager;
 
-  int OutNodeCount;
-  int bortime_override;
-  int ScreamEveryEvent;
-  int unregistersubsystem;
-  int runnumber;
-  int eventnumber;
-  int keep_db_connected;
+  int OutNodeCount = 0;
+  int bortime_override = 0;
+  int ScreamEveryEvent = 0;
+  int unregistersubsystem = 0;
+  int runnumber = 0;
+  int eventnumber = 0;
+  int eventcounter = 0;
+  int keep_db_connected = 0;
 
   std::vector<std::string> ComplaintList;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *> > Subsystems;

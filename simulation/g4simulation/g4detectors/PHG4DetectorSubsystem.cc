@@ -16,7 +16,6 @@
 
 #include <cstdlib>  // for exit, NULL
 #include <iostream>
-#include <sstream>
 #include <utility>  // for pair
 
 using namespace std;
@@ -36,9 +35,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
 {
   // put the layer into the name so we get unique names
   // for multiple layers
-  ostringstream nam;
-  nam << name << "_" << lyr;
-  Name(nam.str());
+  Name(name + "_" + to_string(lyr));
 }
 
 int PHG4DetectorSubsystem::Init(PHCompositeNode *topNode)

@@ -47,6 +47,7 @@ int Fun4AllDummyInputManager::run(const int nevents)
 {
   m_NumEvents += nevents;
   m_SumEvents += nevents;
+  MySyncManager()->CurrentEvent(m_NumEvents);
   if (Verbosity() > 0)
   {
     cout << "Event No: " << m_NumEvents;
