@@ -14,6 +14,8 @@
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxVertexMap;
+class SvtxVertex;
 
 namespace Acts
 {
@@ -38,6 +40,7 @@ class PHActsVertexFinder: public PHInitVertexing
  protected:
   int Setup(PHCompositeNode *topNode) override;
   int Process(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
  private:
@@ -45,14 +48,16 @@ class PHActsVertexFinder: public PHInitVertexing
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
   std::vector<const Acts::BoundTrackParameters*> getTracks();
-  std::map<const unsigned int, Trajectory> *m_actsFitResults;
   VertexVector findVertices(TrackPtrVector& tracks);
   void fillVertexMap(VertexVector& vertices);
   
+  std::map<const unsigned int, Trajectory> *m_actsFitResults;
   int m_event = 0;
   int m_maxVertices = 15;
-  VertexMap *m_vertexMap = nullptr;
+  VertexMap *m_actsVertexMap = nullptr;
+  SvtxVertexMap *m_svtxVertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
+  bool m_addActsVertexNode = false;
     
 };
 
