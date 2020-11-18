@@ -408,5 +408,5 @@ int QAG4SimulationVertex::load_nodes(PHCompositeNode *topNode)
 string
 QAG4SimulationVertex::get_histo_prefix()
 {
-  return string("h_") + Name() + string("_");
+  return string("h_") + Name() + string("_")+ m_vertexMapName + string("_");
 }
