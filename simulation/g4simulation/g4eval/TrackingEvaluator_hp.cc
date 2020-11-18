@@ -207,7 +207,7 @@ namespace
     // need to extrapolate to the right r
     const auto trk_r = get_r( state->get_x(), state->get_y() );
     const auto dr = cluster._r - trk_r;
-    const auto trk_drdt = get_r( state->get_px(), state->get_py() );
+    const auto trk_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/trk_r;
     const auto trk_dxdr = state->get_px()/trk_drdt;
     const auto trk_dydr = state->get_py()/trk_drdt;
     const auto trk_dzdr = state->get_pz()/trk_drdt;
