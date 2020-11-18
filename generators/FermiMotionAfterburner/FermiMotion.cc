@@ -92,7 +92,6 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
   double pnl = ploss(b);
   //now loop over all particles and find spectator neutrons
 
-  std::cout << "looping over particles" << std::endl;
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
     int id = (*p)->pdg_id();
