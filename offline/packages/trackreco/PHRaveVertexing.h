@@ -87,6 +87,8 @@ class PHRaveVertexing : public SubsysReco
     _over_write_svtxvertexmap = overWriteSvtxvertexmap;
   }
 
+  void set_svtxvertexmaprefit_node_name(const std::string & name) {_svtxvertexmaprefit_node_name = name;}
+
   double get_vertex_min_ndf() const
   {
     return _vertex_min_ndf;
