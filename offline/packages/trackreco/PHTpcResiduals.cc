@@ -24,6 +24,8 @@
 
 #include <cmath>
 #include <TFile.h>
+#include <iostream>
+#include <sstream>
 
 namespace 
 {
@@ -374,6 +376,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   h_etaResid->Fill(trackEta, clusEta - trackEta);
   h_zResidLayer->Fill(clusR , dz);
   h_etaResidLayer->Fill(clusR , clusEta - trackEta);
+  residTup->Fill(trackAlpha, trackBeta, drphi, dz, index, 
+		 clusR, clusPhi, clusZ, statePhi, stateZ,
+		 stateRPhiErr, stateZErr,clusRPhiErr,clusZErr);
 
   /// Fill distortion matrices
   m_lhs[index](0,0) += 1. / erp;
@@ -420,7 +425,6 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
       h->GetZaxis()->SetTitle( "z [cm]" );
     }
   
-
   for(int iphi = 0; iphi < m_phiBins; ++iphi) {
     for(int ir = 0; ir < m_rBins; ++ir) {
       for(int iz = 0; iz < m_zBins; ++iz) {
@@ -455,25 +459,27 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 	if(Verbosity() > 10)
 	  std::cout << "Bin setting for index " << cell << " with counts "
 		    << m_clusterCount.at(cell) << " has settings : "
-		    <<" drphi:  "<<result(0) <<"+/-" << std::sqrt(cov(0,0))
-		    <<" dz: "<<result(1) <<"+/-" << std::sqrt(cov(1,1))
-		    <<" dr: "<<result(2) <<"+/-" << std::sqrt(cov(2,2))
-		    <<std::endl;
+		    << " drphi:  "<<result(0) << "+/-" << std::sqrt(cov(0,0))
+		    << " dz: "<<result(1) << "+/-" << std::sqrt(cov(1,1))
+		    << " dr: "<<result(2) << "+/-" << std::sqrt(cov(2,2))
+		    << std::endl;
 
       }
     }
   }
   
   /// Create output TH3s
+    
   TFile *outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
   outputFile->cd();
+  residTup->Write();
 
   h_rphiResid->Write();
   h_etaResid->Write();
   h_zResidLayer->Write();
   h_etaResidLayer->Write();
   h_zResid->Write();
-    
+ 
 
   for(const auto& h : {hentries, hphi, hr, hz})
     h->Write();
@@ -498,7 +504,7 @@ int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
   const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
   const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
   const int iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
-
+  
   return getCell(iz, ir, iphi);
 }
 
@@ -571,7 +577,8 @@ void PHTpcResiduals::makeHistograms()
 			     60, 20, 80, 500, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
 			   60, 20, 80, 1000, -2, 2);
-
+  residTup = new TNtuple("residTup","tpc residual info",
+			 "tanAlpha:tanBeta:rdphi:dz:cell:clusterR:clusterPhi:clusterZ:statePhi:stateZ:stateRPhiErr:stateZErr:clusRPhiErr:clusZErr");
 }
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
@@ -581,7 +588,6 @@ void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
   m_phiBins = phiBins;
   m_rBins = rBins;
   m_totalBins = m_zBins * m_phiBins * m_rBins;
-
 }
 
 

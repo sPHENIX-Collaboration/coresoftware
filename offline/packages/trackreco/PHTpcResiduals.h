@@ -20,6 +20,7 @@ class TrkrClusterContainer;
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
+#include <TNtuple.h>
 
 using BoundTrackParamPtr = 
   std::unique_ptr<const Acts::BoundTrackParameters>;
@@ -129,7 +130,8 @@ class PHTpcResiduals : public SubsysReco
   int m_phiBins = 36;
   int m_rBins = 16;
   int m_totalBins = m_zBins * m_phiBins * m_rBins;
-  
+  const static int h_totalBins = 80*36*16;
+
   /// Number of dimensions for the residuals below
   const int m_nCoord = 3;
 
@@ -150,6 +152,7 @@ class PHTpcResiduals : public SubsysReco
   TH2 *h_etaResidLayer = nullptr;
   TH2 *h_zResidLayer = nullptr;
   TH2 *h_etaResid = nullptr;
+  TNtuple *residTup = nullptr;
 
 };
 
