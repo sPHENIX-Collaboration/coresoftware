@@ -2,20 +2,20 @@
 
 #include "QAHistManagerDef.h"
 
-#include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxVertexEval.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/TrkrDefs.h> // for cluskey
+#include <trackbase/TrkrDefs.h>  // for cluskey
 
+#include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack
+#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack
-#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -23,17 +23,17 @@
 
 #include <phool/getClass.h>
 
-#include <TVector3.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
 #include <TString.h>
+#include <TVector3.h>
 
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <map>
-#include <utility>     // for pair
+#include <utility>  // for pair
 #include <vector>
 
 using namespace std;
@@ -50,7 +50,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   {
     m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
     m_svtxEvalStack->set_strict(false);
-    m_svtxEvalStack->set_verbosity(Verbosity() + 1);
+    m_svtxEvalStack->set_verbosity(Verbosity());
   }
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
@@ -63,6 +63,15 @@ int QAG4SimulationVertex::Init(PHCompositeNode *topNode)
   assert(hm);
 
   TH1 *h(nullptr);
+
+  h = new TH1D(TString(get_histo_prefix()) + "Normalization",  //
+               "Normalization;Items;Count", 10, .5, 10.5);
+  int i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Event");
+  h->GetXaxis()->SetBinLabel(i++, "Vertex");
+  h->GetXaxis()->SetBinLabel(i++, "MVTXTrackOnVertex");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
 
   // Vertex resolution histograms as a funciton of gvz
   h = new TH2F(TString(get_histo_prefix()) + "vxRes_gvz",
@@ -107,7 +116,7 @@ int QAG4SimulationVertex::Init(PHCompositeNode *topNode)
   h = new TH1F(TString(get_histo_prefix()) + "recoSvtxVertex",
                "SvtxVertex Count per Event;Number of SvtxVertex", 50, -0.5, 49.5);
   hm->registerHisto(h);
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -127,7 +136,13 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   // histogram manager
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  
+
+  TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(
+      get_histo_prefix() + "_Normalization"));
+  assert(h_norm);
+  h_norm->Fill("Event", 1);
+  ;
+
   if (m_svtxEvalStack)
     m_svtxEvalStack->next_event(topNode);
   /*
@@ -189,16 +204,16 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       int gembed = truthinfo->isEmbededVtx(iter->second->get_vtx_id());
       ++vertex_particle_count[point_id];
       ++embedvtxid_particle_count[gembed];
-      PHG4Particle* g4particle = iter->second;
-      
+      PHG4Particle *g4particle = iter->second;
+
       if (false && gembed <= 0) continue;
-      
+
       std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
-      
+
       unsigned int nglmaps = 0;
-      
+
       int lmaps[_nlayers_maps + 1];
-      
+
       if (_nlayers_maps > 0)
       {
         for (unsigned int i = 0; i < _nlayers_maps; i++)
@@ -206,7 +221,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
           lmaps[i] = 0;
         }
       }
-      
+
       for (const TrkrDefs::cluskey g4cluster : g4clusters)
       {
         unsigned int layer = TrkrDefs::getLayer(g4cluster);
@@ -223,7 +238,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
           nglmaps += lmaps[i];
         }
       }
-      
+
       float gpx = g4particle->get_px();
       float gpy = g4particle->get_py();
       float gpz = g4particle->get_pz();
@@ -244,7 +259,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
     auto vrange = truthinfo->GetPrimaryVtxRange();
     map<int, bool> embedvtxid_found;
     map<int, int> embedvtxid_vertex_id;
-    map<int, PHG4VtxPoint*> embedvtxid_vertex;
+    map<int, PHG4VtxPoint *> embedvtxid_vertex;
     for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
@@ -276,101 +291,103 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       if (iter->first >= 0 || iter->first != iter->first) continue;
       ++ngembed;
     }
-    
+
     for (SvtxVertexMap::Iter iter = vertexmap->begin();
-    iter != vertexmap->end();
+         iter != vertexmap->end();
          ++iter)
-         {
-           SvtxVertex *vertex = iter->second;
-           ++n_recoSvtxVertex;
+    {
+      SvtxVertex *vertex = iter->second;
+      ++n_recoSvtxVertex;
 
-           PHG4VtxPoint *point = vertexeval->max_truth_point_by_ntracks(vertex);
-           float vx = vertex->get_x();
-           float vy = vertex->get_y();
-           float vz = vertex->get_z();
-           float ntracks = vertex->size_tracks();
-           float gvx = NAN;
-           float gvy = NAN;
-           float gvz = NAN;
-           float gvt = NAN;
-           float gembed = NAN;
-           float gntracks = truthinfo->GetNumPrimaryVertexParticles();
-           float gntracksmaps = NAN;
-	   
-	   h_ntracks->Fill(ntracks);
+      PHG4VtxPoint *point = vertexeval->max_truth_point_by_ntracks(vertex);
+      float vx = vertex->get_x();
+      float vy = vertex->get_y();
+      float vz = vertex->get_z();
+      float ntracks = vertex->size_tracks();
+      float gvx = NAN;
+      float gvy = NAN;
+      float gvz = NAN;
+      float gvt = NAN;
+      float gembed = NAN;
+      float gntracks = truthinfo->GetNumPrimaryVertexParticles();
+      float gntracksmaps = NAN;
 
-	   int ntracks_with_cuts = 0;
-	   for (SvtxVertex::TrackIter iter2 = vertex->begin_tracks();
-		iter2 != vertex->end_tracks();
-		++iter2)
-	   {
-	     SvtxTrack* track = m_trackMap->get(*iter2);
-   
-	     if (false)
-	     {
-	       assert(track);
-	     }
-	     else if (!track)
-	     {
-	       continue;
-	     }
-	     int MVTX_hits = 0;
-	     int INTT_hits = 0;
-	     int TPC_hits = 0;
+      h_ntracks->Fill(ntracks);
 
-	     for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
-	     {
-	       const auto &cluster_key = *cluster_iter;
-	       const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+      int ntracks_with_cuts = 0;
+      for (SvtxVertex::TrackIter iter2 = vertex->begin_tracks();
+           iter2 != vertex->end_tracks();
+           ++iter2)
+      {
+        SvtxTrack *track = m_trackMap->get(*iter2);
 
-	       if (trackerID == TrkrDefs::mvtxId)
-		 ++MVTX_hits;
-	       else if (trackerID == TrkrDefs::inttId)
-		 ++INTT_hits;
-	       else if (trackerID == TrkrDefs::tpcId)
-		 ++TPC_hits;
-	       else
-	       {
-		   if (Verbosity())
-		     cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
-	       }
-	     }
-	     if (MVTX_hits >= 2)
-	     {
-	       ++ntracks_with_cuts;
-	     }
-	   }
-	   h_ntracks_cuts->Fill(ntracks_with_cuts);
+        if (false)
+        {
+          assert(track);
+        }
+        else if (!track)
+        {
+          continue;
+        }
+        int MVTX_hits = 0;
+        int INTT_hits = 0;
+        int TPC_hits = 0;
 
-           if (point)
-           {
-             const int point_id = point->get_id();
-             gvx = point->get_x();
-             gvy = point->get_y();
-             gvz = point->get_z();
-             gvt = point->get_t();
+        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+        {
+          const auto &cluster_key = *cluster_iter;
+          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-             h_gvz->Fill(gvz);
+          if (trackerID == TrkrDefs::mvtxId)
+            ++MVTX_hits;
+          else if (trackerID == TrkrDefs::inttId)
+            ++INTT_hits;
+          else if (trackerID == TrkrDefs::tpcId)
+            ++TPC_hits;
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+          }
+        }
+        if (MVTX_hits >= 2)
+        {
+          ++ntracks_with_cuts;
+        }
+      }
+      h_ntracks_cuts->Fill(ntracks_with_cuts);
 
-             gembed = truthinfo->isEmbededVtx(point_id);
-             gntracks = embedvtxid_particle_count[(int) gembed];
+      if (point)
+      {
+        const int point_id = point->get_id();
+        gvx = point->get_x();
+        gvy = point->get_y();
+        gvz = point->get_z();
+        gvt = point->get_t();
 
-             h_gntracks->Fill(gntracks);
+        h_gvz->Fill(gvz);
 
-             if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000. && fabs(gvz) < 13.0)
-               gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
+        gembed = truthinfo->isEmbededVtx(point_id);
+        gntracks = embedvtxid_particle_count[(int) gembed];
 
-             h_gntracksmaps->Fill(gntracksmaps);
-           }
-           float vx_res = vx - gvx;
-           float vy_res = vy - gvy;
-           float vz_res = vz - gvz;
+        h_gntracks->Fill(gntracks);
 
-           h_vxRes_gvz->Fill(gvz, vx_res);
-           h_vyRes_gvz->Fill(gvz, vy_res);
-           h_vzRes_gvz->Fill(gvz, vz_res);
-         }
-         h_recoSvtxVertex->Fill(n_recoSvtxVertex);
+        if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000. && fabs(gvz) < 13.0)
+          gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
+
+        h_gntracksmaps->Fill(gntracksmaps);
+        h_norm->Fill("MVTXTrackOnVertex", gntracksmaps);
+      }
+      float vx_res = vx - gvx;
+      float vy_res = vy - gvy;
+      float vz_res = vz - gvz;
+
+      h_vxRes_gvz->Fill(gvz, vx_res);
+      h_vyRes_gvz->Fill(gvz, vy_res);
+      h_vzRes_gvz->Fill(gvz, vz_res);
+    }
+    h_recoSvtxVertex->Fill(n_recoSvtxVertex);
+    h_norm->Fill("Vertex", n_recoSvtxVertex);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
