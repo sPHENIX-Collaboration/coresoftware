@@ -52,7 +52,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     m_svtxEvalStack->set_strict(false);
     m_svtxEvalStack->set_verbosity(Verbosity());
   }
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_vertexMapName);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
