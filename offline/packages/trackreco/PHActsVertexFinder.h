@@ -28,14 +28,20 @@ using TrackPtrVector = std::vector<const Acts::BoundTrackParameters*>;
 using VertexMap = std::map<unsigned int, Acts::Vertex<Acts::BoundTrackParameters>>;
 
 
+/**
+ * This class calls the Acts::IterativeVertexFinder which takes a 
+ * list of tracks and returns a list of vertices that are found.
+ */
 class PHActsVertexFinder: public PHInitVertexing 
 {
   
  public:
   PHActsVertexFinder(const std::string &name = "PHActsVertexFinder");
+
   virtual ~PHActsVertexFinder() {}
+
   void setMaxVertices(int maxVertices)
-  { m_maxVertices = maxVertices; }
+    { m_maxVertices = maxVertices; }
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -47,16 +53,31 @@ class PHActsVertexFinder: public PHInitVertexing
   
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
+
+  /// Get list of tracks from PHActsTrkFitter to vertex fit
   std::vector<const Acts::BoundTrackParameters*> getTracks();
+
+  /// Call acts vertex finder
   VertexVector findVertices(TrackPtrVector& tracks);
+
+  /// Fill maps with relevant vertex information 
   void fillVertexMap(VertexVector& vertices);
   
+  /// The acts trajectories from PHActsTrkFitter
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
+
+  /// An Acts vertex object map
+  VertexMap *m_actsVertexMap;
+
   int m_event = 0;
-  int m_maxVertices = 15;
-  VertexMap *m_actsVertexMap = nullptr;
+  /// Maximum number of vertices that the Acts finder is allowed
+  /// to find
+  int m_maxVertices = 20;
   SvtxVertexMap *m_svtxVertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
+
+  /// Boolean to place m_actsVertexMap on node tree
+  /// False by default since Svtx objects are still the default
   bool m_addActsVertexNode = false;
     
 };

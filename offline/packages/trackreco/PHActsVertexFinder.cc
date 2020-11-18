@@ -44,6 +44,7 @@
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
   , m_actsFitResults(nullptr)
+  , m_actsVertexMap(nullptr)
 {
 }
 
