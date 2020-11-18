@@ -7,6 +7,8 @@
 //include the header file here
 #include "FermiMotion.h"
 
+#include <phool/phool.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <HepMC/GenEvent.h>
@@ -81,11 +83,15 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
   //find ploss
   //std::cout<<"getting b"<<std::endl;
   HepMC::HeavyIon *hi = event->heavy_ion();
+  if (! hi)
+  {
+    std::cout << PHWHERE << ": Fermi Motion Afterburner needs the Heavy Ion Event Info, GenEvent::heavy_ion() returns NULL" << std::endl;
+    exit(1);
+  }
   double b = hi->impact_parameter();
   double pnl = ploss(b);
   //now loop over all particles and find spectator neutrons
 
-  std::cout << "looping over particles" << std::endl;
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
     int id = (*p)->pdg_id();

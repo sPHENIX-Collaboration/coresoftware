@@ -7,6 +7,11 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+
 #include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 #include <ActsExamples/Plugins/BField/ScalableBField.hpp>
 
@@ -39,9 +44,7 @@
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
   , m_actsFitResults(nullptr)
-  , m_event(0)
-  , m_maxVertices(50)
-  , m_tGeometry(nullptr)
+  , m_actsVertexMap(nullptr)
 {
 }
 
@@ -66,24 +69,85 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
 
-  auto logLevel = Acts::Logging::INFO;
-
-  if(Verbosity() > 2)
-    logLevel = Acts::Logging::VERBOSE;
-
   /// Get the list of tracks in Acts form
-  std::vector<const Acts::BoundTrackParameters*> trackPointers = getTracks();
+  auto trackPointers = getTracks();
 
-  auto logger = Acts::getDefaultLogger("PHActsVertexFinder", logLevel);
+  auto vertices = findVertices(trackPointers);
 
+  fillVertexMap(vertices);
+
+  if(Verbosity() > 0)
+    std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
+
+  m_event++;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsVertexFinder::ResetEvent(PHCompositeNode *topNode)
+{
+  m_actsVertexMap->clear();
+  m_svtxVertexMap->clear();
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
+}
+
+int PHActsVertexFinder::End(PHCompositeNode *topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks()
+{
+  std::vector<const Acts::BoundTrackParameters*> trackPtrs;
+
+  for(const auto &[key, traj] : *m_actsFitResults)
+  {
+    const auto &[trackTips, mj] = traj.trajectory();
+    
+    for(const size_t &trackTip : trackTips)
+      {
+	if(traj.hasTrackParameters(trackTip))
+	  {
+	    const Acts::BoundTrackParameters *param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
+	 
+	    trackPtrs.push_back(param);
+	  }
+      }
+  }
+  
+  if(Verbosity() > 3)
+    {
+      std::cout << "Finding vertices for the following number of tracks "
+		<< trackPtrs.size()
+		<< std::endl;
+     
+      for(const auto param : trackPtrs)
+	{
+	  std::cout << "Track position: (" 
+		    << param->position(m_tGeometry->geoContext)(0)
+		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "
+		    << param->position(m_tGeometry->geoContext)(2) << ")" 
+		    << std::endl;
+	}
+    }
+
+  return trackPtrs;
+
+}
+
+VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
+{
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-  std::visit([&](auto &inputField) {
+
+  return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField = Acts::SharedBField<InputMagneticField>;
-
+      
       using Stepper = Acts::EigenStepper<MagneticField>;
       using Propagator = Acts::Propagator<Stepper>;
       using PropagatorOptions = Acts::PropagatorOptions<>;
@@ -103,11 +167,13 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       static_assert(Acts::VertexFinderConcept<VertexFinder>,
 		    "VertexFinder does not fulfill vertex finder concept.");
 
-      MagneticField bField(std::move(inputField));
+      auto logLevel = Acts::Logging::INFO;
+      if(Verbosity() > 4)
+	logLevel = Acts::Logging::VERBOSE;
+      auto logger = Acts::getDefaultLogger("PHActsVertexFinder", logLevel);
+
+      MagneticField bField(inputField);
       auto propagator = std::make_shared<Propagator>(Stepper(bField));
-      PropagatorOptions propagatorOpts(m_tGeometry->geoContext,
-				       m_tGeometry->magFieldContext,
-				       Acts::LoggerWrapper(*logger));
       
       /// Setup vertex finder now
       typename VertexFitter::Config vertexFitterConfig;
@@ -122,18 +188,21 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       typename VertexSeeder::Config seederConfig(ipEst);
       VertexSeeder seeder(std::move(seederConfig));
       
-      typename VertexFinder::Config finderConfig(std::move(vertexFitter), std::move(linearizer),
-					std::move(seeder), ipEst);
+      typename VertexFinder::Config finderConfig(std::move(vertexFitter), 
+						 std::move(linearizer),
+						 std::move(seeder), ipEst);
       finderConfig.maxVertices = m_maxVertices;
       finderConfig.reassignTracksAfterFirstFit = true;
-      VertexFinder finder(finderConfig);
+      VertexFinder finder(finderConfig, std::move(logger));
       
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
       VertexFinderOptions finderOptions(m_tGeometry->geoContext,
 					m_tGeometry->magFieldContext);
       
-      auto result = finder.find(trackPointers, finderOptions, state);
-      
+      auto result = finder.find(tracks, finderOptions, state);
+    
+      VertexVector vertexVector;
+
       if(result.ok())
 	{
 	  auto vertexCollection = *result;
@@ -146,92 +215,124 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
 	  
 	  for(const auto& vertex : vertexCollection) 
 	    {
-	      if(Verbosity() > 1)
-		{
-		  std::cout << "Found vertex at (" << vertex.position().x()
-			    << ", " << vertex.position().y() << ", " 
-			    << vertex.position().z() << ")" << std::endl;
-		}
+	      vertexVector.push_back(vertex);
 	    }
 	}
       else
 	{
 	  if(Verbosity() > 1)
 	    {
-	      std::cout << "Acts IVF returned error: " 
+	      std::cout << "Acts vertex finder returned error: " 
 			<< result.error().message() << std::endl;
-	    }
+	    }	  
 	}
 
+      return vertexVector;
+      
     } /// end lambda
     , m_tGeometry->magField
     ); /// end std::visit call
-
-  if(Verbosity() > 1)
-    std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHActsVertexFinder::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
 
-std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks()
+
+void PHActsVertexFinder::fillVertexMap(VertexVector& vertices)
 {
- 
-  std::vector<const Acts::BoundTrackParameters*> trackPtrs;
-
-  std::map<const unsigned int, Trajectory>::iterator trackIter;
-
-  for (trackIter = m_actsFitResults->begin();
-       trackIter != m_actsFitResults->end();
-       ++trackIter)
-  {
-    const Trajectory traj = trackIter->second;
-    const auto &[trackTips, mj] = traj.trajectory();
-    
-    for(const size_t &trackTip : trackTips)
-      {
-	if(traj.hasTrackParameters(trackTip))
-	  {
-	    const Acts::BoundTrackParameters *param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	 
-	    trackPtrs.push_back(param);
-	  }
-
-      }
-  }
-  
-  if(Verbosity() > 3)
+  unsigned int key = 0;
+  for(auto vertex : vertices)
     {
-      std::cout << "Fitting a vertex for the following number of tracks "
-		<< trackPtrs.size()
-		<< std::endl;
+      const auto &[chi2, ndf] = vertex.fitQuality();
+      const auto numTracks = vertex.tracks().size();
       
-      for(std::vector<const Acts::BoundTrackParameters*>::iterator it = trackPtrs.begin();
-	  it != trackPtrs.end(); ++it)
+      if(Verbosity() > 1)
 	{
-	  const Acts::BoundTrackParameters* param = *it;
-	  std::cout << "Track position: (" 
-		    << param->position(m_tGeometry->geoContext)(0)
-		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "
-		    << param->position(m_tGeometry->geoContext)(2) << ")" 
-		    << std::endl;
-
+	  std::cout << "Found vertex at (" << vertex.position().x()
+		    << ", " << vertex.position().y() << ", " 
+		    << vertex.position().z() << ")" << std::endl;
+	  std::cout << "Vertex has ntracks = " << numTracks
+		    << " with chi2/ndf " << chi2 / ndf << std::endl;
 	}
+
+      /// Make some basic QA cuts on the vertices 
+      if(numTracks < 3)
+	continue;
+
+      /// Fill Acts vertex map
+      auto pair = std::make_pair(key, vertex);
+      m_actsVertexMap->insert(pair);
+
+      /// Fill SvtxVertexMap
+      auto svtxVertex = new SvtxVertex_v1();
+      svtxVertex->set_x(vertex.position().x());
+      svtxVertex->set_y(vertex.position().y());
+      svtxVertex->set_z(vertex.position().z());
+      for(int i = 0; i < 3; ++i) 
+	{
+	  for(int j = 0; j < 3; ++j)
+	    {
+	      svtxVertex->set_error(i, j,
+				    vertex.covariance()(i,j));
+	    }
+	}
+      svtxVertex->set_chisq(chi2);
+      svtxVertex->set_ndof(ndf);
+      svtxVertex->set_t0(vertex.time());
+      svtxVertex->set_id(key);
       
+      m_svtxVertexMap->insert(svtxVertex);
+
+      ++key;
     }
-
-  return trackPtrs;
-
+      
+  return;
 }
 
 int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
 {
+  PHNodeIterator iter(topNode);
+  
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+    {
+      std::cerr << "DST node is missing, quitting" << std::endl;
+      throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+    }
+  
+  PHCompositeNode *svtxNode = 
+    dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  
+  if (!svtxNode)
+    {
+      svtxNode = new PHCompositeNode("SVTX");
+      dstNode->addNode(svtxNode);
+    }
+ 
+  m_actsVertexMap = 
+    findNode::getClass<VertexMap>(topNode, "ActsVertexMap");
+  if(!m_actsVertexMap)
+    {
+      m_actsVertexMap = new VertexMap;
+      
+      PHDataNode<VertexMap> *node = 
+	new PHDataNode<VertexMap>(m_actsVertexMap,
+				  "ActsVertexMap");
+      if(m_addActsVertexNode)
+	svtxNode->addNode(node);
+    }
+
+  m_svtxVertexMap = 
+    findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
+  if(!m_svtxVertexMap)
+    {
+      m_svtxVertexMap = new SvtxVertexMap_v1;
+      PHIODataNode<PHObject> *node = 
+	new PHIODataNode<PHObject>(m_svtxVertexMap,
+				   "SvtxVertexMapActs", "PHObject");
+      svtxNode->addNode(node);
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -256,7 +357,6 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
