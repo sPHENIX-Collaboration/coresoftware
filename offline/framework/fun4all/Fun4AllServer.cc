@@ -1467,13 +1467,14 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 int Fun4AllServer::skip(const int nevnts)
 {
   int iret = 0;
-  if (nevnts > 0)  // do not execute for nevnts == 0
+  if (nevnts > 0)  // do not execute for nevnts <= 0
   {
     vector<Fun4AllSyncManager *>::const_iterator iter;
     for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
     {
       iret += (*iter)->skip(nevnts);
     }
+    eventcounter += nevnts; // update event counter so it reflects the number of events in the input
   }
   return iret;
 }

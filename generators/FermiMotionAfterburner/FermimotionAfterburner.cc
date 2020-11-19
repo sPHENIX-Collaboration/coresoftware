@@ -48,47 +48,11 @@ int FermimotionAfterburner::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int FermimotionAfterburner::InitRun(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
 int FermimotionAfterburner::process_event(PHCompositeNode *topNode)
 {
-  std::cout << "process_event(PHCompositeNode *topNode) Processing Event Shuhang testing" << std::endl;
   AddpF(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int FermimotionAfterburner::ResetEvent(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int FermimotionAfterburner::EndRun(const int runnumber)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int FermimotionAfterburner::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int FermimotionAfterburner::Reset(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void FermimotionAfterburner::Print(const std::string &what) const
-{
 }
 
 //____________________________________________________________________________..
@@ -96,18 +60,14 @@ void FermimotionAfterburner::Print(const std::string &what) const
 void FermimotionAfterburner::AddpF(PHCompositeNode *topNode)
 {
   PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  std::cout << "looping over events" << std::endl;
   for (PHHepMCGenEventMap::Iter iter = genevtmap->begin(); iter != genevtmap->end(); ++iter)
   {
-    std::cout << "getting event" << std::endl;
     PHHepMCGenEvent *genevt = iter->second;
     HepMC::GenEvent *evt = genevt->getEvent();
-    std::cout << "done" << std::endl;
     if (!evt)
     {
       std::cout << PHWHERE << " no evt pointer under HEPMC Node found" << std::endl;
     }
-    std::cout << "applying fermimotion" << std::endl;
     FermiMotion(evt, RandomGenerator);
   }
 }
