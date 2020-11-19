@@ -584,8 +584,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	  _pflow_TRK_match_HAD.at( trk ).push_back( had );
 	  _pflow_HAD_match_TRK.at( had ).push_back( trk );
 
-	  std::cout << " TRK " << trk << " with pt / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
-	  std::cout << " -> sequential match to HAD " << had << " through EM " << j << std::endl;
+	  if ( Verbosity() > 5 )  {
+	    std::cout << " TRK " << trk << " with pt / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
+	    std::cout << " -> sequential match to HAD " << had << " through EM " << j << std::endl;
+	  }
 
 	}
 
