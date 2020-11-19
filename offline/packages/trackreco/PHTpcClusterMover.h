@@ -38,9 +38,14 @@ class PHTpcClusterMover : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-   void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
+  void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
   void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
   void  line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b);
+int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
+
+  double _z_start=0.0; 
+  double _y_start=0.0; 
+  double _x_start=0.0; 
 
   double _z_proj=0.0; 
   double _y_proj=0.0; 

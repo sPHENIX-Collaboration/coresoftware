@@ -103,7 +103,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
 	  unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
-	  if(trkrId != TrkrDefs::tpcId) continue;
+	  if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
 
 	  // get the cluster
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
@@ -147,57 +147,42 @@ int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
 	{
 	  unsigned int layer = clus_iter->first;
 	  TrkrCluster *cluster = clus_iter->second;
-	  
+	 
+	  // get circle position at target surface radius 
 	  double target_radius = layer_radius[layer-7];
+	  int ret = get_circle_circle_intersection(target_radius, R, X0, Y0, cluster->getX(), cluster->getY(), _x_proj, _y_proj);
+	  if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
+	  // z projection is unique
+	  _z_proj = B + A * target_radius;
 	  
-	  // finds the intersection of the fitted circle with the micromegas layer
-	  double xplus = 0;
-	  double yplus = 0; 
-	  double xminus = 0;
-	  double yminus = 0;
-	  circle_circle_intersection(target_radius, R, X0, Y0, xplus, yplus, xminus, yminus);
+	  // get circle position at cluster radius	  
+	  double cluster_radius = sqrt(cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
+	  ret = get_circle_circle_intersection(cluster_radius, R, X0, Y0, cluster->getX(), cluster->getY(), _x_start, _y_start);
+	  if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
+	  // z projection is unique
+	  _z_start = B + A * cluster_radius;
 	  
-	// We only need to check xplus for failure, skip this TPC track in that case
-	if(std::isnan(xplus)) 
-	  {
-	    if(Verbosity() > 0)
-	      {
-		std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
-		std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
-	      }
-	    continue;  // skip to next cluster
-	  }
+	  // calculate dx, dy, dz along circle trajectory from cluster radius to surface radius
+	  double xnew = cluster->getX() - (_x_start - _x_proj);
+	  double ynew = cluster->getY() - (_y_start - _y_proj);
+	  double znew = cluster->getZ() - (_z_start - _z_proj);
+	  
+	  // now move the cluster to the surface radius
+	  cluster->setX(xnew);
+	  cluster->setY(ynew);
+	  cluster->setZ(znew);
 
-	// we can figure out which solution is correct based on the cluster position in the TPC
-	double xclus = cluster->getX();
-	double yclus = cluster->getY();
-	if(fabs(xclus - xplus) < 5.0 && fabs(yclus - yplus) < 5.0)
-	  {
-	    _x_proj = xplus;
-	    _y_proj = yplus;
-	  }
-	else
-	  {
-	    _x_proj = xminus;
-	    _y_proj = yminus;
-	  }
-
-	// z projection is unique
-	_z_proj = B + A * target_radius;
-
-	if(Verbosity() > 10)
-	  {
-	    std::cout << "target_radius " << target_radius << " cluster x,y,z:  old " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ() 
-		      << " new " << _x_proj << "  " << _y_proj << "  " << _z_proj << std::endl; 
-	  }
-
-	// now move the cluster to the projected position
-	cluster->setX(_x_proj);
-	cluster->setY(_y_proj);
-	cluster->setZ(_z_proj);
+	  if(Verbosity() > 10)
+	    {
+	      std::cout << "*** cluster_radius " << cluster_radius << " cluster x,y,z: " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ() << std::endl;
+	      std::cout << "    projection_radius " << target_radius << " proj x,y,z: " << _x_proj << "  " << _y_proj << "  " << _z_proj << std::endl; 
+	      std::cout << "    traj_start_radius " << cluster_radius << " start x,y,z: "<< _x_start << "  " << _y_start << "  " << _z_start << std::endl; 
+	      std::cout << "    moved_clus_radius " << target_radius << " final x,y,z: "<< xnew << "  " << ynew << "  " << znew << std::endl; 
+	    }
+	  
 	}
     }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -225,6 +210,40 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y)
+ {
+   // finds the intersection of the fitted circle with the cylinder having radius = target_radius
+   double xplus = 0;
+   double yplus = 0; 
+   double xminus = 0;
+   double yminus = 0;
+   
+   circle_circle_intersection(target_radius, R, X0, Y0, xplus, yplus, xminus, yminus);
+   
+   // We only need to check xplus for failure, skip this TPC cluster in that case
+   if(std::isnan(xplus)) 
+     {
+       if(Verbosity() > 0)
+	 {
+	   std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
+	   std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	 }
+       return Fun4AllReturnCodes::ABORTEVENT;  // skip to next cluster
+     }
+   
+   // we can figure out which solution is correct based on the cluster position in the TPC
+   if(fabs(xclus - xplus) < 5.0 && fabs(yclus - yplus) < 5.0)  // 5 cm, large and arbitrary 
+     {
+       x = xplus;
+       y = yplus;
+     }
+   else
+     {
+       x = xminus;
+       y = yminus;
+     }
+   return Fun4AllReturnCodes::EVENT_OK;   
+ }
 void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0)
 /*  
       Circle fit to a given set of data points (in 2D)
