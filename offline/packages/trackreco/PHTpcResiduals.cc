@@ -267,15 +267,15 @@ void PHTpcResiduals::calculateTpcResiduals(
 					 Acts::Vector3D(1,1,1));
 
   /// Get all the relevant information for residual calculation
-  const auto clusR = sqrt(pow(globalSL.x() / Acts::UnitConstants::cm, 2) +
+  clusR = sqrt(pow(globalSL.x() / Acts::UnitConstants::cm, 2) +
 			  pow(globalSL.y() / Acts::UnitConstants::cm, 2));
-  const auto clusPhi = std::atan2(globalSL.y(), globalSL.x());
-  const auto clusZ = globalSL.z() / Acts::UnitConstants::cm;
+  clusPhi = std::atan2(globalSL.y(), globalSL.x());
+  clusZ = globalSL.z() / Acts::UnitConstants::cm;
 
-  const auto clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
+  clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
 						Acts::eBoundLoc0))
     / Acts::UnitConstants::cm;
-  const auto clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
+  clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
 					     Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
 
@@ -309,19 +309,19 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   const auto globalStatePos = params.position(m_tGeometry->geoContext);
   const auto globalStateCov = *params.covariance();
-  const auto stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
+  stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
 						Acts::eBoundLoc0))
     / Acts::UnitConstants::cm;
-  const auto stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
+  stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
 					     Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
  
   /// We don't have to extrapolate the track parameters to the cluster
   /// r because the Acts::Propagator already propagated the parameters
   /// to the surface where the cluster exists (e.g. the same r)
-  const auto statePhi = std::atan2(globalStatePos.y(),
+  statePhi = std::atan2(globalStatePos.y(),
 				   globalStatePos.x());
-  const auto stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
+  stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
   
   if(Verbosity() > 3)
     std::cout << "State r phi and z " 
@@ -335,8 +335,8 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto dPhi = clusPhi - statePhi;
 
   /// Calculate residuals
-  const auto drphi = clusR * deltaPhi(dPhi);
-  const auto dz  = clusZ - stateZ;
+  drphi = clusR * deltaPhi(dPhi);
+  dz  = clusZ - stateZ;
 
   if(Verbosity() > 3)
     std::cout << "TPC residuals " << drphi << "   " << dz << std::endl;
@@ -365,9 +365,21 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(std::abs(trackBeta) > m_maxTBeta
      or std::abs(dz) > m_maxResidualDz)
     return;
+  
+  const float r = sqrt(globalSL(0) * globalSL(0) + globalSL(1) * globalSL(1)) 
+    / Acts::UnitConstants::cm;
+  const float z = globalSL(2) / Acts::UnitConstants::cm;
+  
+  ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
+  iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
+  iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
+  
+  tanBeta = trackBeta;
+  tanAlpha = trackAlpha;
 
   const auto index = getCell(globalSL);
-
+  cell = index;
+  
   if(index < 0 || index > m_totalBins)
     return;
 
@@ -376,9 +388,8 @@ void PHTpcResiduals::calculateTpcResiduals(
   h_etaResid->Fill(trackEta, clusEta - trackEta);
   h_zResidLayer->Fill(clusR , dz);
   h_etaResidLayer->Fill(clusR , clusEta - trackEta);
-  residTup->Fill(trackAlpha, trackBeta, drphi, dz, index, 
-		 clusR, clusPhi, clusZ, statePhi, stateZ,
-		 stateRPhiErr, stateZErr,clusRPhiErr,clusZErr);
+
+  residTup->Fill();
 
   /// Fill distortion matrices
   m_lhs[index](0,0) += 1. / erp;
@@ -577,8 +588,25 @@ void PHTpcResiduals::makeHistograms()
 			     60, 20, 80, 500, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
 			   60, 20, 80, 1000, -2, 2);
-  residTup = new TNtuple("residTup","tpc residual info",
-			 "tanAlpha:tanBeta:rdphi:dz:cell:clusterR:clusterPhi:clusterZ:statePhi:stateZ:stateRPhiErr:stateZErr:clusRPhiErr:clusZErr");
+  residTup = new TTree("residTree","tpc residual info");
+  residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
+  residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
+  residTup->Branch("drphi",&drphi,"drphi/D");
+  residTup->Branch("dz",&dz,"dz/D");
+  residTup->Branch("cell",&cell,"cell/I");
+  residTup->Branch("clusR",&clusR,"clusR/D");
+  residTup->Branch("clusPhi",&clusPhi,"clusPhi/D");
+  residTup->Branch("clusZ",&clusZ,"clusZ/D");
+  residTup->Branch("statePhi",&statePhi,"statePhi/D");
+  residTup->Branch("stateZ",&stateZ,"stateZ/D");
+  residTup->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
+  residTup->Branch("stateZErr",&stateZErr,"stateZErr/D");
+  residTup->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
+  residTup->Branch("clusZErr",&clusZErr,"clusZErr/D");
+  residTup->Branch("ir",&ir,"ir/I");
+  residTup->Branch("iz",&iz,"iz/I");
+  residTup->Branch("iphi",&iphi,"iphi/I");
+
 }
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
