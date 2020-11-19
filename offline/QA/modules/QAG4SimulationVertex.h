@@ -43,6 +43,8 @@ class QAG4SimulationVertex : public SubsysReco
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
 
   SvtxTrackMap *m_trackMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
+  PHG4TruthInfoContainer *m_truthInfo = nullptr;
 
   std::set<int> m_embeddingIDs;
 

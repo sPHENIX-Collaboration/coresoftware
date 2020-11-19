@@ -53,6 +53,27 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     m_svtxEvalStack->set_verbosity(Verbosity());
   }
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  if (!m_trackMap)
+  {
+    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing "<<m_trackMapName<<endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
+  if (!m_trackMap)
+  {
+    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing "<<m_vertexMapName<<endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_trackMap)
+  {
+    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing G4TruthInfo"<<<<endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -186,22 +207,19 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   TH1 *h_recoSvtxVertex = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "recoSvtxVertex"));
   assert(h_recoSvtxVertex);
 
-  SvtxVertexMap *vertexmap = nullptr;
+
 
   int n_recoSvtxVertex = 0;
-
-  vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
-  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  if (vertexmap && truthinfo)
+  if (m_vertexMap && m_truthInfo)
   {
-    const auto prange = truthinfo->GetPrimaryParticleRange();
+    const auto prange = m_truthInfo->GetPrimaryParticleRange();
     map<int, unsigned int> embedvtxid_particle_count;
     map<int, unsigned int> embedvtxid_maps_particle_count;
     map<int, unsigned int> vertex_particle_count;
     for (auto iter = prange.first; iter != prange.second; ++iter)  // process all primary paricle
     {
       const int point_id = iter->second->get_vtx_id();
-      int gembed = truthinfo->isEmbededVtx(iter->second->get_vtx_id());
+      int gembed = m_truthInfo->isEmbededVtx(iter->second->get_vtx_id());
       ++vertex_particle_count[point_id];
       ++embedvtxid_particle_count[gembed];
       PHG4Particle *g4particle = iter->second;
@@ -256,14 +274,14 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         ++embedvtxid_maps_particle_count[gembed];
     }
 
-    auto vrange = truthinfo->GetPrimaryVtxRange();
+    auto vrange = m_truthInfo->GetPrimaryVtxRange();
     map<int, bool> embedvtxid_found;
     map<int, int> embedvtxid_vertex_id;
     map<int, PHG4VtxPoint *> embedvtxid_vertex;
     for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
-      int gembed = truthinfo->isEmbededVtx(point_id);
+      int gembed = m_truthInfo->isEmbededVtx(point_id);
       if (gembed <= 0) continue;
 
       auto search = embedvtxid_found.find(gembed);
@@ -292,8 +310,8 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       ++ngembed;
     }
 
-    for (SvtxVertexMap::Iter iter = vertexmap->begin();
-         iter != vertexmap->end();
+    for (SvtxVertexMap::Iter iter = m_vertexMap->begin();
+         iter != m_vertexMap->end();
          ++iter)
     {
       SvtxVertex *vertex = iter->second;
@@ -309,7 +327,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       float gvz = NAN;
       float gvt = NAN;
       float gembed = NAN;
-      float gntracks = truthinfo->GetNumPrimaryVertexParticles();
+      float gntracks = m_truthInfo->GetNumPrimaryVertexParticles();
       float gntracksmaps = NAN;
 
       h_ntracks->Fill(ntracks);
@@ -367,7 +385,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
         h_gvz->Fill(gvz);
 
-        gembed = truthinfo->isEmbededVtx(point_id);
+        gembed = m_truthInfo->isEmbededVtx(point_id);
         gntracks = embedvtxid_particle_count[(int) gembed];
 
         h_gntracks->Fill(gntracks);
