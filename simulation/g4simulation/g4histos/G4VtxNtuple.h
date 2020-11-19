@@ -35,8 +35,8 @@ class G4VtxNtuple : public SubsysReco
 
  protected:
   std::string m_FileName;
-  Fun4AllHistoManager *hm;
-  TNtuple *ntup;
+  Fun4AllHistoManager *hm = nullptr;
+  TNtuple *ntup = nullptr;
 };
 
 #endif
