@@ -581,7 +581,7 @@ void MakeActsGeometry::buildActsSurfaces()
   makeGeometry(argc, arg, m_detector);
 
   for(int i=0; i<argc; i++)
-    delete arg[i];
+    free(arg[i]);
 
 }
 
