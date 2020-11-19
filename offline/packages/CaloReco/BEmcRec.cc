@@ -220,7 +220,7 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   int ix = xC + 0.5;  // tower #
   if (ix < 0 || ix >= fNx)
   {
-    cout << "Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
+    cout << m_ThisName << " Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
     return;
   }
 
