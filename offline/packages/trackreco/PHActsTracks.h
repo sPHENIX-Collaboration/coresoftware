@@ -55,6 +55,9 @@ class PHActsTracks : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
 
+  void setTruthTrackSeeding(bool truthTrackSeeding)
+  { m_truthTrackSeeding = truthTrackSeeding;}
+
  private:
   /** 
    * Member functions
@@ -92,6 +95,8 @@ class PHActsTracks : public SubsysReco
 
   /// Acts TrackingGeometry necessary for various contexts
   ActsTrackingGeometry *m_tGeometry;
+
+  bool m_truthTrackSeeding = false;
 };
 
 #endif

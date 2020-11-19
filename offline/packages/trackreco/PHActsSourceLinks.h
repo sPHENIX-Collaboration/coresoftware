@@ -95,7 +95,7 @@ class PHActsSourceLinks : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
 
   /// Get a TGeoNode from the m_clusterNodeMap
-  TGeoNode *getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
+  TGeoNode* getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
   /// Get a Surface from the m_surfaceNodeMap;
   Surface getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey);

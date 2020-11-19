@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libffaobjects.la
+lib_LTLIBRARIES = \
+  libffaobjects.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \

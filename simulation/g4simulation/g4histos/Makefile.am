@@ -35,7 +35,8 @@ pkginclude_HEADERS = \
   G4HitTTree.h \
   G4RawTowerTTree.h \
   G4SnglNtuple.h \
-  G4SnglTree.h
+  G4SnglTree.h \
+  G4VtxNtuple.h
 
 ROOTDICTS = \
   G4RootHitContainer_Dict.cc \
@@ -74,7 +75,8 @@ libg4histos_la_SOURCES = \
   G4ScintillatorTowerTTree.cc \
   G4SnglNtuple.cc \
   G4SnglTree.cc \
-  G4TowerNtuple.cc
+  G4TowerNtuple.cc \
+  G4VtxNtuple.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

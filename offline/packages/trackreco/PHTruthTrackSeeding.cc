@@ -11,6 +11,8 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -221,19 +223,29 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
           <<" Layer/clusters cuts are > "<<_min_clusters_per_track
           <<endl;
     }
-
+ 
     if (layers.size() >=  _min_clusters_per_track)
     {
-
+  
       std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 
       svtx_track->set_id(_track_map->size());
+    
       svtx_track->set_truth_track_id(trk_clusters_itr->first);
-
-      // dummy values, set px to make it through the minimum pT cut
-      svtx_track->set_px(10.);
-      svtx_track->set_py(0.);
-      svtx_track->set_pz(0.);
+   
+      PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
+  
+      /// Smear the truth values out by 5% so that the seed momentum and
+      /// position aren't completely exact
+      double random = ((double) rand() / (RAND_MAX)) * 0.05;
+      /// make it negative sometimes
+      if(rand() % 2)
+	random *= -1;
+  
+      svtx_track->set_px(particle->get_px() * (1 + random));
+      svtx_track->set_py(particle->get_py() * (1 + random));
+      svtx_track->set_pz(particle->get_pz() * (1 + random));
+      
       for (TrkrCluster* cluster : trk_clusters_itr->second)
       {
         svtx_track->insert_cluster_key(cluster->getClusKey());

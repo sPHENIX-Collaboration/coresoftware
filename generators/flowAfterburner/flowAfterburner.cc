@@ -13,6 +13,8 @@
 
 #include "flowAfterburner.h"
 
+#include <phool/phool.h>
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
@@ -29,11 +31,12 @@
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
+#include <iostream>
 #include <map>  // for map
 
 namespace CLHEP
 {
-class HepRandomEngine;
+  class HepRandomEngine;
 }
 
 flowAfterburnerAlgorithm algorithm;
@@ -294,7 +297,11 @@ int flowAfterburner(HepMC::GenEvent *event,
 {
   algorithm = algorithms[algorithmName];
   HepMC::HeavyIon *hi = event->heavy_ion();
-
+  if (! hi)
+  {
+    std::cout << PHWHERE << ": Flow Afterburner needs the Heavy Ion Event Info, GenEvent::heavy_ion() returns NULL" << std::endl;
+    exit(1);
+  }
   // Generate the v_n reaction plane angles (some of them may or may
   // not be used later on).
   for (int i = 0; i < 6; i++)

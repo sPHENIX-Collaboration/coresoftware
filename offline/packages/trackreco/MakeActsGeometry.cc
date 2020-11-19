@@ -505,7 +505,7 @@ void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
   const int argc = 14;
-  char *arg[argc];
+  char* arg[argc];
  
   if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
@@ -586,9 +586,13 @@ void MakeActsGeometry::buildActsSurfaces()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
   makeGeometry(argc, arg, m_detector);
+
+  for(int i=0; i<argc; i++)
+    free(arg[i]);
+
 }
 
-void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
+void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
 				    ActsExamples::IBaseDetector &detector)
 {
   

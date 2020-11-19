@@ -90,7 +90,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     std::cout << std::endl << "Start PHActsSourceLinks process_event" << std::endl;
   }
   
-  PHTimer *eventTimer = new PHTimer("PHActsSourceLinksTimer");
+  auto eventTimer = std::make_unique<PHTimer>("PHActsSourceLinksTimer");
   eventTimer->stop();
   eventTimer->restart();
 
@@ -323,13 +323,6 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 		<< " worldVec[0] " << worldVec[0] << " worldVec[1] " << worldVec [1] << " worldVec[2] " << worldVec[2] << std::endl;
       return nullptr;
     }
-  /*
-  std::cout << PHWHERE
-	    << "Found associated surface element"
-	    << std::endl;
-  std::cout << "  tpcHitSetKey " << tpcHitSetKey << " layer " << layer << " sector " << sectorId
-	    << " worldVec[0] " << worldVec[0] << " worldVec[1] " << worldVec [1] << " worldVec[2] " << worldVec[2] << std::endl;
-  */
 
   if(Verbosity() > 10)
     {
@@ -628,7 +621,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
               << " ladderphid " << ladderPhiId << std::endl;
   }
   /// Get the TGeoNode
-  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
+  auto sensorNode = getNodeFromClusterMap(hitSetKey);
 
   if (!sensorNode)
   {
@@ -748,7 +741,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
                                                          chipId);
 
   /// Get the TGeoNode
-  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
+  auto sensorNode = getNodeFromClusterMap(hitSetKey);
 
   if (!sensorNode)
   {
@@ -1053,7 +1046,7 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
   return;
 }
 
-TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
+TGeoNode* PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
   std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_surfMaps->tGeoNodeMap;
 
@@ -1311,7 +1304,7 @@ Surface PHActsSourceLinks::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey
   std::vector<Surface> surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
-  MakeActsGeometry *geom = new MakeActsGeometry();
+  auto geom = std::make_unique<MakeActsGeometry>();
   double surfStepPhi = geom->getSurfStepPhi();
   double surfStepZ = geom->getSurfStepZ();
 

@@ -72,7 +72,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     std::cout << "Start process_event in PHActsTracks" << std::endl;
   }
 
-  PHTimer *eventTimer = new PHTimer("PHActsTracksTimer");
+  auto eventTimer = std::make_unique<PHTimer>("PHActsTracksTimer");
   eventTimer->stop();
   eventTimer->restart();
 
@@ -84,7 +84,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   std::vector<SourceLink> trackSourceLinks;
   std::vector<ActsExamples::TrackParameters> trackSeeds;
 
-  ActsTransformations *rotater = new ActsTransformations();
+  auto rotater = std::make_unique<ActsTransformations>();
   rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
@@ -128,11 +128,18 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
     const double trackTime = 10 * Acts::UnitConstants::ns;
 
-    const Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
+    Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
 				  track->get_y()  * Acts::UnitConstants::cm,
 				  track->get_z()  * Acts::UnitConstants::cm,
 				  trackTime);
     
+    if(m_truthTrackSeeding)
+      {
+	seed4Vec(0) = vertex(0);
+	seed4Vec(1) = vertex(1);
+	seed4Vec(2) = vertex(2);
+      }
+
     const Acts::Vector3D seedMomVec(track->get_px() * Acts::UnitConstants::GeV,
 				    track->get_py() * Acts::UnitConstants::GeV,
 				    track->get_pz() * Acts::UnitConstants::GeV);
