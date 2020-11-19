@@ -68,7 +68,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_trackMap)
   {
-    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing G4TruthInfo"<<<<endl;
+    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing G4TruthInfo"<<endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
