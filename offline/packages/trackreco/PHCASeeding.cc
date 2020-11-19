@@ -45,6 +45,10 @@
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/policies/compare.hpp>
 
+#if __cplusplus < 201402L
+#include <boost/make_unique.hpp>
+#endif
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -1371,9 +1375,14 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
   InitializeGeometry(topNode);
+ #if __cplusplus < 201402L
+  t_fill = boost::make_unique<PHTimer>("t_fill");
+  t_seed = boost::make_unique<PHTimer>("t_seed");
+#else
   t_fill = std::make_unique<PHTimer>("t_fill");
-  t_fill->stop();
   t_seed = std::make_unique<PHTimer>("t_seed");
+#endif
+  t_fill->stop();
   t_seed->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
