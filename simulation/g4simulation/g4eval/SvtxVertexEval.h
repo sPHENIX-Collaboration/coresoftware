@@ -66,6 +66,7 @@ class SvtxVertexEval
   unsigned int get_errors() { return _errors + _trackeval.get_errors(); }
 
   void set_use_initial_vertex(bool use_init_vertex) { _use_initial_vertex = use_init_vertex; }
+  void set_use_acts_vertex(bool use_acts_vertex) { _use_acts_vertex = use_acts_vertex; }
 
   void set_track_nodename(const std::string& name);
 
@@ -80,6 +81,7 @@ class SvtxVertexEval
 
   bool _strict;
   bool _use_initial_vertex;
+  bool _use_acts_vertex;
   int _verbosity;
   unsigned int _errors;
 

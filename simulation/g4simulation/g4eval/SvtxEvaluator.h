@@ -45,6 +45,7 @@ class SvtxEvaluator : public SubsysReco
 
   void set_strict(bool b) { _strict = b; }
   void set_use_initial_vertex(bool use_init_vtx) {_use_initial_vertex = use_init_vtx;}
+  void set_use_acts_vertex(bool use_acts_vtx) {_use_acts_vertex = use_acts_vtx;}
   void do_info_eval(bool b) { _do_info_eval = b; }
   void do_vertex_eval(bool b) { _do_vertex_eval = b; }
   void do_gpoint_eval(bool b) { _do_gpoint_eval = b; }
@@ -74,6 +75,7 @@ class SvtxEvaluator : public SubsysReco
 
   bool _strict;
   bool _use_initial_vertex;
+  bool _use_acts_vertex = false;
   unsigned int _errors;
 
   bool _do_info_eval;

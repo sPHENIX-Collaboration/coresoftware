@@ -26,6 +26,7 @@ class SvtxEvalStack
   void set_strict(bool strict) { _vertexeval.set_strict(strict); }
   //void set_over_write_vertexmap(bool over_write) {_vertexeval.set_over_write_vertexmap(over_write);}
   void set_use_initial_vertex(bool use_init_vtx) { _vertexeval.set_use_initial_vertex(use_init_vtx); }
+  void set_use_acts_vertex(bool use_acts_vtx) { _vertexeval.set_use_initial_vertex(use_acts_vtx); }
   void set_verbosity(int verbosity) { _vertexeval.set_verbosity(verbosity); }
 
   SvtxVertexEval* get_vertex_eval() { return &_vertexeval; }

@@ -407,6 +407,10 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
   {
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");  // always there, initial vertices
   }
+  else if (_use_acts_vertex)
+    {
+    _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+    }
   else
   {
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices

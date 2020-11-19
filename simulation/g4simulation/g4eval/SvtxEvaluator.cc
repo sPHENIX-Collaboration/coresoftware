@@ -247,6 +247,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
     _svtxevalstack->set_strict(_strict);
     _svtxevalstack->set_verbosity(Verbosity());
     _svtxevalstack->set_use_initial_vertex(_use_initial_vertex);
+    _svtxevalstack->set_use_acts_vertex(_use_acts_vertex);
   }
   else
   {
@@ -385,6 +386,8 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    else if (_use_acts_vertex)
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
     else
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
     if (vertexmap)
@@ -439,6 +442,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    else if (_use_acts_vertex)
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
     else
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
     if (vertexmap)
@@ -933,6 +938,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    else if (_use_acts_vertex)
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
     else
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
