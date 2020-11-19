@@ -41,7 +41,6 @@ using namespace std;
 QAG4SimulationVertex::QAG4SimulationVertex(const std::string &name)
   : SubsysReco(name)
 {
-  cout << "QAG4SimulationVertex::QAG4SimulationVertex(const std::string &name) Calling ctor" << endl;
 }
 
 int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
