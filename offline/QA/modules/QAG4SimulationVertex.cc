@@ -54,25 +54,23 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
-    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing "<<m_trackMapName<<endl;
+    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   if (!m_trackMap)
   {
-    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing "<<m_vertexMapName<<endl;
+    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_vertexMapName << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_trackMap)
   {
-    cout <<__PRETTY_FUNCTION__<<" Fatal Error : missing G4TruthInfo"<<endl;
+    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -158,7 +156,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(
-      get_histo_prefix() + "_Normalization"));
+      get_histo_prefix() + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
   ;
@@ -205,8 +203,6 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   // Reco SvtxVertex Histogram
   TH1 *h_recoSvtxVertex = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "recoSvtxVertex"));
   assert(h_recoSvtxVertex);
-
-
 
   int n_recoSvtxVertex = 0;
   if (m_vertexMap && m_truthInfo)
