@@ -30,6 +30,7 @@ class QAG4SimulationVertex : public SubsysReco
 
   void addEmbeddingID(int embeddingID);
 
+  void setTrackgMapName(const std::string &name) { m_trackMapName = name; }
   void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
 
  private:
@@ -45,7 +46,8 @@ class QAG4SimulationVertex : public SubsysReco
 
   std::set<int> m_embeddingIDs;
 
-  std::string m_vertexMapName = "SvtxTrackMap";
+  std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_vertexMapName = "SvtxVertexMap";
 };
 
 #endif  // QAG4SIMULATIONVERTEX_H

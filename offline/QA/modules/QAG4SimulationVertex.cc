@@ -52,7 +52,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     m_svtxEvalStack->set_strict(false);
     m_svtxEvalStack->set_verbosity(Verbosity());
   }
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_vertexMapName);
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -190,7 +190,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
   int n_recoSvtxVertex = 0;
 
-  vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
+  vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (vertexmap && truthinfo)
   {
@@ -408,5 +408,5 @@ int QAG4SimulationVertex::load_nodes(PHCompositeNode *topNode)
 string
 QAG4SimulationVertex::get_histo_prefix()
 {
-  return string("h_") + Name() + string("_")+ m_vertexMapName + string("_");
+  return string("h_") + Name() + string("_") + m_vertexMapName + string("_");
 }
