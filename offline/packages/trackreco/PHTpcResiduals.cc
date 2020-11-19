@@ -383,6 +383,12 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(index < 0 || index > m_totalBins)
     return;
 
+  if(index == 0)
+    std::cout << "Values are : " <<iphi<<","<<ir<<","<<iz<<std::endl;
+
+  h_index->Fill(cell);
+  h_alpha->Fill(tanAlpha, drphi);
+  h_beta->Fill(tanBeta, dz);
   h_rphiResid->Fill(clusR , drphi);
   h_zResid->Fill(stateZ , dz);
   h_etaResid->Fill(trackEta, clusEta - trackEta);
@@ -481,8 +487,8 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
   
   /// Create output TH3s
     
-  TFile *outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
-  outputFile->cd();
+
+  m_outputFile->cd();
   residTup->Write();
 
   h_rphiResid->Write();
@@ -490,7 +496,9 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
   h_zResidLayer->Write();
   h_etaResidLayer->Write();
   h_zResid->Write();
- 
+  h_index->Write();
+  h_alpha->Write();
+  h_beta->Write();
 
   for(const auto& h : {hentries, hphi, hr, hz})
     h->Write();
@@ -501,7 +509,7 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
   createHistogram(hr, "hIntDistortionR")->Write();
   createHistogram(hz, "hIntDistortionZ")->Write();
 
-  outputFile->Close();
+  m_outputFile->Close();
 
 }
 
@@ -578,6 +586,12 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 void PHTpcResiduals::makeHistograms()
 {
  
+  m_outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
+  m_outputFile->cd();
+
+  h_beta = new TH2F("betadz",";tan#beta; #Deltaz [cm]",100,-0.5,0.5,100,-0.5,0.5);
+  h_alpha = new TH2F("alphardphi",";tan#alpha; r#Delta#phi [cm]", 100,-0.5,0.5,100,-0.5,0.5);
+  h_index = new TH1F("index",";index",m_totalBins, 0, m_totalBins);
   h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]",
 			 60, 20, 80, 500, -2, 2);
   h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]",

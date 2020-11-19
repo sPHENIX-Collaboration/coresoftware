@@ -151,7 +151,11 @@ class PHTpcResiduals : public SubsysReco
   TH2 *h_etaResidLayer = nullptr;
   TH2 *h_zResidLayer = nullptr;
   TH2 *h_etaResid = nullptr;
+  TH1 *h_index = nullptr;
+  TH2 *h_alpha = nullptr;
+  TH2 *h_beta = nullptr;
   TTree *residTup = nullptr;
+  TFile *m_outputFile = nullptr;
 
   double tanAlpha, tanBeta, drphi, dz, clusR, clusPhi, clusZ, statePhi,stateZ, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr;
   int cell, ir, iz, iphi;
