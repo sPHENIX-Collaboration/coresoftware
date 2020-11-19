@@ -56,6 +56,7 @@
 #include <vector>
 #include <algorithm> // for find
 #include <unordered_set>
+#include <memory>
 
 // forward declarations
 class PHCompositeNode;
