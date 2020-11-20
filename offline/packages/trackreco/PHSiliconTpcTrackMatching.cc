@@ -344,7 +344,7 @@ int PHSiliconTpcTrackMatching::Process()
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
 
-	      _track_map->insert(newTrack.get());
+	      _track_map->insert(newTrack.release());
 
 	      if(Verbosity() > 3)
 		{
