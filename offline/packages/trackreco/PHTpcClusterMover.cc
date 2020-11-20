@@ -44,9 +44,9 @@ int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   // initialize layer radii
-  double inner_tpc_spacing = (mid_tpc_min_radius - inner_tpc_min_radius) / 16.0;
-  double mid_tpc_spacing = (outer_tpc_min_radius - mid_tpc_min_radius) / 16.0;
-  double outer_tpc_spacing = (outer_tpc_max_radius - outer_tpc_min_radius) / 16.0;
+  inner_tpc_spacing = (mid_tpc_min_radius - inner_tpc_min_radius) / 16.0;
+  mid_tpc_spacing = (outer_tpc_min_radius - mid_tpc_min_radius) / 16.0;
+  outer_tpc_spacing = (outer_tpc_max_radius - outer_tpc_min_radius) / 16.0;
   for(int i=0; i < 16; ++i)
     {
       layer_radius[i] = inner_tpc_min_radius + (double) i * inner_tpc_spacing + 0.5 * inner_tpc_spacing;
@@ -172,7 +172,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
 	  cluster->setY(ynew);
 	  cluster->setZ(znew);
 
-	  if(Verbosity() > 10)
+	  if(Verbosity() > 0)
 	    {
 	      std::cout << "*** cluster_radius " << cluster_radius << " cluster x,y,z: " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ() << std::endl;
 	      std::cout << "    projection_radius " << target_radius << " proj x,y,z: " << _x_proj << "  " << _y_proj << "  " << _z_proj << std::endl; 
@@ -322,9 +322,9 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, d
     {
       double Dy = A1 + x*(A22 + A33*x);
       double xnew = x - y/Dy;
-      if ((xnew == x)||(!isfinite(xnew))) break;
+      if ((xnew == x)||(!std::isfinite(xnew))) break;
       double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
-      if (abs(ynew)>=abs(y))  break;
+      if (fabs(ynew)>=fabs(y))  break;
       x = xnew;  y = ynew;
     }
   
