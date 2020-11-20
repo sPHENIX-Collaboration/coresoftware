@@ -292,8 +292,7 @@ int PHSiliconTpcTrackMatching::Process()
 	    {
 	      // more than one si stub matches
 	      // make a copy of the TPC track, update it and add it to the end of the node tree 
-	      
-	      SvtxTrack *newTrack = new SvtxTrack_v1();
+	      auto newTrack = std::make_unique<SvtxTrack_v1>();
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
 	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
@@ -345,7 +344,7 @@ int PHSiliconTpcTrackMatching::Process()
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
 
-	      _track_map->insert(newTrack);
+	      _track_map->insert(newTrack.get());
 
 	      if(Verbosity() > 3)
 		{
