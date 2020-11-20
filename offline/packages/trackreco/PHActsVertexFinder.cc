@@ -167,7 +167,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       static_assert(Acts::VertexFinderConcept<VertexFinder>,
 		    "VertexFinder does not fulfill vertex finder concept.");
 
-      auto logLevel = Acts::Logging::INFO;
+      auto logLevel = Acts::Logging::FATAL;
       if(Verbosity() > 4)
 	logLevel = Acts::Logging::VERBOSE;
       auto logger = Acts::getDefaultLogger("PHActsVertexFinder", logLevel);
