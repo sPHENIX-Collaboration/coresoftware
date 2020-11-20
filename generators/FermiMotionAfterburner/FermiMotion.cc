@@ -111,7 +111,7 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
       {
         //remove particle here
 
-        ((*p)->production_vertex())->remove_particle(*p);
+        delete ((*p)->production_vertex())->remove_particle(*p);
         //std::cout<<"removing: "<<n->barcode()<<std::endl;
 	p = prev;
 	continue;
