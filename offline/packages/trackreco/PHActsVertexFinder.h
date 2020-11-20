@@ -25,7 +25,8 @@ namespace Acts
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 using VertexVector = std::vector<Acts::Vertex<Acts::BoundTrackParameters>>;
 using TrackPtrVector = std::vector<const Acts::BoundTrackParameters*>;
-using VertexMap = std::map<unsigned int, Acts::Vertex<Acts::BoundTrackParameters>>;
+using VertexMap = std::map<unsigned int, 
+                           Acts::Vertex<Acts::BoundTrackParameters>>;
 
 
 /**
@@ -55,13 +56,15 @@ class PHActsVertexFinder: public PHInitVertexing
   int getNodes(PHCompositeNode *topNode);
 
   /// Get list of tracks from PHActsTrkFitter to vertex fit
-  std::vector<const Acts::BoundTrackParameters*> getTracks();
+  std::vector<const Acts::BoundTrackParameters*> getTracks(
+             std::map<const double, const unsigned int>& keyMap);
 
   /// Call acts vertex finder
   VertexVector findVertices(TrackPtrVector& tracks);
 
   /// Fill maps with relevant vertex information 
-  void fillVertexMap(VertexVector& vertices);
+  void fillVertexMap(VertexVector& vertices,
+		     std::map<const double, const unsigned int>& keyMap);
   
   /// The acts trajectories from PHActsTrkFitter
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
