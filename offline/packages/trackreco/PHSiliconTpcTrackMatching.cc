@@ -26,7 +26,7 @@
 #include <cmath>                              // for fabs, sqrt
 #include <set>                                 // for _Rb_tree_const_iterator
 #include <utility>                             // for pair
-
+#include <memory>
 using namespace std;
 
 //____________________________________________________________________________..
@@ -344,13 +344,14 @@ int PHSiliconTpcTrackMatching::Process()
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
 
-	      _track_map->insert(newTrack.release());
-
 	      if(Verbosity() > 3)
 		{
 		  cout << "  -- inserting new track with id " << newTrack->get_id() << " into trackmap " << endl;
 		  newTrack->identify();
 		}
+
+	      _track_map->insert(newTrack.release());
+	 
 	    }
 	  
 	  isi++;
