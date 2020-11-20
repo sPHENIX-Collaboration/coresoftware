@@ -95,7 +95,6 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
     int id = (*p)->pdg_id();
-    bool havedelete = false;
     //if not neutron, skip
     if (!((id == 2112) || (id == 2212))) continue;
 
@@ -114,8 +113,9 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
 
         ((*p)->production_vertex())->remove_particle(*p);
         //std::cout<<"removing: "<<n->barcode()<<std::endl;
-
-        havedelete = true;
+	p = prev;
+	continue;
+        
       }
     }
 
@@ -124,11 +124,8 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
     CLHEP::HepLorentzVector p0(n->momentum().px(), n->momentum().py(), n->momentum().pz(), n->momentum().e());
     CLHEP::HepLorentzVector newp = pwithpF(p0, RandomGenerator, id);
     (*p)->set_momentum(newp);
-    //remember the index go down one after remove
-    if (havedelete)
-    {
-      if (prev != event->particles_end()) p = prev;
-    }
+    
+    
   }
 
   return 0;
