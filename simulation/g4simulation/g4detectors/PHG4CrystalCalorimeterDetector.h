@@ -9,6 +9,7 @@
 #include <Geant4/G4Types.hh>
 
 #include <map>
+#include <set>
 #include <string>
 
 class G4LogicalVolume;
@@ -147,6 +148,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
   std::map<std::string, G4double> _map_global_parameter;
   std::map<std::string, towerposition> _map_tower;
+  std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
 };
 
 #endif

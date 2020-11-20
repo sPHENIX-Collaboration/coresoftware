@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4CRYSTALCALORIMETERSUBSYSTEM_H
 #define G4DETECTORS_PHG4CRYSTALCALORIMETERSUBSYSTEM_H
 
-#include <g4main/PHG4Subsystem.h>
+#include "PHG4DetectorSubsystem.h"
 
 #include <string>                  // for string
 
@@ -13,7 +13,7 @@ class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4SteppingAction;
 
-class PHG4CrystalCalorimeterSubsystem : public PHG4Subsystem
+class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
 {
  public:
   /** Constructor
@@ -29,17 +29,17 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4Subsystem
      Creates the stepping action and place it on the node tree, under "ACTIONS" node
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int InitSubsystem(PHCompositeNode *) override;
 
   /** Event processing
    */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   /** Accessors (reimplemented)
    */
-  PHG4Detector *GetDetector(void) const;
-  PHG4SteppingAction *GetSteppingAction() const { return m_SteppingAction; }
-  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
+  PHG4Detector *GetDetector(void) const override;
+  PHG4SteppingAction *GetSteppingAction() const override { return m_SteppingAction; }
+  PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
   /** Set mapping file for calorimeter towers
    */
@@ -66,6 +66,11 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4Subsystem
   //  };
 
  private:
+
+  //! set detector specific parameters and their defaults
+  /*! called by PHG4DetectorSubsystem */
+  void SetDefaultParameters() override;
+  
   //  GeometryConfiguration current_geom_config_;
 
   /** Pointer to the Geant4 implementation of the detector

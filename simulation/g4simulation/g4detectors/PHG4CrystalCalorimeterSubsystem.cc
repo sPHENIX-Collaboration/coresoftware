@@ -25,7 +25,7 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
-  : PHG4Subsystem(name)
+  : PHG4DetectorSubsystem(name)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
@@ -35,6 +35,7 @@ PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::stri
   , mappingfile_4x4_construct_("")
   , projective_(false)
 {
+  InitializeParameters();
 }
 
 //_______________________________________________________________________
@@ -44,7 +45,7 @@ PHG4CrystalCalorimeterSubsystem::~PHG4CrystalCalorimeterSubsystem()
 }
 
 //_______________________________________________________________________
-int PHG4CrystalCalorimeterSubsystem::Init(PHCompositeNode* topNode)
+int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -123,4 +124,12 @@ int PHG4CrystalCalorimeterSubsystem::process_event(PHCompositeNode* topNode)
 PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector(void) const
 {
   return m_Detector;
+}
+
+void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
+{
+  set_default_double_param("place_x", 0.);
+  set_default_double_param("place_y", 0.);
+  set_default_double_param("place_z", -108.);
+  return;
 }
