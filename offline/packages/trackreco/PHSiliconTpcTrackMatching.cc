@@ -18,6 +18,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#if __cplusplus < 201402L
+#include <boost/make_unique.hpp>
+#endif
 
 #include <TF1.h>
 
@@ -292,7 +295,11 @@ int PHSiliconTpcTrackMatching::Process()
 	    {
 	      // more than one si stub matches
 	      // make a copy of the TPC track, update it and add it to the end of the node tree 
+	      #if __cplusplus < 201402L
+	      auto newTrack = boost::make_unique<SvtxTrack_v1>();
+	      #else
 	      auto newTrack = std::make_unique<SvtxTrack_v1>();
+	      #endif
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
 	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
