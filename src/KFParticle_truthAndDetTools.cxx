@@ -46,7 +46,7 @@ void KFParticle_truthAndDetTools::initializeTruthBranches( TTree *m_tree, int da
   m_tree->Branch( TString(daughter_number) + "_true_pz", &m_true_daughter_pz[daughter_id], TString(daughter_number) + "_true_pz/F" );
   m_tree->Branch( TString(daughter_number) + "_true_p",  &m_true_daughter_p [daughter_id], TString(daughter_number) + "_true_p/F" );
   m_tree->Branch( TString(daughter_number) + "_true_pt", &m_true_daughter_pt[daughter_id], TString(daughter_number) + "_true_pt/F" );
-  m_tree->Branch( TString(daughter_number) + "_true_id", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_id/I" );
+  m_tree->Branch( TString(daughter_number) + "_true_ID", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_ID/I" );
 }
 
 void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id )
@@ -61,7 +61,6 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
       trutheval = m_svtx_evalstack->get_truth_eval();
       vertexeval = m_svtx_evalstack->get_vertex_eval();
    }
-
     m_svtx_evalstack->next_event(topNode);
 
     dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
@@ -84,55 +83,9 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     m_true_daughter_id[ daughter_id ] = g4particle->get_pid();
 
     g4vertex_point = trutheval->get_vertex( g4particle );
-    //g4vertex_point->identify();
     m_true_daughter_vertex_x[ daughter_id ] = g4vertex_point->get_x();
     m_true_daughter_vertex_y[ daughter_id ] = g4vertex_point->get_y();
     m_true_daughter_vertex_z[ daughter_id ] = g4vertex_point->get_z();
-/*
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    int parentID = g4particle->get_parent_id();
-    if (parentID > 0) 
-    {
-      PHG4Particle *parent = truthinfo->GetParticle( parentID );
-      parent->identify();
-    }
-    else printf("There was no parent ID");
-*/
-/*
- std::map<int, PHG4Particle*>::const_iterator particle_iter;
-
- PHG4TruthInfoContainer::ConstRange primary_range = truthinfo->GetParticleRange();
-
- for (PHG4TruthInfoContainer::ConstIterator particle_iter = primary_range.first;
-     particle_iter != primary_range.second; ++particle_iter)
-  {
-   PHG4Particle *particle = particle_iter->second;
-   std::cout<<"The particle PID is "<<particle->get_pid()<<std::endl;;
-  }
-*/
-    //PHG4VtxPoint *vertex2 = truthinfo->GetPrimaryVtx(g4particle->get_vtx_id());
-    //vertex2->identify(); //Gives same as trutheval->get_vertex( g4particle ); but Im testing with D0->Kpi so a decay with intermediates might be different
-/*
-    //vertex = vertexeval->best_vertex_from( g4vertex_point );
-    std::set<SvtxVertex*> vertices = vertexeval->all_vertexes_from( g4vertex_point );
-    for ( std::set<SvtxVertex*>::iterator iter=vertices.begin(); iter!=vertices.end(); ++iter)
-    {
-    vertex = *iter;
-    std::set<PHG4Particle*> particles_from_vertex = vertexeval->all_truth_particles(vertex); 	
-
-    unsigned int part_num = 0;
-    printf("Starting IDing particles in vertex\n");
-    for ( std::set<PHG4Particle*>::iterator it=particles_from_vertex.begin(); it!=particles_from_vertex.end(); ++it)
-    {
-      part_num++;
-      printf("Particle %u\n", part_num);
-      PHG4Particle *test = *it;
-      test->identify();
-      std::cout<<"The parent id is"<<test->get_parent_id()<<std::endl; 
-    }
-    printf("Finished IDing particles in vertex\n");
-   }
-*/
 }
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches( TTree *m_tree, int daughter_id )
@@ -153,7 +106,7 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches( TTree *m_tree, int
 
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches( TTree *m_tree, std::string detectorName, int daughter_id )
 {
-    std::string daughter_number = "daughter_" + std::to_string(daughter_id + 1);
+    std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
 
     if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_staveID",     &mvtx_staveID[ daughter_id ] );
     if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_chipID",      &mvtx_chipID[ daughter_id ] );
@@ -204,7 +157,5 @@ void KFParticle_truthAndDetTools::fillDetectorBranch( PHCompositeNode *topNode, 
       intt_ladderPhiID[ daughter_id ].push_back( ladderPhiId );
       tpc_sectorID[ daughter_id ].push_back( sectorId );
       tpc_side[ daughter_id ].push_back( side );
-
    }
-
 }

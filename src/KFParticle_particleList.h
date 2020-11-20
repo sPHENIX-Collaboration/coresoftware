@@ -24,6 +24,8 @@
 
 #include <map>
 
+typedef std::pair<int, float> particle_pair;
+
 class KFParticleDatabase;
 
 class KFParticle_particleList  
@@ -34,7 +36,8 @@ class KFParticle_particleList
 
   ~KFParticle_particleList();
 
-  std::map<std::string, float> getParticleList();
+  //std::map<std::string, float> getParticleList();
+  std::map<std::string, particle_pair> getParticleList();
 
   float returnPDGMass( const int pdgIndex);
 };

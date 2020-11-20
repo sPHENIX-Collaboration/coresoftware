@@ -11,7 +11,8 @@ KFParticle_truthAndDetTools kfpTruthAndDetTools;
 KFParticle_nTuple::KFParticle_nTuple():
     m_truth_matching(false),
     m_detector_info(false),
-    m_use_intermediate_name(true)
+    m_use_intermediate_name(true),
+    m_get_charge_conjugate_nTuple(true)
 {} //Constructor
 
 KFParticle_nTuple::~KFParticle_nTuple(){} //Destructor
@@ -25,6 +26,8 @@ void KFParticle_nTuple::initializeBranches()
 {
 
   m_tree = new TTree("DecayTree", "DecayTree");
+  m_tree->OptimizeBaskets();
+  m_tree->SetAutoSave(-5e6); //Save the output file every 5MB
   
   std::string mother_name;
   if (m_mother_name.empty()) mother_name = "mother";
@@ -32,14 +35,17 @@ void KFParticle_nTuple::initializeBranches()
 
   m_tree->Branch( TString(mother_name) + "_mass",           &m_calculated_mother_mass,            TString(mother_name) + "_mass/F" );
   m_tree->Branch( TString(mother_name) + "_massErr",        &m_calculated_mother_mass_err,        TString(mother_name) + "_massErr/F" );
-  m_tree->Branch( TString(mother_name) + "_decayTime",      &m_calculated_mother_decaytime,       TString(mother_name) + "_decayTime/F" );
-  m_tree->Branch( TString(mother_name) + "_decayTimeErr",   &m_calculated_mother_decaytime_err,   TString(mother_name) + "_decayTimeErr/F" );
-  m_tree->Branch( TString(mother_name) + "_decayLength",    &m_calculated_mother_decaylength,     TString(mother_name) + "_decayLength/F" );
-  m_tree->Branch( TString(mother_name) + "_decayLengthErr", &m_calculated_mother_decaylength_err, TString(mother_name) + "_decayLengthErr/F" );
-  m_tree->Branch( TString(mother_name) + "_DIRA",           &m_calculated_mother_dira,            TString(mother_name) + "_DIRA/F" );
-  m_tree->Branch( TString(mother_name) + "_FDchi2",         &m_calculated_mother_fdchi2,          TString(mother_name) + "_FDchi2/F" );
-  m_tree->Branch( TString(mother_name) + "_IP",             &m_calculated_mother_ip,              TString(mother_name) + "_IP/F" );
-  m_tree->Branch( TString(mother_name) + "_IPchi2",         &m_calculated_mother_ipchi2,          TString(mother_name) + "_IPchi2/F" );
+  if ( m_constrain_to_vertex_nTuple )
+  { 
+    m_tree->Branch( TString(mother_name) + "_decayTime",      &m_calculated_mother_decaytime,       TString(mother_name) + "_decayTime/F" );
+    m_tree->Branch( TString(mother_name) + "_decayTimeErr",   &m_calculated_mother_decaytime_err,   TString(mother_name) + "_decayTimeErr/F" );
+    m_tree->Branch( TString(mother_name) + "_decayLength",    &m_calculated_mother_decaylength,     TString(mother_name) + "_decayLength/F" );
+    m_tree->Branch( TString(mother_name) + "_decayLengthErr", &m_calculated_mother_decaylength_err, TString(mother_name) + "_decayLengthErr/F" );
+    m_tree->Branch( TString(mother_name) + "_DIRA",           &m_calculated_mother_dira,            TString(mother_name) + "_DIRA/F" );
+    m_tree->Branch( TString(mother_name) + "_FDchi2",         &m_calculated_mother_fdchi2,          TString(mother_name) + "_FDchi2/F" );
+    m_tree->Branch( TString(mother_name) + "_IP",             &m_calculated_mother_ip,              TString(mother_name) + "_IP/F" );
+    m_tree->Branch( TString(mother_name) + "_IPchi2",         &m_calculated_mother_ipchi2,          TString(mother_name) + "_IPchi2/F" );
+  }
   m_tree->Branch( TString(mother_name) + "_x",              &m_calculated_mother_x,               TString(mother_name) + "_x/F" );
   m_tree->Branch( TString(mother_name) + "_y",              &m_calculated_mother_y,               TString(mother_name) + "_y/F" );
   m_tree->Branch( TString(mother_name) + "_z",              &m_calculated_mother_z,               TString(mother_name) + "_z/F" );
@@ -60,6 +66,7 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch( TString(mother_name) + "_vertex_volume",  &m_calculated_mother_v,               TString(mother_name) + "_vertex_volume/F" );
   m_tree->Branch( TString(mother_name) + "_chi2",           &m_calculated_mother_chi2,            TString(mother_name) + "_chi2/F" );
   m_tree->Branch( TString(mother_name) + "_nDoF",           &m_calculated_mother_ndof,            TString(mother_name) + "_nDoF/I" );
+  m_tree->Branch( TString(mother_name) + "_PDG_ID",         &m_calculated_mother_pdgID,           TString(mother_name) + "_PDG_ID/I" );
   m_tree->Branch( TString(mother_name) + "_Covariance",     &m_calculated_mother_cov,             TString(mother_name) + "_Covariance[21]/F", 21 );
 
   if ( m_has_intermediates_nTuple )
@@ -102,6 +109,7 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch( TString(intermediate_name) + "_vertex_volume",  &m_calculated_intermediate_v[i],               TString(intermediate_name) + "_vertex_volume/F" );
       m_tree->Branch( TString(intermediate_name) + "_chi2",           &m_calculated_intermediate_chi2[i],            TString(intermediate_name) + "_chi2/F" );
       m_tree->Branch( TString(intermediate_name) + "_nDoF",           &m_calculated_intermediate_ndof[i],            TString(intermediate_name) + "_nDoF/I" );
+      m_tree->Branch( TString(intermediate_name) + "_PDG_ID",         &m_calculated_intermediate_pdgID[i],           TString(intermediate_name) + "_PDG_ID/I" );
       m_tree->Branch( TString(intermediate_name) + "_Covariance",     &m_calculated_intermediate_cov[i],             TString(intermediate_name) + "_Covariance[21]/F", 21 );     
     }
   }
@@ -132,7 +140,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch( TString(daughter_number) + "_phi",            &m_calculated_daughter_phi[i],      TString(daughter_number) + "_phi/F" );
     m_tree->Branch( TString(daughter_number) + "_chi2",           &m_calculated_daughter_chi2[i],     TString(daughter_number) + "_chi2/F" );
     m_tree->Branch( TString(daughter_number) + "_nDoF",           &m_calculated_daughter_ndof[i],     TString(daughter_number) + "_nDoF/I" );
-    m_tree->Branch( TString(daughter_number) + "_trackID",        &m_calculated_daughter_trid[i],     TString(daughter_number) + "_trackID/I" );
+    m_tree->Branch( TString(daughter_number) + "_track_ID",       &m_calculated_daughter_trid[i],     TString(daughter_number) + "_track_ID/I" );
+    m_tree->Branch( TString(daughter_number) + "_PDG_ID",         &m_calculated_daughter_pdgID[i],    TString(daughter_number) + "_PDG_ID/I" );
     m_tree->Branch( TString(daughter_number) + "_Covariance",     &m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
     if ( m_truth_matching ) kfpTruthAndDetTools.initializeTruthBranches(  m_tree,i ); 
@@ -154,14 +163,17 @@ void KFParticle_nTuple::initializeBranches()
     }
   }
   
-  m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,    "primary_vertex_x/F" );
-  m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,    "primary_vertex_y/F" );
-  m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,    "primary_vertex_z/F" );
-  m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,    "primary_vertex_volume/F" );
-  m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
-  m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/I");
-  //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
-  m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
+  if ( m_constrain_to_vertex_nTuple )
+  {
+    m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,    "primary_vertex_x/F" );
+    m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,    "primary_vertex_y/F" );
+    m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,    "primary_vertex_z/F" );
+    m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,    "primary_vertex_volume/F" );
+    m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
+    m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/I");
+    //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
+    m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
+  }
 
   m_tree->Branch( "secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F" );
 
@@ -182,10 +194,13 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   kfpVertex->SetXYZ( vertex.Parameters() );
   kfpVertex->SetCovarianceMatrix( vertex.CovarianceMatrix() ); 
   
-  m_calculated_mother_dira         = kfpTupleTools.eventDIRA( motherParticle, *kfpVertex );
-  m_calculated_mother_fdchi2       = kfpTupleTools.flightDistanceChi2( motherParticle, *kfpVertex );
-  m_calculated_mother_ip           = motherParticle.GetDistanceFromVertex( vertex );
-  m_calculated_mother_ipchi2       = motherParticle.GetDeviationFromVertex( vertex );
+  if ( m_constrain_to_vertex_nTuple )
+  { 
+    m_calculated_mother_dira         = kfpTupleTools.eventDIRA( motherParticle, *kfpVertex );
+    m_calculated_mother_fdchi2       = kfpTupleTools.flightDistanceChi2( motherParticle, *kfpVertex );
+    m_calculated_mother_ip           = motherParticle.GetDistanceFromVertex( vertex );
+    m_calculated_mother_ipchi2       = motherParticle.GetDeviationFromVertex( vertex );
+  }
   m_calculated_mother_x            = motherParticle.GetX();
   m_calculated_mother_y            = motherParticle.GetY();
   m_calculated_mother_z            = motherParticle.GetZ();
@@ -206,13 +221,17 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   m_calculated_mother_v            = kfpTupleTools.calculateEllipsoidVolume( motherParticle );
   m_calculated_mother_chi2         = motherParticle.GetChi2();
   m_calculated_mother_ndof         = motherParticle.GetNDF();
+  m_calculated_mother_pdgID        = motherParticle.GetPDG();
   //m_calculated_mother_cov          = &motherParticle.CovarianceMatrix()[0];
   for (int j = 0; j < 21; ++j) m_calculated_mother_cov[j] = motherParticle.GetCovariance(j);
- 
+
   motherParticle.GetMass( m_calculated_mother_mass, m_calculated_mother_mass_err);
-  motherParticle.SetProductionVertex( vertex );
-  motherParticle.GetLifeTime( m_calculated_mother_decaytime, m_calculated_mother_decaytime_err );
-  motherParticle.GetDecayLength( m_calculated_mother_decaylength, m_calculated_mother_decaylength_err );
+  if ( m_constrain_to_vertex_nTuple )
+  { 
+    motherParticle.SetProductionVertex( vertex );
+    motherParticle.GetLifeTime( m_calculated_mother_decaytime, m_calculated_mother_decaytime_err );
+    motherParticle.GetDecayLength( m_calculated_mother_decaylength, m_calculated_mother_decaylength_err );
+  }
 
   if ( m_has_intermediates_nTuple)
   {
@@ -242,6 +261,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_intermediate_v[i]            = kfpTupleTools.calculateEllipsoidVolume( intermediateArray[i] );
       m_calculated_intermediate_chi2[i]         = intermediateArray[i].GetChi2();
       m_calculated_intermediate_ndof[i]         = intermediateArray[i].GetNDF();
+      m_calculated_intermediate_pdgID[i]        = intermediateArray[i].GetPDG();
       //m_calculated_intermediate_cov[i]          = &intermediateArray[i].CovarianceMatrix()[0];
       for (int j = 0; j < 21; ++j) m_calculated_intermediate_cov[i][j] = intermediateArray[i].GetCovariance(j);
       
@@ -259,7 +279,11 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
   {
     for( int j = i + 1; j < m_num_tracks_nTuple; j++ )
     {
-      if( daughterArray[i].GetMass() > daughterArray[j].GetMass() )
+      bool switchTrackPosition;
+      if ( m_get_charge_conjugate_nTuple ) switchTrackPosition = daughterArray[i].GetMass() > daughterArray[j].GetMass();
+      else switchTrackPosition = daughterArray[i].GetPDG() > daughterArray[j].GetPDG();
+      //if( daughterArray[i].GetMass() > daughterArray[j].GetMass() )
+      if ( switchTrackPosition )
       {
           temp = daughterArray[i];
 	  daughterArray[i] = daughterArray[j];
@@ -292,7 +316,8 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       m_calculated_daughter_phi[i]          = daughterArray[i].GetPhi();
       m_calculated_daughter_chi2[i]         = daughterArray[i].GetChi2();
       m_calculated_daughter_ndof[i]         = daughterArray[i].GetNDF();
-      m_calculated_daughter_trid[i]         = daughterArray[i].Id(); 
+      m_calculated_daughter_trid[i]         = daughterArray[i].Id();
+      m_calculated_daughter_pdgID[i]        = daughterArray[i].GetPDG();
       //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
       for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
@@ -305,14 +330,17 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
     for(int j = 0; j < m_num_tracks_nTuple; ++j)
       if( i < j ) { m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle( daughterArray[j] ); ++iter; }
 
-  m_calculated_vertex_x            = vertex.GetX();
-  m_calculated_vertex_y            = vertex.GetY();
-  m_calculated_vertex_z            = vertex.GetZ();
-  m_calculated_vertex_v            = kfpTupleTools.calculateEllipsoidVolume( vertex );
-  m_calculated_vertex_chi2         = vertex.GetChi2();
-  m_calculated_vertex_ndof         = vertex.GetNDF();
-  //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
-  for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
+  if ( m_constrain_to_vertex_nTuple )
+  {
+    m_calculated_vertex_x            = vertex.GetX();
+    m_calculated_vertex_y            = vertex.GetY();
+    m_calculated_vertex_z            = vertex.GetZ();
+    m_calculated_vertex_v            = kfpTupleTools.calculateEllipsoidVolume( vertex );
+    m_calculated_vertex_chi2         = vertex.GetChi2();
+    m_calculated_vertex_ndof         = vertex.GetNDF();
+    //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
+    for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
+  }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID( daughters );
 

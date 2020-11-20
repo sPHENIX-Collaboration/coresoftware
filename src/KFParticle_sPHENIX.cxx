@@ -21,6 +21,10 @@
 
 #include "KFParticle_sPHENIX.h"
 
+typedef std::pair<int, float> particle_pair;
+KFParticle_particleList kfp_list;
+std::map<std::string, particle_pair> particleList = kfp_list.getParticleList(); 
+
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX():
     SubsysReco( "KFPARTICLE" ),
@@ -46,6 +50,12 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
     std::tie( reader, MVA_parValues ) = initMVA();
   }
 
+  for ( int i = 0; i < m_num_tracks; ++i )
+    if ( !particleList.count( m_daughter_name[i] ) )
+    {
+      printf("Your track PID, %s, is not in the particle list\n Check KFParticle_particleList.cxx for a list of available particles\n", m_daughter_name[i].c_str());
+      exit(0);
+    }
   return 0;
 }
 
@@ -57,9 +67,13 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
 
     createDecay( topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity );
 
+    if ( !m_has_intermediates_sPHENIX )   intermediates = daughters;
+    if ( !m_constrain_to_vertex_sPHENIX ) vertex = mother;
+
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i) 
     { 
-      if ( !m_has_intermediates_sPHENIX ) intermediates.push_back( daughters[i] ); //This is done to avoid a crash, nothing is written to files 
+      //if ( !m_has_intermediates_sPHENIX ) intermediates.push_back( daughters[i] ); //This is done to avoid a crash, nothing is written to files 
+      //if ( vertex.size() != mother.size()) vertex.push_back(mother[i]);
       if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity );
     }
     return Fun4AllReturnCodes::EVENT_OK;

@@ -101,7 +101,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
-  bool isGoodTrack(KFParticle particle, std::vector<KFPVertex> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, std::vector<KFPVertex> primaryVertices);
 
   std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFPVertex> primaryVertices);
 
@@ -127,12 +127,13 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   std::vector<std::vector<std::string>> findUniqueDaughterCombinations( int start, int end );
 
-  Double_t calculateEllipsoidRadius( int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij );
+  double calculateEllipsoidRadius( int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij );
   
-  Float_t calculateEllipsoidVolume( KFParticle particle );
+  float calculateEllipsoidVolume( KFParticle particle );
  
  protected:
- 
+   
+  std::string m_mother_name_Tools;
   bool m_has_intermediates;
   int m_num_tracks;
   int m_num_intermediate_states;

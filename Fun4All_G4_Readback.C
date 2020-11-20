@@ -43,7 +43,7 @@ int Fun4All_G4_Readback(){
   // Fun4All server
   //---------------
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->Verbosity(4);
+  se->Verbosity(0);
 
   //---------------
   // Choose reco
@@ -91,7 +91,7 @@ int Fun4All_G4_Readback(){
 
   //General configurations
 
-  const int nEvents = 5e4;
+  const int nEvents = 1e3;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
@@ -112,6 +112,8 @@ int Fun4All_G4_Readback(){
   int nIntTracks[99];
   float intPt[99];
 
+  if (fileList == "fileList_bbbar.txt") 
+    kfparticle->doTruthMatching(0); //I don't think these events have truth variables
 
   //D2Kpi reco
   if (reconstructionChannel["D02K-pi+"]
@@ -149,6 +151,7 @@ int Fun4All_G4_Readback(){
       kfparticle->setMaximumMass(6.0);
       kfparticle->setNumberOfTracks(4);
      
+      kfparticle->constrainToPrimaryVertex(true);
       kfparticle->hasIntermediateStates(true);
       kfparticle->constrainIntermediateMasses(true);
       kfparticle->setNumberOfIntermediateStates(2);
@@ -178,7 +181,6 @@ int Fun4All_G4_Readback(){
       kfparticle->setMaximumMass(6.0);
       kfparticle->setNumberOfTracks(4);
 
-
       kfparticle->hasIntermediateStates(true);
       kfparticle->setNumberOfIntermediateStates(1);
 
@@ -186,7 +188,7 @@ int Fun4All_G4_Readback(){
       daughterList[0]     = make_pair("kaon", +1);
       daughterList[1]     = make_pair("pion", -1);
       daughterList[2]     = make_pair("pion", -1);
-      intermediateMassRange[0] = make_pair(1.7, 2.0);
+      intermediateMassRange[0] = make_pair(1.0, 3.0);
       nIntTracks[0] = 3;
       intPt[0] = 0.;
 
@@ -199,10 +201,10 @@ int Fun4All_G4_Readback(){
   //Upsilon reco
   if (reconstructionChannel["Upsilon"])
   {
+      kfparticle->setMotherName("Upsilon");  
       kfparticle->setMinimumMass(9);
       kfparticle->setMaximumMass(11);
-      kfparticle->setNumberOfTracks(8);
-     
+      kfparticle->setNumberOfTracks(8); 
      
       kfparticle->hasIntermediateStates(true);
       kfparticle->setNumberOfIntermediateStates(2);
@@ -232,27 +234,20 @@ int Fun4All_G4_Readback(){
   //testSpace
   if (reconstructionChannel["testSpace"])
   {
-      kfparticle->setMinimumMass(3.6);
-      kfparticle->setMaximumMass(11);
-      kfparticle->setNumberOfTracks(4);
-
-      kfparticle->hasIntermediateStates(true);
-      kfparticle->setNumberOfIntermediateStates(2);
+      kfparticle->hasIntermediateStates(false);
+      kfparticle->constrainToPrimaryVertex(false);
       kfparticle->getChargeConjugate(false);
 
-      intermediateList[0] = make_pair("D0", 0);
-      daughterList[0]     = make_pair("kaon", -1);
-      daughterList[1]     = make_pair("pion", +1);
-      intermediateMassRange[0] = make_pair(1.8, 2);
-      nIntTracks[0] = 2;
-      intPt[0] = 0;
+      kfparticle->setMotherName("Upsilon");  
+      kfparticle->setMinimumMass(0);
+      kfparticle->setMaximumMass(11);
 
-      intermediateList[1] = make_pair("D0bar", 0);
-      daughterList[2] = make_pair("kaon", +1);
-      daughterList[3] = make_pair("pion", -1);
-      intermediateMassRange[1] = make_pair(1.8, 2);
-      nIntTracks[1] = 2;
-      intPt[1] = 0;
+      kfparticle->setMinimumTrackIPchi2(0.); //Tracks should point back to the PV
+      kfparticle->setMaximumDaughterDCA(0.02);
+
+      kfparticle->setNumberOfTracks(2);
+      daughterList[0] = make_pair("electron", +1);
+      daughterList[1] = make_pair("electron", -1);
 
       kfparticle->setOutputName("testSpace.root");
   }
@@ -270,12 +265,9 @@ int Fun4All_G4_Readback(){
   // Event processing
   //-----------------
   if (nEvents < 0)
-  {
     return 0;
-  }
 
   se->run(nEvents);
-  // se->run(0);
 
   //-----
   // Exit

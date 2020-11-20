@@ -61,6 +61,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     float m_calculated_mother_v;
     float m_calculated_mother_chi2;
     int   m_calculated_mother_ndof;
+    int   m_calculated_mother_pdgID;
     //float *m_calculated_mother_cov;
     float m_calculated_mother_cov[21];
 
@@ -92,6 +93,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     float m_calculated_intermediate_v[8];
     float m_calculated_intermediate_chi2[8];
     float m_calculated_intermediate_ndof[8];
+    int   m_calculated_intermediate_pdgID[8];
     //float *m_calculated_intermediate_cov[8];
     float m_calculated_intermediate_cov[8][21];
 
@@ -118,6 +120,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     float m_calculated_daughter_chi2[20];
     int   m_calculated_daughter_ndof[20];
     int   m_calculated_daughter_trid[20];
+    int   m_calculated_daughter_pdgID[20];
     //float *m_calculated_daughter_cov[20];
     float m_calculated_daughter_cov[20][21];
 
@@ -140,12 +143,14 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
  protected:
 
     bool m_has_intermediates_nTuple;
+    bool m_constrain_to_vertex_nTuple;
     int m_num_tracks_nTuple;
     int m_num_intermediate_states_nTuple;
     bool m_truth_matching;
     bool m_detector_info;
     std::string m_mother_name;
     bool m_use_intermediate_name;
+    bool m_get_charge_conjugate_nTuple;
     std::string m_intermediate_name_ntuple[99];
 };
 
