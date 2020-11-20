@@ -27,13 +27,11 @@ SvtxVertexEval::SvtxVertexEval(PHCompositeNode* topNode)
   , _trackmap(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
-  , _use_initial_vertex(false)
   , _verbosity(0)
   , _errors(0)
   , _do_cache(true)
 {
   set_track_nodename("SvtxTrackMap");
-  get_node_pointers(topNode);
 }
 
 SvtxVertexEval::~SvtxVertexEval()
@@ -230,6 +228,7 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex)
       max_point = candidate;
     }
   }
+  //std::cout << PHWHERE << " max_point " << max_point->get_id() << " max_ntracks " << max_ntracks << std::endl;
 
   if (_do_cache) _cache_max_truth_point_by_ntracks.insert(make_pair(vertex, max_point));
 
@@ -410,14 +409,16 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
   {
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");  // always there, initial vertices
   }
-  else if (_use_acts_vertex)
+  else if (_use_genfit_vertex)
     {
-      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
     }
   else
   {
-    _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
+    _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
   }
+  if(!_vertexmap)
+    std::cout << PHWHERE << "Did not find_vertexmap on node tree" << endl;
 
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
 
@@ -431,17 +432,26 @@ bool SvtxVertexEval::has_node_pointers()
   if (_strict)
     assert(_vertexmap);
   else if (!_vertexmap)
-    return false;
+    {
+      std::cout << PHWHERE << " did not find _vertexmap " << std::endl;
+      return false;
+    }
 
   if (_strict)
     assert(_trackmap);
   else if (!_trackmap)
-    return false;
+    {
+      std::cout << PHWHERE << " did not find _trackmap " << std::endl;
+      return false;
+    }
 
   if (_strict)
     assert(_truthinfo);
   else if (!_truthinfo)
-    return false;
+    {
+      std::cout << PHWHERE << " did not find _truthinfo " << std::endl;
+      return false;
+    }
 
   return true;
 }

@@ -293,12 +293,6 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(key);
 
-      // add tracks
-      for(int itrack=0; itrack < numTracks; ++itrack)
-	{   
-	  svtxVertex->insert_track(itrack);
-	}   
-
      m_svtxVertexMap->insert(svtxVertex);
 
       ++key;
