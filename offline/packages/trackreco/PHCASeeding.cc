@@ -469,7 +469,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger();
   t_seed->stop();
-  if(Verbosity()>0)  cout << "number of seeds " << numberofseeds << endl;
+  if(Verbosity()>0)   cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 //  fpara.cd();
 //  fpara.Close();
