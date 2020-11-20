@@ -8,6 +8,8 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <phool/getClass.h>
 
@@ -161,6 +163,7 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex)
        iter != particles.end();
        ++iter)
   {
+
     PHG4Particle* particle = *iter;
     PHG4VtxPoint* point = get_truth_eval()->get_vertex(particle);
 
@@ -409,7 +412,7 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
   }
   else if (_use_acts_vertex)
     {
-    _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
     }
   else
   {

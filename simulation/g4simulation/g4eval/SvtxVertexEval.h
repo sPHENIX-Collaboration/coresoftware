@@ -81,7 +81,7 @@ class SvtxVertexEval
 
   bool _strict;
   bool _use_initial_vertex;
-  bool _use_acts_vertex;
+  bool _use_acts_vertex = true;
   int _verbosity;
   unsigned int _errors;
 

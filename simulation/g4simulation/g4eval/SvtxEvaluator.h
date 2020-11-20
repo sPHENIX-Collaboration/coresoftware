@@ -75,7 +75,7 @@ class SvtxEvaluator : public SubsysReco
 
   bool _strict;
   bool _use_initial_vertex;
-  bool _use_acts_vertex = false;
+  bool _use_acts_vertex = true;
   unsigned int _errors;
 
   bool _do_info_eval;
