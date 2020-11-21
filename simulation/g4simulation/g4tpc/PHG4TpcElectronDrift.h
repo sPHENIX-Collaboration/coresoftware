@@ -35,30 +35,31 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift();
   int Init(PHCompositeNode *topNode);
-  //int DistortionIntegral(double radstart,double phistart,double z_start,double* rad_final, double* phi_final);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
   PHG4TpcDistortion* DistortionMap = nullptr;
   int event_num;
-  TH3F *TimehDR;
-  TH3F *TimehDP;
-  TH3F *TimehDZ;
-  TH3F *TimehDX;
-  TH3F *TimehDY;
-  TH3F *TimeInthDR;
-  TH3F *TimeInthDP;
-  TH3F *TimeInthDZ;
-  //  TH3F *hDXint;
-  //TH3F *hDYint;
-  //TH3F *hDZint;
-  //TTree *TimeTree;  
+  bool do_static_distortion = false;
+  bool do_time_ordered_distortion = false;
+  bool do_ElectronDriftQAHistos;
+
+  //  TH3F *TimehDR;
+  // TH3F *TimehDP;
+  // TH3F *TimehDZ;
+  // TH3F *TimehDX;
+  // TH3F *TimehDY;
+  // TH3F *TimeInthDR;
+  // TH3F *TimeInthDP;
+  // TH3F *TimeInthDZ;
 
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { detector = d; }
   std::string Detector() const { return detector; }
   void set_seed(const unsigned int iseed);
+  void set_time_ordered_distortions_on();
+  void set_static_distortions_on();
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
@@ -122,7 +123,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
-  bool do_Centralmem,do_diff_SC_Distortion,do_Int_SC_Distortion;
+  bool do_Centralmem;
   unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP,e_num;
   double x_start,y_start,x_final,y_final; 

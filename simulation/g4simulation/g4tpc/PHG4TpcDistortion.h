@@ -3,7 +3,7 @@
 /*!
  * \file PHG4TPCDistortion.h
  * \brief 
- * \author Jin Huang <jhuang@bnl.gov>
+ * \author Jin Huang <jhuang@bnl.gov>, modified by Henry Klest <henry.klest@stonybrook.edu>
  * \version $Revision:   $
  * \date $Date: $
  */
@@ -16,7 +16,7 @@
 #include <TH3.h>
 #include <TTree.h>
 using namespace std;
-#endif
+
 
 
 /*!
@@ -30,18 +30,20 @@ class TFile;
 class PHG4TpcDistortion
 {
  public:
-  explicit PHG4TpcDistortion(int verbose = 0,int event_num, bool do_time_ordered_distortion, bool do_static_distortion);
+  explicit PHG4TpcDistortion(int verbose = 0,int event_num = 0, bool do_time_ordered_distortion = false, bool do_static_distortion = false);
 
   virtual ~PHG4TpcDistortion();
 
   //! x distortion for a given truth location of the primary ionization
-  double get_x_distortion(double x, double y, double z, int event_num,bool do_time_ordered_distortion, bool do_static_distortion);
+  double get_x_distortion(double x, double y, double z,bool do_time_ordered_distortion, bool do_static_distortion);
 
   //! y distortion for a given truth location of the primary ionization
-  double get_y_distortion(double x, double y, double z, int event_num,bool do_time_ordered_distortion, bool do_static_distortion);
+  double get_y_distortion(double x, double y, double z,bool do_time_ordered_distortion, bool do_static_distortion);
 
   //! z distortion for a given truth location of the primary ionization
-  double get_z_distortion(double x, double y, double z, int event_num, bool do_time_ordered_distortion, bool do_static_distortion);
+  double get_z_distortion(double x, double y, double z, bool do_time_ordered_distortion, bool do_static_distortion);
+
+  void load_event(int event_num);
 
   //! Sets the verbosity of this module (0 by default=quiet).
   virtual void
