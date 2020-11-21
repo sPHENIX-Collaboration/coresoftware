@@ -269,15 +269,15 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 
       /// Fill SvtxVertexMap
       auto svtxVertex = new SvtxVertex_v1();
-      svtxVertex->set_x(vertex.position().x());
-      svtxVertex->set_y(vertex.position().y());
-      svtxVertex->set_z(vertex.position().z());
+      svtxVertex->set_x(vertex.position().x()*0.1);  // convert to cm
+      svtxVertex->set_y(vertex.position().y()*0.1);
+      svtxVertex->set_z(vertex.position().z()*0.1);
       for(int i = 0; i < 3; ++i) 
 	{
 	  for(int j = 0; j < 3; ++j)
 	    {
 	      svtxVertex->set_error(i, j,
-				    vertex.covariance()(i,j));
+				    vertex.covariance()(i,j)*0.01);  // squared, right??
 	    }
 	}
 
@@ -292,8 +292,8 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_ndof(ndf);
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(key);
-      
-      m_svtxVertexMap->insert(svtxVertex);
+
+     m_svtxVertexMap->insert(svtxVertex);
 
       ++key;
     }

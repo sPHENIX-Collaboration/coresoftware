@@ -67,7 +67,6 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , m_fSeed(NAN)
   , _svtxevalstack(nullptr)
   , _strict(false)
-  , _use_initial_vertex(false)
   , _errors(0)
   , _do_info_eval(true)
   , _do_vertex_eval(true)
@@ -224,6 +223,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
   {
     cout << "SvtxEvaluator::process_event - Event = " << _ievent << endl;
   }
+
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("RANDOMSEED"))
   {
@@ -247,6 +247,8 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
     _svtxevalstack->set_strict(_strict);
     _svtxevalstack->set_verbosity(Verbosity());
     _svtxevalstack->set_use_initial_vertex(_use_initial_vertex);
+    _svtxevalstack->set_use_genfit_vertex(_use_genfit_vertex);
+    _svtxevalstack->next_event(topNode);
   }
   else
   {
@@ -385,8 +387,11 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-    else
+    else if (_use_genfit_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
+    else
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+
     if (vertexmap)
     {
       unsigned int ivertex = 0;
@@ -439,8 +444,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-    else
+    else if (_use_genfit_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
+    else
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+
     if (vertexmap)
     {
       if (!vertexmap->empty())
@@ -933,9 +941,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-    else
+    else if (_use_genfit_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");
+    else
+      vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
+
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
     if (vertexmap && truthinfo)
     {
       const auto prange = truthinfo->GetPrimaryParticleRange();
@@ -1009,6 +1021,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         const int point_id = iter->first;
         int gembed = truthinfo->isEmbededVtx(point_id);
+
         if (_scan_for_embedded && gembed <= 0) continue;
 
         auto search = embedvtxid_found.find(gembed);
@@ -1040,7 +1053,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       for (SvtxVertexMap::Iter iter = vertexmap->begin();
            iter != vertexmap->end();
            ++iter)
-      {
+       {
         SvtxVertex* vertex = iter->second;
         PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
         float vx = vertex->get_x();
@@ -1133,6 +1146,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gnembed = (float) ngembed;
             //        nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
           }
+
+	  std::cout << " adding vertex data " << std::endl;
 
           float vertex_data[] = {(float) _ievent,m_fSeed,
                                  vx,
