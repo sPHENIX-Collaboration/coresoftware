@@ -43,10 +43,6 @@ PHG4TpcDistortion::PHG4TpcDistortion(int verbose,int event_num, bool do_time_ord
   hDZint=(TH3F*)StaticDistFile->Get("hIntDistortionZ");
   
   TFile *TimeDistFile=new TFile("/gpfs/mnt/gpfs02/sphenix/user/klest/TimeOrderedDistortions.root");//includes Trees of TH3Fs                                                                
-  // if(do_time_ordered_distortion)
-  // {
-  // cout << "Using Time-ordered TPC distortion map located at $CALIBRATIONROOT/TPC/DistortionMaps/TimeOrderedDistortions.root" << endl;
-  // }                             
   if(TimeDistFile->GetSize() == -1)
     {
       cout << "TimeOrderedDistortion file could not be opened!" << endl;
@@ -58,6 +54,12 @@ PHG4TpcDistortion::PHG4TpcDistortion(int verbose,int event_num, bool do_time_ord
   TimeTree->SetBranchAddress("hIntDistortionX",&TimehDX);
   TimeTree->SetBranchAddress("hIntDistortionY",&TimehDY);
   TimeTree->SetBranchAddress("hIntDistortionZ",&TimehDZ);
+  if(do_time_ordered_distortion)
+   {
+   cout << "Using Time-ordered TPC distortion map located at /gpfs/mnt/gpfs02/sphenix/user/klest, pooled from /gpfs/mnt/gpfs02/sphenix/user/rcorliss/distortion_maps/Oct20/full_maps" << endl;
+   int nentries = TimeTree->GetEntries();
+   cout << "Time Ordered Distortion file has " << nentries << " entries, if doing more than " << nentries << " events, map sequence will repeat." << endl;
+   }                             
   
 }
 PHG4TpcDistortion::~PHG4TpcDistortion()
@@ -66,6 +68,17 @@ PHG4TpcDistortion::~PHG4TpcDistortion()
 }
 void PHG4TpcDistortion::load_event(int event_num)
 {
+  
+  int nentries = TimeTree->GetEntries();
+  
+  if (event_num > nentries)
+    {
+      event_num = event_num % nentries;
+    }
+  if (event_num%nentries == 0 && event_num != 0)
+    {
+      cout << "Distortion map sequence repeating as of event number " << event_num  << endl;
+    }
   TimeTree->GetEntry(event_num);
   return;
 }

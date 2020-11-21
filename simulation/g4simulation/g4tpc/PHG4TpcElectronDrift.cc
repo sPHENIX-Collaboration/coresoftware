@@ -279,7 +279,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
  
  
-  do_ElectronDriftQAHistos = false; // Whether or not to produce an ElectronDriftQA.root file with useful info
+  do_ElectronDriftQAHistos = true; // Whether or not to produce an ElectronDriftQA.root file with useful info
   if(do_ElectronDriftQAHistos)
     {
       hitmapstart = new TH2F("hitmapstart","g4hit starting X-Y locations",1560,-78,78,1560,-78,78);
@@ -318,7 +318,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   
   
-  cout << "PHG4TpcElectronDrift is processing event number " << event_num << endl;
+  //cout << "PHG4TpcElectronDrift is processing event number " << event_num << endl;
   
   DistortionMap->load_event(event_num); // tells DistortionMap which event to look at
   
