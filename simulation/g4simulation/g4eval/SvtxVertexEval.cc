@@ -228,7 +228,6 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(SvtxVertex* vertex)
       max_point = candidate;
     }
   }
-  //std::cout << PHWHERE << " max_point " << max_point->get_id() << " max_ntracks " << max_ntracks << std::endl;
 
   if (_do_cache) _cache_max_truth_point_by_ntracks.insert(make_pair(vertex, max_point));
 
