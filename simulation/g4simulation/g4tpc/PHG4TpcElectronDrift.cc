@@ -240,16 +240,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
-
-  Fun4AllServer *se = Fun4AllServer::instance();
   
+  Fun4AllServer *se = Fun4AllServer::instance();
+
+  dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
+  se->registerHisto(dlong);
+  dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
+  se->registerHisto(dtrans);
+
+    
   DistortionMap = new PHG4TpcDistortion(0,event_num,do_time_ordered_distortion,do_static_distortion);
+  cout << "In PHG4TpcElectronDrift do_static_distortion is " << do_static_distortion << " do_time_ordered_distortion is " << do_time_ordered_distortion <<" (0 = false, 1 = true) "<< endl;
+
 
   do_Centralmem = false; // Determines whether or not to drift electrons ONLY from the central membrane for calibration purposes   
   if(do_Centralmem)
     { 
       double x_start,y_start,x_final,y_final;
-      TFile *CMFile=new TFile("Centralmem.root");//includes TGraph
+      TFile *CMFile=new TFile("/gpfs/mnt/gpfs02/sphenix/user/klest/Centralmem.root");//includes TGraph
       if(CMFile->GetSize() == -1)
 	{
 	  cout << "CM in file could not be opened!" << endl;
@@ -268,16 +276,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       CMTimeDists->Branch("x_final",&x_final,"x_final/B");
       CMTimeDists->Branch("y_final",&y_final,"y_final/B");
     }
-  
-  if(true) //Set verbosity later
-    {
-      //Add all diagnostic histograms
-      dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
-      se->registerHisto(dlong);
-      dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
-      se->registerHisto(dtrans);
-    }
-  do_ElectronDriftQAHistos = true; // Whether or not to produce an ElectronDriftQA.root file with useful info
+ 
+ 
+  do_ElectronDriftQAHistos = false; // Whether or not to produce an ElectronDriftQA.root file with useful info
   if(do_ElectronDriftQAHistos)
     {
       hitmapstart = new TH2F("hitmapstart","g4hit starting X-Y locations",1560,-78,78,1560,-78,78);
@@ -317,7 +318,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   
   
   cout << "PHG4TpcElectronDrift is processing event number " << event_num << endl;
-  cout << "static distortion is " << do_static_distortion << " time distortion is " << do_time_ordered_distortion << endl;
+  
   DistortionMap->load_event(event_num); // tells DistortionMap which event to look at
   
   //
@@ -430,29 +431,23 @@ if (!g4hit)
       double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
       double rad_final,phi_final,x_final,y_final;
       
-      z_startmap->Fill(z_start,radstart); // map of starting location in Z vs. R
+      
       x_final = x_start + rantrans * cos(ranphi); // Initialize these to be only diffused first, will be overwritten if doing SC distortion                     
       y_final = y_start + rantrans * sin(ranphi); 
       rad_final = sqrt(pow(x_final,2)+pow(y_final,2));
       phi_final = atan2(y_final,x_final);
+      if(do_ElectronDriftQAHistos)
+	{
+	  z_startmap->Fill(z_start,radstart); // map of starting location in Z vs. R
+	  deltaphinodist->Fill(phistart,rantrans/rad_final); // delta phi no distortion, just diffusion+smear
+	  deltarnodist->Fill(radstart,rantrans); // delta r no distortion, just diffusion+smear
+	}
 
-      deltaphinodist->Fill(phistart,rantrans/rad_final); // delta phi no distortion, just diffusion+smear
-      deltarnodist->Fill(radstart,rantrans); // delta r no distortion, just diffusion+smear
-      //cout << "z_start is " << z_start <<endl;      
-	//if(z_start < 0)
-	//	{
-	// z_start = fabs(z_start);// Eventually will require two maps for pos and neg Z 
-      //	}
-      //cout << "before distortions" << endl;
-      //printf("before %p\n",(void*)DistortionMap);    
+     
       double x_distortion = DistortionMap->get_x_distortion(x_start,y_start,z_start,do_time_ordered_distortion,do_static_distortion);  	 
       double y_distortion = DistortionMap->get_y_distortion(x_start,y_start,z_start,do_time_ordered_distortion,do_static_distortion);  	 
       double z_distortion = DistortionMap->get_z_distortion(x_start,y_start,z_start,do_time_ordered_distortion,do_static_distortion);
-      // printf("before %p\n",(void*)DistortionMap);    
-      
-      // cout << "get_y_distortion gives " << DistortionMap->get_y_distortion(x_start,y_start,z_start,event_num,do_time_ordered_distortion,do_static_distortion) << endl;
-      // cout << "get_x_distortion gives " << DistortionMap->get_x_distortion(x_start,y_start,z_start,event_num,do_time_ordered_distortion,do_static_distortion) << endl;
-      
+                
       double phi_final_nodiff,rad_final_nodiff;
       if(do_static_distortion || do_time_ordered_distortion )
 	{
@@ -470,11 +465,6 @@ if (!g4hit)
 	      deltaRphinodiff->Fill(radstart,rad_final_nodiff*phi_final_nodiff - radstart*phistart);
 	    }
 	}
-         
-      if(do_Centralmem)
-	{
-	  CMTimeDists->Fill(); //Fills a TTree with initial and final electron locations starting from the central membrane
-	}   
       if(do_ElectronDriftQAHistos)
 	{
 	  // Fill Diagnostic plots, written into ElectronDriftQA.root
@@ -484,6 +474,11 @@ if (!g4hit)
 	  deltaphi->Fill(phistart,phi_final-phistart); // total delta phi
 	  deltaz->Fill(z_start,z_distortion); // map of distortion in Z (time)
 	}
+         
+      if(do_Centralmem)
+	{
+	  CMTimeDists->Fill(); //Fills a TTree with initial and final electron locations starting from the central membrane
+	}   
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
 	{
@@ -645,47 +640,44 @@ void PHG4TpcElectronDrift::set_time_ordered_distortions_on()
 }
 int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
-
-  if (true) // choose verbosity later
-  {
-    if (Verbosity() > 0)
-      {
-	assert(m_outf);
-	assert(nt);
-	assert(ntpad);
-	assert(nthit);
-	assert(ntfinalhit);
-	
-	m_outf->cd();
-	nt->Write();
-	ntpad->Write();
-	nthit->Write();
-	ntfinalhit->Write();
-	m_outf->Close();
-      }
-    if(do_ElectronDriftQAHistos)
-      {
-	EDrift_outf = new TFile("ElectronDriftQA.root", "recreate");
-	if(EDrift_outf->GetSize() == -1)
+  if (Verbosity() > 0)
+    {
+      assert(m_outf);
+      assert(nt);
+      assert(ntpad);
+      assert(nthit);
+      assert(ntfinalhit);
+      
+      m_outf->cd();
+      nt->Write();
+      ntpad->Write();
+      nthit->Write();
+      ntfinalhit->Write();
+      m_outf->Close();
+    }
+  if(do_ElectronDriftQAHistos)
+    {
+      EDrift_outf = new TFile("ElectronDriftQA.root", "recreate");
+      if(EDrift_outf->GetSize() == -1)
 	  {
 	    cout << "EDriftQA file could not be opened!" << endl;
 	  }
-	
-	EDrift_outf->cd();
-	deltar->Write();
-	deltaphi->Write();
-	deltaz->Write();
-	deltarnodist->Write();
-	deltaphinodist->Write();
-	deltarnodiff->Write();
-	deltaphinodiff->Write();
-	deltaRphinodiff->Write();
-	deltaphivsRnodiff->Write();
-	hitmapstart->Write();
-	hitmapend->Write();
-	z_startmap->Write();
-	EDrift_outf->Close();
-      }
+      
+      EDrift_outf->cd();
+      deltar->Write();
+      deltaphi->Write();
+      deltaz->Write();
+      deltarnodist->Write();
+      deltaphinodist->Write();
+      deltarnodiff->Write();
+      deltaphinodiff->Write();
+      deltaRphinodiff->Write();
+      deltaphivsRnodiff->Write();
+      hitmapstart->Write();
+      hitmapend->Write();
+      z_startmap->Write();
+      EDrift_outf->Close();
+    
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
