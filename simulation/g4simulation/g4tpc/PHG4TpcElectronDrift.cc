@@ -109,6 +109,7 @@ int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
     {
       cout << "somehow event_num is non-zero" << endl;
     }
+  cout << "In PHG4TpcElectronDrift do_static_distortion is " << do_static_distortion << " do_time_ordered_distortion is " << do_time_ordered_distortion <<" (0 = false, 1 = true) "<< endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -250,7 +251,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
     
   DistortionMap = new PHG4TpcDistortion(0,event_num,do_time_ordered_distortion,do_static_distortion);
-  cout << "In PHG4TpcElectronDrift do_static_distortion is " << do_static_distortion << " do_time_ordered_distortion is " << do_time_ordered_distortion <<" (0 = false, 1 = true) "<< endl;
+  
 
 
   do_Centralmem = false; // Determines whether or not to drift electrons ONLY from the central membrane for calibration purposes   
