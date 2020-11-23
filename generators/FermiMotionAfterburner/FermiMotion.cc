@@ -91,40 +91,39 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
   double b = hi->impact_parameter();
   double pnl = ploss(b);
   //now loop over all particles and find spectator neutrons
-
   for (HepMC::GenEvent::particle_const_iterator p = event->particles_begin(), prev = event->particles_end(); p != event->particles_end(); prev = p, ++p)
   {
     int id = (*p)->pdg_id();
     //if not neutron, skip
     if (!((id == 2112) || (id == 2212))) continue;
-
     //spectator neutron should have px==0&&py==0
-    HepMC::GenParticle *n = (*p);
-    float p_x = n->momentum().px();
-    float p_y = n->momentum().py();
+    float p_x = (*p)->momentum().px();
+    float p_y = (*p)->momentum().py();
     if (!(p_x == 0 && p_y == 0)) continue;
-
+    
     if (id == 2112)
     {
-      //std::cout<<"after: "<<n->barcode()<<std::endl;
       if (pnl > gsl_rng_uniform_pos(RandomGenerator))
       {
         //remove particle here
-
         delete ((*p)->production_vertex())->remove_particle(*p);
-        //std::cout<<"removing: "<<n->barcode()<<std::endl;
 	p = prev;
 	continue;
         
       }
     }
 
-    //add pF to the remaining
-
+    //add pF to the remaining and make the spectator neutron/proton a daughter of the original neutron/proton
+    //make copy
+    HepMC::GenParticle *n = new HepMC::GenParticle(*(*p));
     CLHEP::HepLorentzVector p0(n->momentum().px(), n->momentum().py(), n->momentum().pz(), n->momentum().e());
     CLHEP::HepLorentzVector newp = pwithpF(p0, RandomGenerator, id);
-    (*p)->set_momentum(newp);
-    
+    //apply Fermi motion to the copy
+    (n)->set_momentum(newp);
+    HepMC::GenVertex *v = new HepMC::GenVertex();
+    v->add_particle_in(*p);
+    v->add_particle_out(n);
+    event->add_vertex(v);
     
   }
 
