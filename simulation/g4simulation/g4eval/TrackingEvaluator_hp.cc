@@ -219,6 +219,11 @@ namespace
     cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
     cluster._trk_phi = get_phi( cluster._trk_x, cluster._trk_y );
 
+    /* store local momentum information */
+    cluster._trk_px = state->get_px();
+    cluster._trk_py = state->get_py();
+    cluster._trk_pz = state->get_pz();
+
     /*
     store state angles in (r,phi) and (r,z) plans
     they are needed to study space charge distortions
@@ -232,6 +237,7 @@ namespace
     cluster._trk_beta = std::atan2( trk_pz, trk_pr );
     cluster._trk_phi_error = state->get_phi_error();
     cluster._trk_z_error = state->get_z_error();
+
   }
 
   //! number of hits associated to cluster
@@ -335,20 +341,22 @@ namespace
     cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
     cluster._truth_phi = get_phi( cluster._truth_x, cluster._truth_y );
 
+    /* add truth momentum information */
+    cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
+    cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
+    cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+
     /*
     store state angles in (r,phi) and (r,z) plans
     they are needed to study space charge distortions
     */
     const auto cosphi( std::cos( cluster._truth_phi ) );
     const auto sinphi( std::sin( cluster._truth_phi ) );
-    const auto truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
-    const auto truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
-    const auto truth_pphi = -truth_px*sinphi + truth_py*cosphi;
-    const auto truth_pr = truth_px*cosphi + truth_py*sinphi;
-    const auto truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+    const auto truth_pphi = -cluster._truth_px*sinphi + cluster._truth_py*cosphi;
+    const auto truth_pr = cluster._truth_px*cosphi + cluster._truth_py*sinphi;
 
     cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
-    cluster._truth_beta = std::atan2( truth_pz, truth_pr );
+    cluster._truth_beta = std::atan2( cluster._truth_pz, truth_pr );
     if(std::isnan(cluster._truth_alpha) || std::isnan(cluster._truth_beta))
     {
       // recalculate
@@ -375,6 +383,7 @@ namespace
       cluster._truth_alpha = truth_alpha;
       cluster._truth_beta = truth_beta;
     }
+
   }
 
   // ad}d truth information

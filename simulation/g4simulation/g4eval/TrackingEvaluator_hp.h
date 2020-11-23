@@ -160,6 +160,22 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //@}
 
+    //!@name track local momentum information
+    //!TODO: in principle trk_alpha and trk_beta can be calculated from those. There should be no need to store them
+    //@{
+    float _trk_px = 0;
+    float _trk_py = 0;
+    float _trk_pz = 0;
+    //@}
+
+    //!@name truth local momentum information
+    //!TODO: in principle truth_alpha and truth_beta can be calculated from those. There should be no need to store them
+    //@{
+    float _truth_px = 0;
+    float _truth_py = 0;
+    float _truth_pz = 0;
+    //@}
+
   };
 
   // track information to be stored in tree
