@@ -46,7 +46,6 @@
 #include <TH3F.h>
 #include <TAxis.h>
 #include <TGraph.h>
-#include <TStopwatch.h>
 #include <TTimeStamp.h>
 #include <TString.h>
 #include <TNtuple.h>
@@ -316,19 +315,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  
-  
   //cout << "PHG4TpcElectronDrift is processing event number " << event_num << endl;
   
   DistortionMap->load_event(event_num); // tells DistortionMap which event to look at
-  
-  //
-  //Declare stopwatches for time performance characterization
-  //TStopwatch *intwatch = new TStopwatch();
-  // TStopwatch *totwatch = new TStopwatch();
-  // intwatch->Stop();
-  //
-  
   
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
 if (!g4hit)

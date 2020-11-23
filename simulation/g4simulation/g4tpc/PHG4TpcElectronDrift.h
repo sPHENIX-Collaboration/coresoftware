@@ -44,15 +44,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   bool do_time_ordered_distortion = false;
   bool do_ElectronDriftQAHistos;
 
-  //  TH3F *TimehDR;
-  // TH3F *TimehDP;
-  // TH3F *TimehDZ;
-  // TH3F *TimehDX;
-  // TH3F *TimehDY;
-  // TH3F *TimeInthDR;
-  // TH3F *TimeInthDP;
-  // TH3F *TimeInthDZ;
-
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { detector = d; }
@@ -75,37 +66,15 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TFile *CMFile;
   
   TTree *CMTimeDists;
-  TH3F *hDRint;
-  TH3F *hDPint;
-
-  TH3F *hDRdiff;
-  TH3F *hDPdiff;
-  TH3F *hDZdiff;
-  TH3F *three_d_startmap;
   TGraph *Graph;
   TGraph *CM;
-  TAxis *xaxis, *yaxis, *zaxis; 
   TH1 *dlong;
   TH1 *dtrans;
-  TH1 *deltatime; 
   TH2 *hitmapstart;
   TH2 *hitmapend;
   TH2 *z_startmap;
-  TH2 *cartcheck;
-  TH2 *cartcheckR;
-  TH2 *cartcheckPhi;
-  TH2 *cartcheckRPhi;
   TH2 *deltaphi;
-  TH2 *deltaphiint;
-  TH2 *deltaRphiintnodiff;
-  TH2 *deltaphidiff;
-  TH2 *deltaphidifference;
-  TH2 *deltaphidifferencepercent;
   TH2 *deltar;
-  TH2 *deltarint;
-  TH2 *deltardiff;
-  TH2 *deltardifference;
-  TH2 *deltardifferencepercent;
   TH2 *deltaphinodiff;
   TH2 *deltaRphinodiff;
   TH2 *deltaphivsRnodiff;
@@ -127,9 +96,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP,e_num;
   double x_start,y_start,x_final,y_final; 
-  double Start_x;
-  double Start_y;
-  double Start_z;
   double diffusion_trans;
   double added_smear_sigma_trans;
   double diffusion_long;
