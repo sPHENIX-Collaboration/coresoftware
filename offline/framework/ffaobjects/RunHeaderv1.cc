@@ -9,18 +9,18 @@ void RunHeaderv1::Reset()
   return;
 }
 
-void RunHeaderv1::identify(ostream& out) const
+void RunHeaderv1::identify(ostream &out) const
 {
   out << "identify yourself: I am an RunHeaderv1 Object" << endl;
   out << "Run no: " << RunNumber << endl;
   auto iter = m_IntRunProperties.begin();
-  while(iter !=  m_IntRunProperties.end())
+  while (iter != m_IntRunProperties.end())
   {
     out << iter->first << ": " << iter->second << endl;
     ++iter;
   }
   auto iterf = m_FloatRunProperties.begin();
-  while(iterf !=  m_FloatRunProperties.end())
+  while (iterf != m_FloatRunProperties.end())
   {
     out << iterf->first << ": " << iterf->second << endl;
     ++iterf;
@@ -30,7 +30,7 @@ void RunHeaderv1::identify(ostream& out) const
 
 int RunHeaderv1::isValid() const
 {
-  return((RunNumber) ? 1:0); // return 1 if runnumber not zero
+  return ((RunNumber) ? 1 : 0);  // return 1 if runnumber not zero
 }
 
 void RunHeaderv1::set_floatval(const std::string &name, const float fval)
