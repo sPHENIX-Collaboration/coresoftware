@@ -5,22 +5,21 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
-class HeadReco: public SubsysReco
+class HeadReco : public SubsysReco
 {
  public:
-  HeadReco(const std::string &name="HeadReco");
-  virtual ~HeadReco(){}
+  HeadReco(const std::string &name = "HeadReco");
+  virtual ~HeadReco() {}
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int EndRun(const int runno);
 
  protected:
-
 };
 
 #endif
