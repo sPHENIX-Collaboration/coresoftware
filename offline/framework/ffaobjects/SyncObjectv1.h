@@ -14,51 +14,59 @@ class SyncObjectv1: public SyncObject
  public:
 
   /// ctor
-  SyncObjectv1();
-  SyncObjectv1(const SyncObject&);
+  SyncObjectv1() = default;
+  explicit SyncObjectv1(const SyncObject& source);
 
-  PHObject *CloneMe() const {return new SyncObjectv1(*this);}
+  PHObject *CloneMe() const override {return new SyncObjectv1(*this);}
   /// dtor
-  virtual ~SyncObjectv1() {}
+  virtual ~SyncObjectv1() = default;
 
   ///  Clear Event
-  void Reset();
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  int isValid() const;
+  int isValid() const override;
 
   /// set Event Counter
-  void EventCounter(const int ival) {eventcounter = ival;}
+  void EventCounter(const int ival) override {eventcounter = ival;}
 
   /// set Event Number
-  void EventNumber(const int ival) {eventnumber = ival;}
+  void EventNumber(const int ival) override {eventnumber = ival;}
 
   /// set Run Number
-  void RunNumber(const int ival) {runnumber = ival;}
+  void RunNumber(const int ival) override {runnumber = ival;}
 
   /// set Segment Number
-  void SegmentNumber(const int ival) {segmentnumber = ival;}
+  void SegmentNumber(const int ival) override {segmentnumber = ival;}
 
  protected:
   /// get Event Counter
-  int EventCounter() const {return eventcounter;}
+  int EventCounter() const override {return eventcounter;}
   /// get Event Number
-  int EventNumber() const {return eventnumber;}
+  int EventNumber() const override {return eventnumber;}
   /// get Run Number
-  int RunNumber() const {return runnumber;}
+  int RunNumber() const override {return runnumber;}
 
 private:
-  int eventcounter;      // running counter
-  int eventnumber;  // Event number
-  int runnumber;  // Run number
-  int segmentnumber; // segment number
+  int eventcounter = 0;      // running counter
+  int eventnumber = 0;  // Event number
+  int runnumber = 0;  // Run number
+  int segmentnumber = -999999; // segment number
 
+// rootcling and clang complain about inconsistent overrides in the ClassDef
+// this can be supressed with ignoring -Winconsistent-missing-override
+// this pragma is not known to gcc, so we need an #ifdef __clang__ here
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
+#endif
   ClassDef(SyncObjectv1,1)
+#pragma GCC diagnostic pop
 };
 
 #endif
