@@ -9,15 +9,14 @@
 
 class PHObject;
 
-class SyncObjectv1: public SyncObject
+class SyncObjectv1 : public SyncObject
 {
  public:
-
   /// ctor
   SyncObjectv1() = default;
   explicit SyncObjectv1(const SyncObject& source);
 
-  PHObject *CloneMe() const override {return new SyncObjectv1(*this);}
+  PHObject* CloneMe() const override { return new SyncObjectv1(*this); }
   /// dtor
   virtual ~SyncObjectv1() = default;
 
@@ -33,30 +32,30 @@ class SyncObjectv1: public SyncObject
   int isValid() const override;
 
   /// set Event Counter
-  void EventCounter(const int ival) override {eventcounter = ival;}
+  void EventCounter(const int ival) override { eventcounter = ival; }
 
   /// set Event Number
-  void EventNumber(const int ival) override {eventnumber = ival;}
+  void EventNumber(const int ival) override { eventnumber = ival; }
 
   /// set Run Number
-  void RunNumber(const int ival) override {runnumber = ival;}
+  void RunNumber(const int ival) override { runnumber = ival; }
 
   /// set Segment Number
-  void SegmentNumber(const int ival) override {segmentnumber = ival;}
+  void SegmentNumber(const int ival) override { segmentnumber = ival; }
 
  protected:
   /// get Event Counter
-  int EventCounter() const override {return eventcounter;}
+  int EventCounter() const override { return eventcounter; }
   /// get Event Number
-  int EventNumber() const override {return eventnumber;}
+  int EventNumber() const override { return eventnumber; }
   /// get Run Number
-  int RunNumber() const override {return runnumber;}
+  int RunNumber() const override { return runnumber; }
 
-private:
-  int eventcounter = 0;      // running counter
-  int eventnumber = 0;  // Event number
-  int runnumber = 0;  // Run number
-  int segmentnumber = -999999; // segment number
+ private:
+  int eventcounter = 0;         // running counter
+  int eventnumber = 0;          // Event number
+  int runnumber = 0;            // Run number
+  int segmentnumber = -999999;  // segment number
 
 // rootcling and clang complain about inconsistent overrides in the ClassDef
 // this can be supressed with ignoring -Winconsistent-missing-override
@@ -65,7 +64,7 @@ private:
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 #endif
-  ClassDef(SyncObjectv1,1)
+  ClassDef(SyncObjectv1, 1)
 #pragma GCC diagnostic pop
 };
 
