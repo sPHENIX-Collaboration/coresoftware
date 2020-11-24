@@ -52,48 +52,6 @@ RunHeader::set_RunNumber(const int /*run*/)
   return ;
 }
 
-double
-RunHeader::get_Bfield() const
-{
-  warning("get_Bfield()");
-  return -9999.9;
-}
-
-void
-RunHeader::set_Bfield(const double /*rval*/)
-{
-  warning("set_Bfield(const double rval)");
-  return;
-}
-
-time_t
-RunHeader::get_TimeStart() const
-{
-  warning("get_TimeStart()");
-  return 0;
-}
-
-void
-RunHeader::set_TimeStart(const time_t /*ival*/)
-{
-  warning("set_TimeStart(const time_t ival)");
-  return;
-}
-
-time_t
-RunHeader::get_TimeStop() const
-{
-  warning("get_TimeStop()");
-  return 0;
-}
-
-void
-RunHeader::set_TimeStop(const time_t /*ival*/)
-{
-  warning("set_TimeStop(const time_t ival)");
-  return;
-}
-
 // 
 void
 RunHeader::NoWarning(const int i)
@@ -112,7 +70,7 @@ RunHeader::NoWarning(const int i)
 }
 
 void
-RunHeader::warning(const char *funcname) const
+RunHeader::warning(const std::string &funcname) const
 {
   if (! nowarning)
     {
