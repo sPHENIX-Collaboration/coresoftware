@@ -248,35 +248,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
 
-    
   DistortionMap = new PHG4TpcDistortion(0,event_num,do_time_ordered_distortion,do_static_distortion);
-  
-
-
-  do_Centralmem = false; // Determines whether or not to drift electrons ONLY from the central membrane for calibration purposes   
-  if(do_Centralmem)
-    { 
-      double x_start,y_start,x_final,y_final;
-      TFile *CMFile=new TFile("/gpfs/mnt/gpfs02/sphenix/user/klest/Centralmem.root");//includes TGraph
-      if(CMFile->GetSize() == -1)
-	{
-	  cout << "CM in file could not be opened!" << endl;
-	}
-      CM_outf = new TFile("CM_PositionTree.root", "recreate");
-      if(CM_outf->GetSize() == -1)
-	{
-	  cout << "CM out file could not be opened!" << endl;
-	}
-      
-      CM=(TGraph*)CMFile->Get("Graph");
-      CMTimeDists = new TTree("CMTimeDists","Tree w/ event_num, x_i, y_i, x_f, y_f");
-      CMTimeDists->Branch("event_num",&event_num,"event_num/I");
-      CMTimeDists->Branch("x_start",&x_start,"x_start/B");
-      CMTimeDists->Branch("y_start",&y_start,"y_start/B");
-      CMTimeDists->Branch("x_final",&x_final,"x_final/B");
-      CMTimeDists->Branch("y_final",&y_final,"y_final/B");
-    }
- 
  
   do_ElectronDriftQAHistos = true; // Whether or not to produce an ElectronDriftQA.root file with useful info
   if(do_ElectronDriftQAHistos)
@@ -367,11 +339,7 @@ if (!g4hit)
         cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
     }
-  if(do_Centralmem)
-    {
-      n_electrons = 7668; // Hardcoded number to match number of points in TGraph of central membrane stripe locations
-    }
-
+ 
     for (unsigned int i = 0; i < n_electrons; i++)
     {
 
@@ -385,15 +353,6 @@ if (!g4hit)
       double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
      
-      if(do_Centralmem) // Hacked in to see CM effects before full G4hits from CM are ready
-	{
-	  Double_t ax[7668],ay[7668];
-	  CM->GetPoint(i,ax[i],ay[i]); // Get endpoint locations of CM stripes
-	  x_start = ax[i]*.1; // Assign starting positions of e- to be at ends of CM stripes                                                   
-	  y_start = ay[i]*.1;                                                                                                                        
-	  z_start = 0;
-	}
- 
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -465,10 +424,6 @@ if (!g4hit)
 	  deltaz->Fill(z_start,z_distortion); // map of distortion in Z (time)
 	}
          
-      if(do_Centralmem)
-	{
-	  CMTimeDists->Fill(); //Fills a TTree with initial and final electron locations starting from the central membrane
-	}   
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
 	{
@@ -562,10 +517,6 @@ if (!g4hit)
 
     // erase all entries in the temp hitsetcontainer
     temp_hitsetcontainer->Reset();
-    if(do_Centralmem) // break out of loop after a single iteration, no need for more than one 
-      {
-	break;
-      } 
   } // end loop over g4hits
   
   unsigned int print_layer = 47;  

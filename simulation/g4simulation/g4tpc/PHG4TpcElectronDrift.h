@@ -63,11 +63,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
  
   TFile *DistFile;
   TFile *TimeDistFile;
-  TFile *CMFile;
-  
-  TTree *CMTimeDists;
-  TGraph *Graph;
-  TGraph *CM;
+    
   TH1 *dlong;
   TH1 *dtrans;
   TH2 *hitmapstart;
@@ -84,7 +80,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltaz;
   TFile *m_outf;
   TFile *EDrift_outf;
-  TFile *CM_outf;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntfinalhit;
@@ -92,7 +87,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
-  bool do_Centralmem;
   unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP,e_num;
   double x_start,y_start,x_final,y_final; 
