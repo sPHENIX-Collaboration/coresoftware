@@ -58,7 +58,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
-  PHG4TpcDistortion* DistortionMap = nullptr;
+  std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
   int event_num = 0;
   bool do_static_distortion = false;
   bool do_time_ordered_distortion = false;
@@ -100,7 +100,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
-
 
   //! rng de-allocator
   class Deleter
