@@ -18,25 +18,25 @@ class FlagSavev1: public FlagSave
  public:
 
   /// ctor
-  FlagSavev1() {}
+  FlagSavev1() = default;
   /// dtor
-  virtual ~FlagSavev1() {}
+  virtual ~FlagSavev1() = default;
 
-  PHObject *CloneMe() const;
+  PHObject *CloneMe() const override;
 
   ///  Clear Event
-  void Reset() {}
-  int isValid() const;
+  void Reset()  override {}
+  int isValid() const override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  int  FillFromPHFlag(const PHFlag *flags);
-  int  PutFlagsBack(PHFlag *flags);
+  int  FillFromPHFlag(const PHFlag *flags) override;
+  int  PutFlagsBack(PHFlag *flags) override;
 
- protected:
+ private:
   int FillIntFromPHFlag(const PHFlag *flags);
   int FillDoubleFromPHFlag(const PHFlag *flags);
   int FillFloatFromPHFlag(const PHFlag *flags);
@@ -57,8 +57,15 @@ class FlagSavev1: public FlagSave
   std::map<std::string, float> floatflag;
   std::map<std::string, std::string> stringflag;
 
- private: // prevent doc++ from showing ClassDef
+// rootcling and clang complain about inconsistent overrides in the ClassDef
+// this can be supressed with ignoring -Winconsistent-missing-override
+// this pragma is not known to gcc, so we need an #ifdef __clang__ here
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
+#endif
   ClassDef(FlagSavev1,1)
+#pragma GCC diagnostic pop
 };
 
 #endif
