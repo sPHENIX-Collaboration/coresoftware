@@ -15,13 +15,16 @@ AM_LDFLAGS = \
 libffamodules_la_LIBADD = \
   -lfun4all \
   -lffaobjects \
+  -lphhepmc \
   -lSubsysReco
 
 
 pkginclude_HEADERS = \
+  HeadReco.h \
   SyncReco.h
 
 libffamodules_la_SOURCES = \
+  HeadReco.cc \
   SyncReco.cc
 
 BUILT_SOURCES = testexternals.cc
