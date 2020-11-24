@@ -85,8 +85,8 @@ class BEmcRec
   virtual float PredictEnergyParam(float, float, float);
 
   // Calorimeter specific functions to be specified in respective inherited object
-  virtual void CorrectEnergy(float energy, float x, float y, float *ecorr) { *ecorr = energy; }
-  virtual void CorrectECore(float ecore, float x, float y, float *ecorecorr) { *ecorecorr = ecore; }
+  virtual void CorrectEnergy(float energy, float x, float y, float &ecorr) { ecorr = energy; }
+  virtual void CorrectECore(float ecore, float x, float y, float &ecorecorr) { ecorecorr = ecore; }
   virtual void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr)
   {
     xcorr = x;
