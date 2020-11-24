@@ -48,4 +48,4 @@ class RunHeaderv1 : public RunHeader
 #pragma GCC diagnostic pop
 };
 
-#endif /* __RUNHEADERV1_H */
+#endif /* FFAOBJECTS_RUNHEADERV1_H */
