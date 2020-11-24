@@ -44,8 +44,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void set_seed(const unsigned int iseed);
   void set_time_ordered_distortions_on();
   void set_static_distortions_on();
-  void registerPadPlane(PHG4TpcPadPlane *padplane);
 
+  //! setup readout plane
+  void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
 
