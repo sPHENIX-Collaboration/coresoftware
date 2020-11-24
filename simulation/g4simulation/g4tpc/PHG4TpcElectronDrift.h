@@ -38,11 +38,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-  PHG4TpcDistortion* DistortionMap = nullptr;
-  int event_num;
-  bool do_static_distortion = false;
-  bool do_time_ordered_distortion = false;
-  bool do_ElectronDriftQAHistos;
 
   void SetDefaultParameters();
 
@@ -56,14 +51,18 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
 
  private:
-  TrkrHitSetContainer *hitsetcontainer;
-  TrkrHitSetContainer *temp_hitsetcontainer;
-  TrkrHitTruthAssoc *hittruthassoc;
-  PHG4TpcPadPlane *padplane;
- 
-  TFile *DistFile;
-  TFile *TimeDistFile;
-    
+
+  TrkrHitSetContainer *hitsetcontainer = nullptr;
+  TrkrHitSetContainer *temp_hitsetcontainer = nullptr;
+  TrkrHitTruthAssoc *hittruthassoc = nullptr;
+  PHG4TpcPadPlane *padplane = nullptr;
+
+  PHG4TpcDistortion* DistortionMap = nullptr;
+  int event_num;
+  bool do_static_distortion = false;
+  bool do_time_ordered_distortion = false;
+  bool do_ElectronDriftQAHistos;
+
   TH1 *dlong;
   TH1 *dtrans;
   TH2 *hitmapstart;
@@ -89,7 +88,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string seggeonodename;
   unsigned int seed,print_layer;
   int nBinZ, nBinR,nBinP,e_num;
-  double x_start,y_start,x_final,y_final; 
+  double x_start,y_start,x_final,y_final;
   double diffusion_trans;
   double added_smear_sigma_trans;
   double diffusion_long;
