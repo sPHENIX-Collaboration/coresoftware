@@ -58,7 +58,6 @@
 
 using namespace std;
 
-//_____________________________________________________________
 namespace
 {
   template <class T>
@@ -222,7 +221,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
 
-  m_distortionMap.reset( new PHG4TpcDistortion(0, event_num, do_time_ordered_distortion, do_static_distortion) );
+  m_distortionMap.reset( new PHG4TpcDistortion(do_time_ordered_distortion, do_static_distortion) );
 
   do_ElectronDriftQAHistos = true;  // Whether or not to produce an ElectronDriftQA.root file with useful info
   if (do_ElectronDriftQAHistos)
@@ -263,7 +262,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   unsigned int print_layer = 18;
 
-  m_distortionMap->load_event(event_num);  // tells m_distortionMap which event to look at
+  // tells m_distortionMap which event to look at
+  m_distortionMap->load_event(event_num);
 
   // g4hits
   auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -367,9 +367,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       if (do_static_distortion || do_time_ordered_distortion)
       {
 
-        double x_distortion = m_distortionMap->get_x_distortion(x_start, y_start, z_start, do_time_ordered_distortion, do_static_distortion);
-        double y_distortion = m_distortionMap->get_y_distortion(x_start, y_start, z_start, do_time_ordered_distortion, do_static_distortion);
-        double z_distortion = m_distortionMap->get_z_distortion(x_start, y_start, z_start, do_time_ordered_distortion, do_static_distortion);
+        const double x_distortion = m_distortionMap->get_x_distortion(x_start, y_start, z_start);
+        const double y_distortion = m_distortionMap->get_y_distortion(x_start, y_start, z_start);
+        const double z_distortion = m_distortionMap->get_z_distortion(x_start, y_start, z_start);
 
         x_final = x_start + x_distortion + rantrans * cos(ranphi);
         y_final = y_start + y_distortion + rantrans * sin(ranphi);
