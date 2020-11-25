@@ -46,6 +46,7 @@ pkginclude_HEADERS = \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
+  PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -55,10 +56,13 @@ pkginclude_HEADERS = \
   PHSiliconTpcTrackMatching.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
+  PHTpcClusterMover.h \
+  PHTpcResiduals.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
+  PHTruthClustering.h \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
@@ -108,7 +112,9 @@ ACTS_SOURCES = \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
   PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc
+  PHActsVertexFitter.cc \
+  PHActsTrackProjection.cc \
+  PHTpcResiduals.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
@@ -141,6 +147,8 @@ libtrack_reco_la_SOURCES = \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
+  PHTpcClusterMover.cc \
+  PHTruthClustering.cc \
   PHTruthVertexing.cc \
   PHSiliconTpcTrackMatching.cc \
   PHMicromegasTpcTrackMatching.cc \

@@ -19,28 +19,89 @@ class PHG4TpcDistortion;
 class PHCompositeNode;
 class TH1;
 class TH2;
-class TH3F;
-class TFile;
-class TTree;
+class TH3;
 class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class DistortedTrackContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift() = default;
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  virtual int Init(PHCompositeNode*);
+  virtual int InitRun(PHCompositeNode*);
+  virtual int process_event(PHCompositeNode*);
+  virtual int End(PHCompositeNode*);
+
+  /*
+  class DistortionStruct
+  {
+
+    public:
+    using List = std::vector<DistortionStruct>;
+
+    /// constructor
+    DistortionStruct() = default;
+
+    float _r = 0;
+    float _phi = 0;
+    float _z = 0;
+
+    float _dr = 0;
+    float _dphi = 0;
+    float _dz = 0;
+  };
+
+  /// track container
+  class Container: public PHObject
+  {
+
+    public:
+
+    /// constructor
+    explicit Container() = default;
+
+    /// copy constructor
+    explicit Container(const Container &) = delete;
+
+    /// assignment operator
+    Container& operator = ( const Container& ) = delete;
+
+    /// reset
+    virtual void Reset();
+
+    /// distrotions
+    const DistortionStruct::List& distortions() const
+    { return _distortions; }
+
+    /// add distortion
+    void addDistortion( const DistortionStruct& distortion )
+    { _distortions.push_back( distortion ); }
+
+    private:
+
+    /// event struct
+    DistortionStruct::List _distortions;
+
+    ClassDef(Container,1)
+
+  };
+  */
 
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) { detector = d; }
-  std::string Detector() const { return detector; }
+  //! detector name
+  void Detector(const std::string &d)
+  { detector = d; }
+
+  //! detector name
+  std::string Detector() const
+  { return detector; }
+
+  //! random seed
   void set_seed(const unsigned int iseed);
   void set_time_ordered_distortions_on();
   void set_static_distortions_on();
@@ -81,6 +142,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   std::unique_ptr<TFile> m_outf;
   std::unique_ptr<TFile> EDrift_outf;
+
   TNtuple *nt = nullptr;
   TNtuple *nthit = nullptr;
   TNtuple *ntfinalhit = nullptr;

@@ -13,6 +13,8 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
+#include <boost/bimap.hpp>
+
 class TTree;
 class TFile;
 class PHG4Particle;
@@ -38,6 +40,9 @@ using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 
 /**
  * This class is an analyzing class for the Acts track fitting, and produces
@@ -88,7 +93,6 @@ class ActsEvaluator : public SubsysReco
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
 				   const unsigned int hitID,
 				   float &_gt);
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   SvtxEvaluator *m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
@@ -97,7 +101,7 @@ class ActsEvaluator : public SubsysReco
   std::map<const unsigned int, std::map<const size_t, 
     const unsigned int>> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
+  CluskeyBimap *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
   SvtxVertexMap *m_vertexMap;

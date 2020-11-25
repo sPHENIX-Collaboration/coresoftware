@@ -49,6 +49,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <bitset>
 #include <cassert>
 #include <cmath>    // for sqrt, fabs, NAN
 #include <cstdlib>  // for exit
@@ -87,6 +88,7 @@ int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//_____________________________________________________________
 int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -214,8 +216,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-
+  auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
@@ -289,7 +290,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
-
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     if (Verbosity() > 100)
@@ -336,6 +336,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
       const double t_final = t_start + t_path + rantime;
+      if (t_final < min_time || t_final > max_time) continue;
 
       double z_final;
       if (z_start < 0)
@@ -343,20 +344,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
 
-      if ((t_final < min_time || t_final > max_time))
-      {
-        cout << "skip this, t_final = " << t_final << " is out of range " << min_time << " to " << max_time << endl;
-        continue;
-      }
-
       const double radstart = std::sqrt(square(x_start) + square(y_start));
       const double phistart = atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
 
       double x_final = x_start + rantrans * cos(ranphi);  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
       double y_final = y_start + rantrans * sin(ranphi);
-      double rad_final = sqrt(pow(x_final, 2) + pow(y_final, 2));
+
+      double rad_final = sqrt( square(x_final) + square(y_final) );
       double phi_final = atan2(y_final, x_final);
+
       if (do_ElectronDriftQAHistos)
       {
         z_startmap->Fill(z_start, radstart);                   // map of starting location in Z vs. R
@@ -371,14 +368,17 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         const double y_distortion = m_distortionMap->get_y_distortion(x_start, y_start, z_start);
         const double z_distortion = m_distortionMap->get_z_distortion(x_start, y_start, z_start);
 
-        x_final = x_start + x_distortion + rantrans * cos(ranphi);
-        y_final = y_start + y_distortion + rantrans * sin(ranphi);
+        x_final += x_distortion;
+        y_final += y_distortion;
+
+        // re-calculate rad and phi final, including distortions
         rad_final = sqrt( square(x_final) + square(y_final) );
         phi_final = atan2(y_final, x_final);
-        const double phi_final_nodiff = atan2(y_start + y_distortion, x_start + x_distortion);
-        const double rad_final_nodiff = sqrt(pow(x_start + x_distortion, 2) + pow(y_start + y_distortion, 2));
+
         if (do_ElectronDriftQAHistos)
         {
+          const double phi_final_nodiff = atan2(y_start + y_distortion, x_start + x_distortion);
+          const double rad_final_nodiff = sqrt(pow(x_start + x_distortion, 2) + pow(y_start + y_distortion, 2));
           deltarnodiff->Fill(radstart, rad_final_nodiff - radstart);    //delta r no diffusion, just distortion
           deltaphinodiff->Fill(phistart, phi_final_nodiff - phistart);  //delta phi no diffusion, just distortion
           deltaphivsRnodiff->Fill(radstart, phi_final_nodiff - phistart);

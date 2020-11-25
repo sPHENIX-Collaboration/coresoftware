@@ -29,6 +29,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHTimer.h>
 
 /// Acts includes
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -84,10 +85,14 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 
 int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << std::endl << "Start PHActsSourceLinks process_event" << std::endl;
   }
+  
+  auto eventTimer = std::make_unique<PHTimer>("PHActsSourceLinksTimer");
+  eventTimer->stop();
+  eventTimer->restart();
 
   /// Get the nodes from the node tree
   if (getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
@@ -105,7 +110,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
   TrkrClusterContainer::ConstIterator clusIter;
 
-  for (clusIter = clusRange.first; clusIter != clusRange.second; ++clusIter)
+  for (clusIter = clusRange.first; 
+       clusIter != clusRange.second; ++clusIter)
   {
     const TrkrDefs::cluskey clusKey = clusIter->first;
     const TrkrCluster *cluster = clusIter->second;
@@ -115,8 +121,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
 
-    m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
-
+    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
+    
     /// Local coordinates and surface to be set by the correct tracking
     /// detector function below
     TMatrixD localErr(3, 3);
@@ -204,7 +210,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 1)
     {
-      if(layer > 54)
+      //if(layer > 54)
 	std::cout << "Layer " << layer
 		  << " create measurement for trkrid " << trkrId
 		  << " cluskey " << clusKey
@@ -225,15 +231,19 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 10)
   {
     //m_hitIdClusKey
-    std::map<TrkrDefs::cluskey, unsigned int>::iterator it = m_hitIdClusKey->begin();
+    CluskeyBimap::const_iterator it = m_hitIdClusKey->begin();
     while (it != m_hitIdClusKey->end())
     {
-      std::cout << "cluskey " << it->first << " has hitid " << it->second
+      std::cout << "cluskey " << it->left << " has hitid " << it->right
                 << std::endl;
       ++it;
     }
   }
 
+  eventTimer->stop();
+  if(Verbosity() > 0)
+    std::cout << "PHActsSourceLinks total event time " 
+	      << eventTimer->get_accumulated_time() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -300,15 +310,17 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
   /// a given readout module
   Surface surface = getTpcSurfaceFromCoords(tpcHitSetKey,
 					    worldVec);
-
   /// If surface can't be found (shouldn't happen) return nullptr and skip this cluster
   if(!surface)
     {
       std::cout << PHWHERE
 		<< "Failed to find associated surface element - should be impossible! Skipping measurement."
 		<< std::endl;
+      std::cout << "  tpcHitSetKey " << tpcHitSetKey << " layer " << layer << " sector " << sectorId
+		<< " worldVec[0] " << worldVec[0] << " worldVec[1] " << worldVec [1] << " worldVec[2] " << worldVec[2] << std::endl;
       return nullptr;
     }
+
   if(Verbosity() > 10)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
@@ -397,7 +409,9 @@ Surface PHActsSourceLinks::getTpcLocalCoords(Acts::Vector2D &local2D,
 	{
 	  for (int j = 0; j < 3; j++)
 	    {
-	      std::cout << "  " << i << " "  << j << " worldErr " << worldErr[i][j]  << " localErr " << sPhenixLocalErr[i][j] << std::endl;
+	      std::cout << "  " << i << " "  << j << " worldErr " 
+			<< worldErr[i][j]  << " localErr " 
+			<< sPhenixLocalErr[i][j] << std::endl;
 	    }
 	}
     }
@@ -482,10 +496,12 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
   double surfRphiCenter = atan2(center[1], center[0]) * surfRadius;
   double surfZCenter = center[2];
   
-  if (Verbosity() > 0)
+  if (Verbosity() > 3)
   {
-    std::cout << PHWHERE << std::endl << "Micromegas surface center readback:   x " << center[0]
-              << " y " << center[1]  << " z " << center[2] << " radius " << surfRadius << std::endl;
+    std::cout << PHWHERE << std::endl 
+	      << "Micromegas surface center readback:   x " << center[0]
+              << " y " << center[1]  << " z " << center[2] 
+	      << " radius " << surfRadius << std::endl;
     std::cout << "Surface normal vector : "<< normal(0) << ", " 
 	      << normal(1) << ", " << normal(2) << std::endl;
     std::cout << " surface center  phi " << atan2(center[1], center[0]) 
@@ -518,18 +534,22 @@ Surface PHActsSourceLinks::getMmLocalCoords(Acts::Vector2D &local2D,
 						     local2D, 
 						     Acts::Vector3D(1,1,1));
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 2)
   {
-    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " << x*Acts::UnitConstants::cm 
-	      <<  " y " << y*Acts::UnitConstants::cm << " z " << z*Acts::UnitConstants::cm 
+    std::cout << PHWHERE << "Micromegas cluster readback (mm):  x " 
+	      << x*Acts::UnitConstants::cm 
+	      <<  " y " << y*Acts::UnitConstants::cm << " z " 
+	      << z*Acts::UnitConstants::cm 
 	      << " radius " << radius << std::endl;
-    std::cout << " cluster phi " << clusPhi << " cluster z " << zMm << " r*clusphi " << rClusPhi << std::endl;
+    std::cout << " cluster phi " << clusPhi << " cluster z " 
+	      << zMm << " r*clusphi " << rClusPhi << std::endl;
     std::cout << " local phi " << clusPhi - surfPhiCenter
               << " local rphi " << rClusPhi-surfRphiCenter 
  	      << " local z " << zMm - surfZCenter  << std::endl;
-    std::cout << " acts local : " <<local2D(0) <<"  "<<local2D(1) << std::endl;
-    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 << "  " 
-	      << z * 10 << "  " << std::endl;
+    std::cout << " acts local : " << local2D(0) << "  " << local2D(1) 
+	      << std::endl;
+    std::cout << " sPHENIX global : " << x * 10 << "  " << y * 10 
+	      << "  " << z * 10 << "  " << std::endl;
     std::cout << " acts global : " << actsGlobal(0) << "  " << actsGlobal(1) 
 	      << "  " << actsGlobal(2) << std::endl;
   }
@@ -598,7 +618,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(Acts::Vector2D &local2D,
               << " ladderphid " << ladderPhiId << std::endl;
   }
   /// Get the TGeoNode
-  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
+  auto sensorNode = getNodeFromClusterMap(hitSetKey);
 
   if (!sensorNode)
   {
@@ -718,7 +738,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(Acts::Vector2D &local2D,
                                                          chipId);
 
   /// Get the TGeoNode
-  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
+  auto sensorNode = getNodeFromClusterMap(hitSetKey);
 
   if (!sensorNode)
   {
@@ -929,7 +949,11 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if(_use_truth_clusters)
+    m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  else
+    m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
   if (!m_clusterMap)
   {
     std::cout << PHWHERE
@@ -994,18 +1018,17 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
   }
 
   /// See if the map is already on the node tree
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   /// If not add it
   if (!m_hitIdClusKey)
   {
-    m_hitIdClusKey = new std::map<TrkrDefs::cluskey, unsigned int>;
-    PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>> *hitMapNode =
-        new PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>>(m_hitIdClusKey, "HitIDClusIDActsMap");
+    m_hitIdClusKey = new CluskeyBimap;
+    PHDataNode<CluskeyBimap> *hitMapNode =
+      new PHDataNode<CluskeyBimap>(m_hitIdClusKey, "HitIDClusIDActsMap");
     svtxNode->addNode(hitMapNode);
   }
-
-  /// Do the same for the SourceLink container
+ 
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
 
   if (!m_sourceLinks)
@@ -1020,7 +1043,7 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
   return;
 }
 
-TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
+TGeoNode* PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
   std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_surfMaps->tGeoNodeMap;
 
@@ -1219,7 +1242,7 @@ Surface PHActsSourceLinks::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   unsigned int surf_index = 999;
 
   /// Get some geometry values from the geom builder for parsing surfaces
-  MakeActsGeometry *geom = new MakeActsGeometry();
+  auto geom = std::make_unique<MakeActsGeometry>();
   double surfStepPhi = geom->getSurfStepPhi();
   double surfStepZ = geom->getSurfStepZ();
 
@@ -1278,7 +1301,7 @@ Surface PHActsSourceLinks::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey
   std::vector<Surface> surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
-  MakeActsGeometry *geom = new MakeActsGeometry();
+  auto geom = std::make_unique<MakeActsGeometry>();
   double surfStepPhi = geom->getSurfStepPhi();
   double surfStepZ = geom->getSurfStepZ();
 

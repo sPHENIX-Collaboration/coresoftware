@@ -1,6 +1,9 @@
 #include "ActsTransformations.h"
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
+#include <chrono>
+using namespace std::chrono;
+
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
 				Acts::GeometryContext geoCtxt)
@@ -256,7 +259,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 					      const size_t &trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext geoContext,
-					      std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
+					      CluskeyBimap *hitIDCluskeyMap)
 {
 
  const auto &[trackTips, mj] = traj.trajectory();
@@ -308,11 +311,12 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		  out.set_error(i, j, globalCov(i,j)); 
 		}
 	    }
-	  	  
+
 	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
+	  TrkrDefs::cluskey cluskey = 
+	    hitIDCluskeyMap->right.find(hitId)->second;
 	  svtxTrack->insert_cluster_key(cluskey);
-	  
+
 	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
@@ -332,26 +336,4 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     );
 
   return;
-}
-
-TrkrDefs::cluskey ActsTransformations::getClusKey(const unsigned int hitID,
-						  std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = hitIDCluskeyMap->begin();
-  while (hitIter != hitIDCluskeyMap->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
 }

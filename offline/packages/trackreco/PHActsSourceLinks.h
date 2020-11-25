@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/bimap.hpp>
+
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -48,6 +50,8 @@ namespace Acts
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 /**
  * This class is responsible for creating Acts TrkrClusterSourceLinks from
  * the SvtxClusters. The class creates a node of TrkrClusterSourceLinks and
@@ -78,6 +82,7 @@ class PHActsSourceLinks : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
  
  private:
   /**
@@ -90,7 +95,7 @@ class PHActsSourceLinks : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
 
   /// Get a TGeoNode from the m_clusterNodeMap
-  TGeoNode *getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
+  TGeoNode* getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
   /// Get a Surface from the m_surfaceNodeMap;
   Surface getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
@@ -153,13 +158,14 @@ class PHActsSourceLinks : public SubsysReco
    */
 
   bool m_useVertexMeasurement = false;
+  bool _use_truth_clusters = false;
 
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap = nullptr;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Map for source hitid:sourcelink, to be put on node tree by this module
   std::map<unsigned int, SourceLink> *m_sourceLinks;

@@ -24,6 +24,8 @@
 #include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
+#include <boost/bimap.hpp>
+
 #include <memory>
 #include <string>
 #include <TFile.h>
@@ -49,6 +51,9 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
                                       Acts::eBoundLoc1>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -76,6 +81,10 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Run the direct navigator to fit only tracks with silicon+MM hits
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
+
+  void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
+       { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
+
  private:
 
   /// Event counter
@@ -95,17 +104,25 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(const SourceLinkVec& sourceLinks, 
-		     const ActsExamples::TrackParameters& seed,
-		     const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
-		           kfOptions,
-		     const SurfacePtrVec& surfSequence);
+  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(
+           const SourceLinkVec& sourceLinks, 
+	   const ActsExamples::TrackParameters& seed,
+	   const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
+	         kfOptions,
+	   const SurfacePtrVec& surfSequence);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
   SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
+  void getTrackFitResult(const FitResult& fitOutput, 
+			 const unsigned int trackKey,
+			 const Acts::Vector3D vertex);
+  void updateActsProtoTrack(const FitResult& fitOutput,
+		       std::map<unsigned int, ActsTrack>::iterator iter);
+
+  Acts::BoundSymMatrix setDefaultCovariance();
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
@@ -124,7 +141,7 @@ class PHActsTrkFitter : public PHTrackFitting
   SvtxTrackMap *m_trackMap;
 
   // map relating acts hitid's to clusterkeys
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Number of acts fits that returned an error
   int m_nBadFits;
@@ -132,6 +149,9 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Boolean to use normal tracking geometry navigator or the
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs;
+
+  /// A bool to update the SvtxTrackState information (or not)
+  bool m_fillSvtxTrackStates;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;

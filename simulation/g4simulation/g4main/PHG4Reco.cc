@@ -1383,8 +1383,8 @@ void PHG4Reco::DefineRegions()
   // add the PAI model to the TPCGAS region
   // undocumented, painfully digged out with debugger by tracing what
   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-  G4EmParameters *g4emparams = G4EmParameters::Instance();
-  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+//  G4EmParameters *g4emparams = G4EmParameters::Instance();
+//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
 #endif
   return;
 }

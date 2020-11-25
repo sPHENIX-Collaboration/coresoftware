@@ -12,17 +12,20 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
-#include <phool/PHNodeIterator.h>   // for PHNodeIterator
-#include <phool/PHObject.h>         // for PHObject
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phooldefs.h>
 
 #include <TSystem.h>
 
+#include <boost/algorithm/string.hpp>
+
 #include <cassert>
 #include <cstdlib>
-#include <iostream>                 // for operator<<, basic_ostream, endl
-#include <utility>                  // for pair
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <utility>   // for pair
 
 class TBranch;
 
@@ -233,9 +236,9 @@ int Fun4AllDstInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (syncobject) 
+    if (syncobject)
     {
-      *mastersync = dynamic_cast<SyncObject *> (syncobject->CloneMe());
+      *mastersync = dynamic_cast<SyncObject *>(syncobject->CloneMe());
       assert(*mastersync);
     }
   }
@@ -399,14 +402,14 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
 int Fun4AllDstInputManager::ReadNextEventSyncObject()
 {
 readnextsync:
-  static int readfull = 0;
-  if (!IManager)  // in case the old file was exhausted and there is no new file opened
+  static int readfull = 0;  // for some reason all the input managers need to see the same (I think, should look at this at some point)
+  if (!IManager)            // in case the old file was exhausted and there is no new file opened
   {
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   if (syncbranchname.empty())
   {
-    readfull = 1;  // we need to read a full events to set the root branches to phool nodes right for a new file
+    readfull = 1;  // we need to read a full event to set the root branches to phool nodes right when a new file has been opened
     map<string, TBranch *>::const_iterator bIter;
     for (bIter = IManager->GetBranchMap()->begin(); bIter != IManager->GetBranchMap()->end(); ++bIter)
     {
@@ -414,10 +417,19 @@ readnextsync:
       {
         cout << Name() << ": branch: " << bIter->first << endl;
       }
-      string::size_type pos = bIter->first.find("/Sync");
-      if (pos != string::npos)  // found it
+      string delimeters = phooldefs::branchpathdelim;  // + phooldefs::legacypathdelims;
+      vector<string> splitvec;
+      boost::split(splitvec, bIter->first, boost::is_any_of(delimeters));
+      for (size_t ia = 0; ia < splitvec.size(); ia++)  // -1 so we skip the node name
       {
-        syncbranchname = bIter->first;
+        if (splitvec[ia] == syncdefs::SYNCNODENAME)
+        {
+          syncbranchname = bIter->first;
+          break;
+        }
+      }
+      if (!syncbranchname.empty())
+      {
         break;
       }
     }

@@ -59,8 +59,8 @@ int main()
   std::string input = pt.get("FLOWAFTERBURNER.INPUT", "sHijing.dat");
   std::string output = pt.get("FLOWAFTERBURNER.OUTPUT", "flowAfterburner.dat");
 
-  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -4.0);
-  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 4.0);
+  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -5.0);
+  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 5.0);
 
   float minpt = pt.get("FLOWAFTERBURNER.CUTS.MINPT", 0.0);
   float maxpt = pt.get("FLOWAFTERBURNER.CUTS.MAXPT", 100.0);

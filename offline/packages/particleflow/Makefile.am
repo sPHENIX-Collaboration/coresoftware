@@ -47,6 +47,8 @@ libparticleflow_io_la_LIBADD = \
 libparticleflow_la_LIBADD = \
   libparticleflow_io.la \
   -lcalo_io \
+  -lgsl \
+  -lgslcblas \
   -lphg4hit \
   -lg4jets_io \
   -lSubsysReco
