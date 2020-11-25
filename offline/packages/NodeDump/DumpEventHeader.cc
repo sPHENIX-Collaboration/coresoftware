@@ -9,11 +9,9 @@
 #include <ostream>
 #include <string>
 
-using namespace std;
-
 typedef PHIODataNode<EventHeader> MyNode_t;
 
-DumpEventHeader::DumpEventHeader(const string &NodeName)
+DumpEventHeader::DumpEventHeader(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -29,17 +27,18 @@ int DumpEventHeader::process_Node(PHNode *myNode)
   }
   if (eventheader)
   {
-    *fout << "EventHeader->isValid(): " << eventheader->isValid() << endl;
+    *fout << "EventHeader->isValid(): " << eventheader->isValid() << std::endl;
     if (eventheader->isValid())
     {
-      *fout << "get_EvtSequence(): " << eventheader->get_EvtSequence() << endl;
-      *fout << "get_EvtType(): " << eventheader->get_EvtType() << endl;
-      *fout << "get_BunchCrossing(): " << eventheader->get_BunchCrossing() << endl;
-      *fout << "get_ncoll(): " << eventheader->get_ncoll() << endl;
-      *fout << "get_npart(): " << eventheader->get_npart() << endl;
-      *fout << "get_ImpactParameter(): " << eventheader->get_ImpactParameter() << endl;
-      *fout << "get_EventPlaneAngle(): " << eventheader->get_EventPlaneAngle() << endl;
-      *fout << "get_eccentricity(): " << eventheader->get_eccentricity() << endl;
+      *fout << "get_EvtSequence(): " << eventheader->get_EvtSequence() << std::endl;
+      *fout << "get_EvtType(): " << eventheader->get_EvtType() << std::endl;
+      *fout << "get_BunchCrossing(): " << eventheader->get_BunchCrossing() << std::endl;
+      *fout << "get_ncoll(): " << eventheader->get_ncoll() << std::endl;
+      *fout << "get_npart(): " << eventheader->get_npart() << std::endl;
+      *fout << "get_TimeStamp(): " << eventheader->get_TimeStamp() << std::endl;
+      *fout << "get_ImpactParameter(): " << eventheader->get_ImpactParameter() << std::endl;
+      *fout << "get_EventPlaneAngle(): " << eventheader->get_EventPlaneAngle() << std::endl;
+      *fout << "get_eccentricity(): " << eventheader->get_eccentricity() << std::endl;
     }
   }
   return 0;

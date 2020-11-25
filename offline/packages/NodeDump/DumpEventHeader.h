@@ -15,7 +15,6 @@ class DumpEventHeader : public DumpObject
 
  protected:
   int process_Node(PHNode *mynode);
-  int node_written;
 };
 
 #endif
