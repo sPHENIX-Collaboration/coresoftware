@@ -72,9 +72,9 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
 }
 
 void BEmcRecFEMC::CorrectEnergy(float Energy, float x, float y,
-                                float* Ecorr)
+                                float& Ecorr)
 {
-  *Ecorr = Energy;
+  Ecorr = Energy;
 }
 
 float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
@@ -94,20 +94,20 @@ float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
   return 0;
 }
 
-void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
+void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance
   //
   // (x,y) - shower CG in tower units (not projected anywhere!)
 
-  //  *Ecorr = Ecore;
+  //  Ecorr = Ecore;
   float ec, ec2, corr;
   const float par1 = 0.938;
   const float par2 = 0.50;
   const float par3 = 0.067;
 
-  *Ecorr = Ecore;
+  Ecorr = Ecore;
   if (Ecore < 0.01) return;
 
   float xA, yA, zA;
@@ -118,7 +118,7 @@ void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
 
   //  CorrectEnergy( ec, x, y, &ec2);
   ec2 = ec;  // !!!!! CorrectEnergy must be implemented
-  *Ecorr = ec2;
+  Ecorr = ec2;
 }
 
 void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,

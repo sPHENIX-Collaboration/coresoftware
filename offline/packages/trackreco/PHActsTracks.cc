@@ -172,13 +172,17 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
       const unsigned int hitId = m_hitIdClusKey->left.find(key)->second;
 
-      if(Verbosity() > 0)
+      if(hitId > m_hitIdClusKey->size())
 	{	  
 	  unsigned int lay = TrkrDefs::getLayer(key);
 	  
 	  std::cout << PHWHERE << " layer " << lay << " cluskey " << key
 		    << " has hitid " << hitId
+		    << " m_hitIdClusKey.size() " << m_hitIdClusKey->size() 
+		    << " skipping it"
 		    << std::endl;
+
+	  continue;
 	}
 
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
