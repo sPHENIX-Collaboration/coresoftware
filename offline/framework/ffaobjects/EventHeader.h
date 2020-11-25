@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdint>   // for int64_t
+#include <ctime>
 #include <iostream>  // for cout, ostream
 
 //! base class for EventHeaders
@@ -69,6 +70,9 @@ class EventHeader : public PHObject
 
   void set_npart(const int ival) { set_intval("npart", ival); }
   int get_npart() const { return get_intval("npart"); }
+
+  void set_TimeStamp(const time_t tval) {set_intval("time",tval);}
+  time_t get_TimeStamp() const {return get_intval("time");}
 
  private:  // prevent doc++ from showing ClassDef
   ClassDef(EventHeader, 1)
