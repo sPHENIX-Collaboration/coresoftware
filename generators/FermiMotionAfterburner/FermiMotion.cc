@@ -20,6 +20,7 @@
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
+#include <cstdlib>  // for exit
 #include <iostream>
 
 //____________________________________________________________________________..
@@ -83,7 +84,7 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
   //find ploss
   //std::cout<<"getting b"<<std::endl;
   HepMC::HeavyIon *hi = event->heavy_ion();
-  if (! hi)
+  if (!hi)
   {
     std::cout << PHWHERE << ": Fermi Motion Afterburner needs the Heavy Ion Event Info, GenEvent::heavy_ion() returns NULL" << std::endl;
     exit(1);
@@ -100,16 +101,15 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
     float p_x = (*p)->momentum().px();
     float p_y = (*p)->momentum().py();
     if (!(p_x == 0 && p_y == 0)) continue;
-    
+
     if (id == 2112)
     {
       if (pnl > gsl_rng_uniform_pos(RandomGenerator))
       {
         //remove particle here
         delete ((*p)->production_vertex())->remove_particle(*p);
-	p = prev;
-	continue;
-        
+        p = prev;
+        continue;
       }
     }
 
@@ -124,7 +124,6 @@ int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator)
     v->add_particle_in(*p);
     v->add_particle_out(n);
     event->add_vertex(v);
-    
   }
 
   return 0;
