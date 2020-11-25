@@ -51,13 +51,11 @@
 
 #include <bitset>
 #include <cassert>
-#include <cmath>    // for sqrt, fabs, NAN
+#include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
-
-using namespace std;
 
 namespace
 {
@@ -101,14 +99,14 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
   auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   auto parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-  string paramnodename = "G4CELLPARAM_" + detector;
-  string geonodename = "G4CELLPAR_" + detector;
-  string tpcgeonodename = "G4GEO_" + detector;
+  const std::string paramnodename = "G4CELLPARAM_" + detector;
+  const std::string geonodename = "G4CELLPAR_" + detector;
+  const std::string tpcgeonodename = "G4GEO_" + detector;
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
-    cout << Name() << " Could not locate G4HIT node " << hitnodename << endl;
+    std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
     topNode->print();
     gSystem->Exit(1);
     exit(1);
@@ -182,7 +180,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   auto tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode, tpcgeonodename);
   if (!tpcparams)
   {
-    string runparamname = "G4GEOPARAM_" + detector;
+    const std::string runparamname = "G4GEOPARAM_" + detector;
     auto tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode, runparamname);
     if (tpcpdbparams)
     {
@@ -193,7 +191,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
+      std::cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }
@@ -261,14 +259,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
-  if( m_distortionMap ) 
+  if( m_distortionMap )
   { m_distortionMap->load_event(event_num); }
 
   // g4hits
   auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
-    cout << "Could not locate g4 hit node " << hitnodename << endl;
+    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
 
@@ -291,10 +289,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     if (Verbosity() > 100)
-      cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
+      std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
            << " eion " << eion << " n_electrons " << n_electrons
            << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
-           << endl;
+           << std::endl;
 
     if (n_electrons == 0)
     {
@@ -303,13 +301,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      cout << endl
+      std::cout << std::endl
            << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
-           << " from " << eion * 1000000 << " keV" << endl;
-      cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
-           << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << endl;
-      cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
-           << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
+           << " from " << eion * 1000000 << " keV" << std::endl;
+      std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
+           << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << std::endl;
+      std::cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
+           << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << std::endl;
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
@@ -323,13 +321,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
-      const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
+      const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - std::abs(z_start));
       const double rantrans =
           gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
-      const double t_path = (tpc_length / 2. - fabs(z_start)) / drift_velocity;
-      const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - fabs(z_start)) / drift_velocity;
+      const double t_path = (tpc_length / 2. - std::abs(z_start)) / drift_velocity;
+      const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - std::abs(z_start)) / drift_velocity;
       const double rantime =
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
@@ -343,11 +341,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         z_final = tpc_length / 2. - t_final * drift_velocity;
 
       const double radstart = std::sqrt(square(x_start) + square(y_start));
-      const double phistart = atan2(y_start, x_start);
+      const double phistart = std::atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
 
-      double x_final = x_start + rantrans * cos(ranphi);  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
-      double y_final = y_start + rantrans * sin(ranphi);
+      double x_final = x_start + rantrans * std::cos(ranphi);  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
+      double y_final = y_start + rantrans * std::sin(ranphi);
 
       double rad_final = sqrt( square(x_final) + square(y_final) );
       double phi_final = atan2(y_final, x_final);
@@ -402,19 +400,19 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() > 1000)
       {
-        cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << endl;
-        cout << "radstart " << radstart << " x_start: " << x_start
+        std::cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << std::endl;
+        std::cout << "radstart " << radstart << " x_start: " << x_start
              << ", y_start: " << y_start
              << ",z_start: " << z_start
              << " t_start " << t_start
              << " t_path " << t_path
              << " t_sigma " << t_sigma
              << " rantime " << rantime
-             << endl;
+             << std::endl;
 
         //if( sqrt(x_start*x_start+y_start*y_start) > 68.0 && sqrt(x_start*x_start+y_start*y_start) < 72.0)
-        cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final
-             << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl;
+        std::cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final
+             << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << std::endl;
       }
 
       if (Verbosity() > 0)
@@ -439,7 +437,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const int sector = TpcDefs::getSectorId(node_hitsetkey);
       const int side = TpcDefs::getSide(node_hitsetkey);
       if (Verbosity() > 100)
-        cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+        std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
 
       // find or add this hitset on the node tree
       TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
@@ -454,9 +452,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         TrkrHit *temp_tpchit = temp_hit_iter->second;
         if (Verbosity() > 100 && layer == print_layer)
         {
-          cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+          std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
                << " z bin " << TpcDefs::getTBin(temp_hitkey)
-               << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << endl;
+               << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
           eg4hit += temp_tpchit->getEnergy();
           ecollectedhits += temp_tpchit->getEnergy();
@@ -488,7 +486,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }  // end loop over temp hits
 
       if (Verbosity() > 100 && layer == print_layer)
-        cout << "  ihit " << ihit << " collected energy = " << eg4hit << endl;
+        std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
 
     }  // end loop over temp hitsets
 
@@ -501,7 +499,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 2)
   {
-    cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << endl;
+    std::cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << std::endl;
     // We want all hitsets for the Tpc
     TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
     for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
@@ -515,7 +513,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
 
-      cout << "PHG4TpcElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+      std::cout << "PHG4TpcElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
 
       // get all of the hits from this hitset
       TrkrHitSet *hitset = hitset_iter->second;
@@ -527,15 +525,15 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         TrkrDefs::hitkey hitkey = hit_iter->first;
         TrkrHit *tpchit = hit_iter->second;
 
-        cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
-             << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+        std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
+             << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << std::endl;
       }
     }
   }
 
   if (Verbosity() > 1000)
   {
-    cout << "From PHG4TpcElectronDrift: hittruthassoc dump:" << endl;
+    std::cout << "From PHG4TpcElectronDrift: hittruthassoc dump:" << std::endl;
     hittruthassoc->identify();
   }
 
@@ -626,11 +624,11 @@ void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion* distortionMap)
 
 void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
-  cout << "Registering padplane " << endl;
+  std::cout << "Registering padplane " << std::endl;
   padplane.reset(inpadplane);
   padplane->Detector(Detector());
   padplane->UpdateInternalParameters();
-  cout << "padplane registered and parameters updated" << endl;
+  std::cout << "padplane registered and parameters updated" << std::endl;
 
   return;
 }
