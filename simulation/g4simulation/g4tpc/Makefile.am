@@ -30,8 +30,7 @@ pkginclude_HEADERS = \
   PHG4TpcDigitizer.h \
   PHG4TpcSubsystem.h \
   PHG4TpcEndCapSubsystem.h \
-  PHG4TpcDistortion.h \
-  PHG4TpcSpaceChargeDistortion.h 
+  PHG4TpcDistortion.h
 
 libg4tpc_la_SOURCES = \
   PHG4TpcDetector.cc \
@@ -43,7 +42,6 @@ libg4tpc_la_SOURCES = \
   PHG4TpcElectronDrift.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
-  PHG4TpcSpaceChargeDistortion.cc \
   PHG4TpcSteppingAction.cc \
   PHG4TpcEndCapSteppingAction.cc \
   PHG4TpcSubsystem.cc \
@@ -53,7 +51,7 @@ libg4tpc_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals 
+  testexternals
 
 BUILT_SOURCES = testexternals.cc
 
