@@ -36,61 +36,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
-  /*
-  class DistortionStruct
-  {
-
-    public:
-    using List = std::vector<DistortionStruct>;
-
-    /// constructor
-    DistortionStruct() = default;
-
-    float _r = 0;
-    float _phi = 0;
-    float _z = 0;
-
-    float _dr = 0;
-    float _dphi = 0;
-    float _dz = 0;
-  };
-
-  /// track container
-  class Container: public PHObject
-  {
-
-    public:
-
-    /// constructor
-    explicit Container() = default;
-
-    /// copy constructor
-    explicit Container(const Container &) = delete;
-
-    /// assignment operator
-    Container& operator = ( const Container& ) = delete;
-
-    /// reset
-    virtual void Reset();
-
-    /// distrotions
-    const DistortionStruct::List& distortions() const
-    { return _distortions; }
-
-    /// add distortion
-    void addDistortion( const DistortionStruct& distortion )
-    { _distortions.push_back( distortion ); }
-
-    private:
-
-    /// event struct
-    DistortionStruct::List _distortions;
-
-    ClassDef(Container,1)
-
-  };
-  */
-
   void SetDefaultParameters();
 
   //! detector name
