@@ -55,9 +55,9 @@ namespace
 }  // namespace
 
 //__________________________________________________________________________________________________________
-void PHG4TpcDistortion::Init(bool do_time_ordered_distortion, bool do_static_distortion)
+void PHG4TpcDistortion::Init()
 {
-  if(do_static_distortion)
+  if(m_do_static_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
     m_static_tfile.reset( new TFile( m_static_distortion_filename.c_str() ) );
@@ -73,7 +73,7 @@ void PHG4TpcDistortion::Init(bool do_time_ordered_distortion, bool do_static_dis
     hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
   }
 
-  if(do_time_ordered_distortion)
+  if(m_do_time_ordered_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_time_ordered_distortion_filename: " << m_time_ordered_distortion_filename << std::endl;
     m_time_ordered_tfile.reset( new TFile( m_time_ordered_distortion_filename.c_str() ) );

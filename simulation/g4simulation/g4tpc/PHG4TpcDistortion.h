@@ -49,16 +49,24 @@ class PHG4TpcDistortion
   //!@name modifiers
   //@{
 
+  //! enable static distortions
+  void set_do_static_distortions( bool value )
+  { m_do_static_distortions = value; }
+
   //! static distortion filename
   void set_static_distortion_filename( const std::string& value )
   { m_static_distortion_filename = value; }
+
+  //! enable time ordered distortions
+  void set_do_time_ordered_distortions( bool value )
+  { m_do_time_ordered_distortions = value; }
 
   //! time ordered distortion filename
   void set_time_ordered_distortion_filename( const std::string& value )
   { m_time_ordered_distortion_filename = value; }
 
   //! initialize
-  void Init( bool do_time_ordered_distortion, bool do_static_distortion );
+  void Init();
 
   //! get relevant histogram from time ordered TTrees
   void load_event(int event_num);
@@ -76,7 +84,8 @@ class PHG4TpcDistortion
 
   //!@name static histograms
   //@{
-  std::string m_static_distortion_filename = "$CALIBRATIONROOT/TPC/DistortionMaps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root";
+  bool m_do_static_distortions = false;
+  std::string m_static_distortion_filename;
   std::unique_ptr<TFile> m_static_tfile;
   TH3 *hDXint = nullptr;
   TH3 *hDYint = nullptr;
@@ -85,7 +94,8 @@ class PHG4TpcDistortion
 
   //!@name time ordered histograms
   //@{
-  std::string m_time_ordered_distortion_filename = "/gpfs/mnt/gpfs02/sphenix/user/klest/TimeOrderedDistortions.root";
+  bool m_do_time_ordered_distortions = false;
+  std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
   TTree *TimeTree = nullptr;
   TH3 *TimehDX = nullptr;
