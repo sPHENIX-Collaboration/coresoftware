@@ -29,16 +29,13 @@ class PHG4TpcDistortion
   ~PHG4TpcDistortion() = default;
 
   //! x distortion for a given truth location of the primary ionization
-  double get_x_distortion(double x, double y, double z)
-  { return get_distortion(hDXint, TimehDX, x, y, z ); }
+  double get_x_distortion(double x, double y, double z);
 
   //! y distortion for a given truth location of the primary ionization
-  double get_y_distortion(double x, double y, double z)
-  { return get_distortion(hDYint, TimehDY, x, y, z ); }
+  double get_y_distortion(double x, double y, double z);
 
   //! z distortion for a given truth location of the primary ionization
-  double get_z_distortion(double x, double y, double z)
-  { return get_distortion(hDZint, TimehDZ, x, y, z ); }
+  double get_z_distortion(double x, double y, double z);
 
   //! get relevant histogram from time ordered TTrees
   void load_event(int event_num);
@@ -52,8 +49,6 @@ class PHG4TpcDistortion
   { return verbosity; }
 
   private:
-
-  static double get_distortion( TH3* hstatic, TH3* htimeOrdered, double x, double y, double z );
 
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;

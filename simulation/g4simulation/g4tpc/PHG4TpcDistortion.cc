@@ -25,12 +25,38 @@ namespace
   {
     return x * x;
   }
+
+  //__________________________________________________________________________________
+  double get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z)
+  {
+
+    double phi = std::atan2(y,x);
+    if( phi < 0 ) phi += 2*M_PI;
+    const double r = std::sqrt(square(x) + square(y));
+
+    double x_distortion = 0;
+    if( hstatic )
+    {
+      // if z = -50 is in the underflow bin, map is only one-sided.
+      const auto zmap = ( hstatic->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
+      x_distortion += hstatic->Interpolate( phi, r, zmap);
+    }
+
+    if( htimeOrdered )
+    {
+      // if z = -50 is in the underflow bin, map is only one-sided.
+      const auto zmap = ( htimeOrdered->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
+      x_distortion += htimeOrdered->Interpolate( phi, r, zmap);
+    }
+
+    return x_distortion;
+  }
+
 }  // namespace
 
 //__________________________________________________________________________________________________________
 PHG4TpcDistortion::PHG4TpcDistortion(bool do_time_ordered_distortion, bool do_static_distortion)
 {
-
   if(do_static_distortion)
   {
     const TString filename( "$CALIBRATIONROOT/TPC/DistortionMaps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root");
@@ -91,27 +117,13 @@ void PHG4TpcDistortion::load_event(int event_num)
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z)
-{
+double PHG4TpcDistortion::get_x_distortion(double x, double y, double z)
+{ return get_distortion(hDXint, TimehDX, x, y, z ); }
 
-  double phi = std::atan2(y,x);
-  if( phi < 0 ) phi += 2*M_PI;
-  const double r = std::sqrt(square(x) + square(y));
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_y_distortion(double x, double y, double z)
+{ return get_distortion(hDYint, TimehDY, x, y, z ); }
 
-  double x_distortion = 0;
-  if( hstatic )
-  {
-    // if z = -50 is in the underflow bin, map is only one-sided.
-    const auto zmap = ( hstatic->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
-    x_distortion += hstatic->Interpolate( phi, r, zmap);
-  }
-
-  if( htimeOrdered )
-  {
-    // if z = -50 is in the underflow bin, map is only one-sided.
-    const auto zmap = ( htimeOrdered->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
-    x_distortion += htimeOrdered->Interpolate( phi, r, zmap);
-  }
-
-  return x_distortion;
-}
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_z_distortion(double x, double y, double z)
+{ return get_distortion(hDZint, TimehDZ, x, y, z ); }
