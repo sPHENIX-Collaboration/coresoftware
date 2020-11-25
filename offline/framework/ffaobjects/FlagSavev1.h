@@ -13,10 +13,9 @@ class PHFlag;
 class PHObject;
 
 ///
-class FlagSavev1: public FlagSave
+class FlagSavev1 : public FlagSave
 {
  public:
-
   /// ctor
   FlagSavev1() = default;
   /// dtor
@@ -25,16 +24,16 @@ class FlagSavev1: public FlagSave
   PHObject *CloneMe() const override;
 
   ///  Clear Event
-  void Reset()  override {}
+  void Reset() override {}
   int isValid() const override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
-  int  FillFromPHFlag(const PHFlag *flags) override;
-  int  PutFlagsBack(PHFlag *flags) override;
+  int FillFromPHFlag(const PHFlag *flags) override;
+  int PutFlagsBack(PHFlag *flags) override;
 
  private:
   int FillIntFromPHFlag(const PHFlag *flags);
@@ -47,10 +46,10 @@ class FlagSavev1: public FlagSave
   int PutFloatToPHFlag(PHFlag *flags);
   int PutCharToPHFlag(PHFlag *flags);
 
-  void PrintIntFlag(std::ostream& os) const;
-  void PrintDoubleFlag(std::ostream& os) const;
-  void PrintFloatFlag(std::ostream& os) const ;
-  void PrintStringFlag(std::ostream& os) const;
+  void PrintIntFlag(std::ostream &os) const;
+  void PrintDoubleFlag(std::ostream &os) const;
+  void PrintFloatFlag(std::ostream &os) const;
+  void PrintStringFlag(std::ostream &os) const;
 
   std::map<std::string, int> intflag;
   std::map<std::string, double> doubleflag;
@@ -64,7 +63,7 @@ class FlagSavev1: public FlagSave
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 #endif
-  ClassDef(FlagSavev1,1)
+  ClassDef(FlagSavev1, 1)
 #pragma GCC diagnostic pop
 };
 

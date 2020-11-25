@@ -11,13 +11,13 @@ using namespace std;
 void SyncObject::Reset()
 {
   cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
-  return ;
+  return;
 }
 
 void SyncObject::identify(ostream& os) const
 {
   os << "identify yourself: virtual SyncObject Object" << endl;
-  return ;
+  return;
 }
 
 int SyncObject::isValid() const
@@ -36,26 +36,26 @@ SyncObject::CloneMe() const
 SyncObject&
 SyncObject::operator=(const SyncObject& source)
 {
-  if ( this != &source )
-    {
-      EventCounter(source.EventCounter());
-      EventNumber(source.EventNumber());
-      RunNumber(source.RunNumber());
-      SegmentNumber(source.SegmentNumber());
-    }
+  if (this != &source)
+  {
+    EventCounter(source.EventCounter());
+    EventNumber(source.EventNumber());
+    RunNumber(source.RunNumber());
+    SegmentNumber(source.SegmentNumber());
+  }
   return *this;
 }
 
-int SyncObject::Different(const SyncObject *other) const
+int SyncObject::Different(const SyncObject* other) const
 {
   int iret = 0;
   if (EventNumber() != other->EventNumber())
-    {
-      iret += 0x1;
-    }
+  {
+    iret += 0x1;
+  }
   if (RunNumber() != other->RunNumber())
-    {
-      iret |= 0x2;
-    }
+  {
+    iret |= 0x2;
+  }
   return iret;
 }

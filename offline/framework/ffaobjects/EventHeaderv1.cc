@@ -13,20 +13,20 @@ void EventHeaderv1::Reset()
   return;
 }
 
-void EventHeaderv1::identify(ostream& out) const
+void EventHeaderv1::identify(ostream &out) const
 {
   out << "identify yourself: I am an EventHeaderv1 Object" << endl;
-  out << "Run Number: " << RunNumber 
-      << ", Event no: " << EvtSequence 
+  out << "Run Number: " << RunNumber
+      << ", Event no: " << EvtSequence
       << endl;
   auto iter = m_IntEventProperties.begin();
-  while(iter !=  m_IntEventProperties.end())
+  while (iter != m_IntEventProperties.end())
   {
     out << iter->first << ": " << iter->second << endl;
     ++iter;
   }
   auto iterf = m_FloatEventProperties.begin();
-  while(iterf !=  m_FloatEventProperties.end())
+  while (iterf != m_FloatEventProperties.end())
   {
     out << iterf->first << ": " << iterf->second << endl;
     ++iterf;
@@ -36,7 +36,7 @@ void EventHeaderv1::identify(ostream& out) const
 
 int EventHeaderv1::isValid() const
 {
-  return((RunNumber) ? 1:0); // return 1 if runnumber is not zero
+  return ((RunNumber) ? 1 : 0);  // return 1 if runnumber is not zero
 }
 
 void EventHeaderv1::set_floatval(const std::string &name, const float fval)

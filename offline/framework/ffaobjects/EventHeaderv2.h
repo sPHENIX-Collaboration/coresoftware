@@ -10,18 +10,17 @@
 
 #include "EventHeaderv1.h"
 
-#include <ctime>         // for time_t
-#include <iostream>       // for cout, ostream
+#include <ctime>     // for time_t
+#include <iostream>  // for cout, ostream
 #include <map>
 #include <string>
 
 class PHObject;
 
 //! simple event header with ID and time
-class EventHeaderv2: public EventHeaderv1
+class EventHeaderv2 : public EventHeaderv1
 {
  public:
-
   //! ctor
   EventHeaderv2() = default;
 
@@ -29,8 +28,10 @@ class EventHeaderv2: public EventHeaderv1
   virtual ~EventHeaderv2() = default;
 
   //! clone
-  PHObject *CloneMe() const  override
-  { return new EventHeaderv2(*this); }
+  PHObject* CloneMe() const override
+  {
+    return new EventHeaderv2(*this);
+  }
 
   ///  Clear Event
   void Reset() override;
@@ -42,15 +43,18 @@ class EventHeaderv2: public EventHeaderv1
   virtual void identify(std::ostream& os = std::cout) const override;
 
   //! bunch crossing
-  void set_BunchCrossing( int64_t value )  override
-  { m_bunchCrossing = value; }
-  
+  void set_BunchCrossing(int64_t value) override
+  {
+    m_bunchCrossing = value;
+  }
+
   //! bunch crossing
   int64_t get_BunchCrossing() const override
-  { return m_bunchCrossing; }
-  
-  private: 
+  {
+    return m_bunchCrossing;
+  }
 
+ private:
   //! bunch crossing id
   int64_t m_bunchCrossing = 0;
 // rootcling and clang complain about inconsistent overrides in the ClassDef
@@ -60,7 +64,7 @@ class EventHeaderv2: public EventHeaderv1
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 #endif
-  ClassDef(EventHeaderv2,2)
+  ClassDef(EventHeaderv2, 2)
 #pragma GCC diagnostic pop
 };
 
