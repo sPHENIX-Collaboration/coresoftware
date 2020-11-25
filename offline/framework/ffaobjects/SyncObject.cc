@@ -6,30 +6,28 @@
 
 class PHObject;
 
-using namespace std;
-
 void SyncObject::Reset()
 {
-  cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
   return;
 }
 
-void SyncObject::identify(ostream& os) const
+void SyncObject::identify(std::ostream& os) const
 {
-  os << "identify yourself: virtual SyncObject Object" << endl;
+  os << "identify yourself: virtual SyncObject Object" << std::endl;
   return;
 }
 
 int SyncObject::isValid() const
 {
-  cout << PHWHERE << "isValid not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
   return 0;
 }
 
 PHObject*
 SyncObject::CloneMe() const
 {
-  cout << "SyncObject::CloneMe() not implemented by daughter class" << endl;
+  std::cout << "SyncObject::CloneMe() not implemented by daughter class" << std::endl;
   return nullptr;
 }
 

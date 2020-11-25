@@ -6,8 +6,6 @@
 
 class PHObject;
 
-using namespace std;
-
 PHObject *
 FlagSavev1::CloneMe() const
 {
@@ -33,9 +31,9 @@ int FlagSavev1::isValid() const
   return 1;
 }
 
-void FlagSavev1::identify(ostream &out) const
+void FlagSavev1::identify(std::ostream &out) const
 {
-  out << "identify yourself: I am an FlagSavev1 Object" << endl;
+  out << "identify yourself: I am an FlagSavev1 Object" << std::endl;
   PrintIntFlag(out);
   PrintDoubleFlag(out);
   PrintFloatFlag(out);
@@ -63,8 +61,8 @@ int FlagSavev1::PutFlagsBack(PHFlag *flags)
 
 int FlagSavev1::FillIntFromPHFlag(const PHFlag *flags)
 {
-  map<string, int>::const_iterator iter;
-  const map<string, int> *intm = flags->IntMap();
+  std::map<std::string, int>::const_iterator iter;
+  const std::map<std::string, int> *intm = flags->IntMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     intflag[iter->first] = iter->second;
@@ -74,8 +72,8 @@ int FlagSavev1::FillIntFromPHFlag(const PHFlag *flags)
 
 int FlagSavev1::FillDoubleFromPHFlag(const PHFlag *flags)
 {
-  map<string, double>::const_iterator iter;
-  const map<string, double> *intm = flags->DoubleMap();
+  std::map<std::string, double>::const_iterator iter;
+  const std::map<std::string, double> *intm = flags->DoubleMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     doubleflag[iter->first] = iter->second;
@@ -85,8 +83,8 @@ int FlagSavev1::FillDoubleFromPHFlag(const PHFlag *flags)
 
 int FlagSavev1::FillFloatFromPHFlag(const PHFlag *flags)
 {
-  map<string, float>::const_iterator iter;
-  const map<string, float> *intm = flags->FloatMap();
+  std::map<std::string, float>::const_iterator iter;
+  const std::map<std::string, float> *intm = flags->FloatMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     floatflag[iter->first] = iter->second;
@@ -96,11 +94,11 @@ int FlagSavev1::FillFloatFromPHFlag(const PHFlag *flags)
 
 int FlagSavev1::FillCharFromPHFlag(const PHFlag *flags)
 {
-  map<string, string>::const_iterator iter;
-  const map<string, string> *intm = flags->CharMap();
+  std::map<std::string, std::string>::const_iterator iter;
+  const std::map<std::string, std::string> *intm = flags->CharMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
-    string input(iter->second);
+    std::string input(iter->second);
     stringflag[iter->first] = input;
   }
   return 0;
@@ -108,7 +106,7 @@ int FlagSavev1::FillCharFromPHFlag(const PHFlag *flags)
 
 int FlagSavev1::PutIntToPHFlag(PHFlag *flags)
 {
-  map<string, int>::const_iterator iter;
+  std::map<std::string, int>::const_iterator iter;
   for (iter = intflag.begin(); iter != intflag.end(); ++iter)
   {
     flags->set_IntFlag(iter->first, iter->second);
@@ -118,7 +116,7 @@ int FlagSavev1::PutIntToPHFlag(PHFlag *flags)
 
 int FlagSavev1::PutDoubleToPHFlag(PHFlag *flags)
 {
-  map<string, double>::const_iterator iter;
+  std::map<std::string, double>::const_iterator iter;
   for (iter = doubleflag.begin(); iter != doubleflag.end(); ++iter)
   {
     flags->set_DoubleFlag(iter->first, iter->second);
@@ -128,7 +126,7 @@ int FlagSavev1::PutDoubleToPHFlag(PHFlag *flags)
 
 int FlagSavev1::PutFloatToPHFlag(PHFlag *flags)
 {
-  map<string, float>::const_iterator iter;
+  std::map<std::string, float>::const_iterator iter;
   for (iter = floatflag.begin(); iter != floatflag.end(); ++iter)
   {
     flags->set_FloatFlag(iter->first, iter->second);
@@ -138,7 +136,7 @@ int FlagSavev1::PutFloatToPHFlag(PHFlag *flags)
 
 int FlagSavev1::PutCharToPHFlag(PHFlag *flags)
 {
-  map<string, string>::const_iterator iter;
+  std::map<std::string, std::string>::const_iterator iter;
   for (iter = stringflag.begin(); iter != stringflag.end(); ++iter)
   {
     flags->set_CharFlag(iter->first, iter->second);
@@ -152,11 +150,11 @@ void FlagSavev1::PrintIntFlag(std::ostream &os) const
   {
     return;
   }
-  map<string, int>::const_iterator iter;
-  os << "Int Flags: " << endl;
+  std::map<std::string, int>::const_iterator iter;
+  os << "Int Flags: " << std::endl;
   for (iter = intflag.begin(); iter != intflag.end(); ++iter)
   {
-    os << iter->first << ": " << iter->second << endl;
+    os << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
@@ -167,11 +165,11 @@ void FlagSavev1::PrintDoubleFlag(std::ostream &os) const
   {
     return;
   }
-  map<string, double>::const_iterator iter;
-  os << "Double Flags: " << endl;
+  std::map<std::string, double>::const_iterator iter;
+  os << "Double Flags: " << std::endl;
   for (iter = doubleflag.begin(); iter != doubleflag.end(); ++iter)
   {
-    os << iter->first << ": " << iter->second << endl;
+    os << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
@@ -182,11 +180,11 @@ void FlagSavev1::PrintFloatFlag(std::ostream &os) const
   {
     return;
   }
-  map<string, float>::const_iterator iter;
-  os << "Float Flags: " << endl;
+  std::map<std::string, float>::const_iterator iter;
+  os << "Float Flags: " << std::endl;
   for (iter = floatflag.begin(); iter != floatflag.end(); ++iter)
   {
-    os << iter->first << ": " << iter->second << endl;
+    os << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
@@ -197,11 +195,11 @@ void FlagSavev1::PrintStringFlag(std::ostream &os) const
   {
     return;
   }
-  map<string, string>::const_iterator iter;
-  os << "String Flags: " << endl;
+  std::map<std::string, std::string>::const_iterator iter;
+  os << "String Flags: " << std::endl;
   for (iter = stringflag.begin(); iter != stringflag.end(); ++iter)
   {
-    os << iter->first << ": " << iter->second << endl;
+    os << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }

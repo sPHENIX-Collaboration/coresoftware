@@ -6,32 +6,30 @@
 
 class PHObject;
 
-using namespace std;
-
 static int nowarning = 0;
 
 PHObject*
 RunHeader::CloneMe() const
 {
-  cout << "RunHeader::CloneMe() is not implemented in daugther class" << endl;
+  std::cout << "RunHeader::CloneMe() is not implemented in daugther class" << std::endl;
   return nullptr;
 }
 
 void RunHeader::Reset()
 {
-  cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
   return;
 }
 
-void RunHeader::identify(ostream& os) const
+void RunHeader::identify(std::ostream& os) const
 {
-  os << "identify yourself: virtual RunHeader Object" << endl;
+  os << "identify yourself: virtual RunHeader Object" << std::endl;
   return;
 }
 
 int RunHeader::isValid() const
 {
-  cout << PHWHERE << "isValid not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
   return 0;
 }
 
@@ -52,12 +50,12 @@ void RunHeader::NoWarning(const int i)
 {
   if (i > 0)
   {
-    cout << "RunHeader: switching virtual warnings OFF" << endl;
+    std::cout << "RunHeader: switching virtual warnings OFF" << std::endl;
     nowarning = i;
   }
   else
   {
-    cout << "RunHeader: switching virtual warnings ON" << endl;
+    std::cout << "RunHeader: switching virtual warnings ON" << std::endl;
     nowarning = 0;
   }
   return;
@@ -67,7 +65,7 @@ void RunHeader::warning(const std::string& funcname) const
 {
   if (!nowarning)
   {
-    cout << "Using virtual function RunHeader::" << funcname << endl;
+    std::cout << "Using virtual function RunHeader::" << funcname << std::endl;
   }
   return;
 }

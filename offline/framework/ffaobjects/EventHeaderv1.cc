@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 void EventHeaderv1::Reset()
 {
   RunNumber = 0;
@@ -13,22 +11,22 @@ void EventHeaderv1::Reset()
   return;
 }
 
-void EventHeaderv1::identify(ostream &out) const
+void EventHeaderv1::identify(std::ostream &out) const
 {
-  out << "identify yourself: I am an EventHeaderv1 Object" << endl;
+  out << "identify yourself: I am an EventHeaderv1 Object" << std::endl;
   out << "Run Number: " << RunNumber
       << ", Event no: " << EvtSequence
-      << endl;
+      << std::endl;
   auto iter = m_IntEventProperties.begin();
   while (iter != m_IntEventProperties.end())
   {
-    out << iter->first << ": " << iter->second << endl;
+    out << iter->first << ": " << iter->second << std::endl;
     ++iter;
   }
   auto iterf = m_FloatEventProperties.begin();
   while (iterf != m_FloatEventProperties.end())
   {
-    out << iterf->first << ": " << iterf->second << endl;
+    out << iterf->first << ": " << iterf->second << std::endl;
     ++iterf;
   }
   return;
