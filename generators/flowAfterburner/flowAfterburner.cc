@@ -31,6 +31,7 @@
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
+#include <cstdlib>  // for exit
 #include <iostream>
 #include <map>  // for map
 
@@ -297,7 +298,7 @@ int flowAfterburner(HepMC::GenEvent *event,
 {
   algorithm = algorithms[algorithmName];
   HepMC::HeavyIon *hi = event->heavy_ion();
-  if (! hi)
+  if (!hi)
   {
     std::cout << PHWHERE << ": Flow Afterburner needs the Heavy Ion Event Info, GenEvent::heavy_ion() returns NULL" << std::endl;
     exit(1);
