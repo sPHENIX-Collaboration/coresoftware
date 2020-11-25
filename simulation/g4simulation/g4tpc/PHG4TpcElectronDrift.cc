@@ -371,6 +371,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         x_final += x_distortion;
         y_final += y_distortion;
 
+        // TODO: should check again against TPC acceptance
+        z_final += z_distortion;
+
         // re-calculate rad and phi final, including distortions
         rad_final = sqrt( square(x_final) + square(y_final) );
         phi_final = atan2(y_final, x_final);
