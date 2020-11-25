@@ -31,13 +31,13 @@ class PHG4TpcDistortion
   //@{
 
   //! x distortion for a given truth location of the primary ionization
-  double get_x_distortion(double x, double y, double z);
+  double get_x_distortion(double x, double y, double z) const;
 
   //! y distortion for a given truth location of the primary ionization
-  double get_y_distortion(double x, double y, double z);
+  double get_y_distortion(double x, double y, double z) const;
 
   //! z distortion for a given truth location of the primary ionization
-  double get_z_distortion(double x, double y, double z);
+  double get_z_distortion(double x, double y, double z) const;
 
   //! Gets the verbosity of this module.
   int Verbosity() const
@@ -89,12 +89,17 @@ class PHG4TpcDistortion
   //@}
 
  private:
+
+  //! get distortion for a set of histogram and an input momentum distribution
+  double get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z) const;
+
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;
 
   //!@name static histograms
   //@{
   bool m_do_static_distortions = false;
+  bool m_static_map_onesided = false;
   std::string m_static_distortion_filename;
   std::unique_ptr<TFile> m_static_tfile;
   TH3 *hDXint = nullptr;
@@ -105,6 +110,7 @@ class PHG4TpcDistortion
   //!@name time ordered histograms
   //@{
   bool m_do_time_ordered_distortions = false;
+  bool m_time_ordered_map_onesided = false;
   std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
   TTree *TimeTree = nullptr;

@@ -26,31 +26,6 @@ namespace
     return x * x;
   }
 
-  //__________________________________________________________________________________
-  double get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z)
-  {
-    double phi = std::atan2(y, x);
-    if (phi < 0) phi += 2 * M_PI;
-    const double r = std::sqrt(square(x) + square(y));
-
-    double x_distortion = 0;
-    if (hstatic)
-    {
-      // if z = -50 is in the underflow bin, map is only one-sided.
-      const auto zmap = (hstatic->GetZaxis()->FindBin(-50) == 0) ? std::abs(z) : z;
-      x_distortion += hstatic->Interpolate(phi, r, zmap);
-    }
-
-    if (htimeOrdered)
-    {
-      // if z = -50 is in the underflow bin, map is only one-sided.
-      const auto zmap = (htimeOrdered->GetZaxis()->FindBin(-50) == 0) ? std::abs(z) : z;
-      x_distortion += htimeOrdered->Interpolate(phi, r, zmap);
-    }
-
-    return x_distortion;
-  }
-
 }  // namespace
 
 //__________________________________________________________________________________________________________
@@ -70,6 +45,9 @@ void PHG4TpcDistortion::Init()
     hDXint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionX"));
     hDYint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionY"));
     hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
+
+    // if z = -50 is in the underflow bin, map is only one-sided.
+    m_static_map_onesided = (hDXint->GetZaxis()->FindBin(-50) == 0);
   }
 
   if (m_do_time_ordered_distortions)
@@ -106,25 +84,52 @@ void PHG4TpcDistortion::load_event(int event_num)
       std::cout << "Distortion map sequence repeating as of event number " << event_num << std::endl;
     }
     TimeTree->GetEntry(event_num);
+
+    // if z = -50 is in the underflow bin, map is only one-sided.
+    m_time_ordered_map_onesided = (TimehDX->GetZaxis()->FindBin(-50) == 0);
   }
 
   return;
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_x_distortion(double x, double y, double z)
+double PHG4TpcDistortion::get_x_distortion(double x, double y, double z) const
 {
   return get_distortion(hDXint, TimehDX, x, y, z);
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_y_distortion(double x, double y, double z)
+double PHG4TpcDistortion::get_y_distortion(double x, double y, double z) const
 {
   return get_distortion(hDYint, TimehDY, x, y, z);
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_z_distortion(double x, double y, double z)
+double PHG4TpcDistortion::get_z_distortion(double x, double y, double z) const
 {
   return get_distortion(hDZint, TimehDZ, x, y, z);
+}
+
+
+//__________________________________________________________________________________
+double PHG4TpcDistortion::get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z) const
+{
+  double phi = std::atan2(y, x);
+  if (phi < 0) phi += 2 * M_PI;
+  const double r = std::sqrt(square(x) + square(y));
+
+  double x_distortion = 0;
+  if (hstatic)
+  {
+    const auto zmap = m_static_map_onesided ? std::abs(z) : z;
+    x_distortion += hstatic->Interpolate(phi, r, zmap);
+  }
+
+  if (htimeOrdered)
+  {
+    const auto zmap = m_time_ordered_map_onesided ? std::abs(z) : z;
+    x_distortion += htimeOrdered->Interpolate(phi, r, zmap);
+  }
+
+  return x_distortion;
 }
