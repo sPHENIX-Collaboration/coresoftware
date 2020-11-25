@@ -14,14 +14,14 @@
 #include <TH3.h>
 #include <TTree.h>
 
-#include <cmath>                                       // for sqrt, fabs, NAN
-#include <cstdlib>                                     // for exit
+#include <cmath>    // for sqrt, fabs, NAN
+#include <cstdlib>  // for exit
 #include <iostream>
 
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  inline constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -29,24 +29,23 @@ namespace
   //__________________________________________________________________________________
   double get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z)
   {
-
-    double phi = std::atan2(y,x);
-    if( phi < 0 ) phi += 2*M_PI;
+    double phi = std::atan2(y, x);
+    if (phi < 0) phi += 2 * M_PI;
     const double r = std::sqrt(square(x) + square(y));
 
     double x_distortion = 0;
-    if( hstatic )
+    if (hstatic)
     {
       // if z = -50 is in the underflow bin, map is only one-sided.
-      const auto zmap = ( hstatic->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
-      x_distortion += hstatic->Interpolate( phi, r, zmap);
+      const auto zmap = (hstatic->GetZaxis()->FindBin(-50) == 0) ? std::abs(z) : z;
+      x_distortion += hstatic->Interpolate(phi, r, zmap);
     }
 
-    if( htimeOrdered )
+    if (htimeOrdered)
     {
       // if z = -50 is in the underflow bin, map is only one-sided.
-      const auto zmap = ( htimeOrdered->GetZaxis()->FindBin(-50) == 0) ? std::abs(z):z;
-      x_distortion += htimeOrdered->Interpolate( phi, r, zmap);
+      const auto zmap = (htimeOrdered->GetZaxis()->FindBin(-50) == 0) ? std::abs(z) : z;
+      x_distortion += htimeOrdered->Interpolate(phi, r, zmap);
     }
 
     return x_distortion;
@@ -57,11 +56,11 @@ namespace
 //__________________________________________________________________________________________________________
 void PHG4TpcDistortion::Init()
 {
-  if(m_do_static_distortions)
+  if (m_do_static_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
-    m_static_tfile.reset( new TFile( m_static_distortion_filename.c_str() ) );
-    if( !m_static_tfile->IsOpen() )
+    m_static_tfile.reset(new TFile(m_static_distortion_filename.c_str()));
+    if (!m_static_tfile->IsOpen())
     {
       std::cout << "Static distortion file could not be opened!" << std::endl;
       exit(1);
@@ -73,11 +72,11 @@ void PHG4TpcDistortion::Init()
     hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
   }
 
-  if(m_do_time_ordered_distortions)
+  if (m_do_time_ordered_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_time_ordered_distortion_filename: " << m_time_ordered_distortion_filename << std::endl;
-    m_time_ordered_tfile.reset( new TFile( m_time_ordered_distortion_filename.c_str() ) );
-    if( !m_time_ordered_tfile->IsOpen() )
+    m_time_ordered_tfile.reset(new TFile(m_time_ordered_distortion_filename.c_str()));
+    if (!m_time_ordered_tfile->IsOpen())
     {
       std::cout << "TimeOrdered distortion file could not be opened!" << std::endl;
       exit(1);
@@ -88,25 +87,23 @@ void PHG4TpcDistortion::Init()
     TimehDY = new TH3F();
     TimehDZ = new TH3F();
 
-    TimeTree = static_cast<TTree*>( m_time_ordered_tfile->Get("TimeDists") );
-    TimeTree->SetBranchAddress("hIntDistortionX",&TimehDX);
-    TimeTree->SetBranchAddress("hIntDistortionY",&TimehDY);
-    TimeTree->SetBranchAddress("hIntDistortionZ",&TimehDZ);
+    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    TimeTree->SetBranchAddress("hIntDistortionX", &TimehDX);
+    TimeTree->SetBranchAddress("hIntDistortionY", &TimehDY);
+    TimeTree->SetBranchAddress("hIntDistortionZ", &TimehDZ);
   }
-
 }
 
 //__________________________________________________________________________________________________________
 void PHG4TpcDistortion::load_event(int event_num)
 {
-
-  if( TimeTree )
+  if (TimeTree)
   {
     int nentries = TimeTree->GetEntries();
-    if(event_num > nentries) event_num = event_num % nentries;
-    if(event_num%nentries == 0 && event_num != 0)
+    if (event_num > nentries) event_num = event_num % nentries;
+    if (event_num % nentries == 0 && event_num != 0)
     {
-      std::cout << "Distortion map sequence repeating as of event number " << event_num  << std::endl;
+      std::cout << "Distortion map sequence repeating as of event number " << event_num << std::endl;
     }
     TimeTree->GetEntry(event_num);
   }
@@ -116,12 +113,18 @@ void PHG4TpcDistortion::load_event(int event_num)
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_x_distortion(double x, double y, double z)
-{ return get_distortion(hDXint, TimehDX, x, y, z ); }
+{
+  return get_distortion(hDXint, TimehDX, x, y, z);
+}
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_y_distortion(double x, double y, double z)
-{ return get_distortion(hDYint, TimehDY, x, y, z ); }
+{
+  return get_distortion(hDYint, TimehDY, x, y, z);
+}
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_z_distortion(double x, double y, double z)
-{ return get_distortion(hDZint, TimehDZ, x, y, z ); }
+{
+  return get_distortion(hDZint, TimehDZ, x, y, z);
+}

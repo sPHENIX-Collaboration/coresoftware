@@ -20,8 +20,7 @@ class TTree;
 //! handle distortions (static and time-ordered)
 class PHG4TpcDistortion
 {
-  public:
-
+ public:
   //! constructor
   explicit PHG4TpcDistortion() = default;
 
@@ -42,7 +41,9 @@ class PHG4TpcDistortion
 
   //! Gets the verbosity of this module.
   int Verbosity() const
-  { return verbosity; }
+  {
+    return verbosity;
+  }
 
   //@}
 
@@ -50,20 +51,28 @@ class PHG4TpcDistortion
   //@{
 
   //! enable static distortions
-  void set_do_static_distortions( bool value )
-  { m_do_static_distortions = value; }
+  void set_do_static_distortions(bool value)
+  {
+    m_do_static_distortions = value;
+  }
 
   //! static distortion filename
-  void set_static_distortion_filename( const std::string& value )
-  { m_static_distortion_filename = value; }
+  void set_static_distortion_filename(const std::string &value)
+  {
+    m_static_distortion_filename = value;
+  }
 
   //! enable time ordered distortions
-  void set_do_time_ordered_distortions( bool value )
-  { m_do_time_ordered_distortions = value; }
+  void set_do_time_ordered_distortions(bool value)
+  {
+    m_do_time_ordered_distortions = value;
+  }
 
   //! time ordered distortion filename
-  void set_time_ordered_distortion_filename( const std::string& value )
-  { m_time_ordered_distortion_filename = value; }
+  void set_time_ordered_distortion_filename(const std::string &value)
+  {
+    m_time_ordered_distortion_filename = value;
+  }
 
   //! initialize
   void Init();
@@ -73,12 +82,13 @@ class PHG4TpcDistortion
 
   //! Sets the verbosity of this module (0 by default=quiet).
   virtual void Verbosity(const int ival)
-  { verbosity = ival; }
+  {
+    verbosity = ival;
+  }
 
   //@}
 
-  private:
-
+ private:
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;
 
@@ -102,8 +112,6 @@ class PHG4TpcDistortion
   TH3 *TimehDY = nullptr;
   TH3 *TimehDZ = nullptr;
   //@}
-
-
 };
 
 #endif /* G4TPC_PHG4TPCDISTORTION_H */

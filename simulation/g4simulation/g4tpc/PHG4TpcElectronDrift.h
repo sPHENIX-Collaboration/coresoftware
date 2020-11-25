@@ -7,12 +7,12 @@
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <phparameter/PHParameterInterface.h>
 #include <cmath>
 #include <memory>
-#include <phparameter/PHParameterInterface.h>
 
 #include <gsl/gsl_rng.h>
-#include <string>                              // for string
+#include <string>  // for string
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
@@ -31,32 +31,35 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift() = default;
-  virtual int Init(PHCompositeNode*);
-  virtual int InitRun(PHCompositeNode*);
-  virtual int process_event(PHCompositeNode*);
-  virtual int End(PHCompositeNode*);
+  virtual int Init(PHCompositeNode *);
+  virtual int InitRun(PHCompositeNode *);
+  virtual int process_event(PHCompositeNode *);
+  virtual int End(PHCompositeNode *);
 
   void SetDefaultParameters();
 
   //! detector name
   void Detector(const std::string &d)
-  { detector = d; }
+  {
+    detector = d;
+  }
 
   //! detector name
   std::string Detector() const
-  { return detector; }
+  {
+    return detector;
+  }
 
   //! random seed
   void set_seed(const unsigned int iseed);
 
   //! setup TPC distortion
-  void setTpcDistortion(PHG4TpcDistortion*);
+  void setTpcDistortion(PHG4TpcDistortion *);
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
@@ -110,12 +113,11 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //! rng de-allocator
   class Deleter
   {
-    public:
+   public:
     //! deletion operator
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+    void operator()(gsl_rng *rng) const { gsl_rng_free(rng); }
   };
   std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
-
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H
