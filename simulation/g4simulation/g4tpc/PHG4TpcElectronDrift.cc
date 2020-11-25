@@ -261,7 +261,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
-  m_distortionMap->load_event(event_num);
+  if( m_distortionMap ) 
+  { m_distortionMap->load_event(event_num); }
 
   // g4hits
   auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
