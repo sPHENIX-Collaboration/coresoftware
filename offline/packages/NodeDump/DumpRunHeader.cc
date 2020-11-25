@@ -35,8 +35,6 @@ int DumpRunHeader::process_Node(PHNode *myNode)
     if (runheader->isValid())
     {
       *fout << "get_RunNumber(): " << runheader->get_RunNumber() << endl;
-      *fout << "get_TimeStart(): " << (int) runheader->get_TimeStart() << endl;
-      *fout << "get_TimeStop(): " << (int) runheader->get_TimeStop() << endl;
       node_written = 1;
     }
   }
