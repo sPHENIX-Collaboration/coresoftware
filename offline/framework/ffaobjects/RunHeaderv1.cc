@@ -1,28 +1,19 @@
 #include "RunHeaderv1.h"
 
-using namespace std;
-
-void RunHeaderv1::Reset()
+void RunHeaderv1::identify(std::ostream &out) const
 {
-  // we don't want to reset the run header for each event
-  // so just return here
-  return;
-}
-
-void RunHeaderv1::identify(ostream &out) const
-{
-  out << "identify yourself: I am an RunHeaderv1 Object" << endl;
-  out << "Run no: " << RunNumber << endl;
+  out << "identify yourself: I am an RunHeaderv1 Object" << std::endl;
+  out << "Run no: " << RunNumber << std::endl;
   auto iter = m_IntRunProperties.begin();
   while (iter != m_IntRunProperties.end())
   {
-    out << iter->first << ": " << iter->second << endl;
+    out << iter->first << ": " << iter->second << std::endl;
     ++iter;
   }
   auto iterf = m_FloatRunProperties.begin();
   while (iterf != m_FloatRunProperties.end())
   {
-    out << iterf->first << ": " << iterf->second << endl;
+    out << iterf->first << ": " << iterf->second << std::endl;
     ++iterf;
   }
   return;

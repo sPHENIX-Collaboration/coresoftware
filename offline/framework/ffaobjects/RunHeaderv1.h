@@ -15,7 +15,7 @@ class RunHeaderv1 : public RunHeader
   RunHeaderv1() = default;
   virtual ~RunHeaderv1() = default;
 
-  void Reset() override;
+  void Reset() override {return;}
   void identify(std::ostream &os = std::cout) const override;
   int isValid() const override;
 
