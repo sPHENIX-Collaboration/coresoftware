@@ -9,15 +9,12 @@
 #include <ostream>
 #include <string>
 
-using namespace std;
-
 typedef PHIODataNode<RunHeader> MyNode_t;
 
-DumpRunHeader::DumpRunHeader(const string &NodeName)
+DumpRunHeader::DumpRunHeader(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   WriteRunEvent(0);  // do not write info for each event
-  node_written = 0;  // write runwise nodes only once
   return;
 }
 
@@ -31,10 +28,10 @@ int DumpRunHeader::process_Node(PHNode *myNode)
   }
   if (!node_written && runheader)
   {
-    *fout << "RunHeader->isValid(): " << runheader->isValid() << endl;
+    *fout << "RunHeader->isValid(): " << runheader->isValid() << std::endl;
     if (runheader->isValid())
     {
-      *fout << "get_RunNumber(): " << runheader->get_RunNumber() << endl;
+      *fout << "get_RunNumber(): " << runheader->get_RunNumber() << std::endl;
       node_written = 1;
     }
   }
