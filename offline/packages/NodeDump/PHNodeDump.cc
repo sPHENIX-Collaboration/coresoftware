@@ -3,6 +3,7 @@
 
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
+#include "DumpEventHeader.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpJetMap.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
@@ -174,6 +175,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("CaloTriggerInfo"))
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
+      }
+      else if (tmp->InheritsFrom("EventHeader"))
+      {
+        newdump = new DumpEventHeader(NodeName);
       }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {

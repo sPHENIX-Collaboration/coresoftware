@@ -16,6 +16,7 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
+  DumpEventHeader.cc \
   DumpGlobalVertexMap.cc \
   DumpJetMap.cc \
   DumpPdbParameterMap.cc \

@@ -5,18 +5,17 @@
 
 #include <phool/PHObject.h>
 
-#include <ctime>
+#include <cmath>
 #include <iostream>
 
 ///
-class RunHeader: public PHObject
+class RunHeader : public PHObject
 {
  public:
-
   /// dtor
   virtual ~RunHeader() {}
 
-  virtual PHObject* CloneMe() const;
+  virtual PHObject *CloneMe() const;
 
   /// Clear Event
   virtual void Reset();
@@ -24,7 +23,7 @@ class RunHeader: public PHObject
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream &os = std::cout) const;
 
   /// isValid returns non zero if object contains valid data
   virtual int isValid() const;
@@ -34,31 +33,19 @@ class RunHeader: public PHObject
   /// set Run Number
   virtual void set_RunNumber(const int run);
 
-  /// get BField (deprecated in v2)
-  virtual double get_Bfield() const;
-  /// set Bfield (deprecated in v2)
-  virtual void set_Bfield(const double rval);
+  virtual void set_floatval(const std::string &name, const float fval) { return; }
+  virtual float get_floatval(const std::string &name) const { return NAN; }
 
-  /// get Start Time of run (in unix ticks, use ctime to convert to date string)
-  virtual time_t get_TimeStart() const;
-  /// set Start Time
-  virtual void set_TimeStart(const time_t ival);
-
-  /// get Time of End Run (in unix ticks)
-  virtual time_t get_TimeStop() const;
-  /// set Time of End Run
-  virtual void set_TimeStop(const time_t ival);
-
+  virtual void set_intval(const std::string &name, const int ival) { return; }
+  virtual int get_intval(const std::string &name) const { return -999999; }
 
   /// switches off the pesky virtual warning messages
-  virtual void NoWarning(const int i = 1);
+  void NoWarning(const int i = 1);
 
- protected:
-  void warning(const char *func) const;
-  
- private: // prevent doc++ from showing ClassDef
-  ClassDef(RunHeader,1)
+ private:
+  void warning(const std::string &func) const;
 
+  ClassDef(RunHeader, 1)
 };
 
 #endif

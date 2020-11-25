@@ -3,16 +3,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <map>
-#include <set>
 #include <string>
-#include <vector>
 
 // Forward declerations
 class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
-class TH1;
 class TNtuple;
 
 class G4VtxNtuple : public SubsysReco
