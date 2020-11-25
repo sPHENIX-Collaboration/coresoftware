@@ -55,31 +55,29 @@ namespace
 }  // namespace
 
 //__________________________________________________________________________________________________________
-PHG4TpcDistortion::PHG4TpcDistortion(bool do_time_ordered_distortion, bool do_static_distortion)
+void PHG4TpcDistortion::Init(bool do_time_ordered_distortion, bool do_static_distortion)
 {
   if(do_static_distortion)
   {
-    const TString filename( "$CALIBRATIONROOT/TPC/DistortionMaps/fluct_average.rev3.1side.3d.file0.h_negz.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root");
-    std::cout << "Using static TPC distortion map located at \"" << filename << "\"" << std::endl;
-
-    m_staticTFile.reset( new TFile( filename ) );
-    if( !m_staticTFile->IsOpen() )
+    std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
+    m_static_tfile.reset( new TFile( m_static_distortion_filename.c_str() ) );
+    if( !m_static_tfile->IsOpen() )
     {
       std::cout << "Static distortion file could not be opened!" << std::endl;
       exit(1);
     }
 
     //Open Static Space Charge Maps
-    hDXint = dynamic_cast<TH3*>(m_staticTFile->Get("hIntDistortionX"));
-    hDYint = dynamic_cast<TH3*>(m_staticTFile->Get("hIntDistortionY"));
-    hDZint = dynamic_cast<TH3*>(m_staticTFile->Get("hIntDistortionZ"));
+    hDXint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionX"));
+    hDYint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionY"));
+    hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
   }
 
   if(do_time_ordered_distortion)
   {
-    const TString filename("/gpfs/mnt/gpfs02/sphenix/user/klest/TimeOrderedDistortions.root");
-    m_timeOrderedTFile.reset( new TFile( filename ) );
-    if( !m_timeOrderedTFile->IsOpen() )
+    std::cout << "PHG4TpcDistortion::Init - m_time_ordered_distortion_filename: " << m_time_ordered_distortion_filename << std::endl;
+    m_time_ordered_tfile.reset( new TFile( m_time_ordered_distortion_filename.c_str() ) );
+    if( !m_time_ordered_tfile->IsOpen() )
     {
       std::cout << "TimeOrdered distortion file could not be opened!" << std::endl;
       exit(1);
@@ -90,7 +88,7 @@ PHG4TpcDistortion::PHG4TpcDistortion(bool do_time_ordered_distortion, bool do_st
     TimehDY = new TH3F();
     TimehDZ = new TH3F();
 
-    TimeTree = static_cast<TTree*>( m_timeOrderedTFile->Get("TimeDists") );
+    TimeTree = static_cast<TTree*>( m_time_ordered_tfile->Get("TimeDists") );
     TimeTree->SetBranchAddress("hIntDistortionX",&TimehDX);
     TimeTree->SetBranchAddress("hIntDistortionY",&TimehDY);
     TimeTree->SetBranchAddress("hIntDistortionZ",&TimehDZ);

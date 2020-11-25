@@ -48,8 +48,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   //! random seed
   void set_seed(const unsigned int iseed);
-  void set_time_ordered_distortions_on();
-  void set_static_distortions_on();
+
+  //! setup TPC distortion
+  void setTpcDistortion(PHG4TpcDistortion*);
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
@@ -66,8 +67,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
   int event_num = 0;
-  bool do_static_distortion = false;
-  bool do_time_ordered_distortion = false;
   bool do_ElectronDriftQAHistos = false;
 
   TH1 *dlong = nullptr;

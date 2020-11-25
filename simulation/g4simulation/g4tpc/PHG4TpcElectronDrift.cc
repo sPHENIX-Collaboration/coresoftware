@@ -71,7 +71,6 @@ namespace
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  // this is used as a buffer for charge collection from a single g4hit
   , temp_hitsetcontainer(new TrkrHitSetContainer)
 {
   InitializeParameters();
@@ -80,11 +79,11 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   return;
 }
 
+//_____________________________________________________________
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
   event_num = 0;
-  cout << "In PHG4TpcElectronDrift do_static_distortion is " << do_static_distortion << " do_time_ordered_distortion is " << do_time_ordered_distortion << " (0 = false, 1 = true) " << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -221,8 +220,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
-
-  m_distortionMap.reset( new PHG4TpcDistortion(do_time_ordered_distortion, do_static_distortion) );
 
   do_ElectronDriftQAHistos = true;  // Whether or not to produce an ElectronDriftQA.root file with useful info
   if (do_ElectronDriftQAHistos)
@@ -361,7 +358,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         deltarnodist->Fill(radstart, rantrans);                // delta r no distortion, just diffusion+smear
       }
 
-      if (do_static_distortion || do_time_ordered_distortion)
+      if( m_distortionMap )
       {
 
         const double x_distortion = m_distortionMap->get_x_distortion(x_start, y_start, z_start);
@@ -550,16 +547,6 @@ void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   padplane->MapToPadPlane(temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 }
 
-void PHG4TpcElectronDrift::set_static_distortions_on()
-{
-  do_static_distortion = true;
-}
-
-void PHG4TpcElectronDrift::set_time_ordered_distortions_on()
-{
-  do_time_ordered_distortion = true;
-}
-
 int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
@@ -632,6 +619,9 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 
   return;
 }
+
+void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion* distortionMap)
+{ m_distortionMap.reset( distortionMap ); }
 
 void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
