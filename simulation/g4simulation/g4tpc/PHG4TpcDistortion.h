@@ -81,7 +81,7 @@ class PHG4TpcDistortion
   void load_event(int event_num);
 
   //! Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival)
+  void Verbosity(const int ival)
   {
     verbosity = ival;
   }
