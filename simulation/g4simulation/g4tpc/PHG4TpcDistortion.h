@@ -24,9 +24,6 @@ class PHG4TpcDistortion
   //! constructor
   explicit PHG4TpcDistortion() = default;
 
-  //! destructor
-  ~PHG4TpcDistortion() = default;
-
   //!@name accessors
   //@{
 
