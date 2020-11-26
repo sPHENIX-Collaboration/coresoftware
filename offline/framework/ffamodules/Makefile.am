@@ -15,7 +15,7 @@ AM_LDFLAGS = \
 libffamodules_la_LIBADD = \
   -lfun4all \
   -lffaobjects \
-  -lphhepmc \
+  -lphhepmc_io \
   -lSubsysReco
 
 
