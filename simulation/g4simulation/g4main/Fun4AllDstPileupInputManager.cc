@@ -18,7 +18,7 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <ffaobjects/EventHeader.h>
-#include <ffaobjects/EventHeaderv2.h>
+#include <ffaobjects/EventHeaderv1.h>
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
@@ -787,7 +787,7 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
   if (!m_eventheader)
   {
     std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating EventHeader" << std::endl;
-    m_eventheader = new EventHeaderv2();
+    m_eventheader = new EventHeaderv1();
     dstNode->addNode(new PHIODataNode<PHObject>(m_eventheader, "EventHeader", "PHObject"));
   }
 

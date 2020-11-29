@@ -1242,7 +1242,7 @@ Surface PHActsSourceLinks::getMmSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   unsigned int surf_index = 999;
 
   /// Get some geometry values from the geom builder for parsing surfaces
-  MakeActsGeometry *geom = new MakeActsGeometry();
+  auto geom = std::make_unique<MakeActsGeometry>();
   double surfStepPhi = geom->getSurfStepPhi();
   double surfStepZ = geom->getSurfStepZ();
 
