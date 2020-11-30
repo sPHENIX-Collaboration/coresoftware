@@ -38,7 +38,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   SphenixActsDetectorCuts<SpacePoint> detectorCuts =
     SphenixActsDetectorCuts<SpacePoint>();
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
-     Acts::SeedFilter<SpacePoint>(sfCfg, &detectorCuts));
+     Acts::SeedFilter<SpacePoint>(sfCfg));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -63,8 +63,7 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
   
   /// Covariance converter tool needed by seed finder
   auto covConverter = [=](const SpacePoint& sp, float, float, float)
-    -> Acts::Vector2D { return Acts::Vector2D(sp.m_varianceRphi, 
-					      sp.m_varianceZ); 
+    -> Acts::Vector2D { return {sp.m_varianceRphi, sp.m_varianceZ};
   };
 
   std::vector<const SpacePoint*> spVec;
@@ -169,7 +168,6 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
 {
   Acts::SpacePointGridConfig config;
 
-
   config.bFieldInZ = m_bField;
   config.minPt = m_minSeedPt;
   config.rMax = m_rMax;
@@ -192,13 +190,13 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.zMax = m_zMax;
 
   /// Min/max distance between two measurements in one seed
-  config.deltaRMin = 3.;
+  config.deltaRMin = 1.;
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -150.;
-  config.collisionRegionMax = 150.;
-  config.sigmaScattering = 3.;
+  config.collisionRegionMin = -100.;
+  config.collisionRegionMax = 100.;
+  config.sigmaScattering = 50.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
@@ -208,7 +206,7 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.radLengthPerSeed = 0.05;
 
   /// Maximum impact parameter must be smaller than rMin
-  config.impactMax = 3;
+  config.impactMax = 20;
 
   return config;
 }

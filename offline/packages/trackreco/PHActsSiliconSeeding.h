@@ -45,6 +45,10 @@ struct SpacePoint {
 
 };
 
+inline bool operator==(SpacePoint a, SpacePoint b) {
+  return (a.m_hitId == b.m_hitId);
+}
+
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
 
 class PHActsSiliconSeeding : public SubsysReco
@@ -82,7 +86,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   float m_rMax = 250.;
-  float m_rMin = 25.;
+  float m_rMin = 20.;
   float m_zMax = 500.;
   float m_zMin = -500.;
  
