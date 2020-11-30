@@ -16,11 +16,19 @@
 
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
+#include <boost/bimap.hpp>
+
 #include <string>
 #include <map>
+
 class PHCompositeNode;
+class SvtxTrackMap;
+class SvtxVertexMap;
+class TrkrCluster;
+class TrkrClusterContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 /**
  * A struct for Acts to take cluster information for seeding
@@ -50,6 +58,7 @@ inline bool operator==(SpacePoint a, SpacePoint b) {
 }
 
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
+using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 
 class PHActsSiliconSeeding : public SubsysReco
 {
@@ -60,6 +69,9 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void useTruthClusters(bool useTruthClusters)
+    { m_useTruthClusters = useTruthClusters; }
+
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -68,11 +80,21 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SeedfinderConfig<SpacePoint> configureSeeder();
   Acts::SpacePointGridConfig configureSPGrid();
   
+  void makeSvtxTracks(GridSeeds& seedVector);
   SpacePointPtr makeSpacePoint(const unsigned int& hitId,
 			    const SourceLink& sl);
+  std::vector<const SpacePoint*> getSpacePoints();
+  void circleFitSeed(const std::vector<TrkrCluster*> clusters);
+  void circleFitByTaubin(const std::vector<TrkrCluster*> clusters,
+			 double& R, double& X0, double& Y0);
+
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
   ActsTrackingGeometry *m_tGeometry;
+  SvtxTrackMap *m_trackMap;
+  SvtxVertexMap *m_vertexMap;
+  CluskeyBimap *m_hitIdCluskey;
+  TrkrClusterContainer *m_clusterMap;
   
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
   Acts::SpacePointGridConfig m_gridCfg;
@@ -104,6 +126,9 @@ class PHActsSiliconSeeding : public SubsysReco
     m_bottomBinFinder, m_topBinFinder;
 
   int m_event = 0;
+
+  /// Whether or not to use truth clusters in hit lookup
+  bool m_useTruthClusters = false;
 
 };
 
