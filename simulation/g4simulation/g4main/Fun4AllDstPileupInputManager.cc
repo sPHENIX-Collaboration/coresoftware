@@ -18,7 +18,7 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <ffaobjects/EventHeader.h>
-#include <ffaobjects/EventHeaderv2.h>
+#include <ffaobjects/EventHeaderv1.h>
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
@@ -36,12 +36,16 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHNodeOperation.h>
 #include <phool/PHObject.h>  // for PHObject
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
 #include <HepMC/GenEvent.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 
 #include <cassert>
 #include <climits>
@@ -783,7 +787,7 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
   if (!m_eventheader)
   {
     std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating EventHeader" << std::endl;
-    m_eventheader = new EventHeaderv2();
+    m_eventheader = new EventHeaderv1();
     dstNode->addNode(new PHIODataNode<PHObject>(m_eventheader, "EventHeader", "PHObject"));
   }
 
@@ -809,6 +813,59 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
     m_g4truthinfo = new PHG4TruthInfoContainer();
     dstNode->addNode(new PHIODataNode<PHObject>(m_g4truthinfo, "G4TruthInfo", "PHObject"));
   }
+}
+
+//_____________________________________________________________________________
+void Fun4AllDstPileupInputManager::generateBunchCrossingList( int nevents, float collision_rate )
+{
+  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - nevents: " << nevents << std::endl;
+  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - collision_rate: " << collision_rate << "Hz" << std::endl;
+
+  // create and initialize random number generator
+  class Deleter
+  {
+    public:
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  std::unique_ptr<gsl_rng, Deleter> rng;
+  {
+    const uint seed = PHRandomSeed();
+    rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+    gsl_rng_set( rng.get(), seed );
+  }
+
+  // clear existing bunch crossing
+  m_bunchCrossings.clear();
+  m_bunchCrossings.reserve(nevents);
+
+  // time interval (s) between two bunch crossing
+  /* value copied from generators/phhepmc/Fun4AllHepMCPileupInputManager.cc */
+  static  double deltat_crossing = 106e-9;
+  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - deltat_crossing: " << deltat_crossing << std::endl;
+
+  // mean number of collision per crossing
+  const double mu = collision_rate*deltat_crossing;
+
+  // running collision time
+  int64_t bunchcrossing = 0;
+  double time = 0;
+
+  // generate triggers
+  for( int ievent = 0; ievent < nevents; )
+  {
+
+    ++bunchcrossing;
+    time += deltat_crossing;
+
+    const auto ntrig = gsl_ran_poisson( rng.get(), mu );
+    for( uint i = 0; i < ntrig; ++i, ++ievent )
+    {
+      m_bunchCrossings.push_back(bunchcrossing);
+      if( Verbosity() ) std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - trigger number: " << ievent << " bunch crossing: " << bunchcrossing << " time: " << time << std::endl;
+    }
+  }
+
 }
 
 //_____________________________________________________________________________

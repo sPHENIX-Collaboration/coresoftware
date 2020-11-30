@@ -303,7 +303,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
     const auto dr = cluster_r - track_r;
-    const auto track_drdt = get_r( state->get_px(), state->get_py() );
+    const auto track_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/track_r;
     const auto track_dxdr = state->get_px()/track_drdt;
     const auto track_dydr = state->get_py()/track_drdt;
     const auto track_dzdr = state->get_pz()/track_drdt;

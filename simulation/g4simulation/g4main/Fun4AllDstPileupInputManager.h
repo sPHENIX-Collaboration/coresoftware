@@ -40,13 +40,27 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   void Print(const std::string &what = "ALL") const;
   int PushBackEvents(const int i);
 
+  //! generate bunch crossing list
+  /**
+   * @param[in] nevents number of bunch crossing generated. This should match the number of minimum bias Hijing events to be processed
+   * @param[in] collision_rate the collision rate, in Hz
+   * previously set bunch crossing list is erased in the process
+   */
+  void generateBunchCrossingList( int nevents, float collision_rate = 5e4 );
+
   //! store event bunch crossing ids
   /*! bunch crossings are used to decide which pile-up events should be merged to a given "trigger" event */
   void setBunchCrossingList(const std::vector<int64_t> &value) { m_bunchCrossings = value; }
 
+  //! get list of bunch crossing ids
+  const std::vector<int64_t> &getBunchCrossingList() const { return m_bunchCrossings; }
+
   //! store event offset
   /*! offste is added to the current event number to look for the corresponding event timestamp */
   void setEventOffset(int value) { m_event_offset = value; }
+
+  //! event offset
+  int getEventOffset() const { return m_event_offset; }
 
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)

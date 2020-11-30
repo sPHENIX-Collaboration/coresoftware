@@ -112,8 +112,8 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 				    m_tGeometry->magFieldContext);
       
       /// Call the fitter and get the result
-      auto fitRes = fitter.fit(tracks,linearizer,
-      		       vfOptions, state);
+      auto fitRes = fitter.fit(tracks, linearizer,
+			       vfOptions, state);
 
       if(fitRes.ok())
 	{
@@ -158,26 +158,22 @@ std::vector<const Acts::BoundTrackParameters*> PHActsVertexFitter::getTracks()
  
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
-  std::map<const unsigned int, Trajectory>::iterator trackIter;
-
-  for (trackIter = m_actsFitResults->begin();
-       trackIter != m_actsFitResults->end();
-       ++trackIter)
-  {
-    const Trajectory traj = trackIter->second;
-    const auto &[trackTips, mj] = traj.trajectory();
-    
-    for(const size_t &trackTip : trackTips)
-      {
-	if(traj.hasTrackParameters(trackTip))
-	  {
-	    const Acts::BoundTrackParameters *param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	 
-	    trackPtrs.push_back(param);
-	  }
-
-      }
-  }
+  for(const auto &[key, traj] : *m_actsFitResults)
+    {
+      const auto &[trackTips, mj] = traj.trajectory();
+      
+      for(const size_t &trackTip : trackTips)
+	{
+	  if(traj.hasTrackParameters(trackTip))
+	    {
+	      const auto param = 
+		new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
+	      
+	      trackPtrs.push_back(param);
+	    }
+	  
+	}
+    }
   
   if(Verbosity() > 3)
     {
@@ -188,7 +184,7 @@ std::vector<const Acts::BoundTrackParameters*> PHActsVertexFitter::getTracks()
       for(std::vector<const Acts::BoundTrackParameters*>::iterator it = trackPtrs.begin();
 	  it != trackPtrs.end(); ++it)
 	{
-	  const Acts::BoundTrackParameters* param = *it;
+	  const auto param = *it;
 	  std::cout << "Track position: (" 
 		    << param->position(m_tGeometry->geoContext)(0)
 		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "

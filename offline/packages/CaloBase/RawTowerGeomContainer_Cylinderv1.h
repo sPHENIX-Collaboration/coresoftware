@@ -54,9 +54,6 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   get_etacenter(const int ibin) const;
 
   double
-  get_thetacenter(const int ibin) const;
-
-  double
   get_phicenter(const int ibin) const;
 
   int get_etabin(const double eta) const;
