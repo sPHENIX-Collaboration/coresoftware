@@ -19,13 +19,7 @@
 
 using namespace std;
 
-FROG::FROG()
-  : m_Verbosity(0)
-  , m_OdbcConnection(nullptr)
-{
-}
-
-const char *
+std::string
 FROG::location(const string &logical_name)
 {
   pfn = logical_name;
@@ -42,7 +36,7 @@ FROG::location(const string &logical_name)
         cout << "FROG: found / in filename, assuming it contains a full path" << endl;
       }
     }
-    return pfn.c_str();
+    return pfn;
   }
   try
   {
@@ -111,7 +105,7 @@ FROG::location(const string &logical_name)
     }
   }
   Disconnect();
-  return pfn.c_str();
+  return pfn;
 }
 
 bool FROG::localSearch(const string &logical_name)
@@ -163,7 +157,7 @@ bool FROG::PGSearch(const string &lname)
   {
     return bret;
   }
-  string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name <> 'hpss'";
+  string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name <> 'hpss' and full_host_name <> 'dcache'";
 
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
@@ -185,27 +179,17 @@ bool FROG::dCacheSearch(const string &lname)
   {
     return bret;
   }
-  string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'hpss' and full_file_path like '/home/dcphenix/phnxreco/%'";
+  string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'dcache'";
 
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
   {
-    string hpssfile = rs->getString(1);
-    string dcachedir = "/pnfs/rcf.bnl.gov/phenix/phnxreco/";
-    if (Verbosity() > 1)
+    string dcachefile = rs->getString(1);
+    if (std::ifstream(dcachefile))
     {
-      cout << "hpssfile before replace: " << hpssfile << endl;
-    }
-    hpssfile.replace(0, 24, dcachedir);
-    if (Verbosity() > 1)
-    {
-      cout << "hpssfile after replace: " << hpssfile << endl;
-    }
-    if (std::ifstream(hpssfile))
-    {
-      pfn = "dcache:" + hpssfile;
+      pfn = "dcache:" + dcachefile;
       bret = true;
     }
   }
