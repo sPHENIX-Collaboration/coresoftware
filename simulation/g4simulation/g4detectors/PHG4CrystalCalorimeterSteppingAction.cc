@@ -40,6 +40,8 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include <TSystem.h>
+
 #include <iostream>
 #include <string>                              // for basic_string, string
 
@@ -298,19 +300,20 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers(PHCompositeNode*
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!hits_)
   {
-    std::cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << hitnodename << std::endl;
+    gSystem->Exit(1);
   }
   if (!absorberhits_)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << absorbernodename << endl;
     }
   }
 }

@@ -76,6 +76,7 @@ int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
   m_Detector->SetActive(active);
   m_Detector->SetAbsorberActive(active);
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->SuperDetector(SuperDetector());
 
   if (active)
   {
