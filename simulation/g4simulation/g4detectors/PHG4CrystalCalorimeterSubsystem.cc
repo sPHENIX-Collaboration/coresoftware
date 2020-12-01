@@ -25,16 +25,16 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
-  : PHG4DetectorSubsystem(name)
+  : PHG4DetectorSubsystem(name, lyr)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
   , active(1)
-  , detector_type(name)
   , mappingfile_("")
   , mappingfile_4x4_construct_("")
   , projective_(false)
 {
+  detector_type = name + to_string(lyr);
   InitializeParameters();
 }
 
@@ -81,25 +81,39 @@ int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
   if (active)
   {
     // create hit output node
-    ostringstream nodename;
-    nodename << "G4HIT_" << detector_type;
+    string nodename = "G4HIT_";
+    if (SuperDetector() != "NONE")
+    {
+      nodename += SuperDetector();
+    }
+    else
+    {
+      nodename += Name();
+    }
 
-    PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!crystal_hits)
     {
-      crystal_hits = new PHG4HitContainer(nodename.str());
-      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
+      crystal_hits = new PHG4HitContainer(nodename);
+      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename, "PHObject");
       dstNode->addNode(hitNode);
     }
 
-    ostringstream absnodename;
-    absnodename << "G4HIT_ABSORBER_" << detector_type;
+    string absnodename = "G4HIT_ABSORBER_";
+    if (SuperDetector() != "NONE")
+    {
+      absnodename += SuperDetector();
+    }
+    else
+    {
+      absnodename += Name();
+    }
 
-    PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str().c_str());
+    PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename);
     if (!absorber_hits)
     {
-      absorber_hits = new PHG4HitContainer(absnodename.str());
-      PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
+      absorber_hits = new PHG4HitContainer(absnodename);
+      PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename, "PHObject");
       dstNode->addNode(abshitNode);
     }
 
