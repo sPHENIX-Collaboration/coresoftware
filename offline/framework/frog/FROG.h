@@ -12,10 +12,10 @@ class Connection;
 class FROG
 {
  public:
-  FROG();
+  FROG(){}
   virtual ~FROG() {}
 
-  const char *location(const std::string &logical_name);
+  std::string location(const std::string &logical_name);
   bool localSearch(const std::string &lname);
   bool dCacheSearch(const std::string &lname);
   bool PGSearch(const std::string &lname);
@@ -26,8 +26,8 @@ class FROG
   bool GetConnection();
   void Disconnect();
   std::string pfn;
-  int m_Verbosity;
-  odbc::Connection *m_OdbcConnection;
+  int m_Verbosity = 0;
+  odbc::Connection *m_OdbcConnection = nullptr;
 };
 
 #endif
