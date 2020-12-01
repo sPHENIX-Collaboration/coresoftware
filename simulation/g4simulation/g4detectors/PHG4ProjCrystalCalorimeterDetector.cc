@@ -31,8 +31,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
-  : PHG4CrystalCalorimeterDetector(subsys, Node, dnam)
+PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam)
+  : PHG4CrystalCalorimeterDetector(subsys, Node, parameters, dnam)
   ,
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//

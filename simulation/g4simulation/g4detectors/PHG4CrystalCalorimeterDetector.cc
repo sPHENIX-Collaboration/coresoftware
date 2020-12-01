@@ -1,6 +1,8 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
@@ -34,8 +36,9 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
+  , m_Params(parameters)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(-1080.0 * mm)
@@ -94,7 +97,7 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   }
 
 
-  /* Read parameters for detector construction and mappign from file */
+  /* Read parameters for detector construction and mapping from file */
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
@@ -170,7 +173,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                                       _crystal_dy / 2.0,
                                       _crystal_dz / 2.0);
 
-  /* create geometry volume for frame (carbon fober shell) inside single_tower */
+  /* create geometry volume for frame (carbon fiber shell) inside single_tower */
   G4VSolid* Carbon_hunk_solid = new G4Box(G4String("Carbon_hunk_solid"),
                                           tower_dx / 2.0,
                                           tower_dy / 2.0,
