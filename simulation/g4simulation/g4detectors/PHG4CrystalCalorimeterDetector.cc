@@ -65,23 +65,14 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* su
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* volume) const
 {
-  if (volume->GetName().find(_towerlogicnameprefix) != string::npos)
+  if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
   {
-    if (volume->GetName().find("crystal") != string::npos)
-    {
-      return 1;
-    }
-    /* only record energy in actual absorber- drop energy lost in air gaps inside envelope */
-    else if (volume->GetName().find("absorber") != string::npos)
-    {
-      return -1;
-    }
-    else if (volume->GetName().find("envelope") != string::npos)
-    {
-      return 0;
-    }
+    return 1;
   }
-
+  if ( m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
+  {
+    return -1;
+  }
   return 0;
 }
 
