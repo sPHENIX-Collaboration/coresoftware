@@ -5,6 +5,8 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Element.hh>  // for G4Element
@@ -91,11 +93,13 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
     exit(1);
   }
 
+
   /* Read parameters for detector construction and mappign from file */
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* eemc_envelope_solid = new G4Cons("eemc_envelope_solid",
                                              _rMin1, _rMax1,
@@ -103,7 +107,7 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              _dZ / 2.,
                                              _sPhi, _dPhi);
 
-  G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, Air, G4String("eemc_envelope"), 0, 0, 0);
+  G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, WorldMaterial, G4String("eemc_envelope"), 0, 0, 0);
 
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
@@ -147,7 +151,8 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   G4double tower_dz = _crystal_dz;
 
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid"),
                                            tower_dx / 2.0,
@@ -155,7 +160,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                                            tower_dz / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
+                                                            WorldMaterial,
                                                             "single_tower_logic",
                                                             0, 0, 0);
 
