@@ -194,9 +194,10 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		   _cal_names[i].compare("CEMC") == 0) {
 		  std::string nodeName = "CLUSTER_POS_COR_" + _cal_names[i];
 		  clusterList = findNode::getClass<RawClusterContainer>(	                             topNode, nodeName.c_str());
-
-		  std::cout << "Grabbing CEMC position recalib clusters"
-			    << std::endl;
+		  
+		  if(Verbosity() > 1)
+		    std::cout << "Grabbing CEMC position recalib clusters"
+			      << std::endl;
 		}
 
 		if (!clusterList) {
