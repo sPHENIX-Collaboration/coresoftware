@@ -81,6 +81,8 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   std::string _4x4_construct_file;
 
   bool _overlapcheck_local;
+  std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables

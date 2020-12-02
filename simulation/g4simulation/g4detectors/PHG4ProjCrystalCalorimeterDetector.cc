@@ -63,17 +63,17 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
 
   if (m_IsActive)
   {
-  if (volume->GetName().find(_crystallogicnameprefix) != string::npos)
-  {
-    return 1;
-  }
+    if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
+    {
+      return 1;
+    }
   }
   if (m_AbsorberActive)
   {
-  if (volume->GetName().find("arbon") != string::npos)
-  {
-    return -1;
-  }
+    if (volume->GetName().find("arbon") != string::npos)
+    {
+      return -1;
+    }
   }
   return 0;
 }
@@ -307,12 +307,13 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
       crystal_name.str("");
       crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
 
-      new G4PVPlacement(Rot, Crystal_Center,
+      G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic_small,
                         crystal_name.str().c_str(),
                         Two_by_Two_logic,
                         0, 0, _overlapcheck_local);
 
+       m_ActiveVolumeSet.insert(physvol);
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
     }
@@ -700,11 +701,12 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
       crystal_name.str("");
       crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
 
-      new G4PVPlacement(Rot, Crystal_Center,
+      G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic_small,
                         crystal_name.str().c_str(),
                         Two_by_Two_logic,
                         0, 0, _overlapcheck_local);
+       m_ActiveVolumeSet.insert(physvol);
 
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_z = 0.0;

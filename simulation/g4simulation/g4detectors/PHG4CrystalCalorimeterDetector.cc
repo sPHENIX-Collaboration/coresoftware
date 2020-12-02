@@ -240,8 +240,6 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                     0, 0, OverlapCheck());
   m_PassiveVolumeSet.insert(physvol);
   /* Place crystal in logical tower volume */
-  // ostringstream name_crystal;
-  // name_crystal.str("");
   string name_crystal =  _towerlogicnameprefix + "_single_crystal";
 
   physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
