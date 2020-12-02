@@ -16,7 +16,7 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4String.hh>                     // for G4String
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
@@ -36,7 +36,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
@@ -74,17 +74,17 @@ int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* vo
 {
   if (m_IsActive)
   {
-  if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
-  {
-    return 1;
-  }
+    if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
+    {
+      return 1;
+    }
   }
   if (m_AbsorberActive)
   {
-  if ( m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
-  {
-    return -1;
-  }
+    if (m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
+    {
+      return -1;
+    }
   }
   return 0;
 }
@@ -104,13 +104,12 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
     exit(1);
   }
 
-
   /* Read parameters for detector construction and mapping from file */
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  recoConsts* rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* eemc_envelope_solid = new G4Cons("eemc_envelope_solid",
                                              _rMin1, _rMax1,
@@ -128,8 +127,8 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   eemc_rotm.rotateZ(_rot_in_z);
 
   /* Place envelope cone in simulation */
-//  ostringstream name_envelope;
-//  name_envelope.str("");
+  //  ostringstream name_envelope;
+  //  name_envelope.str("");
   string name_envelope = _towerlogicnameprefix + "_envelope";
 
   new G4PVPlacement(G4Transform3D(eemc_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
@@ -162,8 +161,8 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   G4double tower_dz = _crystal_dz;
 
   /* create logical volume for single tower */
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  recoConsts* rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid"),
                                            tower_dx / 2.0,
@@ -232,21 +231,21 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   // ostringstream name_shell;
   // name_shell.str("");
   // name_shell << _towerlogicnameprefix << "_single_absorber";
-  string name_shell =  _towerlogicnameprefix + "_single_absorber";
-  G4VPhysicalVolume *physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                    logic_shell,
-                    name_shell,
-                    single_tower_logic,
-                    0, 0, OverlapCheck());
+  string name_shell = _towerlogicnameprefix + "_single_absorber";
+  G4VPhysicalVolume* physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
+                                                 logic_shell,
+                                                 name_shell,
+                                                 single_tower_logic,
+                                                 0, 0, OverlapCheck());
   m_PassiveVolumeSet.insert(physvol);
   /* Place crystal in logical tower volume */
-  string name_crystal =  _towerlogicnameprefix + "_single_crystal";
+  string name_crystal = _towerlogicnameprefix + "_single_crystal";
 
   physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                    logic_crystal,
-                    name_crystal,
-                    single_tower_logic,
-                    0, 0, OverlapCheck());
+                              logic_crystal,
+                              name_crystal,
+                              single_tower_logic,
+                              0, 0, OverlapCheck());
   m_ActiveVolumeSet.insert(physvol);
   if (Verbosity() > 0)
   {

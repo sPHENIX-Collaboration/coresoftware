@@ -5,7 +5,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                  // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4CrystalCalorimeterDetector;
@@ -66,11 +66,10 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
   //  };
 
  private:
-
   //! set detector specific parameters and their defaults
   /*! called by PHG4DetectorSubsystem */
   void SetDefaultParameters() override;
-  
+
   //  GeometryConfiguration current_geom_config_;
 
   /** Pointer to the Geant4 implementation of the detector

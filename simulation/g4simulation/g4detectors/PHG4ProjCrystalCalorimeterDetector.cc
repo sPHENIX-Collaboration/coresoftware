@@ -21,7 +21,7 @@
 #include <Geant4/G4Transform3D.hh>  // for G4Transform3D
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Types.hh>                      // for G4double, G4int
+#include <Geant4/G4Types.hh>            // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <cstdlib>
@@ -35,7 +35,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam)
+PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4CrystalCalorimeterDetector(subsys, Node, parameters, dnam)
   , m_Params(parameters)
   ,
@@ -97,8 +97,8 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  recoConsts *rc = recoConsts::instance();
+  G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid *ecal_envelope_cone = new G4Cons("eEcal_envelope_solid",
                                             _rMin1, _rMax1,
@@ -157,10 +157,10 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //Air
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  recoConsts *rc = recoConsts::instance();
+  G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
-//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -314,12 +314,12 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
       crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
 
       G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
-                        crystal_logic_small,
-                        crystal_name.str().c_str(),
-                        Two_by_Two_logic,
-                        0, 0, _overlapcheck_local);
+                                                     crystal_logic_small,
+                                                     crystal_name.str().c_str(),
+                                                     Two_by_Two_logic,
+                                                     0, 0, _overlapcheck_local);
 
-       m_ActiveVolumeSet.insert(physvol);
+      m_ActiveVolumeSet.insert(physvol);
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
     }
@@ -523,10 +523,10 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   Rot_5->rotateZ(0 * rad);
 
   G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
-                    Carbon_Shell_logic,
-                    "Carbon_Fiber_Shell",
-                    crystal_logic,
-                    0, 0, _overlapcheck_local);
+                                                 Carbon_Shell_logic,
+                                                 "Carbon_Fiber_Shell",
+                                                 crystal_logic,
+                                                 0, 0, _overlapcheck_local);
 
   m_PassiveVolumeSet.insert(physvol);
   //***********************************
@@ -555,9 +555,9 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //Air
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
-//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+  recoConsts *rc = recoConsts::instance();
+  G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -711,11 +711,11 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
       crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
 
       G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
-                        crystal_logic_small,
-                        crystal_name.str().c_str(),
-                        Two_by_Two_logic,
-                        0, 0, _overlapcheck_local);
-       m_ActiveVolumeSet.insert(physvol);
+                                                     crystal_logic_small,
+                                                     crystal_name.str().c_str(),
+                                                     Two_by_Two_logic,
+                                                     0, 0, _overlapcheck_local);
+      m_ActiveVolumeSet.insert(physvol);
 
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_z = 0.0;
@@ -873,10 +873,10 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateZ(0 * rad);
 
     G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
-                      Carbon_Shell_logic,
-                      "Carbon_Fiber_Shell",
-                      crystal_logic,
-                      0, 0, _overlapcheck_local);
+                                                   Carbon_Shell_logic,
+                                                   "Carbon_Fiber_Shell",
+                                                   crystal_logic,
+                                                   0, 0, _overlapcheck_local);
     m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 22)
@@ -967,12 +967,11 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateZ(0 * rad);
 
     G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
-                      Carbon_Shell_logic,
-                      "Carbon_Fiber_Shell",
-                      crystal_logic,
-                      0, 0, _overlapcheck_local);
+                                                   Carbon_Shell_logic,
+                                                   "Carbon_Fiber_Shell",
+                                                   crystal_logic,
+                                                   0, 0, _overlapcheck_local);
     m_PassiveVolumeSet.insert(physvol);
-
   }
   else if (ident == 32)
   {
@@ -1124,12 +1123,11 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateZ(0 * rad);
 
     G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
-                      Carbon_Shell_logic,
-                      "Carbon_Fiber_Shell",
-                      crystal_logic,
-                      0, 0, _overlapcheck_local);
+                                                   Carbon_Shell_logic,
+                                                   "Carbon_Fiber_Shell",
+                                                   crystal_logic,
+                                                   0, 0, _overlapcheck_local);
     m_PassiveVolumeSet.insert(physvol);
-
   }
   else
   {
@@ -1170,9 +1168,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                       dz);  //Half length in z
 
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
-   recoConsts *rc = recoConsts::instance();
-   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+  recoConsts *rc = recoConsts::instance();
+  G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4LogicalVolume *crystal_logic = new G4LogicalVolume(crystal_solid,
                                                        WorldMaterial,

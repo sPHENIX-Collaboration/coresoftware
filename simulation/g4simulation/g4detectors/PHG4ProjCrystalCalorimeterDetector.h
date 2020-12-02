@@ -25,10 +25,10 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 {
  public:
   //! constructor
-  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam);
+  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4ProjCrystalCalorimeterDetector(){}
+  virtual ~PHG4ProjCrystalCalorimeterDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world);
@@ -68,7 +68,7 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
   int Fill4x4Unit(G4LogicalVolume* crystal_logic);
   int FillSpecialUnit(G4LogicalVolume* crystal_logic, G4int ident);
-  PHParameters *m_Params = nullptr;
+  PHParameters* m_Params = nullptr;
 
   /* crystal geometry */
   G4double _dx_front;

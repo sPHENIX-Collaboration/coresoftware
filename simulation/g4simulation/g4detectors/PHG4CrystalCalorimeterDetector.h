@@ -150,8 +150,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
   std::map<std::string, G4double> _map_global_parameter;
   std::map<std::string, towerposition> _map_tower;
-  std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
-  std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
+  std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume *> m_PassiveVolumeSet;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
