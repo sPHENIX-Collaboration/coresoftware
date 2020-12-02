@@ -84,9 +84,6 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction = nullptr;
 
-  int active;
-
-  std::string detector_type;
   std::string mappingfile_;
   std::string mappingfile_4x4_construct_;
 

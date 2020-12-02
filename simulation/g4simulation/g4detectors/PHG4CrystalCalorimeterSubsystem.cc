@@ -28,12 +28,10 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , active(1)
   , mappingfile_("")
   , mappingfile_4x4_construct_("")
   , projective_(false)
 {
-  detector_type = name + to_string(lyr);
   InitializeParameters();
 }
 
@@ -72,8 +70,6 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     m_Detector->SetTowerMappingFile(mappingfile_);
   }
 
-  m_Detector->SetActive(active);
-  m_Detector->SetAbsorberActive(active);
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
   GetParams()->Print();
