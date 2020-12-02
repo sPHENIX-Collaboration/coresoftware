@@ -12,7 +12,6 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase/TrkrCluster.h>            
@@ -26,6 +25,8 @@
 
 PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
+  , m_sourceLinks(nullptr)
+  , m_hitIdCluskey(nullptr)
 {}
 
 int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
@@ -64,6 +65,27 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
     std::cout << "Processing PHActsSiliconSeeding event "
 	      << m_event << std::endl;
 
+  auto seedVector = runSeeder();
+
+  makeSvtxTracks(seedVector);
+
+  if(Verbosity()> 0)
+    std::cout << "Finished PHActsSiliconSeeding process_event"
+	      << std::endl;
+
+  m_event++;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+GridSeeds PHActsSiliconSeeding::runSeeder()
+{
+  
   Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
   
   /// Covariance converter tool needed by seed finder
@@ -99,20 +121,7 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 							  groupIt.top()));
     }
 
-  makeSvtxTracks(seedVector);
-
-  if(Verbosity()> 0)
-    std::cout << "Finished PHActsSiliconSeeding process_event"
-	      << std::endl;
-
-  m_event++;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
+  return seedVector;
 }
 
 void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
@@ -165,8 +174,14 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 		      << x << ", " << y << ", " << seed.z() / 10.
 		      << " and (px,py,pz) " << px << ", " << py
 		      << ", " << pz << std::endl;
+	  
 	  numGoodSeeds++;
 	  
+	  /// Set the vertex id to 0 for now. This will be set in a 
+	  /// future module which runs the acts vertex finder on the 
+	  /// silicon stubs
+	  svtxTrack->set_vertex_id(0);
+
 	  /// x and y were calculated in sPHENIX units
 	  svtxTrack->set_x(x);
 	  svtxTrack->set_y(y);
@@ -187,12 +202,13 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       std::cout << "Number of good seeds added to map : " << numGoodSeeds
 		<< std::endl;
     }
-  
 
+  return;
+  
 }
 
 
-void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> clusters,
+void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
 					 double& x, double& y, double& z,
 					 double& px, double& py, double& pz)
 {
@@ -214,8 +230,8 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> cluster
    * 
    * Solving the circle eqn for x and substituting into d gives an eqn for
    * y. Taking the derivative and setting equal to 0 gives the following 
-   * two solutions. Depending on the charge of the track determines the 
-   * correct solution
+   * two solutions. We take the smaller solution as the correct one, as 
+   * usually one solution is wildly incorrect (e.g. 1000 cm)
    */
   
   double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
@@ -279,29 +295,19 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> cluster
   if(Verbosity() > 1)
     std::cout << "Track seed theta: " << theta << std::endl;
  
-  /// 0.035 is the unit conversion from cmT to GeV
-  double p = R * 1.4 * 0.035;
-  
-  if(Verbosity() > 1)
-    std::cout << "track momentum estimate is " << p << std::endl;
-
-  px = p * sin(theta) * cos(phi);
-  py = p * sin(theta) * sin(phi);
-  pz = p * cos(theta);
-  
-  if(Verbosity() > 1)
-    std::cout << "Momentum estimate: (" << px <<" , " << py 
-	      << ", " << pz << ") " << std::endl;
-  
   /// normalize to unit vector because we just need the direction
-  px /= p;
-  py /= p;
-  pz /= p;
+  px = sin(theta) * cos(phi);
+  py = sin(theta) * sin(phi);
+  pz = cos(theta);
   
+  if(Verbosity() > 1)
+    std::cout << "Momentum unit vector estimate: (" << px <<" , " 
+	      << py << ", " << pz << ") " << std::endl;
+    
   return;
 
 }
-void PHActsSiliconSeeding::lineFit(std::vector<TrkrCluster*> clusters, 
+void PHActsSiliconSeeding::lineFit(std::vector<TrkrCluster*>& clusters, 
 				    double &A, double &B)
 {
   // copied from: https://www.bragitoff.com
@@ -340,7 +346,7 @@ void PHActsSiliconSeeding::lineFit(std::vector<TrkrCluster*> clusters,
   return;
 }   
 
-void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<TrkrCluster*> clusters,
+void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 					     double& R, double& X0, double& Y0)
 {
   /**  
@@ -558,15 +564,6 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
   if(!m_tGeometry)
     {
       std::cout << PHWHERE << "No ActsTrackingGeometry on node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "No SvtxVertexMap on node tree. Bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

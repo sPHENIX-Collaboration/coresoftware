@@ -57,9 +57,16 @@ inline bool operator==(SpacePoint a, SpacePoint b) {
   return (a.m_hitId == b.m_hitId);
 }
 
+
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 
+
+/**
+ * This class runs the Acts seeder over the silicon measurements
+ * to create track stubs for the rest of the stub matching pattern
+ * recognition
+ */
 class PHActsSiliconSeeding : public SubsysReco
 {
  public:
@@ -69,6 +76,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  /// Set seeding with truth clusters
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
 
@@ -77,28 +85,40 @@ class PHActsSiliconSeeding : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
+  GridSeeds runSeeder();
+
+  /// Configure the seeding parameters for Acts. There
+  /// are a number of tunable parameters for the seeder here
   Acts::SeedfinderConfig<SpacePoint> configureSeeder();
   Acts::SpacePointGridConfig configureSPGrid();
   
+  /// Take final seeds and fill the SvtxTrackMap
   void makeSvtxTracks(GridSeeds& seedVector);
+  
+  /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(const unsigned int& hitId,
 			    const SourceLink& sl);
+  
+  /// Get all space points for the seeder
   std::vector<const SpacePoint*> getSpacePoints();
-  void circleFitSeed(const std::vector<TrkrCluster*> clusters,
+
+  /// Perform circle/line fits with the final seed to get
+  /// initial point and momentum estimates for stub matching
+  void circleFitSeed(const std::vector<TrkrCluster*>& clusters,
 		     double& x, double& y, double& z,
 		     double& px, double& py, double& pz);
-  void circleFitByTaubin(const std::vector<TrkrCluster*> clusters,
+  void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 			 double& R, double& X0, double& Y0);
-  void lineFit(const std::vector<TrkrCluster*> clusters,
+  void lineFit(const std::vector<TrkrCluster*>& clusters,
 	       double& A, double& B);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
-  ActsTrackingGeometry *m_tGeometry;
-  SvtxTrackMap *m_trackMap;
-  SvtxVertexMap *m_vertexMap;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+  SvtxTrackMap *m_trackMap = nullptr;
   CluskeyBimap *m_hitIdCluskey;
-  TrkrClusterContainer *m_clusterMap;
+  TrkrClusterContainer *m_clusterMap = nullptr;
   
+  /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
   Acts::SpacePointGridConfig m_gridCfg;
 
