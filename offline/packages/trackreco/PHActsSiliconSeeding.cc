@@ -118,6 +118,8 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
 void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 {
   int numSeeds = 0;
+  int numGoodSeeds = 0;
+  
   /// Loop over grid volumes
   for(auto& seeds : seedVector)
     {
@@ -159,9 +161,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    continue;
 
 	  if(Verbosity() > 1)
-	    std::cout << "Line fit z vertex : " << z << " and acts seed z vtx "
-		      << seed.z() << std::endl;
-
+	    std::cout <<"Setting silicon seed with (x,y,z) = " 
+		      << x << ", " << y << ", " << seed.z() / 10.
+		      << " and (px,py,pz) " << px << ", " << py
+		      << ", " << pz << std::endl;
+	  numGoodSeeds++;
+	  
 	  /// x and y were calculated in sPHENIX units
 	  svtxTrack->set_x(x);
 	  svtxTrack->set_y(y);
@@ -175,9 +180,13 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
     }
 
   if(Verbosity() > 1)
-    std::cout << "Total number of seeds found in " 
-	      << seedVector.size() << " volume regions gives " 
-	      << numSeeds << " seeds " << std::endl;
+    {
+      std::cout << "Total number of seeds found in " 
+		<< seedVector.size() << " volume regions gives " 
+		<< numSeeds << " seeds " << std::endl;
+      std::cout << "Number of good seeds added to map : " << numGoodSeeds
+		<< std::endl;
+    }
   
 
 }
@@ -192,7 +201,7 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> cluster
   double R, X0, Y0;
   circleFitByTaubin(clusters, R, X0, Y0);
   
-  if(Verbosity() > 0)
+  if(Verbosity() > 2)
     std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
 	      << ", " << Y0 << std::endl;
 
@@ -218,45 +227,55 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> cluster
     / (pow(X0, 2) + pow(Y0, 2));
 
   double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
-
-  if(Verbosity() > 2)
-    {
-      std::cout << "Minimum x and y positions " << minx << ",  " 
-		<< miny << std::endl;
-      std::cout << "Minimum y2 positions "
-		<< miny2 << std::endl;
-    }
+  double minx2 = sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
   
-  x = minx;
+  if(Verbosity() > 1)
+    std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
+	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
+
+  if(fabs(minx) < fabs(minx2))
+    x = minx;
+  else
+    x = minx2;
 
   /// determine which y solution is smaller
-  if(miny < miny2)
+  if(fabs(miny) < fabs(miny2))
     y = miny;
   else
     y = miny2;
-
   
   /// If the x or y initial position was found to be greater than 10 cm
   /// it is a bad seed
-  if(x > 10. or y > 10.)
-    return;
+  if(fabs(x) > 10. or fabs(y) > 10.)
+    {
+      x = NAN;
+      return;
+    }
+
+  if(Verbosity() > 1)
+    {
+      if(!std::isnan(x) && !std::isnan(y))
+	std::cout << "Minimum x and y positions " << x << ",  " 
+		  << y << std::endl;
+    }
 
   /// Now determine the line tangent to the circle at this point to get phi
-  double phi = atan( 1./( (y - Y0) / (x - X0)));
-  if(phi > M_PI) phi -= M_PI;
-  if(phi < -M_PI) phi += M_PI;
+  double phi = atan( -1./( (y - Y0) / (x - X0)));
+  if(phi > M_PI) phi -= 2. * M_PI;
+  if(phi < -M_PI) phi += 2. * M_PI;
   
   if(Verbosity() > 1)
     std::cout << "Track seed phi : " << phi << std::endl;
 
   double m, B;
   
-  /// A is slope as a function of radius, B is z intercept (vertex)
+  /// m is slope as a function of radius, B is z intercept (vertex)
   lineFit(clusters, m, B);
 
   z = B;
 
   double theta = atan(1./m);
+
   if(Verbosity() > 1)
     std::cout << "Track seed theta: " << theta << std::endl;
  
