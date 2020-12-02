@@ -35,6 +35,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam)
   : PHG4CrystalCalorimeterDetector(subsys, Node, parameters, dnam)
+  , m_Params(parameters)
   ,
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
@@ -46,7 +47,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _dx_back(48.97454545455 * mm)
   , _dy_back(48.97454545455 * mm)
   , _dz_crystal(90.000 * mm)
-  , m_Params(parameters)
   , _crystallogicnameprefix("eEcalCrystal")
   , _4x4_construct_file("")
   , _overlapcheck_local(false)
@@ -70,7 +70,7 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
   }
   if (m_AbsorberActive)
   {
-    if (volume->GetName().find("arbon") != string::npos)
+    if (m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
     {
       return -1;
     }
@@ -516,12 +516,13 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   Rot_5->rotateY(0 * rad);
   Rot_5->rotateZ(0 * rad);
 
-  new G4PVPlacement(Rot_5, Carbon_Center,
+  G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
                     Carbon_Shell_logic,
                     "Carbon_Fiber_Shell",
                     crystal_logic,
                     0, 0, _overlapcheck_local);
 
+  m_PassiveVolumeSet.insert(physvol);
   //***********************************
   //All done! Return to parent function
   //***********************************
@@ -863,11 +864,12 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateY(0 * rad);
     Rot_5->rotateZ(0 * rad);
 
-    new G4PVPlacement(Rot_5, Carbon_Center,
+    G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
                       Carbon_Shell_logic,
                       "Carbon_Fiber_Shell",
                       crystal_logic,
                       0, 0, _overlapcheck_local);
+    m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 22)
   {
@@ -956,11 +958,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateY(0 * rad);
     Rot_5->rotateZ(0 * rad);
 
-    new G4PVPlacement(Rot_5, Carbon_Center,
+    G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
                       Carbon_Shell_logic,
                       "Carbon_Fiber_Shell",
                       crystal_logic,
                       0, 0, _overlapcheck_local);
+    m_PassiveVolumeSet.insert(physvol);
+
   }
   else if (ident == 32)
   {
@@ -1111,11 +1115,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
     Rot_5->rotateY(0 * rad);
     Rot_5->rotateZ(0 * rad);
 
-    new G4PVPlacement(Rot_5, Carbon_Center,
+    G4VPhysicalVolume *physvol = new G4PVPlacement(Rot_5, Carbon_Center,
                       Carbon_Shell_logic,
                       "Carbon_Fiber_Shell",
                       crystal_logic,
                       0, 0, _overlapcheck_local);
+    m_PassiveVolumeSet.insert(physvol);
+
   }
   else
   {
