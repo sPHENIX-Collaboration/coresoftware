@@ -5,6 +5,8 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4GenericTrap.hh>
@@ -95,7 +97,8 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid *ecal_envelope_cone = new G4Cons("eEcal_envelope_solid",
                                             _rMin1, _rMax1,
@@ -103,7 +106,7 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
                                             _dZ / 2.,
                                             _sPhi, _dPhi);
 
-  G4LogicalVolume *ecal_envelope_log = new G4LogicalVolume(ecal_envelope_cone, Air, G4String("eEcal_envelope"), 0, 0, 0);
+  G4LogicalVolume *ecal_envelope_log = new G4LogicalVolume(ecal_envelope_cone, WorldMaterial, G4String("eEcal_envelope"), 0, 0, 0);
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
@@ -154,7 +157,10 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //Air
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+
+//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -214,7 +220,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
                                          TwoByTwo_dz);  //Half length in z
 
   G4LogicalVolume *Two_by_Two_logic = new G4LogicalVolume(Two_by_Two_solid,
-                                                          Air,
+                                                          WorldMaterial,
                                                           "2_by_2_unit",
                                                           0, 0, 0);
 
@@ -549,7 +555,9 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //Air
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -609,7 +617,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                          TwoByTwo_dz);  //Half length in z
 
   G4LogicalVolume *Two_by_Two_logic = new G4LogicalVolume(Two_by_Two_solid,
-                                                          Air,
+                                                          WorldMaterial,
                                                           "2_by_2_unit",
                                                           0, 0, 0);
 
@@ -1162,10 +1170,12 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                       dz);  //Half length in z
 
   //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+//  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
+   recoConsts *rc = recoConsts::instance();
+   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4LogicalVolume *crystal_logic = new G4LogicalVolume(crystal_solid,
-                                                       Air,
+                                                       WorldMaterial,
                                                        "eEcal_crystal_unit",
                                                        0, 0, 0);
 
@@ -1179,7 +1189,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                      dz);          //Half length in z
 
   G4LogicalVolume *twelve_logic = new G4LogicalVolume(twelve_solid,
-                                                      Air,
+                                                      WorldMaterial,
                                                       "12_unit",
                                                       0, 0, 0);
 
@@ -1193,7 +1203,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                         dz);          //Half length in z
 
   G4LogicalVolume *twentytwo_logic = new G4LogicalVolume(twentytwo_solid,
-                                                         Air,
+                                                         WorldMaterial,
                                                          "22_unit",
                                                          0, 0, 0);
 
@@ -1251,7 +1261,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                                                Crystal_Center);
 
   G4LogicalVolume *thirtytwo_logic = new G4LogicalVolume(thirtytwo_solid,
-                                                         Air,
+                                                         WorldMaterial,
                                                          "32_unit",
                                                          0, 0, 0);
 
