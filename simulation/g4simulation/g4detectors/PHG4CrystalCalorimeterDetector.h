@@ -144,7 +144,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   };
   PHParameters *m_Params = nullptr;
 
-  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction;
+  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction = nullptr;
 
   std::string _towerlogicnameprefix;
 
@@ -152,6 +152,11 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   std::map<std::string, towerposition> _map_tower;
   std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
   std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_AbsorberActive;
 };
 
 #endif

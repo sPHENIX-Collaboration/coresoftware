@@ -29,7 +29,7 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
      Creates the stepping action and place it on the node tree, under "ACTIONS" node
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitSubsystem(PHCompositeNode *) override;
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   /** Event processing
    */
@@ -75,14 +75,14 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4CrystalCalorimeterDetector *m_Detector;
+  PHG4CrystalCalorimeterDetector *m_Detector = nullptr;
 
   /** Stepping action
    */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction *m_SteppingAction = nullptr;
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
 
   int active;
 

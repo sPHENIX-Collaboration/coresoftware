@@ -4,6 +4,8 @@
 #include "PHG4CrystalCalorimeterSteppingAction.h"
 #include "PHG4ProjCrystalCalorimeterDetector.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4DisplayAction.h>              // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>             // for PHG4SteppingAction
@@ -26,9 +28,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
   , active(1)
   , mappingfile_("")
   , mappingfile_4x4_construct_("")
@@ -45,7 +44,7 @@ PHG4CrystalCalorimeterSubsystem::~PHG4CrystalCalorimeterSubsystem()
 }
 
 //_______________________________________________________________________
-int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
+int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -77,8 +76,8 @@ int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
   m_Detector->SetAbsorberActive(active);
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
-
-  if (active)
+  GetParams()->Print();
+  if (GetParams()->get_int_param("active"))
   {
     // create hit output node
     string nodename = "G4HIT_";
@@ -99,6 +98,8 @@ int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
       dstNode->addNode(hitNode);
     }
 
+    if (GetParams()->get_int_param("absorberactive"))
+    {
     string absnodename = "G4HIT_ABSORBER_";
     if (SuperDetector() != "NONE")
     {
@@ -116,7 +117,7 @@ int PHG4CrystalCalorimeterSubsystem::InitSubsystem(PHCompositeNode* topNode)
       PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename, "PHObject");
       dstNode->addNode(abshitNode);
     }
-
+    }
     // create stepping action
     m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector);
   }

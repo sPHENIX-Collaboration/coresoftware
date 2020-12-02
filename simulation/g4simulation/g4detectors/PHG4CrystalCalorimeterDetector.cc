@@ -38,7 +38,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , m_Params(parameters)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(-1080.0 * mm)
@@ -62,21 +61,30 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* su
   , _blackhole(0)
   , _superdetector("NONE")
   , _mapping_tower_file("")
+  , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction()))
   , _towerlogicnameprefix("CrystalCalorimeterTower")
+  , m_IsActive(m_Params->get_int_param("active"))
+  , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
 {
 }
 
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* volume) const
 {
+  if (m_IsActive)
+  {
   if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
   {
     return 1;
   }
+  }
+  if (m_AbsorberActive)
+  {
   if ( m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
   {
     return -1;
+  }
   }
   return 0;
 }
