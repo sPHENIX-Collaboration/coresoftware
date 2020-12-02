@@ -86,9 +86,8 @@ class PHG4TpcDistortion
   //@}
 
  private:
-
   //! get distortion for a set of histogram and an input momentum distribution
-  double get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z) const;
+  double get_distortion(TH3 *hstatic, TH3 *htimeOrdered, double x, double y, double z) const;
 
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;

@@ -110,7 +110,6 @@ double PHG4TpcDistortion::get_z_distortion(double x, double y, double z) const
   return get_distortion(hDZint, TimehDZ, x, y, z);
 }
 
-
 //__________________________________________________________________________________
 double PHG4TpcDistortion::get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z) const
 {
