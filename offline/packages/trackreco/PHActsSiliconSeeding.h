@@ -84,10 +84,13 @@ class PHActsSiliconSeeding : public SubsysReco
   SpacePointPtr makeSpacePoint(const unsigned int& hitId,
 			    const SourceLink& sl);
   std::vector<const SpacePoint*> getSpacePoints();
-  void circleFitSeed(const std::vector<TrkrCluster*> clusters);
+  void circleFitSeed(const std::vector<TrkrCluster*> clusters,
+		     double& x, double& y, double& z,
+		     double& px, double& py, double& pz);
   void circleFitByTaubin(const std::vector<TrkrCluster*> clusters,
 			 double& R, double& X0, double& Y0);
-
+  void lineFit(const std::vector<TrkrCluster*> clusters,
+	       double& A, double& B);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
   ActsTrackingGeometry *m_tGeometry;

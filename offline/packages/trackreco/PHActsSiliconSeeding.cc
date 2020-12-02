@@ -121,22 +121,18 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
   /// Loop over grid volumes
   for(auto& seeds : seedVector)
     {
-      numSeeds += seeds.size();
       /// Loop over actual seeds in this grid volume
       for(auto& seed : seeds)
 	{
 	  auto svtxTrack = std::make_unique<SvtxTrack_v1>();
 	  svtxTrack->set_id(m_trackMap->size());
-	 
-	  /// We are going to use the silicon stubs for initial vertex
-	  /// finding. For now in development, just set vertex id to 0
-	  /// A future module will take the stubs and assign a vertex
-	  /// to them
-	  svtxTrack->set_vertex_id(0);
-	  const auto vertex = m_vertexMap->get(0);
-	  svtxTrack->set_x(vertex->get_x());
-	  svtxTrack->set_y(vertex->get_y());
-	  svtxTrack->set_z(seed.z());
+	  
+	  if(Verbosity() > 1)
+	    std::cout << "Seed " << numSeeds << " has "
+		      << seed.sp().size() << " measurements " 
+		      << std::endl;
+
+	  numSeeds++;
 
 	  std::vector<TrkrCluster*> clusters;
 	  for(auto& spacePoint : seed.sp())
@@ -144,11 +140,35 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      auto cluskey = m_hitIdCluskey->right.find(spacePoint->m_hitId)->second;
 	      clusters.push_back(m_clusterMap->findCluster(cluskey));
 	      
+	      if(Verbosity() > 1)
+		std::cout << "Adding cluster with radius " 
+			  << sqrt(spacePoint->x() * spacePoint->x()
+				  + spacePoint->y() * spacePoint->y())
+			  << " mm " << std::endl;
+
 	      svtxTrack->insert_cluster_key(cluskey);
 	    }
 	  
-	 
-	  circleFitSeed(clusters);
+	  double x = NAN,y, z;;
+	  double px, py, pz;
+	  circleFitSeed(clusters, x, y, z,
+			px, py, pz);
+
+	  /// Bad seed, if x is nan so are y and z
+	  if(std::isnan(x))
+	    continue;
+
+	  if(Verbosity() > 1)
+	    std::cout << "Line fit z vertex : " << z << " and acts seed z vtx "
+		      << seed.z() << std::endl;
+
+	  /// x and y were calculated in sPHENIX units
+	  svtxTrack->set_x(x);
+	  svtxTrack->set_y(y);
+	  svtxTrack->set_z(seed.z() / Acts::UnitConstants::cm);
+	  svtxTrack->set_px(px);
+	  svtxTrack->set_py(py);
+	  svtxTrack->set_pz(pz);
 
 	  m_trackMap->insert(svtxTrack.release());
 	}
@@ -163,20 +183,143 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 }
 
 
-void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> clusters)
+void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*> clusters,
+					 double& x, double& y, double& z,
+					 double& px, double& py, double& pz)
 {
+  /// Circle radius at x,y center
+  /// Note - units are sPHENIX cm since we are using TrkrClusters
   double R, X0, Y0;
   circleFitByTaubin(clusters, R, X0, Y0);
+  
+  if(Verbosity() > 0)
+    std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
+	      << ", " << Y0 << std::endl;
 
-  if(R < 40.0) 
+  /**
+   * We need to determine the closest point on the circle to the origin
+   * since we can't assume that the track originates from the origin
+   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to 
+   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the 
+   * origin and some (currently, unknown) point on the circle x,y.
+   * 
+   * Solving the circle eqn for x and substituting into d gives an eqn for
+   * y. Taking the derivative and setting equal to 0 gives the following 
+   * two solutions. Depending on the charge of the track determines the 
+   * correct solution
+   */
+  
+  double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "Minimum x and y positions " << minx << ",  " 
+		<< miny << std::endl;
+      std::cout << "Minimum y2 positions "
+		<< miny2 << std::endl;
+    }
+  
+  x = minx;
+
+  /// determine which y solution is smaller
+  if(miny < miny2)
+    y = miny;
+  else
+    y = miny2;
+
+  
+  /// If the x or y initial position was found to be greater than 10 cm
+  /// it is a bad seed
+  if(x > 10. or y > 10.)
     return;
+
+  /// Now determine the line tangent to the circle at this point to get phi
+  double phi = atan( 1./( (y - Y0) / (x - X0)));
+  if(phi > M_PI) phi -= M_PI;
+  if(phi < -M_PI) phi += M_PI;
   
-  double A = 0;
-  double B = 0;
+  if(Verbosity() > 1)
+    std::cout << "Track seed phi : " << phi << std::endl;
+
+  double m, B;
   
-  lineFit(clusters, A, B);
+  /// A is slope as a function of radius, B is z intercept (vertex)
+  lineFit(clusters, m, B);
+
+  z = B;
+
+  double theta = atan(1./m);
+  if(Verbosity() > 1)
+    std::cout << "Track seed theta: " << theta << std::endl;
+ 
+  /// 0.035 is the unit conversion from cmT to GeV
+  double p = R * 1.4 * 0.035;
+  
+  if(Verbosity() > 1)
+    std::cout << "track momentum estimate is " << p << std::endl;
+
+  px = p * sin(theta) * cos(phi);
+  py = p * sin(theta) * sin(phi);
+  pz = p * cos(theta);
+  
+  if(Verbosity() > 1)
+    std::cout << "Momentum estimate: (" << px <<" , " << py 
+	      << ", " << pz << ") " << std::endl;
+  
+  /// normalize to unit vector because we just need the direction
+  px /= p;
+  py /= p;
+  pz /= p;
+  
+  return;
 
 }
+void PHActsSiliconSeeding::lineFit(std::vector<TrkrCluster*> clusters, 
+				    double &A, double &B)
+{
+  // copied from: https://www.bragitoff.com
+  // we want to fit z vs radius
+  
+  double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
+  for(auto& cluster : clusters)
+    {
+      double z = cluster->getZ();
+      double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
+      
+      xsum=xsum+r;               // calculate sigma(xi)
+      ysum=ysum+z;               // calculate sigma(yi)
+      x2sum=x2sum+pow(r,2);      // calculate sigma(x^2i)
+      xysum=xysum+r*z;           // calculate sigma(xi*yi)
+    }
+  
+  /// calculate slope
+  A = (clusters.size()*xysum-xsum*ysum) / (clusters.size()*x2sum-xsum*xsum);
+
+  /// calculate intercept
+  B = (x2sum*ysum-xsum*xysum) / (x2sum*clusters.size()-xsum*xsum);
+  
+  if(Verbosity() > 10)
+    {
+      for (auto& cluster : clusters)
+	{
+	  double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
+	  /// To calculate y(fitted) at given x points
+	  double z_fit = A * r + B;               
+	  std::cout << " r " << r << " z " << cluster->getZ() 
+		    << " z_fit " << z_fit << std::endl; 
+	} 
+    }
+  
+  return;
+}   
 
 void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<TrkrCluster*> clusters,
 					     double& R, double& X0, double& Y0)
@@ -455,12 +598,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxSiliconTrackMap");
   if(!m_trackMap)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
       dstNode->addNode(trackNode);
 
     }
