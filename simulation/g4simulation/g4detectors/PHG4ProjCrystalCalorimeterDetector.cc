@@ -3,6 +3,8 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4GenericTrap.hh>
@@ -44,9 +46,12 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _dx_back(48.97454545455 * mm)
   , _dy_back(48.97454545455 * mm)
   , _dz_crystal(90.000 * mm)
+  , m_Params(parameters)
   , _crystallogicnameprefix("eEcalCrystal")
   , _4x4_construct_file("")
   , _overlapcheck_local(false)
+  , m_IsActive(m_Params->get_int_param("active"))
+  , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
 {
 }
 
@@ -56,15 +61,20 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
   // if hit is in absorber material
   //  bool isinabsorber = false;
 
+  if (m_IsActive)
+  {
   if (volume->GetName().find(_crystallogicnameprefix) != string::npos)
   {
     return 1;
   }
-  else if (volume->GetName().find("arbon") != string::npos)
+  }
+  if (m_AbsorberActive)
+  {
+  if (volume->GetName().find("arbon") != string::npos)
   {
     return -1;
   }
-
+  }
   return 0;
 }
 

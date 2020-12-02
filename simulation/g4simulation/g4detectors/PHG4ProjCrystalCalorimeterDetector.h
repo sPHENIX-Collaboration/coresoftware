@@ -81,6 +81,11 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   std::string _4x4_construct_file;
 
   bool _overlapcheck_local;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_AbsorberActive;
 };
 
 #endif
