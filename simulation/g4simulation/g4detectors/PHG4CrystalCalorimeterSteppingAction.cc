@@ -4,8 +4,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -14,17 +14,17 @@
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
@@ -40,8 +40,10 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include <TSystem.h>
+
 #include <iostream>
-#include <string>                              // for basic_string, string
+#include <string>  // for basic_string, string
 
 class PHCompositeNode;
 
@@ -298,19 +300,20 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers(PHCompositeNode*
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!hits_)
   {
-    std::cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << hitnodename << std::endl;
+    gSystem->Exit(1);
   }
   if (!absorberhits_)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << absorbernodename << endl;
     }
   }
 }
