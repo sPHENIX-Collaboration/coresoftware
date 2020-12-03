@@ -67,7 +67,7 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
     std::cout << "PHActsInitialVertexFinder processing event " 
 	      << m_event << std::endl;
 
-  KeyMap keyMap;
+  InitKeyMap keyMap;
   auto trackPointers = getTrackPointers(keyMap);
 
   auto vertices = findVertices(trackPointers);
@@ -103,7 +103,7 @@ int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
 }
 
 void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
-					      KeyMap& keyMap)
+					      InitKeyMap& keyMap)
 {
   unsigned int key = 0;
   for(auto vertex : vertices)
@@ -270,7 +270,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
     ); /// end std::visit call
 
 }
-TrackParamVec PHActsInitialVertexFinder::getTrackPointers(KeyMap& keyMap)
+TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 {
   TrackParamVec tracks;
 

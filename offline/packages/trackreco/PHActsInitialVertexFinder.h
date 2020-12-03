@@ -23,7 +23,7 @@ using VertexVector = std::vector<Acts::Vertex<Acts::BoundTrackParameters>>;
 
 using TrackParamVec = std::vector<const Acts::BoundTrackParameters*>;
 
-using KeyMap = std::map<const ActsExamples::TrackParameters*, const unsigned int>;
+using InitKeyMap = std::map<const ActsExamples::TrackParameters*, const unsigned int>;
 
 class PHActsInitialVertexFinder: public PHInitVertexing
 {
@@ -44,9 +44,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   
-  TrackParamVec getTrackPointers(KeyMap& keyMap);
+  TrackParamVec getTrackPointers(InitKeyMap& keyMap);
   VertexVector findVertices(TrackParamVec& tracks);
-void fillVertexMap(VertexVector& vertices, KeyMap& keyMap);
+void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
   
   int m_maxVertices = 10;
   int m_event = 0;

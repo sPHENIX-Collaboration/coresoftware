@@ -162,8 +162,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  
 	  double x = NAN,y, z;;
 	  double px, py, pz;
-	  circleFitSeed(clusters, x, y, z,
-			px, py, pz);
+	  int charge = circleFitSeed(clusters, x, y, z,
+				     px, py, pz);
 
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
@@ -189,6 +189,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  svtxTrack->set_px(px);
 	  svtxTrack->set_py(py);
 	  svtxTrack->set_pz(pz);
+	  svtxTrack->set_charge(charge);
 
 	  m_trackMap->insert(svtxTrack.release());
 	}
@@ -208,7 +209,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 }
 
 
-void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
+int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
 					 double& x, double& y, double& z,
 					 double& px, double& py, double& pz)
 {
@@ -246,7 +247,7 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
   double minx2 = sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
   
   if(Verbosity() > 1)
-    std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
+    std::cout << "minx : " << minx << std::endl
 	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
 
   if(fabs(minx) < fabs(minx2))
@@ -265,7 +266,8 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
   if(fabs(x) > 10. or fabs(y) > 10.)
     {
       x = NAN;
-      return;
+      /// Return statement doesn't matter as x = nan will be caught
+      return 1;
     }
 
   if(Verbosity() > 1)
@@ -277,14 +279,40 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
 
   /// Now determine the line tangent to the circle at this point to get phi
   double phi = atan( -1./( (y - Y0) / (x - X0)));
-  if(phi > M_PI) phi -= 2. * M_PI;
-  if(phi < -M_PI) phi += 2. * M_PI;
+
+  /// atanx is bounded by -pi/2<y<pi/2 so we need to check for
+  /// values that should be between -pi<phi<pi
+  int numNegYClus = 0;
+  int numNegXClus = 0;
+  for(auto& clus : clusters)
+    {
+      if(clus->getY() < 0)
+	numNegYClus++;
+      if(clus->getX() < 0)
+	numNegXClus++;
+    }
+  
+  /// Need to check in quadrants pi/2 < phi < pi
+  /// and -pi < phi < -pi/2
+  if((numNegYClus > clusters.size() / 2. &&
+      numNegXClus > clusters.size() / 2.) ||
+     (numNegXClus > clusters.size() / 2. &&
+      numNegYClus < clusters.size() / 2.))
+    phi -= M_PI;
+
+  /// Now normalize it to -pi<phi<pi
+  if(phi < -M_PI)
+    phi += 2. * M_PI;
+  if(phi > M_PI)
+    phi -= 2. * M_PI;
   
   if(Verbosity() > 1)
     std::cout << "Track seed phi : " << phi << std::endl;
 
   double m, B;
   
+  int charge = getCharge(clusters, phi, X0, Y0);
+
   /// m is slope as a function of radius, B is z intercept (vertex)
   lineFit(clusters, m, B);
 
@@ -292,21 +320,122 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
 
   double theta = atan(1./m);
 
+  /// normalize to 0 < theta < pi
+  if(theta < 0)
+    theta += M_PI;
+
   if(Verbosity() > 1)
     std::cout << "Track seed theta: " << theta << std::endl;
  
-  /// normalize to unit vector because we just need the direction
-  px = sin(theta) * cos(phi);
-  py = sin(theta) * sin(phi);
-  pz = cos(theta);
+  /// 0.3 conversion factor, 1.4=B field, 100 convert R from cm to m
+  /// Get a very rough estimate of p
+  float pt = 0.3 * 1.4 * R / 100.;
+  float eta = -log(tan(theta/2.));
+  float p = pt * cosh(eta);
+
+  /// The only thing that is really needed for the propagation
+  /// is the direction
+  px = p * sin(theta) * cos(phi);
+  py = p * sin(theta) * sin(phi);
+  pz = p * cos(theta);
   
   if(Verbosity() > 1)
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  return;
+  return charge;
 
 }
+
+int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*> &clusters,
+				    const double phi, const double X0,
+				    const double Y0)
+{
+  /**
+   * This determines the charge by comparing the cluster positions to the
+   * circle fit center and finding where the majority of clusters in the 
+   * seed are located with respect to the center (which then determines
+   * the bend direction)
+   */
+  int charge = 0;
+
+  float quadrants[5] = {-M_PI,-M_PI / 2., 0, M_PI/2., M_PI};
+  int quadrant = -1;
+  for(int i=0; i<4; i++)
+    {
+      if(phi > quadrants[i] && phi <= quadrants[i+1])
+	{
+	  quadrant = i;
+	  break;
+	}
+    }
+  
+  if(Verbosity()>0)
+    {
+      std::cout <<"phi " << phi << std::endl
+		<< "quadrant " << quadrant << std::endl;
+      
+      std::cout << "X0, Y0: " << X0 << ", " << Y0
+		<< std::endl;
+    }
+  int clusx = 0;
+  int clusy = 0;
+  for(auto& clus : clusters)
+    {
+      if(clus->getX() > X0)
+	clusx++;
+      if(clus->getY() > Y0)
+	clusy++;
+
+      if(Verbosity() > 0)
+	std::cout <<"clus x,y : " << clus->getX() << ", " << clus->getY() 
+		  << std::endl;
+    }
+
+  /// if majority of x,y clusters are in a certain quadrant, we take that one
+  /// want a majority so divide by 2
+  int numClusters = clusters.size() / 2.;
+
+  if(Verbosity() > 0)
+    std::cout << "num clusters " << numClusters << " and clusx, clusy " 
+	      << clusx << "  " << clusy << std::endl;
+
+  bool xgreater = false;
+  bool ygreater = false;
+  
+  if(clusx > numClusters)
+    xgreater = true;
+  if(clusy > numClusters)
+     ygreater = true;
+  
+  if(Verbosity() > 0)
+    std::cout << "xgreater, ygreater " << xgreater 
+	      << "  " << ygreater<<std::endl;
+
+  if((quadrant == 0 && xgreater && !ygreater) ||
+     (quadrant == 1 && xgreater && ygreater)  ||
+     (quadrant == 2 && !xgreater  && ygreater)  ||
+     (quadrant == 3 && !xgreater  && !ygreater))
+    charge = 1;
+  
+  if((quadrant == 0 && !xgreater && ygreater) ||
+     (quadrant == 1 && !xgreater && !ygreater)  ||
+     (quadrant == 2 && xgreater  && !ygreater)  ||
+     (quadrant == 3 && xgreater  && ygreater))
+    charge = -1;
+  
+
+  if(charge == 1)
+    std::cout << " returning positive charge " << charge << std::endl;
+  else if(charge == -1)
+    std::cout << "returning negative charge " << charge << std::endl;
+  else if (charge == 0)
+    std::cout << "no charge...?" << std::endl;
+  
+  return charge;
+
+}
+
 void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters, 
 				   double &A, double &B)
 {

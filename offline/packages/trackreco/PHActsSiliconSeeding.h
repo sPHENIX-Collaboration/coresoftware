@@ -104,13 +104,16 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Perform circle/line fits with the final seed to get
   /// initial point and momentum estimates for stub matching
-  void circleFitSeed(const std::vector<TrkrCluster*>& clusters,
+  int circleFitSeed(const std::vector<TrkrCluster*>& clusters,
 		     double& x, double& y, double& z,
 		     double& px, double& py, double& pz);
   void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 			 double& R, double& X0, double& Y0);
   void lineFit(const std::vector<TrkrCluster*>& clusters,
 	       double& A, double& B);
+  int getCharge(const std::vector<TrkrCluster*>& clusters,
+		const double phi, const double X0,
+		const double Y0);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
   ActsTrackingGeometry *m_tGeometry = nullptr;
