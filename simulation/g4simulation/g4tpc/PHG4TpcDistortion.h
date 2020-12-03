@@ -12,6 +12,7 @@
 #define G4TPC_PHG4TPCDISTORTION_H
 
 #include <memory>
+#include <string>
 
 class TFile;
 class TH3;
