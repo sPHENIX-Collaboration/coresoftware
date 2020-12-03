@@ -7,6 +7,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#if __cplusplus < 201402L
+#include <boost/make_unique.hpp>
+#endif
+
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
@@ -39,6 +43,7 @@
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 
+#include <memory>
 #include <iostream>
 
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
@@ -78,6 +83,12 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
   auto vertices = findVertices(trackPointers);
 
   fillVertexMap(vertices, keyMap);
+
+  /// Clean up the track pointer vector memory
+  for(auto track : trackPointers)
+    {
+      delete track;
+    }
 
   if(Verbosity() > 0)
     std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
@@ -268,16 +279,21 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       m_actsVertexMap->insert(pair);
 
       /// Fill SvtxVertexMap
-      auto svtxVertex = new SvtxVertex_v1();
-      svtxVertex->set_x(vertex.position().x()*0.1);  // convert to cm
-      svtxVertex->set_y(vertex.position().y()*0.1);
-      svtxVertex->set_z(vertex.position().z()*0.1);
+      #if __cplusplus < 201402L
+      auto svtxVertex = boost::make_unique<SvtxVertex_v1>();
+      #else
+      auto svtxVertex = std::make_unique<SvtxVertex_v1>();
+      #endif
+
+      svtxVertex->set_x(vertex.position().x() / Acts::UnitConstants::cm);  
+      svtxVertex->set_y(vertex.position().y() / Acts::UnitConstants::cm);
+      svtxVertex->set_z(vertex.position().z() / Acts::UnitConstants::cm);
       for(int i = 0; i < 3; ++i) 
 	{
 	  for(int j = 0; j < 3; ++j)
 	    {
 	      svtxVertex->set_error(i, j,
-				    vertex.covariance()(i,j)*0.01);  // squared, right??
+				    vertex.covariance()(i,j) / Acts::UnitConstants::cm2); 
 	    }
 	}
 
@@ -293,7 +309,7 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(key);
 
-     m_svtxVertexMap->insert(svtxVertex);
+      m_svtxVertexMap->insert(svtxVertex.release());
 
       ++key;
     }
@@ -331,8 +347,8 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       PHDataNode<VertexMap> *node = 
 	new PHDataNode<VertexMap>(m_actsVertexMap,
 				  "ActsVertexMap");
-      if(m_addActsVertexNode)
-	svtxNode->addNode(node);
+   
+      svtxNode->addNode(node);
     }
 
   m_svtxVertexMap = 

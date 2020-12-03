@@ -13,6 +13,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4Subsystem;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -24,10 +25,10 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 {
  public:
   //! constructor
-  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
+  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4ProjCrystalCalorimeterDetector(){}
+  virtual ~PHG4ProjCrystalCalorimeterDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world);
@@ -67,6 +68,7 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
   int Fill4x4Unit(G4LogicalVolume* crystal_logic);
   int FillSpecialUnit(G4LogicalVolume* crystal_logic, G4int ident);
+  PHParameters* m_Params = nullptr;
 
   /* crystal geometry */
   G4double _dx_front;
@@ -79,6 +81,13 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   std::string _4x4_construct_file;
 
   bool _overlapcheck_local;
+  std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_AbsorberActive;
 };
 
 #endif

@@ -130,7 +130,6 @@ class PHRaveVertexing : public SubsysReco
   std::string _vertexing_method;
 
   //! Input Node pointers
-  PHG4TruthInfoContainer* _truth_container;
   SvtxTrackMap* _trackmap;
   SvtxVertexMap* _vertexmap;
 

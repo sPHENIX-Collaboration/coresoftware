@@ -7,17 +7,18 @@
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <phparameter/PHParameterInterface.h>
 #include <cmath>
 #include <memory>
-#include <phparameter/PHParameterInterface.h>
 
 #include <gsl/gsl_rng.h>
-
-#include <string>                              // for string
+#include <string>  // for string
 
 class PHG4TpcPadPlane;
+class PHG4TpcDistortion;
 class PHCompositeNode;
 class TH1;
+class TH2;
 class TH3;
 class TNtuple;
 class TFile;
@@ -30,105 +31,35 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
   virtual ~PHG4TpcElectronDrift() = default;
-  virtual int Init(PHCompositeNode*);
-  virtual int InitRun(PHCompositeNode*);
-  virtual int process_event(PHCompositeNode*);
-  virtual int End(PHCompositeNode*);
+  virtual int Init(PHCompositeNode *);
+  virtual int InitRun(PHCompositeNode *);
+  virtual int process_event(PHCompositeNode *);
+  virtual int End(PHCompositeNode *);
 
-  /*
-  class DistortionStruct
-  {
-    
-    public:
-    using List = std::vector<DistortionStruct>;
-    
-    /// constructor
-    DistortionStruct() = default;
-    
-    float _r = 0;
-    float _phi = 0;
-    float _z = 0;
-    
-    float _dr = 0;
-    float _dphi = 0;
-    float _dz = 0;
-  };
- 
-  /// track container
-  class Container: public PHObject
-  {
-
-    public:
-
-    /// constructor
-    explicit Container() = default;
-
-    /// copy constructor
-    explicit Container(const Container &) = delete;
-
-    /// assignment operator
-    Container& operator = ( const Container& ) = delete;
-
-    /// reset
-    virtual void Reset();
-
-    /// distrotions
-    const DistortionStruct::List& distortions() const
-    { return _distortions; }
-    
-    /// add distortion
-    void addDistortion( const DistortionStruct& distortion )
-    { _distortions.push_back( distortion ); }
-
-    private:
-
-    /// event struct
-    DistortionStruct::List _distortions;
-
-    ClassDef(Container,1)
-
-  };
-  */
-  
   void SetDefaultParameters();
 
   //! detector name
-  void Detector(const std::string &d) 
-  { detector = d; }
+  void Detector(const std::string &d)
+  {
+    detector = d;
+  }
 
   //! detector name
-  std::string Detector() const 
-  { return detector; }
-  
+  std::string Detector() const
+  {
+    return detector;
+  }
+
   //! random seed
   void set_seed(const unsigned int iseed);
-  
-  //! space charge distortions
-  void set_enable_distortions( bool value )
-  { m_enable_distortions = value; }
-  
-  //! distortion filename
-  void set_distortion_filename( const std::string& value )
-  { m_distortion_filename = value; }
-  
-  enum CoordMask
-  {
-    COORD_PHI = 1<<0,
-    COORD_R = 1<<1,
-    COORD_Z = 1<<2
-  };
 
-  // use corrections on specific set of coordinates
-  void set_coordinates( unsigned int value )
-  { m_coordinates = value; }
+  //! setup TPC distortion
+  void setTpcDistortion(PHG4TpcDistortion *);
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
-
-  void DistortedTrackListClear();
-  
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
@@ -137,24 +68,28 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
 
-  //! evaluation node
-  DistortedTrackContainer* m_container = nullptr;
+  std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
+  int event_num = 0;
+  bool do_ElectronDriftQAHistos = false;
 
-  //! space charge distortion file name
-  bool m_enable_distortions = false;
-  std::string m_distortion_filename;
-  TFile *m_distortion_tfile = nullptr;
-
-  //!@name space charge distortion histograms
-  //@{
-  TH3 *hDRint = nullptr;
-  TH3 *hDPint = nullptr;
-  TH3 *hDZint = nullptr;
-  //@}
-  
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
-  TFile *m_outf = nullptr;
+  TH2 *hitmapstart = nullptr;
+  TH2 *hitmapend = nullptr;
+  TH2 *z_startmap = nullptr;
+  TH2 *deltaphi = nullptr;
+  TH2 *deltar = nullptr;
+  TH2 *deltaphinodiff = nullptr;
+  TH2 *deltaRphinodiff = nullptr;
+  TH2 *deltaphivsRnodiff = nullptr;
+  TH2 *deltaphinodist = nullptr;
+  TH2 *deltarnodiff = nullptr;
+  TH2 *deltarnodist = nullptr;
+  TH2 *deltaz = nullptr;
+
+  std::unique_ptr<TFile> m_outf;
+  std::unique_ptr<TFile> EDrift_outf;
+
   TNtuple *nt = nullptr;
   TNtuple *nthit = nullptr;
   TNtuple *ntfinalhit = nullptr;
@@ -175,18 +110,14 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-  //* coordinated for which corrections are applied
-  unsigned int m_coordinates = COORD_PHI|COORD_R|COORD_Z;
-
   //! rng de-allocator
   class Deleter
   {
-    public:
+   public:
     //! deletion operator
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+    void operator()(gsl_rng *rng) const { gsl_rng_free(rng); }
   };
   std::unique_ptr<gsl_rng, Deleter> RandomGenerator;
-  
 };
 
 #endif  // G4TPC_PHG4TPCELECTRONDRIFT_H

@@ -178,6 +178,7 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		string towernodename = "TOWER_CALIB_" + _cal_names[i];
 		RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(
 				topNode, towernodename.c_str());
+	         
 		if (!towerList) {
 			cerr << PHWHERE << " ERROR: Can't find node " << towernodename
 					<< endl;
@@ -188,6 +189,17 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		string clusternodename = "CLUSTER_" + _cal_names[i];
 		RawClusterContainer *clusterList = findNode::getClass<
 				RawClusterContainer>(topNode, clusternodename.c_str());
+
+		if(_use_poscalib_cemc and 
+		   _cal_names[i].compare("CEMC") == 0) {
+		  std::string nodeName = "CLUSTER_POS_COR_" + _cal_names[i];
+		  clusterList = findNode::getClass<RawClusterContainer>(	                             topNode, nodeName.c_str());
+		  
+		  if(Verbosity() > 1)
+		    std::cout << "Grabbing CEMC position recalib clusters"
+			      << std::endl;
+		}
+
 		if (!clusterList) {
 			cerr << PHWHERE << " ERROR: Can't find node " << clusternodename
 					<< endl;

@@ -345,6 +345,14 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
   m_clusterContainer = findNode::getClass<RawClusterContainer>
     (topNode, clusterNodeName.c_str());
 
+  if(m_useCemcPosRecalib and 
+     m_caloNames.at(caloLayer).compare("CEMC") == 0) 
+    {
+      std::string nodeName = "CLUSTER_POS_COR_" + m_caloNames.at(caloLayer);
+      m_clusterContainer = findNode::getClass<RawClusterContainer>
+	(topNode, nodeName.c_str());
+    }
+  
   if(!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
     {
       std::cout << PHWHERE 
