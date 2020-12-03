@@ -9,6 +9,7 @@
 #include <Geant4/G4Types.hh>
 
 #include <map>
+#include <set>
 #include <string>
 
 class G4LogicalVolume;
@@ -16,6 +17,7 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CrystalCalorimeterDisplayAction;
 class PHG4Subsystem;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -27,7 +29,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4CrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
+  PHG4CrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4CrystalCalorimeterDetector() {}
@@ -140,13 +142,21 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     G4double y;
     G4double z;
   };
+  PHParameters *m_Params = nullptr;
 
-  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction;
+  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction = nullptr;
 
   std::string _towerlogicnameprefix;
 
   std::map<std::string, G4double> _map_global_parameter;
   std::map<std::string, towerposition> _map_tower;
+  std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume *> m_PassiveVolumeSet;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_AbsorberActive;
 };
 
 #endif

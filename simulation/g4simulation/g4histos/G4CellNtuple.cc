@@ -2,6 +2,7 @@
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>  // for get_phibin
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 

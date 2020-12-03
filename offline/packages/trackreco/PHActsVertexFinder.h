@@ -78,10 +78,6 @@ class PHActsVertexFinder: public PHInitVertexing
   int m_maxVertices = 20;
   SvtxVertexMap *m_svtxVertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  /// Boolean to place m_actsVertexMap on node tree
-  /// False by default since Svtx objects are still the default
-  bool m_addActsVertexNode = false;
     
 };
 

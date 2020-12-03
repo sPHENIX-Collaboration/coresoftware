@@ -1146,8 +1146,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gnembed = (float) ngembed;
             //        nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
           }
-
-	  std::cout << " adding vertex data " << std::endl;
+	  
+	  if(Verbosity() > 1)
+	    std::cout << " adding vertex data " << std::endl;
 
           float vertex_data[] = {(float) _ievent,m_fSeed,
                                  vx,
