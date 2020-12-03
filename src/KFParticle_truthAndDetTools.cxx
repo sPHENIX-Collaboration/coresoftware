@@ -56,14 +56,16 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     if (!m_svtx_evalstack)
     {
       m_svtx_evalstack = new SvtxEvalStack(topNode);
-      trackeval = m_svtx_evalstack->get_track_eval();
+      //trackeval = m_svtx_evalstack->get_track_eval();
       clustereval = m_svtx_evalstack->get_cluster_eval();
       trutheval = m_svtx_evalstack->get_truth_eval();
-      vertexeval = m_svtx_evalstack->get_vertex_eval();
+      //vertexeval = m_svtx_evalstack->get_vertex_eval();
    }
     m_svtx_evalstack->next_event(topNode);
 
     dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+    m_svtx_evalstack->next_event(topNode);
+
     track = getTrack( daughter.Id(), dst_trackmap );
 
     TrkrDefs::cluskey clusKey = *track->begin_cluster_keys();

@@ -29,6 +29,7 @@ std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
 KFParticle_sPHENIX::KFParticle_sPHENIX():
     SubsysReco( "KFPARTICLE" ),
     m_require_mva(false),
+    m_save_dst(0),
     m_save_output(1),
     m_outfile_name("outputData.root")
 {}
@@ -42,6 +43,8 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
      m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
      initializeBranches();
   }
+
+  if ( m_save_dst ) createParticleNode( topNode );
 
   if ( m_require_mva ) 
   {
@@ -66,16 +69,16 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
     int nPVs, multiplicity;
 
     createDecay( topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity );
-
+ 
     if ( !m_has_intermediates_sPHENIX )   intermediates = daughters;
     if ( !m_constrain_to_vertex_sPHENIX ) vertex = mother;
 
-    if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i) 
+    if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i)
     { 
-      //if ( !m_has_intermediates_sPHENIX ) intermediates.push_back( daughters[i] ); //This is done to avoid a crash, nothing is written to files 
-      //if ( vertex.size() != mother.size()) vertex.push_back(mother[i]);
+      if ( m_save_dst ) fillParticleNode( topNode, mother[i], daughters[i], intermediates[i] );
       if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity );
     }
+
     return Fun4AllReturnCodes::EVENT_OK;
 }
 

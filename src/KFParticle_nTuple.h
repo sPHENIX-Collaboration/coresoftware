@@ -129,7 +129,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     float m_calculated_vertex_x;
     float m_calculated_vertex_y;
     float m_calculated_vertex_z;
-    float m_calculated_vertex_v;  
+    float m_calculated_vertex_v;
+    int   m_calculated_vertex_nTracks; 
     float m_calculated_vertex_chi2;
     float m_calculated_vertex_ndof;
     //float *m_calculated_vertex_cov;

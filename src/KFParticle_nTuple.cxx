@@ -144,8 +144,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch( TString(daughter_number) + "_PDG_ID",         &m_calculated_daughter_pdgID[i],    TString(daughter_number) + "_PDG_ID/I" );
     m_tree->Branch( TString(daughter_number) + "_Covariance",     &m_calculated_daughter_cov[i],      TString(daughter_number) + "_Covariance[21]/F", 21 );
 
-    if ( m_truth_matching ) kfpTruthAndDetTools.initializeTruthBranches(  m_tree,i ); 
-    if ( m_detector_info )  kfpTruthAndDetTools.initializeDetectorBranches(  m_tree,i );
+    if ( m_truth_matching ) kfpTruthAndDetTools.initializeTruthBranches(  m_tree, i ); 
+    if ( m_detector_info )  kfpTruthAndDetTools.initializeDetectorBranches(  m_tree, i );
  }
 
   int iter = 0;
@@ -165,14 +165,15 @@ void KFParticle_nTuple::initializeBranches()
   
   if ( m_constrain_to_vertex_nTuple )
   {
-    m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,    "primary_vertex_x/F" );
-    m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,    "primary_vertex_y/F" );
-    m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,    "primary_vertex_z/F" );
-    m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,    "primary_vertex_volume/F" );
-    m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
-    m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof, "primary_vertex_nDoF/I");
+    m_tree->Branch( "primary_vertex_x",           &m_calculated_vertex_x,       "primary_vertex_x/F" );
+    m_tree->Branch( "primary_vertex_y",           &m_calculated_vertex_y,       "primary_vertex_y/F" );
+    m_tree->Branch( "primary_vertex_z",           &m_calculated_vertex_z,       "primary_vertex_z/F" );
+    m_tree->Branch( "primary_vertex_nTracks",     &m_calculated_vertex_nTracks, "primary_vertex_nTracks/I" );
+    m_tree->Branch( "primary_vertex_volume",      &m_calculated_vertex_v,       "primary_vertex_volume/F" );
+    m_tree->Branch( "primary_vertex_chi2",        &m_calculated_vertex_chi2,    "primary_vertex_chi2/F");
+    m_tree->Branch( "primary_vertex_nDoF",        &m_calculated_vertex_ndof,    "primary_vertex_nDoF/I");
     //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
-    m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
+    m_tree->Branch( "primary_vertex_Covariance",  &m_calculated_vertex_cov,     "primary_vertex_Covariance[6]/F", 6 );
   }
 
   m_tree->Branch( "secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F" );
@@ -340,6 +341,7 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
     m_calculated_vertex_ndof         = vertex.GetNDF();
     //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
+    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex( topNode, vertex );
   }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID( daughters );

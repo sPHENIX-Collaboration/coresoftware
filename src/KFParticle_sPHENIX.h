@@ -24,6 +24,7 @@
 
 #include <KFParticle_Tools.h>
 #include <KFParticle_nTuple.h>
+#include <KFParticle_DST.h>
 
 //KFParticle stuff
 #include "KFParticle.h"
@@ -35,7 +36,7 @@
 //ROOT stuff
 #include <TFile.h>
 
-class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protected KFParticle_Tools
+class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_Tools
 {
  public:
   
@@ -52,7 +53,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   ///Parameters for the user to vary
   void setMotherName( const std::string mother_name ) { m_mother_name = mother_name; m_mother_name_Tools = mother_name; }
   void useIntermediateName( bool use_intermediate_name ) { m_use_intermediate_name = use_intermediate_name; }
-  void hasIntermediateStates( bool has_intermediates ) { m_has_intermediates = has_intermediates; m_has_intermediates_nTuple = has_intermediates; m_has_intermediates_sPHENIX = has_intermediates; }
+  void hasIntermediateStates( bool has_intermediates ) { m_has_intermediates = has_intermediates; m_has_intermediates_nTuple = has_intermediates; m_has_intermediates_sPHENIX = has_intermediates; m_has_intermediates_DST = has_intermediates; }
   void setNumberOfTracks( int num_tracks ) { m_num_tracks = num_tracks; m_num_tracks_nTuple = num_tracks; }
   void setNumberTracksFromIntermeditateState( int num_tracks[99]) { for ( int i = 0; i < 99; ++i) m_num_tracks_from_intermediate[i] = num_tracks[i]; }
   void setNumberOfIntermediateStates( int n_intermediates ) { m_num_intermediate_states = n_intermediates; m_num_intermediate_states_nTuple = n_intermediates;  }
@@ -104,16 +105,21 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, protecte
   void setMVAWeightsPath( const std::string mva_weights_path ) { m_mva_path = mva_weights_path; }
   void setMVACutValue( float cut_value ) { m_mva_cut_value = cut_value; }
 
-  void saveOutput ( bool save ) { m_save_output = save; }
+  void saveDST( bool save ) { m_save_dst = save; } 
+  void saveOutput( bool save ) { m_save_output = save; }
   void setOutputName( const std::string name ) { m_outfile_name = name; }
   void doTruthMatching( bool truth ) { m_truth_matching = truth; }
   void getDetectorInfo( bool detinfo ) { m_detector_info = detinfo; }
+
+  //Use alternate vertex and track fitters
+  void setVertexMapNodeName( std::string vtx_map_node_name ) { m_vtx_map_node_name = vtx_map_node_name; }
 
  protected:
 
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;
-  bool m_require_mva; 
+  bool m_require_mva;
+  bool m_save_dst; 
   bool m_save_output;
   std::string m_outfile_name;
   TFile *m_outfile;

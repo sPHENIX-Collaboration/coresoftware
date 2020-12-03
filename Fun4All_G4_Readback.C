@@ -23,27 +23,47 @@
 #include <phhepmc/Fun4AllHepMCInputManager.h>
 #include <kfparticle_sphenix/KFParticle_sPHENIX.h>
 #include <numeric>
+#include <trackreco/PHRaveVertexing.h>
 
 R__LOAD_LIBRARY(libkfparticle_sphenix.so)
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libg4dst.so)
+R__LOAD_LIBRARY(libg4eval.so)
+R__LOAD_LIBRARY(libtrack_reco.so)
+R__LOAD_LIBRARY(libPHTpcTracker.so)
+
+#endif
+
+#if __cplusplus >= 201703L
+
+#include <G4_Magnet.C>
+//#include <trackreco/ActsEvaluator.h>
+#include <trackreco/MakeActsGeometry.h>
+#include <trackreco/PHActsSourceLinks.h>
+#include <trackreco/PHActsTracks.h>
+#include <trackreco/PHActsTrkFitter.h>
+//#include <trackreco/PHActsTrkProp.h>
+////#include <trackreco/PHActsVertexFinder.h>
+////#include <trackreco/PHActsVertexFitter.h>
+#include <trackreco/PHTpcResiduals.h>
 
 #endif
 
 using namespace std;
 
 int Fun4All_G4_Readback(){
+
+  int verbosity = 4;
   //---------------
   // Load libraries
   //---------------
   gSystem->Load("libfun4all.so");
   gSystem->Load("libg4dst.so");
-
   //---------------
   // Fun4All server
   //---------------
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->Verbosity(0);
+  se->Verbosity(verbosity);
 
   //---------------
   // Choose reco
@@ -83,15 +103,78 @@ int Fun4All_G4_Readback(){
   string fileList;
   if (reconstructionChannel["D02K-pi+"] or reconstructionChannel["D02K+pi-"] or reconstructionChannel["testSpace"]) fileList = "fileList_d2kpi.txt";
   if (reconstructionChannel["Bs2Jpsiphi"]) fileList = "fileList_bs2jpsiphi.txt";
-  if (reconstructionChannel["Bd2D-pi+"] or reconstructionChannel["Upsilon"]) fileList = "fileList_bbbar.txt"; 
+  if (reconstructionChannel["Bd2D-pi+"] or reconstructionChannel["Upsilon"]) fileList = "fileList_bbbar.txt";
+  //if (reconstructionChannel["testSpace"]) fileList = "fileList_MDC.txt"; 
   hitsin->AddListFile(fileList.c_str());
   se->registerInputManager(hitsin);
 
-  KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
+
+  bool use_act_tracking = false;
+  if (use_act_tracking)
+  {
+    #if __cplusplus >= 201703L
+    bool SC_CALIBMODE = true;
+    /// Geometry must be built before any Acts modules
+    MakeActsGeometry* geom = new MakeActsGeometry();
+    geom->Verbosity(verbosity);
+    //geom->setMagField(G4MAGNET::magfield);
+    //geom->setMagFieldRescale(G4MAGNET::magfield_rescale);
+    se->registerSubsystem(geom);
+
+    /// Always run PHActsSourceLinks and PHActsTracks first, to convert TrkRClusters and SvtxTracks to the Acts equivalent
+    PHActsSourceLinks* sl = new PHActsSourceLinks();
+    sl->Verbosity(verbosity);
+    sl->setMagField(G4MAGNET::magfield);
+    sl->setMagFieldRescale(G4MAGNET::magfield_rescale);
+    se->registerSubsystem(sl);
+
+    PHActsTracks* actsTracks = new PHActsTracks();
+    actsTracks->Verbosity(verbosity);
+    se->registerSubsystem(actsTracks);
+
+    PHActsTrkFitter* actsFit = new PHActsTrkFitter();
+    actsFit->Verbosity(verbosity);
+    actsFit->doTimeAnalysis(false);
+    /// If running with distortions, fit only the silicon+MMs first
+    actsFit->fitSiliconMMs(SC_CALIBMODE);
+    se->registerSubsystem(actsFit);
+  
+    if (SC_CALIBMODE)
+    {
+       /// run tpc residual determination with silicon+MM track fit
+       PHTpcResiduals* residuals = new PHTpcResiduals();
+       residuals->Verbosity(verbosity);
+       se->registerSubsystem(residuals);
+    }
+   /*
+    PHActsVertexFinder* vtxer = new PHActsVertexFinder();
+    vtxer->Verbosity(verbosity);
+    se->registerSubsystem(vtxer);
+    */
+    #endif
+  }
+
+
+  bool use_rave_vertexing = false;
+  string raveVertexName = "SvtxVertexMapRave";
+  if (use_rave_vertexing)
+  {
+    PHRaveVertexing* rave = new PHRaveVertexing();
+    //https://rave.hepforge.org/trac/wiki/RaveMethods
+    rave->set_vertexing_method("kalman-smoothing:1");
+    rave->set_over_write_svtxvertexmap(false);
+    rave->set_svtxvertexmaprefit_node_name(raveVertexName.c_str());
+    rave->Verbosity(verbosity);
+    se->registerSubsystem(rave);
+  }
 
   //General configurations
+  KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
 
-  const int nEvents = 1e3;
+  const int nEvents = 5e4;
+
+  //Use rave vertexing to construct PV
+  if (use_rave_vertexing) kfparticle->setVertexMapNodeName(raveVertexName.c_str());
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);
@@ -102,6 +185,7 @@ int Fun4All_G4_Readback(){
   kfparticle->setMinDIRA(0.8);
   kfparticle->setMotherPT(0);
 
+  kfparticle->saveDST(1);
   kfparticle->saveOutput(1);
   kfparticle->doTruthMatching(1);
   kfparticle->getDetectorInfo(0);
@@ -125,6 +209,7 @@ int Fun4All_G4_Readback(){
       kfparticle->setNumberOfTracks(2);
       kfparticle->setMotherIPchi2(50);
     
+      kfparticle->constrainToPrimaryVertex(true);
       kfparticle->hasIntermediateStates(false);
       kfparticle->getChargeConjugate(false);
 
