@@ -9,6 +9,8 @@
 #include "KFParticle.h"
 #include "KFPVertex.h"
 
+using namespace std;
+
 KFParticle_MVA::KFParticle_MVA():
   m_nPars(1),
   m_mva_variable_list(),
@@ -20,12 +22,12 @@ KFParticle_MVA::~KFParticle_MVA(){}
 
 KFParticle_Tools kfpTools;
 
-std::tuple<TMVA::Reader*, std::vector<Float_t>> KFParticle_MVA::initMVA()
+tuple<TMVA::Reader*, vector<Float_t>> KFParticle_MVA::initMVA()
 {
     TMVA::Tools::Instance(); //Start TMVA
     TMVA::Reader *reader = new TMVA::Reader( "!Color:!Silent" );
 
-    std::vector<Float_t> reader_floats;
+    vector<Float_t> reader_floats;
 
     for (unsigned int i = 0; i < nMVApars; ++i)
     {
@@ -34,13 +36,13 @@ std::tuple<TMVA::Reader*, std::vector<Float_t>> KFParticle_MVA::initMVA()
     }
     reader->BookMVA( method.c_str(), m_mva_path.c_str() );
 
-    return std::make_tuple( reader, reader_floats );
+    return make_tuple( reader, reader_floats );
 }
 
-Float_t KFParticle_MVA::evaluateMVA( TMVA::Reader *reader, std::vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex )
+Float_t KFParticle_MVA::evaluateMVA( TMVA::Reader *reader, vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex )
 {
     KFParticle kfpvertex( vertex ); 
-    std::map<std::string, float> possibleVariables = 
+    map<string, float> possibleVariables = 
     {
       { "motherIPchi2", particle.GetDeviationFromVertex( kfpvertex ) },
       { "motherFDchi2", kfpTools.flightDistanceChi2( particle, vertex ) }

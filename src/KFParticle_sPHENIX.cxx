@@ -21,9 +21,11 @@
 
 #include "KFParticle_sPHENIX.h"
 
-typedef std::pair<int, float> particle_pair;
+using namespace std;
+
+typedef pair<int, float> particle_pair;
 KFParticle_particleList kfp_list;
-std::map<std::string, particle_pair> particleList = kfp_list.getParticleList(); 
+map<string, particle_pair> particleList = kfp_list.getParticleList(); 
 
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX():
@@ -49,8 +51,8 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
   if ( m_require_mva ) 
   {
     TMVA::Reader *reader;
-    std::vector<Float_t> MVA_parValues; 
-    std::tie( reader, MVA_parValues ) = initMVA();
+    vector<Float_t> MVA_parValues; 
+    tie( reader, MVA_parValues ) = initMVA();
   }
 
   for ( int i = 0; i < m_num_tracks; ++i )
@@ -64,8 +66,8 @@ int KFParticle_sPHENIX::Init( PHCompositeNode *topNode )
 
 int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
 { 
-    std::vector<KFParticle> mother, vertex;
-    std::vector<std::vector<KFParticle>> daughters, intermediates;
+    vector<KFParticle> mother, vertex;
+    vector<vector<KFParticle>> daughters, intermediates;
     int nPVs, multiplicity;
 
     createDecay( topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity );
@@ -76,6 +78,7 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i)
     { 
       if ( m_save_dst ) fillParticleNode( topNode, mother[i], daughters[i], intermediates[i] );
+      if ( m_save_dst ) printNode( topNode ); 
       if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity );
     }
 

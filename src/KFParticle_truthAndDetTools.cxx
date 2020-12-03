@@ -8,7 +8,9 @@
 #include <TTree.h>
 #include "KFParticle.h"
 
-std::map<std::string, int> Use = 
+using namespace std;
+
+map<string, int> Use = 
 {
   { "MVTX",  1 },
   { "INTT",  1 },
@@ -36,7 +38,7 @@ SvtxTrack* KFParticle_truthAndDetTools::getTrack( unsigned int track_id, SvtxTra
 
 void KFParticle_truthAndDetTools::initializeTruthBranches( TTree *m_tree, int daughter_id )
 {
-  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
+  string daughter_number = "track_" + to_string(daughter_id + 1);
 
   m_tree->Branch( TString(daughter_number) + "_true_vertex_x", &m_true_daughter_vertex_x[daughter_id], TString(daughter_number) + "_true_vertex_x/F" );
   m_tree->Branch( TString(daughter_number) + "_true_vertex_y", &m_true_daughter_vertex_y[daughter_id], TString(daughter_number) + "_true_vertex_y/F" );
@@ -74,8 +76,8 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
     true_px = (Float_t) g4particle->get_px();
     true_py = (Float_t) g4particle->get_py();
     true_pz = (Float_t) g4particle->get_pz();
-    true_p  = std::sqrt( std::pow( true_px, 2) + std::pow( true_py, 2) + std::pow( true_pz, 2) );
-    true_pt = std::sqrt( std::pow( true_px, 2) + std::pow( true_py, 2) );
+    true_p  = sqrt( pow( true_px, 2) + pow( true_py, 2) + pow( true_pz, 2) );
+    true_pt = sqrt( pow( true_px, 2) + pow( true_py, 2) );
 
     m_true_daughter_px[ daughter_id ] = true_px;
     m_true_daughter_py[ daughter_id ] = true_py;
@@ -92,7 +94,7 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches( TTree *m_tree, int daughter_id )
 {
-    std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
+    string daughter_number = "track_" + to_string(daughter_id + 1);
 
     m_tree->Branch( TString(daughter_number) + "_local_x", &detector_local_x[ daughter_id ] );
     m_tree->Branch( TString(daughter_number) + "_local_y", &detector_local_y[ daughter_id ] );
@@ -106,9 +108,9 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches( TTree *m_tree, int
 }
 
 
-void KFParticle_truthAndDetTools::initializeSubDetectorBranches( TTree *m_tree, std::string detectorName, int daughter_id )
+void KFParticle_truthAndDetTools::initializeSubDetectorBranches( TTree *m_tree, string detectorName, int daughter_id )
 {
-    std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
+    string daughter_number = "track_" + to_string(daughter_id + 1);
 
     if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_staveID",     &mvtx_staveID[ daughter_id ] );
     if (detectorName == "MVTX" ) m_tree->Branch( TString(daughter_number) + "_" + TString(detectorName) + "_chipID",      &mvtx_chipID[ daughter_id ] );

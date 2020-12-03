@@ -3,6 +3,8 @@
 
 #include <KFParticle_truthAndDetTools.h>
 
+using namespace std;
+
 class TFile;
 class TTree;
 class KFParticle;
@@ -21,11 +23,11 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     void fillBranch( PHCompositeNode *topNode,
                      KFParticle motherParticle,
                      KFParticle vertex,
-                     std::vector<KFParticle> daughters,
-                     std::vector<KFParticle> intermediates,
+                     vector<KFParticle> daughters,
+                     vector<KFParticle> intermediates,
                      int nPVs, int multiplicity );
 
-  float calc_secondary_vertex_mass_noPID( std::vector<KFParticle> kfp_daughters );
+  float calc_secondary_vertex_mass_noPID( vector<KFParticle> kfp_daughters );
 
   private:
 
@@ -149,10 +151,10 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
     int m_num_intermediate_states_nTuple;
     bool m_truth_matching;
     bool m_detector_info;
-    std::string m_mother_name;
+    string m_mother_name;
     bool m_use_intermediate_name;
     bool m_get_charge_conjugate_nTuple;
-    std::string m_intermediate_name_ntuple[99];
+    string m_intermediate_name_ntuple[99];
 };
 
 #endif

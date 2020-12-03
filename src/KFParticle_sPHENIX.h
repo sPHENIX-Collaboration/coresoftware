@@ -36,6 +36,8 @@
 //ROOT stuff
 #include <TFile.h>
 
+using namespace std;
+
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_Tools
 {
  public:
@@ -51,14 +53,14 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   int End(PHCompositeNode *topNode);
 
   ///Parameters for the user to vary
-  void setMotherName( const std::string mother_name ) { m_mother_name = mother_name; m_mother_name_Tools = mother_name; }
+  void setMotherName( const string mother_name ) { m_mother_name = mother_name; m_mother_name_Tools = mother_name; }
   void useIntermediateName( bool use_intermediate_name ) { m_use_intermediate_name = use_intermediate_name; }
   void hasIntermediateStates( bool has_intermediates ) { m_has_intermediates = has_intermediates; m_has_intermediates_nTuple = has_intermediates; m_has_intermediates_sPHENIX = has_intermediates; m_has_intermediates_DST = has_intermediates; }
   void setNumberOfTracks( int num_tracks ) { m_num_tracks = num_tracks; m_num_tracks_nTuple = num_tracks; }
   void setNumberTracksFromIntermeditateState( int num_tracks[99]) { for ( int i = 0; i < 99; ++i) m_num_tracks_from_intermediate[i] = num_tracks[i]; }
   void setNumberOfIntermediateStates( int n_intermediates ) { m_num_intermediate_states = n_intermediates; m_num_intermediate_states_nTuple = n_intermediates;  }
   void getChargeConjugate( bool get_charge_conjugate ) { m_get_charge_conjugate_nTuple = get_charge_conjugate; m_get_charge_conjugate = get_charge_conjugate; }
-  void setDaughters( std::pair<std::string, int> daughter_list[99] ) 
+  void setDaughters( pair<string, int> daughter_list[99] ) 
   {
     for ( int i = 0; i < 99; ++i)
     {
@@ -67,7 +69,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateStates( std::pair<std::string, int> intermediate_list[99] ) 
+  void setIntermediateStates( pair<string, int> intermediate_list[99] ) 
   {
     for ( int i = 0; i < 99; ++i)
     {
@@ -94,25 +96,29 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setMotherIPchi2( float mother_ipchi2 ) { m_mother_ipchi2 = mother_ipchi2; }
   void constrainToPrimaryVertex( bool constrain_to_vertex ) { m_constrain_to_vertex = constrain_to_vertex; m_constrain_to_vertex_nTuple = constrain_to_vertex; m_constrain_to_vertex_sPHENIX = constrain_to_vertex; }
   void constrainIntermediateMasses( bool constrain_int_mass ) { m_constrain_int_mass = constrain_int_mass; }
-  void setIntermediateMassRange( std::pair<float, float> intermediate_mass_range[99] ) 
+  void setIntermediateMassRange( pair<float, float> intermediate_mass_range[99] ) 
   { for ( int i = 0; i < 99; ++i) m_intermediate_mass_range[i] = intermediate_mass_range[i]; }
   void setIntermediateMinPT ( float intermediate_min_pt[99] ) { for ( int i = 0; i < 99; ++i) m_intermediate_min_pt[i] = intermediate_min_pt[i]; }
 
   void useMVA( bool require_mva) { m_require_mva = require_mva; }
   void setNumMVAPars( unsigned int nPars ) { m_nPars = nPars; }
-  void setMVAVarList( std::string mva_variable_list[ 99 ] ) { for ( int i = 0; i < 99; ++i) m_mva_variable_list[i] = mva_variable_list[i]; }
-  void setMVAType( const std::string mva_type ) { m_mva_type = mva_type; }
-  void setMVAWeightsPath( const std::string mva_weights_path ) { m_mva_path = mva_weights_path; }
+  void setMVAVarList( string mva_variable_list[ 99 ] ) { for ( int i = 0; i < 99; ++i) m_mva_variable_list[i] = mva_variable_list[i]; }
+  void setMVAType( const string mva_type ) { m_mva_type = mva_type; }
+  void setMVAWeightsPath( const string mva_weights_path ) { m_mva_path = mva_weights_path; }
   void setMVACutValue( float cut_value ) { m_mva_cut_value = cut_value; }
 
-  void saveDST( bool save ) { m_save_dst = save; } 
+  void saveDST( bool save ) { m_save_dst = save; }
+  void saveTrackContainer( bool save ) { m_write_track_container = save; } 
+  void saveParticleContainer( bool save ) { m_write_particle_container = save; } 
+  void setContainerName( const string name ) { m_container_name = name; }
   void saveOutput( bool save ) { m_save_output = save; }
-  void setOutputName( const std::string name ) { m_outfile_name = name; }
+  void setOutputName( const string name ) { m_outfile_name = name; }
   void doTruthMatching( bool truth ) { m_truth_matching = truth; }
   void getDetectorInfo( bool detinfo ) { m_detector_info = detinfo; }
 
   //Use alternate vertex and track fitters
-  void setVertexMapNodeName( std::string vtx_map_node_name ) { m_vtx_map_node_name = vtx_map_node_name; }
+  void setVertexMapNodeName( string vtx_map_node_name ) { m_vtx_map_node_name = vtx_map_node_name; }
+  void setTrackMapNodeName(  string trk_map_node_name ) { m_trk_map_node_name = trk_map_node_name; }
 
  protected:
 
@@ -121,7 +127,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_require_mva;
   bool m_save_dst; 
   bool m_save_output;
-  std::string m_outfile_name;
+  string m_outfile_name;
   TFile *m_outfile;
 
 };

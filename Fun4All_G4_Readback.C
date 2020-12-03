@@ -71,10 +71,10 @@ int Fun4All_G4_Readback(){
   map<string, int> reconstructionChannel;
   reconstructionChannel["D02K-pi+"] = 0;
   reconstructionChannel["D02K+pi-"] = 0;
-  reconstructionChannel["Bs2Jpsiphi"] = 1;
+  reconstructionChannel["Bs2Jpsiphi"] = 0;
   reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
-  reconstructionChannel["testSpace"] = 0;
+  reconstructionChannel["testSpace"] = 1;
 
   const int numberOfActiveRecos = accumulate( begin(reconstructionChannel), end(reconstructionChannel), 0, 
                                               [](const int previous, const pair<const string, int>& element) 
@@ -171,7 +171,7 @@ int Fun4All_G4_Readback(){
   //General configurations
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
 
-  const int nEvents = 5e4;
+  const int nEvents = 70;
 
   //Use rave vertexing to construct PV
   if (use_rave_vertexing) kfparticle->setVertexMapNodeName(raveVertexName.c_str());
@@ -323,9 +323,9 @@ int Fun4All_G4_Readback(){
       kfparticle->constrainToPrimaryVertex(false);
       kfparticle->getChargeConjugate(false);
 
-      kfparticle->setMotherName("Upsilon");  
-      kfparticle->setMinimumMass(0);
-      kfparticle->setMaximumMass(11);
+      kfparticle->setMotherName("J/psi");  
+      kfparticle->setMinimumMass(2.8);
+      kfparticle->setMaximumMass(3.4);
 
       kfparticle->setMinimumTrackIPchi2(0.); //Tracks should point back to the PV
       kfparticle->setMaximumDaughterDCA(0.02);
@@ -333,7 +333,7 @@ int Fun4All_G4_Readback(){
       kfparticle->setNumberOfTracks(2);
       daughterList[0] = make_pair("electron", +1);
       daughterList[1] = make_pair("electron", -1);
-
+      kfparticle->setContainerName("J/psi_reco");
       kfparticle->setOutputName("testSpace.root");
   }
 

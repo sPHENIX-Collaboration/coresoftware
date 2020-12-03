@@ -1,4 +1,5 @@
 #include <KFParticle_DST.h>
+#include <KFParticle_Tools.h>
 
 /*****************/
 /* Cameron Dean  */
@@ -8,13 +9,18 @@
 
 /*
  * Class to append reconstructed events to node tree
- * Currently implemented using PHG4Particle
- * A custom class will likely be needed such as PHParticle
  */
 
 //Ideas taken from PHRaveVertexing
 
-KFParticle_DST::KFParticle_DST(){} //Constructor
+using namespace std;
+
+KFParticle_Tools kfpTupleTools_DST;
+
+KFParticle_DST::KFParticle_DST():
+  m_write_track_container(true),
+  m_write_particle_container(true)
+{} //Constructor
 
 KFParticle_DST::~KFParticle_DST(){} //Destructor
 
@@ -22,56 +28,76 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode* lowerNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "Particles"));
+  PHCompositeNode* lowerNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  //PHCompositeNode* lowerNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "Particles"));
   if (!lowerNode)
   {
-    lowerNode = new PHCompositeNode("Particles");
+    lowerNode = new PHCompositeNode("DST");
+    //lowerNode = new PHCompositeNode("Particles");
     topNode->addNode(lowerNode);
-    std::cout<<"Particles node added"<<std::endl;
+    cout<<"Particles node added"<<endl;
   }
 
-  m_recoParticleMap = new SvtxTrackMap_v1();
-  PHIODataNode<PHObject>* particleNode = new PHIODataNode<PHObject>( m_recoParticleMap, "reconstructedParticles", "PHObject" );
-  lowerNode->addNode(particleNode);
-  std::cout<<"reconstructedParticles node added"<<std::endl;
+  string baseName, trackNodeName, particleNodeName;
+  if (m_container_name.empty()) baseName = "reconstructedParticles";
+  else baseName = m_container_name;
+  trackNodeName = baseName + "_SvtxTrackMap";
+  particleNodeName = baseName + "_KFParticle_Container";
+
+  if ( m_write_track_container )
+  {
+    m_recoTrackMap = new SvtxTrackMap_v1();
+    PHIODataNode<PHObject>* trackNode = new PHIODataNode<PHObject>( m_recoTrackMap, trackNodeName.c_str(), "PHObject" );
+    lowerNode->addNode(trackNode);
+    printf("%s node added\n", trackNodeName.c_str());
+  }
+
+  if ( m_write_particle_container )
+  {
+    m_recoParticleMap = new KFParticle_Container();
+    PHIODataNode<PHObject>* particleNode = new PHIODataNode<PHObject>( m_recoParticleMap, particleNodeName.c_str(), "PHObject" );
+    lowerNode->addNode(particleNode);
+    printf("%s node added\n", particleNodeName.c_str());
+  }
+
+  if ( !m_write_track_container && !m_write_particle_container )
+  {
+    cout<<"You have asked to put your selection on the node tree but disabled both the SvtxTrackMap and KFParticle_Container\n";
+    cout<<"Check your options"<<endl;
+    exit(0);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle motherParticle,
-                                      std::vector<KFParticle> daughters,
-                                      std::vector<KFParticle> intermediates)
+                                      vector<KFParticle> daughters,
+                                      vector<KFParticle> intermediates)
 {
-  m_recoParticleMap = findNode::getClass<SvtxTrackMap>(topNode, "reconstructedParticles" );  
+  if ( m_write_track_container ) fillParticleNode_Track(topNode, motherParticle,
+                                                        daughters, intermediates);
 
-  //std::string mother_name;
-  //if (m_mother_name_DST.empty()) mother_name = "mother";
-  //else mother_name = m_mother_name_DST;
+  if ( m_write_particle_container ) fillParticleNode_Particle(topNode, motherParticle,
+                                                              daughters, intermediates);
+}
 
-  SvtxTrack *m_recoParticle = new SvtxTrack_v1();
+void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle motherParticle,
+                                      vector<KFParticle> daughters,
+                                      vector<KFParticle> intermediates)
+{
+  string baseName, trackNodeName;
+  if (m_container_name.empty()) baseName = "reconstructedParticles";
+  else baseName = m_container_name;
+  trackNodeName = baseName + "_SvtxTrackMap";
 
-  m_recoParticle->set_id(std::abs(motherParticle.GetPDG()));
-  m_recoParticle->set_charge(motherParticle.Q());
-  m_recoParticle->set_chisq(motherParticle.GetChi2());
-  m_recoParticle->set_ndf(motherParticle.GetNDF());
-  m_recoParticle->set_x(motherParticle.GetX());
-  m_recoParticle->set_y(motherParticle.GetY());
-  m_recoParticle->set_z(motherParticle.GetZ());
-  m_recoParticle->set_px(motherParticle.GetPx());
-  m_recoParticle->set_py(motherParticle.GetPy());
-  m_recoParticle->set_pz(motherParticle.GetPz());
-  for (int i = 0; i < 6; ++i)
-    for (int j = 0; j < 6; ++j)
-      m_recoParticle->set_error( i, j, motherParticle.GetCovariance( i, j));
+  m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str() );  
 
-  m_recoParticleMap->insert(m_recoParticle);
+  SvtxTrack *m_recoTrack = new SvtxTrack_v1();
 
-  std::cout<<"Identifying the particle:"<<std::endl;
-  m_recoParticle->identify();
-  std::cout<<"Identifying the map:"<<std::endl;
-  m_recoParticleMap->identify();
-
-  m_recoParticle->Reset();
+  m_recoTrack = buildSvtxTrack(motherParticle);
+  m_recoTrackMap->insert(m_recoTrack);
+  m_recoTrack->Reset();
  
   if ( m_has_intermediates_DST)
   {
@@ -79,53 +105,97 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle mothe
 
     for (unsigned int k = 0; k < intermediates.size(); ++k)
     {
-      m_recoParticle->set_id(std::abs(intermediateArray[k].GetPDG()));
-      m_recoParticle->set_charge(intermediateArray[k].Q());
-      m_recoParticle->set_chisq(intermediateArray[k].GetChi2());
-      m_recoParticle->set_ndf(intermediateArray[k].GetNDF());
-      m_recoParticle->set_x(intermediateArray[k].GetX());
-      m_recoParticle->set_y(intermediateArray[k].GetY());
-      m_recoParticle->set_z(intermediateArray[k].GetZ());
-      m_recoParticle->set_px(intermediateArray[k].GetPx());
-      m_recoParticle->set_py(intermediateArray[k].GetPy());
-      m_recoParticle->set_pz(intermediateArray[k].GetPz());
-      for (int i = 0; i < 6; ++i)
-        for (int j = 0; j < 6; ++j)
-          m_recoParticle->set_error( i, j, intermediateArray[k].GetCovariance( i, j));
-  
-      m_recoParticleMap->insert(m_recoParticle);
-      std::cout<<"Identifying the particle:"<<std::endl;
-      m_recoParticle->identify();
-      std::cout<<"Identifying the map:"<<std::endl;
-      m_recoParticleMap->identify();
-      m_recoParticle->Reset();
+      m_recoTrack = buildSvtxTrack(intermediateArray[k]);
+      m_recoTrackMap->insert(m_recoTrack);
+      m_recoTrack->Reset();
     }
   }
 
-   KFParticle* daughterArray = &daughters[0]; 
+  KFParticle* daughterArray = &daughters[0]; 
 
   for (unsigned int k = 0; k < daughters.size(); ++k )
   {
-    m_recoParticle->set_id(std::abs(daughterArray[k].GetPDG()));
-    m_recoParticle->set_charge(daughterArray[k].Q());
-    m_recoParticle->set_chisq(daughterArray[k].GetChi2());
-    m_recoParticle->set_ndf(daughterArray[k].GetNDF());
-    m_recoParticle->set_x(daughterArray[k].GetX());
-    m_recoParticle->set_y(daughterArray[k].GetY());
-    m_recoParticle->set_z(daughterArray[k].GetZ());
-    m_recoParticle->set_px(daughterArray[k].GetPx());
-    m_recoParticle->set_py(daughterArray[k].GetPy());
-    m_recoParticle->set_pz(daughterArray[k].GetPz());
-    for (int i = 0; i < 6; ++i)
-      for (int j = 0; j < 6; ++j)
-        m_recoParticle->set_error( i, j, daughterArray[k].GetCovariance( i, j));
-
-    m_recoParticleMap->insert(m_recoParticle);
-    std::cout<<"Identifying the particle:"<<std::endl;
-    m_recoParticle->identify();
-    std::cout<<"Identifying the map:"<<std::endl;
-    m_recoParticleMap->identify();
-    m_recoParticle->Reset();
+    m_recoTrack = buildSvtxTrack(daughterArray[k]);
+    m_recoTrackMap->insert(m_recoTrack);
+    m_recoTrack->Reset();
   }
 
+}
+
+void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParticle motherParticle,
+                                      vector<KFParticle> daughters,
+                                      vector<KFParticle> intermediates)
+{   
+  string baseName, particleNodeName;
+  if (m_container_name.empty()) baseName = "reconstructedParticles";
+  else baseName = m_container_name;
+  particleNodeName = baseName + "_KFParticle_Container";
+
+  m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName.c_str() );  
+
+  m_recoParticleMap->insert(&motherParticle);
+
+  if ( m_has_intermediates_DST)
+  {
+    KFParticle* intermediateArray = &intermediates[0];
+    for (unsigned int k = 0; k < intermediates.size(); ++k)
+      m_recoParticleMap->insert(&intermediateArray[k]);
+  }
+
+  KFParticle* daughterArray = &daughters[0]; 
+  for (unsigned int k = 0; k < daughters.size(); ++k )
+      m_recoParticleMap->insert(&daughterArray[k]);
+}
+
+SvtxTrack* KFParticle_DST::buildSvtxTrack( KFParticle particle )
+{
+  SvtxTrack *track = new SvtxTrack_v1();
+
+  track->set_id(abs(particle.GetPDG()));
+  track->set_charge((int) particle.GetQ());
+  track->set_chisq(particle.GetChi2());
+  track->set_ndf(particle.GetNDF());
+
+  track->set_x(particle.GetX());
+  track->set_y(particle.GetY());
+  track->set_z(particle.GetZ());
+
+  track->set_px(particle.GetPx());
+  track->set_py(particle.GetPy());
+  track->set_pz(particle.GetPz());
+
+  for (int i = 0; i < 6; ++i)
+    for (int j = 0; j < 6; ++j)
+      track->set_error( i, j, particle.GetCovariance( i, j));
+
+  return track;
+}
+
+void KFParticle_DST::printNode(PHCompositeNode* topNode)
+{
+  string baseName, trackNodeName, particleNodeName;
+  if (m_container_name.empty()) baseName = "reconstructedParticles";
+  else baseName = m_container_name;
+
+  if ( m_write_track_container )
+  {
+    trackNodeName = baseName + "_SvtxTrackMap";
+    SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str());  
+    for ( SvtxTrackMap::Iter iter = trackmap->begin(); iter != trackmap->end(); ++iter )
+    {  
+       SvtxTrack *track = iter->second;
+       track->identify();
+    }
+  }
+
+  if ( m_write_particle_container )
+  {
+    particleNodeName = baseName + "_KFParticle_Container";
+    KFParticle_Container *particlemap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName.c_str());  
+    for ( KFParticle_Container::Iter iter = particlemap->begin(); iter != particlemap->end(); ++iter )
+    {
+      KFParticle *particle = iter->second;
+      kfpTupleTools_DST.identify(*particle);
+    }
+  }
 }

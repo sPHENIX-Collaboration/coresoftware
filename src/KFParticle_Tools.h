@@ -41,6 +41,7 @@
 #include <iomanip>
 #include <cmath>
 
+using namespace std;
 
 class SvtxEvalStack;
 
@@ -66,87 +67,89 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
+  vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
+  vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  void createDecay(PHCompositeNode *topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
-                                             std::vector<std::vector<KFParticle>>& selectedDaughters,
-                                             std::vector<std::vector<KFParticle>>& selectedIntermediates,
+  void createDecay(PHCompositeNode *topNode, vector<KFParticle>& selectedMother, vector<KFParticle>& selectedVertex,
+                                             vector<vector<KFParticle>>& selectedDaughters,
+                                             vector<vector<KFParticle>>& selectedIntermediates,
                                              int& nPVs, int& multiplicity);
 
-  void buildBasicChain(std::vector<KFParticle>& selectedMother, 
-                       std::vector<KFParticle>& selectedVertex,
-                       std::vector<std::vector<KFParticle>>& selectedDaughters, 
-                       std::vector<KFParticle> daughterParticles,
-                       std::vector<int>  goodTrackIndex,
-                       std::vector<KFParticle> primaryVertices);
+  void buildBasicChain(vector<KFParticle>& selectedMother, 
+                       vector<KFParticle>& selectedVertex,
+                       vector<vector<KFParticle>>& selectedDaughters, 
+                       vector<KFParticle> daughterParticles,
+                       vector<int>  goodTrackIndex,
+                       vector<KFParticle> primaryVertices);
 
-  void buildChain(std::vector<KFParticle>& selectedMother,
-                  std::vector<KFParticle>& selectedVertex,
-                  std::vector<std::vector<KFParticle>>& selectedDaughters,
-                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
-                  std::vector<KFParticle> daughterParticles,
-                  std::vector<int> goodTrackIndex,
-                  std::vector<KFParticle> primaryVertices);
+  void buildChain(vector<KFParticle>& selectedMother,
+                  vector<KFParticle>& selectedVertex,
+                  vector<vector<KFParticle>>& selectedDaughters,
+                  vector<vector<KFParticle>>& selectedIntermediates,
+                  vector<KFParticle> daughterParticles,
+                  vector<int> goodTrackIndex,
+                  vector<KFParticle> primaryVertices);
 
-  void getCandidateDecay(std::vector<KFParticle>& selectedMother,
-                         std::vector<KFParticle>& selectedVertex,
-                         std::vector<std::vector<KFParticle>>& selectedDaughters,
-                         std::vector<KFParticle> daughterParticles,
-                         std::vector<std::vector<int>> goodTracksThatMeet,
-                         std::vector<KFParticle> primaryVertices,
+  void getCandidateDecay(vector<KFParticle>& selectedMother,
+                         vector<KFParticle>& selectedVertex,
+                         vector<vector<KFParticle>>& selectedDaughters,
+                         vector<KFParticle> daughterParticles,
+                         vector<vector<int>> goodTracksThatMeet,
+                         vector<KFParticle> primaryVertices,
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
   int getTracksFromVertex( PHCompositeNode *topNode, KFParticle vertex );
 
-  const bool isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, vector<KFParticle> primaryVertices);
 
-  std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
+  vector<int> findAllGoodTracks(vector<KFParticle> daughterParticles, vector<KFParticle> primaryVertices);
 
-  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
+  vector<vector<int>> findTwoProngs(vector<KFParticle> daughterParticles, vector<int> goodTrackIndex, int nTracks);
 
-  std::vector<std::vector<int>> findNProngs( std::vector<KFParticle> daughterParticles, 
-                                             std::vector<int> goodTrackIndex, 
-                                             std::vector<std::vector<int>> goodTracksThatMeet, 
+  vector<vector<int>> findNProngs( vector<KFParticle> daughterParticles, 
+                                             vector<int> goodTrackIndex, 
+                                             vector<vector<int>> goodTracksThatMeet, 
                                              int nRequiredTracks, unsigned int nProngs );
 
-  std::vector<std::vector<int>> appendTracksToIntermediates( KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks);
+  vector<vector<int>> appendTracksToIntermediates( KFParticle intermediateResonances[], vector<KFParticle> daughterParticles, vector<int> goodTrackIndex, int num_remaining_tracks);
 
   float eventDIRA(KFParticle particle, KFParticle vertex);
 
   float flightDistanceChi2(KFParticle particle, KFParticle vertex);
 
-  std::tuple<KFParticle, bool> buildMother( KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID );
+  tuple<KFParticle, bool> buildMother( KFParticle vDaughters[], string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID );
 
   void constrainToVertex(KFParticle& particle, bool& goodCandidate, KFParticle& vertex );
 
-  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex, 
+  tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], string daughterOrder[], KFParticle vertex, 
                                               bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID );
 
-  std::vector<std::vector<std::string>> findUniqueDaughterCombinations( int start, int end );
+  vector<vector<string>> findUniqueDaughterCombinations( int start, int end );
 
   double calculateEllipsoidRadius( int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij );
   
   float calculateEllipsoidVolume( KFParticle particle );
+
+  void identify( KFParticle particle );
  
  protected:
    
-  std::string m_mother_name_Tools;
+  string m_mother_name_Tools;
   bool m_has_intermediates;
   int m_num_tracks;
   int m_num_intermediate_states;
   int m_num_tracks_from_intermediate[99];
-  std::string m_daughter_name[99];
+  string m_daughter_name[99];
   int m_daughter_charge[99];
-  std::string m_intermediate_name[99];
+  string m_intermediate_name[99];
   int m_intermediate_charge[99];
   float m_min_mass;
   float m_max_mass;
-  std::pair<float, float> m_intermediate_mass_range[99];
+  pair<float, float> m_intermediate_mass_range[99];
   float m_intermediate_min_pt[99];
   float m_min_lifetime;
   float m_max_lifetime;
@@ -165,20 +168,20 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
   bool m_get_charge_conjugate;
-  std::string m_vtx_map_node_name;
+  string m_vtx_map_node_name;
+  string m_trk_map_node_name;
   SvtxVertexMap *m_dst_vertexmap;
   SvtxTrackMap *m_dst_trackmap;
   SvtxVertex *m_dst_vertex;
   SvtxTrack *m_dst_track;
 
-
  private:
  
-    SvtxEvalStack *m_svtx_evalstack;
-  void removeDuplicates(std::vector<double> &v);
-  void removeDuplicates(std::vector<int> &v);
-  void removeDuplicates(std::vector<std::vector<int>> &v);
-  void removeDuplicates(std::vector<std::vector<std::string>> &v);
+  SvtxEvalStack *m_svtx_evalstack;
+  void removeDuplicates(vector<double> &v);
+  void removeDuplicates(vector<int> &v);
+  void removeDuplicates(vector<vector<int>> &v);
+  void removeDuplicates(vector<vector<string>> &v);
 };
 
 #endif //KFParticle_Tools_H

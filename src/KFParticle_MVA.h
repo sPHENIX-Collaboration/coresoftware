@@ -4,14 +4,14 @@
  /*   Cameron Dean, LANL, 06/15/20 */
 /**********************************/
 
-
 #ifndef KFParticle_MVA_H
 #define KFParticle_MVA_H
-
 
 //ROOT stuff
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
+
+using namespace std;
 
 class KFParticle;
 class KFParticleBase;
@@ -27,21 +27,21 @@ public:
 
   ~KFParticle_MVA();
 
-  std::tuple<TMVA::Reader*, std::vector<Float_t>> initMVA();
+  tuple<TMVA::Reader*, vector<Float_t>> initMVA();
 
-  Float_t evaluateMVA( TMVA::Reader *reader, std::vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex );
+  Float_t evaluateMVA( TMVA::Reader *reader, vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex );
 
 protected:
 
   unsigned int m_nPars;
-  std::string m_mva_variable_list[ 99 ];
-  std::string m_mva_type;
-  std::string m_mva_path;
+  string m_mva_variable_list[ 99 ];
+  string m_mva_type;
+  string m_mva_path;
 
 private:
 
   unsigned int nMVApars = m_nPars;  //sizeof(m_mva_variable_list)/sizeof(m_mva_variable_list[0]);
-  std::string method = m_mva_path + " method";
+  string method = m_mva_path + " method";
 
 };
 
