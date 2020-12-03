@@ -307,8 +307,8 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
   return;
 
 }
-void PHActsSiliconSeeding::lineFit(std::vector<TrkrCluster*>& clusters, 
-				    double &A, double &B)
+void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters, 
+				   double &A, double &B)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
