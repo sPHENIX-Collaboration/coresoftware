@@ -75,7 +75,7 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
     return ret;
 
   /// Create a map that correlates the track momentum to the track key
-  std::map<const double, const unsigned int> keyMap;
+  KeyMap keyMap;
 
   /// Get the list of tracks in Acts form
   auto trackPointers = getTracks(keyMap);
@@ -112,7 +112,7 @@ int PHActsVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks(std::map<const double, const unsigned int>& keyMap)
+TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
@@ -125,8 +125,7 @@ std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks(std
 	if(traj.hasTrackParameters(trackTip))
 	  {
 	    const auto param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	    keyMap.insert(std::make_pair(param->absoluteMomentum(),
-					 key));
+	    keyMap.insert(std::make_pair(param, key));
 	    trackPtrs.push_back(param);
 	  }
       }
@@ -253,7 +252,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 
 
 void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
-				       std::map<const double, const unsigned int>& keyMap)
+				       KeyMap& keyMap)
 {
   unsigned int key = 0;
   for(auto vertex : vertices)
@@ -300,8 +299,9 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       for(const auto track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
-	  const auto key = keyMap.find(originalParams->absoluteMomentum())->second;
-	  svtxVertex->insert_track(key);
+	  const auto trackKey = keyMap.find(originalParams)->second;
+	  svtxVertex->insert_track(trackKey);
+
 	}
 
       svtxVertex->set_chisq(chi2);
