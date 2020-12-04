@@ -111,9 +111,13 @@ class PHActsSiliconSeeding : public SubsysReco
 			 double& R, double& X0, double& Y0);
   void lineFit(const std::vector<TrkrCluster*>& clusters,
 	       double& A, double& B);
+  void findRoot(const double R, const double X0, const double Y0,
+		double& x, double& y);
+  double normalizePhi(const std::vector<TrkrCluster*>& clusters,
+		const double phi);
   int getCharge(const std::vector<TrkrCluster*>& clusters,
-		const double phi, const double X0,
-		const double Y0);
+		const double trackPhi, const double circPhi);
+  double normPhi2Pi(const double phi);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
   ActsTrackingGeometry *m_tGeometry = nullptr;
