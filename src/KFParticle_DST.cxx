@@ -1,5 +1,6 @@
 #include <KFParticle_DST.h>
 #include <KFParticle_Tools.h>
+#include <KFParticle_truthAndDetTools.h>
 
 /*****************/
 /* Cameron Dean  */
@@ -16,6 +17,7 @@
 using namespace std;
 
 KFParticle_Tools kfpTupleTools_DST;
+KFParticle_truthAndDetTools kfpTruthTools_DST;
 
 KFParticle_DST::KFParticle_DST():
   m_write_track_container(true),
@@ -41,6 +43,10 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   string baseName, trackNodeName, particleNodeName;
   if (m_container_name.empty()) baseName = "reconstructedParticles";
   else baseName = m_container_name;
+  //Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  string fwd_slsh = "/", undrscr = "_"; size_t pos;
+  while ((pos = baseName.find(fwd_slsh)) != string::npos) baseName.replace(pos, 1, undrscr);
+
   trackNodeName = baseName + "_SvtxTrackMap";
   particleNodeName = baseName + "_KFParticle_Container";
 
@@ -89,6 +95,10 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   string baseName, trackNodeName;
   if (m_container_name.empty()) baseName = "reconstructedParticles";
   else baseName = m_container_name;
+  //Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  string fwd_slsh = "/", undrscr = "_"; size_t pos;
+  while ((pos = baseName.find(fwd_slsh)) != string::npos) baseName.replace(pos, 1, undrscr);
+
   trackNodeName = baseName + "_SvtxTrackMap";
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str() );  
@@ -111,11 +121,20 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
     }
   }
 
+  SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap" );
+  SvtxTrackMap* originalTrackMap_copy = new SvtxTrackMap(*originalTrackMap); //Copy needed to avoid memory corruption when using getTrack here and in truth matching
   KFParticle* daughterArray = &daughters[0]; 
 
   for (unsigned int k = 0; k < daughters.size(); ++k )
   {
-    m_recoTrack = buildSvtxTrack(daughterArray[k]);
+
+    if ( originalTrackMap_copy->size() == 0 ) 
+    { 
+      cout << "There was no orginal track map found, the tracks will have no cluster information!" << endl;   
+      m_recoTrack = buildSvtxTrack(daughterArray[k]);
+    }
+    else m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap_copy);
+
     m_recoTrackMap->insert(m_recoTrack);
     m_recoTrack->Reset();
   }
@@ -129,6 +148,10 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
   string baseName, particleNodeName;
   if (m_container_name.empty()) baseName = "reconstructedParticles";
   else baseName = m_container_name;
+  //Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  string fwd_slsh = "/", undrscr = "_"; size_t pos;
+  while ((pos = baseName.find(fwd_slsh)) != string::npos) baseName.replace(pos, 1, undrscr);
+
   particleNodeName = baseName + "_KFParticle_Container";
 
   m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName.c_str() );  
@@ -176,6 +199,10 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
   string baseName, trackNodeName, particleNodeName;
   if (m_container_name.empty()) baseName = "reconstructedParticles";
   else baseName = m_container_name;
+  //Cant have forward slashes in DST or else you make a subdirectory on save!!!
+  string fwd_slsh = "/", undrscr = "_"; size_t pos;
+  while ((pos = baseName.find(fwd_slsh)) != string::npos) baseName.replace(pos, 1, undrscr);
+
 
   if ( m_write_track_container )
   {

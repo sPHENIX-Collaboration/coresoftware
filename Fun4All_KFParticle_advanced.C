@@ -1,9 +1,9 @@
 // $Id: $
 
 /*!
- * \file Fun4All_G4_Readback.C
+ * \file Fun4All_KFParticle_advanced.C
  * \brief 
- * \author Jin Huang <jhuang@bnl.gov>
+ * \author Cameron Dean <cdean@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
@@ -51,7 +51,7 @@ R__LOAD_LIBRARY(libPHTpcTracker.so)
 
 using namespace std;
 
-int Fun4All_G4_Readback(){
+int Fun4All_KFParticle_advanced(){
 
   int verbosity = 4;
   //---------------
@@ -68,6 +68,9 @@ int Fun4All_G4_Readback(){
   //---------------
   // Choose reco
   //---------------
+  bool use_act_tracking = true;
+  bool use_rave_vertexing = true;
+
   map<string, int> reconstructionChannel;
   reconstructionChannel["D02K-pi+"] = 0;
   reconstructionChannel["D02K+pi-"] = 0;
@@ -104,12 +107,10 @@ int Fun4All_G4_Readback(){
   if (reconstructionChannel["D02K-pi+"] or reconstructionChannel["D02K+pi-"] or reconstructionChannel["testSpace"]) fileList = "fileList_d2kpi.txt";
   if (reconstructionChannel["Bs2Jpsiphi"]) fileList = "fileList_bs2jpsiphi.txt";
   if (reconstructionChannel["Bd2D-pi+"] or reconstructionChannel["Upsilon"]) fileList = "fileList_bbbar.txt";
-  //if (reconstructionChannel["testSpace"]) fileList = "fileList_MDC.txt"; 
   hitsin->AddListFile(fileList.c_str());
   se->registerInputManager(hitsin);
 
 
-  bool use_act_tracking = false;
   if (use_act_tracking)
   {
     #if __cplusplus >= 201703L
@@ -155,7 +156,6 @@ int Fun4All_G4_Readback(){
   }
 
 
-  bool use_rave_vertexing = false;
   string raveVertexName = "SvtxVertexMapRave";
   if (use_rave_vertexing)
   {
@@ -225,6 +225,8 @@ int Fun4All_G4_Readback(){
         daughterList[1] = make_pair("pion", -1);
         kfparticle->setOutputName("outputData_D0bar2Kppim_example.root");
       }
+
+      kfparticle->setContainerName("D2Kpi_reco");
   }
 
 
@@ -255,6 +257,7 @@ int Fun4All_G4_Readback(){
       nIntTracks[1] = 2;
       intPt[1] = 0;
 
+      kfparticle->setContainerName("Bs2Jpsiphi_reco");
       kfparticle->setOutputName("outputData_Bs2Jpsiphi_example.root");
   }
 
@@ -333,6 +336,7 @@ int Fun4All_G4_Readback(){
       kfparticle->setNumberOfTracks(2);
       daughterList[0] = make_pair("electron", +1);
       daughterList[1] = make_pair("electron", -1);
+
       kfparticle->setContainerName("J/psi_reco");
       kfparticle->setOutputName("testSpace.root");
   }

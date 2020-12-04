@@ -77,9 +77,9 @@ int KFParticle_sPHENIX::process_event( PHCompositeNode *topNode )
 
     if (mother.size() != 0 ) for (unsigned int i = 0; i < mother.size(); ++i)
     { 
-      if ( m_save_dst ) fillParticleNode( topNode, mother[i], daughters[i], intermediates[i] );
-      if ( m_save_dst ) printNode( topNode ); 
       if ( m_save_output ) fillBranch( topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity );
+      if ( m_save_dst ) fillParticleNode( topNode, mother[i], daughters[i], intermediates[i] );
+      //if ( m_save_dst ) printNode(topNode);
     }
 
     return Fun4AllReturnCodes::EVENT_OK;

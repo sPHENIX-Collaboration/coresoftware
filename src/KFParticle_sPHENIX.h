@@ -22,7 +22,7 @@
 #ifndef KFParticle_sPHENIX_H
 #define KFParticle_sPHENIX_H
 
-#include <KFParticle_Tools.h>
+#include <KFParticle_eventReconstruction.h>
 #include <KFParticle_nTuple.h>
 #include <KFParticle_DST.h>
 
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_Tools
+class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction
 {
  public:
   
@@ -64,6 +64,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   {
     for ( int i = 0; i < 99; ++i)
     {
+      m_daughter_name_evt[i] = daughter_list[i].first;
+      m_daughter_charge_evt[i] = daughter_list[i].second;
       m_daughter_name[i] = daughter_list[i].first;
       m_daughter_charge[i] = daughter_list[i].second;
     }
@@ -74,6 +76,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for ( int i = 0; i < 99; ++i)
     {
       m_intermediate_name_ntuple[i] = intermediate_list[i].first;
+      //m_intermediate_name_evt[i] = intermediate_list[i].first;
+      //m_intermediate_charge_evt[i] = intermediate_list[i].second;
       m_intermediate_name[i] = intermediate_list[i].first;
       m_intermediate_charge[i] = intermediate_list[i].second;
     }

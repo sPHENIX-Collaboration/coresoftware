@@ -43,7 +43,7 @@
 
 using namespace std;
 
-class SvtxEvalStack;
+//class SvtxEvalStack;
 
 class PHCompositeNode;
 class SvtxVertexMap;
@@ -51,11 +51,7 @@ class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
 
-class KFPTrack;
-class KFParticle;
-class KFParticleSIMD;
-class KFParticle;
-class KFParticleDatabase;
+//class KFParticle;
 
 class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MVA 
 {
@@ -72,35 +68,6 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
-
-  void createDecay(PHCompositeNode *topNode, vector<KFParticle>& selectedMother, vector<KFParticle>& selectedVertex,
-                                             vector<vector<KFParticle>>& selectedDaughters,
-                                             vector<vector<KFParticle>>& selectedIntermediates,
-                                             int& nPVs, int& multiplicity);
-
-  void buildBasicChain(vector<KFParticle>& selectedMother, 
-                       vector<KFParticle>& selectedVertex,
-                       vector<vector<KFParticle>>& selectedDaughters, 
-                       vector<KFParticle> daughterParticles,
-                       vector<int>  goodTrackIndex,
-                       vector<KFParticle> primaryVertices);
-
-  void buildChain(vector<KFParticle>& selectedMother,
-                  vector<KFParticle>& selectedVertex,
-                  vector<vector<KFParticle>>& selectedDaughters,
-                  vector<vector<KFParticle>>& selectedIntermediates,
-                  vector<KFParticle> daughterParticles,
-                  vector<int> goodTrackIndex,
-                  vector<KFParticle> primaryVertices);
-
-  void getCandidateDecay(vector<KFParticle>& selectedMother,
-                         vector<KFParticle>& selectedVertex,
-                         vector<vector<KFParticle>>& selectedDaughters,
-                         vector<KFParticle> daughterParticles,
-                         vector<vector<int>> goodTracksThatMeet,
-                         vector<KFParticle> primaryVertices,
-                         int n_track_start, int n_track_stop,
-                         bool isIntermediate, int intermediateNumber, bool constrainMass);
 
   int getTracksFromVertex( PHCompositeNode *topNode, KFParticle vertex );
 
@@ -139,14 +106,11 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
  protected:
    
   string m_mother_name_Tools;
-  bool m_has_intermediates;
-  int m_num_tracks;
   int m_num_intermediate_states;
   int m_num_tracks_from_intermediate[99];
   string m_daughter_name[99];
   int m_daughter_charge[99];
   string m_intermediate_name[99];
-  int m_intermediate_charge[99];
   float m_min_mass;
   float m_max_mass;
   pair<float, float> m_intermediate_mass_range[99];
@@ -165,8 +129,6 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   float m_mother_pt;
   float m_mother_ipchi2;
   float m_mva_cut_value;
-  bool m_constrain_to_vertex;
-  bool m_constrain_int_mass;
   bool m_get_charge_conjugate;
   string m_vtx_map_node_name;
   string m_trk_map_node_name;
@@ -177,7 +139,6 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
  private:
  
-  SvtxEvalStack *m_svtx_evalstack;
   void removeDuplicates(vector<double> &v);
   void removeDuplicates(vector<int> &v);
   void removeDuplicates(vector<vector<int>> &v);

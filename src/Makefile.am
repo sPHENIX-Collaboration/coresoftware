@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   KFParticle_Tools.h \
   KFParticle_particleList.h \
   KFParticle_MVA.h \
+  KFParticle_eventReconstruction.h \
   KFParticle_sPHENIX.h
 
 if ! MAKEROOT6
@@ -33,6 +34,7 @@ if ! MAKEROOT6
     KFParticle_Tools_Dict.cc \
     KFParticle_particleList_Dict.cc \
     KFParticle_MVA_Dict.cc \
+    KFParticle_eventReconstruction_Dict.cc \
     KFParticle_sPHENIX_Dict.cc
 endif
 
@@ -45,6 +47,7 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_Tools.cxx \
   KFParticle_particleList.cxx \
   KFParticle_MVA.cxx \
+  KFParticle_eventReconstruction.cxx \
   KFParticle_sPHENIX.cxx
 
 libkfparticle_sphenix_la_LDFLAGS = \
