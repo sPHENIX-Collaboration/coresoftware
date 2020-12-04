@@ -152,9 +152,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      clusters.push_back(m_clusterMap->findCluster(cluskey));
 	      
 	      if(Verbosity() > 1)
-		std::cout << "Adding cluster with radius " 
-			  << sqrt(spacePoint->x() * spacePoint->x()
-				  + spacePoint->y() * spacePoint->y())
+		std::cout << "Adding cluster with x,y "
+			  << spacePoint->x() <<", " << spacePoint->y()
 			  << " mm " << std::endl;
 
 	      svtxTrack->insert_cluster_key(cluskey);
@@ -244,18 +243,18 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
     / (pow(X0, 2) + pow(Y0, 2));
 
   double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
-  double minx2 = sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
+  double minx2 = -sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
   
   if(Verbosity() > 1)
-    std::cout << "minx : " << minx << std::endl
+    std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
 	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
 
+  /// Figure out which of the two roots is actually closer to the origin
   if(fabs(minx) < fabs(minx2))
     x = minx;
   else
     x = minx2;
 
-  /// determine which y solution is smaller
   if(fabs(miny) < fabs(miny2))
     y = miny;
   else
@@ -272,16 +271,15 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 
   if(Verbosity() > 1)
     {
-      if(!std::isnan(x) && !std::isnan(y))
-	std::cout << "Minimum x and y positions " << x << ",  " 
-		  << y << std::endl;
+      std::cout << "Minimum x and y positions " << x << ",  " 
+		<< y << std::endl;
     }
 
   /// Now determine the line tangent to the circle at this point to get phi
-  double phi = atan( -1./( (y - Y0) / (x - X0)));
+  double phi = atan2(-1., (y-Y0)/(x-X0));
+  std::cout<<"OG phi is " << phi << std::endl;
 
-  /// atanx is bounded by -pi/2<y<pi/2 so we need to check for
-  /// values that should be between -pi<phi<pi
+  /// Check to see what quadrant the majority of clusters are in
   int numNegYClus = 0;
   int numNegXClus = 0;
   for(auto& clus : clusters)
@@ -290,16 +288,21 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 	numNegYClus++;
       if(clus->getX() < 0)
 	numNegXClus++;
+      
+      if(Verbosity() > 1)
+	std::cout << "clus x,y : " << clus->getX() << ", " 
+		  << clus->getY() << std::endl;
     }
-  
-  /// Need to check in quadrants pi/2 < phi < pi
-  /// and -pi < phi < -pi/2
-  if((numNegYClus > clusters.size() / 2. &&
-      numNegXClus > clusters.size() / 2.) ||
-     (numNegXClus > clusters.size() / 2. &&
-      numNegYClus < clusters.size() / 2.))
-    phi -= M_PI;
 
+  /// Positive +x,+y quadrant comes back from atan off a factor of pi
+  if(numNegYClus < clusters.size() / 2 && 
+     numNegXClus < clusters.size() / 2)
+    phi += M_PI;
+  /// Positive +y, -x quadrant comes back from atan2 off a factor of pi
+  if(numNegYClus < clusters.size() / 2 &&
+     numNegXClus > clusters.size() / 2)
+    phi += M_PI;
+  
   /// Now normalize it to -pi<phi<pi
   if(phi < -M_PI)
     phi += 2. * M_PI;
@@ -311,8 +314,8 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 
   double m, B;
   
-  int charge = getCharge(clusters, phi, X0, Y0);
-
+  //int charge = getCharge(clusters, phi, X0, Y0);
+  int charge = 1;
   /// m is slope as a function of radius, B is z intercept (vertex)
   lineFit(clusters, m, B);
 
