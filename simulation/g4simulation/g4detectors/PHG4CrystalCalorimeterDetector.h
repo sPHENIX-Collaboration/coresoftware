@@ -48,12 +48,12 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     _mapping_tower_file = filename;
   }
 
-  void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
-  {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
-  }
+  /* void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z) */
+  /* { */
+  /*   _place_in_x = place_in_x; */
+  /*   _place_in_y = place_in_y; */
+  /*   _place_in_z = place_in_z; */
+  /* } */
 
   void SetRotation(G4double rot_in_x, G4double rot_in_y, G4double rot_in_z)
   {
@@ -98,9 +98,9 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
  protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
+  /* G4double _place_in_x; */
+  /* G4double _place_in_y; */
+  /* G4double _place_in_z; */
 
   G4double _rot_in_x;
   G4double _rot_in_y;

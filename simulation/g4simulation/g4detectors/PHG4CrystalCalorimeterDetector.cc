@@ -38,9 +38,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , _place_in_x(0.0 * mm)
-  , _place_in_y(0.0 * mm)
-  , _place_in_z(-1080.0 * mm)
   , _rot_in_x(0.0)
   , _rot_in_y(M_PI)
   , _rot_in_z(0.0)
@@ -131,7 +128,7 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   //  name_envelope.str("");
   string name_envelope = _towerlogicnameprefix + "_envelope";
 
-  new G4PVPlacement(G4Transform3D(eemc_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
+  new G4PVPlacement(G4Transform3D(eemc_rotm, G4ThreeVector(m_Params->get_double_param("place_x")*cm, m_Params->get_double_param("place_y")*cm,m_Params->get_double_param("place_z")*cm )),
                     eemc_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
@@ -397,15 +394,15 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
-    _place_in_x = parit->second * cm;
+    m_Params->set_double_param("place_x",parit->second);
 
   parit = _map_global_parameter.find("Gy0");
   if (parit != _map_global_parameter.end())
-    _place_in_y = parit->second * cm;
+    m_Params->set_double_param("place_y",parit->second);
 
   parit = _map_global_parameter.find("Gz0");
   if (parit != _map_global_parameter.end())
-    _place_in_z = parit->second * cm;
+    m_Params->set_double_param("place_z",parit->second);
 
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
