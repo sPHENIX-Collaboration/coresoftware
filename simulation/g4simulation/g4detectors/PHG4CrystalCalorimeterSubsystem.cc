@@ -115,7 +115,7 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
     }
     // create stepping action
-    m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector);
+    m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector, GetParams());
   }
   return 0;
 }

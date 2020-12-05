@@ -1,6 +1,8 @@
 #include "PHG4CrystalCalorimeterSteppingAction.h"
 #include "PHG4CrystalCalorimeterDetector.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -50,7 +52,7 @@ class PHCompositeNode;
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector)
+PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -58,6 +60,8 @@ PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction(PHG4C
   , hit(nullptr)
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
+  , m_ActiveFlag(parameters->get_int_param("active"))
+  , m_BlackHoleFlag(parameters->get_int_param("blackhole"))
 {
 }
 
@@ -118,7 +122,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -126,7 +130,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   }
 
   /* Make sure we are in a volume */
-  if (detector_->IsActive())
+  if (m_ActiveFlag)
   {
     int idx_l = -1;
     /* Check if particle is 'geantino' */

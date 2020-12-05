@@ -60,18 +60,10 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     _materialCrystal = material;
   }
 
-  void SetActive(const int i = 1) { _active = i; }
-  void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
-
-  int IsActive() const { return _active; }
-
   void SuperDetector(const std::string &name) { _superdetector = name; }
   const std::string SuperDetector() const { return _superdetector; }
 
   int get_Layer() const { return _layer; }
-
-  void BlackHole(const int i = 1) { _blackhole = i; }
-  int IsBlackHole() const { return _blackhole; }
 
   // ----- additional accessors used by derived classes: ------------
 
@@ -104,10 +96,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   G4String _materialCrystal;
 
   /* general detector parameters */
-  int _active;
-  int _absorberactive;
   int _layer;
-  int _blackhole;
 
   std::string _superdetector;
   std::string _mapping_tower_file;
