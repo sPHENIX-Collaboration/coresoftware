@@ -50,9 +50,8 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* su
   , _crystal_dx(20 * mm)
   , _crystal_dy(20 * mm)
   , _crystal_dz(180.0 * mm)
-  , _materialCrystal("G4_PbWO4")
   , _layer(0)
-  , _superdetector("NONE")
+  , m_SuperDetector("NONE")
   , _mapping_tower_file("")
   , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction()))
@@ -194,7 +193,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                                                                   G4ThreeVector(0.00 * mm, 0.00 * mm, 0.00 * mm));
 
   /* create logical volumes for crystal inside single_tower */
-  G4Material* material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
+  G4Material* material_crystal = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
   G4LogicalVolume* logic_crystal = new G4LogicalVolume(solid_crystal,
                                                        material_crystal,

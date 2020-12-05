@@ -146,5 +146,6 @@ void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
+  set_default_string_param("material","G4_PbWO4");
   return;
 }

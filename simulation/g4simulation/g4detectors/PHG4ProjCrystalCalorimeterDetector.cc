@@ -143,7 +143,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   //*************************************
 
   //Crystal Material (Default is Lead Tungstate)
-  G4Material *material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
+  G4Material *material_crystal = G4Material::GetMaterial(GetParams()->get_string_param("material"));
 
   //Carbon Fiber
   G4double a = 12.01 * g / mole;
@@ -541,7 +541,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
   //*************************************
 
   //Crystal Material (Default is Lead Tungstate)
-  G4Material *material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
+  G4Material *material_crystal = G4Material::GetMaterial(GetParams()->get_string_param("material"));
 
   //Carbon Fiber
   G4double a = 12.01 * g / mole;

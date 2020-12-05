@@ -55,13 +55,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     _crystal_dz = dz;
   }
 
-  void SetMaterialCrystal(G4String material)
-  {
-    _materialCrystal = material;
-  }
-
-  void SuperDetector(const std::string &name) { _superdetector = name; }
-  const std::string SuperDetector() const { return _superdetector; }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
   int get_Layer() const { return _layer; }
 
@@ -93,12 +88,10 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   G4double _crystal_dy;
   G4double _crystal_dz;
 
-  G4String _materialCrystal;
-
   /* general detector parameters */
   int _layer;
 
-  std::string _superdetector;
+  std::string m_SuperDetector;
   std::string _mapping_tower_file;
 
  private:  // private stuff
