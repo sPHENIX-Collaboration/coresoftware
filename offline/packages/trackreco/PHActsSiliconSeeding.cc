@@ -233,17 +233,35 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
       return 1;
     }
 
+  int charge = getCharge(clusters, atan2(Y0,X0));
+  double phi;
+  
   /// Now determine the line tangent to the circle at this point to get phi
   /// The slope of the line connecting the circle center and PCA is 
   /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
-  double phi = atan2(-1*(X0-x),Y0-y);
- 
-  if(Verbosity() > 1)
-    std::cout << "track seed phi : " << phi << std::endl;
+  /// For some reason the phi value comes back off a factor of pi for positive
+  /// charged tracks, hence the check for that
+  if(charge < 0)
+    phi = atan2(-1*(X0-x),Y0-y);
+  else
+    phi = atan2(-1,(Y0-y) / (X0-x));
+  
+  phi = atan2(-1*(X0-x),Y0-y);
+  double phi2 = atan2(-1,(Y0-y) / (X0-x));
+
+  if(Verbosity() > 0)
+    std::cout << "track seed phi : " << phi << " and phi2 " 
+	      << phi2 << std::endl;
+
+  double normPhi = normalizePhi(clusters, phi);
+  double normPhi2 = normalizePhi(clusters, phi2);
+  if(Verbosity() > 0)
+  std::cout << "normphi1 = " << normPhi << std::endl
+	    << "normphi2 = " << normPhi2 << std::endl;
+
   double m, B;
   
-  int charge = getCharge(clusters, phi, atan2(Y0,X0));
-  
+
   /// m is slope as a function of radius, B is z intercept (vertex)
   lineFit(clusters, m, B);
 
@@ -326,9 +344,57 @@ void PHActsSiliconSeeding::findRoot(const double R, const double X0,
     }
 
 }
+double PHActsSiliconSeeding::normalizePhi(const std::vector<TrkrCluster*>& clusters,
+					  const double phi)
+{
+  double returnPhi = phi;
+  
+  /// Check to see what quadrant the majority of clusters are in
+  int numNegYClus = 0;
+  int numNegXClus = 0;
+  for(auto& clus : clusters)
+    {
+      if(clus->getY() < 0)
+	numNegYClus++;
+      if(clus->getX() < 0)
+	numNegXClus++;
+      
+      if(Verbosity() > 0)
+	std::cout << "clus x,y : " << clus->getX() << ", " 
+		  << clus->getY() << std::endl;
+    }
+
+  /// Positive +x,+y quadrant comes back from atan2 off a factor of pi
+  if(numNegYClus < clusters.size() / 2 && 
+     numNegXClus < clusters.size() / 2) {
+    returnPhi += M_PI;
+    std::cout << "adjusted quad 0 phi"<<std::endl;
+  }
+  /// Positive +y, -x quadrant comes back from atan2 off a factor of pi
+  if(numNegYClus < clusters.size() / 2 &&
+     numNegXClus > clusters.size() / 2){// &&
+     //fabs(returnPhi - M_PI) > 0.05) {
+    returnPhi += M_PI;
+    std::cout << "adjusted phi " << std::endl;
+  }
+  
+  /// Now normalize it to -pi<phi<pi
+  if(returnPhi < -M_PI)
+    returnPhi += 2. * M_PI;
+  if(returnPhi > M_PI)
+    returnPhi -= 2. * M_PI;
+  
+  if(Verbosity() > 0)
+    {
+      std::cout << "Track seed phi : " << phi << std::endl;
+      std::cout << "Correctly normalized phi : " << returnPhi
+		<< std::endl;
+    }
+
+  return returnPhi;
+}
 
 int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
-				    const double trackPhi,
 				    const double circPhi)
 {
 
@@ -340,6 +406,26 @@ int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
 
   int charge = 0;
   
+  /// Get a crude estimate of the seed phi by taking the average of the
+  /// measurements
+  double trackPhi = 0;
+  for(auto clus : clusters)
+    {
+      double clusPhi = atan2(clus->getY(), clus->getX());
+
+      /// if it is close to the periodic boundary normalize to 
+      /// two pi to avoid -pi and pi issues
+      if(fabs(fabs(clusPhi) - M_PI) < 0.2)
+	clusPhi = normPhi2Pi(clusPhi);
+      trackPhi += clusPhi;
+    }
+
+  trackPhi /= clusters.size();
+
+  /// normalize back
+  if(trackPhi > M_PI)
+    trackPhi -= 2. * M_PI;
+
   float quadrants[5] = {-M_PI,-M_PI / 2., 0, M_PI/2., M_PI};
   int quadrant = -1;
   for(int i=0; i<4; i++)
@@ -368,7 +454,7 @@ int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
       /// from boundary
       double normTrackPhi = normPhi2Pi(trackPhi);
       double normCircPhi = normPhi2Pi(circPhi);
-      
+  
       if(normCircPhi > normTrackPhi)
 	charge = -1;
       else

@@ -114,9 +114,9 @@ class PHActsSiliconSeeding : public SubsysReco
   void findRoot(const double R, const double X0, const double Y0,
 		double& x, double& y);
   double normalizePhi(const std::vector<TrkrCluster*>& clusters,
-		const double phi);
+		      const double phi);
   int getCharge(const std::vector<TrkrCluster*>& clusters,
-		const double trackPhi, const double circPhi);
+		const double circPhi);
   double normPhi2Pi(const double phi);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
