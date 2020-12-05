@@ -234,30 +234,22 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
     }
 
   int charge = getCharge(clusters, atan2(Y0,X0));
-  double phi;
   
   /// Now determine the line tangent to the circle at this point to get phi
   /// The slope of the line connecting the circle center and PCA is 
   /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
   /// For some reason the phi value comes back off a factor of pi for positive
   /// charged tracks, hence the check for that
-  if(charge < 0)
-    phi = atan2(-1*(X0-x),Y0-y);
-  else
-    phi = atan2(-1,(Y0-y) / (X0-x));
-  
-  phi = atan2(-1*(X0-x),Y0-y);
-  double phi2 = atan2(-1,(Y0-y) / (X0-x));
-
-  if(Verbosity() > 0)
-    std::cout << "track seed phi : " << phi << " and phi2 " 
-	      << phi2 << std::endl;
-
-  double normPhi = normalizePhi(clusters, phi);
-  double normPhi2 = normalizePhi(clusters, phi2);
-  if(Verbosity() > 0)
-  std::cout << "normphi1 = " << normPhi << std::endl
-	    << "normphi2 = " << normPhi2 << std::endl;
+  double phi = atan2(-1 * (X0-x), Y0-y);
+  if(charge > 0)
+    {
+      phi += M_PI;
+      if(phi > M_PI) 
+	phi -= 2. * M_PI;
+    }
+ 
+  if(Verbosity() > -1)
+    std::cout << "track seed phi : " << phi <<  std::endl;
 
   double m, B;
   
@@ -343,55 +335,6 @@ void PHActsSiliconSeeding::findRoot(const double R, const double X0,
 		<< y << std::endl;
     }
 
-}
-double PHActsSiliconSeeding::normalizePhi(const std::vector<TrkrCluster*>& clusters,
-					  const double phi)
-{
-  double returnPhi = phi;
-  
-  /// Check to see what quadrant the majority of clusters are in
-  int numNegYClus = 0;
-  int numNegXClus = 0;
-  for(auto& clus : clusters)
-    {
-      if(clus->getY() < 0)
-	numNegYClus++;
-      if(clus->getX() < 0)
-	numNegXClus++;
-      
-      if(Verbosity() > 0)
-	std::cout << "clus x,y : " << clus->getX() << ", " 
-		  << clus->getY() << std::endl;
-    }
-
-  /// Positive +x,+y quadrant comes back from atan2 off a factor of pi
-  if(numNegYClus < clusters.size() / 2 && 
-     numNegXClus < clusters.size() / 2) {
-    returnPhi += M_PI;
-    std::cout << "adjusted quad 0 phi"<<std::endl;
-  }
-  /// Positive +y, -x quadrant comes back from atan2 off a factor of pi
-  if(numNegYClus < clusters.size() / 2 &&
-     numNegXClus > clusters.size() / 2){// &&
-     //fabs(returnPhi - M_PI) > 0.05) {
-    returnPhi += M_PI;
-    std::cout << "adjusted phi " << std::endl;
-  }
-  
-  /// Now normalize it to -pi<phi<pi
-  if(returnPhi < -M_PI)
-    returnPhi += 2. * M_PI;
-  if(returnPhi > M_PI)
-    returnPhi -= 2. * M_PI;
-  
-  if(Verbosity() > 0)
-    {
-      std::cout << "Track seed phi : " << phi << std::endl;
-      std::cout << "Correctly normalized phi : " << returnPhi
-		<< std::endl;
-    }
-
-  return returnPhi;
 }
 
 int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
