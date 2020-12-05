@@ -119,9 +119,13 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix eemc_rotm;
-  eemc_rotm.rotateX(_rot_in_x);
-  eemc_rotm.rotateY(_rot_in_y);
-  eemc_rotm.rotateZ(_rot_in_z);
+//rot_x: 0, rot_y: 3.14159, rot_z: 0
+  cout << "rot_x: " << m_Params->get_double_param("rot_x")*deg
+       << ", rot_y: " << m_Params->get_double_param("rot_y")*deg
+       << ", rot_z: " << m_Params->get_double_param("rot_z")*deg << endl;
+  eemc_rotm.rotateX(m_Params->get_double_param("rot_x")*deg);
+  eemc_rotm.rotateY(m_Params->get_double_param("rot_y")*deg);
+  eemc_rotm.rotateZ(m_Params->get_double_param("rot_z")*deg);
 
   /* Place envelope cone in simulation */
   //  ostringstream name_envelope;
@@ -406,15 +410,18 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
-    _rot_in_x = parit->second;
+    m_Params->set_double_param("rot_x",parit->second*rad/deg);
 
   parit = _map_global_parameter.find("Grot_y");
   if (parit != _map_global_parameter.end())
-    _rot_in_y = parit->second;
-
+  {
+    m_Params->set_double_param("rot_y",parit->second*rad/deg);
+    cout << "XXXXXXXXXXXXXXXXX rot_y: " << m_Params->get_double_param("rot_y");
+  }
   parit = _map_global_parameter.find("Grot_z");
   if (parit != _map_global_parameter.end())
-    _rot_in_z = parit->second;
-
+    m_Params->set_double_param("rot_z", parit->second*rad/deg);
+  cout << "crystal cal base" << endl;
+  m_Params->Print();
   return 0;
 }

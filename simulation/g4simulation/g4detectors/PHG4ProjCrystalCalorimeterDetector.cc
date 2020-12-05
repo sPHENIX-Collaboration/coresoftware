@@ -37,7 +37,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4CrystalCalorimeterDetector(subsys, Node, parameters, dnam)
-  , m_Params(parameters)
   ,
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
@@ -52,8 +51,8 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _crystallogicnameprefix("eEcalCrystal")
   , _4x4_construct_file("")
   , _overlapcheck_local(false)
-  , m_IsActive(m_Params->get_int_param("active"))
-  , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
+  , m_IsActive(GetParams()->get_int_param("active"))
+  , m_AbsorberActive(GetParams()->get_int_param("absorberactive"))
 {
 }
 
@@ -110,12 +109,17 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  ecal_rotm.rotateX(_rot_in_x);
-  ecal_rotm.rotateY(_rot_in_y);
-  ecal_rotm.rotateZ(_rot_in_z);
+  GetParams()->Print();
+  cout << "getparams at " << hex << GetParams() << dec << endl;
+  cout << "rotx: " << GetParams()->get_double_param("rot_x")*deg
+       << ", y: " << GetParams()->get_double_param("rot_y")*deg
+       << ", z: " << GetParams()->get_double_param("rot_z")*deg << endl;
+    ecal_rotm.rotateX(GetParams()->get_double_param("rot_x")*deg);
+    ecal_rotm.rotateY(GetParams()->get_double_param("rot_y")*deg);
+    ecal_rotm.rotateZ(GetParams()->get_double_param("rot_z")*deg);
 
   /* Place envelope cone in simulation */
-  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(m_Params->get_double_param("place_x")*cm, m_Params->get_double_param("place_y")*cm, m_Params->get_double_param("place_z")*cm)),
+  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetParams()->get_double_param("place_x")*cm, GetParams()->get_double_param("place_y")*cm, GetParams()->get_double_param("place_z")*cm)),
                     ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, _overlapcheck_local);
 
   /* Construct crystal calorimeter within envelope */
@@ -1337,9 +1341,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = Crystals[j][0];
     k_idx = Crystals[j][1];
-    x_cent = Crystals[j][2] - m_Params->get_double_param("place_x")*cm;
-    y_cent = Crystals[j][3] - m_Params->get_double_param("place_y")*cm;
-    z_cent = Crystals[j][4] - m_Params->get_double_param("place_z")*cm;  //Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
+    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x")*cm;
+    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y")*cm;
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;  //Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
     r_theta = Crystals[j][5];               //Rotation in Horizontal
     r_phi = Crystals[j][6];                 //Rotation in Vertical
     rot_z = Crystals[j][7];
@@ -1437,9 +1441,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = k_max - Crystals[j][0];
     k_idx = Crystals[j][1];
-    x_cent = -1.0 * (Crystals[j][2] - m_Params->get_double_param("place_x")*cm);
-    y_cent = Crystals[j][3] - m_Params->get_double_param("place_y")*cm;
-    z_cent = Crystals[j][4] - m_Params->get_double_param("place_z")*cm;
+    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x")*cm);
+    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y")*cm;
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
     r_theta = -1.0 * Crystals[j][5];
     r_phi = Crystals[j][6];
     rot_z = Crystals[j][7] / (-4.0);
@@ -1540,9 +1544,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
     MappingIndex = Crystals[j][8];
     j_idx = k_max - Crystals[j][0];
     k_idx = k_max - Crystals[j][1];
-    x_cent = -1.0 * (Crystals[j][2] - m_Params->get_double_param("place_x")*cm);
-    y_cent = -1.0 * (Crystals[j][3] - m_Params->get_double_param("place_y")*cm);
-    z_cent = Crystals[j][4] - m_Params->get_double_param("place_z")*cm;
+    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x")*cm);
+    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y")*cm);
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
     r_theta = -1.0 * Crystals[j][5];
     r_phi = -1.0 * Crystals[j][6];
     rot_z = Crystals[j][7] / 2.0;
@@ -1642,9 +1646,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = Crystals[j][0];
     k_idx = k_max - Crystals[j][1];
-    x_cent = Crystals[j][2] - m_Params->get_double_param("place_x")*cm;
-    y_cent = -1.0 * (Crystals[j][3] - m_Params->get_double_param("place_y")*cm);
-    z_cent = Crystals[j][4] - m_Params->get_double_param("place_z")*cm;
+    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x")*cm;
+    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y")*cm);
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
     r_theta = Crystals[j][5];
     r_phi = -1.0 * Crystals[j][6];
     rot_z = Crystals[j][7] / 4.0;
