@@ -72,7 +72,7 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
-  GetParams()->Print();
+  
   if (GetParams()->get_int_param("active"))
   {
     // create hit output node
