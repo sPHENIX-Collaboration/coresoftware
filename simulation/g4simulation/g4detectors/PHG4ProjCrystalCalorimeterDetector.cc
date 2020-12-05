@@ -37,13 +37,12 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4CrystalCalorimeterDetector(subsys, Node, parameters, dnam)
-  ,
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
   //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
   //  _dy_back(59.3154545455*mm),		//****************************************************************//
   //  _dz_crystal(90.000*mm),		//****************************************************************//
-  _dx_front(41.44 * mm)
+  , _dx_front(41.44 * mm)
   , _dy_front(41.44 * mm)
   , _dx_back(48.97454545455 * mm)
   , _dy_back(48.97454545455 * mm)
@@ -109,14 +108,9 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  GetParams()->Print();
-  cout << "getparams at " << hex << GetParams() << dec << endl;
-  cout << "rotx: " << GetParams()->get_double_param("rot_x")*deg
-       << ", y: " << GetParams()->get_double_param("rot_y")*deg
-       << ", z: " << GetParams()->get_double_param("rot_z")*deg << endl;
-    ecal_rotm.rotateX(GetParams()->get_double_param("rot_x")*deg);
-    ecal_rotm.rotateY(GetParams()->get_double_param("rot_y")*deg);
-    ecal_rotm.rotateZ(GetParams()->get_double_param("rot_z")*deg);
+  ecal_rotm.rotateX(GetParams()->get_double_param("rot_x")*deg);
+  ecal_rotm.rotateY(GetParams()->get_double_param("rot_y")*deg);
+  ecal_rotm.rotateZ(GetParams()->get_double_param("rot_z")*deg);
 
   /* Place envelope cone in simulation */
   new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetParams()->get_double_param("place_x")*cm, GetParams()->get_double_param("place_y")*cm, GetParams()->get_double_param("place_z")*cm)),

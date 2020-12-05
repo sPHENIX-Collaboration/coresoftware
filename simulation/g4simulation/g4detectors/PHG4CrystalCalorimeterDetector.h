@@ -48,13 +48,6 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     _mapping_tower_file = filename;
   }
 
-  /* void SetRotation(G4double rot_in_x, G4double rot_in_y, G4double rot_in_z) */
-  /* { */
-  /*   _rot_in_x = rot_in_x; */
-  /*   _rot_in_y = rot_in_y; */
-  /*   _rot_in_z = rot_in_z; */
-  /* } */
-
   void SetCrystalSize(G4double dx, G4double dy, G4double dz)
   {
     _crystal_dx = dx;
@@ -93,10 +86,6 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
  protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   /* Calorimeter envelope geometry */
-
-   G4double _rot_in_x; 
-   G4double _rot_in_y; 
-   G4double _rot_in_z; 
 
   G4double _rMin1;
   G4double _rMax1;

@@ -24,6 +24,8 @@
 #include <Geant4/G4Types.hh>            // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <TSystem.h>
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -38,9 +40,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , _rot_in_x(0.0)
-  , _rot_in_y(M_PI)
-  , _rot_in_z(0.0)
   , _rMin1(22 * mm)
   , _rMax1(656 * mm)
   , _rMin2(26 * mm)
@@ -119,10 +118,6 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix eemc_rotm;
-//rot_x: 0, rot_y: 3.14159, rot_z: 0
-  cout << "rot_x: " << m_Params->get_double_param("rot_x")*deg
-       << ", rot_y: " << m_Params->get_double_param("rot_y")*deg
-       << ", rot_z: " << m_Params->get_double_param("rot_z")*deg << endl;
   eemc_rotm.rotateX(m_Params->get_double_param("rot_x")*deg);
   eemc_rotm.rotateY(m_Params->get_double_param("rot_y")*deg);
   eemc_rotm.rotateZ(m_Params->get_double_param("rot_z")*deg);
@@ -353,8 +348,8 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
-        exit(1);
+        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
+        gSystem->Exit(1);
       }
 
       _map_global_parameter.insert(make_pair(parname, parval));
@@ -366,62 +361,85 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Gcrystal_dx");
   if (parit != _map_global_parameter.end())
+  {
     _crystal_dx = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gcrystal_dy");
   if (parit != _map_global_parameter.end())
+  {
     _crystal_dy = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gcrystal_dz");
   if (parit != _map_global_parameter.end())
+  {
     _crystal_dz = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
+  {
     _rMin1 = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gr1_outer");
   if (parit != _map_global_parameter.end())
+  {
     _rMax1 = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gr2_inner");
   if (parit != _map_global_parameter.end())
+  {
     _rMin2 = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gr2_outer");
   if (parit != _map_global_parameter.end())
+  {
     _rMax2 = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
+  {
     _dZ = parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
+  {
     m_Params->set_double_param("place_x",parit->second);
+  }
 
   parit = _map_global_parameter.find("Gy0");
   if (parit != _map_global_parameter.end())
+  {
     m_Params->set_double_param("place_y",parit->second);
+  }
 
   parit = _map_global_parameter.find("Gz0");
   if (parit != _map_global_parameter.end())
+  {
     m_Params->set_double_param("place_z",parit->second);
+  }
 
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
+  {
     m_Params->set_double_param("rot_x",parit->second*rad/deg);
+  }
 
   parit = _map_global_parameter.find("Grot_y");
   if (parit != _map_global_parameter.end())
   {
     m_Params->set_double_param("rot_y",parit->second*rad/deg);
-    cout << "XXXXXXXXXXXXXXXXX rot_y: " << m_Params->get_double_param("rot_y");
   }
   parit = _map_global_parameter.find("Grot_z");
   if (parit != _map_global_parameter.end())
+  {
     m_Params->set_double_param("rot_z", parit->second*rad/deg);
-  cout << "crystal cal base" << endl;
-  m_Params->Print();
+  }
   return 0;
 }
