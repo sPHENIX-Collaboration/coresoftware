@@ -57,8 +57,8 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
     }
     m_Detector = new PHG4ProjCrystalCalorimeterDetector(this, topNode, GetParams(), Name());
-    m_Detector->SetTowerMappingFile(mappingfile_);
-    m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
+//    m_Detector->SetTowerMappingFile(mappingfile_);
+//    m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
   }
   else
   {
@@ -156,6 +156,7 @@ void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 
   set_default_string_param("material","G4_PbWO4");
   set_default_string_param("mappingtower","");
+  set_default_string_param("mapping4x4","");
   return;
 }
 
@@ -163,4 +164,14 @@ void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string &fil
 {
   set_string_param("mappingtower",filename);
   mappingfile_ = filename;
+}
+
+void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
+{
+  set_string_param("mappingtower",filename1);
+  set_string_param("mapping4x4",filename2);
+  cout << "setting 4x4 to " << filename2 << endl;
+  mappingfile_ = filename1;
+  mappingfile_4x4_construct_ = filename2;
+  projective_ = true;
 }

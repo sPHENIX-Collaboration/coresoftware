@@ -47,12 +47,7 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
 
   /** Select projective geometry for calorimeter
    */
-  void SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
-  {
-    mappingfile_ = filename1;
-    mappingfile_4x4_construct_ = filename2;
-    projective_ = true;
-  }
+  void SetProjectiveGeometry(const std::string &filename1, const std::string &filename2);
   //  void SetGeometryConfiguration
 
   /** Enum for different geometry configurations

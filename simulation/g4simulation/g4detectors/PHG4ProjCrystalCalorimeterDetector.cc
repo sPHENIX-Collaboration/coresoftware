@@ -24,6 +24,8 @@
 #include <Geant4/G4Types.hh>            // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <TSystem.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -86,10 +88,10 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
     cout << "PHG4ProjCrystalCalorimeterDetector: Begin Construction" << endl;
   }
 
-  if (_mapping_tower_file.empty())
+  if (GetParams()->get_string_param("mappingtower").empty())
   {
     cout << "ERROR in PHG4ProjCrystalCalorimeterDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
+    cout << "Please run set_string_param(\"mappingtower\", std::string filename ) first." << endl;
     exit(1);
   }
 
@@ -230,7 +232,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const string Crystal_Mapping_Small = _4x4_construct_file;  //Get the mapping file for the 4 x 4 block
+  const string Crystal_Mapping_Small = GetParams()->get_string_param("mapping4x4");  //Get the mapping file for the 4 x 4 block
   const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
 
   ifstream datafile_2;
@@ -238,13 +240,13 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   //Open the datafile, if it won't open return an error
   if (!datafile_2.is_open())
   {
-    datafile_2.open(Crystal_Mapping_Small.c_str());
+    datafile_2.open(GetParams()->get_string_param("mapping4x4"));
     if (!datafile_2)
     {
       cerr << endl
            << "*******************************************************************" << endl;
       cerr << "ERROR in 2 by 2 crystal mapping";
-      cerr << "Failed to open " << Crystal_Mapping_Small << " --- Exiting program." << endl;
+      cerr << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
       cerr << "*******************************************************************" << endl
            << endl;
       exit(1);
@@ -253,7 +255,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
-  ifstream in(Crystal_Mapping_Small.c_str());
+  ifstream in(GetParams()->get_string_param("mapping4x4"));
   std::string unused;
   while (std::getline(in, unused))
     ++NumberOfLines;
@@ -627,7 +629,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const string Crystal_Mapping_Small = _4x4_construct_file;  //Get the mapping file for the 4 x 4 block
+  const string Crystal_Mapping_Small = GetParams()->get_string_param("mapping4x4");  //Get the mapping file for the 4 x 4 block
   const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
 
   ifstream datafile_2;
@@ -635,13 +637,14 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
   //Open the datafile, if it won't open return an error
   if (!datafile_2.is_open())
   {
-    datafile_2.open(Crystal_Mapping_Small.c_str());
+    datafile_2.open( GetParams()->get_string_param("mapping4x4"));
     if (!datafile_2)
     {
+      GetParams()->Print();
       cerr << endl
            << "*******************************************************************" << endl;
-      cerr << "ERROR in 2 by 2 crystal mapping";
-      cerr << "Failed to open " << Crystal_Mapping_Small << " --- Exiting program." << endl;
+      cerr << "ERROR in 2 by 2 crystal mapping ";
+      cerr << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
       cerr << "*******************************************************************" << endl
            << endl;
       exit(1);
@@ -650,7 +653,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
-  ifstream in(Crystal_Mapping_Small.c_str());
+  ifstream in( GetParams()->get_string_param("mapping4x4"));
   std::string unused;
   while (std::getline(in, unused))
     ++NumberOfLines;
@@ -1142,7 +1145,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 {
   G4int NumberOfLines;                                  //Number of crystals to be created.
   const G4int NumberOfIndices = 9;                      //Different dimensions needed for crystal placement
-  const string FileName = _mapping_tower_file.c_str();  //File in which crystal positions are stored
+  const string FileName = GetParams()->get_string_param("mappingtower");  //File in which crystal positions are stored
 
   G4int j_cry, k_cry;                               //Indices for matrix
   G4int j_idx, k_idx;                               //Indices of each crstals
@@ -1277,21 +1280,21 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
   if (!datafile.is_open())
   {
-    datafile.open(FileName.c_str());
+    datafile.open(GetParams()->get_string_param("mappingtower"));
     if (!datafile)
     {
-      cerr << endl
+      cout << endl
            << "*******************************************************************" << endl;
-      cerr << "ERROR: Failed to open " << FileName << " --- Exiting program." << endl;
-      cerr << "*******************************************************************" << endl
+      cout << "ERROR: Failed to open " << GetParams()->get_string_param("mappingtower") << " --- Exiting program." << endl;
+      cout << "*******************************************************************" << endl
            << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
   }
 
   //Determine the number of crystals to be created
   NumberOfLines = 0;
-  ifstream in(_mapping_tower_file.c_str());
+  ifstream in(GetParams()->get_string_param("mappingtower"));
   std::string unused;
   while (std::getline(in, unused))
     ++NumberOfLines;
