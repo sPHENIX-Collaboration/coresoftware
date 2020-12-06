@@ -270,15 +270,11 @@ int PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4
 int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
-  ifstream istream_mapping;
+  ifstream istream_mapping(m_Params->get_string_param("mappingtower"));
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(m_Params->get_string_param("mappingtower"));
-    if (!istream_mapping)
-    {
-      cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << m_Params->get_string_param("mappingtower") << endl;
-      exit(1);
-    }
+      cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << m_Params->get_string_param("mappingtower") << endl;
+      gSystem->Exit(1);
   }
 
   /* loop over lines in file */

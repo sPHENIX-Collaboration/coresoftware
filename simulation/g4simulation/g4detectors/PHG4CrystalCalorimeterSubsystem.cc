@@ -170,8 +170,6 @@ void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &f
 {
   set_string_param("mappingtower",filename1);
   set_string_param("mapping4x4",filename2);
-  cout << "setting 4x4 to " << filename2 << endl;
-  mappingfile_ = filename1;
-  mappingfile_4x4_construct_ = filename2;
+//  set_string_param("mapping4x4","bpb");
   projective_ = true;
 }

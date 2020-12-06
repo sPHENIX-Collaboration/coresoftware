@@ -232,34 +232,29 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const string Crystal_Mapping_Small = GetParams()->get_string_param("mapping4x4");  //Get the mapping file for the 4 x 4 block
   const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
-
-  ifstream datafile_2;
-
-  //Open the datafile, if it won't open return an error
-  if (!datafile_2.is_open())
-  {
-    datafile_2.open(GetParams()->get_string_param("mapping4x4"));
-    if (!datafile_2)
-    {
-      cerr << endl
-           << "*******************************************************************" << endl;
-      cerr << "ERROR in 2 by 2 crystal mapping";
-      cerr << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
-      cerr << "*******************************************************************" << endl
-           << endl;
-      exit(1);
-    }
-  }
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
   ifstream in(GetParams()->get_string_param("mapping4x4"));
+  if (!in.is_open())
+  {
+      cout << endl
+           << "*******************************************************************" << endl;
+      cout << "ERROR in 2 by 2 crystal mapping ";
+      cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
+      cout << "*******************************************************************" << endl
+           << endl;
+      gSystem->Exit(1);
+  }
   std::string unused;
   while (std::getline(in, unused))
+  {
     ++NumberOfLines;
+  }
+  in.close();
 
+  in.open(GetParams()->get_string_param("mapping4x4"));
   G4int j_cry = NumberOfLines;
   G4int k_cry = NumberOfIndices;
 
@@ -272,12 +267,13 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   {
     while (k_cry > k)
     {
-      datafile_2 >> TwoByTwo[j][k];
+      in >> TwoByTwo[j][k];
       k++;
     }
     j++;
     k = 0;
   }
+  in.close();
 
   //**************************************************
   //Place the single crystal in the 2x2 volume 4 times
@@ -629,35 +625,30 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const string Crystal_Mapping_Small = GetParams()->get_string_param("mapping4x4");  //Get the mapping file for the 4 x 4 block
   const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
 
-  ifstream datafile_2;
-
-  //Open the datafile, if it won't open return an error
-  if (!datafile_2.is_open())
-  {
-    datafile_2.open( GetParams()->get_string_param("mapping4x4"));
-    if (!datafile_2)
-    {
-      GetParams()->Print();
-      cerr << endl
-           << "*******************************************************************" << endl;
-      cerr << "ERROR in 2 by 2 crystal mapping ";
-      cerr << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
-      cerr << "*******************************************************************" << endl
-           << endl;
-      exit(1);
-    }
-  }
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
   ifstream in( GetParams()->get_string_param("mapping4x4"));
+  if (!in.is_open())
+  {
+      cout << endl
+           << "*******************************************************************" << endl;
+      cout << "ERROR in 2 by 2 crystal mapping ";
+      cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
+      cout << "*******************************************************************" << endl
+           << endl;
+      gSystem->Exit(1);
+  }
   std::string unused;
   while (std::getline(in, unused))
+  {
     ++NumberOfLines;
+  }
+  in.close();
 
+  in.open(GetParams()->get_string_param("mapping4x4"));
   G4int j_cry = NumberOfLines;
   G4int k_cry = NumberOfIndices;
 
@@ -670,13 +661,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
   {
     while (k_cry > k)
     {
-      datafile_2 >> TwoByTwo[j][k];
+      in >> TwoByTwo[j][k];
       k++;
     }
     j++;
     k = 0;
   }
-
+  in.close();
   //**************************************************
   //Place the single crystal in the 2x2 volume 4 times
   //**************************************************
