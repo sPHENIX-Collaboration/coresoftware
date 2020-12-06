@@ -140,12 +140,22 @@ PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector(void) const
 
 void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 {
+// values in cm and degrees
+  set_default_double_param("crystal_dx",2.);
+  set_default_double_param("crystal_dy",2.);
+  set_default_double_param("crystal_dz",18.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", -108.);
+  set_default_double_param("rMin1",2.2);
+  set_default_double_param("rMax1",65.6);
+  set_default_double_param("rMin2",2.6);
+  set_default_double_param("rMax2",77.5);
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
+
   set_default_string_param("material","G4_PbWO4");
+  set_default_string_param("mappingtower","");
   return;
 }

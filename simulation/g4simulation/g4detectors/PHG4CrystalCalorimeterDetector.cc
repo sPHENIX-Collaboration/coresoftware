@@ -148,9 +148,9 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   G4double airgap_crystal_carbon = 0.012 * cm;
 
   /* dimesnions of full tower */
-  G4double tower_dx = _crystal_dx + 2 * (carbon_thickness + airgap_crystal_carbon);
-  G4double tower_dy = _crystal_dy + 2 * (carbon_thickness + airgap_crystal_carbon);
-  G4double tower_dz = _crystal_dz;
+  G4double tower_dx = m_Params->get_double_param("crystal_dx")*cm + 2 * (carbon_thickness + airgap_crystal_carbon);
+  G4double tower_dy = m_Params->get_double_param("crystal_dy")*cm + 2 * (carbon_thickness + airgap_crystal_carbon);
+  G4double tower_dz = m_Params->get_double_param("crystal_dz")*cm;
 
   /* create logical volume for single tower */
   recoConsts* rc = recoConsts::instance();
@@ -168,9 +168,9 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 
   /* create geometry volume for crystal inside single_tower */
   G4VSolid* solid_crystal = new G4Box(G4String("single_crystal_solid"),
-                                      _crystal_dx / 2.0,
-                                      _crystal_dy / 2.0,
-                                      _crystal_dz / 2.0);
+                                      m_Params->get_double_param("crystal_dx")*cm / 2.0,
+                                      m_Params->get_double_param("crystal_dy")*cm / 2.0,
+                                      m_Params->get_double_param("crystal_dz")*cm / 2.0);
 
   /* create geometry volume for frame (carbon fiber shell) inside single_tower */
   G4VSolid* Carbon_hunk_solid = new G4Box(G4String("Carbon_hunk_solid"),
@@ -358,19 +358,22 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gcrystal_dx");
   if (parit != _map_global_parameter.end())
   {
-    _crystal_dx = parit->second * cm;
+    m_Params->set_double_param("crystal_dx",parit->second); // in cm
+    _crystal_dx = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gcrystal_dy");
   if (parit != _map_global_parameter.end())
   {
-    _crystal_dy = parit->second * cm;
+    m_Params->set_double_param("crystal_dy",parit->second); // in cm
+    _crystal_dy = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gcrystal_dz");
   if (parit != _map_global_parameter.end())
   {
-    _crystal_dz = parit->second * cm;
+    m_Params->set_double_param("crystal_dz",parit->second); // in cm
+    _crystal_dz = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gr1_inner");

@@ -48,12 +48,12 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     _mapping_tower_file = filename;
   }
 
-  void SetCrystalSize(G4double dx, G4double dy, G4double dz)
-  {
-    _crystal_dx = dx;
-    _crystal_dy = dy;
-    _crystal_dz = dz;
-  }
+  /* void SetCrystalSize(G4double dx, G4double dy, G4double dz) */
+  /* { */
+  /*   _crystal_dx = dx; */
+  /*   _crystal_dy = dy; */
+  /*   _crystal_dz = dz; */
+  /* } */
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
@@ -85,8 +85,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
   /* crystal geometry */
   G4double _crystal_dx;
-  G4double _crystal_dy;
-  G4double _crystal_dz;
+  G4double _crystal_dy; 
+  G4double _crystal_dz; 
 
   /* general detector parameters */
   int _layer;
