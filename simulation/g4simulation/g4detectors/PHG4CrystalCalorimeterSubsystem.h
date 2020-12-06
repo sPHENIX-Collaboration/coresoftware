@@ -43,10 +43,7 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
 
   /** Set mapping file for calorimeter towers
    */
-  void SetTowerMappingFile(const std::string &filename)
-  {
-    mappingfile_ = filename;
-  }
+  void SetTowerMappingFile(const std::string &filename);
 
   /** Select projective geometry for calorimeter
    */

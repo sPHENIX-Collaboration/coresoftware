@@ -47,9 +47,6 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* su
   , _dZ(180 * mm)
   , _sPhi(0)
   , _dPhi(2 * M_PI)
-  , _crystal_dx(20 * mm)
-  , _crystal_dy(20 * mm)
-  , _crystal_dz(180.0 * mm)
   , _layer(0)
   , m_SuperDetector("NONE")
   , _mapping_tower_file("")
@@ -89,10 +86,10 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
     cout << "PHG4CrystalCalorimeterDetector: Begin Construction" << endl;
   }
 
-  if (_mapping_tower_file.empty())
+  if (m_Params->get_string_param("mappingtower").empty())
   {
     cout << "ERROR in PHG4CrystalCalorimeterDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
+    cout << "Please run set_string_param(\"mappingtower\", std::string filename ) first." << endl;
     exit(1);
   }
 
@@ -276,10 +273,10 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
   ifstream istream_mapping;
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(_mapping_tower_file.c_str());
+    istream_mapping.open(m_Params->get_string_param("mappingtower"));
     if (!istream_mapping)
     {
-      cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << _mapping_tower_file << endl;
+      cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << m_Params->get_string_param("mappingtower") << endl;
       exit(1);
     }
   }
@@ -313,7 +310,7 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
+        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
         exit(1);
       }
 
@@ -344,7 +341,7 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
+        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
         gSystem->Exit(1);
       }
 
@@ -359,21 +356,18 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
   if (parit != _map_global_parameter.end())
   {
     m_Params->set_double_param("crystal_dx",parit->second); // in cm
-    _crystal_dx = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gcrystal_dy");
   if (parit != _map_global_parameter.end())
   {
     m_Params->set_double_param("crystal_dy",parit->second); // in cm
-    _crystal_dy = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gcrystal_dz");
   if (parit != _map_global_parameter.end())
   {
     m_Params->set_double_param("crystal_dz",parit->second); // in cm
-    _crystal_dz = parit->second*cm;
   }
 
   parit = _map_global_parameter.find("Gr1_inner");

@@ -67,7 +67,6 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
     }
     m_Detector = new PHG4CrystalCalorimeterDetector(this, topNode, GetParams(), Name());
-    m_Detector->SetTowerMappingFile(mappingfile_);
   }
 
   m_Detector->OverlapCheck(CheckOverlap());
@@ -158,4 +157,10 @@ void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
   set_default_string_param("material","G4_PbWO4");
   set_default_string_param("mappingtower","");
   return;
+}
+
+void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string &filename)
+{
+  set_string_param("mappingtower",filename);
+  mappingfile_ = filename;
 }
