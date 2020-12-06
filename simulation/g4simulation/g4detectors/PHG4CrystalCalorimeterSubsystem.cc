@@ -28,8 +28,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , mappingfile_("")
-  , mappingfile_4x4_construct_("")
   , projective_(false)
 {
   InitializeParameters();
@@ -163,13 +161,11 @@ void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string &filename)
 {
   set_string_param("mappingtower",filename);
-  mappingfile_ = filename;
 }
 
 void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
 {
   set_string_param("mappingtower",filename1);
   set_string_param("mapping4x4",filename2);
-//  set_string_param("mapping4x4","bpb");
   projective_ = true;
 }

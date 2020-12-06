@@ -59,10 +59,6 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   void GetCarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
 
   void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
-  virtual void SetSupermoduleGeometry(const std::string& filename2)
-  {
-    _4x4_construct_file = filename2;
-  }
 
  private:
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
@@ -77,7 +73,6 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   G4double _dz_crystal;
 
   std::string _crystallogicnameprefix;
-  std::string _4x4_construct_file;
 
   bool _overlapcheck_local;
   std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;

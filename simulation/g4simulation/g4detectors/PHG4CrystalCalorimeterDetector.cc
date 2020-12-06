@@ -49,7 +49,6 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* su
   , _dPhi(2 * M_PI)
   , _layer(0)
   , m_SuperDetector("NONE")
-  , _mapping_tower_file("")
   , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction()))
   , _towerlogicnameprefix("CrystalCalorimeterTower")

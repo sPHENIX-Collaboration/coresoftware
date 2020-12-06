@@ -42,24 +42,12 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
   // ----- accessing member variables: ------------
 
-  //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile(std::string &filename)
-  {
-    _mapping_tower_file = filename;
-  }
-
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
   int get_Layer() const { return _layer; }
 
   // ----- additional accessors used by derived classes: ------------
-
-  //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry(const std::string &filename2)
-  {
-    return;
-  }
 
   PHParameters *GetParams() {return m_Params;}
 
@@ -80,7 +68,6 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   int _layer;
 
   std::string m_SuperDetector;
-  std::string _mapping_tower_file;
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();

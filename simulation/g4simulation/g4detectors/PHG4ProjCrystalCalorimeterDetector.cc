@@ -50,7 +50,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _dy_back(48.97454545455 * mm)
   , _dz_crystal(90.000 * mm)
   , _crystallogicnameprefix("eEcalCrystal")
-  , _4x4_construct_file("")
   , _overlapcheck_local(false)
   , m_IsActive(GetParams()->get_int_param("active"))
   , m_AbsorberActive(GetParams()->get_int_param("absorberactive"))
