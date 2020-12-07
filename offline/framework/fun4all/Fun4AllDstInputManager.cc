@@ -504,12 +504,17 @@ readnextsync:
 
 int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
 {
-  int myflag = iflag;
+  if (IsOpen())
+  {
+    cout << "BranchSelect(\"" << branch << "\", " << iflag
+	 << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << endl;
+    return -1;
+  }
   // if iflag > 0 the branch is set to read
   // if iflag = 0, the branch is set to NOT read
   // if iflag < 0 the branchname is erased from our internal branch read map
   // this does not have any effect on phool yet
-  if (myflag < 0)
+  if (iflag < 0)
   {
     map<const string, int>::iterator branchiter;
     branchiter = branchread.find(branch);
@@ -519,14 +524,14 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
     }
     return 0;
   }
-
-  if (myflag > 0)
+  int readit = 0;
+  if (iflag > 0)
   {
     if (Verbosity() > 1)
     {
       cout << "Setting Root Tree Branch: " << branch << " to read" << endl;
     }
-    myflag = 1;
+    readit = 1;
   }
   else
   {
@@ -535,7 +540,7 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
       cout << "Setting Root Tree Branch: " << branch << " to NOT read" << endl;
     }
   }
-  branchread[branch] = myflag;
+  branchread[branch] = iflag;
   return 0;
 }
 
