@@ -218,7 +218,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
   double R, X0, Y0;
   circleFitByTaubin(clusters, R, X0, Y0);
   
-  if(Verbosity() > 2)
+  if(Verbosity() > 1)
     std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
 	      << ", " << Y0 << std::endl;
 
@@ -248,7 +248,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 	phi -= 2. * M_PI;
     }
  
-  if(Verbosity() > -1)
+  if(Verbosity() > 1)
     std::cout << "track seed phi : " << phi <<  std::endl;
 
   double m, B;
@@ -404,7 +404,7 @@ int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
 	charge = 1;
     }
 
-  if(Verbosity() > -1)
+  if(Verbosity() > 1)
     std::cout << "Track seed charge determined to be " 
 	      << charge << " in quadrant " << quadrant << std::endl;
 
@@ -436,7 +436,7 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
   /// calculate intercept
   B = (x2sum*ysum-xsum*xysum) / (x2sum*clusters.size()-xsum*xsum);
   
-  if(Verbosity() > 10)
+  if(Verbosity() > 4)
     {
       for (auto& cluster : clusters)
 	{
