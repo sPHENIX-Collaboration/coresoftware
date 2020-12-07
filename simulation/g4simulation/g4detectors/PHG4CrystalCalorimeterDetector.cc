@@ -100,10 +100,10 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* eemc_envelope_solid = new G4Cons("eemc_envelope_solid",
-                                             _rMin1, _rMax1,
-                                             _rMin2, _rMax2,
-                                             _dZ / 2.,
-                                             _sPhi, _dPhi);
+                                             m_Params->get_double_param("rMin1")*cm, m_Params->get_double_param("rMax1")*cm,
+                                             m_Params->get_double_param("rMin2")*cm, m_Params->get_double_param("rMax2")*cm,
+                                             m_Params->get_double_param("dz")*cm / 2.,
+                                             0, 2*M_PI);
 
   G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, WorldMaterial, G4String("eemc_envelope"), 0, 0, 0);
 
@@ -305,8 +305,8 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
-        exit(1);
+        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
+        gSystem->Exit(1);
       }
 
       /* Construct unique name for tower */
@@ -368,31 +368,31 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
   {
-    _rMin1 = parit->second * cm;
+    m_Params->set_double_param("rMin1",parit->second);
   }
 
   parit = _map_global_parameter.find("Gr1_outer");
   if (parit != _map_global_parameter.end())
   {
-    _rMax1 = parit->second * cm;
+     m_Params->set_double_param("rMax1", parit->second);
   }
 
   parit = _map_global_parameter.find("Gr2_inner");
   if (parit != _map_global_parameter.end())
   {
-    _rMin2 = parit->second * cm;
+    m_Params->set_double_param("rMin2",parit->second);
   }
 
   parit = _map_global_parameter.find("Gr2_outer");
   if (parit != _map_global_parameter.end())
   {
-    _rMax2 = parit->second * cm;
+     m_Params->set_double_param("rMax2", parit->second);
   }
 
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
   {
-    _dZ = parit->second * cm;
+    m_Params->set_double_param("dz", parit->second);
   }
 
   parit = _map_global_parameter.find("Gx0");

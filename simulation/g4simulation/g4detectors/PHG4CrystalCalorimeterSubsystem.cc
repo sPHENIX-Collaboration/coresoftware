@@ -28,7 +28,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , projective_(false)
 {
   InitializeParameters();
 }
@@ -48,15 +47,13 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4CrystalCalorimeterDisplayAction(Name());
   // create detector
-  if (projective_)
+  if (get_int_param("projective") == 1)
   {
     if (Verbosity() > 1)
     {
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
     }
     m_Detector = new PHG4ProjCrystalCalorimeterDetector(this, topNode, GetParams(), Name());
-//    m_Detector->SetTowerMappingFile(mappingfile_);
-//    m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
   }
   else
   {
@@ -138,9 +135,12 @@ PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector(void) const
 void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 {
 // values in cm and degrees
+  set_default_int_param("projective",0);
+
   set_default_double_param("crystal_dx",2.);
   set_default_double_param("crystal_dy",2.);
   set_default_double_param("crystal_dz",18.);
+  set_default_double_param("dz",18.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", -108.);
@@ -167,5 +167,5 @@ void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &f
 {
   set_string_param("mappingtower",filename1);
   set_string_param("mapping4x4",filename2);
-  projective_ = true;
+  set_int_param("projective",1);
 }
