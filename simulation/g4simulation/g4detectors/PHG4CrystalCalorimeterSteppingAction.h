@@ -14,12 +14,13 @@ class PHG4CrystalCalorimeterDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector*);
+  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector *detector, const PHParameters* parameters);
 
   //! destroctor
   virtual ~PHG4CrystalCalorimeterSteppingAction();
@@ -48,6 +49,9 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
   PHG4Hit* hit;
   PHG4HitContainer* savehitcontainer;
   PHG4Shower* saveshower;
+
+  int m_ActiveFlag;
+  int m_BlackHoleFlag;
 
   //  int light_scint_model;
 };

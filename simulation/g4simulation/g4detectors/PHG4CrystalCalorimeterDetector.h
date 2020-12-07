@@ -13,6 +13,7 @@
 #include <string>
 
 class G4LogicalVolume;
+class G4Material;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CrystalCalorimeterDisplayAction;
@@ -42,94 +43,18 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
   // ----- accessing member variables: ------------
 
-  //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile(std::string &filename)
-  {
-    _mapping_tower_file = filename;
-  }
-
-  void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
-  {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
-  }
-
-  void SetRotation(G4double rot_in_x, G4double rot_in_y, G4double rot_in_z)
-  {
-    _rot_in_x = rot_in_x;
-    _rot_in_y = rot_in_y;
-    _rot_in_z = rot_in_z;
-  }
-
-  void SetCrystalSize(G4double dx, G4double dy, G4double dz)
-  {
-    _crystal_dx = dx;
-    _crystal_dy = dy;
-    _crystal_dz = dz;
-  }
-
-  void SetMaterialCrystal(G4String material)
-  {
-    _materialCrystal = material;
-  }
-
-  void SetActive(const int i = 1) { _active = i; }
-  void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
-
-  int IsActive() const { return _active; }
-
-  void SuperDetector(const std::string &name) { _superdetector = name; }
-  const std::string SuperDetector() const { return _superdetector; }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
   int get_Layer() const { return _layer; }
 
-  void BlackHole(const int i = 1) { _blackhole = i; }
-  int IsBlackHole() const { return _blackhole; }
-
   // ----- additional accessors used by derived classes: ------------
 
-  //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry(const std::string &filename2)
-  {
-    return;
-  }
+  PHParameters *GetParams() {return m_Params;}
 
  protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
-  /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
-
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
-
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
-
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
-
-  /* crystal geometry */
-  G4double _crystal_dx;
-  G4double _crystal_dy;
-  G4double _crystal_dz;
-
-  G4String _materialCrystal;
-
-  /* general detector parameters */
-  int _active;
-  int _absorberactive;
-  int _layer;
-  int _blackhole;
-
-  std::string _superdetector;
-  std::string _mapping_tower_file;
+  G4Material *GetCarbonFiber();
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();
@@ -142,6 +67,11 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     G4double y;
     G4double z;
   };
+
+  int _layer;
+
+  std::string m_SuperDetector;
+
   PHParameters *m_Params = nullptr;
 
   PHG4CrystalCalorimeterDisplayAction *m_DisplayAction = nullptr;

@@ -28,9 +28,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , mappingfile_("")
-  , mappingfile_4x4_construct_("")
-  , projective_(false)
 {
   InitializeParameters();
 }
@@ -50,15 +47,13 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4CrystalCalorimeterDisplayAction(Name());
   // create detector
-  if (projective_)
+  if (get_int_param("projective") == 1)
   {
     if (Verbosity() > 1)
     {
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
     }
     m_Detector = new PHG4ProjCrystalCalorimeterDetector(this, topNode, GetParams(), Name());
-    m_Detector->SetTowerMappingFile(mappingfile_);
-    m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
   }
   else
   {
@@ -67,7 +62,6 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
     }
     m_Detector = new PHG4CrystalCalorimeterDetector(this, topNode, GetParams(), Name());
-    m_Detector->SetTowerMappingFile(mappingfile_);
   }
 
   m_Detector->OverlapCheck(CheckOverlap());
@@ -115,7 +109,7 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
     }
     // create stepping action
-    m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector);
+    m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector, GetParams());
   }
   return 0;
 }
@@ -140,8 +134,38 @@ PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector(void) const
 
 void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 {
+// values in cm and degrees
+  set_default_int_param("projective",0);
+
+  set_default_double_param("crystal_dx",2.);
+  set_default_double_param("crystal_dy",2.);
+  set_default_double_param("crystal_dz",18.);
+  set_default_double_param("dz",18.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", -108.);
+  set_default_double_param("rMin1",2.2);
+  set_default_double_param("rMax1",65.6);
+  set_default_double_param("rMin2",2.6);
+  set_default_double_param("rMax2",77.5);
+  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_y", 180.);
+  set_default_double_param("rot_z", 0.);
+
+  set_default_string_param("material","G4_PbWO4");
+  set_default_string_param("mappingtower","");
+  set_default_string_param("mapping4x4","");
   return;
+}
+
+void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string &filename)
+{
+  set_string_param("mappingtower",filename);
+}
+
+void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
+{
+  set_string_param("mappingtower",filename1);
+  set_string_param("mapping4x4",filename2);
+  set_int_param("projective",1);
 }
