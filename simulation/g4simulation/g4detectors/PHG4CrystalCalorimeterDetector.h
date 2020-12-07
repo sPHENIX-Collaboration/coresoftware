@@ -55,7 +55,6 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
  protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   G4Material *GetCarbonFiber();
-  G4Material *GetCarbonFiber2();
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();

@@ -488,7 +488,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   //Create logical volume with the subtracted solid, made from carbon fiber material defined earlier
 
   G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                            GetCarbonFiber2(),
+                                                            GetCarbonFiber(),
                                                             "Carbon_Fiber_logic",
                                                             0, 0, 0);
 
@@ -824,7 +824,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              GetCarbonFiber2(),
+                                                              GetCarbonFiber(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
@@ -918,7 +918,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              GetCarbonFiber2(),
+                                                              GetCarbonFiber(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
@@ -1074,7 +1074,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              GetCarbonFiber2(),
+                                                              GetCarbonFiber(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
