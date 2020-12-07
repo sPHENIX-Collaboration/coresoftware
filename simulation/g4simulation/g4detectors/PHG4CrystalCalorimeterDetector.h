@@ -13,6 +13,7 @@
 #include <string>
 
 class G4LogicalVolume;
+class G4Material;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CrystalCalorimeterDisplayAction;
@@ -53,9 +54,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 
  protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
-  /* Calorimeter envelope geometry */
-
-  /* general detector parameters */
+  G4Material *GetCarbonFiber();
+  G4Material *GetCarbonFiber2();
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();
@@ -68,6 +68,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     G4double y;
     G4double z;
   };
+
   int _layer;
 
   std::string m_SuperDetector;

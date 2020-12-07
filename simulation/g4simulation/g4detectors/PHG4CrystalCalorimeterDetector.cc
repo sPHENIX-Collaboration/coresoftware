@@ -193,13 +193,14 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 
   /* create logical volumes for structural frame */
   //Carbon Fiber
+/*
   G4double a = 12.01 * g / mole;
   G4Element* elC = new G4Element("Carbon", "C", 6., a);
   G4double density_carbon_fiber = 0.144 * g / cm3;
   G4Material* CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
   CarbonFiber->AddElement(elC, 1);
-
-  G4Material* material_shell = CarbonFiber;
+*/
+  G4Material* material_shell = GetCarbonFiber();
 
   G4LogicalVolume* logic_shell = new G4LogicalVolume(Carbon_shell_solid,
                                                      material_shell,
@@ -423,4 +424,33 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
     m_Params->set_double_param("rot_z", parit->second*rad/deg);
   }
   return 0;
+}
+
+G4Material *PHG4CrystalCalorimeterDetector::GetCarbonFiber()
+{
+  G4Material *carbonfiber = G4Material::GetMaterial("CrystalCarbonFiber");
+  if (! carbonfiber)
+  {
+  G4double a = 12.01 * g / mole;
+  G4Element* elC = new G4Element("Carbon", "C", 6., a);
+  G4double density_carbon_fiber = 0.144 * g / cm3;
+  carbonfiber = new G4Material("CrystalCarbonFiber", density_carbon_fiber, 1);
+  carbonfiber->AddElement(elC, 1);
+  }
+  return carbonfiber;
+}
+
+G4Material *PHG4CrystalCalorimeterDetector::GetCarbonFiber2()
+{
+  static string matname = "CrystalCarbonFiber2";
+  G4Material *carbonfiber = G4Material::GetMaterial(matname,false);
+  if (! carbonfiber)
+  {
+  G4double a = 12.01 * g / mole;
+  G4Element* elC = new G4Element("Carbon", "C", 6., a);
+  G4double density_carbon_fiber = 10*0.144 * g / cm3;
+  carbonfiber = new G4Material(matname, density_carbon_fiber, 1);
+  carbonfiber->AddElement(elC, 1);
+  }
+  return carbonfiber;
 }

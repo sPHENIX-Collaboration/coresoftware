@@ -146,20 +146,8 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   //Crystal Material (Default is Lead Tungstate)
   G4Material *material_crystal = G4Material::GetMaterial(GetParams()->get_string_param("material"));
 
-  //Carbon Fiber
-  G4double a = 12.01 * g / mole;
-  G4Element *elC = new G4Element("Carbon", "C", 6., a);
-
-  G4double density_carbon_fiber = 10 * 0.144 * g / cm3;
-  G4Material *CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
-  CarbonFiber->AddElement(elC, 1);
-
-  //Air
-  //G4Material* Air = G4Material::GetMaterial("G4_AIR");
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
-
-  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -500,7 +488,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
   //Create logical volume with the subtracted solid, made from carbon fiber material defined earlier
 
   G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                            CarbonFiber,
+                                                            GetCarbonFiber2(),
                                                             "Carbon_Fiber_logic",
                                                             0, 0, 0);
 
@@ -540,19 +528,9 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
   //Crystal Material (Default is Lead Tungstate)
   G4Material *material_crystal = G4Material::GetMaterial(GetParams()->get_string_param("material"));
 
-  //Carbon Fiber
-  G4double a = 12.01 * g / mole;
-  G4Element *elC = new G4Element("Carbon", "C", 6., a);
 
-  G4double density_carbon_fiber = 10 * 0.144 * g / cm3;
-  G4Material *CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
-  CarbonFiber->AddElement(elC, 1);
-
-  //Air
-  //G4Material* Air = G4Material::GetMaterial("G4_AIR");
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
-  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
 
   //*************************************
   //**********Build First Crystal********
@@ -846,7 +824,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              CarbonFiber,
+                                                              GetCarbonFiber2(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
@@ -940,7 +918,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              CarbonFiber,
+                                                              GetCarbonFiber2(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
@@ -1096,7 +1074,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                                     Crystal_Center);
 
     G4LogicalVolume *Carbon_Shell_logic = new G4LogicalVolume(Carbon_Shell_solid,
-                                                              CarbonFiber,
+                                                              GetCarbonFiber2(),
                                                               "Carbon_Fiber_logic",
                                                               0, 0, 0);
 
@@ -1158,8 +1136,6 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                                       dy2,  //Half length on the large face in y
                                       dz);  //Half length in z
 
-  //G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  //  G4Material *Air = G4Material::GetMaterial("G4_Galactic");
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
