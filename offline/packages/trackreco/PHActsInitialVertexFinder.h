@@ -28,7 +28,7 @@ using InitKeyMap = std::map<const ActsExamples::TrackParameters*, const unsigned
 class PHActsInitialVertexFinder: public PHInitVertexing
 {
  public: 
-  PHActsInitialVertexFinder(const std::string& name="PHActsInitialVerteFinder");
+  PHActsInitialVertexFinder(const std::string& name="PHActsInitialVertexFinder");
   virtual ~PHActsInitialVertexFinder() {}
 
   void setMaxVertices(int maxVertices)

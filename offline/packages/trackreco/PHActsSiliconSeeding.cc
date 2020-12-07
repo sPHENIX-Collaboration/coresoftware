@@ -168,8 +168,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  if(std::isnan(x))
 	    continue;
 
-	  if(Verbosity() > 1)
-	    std::cout <<"Setting silicon seed with (x,y,z) = " 
+	  if(Verbosity() > 0)
+	    std::cout << "Setting silicon seed with track id " << m_trackMap->size()
+		      << " and (x,y,z) = " 
 		      << x << ", " << y << ", " << seed.z() / 10.
 		      << std::endl << " and (px,py,pz) " << px 
 		      << ", " << py << ", " << pz << std::endl
@@ -177,11 +178,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  
 	  numGoodSeeds++;
 	  
-	  /// Set the vertex id to 0 for now. This will be set in a 
-	  /// future module which runs the acts vertex finder on the 
-	  /// silicon stubs
-	  svtxTrack->set_vertex_id(0);
-
 	  /// x and y were calculated in sPHENIX units
 	  svtxTrack->set_x(x);
 	  svtxTrack->set_y(y);

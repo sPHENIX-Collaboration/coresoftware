@@ -90,22 +90,18 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 
 int PHActsInitialVertexFinder::ResetEvent(PHCompositeNode *topNode)
 {
-
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
 {
-
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
-  unsigned int key = 0;
+  unsigned int vertexId = 0;
   for(auto vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
@@ -131,42 +127,38 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_y(vertex.position().y() / Acts::UnitConstants::cm);
       svtxVertex->set_z(vertex.position().z() / Acts::UnitConstants::cm);
       for(int i = 0; i < 3; ++i) 
-	{
-	  for(int j = 0; j < 3; ++j)
-	    {
-	      svtxVertex->set_error(i, j,
-				    vertex.covariance()(i,j) / Acts::UnitConstants::cm2); 
-	    }
-	}
-  
-      
+	for(int j = 0; j < 3; ++j)
+	  svtxVertex->set_error(i, j,
+				vertex.covariance()(i,j) 
+				/ Acts::UnitConstants::cm2); 
+	        
       svtxVertex->set_chisq(chi2);
       svtxVertex->set_ndof(ndf);
       svtxVertex->set_t0(vertex.time());
-      svtxVertex->set_id(key);
+      svtxVertex->set_id(vertexId);
           
       for(const auto track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
-	  
-	  const auto param = new ActsExamples::TrackParameters(
-	        originalParams->fourPosition(m_tGeometry->geoContext),
-		originalParams->momentum(),
-		originalParams->charge(),
-		originalParams->absoluteMomentum(),
-		originalParams->covariance());
 
-	  const auto trackKey = keyMap.find(param)->second;
+	  const auto trackKey = keyMap.find(originalParams)->second;
 	  svtxVertex->insert_track(trackKey);
 
 	  /// Give the track the appropriate vertex id
 	  const auto svtxTrack = m_trackMap->find(trackKey)->second;
-	  svtxTrack->set_vertex_id(key);
+	  
+	  if(Verbosity() > 1)
+	    {   
+	      std::cout << "Updating track key " << trackKey << " with vertex "
+			<< vertexId << std::endl;
+	    }
+
+	  svtxTrack->set_vertex_id(vertexId);
 	}
 
       m_vertexMap->insert(svtxVertex.release());
 
-      ++key;
+      ++vertexId;
     }
       
   return;
@@ -207,7 +199,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 	logLevel = Acts::Logging::VERBOSE;
       auto logger = Acts::getDefaultLogger("PHActsInitialVertexFinder", 
 					   logLevel);
-
+    
       MagneticField bField(inputField);
       auto propagator = std::make_shared<Propagator>(Stepper(bField));
       
@@ -222,6 +214,10 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       ImpactPointEstimator ipEst(std::move(ipEstConfig));
       
       typename VertexSeeder::Config seederConfig(ipEst);
+
+      /// Don't weight track contribution by pT, since the momentum
+      /// resolution of the silicon seeds is poor
+      seederConfig.disableAllWeights = true;
       VertexSeeder seeder(std::move(seederConfig));
       
       typename VertexFinder::Config finderConfig(std::move(vertexFitter), 
@@ -230,11 +226,11 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       finderConfig.maxVertices = m_maxVertices;
       finderConfig.reassignTracksAfterFirstFit = true;
       VertexFinder finder(finderConfig, std::move(logger));
-      
+
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
       VertexFinderOptions finderOptions(m_tGeometry->geoContext,
 					m_tGeometry->magFieldContext);
-      
+  
       auto result = finder.find(tracks, finderOptions, state);
     
       VertexVector vertexVector;
@@ -262,7 +258,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 			<< result.error().message() << std::endl;
 	    }	  
 	}
-
+    
       return vertexVector;
       
     } /// end lambda
@@ -277,23 +273,24 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
   for(auto& [key,track] : *m_trackMap)
     {
       const Acts::Vector4D stubVec(track->get_x() * Acts::UnitConstants::cm,
-			     track->get_y() * Acts::UnitConstants::cm,
-			     track->get_z() * Acts::UnitConstants::cm,
-			     10 * Acts::UnitConstants::ns);
+				   track->get_y() * Acts::UnitConstants::cm,
+				   track->get_z() * Acts::UnitConstants::cm,
+				   10 * Acts::UnitConstants::ns);
+     
       const Acts::Vector3D stubMom(track->get_px(),
 				   track->get_py(),
 				   track->get_pz());
-      const double trackQ = track->get_charge();
+      const int trackQ = track->get_charge() * Acts::UnitConstants::e;
       const double p = track->get_p();
       
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
       
-      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+      cov << 100 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.1, 0., 0., 0.,
-           0., 0., 0., 0.1, 0., 0.,
-           0., 0., 0., 0., 0.01 , 0.,
+           0., 0., 0.05, 0., 0., 0.,
+           0., 0., 0., 0.05, 0., 0.,
+           0., 0., 0., 0., 0.1 , 0.,
            0., 0., 0., 0., 0., 1.;
 
       const auto param = new ActsExamples::TrackParameters(stubVec,
@@ -306,14 +303,13 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
     }
 
-
   return tracks;
 }
 
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
   if(!m_trackMap)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."
