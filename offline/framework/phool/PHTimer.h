@@ -183,7 +183,7 @@ class PHTimer
     double _period;
 
     //! read pc frequency from cpuinfo place
-    void set_cpu_freq(const char* cpuinfopath = "/proc/cpuinfo");
+    void set_cpu_freq(const std::string &cpuinfopath = "/proc/cpuinfo");
   };
 
   //! used to store high precision time using two integers
