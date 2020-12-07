@@ -95,7 +95,6 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
   }
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  //G4Material* Air = G4Material::GetMaterial("G4_AIR");
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 

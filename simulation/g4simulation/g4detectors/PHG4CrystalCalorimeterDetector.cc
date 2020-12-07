@@ -429,21 +429,12 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 G4Material *PHG4CrystalCalorimeterDetector::GetCarbonFiber()
 {
   static string matname = "CrystalCarbonFiber";
-  G4Material *carbonfiber = G4Material::GetMaterial(matname,false);
+  G4Material *carbonfiber = G4Material::GetMaterial(matname,false); // false suppresses warning that material does not exist
   if (! carbonfiber)
   {
-//  G4double a = 12.01 * g / mole;
-//  G4Element* elC = new G4Element("Carbon", "C", 6., a);
-  // G4double density_carbon_fiber = 10*0.144 * g / cm3;
-  // carbonfiber = new G4Material(matname, density_carbon_fiber, 1);
-  // carbonfiber->AddElement(G4Element::GetElement("C"), 1);
-//  cout << "carbon: " << carbonfiber << endl;
-  G4double a = 12.01 * g / mole;
-  G4Element* elC = new G4Element("Carbon", "C", 6., a);
-  G4double density_carbon_fiber = 10*0.144 * g / cm3;
-  carbonfiber = new G4Material(matname, density_carbon_fiber, 1);
-  carbonfiber->AddElement(elC, 1);
-  cout << "carbon old: " << carbonfiber << endl;
+    G4double density_carbon_fiber = 1.44 * g / cm3;
+    carbonfiber = new G4Material(matname, density_carbon_fiber, 1);
+    carbonfiber->AddElement(G4Element::GetElement("C"), 1);
   }
   return carbonfiber;
 }
