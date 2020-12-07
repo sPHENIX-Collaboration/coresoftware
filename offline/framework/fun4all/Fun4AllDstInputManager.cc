@@ -540,7 +540,7 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
       cout << "Setting Root Tree Branch: " << branch << " to NOT read" << endl;
     }
   }
-  branchread[branch] = iflag;
+  branchread[branch] = readit;
   return 0;
 }
 
