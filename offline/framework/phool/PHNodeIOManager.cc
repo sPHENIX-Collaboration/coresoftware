@@ -342,13 +342,12 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   return true;
 }
 
-int PHNodeIOManager::readSpecific(size_t requestedEvent, const char* objectName)
+int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string &objectName)
 {
   // objectName should be one of the valid branch name of the "T" TTree, and
   // should be one of the branches selected by selectObjectToRead() method.
   // No wildcard allowed for the moment.
-  string name = objectName;
-  map<string, TBranch*>::const_iterator p = fBranches.find(name);
+  map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
   if (p != fBranches.end())
   {
@@ -518,7 +517,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   return topNode;
 }
 
-void PHNodeIOManager::selectObjectToRead(const char* objectName, bool readit)
+void PHNodeIOManager::selectObjectToRead(const std::string &objectName, bool readit)
 {
   objectToRead[objectName] = readit;
 
@@ -536,10 +535,9 @@ void PHNodeIOManager::selectObjectToRead(const char* objectName, bool readit)
   return;
 }
 
-bool PHNodeIOManager::isSelected(const char* objectName)
+bool PHNodeIOManager::isSelected(const std::string &objectName)
 {
-  string name = objectName;
-  map<string, TBranch*>::const_iterator p = fBranches.find(name);
+  map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
   if (p != fBranches.end())
   {

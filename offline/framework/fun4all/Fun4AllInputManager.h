@@ -30,7 +30,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
-  virtual int setBranches() { return -1; }
+  virtual int setBranches() { return -1; } // publich bc needed by the sync manager
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents

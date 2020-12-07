@@ -35,9 +35,9 @@ class PHNodeIOManager : public PHIOManager
   bool setFile(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHCompositeNode *read(PHCompositeNode * = nullptr, size_t = 0);
   bool read(size_t requestedEvent);
-  int readSpecific(size_t requestedEvent, const char *objectName);
-  void selectObjectToRead(const char *objectName, bool readit);
-  bool isSelected(const char *objectName);
+  int readSpecific(size_t requestedEvent, const std::string &objectName);
+  void selectObjectToRead(const std::string &objectName, bool readit);
+  bool isSelected(const std::string &objectName);
   int isFunctional() const { return isFunctionalFlag; }
   bool SetCompressionLevel(const int level);
   double GetBytesWritten();
