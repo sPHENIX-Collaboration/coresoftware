@@ -100,10 +100,10 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid *ecal_envelope_cone = new G4Cons("eEcal_envelope_solid",
-                                            _rMin1, _rMax1,
-                                            _rMin2, _rMax2,
-                                            _dZ / 2.,
-                                            _sPhi, _dPhi);
+                                            GetParams()->get_double_param("rMin1")*cm, GetParams()->get_double_param("rMax1")*cm,
+                                            GetParams()->get_double_param("rMin2")*cm, GetParams()->get_double_param("rMax2")*cm,
+					    GetParams()->get_double_param("dz")*cm / 2.,
+                                             0, 2*M_PI);
 
   G4LogicalVolume *ecal_envelope_log = new G4LogicalVolume(ecal_envelope_cone, WorldMaterial, G4String("eEcal_envelope"), 0, 0, 0);
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");

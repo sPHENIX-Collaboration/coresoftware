@@ -55,19 +55,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   /* Calorimeter envelope geometry */
 
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
-
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
-
   /* general detector parameters */
-  int _layer;
-
-  std::string m_SuperDetector;
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();
@@ -80,6 +68,10 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     G4double y;
     G4double z;
   };
+  int _layer;
+
+  std::string m_SuperDetector;
+
   PHParameters *m_Params = nullptr;
 
   PHG4CrystalCalorimeterDisplayAction *m_DisplayAction = nullptr;

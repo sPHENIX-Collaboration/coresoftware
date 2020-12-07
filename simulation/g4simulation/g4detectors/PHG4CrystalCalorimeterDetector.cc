@@ -40,13 +40,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , _rMin1(22 * mm)
-  , _rMax1(656 * mm)
-  , _rMin2(26 * mm)
-  , _rMax2(775 * mm)
-  , _dZ(180 * mm)
-  , _sPhi(0)
-  , _dPhi(2 * M_PI)
   , _layer(0)
   , m_SuperDetector("NONE")
   , m_Params(parameters)
