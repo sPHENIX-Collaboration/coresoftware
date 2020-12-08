@@ -66,7 +66,7 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
   {
     if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
     {
-      return 1;
+      return GetCaloType();
     }
   }
   if (m_AbsorberActive)
@@ -291,15 +291,15 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
       Rot->rotateY(0 * rad);
       Rot->rotateZ(rot_z * rad);
 
-      ostringstream crystal_name;
-      crystal_name.str("");
-      crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
-
+//      ostringstream crystal_name;
+//      crystal_name.str("");
+      string crystal_name = _crystallogicnameprefix + "_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
                                                      crystal_logic_small,
-                                                     crystal_name.str().c_str(),
+                                                     crystal_name,
                                                      Two_by_Two_logic,
-                                                     0, 0, _overlapcheck_local);
+                                                     0, copyno, _overlapcheck_local);
 
       m_ActiveVolumeSet.insert(physvol);
       j_idx = k_idx = 0;

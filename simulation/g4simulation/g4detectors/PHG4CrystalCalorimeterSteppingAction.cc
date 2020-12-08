@@ -1,4 +1,6 @@
 #include "PHG4CrystalCalorimeterSteppingAction.h"
+
+#include "PHG4CrystalCalorimeterDefs.h"
 #include "PHG4CrystalCalorimeterDetector.h"
 
 #include <phparameter/PHParameters.h>
@@ -86,11 +88,38 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   if (whichactive > 0)  // in crystal
   {
     /* Find indizes of crystal containing this step */
+    if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::projective)
+    {
+     cout << "volname0: " << touch->GetVolume(0)->GetName() 
+     	 << " CopyNo: " << hex << touch->GetVolume(0)->GetCopyNo() << dec << endl;
+     cout << "volname1: " << touch->GetVolume(1)->GetName() 
+     	 << " CopyNo: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
+     cout << "volname2: " << touch->GetVolume(2)->GetName()
+     	 << " CopyNo: " << hex << touch->GetVolume(2)->GetCopyNo() << dec << endl;
+    }
+    int idx_jtmp = -1;
+    int idx_ktmp = -1;
+    if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::nonprojective)
+    {
+      unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+    idx_jtmp = icopy >> 16;
+    idx_ktmp = icopy & 0xFFFF;
+//    cout << "idxj: " << idx_jtmp << ", idx_k: " << idx_ktmp << endl;
+    }
     if (touch->GetVolume(2)->GetName().find("_j_") != string::npos)
+    {
       FindTowerIndex2LevelUp(touch, idx_j, idx_k);
+    }
     else
+    {
       FindTowerIndex(touch, idx_j, idx_k);
-
+      if (idx_j != idx_jtmp || idx_k != idx_ktmp)
+      {
+	cout << "index mismatch idx_j: " << idx_j << ", idx_j cpn: " << idx_jtmp
+	     << ", idx_k: " << idx_k << ", idx_k cpn: " << idx_ktmp << endl;
+	gSystem->Exit(1);
+      }
+    }
     tower_id = touch->GetCopyNumber();
   }
   else
@@ -336,7 +365,7 @@ int PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHand
     ParseG4VolumeName(crystal, j_0, k_0);
     ParseG4VolumeName(TwoByTwo, j_1, k_1);
     ParseG4VolumeName(FourByFour, j_2, k_2);
-
+    cout << "copyno: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
     j = (j_0 * 1) + (j_1 * 2) + (j_2 * 4);
     k = (k_0 * 1) + (k_1 * 2) + (k_2 * 4);
   }
