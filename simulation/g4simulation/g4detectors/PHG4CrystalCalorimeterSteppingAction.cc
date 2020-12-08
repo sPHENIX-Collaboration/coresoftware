@@ -88,17 +88,27 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   if (whichactive > 0)  // in crystal
   {
     /* Find indizes of crystal containing this step */
-    if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::projective)
-    {
-     cout << "volname0: " << touch->GetVolume(0)->GetName() 
-     	 << " CopyNo: " << hex << touch->GetVolume(0)->GetCopyNo() << dec << endl;
-     cout << "volname1: " << touch->GetVolume(1)->GetName() 
-     	 << " CopyNo: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
-     cout << "volname2: " << touch->GetVolume(2)->GetName()
-     	 << " CopyNo: " << hex << touch->GetVolume(2)->GetCopyNo() << dec << endl;
-    }
     int idx_jtmp = -1;
     int idx_ktmp = -1;
+    if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::projective)
+    {
+      int j[3];
+      int k[3];
+      for (int i=0;i<3; i++)
+      {
+   unsigned int icopy = touch->GetVolume(i)->GetCopyNo();
+   j[i] =  icopy >> 16;
+   k[i] = icopy & 0xFFFF;
+      }
+      idx_jtmp = j[0] + j[1]*2 + j[2]*4;
+      idx_ktmp = k[0] + k[1]*2 + k[2]*4;
+     // cout << "volname0: " << touch->GetVolume(0)->GetName() 
+     // 	 << " CopyNo: " << hex << touch->GetVolume(0)->GetCopyNo() << dec << endl;
+     // cout << "volname1: " << touch->GetVolume(1)->GetName() 
+     // 	 << " CopyNo: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
+     // cout << "volname2: " << touch->GetVolume(2)->GetName()
+     // 	 << " CopyNo: " << hex << touch->GetVolume(2)->GetCopyNo() << dec << endl;
+    }
     if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::nonprojective)
     {
       unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
@@ -113,14 +123,15 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
     else
     {
       FindTowerIndex(touch, idx_j, idx_k);
+    }
       if (idx_j != idx_jtmp || idx_k != idx_ktmp)
       {
 	cout << "index mismatch idx_j: " << idx_j << ", idx_j cpn: " << idx_jtmp
 	     << ", idx_k: " << idx_k << ", idx_k cpn: " << idx_ktmp << endl;
 	gSystem->Exit(1);
       }
-    }
     tower_id = touch->GetCopyNumber();
+    tower_id = 0;
   }
   else
   {
@@ -365,7 +376,40 @@ int PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHand
     ParseG4VolumeName(crystal, j_0, k_0);
     ParseG4VolumeName(TwoByTwo, j_1, k_1);
     ParseG4VolumeName(FourByFour, j_2, k_2);
-    cout << "copyno: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
+    unsigned int icopy = touch->GetVolume(0)->GetCopyNo();
+    int j_0tmp = icopy >> 16;
+    int k_0tmp = icopy & 0xFFFF;
+//    cout << "j: " << j_0 << ", " << j_0tmp << endl;
+//    cout << "k: " << k_0 << ", " << k_0tmp << endl;
+    if (j_0 != j_0tmp || k_0 != k_0tmp)
+    {
+      cout << "index mismatch j_0: " << j_0 << ", j cpn: " << j_0tmp
+	   << ", k_0: " << k_0 << ", k cpn: " << k_0tmp << endl;
+      gSystem->Exit(1);
+    }
+    icopy = touch->GetVolume(1)->GetCopyNo();
+    int j_1tmp = icopy >> 16;
+    int k_1tmp = icopy & 0xFFFF;
+//    cout << "j1: " << j_1 << ", " << j_1tmp << endl;
+//    cout << "k1: " << k_1 << ", " << k_1tmp << endl;
+    if (j_1 != j_1tmp || k_1 != k_1tmp)
+    {
+      cout << "index mismatch j_1: " << j_1 << ", j cpn: " << j_1tmp
+	   << ", k_1: " << k_1 << ", k cpn: " << k_1tmp << endl;
+      gSystem->Exit(1);
+    }
+    icopy = touch->GetVolume(2)->GetCopyNo();
+    int j_2tmp = icopy >> 16;
+    int k_2tmp = icopy & 0xFFFF;
+//    cout << "j2: " << j_2 << ", " << j_2tmp << endl;
+//    cout << "k2: " << k_2 << ", " << k_2tmp << endl;
+    if (j_2 != j_2tmp || k_2 != k_2tmp)
+    {
+      cout << "index mismatch j_2: " << j_2 << ", j cpn: " << j_2tmp
+	   << ", k_2: " << k_2 << ", k cpn: " << k_2tmp << endl;
+      gSystem->Exit(1);
+    }
+
     j = (j_0 * 1) + (j_1 * 2) + (j_2 * 4);
     k = (k_0 * 1) + (k_1 * 2) + (k_2 * 4);
   }
