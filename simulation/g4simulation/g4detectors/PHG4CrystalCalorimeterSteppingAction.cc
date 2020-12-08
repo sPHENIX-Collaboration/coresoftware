@@ -87,51 +87,27 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
 
   if (whichactive > 0)  // in crystal
   {
-    /* Find indizes of crystal containing this step */
-    // int idx_jtmp = -1;
-    // int idx_ktmp = -1;
+    // Find indices of crystal containing this step. The indices are
+    // coded into the copy number of the physical volume and we extract them from there
     if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::projective)
     {
       int j[3];
       int k[3];
       for (int i=0;i<3; i++)
       {
-   unsigned int icopy = touch->GetVolume(i)->GetCopyNo();
-   j[i] =  icopy >> 16;
-   k[i] = icopy & 0xFFFF;
+	unsigned int icopy = touch->GetVolume(i)->GetCopyNo();
+	j[i] =  icopy >> 16;
+	k[i] = icopy & 0xFFFF;
       }
       idx_j = j[0] + j[1]*2 + j[2]*4;
       idx_k = k[0] + k[1]*2 + k[2]*4;
-     // cout << "volname0: " << touch->GetVolume(0)->GetName() 
-     // 	 << " CopyNo: " << hex << touch->GetVolume(0)->GetCopyNo() << dec << endl;
-     // cout << "volname1: " << touch->GetVolume(1)->GetName() 
-     // 	 << " CopyNo: " << hex << touch->GetVolume(1)->GetCopyNo() << dec << endl;
-     // cout << "volname2: " << touch->GetVolume(2)->GetName()
-     // 	 << " CopyNo: " << hex << touch->GetVolume(2)->GetCopyNo() << dec << endl;
     }
     if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::nonprojective)
     {
       unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
-    idx_j = icopy >> 16;
-    idx_k = icopy & 0xFFFF;
-//    cout << "idxj: " << idx_jtmp << ", idx_k: " << idx_ktmp << endl;
+      idx_j = icopy >> 16;
+      idx_k = icopy & 0xFFFF;
     }
-/*
-    if (touch->GetVolume(2)->GetName().find("_j_") != string::npos)
-    {
-      FindTowerIndex2LevelUp(touch, idx_j, idx_k);
-    }
-    else
-    {
-      FindTowerIndex(touch, idx_j, idx_k);
-    }
-      if (idx_j != idx_jtmp || idx_k != idx_ktmp)
-      {
-	cout << "index mismatch idx_j: " << idx_j << ", idx_j cpn: " << idx_jtmp
-	     << ", idx_k: " << idx_k << ", idx_k cpn: " << idx_ktmp << endl;
-	gSystem->Exit(1);
-      }
-*/
     tower_id = touch->GetCopyNumber();
     tower_id = 0;
   }
