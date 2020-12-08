@@ -44,6 +44,7 @@ pkginclude_HEADERS = \
   PHActsTracks.h \
   PHActsTrkProp.h \
   PHActsSiliconSeeding.h \
+  PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
@@ -113,6 +114,7 @@ ACTS_SOURCES = \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
+  PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
   PHActsVertexFitter.cc \
   PHActsTrackProjection.cc \

@@ -152,9 +152,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      clusters.push_back(m_clusterMap->findCluster(cluskey));
 	      
 	      if(Verbosity() > 1)
-		std::cout << "Adding cluster with radius " 
-			  << sqrt(spacePoint->x() * spacePoint->x()
-				  + spacePoint->y() * spacePoint->y())
+		std::cout << "Adding cluster with x,y "
+			  << spacePoint->x() <<", " << spacePoint->y()
 			  << " mm " << std::endl;
 
 	      svtxTrack->insert_cluster_key(cluskey);
@@ -162,26 +161,23 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  
 	  double x = NAN,y, z;;
 	  double px, py, pz;
-	  circleFitSeed(clusters, x, y, z,
-			px, py, pz);
+	  int charge = circleFitSeed(clusters, x, y, z,
+				     px, py, pz);
 
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
 	    continue;
 
-	  if(Verbosity() > 1)
-	    std::cout <<"Setting silicon seed with (x,y,z) = " 
+	  if(Verbosity() > 0)
+	    std::cout << "Setting silicon seed with track id " << m_trackMap->size()
+		      << " and (x,y,z) = " 
 		      << x << ", " << y << ", " << seed.z() / 10.
-		      << " and (px,py,pz) " << px << ", " << py
-		      << ", " << pz << std::endl;
+		      << std::endl << " and (px,py,pz) " << px 
+		      << ", " << py << ", " << pz << std::endl
+		      << " with charge " << charge << std::endl;
 	  
 	  numGoodSeeds++;
 	  
-	  /// Set the vertex id to 0 for now. This will be set in a 
-	  /// future module which runs the acts vertex finder on the 
-	  /// silicon stubs
-	  svtxTrack->set_vertex_id(0);
-
 	  /// x and y were calculated in sPHENIX units
 	  svtxTrack->set_x(x);
 	  svtxTrack->set_y(y);
@@ -189,6 +185,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  svtxTrack->set_px(px);
 	  svtxTrack->set_py(py);
 	  svtxTrack->set_pz(pz);
+	  svtxTrack->set_charge(charge);
 
 	  m_trackMap->insert(svtxTrack.release());
 	}
@@ -208,7 +205,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 }
 
 
-void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
+int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
 					 double& x, double& y, double& z,
 					 double& px, double& py, double& pz)
 {
@@ -217,10 +214,78 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
   double R, X0, Y0;
   circleFitByTaubin(clusters, R, X0, Y0);
   
-  if(Verbosity() > 2)
+  if(Verbosity() > 1)
     std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
 	      << ", " << Y0 << std::endl;
 
+  findRoot(R, X0, Y0, x, y);
+
+  /// If the x or y initial position was found to be greater than 10 cm
+  /// it is a bad seed
+  if(fabs(x) > 10. or fabs(y) > 10.)
+    {
+      x = NAN;
+      /// Return statement doesn't matter as x = nan will be caught
+      return 1;
+    }
+
+  int charge = getCharge(clusters, atan2(Y0,X0));
+  
+  /// Now determine the line tangent to the circle at this point to get phi
+  /// The slope of the line connecting the circle center and PCA is 
+  /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
+  /// For some reason the phi value comes back off a factor of pi for positive
+  /// charged tracks, hence the check for that
+  double phi = atan2(-1 * (X0-x), Y0-y);
+  if(charge > 0)
+    {
+      phi += M_PI;
+      if(phi > M_PI) 
+	phi -= 2. * M_PI;
+    }
+ 
+  if(Verbosity() > 1)
+    std::cout << "track seed phi : " << phi <<  std::endl;
+
+  double m, B;
+  
+
+  /// m is slope as a function of radius, B is z intercept (vertex)
+  lineFit(clusters, m, B);
+
+  z = B;
+  double theta = atan(1./m);
+
+  /// normalize to 0 < theta < pi
+  if(theta < 0)
+    theta += M_PI;
+
+  if(Verbosity() > 1)
+    std::cout << "Track seed theta: " << theta << std::endl;
+ 
+  /// 0.3 conversion factor, 1.4=B field, 100 convert R from cm to m
+  /// Get a very rough estimate of p
+  float pt = 0.3 * 1.4 * R / 100.;
+  float eta = -log(tan(theta/2.));
+  float p = pt * cosh(eta);
+
+  /// The only thing that is really needed for the propagation
+  /// is the direction
+  px = p * sin(theta) * cos(phi);
+  py = p * sin(theta) * sin(phi);
+  pz = p * cos(theta);
+  
+  if(Verbosity() > 1)
+    std::cout << "Momentum unit vector estimate: (" << px <<" , " 
+	      << py << ", " << pz << ") " << std::endl;
+    
+  return charge;
+
+}
+void PHActsSiliconSeeding::findRoot(const double R, const double X0,
+				    const double Y0, double& x,
+				    double& y)
+{
   /**
    * We need to determine the closest point on the circle to the origin
    * since we can't assume that the track originates from the origin
@@ -243,70 +308,106 @@ void PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluste
     / (pow(X0, 2) + pow(Y0, 2));
 
   double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
-  double minx2 = sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
+  double minx2 = -sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
   
   if(Verbosity() > 1)
     std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
 	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
 
+  /// Figure out which of the two roots is actually closer to the origin
   if(fabs(minx) < fabs(minx2))
     x = minx;
   else
     x = minx2;
 
-  /// determine which y solution is smaller
   if(fabs(miny) < fabs(miny2))
     y = miny;
   else
     y = miny2;
   
-  /// If the x or y initial position was found to be greater than 10 cm
-  /// it is a bad seed
-  if(fabs(x) > 10. or fabs(y) > 10.)
-    {
-      x = NAN;
-      return;
-    }
-
   if(Verbosity() > 1)
     {
-      if(!std::isnan(x) && !std::isnan(y))
-	std::cout << "Minimum x and y positions " << x << ",  " 
-		  << y << std::endl;
+      std::cout << "Minimum x and y positions " << x << ",  " 
+		<< y << std::endl;
     }
-
-  /// Now determine the line tangent to the circle at this point to get phi
-  double phi = atan( -1./( (y - Y0) / (x - X0)));
-  if(phi > M_PI) phi -= 2. * M_PI;
-  if(phi < -M_PI) phi += 2. * M_PI;
-  
-  if(Verbosity() > 1)
-    std::cout << "Track seed phi : " << phi << std::endl;
-
-  double m, B;
-  
-  /// m is slope as a function of radius, B is z intercept (vertex)
-  lineFit(clusters, m, B);
-
-  z = B;
-
-  double theta = atan(1./m);
-
-  if(Verbosity() > 1)
-    std::cout << "Track seed theta: " << theta << std::endl;
- 
-  /// normalize to unit vector because we just need the direction
-  px = sin(theta) * cos(phi);
-  py = sin(theta) * sin(phi);
-  pz = cos(theta);
-  
-  if(Verbosity() > 1)
-    std::cout << "Momentum unit vector estimate: (" << px <<" , " 
-	      << py << ", " << pz << ") " << std::endl;
-    
-  return;
 
 }
+
+int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
+				    const double circPhi)
+{
+
+  /**
+   * If the circle center phi is positioned clockwise to the seed phi, 
+   * the seed is positively charged. If the circle center phi is positioned
+   * counter clockwise, the seed is negatively charged
+   */
+
+  int charge = 0;
+  
+  /// Get a crude estimate of the seed phi by taking the average of the
+  /// measurements
+  double trackPhi = 0;
+  for(auto clus : clusters)
+    {
+      double clusPhi = atan2(clus->getY(), clus->getX());
+
+      /// if it is close to the periodic boundary normalize to 
+      /// two pi to avoid -pi and pi issues
+      if(fabs(fabs(clusPhi) - M_PI) < 0.2)
+	clusPhi = normPhi2Pi(clusPhi);
+      trackPhi += clusPhi;
+    }
+
+  trackPhi /= clusters.size();
+
+  /// normalize back
+  if(trackPhi > M_PI)
+    trackPhi -= 2. * M_PI;
+
+  float quadrants[5] = {-M_PI,-M_PI / 2., 0, M_PI/2., M_PI};
+  int quadrant = -1;
+  for(int i=0; i<4; i++)
+    {
+      if(trackPhi > quadrants[i] && trackPhi <= quadrants[i+1])
+	{
+	  quadrant = i;
+	  break;
+	}
+    }
+
+  if(quadrant == -1)
+    std::cout << "quadrant was not set... shouldn't be possible"
+	      << std::endl;
+
+  if(quadrant == 1 or quadrant == 2)
+    {
+      if(circPhi > trackPhi)
+	charge = -1;
+      else
+	charge = 1;
+    }
+  else
+    {
+      /// Shift the periodic boundary to make quadrants 0 and 3 away
+      /// from boundary
+      double normTrackPhi = normPhi2Pi(trackPhi);
+      double normCircPhi = normPhi2Pi(circPhi);
+  
+      if(normCircPhi > normTrackPhi)
+	charge = -1;
+      else
+	charge = 1;
+    }
+
+  if(Verbosity() > 1)
+    std::cout << "Track seed charge determined to be " 
+	      << charge << " in quadrant " << quadrant << std::endl;
+
+  return charge;
+
+}
+
 void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters, 
 				   double &A, double &B)
 {
@@ -331,7 +432,7 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
   /// calculate intercept
   B = (x2sum*ysum-xsum*xysum) / (x2sum*clusters.size()-xsum*xsum);
   
-  if(Verbosity() > 10)
+  if(Verbosity() > 4)
     {
       for (auto& cluster : clusters)
 	{
@@ -625,4 +726,13 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+double PHActsSiliconSeeding::normPhi2Pi(const double phi)
+{
+  double returnPhi = phi;
+  if(returnPhi < 0)
+    returnPhi += 2 * M_PI;
+  return returnPhi;
 }
