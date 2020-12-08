@@ -41,19 +41,18 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
   int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
 
   //! pointer to the detector
-  PHG4CrystalCalorimeterDetector* detector_;
+  PHG4CrystalCalorimeterDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
-  PHG4Hit* hit;
-  PHG4HitContainer* savehitcontainer;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  PHG4Shower* m_SaveShower = nullptr;
 
-  int m_ActiveFlag;
-  int m_BlackHoleFlag;
+  int m_ActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
 
-  //  int light_scint_model;
 };
 
 #endif  // PHG4CrystalCalorimeterSteppingAction_h
