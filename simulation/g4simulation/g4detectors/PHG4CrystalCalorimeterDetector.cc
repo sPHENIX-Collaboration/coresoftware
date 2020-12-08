@@ -40,7 +40,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , _layer(0)
   , m_SuperDetector("NONE")
   , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction()))

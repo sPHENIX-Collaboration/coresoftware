@@ -50,7 +50,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _dy_back(48.97454545455 * mm)
   , _dz_crystal(90.000 * mm)
   , _crystallogicnameprefix("eEcalCrystal")
-  , _overlapcheck_local(false)
   , m_IsActive(GetParams()->get_int_param("active"))
   , m_AbsorberActive(GetParams()->get_int_param("absorberactive"))
 {
@@ -114,7 +113,7 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
 
   /* Place envelope cone in simulation */
   new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetParams()->get_double_param("place_x")*cm, GetParams()->get_double_param("place_y")*cm, GetParams()->get_double_param("place_z")*cm)),
-                    ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, _overlapcheck_local);
+                    ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, OverlapCheck());
 
   /* Construct crystal calorimeter within envelope */
   ConstructProjectiveCrystals(ecal_envelope_log);
@@ -297,7 +296,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
                                                      crystal_logic_small,
                                                      crystal_name,
                                                      Two_by_Two_logic,
-                                                     0, copyno, _overlapcheck_local);
+                                                     0, copyno, OverlapCheck());
       m_ActiveVolumeSet.insert(physvol);
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
@@ -338,7 +337,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
                         Two_by_Two_logic,
                         Two_by_Two_name,
                         crystal_logic,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
 
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = 0.0;
@@ -503,7 +502,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
                                                  Carbon_Shell_logic,
                                                  "Carbon_Fiber_Shell",
                                                  crystal_logic,
-                                                 0, 0, _overlapcheck_local);
+                                                 0, 0, OverlapCheck());
 
   m_PassiveVolumeSet.insert(physvol);
   //***********************************
@@ -676,7 +675,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                      crystal_logic_small,
                                                      crystal_name,
                                                      Two_by_Two_logic,
-                                                     0, copyno, _overlapcheck_local);
+                                                     0, copyno, OverlapCheck());
       m_ActiveVolumeSet.insert(physvol);
 
       j_idx = k_idx = 0;
@@ -717,7 +716,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                         Two_by_Two_logic,
                         Two_by_Two_name,
                         crystal_logic,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (ident == 22)
     {
@@ -737,7 +736,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                           Two_by_Two_logic,
                           Two_by_Two_name,
                           crystal_logic,
-                          0, copyno, _overlapcheck_local);
+                          0, copyno, OverlapCheck());
       }
     }
     else if (ident == 32)
@@ -757,7 +756,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                           Two_by_Two_logic,
                           Two_by_Two_name,
                           crystal_logic,
-                          0, copyno, _overlapcheck_local);
+                          0, copyno, OverlapCheck());
       }
     }
     else
@@ -830,7 +829,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 22)
@@ -924,7 +923,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 32)
@@ -1080,7 +1079,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else
@@ -1311,7 +1310,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         crystal_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1331,7 +1330,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         thirtytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1348,7 +1347,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twentytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1366,7 +1365,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twelve_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1403,7 +1402,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         crystal_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1422,7 +1421,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         thirtytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1442,7 +1441,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twentytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1462,7 +1461,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twelve_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1498,7 +1497,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         crystal_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1518,7 +1517,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         thirtytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1538,7 +1537,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twentytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1555,7 +1554,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twelve_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1592,7 +1591,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         crystal_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1612,7 +1611,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         thirtytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1631,7 +1630,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twentytwo_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1651,7 +1650,7 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
                         twelve_logic,
                         FourByFourName,
                         ecalenvelope,
-                        0, copyno, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
 
     j++;

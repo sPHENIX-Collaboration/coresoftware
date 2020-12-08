@@ -48,7 +48,8 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
-  int get_Layer() const { return _layer; }
+  int get_DetectorId() const { return m_DetectorId; }
+  void DetectorId(const int i) {m_DetectorId = i;}
 
   // ----- additional accessors used by derived classes: ------------
 
@@ -74,7 +75,7 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
     int idx_k;
   };
 
-  int _layer;
+  int m_DetectorId = 0;
 
   std::string m_SuperDetector;
 

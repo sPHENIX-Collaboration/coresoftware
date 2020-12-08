@@ -80,7 +80,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
     return false;
   }
 
-  int layer_id = m_Detector->get_Layer();
+  int layer_id = m_Detector->get_DetectorId();
   int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
@@ -324,4 +324,3 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers(PHCompositeNode*
     }
   }
 }
-

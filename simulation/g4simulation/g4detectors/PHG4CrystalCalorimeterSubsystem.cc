@@ -63,9 +63,8 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
+  m_Detector->DetectorId(GetLayer());
   
-  // PHNodeIterator iter(topNode);
-  // PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   if (GetParams()->get_int_param("active"))
   {
