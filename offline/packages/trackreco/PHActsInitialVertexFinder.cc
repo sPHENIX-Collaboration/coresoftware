@@ -272,6 +272,12 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
   for(auto& [key,track] : *m_trackMap)
     {
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Adding track seed to vertex finder " << std::endl;
+	  track->identify();
+	}
+
       const Acts::Vector4D stubVec(track->get_x() * Acts::UnitConstants::cm,
 				   track->get_y() * Acts::UnitConstants::cm,
 				   track->get_z() * Acts::UnitConstants::cm,
@@ -293,14 +299,21 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
            0., 0., 0., 0., 0.1 , 0.,
            0., 0., 0., 0., 0., 1.;
 
-      const auto param = new ActsExamples::TrackParameters(stubVec,
-							   stubMom,
-							   p,
-							   trackQ,
-							   cov);
+      /// Make a dummy perigeee surface to bound the track to
+      auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+		 Acts::Vector3D(track->get_x() * Acts::UnitConstants::cm,
+				track->get_y() * Acts::UnitConstants::cm,
+				track->get_z() * Acts::UnitConstants::cm));
+								     
+
+      const auto param = new Acts::BoundTrackParameters(
+			           perigee,
+				   m_tGeometry->geoContext,
+				   stubVec, stubMom,
+				   p, trackQ, cov);
+
       tracks.push_back(param);
       keyMap.insert(std::make_pair(param, key));
-
     }
 
   return tracks;
