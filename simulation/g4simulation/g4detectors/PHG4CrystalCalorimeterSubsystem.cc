@@ -41,9 +41,6 @@ PHG4CrystalCalorimeterSubsystem::~PHG4CrystalCalorimeterSubsystem()
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  PHNodeIterator iter(topNode);
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
   // create display settings before detector
   m_DisplayAction = new PHG4CrystalCalorimeterDisplayAction(Name());
   // create detector
@@ -67,12 +64,26 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
   
+  // PHNodeIterator iter(topNode);
+  // PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
   if (GetParams()->get_int_param("active"))
   {
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+
     // create hit output node
     string nodename = "G4HIT_";
     if (SuperDetector() != "NONE")
     {
+      PHNodeIterator iter_dst(dstNode);
+      PHCompositeNode *superSubNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!superSubNode)
+      {
+        superSubNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(superSubNode);
+      }
+      dstNode = superSubNode;
       nodename += SuperDetector();
     }
     else
