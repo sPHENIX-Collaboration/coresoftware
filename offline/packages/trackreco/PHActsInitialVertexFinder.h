@@ -23,7 +23,7 @@ using VertexVector = std::vector<Acts::Vertex<Acts::BoundTrackParameters>>;
 
 using TrackParamVec = std::vector<const Acts::BoundTrackParameters*>;
 
-using InitKeyMap = std::map<const ActsExamples::TrackParameters*, const unsigned int>;
+using InitKeyMap = std::map<const Acts::BoundTrackParameters*, const unsigned int>;
 
 class PHActsInitialVertexFinder: public PHInitVertexing
 {
