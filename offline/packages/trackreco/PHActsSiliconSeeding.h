@@ -122,6 +122,21 @@ class PHActsSiliconSeeding : public SubsysReco
 		double& x, double& y);
   int getCharge(const std::vector<TrkrCluster*>& clusters,
 		const double circPhi);
+
+  std::vector<TrkrDefs::cluskey> findInttMatches(
+			const std::vector<TrkrCluster*>& clusters,
+			const double R,
+			const double X0,
+			const double Y0);
+  void circleCircleIntersection(const double layerRadius, 
+				const double circRadius,
+				const double circX0,
+				const double circY0,
+				double& xplus,
+				double& yplus,
+				double& xminus,
+				double& yminus);
+
   double normPhi2Pi(const double phi);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
@@ -139,16 +154,18 @@ class PHActsSiliconSeeding : public SubsysReco
   float m_minSeedPt = 100;
 
   /// How many seeds a given hit can be the middle hit of the seed
+  /// MVTX can only have the middle layer be the middle hit
   int m_maxSeedsPerSpM = 1;
 
   /// Limiting location of measurements (e.g. detector constraints)
-  float m_rMax = 250.;
+  /// We limit to the MVTX
+  float m_rMax = 50.;
   float m_rMin = 23.;
-  float m_zMax = 500.;
-  float m_zMin = -500.;
+  float m_zMax = 300.;
+  float m_zMin = -300.;
  
   /// max distance between two measurements in one seed
-  float m_deltaRMax = 40;
+  float m_deltaRMax = 15;
   
   /// Cot of maximum theta angle. Equivalent to eta=1.1 here
   float m_cotThetaMax = 1.335647;
@@ -162,6 +179,10 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
+  const static unsigned int m_nInttLayers = 4;
+  const double m_nInttLayerRadii[m_nInttLayers] = 
+    {7.188, 7.732, 9.680,10.262}; /// cm
+  
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 

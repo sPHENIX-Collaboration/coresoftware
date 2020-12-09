@@ -203,6 +203,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  int charge = circleFitSeed(clusters, x, y, z,
 				     px, py, pz);
 
+
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
 	    continue;
@@ -320,9 +321,91 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
+  auto additionalClusters = findInttMatches(clusters, R, X0, Y0);
+
+
   return charge;
 
 }
+
+std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
+				      const std::vector<TrkrCluster*>& clusters,
+				      const double R,
+				      const double X0,
+				      const double Y0)
+{
+  std::vector<TrkrDefs::cluskey> additionalClusters;
+  
+  /// Project the seed to the INTT to find matches
+  for(int layer = 0; layer < m_nInttLayers; ++layer)
+    {
+      double xplus = 0;
+      double yplus = 0;
+      double xminus = 0;
+      double yminus = 0;
+      circleCircleIntersection(m_nInttLayerRadii[layer],
+			       R, X0, Y0, xplus, yplus,
+			       xminus, yminus);
+      
+      /// If there are no real solutions to the intersection, skip
+      if(std::isnan(xplus))
+	{
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "Circle intersection calc failed, skipping" << std::endl;
+	      std::cout << "layer radius " << m_nInttLayerRadii[layer] << " and circ rad "
+			<< R << " with center " << X0 << ", " << Y0 << std::endl;
+	    }
+	  continue;
+	}
+      
+      /// Figure out which solution is correct based on the position of the last layer in
+      /// the mvtx seed
+      unsigned int lastClus = clusters.size() - 1;
+      
+      
+      
+    }
+
+  return additionalClusters;
+}
+
+void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
+						    const double circRadius,
+						    const double circX0,
+						    const double circY0,
+						    double& xplus,
+						    double& yplus,
+						    double& xminus,
+						    double& yminus)
+{
+  /// Solutions to the circle intersection are (xplus, yplus) and 
+  /// (xminus, yminus). The intersection of the two circles occurs when
+  /// (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
+  /// Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, 
+  /// and circle 2 is arbitrary such that they are described by
+  ///  x^2 +y^2 = r1^2,   (x-x0)^2 + (y-y0)^2 = r2^2
+  /// expand the equations and subtract to eliminate the x^2 and y^2 terms, 
+  /// gives the radial line connecting the intersection points
+  /// iy = - (2*x2*x - D) / 2*y2, 
+  /// then substitute for y in equation of circle 1
+
+  double D = layerRadius*layerRadius - circRadius*circRadius + circX0*circX0 + circY0*circY0;
+  double a = 1.0 + (circX0*circX0) / (circY0*circY0);
+  double b = - D * circX0/( circY0*circY0);
+  double c = D*D / (4.0*circY0*circY0) - layerRadius*layerRadius;
+
+  xplus = (-b + sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
+  xminus = (-b - sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
+
+  // both values of x are valid
+  // but for each of those values, there are two possible y values on circle 1
+  // but only one of those falls on the radical line:
+
+  yplus = - (2*circX0*xplus - D) / (2.0*circY0); 
+  yminus = -(2*circX0*xminus - D) / (2.0*circY0);
+}
+
 void PHActsSiliconSeeding::findRoot(const double R, const double X0,
 				    const double Y0, double& x,
 				    double& y)
@@ -623,31 +706,24 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSpacePoints()
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
-  unsigned int nMvtx = 0;
-  unsigned int nIntt = 0;
 
   for(auto &[hitId, sl] : *m_sourceLinks)
     {
-      /// collect only source links in silicon
+      /// collect only source links in MVTX
       auto volume = sl.referenceSurface().geometryId().volume();
       
       /// If we run without MMs, volumes are 7, 9, 11 for mvtx, intt, tpc
       /// If we run with MMs, volumes are 10, 12, 14, 16 for mvtx, intt, tpc, mm
-      if(volume == 11 or volume > 12)
+      if(volume == 7 or volume == 10)
 	continue;
-      
-      if(volume == 7 || volume == 10)
-	nMvtx++;
-      else
-	nIntt++;
+     
 
       auto sp = makeSpacePoint(hitId, sl).release();
       spVec.push_back(sp);
       numSiliconHits++;
     }
   
-  h_nInputMvtxMeas->Fill(nMvtx);
-  h_nInputInttMeas->Fill(nIntt);
+  h_nInputMvtxMeas->Fill(numSiliconHits);
 
   if(Verbosity() > 1)
     std::cout << "Total number of silicon hits to seed find with is "
