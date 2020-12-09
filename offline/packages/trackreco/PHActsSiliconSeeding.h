@@ -20,6 +20,9 @@
 
 #include <string>
 #include <map>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
 
 class PHCompositeNode;
 class SvtxTrackMap;
@@ -53,6 +56,7 @@ struct SpacePoint {
 
 };
 
+/// This is needed by the Acts seedfinder 
 inline bool operator==(SpacePoint a, SpacePoint b) {
   return (a.m_hitId == b.m_hitId);
 }
@@ -80,6 +84,9 @@ class PHActsSiliconSeeding : public SubsysReco
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
 
+  void seedAnalysis(bool seedAnalysis)
+    { m_seedAnalysis = seedAnalysis;}
+  
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -136,12 +143,12 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   float m_rMax = 250.;
-  float m_rMin = 20.;
+  float m_rMin = 23.;
   float m_zMax = 500.;
   float m_zMin = -500.;
  
   /// max distance between two measurements in one seed
-  float m_deltaRMax = 50;
+  float m_deltaRMax = 40;
   
   /// Cot of maximum theta angle. Equivalent to eta=1.1 here
   float m_cotThetaMax = 1.335647;
@@ -157,6 +164,16 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
+
+  bool m_seedAnalysis = true;
+  TFile *m_file = nullptr;
+  TH1 *h_nMvtxHits = nullptr;
+  TH1 *h_nInttHits = nullptr;
+  TH2 *h_nHits = nullptr;
+  TH1 *h_nSeeds = nullptr;
+  TH1 *h_nInputMeas = nullptr;
+  TH1 *h_nInputMvtxMeas = nullptr;
+  TH1 *h_nInputInttMeas = nullptr;
 
 };
 

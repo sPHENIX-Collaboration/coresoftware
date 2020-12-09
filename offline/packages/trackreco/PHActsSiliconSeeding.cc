@@ -45,6 +45,15 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
 
+  m_file = new TFile("seedingOutfile.root","recreate");
+  h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
+  h_nInttHits = new TH1I("nInttHits",";N_{INTT}",8,0,8);
+  h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",6,0,6,8,0,8);
+  h_nSeeds = new TH1I("nSeeds",";N_{Seeds}",15,0,15);
+  h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",15,0,15);
+  h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",150,0,150);
+  h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
@@ -80,6 +89,19 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 
 int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
 {
+  if(m_seedAnalysis)
+    {
+      m_file->cd();
+      h_nMvtxHits->Write();
+      h_nSeeds->Write();
+      h_nInttHits->Write();
+      h_nInputMeas->Write();
+      h_nHits->Write();
+      h_nInputMvtxMeas->Write();
+      h_nInputInttMeas->Write();
+      m_file->Write();
+      m_file->Close();
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -95,16 +117,17 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
 
   auto spVec = getSpacePoints();
 
+  h_nInputMeas->Fill(spVec.size());
   std::unique_ptr<Acts::SpacePointGrid<SpacePoint>> grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
 
-  auto spGroup = Acts::BinnedSPGroup<SpacePoint>( spVec.begin(),
-						  spVec.end(),
-						  covConverter,
-						  m_bottomBinFinder,
-						  m_topBinFinder,
-						  std::move(grid),
-						  m_seedFinderCfg);
+  auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
+						 spVec.end(),
+						 covConverter,
+						 m_bottomBinFinder,
+						 m_topBinFinder,
+						 std::move(grid),
+						 m_seedFinderCfg);
 
   /// This is a vector of seeds inside of a vector which represents 
   /// volume grids of the detector area. The seeds can be accessed
@@ -145,6 +168,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  numSeeds++;
 
+	  int nMvtx = 0;
+	  int nIntt = 0;
+
 	  std::vector<TrkrCluster*> clusters;
 	  for(auto& spacePoint : seed.sp())
 	    {
@@ -154,11 +180,24 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      if(Verbosity() > 1)
 		std::cout << "Adding cluster with x,y "
 			  << spacePoint->x() <<", " << spacePoint->y()
-			  << " mm " << std::endl;
-
+			  << " mm in detector " 
+			  << TrkrDefs::getTrkrId(cluskey)
+			  << std::endl;
+	      
+	      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
+		nMvtx++;
+	      else if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
+		nIntt++;
+	      else
+		std::cout << "how does seed have a non silicon cluster..." << std::endl;
+	      
 	      svtxTrack->insert_cluster_key(cluskey);
 	    }
-	  
+	 
+	  h_nInttHits->Fill(nIntt);
+	  h_nMvtxHits->Fill(nMvtx);
+	  h_nHits->Fill(nMvtx, nIntt);
+
 	  double x = NAN,y, z;;
 	  double px, py, pz;
 	  int charge = circleFitSeed(clusters, x, y, z,
@@ -191,6 +230,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	}
     }
 
+  h_nSeeds->Fill(numGoodSeeds);
+
   if(Verbosity() > 1)
     {
       std::cout << "Total number of seeds found in " 
@@ -214,7 +255,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
   double R, X0, Y0;
   circleFitByTaubin(clusters, R, X0, Y0);
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
 	      << ", " << Y0 << std::endl;
 
@@ -244,7 +285,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 	phi -= 2. * M_PI;
     }
  
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     std::cout << "track seed phi : " << phi <<  std::endl;
 
   double m, B;
@@ -260,7 +301,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
   if(theta < 0)
     theta += M_PI;
 
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     std::cout << "Track seed theta: " << theta << std::endl;
  
   /// 0.3 conversion factor, 1.4=B field, 100 convert R from cm to m
@@ -275,7 +316,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
   py = p * sin(theta) * sin(phi);
   pz = p * cos(theta);
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
@@ -582,6 +623,9 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSpacePoints()
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
+  unsigned int nMvtx = 0;
+  unsigned int nIntt = 0;
+
   for(auto &[hitId, sl] : *m_sourceLinks)
     {
       /// collect only source links in silicon
@@ -592,11 +636,19 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSpacePoints()
       if(volume == 11 or volume > 12)
 	continue;
       
+      if(volume == 7 || volume == 10)
+	nMvtx++;
+      else
+	nIntt++;
+
       auto sp = makeSpacePoint(hitId, sl).release();
       spVec.push_back(sp);
       numSiliconHits++;
     }
   
+  h_nInputMvtxMeas->Fill(nMvtx);
+  h_nInputInttMeas->Fill(nIntt);
+
   if(Verbosity() > 1)
     std::cout << "Total number of silicon hits to seed find with is "
 	      << numSiliconHits << std::endl;
