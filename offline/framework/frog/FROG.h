@@ -15,7 +15,7 @@ class FROG
   FROG(){}
   virtual ~FROG() {}
 
-  std::string location(const std::string &logical_name);
+  const char *location(const std::string &logical_name);
   bool localSearch(const std::string &lname);
   bool dCacheSearch(const std::string &lname);
   bool PGSearch(const std::string &lname);
