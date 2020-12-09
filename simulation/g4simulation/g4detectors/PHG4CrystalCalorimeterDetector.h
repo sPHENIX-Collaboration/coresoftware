@@ -49,17 +49,16 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
 
   int get_DetectorId() const { return m_DetectorId; }
-  void DetectorId(const int i) {m_DetectorId = i;}
+  void DetectorId(const int i) { m_DetectorId = i; }
 
   // ----- additional accessors used by derived classes: ------------
 
-  PHParameters *GetParams() {return m_Params;}
+  PHParameters *GetParams() { return m_Params; }
 
  protected:  // for variables also used in PHG4ProjCrystalCalorimeterDetector
-
   PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   G4Material *GetCarbonFiber();
-  virtual int GetCaloType() const {return PHG4CrystalCalorimeterDefs::CaloType::nonprojective;}
+  virtual int GetCaloType() const { return PHG4CrystalCalorimeterDefs::CaloType::nonprojective; }
 
  private:  // private stuff
   G4LogicalVolume *ConstructTower();

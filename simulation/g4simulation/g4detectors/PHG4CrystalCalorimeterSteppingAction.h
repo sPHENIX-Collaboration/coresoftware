@@ -20,7 +20,7 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector *detector, const PHParameters* parameters);
+  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector, const PHParameters* parameters);
 
   //! destroctor
   virtual ~PHG4CrystalCalorimeterSteppingAction();
@@ -32,7 +32,6 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-
   //! pointer to the detector
   PHG4CrystalCalorimeterDetector* m_Detector = nullptr;
 
@@ -45,7 +44,6 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
 
   int m_ActiveFlag = 0;
   int m_BlackHoleFlag = 0;
-
 };
 
 #endif  // PHG4CrystalCalorimeterSteppingAction_h

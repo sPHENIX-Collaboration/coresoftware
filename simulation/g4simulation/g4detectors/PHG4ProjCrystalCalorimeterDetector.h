@@ -62,8 +62,8 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 
   void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
 
-protected:
-  int GetCaloType() const override {return PHG4CrystalCalorimeterDefs::CaloType::projective;}
+ protected:
+  int GetCaloType() const override { return PHG4CrystalCalorimeterDefs::CaloType::projective; }
 
  private:
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);

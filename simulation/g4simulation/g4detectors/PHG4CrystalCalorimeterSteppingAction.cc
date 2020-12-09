@@ -30,7 +30,6 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-
 #include <TSystem.h>
 
 #include <boost/lexical_cast.hpp>
@@ -92,14 +91,14 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
     {
       int j[3];
       int k[3];
-      for (int i=0;i<3; i++)
+      for (int i = 0; i < 3; i++)
       {
-	unsigned int icopy = touch->GetVolume(i)->GetCopyNo();
-	j[i] =  icopy >> 16;
-	k[i] = icopy & 0xFFFF;
+        unsigned int icopy = touch->GetVolume(i)->GetCopyNo();
+        j[i] = icopy >> 16;
+        k[i] = icopy & 0xFFFF;
       }
-      idx_j = j[0] + j[1]*2 + j[2]*4;
-      idx_k = k[0] + k[1]*2 + k[2]*4;
+      idx_j = j[0] + j[1] * 2 + j[2] * 4;
+      idx_k = k[0] + k[1] * 2 + k[2] * 4;
     }
     if (whichactive == PHG4CrystalCalorimeterDefs::CaloType::nonprojective)
     {
@@ -112,7 +111,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-//  G4double light_yield = 0;
+  //  G4double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -148,7 +147,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
       {
         m_Hit = new PHG4Hitv1();
       }
-
 
       /* Set hit location (space point)*/
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);

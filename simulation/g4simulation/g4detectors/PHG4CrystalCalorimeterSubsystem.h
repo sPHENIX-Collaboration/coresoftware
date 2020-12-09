@@ -66,7 +66,6 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction = nullptr;
-
 };
 
 #endif
