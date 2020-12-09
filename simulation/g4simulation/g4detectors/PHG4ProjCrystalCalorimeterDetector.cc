@@ -50,7 +50,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
   , _dy_back(48.97454545455 * mm)
   , _dz_crystal(90.000 * mm)
   , _crystallogicnameprefix("eEcalCrystal")
-  , _overlapcheck_local(false)
   , m_IsActive(GetParams()->get_int_param("active"))
   , m_AbsorberActive(GetParams()->get_int_param("absorberactive"))
 {
@@ -66,7 +65,7 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
   {
     if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
     {
-      return 1;
+      return GetCaloType();
     }
   }
   if (m_AbsorberActive)
@@ -99,22 +98,22 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid *ecal_envelope_cone = new G4Cons("eEcal_envelope_solid",
-                                            GetParams()->get_double_param("rMin1")*cm, GetParams()->get_double_param("rMax1")*cm,
-                                            GetParams()->get_double_param("rMin2")*cm, GetParams()->get_double_param("rMax2")*cm,
-					    GetParams()->get_double_param("dz")*cm / 2.,
-                                             0, 2*M_PI);
+                                            GetParams()->get_double_param("rMin1") * cm, GetParams()->get_double_param("rMax1") * cm,
+                                            GetParams()->get_double_param("rMin2") * cm, GetParams()->get_double_param("rMax2") * cm,
+                                            GetParams()->get_double_param("dz") * cm / 2.,
+                                            0, 2 * M_PI);
 
   G4LogicalVolume *ecal_envelope_log = new G4LogicalVolume(ecal_envelope_cone, WorldMaterial, G4String("eEcal_envelope"), 0, 0, 0);
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  ecal_rotm.rotateX(GetParams()->get_double_param("rot_x")*deg);
-  ecal_rotm.rotateY(GetParams()->get_double_param("rot_y")*deg);
-  ecal_rotm.rotateZ(GetParams()->get_double_param("rot_z")*deg);
+  ecal_rotm.rotateX(GetParams()->get_double_param("rot_x") * deg);
+  ecal_rotm.rotateY(GetParams()->get_double_param("rot_y") * deg);
+  ecal_rotm.rotateZ(GetParams()->get_double_param("rot_z") * deg);
 
   /* Place envelope cone in simulation */
-  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetParams()->get_double_param("place_x")*cm, GetParams()->get_double_param("place_y")*cm, GetParams()->get_double_param("place_z")*cm)),
-                    ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, _overlapcheck_local);
+  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetParams()->get_double_param("place_x") * cm, GetParams()->get_double_param("place_y") * cm, GetParams()->get_double_param("place_z") * cm)),
+                    ecal_envelope_log, "CrystalCalorimeter", logicWorld, 0, false, OverlapCheck());
 
   /* Construct crystal calorimeter within envelope */
   ConstructProjectiveCrystals(ecal_envelope_log);
@@ -218,20 +217,20 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
+  const int NumberOfIndices = 9;  //Number of indices in mapping file for 4x4 block
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
   ifstream in(GetParams()->get_string_param("mapping4x4"));
   if (!in.is_open())
   {
-      cout << endl
-           << "*******************************************************************" << endl;
-      cout << "ERROR in 2 by 2 crystal mapping ";
-      cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
-      cout << "*******************************************************************" << endl
-           << endl;
-      gSystem->Exit(1);
+    cout << endl
+         << "*******************************************************************" << endl;
+    cout << "ERROR in 2 by 2 crystal mapping ";
+    cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
+    cout << "*******************************************************************" << endl
+         << endl;
+    gSystem->Exit(1);
   }
   std::string unused;
   while (std::getline(in, unused))
@@ -291,16 +290,13 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
       Rot->rotateY(0 * rad);
       Rot->rotateZ(rot_z * rad);
 
-      ostringstream crystal_name;
-      crystal_name.str("");
-      crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
-
+      string crystal_name = _crystallogicnameprefix + "_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
                                                      crystal_logic_small,
-                                                     crystal_name.str().c_str(),
+                                                     crystal_name,
                                                      Two_by_Two_logic,
-                                                     0, 0, _overlapcheck_local);
-
+                                                     0, copyno, OverlapCheck());
       m_ActiveVolumeSet.insert(physvol);
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = rot_z = 0.0;
@@ -334,16 +330,14 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
       Rot->rotateY(rot_y * rad);
       Rot->rotateZ(0 * rad);
 
-      ostringstream Two_by_Two_name;
-      Two_by_Two_name.str("");
-      Two_by_Two_name << "TwoByTwo"
-                      << "_j_" << j_idx << "_k_" << k_idx;
+      string Two_by_Two_name = "TwoByTwo_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
 
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         Two_by_Two_logic,
-                        Two_by_Two_name.str().c_str(),
+                        Two_by_Two_name,
                         crystal_logic,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
 
       j_idx = k_idx = 0;
       x_cent = y_cent = z_cent = rot_x = rot_y = 0.0;
@@ -508,7 +502,7 @@ int PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_log
                                                  Carbon_Shell_logic,
                                                  "Carbon_Fiber_Shell",
                                                  crystal_logic,
-                                                 0, 0, _overlapcheck_local);
+                                                 0, 0, OverlapCheck());
 
   m_PassiveVolumeSet.insert(physvol);
   //***********************************
@@ -526,7 +520,6 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //Crystal Material (Default is Lead Tungstate)
   G4Material *material_crystal = G4Material::GetMaterial(GetParams()->get_string_param("material"));
-
 
   recoConsts *rc = recoConsts::instance();
   G4Material *WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
@@ -601,21 +594,20 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 
   //The first four lines of the data file refer to the 2x2 block, and the last four lines refer to the mapping of the 4x4 block
 
-  const int NumberOfIndices = 9;                             //Number of indices in mapping file for 4x4 block
-
+  const int NumberOfIndices = 9;  //Number of indices in mapping file for 4x4 block
 
   //Find the number of lines in the file, make and fill a NumberOfLines by NumberOfIndices matrix with contents of data file
   int NumberOfLines = 0;
-  ifstream in( GetParams()->get_string_param("mapping4x4"));
+  ifstream in(GetParams()->get_string_param("mapping4x4"));
   if (!in.is_open())
   {
-      cout << endl
-           << "*******************************************************************" << endl;
-      cout << "ERROR in 2 by 2 crystal mapping ";
-      cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
-      cout << "*******************************************************************" << endl
-           << endl;
-      gSystem->Exit(1);
+    cout << endl
+         << "*******************************************************************" << endl;
+    cout << "ERROR in 2 by 2 crystal mapping ";
+    cout << "Failed to open " << GetParams()->get_string_param("mapping4x4") << " --- Exiting program." << endl;
+    cout << "*******************************************************************" << endl
+         << endl;
+    gSystem->Exit(1);
   }
   std::string unused;
   while (std::getline(in, unused))
@@ -674,15 +666,14 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
       Rot->rotateY(0 * rad);
       Rot->rotateZ(rot_z * rad);
 
-      ostringstream crystal_name;
-      crystal_name.str("");
-      crystal_name << _crystallogicnameprefix << "_j_" << j_idx << "_k_" << k_idx;
+      string crystal_name = _crystallogicnameprefix + "_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       G4VPhysicalVolume *physvol = new G4PVPlacement(Rot, Crystal_Center,
                                                      crystal_logic_small,
-                                                     crystal_name.str().c_str(),
+                                                     crystal_name,
                                                      Two_by_Two_logic,
-                                                     0, 0, _overlapcheck_local);
+                                                     0, copyno, OverlapCheck());
       m_ActiveVolumeSet.insert(physvol);
 
       j_idx = k_idx = 0;
@@ -717,16 +708,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
       Rot->rotateY(0 * rad);
       Rot->rotateZ(0 * rad);
 
-      ostringstream Two_by_Two_name;
-      Two_by_Two_name.str("");
-      Two_by_Two_name << "TwoByTwo"
-                      << "_j_" << 0 << "_k_" << 0;
-
+      string Two_by_Two_name = "TwoByTwo_j_0_k_0";
+      int copyno = 0;
       new G4PVPlacement(Rot, Crystal_Center,
                         Two_by_Two_logic,
-                        Two_by_Two_name.str().c_str(),
+                        Two_by_Two_name,
                         crystal_logic,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (ident == 22)
     {
@@ -739,16 +727,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
         Rot->rotateY(0 * rad);
         Rot->rotateZ(0 * rad);
 
-        ostringstream Two_by_Two_name;
-        Two_by_Two_name.str("");
-        Two_by_Two_name << "TwoByTwo"
-                        << "_j_" << j_idx << "_k_" << k_idx;
-
+        string Two_by_Two_name = "TwoByTwo_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+        int copyno = (j_idx << 16) + k_idx;
         new G4PVPlacement(Rot, Crystal_Center,
                           Two_by_Two_logic,
-                          Two_by_Two_name.str().c_str(),
+                          Two_by_Two_name,
                           crystal_logic,
-                          0, 0, _overlapcheck_local);
+                          0, copyno, OverlapCheck());
       }
     }
     else if (ident == 32)
@@ -762,16 +747,13 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
         Rot->rotateY(rot_y * rad);
         Rot->rotateZ(0 * rad);
 
-        ostringstream Two_by_Two_name;
-        Two_by_Two_name.str("");
-        Two_by_Two_name << "TwoByTwo"
-                        << "_j_" << j_idx << "_k_" << k_idx;
-
+        string Two_by_Two_name = "TwoByTwo_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+        int copyno = (j_idx << 16) + k_idx;
         new G4PVPlacement(Rot, Crystal_Center,
                           Two_by_Two_logic,
-                          Two_by_Two_name.str().c_str(),
+                          Two_by_Two_name,
                           crystal_logic,
-                          0, 0, _overlapcheck_local);
+                          0, copyno, OverlapCheck());
       }
     }
     else
@@ -844,7 +826,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 22)
@@ -938,7 +920,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else if (ident == 32)
@@ -1094,7 +1076,7 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
                                                    Carbon_Shell_logic,
                                                    "Carbon_Fiber_Shell",
                                                    crystal_logic,
-                                                   0, 0, _overlapcheck_local);
+                                                   0, 0, OverlapCheck());
     m_PassiveVolumeSet.insert(physvol);
   }
   else
@@ -1110,8 +1092,8 @@ int PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal
 //_______________________________________________________________________
 int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume *ecalenvelope)
 {
-  G4int NumberOfLines;                                  //Number of crystals to be created.
-  const G4int NumberOfIndices = 9;                      //Different dimensions needed for crystal placement
+  G4int NumberOfLines;                                                    //Number of crystals to be created.
+  const G4int NumberOfIndices = 9;                                        //Different dimensions needed for crystal placement
   const string FileName = GetParams()->get_string_param("mappingtower");  //File in which crystal positions are stored
 
   G4int j_cry, k_cry;                               //Indices for matrix
@@ -1303,11 +1285,11 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = Crystals[j][0];
     k_idx = Crystals[j][1];
-    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x")*cm;
-    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y")*cm;
-    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;  //Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
-    r_theta = Crystals[j][5];               //Rotation in Horizontal
-    r_phi = Crystals[j][6];                 //Rotation in Vertical
+    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x") * cm;
+    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y") * cm;
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z") * cm;  //Coordinate system refers to mother volume, have to subtract out its position in the actual xyz-space
+    r_theta = Crystals[j][5];                                                 //Rotation in Horizontal
+    r_phi = Crystals[j][6];                                                   //Rotation in Vertical
     rot_z = Crystals[j][7];
 
     if (MappingIndex == 16)
@@ -1319,15 +1301,13 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(0 * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
-
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1340,15 +1320,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         thirtytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1359,15 +1338,13 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
-
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         twentytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1378,18 +1355,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         twelve_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
-    }
-    else
-    {
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1403,9 +1376,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = k_max - Crystals[j][0];
     k_idx = Crystals[j][1];
-    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x")*cm);
-    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y")*cm;
-    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
+    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x") * cm);
+    y_cent = Crystals[j][3] - GetParams()->get_double_param("place_y") * cm;
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z") * cm;
     r_theta = -1.0 * Crystals[j][5];
     r_phi = Crystals[j][6];
     rot_z = Crystals[j][7] / (-4.0);
@@ -1419,15 +1392,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(0 * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1440,15 +1412,13 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
-
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         thirtytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1461,15 +1431,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         twentytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1482,18 +1451,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         twelve_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
-    }
-    else
-    {
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1506,9 +1471,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
     MappingIndex = Crystals[j][8];
     j_idx = k_max - Crystals[j][0];
     k_idx = k_max - Crystals[j][1];
-    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x")*cm);
-    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y")*cm);
-    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
+    x_cent = -1.0 * (Crystals[j][2] - GetParams()->get_double_param("place_x") * cm);
+    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y") * cm);
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z") * cm;
     r_theta = -1.0 * Crystals[j][5];
     r_phi = -1.0 * Crystals[j][6];
     rot_z = Crystals[j][7] / 2.0;
@@ -1522,15 +1487,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(0 * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1543,15 +1507,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         thirtytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1564,15 +1527,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         twentytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1583,18 +1545,13 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
-
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         twelve_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
-    }
-    else
-    {
+                        0, copyno, OverlapCheck());
     }
 
     j++;
@@ -1608,9 +1565,9 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
 
     j_idx = Crystals[j][0];
     k_idx = k_max - Crystals[j][1];
-    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x")*cm;
-    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y")*cm);
-    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z")*cm;
+    x_cent = Crystals[j][2] - GetParams()->get_double_param("place_x") * cm;
+    y_cent = -1.0 * (Crystals[j][3] - GetParams()->get_double_param("place_y") * cm);
+    z_cent = Crystals[j][4] - GetParams()->get_double_param("place_z") * cm;
     r_theta = Crystals[j][5];
     r_phi = -1.0 * Crystals[j][6];
     rot_z = Crystals[j][7] / 4.0;
@@ -1624,15 +1581,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(0 * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         crystal_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 32)
     {
@@ -1645,15 +1601,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         thirtytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 22)
     {
@@ -1666,15 +1621,13 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
-
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
       new G4PVPlacement(Rot, Crystal_Center,
                         twentytwo_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
+                        0, copyno, OverlapCheck());
     }
     else if (MappingIndex == 12)
     {
@@ -1687,18 +1640,14 @@ int PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVol
       Rot->rotateY(r_theta * rad);
       Rot->rotateZ(rot_z * rad);
 
-      name.str("");
-      name << "FourByFour"
-           << "_j_" << j_idx << "_k_" << k_idx;
+      string FourByFourName = "FourByFour_j_" + to_string(j_idx) + "_k_" + to_string(k_idx);
+      int copyno = (j_idx << 16) + k_idx;
 
       new G4PVPlacement(Rot, Crystal_Center,
                         twelve_logic,
-                        name.str().c_str(),
+                        FourByFourName,
                         ecalenvelope,
-                        0, 0, _overlapcheck_local);
-    }
-    else
-    {
+                        0, copyno, OverlapCheck());
     }
 
     j++;

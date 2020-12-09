@@ -5,6 +5,8 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
+#include "PHG4CrystalCalorimeterDefs.h"
+
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
 #include <string>  // for string
@@ -31,10 +33,10 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   virtual ~PHG4ProjCrystalCalorimeterDetector() {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world) override;
 
   //!@name volume accessors
-  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
+  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const override;
 
   // ----- accessing member variables: ------------
 
@@ -60,6 +62,9 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 
   void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
 
+ protected:
+  int GetCaloType() const override { return PHG4CrystalCalorimeterDefs::CaloType::projective; }
+
  private:
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
   int Fill4x4Unit(G4LogicalVolume* crystal_logic);
@@ -74,7 +79,6 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 
   std::string _crystallogicnameprefix;
 
-  bool _overlapcheck_local;
   std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
   std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
   // since getting parameters is a map search we do not want to

@@ -41,9 +41,6 @@ PHG4CrystalCalorimeterSubsystem::~PHG4CrystalCalorimeterSubsystem()
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  PHNodeIterator iter(topNode);
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
   // create display settings before detector
   m_DisplayAction = new PHG4CrystalCalorimeterDisplayAction(Name());
   // create detector
@@ -66,13 +63,25 @@ int PHG4CrystalCalorimeterSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->SuperDetector(SuperDetector());
-  
+  m_Detector->DetectorId(GetLayer());
+
   if (GetParams()->get_int_param("active"))
   {
+    PHNodeIterator iter(topNode);
+    PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
     // create hit output node
     string nodename = "G4HIT_";
     if (SuperDetector() != "NONE")
     {
+      PHNodeIterator iter_dst(dstNode);
+      PHCompositeNode* superSubNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!superSubNode)
+      {
+        superSubNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(superSubNode);
+      }
+      dstNode = superSubNode;
       nodename += SuperDetector();
     }
     else
@@ -134,38 +143,38 @@ PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector(void) const
 
 void PHG4CrystalCalorimeterSubsystem::SetDefaultParameters()
 {
-// values in cm and degrees
-  set_default_int_param("projective",0);
+  // values in cm and degrees
+  set_default_int_param("projective", 0);
 
-  set_default_double_param("crystal_dx",2.);
-  set_default_double_param("crystal_dy",2.);
-  set_default_double_param("crystal_dz",18.);
-  set_default_double_param("dz",18.);
+  set_default_double_param("crystal_dx", 2.);
+  set_default_double_param("crystal_dy", 2.);
+  set_default_double_param("crystal_dz", 18.);
+  set_default_double_param("dz", 18.);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", -108.);
-  set_default_double_param("rMin1",2.2);
-  set_default_double_param("rMax1",65.6);
-  set_default_double_param("rMin2",2.6);
-  set_default_double_param("rMax2",77.5);
+  set_default_double_param("rMin1", 2.2);
+  set_default_double_param("rMax1", 65.6);
+  set_default_double_param("rMin2", 2.6);
+  set_default_double_param("rMax2", 77.5);
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
 
-  set_default_string_param("material","G4_PbWO4");
-  set_default_string_param("mappingtower","");
-  set_default_string_param("mapping4x4","");
+  set_default_string_param("material", "G4_PbWO4");
+  set_default_string_param("mappingtower", "");
+  set_default_string_param("mapping4x4", "");
   return;
 }
 
-void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string &filename)
+void PHG4CrystalCalorimeterSubsystem::SetTowerMappingFile(const std::string& filename)
 {
-  set_string_param("mappingtower",filename);
+  set_string_param("mappingtower", filename);
 }
 
-void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
+void PHG4CrystalCalorimeterSubsystem::SetProjectiveGeometry(const std::string& filename1, const std::string& filename2)
 {
-  set_string_param("mappingtower",filename1);
-  set_string_param("mapping4x4",filename2);
-  set_int_param("projective",1);
+  set_string_param("mappingtower", filename1);
+  set_string_param("mapping4x4", filename2);
+  set_int_param("projective", 1);
 }
