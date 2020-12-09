@@ -45,7 +45,6 @@
 #include <HepMC/GenEvent.h>
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
 
 #include <cassert>
 #include <climits>
@@ -102,6 +101,10 @@ namespace
 Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
 {
+  // initialize random generator
+  const uint seed = PHRandomSeed();
+  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+  gsl_rng_set( m_rng.get(), seed );
 }
 
 //_____________________________________________________________________________
@@ -277,24 +280,6 @@ readagain:
     gSystem->Exit(1);
   }
 
-  // get bunchCrossing  associated to this event
-  const size_t ievent = m_ievent_total + m_event_offset - 1;
-  if (ievent >= m_bunchCrossings.size()) return Fun4AllReturnCodes::ABORTRUN;
-
-  const auto bunchCrossing = m_bunchCrossings[ievent];
-
-  if (m_events_accepted > 0 )
-  {
-    // reject if event is so close from last included event that the last one would be counted as background to this one
-    const double delta_t = m_time_between_crossings * (m_last_bunchCrossing - bunchCrossing);
-    if( delta_t >= m_tmin )
-    {
-      // reject if event if too close to previous trigger
-      std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
-      goto readagain;
-    }
-  }
-
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -304,67 +289,39 @@ readagain:
 
   // load relevant DST nodes to internal pointers
   std::cout << "Fun4AllDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
-
-  // store bunch crossing both inside the event header and as the last bunch crossing
   load_nodes(m_dstNode);
-  if (m_eventheader) m_eventheader->set_BunchCrossing(bunchCrossing);
 
-  // store as last used bunch crossing to avoid overlap with next event
-  m_last_bunchCrossing = bunchCrossing;
+  // generate background collisions
+  const double mu = m_collision_rate*m_time_between_crossings*1e-9;
 
-  // fetch past events falling into the TPC integration time
-  int neventspast = 0;
-  for (int ieventpast = ievent - 1; ieventpast >= 0; ieventpast--)
+  const int min_crossing = m_tmin/m_time_between_crossings;
+  const int max_crossing = m_tmax/m_time_between_crossings;
+  int ievent_thisfile = m_ievent_thisfile;
+  int neventsbackground = 0;
+  for( int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing )
   {
-    // check time
-    const double delta_t = m_time_between_crossings * (m_bunchCrossings[ieventpast] - bunchCrossing);
-    if (delta_t < m_tmin) break;
+    const double crossing_time = m_time_between_crossings * icrossing;
+    const int ncollisions = gsl_ran_poisson(m_rng.get(), mu);
+    for (int icollision = 0; icollision < ncollisions; ++icollision)
+    {
 
-    // get relevant event in file index
-    const int ievent_thisfile = m_ievent_thisfile + ieventpast - ievent - 1;
+      // try read
+      if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
 
-    // try read
-    if (ievent_thisfile < 0 || !m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile)) break;
+      // merge
+      std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+      copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
-    // merge
-    copy_background_event(m_dstNodeInternal.get(), delta_t);
-
-    // increment number of read events
-    std::cout << "Fun4AllDstPileupInputManager::run - merged past event " << ievent_thisfile << std::endl;
-    ++neventspast;
-  }
-
-  // fetch future events falling into the TPC integration time
-  int neventsfuture = 0;
-  for (size_t ieventfuture = ievent + 1; ieventfuture < m_bunchCrossings.size(); ++ieventfuture)
-  {
-    // check time
-    const double delta_t = m_time_between_crossings * (m_bunchCrossings[ieventfuture] - bunchCrossing);
-    if (delta_t > m_tmax) break;
-
-    // get relevant event in file index
-    const int ievent_thisfile = m_ievent_thisfile + ieventfuture - ievent - 1;
-
-    // try read
-    if (!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile)) break;
-
-    // merge
-    copy_background_event(m_dstNodeInternal.get(), delta_t);
-
-    // increment number of read events
-    std::cout << "Fun4AllDstPileupInputManager::run - merged future event " << ievent_thisfile << std::endl;
-    ++neventsfuture;
-
-    // store as last used bunch crossing to avoid overlap with next event
-    m_last_bunchCrossing = m_bunchCrossings[ieventfuture];
-
+      ++neventsbackground;
+      ++ievent_thisfile;
+    }
   }
 
   // update event counter
   ++m_events_accepted;
 
   // jump event counter to the last background accepted event
-  if( neventsfuture > 0 ) PushBackEvents( -neventsfuture );
+  if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
 
   // update syncobject
   m_syncobject = findNode::getClass<SyncObject>(m_dstNode, "Sync");
@@ -813,59 +770,6 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
     m_g4truthinfo = new PHG4TruthInfoContainer();
     dstNode->addNode(new PHIODataNode<PHObject>(m_g4truthinfo, "G4TruthInfo", "PHObject"));
   }
-}
-
-//_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::generateBunchCrossingList( int nevents, float collision_rate )
-{
-  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - nevents: " << nevents << std::endl;
-  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - collision_rate: " << collision_rate << "Hz" << std::endl;
-
-  // create and initialize random number generator
-  class Deleter
-  {
-    public:
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
-  };
-
-  std::unique_ptr<gsl_rng, Deleter> rng;
-  {
-    const uint seed = PHRandomSeed();
-    rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
-    gsl_rng_set( rng.get(), seed );
-  }
-
-  // clear existing bunch crossing
-  m_bunchCrossings.clear();
-  m_bunchCrossings.reserve(nevents);
-
-  // time interval (s) between two bunch crossing
-  /* value copied from generators/phhepmc/Fun4AllHepMCPileupInputManager.cc */
-  static  double deltat_crossing = 106e-9;
-  std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - deltat_crossing: " << deltat_crossing << std::endl;
-
-  // mean number of collision per crossing
-  const double mu = collision_rate*deltat_crossing;
-
-  // running collision time
-  int64_t bunchcrossing = 0;
-  double time = 0;
-
-  // generate triggers
-  for( int ievent = 0; ievent < nevents; )
-  {
-
-    ++bunchcrossing;
-    time += deltat_crossing;
-
-    const auto ntrig = gsl_ran_poisson( rng.get(), mu );
-    for( uint i = 0; i < ntrig; ++i, ++ievent )
-    {
-      m_bunchCrossings.push_back(bunchcrossing);
-      if( Verbosity() ) std::cout << "Fun4AllDstPileupInputManager::generateBunchCrossingList - trigger number: " << ievent << " bunch crossing: " << bunchcrossing << " time: " << time << std::endl;
-    }
-  }
-
 }
 
 //_____________________________________________________________________________

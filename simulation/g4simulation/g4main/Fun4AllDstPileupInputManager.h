@@ -13,6 +13,8 @@
 #include <phool/PHCompositeNode.h>  // for PHCompositeNode
 #include <phool/PHNodeIOManager.h>  // for PHNodeIOManager
 
+#include <gsl/gsl_rng.h>
+
 #include <cstdint>  // for int64_t
 #include <map>
 #include <memory>
@@ -40,34 +42,17 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   void Print(const std::string &what = "ALL") const;
   int PushBackEvents(const int i);
 
-  //! generate bunch crossing list
-  /**
-   * @param[in] nevents number of bunch crossing generated. This should match the number of minimum bias Hijing events to be processed
-   * @param[in] collision_rate the collision rate, in Hz
-   * previously set bunch crossing list is erased in the process
-   */
-  void generateBunchCrossingList( int nevents, float collision_rate = 5e4 );
-
-  //! store event bunch crossing ids
-  /*! bunch crossings are used to decide which pile-up events should be merged to a given "trigger" event */
-  void setBunchCrossingList(const std::vector<int64_t> &value) { m_bunchCrossings = value; }
-
-  //! get list of bunch crossing ids
-  const std::vector<int64_t> &getBunchCrossingList() const { return m_bunchCrossings; }
-
-  //! store event offset
-  /*! offste is added to the current event number to look for the corresponding event timestamp */
-  void setEventOffset(int value) { m_event_offset = value; }
-
-  //! event offset
-  int getEventOffset() const { return m_event_offset; }
-
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)
   {
     m_tmin = tmin;
     m_tmax = tmax;
   }
+
+  //! obsolete. Does nothing, kept for backward API compatibility.
+  void generateBunchCrossingList( int nevents, float collision_rate )
+  {}
+
 
  protected:
   int ReadNextEventSyncObject();
@@ -120,19 +105,11 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   //! synchronization object
   SyncObject *m_syncobject = nullptr;
 
-  //! collisions bunch crossing ids
-  std::vector<int64_t> m_bunchCrossings;
-
   //! time between crossings. This is a RHIC constant (ns)
   static constexpr double m_time_between_crossings = 106;
 
-  //! keep track of last accepted event bunch crossing
-  /*! it is needed in order not to accept two consecutive events belonging to the same bunch crossing */
-  int64_t m_last_bunchCrossing = 0;
-
-  //! event offset
-  /*! it is added to the current event number to look for the corresponding timestamp */
-  int m_event_offset = 0;
+  //! collision rate (Hz)
+  double m_collision_rate = 5e4;
 
   //! min integration time for pileup in the TPC (ns)
   double m_tmin = -13500;
@@ -151,6 +128,16 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //! truth information
   PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
+
+  //! random generator
+  class Deleter
+  {
+    public:
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
+
 };
 
 #endif /* __Fun4AllDstPileupInputManager_H__ */
