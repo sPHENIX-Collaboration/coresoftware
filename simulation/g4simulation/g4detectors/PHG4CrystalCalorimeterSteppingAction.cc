@@ -81,7 +81,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   }
 
   int layer_id = m_Detector->get_DetectorId();
-  int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
 
@@ -108,18 +107,12 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
       idx_j = icopy >> 16;
       idx_k = icopy & 0xFFFF;
     }
-    tower_id = touch->GetCopyNumber();
-    tower_id = 0;
-  }
-  else
-  {
-    tower_id = touch->GetCopyNumber();
   }
 
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+//  G4double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -135,7 +128,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
   /* Make sure we are in a volume */
   if (m_ActiveFlag)
   {
-    int idx_l = -1;
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -156,12 +148,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
       {
         m_Hit = new PHG4Hitv1();
       }
-      m_Hit->set_scint_id(tower_id);
 
-      /* Set hit location (tower index) */
-      m_Hit->set_index_j(idx_j);
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_l(idx_l);
 
       /* Set hit location (space point)*/
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -176,7 +163,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
 
       /* Set intial energy deposit */
       m_Hit->set_edep(0);
-      m_Hit->set_eion(0);
 
       /* Now add the hit to the hit collection */
       // here we do things which are different between scintillator and absorber hits
@@ -184,6 +170,10 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
       {
         m_SaveHitContainer = m_HitContainer;
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        m_Hit->set_eion(0);
+        /* Set hit location (tower index) */
+        m_Hit->set_index_j(idx_j);
+        m_Hit->set_index_k(idx_k);
       }
       else
       {
@@ -205,16 +195,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
       break;
     }
 
-    if (whichactive > 0)
-    {
-      /* Use 'light yield = depoisted energy (ionization)' for this calorimeter.
-	   * At this point, the calorimeters using orgqanic scintillators apply Birk's law correction via
-	   * light_yield = GetVisibleEnergyDeposition(aStep);
-	   * to account for its effect.
-	   */
-      light_yield = eion;
-    }
-
     /* Update exit values- will be overwritten with every step until
        * we leave the volume or the particle ceases to exist */
     m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
@@ -225,18 +205,18 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
 
     /* sum up the energy to get total deposited */
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
-      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + eion);
     }
 
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      m_Hit->set_eion(-1);
       if (whichactive > 0)
       {
+        m_Hit->set_eion(-1);
         m_Hit->set_light_yield(-1);
       }
     }
