@@ -6,13 +6,13 @@
 #include <string>
 namespace odbc
 {
-class Connection;
+  class Connection;
 }
 
 class FROG
 {
  public:
-  FROG(){}
+  FROG() {}
   virtual ~FROG() {}
 
   const char *location(const std::string &logical_name);

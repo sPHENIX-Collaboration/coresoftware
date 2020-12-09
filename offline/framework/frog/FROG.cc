@@ -5,8 +5,8 @@
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
-#include <odbc++/statement.h>         // for Statement
-#include <odbc++/types.h>             // for SQLException
+#include <odbc++/statement.h>  // for Statement
+#include <odbc++/types.h>      // for SQLException
 
 #include <boost/tokenizer.hpp>
 
