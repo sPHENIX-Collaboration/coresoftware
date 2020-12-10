@@ -25,6 +25,10 @@ class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
 
+/*!
+ * dedicated input manager that merges single events into "merged" events, containing a trigger event
+ * and a number of time-shifted pile-up events corresponding to a given pile-up rate
+*/
 class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 {
  public:
@@ -36,6 +40,14 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   int setBranches();
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
+
+  /// collision rate in Hz
+  void setCollisionRate(double Hz)
+  { m_collision_rate = Hz; }
+
+  /// time between bunch crossing in ns
+  void setTimeBetweenCrossings(double nsec)
+  { m_time_between_crossings = nsec; }
 
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)
@@ -91,7 +103,7 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   std::unique_ptr<PHNodeIOManager> m_IManager_background;
 
   //! time between crossings. This is a RHIC constant (ns)
-  static constexpr double m_time_between_crossings = 106;
+  double m_time_between_crossings = 106;
 
   //! collision rate (Hz)
   double m_collision_rate = 5e4;
