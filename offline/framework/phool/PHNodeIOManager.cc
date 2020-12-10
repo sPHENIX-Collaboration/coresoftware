@@ -33,42 +33,20 @@
 
 using namespace std;
 
-PHNodeIOManager::PHNodeIOManager()
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , accessMode(PHReadOnly)
-  , CompressionLevel(3)
-  , isFunctionalFlag(0)
-{
-}
-
 PHNodeIOManager::PHNodeIOManager(const string& f,
                                  const PHAccessType a)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const string& f, const string& title,
                                  const PHAccessType a)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   isFunctionalFlag = setFile(f, title, a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const string& f, const PHAccessType a,
                                  const PHTreeType treeindex)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   if (treeindex != PHEventTree)
   {
@@ -109,7 +87,7 @@ bool PHNodeIOManager::setFile(const string& f, const string& title,
       closeFile();
     }
     delete file;
-    file = 0;
+    file = nullptr;
   }
   string currdir = gDirectory->GetPath();
   gROOT->cd();

@@ -22,7 +22,7 @@ class TTree;
 class PHNodeIOManager : public PHIOManager
 {
  public:
-  PHNodeIOManager();
+  PHNodeIOManager() {}
   PHNodeIOManager(const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const PHAccessType, const PHTreeType);
@@ -52,15 +52,15 @@ class PHNodeIOManager : public PHIOManager
   bool readEventFromFile(size_t requestedEvent);
   std::string getBranchClassName(TBranch *);
 
-  TFile *file;
-  TTree *tree;
-  std::string TreeName;
-  int accessMode;
-  int CompressionLevel;
+  TFile *file = nullptr;
+  TTree *tree = nullptr;
+  std::string TreeName = "T";
+  int accessMode = PHReadOnly;
+  int CompressionLevel = 3;
   std::map<std::string, TBranch *> fBranches;
   std::map<std::string, bool> objectToRead;
 
-  int isFunctionalFlag;  // flag to tell if that object initialized properly
+  int isFunctionalFlag = 0;  // flag to tell if that object initialized properly
 };
 
 #endif
