@@ -7,19 +7,18 @@
 #include "PHNodeIterator.h"
 #include "phooldefs.h"
 
-#include <TBranch.h>                                         // for TBranch
+#include <TBranch.h>  // for TBranch
 #include <TBranchElement.h>
 #include <TBranchObject.h>
 #include <TClass.h>
-#include <TDirectory.h>                                      // for TDirectory
+#include <TDirectory.h>  // for TDirectory
 #include <TFile.h>
 #include <TLeafObject.h>
+#include <TObjArray.h>  // for TObjArray
 #include <TObject.h>
-#include <TObjArray.h>                                       // for TObjArray
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
-
 
 #include <boost/algorithm/string.hpp>
 
@@ -267,7 +266,7 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
   }
   cout << PHWHERE << "Fatal error, dynamic cast of TBranchObject failed" << endl;
   gSystem->Exit(1);
-  exit(1); // the compiler does not know gSystem->Exit() quits, needs exit to avoid warning
+  exit(1);  // the compiler does not know gSystem->Exit() quits, needs exit to avoid warning
 }
 
 bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
@@ -318,7 +317,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   return true;
 }
 
-int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string &objectName)
+int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& objectName)
 {
   // objectName should be one of the valid branch name of the "T" TTree, and
   // should be one of the branches selected by selectObjectToRead() method.
@@ -493,7 +492,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   return topNode;
 }
 
-void PHNodeIOManager::selectObjectToRead(const std::string &objectName, bool readit)
+void PHNodeIOManager::selectObjectToRead(const std::string& objectName, bool readit)
 {
   objectToRead[objectName] = readit;
 
@@ -511,7 +510,7 @@ void PHNodeIOManager::selectObjectToRead(const std::string &objectName, bool rea
   return;
 }
 
-bool PHNodeIOManager::isSelected(const std::string &objectName)
+bool PHNodeIOManager::isSelected(const std::string& objectName)
 {
   map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
@@ -577,7 +576,7 @@ int PHNodeIOManager::FillBranchMap()
   return 0;
 }
 
-bool PHNodeIOManager::NodeExist(const std::string &nodename)
+bool PHNodeIOManager::NodeExist(const std::string& nodename)
 {
   if (fBranches.empty())
   {
@@ -587,7 +586,7 @@ bool PHNodeIOManager::NodeExist(const std::string &nodename)
   for (auto iter = fBranches.begin(); iter != fBranches.end(); ++iter)
   {
     vector<string> splitvec;
-    boost::split(splitvec, iter->first , boost::is_any_of(delimeters));
+    boost::split(splitvec, iter->first, boost::is_any_of(delimeters));
     if (splitvec.back() == nodename)
     {
       return true;
@@ -595,5 +594,3 @@ bool PHNodeIOManager::NodeExist(const std::string &nodename)
   }
   return false;
 }
-
-
