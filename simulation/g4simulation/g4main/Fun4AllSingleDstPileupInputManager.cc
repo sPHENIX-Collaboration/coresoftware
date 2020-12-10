@@ -156,8 +156,6 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
 int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 {
 
-  std::cout << "Fun4AllSingleDstPileupInputManager::run - events: " << nevents << std::endl;
-
   if (!IsOpen())
   {
     if (FileListEmpty())
