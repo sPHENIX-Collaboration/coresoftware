@@ -20,8 +20,6 @@
 #include <ffaobjects/EventHeader.h>
 #include <ffaobjects/EventHeaderv1.h>
 #include <ffaobjects/RunHeader.h>
-#include <ffaobjects/SyncDefs.h>
-#include <ffaobjects/SyncObject.h>
 
 #include <frog/FROG.h>
 
@@ -110,7 +108,12 @@ Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &na
 //_____________________________________________________________________________
 int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 {
-  Fun4AllServer *se = Fun4AllServer::instance();
+  /*
+  this is largely copied from fun4all/Fun4AllDstInputManager::fileopen
+  with additional code to handle the background IManager
+  */
+
+  auto se = Fun4AllServer::instance();
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
@@ -127,19 +130,8 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   }
   // sanity check - the IManager must be nullptr when this method is executed
   // if not something is very very wrong and we must not continue
-  if (m_IManager)
-  {
-    std::cout << PHWHERE << " IManager pointer is not nullptr but " << m_IManager.get()
-              << std::endl;
-    std::cout << "Send mail to off-l with this printout and the macro you used"
-              << std::endl;
-    std::cout << "Trying to execute IManager->print() to display more info"
-              << std::endl;
-    std::cout << "Code will probably segfault now" << std::endl;
-    m_IManager->print();
-    std::cout << "Have someone look into this problem - Exiting now" << std::endl;
-    exit(1);
-  }
+  assert( !m_IManager );
+
   // first read the runnode if not disabled
   if (m_ReadRunTTree)
   {
@@ -150,20 +142,13 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
       m_IManager->read(m_runNode);
 
       // get the current run number
-      RunHeader *runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
+      auto runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
       if (runheader)
       {
         SetRunNumber(runheader->get_RunNumber());
       }
       // delete our internal copy of the runnode when opening subsequent files
-      if (m_runNodeCopy)
-      {
-        std::cout << PHWHERE
-                  << " The impossible happened, we have a valid copy of the run node "
-                  << m_runNodeCopy->getName() << " which should be a nullptr"
-                  << std::endl;
-        gSystem->Exit(1);
-      }
+      assert( !m_runNodeCopy );
       m_runNodeCopy.reset(new PHCompositeNode("RUNNODECOPY"));
       if (!m_runNodeSum)
       {
@@ -171,8 +156,8 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
       }
 
       {
-        std::unique_ptr<PHNodeIOManager> tmpIman(new PHNodeIOManager(m_fullfilename, PHReadOnly, PHRunTree));
-        tmpIman->read(m_runNodeCopy.get());
+        // read run node using temporary node iomanager
+        PHNodeIOManager(m_fullfilename, PHReadOnly, PHRunTree).read(m_runNodeCopy.get());
       }
 
       PHNodeIntegrate integrate;
@@ -322,9 +307,6 @@ readagain:
 
   // jump event counter to the last background accepted event
   if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
-
-  // update syncobject
-  m_syncobject = findNode::getClass<SyncObject>(m_dstNode, "Sync");
   return 0;
 }
 
@@ -340,266 +322,6 @@ int Fun4AllDstPileupInputManager::fileclose()
   m_IManager_background.reset();
   IsOpen(0);
   UpdateFileList();
-  return 0;
-}
-
-//_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::GetSyncObject(SyncObject **mastersync)
-{
-  // here we copy the sync object from the current file to the
-  // location pointed to by mastersync. If mastersync is a 0 pointer
-  // the syncobject is cloned. If mastersync allready exists the content
-  // of syncobject is copied
-  if (!(*mastersync))
-  {
-    if (m_syncobject)
-    {
-      *mastersync = dynamic_cast<SyncObject *>(m_syncobject->CloneMe());
-      assert(*mastersync);
-    }
-  }
-  else
-  {
-    *(*mastersync) = *m_syncobject;  // copy syncobject content
-  }
-  return Fun4AllReturnCodes::SYNC_OK;
-}
-
-//_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::SyncIt(const SyncObject *mastersync)
-{
-  if (!mastersync)
-  {
-    std::cout << PHWHERE << Name() << " No MasterSync object, cannot perform synchronization" << std::endl;
-    std::cout << "Most likely your first file does not contain a SyncObject and the file" << std::endl;
-    std::cout << "opened by the Fun4AllDstPileupInputManager with Name " << Name() << " has one" << std::endl;
-    std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
-    std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
-              << std::endl;
-    return Fun4AllReturnCodes::SYNC_FAIL;
-  }
-  int iret = m_syncobject->Different(mastersync);
-  if (iret)  // what to do if files are not in sync
-  {
-    if (mastersync->EventNumber() == -999999)  // first file does not contain sync object
-    {
-      std::cout << PHWHERE << " Mastersync not filled, your first file does not contain a SyncObject" << std::endl;
-      std::cout << "This Event will not be processed further" << std::endl;
-    }
-    else  // okay try to resync here
-    {
-      if (Verbosity() > 3)
-      {
-        std::cout
-            << "Need to Resync, mastersync evt no: " << mastersync->EventNumber()
-            << ", this Event no: " << m_syncobject->EventNumber()
-            << std::endl;
-        std::cout
-            << "mastersync evt counter: " << mastersync->EventCounter()
-            << ", this Event counter: " << m_syncobject->EventCounter()
-            << std::endl;
-        std::cout
-            << "mastersync run number: " << mastersync->RunNumber()
-            << ", this run number: " << m_syncobject->RunNumber()
-            << std::endl;
-      }
-      while (m_syncobject->RunNumber() < mastersync->RunNumber())
-      {
-        m_events_skipped_during_sync++;
-        if (Verbosity() > 2)
-        {
-          std::cout
-              << Name() << " Run Number: " << m_syncobject->RunNumber()
-              << ", master: " << mastersync->RunNumber()
-              << std::endl;
-        }
-        int iret = ReadNextEventSyncObject();
-        if (iret) return iret;
-      }
-      bool igood(m_syncobject->RunNumber() == mastersync->RunNumber());
-
-      // only run up the Segment Number if run numbers are identical
-      while (igood && m_syncobject->SegmentNumber() < mastersync->SegmentNumber())
-      {
-        m_events_skipped_during_sync++;
-        if (Verbosity() > 2)
-        {
-          std::cout << Name() << " Segment Number: " << m_syncobject->SegmentNumber()
-                    << ", master: " << mastersync->SegmentNumber()
-                    << std::endl;
-        }
-        int iret = ReadNextEventSyncObject();
-        if (iret)
-        {
-          return iret;
-        }
-      }
-      // only run up the Event Counter if run number and segment number are identical
-      igood = (m_syncobject->SegmentNumber() == mastersync->SegmentNumber() && m_syncobject->RunNumber() == mastersync->RunNumber());
-      while (igood && m_syncobject->EventCounter() < mastersync->EventCounter())
-      {
-        m_events_skipped_during_sync++;
-        if (Verbosity() > 2)
-        {
-          std::cout << Name()
-                    << ", EventCounter: " << m_syncobject->EventCounter()
-                    << ", master: " << mastersync->EventCounter()
-                    << std::endl;
-        }
-        int iret = ReadNextEventSyncObject();
-        if (iret)
-        {
-          return iret;
-        }
-      }
-      // Since up to here we only read the sync object we need to push
-      // the current event back inot the root file (subtract one from the
-      // local root file event counter) so we can read the full event
-      // if it syncs, if it does not sync we also read one event too many
-      // (otherwise we cannot determine that we are "too far")
-      // and also have to push this one back
-      PushBackEvents(1);
-      if (m_syncobject->RunNumber() > mastersync->RunNumber() ||        // check if run number too large
-          m_syncobject->EventCounter() > mastersync->EventCounter() ||  // check if event counter too large
-          m_syncobject->SegmentNumber() > mastersync->SegmentNumber())  // check segment number too large
-      {
-        // the event from first file which determines the mastersync
-        // and which we are trying to find on this file does not exist on this file
-        // so: return failure. This will cause the input managers to read
-        // the next event from the input files file
-        return Fun4AllReturnCodes::SYNC_FAIL;
-      }
-      // Here the event counter and segment number and run number do agree - we found the right match
-      // now read the full event (previously we only read the sync object)
-      PHCompositeNode *dummy;
-      dummy = m_IManager->read(m_dstNode);
-      if (!dummy)
-      {
-        std::cout << PHWHERE << " " << Name() << " Could not read full Event" << std::endl;
-        std::cout << "PLEASE NOTIFY PHENIX-OFF-L and post the macro you used" << std::endl;
-        fileclose();
-        return Fun4AllReturnCodes::SYNC_FAIL;
-      }
-      int iret = m_syncobject->Different(mastersync);  // final check if they really agree
-      if (iret)                                        // if not things are severely wrong
-      {
-        std::cout << PHWHERE << " MasterSync and SyncObject of " << Name() << " are different" << std::endl;
-        std::cout << "This Event will not be processed further, here is some debugging info:" << std::endl;
-        std::cout << "PLEASE NOTIFY PHENIX-OFF-L and post the macro you used" << std::endl;
-        std::cout << "MasterSync->identify:" << std::endl;
-        mastersync->identify();
-        std::cout << Name() << ": SyncObject->identify:" << std::endl;
-        m_syncobject->identify();
-        return Fun4AllReturnCodes::SYNC_FAIL;
-      }
-      else if (Verbosity() > 3)
-      {
-        std::cout << PHWHERE << " Resynchronization successfull for " << Name() << std::endl;
-        std::cout << "MasterSync->identify:" << std::endl;
-        mastersync->identify();
-        std::cout << Name() << ": SyncObject->identify:" << std::endl;
-        m_syncobject->identify();
-      }
-    }
-  }
-  return Fun4AllReturnCodes::SYNC_OK;
-}
-
-//_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::ReadNextEventSyncObject()
-{
-readnextsync:
-  static int readfull = 0;
-  if (!m_IManager)
-  {
-    // in case the old file was exhausted and there is no new file opened
-    return Fun4AllReturnCodes::SYNC_FAIL;
-  }
-  if (m_syncbranchname.empty())
-  {
-    readfull = 1;  // we need to read a full events to set the root branches to phool nodes right for a new file
-    for (auto bIter = m_IManager->GetBranchMap()->begin(); bIter != m_IManager->GetBranchMap()->end(); ++bIter)
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << Name() << ": branch: " << bIter->first << std::endl;
-      }
-
-      const auto pos = bIter->first.find("/Sync");
-      if (pos != std::string::npos)
-      {
-        m_syncbranchname = bIter->first;
-        break;
-      }
-    }
-    if (m_syncbranchname.empty())
-    {
-      std::cout << PHWHERE << "Could not locate Sync Branch" << std::endl;
-      std::cout << "Please check for it in the following list of branch names and" << std::endl;
-      std::cout << "PLEASE NOTIFY PHENIX-OFF-L and post the macro you used" << std::endl;
-      for (auto bIter = m_IManager->GetBranchMap()->begin(); bIter != m_IManager->GetBranchMap()->end(); ++bIter)
-      {
-        std::cout << bIter->first << std::endl;
-      }
-      return Fun4AllReturnCodes::SYNC_FAIL;
-    }
-  }
-  size_t EventOnDst = 0;
-  int itest = 0;
-  if (!readfull)
-  {
-    // if all files are exhausted, the IManager is deleted and set to nullptr
-    // so check if IManager is valid before getting a new event
-    if (m_IManager)
-    {
-      EventOnDst = m_IManager->getEventNumber();  // this returns the next number of the event
-      itest = m_IManager->readSpecific(EventOnDst, m_syncbranchname.c_str());
-    }
-    else
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << Name() << ": File exhausted while resyncing" << std::endl;
-      }
-      return Fun4AllReturnCodes::SYNC_FAIL;
-    }
-  }
-  else
-  {
-    if (m_IManager->read(m_dstNode))
-    {
-      itest = 1;
-    }
-    else
-    {
-      itest = 0;
-    }
-  }
-  if (!itest)
-  {
-    if (Verbosity() > 2)
-    {
-      std::cout << Name() << ": File exhausted while resyncing" << std::endl;
-    }
-    fileclose();
-    if (OpenNextFile())
-    {
-      return Fun4AllReturnCodes::SYNC_FAIL;
-    }
-    m_syncbranchname.clear();  // clear the sync branch name, who knows - it might be different on new file
-    goto readnextsync;
-  }
-  if (!readfull)
-  {
-    ++EventOnDst;
-    ++m_ievent_thisfile;
-    ++m_ievent_total;
-    m_IManager->setEventNumber(EventOnDst);  // update event number in phool io manager
-  }
-  else
-  {
-    readfull = 0;
-  }
   return 0;
 }
 
@@ -657,9 +379,6 @@ int Fun4AllDstPileupInputManager::setBranches()
           std::cout << branchiter->first << " set to " << branchiter->second << std::endl;
         }
       }
-      // protection against switching off the sync variables
-      // only implemented in the Sync Manager
-      setSyncBranches(m_IManager.get());
     }
   }
   else
@@ -667,17 +386,6 @@ int Fun4AllDstPileupInputManager::setBranches()
     std::cout << PHWHERE << " " << Name() << ": You can only call this function after a file has been opened" << std::endl;
     std::cout << "Do not worry, the branches will be set as soon as you open a file" << std::endl;
     return -1;
-  }
-  return 0;
-}
-
-//_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::setSyncBranches(PHNodeIOManager *IManager)
-{
-  // protection against switching off the sync variables
-  for (int i = 0; i < syncdefs::NUM_SYNC_VARS; i++)
-  {
-    IManager->selectObjectToRead(syncdefs::SYNCVARS[i], 1);
   }
   return 0;
 }

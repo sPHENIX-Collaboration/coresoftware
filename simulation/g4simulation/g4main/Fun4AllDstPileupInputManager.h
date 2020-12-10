@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALL_FUN4ALLDSTPILEUPINPUTMANAGER_H
-#define FUN4ALL_FUN4ALLDSTPILEUPINPUTMANAGER_H
+#ifndef G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
+#define G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
 
 /*!
  * \file Fun4AllDstPileupInputManager.h
@@ -25,22 +25,18 @@ class EventHeader;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
-class SyncObject;
 
 class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 {
  public:
   Fun4AllDstPileupInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
-  int fileopen(const std::string &filenam);
-  int fileclose();
-  int run(const int nevents = 0);
-  int GetSyncObject(SyncObject **mastersync);
-  int SyncIt(const SyncObject *mastersync);
+  int fileopen(const std::string &filenam) override;
+  int fileclose() override;
+  int run(const int nevents = 0) override;
   int BranchSelect(const std::string &branch, const int iflag);
   int setBranches();
-  virtual int setSyncBranches(PHNodeIOManager *IManager);
-  void Print(const std::string &what = "ALL") const;
-  int PushBackEvents(const int i);
+  void Print(const std::string &what = "ALL") const override;
+  int PushBackEvents(const int i) override;
 
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)
@@ -53,11 +49,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   void generateBunchCrossingList( int nevents, float collision_rate )
   {}
 
-
- protected:
-  int ReadNextEventSyncObject();
-  void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
-
  private:
   //! load nodes
   void load_nodes(PHCompositeNode *);
@@ -67,17 +58,15 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //!@name event counters
   //@{
-  int m_ReadRunTTree = 1;
+  bool m_ReadRunTTree = true;
   int m_ievent_total = 0;
   int m_ievent_thisfile = 0;
-  int m_events_skipped_during_sync = 0;
   int m_events_accepted = 0;
   //@}
 
   std::string m_fullfilename;
   std::string m_RunNode = "RUN";
   std::map<const std::string, int> m_branchread;
-  std::string m_syncbranchname;
 
   //! dst node from TopNode
   PHCompositeNode *m_dstNode = nullptr;
@@ -101,9 +90,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   //! input manager for background (pileup) events
   /*! corresponding nodes are copied to the internal dst node, then merged to the top node */
   std::unique_ptr<PHNodeIOManager> m_IManager_background;
-
-  //! synchronization object
-  SyncObject *m_syncobject = nullptr;
 
   //! time between crossings. This is a RHIC constant (ns)
   static constexpr double m_time_between_crossings = 106;
