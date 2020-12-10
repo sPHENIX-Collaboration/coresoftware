@@ -31,6 +31,7 @@ class Fun4AllNoSyncDstInputManager : public Fun4AllDstInputManager
   int NoRunTTree();
 
   int SkipForThisManager(const int nevents) { return PushBackEvents(nevents); }
+  int  HasSyncObject() const {return 0;}
 };
 
-#endif /* __FUN4ALLNOSYNCDSTINPUTMANAGER_H__ */
+#endif // FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H

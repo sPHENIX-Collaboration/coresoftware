@@ -33,17 +33,6 @@ using namespace std;
 
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , m_ReadRunTTree(1)
-  , events_total(0)
-  , events_thisfile(0)
-  , events_skipped_during_sync(0)
-  , RunNode("RUN")
-  , dstNode(nullptr)
-  , runNode(nullptr)
-  , runNodeCopy(nullptr)
-  , runNodeSum(nullptr)
-  , IManager(nullptr)
-  , syncobject(nullptr)
 {
   return;
 }
@@ -144,6 +133,16 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     events_thisfile = 0;
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
+// check if our input file has a sync object or not
+    if (IManager->NodeExist(syncdefs::SYNCNODENAME))
+    {
+      m_HaveSyncObject = 1;
+    }
+    else
+    {
+      m_HaveSyncObject = -1;
+    }
+
     return 0;
   }
   else
@@ -210,7 +209,7 @@ readagain:
   {
     goto readagain;
   }
-  syncobject = findNode::getClass<SyncObject>(dstNode, "Sync");
+  syncobject = findNode::getClass<SyncObject>(dstNode, syncdefs::SYNCNODENAME);
   return 0;
 }
 
@@ -225,6 +224,7 @@ int Fun4AllDstInputManager::fileclose()
   IManager = nullptr;
   IsOpen(0);
   UpdateFileList();
+  m_HaveSyncObject = 0;
   return 0;
 }
 
@@ -631,4 +631,15 @@ int Fun4AllDstInputManager::PushBackEvents(const int i)
   cout << PHWHERE << Name() << ": could not push back events, Imanager is NULL"
        << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << endl;
   return -1;
+}
+
+int Fun4AllDstInputManager::HasSyncObject() const
+{
+  if (m_HaveSyncObject)
+  {
+    return m_HaveSyncObject;
+  }
+  cout << PHWHERE << "HasSyncObject() not initialized check the calling order" << endl;
+  gSystem->Exit(1);
+  exit(1);
 }

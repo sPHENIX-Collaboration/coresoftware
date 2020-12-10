@@ -26,6 +26,7 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int PushBackEvents(const int i);
   int GetSyncObject(SyncObject **mastersync);
   int SyncIt(const SyncObject *mastersync);
+  int HasSyncObject() const {return 1;}
 
  private:
   int m_Segment;
