@@ -37,6 +37,11 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
 
+  // Effectivly turn off the synchronization checking (copy from Fun4AllNoSyncDstInputManager)
+  int SyncIt(const SyncObject* /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int NoSyncPushBackEvents(const int nevt) override { return PushBackEvents(nevt); }
+
   /// collision rate in Hz
   void setCollisionRate(double Hz)
   { m_collision_rate = Hz; }
