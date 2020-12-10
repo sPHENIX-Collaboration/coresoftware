@@ -55,6 +55,8 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
   h_hits = new TH2F("hits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
   h_zhits = new TH2F("zhits",";z [cm]; r [cm]",1000,-30,30,1000,-30,30);
+  h_projHits = new TH2F("projhits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
+  h_zprojHits = new TH2F("zprojhits",";z [cm]; r [cm]",1000,-30,30,1000,-30,30);
   h_resids = new TH2F("resids",";z_{resid} [cm]; rphi_{resid} [cm]",
 		      100,-1,1,100,-1,1);
   
@@ -105,6 +107,8 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
       h_nInputInttMeas->Write();
       h_hits->Write();
       h_zhits->Write();
+      h_projHits->Write();
+      h_zprojHits->Write();
       h_resids->Write();
       m_file->Write();      
       m_file->Close();
@@ -205,12 +209,20 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  h_nMvtxHits->Fill(nMvtx);
 	  h_nHits->Fill(nMvtx, nIntt);
 
-	  double x = NAN,y, z;;
+	  double x = NAN,y = NAN, z = seed.z() / Acts::UnitConstants::cm;
 	  double px, py, pz;
+
+	  
+	  /// Performs circle fit and extrapolates to INTT layers to
+	  /// to get additional clusters in this track seed
 	  int charge = circleFitSeed(clusters, x, y, z,
 				     px, py, pz);
 
-
+	  /// If INTT clusters were found and added, add them to the SvtxTrack
+	  if(clusters.size() > 3)
+	    for(int i = 3; i < clusters.size(); i++)
+	      svtxTrack->insert_cluster_key(clusters.at(i)->getClusKey());
+	  
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
 	    continue;
@@ -254,9 +266,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 }
 
 
-int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& clusters,
-					 double& x, double& y, double& z,
-					 double& px, double& py, double& pz)
+int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
+					double& x, double& y, double& z,
+					double& px, double& py, double& pz)
 {
   /// Circle radius at x,y center
   /// Note - units are sPHENIX cm since we are using TrkrClusters
@@ -298,11 +310,10 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
 
   double m, B;
   
-
   /// m is slope as a function of radius, B is z intercept (vertex)
   lineFit(clusters, m, B);
-
   z = B;
+  
   double theta = atan(1./m);
 
   /// normalize to 0 < theta < pi
@@ -328,8 +339,10 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, B, m);
-
+  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
+  for(auto cluskey : additionalClusters)
+    clusters.push_back(m_clusterMap->findCluster(cluskey));
+    
 
   return charge;
 
@@ -354,6 +367,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
       h_hits->Fill(clus->getX(), clus->getY());
       h_zhits->Fill(clus->getZ(),
 		    sqrt(pow(clus->getX(),2) + pow(clus->getY(),2)));
+      h_projHits->Fill(clus->getX(), clus->getY());
+      h_zprojHits->Fill(clus->getZ(),
+			sqrt(pow(clus->getX(),2) + pow(clus->getY(),2)));
     }
 
   /// Project the seed to the INTT to find matches
@@ -400,11 +416,12 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	  yProj[layer] = yminus;
 	}
       
-      zProj[layer] = B + m * m_nInttLayerRadii[layer];
+      zProj[layer] = m * m_nInttLayerRadii[layer] + B;
 
-      h_hits->Fill(xProj[layer], yProj[layer]);
-      h_zhits->Fill(zProj[layer],
-		    sqrt(pow(xProj[layer],2)+pow(yProj[layer],2)));
+      h_projHits->Fill(xProj[layer], yProj[layer]);
+      h_zprojHits->Fill(zProj[layer], sqrt(pow(xProj[layer],2) + 
+					   pow(yProj[layer],2)));
+   
       if(Verbosity() > 2)
 	{
 	  std::cout << "Projected point is : " << xProj[layer] << ", "
@@ -424,7 +441,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 						     const double yProj[],
 						     const double zProj[])
 {
-  std::vector<TrkrDefs::cluskey> inttClusters;
+  std::vector<TrkrDefs::cluskey> matchedClusters;
   
   TrkrClusterContainer::ConstRange inttClusRange = 
     m_clusterMap->getClusters(TrkrDefs::inttId);
@@ -447,7 +464,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       const double projR = sqrt(pow(xProj[projLayer], 2) + 
 				pow(yProj[projLayer], 2));
       const double projRphi = projR * atan2(yProj[projLayer], xProj[projLayer]);
-      
+
+      h_hits->Fill(cluster->getX(), cluster->getY());
+      h_zhits->Fill(cluster->getZ(),
+		    inttClusR);
+
       if(Verbosity() > 2)
 	std::cout << "Checking INTT cluster with " << cluster->getX()
 		  << ", " << cluster->getY() << ", " << cluster->getZ()
@@ -462,19 +483,19 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
 	 fabs(zProj[projLayer] - inttClusZ) < m_zSearchWin)
 	{
-	  inttClusters.push_back(cluskey);
+	  matchedClusters.push_back(cluskey);
 
 	  if(Verbosity() > 2)
 	    {
-	      std::cout << "Found matching projection with projection rphi "
-			<< std::endl;
+	      std::cout << "Found matching projection with cluskey " 
+			<< cluskey << std::endl;
 	    }
 
 	}
 
     }
   
-  return inttClusters;
+  return matchedClusters;
 
 }
 void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
@@ -673,6 +694,11 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
 	  std::cout << " r " << r << " z " << cluster->getZ() 
 		    << " z_fit " << z_fit << std::endl; 
 	} 
+      for(int i =0; i <m_nInttLayers; i++)
+	{
+	  std::cout << "intt z_fit layer " << i << " is " 
+		    << A * m_nInttLayerRadii[i] + B << std::endl;
+	}
     }
   
   return;

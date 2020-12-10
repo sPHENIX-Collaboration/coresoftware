@@ -111,7 +111,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Perform circle/line fits with the final seed to get
   /// initial point and momentum estimates for stub matching
-  int circleFitSeed(const std::vector<TrkrCluster*>& clusters,
+  int circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		     double& x, double& y, double& z,
 		     double& px, double& py, double& pz);
   void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
@@ -189,7 +189,7 @@ class PHActsSiliconSeeding : public SubsysReco
     {7.188, 7.732, 9.680,10.262}; /// cm
   
   /// Search windows for phi and z to match intt clusters in cm
-  double m_rPhiSearchWin = 0.025;
+  double m_rPhiSearchWin = 0.1;
   double m_zSearchWin = 0.01;
 
   /// Whether or not to use truth clusters in hit lookup
@@ -206,6 +206,8 @@ class PHActsSiliconSeeding : public SubsysReco
   TH1 *h_nInputInttMeas = nullptr;
   TH2 *h_hits = nullptr;
   TH2 *h_zhits = nullptr;
+  TH2 *h_projHits = nullptr;
+  TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
 
 };
