@@ -1,10 +1,10 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
-#define G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
+#ifndef G4MAIN_FUN4ALLSINGLEDSTPILEUPINPUTMANAGER_H
+#define G4MAIN_FUN4ALLSINGLEDSTPILEUPINPUTMANAGER_H
 
 /*!
- * \file Fun4AllDstPileupInputManager.h
+ * \file Fun4AllSingleDstPileupInputManager.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -25,15 +25,15 @@
  * dedicated input manager that merges single events into "merged" events, containing a trigger event
  * and a number of time-shifted pile-up events corresponding to a given pile-up rate
 */
-class Fun4AllDstPileupInputManager : public Fun4AllInputManager
+class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
 {
  public:
-  Fun4AllDstPileupInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
+  Fun4AllSingleDstPileupInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   int fileopen(const std::string &filenam) override;
   int fileclose() override;
   int run(const int nevents = 0) override;
-  int BranchSelect(const std::string &branch, const int iflag);
-  int setBranches();
+  int BranchSelect(const std::string &branch, const int iflag) override;
+  int setBranches() override;
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
 
@@ -116,4 +116,4 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
 };
 
-#endif /* __Fun4AllDstPileupInputManager_H__ */
+#endif /* __Fun4AllSingleDstPileupInputManager_H__ */

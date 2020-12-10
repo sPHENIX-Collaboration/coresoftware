@@ -1,9 +1,9 @@
 /*!
- * \file Fun4AllDstPileupInputManager.cc
+ * \file Fun4AllSingleDstPileupInputManager.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include "Fun4AllDstPileupInputManager.h"
+#include "Fun4AllSingleDstPileupInputManager.h"
 #include "Fun4AllDstPileupMerger.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -43,7 +43,7 @@
 #include <utility>   // for pair
 
 //_____________________________________________________________________________
-Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
+Fun4AllSingleDstPileupInputManager::Fun4AllSingleDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
 {
   // initialize random generator
@@ -53,7 +53,7 @@ Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &na
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
+int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
 {
   /*
   this is largely copied from fun4all/Fun4AllDstInputManager::fileopen
@@ -153,7 +153,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::run(const int nevents)
+int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 {
   if (!IsOpen())
   {
@@ -215,12 +215,12 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
-    std::cout << "Fun4AllDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+    std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
     goto readagain;
   }
 
   // load relevant DST nodes to internal pointers
-  std::cout << "Fun4AllDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+  std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
 
   Fun4AllDstPileupMerger merger;
   merger.load_nodes(m_dstNode);
@@ -243,7 +243,7 @@ readagain:
       if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
 
       // merge
-      std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+      std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
       ++neventsbackground;
@@ -260,7 +260,7 @@ readagain:
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::fileclose()
+int Fun4AllSingleDstPileupInputManager::fileclose()
 {
   if (!IsOpen())
   {
@@ -275,7 +275,7 @@ int Fun4AllDstPileupInputManager::fileclose()
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::BranchSelect(const std::string &branch, const int iflag)
+int Fun4AllSingleDstPileupInputManager::BranchSelect(const std::string &branch, const int iflag)
 {
   int myflag = iflag;
   // if iflag > 0 the branch is set to read
@@ -313,7 +313,7 @@ int Fun4AllDstPileupInputManager::BranchSelect(const std::string &branch, const 
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::setBranches()
+int Fun4AllSingleDstPileupInputManager::setBranches()
 {
   if (m_IManager)
   {
@@ -340,14 +340,14 @@ int Fun4AllDstPileupInputManager::setBranches()
 }
 
 //_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::Print(const std::string &what) const
+void Fun4AllSingleDstPileupInputManager::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "BRANCH")
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of selected branches in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
+    std::cout << "List of selected branches in Fun4AllSingleDstPileupInputManager " << Name() << ":" << std::endl;
 
     std::map<const std::string, int>::const_iterator iter;
     for (iter = m_branchread.begin(); iter != m_branchread.end(); ++iter)
@@ -369,7 +369,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "PHNodeIOManager print in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
+    std::cout << "PHNodeIOManager print in Fun4AllSingleDstPileupInputManager " << Name() << ":" << std::endl;
     m_IManager->print();
   }
   Fun4AllInputManager::Print(what);
@@ -377,7 +377,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
+int Fun4AllSingleDstPileupInputManager::PushBackEvents(const int i)
 {
   if (m_IManager)
   {

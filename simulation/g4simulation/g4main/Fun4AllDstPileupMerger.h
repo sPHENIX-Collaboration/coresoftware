@@ -20,7 +20,7 @@ class PHHepMCGenEventMap;
  * in order to generate full pileup events from raw events
  * it is used internally by Fun4AllDstPileupInputManager and Fun4AllSingleDstPileupInputManager
  */
-class Fun4AllDstPileupMerger
+class Fun4AllDstPileupMerger final
 {
 
   public:

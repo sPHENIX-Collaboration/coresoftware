@@ -134,7 +134,7 @@ libg4testbench_la_SOURCES = \
   Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
-  Fun4AllDstPileupInputManager.cc \
+  Fun4AllSingleDstPileupInputManager.cc \
   Fun4AllDstPileupMerger.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
@@ -182,7 +182,7 @@ libg4testbench_la_SOURCES = \
 
 pkginclude_HEADERS = \
   EicEventHeader.h \
-  Fun4AllDstPileupInputManager.h \
+  Fun4AllSingleDstPileupInputManager.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
