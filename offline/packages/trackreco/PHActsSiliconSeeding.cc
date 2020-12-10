@@ -187,7 +187,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    {
 	      auto cluskey = m_hitIdCluskey->right.find(spacePoint->m_hitId)->second;
 	      clusters.push_back(m_clusterMap->findCluster(cluskey));
-	      
+
+	      nMvtx++;
+
 	      if(Verbosity() > 1)
 		std::cout << "Adding cluster with x,y "
 			  << spacePoint->x() <<", " << spacePoint->y()
@@ -195,19 +197,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 			  << TrkrDefs::getTrkrId(cluskey)
 			  << std::endl;
 	      
-	      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
-		nMvtx++;
-	      else if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
-		nIntt++;
-	      else
-		std::cout << "how does seed have a non silicon cluster..." << std::endl;
-	      
 	      svtxTrack->insert_cluster_key(cluskey);
 	    }
 	 
-	  h_nInttHits->Fill(nIntt);
-	  h_nMvtxHits->Fill(nMvtx);
-	  h_nHits->Fill(nMvtx, nIntt);
 
 	  double x = NAN,y = NAN, z = seed.z() / Acts::UnitConstants::cm;
 	  double px, py, pz;
@@ -220,9 +212,17 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  /// If INTT clusters were found and added, add them to the SvtxTrack
 	  if(clusters.size() > 3)
-	    for(int i = 3; i < clusters.size(); i++)
-	      svtxTrack->insert_cluster_key(clusters.at(i)->getClusKey());
-	  
+	    for(int i = 3; i < clusters.size(); i++) 
+	      {
+		svtxTrack->insert_cluster_key(clusters.at(i)->getClusKey());
+		nIntt++;
+	      }
+	    
+	  h_nInttHits->Fill(nIntt);
+	  h_nMvtxHits->Fill(nMvtx);
+	  h_nHits->Fill(nMvtx, nIntt);
+
+
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
 	    continue;
@@ -339,11 +339,13 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
-  for(auto cluskey : additionalClusters)
-    clusters.push_back(m_clusterMap->findCluster(cluskey));
-    
-
+  if(m_projectToIntt)
+    {
+      auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
+      for(auto cluskey : additionalClusters)
+	clusters.push_back(m_clusterMap->findCluster(cluskey));
+    }
+  
   return charge;
 
 }
@@ -429,9 +431,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	}
     }
 
-
   additionalClusters = matchInttClusters(xProj, yProj, zProj);
-
 
   return additionalClusters;
 }
@@ -987,7 +987,6 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 double PHActsSiliconSeeding::normPhi2Pi(const double phi)
 {

@@ -61,13 +61,11 @@ inline bool operator==(SpacePoint a, SpacePoint b) {
   return (a.m_hitId == b.m_hitId);
 }
 
-
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 
-
 /**
- * This class runs the Acts seeder over the silicon measurements
+ * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
  * recognition
  */
@@ -85,8 +83,11 @@ class PHActsSiliconSeeding : public SubsysReco
     { m_useTruthClusters = useTruthClusters; }
 
   void seedAnalysis(bool seedAnalysis)
-    { m_seedAnalysis = seedAnalysis;}
+    { m_seedAnalysis = seedAnalysis; }
   
+  void projectToIntt(bool projectToIntt)
+    { m_projectToIntt = projectToIntt; }
+
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -194,8 +195,10 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
+  
+  bool m_projectToIntt = false;
 
-  bool m_seedAnalysis = true;
+  bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;
