@@ -53,7 +53,11 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",15,0,15);
   h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",150,0,150);
   h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
-
+  h_hits = new TH2F("hits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
+  h_zhits = new TH2F("zhits",";z [cm]; r [cm]",1000,-30,30,1000,-30,30);
+  h_resids = new TH2F("resids",";z_{resid} [cm]; rphi_{resid} [cm]",
+		      100,-1,1,100,-1,1);
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
@@ -99,7 +103,10 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
       h_nHits->Write();
       h_nInputMvtxMeas->Write();
       h_nInputInttMeas->Write();
-      m_file->Write();
+      h_hits->Write();
+      h_zhits->Write();
+      h_resids->Write();
+      m_file->Write();      
       m_file->Close();
     }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -115,7 +122,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
     -> Acts::Vector2D { return {sp.m_varianceRphi, sp.m_varianceZ};
   };
 
-  auto spVec = getSpacePoints();
+  auto spVec = getMvtxSpacePoints();
 
   h_nInputMeas->Fill(spVec.size());
   std::unique_ptr<Acts::SpacePointGrid<SpacePoint>> grid = 
@@ -321,7 +328,7 @@ int PHActsSiliconSeeding::circleFitSeed(const std::vector<TrkrCluster*>& cluster
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  auto additionalClusters = findInttMatches(clusters, R, X0, Y0);
+  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, B, m);
 
 
   return charge;
@@ -332,10 +339,23 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 				      const std::vector<TrkrCluster*>& clusters,
 				      const double R,
 				      const double X0,
-				      const double Y0)
+				      const double Y0,
+				      const double B,
+				      const double m)
 {
   std::vector<TrkrDefs::cluskey> additionalClusters;
   
+  double xProj[m_nInttLayers];
+  double yProj[m_nInttLayers];
+  double zProj[m_nInttLayers];
+
+  for(auto clus : clusters)
+    {
+      h_hits->Fill(clus->getX(), clus->getY());
+      h_zhits->Fill(clus->getZ(),
+		    sqrt(pow(clus->getX(),2) + pow(clus->getY(),2)));
+    }
+
   /// Project the seed to the INTT to find matches
   for(int layer = 0; layer < m_nInttLayers; ++layer)
     {
@@ -352,24 +372,111 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	{
 	  if(Verbosity() > 2)
 	    {
-	      std::cout << "Circle intersection calc failed, skipping" << std::endl;
-	      std::cout << "layer radius " << m_nInttLayerRadii[layer] << " and circ rad "
-			<< R << " with center " << X0 << ", " << Y0 << std::endl;
+	      std::cout << "Circle intersection calc failed, skipping" 
+			<< std::endl;
+	      std::cout << "layer radius " << m_nInttLayerRadii[layer] 
+			<< " and circ rad " << R << " with center " << X0 
+			<< ", " << Y0 << std::endl;
 	    }
 	  continue;
 	}
       
-      /// Figure out which solution is correct based on the position of the last layer in
-      /// the mvtx seed
-      unsigned int lastClus = clusters.size() - 1;
+      /// Figure out which solution is correct based on the position 
+      /// of the last layer in the mvtx seed
+      const unsigned int lastClus = clusters.size() - 1;
+      const double lastClusPhi = atan2(clusters.at(lastClus)->getY(),
+				       clusters.at(lastClus)->getX());
+      const double plusPhi = atan2(yplus, xplus);
+      const double minusPhi = atan2(yminus, xminus);
       
+      if(fabs(lastClusPhi - plusPhi) < fabs(lastClusPhi - minusPhi))
+	{
+	  xProj[layer] = xplus;
+	  yProj[layer] = yplus;
+	}
+      else
+	{
+	  xProj[layer] = xminus;
+	  yProj[layer] = yminus;
+	}
       
-      
+      zProj[layer] = B + m * m_nInttLayerRadii[layer];
+
+      h_hits->Fill(xProj[layer], yProj[layer]);
+      h_zhits->Fill(zProj[layer],
+		    sqrt(pow(xProj[layer],2)+pow(yProj[layer],2)));
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Projected point is : " << xProj[layer] << ", "
+		    << yProj[layer] << ", " << zProj[layer] << std::endl;
+	}
     }
+
+
+  additionalClusters = matchInttClusters(xProj, yProj, zProj);
+
 
   return additionalClusters;
 }
 
+std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
+						     const double xProj[],
+						     const double yProj[],
+						     const double zProj[])
+{
+  std::vector<TrkrDefs::cluskey> inttClusters;
+  
+  TrkrClusterContainer::ConstRange inttClusRange = 
+    m_clusterMap->getClusters(TrkrDefs::inttId);
+  
+  for(TrkrClusterContainer::ConstIterator clusIter = inttClusRange.first;
+      clusIter != inttClusRange.second; ++clusIter)
+    {
+      const auto cluskey = clusIter->first;
+      const auto cluster = clusIter->second;
+      
+      /// Subtract three to subtract off the mvtx layers for comparison
+      /// to projections
+      const auto projLayer = TrkrDefs::getLayer(cluskey) - 3;
+
+      const double inttClusZ = cluster->getZ();
+      const double inttClusR = sqrt(pow(cluster->getX(), 2) + 
+				    pow(cluster->getY(), 2) );
+      const double inttClusRphi = inttClusR * atan2(cluster->getY(),
+						    cluster->getX());
+      const double projR = sqrt(pow(xProj[projLayer], 2) + 
+				pow(yProj[projLayer], 2));
+      const double projRphi = projR * atan2(yProj[projLayer], xProj[projLayer]);
+      
+      if(Verbosity() > 2)
+	std::cout << "Checking INTT cluster with " << cluster->getX()
+		  << ", " << cluster->getY() << ", " << cluster->getZ()
+		  << std::endl << " with projections rphi "
+		  << projRphi << " and clus rphi " << inttClusRphi
+		  << " and proj z " << zProj[projLayer] << " and clus z "
+		  << inttClusZ << " in layer " << projLayer << std::endl;
+
+      h_resids->Fill(zProj[projLayer] - inttClusZ,
+		     projRphi - inttClusRphi);
+
+      if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
+	 fabs(zProj[projLayer] - inttClusZ) < m_zSearchWin)
+	{
+	  inttClusters.push_back(cluskey);
+
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "Found matching projection with projection rphi "
+			<< std::endl;
+	    }
+
+	}
+
+    }
+  
+  return inttClusters;
+
+}
 void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
 						    const double circRadius,
 						    const double circX0,
@@ -702,7 +809,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
 
 }
 
-std::vector<const SpacePoint*> PHActsSiliconSeeding::getSpacePoints()
+std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
@@ -711,16 +818,15 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSpacePoints()
     {
       /// collect only source links in MVTX
       auto volume = sl.referenceSurface().geometryId().volume();
-      
+
       /// If we run without MMs, volumes are 7, 9, 11 for mvtx, intt, tpc
       /// If we run with MMs, volumes are 10, 12, 14, 16 for mvtx, intt, tpc, mm
       if(volume == 7 or volume == 10)
-	continue;
-     
-
-      auto sp = makeSpacePoint(hitId, sl).release();
-      spVec.push_back(sp);
-      numSiliconHits++;
+	{
+     	  auto sp = makeSpacePoint(hitId, sl).release();
+	  spVec.push_back(sp);
+	  numSiliconHits++;
+	}
     }
   
   h_nInputMvtxMeas->Fill(numSiliconHits);

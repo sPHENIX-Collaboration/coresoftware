@@ -107,7 +107,7 @@ class PHActsSiliconSeeding : public SubsysReco
 			    const SourceLink& sl);
   
   /// Get all space points for the seeder
-  std::vector<const SpacePoint*> getSpacePoints();
+  std::vector<const SpacePoint*> getMvtxSpacePoints();
 
   /// Perform circle/line fits with the final seed to get
   /// initial point and momentum estimates for stub matching
@@ -127,7 +127,12 @@ class PHActsSiliconSeeding : public SubsysReco
 			const std::vector<TrkrCluster*>& clusters,
 			const double R,
 			const double X0,
-			const double Y0);
+			const double Y0,
+			const double B,
+			const double m);
+  std::vector<TrkrDefs::cluskey> matchInttClusters(const double xProj[],
+						   const double yProj[],
+						   const double zProj[]);
   void circleCircleIntersection(const double layerRadius, 
 				const double circRadius,
 				const double circX0,
@@ -183,6 +188,10 @@ class PHActsSiliconSeeding : public SubsysReco
   const double m_nInttLayerRadii[m_nInttLayers] = 
     {7.188, 7.732, 9.680,10.262}; /// cm
   
+  /// Search windows for phi and z to match intt clusters in cm
+  double m_rPhiSearchWin = 0.025;
+  double m_zSearchWin = 0.01;
+
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
@@ -195,6 +204,9 @@ class PHActsSiliconSeeding : public SubsysReco
   TH1 *h_nInputMeas = nullptr;
   TH1 *h_nInputMvtxMeas = nullptr;
   TH1 *h_nInputInttMeas = nullptr;
+  TH2 *h_hits = nullptr;
+  TH2 *h_zhits = nullptr;
+  TH2 *h_resids = nullptr;
 
 };
 
