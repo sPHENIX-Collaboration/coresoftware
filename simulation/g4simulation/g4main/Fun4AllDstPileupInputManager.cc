@@ -447,15 +447,6 @@ int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
 //_____________________________________________________________________________
 void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
 {
-  // event header
-  m_eventheader = findNode::getClass<EventHeader>(dstNode, "EventHeader");
-  if (!m_eventheader)
-  {
-    std::cout << "Fun4AllDstPileupInputManager::load_nodes - creating EventHeader" << std::endl;
-    m_eventheader = new EventHeaderv1();
-    dstNode->addNode(new PHIODataNode<PHObject>(m_eventheader, "EventHeader", "PHObject"));
-  }
-
   // hep mc
   m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
   if (!m_geneventmap)

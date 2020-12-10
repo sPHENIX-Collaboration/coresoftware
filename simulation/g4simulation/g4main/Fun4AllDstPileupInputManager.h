@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>  // for vector
 
-class EventHeader;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEventMap;
@@ -102,9 +101,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //! max integration time for pileup in the TPC (ns)
   double m_tmax = 13500;
-
-  //! event header
-  EventHeader *m_eventheader = nullptr;
 
   //! hepmc
   PHHepMCGenEventMap *m_geneventmap = nullptr;
