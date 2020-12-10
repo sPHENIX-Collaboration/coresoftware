@@ -103,7 +103,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
   const auto map = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
 
   // keep track of new embed id, after insertion as background event
-  int new_embed_id = 0;
+  int new_embed_id = -1;
 
   if (map && m_geneventmap)
   {
