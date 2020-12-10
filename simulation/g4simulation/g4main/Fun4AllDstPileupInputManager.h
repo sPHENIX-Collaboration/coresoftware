@@ -57,10 +57,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
     m_tmax = tmax;
   }
 
-  //! obsolete. Does nothing, kept for backward API compatibility.
-  void generateBunchCrossingList( int nevents, float collision_rate )
-  {}
-
  private:
 
   //! loads one event on internal DST node

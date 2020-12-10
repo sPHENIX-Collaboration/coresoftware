@@ -161,12 +161,11 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
     if( result != 0 ) return result;
   }
 
-
-  /* create internal dst node if not already there
-   * this usually happen in fileopen however, when the file is not oppened during first event, for instance because background rate is too low,
+  /*
+   * assign/create relevant dst nodes if not already there
+   * this normally happens in ::fileopen however, when the file is not oppened during first event, for instance because background rate is too low,
    * this can cause fun4all server to bark with "Someone changed the number of Output Nodes on the fly"
    */
-
   if( !m_dstNode )
   {
     auto se = Fun4AllServer::instance();
