@@ -21,10 +21,6 @@
 #include <string>
 #include <vector>  // for vector
 
-class PHG4HitContainer;
-class PHG4TruthInfoContainer;
-class PHHepMCGenEventMap;
-
 /*!
  * dedicated input manager that merges single events into "merged" events, containing a trigger event
  * and a number of time-shifted pile-up events corresponding to a given pile-up rate
@@ -61,11 +57,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   {}
 
  private:
-  //! load nodes
-  void load_nodes(PHCompositeNode *);
-
-  //! copy background event
-  void copy_background_event(PHCompositeNode *, double delta_t) const;
 
   //!@name event counters
   //@{
@@ -113,15 +104,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
   //! max integration time for pileup in the TPC (ns)
   double m_tmax = 13500;
-
-  //! hepmc
-  PHHepMCGenEventMap *m_geneventmap = nullptr;
-
-  //! maps g4hit containers to node names
-  std::map<std::string, PHG4HitContainer *> m_g4hitscontainers;
-
-  //! truth information
-  PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
 
   //! random generator
   class Deleter

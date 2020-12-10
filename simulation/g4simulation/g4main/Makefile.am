@@ -135,6 +135,7 @@ libg4testbench_la_SOURCES = \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
   Fun4AllDstPileupInputManager.cc \
+  Fun4AllDstPileupMerger.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -257,4 +258,4 @@ testexternals.cc:
 
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm 
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
