@@ -32,10 +32,15 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam) override;
   int fileclose() override;
   int run(const int nevents = 0) override;
-  int BranchSelect(const std::string &branch, const int iflag);
-  int setBranches();
+  int BranchSelect(const std::string &branch, const int iflag) override;
+  int setBranches() override;
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;
+
+  // disable synchronization
+  int SyncIt(const SyncObject* /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int NoSyncPushBackEvents(const int nevt) override { return PushBackEvents(nevt); }
 
   /// collision rate in Hz
   void setCollisionRate(double Hz)
