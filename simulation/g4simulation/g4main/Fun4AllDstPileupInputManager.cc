@@ -472,7 +472,7 @@ void Fun4AllDstPileupInputManager::load_nodes(PHCompositeNode *dstNode)
 }
 
 //_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::copy_background_event(PHCompositeNode *dstNode, double delta_t)
+void Fun4AllDstPileupInputManager::copy_background_event(PHCompositeNode *dstNode, double delta_t) const
 {
   // copy PHHepMCGenEventMap
   const auto map = findNode::getClass<PHHepMCGenEventMap>(dstNode, "PHHepMCGenEventMap");
