@@ -7,22 +7,18 @@
 #include "PHNodeIterator.h"
 #include "phooldefs.h"
 
-#include <RVersion.h>
-#include <TBranch.h>                                         // for TBranch
+#include <TBranch.h>  // for TBranch
+#include <TBranchElement.h>
 #include <TBranchObject.h>
 #include <TClass.h>
-#include <TDirectory.h>                                      // for TDirectory
+#include <TDirectory.h>  // for TDirectory
 #include <TFile.h>
 #include <TLeafObject.h>
+#include <TObjArray.h>  // for TObjArray
 #include <TObject.h>
-#include <TObjArray.h>                                       // for TObjArray
 #include <TROOT.h>
+#include <TSystem.h>
 #include <TTree.h>
-
-// ROOT version taken from RVersion.h
-#if ROOT_VERSION_CODE >= ROOT_VERSION(3, 01, 5)
-#include <TBranchElement.h>
-#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -36,42 +32,20 @@
 
 using namespace std;
 
-PHNodeIOManager::PHNodeIOManager()
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , accessMode(PHReadOnly)
-  , CompressionLevel(3)
-  , isFunctionalFlag(0)
-{
-}
-
 PHNodeIOManager::PHNodeIOManager(const string& f,
                                  const PHAccessType a)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const string& f, const string& title,
                                  const PHAccessType a)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   isFunctionalFlag = setFile(f, title, a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const string& f, const PHAccessType a,
                                  const PHTreeType treeindex)
-  : file(nullptr)
-  , tree(nullptr)
-  , TreeName("T")
-  , CompressionLevel(3)
 {
   if (treeindex != PHEventTree)
   {
@@ -112,7 +86,7 @@ bool PHNodeIOManager::setFile(const string& f, const string& title,
       closeFile();
     }
     delete file;
-    file = 0;
+    file = nullptr;
   }
   string currdir = gDirectory->GetPath();
   gROOT->cd();
@@ -291,7 +265,8 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
     return leaf->GetTypeName();
   }
   cout << PHWHERE << "Fatal error, dynamic cast of TBranchObject failed" << endl;
-  exit(1);
+  gSystem->Exit(1);
+  exit(1);  // the compiler does not know gSystem->Exit() quits, needs exit to avoid warning
 }
 
 bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
@@ -342,7 +317,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   return true;
 }
 
-int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string &objectName)
+int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& objectName)
 {
   // objectName should be one of the valid branch name of the "T" TTree, and
   // should be one of the branches selected by selectObjectToRead() method.
@@ -458,9 +433,9 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     if (!thisClass)
     {
       cout << PHWHERE << endl;
-      cout << "Missing Class: " << branchClassName.c_str() << endl;
+      cout << "Missing Class: " << branchClassName << endl;
       cout << "Did you forget to load the shared library which contains "
-           << branchClassName.c_str() << "?" << endl;
+           << branchClassName << "?" << endl;
     }
     // it does not make sense to continue - the code coredumps
     // later if a class is not loaded
@@ -517,7 +492,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   return topNode;
 }
 
-void PHNodeIOManager::selectObjectToRead(const std::string &objectName, bool readit)
+void PHNodeIOManager::selectObjectToRead(const std::string& objectName, bool readit)
 {
   objectToRead[objectName] = readit;
 
@@ -535,7 +510,7 @@ void PHNodeIOManager::selectObjectToRead(const std::string &objectName, bool rea
   return;
 }
 
-bool PHNodeIOManager::isSelected(const std::string &objectName)
+bool PHNodeIOManager::isSelected(const std::string& objectName)
 {
   map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
@@ -599,4 +574,23 @@ int PHNodeIOManager::FillBranchMap()
     }
   }
   return 0;
+}
+
+bool PHNodeIOManager::NodeExist(const std::string& nodename)
+{
+  if (fBranches.empty())
+  {
+    FillBranchMap();
+  }
+  string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
+  for (auto iter = fBranches.begin(); iter != fBranches.end(); ++iter)
+  {
+    vector<string> splitvec;
+    boost::split(splitvec, iter->first, boost::is_any_of(delimeters));
+    if (splitvec.back() == nodename)
+    {
+      return true;
+    }
+  }
+  return false;
 }
