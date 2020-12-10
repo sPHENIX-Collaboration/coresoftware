@@ -30,7 +30,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
-  virtual int setBranches() { return -1; } // publich bc needed by the sync manager
+  virtual int setBranches() { return -1; }  // publich bc needed by the sync manager
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents
@@ -55,7 +55,7 @@ class Fun4AllInputManager : public Fun4AllBase
   bool FileListEmpty() const { return m_FileList.empty(); }
   virtual int IsOpen() const { return m_IsOpen; }
   virtual int SkipForThisManager(const int nevents) { return 0; }
-  virtual int  HasSyncObject() const {return 0;}
+  virtual int HasSyncObject() const { return 0; }
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");

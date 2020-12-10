@@ -133,7 +133,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     events_thisfile = 0;
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
-// check if our input file has a sync object or not
+                                  // check if our input file has a sync object or not
     if (IManager->NodeExist(syncdefs::SYNCNODENAME))
     {
       m_HaveSyncObject = 1;
@@ -507,7 +507,7 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
   if (IsOpen())
   {
     cout << "BranchSelect(\"" << branch << "\", " << iflag
-	 << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << endl;
+         << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << endl;
     return -1;
   }
   // if iflag > 0 the branch is set to read
