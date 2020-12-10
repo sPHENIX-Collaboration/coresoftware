@@ -155,6 +155,9 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
 //_____________________________________________________________________________
 int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 {
+
+  std::cout << "Fun4AllSingleDstPileupInputManager::run - events: " << nevents << std::endl;
+
   if (!IsOpen())
   {
     if (FileListEmpty())
@@ -251,9 +254,6 @@ readagain:
     }
   }
 
-  // update event counter
-  ++m_events_accepted;
-
   // jump event counter to the last background accepted event
   if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
   return 0;
@@ -323,6 +323,10 @@ int Fun4AllSingleDstPileupInputManager::setBranches()
       for (branchiter = m_branchread.begin(); branchiter != m_branchread.end(); ++branchiter)
       {
         m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        if( m_IManager_background )
+        {
+          m_IManager_background->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        }
         if (Verbosity() > 0)
         {
           std::cout << branchiter->first << " set to " << branchiter->second << std::endl;

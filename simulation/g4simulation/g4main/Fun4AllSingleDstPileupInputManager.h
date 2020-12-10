@@ -63,7 +63,6 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   bool m_ReadRunTTree = true;
   int m_ievent_total = 0;
   int m_ievent_thisfile = 0;
-  int m_events_accepted = 0;
   //@}
 
   std::string m_fullfilename;
