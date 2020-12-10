@@ -7,8 +7,8 @@
 #include "PHNodeIterator.h"
 #include "phooldefs.h"
 
-#include <RVersion.h>
 #include <TBranch.h>                                         // for TBranch
+#include <TBranchElement.h>
 #include <TBranchObject.h>
 #include <TClass.h>
 #include <TDirectory.h>                                      // for TDirectory
@@ -17,12 +17,9 @@
 #include <TObject.h>
 #include <TObjArray.h>                                       // for TObjArray
 #include <TROOT.h>
+#include <TSystem.h>
 #include <TTree.h>
 
-// ROOT version taken from RVersion.h
-#if ROOT_VERSION_CODE >= ROOT_VERSION(3, 01, 5)
-#include <TBranchElement.h>
-#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -291,7 +288,8 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
     return leaf->GetTypeName();
   }
   cout << PHWHERE << "Fatal error, dynamic cast of TBranchObject failed" << endl;
-  exit(1);
+  gSystem->Exit(1);
+  exit(1); // the compiler does not know gSystem->Exit() quits, needs exit to avoid warning
 }
 
 bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
@@ -458,9 +456,9 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     if (!thisClass)
     {
       cout << PHWHERE << endl;
-      cout << "Missing Class: " << branchClassName.c_str() << endl;
+      cout << "Missing Class: " << branchClassName << endl;
       cout << "Did you forget to load the shared library which contains "
-           << branchClassName.c_str() << "?" << endl;
+           << branchClassName << "?" << endl;
     }
     // it does not make sense to continue - the code coredumps
     // later if a class is not loaded
@@ -600,3 +598,24 @@ int PHNodeIOManager::FillBranchMap()
   }
   return 0;
 }
+
+bool PHNodeIOManager::NodeExist(const std::string &nodename)
+{
+  if (fBranches.empty())
+  {
+    FillBranchMap();
+  }
+  string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
+  for (auto iter = fBranches.begin(); iter != fBranches.end(); ++iter)
+  {
+    vector<string> splitvec;
+    boost::split(splitvec, iter->first , boost::is_any_of(delimeters));
+    if (splitvec.back() == nodename)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+

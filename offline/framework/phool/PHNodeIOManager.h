@@ -44,6 +44,7 @@ class PHNodeIOManager : public PHIOManager
   std::map<std::string, TBranch *> *GetBranchMap();
 
   bool write(TObject **, const std::string &, int buffersize, int splitlevel);
+  bool NodeExist(const std::string &nodename);
 
  private:
   int FillBranchMap();
