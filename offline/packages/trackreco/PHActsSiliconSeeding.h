@@ -25,6 +25,7 @@
 #include <TH2.h>
 
 class PHCompositeNode;
+class PHG4CylinderGeomContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
@@ -84,10 +85,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-  
-  void projectToIntt(bool projectToIntt)
-    { m_projectToIntt = projectToIntt; }
-
+ 
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -150,6 +148,7 @@ class PHActsSiliconSeeding : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   CluskeyBimap *m_hitIdCluskey;
   TrkrClusterContainer *m_clusterMap = nullptr;
+  PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   
   /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
@@ -189,16 +188,13 @@ class PHActsSiliconSeeding : public SubsysReco
   const double m_nInttLayerRadii[m_nInttLayers] = 
     {7.188, 7.732, 9.680,10.262}; /// cm
   
-  /// Search windows for phi and z to match intt clusters in cm
+  /// Search window for phi to match intt clusters in cm
   double m_rPhiSearchWin = 0.2;
-  double m_zSearchWin = 0.2;
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
-  
-  bool m_projectToIntt = false;
 
-  bool m_seedAnalysis = false;
+  bool m_seedAnalysis = true;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;

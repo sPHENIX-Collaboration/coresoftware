@@ -10,6 +10,12 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <intt/CylinderGeomIntt.h>
+#include <intt/InttDefs.h>
+
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -47,10 +53,10 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
 
   m_file = new TFile("seedingOutfile.root","recreate");
   h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
-  h_nInttHits = new TH1I("nInttHits",";N_{INTT}",8,0,8);
-  h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",6,0,6,8,0,8);
-  h_nSeeds = new TH1I("nSeeds",";N_{Seeds}",15,0,15);
-  h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",15,0,15);
+  h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
+  h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,80,0,80);
+  h_nSeeds = new TH1I("nSeeds",";N_{Seeds}",200,0,200);
+  h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",2000,0,2000);
   h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",150,0,150);
   h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
   h_hits = new TH2F("hits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
@@ -200,10 +206,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      svtxTrack->insert_cluster_key(cluskey);
 	    }
 	 
-
 	  double x = NAN,y = NAN, z = seed.z() / Acts::UnitConstants::cm;
 	  double px, py, pz;
-
 	  
 	  /// Performs circle fit and extrapolates to INTT layers to
 	  /// to get additional clusters in this track seed
@@ -217,11 +221,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 		svtxTrack->insert_cluster_key(clusters.at(i)->getClusKey());
 		nIntt++;
 	      }
-	    
+
 	  h_nInttHits->Fill(nIntt);
 	  h_nMvtxHits->Fill(nMvtx);
 	  h_nHits->Fill(nMvtx, nIntt);
-
 
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
@@ -339,13 +342,10 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  if(m_projectToIntt)
-    {
-      auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
-      for(auto cluskey : additionalClusters)
-	clusters.push_back(m_clusterMap->findCluster(cluskey));
-    }
-  
+  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
+  for(auto cluskey : additionalClusters)
+    clusters.push_back(m_clusterMap->findCluster(cluskey));
+    
   return charge;
 
 }
@@ -364,6 +364,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   double yProj[m_nInttLayers];
   double zProj[m_nInttLayers];
 
+  /// Diagnostic 
   for(auto clus : clusters)
     {
       h_hits->Fill(clus->getX(), clus->getY());
@@ -456,6 +457,13 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       /// to projections
       const auto projLayer = TrkrDefs::getLayer(cluskey) - 3;
 
+      const auto sphenixLayer = TrkrDefs::getLayer(cluskey);
+  
+      auto layerGeom = dynamic_cast<CylinderGeomIntt*>
+	(m_geomContainerIntt->GetLayerGeom(sphenixLayer));
+
+      const auto stripZSpacing = layerGeom->get_strip_z_spacing();
+
       const double inttClusZ = cluster->getZ();
       const double inttClusR = sqrt(pow(cluster->getX(), 2) + 
 				    pow(cluster->getY(), 2) );
@@ -481,7 +489,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 		     projRphi - inttClusRphi);
 
       if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
-	 fabs(zProj[projLayer] - inttClusZ) < m_zSearchWin)
+	 fabs(zProj[projLayer] - inttClusZ) < stripZSpacing)
 	{
 	  matchedClusters.push_back(cluskey);
 
@@ -840,7 +848,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
 
-  for(auto &[hitId, sl] : *m_sourceLinks)
+  for(const auto &[hitId, sl] : *m_sourceLinks)
     {
       /// collect only source links in MVTX
       auto volume = sl.referenceSurface().geometryId().volume();
@@ -913,6 +921,14 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 {
+  m_geomContainerIntt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  if(!m_geomContainerIntt)
+    {
+      std::cout << PHWHERE << "CYLINDERGEOM_INTT node not found on node tree"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
   if(!m_sourceLinks)
     {
