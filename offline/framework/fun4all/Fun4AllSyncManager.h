@@ -55,14 +55,15 @@ class Fun4AllSyncManager : public Fun4AllBase
   const std::vector<Fun4AllInputManager *> GetInputManagers() const { return m_InManager; }
 
  private:
+  void PrintSyncProblem() const;
   int CheckSync(unsigned i);
-  int m_PrdfSegment;
-  int m_PrdfEvents;
-  int m_EventsTotal;
-  int m_CurrentRun;
-  int m_CurrentEvent;
-  int m_Repeat;
-  SyncObject *m_MasterSync;
+  int m_PrdfSegment = 0;
+  int m_PrdfEvents = 0;
+  int m_EventsTotal = 0;
+  int m_CurrentRun = 0;
+  int m_CurrentEvent = 0;
+  int m_Repeat = 0;
+  SyncObject *m_MasterSync = nullptr;
   std::vector<Fun4AllInputManager *> m_InManager;
   std::vector<int> m_iretInManager;
 };
