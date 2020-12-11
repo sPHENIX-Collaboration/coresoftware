@@ -135,6 +135,8 @@ libg4testbench_la_SOURCES = \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
   Fun4AllDstPileupInputManager.cc \
+  Fun4AllDstPileupMerger.cc \
+  Fun4AllSingleDstPileupInputManager.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -182,6 +184,8 @@ libg4testbench_la_SOURCES = \
 pkginclude_HEADERS = \
   EicEventHeader.h \
   Fun4AllDstPileupInputManager.h \
+  Fun4AllDstPileupMerger.h \
+  Fun4AllSingleDstPileupInputManager.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
@@ -257,4 +261,4 @@ testexternals.cc:
 
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm 
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

@@ -5,8 +5,8 @@
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
-#include <odbc++/statement.h>         // for Statement
-#include <odbc++/types.h>             // for SQLException
+#include <odbc++/statement.h>  // for Statement
+#include <odbc++/types.h>      // for SQLException
 
 #include <boost/tokenizer.hpp>
 
@@ -19,7 +19,7 @@
 
 using namespace std;
 
-std::string
+const char *
 FROG::location(const string &logical_name)
 {
   pfn = logical_name;
@@ -36,7 +36,7 @@ FROG::location(const string &logical_name)
         cout << "FROG: found / in filename, assuming it contains a full path" << endl;
       }
     }
-    return pfn;
+    return pfn.c_str();
   }
   try
   {
@@ -105,7 +105,7 @@ FROG::location(const string &logical_name)
     }
   }
   Disconnect();
-  return pfn;
+  return pfn.c_str();
 }
 
 bool FROG::localSearch(const string &logical_name)

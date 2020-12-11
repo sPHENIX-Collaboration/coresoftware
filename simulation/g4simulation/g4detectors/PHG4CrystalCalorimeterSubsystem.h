@@ -43,27 +43,11 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
 
   /** Set mapping file for calorimeter towers
    */
-  void SetTowerMappingFile(const std::string &filename)
-  {
-    mappingfile_ = filename;
-  }
+  void SetTowerMappingFile(const std::string &filename);
 
   /** Select projective geometry for calorimeter
    */
-  void SetProjectiveGeometry(const std::string &filename1, const std::string &filename2)
-  {
-    mappingfile_ = filename1;
-    mappingfile_4x4_construct_ = filename2;
-    projective_ = true;
-  }
-  //  void SetGeometryConfiguration
-
-  /** Enum for different geometry configurations
-   */
-  //  static const enum GeometryConfiguration {
-  //    kNonProjective,
-  //    kProjectiveV1
-  //  };
+  void SetProjectiveGeometry(const std::string &filename1, const std::string &filename2);
 
  private:
   //! set detector specific parameters and their defaults
@@ -82,11 +66,6 @@ class PHG4CrystalCalorimeterSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction = nullptr;
-
-  std::string mappingfile_;
-  std::string mappingfile_4x4_construct_;
-
-  bool projective_;
 };
 
 #endif

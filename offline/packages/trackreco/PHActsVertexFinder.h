@@ -28,6 +28,7 @@ using TrackPtrVector = std::vector<const Acts::BoundTrackParameters*>;
 using VertexMap = std::map<unsigned int, 
                            Acts::Vertex<Acts::BoundTrackParameters>>;
 
+using KeyMap = std::map<const Acts::BoundTrackParameters*, const unsigned int>;
 
 /**
  * This class calls the Acts::IterativeVertexFinder which takes a 
@@ -56,15 +57,14 @@ class PHActsVertexFinder: public PHInitVertexing
   int getNodes(PHCompositeNode *topNode);
 
   /// Get list of tracks from PHActsTrkFitter to vertex fit
-  std::vector<const Acts::BoundTrackParameters*> getTracks(
-             std::map<const double, const unsigned int>& keyMap);
+  TrackPtrVector getTracks(KeyMap& keyMap);
 
   /// Call acts vertex finder
   VertexVector findVertices(TrackPtrVector& tracks);
 
   /// Fill maps with relevant vertex information 
   void fillVertexMap(VertexVector& vertices,
-		     std::map<const double, const unsigned int>& keyMap);
+		     KeyMap& keyMap);
   
   /// The acts trajectories from PHActsTrkFitter
   std::map<const unsigned int, Trajectory> *m_actsFitResults;

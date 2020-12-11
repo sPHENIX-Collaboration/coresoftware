@@ -1,9 +1,9 @@
 /*!
- * \file Fun4AllDstPileupInputManager.cc
+ * \file Fun4AllSingleDstPileupInputManager.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include "Fun4AllDstPileupInputManager.h"
+#include "Fun4AllSingleDstPileupInputManager.h"
 #include "Fun4AllDstPileupMerger.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -43,7 +43,7 @@
 #include <utility>   // for pair
 
 //_____________________________________________________________________________
-Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
+Fun4AllSingleDstPileupInputManager::Fun4AllSingleDstPileupInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
 {
   // initialize random generator
@@ -53,7 +53,7 @@ Fun4AllDstPileupInputManager::Fun4AllDstPileupInputManager(const std::string &na
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
+int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
 {
   /*
   this is largely copied from fun4all/Fun4AllDstInputManager::fileopen
@@ -134,6 +134,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
 
   // open file in both active and background input manager
   m_IManager.reset(new PHNodeIOManager(m_fullfilename, PHReadOnly));
+  m_IManager_background.reset(new PHNodeIOManager(m_fullfilename, PHReadOnly));
   if (m_IManager->isFunctional())
   {
     IsOpen(1);
@@ -146,38 +147,82 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   {
     std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
     m_IManager.reset();
+    m_IManager_background.reset();
     return -1;
   }
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::run(const int nevents)
+int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 {
 
-  if( nevents == 0 ) return runOne( nevents );
-  else if( nevents > 1 )
+  if (!IsOpen())
   {
-    const auto result = runOne( nevents-1 );
-    if( result != 0 ) return result;
+    if (FileListEmpty())
+    {
+      if (Verbosity() > 0) std::cout << Name() << ": No Input file open" << std::endl;
+      return -1;
+    }
+    else
+    {
+      if (OpenNextFile())
+      {
+        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+        return -1;
+      }
+    }
   }
 
-  /*
-   * assign/create relevant dst nodes if not already there
-   * this normally happens in ::fileopen however, when the file is not oppened during first event, for instance because background rate is too low,
-   * this can cause fun4all server to bark with "Someone changed the number of Output Nodes on the fly"
-   */
-  if( !m_dstNode )
+  if (Verbosity() > 3)
   {
-    auto se = Fun4AllServer::instance();
-    m_dstNode = se->getNode(InputNode(), TopNodeName());
+    std::cout << "Getting Event from " << Name() << std::endl;
   }
 
-  if (!m_dstNodeInternal)
+readagain:
+
+  // read main event to dstNode
+  auto dummy = m_IManager->read(m_dstNode);
+  int ncount = 0;
+  while (dummy)
   {
-    m_dstNodeInternal.reset(new PHCompositeNode("DST_INTERNAL"));
+    ++ncount;
+    if (nevents > 0 && ncount >= nevents) break;
+    dummy = m_IManager->read(m_dstNode);
   }
 
-  // create merger node
+  if (!dummy)
+  {
+    fileclose();
+    if (!OpenNextFile())
+      goto readagain;
+    else
+      return -1;
+  }
+
+  m_ievent_total += ncount;
+  m_ievent_thisfile += ncount;
+
+  // check events consistency
+  if (m_ievent_thisfile != static_cast<int>(m_IManager->getEventNumber()))
+  {
+    std::cout << PHWHERE
+              << " inconsistent event counters between inputmanager and ionode manager: "
+              << " m_ievent_thisfile: " << m_ievent_thisfile
+              << " m_IManager->getEventNumber(): " << m_IManager->getEventNumber()
+              << std::endl;
+    gSystem->Exit(1);
+  }
+
+  // check if the local SubsysReco discards this event
+  if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
+  {
+    std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+    goto readagain;
+  }
+
+  // load relevant DST nodes to internal pointers
+  std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+
   Fun4AllDstPileupMerger merger;
   merger.load_nodes(m_dstNode);
 
@@ -186,6 +231,8 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
 
   const int min_crossing = m_tmin/m_time_between_crossings;
   const int max_crossing = m_tmax/m_time_between_crossings;
+  int ievent_thisfile = m_ievent_thisfile;
+  int neventsbackground = 0;
   for( int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing )
   {
     const double crossing_time = m_time_between_crossings * icrossing;
@@ -193,22 +240,25 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
     for (int icollision = 0; icollision < ncollisions; ++icollision)
     {
 
-      // read one event
-      const auto result = runOne( 1 );
-      if( result != 0 ) return result;
+      // try read
+      if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
 
       // merge
-      std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << m_ievent_thisfile << " time: " << crossing_time << std::endl;
+      std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
+      ++neventsbackground;
+      ++ievent_thisfile;
     }
   }
 
+  // jump event counter to the last background accepted event
+  if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
   return 0;
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::fileclose()
+int Fun4AllSingleDstPileupInputManager::fileclose()
 {
   if (!IsOpen())
   {
@@ -216,13 +266,14 @@ int Fun4AllDstPileupInputManager::fileclose()
     return -1;
   }
   m_IManager.reset();
+  m_IManager_background.reset();
   IsOpen(0);
   UpdateFileList();
   return 0;
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::BranchSelect(const std::string &branch, const int iflag)
+int Fun4AllSingleDstPileupInputManager::BranchSelect(const std::string &branch, const int iflag)
 {
   int myflag = iflag;
   // if iflag > 0 the branch is set to read
@@ -260,7 +311,7 @@ int Fun4AllDstPileupInputManager::BranchSelect(const std::string &branch, const 
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::setBranches()
+int Fun4AllSingleDstPileupInputManager::setBranches()
 {
   if (m_IManager)
   {
@@ -270,6 +321,10 @@ int Fun4AllDstPileupInputManager::setBranches()
       for (branchiter = m_branchread.begin(); branchiter != m_branchread.end(); ++branchiter)
       {
         m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        if( m_IManager_background )
+        {
+          m_IManager_background->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        }
         if (Verbosity() > 0)
         {
           std::cout << branchiter->first << " set to " << branchiter->second << std::endl;
@@ -287,14 +342,14 @@ int Fun4AllDstPileupInputManager::setBranches()
 }
 
 //_____________________________________________________________________________
-void Fun4AllDstPileupInputManager::Print(const std::string &what) const
+void Fun4AllSingleDstPileupInputManager::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "BRANCH")
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of selected branches in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
+    std::cout << "List of selected branches in Fun4AllSingleDstPileupInputManager " << Name() << ":" << std::endl;
 
     std::map<const std::string, int>::const_iterator iter;
     for (iter = m_branchread.begin(); iter != m_branchread.end(); ++iter)
@@ -316,7 +371,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "PHNodeIOManager print in Fun4AllDstPileupInputManager " << Name() << ":" << std::endl;
+    std::cout << "PHNodeIOManager print in Fun4AllSingleDstPileupInputManager " << Name() << ":" << std::endl;
     m_IManager->print();
   }
   Fun4AllInputManager::Print(what);
@@ -324,7 +379,7 @@ void Fun4AllDstPileupInputManager::Print(const std::string &what) const
 }
 
 //_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
+int Fun4AllSingleDstPileupInputManager::PushBackEvents(const int i)
 {
   if (m_IManager)
   {
@@ -340,62 +395,3 @@ int Fun4AllDstPileupInputManager::PushBackEvents(const int i)
   return -1;
 }
 
-//_____________________________________________________________________________
-int Fun4AllDstPileupInputManager::runOne(const int nevents)
-{
-  if (!IsOpen())
-  {
-    if (FileListEmpty())
-    {
-      if (Verbosity() > 0)
-      {
-        std::cout << Name() << ": No Input file open" << std::endl;
-      }
-      return -1;
-    }
-    else
-    {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
-    }
-  }
-  if (Verbosity() > 3)
-  {
-    std::cout << "Getting Event from " << Name() << std::endl;
-  }
-
-readagain:
-
-  // read main event to dstNode
-  auto dummy = m_IManager->read(m_dstNodeInternal.get());
-  int ncount = 0;
-  while (dummy)
-  {
-    ++ncount;
-    if (nevents > 0 && ncount >= nevents)
-    {
-      break;
-    }
-    dummy = m_IManager->read(m_dstNodeInternal.get());
-  }
-  if (!dummy)
-  {
-    fileclose();
-    if (!OpenNextFile())
-    {
-      goto readagain;
-    }
-    return -1;
-  }
-  m_ievent_total += ncount;
-  m_ievent_thisfile += ncount;
-  // check if the local SubsysReco discards this event
-  if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
-  {
-    goto readagain;
-  }
-  return 0;
-}

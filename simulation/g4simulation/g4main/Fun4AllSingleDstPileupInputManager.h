@@ -1,10 +1,10 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
-#define G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H
+#ifndef G4MAIN_FUN4ALLSINGLEDSTPILEUPINPUTMANAGER_H
+#define G4MAIN_FUN4ALLSINGLEDSTPILEUPINPUTMANAGER_H
 
 /*!
- * \file Fun4AllDstPileupInputManager.h
+ * \file Fun4AllSingleDstPileupInputManager.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -25,10 +25,10 @@
  * dedicated input manager that merges single events into "merged" events, containing a trigger event
  * and a number of time-shifted pile-up events corresponding to a given pile-up rate
 */
-class Fun4AllDstPileupInputManager : public Fun4AllInputManager
+class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
 {
  public:
-  Fun4AllDstPileupInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
+  Fun4AllSingleDstPileupInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   int fileopen(const std::string &filenam) override;
   int fileclose() override;
   int run(const int nevents = 0) override;
@@ -58,9 +58,6 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   }
 
  private:
-
-  //! loads one event on internal DST node
-  int runOne(const int nevents = 0);
 
   //!@name event counters
   //@{
@@ -92,6 +89,10 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   /*! corresponding nodes are copied directly to the topNode */
   std::unique_ptr<PHNodeIOManager> m_IManager;
 
+  //! input manager for background (pileup) events
+  /*! corresponding nodes are copied to the internal dst node, then merged to the top node */
+  std::unique_ptr<PHNodeIOManager> m_IManager_background;
+
   //! time between crossings. This is a RHIC constant (ns)
   double m_time_between_crossings = 106;
 
@@ -115,4 +116,4 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
 
 };
 
-#endif /* __Fun4AllDstPileupInputManager_H__ */
+#endif /* __Fun4AllSingleDstPileupInputManager_H__ */
