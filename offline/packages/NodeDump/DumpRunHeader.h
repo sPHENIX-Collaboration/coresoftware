@@ -15,7 +15,7 @@ class DumpRunHeader : public DumpObject
 
  protected:
   int process_Node(PHNode *mynode);
-  int node_written;
+  int node_written = 0;
 };
 
 #endif

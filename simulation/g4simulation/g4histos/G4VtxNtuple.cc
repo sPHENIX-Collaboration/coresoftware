@@ -8,12 +8,9 @@
 
 #include <phool/getClass.h>
 
-#include <TFile.h>
-#include <TH1.h>
 #include <TNtuple.h>
 
 #include <sstream>
-#include <utility>  // for pair
 
 using namespace std;
 

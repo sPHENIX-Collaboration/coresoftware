@@ -7,6 +7,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#if __cplusplus < 201402L
+#include <boost/make_unique.hpp>
+#endif
+
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
@@ -39,6 +43,7 @@
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 
+#include <memory>
 #include <iostream>
 
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
@@ -69,12 +74,21 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
 
+  /// Create a map that correlates the track momentum to the track key
+  KeyMap keyMap;
+
   /// Get the list of tracks in Acts form
-  auto trackPointers = getTracks();
+  auto trackPointers = getTracks(keyMap);
 
   auto vertices = findVertices(trackPointers);
 
-  fillVertexMap(vertices);
+  fillVertexMap(vertices, keyMap);
+
+  /// Clean up the track pointer vector memory
+  for(auto track : trackPointers)
+    {
+      delete track;
+    }
 
   if(Verbosity() > 0)
     std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
@@ -98,7 +112,7 @@ int PHActsVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks()
+TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
@@ -110,8 +124,8 @@ std::vector<const Acts::BoundTrackParameters*> PHActsVertexFinder::getTracks()
       {
 	if(traj.hasTrackParameters(trackTip))
 	  {
-	    const Acts::BoundTrackParameters *param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	 
+	    const auto param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
+	    keyMap.insert(std::make_pair(param, key));
 	    trackPtrs.push_back(param);
 	  }
       }
@@ -167,7 +181,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       static_assert(Acts::VertexFinderConcept<VertexFinder>,
 		    "VertexFinder does not fulfill vertex finder concept.");
 
-      auto logLevel = Acts::Logging::INFO;
+      auto logLevel = Acts::Logging::FATAL;
       if(Verbosity() > 4)
 	logLevel = Acts::Logging::VERBOSE;
       auto logger = Acts::getDefaultLogger("PHActsVertexFinder", logLevel);
@@ -237,7 +251,8 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 
 
 
-void PHActsVertexFinder::fillVertexMap(VertexVector& vertices)
+void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
+				       KeyMap& keyMap)
 {
   unsigned int key = 0;
   for(auto vertex : vertices)
@@ -263,24 +278,38 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices)
       m_actsVertexMap->insert(pair);
 
       /// Fill SvtxVertexMap
-      auto svtxVertex = new SvtxVertex_v1();
-      svtxVertex->set_x(vertex.position().x());
-      svtxVertex->set_y(vertex.position().y());
-      svtxVertex->set_z(vertex.position().z());
+      #if __cplusplus < 201402L
+      auto svtxVertex = boost::make_unique<SvtxVertex_v1>();
+      #else
+      auto svtxVertex = std::make_unique<SvtxVertex_v1>();
+      #endif
+
+      svtxVertex->set_x(vertex.position().x() / Acts::UnitConstants::cm);  
+      svtxVertex->set_y(vertex.position().y() / Acts::UnitConstants::cm);
+      svtxVertex->set_z(vertex.position().z() / Acts::UnitConstants::cm);
       for(int i = 0; i < 3; ++i) 
 	{
 	  for(int j = 0; j < 3; ++j)
 	    {
 	      svtxVertex->set_error(i, j,
-				    vertex.covariance()(i,j));
+				    vertex.covariance()(i,j) / Acts::UnitConstants::cm2); 
 	    }
 	}
+
+      for(const auto track : vertex.tracks())
+	{
+	  const auto originalParams = track.originalParams;
+	  const auto trackKey = keyMap.find(originalParams)->second;
+	  svtxVertex->insert_track(trackKey);
+
+	}
+
       svtxVertex->set_chisq(chi2);
       svtxVertex->set_ndof(ndf);
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(key);
-      
-      m_svtxVertexMap->insert(svtxVertex);
+
+      m_svtxVertexMap->insert(svtxVertex.release());
 
       ++key;
     }
@@ -318,8 +347,8 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       PHDataNode<VertexMap> *node = 
 	new PHDataNode<VertexMap>(m_actsVertexMap,
 				  "ActsVertexMap");
-      if(m_addActsVertexNode)
-	svtxNode->addNode(node);
+   
+      svtxNode->addNode(node);
     }
 
   m_svtxVertexMap = 

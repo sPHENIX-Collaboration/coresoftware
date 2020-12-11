@@ -4,9 +4,9 @@
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
 #include <HepMC/HeavyIon.h>
-
 #include <HepMC/PdfInfo.h>
 #include <HepMC/Polarization.h>
+#include <HepMC/SimpleVector.h>
 #include <HepMC/WeightContainer.h>
 
 #ifdef __CINT__

@@ -39,19 +39,24 @@ class PHGenFitTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-	int get_pid_guess() const {
-		return _pid_guess;
-	}
-
-	void set_pid_guess(int pidGuess) {
-		_pid_guess = pidGuess;
-	}
-
+  int get_pid_guess() const {
+    return _pid_guess;
+  }
+  
+  void set_pid_guess(int pidGuess) {
+    _pid_guess = pidGuess;
+  }
+  
+  void use_poscalib_cemc_clusters(bool calib) {
+    _use_poscalib_cemc = calib;
+  }
 
  private:
 
   PHGenFit::Fitter * _fitter;
   int _pid_guess;
+
+  bool _use_poscalib_cemc = false;
 
   int _num_cal_layers;
   std::vector<SvtxTrack::CAL_LAYER> _cal_types;

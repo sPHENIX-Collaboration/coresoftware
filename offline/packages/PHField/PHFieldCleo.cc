@@ -1,13 +1,14 @@
 #include "PHFieldCleo.h"
 
-#include <BeastMagneticField.h>
-
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <TSystem.h>
 
+#include <cmath>                        // for modf, fabs, isfinite, NAN
+#include <cstdlib>                     // for exit
 #include <fstream>
 #include <iostream>
+#include <memory>                       // for allocator_traits<>::value_type
 
 using namespace std;
 

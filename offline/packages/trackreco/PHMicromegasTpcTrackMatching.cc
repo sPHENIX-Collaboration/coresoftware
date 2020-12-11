@@ -449,7 +449,7 @@ void PHMicromegasTpcTrackMatching::CircleFitByTaubin (std::vector<TrkrCluster*> 
       double xnew = x - y/Dy;
       if ((xnew == x)||(!isfinite(xnew))) break;
       double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
-      if (abs(ynew)>=abs(y))  break;
+      if (fabs(ynew)>=fabs(y))  break;
       x = xnew;  y = ynew;
     }
   

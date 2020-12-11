@@ -717,7 +717,7 @@ int Fun4AllServer::ResetNodeTree()
   vector<string> ResetNodeList;
   ResetNodeList.push_back("DST");
   PHNodeReset reset;
-  reset.Verbosity(Verbosity() > 0 ? Verbosity() - 1 : 0);  // one lower verbosity level than Fun4AllServer
+  reset.Verbosity(Verbosity() > 2 ? Verbosity() - 2 : 0);  // one lower verbosity level than Fun4AllServer
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
@@ -1409,23 +1409,10 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= VERBOSITY_SOME)
+    if (Verbosity() >= 1)
     {
-      // print event cycle counter in log scale if VERBOSITY_SOME
-      double significand = 0;
-      if (icnt > 0)
-      {
-        significand = icnt / pow(10, (int) (log10(icnt)));
-      }
-
-      if ((fmod(significand, 1.0) == 0 && significand <= 10) or icnt == 0)
-      {
-        cout << "Fun4AllServer::run - process_event cycle "
-             << icnt << "\t for run " << runnumber;
-        if (require_nevents)
-          cout << ", " << icnt_good << " good event so far";
-        cout << endl;
-      }
+        cout << "Fun4AllServer::run - processing event "
+             << (icnt+1) << " from run " << runnumber << endl;
     }
 
     if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)

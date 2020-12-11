@@ -6,56 +6,54 @@
 
 class PHObject;
 
-using namespace std;
-
 void SyncObject::Reset()
 {
-  cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << endl;
-  return ;
+  std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
+  return;
 }
 
-void SyncObject::identify(ostream& os) const
+void SyncObject::identify(std::ostream& os) const
 {
-  os << "identify yourself: virtual SyncObject Object" << endl;
-  return ;
+  os << "identify yourself: virtual SyncObject Object" << std::endl;
+  return;
 }
 
 int SyncObject::isValid() const
 {
-  cout << PHWHERE << "isValid not implemented by daughter class" << endl;
+  std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
   return 0;
 }
 
 PHObject*
 SyncObject::CloneMe() const
 {
-  cout << "SyncObject::CloneMe() not implemented by daughter class" << endl;
+  std::cout << "SyncObject::CloneMe() not implemented by daughter class" << std::endl;
   return nullptr;
 }
 
 SyncObject&
 SyncObject::operator=(const SyncObject& source)
 {
-  if ( this != &source )
-    {
-      EventCounter(source.EventCounter());
-      EventNumber(source.EventNumber());
-      RunNumber(source.RunNumber());
-      SegmentNumber(source.SegmentNumber());
-    }
+  if (this != &source)
+  {
+    EventCounter(source.EventCounter());
+    EventNumber(source.EventNumber());
+    RunNumber(source.RunNumber());
+    SegmentNumber(source.SegmentNumber());
+  }
   return *this;
 }
 
-int SyncObject::Different(const SyncObject *other) const
+int SyncObject::Different(const SyncObject* other) const
 {
   int iret = 0;
   if (EventNumber() != other->EventNumber())
-    {
-      iret += 0x1;
-    }
+  {
+    iret += 0x1;
+  }
   if (RunNumber() != other->RunNumber())
-    {
-      iret |= 0x2;
-    }
+  {
+    iret |= 0x2;
+  }
   return iret;
 }

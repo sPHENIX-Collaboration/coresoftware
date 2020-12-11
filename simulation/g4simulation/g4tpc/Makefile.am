@@ -30,48 +30,28 @@ pkginclude_HEADERS = \
   PHG4TpcDigitizer.h \
   PHG4TpcSubsystem.h \
   PHG4TpcEndCapSubsystem.h \
-  PHG4TpcDistortion.h \
-  PHG4TpcSpaceChargeDistortion.h \
-  DistortedTrackContainer.h \
-  DistortionStruct.h
-
-ROOTDICTS = \
-  DistortedTrackContainer_Dict.cc
-
- pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-  DistortedTrackContainer_Dict_rdict.pcm
+  PHG4TpcDistortion.h
 
 libg4tpc_la_SOURCES = \
-  $(ROOTDICTS) \
   PHG4TpcDetector.cc \
   PHG4TpcEndCapDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDisplayAction.cc \
   PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcDistortion.cc \
-  DistortedTrackContainer.cc \
   PHG4TpcElectronDrift.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
-  PHG4TpcSpaceChargeDistortion.cc \
   PHG4TpcSteppingAction.cc \
   PHG4TpcEndCapSteppingAction.cc \
   PHG4TpcSubsystem.cc \
   PHG4TpcEndCapSubsystem.cc
 
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals 
+  testexternals
 
 BUILT_SOURCES = testexternals.cc
 

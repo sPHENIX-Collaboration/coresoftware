@@ -43,6 +43,8 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsTrkProp.h \
+  PHActsSiliconSeeding.h \
+  PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
@@ -56,6 +58,7 @@ pkginclude_HEADERS = \
   PHSiliconTpcTrackMatching.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
+  PHTpcClusterMover.h \
   PHTpcResiduals.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
@@ -106,10 +109,12 @@ ACTS_SOURCES = \
   ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsSiliconSeeding.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
+  PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
   PHActsVertexFitter.cc \
   PHActsTrackProjection.cc \
@@ -146,6 +151,7 @@ libtrack_reco_la_SOURCES = \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
+  PHTpcClusterMover.cc \
   PHTruthClustering.cc \
   PHTruthVertexing.cc \
   PHSiliconTpcTrackMatching.cc \

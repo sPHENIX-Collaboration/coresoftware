@@ -12,6 +12,7 @@ libg4dst_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
   -lcalotrigger_io \
+  -lffaobjects \
   -lg4bbc_io \
   -lg4detectors_io \
   -lg4intt_io \
