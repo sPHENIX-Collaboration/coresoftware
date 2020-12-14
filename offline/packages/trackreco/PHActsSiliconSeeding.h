@@ -140,6 +140,16 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& yplus,
 				double& xminus,
 				double& yminus);
+  void createSvtxTrack(const double x,
+		       const double y,
+		       const double z,
+		       const double px,
+		       const double py,
+		       const double pz,
+		       const int charge,
+		       const std::vector<TrkrCluster*> clusters);
+  std::map<const unsigned int, std::vector<TrkrCluster*>>
+    makePossibleStubs(std::vector<TrkrCluster*> allClusters);
 
   double normPhi2Pi(const double phi);
 
@@ -200,6 +210,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH1 *h_nInttHits = nullptr;
   TH2 *h_nHits = nullptr;
   TH1 *h_nSeeds = nullptr;
+  TH1 *h_nTotSeeds = nullptr;
   TH1 *h_nInputMeas = nullptr;
   TH1 *h_nInputMvtxMeas = nullptr;
   TH1 *h_nInputInttMeas = nullptr;
