@@ -490,8 +490,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       h_resids->Fill(zProj[projLayer] - inttClusZ,
 		     projRphi - inttClusRphi);
 
+      /// Z strip spacing is the entire strip, so because we use fabs
+      /// we divide by two
       if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
-	 fabs(zProj[projLayer] - inttClusZ) < stripZSpacing)
+	 fabs(zProj[projLayer] - inttClusZ) < stripZSpacing / 2.)
 	{
 	  matchedClusters.push_back(cluskey);
 

@@ -189,7 +189,7 @@ class PHActsSiliconSeeding : public SubsysReco
     {7.188, 7.732, 9.680,10.262}; /// cm
   
   /// Search window for phi to match intt clusters in cm
-  double m_rPhiSearchWin = 0.2;
+  double m_rPhiSearchWin = 0.1;
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
