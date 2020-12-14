@@ -55,7 +55,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
   h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
   h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,80,0,80);
-  h_nSeeds = new TH1I("nSeeds",";N_{Seeds}",200,0,200);
+  h_nSeeds = new TH1I("nSeeds",";N_{Seeds}",400,0,400);
   h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",2000,0,2000);
   h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",150,0,150);
   h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
@@ -358,8 +358,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 				      const double B,
 				      const double m)
 {
-  std::vector<TrkrDefs::cluskey> additionalClusters;
-  
+
   double xProj[m_nInttLayers];
   double yProj[m_nInttLayers];
   double zProj[m_nInttLayers];
@@ -432,7 +431,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	}
     }
 
-  additionalClusters = matchInttClusters(xProj, yProj, zProj);
+  auto additionalClusters = matchInttClusters(xProj, yProj, zProj);
 
   return additionalClusters;
 }
@@ -478,12 +477,15 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 		    inttClusR);
 
       if(Verbosity() > 2)
-	std::cout << "Checking INTT cluster with " << cluster->getX()
+	std::cout << "Checking INTT cluster with position " << cluster->getX()
 		  << ", " << cluster->getY() << ", " << cluster->getZ()
 		  << std::endl << " with projections rphi "
-		  << projRphi << " and clus rphi " << inttClusRphi
-		  << " and proj z " << zProj[projLayer] << " and clus z "
-		  << inttClusZ << " in layer " << projLayer << std::endl;
+		  << projRphi << " and inttclus rphi " << inttClusRphi
+		  << " and proj z " << zProj[projLayer] << " and inttclus z "
+		  << inttClusZ << " in layer " << projLayer 
+		  << " with search windows " << m_rPhiSearchWin 
+		  << " in rphi and strip z spacing " << stripZSpacing 
+		  << std::endl;
 
       h_resids->Fill(zProj[projLayer] - inttClusZ,
 		     projRphi - inttClusRphi);
