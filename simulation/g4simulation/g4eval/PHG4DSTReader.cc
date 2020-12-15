@@ -546,8 +546,8 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       for (PartSet_t::const_iterator i = _particle_set.begin();
            i != _particle_set.end(); ++i)
       {
-        auto particle_iter = truthInfoList->GetMap().find(*i);
-        if (particle_iter == truthInfoList->GetMap().end())
+        auto particle = truthInfoList->GetParticle(*i);
+        if (!particle)
         {
           cout
               << "PHG4DSTReader::process_event - ERROR - can not find particle/track ID "
@@ -556,8 +556,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           continue;
         }
 
-        PHG4Particle *part = particle_iter->second;
-        add_particle(rec, part);
+        add_particle(rec, particle);
       }  // for(PartSet_t::const_iterator i = _particle_set.begin();i!=_particle_set.end();i++)
 
     }  //      if (rec._type == record::typ_part)
