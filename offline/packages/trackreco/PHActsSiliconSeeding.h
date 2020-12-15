@@ -68,7 +68,8 @@ using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
- * recognition
+ * recognition. The module also projects the MVTX stubs to the INTT
+ * to find possible matches in the INTT to the MVTX triplet.
  */
 class PHActsSiliconSeeding : public SubsysReco
 {
@@ -108,7 +109,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints();
 
-  /// Perform circle/line fits with the final seed to get
+  /// Perform circle/line fits with the final MVTX seed to get
   /// initial point and momentum estimates for stub matching
   int circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		     double& x, double& y, double& z,
@@ -122,6 +123,8 @@ class PHActsSiliconSeeding : public SubsysReco
   int getCharge(const std::vector<TrkrCluster*>& clusters,
 		const double circPhi);
 
+  /// Projects circle fit to INTT radii to find possible INTT clusters
+  /// belonging to MVTX track stub
   std::vector<TrkrDefs::cluskey> findInttMatches(
 			const std::vector<TrkrCluster*>& clusters,
 			const double R,
@@ -150,7 +153,8 @@ class PHActsSiliconSeeding : public SubsysReco
 		       const std::vector<TrkrCluster*> clusters);
   std::map<const unsigned int, std::vector<TrkrCluster*>>
     makePossibleStubs(std::vector<TrkrCluster*> allClusters);
-
+  void createHistograms();
+  void writeHistograms();
   double normPhi2Pi(const double phi);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
@@ -204,7 +208,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
-  bool m_seedAnalysis = true;
+  bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;

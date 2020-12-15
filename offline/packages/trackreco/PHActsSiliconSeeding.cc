@@ -51,21 +51,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
 
-  m_file = new TFile("seedingOutfile.root","recreate");
-  h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
-  h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
-  h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,80,0,80);
-  h_nSeeds = new TH1I("nActsSeeds",";N_{Seeds}",400,0,400);
-  h_nTotSeeds = new TH1I("nTotSeeds",";N_{Seeds}",500,0,500);
-  h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",2000,0,2000);
-  h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",150,0,150);
-  h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",150,0,150);
-  h_hits = new TH2F("hits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
-  h_zhits = new TH2F("zhits",";z [cm]; r [cm]",1000,-30,30,1000,-30,30);
-  h_projHits = new TH2F("projhits",";x [cm]; y [cm]",1000,-20,20,1000,-20,20);
-  h_zprojHits = new TH2F("zprojhits",";z [cm]; r [cm]",1000,-30,30,1000,-30,30);
-  h_resids = new TH2F("resids",";z_{resid} [cm]; rphi_{resid} [cm]",
-		      100,-1,1,100,-1,1);
+  createHistograms();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -104,23 +90,9 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
 {
   if(m_seedAnalysis)
     {
-      m_file->cd();
-      h_nMvtxHits->Write();
-      h_nSeeds->Write();
-      h_nTotSeeds->Write();
-      h_nInttHits->Write();
-      h_nInputMeas->Write();
-      h_nHits->Write();
-      h_nInputMvtxMeas->Write();
-      h_nInputInttMeas->Write();
-      h_hits->Write();
-      h_zhits->Write();
-      h_projHits->Write();
-      h_zprojHits->Write();
-      h_resids->Write();
-      m_file->Write();      
-      m_file->Close();
+      writeHistograms();
     }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -129,7 +101,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
   
   Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
   
-  /// Covariance converter tool needed by seed finder
+  /// Covariance converter functor needed by seed finder
   auto covConverter = [=](const SpacePoint& sp, float, float, float)
     -> Acts::Vector2D { return {sp.m_varianceRphi, sp.m_varianceZ};
   };
@@ -137,6 +109,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
   auto spVec = getMvtxSpacePoints();
 
   h_nInputMeas->Fill(spVec.size());
+
   std::unique_ptr<Acts::SpacePointGrid<SpacePoint>> grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
 
@@ -333,7 +306,8 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
       stubs.insert(std::make_pair(combo, mvtxClusters));
     }
 
-  /// If we have only one INTT hit, make a single stub and return
+  /// If we have only one matched INTT hit, 
+  /// make a single stub and return
   else if(inttFirstLayerClusters.size() == 1 and 
      inttSecondLayerClusters.size() == 0)
     {
@@ -350,6 +324,7 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
     }
   else
     {
+      /// Otherwise we have 2 or more INTT matched hits
       /// Find combinations of INTT clusters that were within
       /// the nominal matching windows if each INTT layer group
       /// had at least one cluster
@@ -386,11 +361,12 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 
   findRoot(R, X0, Y0, x, y);
 
-  /// If the x or y initial position was found to be greater than 10 cm
-  /// it is a bad seed
+  /// If the min x or y initial position was found to be greater 
+  /// than 10 cm that means it is a bad seed
   if(fabs(x) > 10. or fabs(y) > 10.)
     {
       x = NAN;
+      y = NAN;
       /// Return statement doesn't matter as x = nan will be caught
       return 1;
     }
@@ -400,8 +376,9 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   /// Now determine the line tangent to the circle at this point to get phi
   /// The slope of the line connecting the circle center and PCA is 
   /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
-  /// For some reason the phi value comes back off a factor of pi for positive
-  /// charged tracks, hence the check for that
+  /// For some reason the phi value comes back from atan2 off by 
+  /// a factor of pi for positive charged tracks, hence the check
+  
   double phi = atan2(-1 * (X0-x), Y0-y);
   if(charge > 0)
     {
@@ -444,7 +421,11 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
     std::cout << "Momentum unit vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
+  /// Project to INTT and find matches
   auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
+
+  /// Add possible matches to cluster list to be parsed when
+  /// Svtx tracks are made
   for(auto cluskey : additionalClusters)
     clusters.push_back(m_clusterMap->findCluster(cluskey));
     
@@ -1108,6 +1089,52 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsSiliconSeeding::writeHistograms()
+{
+  m_file->cd();
+  h_nMvtxHits->Write();
+  h_nSeeds->Write();
+  h_nTotSeeds->Write();
+  h_nInttHits->Write();
+  h_nInputMeas->Write();
+  h_nHits->Write();
+  h_nInputMvtxMeas->Write();
+  h_nInputInttMeas->Write();
+  h_hits->Write();
+  h_zhits->Write();
+  h_projHits->Write();
+  h_zprojHits->Write();
+  h_resids->Write();
+  m_file->Write();      
+  m_file->Close(); 
+}
+
+void PHActsSiliconSeeding::createHistograms()
+{
+  m_file = new TFile("seedingOutfile.root","recreate");
+  h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
+  h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
+  h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,
+		     80,0,80);
+  h_nSeeds = new TH1I("nActsSeeds",";N_{Seeds}",400,0,400);
+  h_nTotSeeds = new TH1I("nTotSeeds",";N_{Seeds}",500,0,500);
+  h_nInputMeas = new TH1I("nInputMeas",";N_{Meas}",2000,0,2000);
+  h_nInputMvtxMeas = new TH1I("nInputMvtxMeas",";N_{meas}^{mvtx}",
+			      150,0,150);
+  h_nInputInttMeas = new TH1I("nInputInttMeas",";N_{meas}^{intt}",
+			      150,0,150);
+  h_hits = new TH2F("hits",";x [cm]; y [cm]",1000,-20,20,
+		    1000,-20,20);
+  h_zhits = new TH2F("zhits",";z [cm]; r [cm]",1000,-30,30,
+		     1000,-30,30);
+  h_projHits = new TH2F("projhits",";x [cm]; y [cm]",1000,-20,20,
+			1000,-20,20);
+  h_zprojHits = new TH2F("zprojhits",";z [cm]; r [cm]",1000,-30,30,
+			 1000,-30,30);
+  h_resids = new TH2F("resids",";z_{resid} [cm]; rphi_{resid} [cm]",
+		      100,-1,1,100,-1,1);
 }
 
 double PHActsSiliconSeeding::normPhi2Pi(const double phi)
