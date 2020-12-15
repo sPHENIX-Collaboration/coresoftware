@@ -499,8 +499,6 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
     }    //      if (rec._type == record::typ_hit)
     else if (rec._type == record::typ_part)
     {
-      map<int, PHG4Particle *>::const_iterator particle_iter;
-
       if (_load_all_particle)
       {
         static bool once = true;
@@ -513,7 +511,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           once = false;
         }
 
-        for (particle_iter = truthInfoList->GetMap().begin();
+        for (auto particle_iter = truthInfoList->GetMap().begin();
              particle_iter != truthInfoList->GetMap().end();
              ++particle_iter)
         {
@@ -548,7 +546,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       for (PartSet_t::const_iterator i = _particle_set.begin();
            i != _particle_set.end(); ++i)
       {
-        particle_iter = truthInfoList->GetMap().find(*i);
+        auto particle_iter = truthInfoList->GetMap().find(*i);
         if (particle_iter == truthInfoList->GetMap().end())
         {
           cout
