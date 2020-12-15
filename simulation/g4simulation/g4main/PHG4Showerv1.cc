@@ -62,23 +62,18 @@ void PHG4Showerv1::identify(ostream &os) const
   }
 
   os << "G4Particle IDs" << endl;
-  for (std::set<int>::const_iterator iter = _g4particle_ids.begin();
-       iter != _g4particle_ids.end(); ++iter)
+  for (auto particle_id : _g4particle_ids)
   {
-    os << *iter << " ";
+    os << particle_id << " ";
   }
   os << endl;
 
   os << "G4Hit IDs" << endl;
-  for (std::map<int, std::set<PHG4HitDefs::keytype> >::const_iterator iter =
-           _g4hit_ids.begin();
-       iter != _g4hit_ids.end(); ++iter)
+  for (auto hits_in_volume : _g4hit_ids)
   {
-    for (std::set<PHG4HitDefs::keytype>::const_iterator jter =
-             iter->second.begin();
-         jter != iter->second.end(); ++jter)
+    for (auto hit : hits_in_volume.second)
     {
-      os << *jter << " ";
+      os << hit << " ";
     }
   }
   os << endl;

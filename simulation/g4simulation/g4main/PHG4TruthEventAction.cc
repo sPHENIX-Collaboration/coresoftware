@@ -82,15 +82,12 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   std::set<int> savelist;
   std::set<int> savevtxlist;
 
-  for (std::set<int>::const_iterator write_iter = m_WriteSet.begin();
-       write_iter != m_WriteSet.end();
-       ++write_iter)
+  for (auto mytrkid : m_WriteSet)
   {
     std::vector<int> wrttracks;
     std::vector<int> wrtvtx;
 
     // usertrackid
-    int mytrkid = *write_iter;
     PHG4Particle* particle = m_TruthInfoContainer->GetParticle(mytrkid);
 
     // if track is already in save list, nothing needs to be done
@@ -276,19 +273,13 @@ int PHG4TruthEventAction::ResetEvent(PHCompositeNode*)
 
 void PHG4TruthEventAction::PruneShowers()
 {
-  PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
-  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
-       iter != range.second;
-       ++iter)
+  for (auto iter : m_TruthInfoContainer->GetShowerMap())
   {
-    PHG4Shower* shower = iter->second;
+    PHG4Shower* shower = iter.second;
 
     std::set<int> remove_ids;
-    for (PHG4Shower::ParticleIdIter jter = shower->begin_g4particle_id();
-         jter != shower->end_g4particle_id();
-         ++jter)
+    for (auto g4particle_id : shower->g4particle_ids())
     {
-      int g4particle_id = *jter;
       PHG4Particle* particle = m_TruthInfoContainer->GetParticle(g4particle_id);
       if (!particle)
       {
@@ -297,28 +288,25 @@ void PHG4TruthEventAction::PruneShowers()
       }
     }
 
-    for (std::set<int>::iterator jter = remove_ids.begin();
-         jter != remove_ids.end();
-         ++jter)
+    for (auto id : remove_ids)
     {
-      shower->remove_g4particle_id(*jter);
+      shower->remove_g4particle_id(id);
     }
 
     std::set<int> remove_more_ids;
-    for (std::map<int, std::set<PHG4HitDefs::keytype> >::iterator jter = shower->begin_g4hit_id();
-         jter != shower->end_g4hit_id();
-         ++jter)
+    for (auto jter : shower->g4hit_ids())
     {
-      int g4hitmap_id = jter->first;
+      int g4hitmap_id = jter.first;
       std::map<int, PHG4HitContainer*>::iterator mapiter = m_HitContainerMap.find(g4hitmap_id);
       if (mapiter == m_HitContainerMap.end())
       {
         continue;
       }
 
+      auto& shower_g4hits = jter.second;
       // get the g4hits from this particle in this volume
-      for (std::set<PHG4HitDefs::keytype>::iterator kter = jter->second.begin();
-           kter != jter->second.end();)
+      for (std::set<PHG4HitDefs::keytype>::iterator kter = shower_g4hits.begin();
+           kter != shower_g4hits.end();)
       {
         PHG4HitDefs::keytype g4hit_id = *kter;
 
@@ -326,7 +314,7 @@ void PHG4TruthEventAction::PruneShowers()
         if (!g4hit)
         {
           // some zero edep g4hits have been removed already
-          jter->second.erase(kter++);
+          shower_g4hits.erase(kter++);
           continue;
         }
         else
@@ -335,21 +323,19 @@ void PHG4TruthEventAction::PruneShowers()
         }
       }
 
-      if (jter->second.empty())
+      if (shower_g4hits.empty())
       {
         remove_more_ids.insert(g4hitmap_id);
       }
     }
 
-    for (std::set<int>::iterator jter = remove_more_ids.begin();
-         jter != remove_more_ids.end();
-         ++jter)
+    for (auto id : remove_more_ids)
     {
-      shower->remove_g4hit_volume(*jter);
+      shower->remove_g4hit_volume(id);
     }
   }
 
-  range = m_TruthInfoContainer->GetShowerRange();
+  auto range = m_TruthInfoContainer->GetShowerRange();
   for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
        iter != range.second;)
   {
@@ -370,24 +356,16 @@ void PHG4TruthEventAction::PruneShowers()
 
 void PHG4TruthEventAction::ProcessShowers()
 {
-  PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
-  for (PHG4TruthInfoContainer::ShowerIterator shwiter = range.first;
-       shwiter != range.second;
-       ++shwiter)
+  for (const auto& [unused, shower]: m_TruthInfoContainer->GetShowerMap())
   {
-    PHG4Shower* shower = shwiter->second;
-
     // Data structures to hold weighted pca
     std::vector<std::vector<float> > points;
     std::vector<float> weights;
     float sumw = 0.0;
     float sumw2 = 0.0;
 
-    for (std::map<int, std::set<PHG4HitDefs::keytype> >::iterator iter = shower->begin_g4hit_id();
-         iter != shower->end_g4hit_id();
-         ++iter)
+    for (const auto& [g4hitmap_id, g4hits] : shower->g4hit_ids())
     {
-      int g4hitmap_id = iter->first;
       std::map<int, PHG4HitContainer*>::iterator mapiter = m_HitContainerMap.find(g4hitmap_id);
       if (mapiter == m_HitContainerMap.end())
       {
@@ -404,12 +382,8 @@ void PHG4TruthEventAction::ProcessShowers()
       float edep_h = 0.0;
 
       // get the g4hits from this particle in this volume
-      for (std::set<PHG4HitDefs::keytype>::iterator kter = iter->second.begin();
-           kter != iter->second.end();
-           ++kter)
+      for (const auto& g4hit_id : g4hits )
       {
-        PHG4HitDefs::keytype g4hit_id = *kter;
-
         PHG4Hit* g4hit = hits->findHit(g4hit_id);
         if (!g4hit)
         {
