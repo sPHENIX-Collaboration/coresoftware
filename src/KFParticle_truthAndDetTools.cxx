@@ -65,7 +65,11 @@ void  KFParticle_truthAndDetTools::fillTruthBranch( PHCompositeNode *topNode, TT
    }
     m_svtx_evalstack->next_event(topNode);
 
-    dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+    PHNodeIterator nodeIter(topNode);
+    PHNode* findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+    if (findNode) dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+    else printf("KFParticle truth matching: SvtxTrackMap does not exist");
+
     m_svtx_evalstack->next_event(topNode);
 
     track = getTrack( daughter.Id(), dst_trackmap );
@@ -122,8 +126,16 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches( TTree *m_tree, 
 
 void KFParticle_truthAndDetTools::fillDetectorBranch( PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id )
 {
-    dst_clustermap = findNode::getClass<TrkrClusterContainer>( topNode, "TRKR_CLUSTER");
-    dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+    PHNodeIterator nodeIter(topNode);
+
+    PHNode* findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+    if (findNode) dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+    else printf("KFParticle detector info: SvtxTrackMap does not exist");
+ 
+    findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("TRKR_CLUSTER"));
+    if (findNode) dst_clustermap = findNode::getClass<TrkrClusterContainer>( topNode, "TRKR_CLUSTER");
+    else printf("KFParticle detector info: TRKR_CLUSTER does not exist");
+
     track = getTrack( daughter.Id(), dst_trackmap );
 
     for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)

@@ -72,12 +72,12 @@ int Fun4All_KFParticle_advanced(){
   bool use_rave_vertexing = true;
 
   map<string, int> reconstructionChannel;
-  reconstructionChannel["D02K-pi+"] = 0;
+  reconstructionChannel["D02K-pi+"] = 1;
   reconstructionChannel["D02K+pi-"] = 0;
   reconstructionChannel["Bs2Jpsiphi"] = 0;
   reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
-  reconstructionChannel["testSpace"] = 1;
+  reconstructionChannel["testSpace"] = 0;
 
   const int numberOfActiveRecos = accumulate( begin(reconstructionChannel), end(reconstructionChannel), 0, 
                                               [](const int previous, const pair<const string, int>& element) 
@@ -170,8 +170,9 @@ int Fun4All_KFParticle_advanced(){
 
   //General configurations
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
+  kfparticle->Verbosity(verbosity);
 
-  const int nEvents = 70;
+  const int nEvents = 1e3;
 
   //Use rave vertexing to construct PV
   if (use_rave_vertexing) kfparticle->setVertexMapNodeName(raveVertexName.c_str());
@@ -185,7 +186,7 @@ int Fun4All_KFParticle_advanced(){
   kfparticle->setMinDIRA(0.8);
   kfparticle->setMotherPT(0);
 
-  kfparticle->saveDST(1);
+  kfparticle->saveDST(0);
   kfparticle->saveOutput(1);
   kfparticle->doTruthMatching(1);
   kfparticle->getDetectorInfo(0);

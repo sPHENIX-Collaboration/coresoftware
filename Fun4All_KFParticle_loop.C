@@ -1,9 +1,9 @@
 // $Id: $
 
 /*!
- * \file Fun4All_G4_Readback.C
+ * \file Fun4All_KFParticle_loop.C
  * \brief 
- * \author Jin Huang <jhuang@bnl.gov>
+ * \author Cameron Dean <cdean@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
@@ -31,33 +31,41 @@ R__LOAD_LIBRARY(libg4dst.so)
 
 using namespace std;
 
-int verbosity = 4;
+int verbosity = 0;
 
 std::pair<std::string, int> daughterList[99];
 
-void runReconstruction( string filePath )
+Fun4AllServer* server()
 {
-  const int nEvents = 1e2;
-  string inputFileName = filePath.substr(filePath.size() - 20, 20);
-
-  string nTupleName = "D2Kpi_output_nTuples/outputData_D02Kpi_example_";
-  nTupleName += inputFileName.substr(inputFileName.size() - 13, 4);
-  nTupleName += ".root";
-
-  printf("Processing input file: %s\n", inputFileName.c_str());
-  printf("The output nTuple will be %s\n", nTupleName.substr(nTupleName.size()-35, 35).c_str());
-
-  //---------------
-  // Fun4All server
-  //---------------
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(verbosity);
+  return se;
+}
 
-  Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
+Fun4AllInputManager* inputManager(string filePath)
+{
+  string inputFileName = filePath.substr(filePath.size() - 20, 20);
+  string fileNumber = inputFileName.substr(inputFileName.size() - 13, 4);
+  string inputManagerName = "DSTin_" + fileNumber;
+
+  Fun4AllInputManager *hitsin = new Fun4AllDstInputManager(inputManagerName.c_str());
   hitsin->AddFile(filePath.c_str());
-  se->registerInputManager(hitsin);
- 
-  KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
+
+  return hitsin; 
+}
+
+KFParticle_sPHENIX* eventReconstruction(string filePath)
+{
+  string inputFileName = filePath.substr(filePath.size() - 20, 20);
+
+  string fileNumber = inputFileName.substr(inputFileName.size() - 13, 4);
+  string nTupleName = "D2Kpi_output_nTuples/outputData_D02Kpi_example_";
+  nTupleName += fileNumber;
+  nTupleName += ".root";
+  string kfparticleName = "KFPARTICLE_" + fileNumber;
+  printf("The output nTuple will be %s\n", nTupleName.substr(nTupleName.size()-35, 35).c_str());
+
+  KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(kfparticleName.c_str());
 
   kfparticle->saveOutput(1);
   kfparticle->doTruthMatching(1);
@@ -86,21 +94,8 @@ void runReconstruction( string filePath )
   kfparticle->setDaughters( daughterList );
 
   kfparticle->setOutputName(nTupleName.c_str());
-  se->registerSubsystem(kfparticle);
 
-  //-----------------
-  // Event processing
-  //-----------------
-  if (nEvents < 0)
-    return 0;
-  se->run(nEvents);
-  hitsin->fileclose();
-  hitsin->ResetFileList();
-  se->ResetNodeTree();
-  se->unregisterSubsystem(kfparticle);
-  cout << "Written output to: " << nTupleName << endl;
-  se->EndRun();
-  //delete se;
+  return kfparticle;
 }
 
 std::fstream& GotoLine(fstream& file, int num){
@@ -111,7 +106,7 @@ std::fstream& GotoLine(fstream& file, int num){
     return file;
 }
 
-int Fun4All_G4_Readback_Loop(int startLine = 1, int stopLine = 3) //max stopLine is 930
+int Fun4All_KFParticle_loop(int startLine = 2, int stopLine = 5) //max stopLine is 930
 {
   //---------------
   // Load libraries
@@ -121,12 +116,35 @@ int Fun4All_G4_Readback_Loop(int startLine = 1, int stopLine = 3) //max stopLine
 
   string fileList = "fileList_d2kpi.txt", inputFilePath;
 
-  for (int l = startLine; l < stopLine; ++l)
+  unsigned int nFiles = stopLine - startLine;
+  Fun4AllServer* se[nFiles];
+  Fun4AllInputManager* input[nFiles];
+  KFParticle_sPHENIX* d2kpi_reco[nFiles];
+
+  const int nEvents = 1e2;
+
+  for (int i = startLine; i < stopLine; ++i)
   {
     fstream infile(fileList);
-    GotoLine(infile, l);
+    GotoLine(infile, i);
     infile>>inputFilePath;
-    runReconstruction(inputFilePath);
+
+    se[i] = server();
+
+    input[i] = inputManager(inputFilePath);
+    se[i]->registerInputManager(input[i]);
+
+    d2kpi_reco[i] = eventReconstruction(inputFilePath);
+    se[i]->registerSubsystem(d2kpi_reco[i]);
+
+    //-----------------
+    // Event processing
+    //-----------------
+    if (nEvents < 0)
+      return 0;
+    se[i]->run(nEvents);
+
+    se[i]->Reset();
   }
 
   gSystem->Exit(0);

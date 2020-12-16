@@ -4,6 +4,7 @@
 #include "KFPVertex.h"
 #include "KFVertex.h"
 #include <KFParticle_Tools.h>
+#include <ffaobjects/EventHeaderv1.h>
 
 using namespace std;
 
@@ -186,6 +187,8 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch( "nPrimaryVertices", &m_nPVs,         "nPrimaryVertices/I" );
   m_tree->Branch( "nEventTracks",     &m_multiplicity, "nEventTracks/I" );
 
+  m_tree->Branch( "runNumber",   &m_runNumber, "runNumber/I");
+  m_tree->Branch( "eventNumber", &m_evtNumber, "eventNumber/I");
 }
 
 
@@ -288,7 +291,6 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
       bool switchTrackPosition;
       if ( m_get_charge_conjugate_nTuple ) switchTrackPosition = daughterArray[i].GetMass() > daughterArray[j].GetMass();
       else switchTrackPosition = daughterArray[i].GetPDG() > daughterArray[j].GetPDG();
-      //if( daughterArray[i].GetMass() > daughterArray[j].GetMass() )
       if ( switchTrackPosition )
       {
           temp = daughterArray[i];
@@ -353,6 +355,18 @@ void KFParticle_nTuple::fillBranch( PHCompositeNode *topNode,
 
   m_nPVs         = nPVs;
   m_multiplicity = multiplicity;
+
+  PHNodeIterator nodeIter(topNode);
+
+  PHNode* evtNode = dynamic_cast<PHNode*>(nodeIter.findFirst("EventHeader"));
+
+  if (evtNode)
+  {
+    EventHeaderv1 *evtHeader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
+    m_runNumber = evtHeader->get_RunNumber();
+    m_evtNumber = evtHeader->get_EvtSequence();
+  }
+  else m_runNumber = m_evtNumber = -1;
 
   m_tree->Fill();
 }

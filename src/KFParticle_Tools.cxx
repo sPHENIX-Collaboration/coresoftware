@@ -101,7 +101,6 @@ vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices( PHCompositeNode *to
 { 
   vector<KFParticle> primaryVertices;
   m_dst_vertexmap = findNode::getClass<SvtxVertexMap>( topNode, m_vtx_map_node_name.c_str() );
-  if ( m_dst_vertexmap->size() == 0 ) m_dst_vertexmap = findNode::getClass<SvtxVertexMap>( topNode, "SvtxVertexMap" );
   unsigned int vertexID = 0;
     
   for ( SvtxVertexMap::ConstIter iter = m_dst_vertexmap->begin(); iter != m_dst_vertexmap->end(); ++iter )
@@ -144,8 +143,7 @@ KFParticle KFParticle_Tools::makeParticle( PHCompositeNode *topNode ) ///Return 
 vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles( PHCompositeNode *topNode )
 { 
   vector<KFParticle> daughterParticles;
-  m_dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, m_trk_map_node_name.c_str() ); //Need a way to skip event if track map is zero
-  if ( m_dst_trackmap->size() == 0 ) m_dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, "SvtxTrackMap" );
+  m_dst_trackmap = findNode::getClass<SvtxTrackMap>( topNode, m_trk_map_node_name.c_str() ); 
   unsigned int trackID = 0;
 
   for ( SvtxTrackMap::Iter iter = m_dst_trackmap->begin(); iter != m_dst_trackmap->end(); ++iter )
@@ -222,8 +220,8 @@ vector<vector<int>> KFParticle_Tools::findTwoProngs( vector<KFParticle> daughter
         if( daughterParticles[*i_it ].GetDistanceFromParticle( daughterParticles[*j_it ] ) < m_comb_DCA ) 
         { 
           KFVertex twoParticleVertex;  
-          twoParticleVertex += daughterParticles[*i_it ];
-          twoParticleVertex += daughterParticles[*j_it ];
+          twoParticleVertex += daughterParticles[ *i_it ];
+          twoParticleVertex += daughterParticles[ *j_it ];
           float vertexchi2ndof = twoParticleVertex.GetChi2()/twoParticleVertex.GetNDF();
           vector<int> combination = { *i_it, *j_it };
           if ( nTracks == 2 && vertexchi2ndof <= m_vertex_chi2ndof ) goodTracksThatMeet.push_back( combination );
@@ -263,7 +261,7 @@ vector<vector<int>>  KFParticle_Tools::findNProngs( vector<KFParticle> daughterP
         if( dcaMet )
         {
             KFVertex particleVertex;
-            particleVertex += daughterParticles[*i_it ];
+            particleVertex += daughterParticles[ *i_it ];
             vector<int> combination; combination.push_back( *i_it );
             for (unsigned int i = 0; i < nProngs - 1; ++i) 
             {
@@ -493,7 +491,7 @@ double KFParticle_Tools::calculateEllipsoidRadius( int posOrNeg, double sigma_ii
 { //Note - Only works for a 2D ellipsoid OR rotated nD ellipsoid to avoid projections
   if (abs(posOrNeg) != 1)
   {
-    printf("You have set posOrNeg to %i. This value must be  +/- 1! Exiting\n", posOrNeg);
+    printf("You have set posOrNeg to %i. This value must be  +/- 1! Skipping\n", posOrNeg);
     return 0;
   }
   
@@ -565,7 +563,7 @@ void KFParticle_Tools::identify( KFParticle particle )
   cout << "(px,py,pz) = (" << particle.GetPx() << " +/- " << sqrt(particle.GetCovariance(3,3)) << ", ";
   cout                     << particle.GetPy() << " +/- " << sqrt(particle.GetCovariance(4,4)) << ", ";
   cout                     << particle.GetPz() << " +/- " << sqrt(particle.GetCovariance(5,5)) << ") GeV" << endl;
-  cout << "(x,y,z) = (" << particle.GetX() << " +/- " << sqrt(particle.GetCovariance(0,0)) << ", ";
-  cout <<                  particle.GetY() << " +/- " << sqrt(particle.GetCovariance(1,1)) << ", ";
-  cout <<                  particle.GetZ() << " +/- " << sqrt(particle.GetCovariance(2,2)) << ") cm\n" << endl;
+  cout << "(x,y,z) = ("    << particle.GetX()  << " +/- " << sqrt(particle.GetCovariance(0,0)) << ", ";
+  cout <<                     particle.GetY()  << " +/- " << sqrt(particle.GetCovariance(1,1)) << ", ";
+  cout <<                     particle.GetZ()  << " +/- " << sqrt(particle.GetCovariance(2,2)) << ") cm\n" << endl;
 }

@@ -23,7 +23,7 @@ using namespace std;
 
 int Fun4All_KFParticle_basic(){
 
-  int verbosity = 4;
+  int verbosity = 1;
   //---------------
   // Load libraries
   //---------------
@@ -39,9 +39,9 @@ int Fun4All_KFParticle_basic(){
   // Choose reco
   //---------------
   map<string, int> reconstructionChannel;
-  reconstructionChannel["D02K-pi+"] = 0;
+  reconstructionChannel["D02K-pi+"] = 1;
   reconstructionChannel["D02K+pi-"] = 0;
-  reconstructionChannel["Bs2Jpsiphi"] = 1;
+  reconstructionChannel["Bs2Jpsiphi"] = 0;
   reconstructionChannel["Bd2D-pi+"] = 0;
   reconstructionChannel["Upsilon"] = 0;
   reconstructionChannel["testSpace"] = 0;
@@ -81,8 +81,9 @@ int Fun4All_KFParticle_basic(){
 
   //General configurations
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX();
+  kfparticle->Verbosity(verbosity);
 
-  const int nEvents = 5e4;
+  const int nEvents = 1e3;
 
   kfparticle->setMinimumTrackPT(0.1);
   kfparticle->setMinimumTrackIPchi2(10);

@@ -1,6 +1,10 @@
 #ifndef KFParticle_nTuple_H__
 #define KFParticle_nTuple_H__
 
+//#include <phool/PHCompositeNode.h>
+//#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                   
+#include <phool/PHNodeIterator.h>
 #include <KFParticle_truthAndDetTools.h>
 
 using namespace std;
@@ -142,6 +146,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
  
     int m_nPVs;
     int m_multiplicity;
+
+    int m_runNumber;
+    int m_evtNumber;
 
  protected:
 

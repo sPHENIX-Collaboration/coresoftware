@@ -23,6 +23,7 @@
 #define KFParticle_Tools_H
 
 //sPHENIX stuff
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -43,15 +44,11 @@
 
 using namespace std;
 
-//class SvtxEvalStack;
-
 class PHCompositeNode;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
-
-//class KFParticle;
 
 class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MVA 
 {

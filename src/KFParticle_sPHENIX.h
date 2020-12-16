@@ -41,8 +41,10 @@ using namespace std;
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction
 {
  public:
-  
+
   KFParticle_sPHENIX();
+  
+  KFParticle_sPHENIX( const string& );
 
   ~KFParticle_sPHENIX();
 
@@ -52,6 +54,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   int End(PHCompositeNode *topNode);
 
+  void printParticles( KFParticle motherParticle, 
+                       KFParticle chosenVertex,
+                       vector<KFParticle> daughterParticles,
+                       vector<KFParticle> intermediateParticles,
+                       int nPVs, int multiplicity );
   ///Parameters for the user to vary
   void setMotherName( const string mother_name ) { m_mother_name = mother_name; m_mother_name_Tools = mother_name; }
   void useIntermediateName( bool use_intermediate_name ) { m_use_intermediate_name = use_intermediate_name; }
@@ -111,6 +118,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setMVAWeightsPath( const string mva_weights_path ) { m_mva_path = mva_weights_path; }
   void setMVACutValue( float cut_value ) { m_mva_cut_value = cut_value; }
 
+  void Verbosity( int verbosity ) { m_verbosity = verbosity; }
   void saveDST( bool save ) { m_save_dst = save; }
   void saveTrackContainer( bool save ) { m_write_track_container = save; } 
   void saveParticleContainer( bool save ) { m_write_particle_container = save; } 
@@ -126,6 +134,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
  protected:
 
+  bool m_verbosity;
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;
   bool m_require_mva;

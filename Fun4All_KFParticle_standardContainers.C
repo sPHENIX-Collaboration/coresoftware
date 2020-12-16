@@ -48,10 +48,10 @@ int Fun4All_KFParticle_standardContainers(){
   //--------------
   // Hits file
   Fun4AllInputManager *hitsin = new Fun4AllDstInputManager("DSTin");
-  hitsin->AddListFile("fileList_MDC.txt");
+  hitsin->AddListFile("fileList_bs2jpsiphi.txt");
   se->registerInputManager(hitsin);
 
-  const int nEvents = 2e4;
+  const int nEvents = 5e4;
 
   Enable::DSTOUT = false;
   bool save_nTuple = true;
@@ -71,7 +71,6 @@ int Fun4All_KFParticle_standardContainers(){
   float maxVertexchi2nDOF = 2;
   float minMotherPT = 0;
 
-
   /*
    * J/psi Contianer
    */
@@ -87,7 +86,7 @@ int Fun4All_KFParticle_standardContainers(){
     kfparticle_jpsi->hasIntermediateStates(false);
     kfparticle_jpsi->constrainToPrimaryVertex(false);
     kfparticle_jpsi->getChargeConjugate(false);
-    kfparticle_jpsi->setVertexMapNodeName("SvtxVertexMapActs");
+    kfparticle_jpsi->setVertexMapNodeName("SvtxVertexMap");
 
     //Track selection
     kfparticle_jpsi->setMinimumTrackPT(minTrackPT);
@@ -129,7 +128,7 @@ int Fun4All_KFParticle_standardContainers(){
     kfparticle_d0->hasIntermediateStates(false);
     kfparticle_d0->constrainToPrimaryVertex(false);
     kfparticle_d0->getChargeConjugate(true);
-    kfparticle_d0->setVertexMapNodeName("SvtxVertexMapActs");
+    kfparticle_d0->setVertexMapNodeName("SvtxVertexMap");
 
     kfparticle_d0->setMinimumTrackPT(minTrackPT);
     kfparticle_d0->setMinimumTrackIPchi2(minTrackIPchi2);
@@ -168,7 +167,7 @@ int Fun4All_KFParticle_standardContainers(){
     kfparticle_ks0->hasIntermediateStates(false);
     kfparticle_ks0->constrainToPrimaryVertex(false);
     kfparticle_ks0->getChargeConjugate(false);
-    kfparticle_ks0->setVertexMapNodeName("SvtxVertexMapActs");
+    kfparticle_ks0->setVertexMapNodeName("SvtxVertexMap");
 
     kfparticle_ks0->setMinimumTrackPT(minTrackPT);
     kfparticle_ks0->setMinimumTrackIPchi2(minTrackIPchi2);
@@ -207,7 +206,7 @@ int Fun4All_KFParticle_standardContainers(){
     kfparticle_phi->hasIntermediateStates(false);
     kfparticle_phi->constrainToPrimaryVertex(false);
     kfparticle_phi->getChargeConjugate(false);
-    kfparticle_phi->setVertexMapNodeName("SvtxVertexMapActs");
+    kfparticle_phi->setVertexMapNodeName("SvtxVertexMap");
 
     kfparticle_phi->setMinimumTrackPT(minTrackPT);
     kfparticle_phi->setMinimumTrackIPchi2(minTrackIPchi2);
