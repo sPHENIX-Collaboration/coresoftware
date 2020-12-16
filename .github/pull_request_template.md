@@ -15,6 +15,3 @@
 
 ## Links to other PRs in macros and calibration repositories (if applicable)
 
-
-
-## Other information (if any)
