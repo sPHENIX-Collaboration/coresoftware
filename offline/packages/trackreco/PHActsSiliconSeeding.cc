@@ -361,9 +361,11 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 
   findRoot(R, X0, Y0, x, y);
 
-  /// If the min x or y initial position was found to be greater 
-  /// than 10 cm that means it is a bad seed
-  if(fabs(x) > 10. or fabs(y) > 10.)
+  /// If the xy position is O(100s) microns, the initial vertex 
+  /// finder will throw an eigen stepper error trying to propagate 
+  /// from the PCA. These  are likely bad seeds anyway since the 
+  /// MVTX has position resolution O(5) microns. Units are cm
+  if(fabs(x) > 0.01 or fabs(y) > 0.01)
     {
       x = NAN;
       y = NAN;
@@ -1067,7 +1069,7 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+    throw std::runtime_error("Failed to find DST node in PHActsSiliconSeeding::createNodes");
   }
   
   PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
