@@ -117,9 +117,9 @@ class PHG4Showerv1 : public PHG4Shower
   std::map<int, float> _eh_ratio;      //< electron/hadron ratio of energy in different volumes
 
   // these containers are cleared during dst reduction, but are available in full dsts
-  std::set<int> _g4particle_ids;                            //< contained secondary particle ids
-  std::set<int> _g4vertex_ids;                              //< contained secondary vertex ids
-  std::map<int, std::set<unsigned long long> > _g4hit_ids;  //< contained hit ids
+  ParticleIdSet _g4particle_ids;       //< contained secondary particle ids
+  VertexIdSet _g4vertex_ids;           //< contained secondary vertex ids
+  HitIdMap _g4hit_ids;                 //< contained hit ids
 
   ClassDef(PHG4Showerv1, 1);
 };
