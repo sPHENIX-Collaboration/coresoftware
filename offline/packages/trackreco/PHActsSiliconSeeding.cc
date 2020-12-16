@@ -365,7 +365,7 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   /// finder will throw an eigen stepper error trying to propagate 
   /// from the PCA. These  are likely bad seeds anyway since the 
   /// MVTX has position resolution O(5) microns. Units are cm
-  if(fabs(x) > 0.01 or fabs(y) > 0.01)
+  if(fabs(x) > m_maxSeedPCA or fabs(y) > m_maxSeedPCA)
     {
       x = NAN;
       y = NAN;

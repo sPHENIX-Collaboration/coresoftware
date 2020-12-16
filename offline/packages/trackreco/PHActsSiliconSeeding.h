@@ -84,9 +84,10 @@ class PHActsSiliconSeeding : public SubsysReco
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
 
+  /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
- 
+   
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -198,6 +199,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
+  double m_maxSeedPCA = 0.03;
+  
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
     {7.188, 7.732, 9.680,10.262}; /// cm
