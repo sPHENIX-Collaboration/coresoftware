@@ -10,7 +10,7 @@
 
 ## What kind of change does this PR introduce? (Bug fix, feature, ...)
 
-[comment]: <> ( What does this PR do? link to talk in software meeting welcomed )
+[comment]: <> ( What does this PR do? Linking to talk in software meeting encouraged )
 
 
 ## Links to other PRs in macros and calibration repositories (if applicable)
