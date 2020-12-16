@@ -5,7 +5,7 @@
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work for users)
-- [ ] Requiring change in macros repository (Please provide links to the macros pull request in the 2nd last section)
+- [ ] Requiring change in macros repository (Please provide links to the macros pull request in the last section)
 - [x] I am a member of [GitHub organization of sPHENIX Collaboration](https://github.com/orgs/sPHENIX-Collaboration/people) (contact Chris Pinkenburg to join)
 
 ## What kind of change does this PR introduce? (Bug fix, feature, ...)
