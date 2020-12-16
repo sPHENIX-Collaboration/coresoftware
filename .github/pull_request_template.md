@@ -10,18 +10,11 @@
 
 ## What kind of change does this PR introduce? (Bug fix, feature, ...)
 
-
-
-## What is the current behavior (if applicable)?
-
-
-
-## What is the new behavior (link to talk in software meeting welcomed)?
-
+[comment]: <>(What does this PR do? link to talk in software meeting welcomed)
 
 
 ## Links to other PRs in macros and calibration repositories (if applicable)
 
 
 
-## Other information
+## Other information (if any)
