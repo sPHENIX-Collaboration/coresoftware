@@ -199,7 +199,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
-  double m_maxSeedPCA = 0.03;
+  double m_maxSeedPCA = 0.01;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
