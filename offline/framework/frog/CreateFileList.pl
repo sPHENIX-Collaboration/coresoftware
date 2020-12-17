@@ -179,5 +179,6 @@ foreach my $seg (sort keys %{$allfilehash{$lowtype}})
 }
 
 
-
+$getdsttypes->finish();
+$getfiles->finish();
 $dbh->disconnect;
