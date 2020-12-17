@@ -18,6 +18,9 @@ pkginclude_HEADERS = \
 libFROG_la_SOURCES = \
   FROG.cc
 
+bin_SCRIPTS = \
+  CreateFileList.pl
+
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
