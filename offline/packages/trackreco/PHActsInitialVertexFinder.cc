@@ -274,14 +274,16 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     {
       if(Verbosity() > 1)
 	{
-	  std::cout << "Adding track seed to vertex finder " << std::endl;
+	  std::cout << "Adding track seed to vertex finder " 
+		    << std::endl;
 	  track->identify();
 	}
 
-      const Acts::Vector4D stubVec(track->get_x() * Acts::UnitConstants::cm,
-				   track->get_y() * Acts::UnitConstants::cm,
-				   track->get_z() * Acts::UnitConstants::cm,
-				   10 * Acts::UnitConstants::ns);
+      const Acts::Vector4D stubVec(
+                  track->get_x() * Acts::UnitConstants::cm,
+		  track->get_y() * Acts::UnitConstants::cm,
+		  track->get_z() * Acts::UnitConstants::cm,
+		  10 * Acts::UnitConstants::ns);
      
       const Acts::Vector3D stubMom(track->get_px(),
 				   track->get_py(),
@@ -354,7 +356,7 @@ int PHActsInitialVertexFinder::createNodes(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cerr << "DST Node missing, quitting" << std::endl;
-    throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+    throw std::runtime_error("failed to find DST node in PHActsInitialVertexFinder::createNodes");
   }
 
   /// Get the tracking subnode
