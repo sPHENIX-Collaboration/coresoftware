@@ -6,16 +6,17 @@
 
 //Ideas taken from SvtxTrackMap_v1 & TrkrClusterContainer
 
+#include "KFParticle_Container.h"
+
 #include <phool/PHObject.h>  // for PHObject
+
+#include <KFParticle.h>
 
 #include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
 
-#include <KFParticle.h>
-
-#include "KFParticle_Container.h"
 
 using namespace std;
 
@@ -126,4 +127,10 @@ KFParticle_Container::returnParticlesByPDGid(int PDGid)
       requiredParticles.insert(make_pair(iter->first, iter->second));
 
   return requiredParticles;
+}
+
+size_t KFParticle_Container::erase(unsigned int key)
+{
+  delete m_kfpmap[key];
+  return m_kfpmap.erase(key);
 }

@@ -1,16 +1,12 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
 #define KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
 
+#include <phool/PHObject.h>
+
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
 #include <map>
 #include <utility>  // for pair
-
-#include <phool/PHObject.h>
-
-#include <KFParticle.h>
-
-using namespace std;
 
 class KFParticle;
 
@@ -23,16 +19,16 @@ class KFParticle;
 class KFParticle_Container : public PHObject
 {
  public:
-  typedef map<unsigned int, KFParticle*> Map;
-  typedef map<unsigned int, KFParticle*>::const_iterator ConstIter;
-  typedef map<unsigned int, KFParticle*>::iterator Iter;
+  typedef std::map<unsigned int, KFParticle*> Map;
+  typedef std::map<unsigned int, KFParticle*>::const_iterator ConstIter;
+  typedef std::map<unsigned int, KFParticle*>::iterator Iter;
 
   KFParticle_Container();
   KFParticle_Container(const KFParticle_Container& kfparticlemap);
   KFParticle_Container& operator=(const KFParticle_Container& kfparticlemap);
   virtual ~KFParticle_Container();
 
-  void identify(ostream& os = cout) const;
+  void identify(std::ostream& os = std::cout) const;
   void Reset();
   int isValid() const { return 1; }
   PHObject* CloneMe() const { return new KFParticle_Container(*this); }
@@ -60,11 +56,7 @@ class KFParticle_Container : public PHObject
   ///Use the PDG MC ID to return a subset of the KFParticle container, if those particle exist in the container
   Map returnParticlesByPDGid(int PDGid);
 
-  size_t erase(unsigned int key)
-  {
-    delete m_kfpmap[key];
-    return m_kfpmap.erase(key);
-  }
+  size_t erase(unsigned int key);
 
  private:
   Map m_kfpmap;
