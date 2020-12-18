@@ -34,6 +34,18 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
 
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
+ protected:
+  bool m_has_intermediates_nTuple;
+  bool m_constrain_to_vertex_nTuple;
+  int m_num_tracks_nTuple;
+  int m_num_intermediate_states_nTuple;
+  bool m_truth_matching;
+  bool m_detector_info;
+  std::string m_mother_name;
+  bool m_use_intermediate_name;
+  bool m_get_charge_conjugate_nTuple;
+  std::string m_intermediate_name_ntuple[99];
+
  private:
   TTree *m_tree;
 
@@ -100,7 +112,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_ndof[max_intermediates] = {0};
   int m_calculated_intermediate_pdgID[max_intermediates] = {0};
   //float *m_calculated_intermediate_cov[max_intermediates];
-  float m_calculated_intermediate_cov[max_intermediates][21] = {0};
+  float m_calculated_intermediate_cov[max_intermediates][21] = {{0},{0}};
 
   static const int max_tracks = 20;
   float m_calculated_daughter_mass[max_tracks] = {0};
@@ -127,7 +139,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_calculated_daughter_trid[max_tracks] = {0};
   int m_calculated_daughter_pdgID[max_tracks] = {0};
   //float *m_calculated_daughter_cov[max_tracks];
-  float m_calculated_daughter_cov[max_tracks][21] = {0};
+  float m_calculated_daughter_cov[max_tracks][21] = {{0},{0}};
 
   float m_daughter_dca[99] = {0};
 
@@ -149,17 +161,6 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_runNumber = -1;
   int m_evtNumber = -1;
 
- protected:
-  bool m_has_intermediates_nTuple;
-  bool m_constrain_to_vertex_nTuple;
-  int m_num_tracks_nTuple;
-  int m_num_intermediate_states_nTuple;
-  bool m_truth_matching;
-  bool m_detector_info;
-  std::string m_mother_name;
-  bool m_use_intermediate_name;
-  bool m_get_charge_conjugate_nTuple;
-  std::string m_intermediate_name_ntuple[99];
 };
 
 #endif

@@ -85,9 +85,9 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle motherParticle,
-                                      std::vector<KFParticle> daughters,
-                                      std::vector<KFParticle> intermediates)
+void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, const KFParticle& motherParticle,
+                                      const std::vector<KFParticle>& daughters,
+                                      const std::vector<KFParticle>& intermediates)
 {
   if (m_write_track_container)
   {
@@ -99,7 +99,7 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle mothe
   }
 }
 
-void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle motherParticle,
+void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFParticle& motherParticle,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)
 {
@@ -163,7 +163,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   }
 }
 
-void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParticle motherParticle,
+void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const KFParticle& motherParticle,
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
@@ -176,7 +176,8 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/";
+  std::string undrscr = "_";
   size_t pos;
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
 

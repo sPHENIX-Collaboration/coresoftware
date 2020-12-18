@@ -42,7 +42,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
  public:
   KFParticle_sPHENIX();
 
-  KFParticle_sPHENIX(const std::string &name);
+  explicit KFParticle_sPHENIX(const std::string &name);
 
   virtual ~KFParticle_sPHENIX(){}
 
@@ -66,7 +66,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   ///Parameters for the user to vary
   static const int max_particles = 99;
 
-  void setMotherName(const std::string mother_name)
+  void setMotherName(const std::string& mother_name)
   {
     m_mother_name = mother_name;
     m_mother_name_Tools = mother_name;
@@ -186,9 +186,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (int i = 0; i < max_particles; ++i) m_mva_variable_list[i] = mva_variable_list[i];
   }
 
-  void setMVAType(const std::string mva_type) { m_mva_type = mva_type; }
+  void setMVAType(const std::string& mva_type) { m_mva_type = mva_type; }
 
-  void setMVAWeightsPath(const std::string mva_weights_path) { m_mva_path = mva_weights_path; }
+  void setMVAWeightsPath(const std::string& mva_weights_path) { m_mva_path = mva_weights_path; }
 
   void setMVACutValue(float cut_value) { m_mva_cut_value = cut_value; }
 
@@ -200,21 +200,21 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void saveParticleContainer(bool save) { m_write_particle_container = save; }
 
-  void setContainerName(const std::string name) { m_container_name = name; }
+  void setContainerName(const std::string& name) { m_container_name = name; }
 
   void saveOutput(bool save) { m_save_output = save; }
 
-  void setOutputName(const std::string name) { m_outfile_name = name; }
+  void setOutputName(const std::string& name) { m_outfile_name = name; }
 
   void doTruthMatching(bool truth) { m_truth_matching = truth; }
 
   void getDetectorInfo(bool detinfo) { m_detector_info = detinfo; }
 
   ///Use alternate vertex and track fitters
-  void setVertexMapNodeName(std::string vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
+  void setVertexMapNodeName(const std::string& vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
 
   ///Use alternate vertex and track fitters
-  void setTrackMapNodeName(std::string trk_map_node_name) { m_trk_map_node_name = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string& trk_map_node_name) { m_trk_map_node_name = trk_map_node_name; }
 
  private:
   bool m_verbosity;

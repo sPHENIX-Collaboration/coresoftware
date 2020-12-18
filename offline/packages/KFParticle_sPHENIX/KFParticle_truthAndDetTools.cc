@@ -37,6 +37,7 @@ std::map<std::string, int> Use =
 
 KFParticle_truthAndDetTools::KFParticle_truthAndDetTools()
   : m_svtx_evalstack(nullptr)
+  , m_tree(nullptr)
 {
 }  //Constructor
 

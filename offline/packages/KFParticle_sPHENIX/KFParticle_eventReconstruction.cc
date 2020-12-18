@@ -53,6 +53,7 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   , m_num_tracks(2)
   , m_daughter_name_evt{"pion", "pion", "pion", "pion"}
   , m_daughter_charge_evt{1, -1, 1, -1}
+  , m_intermediate_charge{1, -1, 1, -1}
   , m_constrain_to_vertex(true)
   , m_constrain_int_mass(false)
 {
@@ -85,9 +86,9 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
                                                      std::vector<KFParticle>& selectedVertexBasic,
                                                      std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
-                                                     const std::vector<KFParticle> daughterParticlesBasic,
-                                                     const std::vector<int> goodTrackIndexBasic,
-                                                     const std::vector<KFParticle> primaryVerticesBasic)
+                                                     const std::vector<KFParticle>& daughterParticlesBasic,
+                                                     const std::vector<int>& goodTrackIndexBasic,
+                                                     const std::vector<KFParticle>& primaryVerticesBasic)
 {
   std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesBasic, goodTrackIndexBasic, m_num_tracks);
   for (int p = 3; p < m_num_tracks + 1; ++p) goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p);
@@ -103,9 +104,9 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                                 std::vector<KFParticle>& selectedVertexAdv,
                                                 std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
                                                 std::vector<std::vector<KFParticle>>& selectedIntermediatesAdv,
-                                                std::vector<KFParticle> daughterParticlesAdv,
-                                                const std::vector<int> goodTrackIndexAdv,
-                                                std::vector<KFParticle> primaryVerticesAdv)
+                                                const std::vector<KFParticle>& daughterParticlesAdv,
+                                                const std::vector<int>& goodTrackIndexAdv,
+                                                const std::vector<KFParticle>& primaryVerticesAdv)
 {
   int track_start = 0;
   int track_stop = m_num_tracks_from_intermediate[0];

@@ -16,10 +16,15 @@ KFParticle_Tools kfpTupleTools;
 KFParticle_truthAndDetTools kfpTruthAndDetTools;
 
 KFParticle_nTuple::KFParticle_nTuple()
-  : m_truth_matching(false)
+  : m_has_intermediates_nTuple(false)
+  , m_constrain_to_vertex_nTuple(false)
+  , m_num_tracks_nTuple(2)
+  , m_num_intermediate_states_nTuple(0)
+  , m_truth_matching(false)
   , m_detector_info(false)
   , m_use_intermediate_name(true)
   , m_get_charge_conjugate_nTuple(true)
+  , m_tree(nullptr)
 {
 }  //Constructor
 
@@ -30,6 +35,7 @@ void KFParticle_nTuple::initializeVariables()
 
 void KFParticle_nTuple::initializeBranches()
 {
+  delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  //Save the output file every 5MB
@@ -40,7 +46,8 @@ void KFParticle_nTuple::initializeBranches()
   else
     mother_name = m_mother_name;
 
-  std::string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/";
+  std::string undrscr = "_";
   size_t pos;
   while ((pos = mother_name.find(fwd_slsh)) != std::string::npos) mother_name.replace(pos, 1, undrscr);
 
@@ -90,8 +97,6 @@ void KFParticle_nTuple::initializeBranches()
         intermediate_name = m_intermediate_name_ntuple[i];
 
       //Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      std::string fwd_slsh = "/", undrscr = "_";
-      size_t pos;
       while ((pos = intermediate_name.find(fwd_slsh)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");

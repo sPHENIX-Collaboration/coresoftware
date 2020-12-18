@@ -54,18 +54,18 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
                        std::vector<KFParticle>& selectedVertexBasic,
                        std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
-                       const std::vector<KFParticle> daughterParticlesBasic,
-                       const std::vector<int> goodTrackIndexBasic,
-                       const std::vector<KFParticle> primaryVerticesBasic);
+                       const std::vector<KFParticle>& daughterParticlesBasic,
+                       const std::vector<int>& goodTrackIndexBasic,
+                       const std::vector<KFParticle>& primaryVerticesBasic);
 
   ///Used to reconstruct more complicated decays with up to four intermediate states
   void buildChain(std::vector<KFParticle>& selectedMotherAdv,
                   std::vector<KFParticle>& selectedVertexAdv,
                   std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
                   std::vector<std::vector<KFParticle>>& selectedIntermediatesAdv,
-                  std::vector<KFParticle> daughterParticlesAdv,
-                  const std::vector<int> goodTrackIndexAdv,
-                  std::vector<KFParticle> primaryVerticesAdv);
+                  const std::vector<KFParticle>& daughterParticlesAdv,
+                  const std::vector<int>& goodTrackIndexAdv,
+                  const std::vector<KFParticle>& primaryVerticesAdv);
 
   ///Basic building block for event reconstruction and selection
   void getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
@@ -78,12 +78,12 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
  protected:
-  static const int max_tracks = 99;
+  //static const int max_tracks = 99;
   bool m_has_intermediates;
-  int m_num_tracks;
+  int m_num_tracks = -1;
   std::string m_daughter_name_evt[max_tracks];
-  int m_daughter_charge_evt[max_tracks];
-  int m_intermediate_charge[max_tracks];
+  int m_daughter_charge_evt[max_tracks] = {0};
+  int m_intermediate_charge[max_tracks] = {0};
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
 };

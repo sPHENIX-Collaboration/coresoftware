@@ -35,6 +35,20 @@ class KFParticle_truthAndDetTools
   void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
 
+ protected:
+  SvtxEvalStack *m_svtx_evalstack = nullptr;
+  SvtxClusterEval *clustereval = nullptr;
+  SvtxTruthEval *trutheval = nullptr;
+
+  SvtxTrackMap *dst_trackmap = nullptr;
+  SvtxTrack *track = nullptr;
+
+  PHG4Particle *g4particle = nullptr;
+  PHG4VtxPoint *g4vertex_point = nullptr;
+  SvtxVertex *vertex = nullptr;
+
+  TrkrClusterContainer *dst_clustermap = nullptr;
+
  private:
   TTree *m_tree;
 
@@ -61,19 +75,6 @@ class KFParticle_truthAndDetTools
   std::vector<int> tpc_sectorID[max_tracks];
   std::vector<int> tpc_side[max_tracks];
 
- protected:
-  SvtxEvalStack *m_svtx_evalstack = nullptr;
-  SvtxClusterEval *clustereval = nullptr;
-  SvtxTruthEval *trutheval = nullptr;
-
-  SvtxTrackMap *dst_trackmap = nullptr;
-  SvtxTrack *track = nullptr;
-
-  PHG4Particle *g4particle = nullptr;
-  PHG4VtxPoint *g4vertex_point = nullptr;
-  SvtxVertex *vertex = nullptr;
-
-  TrkrClusterContainer *dst_clustermap = nullptr;
 };
 
 #endif //KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H

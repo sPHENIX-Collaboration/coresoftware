@@ -40,19 +40,26 @@ std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
 KFParticle_sPHENIX::KFParticle_sPHENIX()
   : SubsysReco("KFPARTICLE")
   , m_verbosity(0)
+  , m_has_intermediates_sPHENIX(false)
+  , m_constrain_to_vertex_sPHENIX(false)
   , m_require_mva(false)
   , m_save_dst(0)
   , m_save_output(1)
   , m_outfile_name("outputData.root")
+  , m_outfile(nullptr)
 {
 }
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name = "KFPARTICLE")
   : SubsysReco(name)
+  , m_verbosity(0)
+  , m_has_intermediates_sPHENIX(false)
+  , m_constrain_to_vertex_sPHENIX(false)
   , m_require_mva(false)
   , m_save_dst(0)
   , m_save_output(1)
   , m_outfile_name("outputData.root")
+  , m_outfile(nullptr)
 {
 }
 

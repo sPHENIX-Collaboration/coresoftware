@@ -133,10 +133,10 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
-  SvtxVertexMap *m_dst_vertexmap;
-  SvtxTrackMap *m_dst_trackmap;
-  SvtxVertex *m_dst_vertex;
-  SvtxTrack *m_dst_track;
+  SvtxVertexMap *m_dst_vertexmap = nullptr;
+  SvtxTrackMap *m_dst_trackmap = nullptr;
+  SvtxVertex *m_dst_vertex = nullptr;
+  SvtxTrack *m_dst_track = nullptr;
 
  private:
   void removeDuplicates(std::vector<double> &v);
