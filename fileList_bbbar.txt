@@ -1,5 +1,0 @@
-/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-1/G4sPHENIX-5K.root
-/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-2/G4sPHENIX-5K.root
-/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-3/G4sPHENIX-5K.root
-/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-4/G4sPHENIX-5K.root
-/sphenix/user/mxliu/offline/B-sim/macros/macros/g4simulations/dir-5/G4sPHENIX-5K.root
