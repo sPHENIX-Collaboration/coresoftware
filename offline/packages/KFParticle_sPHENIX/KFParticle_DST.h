@@ -51,7 +51,6 @@ virtual ~KFParticle_DST(){}
  private:
   SvtxTrackMap* m_recoTrackMap = nullptr;
   KFParticle_Container* m_recoParticleMap = nullptr;
-  SvtxTrack* m_recoParticle = nullptr;
   SvtxTrack* buildSvtxTrack(KFParticle particle);
 };
 

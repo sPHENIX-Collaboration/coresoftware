@@ -460,7 +460,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   bool chargeCheck;
   if (m_get_charge_conjugate)
-    chargeCheck = abs(unique_vertexID) == abs(required_vertexID) ? 1 : 0;
+    chargeCheck = std::abs(unique_vertexID) == std::abs(required_vertexID) ? 1 : 0;
   else
     chargeCheck = unique_vertexID == required_vertexID ? 1 : 0;
 
@@ -538,7 +538,7 @@ std::vector<std::vector<std::string>> KFParticle_Tools::findUniqueDaughterCombin
 
 double KFParticle_Tools::calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij)
 {  //Note - Only works for a 2D ellipsoid OR rotated nD ellipsoid to avoid projections
-  if (abs(posOrNeg) != 1)
+  if (std::abs(posOrNeg) != 1)
   {
     std::cout << "You have set posOrNeg to " << posOrNeg << ". This value must be  +/- 1! Skipping" << std::endl;
     return 0;
@@ -561,7 +561,7 @@ float KFParticle_Tools::calculateEllipsoidVolume(KFParticle particle)
   if (cov_matrix(0, 0) * cov_matrix(1, 1) * cov_matrix(2, 2) == 0)
     volume = 0;
   else
-    volume = (4 / 3) * M_PI * sqrt((abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
+    volume = (4 / 3) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
 
   return volume;
 }

@@ -50,8 +50,6 @@ class KFParticle_truthAndDetTools
   TrkrClusterContainer *dst_clustermap = nullptr;
 
  private:
-  TTree *m_tree;
-
   static const int max_tracks = 20;
 
   float m_true_daughter_vertex_x[max_tracks] = {0};

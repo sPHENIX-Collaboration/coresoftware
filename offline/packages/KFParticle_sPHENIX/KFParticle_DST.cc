@@ -204,7 +204,7 @@ SvtxTrack* KFParticle_DST::buildSvtxTrack(KFParticle particle)
 {
   SvtxTrack* track = new SvtxTrack_v1();
 
-  track->set_id(abs(particle.GetPDG()));
+  track->set_id(std::abs(particle.GetPDG()));
   track->set_charge((int) particle.GetQ());
   track->set_chisq(particle.GetChi2());
   track->set_ndf(particle.GetNDF());
