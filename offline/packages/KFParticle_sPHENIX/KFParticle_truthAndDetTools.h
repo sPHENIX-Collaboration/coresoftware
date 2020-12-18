@@ -1,6 +1,8 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 
+#include <KFParticle.h>
+
 #include <string>
 #include <vector>
 

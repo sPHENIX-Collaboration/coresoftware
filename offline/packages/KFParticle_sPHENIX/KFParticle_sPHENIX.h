@@ -28,14 +28,16 @@
 #include "KFParticle_DST.h"
 
 //sPHENIX stuff
-#include <fun4all/Fun4AllDstInputManager.h>
+//#include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/SubsysReco.h>
 
 //ROOT stuff
-#include <TFile.h>
+//#include <TFile.h>
 
 //KFParticle stuff
 #include <KFParticle.h>
+
+class TFile;
 
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction
 {
