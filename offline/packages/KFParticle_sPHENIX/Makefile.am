@@ -12,7 +12,7 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
   -DHomogeneousField
-  
+
 
 pkginclude_HEADERS = \
   KFParticle_Container.h \
@@ -25,7 +25,14 @@ pkginclude_HEADERS = \
   KFParticle_eventReconstruction.h \
   KFParticle_sPHENIX.h
 
-if ! MAKEROOT6
+ROOTDICTS = \
+  KFParticle_Container_Dict.cc
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  KFParticle_Container_Dict_rdict.pcm
+
+#if ! MAKEROOT6
   ROOT5_DICTS = \
     KFParticle_Container_DICT.cc \
     KFParticle_DST_DICT.cc \
@@ -36,10 +43,11 @@ if ! MAKEROOT6
     KFParticle_MVA_Dict.cc \
     KFParticle_eventReconstruction_Dict.cc \
     KFParticle_sPHENIX_Dict.cc
-endif
+#endif
+
 
 libkfparticle_sphenix_la_SOURCES = \
-  $(ROOT5_DICTS) \
+  $(ROOTDICTS) \
   KFParticle_Container.cc \
   KFParticle_DST.cc \
   KFParticle_truthAndDetTools.cc \
@@ -63,6 +71,13 @@ libkfparticle_sphenix_la_LDFLAGS = \
   -L$(ROOTSYS)/lib `root-config --libs` \
   -lTMVA
 
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 ################################################
 # linking tests
 
@@ -78,10 +93,6 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm

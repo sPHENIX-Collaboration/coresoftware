@@ -1,5 +1,5 @@
-#ifndef KFParticle_Container_H
-#define KFParticle_Container_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
+#define KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
 
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
@@ -68,7 +68,8 @@ class KFParticle_Container : public PHObject
 
  private:
   Map m_kfpmap;
-  //ClassDef(KFParticle_Container, 1)
+
+  ClassDef(KFParticle_Container, 1)
 };
 
-#endif  //KFParticle_Container_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLECONTAINER_H
