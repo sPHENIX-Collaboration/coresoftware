@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef KFParticle_sPHENIX_H
-#define KFParticle_sPHENIX_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
+#define KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
 
 #include "KFParticle_eventReconstruction.h"
 #include "KFParticle_nTuple.h"
@@ -37,8 +37,6 @@
 //KFParticle stuff
 #include <KFParticle.h>
 
-using namespace std;
-
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction
 {
  public:
@@ -46,7 +44,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   KFParticle_sPHENIX(const string &name);
 
-  ~KFParticle_sPHENIX();
+  virtual ~KFParticle_sPHENIX();
 
   int Init(PHCompositeNode *topNode);
 
@@ -230,4 +228,4 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   TFile *m_outfile;
 };
 
-#endif  //KFParticle_sPHENIX_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

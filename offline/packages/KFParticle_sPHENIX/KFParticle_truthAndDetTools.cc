@@ -1,19 +1,32 @@
-#include <g4main/PHG4TruthInfoContainer.h>
+#include "KFParticle_truthAndDetTools.h"
+
 #include <intt/InttDefs.h>
+
 #include <mvtx/MvtxDefs.h>
-#include <phool/getClass.h>
+
 #include <tpc/TpcDefs.h>
+
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <TTree.h>
+#include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
+#include <g4eval/SvtxTruthEval.h>
+
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
+#include <phool/getClass.h>
 
 #include <KFParticle.h>
 
-#include "KFParticle_truthAndDetTools.h"
+#include <TTree.h>
 
-using namespace std;
-
-map<string, int> Use =
+std::map<std::string, int> Use =
     {
         {"MVTX", 1},
         {"INTT", 1},
@@ -45,7 +58,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id)
 {
-  string daughter_number = "track_" + to_string(daughter_id + 1);
+  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
 
   m_tree->Branch(TString(daughter_number) + "_true_vertex_x", &m_true_daughter_vertex_x[daughter_id], TString(daughter_number) + "_true_vertex_x/F");
   m_tree->Branch(TString(daughter_number) + "_true_vertex_y", &m_true_daughter_vertex_y[daughter_id], TString(daughter_number) + "_true_vertex_y/F");
@@ -80,7 +93,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   }
   else
   {
-    cout << "KFParticle truth matching: SvtxTrackMap does not exist" << endl;
+    std::cout << "KFParticle truth matching: SvtxTrackMap does not exist" << std::endl;
   }
 
   m_svtx_evalstack->next_event(topNode);
@@ -111,7 +124,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id)
 {
-  string daughter_number = "track_" + to_string(daughter_id + 1);
+  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
 
   m_tree->Branch(TString(daughter_number) + "_local_x", &detector_local_x[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_local_y", &detector_local_y[daughter_id]);
@@ -124,9 +137,9 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
   }
 }
 
-void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, string detectorName, int daughter_id)
+void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id)
 {
-  string daughter_number = "track_" + to_string(daughter_id + 1);
+  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
 
   if (detectorName == "MVTX")
   {
@@ -157,7 +170,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
   else
   {
-    cout << "KFParticle detector info: SvtxTrackMap does not exist" << endl;
+    std::cout << "KFParticle detector info: SvtxTrackMap does not exist" << std::endl;
   }
 
   findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("TRKR_CLUSTER"));
@@ -167,7 +180,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
   else
   {
-    cout << "KFParticle detector info: TRKR_CLUSTER does not exist" << endl;
+    std::cout << "KFParticle detector info: TRKR_CLUSTER does not exist" << std::endl;
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
