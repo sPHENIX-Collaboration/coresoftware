@@ -18,8 +18,6 @@
 #include <utility>   // for pair, make_pair
 
 
-using namespace std;
-
 KFParticle_Container::KFParticle_Container()
   : m_kfpmap()
 {
@@ -33,7 +31,7 @@ KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticl
        ++iter)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter->second->Clone());
-    m_kfpmap.insert(make_pair(particle->Id(), particle));
+    m_kfpmap.insert(std::make_pair(particle->Id(), particle));
   }
 }
 
@@ -45,7 +43,7 @@ KFParticle_Container& KFParticle_Container::operator=(const KFParticle_Container
        ++iter)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter->second->Clone());
-    m_kfpmap.insert(make_pair(particle->Id(), particle));
+    m_kfpmap.insert(std::make_pair(particle->Id(), particle));
   }
   return *this;
 }
@@ -67,9 +65,9 @@ void KFParticle_Container::Reset()
   m_kfpmap.clear();
 }
 
-void KFParticle_Container::identify(ostream& os) const
+void KFParticle_Container::identify(std::ostream& os) const
 {
-  os << "KFParticle_Container: size = " << m_kfpmap.size() << endl;
+  os << "KFParticle_Container: size = " << m_kfpmap.size() << std::endl;
   return;
 }
 
@@ -91,7 +89,7 @@ KFParticle* KFParticle_Container::insert(const KFParticle* particle)
 {
   unsigned int index = 0;
   if (!m_kfpmap.empty()) index = m_kfpmap.rbegin()->first + 1;
-  m_kfpmap.insert(make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
+  m_kfpmap.insert(std::make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
   m_kfpmap[index]->SetId(index);
   return m_kfpmap[index];
 }
@@ -105,10 +103,10 @@ KFParticle_Container::addParticle(KFParticle* particle)
 KFParticle_Container::ConstIter
 KFParticle_Container::addParticleSpecifyKey(unsigned int id, KFParticle* particle)
 {
-  auto ret = m_kfpmap.insert(make_pair(id, particle));
+  auto ret = m_kfpmap.insert(std::make_pair(id, particle));
   if (!ret.second)
   {
-    cout << "KFParticle_Container::AddParticleSpecifyKey: duplicate id: " << id << " exiting now" << endl;
+    std::cout << "KFParticle_Container::AddParticleSpecifyKey: duplicate id: " << id << " exiting now" << std::endl;
     exit(1);
   }
   else
@@ -124,7 +122,7 @@ KFParticle_Container::returnParticlesByPDGid(int PDGid)
 
   for (Iter iter = m_kfpmap.begin(); iter != m_kfpmap.end(); ++iter)
     if (iter->second->GetPDG() == PDGid)
-      requiredParticles.insert(make_pair(iter->first, iter->second));
+      requiredParticles.insert(std::make_pair(iter->first, iter->second));
 
   return requiredParticles;
 }
