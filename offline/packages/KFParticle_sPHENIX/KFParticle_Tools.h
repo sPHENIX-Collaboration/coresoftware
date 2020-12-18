@@ -46,40 +46,40 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
-  vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
+  std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
   int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex);
 
-  const bool isGoodTrack(KFParticle particle, vector<KFParticle> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices);
 
-  vector<int> findAllGoodTracks(vector<KFParticle> daughterParticles, vector<KFParticle> primaryVertices);
+  std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
 
-  vector<vector<int>> findTwoProngs(vector<KFParticle> daughterParticles, vector<int> goodTrackIndex, int nTracks);
+  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
 
-  vector<vector<int>> findNProngs(vector<KFParticle> daughterParticles,
-                                  vector<int> goodTrackIndex,
-                                  vector<vector<int>> goodTracksThatMeet,
+  std::vector<std::vector<int>> findNProngs(std::vector<KFParticle> daughterParticles,
+                                  std::vector<int> goodTrackIndex,
+                                  std::vector<std::vector<int>> goodTracksThatMeet,
                                   int nRequiredTracks, unsigned int nProngs);
 
-  vector<vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], vector<KFParticle> daughterParticles, vector<int> goodTrackIndex, int num_remaining_tracks);
+  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks);
 
   ///Calculates the cosine of the angle betweent the flight direction and momentum
   float eventDIRA(KFParticle particle, KFParticle vertex);
 
   float flightDistanceChi2(KFParticle particle, KFParticle vertex);
 
-  tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
 
-  tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], string daughterOrder[], KFParticle vertex,
+  std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex,
                                          bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
-  vector<vector<string>> findUniqueDaughterCombinations(int start, int end);
+  std::vector<std::vector<std::string>> findUniqueDaughterCombinations(int start, int end);
 
   double calculateEllipsoidRadius(int posOrNeg, double sigma_ii, double sigma_jj, double sigma_ij);
 
@@ -89,17 +89,17 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
  protected:
   static const int max_tracks = 99;
-  string m_mother_name_Tools;
+  std::string m_mother_name_Tools;
   int m_num_intermediate_states = -1;
   int m_num_tracks_from_intermediate[max_tracks] = {0};
-  string m_daughter_name[max_tracks];
+  std::string m_daughter_name[max_tracks];
   int m_daughter_charge[max_tracks] = {0};
-  string m_intermediate_name[max_tracks];
+  std::string m_intermediate_name[max_tracks];
   float m_min_mass = -1;
 
   float m_max_mass = -1;
 
-  pair<float, float> m_intermediate_mass_range[max_tracks];
+  std::pair<float, float> m_intermediate_mass_range[max_tracks];
   float m_intermediate_min_pt[max_tracks] = {0};
   float m_min_lifetime = -1;
 
@@ -131,18 +131,18 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   bool m_get_charge_conjugate = -1;
 
-  string m_vtx_map_node_name;
-  string m_trk_map_node_name;
+  std::string m_vtx_map_node_name;
+  std::string m_trk_map_node_name;
   SvtxVertexMap *m_dst_vertexmap;
   SvtxTrackMap *m_dst_trackmap;
   SvtxVertex *m_dst_vertex;
   SvtxTrack *m_dst_track;
 
  private:
-  void removeDuplicates(vector<double> &v);
-  void removeDuplicates(vector<int> &v);
-  void removeDuplicates(vector<vector<int>> &v);
-  void removeDuplicates(vector<vector<string>> &v);
+  void removeDuplicates(std::vector<double> &v);
+  void removeDuplicates(std::vector<int> &v);
+  void removeDuplicates(std::vector<std::vector<int>> &v);
+  void removeDuplicates(std::vector<std::vector<std::string>> &v);
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H

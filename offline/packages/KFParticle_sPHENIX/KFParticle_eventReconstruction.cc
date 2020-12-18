@@ -41,11 +41,11 @@
 #include <map>
 
 /// Create necessary objects
-typedef pair<int, float> particle_pair;
+typedef std::pair<int, float> particle_pair;
 KFParticle_particleList kfp_particleList_evtReco;
 
 //Particle masses are in GeV
-map<string, particle_pair> particleMasses_evtReco = kfp_particleList_evtReco.getParticleList();
+std::map<std::string, particle_pair> particleMasses_evtReco = kfp_particleList_evtReco.getParticleList();
 
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
@@ -58,20 +58,20 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction()
 {
 }
 
-void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, vector<KFParticle>& selectedMother, vector<KFParticle>& selectedVertex,
-                                                 vector<vector<KFParticle>>& selectedDaughters,
-                                                 vector<vector<KFParticle>>& selectedIntermediates,
+void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
+                                                 std::vector<std::vector<KFParticle>>& selectedDaughters,
+                                                 std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
   KFParticle::SetField(-1.5e0);
 
-  vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode);
-  vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
+  std::vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode);
+  std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
 
   nPVs = primaryVertices.size();
   multiplicity = daughterParticles.size();
 
-  vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
+  std::vector<int> goodTrackIndex = findAllGoodTracks(daughterParticles, primaryVertices);
 
   if (!m_has_intermediates)
     buildBasicChain(selectedMother, selectedVertex, selectedDaughters, daughterParticles, goodTrackIndex, primaryVertices);
@@ -82,14 +82,14 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, vecto
 /*
  *  This function is used to build a basic n-body decay without any intermediate particles such as D's or J/psi's
  */
-void KFParticle_eventReconstruction::buildBasicChain(vector<KFParticle>& selectedMotherBasic,
-                                                     vector<KFParticle>& selectedVertexBasic,
-                                                     vector<vector<KFParticle>>& selectedDaughtersBasic,
-                                                     const vector<KFParticle> daughterParticlesBasic,
-                                                     const vector<int> goodTrackIndexBasic,
-                                                     const vector<KFParticle> primaryVerticesBasic)
+void KFParticle_eventReconstruction::buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
+                                                     std::vector<KFParticle>& selectedVertexBasic,
+                                                     std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
+                                                     const std::vector<KFParticle> daughterParticlesBasic,
+                                                     const std::vector<int> goodTrackIndexBasic,
+                                                     const std::vector<KFParticle> primaryVerticesBasic)
 {
-  vector<vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesBasic, goodTrackIndexBasic, m_num_tracks);
+  std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesBasic, goodTrackIndexBasic, m_num_tracks);
   for (int p = 3; p < m_num_tracks + 1; ++p) goodTracksThatMeet = findNProngs(daughterParticlesBasic, goodTrackIndexBasic, goodTracksThatMeet, m_num_tracks, p);
 
   getCandidateDecay(selectedMotherBasic, selectedVertexBasic, selectedDaughtersBasic, daughterParticlesBasic,
@@ -99,29 +99,29 @@ void KFParticle_eventReconstruction::buildBasicChain(vector<KFParticle>& selecte
 /*
  *  This function is used to build a more complicated decay with intermediate particles such as D's or J/psi's
  */
-void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMotherAdv,
-                                                vector<KFParticle>& selectedVertexAdv,
-                                                vector<vector<KFParticle>>& selectedDaughtersAdv,
-                                                vector<vector<KFParticle>>& selectedIntermediatesAdv,
-                                                vector<KFParticle> daughterParticlesAdv,
-                                                const vector<int> goodTrackIndexAdv,
-                                                vector<KFParticle> primaryVerticesAdv)
+void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selectedMotherAdv,
+                                                std::vector<KFParticle>& selectedVertexAdv,
+                                                std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
+                                                std::vector<std::vector<KFParticle>>& selectedIntermediatesAdv,
+                                                std::vector<KFParticle> daughterParticlesAdv,
+                                                const std::vector<int> goodTrackIndexAdv,
+                                                std::vector<KFParticle> primaryVerticesAdv)
 {
   int track_start = 0;
   int track_stop = m_num_tracks_from_intermediate[0];
 
-  vector<KFParticle> goodCandidates;
-  vector<KFParticle> goodVertex; 
-  vector<KFParticle> goodDaughters[m_num_tracks];
-  vector<KFParticle> goodIntermediates[m_num_intermediate_states];
-  vector<KFParticle> potentialIntermediates[m_num_intermediate_states];
-  vector<vector<KFParticle>> potentialDaughters[m_num_intermediate_states];
+  std::vector<KFParticle> goodCandidates;
+  std::vector<KFParticle> goodVertex; 
+  std::vector<KFParticle> goodDaughters[m_num_tracks];
+  std::vector<KFParticle> goodIntermediates[m_num_intermediate_states];
+  std::vector<KFParticle> potentialIntermediates[m_num_intermediate_states];
+  std::vector<std::vector<KFParticle>> potentialDaughters[m_num_intermediate_states];
 
   for (int i = 0; i < m_num_intermediate_states; ++i)
   {
-    vector<KFParticle> vertices;
+    std::vector<KFParticle> vertices;
 
-    vector<vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv, m_num_tracks_from_intermediate[i]);
+    std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv, m_num_tracks_from_intermediate[i]);
     for (int p = 3; p <= m_num_tracks_from_intermediate[i]; ++p) goodTracksThatMeet = findNProngs(daughterParticlesAdv,
                                                                                                   goodTrackIndexAdv,
                                                                                                   goodTracksThatMeet,
@@ -160,7 +160,7 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
 
             int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
             KFParticle motherDecayProducts[num_mother_decay_products];
-            vector<KFParticle> finalTracks = potentialDaughters[0][a];
+            std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
 
             for (int i = 0; i < m_num_intermediate_states; ++i) motherDecayProducts[i] = potentialIntermediates[i][matchIterators[i]];
             for (int j = 1; j < m_num_intermediate_states; ++j) 
@@ -169,7 +169,7 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
             }
 
             // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
-            vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
+            std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
             for (int m = 0; m < m_num_intermediate_states; ++m)
             {
               int trackID_to_remove = finalTracks[m].Id();
@@ -184,7 +184,7 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
 
             if (num_remaining_tracks == 0)
             {
-              tie(candidate, isGood) = getCombination(motherDecayProducts, m_intermediate_name, primaryVerticesAdv[i_pv],
+              std::tie(candidate, isGood) = getCombination(motherDecayProducts, m_intermediate_name, primaryVerticesAdv[i_pv],
                                                       m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID);
             }
             else  //Build n-prong from remaining tracks if needed
@@ -192,15 +192,15 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
               for (int i = num_tracks_used_by_intermediates; i < m_num_tracks; ++i)
                 required_unique_vertexID += m_daughter_charge[i] * particleMasses_evtReco.find(m_daughter_name[i].c_str())->second.second;
 
-              vector<vector<int>> goodTracksThatMeet_withoutIntermediates;
+              std::vector<std::vector<int>> goodTracksThatMeet_withoutIntermediates;
               if (num_remaining_tracks > 1) goodTracksThatMeet_withoutIntermediates = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks);
               for (int p = 3; p <= num_remaining_tracks; ++p) goodTracksThatMeet_withoutIntermediates = findNProngs(daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates,
                                                                                                                     goodTracksThatMeet_withoutIntermediates, num_remaining_tracks, p);
 
-              vector<vector<string>> uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  //Unique comb of remaining trackIDs
-              vector<string> v_intermediate_name(m_intermediate_name, m_intermediate_name + m_num_intermediate_states);
+              std::vector<std::vector<std::string>> uniqueCombinations = findUniqueDaughterCombinations(num_tracks_used_by_intermediates, m_num_tracks);  //Unique comb of remaining trackIDs
+              std::vector<std::string> v_intermediate_name(m_intermediate_name, m_intermediate_name + m_num_intermediate_states);
 
-              vector<vector<int>> listOfTracksToAppend = appendTracksToIntermediates(motherDecayProducts, daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks);
+              std::vector<std::vector<int>> listOfTracksToAppend = appendTracksToIntermediates(motherDecayProducts, daughterParticlesAdv, goodTrackIndexAdv_withoutIntermediates, num_remaining_tracks);
               for (unsigned int n_names = 0; n_names < uniqueCombinations.size(); ++n_names)
                 uniqueCombinations[n_names].insert(begin(uniqueCombinations[n_names]), begin(v_intermediate_name), end(v_intermediate_name));
 
@@ -214,7 +214,7 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
                 }
                 for (unsigned int n_names = 0; n_names < uniqueCombinations.size(); ++n_names)
                 {
-                  tie(candidate, isGood) = getCombination(motherDecayProducts, &uniqueCombinations[n_names][0], primaryVerticesAdv[i_pv], 
+                  std::tie(candidate, isGood) = getCombination(motherDecayProducts, &uniqueCombinations[n_names][0], primaryVerticesAdv[i_pv], 
                                            m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID);
                   if (isGood)
                   {
@@ -255,10 +255,10 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
     }
     selectedMotherAdv.push_back(goodCandidates[bestCombinationIndex]);
     if (m_constrain_to_vertex) selectedVertexAdv.push_back(goodVertex[bestCombinationIndex]);
-    vector<KFParticle> intermediates;
+    std::vector<KFParticle> intermediates;
     for (int i = 0; i < m_num_intermediate_states; ++i) intermediates.push_back(goodIntermediates[i][bestCombinationIndex]);
     selectedIntermediatesAdv.push_back(intermediates);
-    vector<KFParticle> particles;
+    std::vector<KFParticle> particles;
     for (int i = 0; i < m_num_tracks; ++i) particles.push_back(goodDaughters[i][bestCombinationIndex]);
     selectedDaughtersAdv.push_back(particles);
   }
@@ -268,18 +268,18 @@ void KFParticle_eventReconstruction::buildChain(vector<KFParticle>& selectedMoth
   for (int j = 0; j < m_num_tracks; ++j) goodDaughters[j].clear();
 }
 
-void KFParticle_eventReconstruction::getCandidateDecay(vector<KFParticle>& selectedMotherCand,
-                                                       vector<KFParticle>& selectedVertexCand,
-                                                       vector<vector<KFParticle>>& selectedDaughtersCand,
-                                                       vector<KFParticle> daughterParticlesCand,
-                                                       vector<vector<int>> goodTracksThatMeetCand,
-                                                       vector<KFParticle> primaryVerticesCand,
+void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
+                                                       std::vector<KFParticle>& selectedVertexCand,
+                                                       std::vector<std::vector<KFParticle>>& selectedDaughtersCand,
+                                                       std::vector<KFParticle> daughterParticlesCand,
+                                                       std::vector<std::vector<int>> goodTracksThatMeetCand,
+                                                       std::vector<KFParticle> primaryVerticesCand,
                                                        int n_track_start, int n_track_stop,
                                                        bool isIntermediate, int intermediateNumber, bool constrainMass)
 {
   int nTracks = n_track_stop - n_track_start;
-  vector<vector<string>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
-  vector<KFParticle> goodCandidates, goodVertex, goodDaughters[nTracks];
+  std::vector<std::vector<std::string>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
+  std::vector<KFParticle> goodCandidates, goodVertex, goodDaughters[nTracks];
   KFParticle candidate;
   bool isGood;
   bool fixToPV = m_constrain_to_vertex && !isIntermediate;
@@ -300,8 +300,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(vector<KFParticle>& selec
     {
       for (unsigned int i_pv = 0; i_pv < primaryVerticesCand.size(); ++i_pv)  //Loop over all PVs in the event
       {
-        string* names = &uniqueCombinations[i_uc][0];
-        tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
+        std::string* names = &uniqueCombinations[i_uc][0];
+        std::tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                 isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID);
 
         if (isGood)
@@ -337,7 +337,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(vector<KFParticle>& selec
       }
       selectedMotherCand.push_back(goodCandidates[bestCombinationIndex]);
       if (fixToPV) selectedVertexCand.push_back(goodVertex[bestCombinationIndex]);
-      vector<KFParticle> particles;
+      std::vector<KFParticle> particles;
       for (int i = 0; i < nTracks; ++i) particles.push_back(goodDaughters[i][bestCombinationIndex]);
       selectedDaughtersCand.push_back(particles);
     }

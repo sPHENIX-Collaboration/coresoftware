@@ -58,12 +58,6 @@ using namespace std;
 
 typedef pair<int, float> particle_pair;
 
-/// KFParticle constructor
-KFParticle_particleList::KFParticle_particleList() {}
-
-/// KFParticle destructor
-KFParticle_particleList::~KFParticle_particleList() {}
-
 map<string, particle_pair> KFParticle_particleList::getParticleList()
 {
   //There is a scope issue here and kfpDatabase must be declared in function unlike in KFPTools

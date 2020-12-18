@@ -25,6 +25,7 @@
 #include "KFParticle_Tools.h"
 
 #include <KFParticle.h>
+
 #include <vector>
 
 class PHCompositeNode;
@@ -44,35 +45,35 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
    * @param selectedDaughters Input a vector and it will be filled with any tracks associated to your mother
    * @param selectedIntermediates Input a vector and it will be filled with any intermediate states associated to your mother
    */
-  void createDecay(PHCompositeNode* topNode, vector<KFParticle>& selectedMother, vector<KFParticle>& selectedVertex,
-                   vector<vector<KFParticle>>& selectedDaughters,
-                   vector<vector<KFParticle>>& selectedIntermediates,
+  void createDecay(PHCompositeNode* topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
+                   std::vector<std::vector<KFParticle>>& selectedDaughters,
+                   std::vector<std::vector<KFParticle>>& selectedIntermediates,
                    int& nPVs, int& multiplicity);
  
   ///Used to reconstruct simple decays with no intermediate states
-  void buildBasicChain(vector<KFParticle>& selectedMotherBasic,
-                       vector<KFParticle>& selectedVertexBasic,
-                       vector<vector<KFParticle>>& selectedDaughtersBasic,
-                       const vector<KFParticle> daughterParticlesBasic,
-                       const vector<int> goodTrackIndexBasic,
-                       const vector<KFParticle> primaryVerticesBasic);
+  void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
+                       std::vector<KFParticle>& selectedVertexBasic,
+                       std::vector<std::vector<KFParticle>>& selectedDaughtersBasic,
+                       const std::vector<KFParticle> daughterParticlesBasic,
+                       const std::vector<int> goodTrackIndexBasic,
+                       const std::vector<KFParticle> primaryVerticesBasic);
 
   ///Used to reconstruct more complicated decays with up to four intermediate states
-  void buildChain(vector<KFParticle>& selectedMotherAdv,
-                  vector<KFParticle>& selectedVertexAdv,
-                  vector<vector<KFParticle>>& selectedDaughtersAdv,
-                  vector<vector<KFParticle>>& selectedIntermediatesAdv,
-                  vector<KFParticle> daughterParticlesAdv,
-                  const vector<int> goodTrackIndexAdv,
-                  vector<KFParticle> primaryVerticesAdv);
+  void buildChain(std::vector<KFParticle>& selectedMotherAdv,
+                  std::vector<KFParticle>& selectedVertexAdv,
+                  std::vector<std::vector<KFParticle>>& selectedDaughtersAdv,
+                  std::vector<std::vector<KFParticle>>& selectedIntermediatesAdv,
+                  std::vector<KFParticle> daughterParticlesAdv,
+                  const std::vector<int> goodTrackIndexAdv,
+                  std::vector<KFParticle> primaryVerticesAdv);
 
   ///Basic building block for event reconstruction and selection
-  void getCandidateDecay(vector<KFParticle>& selectedMotherCand,
-                         vector<KFParticle>& selectedVertexCand,
-                         vector<vector<KFParticle>>& selectedDaughtersCand,
-                         vector<KFParticle> daughterParticlesCand,
-                         vector<vector<int>> goodTracksThatMeetCand,
-                         vector<KFParticle> primaryVerticesCand,
+  void getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
+                         std::vector<KFParticle>& selectedVertexCand,
+                         std::vector<std::vector<KFParticle>>& selectedDaughtersCand,
+                         std::vector<KFParticle> daughterParticlesCand,
+                         std::vector<std::vector<int>> goodTracksThatMeetCand,
+                         std::vector<KFParticle> primaryVerticesCand,
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
@@ -80,7 +81,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   static const int max_tracks = 99;
   bool m_has_intermediates;
   int m_num_tracks;
-  string m_daughter_name_evt[max_tracks];
+  std::string m_daughter_name_evt[max_tracks];
   int m_daughter_charge_evt[max_tracks];
   int m_intermediate_charge[max_tracks];
   bool m_constrain_to_vertex;

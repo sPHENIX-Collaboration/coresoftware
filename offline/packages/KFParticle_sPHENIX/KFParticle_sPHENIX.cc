@@ -24,14 +24,17 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
-using namespace std;
+#include <TFile.h>
 
-typedef pair<int, float> particle_pair;
+typedef std::pair<int, float> particle_pair;
+
 KFParticle_Tools kfpTupleTools_Top;
 KFParticle_particleList kfp_list;
-map<string, particle_pair> particleList = kfp_list.getParticleList();
+std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
 
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX()
@@ -44,7 +47,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
 {
 }
 
-KFParticle_sPHENIX::KFParticle_sPHENIX(const string &name = "KFPARTICLE")
+KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name = "KFPARTICLE")
   : SubsysReco(name)
   , m_require_mva(false)
   , m_save_dst(0)
@@ -52,8 +55,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const string &name = "KFPARTICLE")
   , m_outfile_name("outputData.root")
 {
 }
-
-KFParticle_sPHENIX::~KFParticle_sPHENIX() {}  /// KFParticle destructor
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {

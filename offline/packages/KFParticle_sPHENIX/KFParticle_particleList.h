@@ -19,14 +19,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef KFParticle_particleList_H
-#define KFParticle_particleList_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLEPARTICLELIST_H
+#define KFPARTICLESPHENIX_KFPARTICLEPARTICLELIST_H
 
 #include <map>
 
-using namespace std;
-
-typedef pair<int, float> particle_pair;
+typedef std::pair<int, float> particle_pair;
 
 /**
  *  This class contains the information for each type of particle
@@ -40,13 +38,13 @@ class KFParticleDatabase;
 class KFParticle_particleList
 {
  public:
-  KFParticle_particleList();
+  KFParticle_particleList(){}
 
-  ~KFParticle_particleList();
+  virtual ~KFParticle_particleList(){}
 
-  map<string, particle_pair> getParticleList();
+  std::map<std::string, particle_pair> getParticleList();
 
   float returnPDGMass(const int pdgIndex);
 };
 
-#endif  //KFParticle_particleList_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLEPARTICLELIST_H
