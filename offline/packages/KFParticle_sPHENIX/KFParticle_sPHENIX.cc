@@ -61,7 +61,7 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   if (m_save_output)
   {
     m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-    if (m_verbosity > 0) cout << "Output nTuple: " << m_outfile_name << endl;
+    if (m_verbosity > 0) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
     initializeBranches();
   }
 
@@ -70,15 +70,15 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   if (m_require_mva)
   {
     TMVA::Reader *reader;
-    vector<Float_t> MVA_parValues;
+    std::vector<Float_t> MVA_parValues;
     tie(reader, MVA_parValues) = initMVA();
   }
 
   for (int i = 0; i < m_num_tracks; ++i)
     if (!particleList.count(m_daughter_name[i]))
     {
-      cout << "Your track PID, " << m_daughter_name[i] << "is not in the particle list" << endl;
-      cout << "Check KFParticle_particleList.cxx for a list of available particles" << endl;
+      std::cout << "Your track PID, " << m_daughter_name[i] << "is not in the particle list" << std::endl;
+      std::cout << "Check KFParticle_particleList.cxx for a list of available particles" << std::endl;
       exit(0);
     }
 
@@ -87,21 +87,21 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
-  vector<KFParticle> mother, vertex;
-  vector<vector<KFParticle>> daughters, intermediates;
+  std::vector<KFParticle> mother, vertex;
+  std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
   SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
   if (check_vertexmap->size() == 0)
   {
-    if (m_verbosity > 0) cout << "KFParticle: Event skipped as there are no vertices" << endl;
+    if (m_verbosity > 0) std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   if (check_trackmap->size() == 0)
   {
-    if (m_verbosity > 0) cout << "KFParticle: Event skipped as there are no tracks" << endl;
+    if (m_verbosity > 0) std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -139,25 +139,25 @@ int KFParticle_sPHENIX::End(PHCompositeNode *topNode)
 
 void KFParticle_sPHENIX::printParticles(KFParticle motherParticle,
                                         KFParticle chosenVertex,
-                                        vector<KFParticle> daughterParticles,
-                                        vector<KFParticle> intermediateParticles,
+                                        std::vector<KFParticle> daughterParticles,
+                                        std::vector<KFParticle> intermediateParticles,
                                         int numPVs, int numTracks)
 {
-  cout << "\n---------------KFParticle candidate information---------------" << endl;
+  std::cout << "\n---------------KFParticle candidate information---------------" << std::endl;
 
-  cout << "Mother information:" << endl;
+  std::cout << "Mother information:" << std::endl;
   kfpTupleTools_Top.identify(motherParticle);
 
   if (m_has_intermediates_sPHENIX)
   {
-    cout << "Intermediate state information:" << endl;
+    std::cout << "Intermediate state information:" << std::endl;
     for (unsigned int i = 0; i < intermediateParticles.size(); i++)
     {
       kfpTupleTools_Top.identify(intermediateParticles[i]);
     }
   }
 
-  cout << "Final track information:" << endl;
+  std::cout << "Final track information:" << std::endl;
   for (unsigned int i = 0; i < daughterParticles.size(); i++)
   {
     kfpTupleTools_Top.identify(daughterParticles[i]);
@@ -165,16 +165,16 @@ void KFParticle_sPHENIX::printParticles(KFParticle motherParticle,
 
   if (m_constrain_to_vertex_sPHENIX)
   {
-    cout << "Primary vertex information:" << endl;
-    cout << "(x,y,z) = (" << chosenVertex.GetX() << " +/- " << sqrt(chosenVertex.GetCovariance(0, 0)) << ", ";
-    cout << chosenVertex.GetY() << " +/- " << sqrt(chosenVertex.GetCovariance(1, 1)) << ", ";
-    cout << chosenVertex.GetZ() << " +/- " << sqrt(chosenVertex.GetCovariance(2, 2)) << ") cm\n"
-         << endl;
+    std::cout << "Primary vertex information:" << std::endl;
+    std::cout << "(x,y,z) = (" << chosenVertex.GetX() << " +/- " << sqrt(chosenVertex.GetCovariance(0, 0)) << ", ";
+    std::cout << chosenVertex.GetY() << " +/- " << sqrt(chosenVertex.GetCovariance(1, 1)) << ", ";
+    std::cout << chosenVertex.GetZ() << " +/- " << sqrt(chosenVertex.GetCovariance(2, 2)) << ") cm\n"
+         << std::endl;
   }
 
-  cout << "The number of primary vertices is: " << numPVs << endl;
-  cout << "The number of tracks in the event is: " << numTracks << endl;
+  std::cout << "The number of primary vertices is: " << numPVs << std::endl;
+  std::cout << "The number of tracks in the event is: " << numTracks << std::endl;
 
-  cout << "------------------------------------------------------------\n"
-       << endl;
+  std::cout << "------------------------------------------------------------\n"
+       << std::endl;
 }

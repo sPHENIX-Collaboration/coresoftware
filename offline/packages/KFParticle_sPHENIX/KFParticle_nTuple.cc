@@ -1,5 +1,6 @@
-#include "KFParticle_Tools.h"
 #include "KFParticle_nTuple.h"
+
+#include "KFParticle_Tools.h"
 
 #include <ffaobjects/EventHeaderv1.h>
 
@@ -10,8 +11,6 @@
 #include <KFVertex.h>
 
 #include <TTree.h>
-
-using namespace std;
 
 KFParticle_Tools kfpTupleTools;
 KFParticle_truthAndDetTools kfpTruthAndDetTools;
@@ -24,8 +23,6 @@ KFParticle_nTuple::KFParticle_nTuple()
 {
 }  //Constructor
 
-KFParticle_nTuple::~KFParticle_nTuple() {}  //Destructor
-
 void KFParticle_nTuple::initializeVariables()
 {
   //m_calculated_mother_cov = -99;
@@ -37,15 +34,15 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->OptimizeBaskets();
   m_tree->SetAutoSave(-5e6);  //Save the output file every 5MB
 
-  string mother_name;
+  std::string mother_name;
   if (m_mother_name.empty())
     mother_name = "mother";
   else
     mother_name = m_mother_name;
 
-  string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/", undrscr = "_";
   size_t pos;
-  while ((pos = mother_name.find(fwd_slsh)) != string::npos) mother_name.replace(pos, 1, undrscr);
+  while ((pos = mother_name.find(fwd_slsh)) != std::string::npos) mother_name.replace(pos, 1, undrscr);
 
   m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
   m_tree->Branch(TString(mother_name) + "_massErr", &m_calculated_mother_mass_err, TString(mother_name) + "_massErr/F");
@@ -86,16 +83,16 @@ void KFParticle_nTuple::initializeBranches()
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
-      string intermediate_name;
+      std::string intermediate_name;
       if (!m_use_intermediate_name)
-        intermediate_name = "intermediate_" + to_string(i + 1);
+        intermediate_name = "intermediate_" + std::to_string(i + 1);
       else
         intermediate_name = m_intermediate_name_ntuple[i];
 
       //Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      string fwd_slsh = "/", undrscr = "_";
+      std::string fwd_slsh = "/", undrscr = "_";
       size_t pos;
-      while ((pos = intermediate_name.find(fwd_slsh)) != string::npos) intermediate_name.replace(pos, 1, undrscr);
+      while ((pos = intermediate_name.find(fwd_slsh)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");
       m_tree->Branch(TString(intermediate_name) + "_massErr", &m_calculated_intermediate_mass_err[i], TString(intermediate_name) + "_massErr/F");
@@ -131,7 +128,7 @@ void KFParticle_nTuple::initializeBranches()
 
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
-    string daughter_number = "track_" + to_string(i + 1);
+    std::string daughter_number = "track_" + std::to_string(i + 1);
 
     m_tree->Branch(TString(daughter_number) + "_mass", &m_calculated_daughter_mass[i], TString(daughter_number) + "_mass/F");
     m_tree->Branch(TString(daughter_number) + "_IP", &m_calculated_daughter_ip[i], TString(daughter_number) + "_IP/F");
@@ -169,8 +166,8 @@ void KFParticle_nTuple::initializeBranches()
     {
       if (i < j)
       {
-        string dca_branch_name = "track_" + to_string(i + 1) + "_track_" + to_string(j + 1) + "_DCA";
-        string dca_leaf_name = dca_branch_name + "/F";
+        std::string dca_branch_name = "track_" + std::to_string(i + 1) + "_track_" + std::to_string(j + 1) + "_DCA";
+        std::string dca_leaf_name = dca_branch_name + "/F";
         m_tree->Branch(dca_branch_name.c_str(), &m_daughter_dca[iter], dca_leaf_name.c_str());
         ++iter;
       }
@@ -202,8 +199,8 @@ void KFParticle_nTuple::initializeBranches()
 void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    KFParticle motherParticle,
                                    KFParticle vertex,
-                                   vector<KFParticle> daughters,
-                                   vector<KFParticle> intermediates,
+                                   std::vector<KFParticle> daughters,
+                                   std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
 {
   KFPVertex kfpVertex;  // = new KFPVertex;
@@ -384,7 +381,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_tree->Fill();
 }
 
-float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(vector<KFParticle> kfp_daughters)
+float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters)
 {
   KFParticle mother_noPID;
   KFParticle* daughterArray = &kfp_daughters[0];

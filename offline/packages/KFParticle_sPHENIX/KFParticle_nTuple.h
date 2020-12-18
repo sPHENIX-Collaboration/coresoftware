@@ -1,17 +1,13 @@
-#ifndef KFParticle_nTuple_H__
-#define KFParticle_nTuple_H__
+#ifndef KFPARTICLESPHENIX_KFPARTICLENTUPLE_H
+#define KFPARTICLESPHENIX_KFPARTICLENTUPLE_H
 
 #include "KFParticle_truthAndDetTools.h"
 
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
+#include <KFParticle.h>
 
-using namespace std;
+#include <vector>
 
-class TFile;
 class TTree;
-class KFParticle;
-class KFPVertex;
 
 class KFParticle_nTuple : public KFParticle_truthAndDetTools
 {
@@ -20,7 +16,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   KFParticle_nTuple();
 
   ///Destructor
-  ~KFParticle_nTuple();
+  virtual ~KFParticle_nTuple(){}
 
   ///Unused for now, variables are initialised in the header
   void initializeVariables();
@@ -32,11 +28,11 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   void fillBranch(PHCompositeNode *topNode,
                   KFParticle motherParticle,
                   KFParticle vertex,
-                  vector<KFParticle> daughters,
-                  vector<KFParticle> intermediates,
+                  std::vector<KFParticle> daughters,
+                  std::vector<KFParticle> intermediates,
                   int nPVs, int multiplicity);
 
-  float calc_secondary_vertex_mass_noPID(vector<KFParticle> kfp_daughters);
+  float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
  private:
   TTree *m_tree;
@@ -160,10 +156,10 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_num_intermediate_states_nTuple;
   bool m_truth_matching;
   bool m_detector_info;
-  string m_mother_name;
+  std::string m_mother_name;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
-  string m_intermediate_name_ntuple[99];
+  std::string m_intermediate_name_ntuple[99];
 };
 
 #endif

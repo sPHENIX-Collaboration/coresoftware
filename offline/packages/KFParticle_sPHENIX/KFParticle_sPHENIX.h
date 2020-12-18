@@ -59,8 +59,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
    */
   void printParticles(KFParticle motherParticle,
                       KFParticle chosenVertex,
-                      vector<KFParticle> daughterParticles,
-                      vector<KFParticle> intermediateParticles,
+                      std::vector<KFParticle> daughterParticles,
+                      std::vector<KFParticle> intermediateParticles,
                       int numPVs, int numTracks);
 
   ///Parameters for the user to vary
