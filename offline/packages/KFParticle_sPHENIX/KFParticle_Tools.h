@@ -43,8 +43,6 @@
 #include <map>
 #include <vector>
 
-using namespace std;
-
 class PHCompositeNode;
 class SvtxVertexMap;
 class SvtxTrackMap;
@@ -56,7 +54,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
  public:
   KFParticle_Tools();
 
-  ~KFParticle_Tools();
+  virtual ~KFParticle_Tools();
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 

@@ -41,8 +41,6 @@
 #include <map>
 #include <vector>
 
-using namespace std;
-
 class PHCompositeNode;
 class KFParticle;
 
@@ -51,7 +49,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
  public:
   KFParticle_eventReconstruction();
 
-  ~KFParticle_eventReconstruction();
+  virtual ~KFParticle_eventReconstruction();
 
   /**
    * Starts the reconstruction chain
