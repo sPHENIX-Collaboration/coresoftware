@@ -21,6 +21,11 @@
 
 #include "KFParticle_sPHENIX.h"
 
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+
+#include <phool/getClass.h>
+
 using namespace std;
 
 typedef pair<int, float> particle_pair;
@@ -40,7 +45,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
 }
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const string &name = "KFPARTICLE")
-  : SubsysReco(name.c_str())
+  : SubsysReco(name)
   , m_require_mva(false)
   , m_save_dst(0)
   , m_save_output(1)
@@ -85,14 +90,14 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   vector<vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
-  SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name.c_str());
+  SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
   if (check_vertexmap->size() == 0)
   {
     if (m_verbosity > 0) cout << "KFParticle: Event skipped as there are no vertices" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name.c_str());
+  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   if (check_trackmap->size() == 0)
   {
     if (m_verbosity > 0) cout << "KFParticle: Event skipped as there are no tracks" << endl;

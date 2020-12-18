@@ -25,6 +25,8 @@
 /* cdean@bnl.gov */
 /*****************/
 
+#include "KFParticle_eventReconstruction.h"
+
 //sPHENIX stuff
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -36,9 +38,7 @@
 #include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
-#include "KFParticle_eventReconstruction.h"
-
-using namespace std;
+#include <map>
 
 /// Create necessary objects
 typedef pair<int, float> particle_pair;
@@ -57,8 +57,6 @@ KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   , m_constrain_int_mass(false)
 {
 }
-
-KFParticle_eventReconstruction::~KFParticle_eventReconstruction() {}  /// KFParticle destructor
 
 void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, vector<KFParticle>& selectedMother, vector<KFParticle>& selectedVertex,
                                                  vector<vector<KFParticle>>& selectedDaughters,

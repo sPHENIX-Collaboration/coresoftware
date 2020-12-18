@@ -19,37 +19,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef KFParticle_eventReconstruction_H
-#define KFParticle_eventReconstruction_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
+#define KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
 
 #include "KFParticle_Tools.h"
 
-//sPHENIX stuff
-#include <phool/getClass.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-
-//ROOT stuff
-#include <TMatrixD.h>
-
-//C++ stuff
-#include <cmath>
-#include <iomanip>
-#include <iostream>
-#include <map>
+#include <KFParticle.h>
 #include <vector>
 
 class PHCompositeNode;
-class KFParticle;
 
 class KFParticle_eventReconstruction : public KFParticle_Tools
 {
  public:
   KFParticle_eventReconstruction();
 
-  virtual ~KFParticle_eventReconstruction();
+  virtual ~KFParticle_eventReconstruction(){}
 
   /**
    * Starts the reconstruction chain
@@ -102,4 +87,4 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   bool m_constrain_int_mass;
 };
 
-#endif  //KFParticle_eventReconstruction_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
