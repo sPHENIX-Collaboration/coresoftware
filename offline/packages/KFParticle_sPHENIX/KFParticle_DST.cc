@@ -1,29 +1,31 @@
-#include "KFParticle_DST.h"
-
 /*****************/
 /* Cameron Dean  */
 /*   LANL 2020   */
 /* cdean@bnl.gov */
 /*****************/
-
 /*
  * Class to append reconstructed events to node tree
  */
 
 //Ideas taken from PHRaveVertexing
 
-using namespace std;
+#include "KFParticle_DST.h"
+
+#include "KFParticle_Container.h"
+#include "KFParticle_Tools.h"
+#include "KFParticle_truthAndDetTools.h"
+
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+
 
 KFParticle_Tools kfpTupleTools_DST;
 KFParticle_truthAndDetTools kfpTruthTools_DST;
-
-KFParticle_DST::KFParticle_DST()
-  : m_write_track_container(true)
-  , m_write_particle_container(true)
-{
-}  //Constructor
-
-KFParticle_DST::~KFParticle_DST() {}  //Destructor
 
 int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
 {
