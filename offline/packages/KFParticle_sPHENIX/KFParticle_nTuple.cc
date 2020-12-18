@@ -1,13 +1,15 @@
+#include "KFParticle_Tools.h"
+#include "KFParticle_nTuple.h"
+
 #include <ffaobjects/EventHeaderv1.h>
 
-#include <TTree.h>
+#include <phool/getClass.h>
 
 #include <KFPVertex.h>
 #include <KFParticle.h>
 #include <KFVertex.h>
 
-#include "KFParticle_Tools.h"
-#include "KFParticle_nTuple.h"
+#include <TTree.h>
 
 using namespace std;
 

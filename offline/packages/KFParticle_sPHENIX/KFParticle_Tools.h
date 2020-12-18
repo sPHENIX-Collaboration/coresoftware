@@ -19,31 +19,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef KFParticle_Tools_H
-#define KFParticle_Tools_H
+#ifndef KFPARTICLESPHENIX_KFPARTICLETOOLS_H
+#define KFPARTICLESPHENIX_KFPARTICLETOOLS_H
 
 #include "KFParticle_MVA.h"
 #include "KFParticle_particleList.h"
 
-//sPHENIX stuff
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <KFParticle.h>
 
-//ROOT stuff
-#include <TMatrixD.h>
-
-//C++ stuff
-#include <cmath>
-#include <iomanip>
-#include <iostream>
 #include <map>
 #include <vector>
 
 class PHCompositeNode;
+
 class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
@@ -54,7 +42,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
  public:
   KFParticle_Tools();
 
-  virtual ~KFParticle_Tools();
+  virtual ~KFParticle_Tools() {}
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
@@ -108,41 +96,41 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   int m_daughter_charge[max_tracks] = {0};
   string m_intermediate_name[max_tracks];
   float m_min_mass = -1;
-  ;
+
   float m_max_mass = -1;
-  ;
+
   pair<float, float> m_intermediate_mass_range[max_tracks];
   float m_intermediate_min_pt[max_tracks] = {0};
   float m_min_lifetime = -1;
-  ;
+
   float m_max_lifetime = -1;
-  ;
+
   float m_track_pt = -1;
-  ;
+
   float m_track_ptchi2 = -1;
-  ;
+
   float m_track_ipchi2 = -1;
-  ;
+
   float m_track_chi2ndof = -1;
-  ;
+
   float m_comb_DCA = -1;
-  ;
+
   float m_vertex_chi2ndof = -1;
-  ;
+
   float m_fdchi2 = -1;
-  ;
+
   float m_dira_min = -1;
-  ;
+
   float m_dira_max = -1;
-  ;
+
   float m_mother_pt = -1;
-  ;
+
   float m_mother_ipchi2 = -1;
-  ;
+
   float m_mva_cut_value = -1;
-  ;
+
   bool m_get_charge_conjugate = -1;
-  ;
+
   string m_vtx_map_node_name;
   string m_trk_map_node_name;
   SvtxVertexMap *m_dst_vertexmap;
@@ -157,4 +145,4 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void removeDuplicates(vector<vector<string>> &v);
 };
 
-#endif  //KFParticle_Tools_H
+#endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H

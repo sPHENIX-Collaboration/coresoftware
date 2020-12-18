@@ -25,11 +25,21 @@
 /* cdean@bnl.gov */
 /*****************/
 
+#include "KFParticle_Tools.h"
+
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+
 //sPHENIX stuff
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxTrackEval.h>
+
 #include <g4main/PHG4Particle.h>
+
+#include <phool/getClass.h>
 
 //KFParticle stuff
 #include <KFPTrack.h>
@@ -37,9 +47,7 @@
 #include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
-#include "KFParticle_Tools.h"
-
-using namespace std;
+#include <TMatrixD.h>
 
 /// Create necessary objects
 typedef pair<int, float> particle_pair;
@@ -74,8 +82,6 @@ KFParticle_Tools::KFParticle_Tools()
   , m_dst_track()
 {
 }
-
-KFParticle_Tools::~KFParticle_Tools() {}  /// KFParticle destructor
 
 KFParticle KFParticle_Tools::makeVertex(PHCompositeNode *topNode)
 {
