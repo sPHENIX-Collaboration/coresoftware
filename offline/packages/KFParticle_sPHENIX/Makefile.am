@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
+    libkfparticle_sphenix_io.la \
     libkfparticle_sphenix.la
 
 AM_LDFLAGS = \
@@ -32,19 +33,9 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   KFParticle_Container_Dict_rdict.pcm
 
-#if ! MAKEROOT6
-  ROOT5_DICTS = \
-    KFParticle_Container_DICT.cc \
-    KFParticle_DST_DICT.cc \
-    KFParticle_truthAndDetTools_Dict.cc \
-    KFParticle_nTuple_Dict.cc \
-    KFParticle_Tools_Dict.cc \
-    KFParticle_particleList_Dict.cc \
-    KFParticle_MVA_Dict.cc \
-    KFParticle_eventReconstruction_Dict.cc \
-    KFParticle_sPHENIX_Dict.cc
-#endif
-
+libkfparticle_sphenix_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  KFParticle_Container.cc
 
 libkfparticle_sphenix_la_SOURCES = \
   $(ROOTDICTS) \
@@ -58,16 +49,21 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_eventReconstruction.cc \
   KFParticle_sPHENIX.cc
 
+libkfparticle_sphenix_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lKFParticle \
+  -lphool
+
 libkfparticle_sphenix_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib \
+  `root-config --libs` \
+  libkfparticle_sphenix_io.la \
   -lcalo_io \
   -lfun4all \
-  -lg4detectors_io \
-  -lphg4hit \
   -lg4eval \
-  -lKFParticle \
-  -L$(ROOTSYS)/lib `root-config --libs` \
   -lTMVA
 
 # Rule for generating table CINT dictionaries.
@@ -81,12 +77,18 @@ libkfparticle_sphenix_la_LDFLAGS = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals \
+  testexternals_io
 
-testexternals_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
+
+testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = libkfparticle_sphenix.la
 
-testexternals.C:
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD = libkfparticle_sphenix_io.la
+
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
