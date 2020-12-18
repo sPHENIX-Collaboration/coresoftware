@@ -50,7 +50,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
 {
 }
 
-KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name = "KFPARTICLE")
+KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   : SubsysReco(name)
   , m_verbosity(0)
   , m_has_intermediates_sPHENIX(false)
