@@ -65,7 +65,6 @@ libkfparticle_sphenix_la_LDFLAGS = \
   -lfun4all \
   -lg4detectors_io \
   -lphg4hit \
-  -lg4dst \
   -lg4eval \
   -lKFParticle \
   -L$(ROOTSYS)/lib `root-config --libs` \
