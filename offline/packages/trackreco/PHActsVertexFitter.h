@@ -27,6 +27,12 @@ using VertexTrackMap = std::map<const unsigned int,
 
 using ActsVertex = const Acts::Vertex<Acts::BoundTrackParameters>;
 
+
+/**
+ * This class runs the Acts vertex fitter on the final tracks. It is
+ * required that the tracks already have an identified vertexId associated
+ * to them, i.e. that vertex finding has already been performed
+ */
 class PHActsVertexFitter : public SubsysReco
 {
  public:
@@ -34,35 +40,47 @@ class PHActsVertexFitter : public SubsysReco
   virtual ~PHActsVertexFitter(){}
   int process_event(PHCompositeNode *topNode);
   int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
   int End (PHCompositeNode *topNode);
 
+  void updateSvtxVertexMap(bool updateSvtxVertexMap)
+    { m_updateSvtxVertexMap = updateSvtxVertexMap; }
 
  private:
   
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   
+  /// Get the tracks with their associated vertex Ids
   VertexTrackMap getTracks();  
-  const Acts::BoundTrackParameters* makeTrackParam(const SvtxTrack* track) const;
-  ActsVertex fitVertex(BoundTrackParamVec tracks, 
-			 Acts::Logging::Level logLevel) const;
-  std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
+  /// Turn the SvtxTrack object into an Acts::TrackParameters object
+  const Acts::BoundTrackParameters* makeTrackParam(const SvtxTrack* track) const;
+
+  /// Run the Acts vertex fitter
+  ActsVertex fitVertex(BoundTrackParamVec tracks, 
+		       Acts::Logging::Level logLevel) const;
+
+  /// Runs Acts vertex fitter
   void fitVertices(std::vector<const Acts::BoundTrackParameters*> tracks);
   
+  /// Update SvtxVertex or create new SvtxVertexMap
   void createActsSvtxVertex(const unsigned int,
 			    ActsVertex vertex);
   void updateSvtxVertex(const unsigned int,
 			ActsVertex vertex);
  
-  int m_event;
+  int m_event = 0;
+
+  std::map<const unsigned int, Trajectory> *m_actsFitResults;
   ActsTrackingGeometry *m_tGeometry;
+  SvtxTrackMap *m_trackMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
+  SvtxVertexMap *m_actsVertexMap = nullptr;
 
-  SvtxTrackMap *m_trackMap;
-  SvtxVertexMap *m_vertexMap;
-  SvtxVertexMap *m_actsVertexMap;
-
+  /// Option to update the default SvtxVertexMap. A new SvtxVertexMap
+  /// called SvtxVertexMapActs is created by default in the module
   bool m_updateSvtxVertexMap = false;
 };
 

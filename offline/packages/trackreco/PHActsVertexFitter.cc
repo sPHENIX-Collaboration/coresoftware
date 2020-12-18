@@ -43,11 +43,8 @@
 PHActsVertexFitter::PHActsVertexFitter(const std::string& name) 
 : SubsysReco(name)
   , m_actsFitResults(nullptr)
-  , m_event(0)
   , m_tGeometry(nullptr)
-{
-}
-
+{}
 
 int PHActsVertexFitter::Init(PHCompositeNode *topNode)
 {
@@ -63,21 +60,27 @@ int PHActsVertexFitter::End(PHCompositeNode *topNode)
     std::cout << "PHActsVertexFitter::End " << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 int PHActsVertexFitter::ResetEvent(PHCompositeNode *topNode)
 {
   m_actsVertexMap->clear();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
+
+int PHActsVertexFitter::InitRun(PHCompositeNode *topNode)
 {
-  
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTRUN;
 
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTRUN;
   
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
+{
   auto logLevel = Acts::Logging::FATAL;
   if(Verbosity() > 0)
     {
@@ -91,9 +94,8 @@ int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
 
   for(const auto& [vertexId, trackVec] : vertexTrackMap)
     {
-      std::cout<< "Fitting"<<std::endl;
       const auto vertex = fitVertex(trackVec, logLevel);
-      std::cout <<"Updating"<<std::endl;
+
       createActsSvtxVertex(vertexId, vertex);
       
       if(m_updateSvtxVertexMap)
@@ -111,6 +113,9 @@ void PHActsVertexFitter::updateSvtxVertex(const unsigned int vertexId,
 					  ActsVertex vertex)
 {
   auto svtxVertex = m_vertexMap->get(vertexId);
+
+  if(Verbosity() > 1)
+    std::cout << "Updating SvtxVertex id " << vertexId << std::endl;
 
   svtxVertex->set_x(vertex.position().x() / Acts::UnitConstants::cm);
   svtxVertex->set_y(vertex.position().y() / Acts::UnitConstants::cm);
@@ -151,7 +156,7 @@ void PHActsVertexFitter::createActsSvtxVertex(const unsigned int vertexId,
   svtxVertex->set_x(vertex.position().x() / Acts::UnitConstants::cm);
   svtxVertex->set_y(vertex.position().y() / Acts::UnitConstants::cm);
   svtxVertex->set_z(vertex.position().z() / Acts::UnitConstants::cm);
-  std::cout <<" covariance"<<std::endl;
+
   for(int i = 0; i < 3; ++i) 
     {
       for(int j = 0; j < 3; ++j)
@@ -160,15 +165,15 @@ void PHActsVertexFitter::createActsSvtxVertex(const unsigned int vertexId,
 		      vertex.covariance()(i,j) / Acts::UnitConstants::cm2); 
 	}
     }
-  std::cout<<"other vert things"<<std::endl;
+
   const auto &[chi2,ndf] = vertex.fitQuality();
   svtxVertex->set_ndof(ndf);
   svtxVertex->set_chisq(chi2);
   svtxVertex->set_t0(vertex.time());
   svtxVertex->set_id(vertexId);
-  std::cout << "add to map"<<std::endl;
+
   m_actsVertexMap->insert(svtxVertex.release());
-  std::cout << "returning"<<std::endl;
+
 }
 
 ActsVertex PHActsVertexFitter::fitVertex(BoundTrackParamVec tracks, Acts::Logging::Level logLevel) const
@@ -230,7 +235,6 @@ ActsVertex PHActsVertexFitter::fitVertex(BoundTrackParamVec tracks, Acts::Loggin
 			<< ", "
 			<< fittedVertex.position().z() 
 			<< std::endl;
-
 	    }
 	}
       else
@@ -249,7 +253,6 @@ ActsVertex PHActsVertexFitter::fitVertex(BoundTrackParamVec tracks, Acts::Loggin
     ); /// end std::visit call
 }
 
-
 VertexTrackMap PHActsVertexFitter::getTracks()
 {
  
@@ -257,11 +260,10 @@ VertexTrackMap PHActsVertexFitter::getTracks()
 
   for(const auto &[key, track] : *m_trackMap)
     {
-      const unsigned int vertexId = track->get_vertex_id();
-    
+      const unsigned int vertexId = track->get_vertex_id();    
       const auto trackParam = makeTrackParam(track);
-
       auto trackVecPos = trackPtrs.find(vertexId);
+
       if(trackVecPos == trackPtrs.end())
 	{
 	  BoundTrackParamVec trackVec;
@@ -292,7 +294,6 @@ VertexTrackMap PHActsVertexFitter::getTracks()
 			<<", " << param->position(m_tGeometry->geoContext)(1) << ", "
 			<< param->position(m_tGeometry->geoContext)(2) << ")" 
 			<< std::endl;
-
 	    }	  
 	}
     }
@@ -303,7 +304,6 @@ VertexTrackMap PHActsVertexFitter::getTracks()
 
 const Acts::BoundTrackParameters* PHActsVertexFitter::makeTrackParam(const SvtxTrack *track) const 
 {
-
   const Acts::Vector4D trackPos(
 		       track->get_x() * Acts::UnitConstants::cm,
 		       track->get_y() * Acts::UnitConstants::cm,
@@ -313,6 +313,7 @@ const Acts::BoundTrackParameters* PHActsVertexFitter::makeTrackParam(const SvtxT
   const Acts::Vector3D trackMom(track->get_px(),
 				track->get_py(),
 				track->get_pz());
+ 
   const int trackQ = track->get_charge() * Acts::UnitConstants::e;
   const double p = track->get_p();
   Acts::BoundSymMatrix cov;
@@ -378,7 +379,6 @@ int PHActsVertexFitter::getNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
-
 
 int PHActsVertexFitter::createNodes(PHCompositeNode *topNode)
 {
