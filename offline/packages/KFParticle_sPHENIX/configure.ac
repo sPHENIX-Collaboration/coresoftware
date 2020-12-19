@@ -5,9 +5,16 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+dnl KFParticle KFParticleDatabase.h includes Vc/Vc which collides with
+dnl clangs inbuild Vc by redefining a macro
+case $CXX in
+  clang++)
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-macro-redefined"
+  ;;
+  g++)
+   CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  ;;
+esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
