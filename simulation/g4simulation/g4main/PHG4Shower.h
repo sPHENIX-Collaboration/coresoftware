@@ -88,6 +88,7 @@ class PHG4Shower : public PHObject
   virtual ParticleIdConstIter end_g4particle_id() const { return ParticleIdSet().end(); }
   virtual size_t remove_g4particle_id(int id) { return 0; }
   virtual void clear_g4particle_id() {}
+  virtual const ParticleIdSet& g4particle_ids() const = 0;
 
   virtual bool empty_g4vertex_id() const { return true; }
   virtual size_t size_g4vertex_id() const { return 0; }
@@ -98,6 +99,7 @@ class PHG4Shower : public PHObject
   virtual VertexIdConstIter end_g4vertex_id() const { return VertexIdSet().end(); }
   virtual size_t remove_g4vertex_id(int id) { return 0; }
   virtual void clear_g4vertex_id() {}
+  virtual const VertexIdSet& g4vertex_ids() const = 0;
 
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
@@ -111,6 +113,7 @@ class PHG4Shower : public PHObject
   virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
   virtual size_t remove_g4hit_volume(int volume) { return 0; }
   virtual void clear_g4hit_id() {}
+  virtual const HitIdMap& g4hit_ids() const = 0;
 
  protected:
   PHG4Shower() {}
