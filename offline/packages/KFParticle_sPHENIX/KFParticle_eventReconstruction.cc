@@ -38,6 +38,7 @@
 #include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
+#include <assert.h>
 #include <map>
 
 /// Create necessary objects
@@ -160,6 +161,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             unsigned int matchIterators[4] = {a, b, c, d};
 
             int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
+            assert(num_mother_decay_products>0);
             KFParticle motherDecayProducts[num_mother_decay_products];
             std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
 
