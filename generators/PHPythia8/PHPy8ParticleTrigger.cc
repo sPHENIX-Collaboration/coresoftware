@@ -107,7 +107,8 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
                << "  pt: " << pythia->event[i].pT()
                << " pz: " << pythia->event[i].pz()
                << " p: " << pythia->event[i].pAbs()
-               << " eta: " << pythia->event[i].eta() << endl;
+               << " eta: " << pythia->event[i].eta()
+               << " y: " << pythia->event[i].y() << endl;
         }
 
         // loop over all partents to this particle
