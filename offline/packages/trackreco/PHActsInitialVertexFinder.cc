@@ -95,6 +95,11 @@ int PHActsInitialVertexFinder::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
 {
+
+  std::cout << "Acts IVF succeeded " << m_successFits 
+	    << " out of " << m_totVertexFits << " total fits"
+	    << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -166,9 +171,11 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 
 VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 {
+
+  m_totVertexFits++;
+
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-
   return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
@@ -237,6 +244,8 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 
       if(result.ok())
 	{
+	  m_successFits++;
+
 	  auto vertexCollection = *result;
 	  
 	  if(Verbosity() > 1)
@@ -324,7 +333,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if(!m_trackMap)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."
