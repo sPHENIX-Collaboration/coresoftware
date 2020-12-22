@@ -113,8 +113,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Perform circle/line fits with the final MVTX seed to get
   /// initial point and momentum estimates for stub matching
   int circleFitSeed(std::vector<TrkrCluster*>& clusters,
-		     double& x, double& y, double& z,
-		     double& px, double& py, double& pz);
+		    double& x, double& y, double& z,
+		    double& px, double& py, double& pz,
+		    bool secondPass);
   void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 			 double& R, double& X0, double& Y0);
   void lineFit(const std::vector<TrkrCluster*>& clusters,
@@ -199,7 +200,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
-  double m_maxSeedPCA = 0.01;
+  double m_maxSeedPCA = 0.03;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
@@ -217,6 +218,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH1 *h_nInttHits = nullptr;
   TH2 *h_nHits = nullptr;
   TH1 *h_nSeeds = nullptr;
+  TH1 *h_nActsSeeds = nullptr;
   TH1 *h_nTotSeeds = nullptr;
   TH1 *h_nInputMeas = nullptr;
   TH1 *h_nInputMvtxMeas = nullptr;
