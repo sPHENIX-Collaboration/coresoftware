@@ -333,7 +333,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
   if(!m_trackMap)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."

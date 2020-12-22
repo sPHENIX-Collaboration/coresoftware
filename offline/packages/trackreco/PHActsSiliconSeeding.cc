@@ -92,7 +92,15 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
     {
       writeHistograms();
     }
-  
+
+  if(Verbosity() > 1)
+    {
+      std::cout << "There were " << m_nBadInitialFits 
+		<< " bad initial circle fits" << std::endl;
+      std::cout << "There were " << m_nBadUpdates 
+		<< " bad second circle fits" << std::endl;
+    }
+     
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -170,7 +178,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 			  << std::endl;
 	    }
 	 
-	  double x = NAN,y = NAN, z = seed.z() / Acts::UnitConstants::cm;
+	  double x = NAN, y = NAN, z = seed.z() / Acts::UnitConstants::cm;
 	  double px, py, pz;
 	  
 	  /// Performs circle fit and extrapolates to INTT layers to
@@ -180,7 +188,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
-	    continue;
+	    {
+	      m_nBadInitialFits++;
+	      continue;
+	    }
 
 	  numGoodSeeds++;
 	  
@@ -248,24 +259,34 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
 	    nIntt++;	 
 	}
       
-      double updX = NAN, updY = NAN, updZ = z;
-      double updPx = NAN, updPy = NAN, updPz = NAN;
-
-      /// Run the circle fit again to see if we can get a better
-      /// p/theta/phi estimate
-      int ch = circleFitSeed(stubClusters, updX, updY, updZ,
-			     updPx, updPy, updPz, true);
-
-      /// If it is successful, update the parameters. Otherwise, just
-      /// use the original parameters from the MVTX stub fit
-      if(!std::isnan(updX))
+      if(m_secondFit)
 	{
-	  trackX = updX;
-	  trackY = updY;
-	  trackPx = updPx;
-	  trackPy = updPy;
-	  trackPz = updPz;
-	  trackCharge = ch;
+	  double updX = NAN, updY = NAN, updZ = z;
+	  double updPx = NAN, updPy = NAN, updPz = NAN;
+	  
+	  /// Run the circle fit again to see if we can get a better
+	  /// p/theta/phi estimate
+	  int ch = circleFitSeed(stubClusters, updX, updY, updZ,
+				 updPx, updPy, updPz, true);
+	  
+	  /// If it is successful, update the parameters. Otherwise, just
+	  /// use the original parameters from the MVTX stub fit
+	  if(!std::isnan(updX))
+	    {
+	      trackX = updX;
+	      trackY = updY;
+	      trackPx = updPx;
+	      trackPy = updPy;
+	      trackPz = updPz;
+	      trackCharge = ch;
+	    }
+	  else
+	    {
+	      if(Verbosity() > 1)
+		std::cout << "Seed had a second bad xy position fit..."
+			  << std::endl;
+	      m_nBadUpdates++;
+	    }
 	}
 
       /// Diagnostic
@@ -401,8 +422,20 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   /// finder will throw an eigen stepper error trying to propagate 
   /// from the PCA. These  are likely bad seeds anyway since the 
   /// MVTX has position resolution O(5) microns. Units are cm
-  if(fabs(x) > m_maxSeedPCA or fabs(y) > m_maxSeedPCA)
+  /// Multiply by 30 for the first pass, then a tight check on the 
+  /// second pass with INTT hits to aid
+  double xyCheck = m_maxSeedPCA;
+  
+  /// First pass check is 30 mm, second pass check is 100 micron
+  if(!secondPass)
+    xyCheck *= 30;
+
+  if(fabs(x) > xyCheck or fabs(y) > xyCheck)
     {
+      if(!secondPass && Verbosity() > 1)
+	std::cout << "x,y circle fit : " << x << ", " 
+		  << y << std::endl;
+
       x = NAN;
       y = NAN;
       /// Return statement doesn't matter as x = nan will be caught
@@ -611,7 +644,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       h_zhits->Fill(cluster->getZ(),
 		    inttClusR);
 
-      if(Verbosity() > 2)
+      if(Verbosity() > 4)
 	std::cout << "Checking INTT cluster with position " << cluster->getX()
 		  << ", " << cluster->getY() << ", " << cluster->getZ()
 		  << std::endl << " with projections rphi "
@@ -1130,12 +1163,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxSiliconTrackMap");
   if(!m_trackMap)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
       dstNode->addNode(trackNode);
 
     }

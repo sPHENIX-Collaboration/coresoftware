@@ -200,7 +200,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
-  double m_maxSeedPCA = 0.03;
+  double m_maxSeedPCA = 0.01;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
@@ -212,6 +212,13 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
+  /// Whether or not to run a second circle fit after
+  /// INTT clusters are matched
+  bool m_secondFit = false;
+
+  int m_nBadUpdates = 0;
+  int m_nBadInitialFits = 0;
+  
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
