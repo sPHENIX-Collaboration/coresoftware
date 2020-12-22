@@ -412,9 +412,9 @@ void PHPy8ParticleTrigger::PrintConfig()
   cout << "---------------- PHPy8ParticleTrigger::PrintConfig --------------------" << endl;
 
   if (m_doStableParticleOnly)
-    cout << "Process stable particles only.";
+    cout << "Process stable particles only." << endl;
   else
-    cout << "Process both unstable and stable particles.";
+    cout << "Process both unstable and stable particles." << endl;
 
   cout << "   Particles: ";
   for (int i = 0; i < int(_theParticles.size()); i++) cout << _theParticles[i] << "  ";
