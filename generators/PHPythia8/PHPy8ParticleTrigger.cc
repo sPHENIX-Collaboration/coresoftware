@@ -1,10 +1,10 @@
 #include "PHPy8ParticleTrigger.h"
 
-#include <Pythia8/Event.h>   // for Event, Particle
+#include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
-#include <cstdlib>          // for abs
-#include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl, basic_ostream, basic_o...
 
 using namespace std;
 
@@ -67,9 +67,10 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
     for (int j = 0; j < int(_theParticles.size()); j++)
     {
       if (pythia->event[i].id() == _theParticles[j] &&
-          pythia->event[i].status() > 0)
-      {  //only stable particles
-
+          (pythia->event[i].status() > 0    //only stable particles
+           or (not m_doStableParticleOnly)  // or not
+           ))
+      {
         if (_doBothEtaCut && (pythia->event[i].eta() < _theEtaLow ||
                               pythia->event[i].eta() > _theEtaHigh)) continue;
         if (_doEtaLowCut && pythia->event[i].eta() < _theEtaLow) continue;

@@ -4,7 +4,7 @@
 #include "PHPy8GenTrigger.h"
 
 #include <string>
-#include <vector>             // for vector
+#include <vector>  // for vector
 
 namespace Pythia8
 {
@@ -47,6 +47,9 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger
   void SetPzLow(double pz);
   void SetPzHighLow(double pzHigh, double pzLow);
 
+  //! Whether to apply the criteria to unstable particles in the Pythia records too (default = true)
+  void SetStableParticleOnly(bool b) {m_doStableParticleOnly = b;}
+
   void PrintConfig();
 
  private:
@@ -63,6 +66,8 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger
   bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
   bool _doPHighCut, _doPLowCut, _doBothPCut;
   bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
+
+  bool m_doStableParticleOnly = true;
 };
 
 #endif
