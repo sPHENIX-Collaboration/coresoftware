@@ -52,9 +52,15 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/";
+  std::string open_bracket = "(";
+  std::string close_bracket = ")";
+  std::string undrscr = "_";
+  std::string nothing = "";
   size_t pos;
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
 
   trackNodeName = baseName + "_SvtxTrackMap";
   particleNodeName = baseName + "_KFParticle_Container";
@@ -112,12 +118,15 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/";
+  std::string open_bracket = "(";
+  std::string close_bracket = ")";
+  std::string undrscr = "_";
+  std::string nothing = "";
   size_t pos;
-  while ((pos = baseName.find(fwd_slsh)) != std::string::npos)
-  {
-   baseName.replace(pos, 1, undrscr);
-  }
+  while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
 
   trackNodeName = baseName + "_SvtxTrackMap";
 
@@ -177,9 +186,14 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
   std::string fwd_slsh = "/";
+  std::string open_bracket = "(";
+  std::string close_bracket = ")";
   std::string undrscr = "_";
+  std::string nothing = "";
   size_t pos;
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
 
   particleNodeName = baseName + "_KFParticle_Container";
 
@@ -236,9 +250,15 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  std::string fwd_slsh = "/", undrscr = "_";
+  std::string fwd_slsh = "/";
+  std::string open_bracket = "(";
+  std::string close_bracket = ")";
+  std::string undrscr = "_";
+  std::string nothing = "";
   size_t pos;
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
+  while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
 
   if (m_write_track_container)
   {

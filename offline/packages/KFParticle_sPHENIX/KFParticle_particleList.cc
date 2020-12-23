@@ -64,7 +64,8 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   std::map<std::string, particle_pair> particleMasses;
 
   //Leptons
-  particleMasses["electron"] = std::make_pair(11, kfpDatabase.GetMass(11));
+  //particleMasses["electron"] = std::make_pair(11, kfpDatabase.GetMass(11));
+  particleMasses["electron"] = std::make_pair(11, 0.000511);
   particleMasses["muon"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["tau"] = std::make_pair(15, 1.77686);
 
@@ -120,6 +121,7 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["Ds*+"] = std::make_pair(433, 2.11220);
   particleMasses["Ds*-"] = std::make_pair(433, 2.11220);
   particleMasses["Lc+"] = std::make_pair(4122, 2.28646);
+  particleMasses["Lambdac"] = std::make_pair(4122, 2.28646);
   particleMasses["Lambdac+"] = std::make_pair(4122, 2.28646);
   particleMasses["Xic0"] = std::make_pair(4132, 2.47090);
   particleMasses["Xic+"] = std::make_pair(4232, 2.46794);
@@ -152,6 +154,7 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["X(3872)"] = std::make_pair(0, 3.87169);
   particleMasses["chic1(3872)"] = std::make_pair(0, 3.87169);
   //b-bbar
+  particleMasses["Upsilon"] = std::make_pair(553, 9.46030);
   particleMasses["Upsilon(1S)"] = std::make_pair(553, 9.46030);
   particleMasses["Upsilon(2S)"] = std::make_pair(100553, 10.02326);
   particleMasses["Upsilon(3S)"] = std::make_pair(200553, 10.3552);
