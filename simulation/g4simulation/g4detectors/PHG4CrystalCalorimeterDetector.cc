@@ -246,6 +246,7 @@ int PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4
     if (Verbosity() > 0)
     {
       cout << "PHG4CrystalCalorimeterDetector: Place tower " << iterator->first
+           << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
     int copyno = (iterator->second.idx_j << 16) + iterator->second.idx_k;
