@@ -38,7 +38,6 @@ libkfparticle_sphenix_io_la_SOURCES = \
   KFParticle_Container.cc
 
 libkfparticle_sphenix_la_SOURCES = \
-  $(ROOTDICTS) \
   KFParticle_Container.cc \
   KFParticle_DST.cc \
   KFParticle_truthAndDetTools.cc \
