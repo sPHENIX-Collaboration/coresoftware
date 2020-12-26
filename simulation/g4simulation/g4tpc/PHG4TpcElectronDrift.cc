@@ -281,7 +281,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ecollectedhits = 0.0;
   int ncollectedhits = 0;
   double ihit = 0;
-  int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after every this many g4hits
+  int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   int dump_counter = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -300,9 +300,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     count_electrons += n_electrons;
 
+    /*
     if(count_g4hits%50000 == 0)
       std::cout << " g4hit->size() " << g4hit->size() << " count_g4hits " << count_g4hits << " remaining " << 
 	g4hit->size() - count_g4hits << " count_electrons " << count_electrons << std::endl;
+    */
 
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
@@ -440,7 +442,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }  // end loop over electrons for this g4hit
 
     // Dump the temp_hitsetcontainer to the node tree and reset it 
-    //    - after every dump_interval g4hits
+    //    - after every "dump_interval" g4hits
     //    - if this is the last g4hit
     if( dump_counter >= dump_interval || count_g4hits == g4hit->size() )
       {
