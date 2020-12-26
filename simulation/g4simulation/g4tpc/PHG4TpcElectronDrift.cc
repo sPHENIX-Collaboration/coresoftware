@@ -275,14 +275,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
-  int count_g4hits = 0;
+  unsigned int count_g4hits = 0;
   int count_electrons = 0;
 
   double ecollectedhits = 0.0;
   int ncollectedhits = 0;
   double ihit = 0;
-  int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
-  int dump_counter = 0;
+  unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
+  unsigned int dump_counter = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
