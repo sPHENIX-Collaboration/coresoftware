@@ -43,6 +43,7 @@ int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
+  std::set<TrkrDefs::cluskey>  discard_set;
 
   // loop over all TPC clusters
 
@@ -71,25 +72,28 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 		    << std::endl;
 	}
 
+	bool discard_cluster = false;
 
-
-      // We have a TPC cluster
-      // Look for reasons to discard it
+      // We have a TPC cluster, look for reasons to discard it
 
       // Energy too large to be from a primary particle
-
-
       // size too large to be from a primary particle
 
-
       // errors too small
+	if(cluster->getRPhiError() < 0.010)
+	  discard_cluster = true;
 
+	if(discard_cluster)
+	  {
+	    // remove it from the node tree map
+	    discard_set.insert(cluskey);
+	  }
+    }
 
-
-
-
-  
-
+  for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
+    {
+      _cluster_map->removeCluster(*iter);
+      std::cout << "    removed cluster " << *iter << std::endl;
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
