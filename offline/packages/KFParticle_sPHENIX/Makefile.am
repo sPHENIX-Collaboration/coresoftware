@@ -6,7 +6,8 @@ lib_LTLIBRARIES = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -48,17 +49,11 @@ libkfparticle_sphenix_la_SOURCES = \
   KFParticle_eventReconstruction.cc \
   KFParticle_sPHENIX.cc
 
-libkfparticle_sphenix_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
+libkfparticle_sphenix_io_la_LIBADD = \
   -lKFParticle \
   -lphool
 
-libkfparticle_sphenix_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(ROOTSYS)/lib \
-  `root-config --libs` \
+libkfparticle_sphenix_la_LIBADD = \
   libkfparticle_sphenix_io.la \
   -lcalo_io \
   -lfun4all \
