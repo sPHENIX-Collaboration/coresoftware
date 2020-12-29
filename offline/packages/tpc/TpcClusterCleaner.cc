@@ -85,7 +85,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 
 	if(discard_cluster)
 	  {
-	    // remove it from the node tree map
+	    // mark it for removal
 	    discard_set.insert(cluskey);
 	    std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
 		      << " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
@@ -94,6 +94,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 
   for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
     {
+      // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
       std::cout << "    removed cluster " << *iter << std::endl;
     }
