@@ -31,6 +31,7 @@ class TpcClusterCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void set_rphi_cut(double cut){_rphi_cut = cut;}
 
  private:
 
@@ -38,6 +39,7 @@ class TpcClusterCleaner : public SubsysReco
 
   TrkrClusterContainer *_cluster_map;
 
+  double _rphi_cut = 0.01;
 
 };
 
