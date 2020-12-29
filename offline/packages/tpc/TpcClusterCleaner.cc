@@ -61,7 +61,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       
       if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
  
-      //if (Verbosity() >= 1)
+      if (Verbosity() >= 1)
 	{
 	  std::cout << " cluster : " << cluskey << " layer " << layer
 		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
@@ -80,13 +80,15 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       // size too large to be from a primary particle
 
       // errors too small
-	if(cluster->getRPhiError() < 0.010)
+	if(cluster->getRPhiError() < _rphi_cut)
 	  discard_cluster = true;
 
 	if(discard_cluster)
 	  {
 	    // remove it from the node tree map
 	    discard_set.insert(cluskey);
+	    std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+		      << " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
 	  }
     }
 
