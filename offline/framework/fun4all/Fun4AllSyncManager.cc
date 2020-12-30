@@ -98,6 +98,8 @@ int Fun4AllSyncManager::run(const int nevnts)
     int hassync = 0;
     for (vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
     {
+      m_iretInManager[iman] = (*iter)->run(1);
+      iret += m_iretInManager[iman];
       // one can run DSTs without sync object via the DST input manager
       // this only poses a problem if one runs two of them and expects the syncing to work
       // or mix DSTs with sync object and without
@@ -121,8 +123,6 @@ int Fun4AllSyncManager::run(const int nevnts)
           }
         }
       }
-      m_iretInManager[iman] = (*iter)->run(1);
-      iret += m_iretInManager[iman];
       if (!ifirst)
       {
         if (!m_iretInManager[iman])
@@ -463,13 +463,15 @@ void Fun4AllSyncManager::CurrentEvent(const int evt)
 
 void Fun4AllSyncManager::PrintSyncProblem() const
 {
-  cout << "Bad use of Fun4AllDstInputManager which might lead to event mixing" << endl;
-  cout << "If you insist to run this do the following in your macro: " << endl;
+  cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << endl;
+  cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << endl;
+  cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << endl;
   for (auto iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
   {
     if ((*iter)->HasSyncObject() < 0)
     {
-      cout << "Change Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << endl;
+      cout << "File " << (*iter)->FileName() << " does not contain a sync object" << endl;
+      cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << endl;
     }
   }
   return;

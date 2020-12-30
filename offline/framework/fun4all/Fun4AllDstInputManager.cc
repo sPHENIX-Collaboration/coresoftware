@@ -639,7 +639,11 @@ int Fun4AllDstInputManager::HasSyncObject() const
   {
     return m_HaveSyncObject;
   }
-  cout << PHWHERE << "HasSyncObject() not initialized check the calling order" << endl;
-  gSystem->Exit(1);
-  exit(1);
+  if (IsOpen())
+  {
+    cout << PHWHERE << "HasSyncObject() not initialized check the calling order" << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  return 0;
 }

@@ -25,6 +25,7 @@
 #include <TH2.h>
 
 class PHCompositeNode;
+class PHG4CylinderGeomContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
@@ -67,7 +68,8 @@ using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
- * recognition
+ * recognition. The module also projects the MVTX stubs to the INTT
+ * to find possible matches in the INTT to the MVTX triplet.
  */
 class PHActsSiliconSeeding : public SubsysReco
 {
@@ -82,12 +84,10 @@ class PHActsSiliconSeeding : public SubsysReco
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
 
+  /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-  
-  void projectToIntt(bool projectToIntt)
-    { m_projectToIntt = projectToIntt; }
-
+   
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -110,7 +110,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints();
 
-  /// Perform circle/line fits with the final seed to get
+  /// Perform circle/line fits with the final MVTX seed to get
   /// initial point and momentum estimates for stub matching
   int circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		     double& x, double& y, double& z,
@@ -124,6 +124,8 @@ class PHActsSiliconSeeding : public SubsysReco
   int getCharge(const std::vector<TrkrCluster*>& clusters,
 		const double circPhi);
 
+  /// Projects circle fit to INTT radii to find possible INTT clusters
+  /// belonging to MVTX track stub
   std::vector<TrkrDefs::cluskey> findInttMatches(
 			const std::vector<TrkrCluster*>& clusters,
 			const double R,
@@ -142,7 +144,18 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& yplus,
 				double& xminus,
 				double& yminus);
-
+  void createSvtxTrack(const double x,
+		       const double y,
+		       const double z,
+		       const double px,
+		       const double py,
+		       const double pz,
+		       const int charge,
+		       const std::vector<TrkrCluster*> clusters);
+  std::map<const unsigned int, std::vector<TrkrCluster*>>
+    makePossibleStubs(std::vector<TrkrCluster*> allClusters);
+  void createHistograms();
+  void writeHistograms();
   double normPhi2Pi(const double phi);
 
   std::map<unsigned int, SourceLink> *m_sourceLinks;
@@ -150,6 +163,7 @@ class PHActsSiliconSeeding : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   CluskeyBimap *m_hitIdCluskey;
   TrkrClusterContainer *m_clusterMap = nullptr;
+  PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   
   /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
@@ -185,18 +199,17 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
+  double m_maxSeedPCA = 0.01;
+  
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
     {7.188, 7.732, 9.680,10.262}; /// cm
   
-  /// Search windows for phi and z to match intt clusters in cm
-  double m_rPhiSearchWin = 0.2;
-  double m_zSearchWin = 0.2;
+  /// Search window for phi to match intt clusters in cm
+  double m_rPhiSearchWin = 0.1;
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
-  
-  bool m_projectToIntt = false;
 
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
@@ -204,6 +217,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH1 *h_nInttHits = nullptr;
   TH2 *h_nHits = nullptr;
   TH1 *h_nSeeds = nullptr;
+  TH1 *h_nTotSeeds = nullptr;
   TH1 *h_nInputMeas = nullptr;
   TH1 *h_nInputMvtxMeas = nullptr;
   TH1 *h_nInputInttMeas = nullptr;
