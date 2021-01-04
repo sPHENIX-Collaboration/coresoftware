@@ -80,7 +80,11 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       // size too large to be from a primary particle
 
       // errors too small
-	if(cluster->getRPhiError() < _rphi_cut)
+	if(cluster->getRPhiError() < _rphi_error_low_cut)
+	  discard_cluster = true;
+
+      // errors too large
+	if(cluster->getRPhiError() > _rphi_error_high_cut)
 	  discard_cluster = true;
 
 	if(discard_cluster)
@@ -96,7 +100,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
     {
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
-      std::cout << "    removed cluster " << *iter << std::endl;
+      //std::cout << "    removed cluster " << *iter << std::endl;
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
