@@ -26,9 +26,10 @@ if ($#ARGV < 0)
 {
     print "usage: CreateFileLists.pl -fm <fermi range> <filetypes>\n";
     print "parameters:\n";
-    print "-fm : fermi range, 0-12 = 1, 0-4.88 = 2\n";
-    print "-n : <number of events>\n";
-    print "-s : <starting segment>\n";
+    print "-fm : Hijing fermi range, 0-12 = 1, 0-4.88 = 2\n";
+    print "-n  : <number of events>\n";
+    print "-pp : pythia8 selection: MinBias = 1\n";
+    print "-s  : <starting segment>\n";
 #    print "-r : pick random segments until nEvents is reached\n";
     print "\navailable types:\n";
     foreach my $tp (sort keys %dsttype)
@@ -41,30 +42,39 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $fmrange;
-GetOptions('fm:i' =>\$fmrange, 'n=i' => \$nEvents, 'r' => \$randomize, 's=i' => \$start_segment);
-
-if (! defined $fmrange || $fmrange < 1 || $fmrange > 1)
+my $pptype;
+GetOptions('fm:i' =>\$fmrange, 'n=i' => \$nEvents, 'pp:i' => \$pptype, 'r' => \$randomize, 's=i' => \$start_segment);
+if (! defined $fmrange && ! defined $pptype)
 {
-    if (defined $fmrange)
-    {
-	print "-fm $fmrange invalid, need to give valid fermi range\n";
-    }
-    else
-    {
-	print "need to give fermi range\n";
-    }
+    print "either fermi range for hijing with -fm or pp type with -pp\n";
+    exit(0);
+}
+if (defined $fmrange && ($fmrange < 1 || $fmrange > 2))
+{
+    print "-fm $fmrange invalid, need to give valid fermi range\n";
     print "-fm 1 : 0-12fm\n";
     print "-fm 2 : 0-4.88fm\n";
     exit(0);
 }
-my $fmstring;
+if (defined $pptype && ($pptype < 1 || $pptype > 1))
+{
+    print "-pp pp type invalid, need to give valid pp type\n";
+    print "-pp 1 : pythia8 MinBias\n";
+    exit(0);
+}
+
+my $filenamestring;
 if ($fmrange == 1)
 {
-    $fmstring = "0_12fm";
+    $filenamestring = "sHijing_0_12fm";
 }
 elsif ($fmrange == 2)
 {
-    $fmstring = "0_488fm";
+    $filenamestring = "sHijing_0_488fm";
+}
+elsif ($pptype == 1)
+{
+    $filenamestring = "pythia8_mb";
 }
 else
 {
@@ -93,14 +103,15 @@ while($#ARGV >= 0)
     $allevthash{$ARGV[0]} = ();
     shift (@ARGV);
 }
-my $conds = sprintf("dsttype = ? and filename like '%$fmstring%'");
+my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring);
 if (defined $start_segment)
 {
     $conds = sprintf("%s and segment >= %d",$conds,$start_segment);
 }
 my $getfilesql = sprintf("select filename,segment,events from datasets where %s order by segment",$conds);
 
-#my $getfiles = $dbh->prepare("select filename,segment,events from datasets where dsttype = ? and filename like '%$fmstring%' order by segment");
+#print "sql: $getfilesql\n";
+
 my $getfiles = $dbh->prepare($getfilesql);
 
 foreach my $tp (sort keys %req_types)
