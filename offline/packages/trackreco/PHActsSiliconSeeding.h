@@ -88,9 +88,6 @@ class PHActsSiliconSeeding : public SubsysReco
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
   
-  void secondFit(bool secondFit)
-    { m_secondFit = secondFit; }
-   
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -117,8 +114,8 @@ class PHActsSiliconSeeding : public SubsysReco
   /// initial point and momentum estimates for stub matching
   int circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		    double& x, double& y, double& z,
-		    double& px, double& py, double& pz,
-		    bool secondPass);
+		    double& px, double& py, double& pz);
+
   void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 			 double& R, double& X0, double& Y0);
   void lineFit(const std::vector<TrkrCluster*>& clusters,
@@ -203,7 +200,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
-  double m_maxSeedPCA = 0.01;
+  /// Maximum allowed transverse PCA for seed, cm
+  double m_maxSeedPCA = 0.1;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
@@ -214,10 +212,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
-
-  /// Whether or not to run a second circle fit after
-  /// INTT clusters are matched
-  bool m_secondFit = false;
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;

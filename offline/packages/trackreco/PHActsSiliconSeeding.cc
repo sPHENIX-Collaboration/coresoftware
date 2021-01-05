@@ -205,7 +205,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  /// Performs circle fit and extrapolates to INTT layers to
 	  /// to get additional clusters in this track seed
 	  int charge = circleFitSeed(clusters, x, y, z,
-				     px, py, pz, false);
+				     px, py, pz);
 
 	  /// Bad seed, if x is nan so are y and z
 	  if(std::isnan(x))
@@ -257,6 +257,8 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
   double trackPy = py;
   double trackPz = pz;
   double trackCharge = charge;
+  double trackPhi = atan2(py,px);
+  double trackEta = atanh(pz / sqrt(px * px + py * py + pz * pz));
 
   /// Make a track for every stub that was constructed
   /// We use the same xyz and pxpypz given by the mvtx circle
@@ -279,37 +281,19 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
 	  else if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
 	    nIntt++;	 
 	}
+ 
+      /// Get a less rough estimate of R, and thus, p
+      double R, X0, Y0;
+      circleFitByTaubin(stubClusters, R, X0, Y0);
       
-      if(m_secondFit)
-	{
-	  double updX = NAN, updY = NAN, updZ = z;
-	  double updPx = NAN, updPy = NAN, updPz = NAN;
-	  
-	  /// Run the circle fit again to see if we can get a better
-	  /// p/theta/phi estimate
-	  int ch = circleFitSeed(stubClusters, updX, updY, updZ,
-				 updPx, updPy, updPz, true);
-	  
-	  /// If it is successful, update the parameters. Otherwise, just
-	  /// use the original parameters from the MVTX stub fit
-	  if(!std::isnan(updX))
-	    {
-	      trackX = updX;
-	      trackY = updY;
-	      trackPx = updPx;
-	      trackPy = updPy;
-	      trackPz = updPz;
-	      trackCharge = ch;
-	    }
-	  else
-	    {
-	      if(Verbosity() > 1)
-		std::cout << "Seed had a second bad xy position fit..."
-			  << std::endl;
-	      m_nBadUpdates++;
-	    }
-	}
-
+      /// 0.3 conversion factor, 1.4=B field, 
+      /// 100 convert R from cm to m
+      float pt = 0.3 * 1.4 * R / 100.;
+  
+      trackPx = pt * cos(trackPhi);
+      trackPy = pt * sin(trackPhi);
+      trackPz = pt * sinh(trackEta);
+      
       /// Diagnostic
       h_nInttHits->Fill(nIntt);
       h_nMvtxHits->Fill(nMvtx);
@@ -420,8 +404,7 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
 
 int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 					double& x, double& y, double& z,
-					double& px, double& py, double& pz,
-					bool secondPass)
+					double& px, double& py, double& pz)
 {
   if(Verbosity() > 2)
     for(const auto clus : clusters)
@@ -443,18 +426,10 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   /// finder will throw an eigen stepper error trying to propagate 
   /// from the PCA. These  are likely bad seeds anyway since the 
   /// MVTX has position resolution O(5) microns. Units are cm
-  /// Multiply by 10 for the first pass, then a tight check on the 
-  /// second pass with INTT hits to aid
-  double xyCheck = m_maxSeedPCA;
   
-  /// First pass check is 1 mm, second pass check is 100 micron with
-  /// default m_maxSeedPCA
-  if(!secondPass)
-    xyCheck *= 10;
-
-  if(fabs(x) > xyCheck or fabs(y) > xyCheck)
+  if(fabs(x) > m_maxSeedPCA or fabs(y) > m_maxSeedPCA)
     {
-      if(!secondPass && Verbosity() > 1)
+      if(Verbosity() > 1)
 	std::cout << "x,y circle fit : " << x << ", " 
 		  << y << std::endl;
 
@@ -486,18 +461,8 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   double m, B;
   
   /// m is slope as a function of radius, B is z intercept (vertex)
-
-  std::vector<TrkrCluster*> clustersThetaFit = clusters;
-
-  /// Just fit the MVTX clusters for theta since the fit quality is better
-  if(secondPass)
-    {
-      clustersThetaFit.clear();
-      for(int i = 0; i < 3; i++)
-	clustersThetaFit.push_back(clusters.at(i));
-    }
   
-  lineFit(clustersThetaFit, m, B);
+  lineFit(clusters, m, B);
   z = B;
   
   double theta = atan(1./m);
@@ -525,16 +490,13 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
     std::cout << "Momentum vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
     
-  if(!secondPass)
-    {
-      /// Project to INTT and find matches
-      auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
-      
-      /// Add possible matches to cluster list to be parsed when
-      /// Svtx tracks are made
-      for(auto cluskey : additionalClusters)
-	clusters.push_back(m_clusterMap->findCluster(cluskey));
-    }
+  /// Project to INTT and find matches
+  auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
+  
+  /// Add possible matches to cluster list to be parsed when
+  /// Svtx tracks are made
+  for(auto cluskey : additionalClusters)
+    clusters.push_back(m_clusterMap->findCluster(cluskey));
   
   return charge;
 
