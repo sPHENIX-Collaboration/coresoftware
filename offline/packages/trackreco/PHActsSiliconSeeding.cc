@@ -69,17 +69,38 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
 int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
 
+  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
+  eventTimer->stop();
+  eventTimer->restart();
+
   if(Verbosity() > 0)
     std::cout << "Processing PHActsSiliconSeeding event "
 	      << m_event << std::endl;
 
   auto seedVector = runSeeder();
 
+  eventTimer->stop();
+  auto seederTime = eventTimer->get_accumulated_time();
+  eventTimer->restart();
+  
   makeSvtxTracks(seedVector);
 
-  if(Verbosity()> 0)
+  eventTimer->stop();
+  auto circleFitTime = eventTimer->get_accumulated_time();
+
+  if(Verbosity() > 0)
     std::cout << "Finished PHActsSiliconSeeding process_event"
 	      << std::endl;
+
+  if(Verbosity() > 0)
+    {
+      std::cout << "PHActsSiliconSeeding Acts seed time "
+		<< seederTime << std::endl;
+      std::cout << "PHActsSiliconSeeding circle fit time "
+		<< circleFitTime << std::endl;
+      std::cout << "PHActsSiliconSeeding total event time " 
+		<< circleFitTime + seederTime  << std::endl;
+    }
 
   m_event++;
 
@@ -294,7 +315,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       h_nMvtxHits->Fill(nMvtx);
       h_nHits->Fill(nMvtx, nIntt);
       
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout << "Setting silicon seed with track id " 
 		  << m_trackMap->size()
 		  << " and (x,y,z) = " 
@@ -422,13 +443,14 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   /// finder will throw an eigen stepper error trying to propagate 
   /// from the PCA. These  are likely bad seeds anyway since the 
   /// MVTX has position resolution O(5) microns. Units are cm
-  /// Multiply by 30 for the first pass, then a tight check on the 
+  /// Multiply by 10 for the first pass, then a tight check on the 
   /// second pass with INTT hits to aid
   double xyCheck = m_maxSeedPCA;
   
-  /// First pass check is 30 mm, second pass check is 100 micron
+  /// First pass check is 1 mm, second pass check is 100 micron with
+  /// default m_maxSeedPCA
   if(!secondPass)
-    xyCheck *= 30;
+    xyCheck *= 10;
 
   if(fabs(x) > xyCheck or fabs(y) > xyCheck)
     {

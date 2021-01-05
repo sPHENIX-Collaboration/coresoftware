@@ -87,6 +87,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
+  
+  void secondFit(bool secondFit)
+    { m_secondFit = secondFit; }
    
  private:
 
