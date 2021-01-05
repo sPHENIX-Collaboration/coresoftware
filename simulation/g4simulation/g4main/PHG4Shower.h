@@ -122,4 +122,26 @@ class PHG4Shower : public PHObject
   ClassDef(PHG4Shower, 1);
 };
 
+
+/**
+ * Equality operators for PHG4TruthInfoContainer. Note that the comparison is
+ * performed only on the publicly accessible members.
+ */
+///@{
+inline bool operator==(const PHG4Shower& lhs, const PHG4Shower& rhs)
+{
+  return lhs.get_id()                 == rhs.get_id()                 &&
+         lhs.get_parent_particle_id() == rhs.get_parent_particle_id() &&
+         lhs.get_parent_shower_id()   == rhs.get_parent_shower_id()   &&
+         lhs.get_x()                  == rhs.get_x()                  &&
+         lhs.get_y()                  == rhs.get_y()                  &&
+         lhs.get_z()                  == rhs.get_z()                  &&
+         lhs.g4particle_ids()         == rhs.g4particle_ids()         &&
+         lhs.g4vertex_ids()           == rhs.g4vertex_ids()           &&
+         lhs.g4hit_ids()              == rhs.g4hit_ids();
+}
+
+inline bool operator!=(const PHG4Shower& lhs, const PHG4Shower& rhs) { return !(lhs == rhs); }
+///@}
+
 #endif
