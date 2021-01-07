@@ -126,9 +126,6 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       if (m_verbosity > 0)
       {
         printParticles(mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
-      }
-      if (m_verbosity > 1) 
-      {
         if (m_save_dst) printNode(topNode);
       }
     }
