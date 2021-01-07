@@ -187,6 +187,7 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
   process_tracks();
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -212,9 +213,16 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::process_tracks()
 {
+ 
+  std::cout << "TPCSpaceChargeReconstruction event "<< m_event << std::endl;
   if( !( m_track_map && m_cluster_map ) ) return;
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { if( accept_track( iter->second ) ) process_track( iter->second ); }
+    { 
+      if( accept_track( iter->second ) ){
+	process_track( iter->second ); 
+	std::cout << "processed trakc for event " << m_event<<std::endl;
+      }
+    }
 }
 
 //_____________________________________________________________________
@@ -223,12 +231,13 @@ bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
   // ignore tracks whose transverse momentum is too small
   const auto pt = std::sqrt( square( track->get_px() ) + square( track->get_py() ) );
   if( pt < 0.5 ) return false;
-
+  std::cout<<"checking track"<<std::endl;
   // ignore tracks with too few mvtx, intt and micromegas hits
   if( get_clusters<TrkrDefs::mvtxId>(track) < 2 ) return false;
   if( get_clusters<TrkrDefs::inttId>(track) < 2 ) return false;
   if( m_use_micromegas && get_clusters<TrkrDefs::micromegasId>(track) < 2 ) return false;
 
+  std::cout << "accepting track"<<std::endl;
   // all tests passed
   return true;
 }
@@ -243,7 +252,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
   // loop over clusters
   for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
   {
-
+    std::cout<<"iterating clusters"<<std::endl;
     const auto& cluster_key = *key_iter;
     auto cluster = m_cluster_map->findCluster( cluster_key );
     if( !cluster )
@@ -264,6 +273,11 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // cluster errors
     const auto cluster_rphi_error = cluster->getRPhiError();
     const auto cluster_z_error = cluster->getZError();
+
+    std::cout<<"Cluster props for cluskey " << cluster_key
+	     <<" r,phi,z " <<cluster_r<<"  "<< cluster_phi
+	     <<"  "<<cluster_z << " with errors " << cluster_rphi_error
+	     <<"  "<<cluster_z_error<<std::endl;
 
     /*
     remove clusters with too small errors since they are likely pathological
@@ -314,6 +328,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_z = state->get_z() + dr*track_dzdr;
     const auto track_phi = std::atan2( track_y, track_x );
 
+    std::cout << "Track state positions r, phi, z    "
+	      << get_r(track_x, track_y) << ", " <<track_phi
+	      <<", " << track_z << std::endl;
+
     // get residual errors squared
     // for now we only consider the error on the cluster. Not on the track
     //     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
@@ -338,7 +356,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // get residuals
     const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
     const auto dz = cluster_z - track_z;
-
+    std::cout <<"Tpc residuals : " << drp <<"  "<<dz<<std::endl;
     // sanity checks
     // TODO: check whether this happens and fix upstream
     if( std::isnan(drp) )
@@ -361,6 +379,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_pz = state->get_pz();
     const auto talpha = -track_pphi/track_pr;
     const auto tbeta = -track_pz/track_pr;
+
+    std::cout << " track angles: " <<track_pphi << ", " << track_pr
+	      <<", " << track_pz <<", " << talpha<<", " << tbeta
+	      <<std::endl;
 
     // sanity check
     // TODO: check whether this happens and fix upstream
@@ -391,6 +413,11 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto i = get_cell( cluster );
 
     if( i < 0 || i >= m_totalbins ) continue;
+
+
+    std::cout << i << " TpcSpaceCharge " << erp << " " << talpha
+	      <<" " << ez << " " << tbeta << " " << drp << " "
+	      << dz << std::endl;
 
     m_lhs[i](0,0) += 1./erp;
     m_lhs[i](0,1) += 0;
