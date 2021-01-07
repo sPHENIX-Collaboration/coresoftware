@@ -151,7 +151,6 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
-
   // reco pT histogram
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
                ";Truth p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
@@ -381,7 +380,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
       if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
       {
-        h_nReco_pTReco_cuts->Fill(pt); // normalization histogram fill with cuts
+        h_nReco_pTReco_cuts->Fill(pt);  // normalization histogram fill with cuts
       }
       PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
       if (g4particle_match)
@@ -402,11 +401,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
             const double pt_ratio = (pt != 0) ? gpt / pt : 0;
             h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
 
-	    if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
-	    {
-	      h_nGen_pTReco_cuts->Fill(pt);
-	      h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
-	    }
+            if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+            {
+              h_nGen_pTReco_cuts->Fill(pt);
+              h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
+            }
           }
         }
       }
@@ -417,7 +416,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }  // reco track loop
-
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
@@ -512,7 +510,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
     }
 
-
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
     if (track)
@@ -573,11 +570,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         h_DCAZ_pT->Fill(pt, dca3dz);
         h_norm->Fill("Reco Track", 1);
 
-	int MVTX_hits = 0;
-	int INTT_hits = 0;
-	int TPC_hits = 0;
-	for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
-	{
+        int MVTX_hits = 0;
+        int INTT_hits = 0;
+        int TPC_hits = 0;
+        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+        {
           const auto &cluster_key = *cluster_iter;
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
@@ -593,12 +590,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
               cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
           }
         }
-	if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
-	{
+        if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+        {
           h_DCArPhi_pT_cuts->Fill(pt, dca3dxy);
-	  h_DCAZ_pT_cuts->Fill(pt, dca3dz);
-	  h_SigmalizedDCArPhi_pT->Fill(pt, dca3dxy/dca3dxysigma);
-	  h_SigmalizedDCAZ_pT->Fill(pt, dca3dz/dca3dzsigma);
+          h_DCAZ_pT_cuts->Fill(pt, dca3dz);
+          h_SigmalizedDCArPhi_pT->Fill(pt, dca3dxy / dca3dxysigma);
+          h_SigmalizedDCAZ_pT->Fill(pt, dca3dz / dca3dzsigma);
         }
 
         // tracker cluster stat.
