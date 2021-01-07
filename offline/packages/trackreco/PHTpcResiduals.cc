@@ -307,22 +307,45 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(clusZErr < 0.05)
     return;
 
-  const auto globalStatePos = params.position(m_tGeometry->geoContext);
+  const auto globalStatePos = 
+    params.position(m_tGeometry->geoContext);
+  const auto globalStateMom =
+    params.momentum();
   const auto globalStateCov = *params.covariance();
   stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
-						Acts::eBoundLoc0))
+				     Acts::eBoundLoc0))
     / Acts::UnitConstants::cm;
   stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1))
+				  Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
  
   /// We don't have to extrapolate the track parameters to the cluster
   /// r because the Acts::Propagator already propagated the parameters
   /// to the surface where the cluster exists (e.g. the same r)
-  statePhi = std::atan2(globalStatePos.y(),
-				   globalStatePos.x());
+ 
   stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
+
+  const auto globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
+  const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
+  const auto globStateZ = globalStatePos.z() / Acts::UnitConstants::cm;
+
+  const auto stateR = sqrt(pow(globStateX,2) +
+			   pow(globStateY,2) );
   
+  const auto dr = clusR - stateR;
+  const auto trackDrDt = (globStateX * globalStateMom(0) +
+			  globStateY * globalStateMom(1)) / stateR;
+  const auto trackDxDr = globalStateMom(0) / trackDrDt;
+  const auto trackDyDr = globalStateMom(1) / trackDrDt;
+  const auto trackDzDr = globalStateMom(2) / trackDrDt;
+  
+  const auto trackX = globStateX + dr * trackDxDr;
+  const auto trackY = globStateY + dr * trackDyDr;
+  const auto trackZ = globStateZ + dr * trackDzDr;
+  
+  statePhi = std::atan2(trackX, trackY);
+  stateZ = trackZ;
+
   if(Verbosity() > 3)
     std::cout << "State r phi and z " 
 	      << sqrt(pow(globalStatePos.x(), 2) + pow(globalStatePos.y(),2))/10. 
