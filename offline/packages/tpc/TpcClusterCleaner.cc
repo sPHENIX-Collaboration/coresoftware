@@ -45,6 +45,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
   std::set<TrkrDefs::cluskey>  discard_set;
 
+  unsigned int count_discards = 0;
+
   // loop over all TPC clusters
 
   TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters();
@@ -92,6 +94,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       
       if(discard_cluster)
 	{
+	  count_discards++;
 	  // mark it for removal
 	  discard_set.insert(cluskey);
 	  std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
@@ -105,6 +108,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       _cluster_map->removeCluster(*iter);
       //std::cout << "    removed cluster " << *iter << std::endl;
     }
+
+  std::cout << "Clusters discarded this event: " << count_discards << std::endl;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
