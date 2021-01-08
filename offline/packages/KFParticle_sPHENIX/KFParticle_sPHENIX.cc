@@ -39,7 +39,6 @@ std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX()
   : SubsysReco("KFPARTICLE")
-  , m_verbosity(0)
   , m_has_intermediates_sPHENIX(false)
   , m_constrain_to_vertex_sPHENIX(false)
   , m_require_mva(false)
@@ -52,7 +51,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
 
 KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   : SubsysReco(name)
-  , m_verbosity(0)
   , m_has_intermediates_sPHENIX(false)
   , m_constrain_to_vertex_sPHENIX(false)
   , m_require_mva(false)
@@ -68,7 +66,7 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
   if (m_save_output)
   {
     m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-    if (m_verbosity > 0) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
+    if (Verbosity() >= VERBOSITY_SOME) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
     initializeBranches();
   }
 
@@ -101,14 +99,14 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
   if (check_vertexmap->size() == 0)
   {
-    if (m_verbosity > 0) std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
+    if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   if (check_trackmap->size() == 0)
   {
-    if (m_verbosity > 0) std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
+    if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -123,9 +121,12 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       if (m_save_output) fillBranch(topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
       if (m_save_dst) fillParticleNode(topNode, mother[i], daughters[i], intermediates[i]);
 
-      if (m_verbosity > 0)
+      if (Verbosity() >= VERBOSITY_SOME)
       {
         printParticles(mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
+      }
+      if (Verbosity() >= VERBOSITY_MORE)
+      {
         if (m_save_dst) printNode(topNode);
       }
     }

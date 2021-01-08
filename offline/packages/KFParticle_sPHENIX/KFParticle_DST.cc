@@ -150,9 +150,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     }
   }
 
-  //When you build the daughter track, the track vanishes from the original track map, making a clone fixes this
   SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  SvtxTrackMap* originalTrackMap_copy = dynamic_cast<SvtxTrackMap*>(originalTrackMap->CloneMe());
   KFParticle* daughterArray = &daughters[0];
 
   for (unsigned int k = 0; k < daughters.size(); ++k)
@@ -164,11 +162,10 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     }
     else
     {
-      m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap_copy);
+      m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap);
     }
 
     m_recoTrackMap->insert(m_recoTrack);
-    m_recoTrack->Reset();
   }
 }
 
