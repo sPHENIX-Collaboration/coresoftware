@@ -42,10 +42,10 @@ if ($#ARGV < 0)
     {
 	print "    $pd : $proddesc{$pd}\n";
     }
-    print "\navailable file types:\n";
+    print "\navailable file types (choose at least one, --> means: written to):\n";
     foreach my $tp (sort keys %dsttype)
     {
-	print "$tp\n";
+	print "$tp  --> $dsttype{$tp}\n";
     }
     exit(0);
 }
@@ -124,7 +124,9 @@ while($#ARGV >= 0)
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
     shift (@ARGV);
+
 }
+print "This Can Take a While (a minute give or take)\n";
 my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring);
 if (defined $start_segment)
 {
@@ -212,8 +214,10 @@ if (defined $nEvents)
     @segarray = @tmparray;
 }
 # sort list of segments and write to output file
+my $nSelectedEvents = 0;
 foreach my $seg (sort @segarray)
 {
+    $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
     foreach my $tp (sort keys %allfilehash)
     {
@@ -223,7 +227,7 @@ foreach my $seg (sort @segarray)
     }
 
 }
-print "wrote the following list files\n";
+print "wrote the following list files containing $nSelectedEvents events:\n";
 foreach my $tp (sort keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
