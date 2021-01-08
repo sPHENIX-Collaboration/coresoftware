@@ -259,47 +259,25 @@ void PHTpcResiduals::calculateTpcResiduals(
 		          const Acts::BoundTrackParameters &params,
 			  const SourceLink& sl)
 {
-  Acts::Vector2D local(sl.location()(0), sl.location()(1));
-  
-  auto globalSL = sl.referenceSurface().localToGlobal(
-				         m_tGeometry->geoContext,
-					 local,
-					 Acts::Vector3D(1,1,1));
-
-  /// Get all the relevant information for residual calculation
-  clusR = sqrt(pow(globalSL.x() / Acts::UnitConstants::cm, 2) +
-			  pow(globalSL.y() / Acts::UnitConstants::cm, 2));
-  clusPhi = std::atan2(globalSL.y(), globalSL.x());
-  clusZ = globalSL.z() / Acts::UnitConstants::cm;
-
-  clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
-						Acts::eBoundLoc0))
-    / Acts::UnitConstants::cm;
-  clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1))
-    / Acts::UnitConstants::cm;
-
+  /// Get the TrkrCluster
   const auto clusKey = m_hitIdClusKey->right.find(sl.hitID())->second;
   const auto cluster = m_clusterMap->findCluster(clusKey);
 
+  /// Get all the relevant information for residual calculation
+  clusR = sqrt(pow(cluster->getX(), 2) +
+	       pow(cluster->getY(), 2));
+  clusPhi = std::atan2(cluster->getY(), cluster->getX());
+  clusZ = cluster->getZ();
+
+  clusRPhiErr = cluster->getRPhiError();
+  clusZErr = cluster->getZError();
+ 
   if(Verbosity() > 3)
     {
       std::cout << "cluster key is " << clusKey <<std::endl;
       std::cout << "Cluster r phi and z " << clusR << "  " 
 		<< clusPhi << "+/-" << clusRPhiErr
 		<<" and " << clusZ << "+/-" << clusZErr << std::endl;
-      
-      std::cout << "cluskey values " 
-		<< std::atan2(cluster->getY(), cluster->getX())
-		<<" +/- " << cluster->getRPhiError() << " and " 
-		<< cluster->getZ() << " +/- " << cluster->getZError() 
-		<< std::endl;
-      
-      std::cout << "acts global pos " << globalSL.x() / 10. << ", " 
-		<< globalSL.y() /10. << ", " << globalSL.z() /10. << std::endl;
-      std::cout << "clusterkey global pos " << cluster->getX() <<", " 
-		<< cluster->getY() << ", " << cluster->getZ() << std::endl;
-      
     }
   
   if(clusRPhiErr < 0.015)
@@ -307,11 +285,10 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(clusZErr < 0.05)
     return;
 
-  const auto globalStatePos = 
-    params.position(m_tGeometry->geoContext);
-  const auto globalStateMom =
-    params.momentum();
+  const auto globalStatePos = params.position(m_tGeometry->geoContext);
+  const auto globalStateMom = params.momentum();
   const auto globalStateCov = *params.covariance();
+
   stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
 				     Acts::eBoundLoc0))
     / Acts::UnitConstants::cm;
@@ -319,18 +296,14 @@ void PHTpcResiduals::calculateTpcResiduals(
 				  Acts::eBoundLoc1))
     / Acts::UnitConstants::cm;
  
-  /// We don't have to extrapolate the track parameters to the cluster
-  /// r because the Acts::Propagator already propagated the parameters
-  /// to the surface where the cluster exists (e.g. the same r)
- 
   stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
 
   const auto globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
   const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
-  const auto globStateZ = globalStatePos.z() / Acts::UnitConstants::cm;
+  const auto globStateZ = stateZ;
 
-  const auto stateR = sqrt(pow(globStateX,2) +
-			   pow(globStateY,2) );
+  stateR = sqrt(pow(globStateX, 2) +
+		pow(globStateY, 2) );
   
   const auto dr = clusR - stateR;
   const auto trackDrDt = (globStateX * globalStateMom(0) +
@@ -343,12 +316,19 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto trackY = globStateY + dr * trackDyDr;
   const auto trackZ = globStateZ + dr * trackDzDr;
   
-  statePhi = std::atan2(trackX, trackY);
+  if(Verbosity() > 2)
+    std::cout << "State Calculations: " << stateR << ", " 
+	      << dr << ", " << trackDrDt << ", " << trackDxDr
+	      << ", " << trackDyDr << ", " << trackDzDr
+	      <<" , " << trackX << ", " << trackY << ", "
+	      << trackZ << std::endl;
+
+  statePhi = std::atan2(trackY, trackX);
   stateZ = trackZ;
 
   if(Verbosity() > 3)
     std::cout << "State r phi and z " 
-	      << sqrt(pow(globalStatePos.x(), 2) + pow(globalStatePos.y(),2))/10. 
+	      << stateR
 	      << "   " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
@@ -366,7 +346,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
-  const auto clusEta = std::atanh(clusZ / (globalSL.norm() / Acts::UnitConstants::cm));
+  const auto clusEta = std::atanh(clusZ / sqrt(pow(cluster->getX(), 2) +
+					       pow(cluster->getY(), 2) +
+					       pow(cluster->getZ(), 2)));
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -389,20 +371,22 @@ void PHTpcResiduals::calculateTpcResiduals(
      or std::abs(dz) > m_maxResidualDz)
     return;
   
-  const float r = sqrt(globalSL(0) * globalSL(0) + globalSL(1) * globalSL(1)) 
-    / Acts::UnitConstants::cm;
-  const float z = globalSL(2) / Acts::UnitConstants::cm;
-  
-  ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
+  ir = m_rBins * (clusR - m_rMin) / (m_rMax - m_rMin);
   iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
-  iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
+  iz = m_zBins * (clusZ - m_zMin) / (m_zMax - m_zMin);
   
   tanBeta = trackBeta;
   tanAlpha = trackAlpha;
-
-  const auto index = getCell(globalSL);
+  
+  Acts::Vector3D globClus(cluster->getX(), 
+			  cluster->getY(), 
+			  cluster->getZ());
+  const auto index = getCell(globClus);
   cell = index;
   
+  if(Verbosity() > 3)
+    std::cout << "Bin index found is " << index << std::endl;
+
   if(index < 0 || index > m_totalBins)
     return;
 
@@ -538,10 +522,9 @@ void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 
 int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
-  const float r = sqrt(loc(0) * loc(0) + loc(1) * loc(1)) 
-    / Acts::UnitConstants::cm;
+  const float r = sqrt(loc(0) * loc(0) + loc(1) * loc(1));
   const auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
-  const float z = loc(2) / Acts::UnitConstants::cm;
+  const float z = loc(2);
   
   const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
   const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
@@ -636,6 +619,7 @@ void PHTpcResiduals::makeHistograms()
   residTup->Branch("clusZ",&clusZ,"clusZ/D");
   residTup->Branch("statePhi",&statePhi,"statePhi/D");
   residTup->Branch("stateZ",&stateZ,"stateZ/D");
+  residTup->Branch("stateR",&stateR,"stateR/D");
   residTup->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
   residTup->Branch("stateZErr",&stateZErr,"stateZErr/D");
   residTup->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");

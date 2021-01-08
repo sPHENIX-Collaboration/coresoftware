@@ -157,7 +157,7 @@ class PHTpcResiduals : public SubsysReco
   TTree *residTup = nullptr;
   TFile *m_outputFile = nullptr;
 
-  double tanAlpha, tanBeta, drphi, dz, clusR, clusPhi, clusZ, statePhi,stateZ, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr;
+  double tanAlpha, tanBeta, drphi, dz, clusR, clusPhi, clusZ, statePhi,stateZ, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr, stateR;
   int cell, ir, iz, iphi;
 };
 
