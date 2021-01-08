@@ -5,7 +5,7 @@
 
 #include "EventHeader.h"
 
-#include <ctime>     // for time_t
+#include <cstdint>   // for int64_t
 #include <iostream>  // for cout, ostream
 #include <map>
 #include <string>
