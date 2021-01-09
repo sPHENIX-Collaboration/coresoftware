@@ -192,8 +192,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMVACutValue(float cut_value) { m_mva_cut_value = cut_value; }
 
-  void Verbosity(int verbosity) { m_verbosity = verbosity; }
-
   void saveDST(bool save) { m_save_dst = save; }
 
   void saveTrackContainer(bool save) { m_write_track_container = save; }
@@ -217,7 +215,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setTrackMapNodeName(const std::string& trk_map_node_name) { m_trk_map_node_name = trk_map_node_name; }
 
  private:
-  bool m_verbosity;
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;
   bool m_require_mva;

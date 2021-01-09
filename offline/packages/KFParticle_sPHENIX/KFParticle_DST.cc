@@ -150,7 +150,6 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     }
   }
 
-  //I used to need to copy this track map to avoid crashes with truth matching
   SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   KFParticle* daughterArray = &daughters[0];
 
@@ -163,12 +162,10 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     }
     else
     {
-      //m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap_copy);
       m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap);
     }
 
     m_recoTrackMap->insert(m_recoTrack);
-    m_recoTrack->Reset();
   }
 }
 
