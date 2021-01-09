@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <string>  // for string
 
 ///
 class RunHeader : public PHObject
