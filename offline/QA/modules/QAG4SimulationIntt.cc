@@ -68,7 +68,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
   // create histograms
   for (const auto& layer : m_layers)
   {
-    std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    if (Verbosity()) std::cout << PHWHERE << " adding layer " << layer << std::endl;
     {
       // rphi residuals (cluster - truth)
       auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("INTT r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -1e-2, 1e-2);

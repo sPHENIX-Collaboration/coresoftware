@@ -88,6 +88,7 @@ class PHG4Shower : public PHObject
   virtual ParticleIdConstIter end_g4particle_id() const { return ParticleIdSet().end(); }
   virtual size_t remove_g4particle_id(int id) { return 0; }
   virtual void clear_g4particle_id() {}
+  virtual const ParticleIdSet& g4particle_ids() const = 0;
 
   virtual bool empty_g4vertex_id() const { return true; }
   virtual size_t size_g4vertex_id() const { return 0; }
@@ -98,6 +99,7 @@ class PHG4Shower : public PHObject
   virtual VertexIdConstIter end_g4vertex_id() const { return VertexIdSet().end(); }
   virtual size_t remove_g4vertex_id(int id) { return 0; }
   virtual void clear_g4vertex_id() {}
+  virtual const VertexIdSet& g4vertex_ids() const = 0;
 
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
@@ -111,6 +113,7 @@ class PHG4Shower : public PHObject
   virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
   virtual size_t remove_g4hit_volume(int volume) { return 0; }
   virtual void clear_g4hit_id() {}
+  virtual const HitIdMap& g4hit_ids() const = 0;
 
  protected:
   PHG4Shower() {}
@@ -118,5 +121,27 @@ class PHG4Shower : public PHObject
  private:
   ClassDef(PHG4Shower, 1);
 };
+
+
+/**
+ * Equality operators for PHG4TruthInfoContainer. Note that the comparison is
+ * performed only on the publicly accessible members.
+ */
+///@{
+inline bool operator==(const PHG4Shower& lhs, const PHG4Shower& rhs)
+{
+  return lhs.get_id()                 == rhs.get_id()                 &&
+         lhs.get_parent_particle_id() == rhs.get_parent_particle_id() &&
+         lhs.get_parent_shower_id()   == rhs.get_parent_shower_id()   &&
+         lhs.get_x()                  == rhs.get_x()                  &&
+         lhs.get_y()                  == rhs.get_y()                  &&
+         lhs.get_z()                  == rhs.get_z()                  &&
+         lhs.g4particle_ids()         == rhs.g4particle_ids()         &&
+         lhs.g4vertex_ids()           == rhs.g4vertex_ids()           &&
+         lhs.g4hit_ids()              == rhs.g4hit_ids();
+}
+
+inline bool operator!=(const PHG4Shower& lhs, const PHG4Shower& rhs) { return !(lhs == rhs); }
+///@}
 
 #endif

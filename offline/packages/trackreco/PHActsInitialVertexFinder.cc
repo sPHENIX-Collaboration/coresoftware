@@ -95,6 +95,11 @@ int PHActsInitialVertexFinder::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
 {
+
+  std::cout << "Acts IVF succeeded " << m_successFits 
+	    << " out of " << m_totVertexFits << " total fits"
+	    << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -166,9 +171,11 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 
 VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 {
+
+  m_totVertexFits++;
+
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-
   return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
@@ -237,6 +244,8 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 
       if(result.ok())
 	{
+	  m_successFits++;
+
 	  auto vertexCollection = *result;
 	  
 	  if(Verbosity() > 1)
@@ -252,11 +261,18 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 	}
       else
 	{
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 0)
 	    {
-	      std::cout << "Acts vertex finder returned error: " 
+	      std::cout << "Acts initial vertex finder returned error: " 
 			<< result.error().message() << std::endl;
-	    }	  
+	      std::cout << "Track positions IVF used are : " << std::endl;
+	      for(const auto track : tracks)
+		{
+		  const auto position = track->position(m_tGeometry->geoContext);
+		  std::cout << "(" << position(0) << ", " << position(1)
+			    << ", " << position(2) << std::endl;
+		}
+	    }
 	}
     
       return vertexVector;

@@ -46,11 +46,13 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   
   TrackParamVec getTrackPointers(InitKeyMap& keyMap);
   VertexVector findVertices(TrackParamVec& tracks);
-void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
+  void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
   
   int m_maxVertices = 10;
   int m_event = 0;
-  
+  unsigned int m_totVertexFits = 0;
+  unsigned int m_successFits = 0;
+
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;

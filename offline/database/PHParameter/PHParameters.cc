@@ -44,6 +44,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <iterator>  // for reverse_iterator
 #include <sstream>
 
 using namespace std;
