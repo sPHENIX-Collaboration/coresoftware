@@ -78,6 +78,7 @@ class PHG4Showerv1 : public PHG4Shower
   PHG4Shower::ParticleIdConstIter end_g4particle_id() const { return _g4particle_ids.end(); }
   size_t remove_g4particle_id(int id) { return _g4particle_ids.erase(id); }
   void clear_g4particle_id() { return _g4particle_ids.clear(); }
+  const ParticleIdSet& g4particle_ids() const { return _g4particle_ids; }
 
   bool empty_g4vertex_id() const { return _g4vertex_ids.empty(); }
   size_t size_g4vertex_id() const { return _g4vertex_ids.size(); }
@@ -88,6 +89,7 @@ class PHG4Showerv1 : public PHG4Shower
   PHG4Shower::VertexIdConstIter end_g4vertex_id() const { return _g4vertex_ids.end(); }
   size_t remove_g4vertex_id(int id) { return _g4vertex_ids.erase(id); }
   void clear_g4vertex_id() { return _g4vertex_ids.clear(); }
+  const VertexIdSet& g4vertex_ids() const { return _g4vertex_ids; }
 
   bool empty_g4hit_id() const { return _g4hit_ids.empty(); }
   size_t size_g4hit_id() const { return _g4hit_ids.size(); }
@@ -101,6 +103,7 @@ class PHG4Showerv1 : public PHG4Shower
   size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return _g4hit_ids[volume].erase(id); }
   size_t remove_g4hit_volume(int volume) { return _g4hit_ids.erase(volume); }
   void clear_g4hit_id() { return _g4hit_ids.clear(); }
+  const HitIdMap& g4hit_ids() const { return _g4hit_ids; }
 
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;

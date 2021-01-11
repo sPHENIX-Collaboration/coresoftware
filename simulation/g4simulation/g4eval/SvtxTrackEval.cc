@@ -4,6 +4,7 @@
 #include "SvtxTruthEval.h"
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 
