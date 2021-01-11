@@ -51,7 +51,10 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
 
-  createHistograms();
+  if(m_seedAnalysis)
+    {
+      createHistograms();
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
