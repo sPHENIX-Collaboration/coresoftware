@@ -48,10 +48,11 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
   unsigned int count_discards = 0;
 
   // loop over all TPC clusters
+  if(Verbosity() > 0) 
+    std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
 
   TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters();
-  TrkrClusterContainer::ConstIterator clusiter;
-  
+  TrkrClusterContainer::ConstIterator clusiter;  
   for (clusiter = clusRange.first; 
        clusiter != clusRange.second; ++clusiter)
     {
@@ -67,23 +68,19 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	{
 	  std::cout << " cluster : " << cluskey << " layer " << layer
 		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
+		      << " ADC " << cluster->getAdc()
 		    << std::endl;
 	  std::cout << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError() 
-		      << " ADC " << cluster->getAdc()
-		      << " phi size " << cluster->getPhiSize() << " Z size " << cluster->getZSize()
-		      << std::endl;
+		    << " phi size " << cluster->getPhiSize() << " Z size " << cluster->getZSize()
+		    << std::endl;
 	}
       
       bool discard_cluster = false;
       
       // We have a TPC cluster, look for reasons to discard it
 	
-      // Energy too large to be from a primary particle
-      // size too large to be from a primary particle
-	
       // errors too small
       // associated with very large ADC values
-      // THIS CUT AT 0.01 REDUCES THE TRACKING EFFICIENCY TO 75% - WHY?
       if(cluster->getRPhiError() < _rphi_error_low_cut)
 	discard_cluster = true;
       
@@ -97,7 +94,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	  count_discards++;
 	  // mark it for removal
 	  discard_set.insert(cluskey);
-	  std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+	  if(Verbosity() > 0) 
+	    std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
 		    << " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
 	}
     }
@@ -106,10 +104,39 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
     {
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
-      //std::cout << "    removed cluster " << *iter << std::endl;
     }
 
-  std::cout << "Clusters discarded this event: " << count_discards << std::endl;
+  if(Verbosity() > 0)
+    std::cout << "Clusters discarded this event: " << count_discards << std::endl;
+
+  /*
+  // check the map on the node tree 
+  std::cout << " Readback modified cluster map - size is: " << _cluster_map->size() << std::endl;  
+  clusRange = _cluster_map->getClusters();
+  
+  for (auto clusiter = clusRange.first; 
+       clusiter != clusRange.second; ++clusiter)
+    {
+      TrkrDefs::cluskey cluskey = clusiter->first;
+      TrkrCluster *cluster = clusiter->second;
+      
+      unsigned int trkrId = TrkrDefs::getTrkrId(cluskey);
+      unsigned int layer = TrkrDefs::getLayer(cluskey);
+      
+      if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
+      
+      if (Verbosity() >= 1)
+	{
+	  std::cout << " cluster : " << cluskey << " layer " << layer
+		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
+		      << " ADC " << cluster->getAdc()
+		    << std::endl;
+	  //std::cout << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError() 
+	  //	      << " phi size " << cluster->getPhiSize() << " Z size " << cluster->getZSize()
+	  //	      << std::endl;
+	}
+    }
+  */
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
