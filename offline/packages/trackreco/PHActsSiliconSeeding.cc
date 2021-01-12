@@ -53,8 +53,11 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
 
   if(m_seedAnalysis)
     {
-      createHistograms();
+      
+      m_file = new TFile("seedingOutfile.root","recreate");
     }
+  createHistograms();
+    
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1186,7 +1189,6 @@ void PHActsSiliconSeeding::writeHistograms()
 
 void PHActsSiliconSeeding::createHistograms()
 {
-  m_file = new TFile("seedingOutfile.root","recreate");
   h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
   h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
   h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,
