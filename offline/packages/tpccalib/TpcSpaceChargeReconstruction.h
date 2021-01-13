@@ -147,6 +147,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   /// keep track of how many clusters are used per cell
   std::vector<int> m_cluster_count;
 
+  int event = 0;
+
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;

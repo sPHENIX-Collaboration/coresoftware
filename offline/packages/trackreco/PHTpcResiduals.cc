@@ -109,8 +109,14 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
 
+  std::cout << "proto track size " << m_actsProtoTracks->size()
+	    <<std::endl;
+
   for(auto &[trackKey, track] : *m_actsProtoTracks)
     {
+      if(Verbosity() > 1)
+	std::cout << "Processing track key " << trackKey
+		  << std::endl;
       if(checkTrack(track))
 	processTrack(track);
     }
