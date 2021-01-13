@@ -70,6 +70,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , temp_hitsetcontainer(new TrkrHitSetContainer)
+  , single_hitsetcontainer(new TrkrHitSetContainer)
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -441,6 +442,38 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
 
+    // The hit-truth association has to be done for each g4hit
+    // we use the single_hitsetcontainer for this
+
+    TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+    for (TrkrHitSetContainer::ConstIterator single_hitset_iter = single_hitset_range.first;
+	 single_hitset_iter != single_hitset_range.second;
+	 ++single_hitset_iter)
+      {
+	// we have an itrator to one TrkrHitSet for the Tpc from the single_hitsetcontainer
+	TrkrDefs::hitsetkey node_hitsetkey = single_hitset_iter->first;
+	const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
+	const int sector = TpcDefs::getSectorId(node_hitsetkey);
+	const int side = TpcDefs::getSide(node_hitsetkey);	
+
+	if(Verbosity() > 2) 
+	  std::cout << " hitsetkey " << node_hitsetkey << " layer " << layer << " sector " << sector << " side " << side << std::endl; 	
+	// get all of the hits from the single hitset
+	TrkrHitSet::ConstRange single_hit_range = single_hitset_iter->second->getHits();
+	for (TrkrHitSet::ConstIterator single_hit_iter = single_hit_range.first;
+	     single_hit_iter != single_hit_range.second;
+	     ++single_hit_iter)
+	  {
+	    TrkrDefs::hitkey single_hitkey = single_hit_iter->first;
+    
+	    // Add the hit-g4hit association
+	    // no need to check for duplicates, since the hit is new
+	    hittruthassoc->findOrAddAssoc(node_hitsetkey, single_hitkey, hiter->first);
+	    if(Verbosity() > 2) 
+	      std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
+	  }
+      }
+
     // Dump the temp_hitsetcontainer to the node tree and reset it 
     //    - after every "dump_interval" g4hits
     //    - if this is the last g4hit
@@ -460,7 +493,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    const int sector = TpcDefs::getSectorId(node_hitsetkey);
 	    const int side = TpcDefs::getSide(node_hitsetkey);
 	    if (Verbosity() > 100)
-	      std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << std::endl;
+	      std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer 
+			<< " with sector " << sector << " side " << side << std::endl;
 	    
 	    // find or add this hitset on the node tree
 	    TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
@@ -491,18 +525,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 		    // Otherwise, create a new one
 		    node_hit = new TpcHit();
 		    node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
-		    
-		    // Add the hit-g4hit association
-		    // no need to check for duplicates, since the hit is new
-		    hittruthassoc->addAssoc(node_hitsetkey, temp_hitkey, hiter->first);
 		  }
-		else
-		  {
-		    // Add the hit-g4hit association
-		    // TODO: check if duplication can happen
-		    hittruthassoc->findOrAddAssoc(node_hitsetkey, temp_hitkey, hiter->first);
-		  }
-		
+
 		// Either way, add the energy to it
 		node_hit->addEnergy(temp_tpchit->getEnergy());
 		
@@ -510,7 +534,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    
 	    if (Verbosity() > 100 && layer == print_layer)
 	      std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
-	    
 	    
 	  }  // end loop over temp hitsets
 	
@@ -522,6 +545,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }  // end copy of temp hitsetcontainer to node tree hitsetcontainer
     
     ++ihit;
+
+    // we are done with this until the next g4hit 
+    single_hitsetcontainer->Reset();
 
   }  // end loop over g4hits
   
@@ -571,7 +597,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
-  padplane->MapToPadPlane(temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
