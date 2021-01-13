@@ -198,7 +198,10 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
       if( result != 0 ) return result;
 
       // merge
-      std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << m_ievent_thisfile << " time: " << crossing_time << std::endl;
+      if (Verbosity() > 0)
+      {
+	std::cout << "Fun4AllDstPileupInputManager::run - merged background event " << m_ievent_thisfile << " time: " << crossing_time << std::endl;
+      }
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
     }

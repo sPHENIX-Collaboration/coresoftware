@@ -347,3 +347,18 @@ int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
 
   return vtx_id_for_highest_embedding_ID;
 }
+
+bool operator==(const PHG4TruthInfoContainer::Map::value_type& lhs, const PHG4TruthInfoContainer::Map::value_type& rhs)
+{
+  return *lhs.second == *rhs.second;
+}
+
+bool operator==(const PHG4TruthInfoContainer::VtxMap::value_type& lhs, const PHG4TruthInfoContainer::VtxMap::value_type& rhs)
+{
+  return *lhs.second == *rhs.second;
+}
+
+bool operator==(const PHG4TruthInfoContainer::ShowerMap::value_type& lhs, const PHG4TruthInfoContainer::ShowerMap::value_type& rhs)
+{
+  return *lhs.second == *rhs.second;
+}

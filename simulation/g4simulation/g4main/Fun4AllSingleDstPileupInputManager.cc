@@ -221,7 +221,10 @@ readagain:
   }
 
   // load relevant DST nodes to internal pointers
-  std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+  }
 
   Fun4AllDstPileupMerger merger;
   merger.load_nodes(m_dstNode);
@@ -244,7 +247,11 @@ readagain:
       if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
 
       // merge
-      std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+
+      if (Verbosity() > 0)
+      {
+	std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+      }
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
       ++neventsbackground;
