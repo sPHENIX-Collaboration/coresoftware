@@ -1,6 +1,8 @@
 #include "EventHeaderv1.h"
 
+#include <cmath>  // for NAN
 #include <iostream>
+#include <utility>  // for pair
 
 void EventHeaderv1::Reset()
 {

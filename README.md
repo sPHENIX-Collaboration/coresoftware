@@ -5,6 +5,7 @@ This is the core-software respository for [sPHENIX collaboration](https://www.sp
 
 [![Build Status](https://web.sdcc.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.sdcc.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
 [![Doxygen](https://img.shields.io/badge/code%20reference-Doxygen-green.svg)](https://sphenix-collaboration.github.io/doxygen/)
+[![Singularity](https://img.shields.io/badge/container-Singularity%20via%20CVMFS-green.svg)](https://github.com/sPHENIX-Collaboration/Singularity)
 
 [![Open Issues](https://img.shields.io/github/issues/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/issues)
 [![Open Pull Request](https://img.shields.io/github/issues-pr/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/pulls)

@@ -6,17 +6,20 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <iostream>
 
-using namespace std;
-
-SyncReco::SyncReco(const string &name)
+SyncReco::SyncReco(const std::string &name)
   : SubsysReco(name)
 {
   return;
@@ -43,7 +46,7 @@ int SyncReco::CreateNodeTree(PHCompositeNode *topNode)
   dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << " DST Node is missing doing nothing" << endl;
+    std::cout << PHWHERE << " DST Node is missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -64,7 +67,7 @@ int SyncReco::process_event(PHCompositeNode *topNode)
   SyncObject *syncobject = findNode::getClass<SyncObject>(topNode, syncdefs::SYNCNODENAME);
   if (!syncobject)
   {
-    cout << PHWHERE << " No Synchronisation Object, no parallel reading of multiple inputs" << endl;
+    std::cout << PHWHERE << " No Synchronisation Object, no parallel reading of multiple inputs" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

@@ -62,7 +62,8 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PH
   }
 
   //this class loads Chris Cullen 2D spacal design July 2015 by default.
-  get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
+  // this step is deprecated now
+  // get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
