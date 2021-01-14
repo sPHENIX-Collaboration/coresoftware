@@ -13,7 +13,6 @@
 
 #include <TFile.h>
 #include <TH3.h>
-
 #include <memory>
 
 namespace
@@ -161,6 +160,31 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
   m_lhs = std::vector<matrix_t>( m_totalbins, matrix_t::Zero() );
   m_rhs = std::vector<column_t>( m_totalbins, column_t::Zero() );
   m_cluster_count = std::vector<int>( m_totalbins, 0 );
+
+  outfile = new TFile("tpcSpaceChargeReco.root","recreate");
+  tree = new TTree("residTree","tpc residual info");
+  tree->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
+  tree->Branch("tanBeta",&tanBeta,"tanBeta/D");
+  tree->Branch("drphi",&drphi,"drphi/D");
+  tree->Branch("dz",&dZ,"dz/D");
+  tree->Branch("cell",&cell,"cell/I");
+  tree->Branch("clusR",&clusR,"clusR/D");
+  tree->Branch("clusPhi",&clusPhi,"clusPhi/D");
+  tree->Branch("clusZ",&clusZ,"clusZ/D");
+  tree->Branch("statePhi",&statePhi,"statePhi/D");
+  tree->Branch("stateZ",&stateZ,"stateZ/D");
+  tree->Branch("stateR",&stateR,"stateR/D");
+  tree->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
+  tree->Branch("stateZErr",&stateZErr,"stateZErr/D");
+  tree->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
+  tree->Branch("clusZErr",&clusZErr,"clusZErr/D");
+  tree->Branch("ir",&ir,"ir/I");
+  tree->Branch("iz",&iz,"iz/I");
+  tree->Branch("iphi",&iphi,"iphi/I");
+  tree->Branch("cluskey",&cluskey,"cluskey/I");
+  tree->Branch("event", &event, "event/I");
+  tree->Branch("layer", &layer, "layer/I");
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -193,6 +217,10 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
+  outfile->cd();
+  tree->Write();
+  outfile->Write();
+  outfile->Close();
   calculate_distortions( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -243,7 +271,14 @@ bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
   if( m_use_micromegas && get_clusters<TrkrDefs::micromegasId>(track) < 2 ) return false;
 
   if(Verbosity() > -1)
-  std::cout << "Track has good number of clusters" << std::endl;
+    std::cout << "Track has good number of clusters" << std::endl;
+  if(Verbosity() > 2)
+    std::cout << "SvtxTrack to process has position (" 
+	      << track->get_x() << ", " << track->get_y()
+	      << ", " << track->get_z() << ") and momentum ("
+	      << track->get_px() << ", " << track->get_py()
+	      << ", " << track->get_pz() << ") " << std::endl;
+
   // all tests passed
   return true;
 }
@@ -262,6 +297,9 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto& cluster_key = *key_iter;
     if(Verbosity() > 1)
     std::cout << "Calculating residual for key " << cluster_key << std::endl;
+    cluskey = cluster_key;
+    layer = TrkrDefs::getLayer(cluster_key);
+
     auto cluster = m_cluster_map->findCluster( cluster_key );
     if( !cluster )
     {
@@ -280,9 +318,16 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
     const auto cluster_z = cluster->getZ();
 
+    clusR = cluster_r;
+    clusPhi = cluster_phi;
+    clusZ = cluster_z;
+
     // cluster errors
     const auto cluster_rphi_error = cluster->getRPhiError();
     const auto cluster_z_error = cluster->getZError();
+    clusRPhiErr = cluster_rphi_error;
+    clusZErr = cluster_z_error;
+
     if(Verbosity() > 1){
       std::cout << "Cluster position : (" << cluster_r << ", " << cluster_phi << ", " << cluster_z << ")" << std::endl;
       std::cout << "Cluster error : " << cluster_rphi_error 
@@ -313,11 +358,16 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "Closests state is at " << dr_min << std::endl;
     // get relevant track state
     const auto state = state_iter->second;
-
+    
+    if(Verbosity() > 1)
+      std::cout << "Track state raw position is : (" 
+		<< state->get_x() << ", " << state->get_y()
+		<< ", " << state->get_z() << ") " << std::endl;
     // track errors
-    #if 0
     const auto track_rphi_error = state->get_rphi_error();
     const auto track_z_error = state->get_z_error();
+    #if 0
+  
     if(Verbosity() > 1)
       std::cout << "Track state errors " << track_rphi_error
 		<< ", " << track_z_error<<std::endl;
@@ -330,6 +380,8 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
+    stateR = track_r;
+    stateZ = state->get_z();
     const auto dr = cluster_r - track_r;
     const auto track_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/track_r;
     const auto track_dxdr = state->get_px()/track_drdt;
@@ -341,8 +393,14 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_y = state->get_y() + dr*track_dydr;
     const auto track_z = state->get_z() + dr*track_dzdr;
     const auto track_phi = std::atan2( track_y, track_x );
+
+    statePhi = track_phi;
+    stateZ = track_z;
+    stateRPhiErr = track_rphi_error;
+    stateZErr = track_z_error;
+
     if(Verbosity() > 1)
-      std::cout <<"Extrapolated track state " << track_x 
+      std::cout <<"Extrapolated track state " << track_r << ", " << dr << ", " << track_drdt << ", " << track_dxdr << ", " << track_dydr << ", " << track_dzdr << ", " << track_x 
 		<< ", " << track_y << "," << track_z << ", "
 		<< track_phi << std::endl;
 
@@ -371,6 +429,9 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
     const auto dz = cluster_z - track_z;
 
+    dZ = dz;
+    drphi = drp;
+
     if(Verbosity() > 1)
       std::cout << "Residuals are " <<drp << ", " << dz << std::endl;
 
@@ -397,9 +458,12 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto talpha = -track_pphi/track_pr;
     const auto tbeta = -track_pz/track_pr;
     if(Verbosity() > 1)
-      std::cout << "Track angles are " << talpha << ", " << tbeta
+      std::cout << "Track angles are " << track_pphi << ", " << track_pr << ", " << track_pz << ", " << talpha << ", " << tbeta
 		<< std::endl;
     
+    tanAlpha = talpha;
+    tanBeta = tbeta;
+
     // sanity check
     // TODO: check whether this happens and fix upstream
     if( std::isnan(talpha) )
@@ -430,8 +494,14 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     if(Verbosity() > 1)
       std::cout << "Cell is " << i << std::endl;
-
+    cell = i;
+    ir = m_rbins * (clusR - m_rmin) / (m_rmax - m_rmin);
+    iphi = m_phibins * (clusPhi - m_phimin) / (m_phimax - m_phimin);
+    iz = m_zbins * (clusZ - m_zmin) / (m_zmax - m_zmin);
+  
     if( i < 0 || i >= m_totalbins ) continue;
+
+    tree->Fill();
 
     m_lhs[i](0,0) += 1./erp;
     m_lhs[i](0,1) += 0;

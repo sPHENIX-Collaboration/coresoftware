@@ -159,6 +159,7 @@ class PHTpcResiduals : public SubsysReco
 
   double tanAlpha, tanBeta, drphi, dz, clusR, clusPhi, clusZ, statePhi,stateZ, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr, stateR;
   int cell, ir, iz, iphi;
+  unsigned int cluskey;
 };
 
 #endif

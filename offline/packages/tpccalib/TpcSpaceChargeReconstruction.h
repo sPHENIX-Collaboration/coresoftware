@@ -10,7 +10,8 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-
+#include <TFile.h>
+#include <TTree.h>
 #include <vector>
 
 // forward declaration
@@ -154,6 +155,13 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   SvtxTrackMap* m_track_map = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
   //@}
+
+  TFile *outfile;
+  TTree *tree;
+  double tanAlpha, tanBeta, drphi, dZ, clusR, clusPhi, clusZ, statePhi, stateZ, stateR, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr;
+  int cell, ir, iz, iphi;
+  unsigned int cluskey;
+  int layer;
 
 };
 

@@ -24,6 +24,8 @@
 
 #include <cmath>
 #include <TFile.h>
+#include <TTree.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -129,6 +131,9 @@ bool PHTpcResiduals::checkTrack(ActsTrack& track)
  
   if(track.getTrackParams().transverseMomentum() < 0.5)
     return false;
+
+  if(Verbosity() > 2)
+    std::cout << "Track has pt " << track.getTrackParams().transverseMomentum() << std::endl;
 
   int nMvtxHits = 0;
   int nInttHits = 0;
@@ -268,7 +273,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   /// Get the TrkrCluster
   const auto clusKey = m_hitIdClusKey->right.find(sl.hitID())->second;
   const auto cluster = m_clusterMap->findCluster(clusKey);
-
+  cluskey = clusKey;
   /// Get all the relevant information for residual calculation
   clusR = sqrt(pow(cluster->getX(), 2) +
 	       pow(cluster->getY(), 2));
@@ -307,6 +312,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
   const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
   const auto globStateZ = stateZ;
+
+  std::cout << "Track param raw position is : (" << globStateX 
+	    << ", " << globStateY << ", " << globStateZ << std::endl;
 
   stateR = sqrt(pow(globStateX, 2) +
 		pow(globStateY, 2) );
@@ -633,6 +641,8 @@ void PHTpcResiduals::makeHistograms()
   residTup->Branch("ir",&ir,"ir/I");
   residTup->Branch("iz",&iz,"iz/I");
   residTup->Branch("iphi",&iphi,"iphi/I");
+  residTup->Branch("cluskey",&cluskey,"cluskey/I");
+  residTup->Branch("event",&m_event,"event/I");
 
 }
 
