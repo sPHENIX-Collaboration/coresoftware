@@ -36,6 +36,8 @@ class TpcClusterCleaner : public SubsysReco
 
  private:
 
+  void rotate_error(double erphi, double ez, double phi, double error[][3]);
+
   int GetNodes(PHCompositeNode* topNode);
 
   TrkrClusterContainer *_cluster_map;

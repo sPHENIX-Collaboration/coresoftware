@@ -12,6 +12,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TMatrixFfwd.h>    // for TMatrixF
+#include <TMatrixT.h>       // for TMatrixT, ope...
+#include <TMatrixTUtils.h>  // for TMatrixTRow
+
 #include <cmath>                              // for sqrt, fabs, atan2, cos
 #include <iostream>                           // for operator<<, basic_ostream
 #include <map>                                // for map
@@ -95,15 +99,31 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	  // mark it for removal
 	  discard_set.insert(cluskey);
 	  if(Verbosity() > 0) 
-	    std::cout << " will remove cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+	    std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
 		    << " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
 	}
     }
   
   for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
     {
+      /*
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
+      */
+
+      // increase the errors on the bad clusters to 500 microns in r-phi and 1 mm in z
+      TrkrCluster *clus = _cluster_map->findCluster(*iter);
+      double clusphi = atan2(clus->getY() , clus->getX());
+      double erphi = 0.05; //cm (500 microns)
+      double ez = 0.1;  // cm (1 mm)
+      double error[3][3] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+      rotate_error(erphi, ez, clusphi, error);
+      for(int i = 0; i < 3; ++i)
+	for(int j = 0; j < 3; ++j)
+	  clus->setError(i,j,error[i][j]);
+
+      //TrkrDefs::cluskey ckey = clus->getClusKey();
+      //std::cout << " changed cluster " << ckey << " error to erphi " << clus->getRPhiError() << " ez " << clus->getZError() << std::endl;
     }
 
   if(Verbosity() > 0)
@@ -158,3 +178,34 @@ int  TpcClusterCleaner::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void TpcClusterCleaner::rotate_error(double erphi, double ez, double clusphi, double error[][3])
+{
+ TMatrixF ROT(3, 3);
+  TMatrixF ERR(3,3);
+ for(int i=0;i<3;++i)
+    for(int j=0;j<3;++j)
+      {
+	ROT[i][j] = 0;
+	ERR[i][j] = 0;
+      }
+
+  ROT[0][0] = cos(clusphi);
+  ROT[0][1] = -sin(clusphi);
+  ROT[1][0] = sin(clusphi);
+  ROT[1][1] = cos(clusphi);
+  ROT[2][2] = 1.0;
+
+  ERR[1][1] = erphi*erphi; 
+  ERR[2][2] = ez*ez;
+ 
+  TMatrixF ROT_T(3, 3);
+  ROT_T.Transpose(ROT);
+
+  TMatrixF COVAR_ERR(3, 3);
+  COVAR_ERR = ROT * ERR * ROT_T;
+
+  for(int i=0;i<3;++i)
+    for(int j=0;j<3;++j)
+      error[i][j] = COVAR_ERR[i][j];
+
+}
