@@ -107,6 +107,15 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
   unsigned int vertexId = 0;
+
+  /// Create a fail safe for (e.g.) single particle events which 
+  /// don't return a vertex
+  if(vertices.size() == 0)
+    {
+      createDummyVertex();
+      return;
+    }
+    
   for(auto vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
@@ -169,6 +178,45 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
   return;
 }
 
+void PHActsInitialVertexFinder::createDummyVertex()
+{
+
+  /// If the Acts IVF finds 0 vertices, there weren't enough tracks
+  /// for it to properly identify a good vertex. So just create
+  /// a dummy vertex with large covariance for rest of track
+  /// reconstruction to avoid seg faults
+
+  #if __cplusplus < 201402L
+  auto svtxVertex = boost::make_unique<SvtxVertex_v1>();
+  #else
+  auto svtxVertex = std::make_unique<SvtxVertex_v1>();
+  #endif
+
+  svtxVertex->set_x(0);  
+  svtxVertex->set_y(0);
+  svtxVertex->set_z(0);
+  
+  for(int i = 0; i < 3; ++i) 
+    for(int j = 0; j < 3; ++j)
+      {
+	if( i == j)
+	  svtxVertex->set_error(i, j, 10.); 
+	else 
+	  svtxVertex->set_error(i,j, 0);
+      }
+  float nan = NAN;
+  svtxVertex->set_chisq(nan);
+  svtxVertex->set_ndof(nan);
+  svtxVertex->set_t0(nan);
+  svtxVertex->set_id(0);
+
+  m_vertexMap->insert(svtxVertex.release());
+  
+  for(auto& [key, track] : *m_trackMap)
+    track->set_vertex_id(0);
+
+}
+ 
 VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 {
 
