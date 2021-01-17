@@ -114,20 +114,21 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       // increase the errors on the bad clusters to 500 microns in r-phi and 1 mm in z
       TrkrCluster *clus = _cluster_map->findCluster(*iter);
       double clusphi = atan2(clus->getY() , clus->getX());
-      double erphi = 0.05; //cm (500 microns)
-      double ez = 0.1;  // cm (1 mm)
       double error[3][3] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-      rotate_error(erphi, ez, clusphi, error);
+      rotate_error(_new_rphi_error, _new_z_error, clusphi, error);
       for(int i = 0; i < 3; ++i)
 	for(int j = 0; j < 3; ++j)
 	  clus->setError(i,j,error[i][j]);
 
-      //TrkrDefs::cluskey ckey = clus->getClusKey();
-      //std::cout << " changed cluster " << ckey << " error to erphi " << clus->getRPhiError() << " ez " << clus->getZError() << std::endl;
+      if(Verbosity() > 1)
+	{
+	  TrkrDefs::cluskey ckey = clus->getClusKey();
+	  std::cout << " changed cluster " << ckey << " error to erphi " << clus->getRPhiError() << " ez " << clus->getZError() << std::endl;
+	}
     }
 
   if(Verbosity() > 0)
-    std::cout << "Clusters discarded this event: " << count_discards << std::endl;
+    std::cout << "Clusters updated this event: " << count_discards << std::endl;
 
   /*
   // check the map on the node tree 

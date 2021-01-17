@@ -34,6 +34,9 @@ class TpcClusterCleaner : public SubsysReco
   void set_rphi_error_low_cut(double cut){_rphi_error_low_cut = cut;}
   void set_rphi_error_high_cut(double cut){_rphi_error_high_cut = cut;}
 
+  void set_new_rphi_error(double err){_new_rphi_error = err;}
+  void set_new_z_error(double err){_new_z_error = err;}
+
  private:
 
   void rotate_error(double erphi, double ez, double phi, double error[][3]);
@@ -44,6 +47,9 @@ class TpcClusterCleaner : public SubsysReco
 
   double _rphi_error_low_cut = 0.01;
   double _rphi_error_high_cut = 0.04;
+
+  double _new_rphi_error = 0.05;
+  double _new_z_error = 0.10;
 
 };
 
