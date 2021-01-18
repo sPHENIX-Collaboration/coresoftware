@@ -241,11 +241,22 @@ int PHSiliconTpcTrackMatching::Process()
 	  
 	  // set the track position to the vertex position
 	  const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-	  _tracklet_tpc->set_x(svtxVertex->get_x());
-	  _tracklet_tpc->set_y(svtxVertex->get_y());
-	  _tracklet_tpc->set_z(svtxVertex->get_z());
+	  if(svtxVertex)
+	    {
+	      _tracklet_tpc->set_x(svtxVertex->get_x());
+	      _tracklet_tpc->set_y(svtxVertex->get_y());
+	      _tracklet_tpc->set_z(svtxVertex->get_z());
+	    }
+	  else
+	    {
+	      std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+	      _tracklet_tpc->identify();
+	      _tracklet_tpc->set_x(0.0);
+	      _tracklet_tpc->set_y(0.0);
+	      _tracklet_tpc->set_z(0.0);
+	    }
 	}
- 
+
       // Add the silicon clusters to the track
       unsigned int isi = 0;
       for(auto si_it = si_matches.begin(); si_it != si_matches.end(); ++si_it)
@@ -277,10 +288,20 @@ int PHSiliconTpcTrackMatching::Process()
 
 	      // set the track position to the vertex position
 	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-	      _tracklet_tpc->set_x(svtxVertex->get_x());
-	      _tracklet_tpc->set_y(svtxVertex->get_y());
-	      _tracklet_tpc->set_z(svtxVertex->get_z());
-	      
+	      if(svtxVertex)
+		{
+		  _tracklet_tpc->set_x(svtxVertex->get_x());
+		  _tracklet_tpc->set_y(svtxVertex->get_y());
+		  _tracklet_tpc->set_z(svtxVertex->get_z());
+		}
+	      else
+		{
+		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+		  _tracklet_tpc->identify();
+		  _tracklet_tpc->set_x(0.0);
+		  _tracklet_tpc->set_y(0.0);
+		  _tracklet_tpc->set_z(0.0);
+		}
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
 		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into exisiting TPC track " << _tracklet_tpc->get_id() << endl;
@@ -310,10 +331,21 @@ int PHSiliconTpcTrackMatching::Process()
 
 	      // set the track position to the vertex position
 	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-	      newTrack->set_x(svtxVertex->get_x());
-	      newTrack->set_y(svtxVertex->get_y());
-	      newTrack->set_z(svtxVertex->get_z());
-	      
+	      if(svtxVertex)
+		{
+		  newTrack->set_x(svtxVertex->get_x());
+		  newTrack->set_y(svtxVertex->get_y());
+		  newTrack->set_z(svtxVertex->get_z());
+		}
+	      else
+		{
+		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+		  _tracklet_tpc->identify();
+		  newTrack->set_x(0.0);
+		  newTrack->set_y(0.0);
+		  newTrack->set_z(0.0);
+		}
+		      
 	      newTrack->set_charge(_tracklet_tpc->get_charge());
 	      newTrack->set_px(_tracklet_tpc->get_px());
 	      newTrack->set_py(_tracklet_tpc->get_py());
