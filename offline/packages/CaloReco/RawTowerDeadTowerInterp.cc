@@ -1,12 +1,12 @@
 #include "RawTowerDeadTowerInterp.h"
 
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDeadMap.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTower.h>
 #include <calobase/RawTowerv1.h>
-#include <calobase/RawTowerDefs.h>
 
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
