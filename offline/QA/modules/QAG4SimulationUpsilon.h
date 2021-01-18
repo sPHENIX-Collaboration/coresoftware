@@ -48,7 +48,6 @@ class QAG4SimulationUpsilon : public SubsysReco
   }
 
  private:
-
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
   std::pair<double, double> m_etaRange;
