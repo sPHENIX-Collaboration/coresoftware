@@ -250,7 +250,11 @@ int PHSiliconTpcTrackMatching::Process()
 	  else
 	    {
 	      std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+	      std::cout << " ---------- Silicon track --------------" << std::endl;
+	      _tracklet_si->identify();
+	      std::cout << " ---------- TPC track -----------------" << std::endl;
 	      _tracklet_tpc->identify();
+
 	      _tracklet_tpc->set_x(0.0);
 	      _tracklet_tpc->set_y(0.0);
 	      _tracklet_tpc->set_z(0.0);
@@ -297,7 +301,11 @@ int PHSiliconTpcTrackMatching::Process()
 	      else
 		{
 		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+		  std::cout << " ---------- Silicon track --------------" << std::endl;
+		  _tracklet_si->identify();
+		  std::cout << " ---------- TPC track -----------------" << std::endl;
 		  _tracklet_tpc->identify();
+
 		  _tracklet_tpc->set_x(0.0);
 		  _tracklet_tpc->set_y(0.0);
 		  _tracklet_tpc->set_z(0.0);
@@ -340,6 +348,9 @@ int PHSiliconTpcTrackMatching::Process()
 	      else
 		{
 		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+		  std::cout << " ---------- Silicon track --------------" << std::endl;
+		  _tracklet_si->identify();
+		  std::cout << " ---------- TPC track -----------------" << std::endl;
 		  _tracklet_tpc->identify();
 		  newTrack->set_x(0.0);
 		  newTrack->set_y(0.0);
