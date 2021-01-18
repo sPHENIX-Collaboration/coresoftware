@@ -96,7 +96,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       if(discard_cluster)
 	{
 	  count_discards++;
-	  // mark it for removal
+	  // mark it for modification
 	  discard_set.insert(cluskey);
 	  if(Verbosity() > 0) 
 	    std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
@@ -111,7 +111,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       _cluster_map->removeCluster(*iter);
       */
 
-      // increase the errors on the bad clusters to 500 microns in r-phi and 1 mm in z
+      // increase the errors on the bad clusters to _new_rphi_error in r-phi and _new_z_error in z
       TrkrCluster *clus = _cluster_map->findCluster(*iter);
       double clusphi = atan2(clus->getY() , clus->getX());
       double error[3][3] = {0, 0, 0, 0, 0, 0, 0, 0, 0};

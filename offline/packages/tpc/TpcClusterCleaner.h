@@ -46,7 +46,7 @@ class TpcClusterCleaner : public SubsysReco
   TrkrClusterContainer *_cluster_map;
 
   double _rphi_error_low_cut = 0.01;
-  double _rphi_error_high_cut = 0.04;
+  double _rphi_error_high_cut = 0.1;  // made large enough to not matter for now
 
   double _new_rphi_error = 0.05;
   double _new_z_error = 0.10;
