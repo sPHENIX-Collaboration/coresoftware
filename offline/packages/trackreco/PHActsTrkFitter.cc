@@ -613,7 +613,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 			    dca3DxyCov, dca3DzCov);
     }
  
-  // convert from mm to cm
+  /// Set the DCA here. The DCA will be updated after the final
+  /// vertex fitting in PHActsVertexFinder
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
   track->set_dca3d_xy_error(sqrt(dca3DxyCov) / Acts::UnitConstants::cm);
