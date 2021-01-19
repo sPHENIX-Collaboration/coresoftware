@@ -43,7 +43,7 @@ class TpcClusterCleaner : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-  TrkrClusterContainer *_cluster_map;
+  TrkrClusterContainer *_cluster_map = nullptr;
 
   double _rphi_error_low_cut = 0.01;
   double _rphi_error_high_cut = 0.1;  // made large enough to not matter for now
