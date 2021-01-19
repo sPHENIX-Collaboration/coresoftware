@@ -200,22 +200,19 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
-				   Acts::Vector3D vertex,
-				   Acts::GeometryContext geoCtxt,
-				   float &dca3Dxy,
-				   float &dca3Dz,
-				   float &dca3DxyCov,
-				   float &dca3DzCov)
+				       Acts::Vector3D vertex,
+				       Acts::BoundSymMatrix cov,
+				       Acts::GeometryContext geoCtxt,
+				       float &dca3Dxy,
+				       float &dca3Dz,
+				       float &dca3DxyCov,
+				       float &dca3DzCov)
 {
   Acts::Vector3D pos = param.position(geoCtxt);
   Acts::Vector3D mom = param.momentum();
 
   /// Correct for initial vertex estimation
   pos -= vertex;
-
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-  if(param.covariance())
-    cov = param.covariance().value();
 
   Acts::ActsSymMatrixD<3> posCov;
   for(int i = 0; i < 3; ++i)

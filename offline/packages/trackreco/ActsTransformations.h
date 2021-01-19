@@ -68,6 +68,7 @@ class ActsTransformations
   /// vertex
   void calculateDCA(const Acts::BoundTrackParameters param,
 		    Acts::Vector3D vertex,
+		    Acts::BoundSymMatrix cov,
 		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,
 		    float &dca3Dz,
