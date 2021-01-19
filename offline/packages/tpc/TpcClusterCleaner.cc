@@ -114,7 +114,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       // increase the errors on the bad clusters to _new_rphi_error in r-phi and _new_z_error in z
       TrkrCluster *clus = _cluster_map->findCluster(*iter);
       double clusphi = atan2(clus->getY() , clus->getX());
-      double error[3][3] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+      double error[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
       rotate_error(_new_rphi_error, _new_z_error, clusphi, error);
       for(int i = 0; i < 3; ++i)
 	for(int j = 0; j < 3; ++j)
