@@ -65,7 +65,7 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
                                                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
-  KFParticle::SetField(+1.5e0);
+  KFParticle::SetField(-1.4e0);
 
   std::vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode);
   std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
