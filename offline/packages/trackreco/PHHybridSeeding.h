@@ -5,7 +5,7 @@
  *  \file PHHybridSeeding.cc
  *  \brief Track Seeding using STAR "CA" algorithm and ALICE simplified Kalman filter
  *  \detail 
- *  \author Michael Peters & Christof Roland
+ *  \author Michael Peters
  */
 //begin
 
@@ -48,12 +48,12 @@ class PHHybridSeeding : public PHTrackSeeding
       float cluster_alice_y_error = 0.015,
       float maxSinPhi = 0.999,
       float Bz = 14*0.000299792458f,
-      float search_radius1 = 10.,
+      float search_radius1 = 3.,
       float search_angle1 = M_PI/8.,
       size_t min_track_size1 = 10,
-      float search_radius2 = 12.,
+      float search_radius2 = 6.,
       float search_angle2 = M_PI/8.,
-      size_t min_track_size2 = 6,
+      size_t min_track_size2 = 5,
       size_t nthreads = 1
       );
 
@@ -67,6 +67,10 @@ class PHHybridSeeding : public PHTrackSeeding
     if(rescale > 0)
       _fieldDir = 1;     
   }
+  void setSearchRadius(float r1, float r2) {_search_radius1 = r1; _search_radius2 = r2;}
+  void setSearchAngle(float a1, float a2) {_search_angle1 = a1; _search_angle2 = a2;}
+  void setMinTrackSize(size_t n1, size_t n2) {_min_track_size1 = n1; _min_track_size2 = n2;}
+  void setNThreads(size_t n) {_nthreads = n;} 
 
  protected:
   virtual int Setup(PHCompositeNode *topNode);
@@ -93,12 +97,7 @@ class PHHybridSeeding : public PHTrackSeeding
   void repairCovariance(SvtxTrack_v1 &track);
   void publishSeeds(std::vector<SvtxTrack_v1> seeds);
   bool checknan(float val, std::string name, int num);
-  void setSearchRadius(float r1, float r2) {_search_radius1 = r1; _search_radius2 = r2;}
-  void setSearchAngle(float a1, float a2) {_search_angle1 = a1; _search_angle2 = a2;}
-  void setMinTrackSize(size_t n1, size_t n2) {_min_track_size1 = n1; _min_track_size2 = n2;}
-  void setNThreads(size_t n) {_nthreads = n;}
 
- private:
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
   SvtxVertex *_vertex;
