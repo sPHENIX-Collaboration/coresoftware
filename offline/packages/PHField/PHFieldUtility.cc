@@ -18,12 +18,12 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
-#include <cstdlib>                 // for getenv
 #include <cassert>
+#include <cstdlib>  // for getenv
 #include <iostream>
 
 using namespace std;

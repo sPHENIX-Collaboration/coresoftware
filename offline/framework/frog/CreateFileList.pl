@@ -26,7 +26,8 @@ while(my @res = $getdsttypes->fetchrow_array())
 my %proddesc = (
 "1" => "hijing MB (0-12fm)",
 "2" => "hijing central (0-4.88fm)",
-"3" => "pythia8 pp MB"
+"3" => "pythia8 pp MB",
+"4" => "hijing (0-20fm)"
 );
 
 
@@ -94,6 +95,10 @@ elsif ($prodtype == 2)
 elsif ($prodtype == 3)
 {
     $filenamestring = "pythia8_mb";
+}
+elsif ($prodtype == 4)
+{
+    $filenamestring = "sHijing_0_20fm";
 }
 else
 {
