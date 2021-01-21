@@ -637,7 +637,7 @@ vector<SvtxTrack_v1> PHHybridSeeding::ALICEKalmanFilter(vector<keylist> trackSee
 
 void PHHybridSeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
 {
-  for(int i=0;i<seeds.size();i++)
+  for(size_t i=0;i<seeds.size();i++)
   {
     _track_map->insert(&(seeds[i]));
   }
