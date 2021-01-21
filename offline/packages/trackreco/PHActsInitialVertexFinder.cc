@@ -163,6 +163,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 	  
 	  if(Verbosity() > 1)
 	    {   
+	      svtxTrack->identify();
 	      std::cout << "Updating track key " << trackKey << " with vertex "
 			<< vertexId << std::endl;
 	    }
