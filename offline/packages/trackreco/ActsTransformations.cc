@@ -101,16 +101,6 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   const double pz = params.momentum()(2);
   const double p = sqrt(px * px + py * py + pz * pz);
   
-  const double x = params.position(geoCtxt)(0);
-  const double y = params.position(geoCtxt)(1);
-  const double z = params.position(geoCtxt)(2);
-  const double r = sqrt(x*x + y*y + z*z);
-
-  const double posCosTheta = z / r;
-  const double posSinTheta = sqrt(x*x + y*y) / r;
-  const double posCosPhi = x / ( r * posSinTheta);
-  const double posSinPhi = y / ( r * posSinTheta);
-  
   const int charge = params.charge();
   
   const double uPx = px / p;
@@ -123,33 +113,48 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   const double cosPhi = uPx * invSinTheta;
   const double sinPhi = uPy * invSinTheta;
 
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
+  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
+  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
+  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
+  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
+  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
+  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
+  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
+  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
 
-  /// This is the original matrix we rotated by. So instead of rotating
-  /// as normal RCR^T, we will just rotate back by rotating by the same 
-  /// matrix as R^TCR
-  /// Position rotation to Acts loc0 and loc1, which are the local points
-  /// on a surface centered at the (x,y,z) global position with normal
-  /// vector in the direction of the unit momentum vector
-  rotation(0,0) = - posSinPhi;
-  rotation(0,1) =   posCosPhi;
-  rotation(1,0) = - posCosPhi * posCosTheta;
-  rotation(1,1) = - posSinPhi * posCosTheta;
-  rotation(1,2) =   posSinTheta;
+  /// Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
+  auto rotatedMatrix 
+    = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
 
-  // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p * sinPhi * sinTheta;
-  rotation(2, 4) =  p * cosPhi * sinTheta;
-  rotation(3, 3) =  p * cosPhi * cosTheta;
-  rotation(3, 4) =  p * sinPhi * cosTheta;
-  rotation(3, 5) = -p * sinTheta;
+  /// Get just the position covariance entries
+  Acts::SymMatrix3D positionCov;
+  for(int i =0; i<3; i++)
+    for(int j=0; j<3; j++)
+      positionCov(i,j) = rotatedMatrix(i,j);
   
-  ///q/p rotaton
-  ///d(q/p)/dp_i = q * -p_i * p^{-3/2}
-  rotation(4,3) = -charge * px / pow(p,1.5);
-  rotation(4,4) = -charge * py / pow(p,1.5);
-  rotation(4,5) = -charge * pz / pow(p,1.5);
+  /// Now get the momentum part
+  Acts::ActsMatrixD<double,4,4> momentumCov;
+  for(int i=4; i<rotatedMatrix.rows(); i++)
+    for(int j=4; j<rotatedMatrix.cols(); j++)
+      momentumCov(i-4,j-4) = rotatedMatrix(i,j);
 
+  /// Rotate Tx, Ty, Tz, q/p to px, py, pz
+  Acts::ActsMatrixD<double,3,4> momentumRot;
+  
+
+  for(int i = 0 ; i < rotatedMatrix.rows(); ++i)
+    {
+      std::cout << std::endl;
+      for(int j = 0; j < rotatedMatrix.cols(); ++j)
+	{
+	  std::cout << rotatedMatrix(i,j) << ", "<< std::endl;
+	}
+    }
   printMatrix("Rotating back to global with : ", rotation.transpose());
 
   Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();

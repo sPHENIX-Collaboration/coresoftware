@@ -129,9 +129,9 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     const double trackTime = 10 * Acts::UnitConstants::ns;
 
     Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
-				  track->get_y()  * Acts::UnitConstants::cm,
-				  track->get_z()  * Acts::UnitConstants::cm,
-				  trackTime);
+			    track->get_y()  * Acts::UnitConstants::cm,
+			    track->get_z()  * Acts::UnitConstants::cm,
+			    trackTime);
     
     if(m_truthTrackSeeding)
       {
