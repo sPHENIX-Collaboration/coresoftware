@@ -82,12 +82,7 @@ class PHHybridSeeding : public PHTrackSeeding
   /// fetch node pointers
 
   // node pointers
-  SvtxTrackMap *_g4tracks;
-  SvtxVertexMap *_g4vertexes;
   //nodes to get norm vector
-  SvtxHitMap *_svtxhitsmap;
-  int *_hit_used_map;
-  int _hit_used_map_size;
 
   std::vector<float> _radii_all;
 
@@ -100,14 +95,12 @@ class PHHybridSeeding : public PHTrackSeeding
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
-  SvtxVertex *_vertex;
 
   unsigned int _min_clusters_per_track;
   float _cluster_z_error;
   float _cluster_alice_y_error;
   float _max_sin_phi;
   float _Bz;
-  float _cosTheta_limit;
   float _search_radius1;
   float _search_angle1;
   size_t _min_track_size1;

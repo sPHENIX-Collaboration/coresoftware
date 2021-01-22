@@ -85,12 +85,6 @@ PHHybridSeeding::PHHybridSeeding(
     size_t nthreads
     )
   : PHTrackSeeding(name)
-  , _g4tracks(nullptr)
-  , _g4vertexes(nullptr)
-  , _svtxhitsmap(nullptr)
-  , _hit_used_map(nullptr)
-  , _hit_used_map_size(0)
-  , _vertex(nullptr)
   , _min_clusters_per_track(min_clusters_per_track)
   , _cluster_z_error(cluster_z_error)
   , _cluster_alice_y_error(cluster_alice_y_error)
