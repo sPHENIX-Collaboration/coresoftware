@@ -93,7 +93,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 {
 
   auto covarianceMatrix = *params.covariance();
-  m_verbosity = 11;
+
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
   const double px = params.momentum()(0);
@@ -128,15 +128,6 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   /// Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
   auto rotatedMatrix 
     = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
-
-  for(int i = 0 ; i < rotatedMatrix.rows(); ++i)
-    {
-      std::cout << std::endl;
-      for(int j = 0; j < rotatedMatrix.cols(); ++j)
-	{
-	  std::cout << rotatedMatrix(i,j) << ", "<< std::endl;
-	}
-    }
 
   /// Now rotate to x,y,z, px,py,pz
   /// ActsMatrixD is an eigen matrix
