@@ -1926,7 +1926,11 @@ void JetRecoEval::get_node_pointers(PHCompositeNode* topNode)
     exit(-1);
   }
 
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
+  if (! _trackmap)
+  {
+    _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
+  }
   _cemctowers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
   _hcalintowers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
   _hcalouttowers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
