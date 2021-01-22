@@ -5,6 +5,7 @@
 
 #include <map>
 #include <set>
+#include <string>           // for string
 #include <utility>
 
 class PHCompositeNode;

@@ -9,6 +9,8 @@ class SvtxHitEval;
 class SvtxTrackEval;
 class SvtxTruthEval;
 
+#include <string>            // for string
+
 // This user class provides pointers to the
 // full set of tracking evaluators and
 // protects the user from future introduction
