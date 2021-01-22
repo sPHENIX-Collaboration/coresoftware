@@ -93,15 +93,13 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 {
 
   auto covarianceMatrix = *params.covariance();
-  
+  m_verbosity = 11;
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
   const double px = params.momentum()(0);
   const double py = params.momentum()(1);
   const double pz = params.momentum()(2);
-  const double p = sqrt(px * px + py * py + pz * pz);
-  
-  const int charge = params.charge();
+  const double p = params.momentum().norm();
   
   const double uPx = px / p;
   const double uPy = py / p;
@@ -131,22 +129,6 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   auto rotatedMatrix 
     = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
 
-  /// Get just the position covariance entries
-  Acts::SymMatrix3D positionCov;
-  for(int i =0; i<3; i++)
-    for(int j=0; j<3; j++)
-      positionCov(i,j) = rotatedMatrix(i,j);
-  
-  /// Now get the momentum part
-  Acts::ActsMatrixD<double,4,4> momentumCov;
-  for(int i=4; i<rotatedMatrix.rows(); i++)
-    for(int j=4; j<rotatedMatrix.cols(); j++)
-      momentumCov(i-4,j-4) = rotatedMatrix(i,j);
-
-  /// Rotate Tx, Ty, Tz, q/p to px, py, pz
-  Acts::ActsMatrixD<double,3,4> momentumRot;
-  
-
   for(int i = 0 ; i < rotatedMatrix.rows(); ++i)
     {
       std::cout << std::endl;
@@ -155,13 +137,29 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 	  std::cout << rotatedMatrix(i,j) << ", "<< std::endl;
 	}
     }
-  printMatrix("Rotating back to global with : ", rotation.transpose());
 
+  /// Now rotate to x,y,z, px,py,pz
+  /// ActsMatrixD is an eigen matrix
+  Acts::ActsMatrixD<6,8> sphenixRot;
+  sphenixRot.setZero();
+  
+  /// Make the xyz transform unity
+  sphenixRot(0,0) = 1;
+  sphenixRot(1,1) = 1;
+  sphenixRot(2,2) = 1;
+  sphenixRot(3,4) = p;
+  sphenixRot(4,5) = p;
+  sphenixRot(5,6) = p;
+  sphenixRot(3,7) = uPx * p * p;
+  sphenixRot(4,7) = uPy * p * p;
+  sphenixRot(5,7) = uPz * p * p;
+  
   Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();
-  globalCov = rotation.transpose() * covarianceMatrix * rotation;
+  globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
 
+  printMatrix("Global sPHENIX cov : ", globalCov);
 
-  /// convert back to sPHENIX coordinates of cm
+  /// Convert to sPHENIX units
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
@@ -172,11 +170,11 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
 	  else if (j < 3)
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
+	  
 	}
     }
 
-  printMatrix("Global sPHENIX cov : ", globalCov);
-
+  printMatrix("Global sphenix cov after unit conv: " , globalCov);
 
   return globalCov;
 }
