@@ -1,11 +1,11 @@
 #include "JetRecoEval.h"
 
-#include "JetTruthEval.h"
 #include "CaloEvalStack.h"
 #include "CaloRawClusterEval.h"
-#include "CaloRawTowerEval.h"                 // for CaloRawTowerEval
-#include "SvtxTrackEval.h"
+#include "CaloRawTowerEval.h"  // for CaloRawTowerEval
+#include "JetTruthEval.h"
 #include "SvtxEvalStack.h"
+#include "SvtxTrackEval.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -24,9 +24,9 @@
 #include <phool/phool.h>
 
 #include <cassert>
-#include <cstdlib>
 #include <cfloat>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <set>
@@ -1927,7 +1927,7 @@ void JetRecoEval::get_node_pointers(PHCompositeNode* topNode)
   }
 
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
-  if (! _trackmap)
+  if (!_trackmap)
   {
     _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
   }
