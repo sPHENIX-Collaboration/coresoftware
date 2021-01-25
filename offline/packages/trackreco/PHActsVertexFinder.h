@@ -66,6 +66,9 @@ class PHActsVertexFinder: public PHInitVertexing
   void fillVertexMap(VertexVector& vertices,
 		     KeyMap& keyMap);
   
+  void updateTrackDCA(const unsigned int trackKey,
+		      const Acts::Vector3D vertex);
+
   /// The acts trajectories from PHActsTrkFitter
   std::map<const unsigned int, Trajectory> *m_actsFitResults;
 
@@ -78,7 +81,7 @@ class PHActsVertexFinder: public PHInitVertexing
   int m_maxVertices = 20;
   SvtxVertexMap *m_svtxVertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
-    
+  SvtxTrackMap *m_svtxTrackMap = nullptr;
 };
 
 #endif // TRACKRECO_PHACTSVERTEXFINDER_H

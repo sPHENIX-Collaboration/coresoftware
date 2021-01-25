@@ -10,6 +10,10 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#if __cplusplus < 201402L
+#include <boost/make_unique.hpp>
+#endif
+
 #include <intt/CylinderGeomIntt.h>
 #include <intt/InttDefs.h>
 
@@ -83,7 +87,8 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
     std::cout << "Processing PHActsSiliconSeeding event "
 	      << m_event << std::endl;
 
-  auto seedVector = runSeeder();
+  std::vector<const SpacePoint*> spVec;
+  auto seedVector = runSeeder(spVec);
 
   eventTimer->stop();
   auto seederTime = eventTimer->get_accumulated_time();
@@ -93,6 +98,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 
   eventTimer->stop();
   auto circleFitTime = eventTimer->get_accumulated_time();
+
+  for(auto sp : spVec)
+    delete sp;
+  spVec.clear();
 
   if(Verbosity() > 0)
     std::cout << "Finished PHActsSiliconSeeding process_event"
@@ -131,7 +140,7 @@ int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-GridSeeds PHActsSiliconSeeding::runSeeder()
+GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 {
   
   Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
@@ -141,7 +150,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
     -> Acts::Vector2D { return {sp.m_varianceRphi, sp.m_varianceZ};
   };
 
-  auto spVec = getMvtxSpacePoints();
+   spVec = getMvtxSpacePoints();
 
   h_nInputMeas->Fill(spVec.size());
 
@@ -170,7 +179,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder()
 							  groupIt.middle(),
 							  groupIt.top()));
     }
-
+  
   return seedVector;
 }
 
@@ -275,7 +284,12 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       int nIntt = 0;
       numSeedsPerActsSeed++;
       
+      #if __cplusplus < 201402L
+      auto svtxTrack = boost::make_unique<SvtxTrack_v1>();
+      #else
       auto svtxTrack = std::make_unique<SvtxTrack_v1>();
+      #endif
+
       svtxTrack->set_id(m_trackMap->size());
       
       for(const auto clus : stubClusters) 
@@ -323,6 +337,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       svtxTrack->set_charge(trackCharge);
       
       m_trackMap->insert(svtxTrack.release());
+  
     }
 
   h_nTotSeeds->Fill(numSeedsPerActsSeed);
