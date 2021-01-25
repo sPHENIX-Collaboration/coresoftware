@@ -175,7 +175,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
 
-    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i);
+    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i, m_constrain_to_vertex_nTuple);
     if (m_detector_info) kfpTruthAndDetTools.initializeDetectorBranches(m_tree, i);
   }
 
@@ -366,7 +366,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
     for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
-    if (m_truth_matching) kfpTruthAndDetTools.fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex);
+    if (m_truth_matching) kfpTruthAndDetTools.fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex, m_constrain_to_vertex_nTuple);
     if (m_detector_info) kfpTruthAndDetTools.fillDetectorBranch(topNode, m_tree, daughterArray[i], i);
   }
 

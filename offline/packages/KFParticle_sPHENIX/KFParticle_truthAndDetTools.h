@@ -31,8 +31,8 @@ class KFParticle_truthAndDetTools
 
   SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   SvtxVertex *getVertex(unsigned int vertex_id, SvtxVertexMap *vertexmap);
-  void initializeTruthBranches(TTree *m_tree, int daughter_id);
-  void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex);
+  void initializeTruthBranches(TTree *m_tree, int daughter_id, bool m_constrain_to_vertex_truthMatch);
+  void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id);
   void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id);
