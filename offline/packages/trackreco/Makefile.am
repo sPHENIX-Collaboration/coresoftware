@@ -53,6 +53,7 @@ pkginclude_HEADERS = \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
+  PHHybridSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHSiliconTpcTrackMatching.h \
@@ -72,7 +73,9 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   GPUTPCBaseTrackParam.h \
   GPUTPCTrackLinearisation.h \
-  GPUTPCTrackParam.h
+  GPUTPCTrackParam.h \
+  ../PHTpcTracker/PHTpcTrackerUtil.h \
+  ../PHTpcTracker/externals/kdfinder.hpp
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -102,7 +105,7 @@ libtrack_reco_io_la_SOURCES = \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
   VertexFitter.cc \
-  GPUTPCTrackParam.cxx
+  GPUTPCTrackParam.cxx 
 
 if MAKE_ACTS
 ACTS_SOURCES = \
@@ -161,6 +164,8 @@ libtrack_reco_la_SOURCES = \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
+  ../PHTpcTracker/PHTpcTrackerUtil.cc \
+  PHHybridSeeding.cc \
   PHCASeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
@@ -169,7 +174,7 @@ libtrack_reco_la_SOURCES = \
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
-  -lHelixHough
+  -lHelixHough 
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
@@ -193,7 +198,8 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -llog4cpp
 
 
 # Rule for generating table CINT dictionaries.
