@@ -61,12 +61,15 @@ class PHTruthVertexing : public PHInitVertexing
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 
+  void assignStubsVertices(PHCompositeNode *topNode);
+
   PHG4TruthInfoContainer *_g4truth_container;
 
   /// manually assigned vertex error (standard dev), cm
   std::vector<float> _vertex_error;
 
   bool _embed_only;
+  bool _acts_silicon = true;
 
   gsl_rng *m_RandomGenerator;
 };
