@@ -43,7 +43,10 @@ class PHTruthVertexing : public PHInitVertexing
   {
     return _vertex_error;
   }
-
+  void set_acts_silicon(bool acts_silicon)
+  {
+    _acts_silicon = acts_silicon;
+  }
   void set_embed_only(bool embed_only)
   {
     _embed_only = embed_only;
@@ -69,7 +72,7 @@ class PHTruthVertexing : public PHInitVertexing
   std::vector<float> _vertex_error;
 
   bool _embed_only;
-  bool _acts_silicon = true;
+  bool _acts_silicon = false;
 
   gsl_rng *m_RandomGenerator;
 };
