@@ -16,12 +16,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <memory>
 #include <set>
 #include <utility>
 
 using namespace std;
-using namespace CLHEP;  // units
 
 PHField2D::PHField2D(const string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)
@@ -205,8 +203,7 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
 
   }  // end loop over root field map file
 
-  if (rootinput)
-    rootinput->Close();
+  rootinput->Close();
 
   if (Verbosity() > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
   if (Verbosity() > 0) cout << "  Mag field r max boundary: " << r_map_.back() / cm << " cm" << endl;

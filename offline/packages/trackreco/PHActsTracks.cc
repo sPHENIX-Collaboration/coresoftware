@@ -10,8 +10,8 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHTimer.h>
 
-#include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/Utilities/Units.hpp>
 
@@ -72,15 +72,19 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     std::cout << "Start process_event in PHActsTracks" << std::endl;
   }
 
+  auto eventTimer = std::make_unique<PHTimer>("PHActsTracksTimer");
+  eventTimer->stop();
+  eventTimer->restart();
+
   /// Check to get the nodes needed
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Vector to hold source links for a particular track
   std::vector<SourceLink> trackSourceLinks;
-  std::vector<FW::TrackParameters> trackSeeds;
+  std::vector<ActsExamples::TrackParameters> trackSeeds;
 
-  ActsTransformations *rotater = new ActsTransformations();
+  auto rotater = std::make_unique<ActsTransformations>();
   rotater->setVerbosity(Verbosity());
 
   for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
@@ -116,73 +120,98 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	std::cout << ")" << std::endl;
       }
 
-
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = 
-          rotater->rotateSvtxTrackCovToActs(track);
-    const Acts::Vector3D seedPos(track->get_x()  * Acts::UnitConstants::cm,
-                                 track->get_y()  * Acts::UnitConstants::cm,
-                                 track->get_z()  * Acts::UnitConstants::cm);
-    const Acts::Vector3D seedMom(track->get_px() * Acts::UnitConstants::GeV,
-                                 track->get_py() * Acts::UnitConstants::GeV,
-                                 track->get_pz() * Acts::UnitConstants::GeV);
+      rotater->rotateSvtxTrackCovToActs(track,
+					m_tGeometry->geoContext);
 
-    if(Verbosity() > 0)
+    /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
+    const double trackTime = 10 * Acts::UnitConstants::ns;
+
+    Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
+			    track->get_y()  * Acts::UnitConstants::cm,
+			    track->get_z()  * Acts::UnitConstants::cm,
+			    trackTime);
+    
+    if(m_truthTrackSeeding)
       {
-	std::cout << PHWHERE << std::endl;
-	std::cout << " seedPos " << seedPos[0] << "  " << seedPos[1] << "  " << seedPos[2] << std::endl;
-	std::cout << " seedMom " << seedMom[0] << "  " << seedMom[1] << "  " << seedMom[2] << std::endl;
-	// diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
-	std::cout << " seedCov: " << std::endl;
-	for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
-	  {
-	    for(unsigned int icol = 0; icol < seedCov.cols(); ++icol)
-	      {
-		std::cout << seedCov(irow,icol) << "  ";
-	      }
-	    std::cout << std::endl;
-	  }
+	seed4Vec(0) = vertex(0);
+	seed4Vec(1) = vertex(1);
+	seed4Vec(2) = vertex(2);
       }
 
-    // just set to 10 ns for now?
-    const double trackTime = 10 * Acts::UnitConstants::ns;
-    const int trackQ = track->get_charge();
+    const Acts::Vector3D seedMomVec(track->get_px() * Acts::UnitConstants::GeV,
+				    track->get_py() * Acts::UnitConstants::GeV,
+				    track->get_pz() * Acts::UnitConstants::GeV);
 
-    const FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, 
-					trackQ * Acts::UnitConstants::e, 
-					trackTime);
+    const double p = track->get_p();
+    
+    const double trackQ = track->get_charge();
+        
+    /// Skip this track seed if the seed somehow got screwed up
+    if(std::isnan(p))
+	continue;
+      
+    const ActsExamples::TrackParameters trackSeed(seed4Vec, 
+						  seedMomVec, p,
+						  trackQ * Acts::UnitConstants::e,
+						  seedCov);
+
+      if(Verbosity() > 1)
+      	printTrackSeed(trackSeed);
+      
 
     /// Start fresh for this track
     trackSourceLinks.clear();
+
     for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
          clusIter != track->end_cluster_keys();
          ++clusIter)
     {
       const TrkrDefs::cluskey key = *clusIter;
 
-      const unsigned int hitId = m_hitIdClusKey->find(key)->second;
- 
+      const unsigned int hitId = m_hitIdClusKey->left.find(key)->second;
+
+      if(hitId > m_hitIdClusKey->size())
+	{	  
+	  unsigned int lay = TrkrDefs::getLayer(key);
+	  
+	  std::cout << PHWHERE << " layer " << lay << " cluskey " << key
+		    << " has hitid " << hitId
+		    << " m_hitIdClusKey.size() " << m_hitIdClusKey->size() 
+		    << " skipping it"
+		    << std::endl;
+
+	  continue;
+	}
+
       trackSourceLinks.push_back(m_sourceLinks->find(hitId)->second);
       
-      if (Verbosity() > 100)
+      if (Verbosity() > 2)
 	{
-
-	  
-	  std::cout << std::endl << "cluskey " << key
-		    << " has hitid " << hitId
-		    << std::endl;
-	  std::cout << "Adding the following surface for this SL" << std::endl;
-	  m_sourceLinks->find(hitId)->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  std::cout << PHWHERE << " lookup gave hitid " << hitId 
+		    << " for cluskey " << key << std::endl; 
+	  unsigned int layer = TrkrDefs::getLayer(key);
+	  if(Verbosity() > 3)
+	    {	  
+	      std::cout << std::endl << PHWHERE << std::endl << " layer " << layer << " cluskey " << key
+			<< " has hitid " << hitId
+			<< std::endl;
+	      std::cout << "Adding the following surface for this SL" << std::endl;
+	      m_sourceLinks->find(hitId)->second.referenceSurface()
+		.toStream(m_tGeometry->geoContext, std::cout);
+	    }
 	}
     }
-
-    if (Verbosity() > 0)
-    {
-      for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
+    
+    if (Verbosity() > 1)
       {
-        std::cout << "proto_track readback: hitid " << trackSourceLinks.at(i).hitID() << std::endl;
+	for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
+	  {
+	    std::cout << "proto_track readback: hitid " 
+		      << trackSourceLinks.at(i).hitID() << std::endl;
+	  }
       }
-    }
 
     ActsTrack actsTrack(trackSeed, trackSourceLinks, vertex);
     m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
@@ -191,6 +220,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 20)
     std::cout << "Finished PHActsTrack::process_event" << std::endl;
 
+  eventTimer->stop();
+  if(Verbosity() > 0)
+    std::cout << "PHActsTracks total event time " 
+	      << eventTimer->get_accumulated_time() << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -276,7 +310,7 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   if (!m_hitIdClusKey)
   {
@@ -286,4 +320,39 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void PHActsTracks::printTrackSeed(const ActsExamples::TrackParameters seed)
+{
+
+  auto position = seed.position(m_tGeometry->geoContext);
+
+  std::cout << PHWHERE << std::endl;
+  std::cout << "Seed track momentum " << seed.absoluteMomentum() 
+	    << std::endl;
+  std::cout << " Seed trackQ " << seed.charge() 
+	    << std::endl;
+  std::cout << " seed Pos " << position(0) << "  " << position(1)
+	    << "  " << position(2) 
+	    << std::endl;
+  std::cout << " seedMomVec " << seed.momentum()(0) << "  " 
+	    << seed.momentum()(1) << "  " << seed.momentum()(2) 
+	    << std::endl;
+
+  // diagonal track cov is square of (err_x_local, err_y_local,  err_phi, err_theta, err_q/p, err_time) 
+
+  std::cout << " seedCov: " << std::endl;
+
+  /// This will always have a values since we explicitly set it
+  auto seedCov = seed.covariance().value();
+  for(unsigned int irow = 0; irow < seedCov.rows(); ++irow)
+    {
+      for(unsigned int icol = 0; icol < seedCov.cols(); ++icol)
+	{
+	  std::cout << seedCov(irow,icol) << "  ";
+	}
+      std::cout << std::endl;
+    }
+
 }

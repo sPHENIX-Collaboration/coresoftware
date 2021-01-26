@@ -29,7 +29,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
 
-  virtual ~QAG4SimulationCalorimeterSum(){}
+  virtual ~QAG4SimulationCalorimeterSum() {}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);

@@ -9,12 +9,14 @@ ParticleFlowElementv1::ParticleFlowElementv1()
   for (int i = 0; i < 3; ++i) _mom[i] = NAN;
 
   _id = 0;
+
+  _type = ParticleFlowElement::PFLOWTYPE::UNASSIGNED;
 }
 
 void ParticleFlowElementv1::identify(std::ostream& os) const
 {
   os << "-- ParticleFlowElement v1 : ";
-  os << " id: " << get_id() << ", ";
+  os << " id: " << get_id() << ", type: " << get_type() << ",";
   os << " (px, py, pz, e) =  (" << get_px() << ", " << get_py() << ", ";
   os << get_pz() << ", " << get_e() << ") GeV" << std::endl;
 

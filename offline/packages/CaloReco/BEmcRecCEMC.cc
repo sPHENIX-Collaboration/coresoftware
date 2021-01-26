@@ -244,7 +244,7 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
 }
 
 void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
-                                float* Ecorr)
+                                float& Ecorr)
 {
   // Corrects the EM Shower Energy for attenuation in fibers and
   // long energy leakage
@@ -266,10 +266,10 @@ void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
   corr = leak*att;
   *Ecorr = Energy/corr;
   */
-  *Ecorr = Energy;
+  Ecorr = Energy;
 }
 
-void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
+void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance
@@ -277,7 +277,7 @@ void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
   // (x,y) - impact position (cm) in Sector frame
 
   const float c0 = 0.950;  // For no threshold
-  *Ecorr = Ecore / c0;
+  Ecorr = Ecore / c0;
 }
 
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
@@ -346,6 +346,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   //  dx = 0;
 
   xc = x0 - dx;
+  while (xc < -0.5) xc += float(fNx);
+  while (xc >= fNx - 0.5) xc -= float(fNx);
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);

@@ -19,7 +19,6 @@
  */
 namespace TpcDefs
 {
-#if !defined(__CINT__) || defined(__CLING__)
 // hitsetkey layout:
 //  Tpc specific lower 16 bits
 //   24 - 32  tracker id
@@ -38,8 +37,6 @@ static const unsigned int kBitShiftTBin __attribute__((unused)) = 0;
 // max values for pad and time bin
 static const uint16_t MAXPAD __attribute__((unused)) = 1024;
 static const uint16_t MAXTBIN __attribute__((unused)) = 512;
-
-#endif  // __CINT__
 
 /**
    * @brief Get the sector id from hitsetkey

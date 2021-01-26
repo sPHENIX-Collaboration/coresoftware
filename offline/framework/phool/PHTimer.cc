@@ -22,7 +22,7 @@ PHTimer::Frequency PHTimer::_frequency = PHTimer::Frequency();
 const double PHTimer::_twopower32 = pow(2, 32);
 
 //______________________________________________________________________
-void PHTimer::Frequency::set_cpu_freq(const char* path)
+void PHTimer::Frequency::set_cpu_freq(const std::string &path)
 {
   // Set the default to 2 GHz
   _frequency = 2e9;

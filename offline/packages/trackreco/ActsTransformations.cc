@@ -1,8 +1,12 @@
 #include "ActsTransformations.h"
 #include <trackbase_historic/SvtxTrackState_v1.h>
 
+#include <chrono>
+using namespace std::chrono;
+
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
-	             const SvtxTrack *track)
+			        const SvtxTrack *track,
+				Acts::GeometryContext geoCtxt)
 {
   Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
@@ -84,29 +88,18 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
-                     const Acts::BoundParameters params)
+			        const Acts::BoundTrackParameters params,
+				Acts::GeometryContext geoCtxt)
 {
 
   auto covarianceMatrix = *params.covariance();
-  
+
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
   const double px = params.momentum()(0);
   const double py = params.momentum()(1);
   const double pz = params.momentum()(2);
-  const double p = sqrt(px * px + py * py + pz * pz);
-  
-  const double x = params.position()(0);
-  const double y = params.position()(1);
-  const double z = params.position()(2);
-  const double r = sqrt(x*x + y*y + z*z);
-
-  const double posCosTheta = z / r;
-  const double posSinTheta = sqrt(x*x + y*y) / r;
-  const double posCosPhi = x / ( r * posSinTheta);
-  const double posSinPhi = y / ( r * posSinTheta);
-  
-  const int charge = params.charge();
+  const double p = params.momentum().norm();
   
   const double uPx = px / p;
   const double uPy = py / p;
@@ -118,40 +111,46 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   const double cosPhi = uPx * invSinTheta;
   const double sinPhi = uPy * invSinTheta;
 
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
+  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
+  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
+  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
+  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
+  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
+  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
+  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
+  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
 
-  /// This is the original matrix we rotated by. So instead of rotating
-  /// as normal RCR^T, we will just rotate back by rotating by the same 
-  /// matrix as R^TCR
-  /// Position rotation to Acts loc0 and loc1, which are the local points
-  /// on a surface centered at the (x,y,z) global position with normal
-  /// vector in the direction of the unit momentum vector
-  rotation(0,0) = - posSinPhi;
-  rotation(0,1) =   posCosPhi;
-  rotation(1,0) = - posCosPhi * posCosTheta;
-  rotation(1,1) = - posSinPhi * posCosTheta;
-  rotation(1,2) =   posSinTheta;
+  /// Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
+  auto rotatedMatrix 
+    = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
 
-  // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p * sinPhi * sinTheta;
-  rotation(2, 4) =  p * cosPhi * sinTheta;
-  rotation(3, 3) =  p * cosPhi * cosTheta;
-  rotation(3, 4) =  p * sinPhi * cosTheta;
-  rotation(3, 5) = -p * sinTheta;
+  /// Now rotate to x,y,z, px,py,pz
+  /// ActsMatrixD is an eigen matrix
+  Acts::ActsMatrixD<6,8> sphenixRot;
+  sphenixRot.setZero();
   
-  ///q/p rotaton
-  ///d(q/p)/dp_i = q * -p_i * p^{-3/2}
-  rotation(4,3) = -charge * px / pow(p,1.5);
-  rotation(4,4) = -charge * py / pow(p,1.5);
-  rotation(4,5) = -charge * pz / pow(p,1.5);
-
-  printMatrix("Rotating back to global with : ", rotation.transpose());
-
+  /// Make the xyz transform unity
+  sphenixRot(0,0) = 1;
+  sphenixRot(1,1) = 1;
+  sphenixRot(2,2) = 1;
+  sphenixRot(3,4) = p;
+  sphenixRot(4,5) = p;
+  sphenixRot(5,6) = p;
+  sphenixRot(3,7) = uPx * p * p;
+  sphenixRot(4,7) = uPy * p * p;
+  sphenixRot(5,7) = uPz * p * p;
+  
   Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();
-  globalCov = rotation.transpose() * covarianceMatrix * rotation;
+  globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
 
+  printMatrix("Global sPHENIX cov : ", globalCov);
 
-  /// convert back to sPHENIX coordinates of cm
+  /// Convert to sPHENIX units
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
@@ -162,11 +161,11 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
 	  else if (j < 3)
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
+	  
 	}
     }
 
-  printMatrix("Global sPHENIX cov : ", globalCov);
-
+  printMatrix("Global sphenix cov after unit conv: " , globalCov);
 
   return globalCov;
 }
@@ -194,22 +193,20 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 
-void ActsTransformations::calculateDCA(const Acts::BoundParameters param,
-				   Acts::Vector3D vertex,
-				   float &dca3Dxy,
-				   float &dca3Dz,
-				   float &dca3DxyCov,
-				   float &dca3DzCov)
+void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
+				       Acts::Vector3D vertex,
+				       Acts::BoundSymMatrix cov,
+				       Acts::GeometryContext geoCtxt,
+				       float &dca3Dxy,
+				       float &dca3Dz,
+				       float &dca3DxyCov,
+				       float &dca3DzCov)
 {
-  Acts::Vector3D pos = param.position();
+  Acts::Vector3D pos = param.position(geoCtxt);
   Acts::Vector3D mom = param.momentum();
 
   /// Correct for initial vertex estimation
   pos -= vertex;
-
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-  if(param.covariance())
-    cov = param.covariance().value();
 
   Acts::ActsSymMatrixD<3> posCov;
   for(int i = 0; i < 3; ++i)
@@ -253,7 +250,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 					      const size_t &trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext geoContext,
-					      std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
+					      CluskeyBimap *hitIDCluskeyMap)
 {
 
  const auto &[trackTips, mj] = traj.trajectory();
@@ -269,15 +266,15 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
       auto meas = std::get<Measurement>(*state.uncalibrated());
 
       /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-			   meas.parameters()[Acts::ParDef::eLOC_1]);
-      /// Get global position
-      Acts::Vector3D global(0., 0., 0.);
+      Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
+			   meas.parameters()[Acts::eBoundLoc1]);
+
       /// This is an arbitrary vector. Doesn't matter in coordinate transformation
       /// in Acts code
       Acts::Vector3D mom(1., 1., 1.);
-      meas.referenceObject().localToGlobal(geoContext,
-					    local, mom, global);
+      Acts::Vector3D global = meas.referenceObject().localToGlobal(
+					    geoContext,
+					    local, mom);
       
       float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
       SvtxTrackState_v1 out( pathlength );
@@ -287,17 +284,17 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     
       if (state.hasSmoothed())
 	{
-	  Acts::BoundParameters parameter(geoContext,
-					  state.smoothedCovariance(), state.smoothed(),
-					  state.referenceSurface().getSharedPtr());
-	  
+	  Acts::BoundTrackParameters parameter(state.referenceSurface().getSharedPtr(),
+					  state.smoothed(),
+					  state.smoothedCovariance());
 	  out.set_px(parameter.momentum().x());
 	  out.set_py(parameter.momentum().y());
 	  out.set_pz(parameter.momentum().z());
 
 	  /// Get measurement covariance    
 
-	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter);
+	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter,
+								    geoContext);
 	  for (int i = 0; i < 6; i++)
 	    {
 	      for (int j = 0; j < 6; j++)
@@ -305,12 +302,13 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		  out.set_error(i, j, globalCov(i,j)); 
 		}
 	    }
-	  	  
+
 	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = getClusKey(hitId, hitIDCluskeyMap);
+	  TrkrDefs::cluskey cluskey = 
+	    hitIDCluskeyMap->right.find(hitId)->second;
 	  svtxTrack->insert_cluster_key(cluskey);
-	  
-	  if(m_verbosity > 2)
+
+	  if(m_verbosity > 20)
 	    {
 	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
 			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
@@ -329,26 +327,4 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
     );
 
   return;
-}
-
-TrkrDefs::cluskey ActsTransformations::getClusKey(const unsigned int hitID,
-						  std::map<TrkrDefs::cluskey, unsigned int> *hitIDCluskeyMap)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = hitIDCluskeyMap->begin();
-  while (hitIter != hitIDCluskeyMap->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
 }

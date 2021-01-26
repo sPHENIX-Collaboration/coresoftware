@@ -147,7 +147,7 @@ bool BEmcRec::CompleteTowerGeometry()
 
   std::map<int, TowerGeom>::iterator it;
 
-  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); it++)
+  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); ++it)
   {
     int ich = it->first;
     TowerGeom geom0 = it->second;
@@ -220,7 +220,7 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   int ix = xC + 0.5;  // tower #
   if (ix < 0 || ix >= fNx)
   {
-    cout << "Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
+    cout << m_ThisName << " Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
     return;
   }
 
@@ -508,7 +508,7 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
       yy += a * idy * idy;
       yx += a * idx * idy;
     }
-    ph++;
+    ++ph;
   }
   pe = e;
 

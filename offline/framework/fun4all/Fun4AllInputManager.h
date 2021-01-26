@@ -8,12 +8,9 @@
 
 #include <list>
 #include <string>
-#include <utility>               // for make_pair, pair
+#include <type_traits>  // for __decay_and_strip<>::__type
+#include <utility>      // for make_pair, pair
 #include <vector>
-
-#if !defined(__CINT__) || defined (__CLING__)
-#include <type_traits>           // for __decay_and_strip<>::__type
-#endif
 
 class PHCompositeNode;
 class SubsysReco;
@@ -33,7 +30,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
-  virtual int setBranches() { return -1; }
+  virtual int setBranches() { return -1; }  // publich bc needed by the sync manager
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents
@@ -46,7 +43,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int RejectEvent();
   void Repeat(const int i = -1) { m_Repeat = i; }
   virtual void setSyncManager(Fun4AllSyncManager *master) { m_MySyncManager = master; }
-  int ResetFileList();
+  virtual int ResetFileList();
   virtual int ResetEvent() { return 0; }
   virtual void SetRunNumber(const int runno) { m_MyRunNumber = runno; }
   virtual int RunNumber() const { return m_MyRunNumber; }
@@ -57,6 +54,8 @@ class Fun4AllInputManager : public Fun4AllBase
   std::string TopNodeName() const { return m_TopNodeName; }
   bool FileListEmpty() const { return m_FileList.empty(); }
   virtual int IsOpen() const { return m_IsOpen; }
+  virtual int SkipForThisManager(const int nevents) { return 0; }
+  virtual int HasSyncObject() const { return 0; }
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");

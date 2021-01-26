@@ -14,12 +14,12 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrDefs.h> // for getTrkrId
+#include <trackbase/TrkrDefs.h>  // for getTrkrId
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4eval/SvtxClusterEval.h>  // for SvtxClusterEval
 #include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxTruthEval.h>   // for SvtxTruthEval
+#include <g4eval/SvtxTruthEval.h>  // for SvtxTruthEval
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -39,10 +39,12 @@
 #include <utility>   // for pair, make_pair
 #include <vector>    // for vector
 
+using namespace std;
+
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
   : SubsysReco(name)
-  ,m_truthContainer(nullptr)
+  , m_truthContainer(nullptr)
 {
 }
 
@@ -56,24 +58,24 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
     m_initialized = true;
 
   if (!m_svtxEvalStack)
-    {
-      m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
-      m_svtxEvalStack->set_strict(true);
-      m_svtxEvalStack->set_verbosity(Verbosity());
-    }
+  {
+    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    m_svtxEvalStack->set_strict(true);
+    m_svtxEvalStack->set_verbosity(Verbosity());
+  }
 
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                               "G4TruthInfo");
+                                                                "G4TruthInfo");
   if (!m_truthContainer)
   {
     cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
          << "unable to find node G4TruthInfo" << endl;
     assert(m_truthContainer);
   }
-  
+
   // find tpc geometry
   PHG4CylinderCellGeomContainer* geom_container =
-    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   //auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
@@ -82,7 +84,8 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   }
 
   // TPC has 3 regions, inner, mid and outer
-  std::vector<int> region_layer_low = {7, 23, 39};;
+  std::vector<int> region_layer_low = {7, 23, 39};
+  ;
   std::vector<int> region_layer_high = {22, 38, 54};
 
   // get layers from tpc geometry
@@ -92,12 +95,12 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   {
     m_layers.insert(iter->first);
 
-    for(int region = 0; region < 3; ++region)
-      {
-	if(iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region])
-	  m_layer_region_map.insert(make_pair(iter->first, region));
-      }
- }
+    for (int region = 0; region < 3; ++region)
+    {
+      if (iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region])
+        m_layer_region_map.insert(make_pair(iter->first, region));
+    }
+  }
 
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
@@ -121,7 +124,7 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   // cluster parameters
   for (int region = 0; region < 3; ++region)
   {
-    std::cout << PHWHERE << " adding region " << region << " with layers " << region_layer_low[region] << " to " << region_layer_high[region] << std::endl;
+    if (Verbosity()) std::cout << PHWHERE << " adding region " << region << " with layers " << region_layer_low[region] << " to " << region_layer_high[region] << std::endl;
     {
       // rphi residuals (cluster - truth)
       auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), region), Form("TPC r#Delta#phi_{cluster-truth} region_%i", region), 100, -0.079, 0.075);
@@ -247,10 +250,9 @@ int QAG4SimulationTpc::load_nodes(PHCompositeNode* topNode)
 //________________________________________________________________________
 void QAG4SimulationTpc::evaluate_clusters()
 {
-  
-  SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
+  SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
-  SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
+  SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
   assert(clustereval);
 
   // histogram manager
@@ -258,12 +260,12 @@ void QAG4SimulationTpc::evaluate_clusters()
   assert(hm);
 
   // get histograms for cluster efficiency
-  TH1 *h_eff0 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_0", get_histo_prefix().c_str())));
+  TH1* h_eff0 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_0", get_histo_prefix().c_str())));
   assert(h_eff0);
-  TH1 *h_eff1 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_1", get_histo_prefix().c_str())));
+  TH1* h_eff1 = dynamic_cast<TH1*>(hm->getHisto(Form("%sefficiency_1", get_histo_prefix().c_str())));
   assert(h_eff1);
 
-  // get histograms for cluster parameters vs truth 
+  // get histograms for cluster parameters vs truth
   struct HistogramList
   {
     TH1* drphi = nullptr;
@@ -282,7 +284,7 @@ void QAG4SimulationTpc::evaluate_clusters()
   using HistogramMap = std::map<int, HistogramList>;
   HistogramMap histograms;
 
-  for(int region = 0; region < 3; ++region)
+  for (int region = 0; region < 3; ++region)
   {
     HistogramList h;
     h.drphi = dynamic_cast<TH1*>(hm->getHisto(Form("%sdrphi_%i", get_histo_prefix().c_str(), region)));
@@ -302,121 +304,117 @@ void QAG4SimulationTpc::evaluate_clusters()
 
   // Get all truth clusters
   //===============
-  if(Verbosity() > 0)
+  if (Verbosity() > 0)
     cout << PHWHERE << " get all truth clusters for primary particles " << endl;
-  
+
   //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
+  {
+    PHG4Particle* g4particle = iter->second;
+
+    float gtrackID = g4particle->get_track_id();
+    float gflavor = g4particle->get_pid();
+    float gembed = trutheval->get_embed(g4particle);
+    float gprimary = trutheval->is_primary(g4particle);
+
+    if (Verbosity() > 0)
+      cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << endl;
+
+    // Get the truth clusters from this particle
+    std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters = trutheval->all_truth_clusters(g4particle);
+    for (auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it)
     {
-      
-      PHG4Particle* g4particle = iter->second;
-      
-      float gtrackID = g4particle->get_track_id();
-      float gflavor = g4particle->get_pid();	  
-      float gembed = trutheval->get_embed(g4particle);
-      float gprimary = trutheval->is_primary(g4particle);
-      
-      if(Verbosity() > 0)
-	cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << endl;
-      
-      // Get the truth clusters from this particle
-      std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters =   trutheval->all_truth_clusters(g4particle);
-      for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
-	{
-	  unsigned int layer = it->first;
-	  std::shared_ptr<TrkrCluster> gclus = it->second;
-	  const auto gkey = gclus->getClusKey();
-	  const auto detID = TrkrDefs::getTrkrId(gkey);
-	  //if (detID != TrkrDefs::tpcId) continue;
-	  if (layer < 7) continue;
-	  
-	  float gx = gclus->getX();
-	  float gy = gclus->getY();
-	  float gz = gclus->getZ();
-	  float gedep = gclus->getError(0,0);
-	  float ng4hits = gclus->getAdc();
+      unsigned int layer = it->first;
+      std::shared_ptr<TrkrCluster> gclus = it->second;
+      const auto gkey = gclus->getClusKey();
+      const auto detID = TrkrDefs::getTrkrId(gkey);
+      //if (detID != TrkrDefs::tpcId) continue;
+      if (layer < 7) continue;
 
-	  const auto gr = QAG4Util::get_r(gclus->getX(), gclus->getY());
-	  const auto gphi = std::atan2(gclus->getY(), gclus->getX());
-	 	  
-	  if(Verbosity() > 0)
-	    {		  
-	      cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId<< " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
-		   << " gphi " << gphi << " gedep " << gedep << endl;
-	    }	  
+      float gx = gclus->getX();
+      float gy = gclus->getY();
+      float gz = gclus->getZ();
+      float gedep = gclus->getError(0, 0);
+      float ng4hits = gclus->getAdc();
 
-	  // fill the truth cluster histo
-	  h_eff0->Fill(layer);
+      const auto gr = QAG4Util::get_r(gclus->getX(), gclus->getY());
+      const auto gphi = std::atan2(gclus->getY(), gclus->getX());
 
-	  // find matching reco cluster histo
-	  TrkrCluster *rclus = clustereval->reco_cluster_from_truth_cluster(gclus);
-	  if(rclus)
-	    {
-	      // fill the matched cluster histo
-	      h_eff1->Fill(layer);
+      if (Verbosity() > 0)
+      {
+        cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
+             << " gphi " << gphi << " gedep " << gedep << endl;
+      }
 
-	      // get relevant cluster information
-	      const auto rkey = rclus->getClusKey();
-	      const auto r_cluster = QAG4Util::get_r(rclus->getX(), rclus->getY());
-	      const auto z_cluster = rclus->getZ();
-	      const auto phi_cluster = std::atan2(rclus->getY(), rclus->getX());
-	      const auto phi_error = rclus->getPhiError();
-	      const auto z_error = rclus->getZError();
-	      
-	      const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
-	      const auto dz = z_cluster - gz;
+      // fill the truth cluster histo
+      h_eff0->Fill(layer);
 
-	      // get region from layer, fill histograms
-	      const auto it = m_layer_region_map.find(layer);
-	      int region = it->second;
+      // find matching reco cluster histo
+      TrkrCluster* rclus = clustereval->reco_cluster_from_truth_cluster(gclus);
+      if (rclus)
+      {
+        // fill the matched cluster histo
+        h_eff1->Fill(layer);
 
-	      if(Verbosity() > 0)
-		{
-		  cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << endl;
-		  cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << endl;
-		  cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << endl;
-		  cout << "     drphi " << r_cluster*dphi << " rphi_error " << r_cluster*phi_error << " dz " << dz << " z_error " << z_error << endl;
-		}
+        // get relevant cluster information
+        const auto rkey = rclus->getClusKey();
+        const auto r_cluster = QAG4Util::get_r(rclus->getX(), rclus->getY());
+        const auto z_cluster = rclus->getZ();
+        const auto phi_cluster = std::atan2(rclus->getY(), rclus->getX());
+        const auto phi_error = rclus->getPhiError();
+        const auto z_error = rclus->getZError();
 
-	      const auto hiter = histograms.find(region);
-	      if (hiter == histograms.end()) continue;
-	      
-	      // fill phi residuals, errors and pulls
-	      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
-	      fill(hiter->second.drphi, r_cluster * dphi);
-	      fill(hiter->second.rphi_error, r_cluster * phi_error);
-	      fill(hiter->second.phi_pulls, dphi / phi_error);
-	      
-	      // fill z residuals, errors and pulls
-	      fill(hiter->second.dz, dz);
-	      fill(hiter->second.z_error, z_error);
-	      fill(hiter->second.z_pulls, dz / z_error);
-	      
-	      // cluster sizes
-	      // get associated hits
-	      const auto hit_range = m_cluster_hit_map->getHits(rkey);
-	      fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
-	      
-	      std::set<int> phibins;
-	      std::set<int> zbins;
-	      for (auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
-		{
-		  const auto& hit_key = hit_iter->second;
-		  phibins.insert(TpcDefs::getPad(hit_key));
-		  zbins.insert(TpcDefs::getTBin(hit_key));
-		}
+        const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
+        const auto dz = z_cluster - gz;
 
-	      fill(hiter->second.csize_phi, phibins.size());
-	      fill(hiter->second.csize_z, zbins.size());
-	      
-	      
-	    }
-	}
+        // get region from layer, fill histograms
+        const auto it = m_layer_region_map.find(layer);
+        int region = it->second;
+
+        if (Verbosity() > 0)
+        {
+          cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << endl;
+          cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << endl;
+          cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << endl;
+          cout << "     drphi " << r_cluster * dphi << " rphi_error " << r_cluster * phi_error << " dz " << dz << " z_error " << z_error << endl;
+        }
+
+        const auto hiter = histograms.find(region);
+        if (hiter == histograms.end()) continue;
+
+        // fill phi residuals, errors and pulls
+        auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+        fill(hiter->second.drphi, r_cluster * dphi);
+        fill(hiter->second.rphi_error, r_cluster * phi_error);
+        fill(hiter->second.phi_pulls, dphi / phi_error);
+
+        // fill z residuals, errors and pulls
+        fill(hiter->second.dz, dz);
+        fill(hiter->second.z_error, z_error);
+        fill(hiter->second.z_pulls, dz / z_error);
+
+        // cluster sizes
+        // get associated hits
+        const auto hit_range = m_cluster_hit_map->getHits(rkey);
+        fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
+
+        std::set<int> phibins;
+        std::set<int> zbins;
+        for (auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
+        {
+          const auto& hit_key = hit_iter->second;
+          phibins.insert(TpcDefs::getPad(hit_key));
+          zbins.insert(TpcDefs::getTBin(hit_key));
+        }
+
+        fill(hiter->second.csize_phi, phibins.size());
+        fill(hiter->second.csize_z, zbins.size());
+      }
     }
-
+  }
 }
 
 //_____________________________________________________________________

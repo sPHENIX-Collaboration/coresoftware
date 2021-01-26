@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 #include "ActsTrack.h"
 
 #include <fun4all/SubsysReco.h>
@@ -12,17 +12,19 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <Acts/Geometry/GeometryID.hpp>
+#include <Acts/Geometry/GeometryIdentifier.hpp>
 
-#include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
+#include <Acts/TrackFinding/CKFSourceLinkSelector.hpp>
 
 #include <Acts/EventData/MeasurementHelpers.hpp>
 
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
-#include <ACTFW/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
+#include <ActsExamples/TrackFinding/TrkrClusterFindingAlgorithm.hpp>
+
+#include <boost/bimap.hpp>
 
 #include <memory>
 #include <string>
@@ -37,12 +39,9 @@ class SvtxTrackMap;
 class TFile;
 class TH1;
 
-namespace FW
+namespace ActsExamples
 {
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
+  class TrkrClusterSourceLink;  
 }
 namespace Acts
 {
@@ -52,18 +51,20 @@ namespace Acts
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
 using Surface = std::shared_ptr<const Acts::Surface>;
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 using SourceLinkSelector = Acts::CKFSourceLinkSelector;
 using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
 using CKFFitResult = Acts::CombinatorialKalmanFilterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
-                                      Acts::BoundParametersIndices,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -123,9 +124,9 @@ class PHActsTrkProp : public PHTrackPropagating
   void createNodes(PHCompositeNode *topNode);
 
   /// Helper function to make an Acts::GeometryID for SL selection
-  Acts::GeometryID makeId(int volume = 0, 
-			  int layer = 0, 
-			  int sensitive = 0);
+  Acts::GeometryIdentifier makeId(int volume = 0, 
+				  int layer = 0, 
+				  int sensitive = 0);
 
   /// Wipe and recreate the SvtxTrackMap with Acts output
   void updateSvtxTrack(Trajectory traj, 
@@ -134,6 +135,9 @@ class PHActsTrkProp : public PHTrackPropagating
 
   /// Get all source links in a given event
   std::vector<SourceLink> getEventSourceLinks();
+
+  /// Setup the source link selector criteria
+  void setupSourceLinkSelection();
 
   ActsTrackingGeometry *m_tGeometry;
 
@@ -155,7 +159,7 @@ class PHActsTrkProp : public PHTrackPropagating
     std::map<const size_t, const unsigned int>> *m_actsTrackKeyMap;
 
   /// Map of cluster keys to hit ids, for identifying clusters belonging to track
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+  CluskeyBimap *m_hitIdClusKey;
 
   /// Acts source links created by PHActsSourceLinks
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
@@ -168,9 +172,9 @@ class PHActsTrkProp : public PHTrackPropagating
   SourceLinkSelectorConfig m_sourceLinkSelectorConfig;
  
   /// Configuration containing the finding function instance
-  FW::TrkrClusterFindingAlgorithm::Config findCfg;
+  ActsExamples::TrkrClusterFindingAlgorithm::Config findCfg;
 
-
+  Acts::PropagatorPlainOptions m_actsPropPlainOptions;
 };
 
 #endif

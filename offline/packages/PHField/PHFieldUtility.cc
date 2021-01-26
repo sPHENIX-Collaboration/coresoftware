@@ -10,20 +10,21 @@
 #include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
 
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
-
-#include <fun4all/Fun4AllServer.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
 #include <cassert>
+#include <cstdlib>  // for getenv
 #include <iostream>
-#include <stdexcept>
 
 using namespace std;
 

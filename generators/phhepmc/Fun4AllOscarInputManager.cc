@@ -248,9 +248,9 @@ int Fun4AllOscarInputManager::PushBackEvents(const int i)
     std::string theLine;
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.find("#") == 0) continue;
+      if (theLine.compare(0,1,"#") == 0) continue;
       vector<double> theInfo;
-      double number;
+      double number = NAN;
       for (istringstream numbers_iss(theLine); numbers_iss >> number;)
       {
         theInfo.push_back(number);
@@ -290,7 +290,7 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   //Grab New Event From Oscar
   string theLine;
   vector<vector<double> > theEventVec;
-  vector<HepMC::FourVector> theVtxVec;
+//  vector<HepMC::FourVector> theVtxVec;
   if (isCompressed)
   {
     // while(getline(unzipstream, theLine))
@@ -324,9 +324,9 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   {
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.find("#") == 0) continue;
+      if (theLine.compare(0,1,"#") == 0) continue;
       vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
-      double number;
+      double number = NAN;
       for (istringstream numbers_iss(theLine); numbers_iss >> number;)
       {
         theInfo.push_back(number);

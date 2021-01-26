@@ -15,7 +15,7 @@
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TVector3.h>
 
-// #include <phgenfit/Track.h> is needed, it crashes on Ubuntu using 
+// #include <phgenfit/Track.h> is needed, it crashes on Ubuntu using
 // singularity with local cvmfs install
 // shared pointer later on uses this, forward declaration does not cut it
 #include <phgenfit/Track.h>
@@ -129,15 +129,9 @@ class PHG4TrackFastSim : public SubsysReco
   void add_state_name(const std::string& stateName);
 
   // add saving of state at plane in z
-  void add_zplane_state(const std::string& stateName, const double zplane)
-  {
-    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
-  }
+  void add_zplane_state(const std::string& stateName, const double zplane);
 
-  void add_cylinder_state(const std::string& stateName, const double radius)
-  {
-    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
-  }
+  void add_cylinder_state(const std::string& stateName, const double radius);
 
   const std::string& get_trackmap_out_name() const
   {

@@ -4,14 +4,12 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
 
 #include <vector>
 
-using namespace std;
-
-Dumper::Dumper(const string &name)
+Dumper::Dumper(const std::string &name)
   : SubsysReco(name)
 {
   nodedump = new PHNodeDump();
@@ -41,10 +39,10 @@ int Dumper::process_event(PHCompositeNode *topNode)
 int Dumper::End(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeiter(topNode);
-  vector<string> DumpNodeList;
+  std::vector<std::string> DumpNodeList;
   DumpNodeList.push_back("RUN");
   DumpNodeList.push_back("PAR");
-  for (vector<string>::const_iterator iter = DumpNodeList.begin();
+  for (std::vector<std::string>::const_iterator iter = DumpNodeList.begin();
        iter != DumpNodeList.end(); ++iter)
   {
     if (nodeiter.cd(*iter))
@@ -57,7 +55,7 @@ int Dumper::End(PHCompositeNode *topNode)
   return 0;
 }
 
-void Dumper::SetOutDir(const string &outdir)
+void Dumper::SetOutDir(const std::string &outdir)
 {
   nodedump->SetOutDir(outdir);
   return;
@@ -69,12 +67,12 @@ void Dumper::SetPrecision(const int digits)
   return;
 }
 
-int Dumper::AddIgnore(const string &name)
+int Dumper::AddIgnore(const std::string &name)
 {
   return nodedump->AddIgnore(name);
 }
 
-int Dumper::Select(const string &name)
+int Dumper::Select(const std::string &name)
 {
   return nodedump->Select(name);
 }

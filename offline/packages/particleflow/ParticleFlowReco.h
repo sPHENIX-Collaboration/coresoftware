@@ -9,6 +9,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <string>
 #include <vector>
 
@@ -38,12 +40,28 @@ class ParticleFlowReco : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  void set_energy_match_Nsigma( float Nsigma ) {
+
+    _energy_match_Nsigma = Nsigma;
+
+  }
+
+  void set_emulated_efficiency( float eff ) {
+
+    _emulate_efficiency = eff;
+
+  }
+
  private:
 
   int CreateNode(PHCompositeNode *topNode);
 
   float calculate_dR( float, float, float, float );
   std::pair<float, float> get_expected_signature( int );
+
+  float _energy_match_Nsigma;
+  float _emulate_efficiency;
+  gsl_rng *_tr_eff;
 
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;

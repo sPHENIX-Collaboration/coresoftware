@@ -9,23 +9,31 @@
 #include <g4main/PHG4Particle.h>
 
 #include <trackbase/TrkrClusterv1.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <tpc/TpcDefs.h>
+#include <intt/InttDefs.h>
+#include <mvtx/MvtxDefs.h>
+#include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>               // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
+
 #include <intt/CylinderGeomIntt.h>
 
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <TVector3.h>
 
 #include <cassert>
-#include <cfloat>
+#include <cmath>                                       // for sqrt, NAN, fabs
+#include <cstdlib>                                     // for abs
 #include <iostream>
 #include <map>
 #include <set>
@@ -36,9 +44,6 @@ using namespace std;
 SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   : _basetrutheval(topNode)
   , _truthinfo(nullptr)
-  , _g4hits_svtx(nullptr)
-  , _g4hits_tracker(nullptr)
-  , _g4hits_maps(nullptr)
   , _strict(false)
   , _verbosity(0)
   , _errors(0)
@@ -137,6 +142,18 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits()
     }
   }
 
+ // loop over all the g4hits in the maicromegas layers
+  if (_g4hits_mms)
+  {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_mms->getHits().first;
+         g4iter != _g4hits_mms->getHits().second;
+         ++g4iter)
+    {
+      PHG4Hit* g4hit = g4iter->second;
+      truth_hits.insert(g4hit);
+    }
+  }
+
   if (_do_cache) _cache_all_truth_hits = truth_hits;
 
   return truth_hits;
@@ -211,6 +228,19 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
     }
   }
 
+  // loop over all the g4hits in the micromegas layers
+  if (_g4hits_mms)
+  {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_mms->getHits().first;
+         g4iter != _g4hits_mms->getHits().second;
+         ++g4iter)
+    {
+      PHG4Hit* g4hit = g4iter->second;
+      if (!is_g4hit_from_particle(g4hit, particle)) continue;
+      truth_hits.insert(g4hit);
+    }
+  }
+
   if (_do_cache) _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
 
   return truth_hits;
@@ -258,10 +288,10 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   //std::map<unsigned int, TrkrCluster*> truth_clusters;
   std::map<unsigned int, std::shared_ptr<TrkrCluster>> truth_clusters;
 
-  // convert truth hits for this particle to truth clusters in each TPC layer
+  // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
-
-  for(float layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++layer)
+  unsigned int layer;
+  for(layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc +_nlayers_mms; ++layer)
     {
       float gx = NAN;
       float gy = NAN;
@@ -278,20 +308,50 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   
       // we have the cluster in this layer from this truth particle
       // add the cluster to a TrkrCluster object
+      TrkrDefs::cluskey ckey;
+      if(layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)  // in TPC
+	{      
+	  unsigned int side = 0;
+	  if(gz > 0) side = 1;	  
+	  // need dummy sector here
+	  unsigned int sector = 0;
+	  ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
+	}
+      else if(layer < _nlayers_maps)  // in MVTX
+	{
+	  unsigned int stave = 0;
+	  unsigned int chip = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	}
+      else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
+	{
+	  // dummy ladder and phi ID
+	  unsigned int ladderzid = 0;
+	  unsigned int ladderphiid = 0;
+	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,iclus); 
+	}
+      else if(layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)    // in MICROMEGAS
+	{
+	  unsigned int tile = 0;
+	  MicromegasDefs::SegmentationType segtype;
+	  segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
+	  TrkrDefs::hitsetkey hkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+  	  ckey = MicromegasDefs::genClusterKey(hkey, iclus);
+	}
+      else
+	{
+	  std::cout << PHWHERE << "Bad layer number: " << layer << std::endl;
+	  continue;
+	}
       
-      unsigned int side = 0;
-      if(gz > 0) side = 1;
-
-      // need sector here
-      unsigned int sector = 0;
-
-      TrkrDefs::cluskey ckey = TpcDefs::genClusKey(layer, sector, side, iclus);
-      //TrkrClusterv1 *clus = new TrkrClusterv1();
       std::shared_ptr<TrkrClusterv1> clus(new TrkrClusterv1());
       clus->setClusKey(ckey);
       iclus++;
 
-      clus->setAdc(contributing_hits.size());
+      // estimate cluster ADC value
+      unsigned int adc_value = getAdcValue(gedep);
+      //std::cout << " gedep " << gedep << " adc_value " << adc_value << std::endl; 
+      clus->setAdc(adc_value);
       clus->setPosition(0, gx);
       clus->setPosition(1, gy);
       clus->setPosition(2, gz);
@@ -656,7 +716,7 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
   double sigmas = 2.0;
 
   double radius = (inner_radius + outer_radius)/2.;
-  if(radius > 28)  // TPC
+  if(radius > 28 && radius < 80)  // TPC
     {
       PHG4CylinderCellGeom*layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
 
@@ -757,6 +817,12 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
 	cout << " INTT: layer " << layer << " strips " << strips << " strip pitch " <<  layergeom->get_strip_y_spacing() << " g4phisize "<< g4phisize 
 	     << " columns " << cols << " strip_z_spacing " <<  layergeom->get_strip_z_spacing() << " g4zsize " << g4zsize << endl;
       */
+    }
+  else if(radius > 80)  // MICROMEGAS
+    {
+      // made up for now
+      g4phisize = 300e-04;
+      g4zsize = 300e-04;
     }
   else  // MVTX
     {
@@ -1009,10 +1075,12 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
 {
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
+  _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
   _g4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
 
+  _mms_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   _tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
@@ -1028,8 +1096,8 @@ bool SvtxTruthEval::has_node_pointers()
     return false;
 
   if (_strict)
-    assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps);
-  else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps)
+    assert(_g4hits_mms || _g4hits_svtx || _g4hits_tracker || _g4hits_maps);
+  else if (!_g4hits_mms && !_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps)
     return false;
 
   return true;
@@ -1070,4 +1138,31 @@ float SvtxTruthEval::line_circle_intersection(float x[], float y[], float z[], f
   }
 
   return t;
+}
+
+unsigned int SvtxTruthEval::getAdcValue(double gedep)
+{
+  // see TPC digitizer for algorithm
+  
+  // drift electrons per GeV of energy deposited in the TPC
+  double Ne_dEdx = 1.56;   // keV/cm
+  double CF4_dEdx = 7.00;  // keV/cm
+  double Ne_NTotal = 43;    // Number/cm
+  double CF4_NTotal = 100;  // Number/cm
+  double Tpc_NTot = 0.5*Ne_NTotal + 0.5*CF4_NTotal;
+  double Tpc_dEdx = 0.5*Ne_dEdx + 0.5*CF4_dEdx;
+  double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  double electrons_per_gev = Tpc_ElectronsPerKeV * 1e6;
+  
+  double gem_amplification = 1400; // GEM output electrons per drifted electron
+  double input_electrons = gedep * electrons_per_gev * gem_amplification;
+  
+  // convert electrons after GEM to ADC output
+  double ChargeToPeakVolts = 20;
+  double ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;  // 20 (or 30) mV/fC * fC/electron * scaleup factor 
+  double adc_input_voltage = input_electrons * ADCSignalConversionGain;  // mV, see comments above
+  unsigned int adc_output = (unsigned int) (adc_input_voltage * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+  if (adc_output > 1023) adc_output = 1023;
+    
+  return adc_output;
 }

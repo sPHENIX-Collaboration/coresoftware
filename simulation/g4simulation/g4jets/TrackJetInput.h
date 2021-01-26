@@ -6,6 +6,7 @@
 #include "Jet.h"
 
 #include <iostream>    // for cout, ostream
+#include <string>      // for string
 #include <vector>
 
 class PHCompositeNode;

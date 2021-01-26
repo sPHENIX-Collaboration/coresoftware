@@ -1,20 +1,20 @@
 #include "RawTowerCombiner.h"
 
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTower.h>
-#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTowerv1.h>
 
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <CLHEP/Vector/ThreeVector.h>
 

@@ -965,8 +965,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
                                den_G4_CARBON_DIOXIDE / den);
   // cross checked with original implementation made up of Ne,C,F
   // this here is very close but makes more sense since it uses Ne and CF4
-  double G4_Ne_frac = 0.9;
-  double CF4_frac = 0.1;
+  double G4_Ne_frac = 0.5;
+  double CF4_frac = 0.5;
   const double den_G4_Ne = G4Material::GetMaterial("G4_Ne")->GetDensity();
   const double den_CF4_2 = CF4->GetDensity();
   const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
@@ -1383,8 +1383,8 @@ void PHG4Reco::DefineRegions()
   // add the PAI model to the TPCGAS region
   // undocumented, painfully digged out with debugger by tracing what
   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-  G4EmParameters *g4emparams = G4EmParameters::Instance();
-  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+//  G4EmParameters *g4emparams = G4EmParameters::Instance();
+//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
 #endif
   return;
 }

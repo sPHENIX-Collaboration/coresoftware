@@ -81,7 +81,6 @@ PHRaveVertexing::PHRaveVertexing(const string& name)
   , _vertex_min_ndf(20)
   , _vertex_finder(nullptr)
   , _vertexing_method("avf-smoothing:1")
-  , _truth_container(nullptr)
   , _trackmap(nullptr)
   , _vertexmap(nullptr)
   , _vertexmap_refit(nullptr)
@@ -283,16 +282,6 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode* topNode)
 int PHRaveVertexing::GetNodes(PHCompositeNode* topNode)
 {
   //DST objects
-  //Truth container
-  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                                "G4TruthInfo");
-  if (!_truth_container && _event < 2)
-  {
-    cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   // Input Svtx Tracks
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_trackmap && _event < 2)

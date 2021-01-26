@@ -56,8 +56,7 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
   ,  //
   //! default to fixed GeV per ADC
   _GeV_ADC_file(false)
-  ,
-  _tower_type(-1)
+  , _tower_type(-1)
   , _tower_calib_params(name)
 {
 }
@@ -144,19 +143,19 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
       {
         const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi));
         _pedstal_ADC =
-          _tower_calib_params.get_double_param(pedstal_name);
+            _tower_calib_params.get_double_param(pedstal_name);
       }
-      
+
       if (_GeV_ADC_file == true)
       {
         const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi));
-        _calib_const_GeV_ADC = 
-          _tower_calib_params.get_double_param(GeVperADCname);
+        _calib_const_GeV_ADC =
+            _tower_calib_params.get_double_param(GeVperADCname);
       }
 
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
-     
+
       RawTower *calib_tower = new RawTowerv1(*raw_tower);
       calib_tower->set_energy(calib_energy);
       _calib_towers->AddTower(key, calib_tower);

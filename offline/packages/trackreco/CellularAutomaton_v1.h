@@ -6,9 +6,7 @@
 #include <HelixHough/SimpleHit3D.h>       
 #include <HelixHough/SimpleTrack3D.h>     // for SimpleTrack3D
 
-#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/HelixKalmanState.h>    // for HelixKalmanState
-#endif
 
 #include <iostream>             // for cout, ostream
 #include <map>                  // for map
@@ -156,7 +154,6 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	bool seeding_mode;
 	int verbose;
 
-//	ClassDef(CellularAutomaton_v1,1)
 };
 
 #endif

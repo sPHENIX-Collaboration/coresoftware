@@ -1,27 +1,32 @@
 #include "ParticleFlowReco.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
+#include "ParticleFlowElementContainer.h"
+#include "ParticleFlowElementv1.h"
 
-#include <phool/PHCompositeNode.h>
 
-#include "TLorentzVector.h"
-#include <iostream>
-
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-
-#include <phool/getClass.h>
-
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 
-#include "ParticleFlowElementContainer.h"
-#include "ParticleFlowElementv1.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
+
+
+#include <TLorentzVector.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
+
+#include <iostream>
 
 // examine second value of std::pair, sort by smallest
 bool sort_by_pair_second_lowest( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
@@ -52,29 +57,30 @@ std::pair<float, float> ParticleFlowReco::get_expected_signature( int trk ) {
 
 //____________________________________________________________________________..
 ParticleFlowReco::ParticleFlowReco(const std::string &name):
- SubsysReco(name)
+  SubsysReco(name),
+  _energy_match_Nsigma( 1.5 ) ,
+  _emulate_efficiency( 1.1 )
 {
-  std::cout << "ParticleFlowReco::ParticleFlowReco(const std::string &name) Calling ctor" << std::endl;
+  
+  _tr_eff = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(_tr_eff,PHRandomSeed());
 }
 
 //____________________________________________________________________________..
 ParticleFlowReco::~ParticleFlowReco()
 {
-  std::cout << "ParticleFlowReco::~ParticleFlowReco() Calling dtor" << std::endl;
+  gsl_rng_free(_tr_eff);
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::Init(PHCompositeNode *topNode)
 {
-  std::cout << "ParticleFlowReco::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 {
-  std::cout << "ParticleFlowReco::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-
   return CreateNode(topNode);
 
 }
@@ -82,7 +88,10 @@ int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 {
-
+  if (Verbosity() > 0)
+  {
+  std::cout << "ParticleFlowReco::process_event with Nsigma = " << _energy_match_Nsigma << " , emulate efficiency = " << _emulate_efficiency << std::endl;
+  }
   // get handle to pflow node
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
   if (!pflowContainer) {
@@ -182,6 +191,18 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       // only keep charged truth particles
       if ( truth_pid != 211 && truth_pid != 321 && truth_pid != 2212 ) continue;
+
+      // if emulating finite efficiency, roll the dice here 
+      if ( _emulate_efficiency < 1.0 ) {
+
+	float this_eff = gsl_rng_uniform_pos(_tr_eff);
+
+	if ( this_eff > _emulate_efficiency ) {
+	  // lost this track due to inefficiency
+	  continue;
+	}
+
+      }
 
       _pflow_TRK_p.push_back( truth_p );
       _pflow_TRK_eta.push_back( truth_eta );
@@ -566,8 +587,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	  _pflow_TRK_match_HAD.at( trk ).push_back( had );
 	  _pflow_HAD_match_TRK.at( had ).push_back( trk );
 
-	  std::cout << " TRK " << trk << " with pt / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
-	  std::cout << " -> sequential match to HAD " << had << " through EM " << j << std::endl;
+	  if ( Verbosity() > 5 )  {
+	    std::cout << " TRK " << trk << " with pt / eta / phi = " << _pflow_TRK_p.at( trk ) << " / " << _pflow_TRK_eta.at( trk ) << " / " << _pflow_TRK_phi.at( trk ) << std::endl;
+	    std::cout << " -> sequential match to HAD " << had << " through EM " << j << std::endl;
+	  }
 
 	}
 
@@ -649,6 +672,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -746,10 +770,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     
   
   
-    if ( total_expected_E + 1.5 * total_expected_E_err > total_EMHAD_E ) {
+    if ( total_expected_E + _energy_match_Nsigma * total_expected_E_err > total_EMHAD_E ) {
       
       if ( Verbosity() > 5 ) {
-	std::cout << " -> -> calo compatible within 1.5 sigma, remove and keep tracks " << std::endl;
+	std::cout << " -> -> calo compatible within Nsigma = " << _energy_match_Nsigma << " , remove and keep tracks " << std::endl;
       }
 
       // PFlow elements already created from tracks above, no more needs to be done
@@ -773,6 +797,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -838,6 +863,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -851,10 +877,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       std::cout << " -> Total track Sum p = " << total_TRK_p << " , expected calo Sum E = " << total_expected_E << " +/- " << total_expected_E_err << " , observed EM Sum E = " << total_EM_E << std::endl;
     }
       
-    if ( total_expected_E + 1.5 * total_expected_E_err > total_EM_E ) {
+    if ( total_expected_E + _energy_match_Nsigma * total_expected_E_err > total_EM_E ) {
       
       if ( Verbosity() > 5 ) {
-	std::cout << " -> -> calo compatible within 1.5 sigma, remove and keep tracks " << std::endl;
+	std::cout << " -> -> calo compatible within Nsigma = " << _energy_match_Nsigma << "  , remove and keep tracks " << std::endl;
       }
 
       // PFlow elements already created from tracks above, no more needs to be done
@@ -878,6 +904,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_id( global_pflow_index );
+      pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
@@ -911,7 +938,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
-    
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_EM_PARTICLE );
+
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
     
@@ -938,6 +966,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_NEUTRAL_HADRON );
 
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
@@ -965,6 +994,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
     pflow->set_id( global_pflow_index );
+    pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_CHARGED_HADRON );
 
     pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
     global_pflow_index++;
@@ -982,7 +1012,6 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
   }
 
-  std::cout << "ParticleFlowReco::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1026,28 +1055,40 @@ int ParticleFlowReco::CreateNode(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ParticleFlowReco::ResetEvent(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::EndRun(const int runnumber)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::End(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "ParticleFlowReco::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ParticleFlowReco::Reset(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
  std::cout << "ParticleFlowReco::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

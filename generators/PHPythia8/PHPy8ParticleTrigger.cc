@@ -1,10 +1,10 @@
 #include "PHPy8ParticleTrigger.h"
 
-#include <Pythia8/Event.h>   // for Event, Particle
+#include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
-#include <cstdlib>          // for abs
-#include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl, basic_ostream, basic_o...
 
 using namespace std;
 
@@ -67,8 +67,14 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
     for (int j = 0; j < int(_theParticles.size()); j++)
     {
       if (pythia->event[i].id() == _theParticles[j] &&
-          pythia->event[i].status() > 0)
-      {  //only stable particles
+          (pythia->event[i].status() > 0    //only stable particles
+           or (not m_doStableParticleOnly)  // or not
+           ))
+      {
+        if (_doBothYCut && (pythia->event[i].y() < _theYLow ||
+                            pythia->event[i].y() > _theYHigh)) continue;
+        if (_doYLowCut && pythia->event[i].y() < _theYLow) continue;
+        if (_doYHighCut && pythia->event[i].y() > _theYHigh) continue;
 
         if (_doBothEtaCut && (pythia->event[i].eta() < _theEtaLow ||
                               pythia->event[i].eta() > _theEtaHigh)) continue;
@@ -101,7 +107,8 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
                << "  pt: " << pythia->event[i].pT()
                << " pz: " << pythia->event[i].pz()
                << " p: " << pythia->event[i].pAbs()
-               << " eta: " << pythia->event[i].eta() << endl;
+               << " eta: " << pythia->event[i].eta()
+               << " y: " << pythia->event[i].y() << endl;
         }
 
         // loop over all partents to this particle
@@ -245,6 +252,43 @@ void PHPy8ParticleTrigger::SetPHighLow(double pHigh, double pLow)
   _doPHighCut = false;
 }
 
+void PHPy8ParticleTrigger::SetYHigh(double Y)
+{
+  _theYHigh = Y;
+  if (_doYLowCut)
+  {
+    _doBothYCut = true;
+    _doYLowCut = false;
+  }
+  else
+  {
+    _doYHighCut = true;
+  }
+}
+
+void PHPy8ParticleTrigger::SetYLow(double Y)
+{
+  _theYLow = Y;
+  if (_doYHighCut)
+  {
+    _doBothYCut = true;
+    _doYHighCut = false;
+  }
+  else
+  {
+    _doYLowCut = true;
+  }
+}
+
+void PHPy8ParticleTrigger::SetYHighLow(double YHigh, double YLow)
+{
+  _theYHigh = YHigh;
+  _theYLow = YLow;
+  _doBothYCut = true;
+  _doYHighCut = false;
+  _doYLowCut = false;
+}
+
 void PHPy8ParticleTrigger::SetEtaHigh(double eta)
 {
   _theEtaHigh = eta;
@@ -367,6 +411,12 @@ void PHPy8ParticleTrigger::SetPzHighLow(double pzHigh, double pzLow)
 void PHPy8ParticleTrigger::PrintConfig()
 {
   cout << "---------------- PHPy8ParticleTrigger::PrintConfig --------------------" << endl;
+
+  if (m_doStableParticleOnly)
+    cout << "Process stable particles only." << endl;
+  else
+    cout << "Process both unstable and stable particles." << endl;
+
   cout << "   Particles: ";
   for (int i = 0; i < int(_theParticles.size()); i++) cout << _theParticles[i] << "  ";
   cout << endl;
@@ -375,6 +425,8 @@ void PHPy8ParticleTrigger::PrintConfig()
   for (int i = 0; i < int(_theParents.size()); i++) cout << _theParents[i] << "  ";
   cout << endl;
 
+  if (_doYHighCut || _doYLowCut || _doBothYCut)
+    cout << "   doYCut:  " << _theYLow << " < Y < " << _theYHigh << endl;
   if (_doEtaHighCut || _doEtaLowCut || _doBothEtaCut)
     cout << "   doEtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
   if (_doAbsEtaHighCut || _doAbsEtaLowCut || _doBothAbsEtaCut)

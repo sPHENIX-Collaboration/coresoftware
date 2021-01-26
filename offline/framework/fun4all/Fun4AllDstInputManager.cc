@@ -12,17 +12,20 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
-#include <phool/PHNodeIterator.h>   // for PHNodeIterator
-#include <phool/PHObject.h>         // for PHObject
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
+#include <phool/phooldefs.h>
 
 #include <TSystem.h>
 
+#include <boost/algorithm/string.hpp>
+
 #include <cassert>
 #include <cstdlib>
-#include <iostream>                 // for operator<<, basic_ostream, endl
-#include <utility>                  // for pair
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <utility>   // for pair
 
 class TBranch;
 
@@ -30,17 +33,6 @@ using namespace std;
 
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , m_ReadRunTTree(1)
-  , events_total(0)
-  , events_thisfile(0)
-  , events_skipped_during_sync(0)
-  , RunNode("RUN")
-  , dstNode(nullptr)
-  , runNode(nullptr)
-  , runNodeCopy(nullptr)
-  , runNodeSum(nullptr)
-  , IManager(nullptr)
-  , syncobject(nullptr)
 {
   return;
 }
@@ -141,6 +133,16 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     events_thisfile = 0;
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
+                                  // check if our input file has a sync object or not
+    if (IManager->NodeExist(syncdefs::SYNCNODENAME))
+    {
+      m_HaveSyncObject = 1;
+    }
+    else
+    {
+      m_HaveSyncObject = -1;
+    }
+
     return 0;
   }
   else
@@ -207,7 +209,7 @@ readagain:
   {
     goto readagain;
   }
-  syncobject = findNode::getClass<SyncObject>(dstNode, "Sync");
+  syncobject = findNode::getClass<SyncObject>(dstNode, syncdefs::SYNCNODENAME);
   return 0;
 }
 
@@ -222,6 +224,7 @@ int Fun4AllDstInputManager::fileclose()
   IManager = nullptr;
   IsOpen(0);
   UpdateFileList();
+  m_HaveSyncObject = 0;
   return 0;
 }
 
@@ -233,9 +236,9 @@ int Fun4AllDstInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (syncobject) 
+    if (syncobject)
     {
-      *mastersync = dynamic_cast<SyncObject *> (syncobject->CloneMe());
+      *mastersync = dynamic_cast<SyncObject *>(syncobject->CloneMe());
       assert(*mastersync);
     }
   }
@@ -399,14 +402,14 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
 int Fun4AllDstInputManager::ReadNextEventSyncObject()
 {
 readnextsync:
-  static int readfull = 0;
-  if (!IManager)  // in case the old file was exhausted and there is no new file opened
+  static int readfull = 0;  // for some reason all the input managers need to see the same (I think, should look at this at some point)
+  if (!IManager)            // in case the old file was exhausted and there is no new file opened
   {
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   if (syncbranchname.empty())
   {
-    readfull = 1;  // we need to read a full events to set the root branches to phool nodes right for a new file
+    readfull = 1;  // we need to read a full event to set the root branches to phool nodes right when a new file has been opened
     map<string, TBranch *>::const_iterator bIter;
     for (bIter = IManager->GetBranchMap()->begin(); bIter != IManager->GetBranchMap()->end(); ++bIter)
     {
@@ -414,10 +417,19 @@ readnextsync:
       {
         cout << Name() << ": branch: " << bIter->first << endl;
       }
-      string::size_type pos = bIter->first.find("/Sync");
-      if (pos != string::npos)  // found it
+      string delimeters = phooldefs::branchpathdelim;  // + phooldefs::legacypathdelims;
+      vector<string> splitvec;
+      boost::split(splitvec, bIter->first, boost::is_any_of(delimeters));
+      for (size_t ia = 0; ia < splitvec.size(); ia++)  // -1 so we skip the node name
       {
-        syncbranchname = bIter->first;
+        if (splitvec[ia] == syncdefs::SYNCNODENAME)
+        {
+          syncbranchname = bIter->first;
+          break;
+        }
+      }
+      if (!syncbranchname.empty())
+      {
         break;
       }
     }
@@ -492,12 +504,17 @@ readnextsync:
 
 int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
 {
-  int myflag = iflag;
+  if (IsOpen())
+  {
+    cout << "BranchSelect(\"" << branch << "\", " << iflag
+         << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << endl;
+    return -1;
+  }
   // if iflag > 0 the branch is set to read
   // if iflag = 0, the branch is set to NOT read
   // if iflag < 0 the branchname is erased from our internal branch read map
   // this does not have any effect on phool yet
-  if (myflag < 0)
+  if (iflag < 0)
   {
     map<const string, int>::iterator branchiter;
     branchiter = branchread.find(branch);
@@ -507,14 +524,14 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
     }
     return 0;
   }
-
-  if (myflag > 0)
+  int readit = 0;
+  if (iflag > 0)
   {
     if (Verbosity() > 1)
     {
       cout << "Setting Root Tree Branch: " << branch << " to read" << endl;
     }
-    myflag = 1;
+    readit = 1;
   }
   else
   {
@@ -523,7 +540,7 @@ int Fun4AllDstInputManager::BranchSelect(const string &branch, const int iflag)
       cout << "Setting Root Tree Branch: " << branch << " to NOT read" << endl;
     }
   }
-  branchread[branch] = myflag;
+  branchread[branch] = readit;
   return 0;
 }
 
@@ -614,4 +631,19 @@ int Fun4AllDstInputManager::PushBackEvents(const int i)
   cout << PHWHERE << Name() << ": could not push back events, Imanager is NULL"
        << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << endl;
   return -1;
+}
+
+int Fun4AllDstInputManager::HasSyncObject() const
+{
+  if (m_HaveSyncObject)
+  {
+    return m_HaveSyncObject;
+  }
+  if (IsOpen())
+  {
+    cout << PHWHERE << "HasSyncObject() not initialized check the calling order" << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  return 0;
 }

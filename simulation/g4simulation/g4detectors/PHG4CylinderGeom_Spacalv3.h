@@ -186,8 +186,6 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   void
   load_demo_sector_tower_map2();
   void
-  load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
-  void
   load_demo_sector_tower_map4();
 
   const tower_map_t&
