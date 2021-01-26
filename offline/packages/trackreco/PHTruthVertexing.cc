@@ -145,8 +145,13 @@ void PHTruthVertexing::assignStubsVertices(PHCompositeNode *topNode)
       return;
     }
 
-  for(const auto& [trackKey, track] : *trackMap)
+  for(SvtxTrackMap::Iter iter = trackMap->begin();
+      iter != trackMap->end();
+      ++iter)
     {
+      auto trackKey = iter->first;
+      auto track = iter->second;
+
       if(Verbosity() > 3)
 	track->identify();
       
@@ -159,8 +164,12 @@ void PHTruthVertexing::assignStubsVertices(PHCompositeNode *topNode)
       double dz = 9999.;
       int trackVertexId = 9999;
       
-      for(const auto& [vertexKey, vertex] : *_vertex_map)
+      for(SvtxVertexMap::Iter viter = _vertex_map->begin();
+	  viter != _vertex_map->end();
+	  ++viter)
 	{
+	  auto vertexKey = viter->first;
+	  auto vertex = viter->second;
 	  if(Verbosity() > 3)
 	    vertex->identify();
 	  
