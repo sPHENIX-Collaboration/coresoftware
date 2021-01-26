@@ -29,17 +29,7 @@ libPHPythia6_la_LIBADD = \
   -lfastjet \
   -lCGAL
 
-if ! MAKEROOT6
-ROOT5_DICTS = \
-  PHPy6ForwardElectronTrig_Dict.cc \
-  PHPy6GenTrigger_Dict.cc \
-  PHPy6JetTrigger_Dict.cc \
-  PHPy6ParticleTrigger_Dict.cc \
-  PHPythia6_Dict.cc 
-endif
-
 libPHPythia6_la_SOURCES = \
-  $(ROOT5_DICTS) \
   PHPythia6.cc \
   PHPy6GenTrigger.cc \
   PHPy6JetTrigger.cc \
@@ -66,9 +56,6 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f $(BUILT_SOURCES)
 

@@ -57,7 +57,7 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (!TrackerMaterial)
   {
-    std::cout << "Error: Can not set material" << std::endl;
+    cout << "Error: Can not set material " << m_Params->get_string_param("material") << endl;
     gSystem->Exit(1);
   }
 

@@ -3,6 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phparameter/PHParameters.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -12,10 +14,7 @@ class RawTowerDeadMap;
 
 class RawTower;
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
 
 //! simple tower digitizer which sum all cell to produce photon yield and pedstal noises
 //! default input DST node is TOWER_SIM_DETECTOR
@@ -28,7 +27,7 @@ class RawTowerDigitizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) { m_Detector = d; }
+  void Detector(const std::string &d) { m_Detector = d; _tower_params.set_name(d);}
   void TowerType(const int type) { m_TowerType = type; }
   void set_seed(const unsigned int iseed);
   unsigned int get_seed() const { return m_Seed; }
@@ -120,6 +119,24 @@ class RawTowerDigitizer : public SubsysReco
     m_ZeroSuppressionADC = zeroSuppressionAdc;
   }
 
+  void
+  set_variable_zero_suppression(const bool value)
+  {
+    m_ZeroSuppressionFile = value;
+  }
+
+  void
+  set_variable_pedestal(const bool value)
+  {
+    m_pedestalFile = value;
+  }
+
+  PHParameters &
+  GetParameters()
+  {
+    return _tower_params;
+  }
+
   std::string
   get_raw_tower_node_prefix() const
   {
@@ -186,8 +203,14 @@ class RawTowerDigitizer : public SubsysReco
   //! pedstal width in unit of ADC
   double m_PedstalWidthADC;
 
+  //! pedestal from file
+  bool m_pedestalFile;
+
   //! zero suppression in unit of ADC
   double m_ZeroSuppressionADC;
+
+  //! zero suppression from file
+  bool m_ZeroSuppressionFile;
 
   //! tower type to act on
   int m_TowerType;
@@ -197,9 +220,9 @@ class RawTowerDigitizer : public SubsysReco
   // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
   unsigned int m_SiPMEffectivePixel;
 
-#if !defined(__CINT__) || defined(__CLING__)
+  PHParameters _tower_params;
+
   gsl_rng *m_RandomGenerator;
-#endif
 };
 
 #endif /* G4CALO_RAWTOWERDIGITIZER_H */

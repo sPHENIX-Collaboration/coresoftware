@@ -318,7 +318,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 {
   // this is a dumb protection against executing this twice.
   // we have cases (currently detector display or material scan) where
-  // we need the detector bu have not run any events (who wants to wait
+  // we need the detector but have not run any events (who wants to wait
   // for processing an event if you just want a detector display?).
   // Then the InitRun is executed from a macro. But if you decide to run events
   // afterwards, the InitRun is executed by the framework together with all
@@ -336,6 +336,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   recoConsts *rc = recoConsts::instance();
+
+  rc->set_StringFlag("WorldMaterial", m_WorldMaterial);
+
+  rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
+  rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
+  rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
   //setup the global field
   const int field_ret = InitField(topNode);
@@ -367,9 +373,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-  rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
-  rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
-  rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
   BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
@@ -962,8 +965,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
                                den_G4_CARBON_DIOXIDE / den);
   // cross checked with original implementation made up of Ne,C,F
   // this here is very close but makes more sense since it uses Ne and CF4
-  double G4_Ne_frac = 0.9;
-  double CF4_frac = 0.1;
+  double G4_Ne_frac = 0.5;
+  double CF4_frac = 0.5;
   const double den_G4_Ne = G4Material::GetMaterial("G4_Ne")->GetDensity();
   const double den_CF4_2 = CF4->GetDensity();
   const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
@@ -1380,8 +1383,8 @@ void PHG4Reco::DefineRegions()
   // add the PAI model to the TPCGAS region
   // undocumented, painfully digged out with debugger by tracing what
   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-  G4EmParameters *g4emparams = G4EmParameters::Instance();
-  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+//  G4EmParameters *g4emparams = G4EmParameters::Instance();
+//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
 #endif
   return;
 }

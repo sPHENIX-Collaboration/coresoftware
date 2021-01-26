@@ -14,12 +14,13 @@ class PHG4CrystalCalorimeterDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector*);
+  PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector, const PHParameters* parameters);
 
   //! destroctor
   virtual ~PHG4CrystalCalorimeterSteppingAction();
@@ -31,25 +32,18 @@ class PHG4CrystalCalorimeterSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-  //! Find tower index of mother volume
-  int FindTowerIndex(G4TouchableHandle touch, int& j, int& k);
-
-  //! Find combined tower index of volume, mother volume, and mother+1 volume
-  int FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k);
-
-  int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
-
   //! pointer to the detector
-  PHG4CrystalCalorimeterDetector* detector_;
+  PHG4CrystalCalorimeterDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
-  PHG4Hit* hit;
-  PHG4HitContainer* savehitcontainer;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  PHG4Shower* m_SaveShower = nullptr;
 
-  //  int light_scint_model;
+  int m_ActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
 };
 
 #endif  // PHG4CrystalCalorimeterSteppingAction_h

@@ -13,6 +13,7 @@
 #include <utility>
 
 class PHCompositeNode;
+class SvtxTrackMap;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
@@ -70,6 +71,7 @@ class QAG4SimulationTracking : public SubsysReco
   bool m_uniqueTrackingMatch = true;
 
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
+  SvtxTrackMap *m_trackMap = nullptr;
 
   TrkrClusterContainer *m_cluster_map = nullptr;
   TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;

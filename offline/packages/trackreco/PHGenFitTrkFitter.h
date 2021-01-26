@@ -10,7 +10,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
+#if defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
 // shared pointer later on uses this, forward declaration does not cut it
 #include <phgenfit/Track.h>
@@ -324,14 +324,12 @@ class PHGenFitTrkFitter : public SubsysReco
   double _fit_min_pT = 0.1;
   double _vertex_min_ndf = 20;
 
-  #if !defined(__CINT__) || defined(__CLING__)
   /*
   need to use shared_ptr and not unique_ptr because root5 cint
   requires the existence of a copy constructor, which the unique_ptr forbids
   */
   std::shared_ptr<PHGenFit::Fitter> _fitter;
   std::shared_ptr<genfit::GFRaveVertexFactory> _vertex_finder;
-  #endif
 
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";

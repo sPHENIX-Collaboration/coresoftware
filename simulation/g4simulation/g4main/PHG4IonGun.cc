@@ -1,7 +1,7 @@
 #include "PHG4IonGun.h"
 
 #include "PHG4InEvent.h"
-#include "PHG4Particle.h"                  // for PHG4Particle
+#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev3.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -13,22 +13,17 @@
 #include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <algorithm>                       // for fill
-#include <iostream>                        // for operator<<, basic_ostream
-#include <iterator>                        // for begin, end
-#include <cmath>                          // for NAN
+#include <algorithm>  // for fill
+#include <cmath>      // for NAN
+#include <iostream>   // for operator<<, basic_ostream
+#include <iterator>   // for begin, end
 
 using namespace std;
 
 PHG4IonGun::PHG4IonGun(const string &name)
   : PHG4ParticleGeneratorBase(name)
   , ion(new PHG4Particlev3())
-  , A(0)
-  , Z(0)
-  , ioncharge(0)
-  , excitEnergy(0)
 {
-  fill(begin(mom), end(mom), NAN);
 }
 
 void PHG4IonGun::SetCharge(const int c)
@@ -49,7 +44,7 @@ int PHG4IonGun::process_event(PHCompositeNode *topNode)
   UpdateParticle();
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   ReuseExistingVertex(topNode);  // checks if we should reuse existing vertex
-  int vtxindex = ineve->AddVtx(vtx_x, vtx_y, vtx_z, t0);
+  int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   //   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon(Z, A, excitEnergy);
   //G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
   //   cout << "name: " << ion->GetParticleName() << ", pdgcode: " << ion->GetPDGEncoding() << endl;

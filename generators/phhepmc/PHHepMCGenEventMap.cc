@@ -2,40 +2,24 @@
 
 #include "PHHepMCGenEvent.h"
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <cstdlib>           // for exit
 #include <iterator>           // for reverse_iterator
 #include <utility>            // for pair, make_pair
 
-using namespace std;
-
-PHHepMCGenEventMap::PHHepMCGenEventMap()
-  : _map()
-{
-}
-
 PHHepMCGenEventMap::PHHepMCGenEventMap(const PHHepMCGenEventMap& eventmap)
-  : _map()
 {
-  for (ConstIter iter = eventmap.begin();
-       iter != eventmap.end();
-       ++iter)
-  {
-    PHHepMCGenEvent* event = dynamic_cast<PHHepMCGenEvent*> (iter->second->CloneMe());
-    _map.insert(make_pair(event->get_embedding_id(), event));
-  }
+  for( const auto& pair:eventmap.get_map() )
+  { _map.insert(std::make_pair(pair.first, static_cast<PHHepMCGenEvent*>(pair.second->CloneMe()))); }
 }
 
 PHHepMCGenEventMap& PHHepMCGenEventMap::operator=(const PHHepMCGenEventMap& eventmap)
 {
   Reset();
-  for (ConstIter iter = eventmap.begin();
-       iter != eventmap.end();
-       ++iter)
-  {
-    PHHepMCGenEvent* event = dynamic_cast<PHHepMCGenEvent*> (iter->second->CloneMe());
-    _map.insert(make_pair(event->get_embedding_id(), event));
-  }
+  for( const auto& pair:eventmap.get_map() )
+  { _map.insert(std::make_pair(pair.first, static_cast<PHHepMCGenEvent*>(pair.second->CloneMe()))); }
   return *this;
 }
 
@@ -46,23 +30,23 @@ PHHepMCGenEventMap::~PHHepMCGenEventMap()
 
 void PHHepMCGenEventMap::Reset()
 {
-  for (Iter iter = _map.begin();
-       iter != _map.end();
-       ++iter)
+  // delete all events
+  for( const auto& pair:_map )
   {
-    PHHepMCGenEvent* event = iter->second;
-    delete event;
+    delete pair.second;
   }
+  
+  // clear map
   _map.clear();
 }
 
-void PHHepMCGenEventMap::identify(ostream& os) const
+void PHHepMCGenEventMap::identify(std::ostream& os) const
 {
-  os << "PHHepMCGenEventMap: size = " << _map.size() << endl;
+  os << "PHHepMCGenEventMap: size = " << _map.size() << std::endl;
 
   for (const auto& evt : _map)
   {
-    cout << "Event[" << evt.first << "] : ";
+    std::cout << "Event[" << evt.first << "] : ";
     assert(evt.second);
     evt.second->identify();
   }
@@ -86,48 +70,34 @@ PHHepMCGenEvent* PHHepMCGenEventMap::get(int id)
 
 PHHepMCGenEvent* PHHepMCGenEventMap::insert_active_event(const PHHepMCGenEvent* event)
 {
-  unsigned int index = 1;
-  if (!_map.empty()) index = _map.rbegin()->first + 1;
-
-  if (event)
-    _map.insert(make_pair(index,  dynamic_cast<PHHepMCGenEvent*>(event->CloneMe())));
-  else
-    _map.insert(make_pair(index, new PHHepMCGenEvent()));
-
-  _map[index]->set_embedding_id(index);
-  return _map[index];
+  const int index = _map.empty() ? 1 : (_map.rbegin()->first+1);
+  auto newEvent = event ? static_cast<PHHepMCGenEvent*>(event->CloneMe()): new PHHepMCGenEvent();
+  newEvent->set_embedding_id(index);
+  _map.insert(std::make_pair(index,newEvent));
+  return newEvent;
 }
 
 PHHepMCGenEvent* PHHepMCGenEventMap::insert_background_event(const PHHepMCGenEvent* event)
 {
-  unsigned int index = -1;
-  if (!_map.empty()) index = _map.begin()->first - 1;
-
-  if (event)
-    _map.insert(make_pair(index,  dynamic_cast<PHHepMCGenEvent*> (event->CloneMe())));
-  else
-    _map.insert(make_pair(index, new PHHepMCGenEvent()));
-
-  _map[index]->set_embedding_id(index);
-  return _map[index];
+  const int index = _map.empty() ? -1 : (_map.begin()->first-1);
+  auto newEvent = event ? static_cast<PHHepMCGenEvent*>(event->CloneMe()): new PHHepMCGenEvent();
+  newEvent->set_embedding_id(index);
+  _map.insert(std::make_pair(index,newEvent));
+  return newEvent;
 }
 
 PHHepMCGenEvent* PHHepMCGenEventMap::insert_event(const int index, const PHHepMCGenEvent* event)
 {
-  if (_map.find(index) != _map.end())
+  auto newEvent = event ? static_cast<PHHepMCGenEvent*>(event->CloneMe()): new PHHepMCGenEvent();
+  newEvent->set_embedding_id(index);
+  auto ret =  _map.insert(std::make_pair(index, newEvent ));
+  if (ret.second == false)
   {
-    cout << "PHHepMCGenEventMap::insert_event - Fatal Error -"
-         << "embedding ID " << index << " is already used in the PHHepMCGenEventMap. Print map:";
+    std::cout 
+      << "PHHepMCGenEventMap::insert_event - Fatal Error -"
+      << "embedding ID " << index << " is already used in the PHHepMCGenEventMap. Print map:";
     identify();
-
-    exit(10);
+    gSystem->Exit(10);
   }
-
-  if (event)
-    _map.insert(make_pair(index, dynamic_cast<PHHepMCGenEvent*> (event->CloneMe())));
-  else
-    _map.insert(make_pair(index, new PHHepMCGenEvent()));
-
-  _map[index]->set_embedding_id(index);
-  return _map[index];
+  return newEvent;
 }

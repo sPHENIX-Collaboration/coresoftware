@@ -5,12 +5,13 @@
 
 #include "RawTowerDefs.h"
 
+#include <cmath>
 #include <iostream>
 
 class RawTowerGeomv1 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv1();
+  RawTowerGeomv1() {}
   RawTowerGeomv1(RawTowerDefs::keytype id);
   virtual ~RawTowerGeomv1() {}
 
@@ -47,13 +48,14 @@ class RawTowerGeomv1 : public RawTowerGeom
   double get_center_radius() const;
   double get_eta() const;
   double get_phi() const;
+  double get_theta() const;
 
  protected:
-  RawTowerDefs::keytype _towerid;
+  RawTowerDefs::keytype _towerid = ~0;  // 0xFFFFFF.. independant of type
 
-  double _center_x;
-  double _center_y;
-  double _center_z;
+  double _center_x = NAN;
+  double _center_y = NAN;
+  double _center_z = NAN;
   ClassDef(RawTowerGeomv1, 4)
 };
 

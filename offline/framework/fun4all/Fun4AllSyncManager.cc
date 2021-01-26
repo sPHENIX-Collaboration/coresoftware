@@ -1,11 +1,14 @@
 #include "Fun4AllSyncManager.h"
 
 #include "Fun4AllInputManager.h"
+#include "Fun4AllReturnCodes.h"  // for EVENT_OK, RESET_NODE_TREE
 #include "Fun4AllServer.h"
 
 #include <ffaobjects/SyncObject.h>
 
 #include <phool/phool.h>  // for PHWHERE
+
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <iostream>  // for operator<<, endl, basic_ostream
@@ -18,13 +21,6 @@ using namespace std;
 
 Fun4AllSyncManager::Fun4AllSyncManager(const string &name)
   : Fun4AllBase(name)
-  , m_PrdfSegment(0)
-  , m_PrdfEvents(0)
-  , m_EventsTotal(0)
-  , m_CurrentRun(0)
-  , m_CurrentEvent(0)
-  , m_Repeat(0)
-  , m_MasterSync(nullptr)
 {
   return;
 }
@@ -86,14 +82,47 @@ int Fun4AllSyncManager::run(const int nevnts)
   int icnt = 0;
   int iretsync = 0;
   int resetnodetree = 0;
+  // on read errors (assumed to be caused that a file is empty and we need to open the next one)
+  // we have to go through this 3 times
+  // 1st pass: The error is detected (for all input mgrs), for the failed input manager(s) a fileclose(), fileopen() is executed, if this fails control goes back to Fun4All since we are done. For input managers without errors, the event is pushed back, so it is read again in the next pass
+  // 2nd pass: Events are read from all input managers. If no errors all input managers are pushed back
+  // The reason for this is that we opened a new files with maybe different content and we need to clean
+  // the node tree so we do not propagate old objects from the previous event
+  // The node tree reset is done by the Fun4AllServer so we give control back and signal via resetnodetree return code
+  // 3rd pass: read from every input manager and go back to Fun4All
+
   while (!iret)
   {
     unsigned iman = 0;
     int ifirst = 0;
+    int hassync = 0;
     for (vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
     {
       m_iretInManager[iman] = (*iter)->run(1);
       iret += m_iretInManager[iman];
+      // one can run DSTs without sync object via the DST input manager
+      // this only poses a problem if one runs two of them and expects the syncing to work
+      // or mix DSTs with sync object and without
+      if (!hassync && (*iter)->HasSyncObject())  // only update if hassync is 0 and input mgr is non zero
+      {
+        hassync = (*iter)->HasSyncObject();
+      }
+      else
+      {
+        if ((*iter)->HasSyncObject())  // if zero (no syncing) no need to go further
+        {
+          if (hassync != (*iter)->HasSyncObject())  // we have sync and no sync mixed
+          {
+            PrintSyncProblem();
+            gSystem->Exit(1);
+          }
+          else if (hassync < 0)  // we have more than one nosync input
+          {
+            PrintSyncProblem();
+            gSystem->Exit(1);
+          }
+        }
+      }
       if (!ifirst)
       {
         if (!m_iretInManager[iman])
@@ -119,7 +148,7 @@ int Fun4AllSyncManager::run(const int nevnts)
     if (iret || iretsync)
     {
       // tell the server to reset the node tree
-      resetnodetree = 1;
+      resetnodetree = Fun4AllReturnCodes::RESET_NODE_TREE;
 
       // if there was an io error (file exhausted) we nee to push back
       // the events from files which are not exhausted yet into the root files
@@ -127,20 +156,32 @@ int Fun4AllSyncManager::run(const int nevnts)
       // read was successful (iret = 0) we push the event back
       if (iret)
       {
+        unsigned inputmgr_cnt = 0;
         vector<Fun4AllInputManager *>::const_iterator InIter;
+        // set in the macro for Sync Manager. Permanently enabled (default when using syncman->Repeat(),
+        // m_Repeat = -1 so the m_Repeat--; is not called, this is used when you give it a positive number of
+        // repetitions
         if (m_Repeat)
         {
           for (InIter = m_InManager.begin(); InIter != m_InManager.end(); ++InIter)
           {
-            if ((*InIter)->IsOpen())
+            if (m_iretInManager[inputmgr_cnt] == Fun4AllReturnCodes::EVENT_OK)
             {
-              (*InIter)->fileclose();
+              (*InIter)->PushBackEvents(1);
             }
-            int ireset = (*InIter)->ResetFileList();
-            if (ireset)
+            else
             {
-              cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
-              exit(1);
+              if ((*InIter)->IsOpen())
+              {
+                (*InIter)->fileclose();
+              }
+              int ireset = (*InIter)->ResetFileList();
+              if (ireset)
+              {
+                cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
+                exit(1);
+              }
+              inputmgr_cnt++;
             }
           }
           if (m_Repeat > 0)
@@ -148,7 +189,7 @@ int Fun4AllSyncManager::run(const int nevnts)
             m_Repeat--;
           }
           iret = 0;
-          continue;
+          continue;  // got back and run again
         }
         // push back events where the Imanager did not report an error
         InIter = m_InManager.begin();
@@ -181,8 +222,12 @@ int Fun4AllSyncManager::run(const int nevnts)
         continue;
       }
     }
-
-    m_EventsTotal++;
+    if (!resetnodetree)
+    {
+      m_EventsTotal++;
+    }
+    // this check is meaningless nowadays since we call this method with 1 event every time
+    // so we can just break here but maybe this changes in the future
     if (nevnts > 0 && ++icnt >= nevnts)
     {
       break;
@@ -242,6 +287,10 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // giving it a negative argument will skip events
     // this is much faster than actually reading the events in
     int iret = m_InManager[0]->PushBackEvents(Npushback);
+    for (unsigned int i = 1; i < m_InManager.size(); ++i)
+    {
+      iret += m_InManager[i]->SkipForThisManager(nevnts);
+    }
     if (!iret)
     {
       return 0;
@@ -409,5 +458,21 @@ void Fun4AllSyncManager::CurrentEvent(const int evt)
   m_CurrentEvent = evt;
   Fun4AllServer *se = Fun4AllServer::instance();
   se->EventNumber(evt);
+  return;
+}
+
+void Fun4AllSyncManager::PrintSyncProblem() const
+{
+  cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << endl;
+  cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << endl;
+  cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << endl;
+  for (auto iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+  {
+    if ((*iter)->HasSyncObject() < 0)
+    {
+      cout << "File " << (*iter)->FileName() << " does not contain a sync object" << endl;
+      cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << endl;
+    }
+  }
   return;
 }

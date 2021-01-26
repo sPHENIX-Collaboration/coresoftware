@@ -27,8 +27,6 @@
 #include <TSysEvtHandler.h>  // for ESignals
 #include <TSystem.h>
 
-#include <boost/foreach.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -54,14 +52,6 @@ Fun4AllServer *Fun4AllServer::instance()
 Fun4AllServer::Fun4AllServer(const std::string &name)
   : Fun4AllBase(name)
   , ffamemtracker(Fun4AllMemoryTracker::instance())
-  , beginruntimestamp(nullptr)
-  , OutNodeCount(0)
-  , bortime_override(0)
-  , ScreamEveryEvent(0)
-  , unregistersubsystem(0)
-  , runnumber(0)
-  , eventnumber(0)
-  , keep_db_connected(0)
 {
   InitAll();
   return;
@@ -133,9 +123,9 @@ void Fun4AllServer::InitAll()
   {
     gSystem->IgnoreSignal((ESignals) i);
   }
-  ostringstream histomanagername;
-  histomanagername << Name() << "HISTOS";
-  ServerHistoManager = new Fun4AllHistoManager(histomanagername.str());
+  string histomanagername;
+  histomanagername = Name() + "HISTOS";
+  ServerHistoManager = new Fun4AllHistoManager(histomanagername);
   registerHistoManager(ServerHistoManager);
   double uplim = NFRAMEWORKBINS - 0.5;
   FrameWorkVars = new TH1D("FrameWorkVars", "FrameWorkVars", NFRAMEWORKBINS, -0.5, uplim);
@@ -283,7 +273,7 @@ int Fun4AllServer::unregisterSubsystem(SubsysReco *subsystem)
 
 int Fun4AllServer::unregisterSubsystemsNow()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator sysiter, removeiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter, removeiter;
   for (removeiter = DeleteSubsystems.begin();
        removeiter != DeleteSubsystems.end();
        ++removeiter)
@@ -330,7 +320,7 @@ int Fun4AllServer::unregisterSubsystemsNow()
 SubsysReco *
 Fun4AllServer::getSubsysReco(const string &name)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator sysiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter;
   for (sysiter = Subsystems.begin(); sysiter != Subsystems.end(); ++sysiter)
   {
     if ((*sysiter).first->Name() == name)
@@ -386,7 +376,7 @@ int Fun4AllServer::registerOutputManager(Fun4AllOutputManager *manager)
 int Fun4AllServer::UpdateEventSelector(Fun4AllOutputManager *manager)
 {
   vector<string>::iterator striter;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator subsysiter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator subsysiter;
 
 tryagain:
   manager->RecoModuleIndex()->clear();
@@ -500,15 +490,9 @@ TNamed *Fun4AllServer::getHisto(const string &hname) const
   return (ServerHistoManager->getHisto(hname));
 }
 
-int Fun4AllServer::process_event(PHCompositeNode * /*topNode*/)
-{
-  int iret = process_event();
-  return iret;
-}
-
 int Fun4AllServer::process_event()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  eventcounter++;
   unsigned icnt = 0;
   int eventbad = 0;
   if (ScreamEveryEvent)
@@ -534,7 +518,7 @@ int Fun4AllServer::process_event()
   }
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
-  for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
@@ -708,7 +692,7 @@ int Fun4AllServer::process_event()
       }
     }
   }
-  for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -716,7 +700,7 @@ int Fun4AllServer::process_event()
     }
     (*iter).first->ResetEvent((*iter).second);
   }
-  BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+  for (auto &syncman : SyncManagers)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -733,7 +717,7 @@ int Fun4AllServer::ResetNodeTree()
   vector<string> ResetNodeList;
   ResetNodeList.push_back("DST");
   PHNodeReset reset;
-  reset.Verbosity(Verbosity() > 0 ? Verbosity() - 1 : 0);  // one lower verbosity level than Fun4AllServer
+  reset.Verbosity(Verbosity() > 2 ? Verbosity() - 2 : 0);  // one lower verbosity level than Fun4AllServer
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
@@ -754,7 +738,7 @@ int Fun4AllServer::ResetNodeTree()
 int Fun4AllServer::Reset()
 {
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
@@ -783,6 +767,7 @@ int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 
 int Fun4AllServer::BeginRun(const int runno)
 {
+  eventcounter = 0; // reset event counter for every new run
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
   if (!bortime_override)
   {
@@ -805,7 +790,7 @@ int Fun4AllServer::BeginRun(const int runno)
     beginruntimestamp->print();
     cout << endl;
   }
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   int iret;
 
   // check if any registered SubsysReco wants to be dropped and
@@ -969,7 +954,7 @@ int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
 
 int Fun4AllServer::EndRun(const int runno)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
@@ -1023,7 +1008,7 @@ int Fun4AllServer::End()
   recoConsts *rc = recoConsts::instance();
   EndRun(rc->get_IntFlag("RUNNUMBER"));  // call SubsysReco EndRun methods for current run
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
@@ -1077,6 +1062,7 @@ int Fun4AllServer::End()
   {
     if (!OutputManager.empty())  // there are registered IO managers
     {
+      MakeNodesTransient(runNode);  // make all nodes transient by default
       vector<Fun4AllOutputManager *>::iterator IOiter;
       for (IOiter = OutputManager.begin(); IOiter != OutputManager.end(); ++IOiter)
       {
@@ -1114,7 +1100,7 @@ void Fun4AllServer::Print(const string &what) const
   if (what == "ALL" || what == "HISTOS")
   {
     // loop over the map and print out the content (name and location in memory)
-    BOOST_FOREACH (Fun4AllHistoManager *histoman, HistoManager)
+    for (auto &histoman : HistoManager)
     {
       histoman->Print(what);
     }
@@ -1126,7 +1112,7 @@ void Fun4AllServer::Print(const string &what) const
          << endl;
     cout << "List of Subsystems in Fun4AllServer:" << endl;
 
-    vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator miter;
+    vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator miter;
     for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
     {
       cout << (*miter).first->Name()
@@ -1138,7 +1124,7 @@ void Fun4AllServer::Print(const string &what) const
   if (what == "ALL" || what == "INPUTMANAGER")
   {
     // the input managers are managed by the input singleton
-    BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+    for (auto &syncman : SyncManagers)
     {
       cout << "SyncManager: " << syncman->Name() << endl;
       syncman->Print(what);
@@ -1161,7 +1147,7 @@ void Fun4AllServer::Print(const string &what) const
       string::size_type pos = pass_on.find("%");
       pass_on = pass_on.substr(pos + 1, pass_on.size());
     }
-    BOOST_FOREACH (Fun4AllOutputManager *outman, OutputManager)
+    for (auto &outman : OutputManager)
     {
       outman->Print(pass_on);
     }
@@ -1350,7 +1336,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       // their data. This is why
       // the whole node tree is resetted whenever one of the Sync Managers
       // requires it.
-      if (retval == 1)
+      if (retval == Fun4AllReturnCodes::RESET_NODE_TREE)
       {
         resetnodetree = 1;
       }
@@ -1364,12 +1350,12 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       // if the node tree needs resetting, we just push the current
       // event(s) (which are all properly synced at this point)
       // back into the input managers and just read again.
-      ResetNodeTree();
       for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
       {
         (*iter)->PushBackInputMgrsEvents(1);
       }
-      continue;
+      ResetNodeTree();
+      continue;  // go back to run loop
     }
     if (iret)
     {
@@ -1423,24 +1409,10 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-
-    if (Verbosity() >= VERBOSITY_SOME)
+    if (Verbosity() >= 1)
     {
-      // print event cycle counter in log scale if VERBOSITY_SOME
-      double significand = 0;
-      if (icnt > 0)
-      {
-        significand = icnt / pow(10, (int) (log10(icnt)));
-      }
-
-      if ((fmod(significand, 1.0) == 0 && significand <= 10) or icnt == 0)
-      {
-        cout << "Fun4AllServer::run - process_event cycle "
-             << icnt << "\t for run " << runnumber;
-        if (require_nevents)
-          cout << ", " << icnt_good << " good event so far";
-        cout << endl;
-      }
+        cout << "Fun4AllServer::run - processing event "
+             << (icnt+1) << " from run " << runnumber << endl;
     }
 
     if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
@@ -1460,6 +1432,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     }
 
     ++icnt;  // completed one event processing
+
     if (require_nevents)
     {
       if (std::find(RetCodes.begin(),
@@ -1481,10 +1454,14 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 int Fun4AllServer::skip(const int nevnts)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
-  for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
+  if (nevnts > 0)  // do not execute for nevnts <= 0
   {
-    iret += (*iter)->skip(nevnts);
+    vector<Fun4AllSyncManager *>::const_iterator iter;
+    for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
+    {
+      iret += (*iter)->skip(nevnts);
+    }
+    eventcounter += nevnts; // update event counter so it reflects the number of events in the input
   }
   return iret;
 }
@@ -1598,7 +1575,7 @@ void Fun4AllServer::GetOutputManagerList(std::vector<std::string> &names) const
 void Fun4AllServer::GetModuleList(std::vector<std::string> &names) const
 {
   names.clear();
-  vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator iter;
+  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     names.push_back((*iter).first->Name());
@@ -1608,7 +1585,7 @@ void Fun4AllServer::GetModuleList(std::vector<std::string> &names) const
 
 int Fun4AllServer::registerSyncManager(Fun4AllSyncManager *newmaster)
 {
-  BOOST_FOREACH (Fun4AllSyncManager *syncman, SyncManagers)
+  for (auto &syncman : SyncManagers)
   {
     if (syncman->Name() == newmaster->Name())
     {
@@ -1681,6 +1658,7 @@ void Fun4AllServer::NodeIdentify(const std::string &name)
 void Fun4AllServer::PrintTimer(const string &name)
 {
   map<const string, PHTimer>::const_iterator iter;
+  PHTimer::PRINT(cout, "**");
   if (name.empty())
   {
     for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)

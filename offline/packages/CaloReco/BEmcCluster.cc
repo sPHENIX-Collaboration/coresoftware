@@ -133,7 +133,7 @@ float EmcCluster::GetECoreCorrected()
   float ecore, ecorecorr;
   ecore = GetECore();
   fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
-  fOwner->CorrectECore(ecore, x, y, &ecorecorr);
+  fOwner->CorrectECore(ecore, x, y, ecorecorr);
   return ecorecorr;
 }
 
@@ -158,9 +158,10 @@ float EmcCluster::GetECore()
     int iy = ixy / fOwner->GetNx();
     int ix = ixy - iy * fOwner->GetNx();
     //      dx = xcg - ix;
-    float dx = fOwner->fTowerDist(float(ix), xcg);
-    float dy = ycg - iy;
-    float et = fOwner->PredictEnergy(dx, dy, energy);
+    //    float dx = fOwner->fTowerDist(float(ix), xcg);
+    //    float dy = ycg - iy;
+    //    float et = fOwner->PredictEnergy(dx, dy, energy);
+    float et = fOwner->PredictEnergy(energy, xcg, ycg, ix, iy);
     if (et > thresh) es += (*ph).amp;
     ++ph;
   }
@@ -504,7 +505,8 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
 
         // predict energy within 2.5 cell square around local peak
         if (ABS(dx) < 2.5 && ABS(dy) < 2.5)
-          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
+	  //          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
+          a = epk[ipk] * fOwner->PredictEnergy(epk[ipk], xpk[ipk], ypk[ipk], ix, iy);
 
         Energy[ipk][in] = a;
         tmpEnergy[in] += a;
@@ -596,7 +598,8 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
           ix = ixy - iy * fOwner->GetNx();
           dx = fOwner->fTowerDist(float(ix), xpk[ig]);
           dy = ypk[ig] - iy;
-          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
+	  //          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
+          a = epk[ig] * fOwner->PredictEnergy(epk[ig], xpk[ig], ypk[ig], ix, iy);
           Energy[ipk][in] += a;
           tmpEnergy[in] += a;
         }

@@ -10,6 +10,7 @@
 #include <phool/getClass.h>
 
 /// Tracking includes
+#include <trackbase/TrkrClusterv1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -17,6 +18,9 @@
 #include <g4eval/SvtxEvalStack.h>
 #include <g4eval/SvtxEvaluator.h>
 #include <g4eval/SvtxTrackEval.h>
+
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <g4main/PHG4VtxPoint.h>
 
@@ -34,10 +38,13 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_truthInfo(nullptr)
   , m_trackMap(nullptr)
   , m_svtxEvalStack(nullptr)
+  , m_actsTrackKeyMap(nullptr)
   , m_actsFitResults(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
+  , m_vertexMap(nullptr)
+  , m_evalCKF(false)
 {
 }
 
@@ -74,11 +81,10 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   m_svtxEvalStack = new SvtxEvalStack(topNode);
-
   m_svtxEvalStack->next_event(topNode);
 
   evaluateTrackFits(topNode);
-
+    
   m_eventNr++;
 
   if (Verbosity() > 1)
@@ -87,36 +93,30 @@ int ActsEvaluator::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 {
+  if(Verbosity() > 5)
+    std::cout << "Evaluating Acts track fits" << std::endl;
 
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
 
-  std::map<const unsigned int, Trajectory>::iterator trackIter;
+  std::map<const unsigned int, Trajectory>::iterator trajIter;
   int iTraj = 0;
   int iTrack = 0;
 
-  for (trackIter = m_actsFitResults->begin();
-       trackIter != m_actsFitResults->end();
-       ++trackIter)
+  for (trajIter = m_actsFitResults->begin();
+       trajIter != m_actsFitResults->end();
+       ++trajIter)
   {
-    /// Get the track information
-    const unsigned int trackKey = trackIter->first;
-    const Trajectory traj = trackIter->second;
-    SvtxTrackMap::Iter svtxTrackIter = m_trackMap->find(trackKey);
-    SvtxTrack *track = svtxTrackIter->second;
-    PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
-    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
-    
-    if(Verbosity() > 1)
-      {
-	std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
-	track->identify();
-	std::cout << "TruthParticle : " << g4particle->get_px()
-		  << ", " << g4particle->get_py() << ", "
-		  << g4particle->get_pz() << ", "<< g4particle->get_e() 
-		  << std::endl;
-      }
+    /// Get the trajectory information
+    unsigned int trackKey = trajIter->first;
+    Trajectory traj = trajIter->second;
+
+    if(Verbosity() > 2)
+      std::cout << "Starting trajectory " << iTraj 
+		<< " with trackKey corresponding to track seed "
+		<< trackKey << std::endl;
 
     const auto &[trackTips, mj] = traj.trajectory();
     m_trajNr = iTraj;
@@ -127,55 +127,126 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
       if (Verbosity() > 1)
         std::cout << "TrackTips empty in ActsEvaluator" << std::endl;
       continue;
-    }
-    
+    }  
    
     iTrack = 0;
-    /// For the KF this iterates once. For the CKF it may iterate 
-    /// multiple times per Trajectory
+   
+    /// Track seed always is related to the trajectory->trackkey
+    /// mapping for KF (by definition) and CKF
+    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
+    
+    /// Get the map of track tips->trackKeys for this trajectory
+    std::map<const size_t, const unsigned int> trackKeyMap;
+    if(m_evalCKF)
+      trackKeyMap = m_actsTrackKeyMap->find(trackKey)->second;
+
+    /// For the KF this iterates once. For the CKF it may iterate several times
     for(const size_t &trackTip : trackTips)
       {
+	if(Verbosity() > 2)
+	  std::cout << "beginning trackTip " << trackTip 
+		    << " corresponding to track " << iTrack 
+		    << " in trajectroy " << iTraj << std::endl;
+
+	/// The CKF has a trackTip == trackKey correspondence, rather
+	/// than a trajectory == trackKey correspondence. So need to
+	/// grab the correct key from the extra map
+	if(m_evalCKF)
+	  {
+	    std::map<const size_t, const unsigned int>::iterator ckfiter 
+	      = trackKeyMap.find(trackTip);
+	    if(ckfiter == trackKeyMap.end())
+	      {
+		if(Verbosity() > 2)
+		  std::cout << "Track result flagged as bad, continuing"
+			    << std::endl;
+		continue;
+	      }
+	    trackKey = ckfiter->second;
+	  }
+
+	if(Verbosity() > 2)
+	  std::cout<<"Evaluating track key " << trackKey 
+		   << " for track tip " << trackTip << std::endl;
+
+	SvtxTrack *track = m_trackMap->find(trackKey)->second;
+	PHG4Particle *g4particle = trackeval->max_truth_particle_by_nclusters(track);
+	unsigned int vertexId = track->get_vertex_id();
+	if(vertexId == UINT_MAX)
+	  vertexId = 0;
+	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+	Acts::Vector3D vertex;
+	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
+	vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
+	vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
+	
+	if(Verbosity() > 1)
+	  {
+	    std::cout << "Analyzing SvtxTrack "<< trackKey << std::endl;
+        
+	    std::cout << "TruthParticle : " << g4particle->get_px()
+		      << ", " << g4particle->get_py() << ", "
+		      << g4particle->get_pz() << ", "<< g4particle->get_e() 
+		      << std::endl;
+	  }
+	
 	m_trackNr = iTrack;
-        iTrack++;
+  
+	
 	auto trajState =
 	  Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
 	if(Verbosity() > 1)
 	  {
-	    std::cout << "Analyzing trajectory with trackTip " << trackTip
-		      << std::endl;
 	    if(traj.hasTrackParameters(trackTip))
 	      {
 		std::cout << "Fitted params : " 
-			  << traj.trackParameters(trackTip).position() 
-			  << "   " << traj.trackParameters(trackTip).momentum()
+			  << traj.trackParameters(trackTip).position(m_tGeometry->geoContext) 
+			  << std::endl << traj.trackParameters(trackTip).momentum()
 			  << std::endl;
+		std::cout << "Track has " << trajState.nMeasurements
+			  << " measurements and " << trajState.nHoles
+			  << " holes and " << trajState.nOutliers 
+			  << " outliers and " << trajState.nStates
+			  << " states " << std::endl;
 	      }
 	  }
 	
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
+	m_nOutliers = trajState.nOutliers;
+	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
-	
+	m_quality = track->get_quality();
+
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
-	fillFittedTrackParams(traj, trackTip);
+	fillFittedTrackParams(traj, trackTip, vertex);
 	visitTrackStates(traj,trackTip, topNode);
 	
 	m_trackTree->Fill();
 	
 	/// Start fresh for the next track
 	clearTrackVariables();
+	if(Verbosity() > 1)
+	  std::cout << "Finished track " << iTrack <<std::endl;
+
+	iTrack++;
       }
     
-    ++iTraj;
+   
     if(Verbosity() > 1)
       {
 	std::cout << "Analyzed " << iTrack << " tracks in trajectory number "
 		  << iTraj << std::endl;
       }
+    
+    ++iTraj;
   }
+  
+  if(Verbosity () > 5)
+    std::cout << "Finished evaluating track fits" << std::endl;
 
   return;
 }
@@ -197,10 +268,14 @@ int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
 }
 
 
+
 void ActsEvaluator::visitTrackStates(const Trajectory traj, 
 				     const size_t &trackTip,
 				     PHCompositeNode *topNode)
 {
+
+  if(Verbosity() > 2)
+    std::cout << "Begin visit track states" << std::endl;
 
   const auto &[trackTips, mj] = traj.trajectory();
 
@@ -213,23 +288,28 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     }
 
     /// Get the geometry ID
-    auto geoID = state.referenceSurface().geoID();
+    auto geoID = state.referenceSurface().geometryId();
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
 
+    if(Verbosity() > 3)
+      std::cout << "Cluster volume : layer : sensitive " << geoID.volume()
+		<< " : " << geoID.layer() << " : " 
+		<< geoID.sensitive() << std::endl;
+
     auto meas = std::get<Measurement>(*state.uncalibrated());
 
     /// Get local position
-    Acts::Vector2D local(meas.parameters()[Acts::ParDef::eLOC_0],
-                         meas.parameters()[Acts::ParDef::eLOC_1]);
+    Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
+                         meas.parameters()[Acts::eBoundLoc1]);
+    
     /// Get global position
-    Acts::Vector3D global(0, 0, 0);
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
     Acts::Vector3D mom(1, 1, 1);
-    meas.referenceSurface().localToGlobal(m_tGeometry->geoContext,
-                                          local, mom, global);
+    Acts::Vector3D global = meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
+                                          local, mom);
 
     /// Get measurement covariance
     auto cov = meas.covariance();
@@ -251,16 +331,13 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     float gz = globalTruthPos(2);
 
     /// Get local truth position
-    Acts::Vector2D truthlocal;
-
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
 
-    meas.referenceSurface().globalToLocal(
+    auto vecResult = meas.referenceObject().globalToLocal(
         m_tGeometry->geoContext,
         globalTruthPos,
-        globalTruthUnitDir,
-        truthlocal);
+        globalTruthUnitDir);
 
     /// Push the truth hit info
     m_t_x.push_back(gx);
@@ -281,9 +358,19 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     float momentum = sqrt(m_t_px * m_t_px +
                           m_t_py * m_t_py +
                           m_t_pz * m_t_pz);
+    
+    if(vecResult.ok())
+      {
+	Acts::Vector2D truthLocVec = vecResult.value();
+	truthLOC0 = truthLocVec.x();
+	truthLOC1 = truthLocVec.y();
+      }
+    else
+      {
+	truthLOC0 = -9999.;
+	truthLOC1 = -9999.;
+      }
 
-    truthLOC0 = truthlocal.x();
-    truthLOC1 = truthlocal.y();
     truthPHI = phi(globalTruthUnitDir);
     truthTHETA = theta(globalTruthUnitDir);
     truthQOP =
@@ -303,95 +390,100 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       predicted = true;
       m_nPredicted++;
-      Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.predictedCovariance(),
-          state.predicted(),
-          state.referenceSurface().getSharedPtr());
+      
+      auto parameters = state.predicted();
       auto covariance = state.predictedCovariance();
 
       /// Local hit residual info
       auto H = meas.projector();
       auto resCov = cov + H * covariance * H.transpose();
-      auto residual = meas.residual(parameter);
-      m_res_x_hit.push_back(residual(Acts::ParDef::eLOC_0));
-      m_res_y_hit.push_back(residual(Acts::ParDef::eLOC_1));
+      auto residual = meas.residual(parameters);
+      m_res_x_hit.push_back(residual(Acts::eBoundLoc0));
+      m_res_y_hit.push_back(residual(Acts::eBoundLoc1));
       m_err_x_hit.push_back(
-          sqrt(resCov(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_y_hit.push_back(
-          sqrt(resCov(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_x_hit.push_back(
-          residual(Acts::ParDef::eLOC_0) /
-          sqrt(resCov(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          residual(Acts::eBoundLoc0) /
+          sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_y_hit.push_back(
-          residual(Acts::ParDef::eLOC_1) /
-          sqrt(resCov(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          residual(Acts::eBoundLoc1) /
+          sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_dim_hit.push_back(state.calibratedSize());
 
       /// Predicted parameter
-      m_eLOC0_prt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0]);
-      m_eLOC1_prt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1]);
-      m_ePHI_prt.push_back(parameter.parameters()[Acts::ParDef::ePHI]);
-      m_eTHETA_prt.push_back(parameter.parameters()[Acts::ParDef::eTHETA]);
-      m_eQOP_prt.push_back(parameter.parameters()[Acts::ParDef::eQOP]);
-      m_eT_prt.push_back(parameter.parameters()[Acts::ParDef::eT]);
+      m_eLOC0_prt.push_back(parameters[Acts::eBoundLoc0]);
+      m_eLOC1_prt.push_back(parameters[Acts::eBoundLoc1]);
+      m_ePHI_prt.push_back(parameters[Acts::eBoundPhi]);
+      m_eTHETA_prt.push_back(parameters[Acts::eBoundTheta]);
+      m_eQOP_prt.push_back(parameters[Acts::eBoundQOverP]);
+      m_eT_prt.push_back(parameters[Acts::eBoundTime]);
 
       /// Predicted residual
-      m_res_eLOC0_prt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0] -
+      m_res_eLOC0_prt.push_back(parameters[Acts::eBoundLoc0] -
                                 truthLOC0);
-      m_res_eLOC1_prt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1] -
+      m_res_eLOC1_prt.push_back(parameters[Acts::eBoundLoc1] -
                                 truthLOC1);
-      m_res_ePHI_prt.push_back(parameter.parameters()[Acts::ParDef::ePHI] -
+      m_res_ePHI_prt.push_back(parameters[Acts::eBoundPhi] -
                                truthPHI);
       m_res_eTHETA_prt.push_back(
-          parameter.parameters()[Acts::ParDef::eTHETA] - truthTHETA);
-      m_res_eQOP_prt.push_back(parameter.parameters()[Acts::ParDef::eQOP] -
+          parameters[Acts::eBoundTheta] - truthTHETA);
+      m_res_eQOP_prt.push_back(parameters[Acts::eBoundQOverP] -
                                truthQOP);
-      m_res_eT_prt.push_back(parameter.parameters()[Acts::ParDef::eT] -
+      m_res_eT_prt.push_back(parameters[Acts::eBoundTime] -
                              truthTIME);
 
       /// Predicted parameter Uncertainties
       m_err_eLOC0_prt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_prt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_prt.push_back(
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_prt.push_back(
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_prt.push_back(
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_prt.push_back(
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Predicted parameter pulls
       m_pull_eLOC0_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_0] - truthLOC0) /
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          (parameters[Acts::eBoundLoc0] - truthLOC0) /
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_1] - truthLOC1) /
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          (parameters[Acts::eBoundLoc1] - truthLOC1) /
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::ePHI] - truthPHI) /
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          (parameters[Acts::eBoundPhi] - truthPHI) /
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::eTHETA] - truthTHETA) /
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          (parameters[Acts::eBoundTheta] - truthTHETA) /
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::eQOP] - truthQOP) /
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          (parameters[Acts::eBoundQOverP] - truthQOP) /
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_prt.push_back(
-          (parameter.parameters()[Acts::ParDef::eT] - truthTIME) /
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          (parameters[Acts::eBoundTime] - truthTIME) /
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      m_x_prt.push_back(parameter.position().x());
-      m_y_prt.push_back(parameter.position().y());
-      m_z_prt.push_back(parameter.position().z());
-      m_px_prt.push_back(parameter.momentum().x());
-      m_py_prt.push_back(parameter.momentum().y());
-      m_pz_prt.push_back(parameter.momentum().z());
-      m_pT_prt.push_back(parameter.pT());
-      m_eta_prt.push_back(eta(parameter.position()));
+      Acts::FreeVector freeParams = 
+	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(), 
+						     m_tGeometry->geoContext,
+						     parameters);
+
+      m_x_prt.push_back(freeParams[Acts::eFreePos0]);
+      m_y_prt.push_back(freeParams[Acts::eFreePos1]);
+      m_z_prt.push_back(freeParams[Acts::eFreePos2]);
+      auto p = std::abs(1 / freeParams[Acts::eFreeQOverP]);
+      m_px_prt.push_back(p * freeParams[Acts::eFreeDir0]);
+      m_py_prt.push_back(p * freeParams[Acts::eFreeDir1]);
+      m_pz_prt.push_back(p * freeParams[Acts::eFreeDir2]);
+      m_pT_prt.push_back(p * std::hypot(freeParams[Acts::eFreeDir0],
+					freeParams[Acts::eFreeDir1]));
+      m_eta_prt.push_back(
+         Acts::VectorHelpers::eta(freeParams.segment<3>(Acts::eFreeDir0)));
     }
     else
     {
@@ -442,76 +534,80 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       filtered = true;
       m_nFiltered++;
-      Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.filteredCovariance(), state.filtered(),
-          state.referenceSurface().getSharedPtr());
+
+      Acts::BoundTrackParameters parameter(
+	    state.referenceSurface().getSharedPtr(),
+	    state.filtered(),
+	    state.filteredCovariance());
+
       auto covariance = state.filteredCovariance();
 
-      m_eLOC0_flt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0]);
-      m_eLOC1_flt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1]);
-      m_ePHI_flt.push_back(parameter.parameters()[Acts::ParDef::ePHI]);
-      m_eTHETA_flt.push_back(parameter.parameters()[Acts::ParDef::eTHETA]);
-      m_eQOP_flt.push_back(parameter.parameters()[Acts::ParDef::eQOP]);
-      m_eT_flt.push_back(parameter.parameters()[Acts::ParDef::eT]);
+      m_eLOC0_flt.push_back(parameter.parameters()[Acts::eBoundLoc0]);
+      m_eLOC1_flt.push_back(parameter.parameters()[Acts::eBoundLoc1]);
+      m_ePHI_flt.push_back(parameter.parameters()[Acts::eBoundPhi]);
+      m_eTHETA_flt.push_back(parameter.parameters()[Acts::eBoundTheta]);
+      m_eQOP_flt.push_back(parameter.parameters()[Acts::eBoundQOverP]);
+      m_eT_flt.push_back(parameter.parameters()[Acts::eBoundTime]);
 
-      m_res_eLOC0_flt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0] -
+      m_res_eLOC0_flt.push_back(parameter.parameters()[Acts::eBoundLoc0] -
                                 truthLOC0);
-      m_res_eLOC1_flt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1] -
+      m_res_eLOC1_flt.push_back(parameter.parameters()[Acts::eBoundLoc1] -
                                 truthLOC1);
-      m_res_ePHI_flt.push_back(parameter.parameters()[Acts::ParDef::ePHI] -
+      m_res_ePHI_flt.push_back(parameter.parameters()[Acts::eBoundPhi] -
                                truthPHI);
-      m_res_eTHETA_flt.push_back(parameter.parameters()[Acts::ParDef::eTHETA] -
+      m_res_eTHETA_flt.push_back(parameter.parameters()[Acts::eBoundTheta] -
                                  truthTHETA);
-      m_res_eQOP_flt.push_back(parameter.parameters()[Acts::ParDef::eQOP] -
+      m_res_eQOP_flt.push_back(parameter.parameters()[Acts::eBoundQOverP] -
                                truthQOP);
-      m_res_eT_flt.push_back(parameter.parameters()[Acts::ParDef::eT] -
+      m_res_eT_flt.push_back(parameter.parameters()[Acts::eBoundTime] -
                              truthTIME);
 
       /// Filtered parameter uncertainties
       m_err_eLOC0_flt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_flt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_flt.push_back(
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_flt.push_back(
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_flt.push_back(
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_flt.push_back(
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Filtered parameter pulls
       m_pull_eLOC0_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_0] - truthLOC0) /
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          (parameter.parameters()[Acts::eBoundLoc0] - truthLOC0) /
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_1] - truthLOC1) /
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          (parameter.parameters()[Acts::eBoundLoc1] - truthLOC1) /
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::ePHI] - truthPHI) /
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          (parameter.parameters()[Acts::eBoundPhi] - truthPHI) /
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::eTHETA] - truthTHETA) /
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          (parameter.parameters()[Acts::eBoundTheta] - truthTHETA) /
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::eQOP] - truthQOP) /
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          (parameter.parameters()[Acts::eBoundQOverP] - truthQOP) /
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_flt.push_back(
-          (parameter.parameters()[Acts::ParDef::eT] - truthTIME) /
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          (parameter.parameters()[Acts::eBoundTime] - truthTIME) /
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Other filtered parameter info
-      m_x_flt.push_back(parameter.position().x());
-      m_y_flt.push_back(parameter.position().y());
-      m_z_flt.push_back(parameter.position().z());
+      m_x_flt.push_back(parameter.position(m_tGeometry->geoContext).x());
+      m_y_flt.push_back(parameter.position(m_tGeometry->geoContext).y());
+      m_z_flt.push_back(parameter.position(m_tGeometry->geoContext).z());
       m_px_flt.push_back(parameter.momentum().x());
       m_py_flt.push_back(parameter.momentum().y());
       m_pz_flt.push_back(parameter.momentum().z());
-      m_pT_flt.push_back(parameter.pT());
-      m_eta_flt.push_back(eta(parameter.position()));
+      m_pT_flt.push_back(sqrt(parameter.momentum().x() * parameter.momentum().x()
+			      + parameter.momentum().y() * parameter.momentum().y()));
+      m_eta_flt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
       m_chi2.push_back(state.chi2());
+      
     }
     else
     {
@@ -555,74 +651,77 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     {
       smoothed = true;
       m_nSmoothed++;
-      Acts::BoundParameters parameter(
-          m_tGeometry->geoContext,
-          state.smoothedCovariance(), state.smoothed(),
-          state.referenceSurface().getSharedPtr());
+
+      Acts::BoundTrackParameters parameter(
+	    state.referenceSurface().getSharedPtr(),
+	    state.smoothed(),
+	    state.smoothedCovariance());
+
       auto covariance = state.smoothedCovariance();
 
-      m_eLOC0_smt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0]);
-      m_eLOC1_smt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1]);
-      m_ePHI_smt.push_back(parameter.parameters()[Acts::ParDef::ePHI]);
-      m_eTHETA_smt.push_back(parameter.parameters()[Acts::ParDef::eTHETA]);
-      m_eQOP_smt.push_back(parameter.parameters()[Acts::ParDef::eQOP]);
-      m_eT_smt.push_back(parameter.parameters()[Acts::ParDef::eT]);
+      m_eLOC0_smt.push_back(parameter.parameters()[Acts::eBoundLoc0]);
+      m_eLOC1_smt.push_back(parameter.parameters()[Acts::eBoundLoc1]);
+      m_ePHI_smt.push_back(parameter.parameters()[Acts::eBoundPhi]);
+      m_eTHETA_smt.push_back(parameter.parameters()[Acts::eBoundTheta]);
+      m_eQOP_smt.push_back(parameter.parameters()[Acts::eBoundQOverP]);
+      m_eT_smt.push_back(parameter.parameters()[Acts::eBoundTime]);
 
-      m_res_eLOC0_smt.push_back(parameter.parameters()[Acts::ParDef::eLOC_0] -
+      m_res_eLOC0_smt.push_back(parameter.parameters()[Acts::eBoundLoc0] -
                                 truthLOC0);
-      m_res_eLOC1_smt.push_back(parameter.parameters()[Acts::ParDef::eLOC_1] -
+      m_res_eLOC1_smt.push_back(parameter.parameters()[Acts::eBoundLoc1] -
                                 truthLOC1);
-      m_res_ePHI_smt.push_back(parameter.parameters()[Acts::ParDef::ePHI] -
+      m_res_ePHI_smt.push_back(parameter.parameters()[Acts::eBoundPhi] -
                                truthPHI);
-      m_res_eTHETA_smt.push_back(parameter.parameters()[Acts::ParDef::eTHETA] -
+      m_res_eTHETA_smt.push_back(parameter.parameters()[Acts::eBoundTheta] -
                                  truthTHETA);
-      m_res_eQOP_smt.push_back(parameter.parameters()[Acts::ParDef::eQOP] -
+      m_res_eQOP_smt.push_back(parameter.parameters()[Acts::eBoundQOverP] -
                                truthQOP);
-      m_res_eT_smt.push_back(parameter.parameters()[Acts::ParDef::eT] -
+      m_res_eT_smt.push_back(parameter.parameters()[Acts::eBoundTime] -
                              truthTIME);
 
       /// Smoothed parameter uncertainties
       m_err_eLOC0_smt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_smt.push_back(
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_smt.push_back(
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_smt.push_back(
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_smt.push_back(
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_smt.push_back(
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Smoothed parameter pulls
       m_pull_eLOC0_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_0] - truthLOC0) /
-          sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0)));
+          (parameter.parameters()[Acts::eBoundLoc0] - truthLOC0) /
+          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::eLOC_1] - truthLOC1) /
-          sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1)));
+          (parameter.parameters()[Acts::eBoundLoc1] - truthLOC1) /
+          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::ePHI] - truthPHI) /
-          sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI)));
+          (parameter.parameters()[Acts::eBoundPhi] - truthPHI) /
+          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::eTHETA] - truthTHETA) /
-          sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA)));
+          (parameter.parameters()[Acts::eBoundTheta] - truthTHETA) /
+          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::eQOP] - truthQOP) /
-          sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP)));
+          (parameter.parameters()[Acts::eBoundQOverP] - truthQOP) /
+          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_smt.push_back(
-          (parameter.parameters()[Acts::ParDef::eT] - truthTIME) /
-          sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT)));
+          (parameter.parameters()[Acts::eBoundTime] - truthTIME) /
+          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      m_x_smt.push_back(parameter.position().x());
-      m_y_smt.push_back(parameter.position().y());
-      m_z_smt.push_back(parameter.position().z());
+      m_x_smt.push_back(parameter.position(m_tGeometry->geoContext).x());
+      m_y_smt.push_back(parameter.position(m_tGeometry->geoContext).y());
+      m_z_smt.push_back(parameter.position(m_tGeometry->geoContext).z());
       m_px_smt.push_back(parameter.momentum().x());
       m_py_smt.push_back(parameter.momentum().y());
       m_pz_smt.push_back(parameter.momentum().z());
-      m_pT_smt.push_back(parameter.pT());
-      m_eta_smt.push_back(eta(parameter.position()));
+      m_pT_smt.push_back(sqrt(parameter.momentum().x() * parameter.momentum().x() 
+			      + parameter.momentum().y() * parameter.momentum().y()));
+      m_eta_smt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
     }
     else
     {
@@ -670,28 +769,11 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
   }   /// Finish lambda function
   );  /// Finish multi trajectory visitBackwards call
 
+
+  if(Verbosity() > 2)
+    std::cout << "Finished track states" << std::endl;
+
   return;
-}
-
-TrkrDefs::cluskey ActsEvaluator::getClusKey(const unsigned int hitID)
-{
-  TrkrDefs::cluskey clusKey = 0;
-  /// Unfortunately the map is backwards for looking up cluster key from
-  /// hit ID. So we need to iterate over it. There won't be duplicates since
-  /// the cluster key and hit id are a one-to-one map
-  std::map<TrkrDefs::cluskey, unsigned int>::iterator
-      hitIter = m_hitIdClusKey->begin();
-  while (hitIter != m_hitIdClusKey->end())
-  {
-    if (hitIter->second == hitID)
-    {
-      clusKey = hitIter->first;
-      break;
-    }
-    ++hitIter;
-  }
-
-  return clusKey;
 }
 
 
@@ -701,33 +783,20 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  TrkrDefs::cluskey clusKey = getClusKey(hitID);
+  TrkrDefs::cluskey clusKey = m_hitIdClusKey->right.find(hitID)->second;
   
-  const PHG4Hit *g4hit = clustereval->max_truth_hit_by_energy(clusKey);
+  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
   
-  float layer = (float) TrkrDefs::getLayer(clusKey);
   float gx = -9999;
   float gy = -9999;
   float gz = -9999;
   float gt = -9999;
-  float gedep = -9999;
   
-  if (g4hit)
+  if (truth_cluster)
     {
-      /// Cluster the associated truth hits within the same layer to get
-      /// the truth cluster position
-      std::set<PHG4Hit *> truth_hits = clustereval->all_truth_hits(clusKey);
-      std::vector<PHG4Hit *> contributing_hits;
-      std::vector<double> contributing_hits_energy;
-      std::vector<std::vector<double>> contributing_hits_entry;
-      std::vector<std::vector<double>> contributing_hits_exit;
-      m_svtxEvaluator->LayerClusterG4Hits(topNode, truth_hits, 
-					  contributing_hits,
-                                          contributing_hits_energy, 
-					  contributing_hits_entry,
-                                          contributing_hits_exit, 
-					  layer, gx, gy, gz, gt,
-                                          gedep);
+      gx = truth_cluster->getX();
+      gy = truth_cluster->getY();
+      gz = truth_cluster->getZ();
     }
   
   /// Convert to acts units of mm
@@ -743,10 +812,14 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
 
 void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
 {
-  FW::TrackParameters params = track.getTrackParams();
+
+  if(Verbosity() > 2)
+    std::cout << "Filling proto track seed quantities" << std::endl;
+  
+  ActsExamples::TrackParameters params = track.getTrackParams();
   std::vector<SourceLink> sourceLinks = track.getSourceLinks();
   
-  Acts::Vector3D position = params.position();
+  Acts::Vector3D position = params.position(m_tGeometry->geoContext);
   Acts::Vector3D momentum = params.momentum();
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);
@@ -755,18 +828,26 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
 
+  auto cov = params.covariance().value();
+  m_protoD0Cov = cov(0,0);
+  m_protoZ0Cov = cov(1,1);
+  m_protoPhiCov = cov(2,2);
+  m_protoThetaCov = cov(3,3);
+  m_protoQopCov = cov(4,4);
+  
+
   for(int i = 0; i < sourceLinks.size(); ++i)
     {
       /// Get source link global position
       Acts::Vector2D loc(sourceLinks.at(i).location()(0),
 			 sourceLinks.at(i).location()(1));
-      Acts::Vector3D globalPos(0,0,0);
+   
       Acts::Vector3D mom(0,0,0);
       
-      sourceLinks.at(i).referenceSurface().localToGlobal(
+      Acts::Vector3D globalPos = sourceLinks.at(i).referenceSurface().localToGlobal(
                                             m_tGeometry->geoContext,
 					    loc,
-					    mom, globalPos);
+					    mom);
 
       m_SLx.push_back(globalPos(0));
       m_SLy.push_back(globalPos(1));
@@ -783,32 +864,46 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       float gz = globalTruthPos(2);
       
       /// Get local truth position
-      Acts::Vector2D truthlocal;
-      
       const float r = sqrt(gx * gx + gy * gy + gz * gz);
       Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
       
-      sourceLinks.at(i).referenceSurface().globalToLocal(
+      auto truthLocal = sourceLinks.at(i).referenceSurface().globalToLocal(
 					    m_tGeometry->geoContext,
 					    globalTruthPos,
-					    globalTruthUnitDir,
-					    truthlocal);
-      m_t_SL_lx.push_back(truthlocal(0));
-      m_t_SL_ly.push_back(truthlocal(1));
-      m_t_SL_gx.push_back(gx);
-      m_t_SL_gy.push_back(gy);
-      m_t_SL_gz.push_back(gz);
-      
-
-
+					    globalTruthUnitDir);
+      if(truthLocal.ok())
+	{
+	  Acts::Vector2D truthLocalVec = truthLocal.value();
+	  
+	  m_t_SL_lx.push_back(truthLocalVec(0));
+	  m_t_SL_ly.push_back(truthLocalVec(1));
+	  m_t_SL_gx.push_back(gx);
+	  m_t_SL_gy.push_back(gy);
+	  m_t_SL_gz.push_back(gz);   
+	} 
+      else
+	{
+	  m_t_SL_lx.push_back(-9999.);
+	  m_t_SL_ly.push_back(-9999.);
+	  m_t_SL_gx.push_back(-9999.);
+	  m_t_SL_gy.push_back(-9999.);
+	  m_t_SL_gz.push_back(-9999.);
+	}
     }
+
+  if(Verbosity() > 2)
+    std::cout << "Filled proto track" << std::endl;
 
 }
 
 void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
-					  const size_t &trackTip)
+					  const size_t &trackTip,
+					  const Acts::Vector3D vertex)
 {
   m_hasFittedParams = false;
+
+  if(Verbosity() > 2)
+    std::cout << "Filling fitted track parameters" << std::endl;
 
   /// If it has track parameters, fill the values
   if (traj.hasTrackParameters(trackTip))
@@ -817,30 +912,31 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     const auto &boundParam = traj.trackParameters(trackTip);
     const auto &parameter = boundParam.parameters();
     const auto &covariance = *boundParam.covariance();
-    m_eLOC0_fit = parameter[Acts::ParDef::eLOC_0];
-    m_eLOC1_fit = parameter[Acts::ParDef::eLOC_1];
-    m_ePHI_fit = parameter[Acts::ParDef::ePHI];
-    m_eTHETA_fit = parameter[Acts::ParDef::eTHETA];
-    m_eQOP_fit = parameter[Acts::ParDef::eQOP];
-    m_eT_fit = parameter[Acts::ParDef::eT];
+    m_charge_fit = boundParam.charge();
+    m_eLOC0_fit = parameter[Acts::eBoundLoc0];
+    m_eLOC1_fit = parameter[Acts::eBoundLoc1];
+    m_ePHI_fit = parameter[Acts::eBoundPhi];
+    m_eTHETA_fit = parameter[Acts::eBoundTheta];
+    m_eQOP_fit = parameter[Acts::eBoundQOverP];
+    m_eT_fit = parameter[Acts::eBoundTime];
     m_err_eLOC0_fit =
-        sqrt(covariance(Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_0));
+        sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0));
     m_err_eLOC1_fit =
-        sqrt(covariance(Acts::ParDef::eLOC_1, Acts::ParDef::eLOC_1));
-    m_err_ePHI_fit = sqrt(covariance(Acts::ParDef::ePHI, Acts::ParDef::ePHI));
+        sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1));
+    m_err_ePHI_fit = sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi));
     m_err_eTHETA_fit =
-        sqrt(covariance(Acts::ParDef::eTHETA, Acts::ParDef::eTHETA));
-    m_err_eQOP_fit = sqrt(covariance(Acts::ParDef::eQOP, Acts::ParDef::eQOP));
-    m_err_eT_fit = sqrt(covariance(Acts::ParDef::eT, Acts::ParDef::eT));
+        sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta));
+    m_err_eQOP_fit = sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP));
+    m_err_eT_fit = sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime));
 
     m_px_fit = boundParam.momentum()(0);
     m_py_fit = boundParam.momentum()(1);
     m_pz_fit = boundParam.momentum()(2);
-    m_x_fit  = boundParam.position()(0);
-    m_y_fit  = boundParam.position()(1);
-    m_z_fit  = boundParam.position()(2);
+    m_x_fit  = boundParam.position(m_tGeometry->geoContext)(0);
+    m_y_fit  = boundParam.position(m_tGeometry->geoContext)(1);
+    m_z_fit  = boundParam.position(m_tGeometry->geoContext)(2);
     
-    calculateDCA(boundParam);
+    calculateDCA(boundParam, vertex);
 
     return;
   }
@@ -852,6 +948,7 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_eTHETA_fit = -9999;
   m_eQOP_fit = -9999;
   m_eT_fit = -9999;
+  m_charge_fit = -9999;
   m_err_eLOC0_fit = -9999;
   m_err_eLOC1_fit = -9999;
   m_err_ePHI_fit = -9999;
@@ -865,14 +962,22 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
   m_y_fit = -9999;
   m_z_fit = -9999;
 
+  if(Verbosity() > 2)
+    std::cout << "Finished fitted track params" << std::endl;
+
   return;
 }
 
-void ActsEvaluator::calculateDCA(const Acts::BoundParameters param)
+void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
+				 const Acts::Vector3D vertex)
 {
 
-  Acts::Vector3D pos = param.position();
+  Acts::Vector3D pos = param.position(m_tGeometry->geoContext);
   Acts::Vector3D mom = param.momentum();
+  
+  /// Correct for vertex position
+  pos -= vertex;
+
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
   if(param.covariance())
     cov = param.covariance().value();
@@ -927,8 +1032,8 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
     m_t_vy = vtx->get_y() * Acts::UnitConstants::cm;
     m_t_vz = vtx->get_z() * Acts::UnitConstants::cm;
     if(Verbosity() > 1)
-      std::cout << "VTX : (" << m_t_vx << ", " << m_t_vy << ", " << m_t_vz
-		<< ")" << std::endl;
+      std::cout << "truth vertex : (" << m_t_vx << ", " << m_t_vy 
+		<< ", " << m_t_vz << ")" << std::endl;
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
@@ -960,6 +1065,15 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 
 int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_vertexMap)
+    {
+      std::cout << PHWHERE << "SvtxVertexMap not found, cannot continue!" 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   if (!m_truthInfo)
@@ -970,7 +1084,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
 
   if (!m_hitIdClusKey)
   {
@@ -990,13 +1104,28 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
+  m_actsTrackKeyMap = findNode::getClass<std::map<const unsigned int,
+				         std::map<const size_t, 
+						  const unsigned int>>>
+    (topNode, "ActsTrackKeys");
+
+  if (!m_actsTrackKeyMap)
+    {
+      if(Verbosity() > 1)
+	std::cout << PHWHERE << "No acts CKF track map on node tree."
+		  << std::endl 
+		  << "If you are analyzing the CKF, your results will be incorrect."
+		  << std::endl;
+
+    }
+
+  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
+                     (topNode, "ActsFitResults");
 
   if (!m_actsFitResults)
   {
-    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing"
+    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing."
               << std::endl;
-
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -1174,7 +1303,11 @@ void ActsEvaluator::clearTrackVariables()
   m_protoTrackX  = -9999.;
   m_protoTrackY  = -9999.;
   m_protoTrackZ  = -9999.;
-
+  m_protoD0Cov   = -9999.;
+  m_protoZ0Cov   = -9999.;
+  m_protoPhiCov  = -9999.;
+  m_protoThetaCov= -9999.;
+  m_protoQopCov  = -9999.;
 
   return;
 }
@@ -1201,7 +1334,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_phi", &m_t_phi);
   m_trackTree->Branch("t_eta", &m_t_eta);
   m_trackTree->Branch("t_pT", &m_t_pT);
-
+  
   m_trackTree->Branch("t_x", &m_t_x);
   m_trackTree->Branch("t_y", &m_t_y);
   m_trackTree->Branch("t_z", &m_t_z);
@@ -1218,12 +1351,16 @@ void ActsEvaluator::initializeTree()
 
 
   m_trackTree->Branch("hasFittedParams", &m_hasFittedParams);
+  m_trackTree->Branch("chi2_fit", &m_chi2_fit);
+  m_trackTree->Branch("quality", &m_quality);
+  m_trackTree->Branch("ndf_fit", &m_ndf_fit);
   m_trackTree->Branch("eLOC0_fit", &m_eLOC0_fit);
   m_trackTree->Branch("eLOC1_fit", &m_eLOC1_fit);
   m_trackTree->Branch("ePHI_fit", &m_ePHI_fit);
   m_trackTree->Branch("eTHETA_fit", &m_eTHETA_fit);
   m_trackTree->Branch("eQOP_fit", &m_eQOP_fit);
   m_trackTree->Branch("eT_fit", &m_eT_fit);
+  m_trackTree->Branch("charge_fit", &m_charge_fit);
   m_trackTree->Branch("err_eLOC0_fit", &m_err_eLOC0_fit);
   m_trackTree->Branch("err_eLOC1_fit", &m_err_eLOC1_fit);
   m_trackTree->Branch("err_ePHI_fit", &m_err_ePHI_fit);
@@ -1247,6 +1384,11 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("g_protoTrackX", &m_protoTrackX);
   m_trackTree->Branch("g_protoTrackY", &m_protoTrackY);
   m_trackTree->Branch("g_protoTrackZ", &m_protoTrackZ);
+  m_trackTree->Branch("g_protoTrackD0Cov", &m_protoD0Cov);
+  m_trackTree->Branch("g_protoTrackZ0Cov", &m_protoZ0Cov);
+  m_trackTree->Branch("g_protoTrackPhiCov", &m_protoPhiCov);
+  m_trackTree->Branch("g_protoTrackThetaCov", &m_protoThetaCov);
+  m_trackTree->Branch("g_protoTrackQopCov", &m_protoQopCov);
   m_trackTree->Branch("g_SLx", &m_SLx);
   m_trackTree->Branch("g_SLy", &m_SLy);
   m_trackTree->Branch("g_SLz", &m_SLz);
@@ -1258,6 +1400,8 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
+  m_trackTree->Branch("nHoles", &m_nHoles);
+  m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);
   m_trackTree->Branch("nMeasurements", &m_nMeasurements);
   m_trackTree->Branch("volume_id", &m_volumeID);

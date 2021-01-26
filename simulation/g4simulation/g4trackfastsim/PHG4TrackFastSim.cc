@@ -93,6 +93,12 @@ namespace genfit
 
 using namespace std;
 
+// names of our implemented calorimeters where the projections are done
+// at 1/2 of their depth, not at the surface
+// this is used to avoid user added projections with identical names
+set<string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT"};
+set<string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC"};
+
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
   , m_Fitter(nullptr)
@@ -903,12 +909,10 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     switch (iter->second.first)
     {
     case DETECTOR_TYPE::Cylinder:
-      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.),
-                                                                    TVector3(0., 0., 1.), 0);
+      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.), TVector3(0., 0., 1.), 0);
       break;
     case DETECTOR_TYPE::Vertical_Plane:
-      pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter->second.second),
-                                                                 TVector3(1., 0., iter->second.second), 0);
+      pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter->second.second), TVector3(0, 0., 1.), 0);
       break;
     default:
       cout << "how in the world did you get here??????" << endl;
@@ -1044,13 +1048,64 @@ void PHG4TrackFastSim::DisplayEvent() const
 
 void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 {
-  if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
+  if (reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
     m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Vertical_Plane, NAN)));
   }
-  else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
+  else if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end())
   {
     m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Cylinder, NAN)));
   }
+  else
+  {
+    cout << PHWHERE << " Invalid stateName " << stateName << endl;
+    cout << endl
+         << "These are implemented for cylinders" << endl;
+    for (auto iter : reserved_cylinder_projection_names)
+    {
+      cout << iter << endl;
+    }
+    cout << endl
+         << "These are implemented are for zplanes" << endl;
+    for (auto iter : reserved_zplane_projection_names)
+    {
+      cout << iter << endl;
+    }
+    gSystem->Exit(1);
+  }
+  return;
+}
+
+void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const double radius)
+{
+  if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
+      reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << endl;
+    gSystem->Exit(1);
+  }
+  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
+    gSystem->Exit(1);
+  }
+  m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
+  return;
+}
+
+void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const double zplane)
+{
+  if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
+      reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << endl;
+    gSystem->Exit(1);
+  }
+  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  {
+    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
+    gSystem->Exit(1);
+  }
+  m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));
   return;
 }

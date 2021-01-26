@@ -10,12 +10,6 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-if ! MAKEROOT6
-ROOT5_FUN4ALLDICTS = \
-  Fun4AllPrdfInputManager_Dict.cc \
-  Fun4AllPrdfOutputManager_Dict.cc
-endif
-
 pkginclude_HEADERS = \
   Fun4AllEventOutStream.h \
   Fun4AllEventOutputManager.h \
@@ -28,7 +22,6 @@ lib_LTLIBRARIES = \
   libfun4allraw.la
 
 libfun4allraw_la_SOURCES = \
-  $(ROOT5_FUN4ALLDICTS) \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
   Fun4AllFileOutStream.cc \
@@ -56,8 +49,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f $(BUILT_SOURCES)

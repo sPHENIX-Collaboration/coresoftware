@@ -52,7 +52,6 @@ class RawTowerDeadMapLoader : public SubsysReco
  private:
   std::string m_detector;
   std::string m_deadMapPath;
-
 };
 
 #endif

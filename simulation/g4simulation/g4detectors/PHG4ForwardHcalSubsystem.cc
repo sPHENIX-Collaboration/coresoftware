@@ -67,11 +67,11 @@ int PHG4ForwardHcalSubsystem::Init(PHCompositeNode* topNode)
     ostringstream nodename;
     nodename << "G4HIT_" << detector_type;
 
-    PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!scintillator_hits)
     {
       scintillator_hits = new PHG4HitContainer(nodename.str());
-      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
+      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str(), "PHObject");
       dstNode->addNode(hitNode);
       nodes.insert(nodename.str());
     }
@@ -79,17 +79,17 @@ int PHG4ForwardHcalSubsystem::Init(PHCompositeNode* topNode)
     ostringstream absnodename;
     absnodename << "G4HIT_ABSORBER_" << detector_type;
 
-    PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str().c_str());
+    PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str());
     if (!absorber_hits)
     {
       absorber_hits = new PHG4HitContainer(absnodename.str());
-      PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
+      PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str(), "PHObject");
       dstNode->addNode(abshitNode);
       nodes.insert(nodename.str());
     }
 
     // create stepping action
-    m_SteppingAction = new PHG4ForwardHcalSteppingAction(m_Detector);
+    m_SteppingAction = new PHG4ForwardHcalSteppingAction(m_Detector,absorber_active);
   }
 
   return 0;
