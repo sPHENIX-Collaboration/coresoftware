@@ -12,6 +12,8 @@
 
 #include <TTree.h>
 
+#include <cmath>
+
 KFParticle_Tools kfpTupleTools;
 KFParticle_truthAndDetTools kfpTruthAndDetTools;
 
@@ -68,6 +70,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(mother_name) + "_FDchi2", &m_calculated_mother_fdchi2, TString(mother_name) + "_FDchi2/F");
     m_tree->Branch(TString(mother_name) + "_IP", &m_calculated_mother_ip, TString(mother_name) + "_IP/F");
     m_tree->Branch(TString(mother_name) + "_IPchi2", &m_calculated_mother_ipchi2, TString(mother_name) + "_IPchi2/F");
+    m_tree->Branch(TString(mother_name) + "_IPErr", &m_calculated_mother_ip_err, TString(mother_name) + "_IPErr/F");
+    m_tree->Branch(TString(mother_name) + "_IP_xy", &m_calculated_mother_ip_xy, TString(mother_name) + "_IP_xy/F");
   }
   m_tree->Branch(TString(mother_name) + "_x", &m_calculated_mother_x, TString(mother_name) + "_x/F");
   m_tree->Branch(TString(mother_name) + "_y", &m_calculated_mother_y, TString(mother_name) + "_y/F");
@@ -114,6 +118,8 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch(TString(intermediate_name) + "_decayLengthErr", &m_calculated_intermediate_decaylength_err[i], TString(intermediate_name) + "_decayLengthErr/F");
       m_tree->Branch(TString(intermediate_name) + "_IP", &m_calculated_intermediate_ip[i], TString(intermediate_name) + "_IP/F");
       m_tree->Branch(TString(intermediate_name) + "_IPchi2", &m_calculated_intermediate_ipchi2[i], TString(intermediate_name) + "_IPchi2/F");
+      m_tree->Branch(TString(intermediate_name) + "_IPErr", &m_calculated_intermediate_ip_err[i], TString(intermediate_name) + "_IPErr/F");
+      m_tree->Branch(TString(intermediate_name) + "_IP_xy", &m_calculated_intermediate_ip_xy[i], TString(intermediate_name) + "_IP_xy/F");
       m_tree->Branch(TString(intermediate_name) + "_x", &m_calculated_intermediate_x[i], TString(intermediate_name) + "_x/F");
       m_tree->Branch(TString(intermediate_name) + "_y", &m_calculated_intermediate_y[i], TString(intermediate_name) + "_y/F");
       m_tree->Branch(TString(intermediate_name) + "_z", &m_calculated_intermediate_z[i], TString(intermediate_name) + "_z/F");
@@ -145,6 +151,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_mass", &m_calculated_daughter_mass[i], TString(daughter_number) + "_mass/F");
     m_tree->Branch(TString(daughter_number) + "_IP", &m_calculated_daughter_ip[i], TString(daughter_number) + "_IP/F");
     m_tree->Branch(TString(daughter_number) + "_IPchi2", &m_calculated_daughter_ipchi2[i], TString(daughter_number) + "_IPchi2/F");
+    m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
+    m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
     m_tree->Branch(TString(daughter_number) + "_x", &m_calculated_daughter_x[i], TString(daughter_number) + "_x/F");
     m_tree->Branch(TString(daughter_number) + "_y", &m_calculated_daughter_y[i], TString(daughter_number) + "_y/F");
     m_tree->Branch(TString(daughter_number) + "_z", &m_calculated_daughter_z[i], TString(daughter_number) + "_z/F");
@@ -167,7 +175,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
 
-    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i);
+    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i, m_constrain_to_vertex_nTuple);
     if (m_detector_info) kfpTruthAndDetTools.initializeDetectorBranches(m_tree, i);
   }
 
@@ -215,6 +223,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
 {
+  const float speedOfLight = 2.99792458e-2; //c in cm/ps
+
   KFPVertex kfpVertex;  // = new KFPVertex;
   kfpVertex.SetXYZ(vertex.Parameters());
   kfpVertex.SetCovarianceMatrix(vertex.CovarianceMatrix());
@@ -225,6 +235,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_mother_fdchi2 = kfpTupleTools.flightDistanceChi2(motherParticle, kfpVertex);
     m_calculated_mother_ip = motherParticle.GetDistanceFromVertex(vertex);
     m_calculated_mother_ipchi2 = motherParticle.GetDeviationFromVertex(vertex);
+    m_calculated_mother_ip_err = m_calculated_mother_ip/sqrt(m_calculated_mother_ipchi2);
+    m_calculated_mother_ip_xy = motherParticle.GetDistanceFromVertexXY(vertex);
   }
   m_calculated_mother_x = motherParticle.GetX();
   m_calculated_mother_y = motherParticle.GetY();
@@ -255,6 +267,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     motherParticle.SetProductionVertex(vertex);
     motherParticle.GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
     motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
+
+    m_calculated_mother_decaytime /= speedOfLight;
+    m_calculated_mother_decaytime_err /= speedOfLight; 
   }
 
   if (m_has_intermediates_nTuple)
@@ -265,6 +280,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       m_calculated_intermediate_ip[i] = intermediateArray[i].GetDistanceFromVertex(vertex);
       m_calculated_intermediate_ipchi2[i] = intermediateArray[i].GetDeviationFromVertex(vertex);
+      m_calculated_intermediate_ip_err[i] = m_calculated_intermediate_ip[i]/sqrt(m_calculated_intermediate_ipchi2[i]);
+      m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex);
       m_calculated_intermediate_x[i] = intermediateArray[i].GetX();
       m_calculated_intermediate_y[i] = intermediateArray[i].GetY();
       m_calculated_intermediate_z[i] = intermediateArray[i].GetZ();
@@ -292,6 +309,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       intermediateArray[i].SetProductionVertex(motherParticle);
       intermediateArray[i].GetLifeTime(m_calculated_intermediate_decaytime[i], m_calculated_intermediate_decaytime_err[i]);
       intermediateArray[i].GetDecayLength(m_calculated_intermediate_decaylength[i], m_calculated_intermediate_decaylength_err[i]);
+
+      m_calculated_intermediate_decaytime[i] /= speedOfLight;
+      m_calculated_intermediate_decaytime_err[i] /= speedOfLight;
     }
   }
 
@@ -321,6 +341,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
     m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex);
     m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex);
+    m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i]/sqrt(m_calculated_daughter_ipchi2[i]);
+    m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex);
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
     m_calculated_daughter_y[i] = daughterArray[i].GetY();
     m_calculated_daughter_z[i] = daughterArray[i].GetZ();
@@ -344,7 +366,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
     for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
-    if (m_truth_matching) kfpTruthAndDetTools.fillTruthBranch(topNode, m_tree, daughterArray[i], i);
+    if (m_truth_matching) kfpTruthAndDetTools.fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex, m_constrain_to_vertex_nTuple);
     if (m_detector_info) kfpTruthAndDetTools.fillDetectorBranch(topNode, m_tree, daughterArray[i], i);
   }
 
