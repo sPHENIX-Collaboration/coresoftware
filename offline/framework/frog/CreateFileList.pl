@@ -24,12 +24,20 @@ while(my @res = $getdsttypes->fetchrow_array())
 }
 
 my %proddesc = (
-"1" => "hijing MB (0-12fm)",
-"2" => "hijing central (0-4.88fm)",
+"1" => "hijing (0-12fm) pileup 0-12fm",
+"2" => "hijing (0-4.88fm) pileup 0-12fm",
 "3" => "pythia8 pp MB",
-"4" => "hijing (0-20fm)"
+"4" => "hijing (0-20fm)",
+"5" => "hijing (0-12fm) pileup 0-20fm",
+"6" => "hijing (0-4.88fm) pileup 0-20fm"
 );
 
+
+my $nEvents;
+my $start_segment;
+my $randomize;
+my $prodtype;
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'r' => \$randomize, 's:i' => \$start_segment);
 
 if ($#ARGV < 0)
 {
@@ -50,11 +58,6 @@ if ($#ARGV < 0)
     }
     exit(0);
 }
-my $nEvents;
-my $start_segment;
-my $randomize;
-my $prodtype;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'r' => \$randomize, 's:i' => \$start_segment);
 
 if (defined $randomize && ! defined $nEvents)
 {
@@ -86,11 +89,11 @@ if (! exists $proddesc{$prodtype})
 my $filenamestring;
 if ($prodtype == 1)
 {
-    $filenamestring = "sHijing_0_12fm";
+    $filenamestring = "sHijing_0_12fm-";
 }
 elsif ($prodtype == 2)
 {
-    $filenamestring = "sHijing_0_488fm";
+    $filenamestring = "sHijing_0_488fm-";
 }
 elsif ($prodtype == 3)
 {
@@ -98,7 +101,15 @@ elsif ($prodtype == 3)
 }
 elsif ($prodtype == 4)
 {
-    $filenamestring = "sHijing_0_20fm";
+    $filenamestring = "sHijing_0_20fm-";
+}
+elsif ($prodtype == 5)
+{
+    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
+}
+elsif ($prodtype == 6)
+{
+    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
 }
 else
 {
