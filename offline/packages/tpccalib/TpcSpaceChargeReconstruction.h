@@ -16,6 +16,7 @@
 // forward declaration
 class SvtxTrack;
 class SvtxTrackMap;
+class TH3;
 class TrkrCluster;
 class TrkrClusterContainer;
 
@@ -75,7 +76,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// end of processing
   int End(PHCompositeNode*) override;
 
-  //! parameters
+  /// parameters
   void SetDefaultParameters() override;
 
   private:
@@ -128,7 +129,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   //@}
 
-  //!@name grid size
+  ///@name grid size
   //@{
   int m_phibins = 36;
   int m_rbins = 16;
@@ -136,7 +137,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int m_totalbins = m_phibins*m_rbins*m_zbins;
   //@}
 
-  //!@name selection parameters
+  ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
   float m_max_talpha = 0.6;
