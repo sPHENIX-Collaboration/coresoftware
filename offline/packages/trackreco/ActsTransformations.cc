@@ -93,25 +93,13 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 {
 
   auto covarianceMatrix = *params.covariance();
-  
+
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
   const double px = params.momentum()(0);
   const double py = params.momentum()(1);
   const double pz = params.momentum()(2);
-  const double p = sqrt(px * px + py * py + pz * pz);
-  
-  const double x = params.position(geoCtxt)(0);
-  const double y = params.position(geoCtxt)(1);
-  const double z = params.position(geoCtxt)(2);
-  const double r = sqrt(x*x + y*y + z*z);
-
-  const double posCosTheta = z / r;
-  const double posSinTheta = sqrt(x*x + y*y) / r;
-  const double posCosPhi = x / ( r * posSinTheta);
-  const double posSinPhi = y / ( r * posSinTheta);
-  
-  const int charge = params.charge();
+  const double p = params.momentum().norm();
   
   const double uPx = px / p;
   const double uPy = py / p;
@@ -123,40 +111,46 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
   const double cosPhi = uPx * invSinTheta;
   const double sinPhi = uPy * invSinTheta;
 
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
+  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
+  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
+  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
+  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
+  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
+  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
+  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
+  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
 
-  /// This is the original matrix we rotated by. So instead of rotating
-  /// as normal RCR^T, we will just rotate back by rotating by the same 
-  /// matrix as R^TCR
-  /// Position rotation to Acts loc0 and loc1, which are the local points
-  /// on a surface centered at the (x,y,z) global position with normal
-  /// vector in the direction of the unit momentum vector
-  rotation(0,0) = - posSinPhi;
-  rotation(0,1) =   posCosPhi;
-  rotation(1,0) = - posCosPhi * posCosTheta;
-  rotation(1,1) = - posSinPhi * posCosTheta;
-  rotation(1,2) =   posSinTheta;
+  /// Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
+  auto rotatedMatrix 
+    = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
 
-  // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = -p * sinPhi * sinTheta;
-  rotation(2, 4) =  p * cosPhi * sinTheta;
-  rotation(3, 3) =  p * cosPhi * cosTheta;
-  rotation(3, 4) =  p * sinPhi * cosTheta;
-  rotation(3, 5) = -p * sinTheta;
+  /// Now rotate to x,y,z, px,py,pz
+  /// ActsMatrixD is an eigen matrix
+  Acts::ActsMatrixD<6,8> sphenixRot;
+  sphenixRot.setZero();
   
-  ///q/p rotaton
-  ///d(q/p)/dp_i = q * -p_i * p^{-3/2}
-  rotation(4,3) = -charge * px / pow(p,1.5);
-  rotation(4,4) = -charge * py / pow(p,1.5);
-  rotation(4,5) = -charge * pz / pow(p,1.5);
-
-  printMatrix("Rotating back to global with : ", rotation.transpose());
-
+  /// Make the xyz transform unity
+  sphenixRot(0,0) = 1;
+  sphenixRot(1,1) = 1;
+  sphenixRot(2,2) = 1;
+  sphenixRot(3,4) = p;
+  sphenixRot(4,5) = p;
+  sphenixRot(5,6) = p;
+  sphenixRot(3,7) = uPx * p * p;
+  sphenixRot(4,7) = uPy * p * p;
+  sphenixRot(5,7) = uPz * p * p;
+  
   Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();
-  globalCov = rotation.transpose() * covarianceMatrix * rotation;
+  globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
 
+  printMatrix("Global sPHENIX cov : ", globalCov);
 
-  /// convert back to sPHENIX coordinates of cm
+  /// Convert to sPHENIX units
   for(int i = 0; i < 6; ++i)
     {
       for(int j = 0; j < 6; ++j)
@@ -167,11 +161,11 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
 	  else if (j < 3)
 	    globalCov(i,j) /= Acts::UnitConstants::cm;
+	  
 	}
     }
 
-  printMatrix("Global sPHENIX cov : ", globalCov);
-
+  printMatrix("Global sphenix cov after unit conv: " , globalCov);
 
   return globalCov;
 }
@@ -200,22 +194,19 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
-				   Acts::Vector3D vertex,
-				   Acts::GeometryContext geoCtxt,
-				   float &dca3Dxy,
-				   float &dca3Dz,
-				   float &dca3DxyCov,
-				   float &dca3DzCov)
+				       Acts::Vector3D vertex,
+				       Acts::BoundSymMatrix cov,
+				       Acts::GeometryContext geoCtxt,
+				       float &dca3Dxy,
+				       float &dca3Dz,
+				       float &dca3DxyCov,
+				       float &dca3DzCov)
 {
   Acts::Vector3D pos = param.position(geoCtxt);
   Acts::Vector3D mom = param.momentum();
 
   /// Correct for initial vertex estimation
   pos -= vertex;
-
-  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-  if(param.covariance())
-    cov = param.covariance().value();
 
   Acts::ActsSymMatrixD<3> posCov;
   for(int i = 0; i < 3; ++i)

@@ -75,7 +75,7 @@ inline GPUTPCTrackLinearisation::GPUTPCTrackLinearisation(const GPUTPCTrackParam
   }
 }
 
-void GPUTPCTrackLinearisation::Set(float SinPhi1, float CosPhi1, float DzDs1, float QPt1)
+inline void GPUTPCTrackLinearisation::Set(float SinPhi1, float CosPhi1, float DzDs1, float QPt1)
 {
   SetSinPhi(SinPhi1);
   SetCosPhi(CosPhi1);

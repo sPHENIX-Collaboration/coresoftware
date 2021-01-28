@@ -143,7 +143,7 @@ class PHCASeeding : public PHTrackSeeding
   void repairCovariance(SvtxTrack_v1 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
   pointKey makepointKey(TrkrDefs::cluskey k);
-
+  bool checknan(float val, std::string name, int num);
 
  private:
   std::map<int, unsigned int> _layer_ilayer_map_all;
