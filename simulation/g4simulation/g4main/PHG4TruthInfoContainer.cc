@@ -383,6 +383,13 @@ void PHG4TruthInfoContainer::delete_particle(Iterator piter)
   return;
 }
 
+void PHG4TruthInfoContainer::delete_particle(int trackid)
+{
+  Iterator it = particlemap.find(trackid);
+  if (it != particlemap.end())
+    delete_particle(it);
+}
+
 void PHG4TruthInfoContainer::delete_vtx(VtxIterator viter)
 {
   delete viter->second;

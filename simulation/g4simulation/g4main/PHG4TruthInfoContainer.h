@@ -49,6 +49,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
   ConstIterator AddParticle(G4Track* track);
   void delete_particle(Iterator piter);
+  void delete_particle(int trackid);
 
   PHG4Particle* GetParticle(const int trackid);
   PHG4Particle* GetPrimaryParticle(const int trackid);
