@@ -158,11 +158,9 @@ namespace
   /**
    * interpolate between micromegas in the fully equiped sector
    */
-  TH3* extrapolate_z( TH3* hin, const TString& houtname )
+  void extrapolate_z( TH3* hin )
   {
-    if( !hin ) return nullptr;
-
-    auto hout = static_cast<TH3*>( hin->Clone( houtname ) );
+    if( !hin ) return;
 
     // get reference phi bin
     const int phibin_ref = hin->GetXaxis()->FindBin( phi_ref );
@@ -207,13 +205,11 @@ namespace
           const auto content = alpha_min*content_min + alpha_max*content_max;
           const auto error = std::sqrt(square( alpha_min * error_min ) + square( alpha_max*error_max));
 
-          hout->SetBinContent( phibin_ref, ir+1, iz, content );
-          hout->SetBinError( phibin_ref, ir+1, iz, error );
+          hin->SetBinContent( phibin_ref, ir+1, iz, content );
+          hin->SetBinError( phibin_ref, ir+1, iz, error );
         }
       }
     }
-
-    return hout;
   }
 
   //____________________________________________________________________________________
@@ -222,11 +218,9 @@ namespace
    * copy the full z dependence of reference sector to all other sectors, separately for positive and negative z,
    * normalized by the measurement from provided micromegas, at the appropriate z
    */
-  TH3* extrapolate_phi1( TH3* hin, const TString& houtname )
+  void extrapolate_phi1( TH3* hin )
   {
-    if( !hin ) return nullptr;
-
-    auto hout = static_cast<TH3*>( hin->Clone( houtname ) );
+    if( !hin ) return;
 
     // get reference phi bin
     const int phibin_ref = hin->GetXaxis()->FindBin( phi_ref );
@@ -275,13 +269,11 @@ namespace
           #endif
 
           // assign to output histogram
-          hout->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
-          hout->SetBinError( phibin, ir+1, iz+1, error_ref*scale );
+          hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
+          hin->SetBinError( phibin, ir+1, iz+1, error_ref*scale );
         }
       }
     }
-
-    return hout;
   }
 
   //_______________________________________________
@@ -289,10 +281,9 @@ namespace
   /**
    * for each r, z and phi bin, linearly extrapolate between neighbor phi sector measurements
    */
-  TH3* extrapolate_phi2( TH3* hin, const TString& houtname )
+  void extrapolate_phi2( TH3* hin )
   {
-    if( !hin ) return nullptr;
-    auto hout = static_cast<TH3*>( hin->Clone( houtname ) );
+    if( !hin ) return;
 
     for( int iphi = 0; iphi < hin->GetXaxis()->GetNbins(); ++iphi )
     {
@@ -331,14 +322,12 @@ namespace
           const auto content = alpha_min*content_min + alpha_max*content_max;
           const auto error = std::sqrt(square( alpha_min * error_min ) + square( alpha_max*error_max));
 
-          hout->SetBinContent( iphi+1, ir+1, iz+1, content );
-          hout->SetBinError( iphi+1, ir+1, iz+1, error );
+          hin->SetBinContent( iphi+1, ir+1, iz+1, content );
+          hin->SetBinError( iphi+1, ir+1, iz+1, error );
         }
 
       }
     }
-
-    return hout;
   }
 
 }
@@ -713,22 +702,16 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
   // when using migromegas, one needs to extrapolate to the rest of the acceptance
   if( m_use_micromegas )
   {
-    std::array<TH3*,4> histograms = {{hentries, hphi, hr, hz }};
-    for( auto&& h: histograms )
+    for( const auto& h: {hentries, hphi, hr, hz} )
     {
       if( !h ) continue;
-      std::unique_ptr<TH3> hout( extrapolate_z( h, "extrapz" ) );
-      hout.reset( extrapolate_phi1( hout.get(), "extrapphi1" ) );
-      hout.reset( extrapolate_phi2( hout.get(), "extrapphi2" ) );
-      hout->SetName( h->GetName() );
-
-      // replace source histogram
-      delete h ;
-      h = hout.release();
+      extrapolate_z(h);
+      extrapolate_phi1(h);
+      extrapolate_phi2(h);
     }
   }
 
-  // also write source histograms
+  // write source histograms
   for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
 
   // create and write histograms suitable for space charge reconstruction
