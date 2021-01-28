@@ -162,6 +162,15 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// keep track of how many clusters are used per cell
   std::vector<int> m_cluster_count;
 
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
+  
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;
