@@ -7,10 +7,13 @@
 
 #include <Geant4/G4ThreeVector.hh>
 
+#include <vector>
+
 class G4Track;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4TruthEventAction;
+class PHG4Particle;
 
 class PHG4TruthTrackingAction : public PHG4TrackingAction
 {
@@ -37,6 +40,16 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
 
   //! pointer to truth information container
   PHG4TruthInfoContainer* m_TruthInfoList;
+
+  /// Machinery to keep track of upstream particles while adding Geant4 tracks
+  /// to the truth info container
+  ///@{
+  void UpdateG4ParticleStack(const G4Track*);
+
+  struct G4ParticleInfo { int g4track_id, particle_id, vertex_id; };
+  std::vector<G4ParticleInfo> m_G4ParticleStack;
+  G4ParticleInfo m_CurrG4Particle;
+  ///@}
 };
 
 #endif
