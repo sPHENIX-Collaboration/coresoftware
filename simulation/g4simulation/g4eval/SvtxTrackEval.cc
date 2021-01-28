@@ -4,11 +4,11 @@
 #include "SvtxTruthEval.h"
 
 #include <g4main/PHG4Hit.h>
-
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
 
 #include <phool/getClass.h>
 
@@ -203,21 +203,41 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
 
   std::set<PHG4Particle*> particles = all_truth_particles(track);
   PHG4Particle* max_particle = nullptr;
-  unsigned int max_nclusters = 0;
 
-  for (std::set<PHG4Particle*>::iterator iter = particles.begin();
-       iter != particles.end();
-       ++iter)
+  SvtxTrack_FastSim * fastsim_track = dynamic_cast<SvtxTrack_FastSim * >(track);
+  if (fastsim_track)
   {
-    PHG4Particle* candidate = *iter;
-    unsigned int nclusters = get_nclusters_contribution(track, candidate);
-    if (nclusters > max_nclusters)
+    // exception for fast sim track
+    unsigned int track_id = fastsim_track -> get_truth_track_id();
+
+    //g4_hit->track_id->(check if matches track)->get_truth_particle
+    std::set<PHG4Hit*> truth_hits = get_truth_eval()->all_truth_hits();
+    for(std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
+        iter != truth_hits.begin();
+        ++iter)
     {
-      max_nclusters = nclusters;
-      max_particle = candidate;
+      PHG4Hit* hit_candidate = *iter; 
+      if (hit_candidate->get_trkid()==track_id)
+        max_particle = get_truth_eval()->get_particle(hit_candidate);
     }
   }
+  else
+  {
+    unsigned int max_nclusters = 0;
 
+    for (std::set<PHG4Particle*>::iterator iter = particles.begin();
+        iter != particles.end();
+        ++iter)
+    {
+      PHG4Particle* candidate = *iter;
+      unsigned int nclusters = get_nclusters_contribution(track, candidate);
+      if (nclusters > max_nclusters)
+      {
+        max_nclusters = nclusters;
+        max_particle = candidate;
+      }
+    }
+  }
   if (_do_cache) _cache_max_truth_particle_by_nclusters.insert(make_pair(track, max_particle));
 
   return max_particle;
