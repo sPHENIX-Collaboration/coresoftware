@@ -26,6 +26,7 @@ using namespace std;
 PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventAction)
   : m_EventAction(eventAction)
   , m_TruthInfoList(nullptr)
+  , m_G4ParticleStack()
 {
 }
 
@@ -33,8 +34,14 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
 {
   // insert particle into the output
   PHG4Particle* ti = (*m_TruthInfoList->AddParticle(const_cast<G4Track*>(track))).second;
+
+  // Negative G4 track id values indicate unwanted tracks to be deleted
+  // Initially all tracks except primary ones flagged as unwanted
+  int track_id_g4 = track->GetTrackID() * (track->GetParentID() ? -1 : +1);
   int trackid = ti->get_track_id();
   int vtxindex = ti->get_vtx_id();
+
+  m_CurrG4Particle = {track_id_g4, trackid, vtxindex};
 
   // create or add to a new shower object --------------------------------------
   if (!track->GetParentID())
@@ -111,6 +118,45 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track)
       m_EventAction->AddTrackidToWritelist(trackid);
     }
   }
+
+  UpdateG4ParticleStack(track);
+}
+
+/**
+ * Updates the stack of parent particles and removes unwanted ones from the
+ * truth info container.
+ */
+void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
+{
+  while (!m_G4ParticleStack.empty())
+  {
+    if ( std::abs(m_G4ParticleStack.back().g4track_id) == track->GetParentID() )
+    {
+      break;
+    }
+    else
+    {
+      if (m_G4ParticleStack.back().g4track_id < 0)
+      {
+        m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+      }
+      m_G4ParticleStack.pop_back();
+    }
+  }
+
+  m_G4ParticleStack.push_back(m_CurrG4Particle);
+
+  // Change sign of G4 track id of all upstream tracks in the stack to positive
+  // in order to keep the track
+  PHG4TrackUserInfoV1* p = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
+  bool keep_curr_track = p && p->GetKeep() ? true : false;
+
+  auto stack_iter = m_G4ParticleStack.rbegin();
+  while (keep_curr_track && stack_iter != m_G4ParticleStack.rend() && stack_iter->g4track_id < 0)
+  {
+    stack_iter->g4track_id *= -1;
+    ++stack_iter;
+  }
 }
 
 void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
@@ -127,5 +173,14 @@ void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
 
 int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
 {
+  while (!m_G4ParticleStack.empty())
+  {
+    if ( m_G4ParticleStack.back().g4track_id < 0)
+    {
+      m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+    }
+    m_G4ParticleStack.pop_back();
+  }
+
   return 0;
 }
