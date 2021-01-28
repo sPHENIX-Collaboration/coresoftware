@@ -358,6 +358,14 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
   m_lhs = std::vector<matrix_t>( m_totalbins, matrix_t::Zero() );
   m_rhs = std::vector<column_t>( m_totalbins, column_t::Zero() );
   m_cluster_count = std::vector<int>( m_totalbins, 0 );
+
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -405,6 +413,22 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
   calculate_distortions( topNode );
+
+  // print counters
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " track statistics total: " << m_total_tracks
+    << " accepted: " << m_accepted_tracks
+    << " fraction: " << 100.*m_accepted_tracks/m_total_tracks << "%"
+    << std::endl;
+
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -435,7 +459,14 @@ void TpcSpaceChargeReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { if( accept_track( iter->second ) ) process_track( iter->second ); }
+  {
+    ++m_total_tracks;
+    if( accept_track( iter->second ) )
+    {
+      ++m_accepted_tracks;
+      process_track( iter->second );
+    }
+  }
 }
 
 //_____________________________________________________________________
@@ -472,6 +503,8 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << PHWHERE << " unable to find cluster for key " << cluster_key << std::endl;
       continue;
     }
+
+    ++m_total_clusters;
 
     // make sure
     const auto detId = TrkrDefs::getTrkrId(cluster_key);
@@ -614,6 +647,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     m_rhs[i](1,0) += dz/ez;
     m_rhs[i](2,0) += talpha*drp/erp + tbeta*dz/ez;
 
+    ++m_accepted_clusters;
     ++m_cluster_count[i];
 
   }
