@@ -510,17 +510,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // get relevant track state
     const auto state = state_iter->second;
 
-    // track errors
-    #if 0
-    const auto track_rphi_error = state->get_rphi_error();
-    const auto track_z_error = state->get_z_error();
-
-    // also cut on track errors
-    // warning: smaller errors are probably needed when including outer tracker
-    if( track_rphi_error < 0.015 ) continue;
-    if( track_z_error < 0.1 ) continue;
-    #endif
-
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
     const auto dr = cluster_r - track_r;
@@ -535,45 +524,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_z = state->get_z() + dr*track_dzdr;
     const auto track_phi = std::atan2( track_y, track_x );
 
-    // get residual errors squared
-    // for now we only consider the error on the cluster. Not on the track
-    //     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
-    //     const auto ez = square(track_z_error) + square(cluster_z_error);
-    const auto erp = square(cluster_rphi_error);
-    const auto ez = square(cluster_z_error);
-
-    // sanity check
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan( erp ) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - erp nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan( ez ) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - ez nan" << std::endl;
-      continue;
-    }
-
-    // get residuals
-    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
-    const auto dz = cluster_z - track_z;
-
-    // sanity checks
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan(drp) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan(dz) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
-      continue;
-    }
-
     // get track angles
     const auto cosphi( std::cos( track_phi ) );
     const auto sinphi( std::sin( track_phi ) );
@@ -584,7 +534,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto tbeta = -track_pz/track_pr;
 
     // sanity check
-    // TODO: check whether this happens and fix upstream
     if( std::isnan(talpha) )
     {
       std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
@@ -599,10 +548,50 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // check against limits
     if( std::abs( talpha ) > m_max_talpha ) continue;
-    if( std::abs( drp ) > m_max_drphi ) continue;
-
     if( std::abs( tbeta ) > m_max_tbeta ) continue;
+
+    // track errors
+    const auto track_rphi_error = state->get_rphi_error();
+    const auto track_z_error = state->get_z_error();
+
+    // residuals
+    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
+    const auto dz = cluster_z - track_z;
+
+    // sanity checks
+    if( std::isnan(drp) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(dz) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
+      continue;
+    }
+
+    // check against limits
+    if( std::abs( drp ) > m_max_drphi ) continue;
     if( std::abs( dz ) > m_max_dz ) continue;
+
+    // residual errors squared
+    const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
+    const auto ez = square(track_z_error) + square(cluster_z_error);
+
+    // sanity check
+    // TODO: check whether this happens and fix upstream
+    if( std::isnan( erp ) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - erp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan( ez ) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - ez nan" << std::endl;
+      continue;
+    }
 
     // get cell
     const auto i = get_cell( cluster );
