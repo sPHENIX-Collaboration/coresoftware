@@ -93,7 +93,7 @@ if ($prodtype == 1)
 }
 elsif ($prodtype == 2)
 {
-    $filenamestring = "sHijing_0_488fm-";
+    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
 }
 elsif ($prodtype == 3)
 {
@@ -109,7 +109,7 @@ elsif ($prodtype == 5)
 }
 elsif ($prodtype == 6)
 {
-    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
+    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
 }
 else
 {
