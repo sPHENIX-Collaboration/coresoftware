@@ -50,8 +50,8 @@ namespace
    * TODO: is this really necessary ? Possibly one could just use the bin content for the correction rather than using TH3->Interpolate,
    * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
    */
-  TH3* create_histogram( TH3* hin, const TString& name ) __attribute__((unused));
-  TH3* create_histogram( TH3* hin, const TString& name )
+  TH3* copy_histogram( TH3* hin, const TString& name ) __attribute__((unused));
+  TH3* copy_histogram( TH3* hin, const TString& name )
   {
     std::array<int, 3> bins;
     std::array<double, 3> x_min;
@@ -329,7 +329,63 @@ namespace
       }
     }
   }
+  
+  //_______________________________________________
+  /**
+   * split histograms in two, the first with negative z values only, the second with positive z values
+   * this must be done before adding guarding bins around each axis, in order to prevent artifacts during calls to Interpolate
+   * at the central membrane (z = 0)
+   */
+  std::array<TH3*, 2> split( TH3* hin )
+  {
+    if( !hin ) return {{nullptr, nullptr}};
+    
+    auto xaxis = hin->GetXaxis();
+    auto yaxis = hin->GetYaxis();
+    auto zaxis = hin->GetZaxis();
+    auto ibin = zaxis->FindBin( (double) 0 );
 
+    // create histograms
+    auto hneg = new TH3F( 
+      Form( "%s_negz", hin->GetName() ), Form( "%s_negz", hin->GetTitle() ),
+      xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
+      yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
+      ibin-1, zaxis->GetXmin(), zaxis->GetBinUpEdge( ibin-1 ) );
+
+    auto hpos = new TH3F( 
+      Form( "%s_posz", hin->GetName() ), Form( "%s_posz", hin->GetTitle() ),
+      xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
+      yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
+      zaxis->GetNbins() - (ibin-1), zaxis->GetBinLowEdge(ibin), zaxis->GetXmax() );
+    
+    // copy content and errors
+    for( int ix = 0; ix < xaxis->GetNbins(); ++ix )
+      for( int iy = 0; iy < yaxis->GetNbins(); ++iy )
+      for( int iz = 0; iz < zaxis->GetNbins(); ++iz )
+    {
+      const auto content = hin->GetBinContent( ix+1, iy+1, iz+1 );
+      const auto error = hin->GetBinError( ix+1, iy+1, iz+1 );
+      
+      if( iz < ibin-1 ) 
+      {      
+        hneg->SetBinContent( ix+1, iy+1, iz+1, content );
+        hneg->SetBinError( ix+1, iy+1, iz+1, error );
+      } else {      
+        hpos->SetBinContent( ix+1, iy+1, iz - (ibin-1) + 1, content );
+        hpos->SetBinError( ix+1, iy+1, iz - (ibin-1) + 1, error );
+      }    
+    }
+  
+    // also copy axis titles  
+    for( const auto h: {hneg, hpos} )
+    {
+      h->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
+      h->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
+      h->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
+    }
+    
+    return {{hneg, hpos}};
+  }
 }
 
 //_____________________________________________________________________
@@ -736,12 +792,23 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 
   // write source histograms
   for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
-
-  // create and write histograms suitable for space charge reconstruction
-  create_histogram( hentries, "hentries" )->Write();
-  create_histogram( hphi, "hIntDistortionP" )->Write();
-  create_histogram( hr, "hIntDistortionR" )->Write();
-  create_histogram( hz, "hIntDistortionZ" )->Write();
+  
+  // split histograms in two along z axis and write
+  // also write histograms suitable for space charge reconstruction
+  auto process_histogram = []( TH3* h, const TString& name )
+  {
+    const auto [hneg, hpos] = split( h );
+    hneg->Write();
+    hpos->Write();
+    copy_histogram( h, name )->Write();
+    copy_histogram( hneg, Form( "%s_negz", name.Data() ) )->Write();
+    copy_histogram( hpos, Form( "%s_posz", name.Data() ) )->Write();
+  };
+  
+  process_histogram( hentries, "hentries" );
+  process_histogram( hphi, "hIntDistortionP" );
+  process_histogram( hr, "hIntDistortionR" );
+  process_histogram( hz, "hIntDistortionZ" );
 
   // close output file
   outputfile->Close();
