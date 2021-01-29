@@ -134,12 +134,209 @@ namespace
 
   }
 
+  /// Micromegas geometry
+  /// TODO: should get those numbers from actual geometry configuration
+  // fully equiped sector
+  static constexpr double isec_ref = 3;
+  static constexpr double phi_ref = isec_ref*M_PI/6 + M_PI/12;
+
+  // radius of the micromegas layer
+  static constexpr double r_ref = 82;
+
+  // z extrapolation window
+  static constexpr double zextrap_min = 48;
+  static constexpr double zextrap_max = 58;
+
+  // Micromegas acceptance in incomplete sectors
+  static constexpr double zref = 33.25;
+  static constexpr double length = 50 - 5;
+  static constexpr double zref_min = zref - length/2;
+  static constexpr double zref_max = zref + length/2;
+
+  //____________________________________________________________________________________
+  /// z extrapolation
+  /**
+   * interpolate between micromegas in the fully equiped sector
+   */
+  void extrapolate_z( TH3* hin )
+  {
+    if( !hin ) return;
+
+    // get reference phi bin
+    const int phibin_ref = hin->GetXaxis()->FindBin( phi_ref );
+
+    // loop over radial bins
+    for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
+    {
+
+      // get current radius
+      const auto r = hin->GetYaxis()->GetBinCenter( ir+1 );
+
+      // get z integration window for reference
+      const auto zextrap_min_loc = zextrap_min * r/r_ref;
+      const auto zextrap_max_loc = zextrap_max * r/r_ref;
+
+      // get corresponding bins
+      const int zbin_min[2] = { hin->GetZaxis()->FindBin( -zextrap_max_loc ), hin->GetZaxis()->FindBin( zextrap_min_loc ) };
+      const int zbin_max[2] = { hin->GetZaxis()->FindBin( -zextrap_min_loc ), hin->GetZaxis()->FindBin( zextrap_max_loc ) };
+
+      for( int isign = 0; isign < 2; ++isign )
+      {
+        // adjust z positions
+        const auto z_min = hin->GetZaxis()->GetBinCenter( zbin_min[isign] );
+        const auto z_max = hin->GetZaxis()->GetBinCenter( zbin_max[isign] );
+
+        // get reference
+        const auto content_min = hin->GetBinContent( phibin_ref, ir+1, zbin_min[isign] );
+        const auto content_max = hin->GetBinContent( phibin_ref, ir+1, zbin_max[isign] );
+        const auto error_min = hin->GetBinError( phibin_ref, ir+1, zbin_min[isign] );
+        const auto error_max = hin->GetBinError( phibin_ref, ir+1, zbin_max[isign] );
+
+        // loop over z bins
+        for( int iz = zbin_min[isign]+1; iz < zbin_max[isign]; ++iz )
+        {
+
+          const auto z = hin->GetZaxis()->GetBinCenter( iz );
+
+          // interpolate
+          const auto alpha_min = (z_max-z)/(z_max-z_min);
+          const auto alpha_max = (z-z_min)/(z_max-z_min);
+
+          const auto content = alpha_min*content_min + alpha_max*content_max;
+          const auto error = std::sqrt(square( alpha_min * error_min ) + square( alpha_max*error_max));
+
+          hin->SetBinContent( phibin_ref, ir+1, iz, content );
+          hin->SetBinError( phibin_ref, ir+1, iz, error );
+        }
+      }
+    }
+  }
+
+  //____________________________________________________________________________________
+  /// first phi extrapolation
+  /**
+   * copy the full z dependence of reference sector to all other sectors, separately for positive and negative z,
+   * normalized by the measurement from provided micromegas, at the appropriate z
+   */
+  void extrapolate_phi1( TH3* hin )
+  {
+    if( !hin ) return;
+
+    // get reference phi bin
+    const int phibin_ref = hin->GetXaxis()->FindBin( phi_ref );
+
+    // loop over sectors
+    for( int isec = 0; isec < 12; ++isec )
+    {
+
+      // skip reference sector
+      if( isec == isec_ref ) continue;
+
+      // get relevant phi and corresponding bin
+      const double phi = isec*M_PI/6 + M_PI/12;
+      const int phibin = hin->GetXaxis()->FindBin( phi );
+
+      // loop over radial bins
+      for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
+      {
+
+        // get current radius
+        const auto r = hin->GetYaxis()->GetBinCenter( ir+1 );
+
+        // get z integration window for reference
+        const auto zref_min_loc = zref_min * r/r_ref;
+        const auto zref_max_loc = zref_max * r/r_ref;
+
+        // get corresponding bins
+        const int zbin_ref_neg[2] = { hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( -zref_min_loc ) };
+        const int zbin_ref_pos[2] = { hin->GetZaxis()->FindBin( zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) };
+
+        // loop over z bins
+        for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
+        {
+          const auto content_ref = hin->GetBinContent( phibin_ref, ir+1, iz+1 );
+          const auto error_ref = hin->GetBinError( phibin_ref, ir+1, iz+1 );
+
+          #if true
+          // calculate scale factor
+          const auto z = hin->GetZaxis()->GetBinCenter( iz+1 );
+          const auto norm_ref = hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, (z>0) ? zbin_ref_pos[0]:zbin_ref_neg[0], (z>0) ? zbin_ref_pos[1]:zbin_ref_neg[1] );
+          const auto norm_loc = hin->Integral( phibin, phibin, ir+1, ir+1, (z>0) ? zbin_ref_pos[0]:zbin_ref_neg[0], (z>0) ? zbin_ref_pos[1]:zbin_ref_neg[1] );
+          const auto scale = (norm_ref == 0) ? 1:norm_loc/norm_ref;
+
+          #else
+          const auto scale = 1;
+          #endif
+
+          // assign to output histogram
+          hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
+          hin->SetBinError( phibin, ir+1, iz+1, error_ref*scale );
+        }
+      }
+    }
+  }
+
+  //_______________________________________________
+  /// second phi extrapolation
+  /**
+   * for each r, z and phi bin, linearly extrapolate between neighbor phi sector measurements
+   */
+  void extrapolate_phi2( TH3* hin )
+  {
+    if( !hin ) return;
+
+    for( int iphi = 0; iphi < hin->GetXaxis()->GetNbins(); ++iphi )
+    {
+
+      // find nearest sector phi bins
+      const auto phi = hin->GetXaxis()->GetBinCenter( iphi+1 );
+      const int isec = std::floor( (phi - M_PI/12)/(M_PI/6) );
+      double phi_min =  isec*M_PI/6 + M_PI/12;
+      double phi_max =  phi_min + M_PI/6;
+
+      if( phi_min < 0 ) phi_min += 2*M_PI;
+      if( phi_max >= 2*M_PI ) phi_max -= 2*M_PI;
+
+      const auto phibin_min = hin->GetXaxis()->FindBin( phi_min );
+      if( phibin_min == iphi+1 ) continue;
+
+      const auto phibin_max = hin->GetXaxis()->FindBin( phi_max );
+      if( phibin_max == iphi+1 ) continue;
+
+      // loop over radial bins
+      for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
+      {
+
+        // loop over z bins
+        for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
+        {
+          const auto content_min = hin->GetBinContent( phibin_min, ir+1, iz+1 );
+          const auto content_max = hin->GetBinContent( phibin_max, ir+1, iz+1 );
+          const auto error_min = hin->GetBinError( phibin_min, ir+1, iz+1 );
+          const auto error_max = hin->GetBinError( phibin_max, ir+1, iz+1 );
+
+          // perform linear extrapolation
+          const auto alpha_min = (phi_max-phi)/(phi_max-phi_min);
+          const auto alpha_max = (phi-phi_min)/(phi_max-phi_min);
+
+          const auto content = alpha_min*content_min + alpha_max*content_max;
+          const auto error = std::sqrt(square( alpha_min * error_min ) + square( alpha_max*error_max));
+
+          hin->SetBinContent( iphi+1, ir+1, iz+1, content );
+          hin->SetBinError( iphi+1, ir+1, iz+1, error );
+        }
+
+      }
+    }
+  }
+
 }
 
 //_____________________________________________________________________
 TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& name ):
   SubsysReco( name)
-{}
+  , PHParameterInterface(name)
+{ InitializeParameters(); }
 
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, int zbins )
@@ -161,12 +358,29 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
   m_lhs = std::vector<matrix_t>( m_totalbins, matrix_t::Zero() );
   m_rhs = std::vector<column_t>( m_totalbins, column_t::Zero() );
   m_cluster_count = std::vector<int>( m_totalbins, 0 );
+
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 {
+
+  // load parameters
+  UpdateParametersWithMacro();
+  m_max_talpha = get_double_param( "spacecharge_max_talpha" );
+  m_max_drphi = get_double_param( "spacecharge_max_drphi" );
+  m_max_tbeta = get_double_param( "spacecharge_max_tbeta" );
+  m_max_dz = get_double_param( "spacecharge_max_dz" );
+
+  // print
   std::cout
     << "TpcSpaceChargeReconstruction::InitRun\n"
     << " m_outputfile: " << m_outputfile << "\n"
@@ -175,7 +389,12 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
     << " m_rbins: " << m_rbins << "\n"
     << " m_zbins: " << m_zbins << "\n"
     << " m_totalbins: " << m_totalbins << "\n"
+    << " m_max_talpha: " << m_max_talpha << "\n"
+    << " m_max_drphi: " << m_max_drphi << "\n"
+    << " m_max_tbeta: " << m_max_tbeta << "\n"
+    << " m_max_dz: " << m_max_dz << "\n"
     << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -194,7 +413,33 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
   calculate_distortions( topNode );
+
+  // print counters
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " track statistics total: " << m_total_tracks
+    << " accepted: " << m_accepted_tracks
+    << " fraction: " << 100.*m_accepted_tracks/m_total_tracks << "%"
+    << std::endl;
+
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//___________________________________________________________________________
+void TpcSpaceChargeReconstruction::SetDefaultParameters()
+{
+  // residual cuts
+  set_default_double_param( "spacecharge_max_talpha", 0.6 );
+  set_default_double_param( "spacecharge_max_drphi", 0.5 );
+  set_default_double_param( "spacecharge_max_tbeta", 1.5 );
+  set_default_double_param( "spacecharge_max_dz", 0.5 );
 }
 
 //_____________________________________________________________________
@@ -214,7 +459,14 @@ void TpcSpaceChargeReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { if( accept_track( iter->second ) ) process_track( iter->second ); }
+  {
+    ++m_total_tracks;
+    if( accept_track( iter->second ) )
+    {
+      ++m_accepted_tracks;
+      process_track( iter->second );
+    }
+  }
 }
 
 //_____________________________________________________________________
@@ -251,6 +503,8 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << PHWHERE << " unable to find cluster for key " << cluster_key << std::endl;
       continue;
     }
+
+    ++m_total_clusters;
 
     // make sure
     const auto detId = TrkrDefs::getTrkrId(cluster_key);
@@ -289,17 +543,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // get relevant track state
     const auto state = state_iter->second;
 
-    // track errors
-    #if 0
-    const auto track_rphi_error = state->get_rphi_error();
-    const auto track_z_error = state->get_z_error();
-
-    // also cut on track errors
-    // warning: smaller errors are probably needed when including outer tracker
-    if( track_rphi_error < 0.015 ) continue;
-    if( track_z_error < 0.1 ) continue;
-    #endif
-
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
     const auto dr = cluster_r - track_r;
@@ -314,12 +557,60 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_z = state->get_z() + dr*track_dzdr;
     const auto track_phi = std::atan2( track_y, track_x );
 
-    // get residual errors squared
-    // for now we only consider the error on the cluster. Not on the track
-    //     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
-    //     const auto ez = square(track_z_error) + square(cluster_z_error);
-    const auto erp = square(cluster_rphi_error);
-    const auto ez = square(cluster_z_error);
+    // get track angles
+    const auto cosphi( std::cos( track_phi ) );
+    const auto sinphi( std::sin( track_phi ) );
+    const auto track_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
+    const auto track_pr = state->get_px()*cosphi + state->get_py()*sinphi;
+    const auto track_pz = state->get_pz();
+    const auto talpha = -track_pphi/track_pr;
+    const auto tbeta = -track_pz/track_pr;
+
+    // sanity check
+    if( std::isnan(talpha) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(tbeta) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - tbeta nan" << std::endl;
+      continue;
+    }
+
+    // check against limits
+    if( std::abs( talpha ) > m_max_talpha ) continue;
+    if( std::abs( tbeta ) > m_max_tbeta ) continue;
+
+    // track errors
+    const auto track_rphi_error = state->get_rphi_error();
+    const auto track_z_error = state->get_z_error();
+
+    // residuals
+    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
+    const auto dz = cluster_z - track_z;
+
+    // sanity checks
+    if( std::isnan(drp) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(dz) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
+      continue;
+    }
+
+    // check against limits
+    if( std::abs( drp ) > m_max_drphi ) continue;
+    if( std::abs( dz ) > m_max_dz ) continue;
+
+    // residual errors squared
+    const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
+    const auto ez = square(track_z_error) + square(cluster_z_error);
 
     // sanity check
     // TODO: check whether this happens and fix upstream
@@ -334,58 +625,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - ez nan" << std::endl;
       continue;
     }
-
-    // get residuals
-    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
-    const auto dz = cluster_z - track_z;
-
-    // sanity checks
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan(drp) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan(dz) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
-      continue;
-    }
-
-    // get track angles
-    const auto cosphi( std::cos( track_phi ) );
-    const auto sinphi( std::sin( track_phi ) );
-    const auto track_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
-    const auto track_pr = state->get_px()*cosphi + state->get_py()*sinphi;
-    const auto track_pz = state->get_pz();
-    const auto talpha = -track_pphi/track_pr;
-    const auto tbeta = -track_pz/track_pr;
-
-    // sanity check
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan(talpha) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan(tbeta) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - tbeta nan" << std::endl;
-      continue;
-    }
-
-    // check against limits
-    static constexpr float max_talpha = 0.6;
-    static constexpr float max_residual_drphi = 0.5;
-    if( std::abs( talpha ) > max_talpha ) continue;
-    if( std::abs( drp ) > max_residual_drphi ) continue;
-
-    static constexpr float max_tbeta = 1.5;
-    static constexpr float max_residual_dz = 0.5;
-    if( std::abs( tbeta ) > max_tbeta ) continue;
-    if( std::abs( dz ) > max_residual_dz ) continue;
 
     // get cell
     const auto i = get_cell( cluster );
@@ -408,6 +647,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     m_rhs[i](1,0) += dz/ez;
     m_rhs[i](2,0) += talpha*drp/erp + tbeta*dz/ez;
 
+    ++m_accepted_clusters;
     ++m_cluster_count[i];
 
   }
@@ -419,13 +659,13 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 {
 
   // create output histograms
-  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+  auto hentries( new TH3F( "hentries_rec", "hentries_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hphi( new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hz( new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hr( new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
 
   // set axis labels
-  for( auto h:{ hentries, hphi, hz, hr } )
+  for( const auto& h:{ hentries, hphi, hz, hr } )
   {
     h->GetXaxis()->SetTitle( "#phi (rad)" );
     h->GetYaxis()->SetTitle( "r (cm)" );
@@ -482,14 +722,28 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
   std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
   outputfile->cd();
 
-  // save histograms
+  // when using migromegas, one needs to extrapolate to the rest of the acceptance
+  if( m_use_micromegas )
+  {
+    for( const auto& h: {hentries, hphi, hr, hz} )
+    {
+      if( !h ) continue;
+      extrapolate_z(h);
+      extrapolate_phi1(h);
+      extrapolate_phi2(h);
+    }
+  }
+
+  // write source histograms
   for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
 
-  // also create and write histograms suitable for space charge correction
+  // create and write histograms suitable for space charge reconstruction
   create_histogram( hentries, "hentries" )->Write();
   create_histogram( hphi, "hIntDistortionP" )->Write();
   create_histogram( hr, "hIntDistortionR" )->Write();
   create_histogram( hz, "hIntDistortionZ" )->Write();
+
+  // close output file
   outputfile->Close();
 
 }
