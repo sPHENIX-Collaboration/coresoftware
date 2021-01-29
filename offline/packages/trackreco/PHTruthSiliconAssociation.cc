@@ -103,7 +103,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 
       if(g4particle_vec.size() < 1) continue;
 
-      bool test_phi_matching = true;   // normally false
+      bool test_phi_matching = false;   // normally false
       if(test_phi_matching)
 	{
 	  // for getting the pT dependence of dphi  to eliminate the bias in phi from PHTpcTracker

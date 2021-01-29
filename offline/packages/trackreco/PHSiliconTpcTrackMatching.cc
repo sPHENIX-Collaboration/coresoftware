@@ -118,7 +118,7 @@ int PHSiliconTpcTrackMatching::Process()
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
-      //double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
+      double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
       // phi correction for PHTpcTracker tracklets is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge();
@@ -169,7 +169,7 @@ int PHSiliconTpcTrackMatching::Process()
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
-	  double si_pt = sqrt(pow(_tracklet_si->get_px(), 2) + pow(_tracklet_si->get_py(), 2) );
+	  //double si_pt = sqrt(pow(_tracklet_si->get_px(), 2) + pow(_tracklet_si->get_py(), 2) );
 
 	  if(Verbosity() >= 2)
 	    {
@@ -190,15 +190,22 @@ int PHSiliconTpcTrackMatching::Process()
 	  else
 	    {
 	      // PHTpcTracker
-	      double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
-	      double phi_search_win_lo = fdphi->Eval(si_pt) * sign_phi_correction -  _phi_search_win * mag;
-	      double phi_search_win_hi = fdphi->Eval(si_pt) * sign_phi_correction +  _phi_search_win * mag;
+	      //double si_pt = sqrt( pow(_tracklet_si->get_px(),2) + pow(_tracklet_si->get_py(),2) );
+	      double phi_search_win_lo = fdphi->Eval(tpc_pt) * sign_phi_correction -  _phi_search_win * mag;
+	      double phi_search_win_hi = fdphi->Eval(tpc_pt) * sign_phi_correction +  _phi_search_win * mag;
 
 	      if(Verbosity() > 10) 
 		cout << " phi_search_win_lo " << phi_search_win_lo << " phi_search_win_hi " << phi_search_win_hi << endl;
 
 	      if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;	      
 	    }
+
+	  /*
+	  // temporary for debugging!
+	  if(_test_windows)
+	    cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
+		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+	  */	  
 	  
 	  if(eta_match && phi_match)
 	    {
@@ -210,8 +217,9 @@ int PHSiliconTpcTrackMatching::Process()
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
 		}
 
+	      // temporary!
 	      if(_test_windows)
-		cout << " Try_silicon:  pt " << si_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
+		cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
 		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
 
 	      si_matches.insert(_tracklet_si->get_id());
@@ -249,7 +257,11 @@ int PHSiliconTpcTrackMatching::Process()
 	    }
 	  else
 	    {
-	      std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+	      std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId 
+			<< " associated with TPC tracklet " << _tracklet_tpc->get_id() 
+			<< " si tracklet " << _tracklet_si->get_id()
+			<< " set vertex to (0,0,0)"
+			<< std::endl; 
 	      std::cout << " ---------- Silicon track --------------" << std::endl;
 	      _tracklet_si->identify();
 	      std::cout << " ---------- TPC track -----------------" << std::endl;
@@ -300,7 +312,11 @@ int PHSiliconTpcTrackMatching::Process()
 		}
 	      else
 		{
-		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
+		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId 
+			    << " associated with TPC tracklet " << _tracklet_tpc->get_id() 
+			    << " si tracklet " << _tracklet_si->get_id()
+			    << " set vertex to (0,0,0)"
+			    << std::endl; 
 		  std::cout << " ---------- Silicon track --------------" << std::endl;
 		  _tracklet_si->identify();
 		  std::cout << " ---------- TPC track -----------------" << std::endl;
