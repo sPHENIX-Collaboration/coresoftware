@@ -470,7 +470,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_trackmap)
       {
-        cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+        cout << PHWHERE << "ERROR: can't find TrackMap" << endl;
         exit(-1);
       }
 

@@ -1056,6 +1056,11 @@ PHG4Particle* SvtxTruthEval::get_primary_particle(PHG4Particle* particle)
   return _basetrutheval.get_primary_particle(particle);
 }
 
+PHG4Particle* SvtxTruthEval::get_particle(const int trackid)
+{
+  return _basetrutheval.get_particle(trackid);
+}
+
 bool SvtxTruthEval::is_g4hit_from_particle(PHG4Hit* g4hit, PHG4Particle* particle)
 {
   return _basetrutheval.is_g4hit_from_particle(g4hit, particle);

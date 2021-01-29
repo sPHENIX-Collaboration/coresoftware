@@ -209,17 +209,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
   {
     // exception for fast sim track
     unsigned int track_id = fastsim_track -> get_truth_track_id();
-
-    //g4_hit->track_id->(check if matches track)->get_truth_particle
-    std::set<PHG4Hit*> truth_hits = get_truth_eval()->all_truth_hits();
-    for(std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-        iter != truth_hits.begin();
-        ++iter)
-    {
-      PHG4Hit* hit_candidate = *iter; 
-      if (hit_candidate->get_trkid()==track_id)
-        max_particle = get_truth_eval()->get_particle(hit_candidate);
-    }
+    max_particle = get_truth_eval()->get_particle(track_id);
   }
   else
   {
