@@ -89,11 +89,11 @@ if (! exists $proddesc{$prodtype})
 my $filenamestring;
 if ($prodtype == 1)
 {
-    $filenamestring = "sHijing_0_12fm-";
+    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm-";
 }
 elsif ($prodtype == 2)
 {
-    $filenamestring = "sHijing_0_488fm-";
+    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
 }
 elsif ($prodtype == 3)
 {
@@ -101,15 +101,15 @@ elsif ($prodtype == 3)
 }
 elsif ($prodtype == 4)
 {
-    $filenamestring = "sHijing_0_20fm-";
+    $filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
 }
 elsif ($prodtype == 5)
 {
-    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
+    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm-";
 }
 elsif ($prodtype == 6)
 {
-    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
+    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
 }
 else
 {
@@ -152,20 +152,35 @@ my $getfilesql = sprintf("select filename,segment,events from datasets where %s 
 
 #print "sql: $getfilesql\n";
 
-my $getfiles = $dbh->prepare($getfilesql);
-
+my %getfiles = ();
+foreach  my $tp (keys %req_types)
+{
+    if ($tp eq "G4Hits")
+    {
+	my @sp1 = split(/_/,$filenamestring);
+	my $newfilenamestring = sprintf("%s_%s_%s",$sp1[0],$sp1[1],$sp1[2]);
+	my $newgetfilesql = $getfilesql;
+	$newgetfilesql =~ s/$filenamestring/$newfilenamestring/;
+	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+    }
+    else
+    {
+	$getfiles{$tp} = $dbh->prepare($getfilesql);
+    }
+}
+#die;
 # here we fill the big hash with all segments/files for all requested filetypes
 foreach my $tp (sort keys %req_types)
 {
     my %dsthash = ();
     my %evthash = ();
-    $getfiles->execute($tp);
-    if ($getfiles->rows == 0)
+    $getfiles{$tp}->execute($tp);
+    if ($getfiles{$tp}->rows == 0)
     {
 	print "no files for type $tp\n";
 	exit(0);
     }
-    while (my @res = $getfiles->fetchrow_array())
+    while (my @res = $getfiles{$tp}->fetchrow_array())
     {
 	my $hashkey = sprintf("%05d",$res[1]);
 	$dsthash{$hashkey} = $res[0];
@@ -251,5 +266,8 @@ foreach my $tp (sort keys %allfilehash)
 
 
 $getdsttypes->finish();
-$getfiles->finish();
+foreach my $tp (keys %getfiles)
+{
+    $getfiles{$tp}->finish();
+}
 $dbh->disconnect;
