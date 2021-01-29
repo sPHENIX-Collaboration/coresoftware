@@ -101,7 +101,7 @@ elsif ($prodtype == 3)
 }
 elsif ($prodtype == 4)
 {
-    $filenamestring = "sHijing_0_20fm-";
+    $filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
 }
 elsif ($prodtype == 5)
 {
