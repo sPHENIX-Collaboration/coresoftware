@@ -1117,17 +1117,12 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
 
         PHG4Particle* maxtruthparticle = get_svtx_eval_stack()->get_track_eval()->max_truth_particle_by_nclusters(track);
 
-        if (_strict)
+        if (maxtruthparticle == nullptr)
         {
-          assert(maxtruthparticle);
+          // in extreme rare cases, noise hits can make a track with no maxtruthparticle matched
+          energy = 0;
         }
-        else if (!maxtruthparticle)
-        {
-          ++_errors;
-          continue;
-        }
-
-        if (maxtruthparticle->get_track_id() == truthparticle->get_track_id())
+        else if (maxtruthparticle->get_track_id() == truthparticle->get_track_id())
         {
           energy = track->get_p();
         }
