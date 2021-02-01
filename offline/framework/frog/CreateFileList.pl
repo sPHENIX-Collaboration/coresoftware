@@ -6,6 +6,12 @@ use Getopt::Long;
 use Data::Dumper;
 use List::Util qw(shuffle);
 
+sub hijingfiletypes;
+sub charmfiletypes;
+sub bottomfiletypes;
+sub pythiambfiletypes;
+sub fill_nocombine_files;
+
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
@@ -24,13 +30,15 @@ while(my @res = $getdsttypes->fetchrow_array())
 }
 
 my %proddesc = (
-"1" => "hijing (0-12fm) pileup 0-12fm",
-"2" => "hijing (0-4.88fm) pileup 0-12fm",
-"3" => "pythia8 pp MB",
-"4" => "hijing (0-20fm)",
-"5" => "hijing (0-12fm) pileup 0-20fm",
-"6" => "hijing (0-4.88fm) pileup 0-20fm"
-);
+    "1" => "hijing (0-12fm) pileup 0-12fm",
+    "2" => "hijing (0-4.88fm) pileup 0-12fm",
+    "3" => "pythia8 pp MB",
+    "4" => "hijing (0-20fm) pileup 0-20fm",
+    "5" => "hijing (0-12fm) pileup 0-20fm",
+    "6" => "hijing (0-4.88fm) pileup 0-20fm",
+    "7" => "HF pythia8 Charm",
+    "8" => "HF pythia8 Bottom"
+    );
 
 
 my $nEvents;
@@ -39,23 +47,86 @@ my $randomize;
 my $prodtype;
 GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'r' => \$randomize, 's:i' => \$start_segment);
 
+my $filenamestring;
+my %filetypes = ();
+if (defined $prodtype)
+{
+    if ($prodtype == 1)
+    {
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm-";
+	&hijingfiletypes();
+    }
+    elsif ($prodtype == 2)
+    {
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
+	&hijingfiletypes();
+    }
+    elsif ($prodtype == 3)
+    {
+	$filenamestring = "pythia8_mb";
+	&pythiambfiletypes();
+    }
+    elsif ($prodtype == 4)
+    {
+	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
+	&hijingfiletypes();
+    }
+    elsif ($prodtype == 5)
+    {
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm-";
+	&hijingfiletypes();
+    }
+    elsif ($prodtype == 6)
+    {
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
+	&hijingfiletypes();
+    }
+    elsif ($prodtype == 7)
+    {
+	$filenamestring = "DST_HF_CHARM";
+	&charmfiletypes();
+    }
+    elsif ($prodtype == 8)
+    {
+	$filenamestring = "DST_HF_BOTTOM";
+	&bottomfiletypes();
+    }
+    else
+    {
+	print "no file substring for production type $prodtype\n";
+	exit(1);
+    }
+}
+
 if ($#ARGV < 0)
 {
-    print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
-    print "parameters:\n";
-    print "-n  : <number of events>\n";
-    print "-r  : randomize segments used\n";
-    print "-s  : <starting segment>\n";
-    print "-type : production type\n";
-    foreach my $pd (sort keys %proddesc)
+    if (! defined $prodtype)
     {
-	print "    $pd : $proddesc{$pd}\n";
+	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
+	print "parameters:\n";
+	print "-n  : <number of events>\n";
+	print "-r  : randomize segments used\n";
+	print "-s  : <starting segment>\n";
+	print "-type : production type\n";
+	foreach my $pd (sort keys %proddesc)
+	{
+	    print "    $pd : $proddesc{$pd}\n";
+	}
+	print "\navailable file types (choose at least one, --> means: written to):\n";
+	foreach my $tp (sort keys %dsttype)
+	{
+	    print "$tp  --> $dsttype{$tp}\n";
+	}
     }
-    print "\navailable file types (choose at least one, --> means: written to):\n";
-    foreach my $tp (sort keys %dsttype)
+    else
     {
-	print "$tp  --> $dsttype{$tp}\n";
+	print "\navailable file types for -type $prodtype: $proddesc{$prodtype}:\n";
+	foreach my $tp (sort keys %filetypes)
+	{
+	    print "\t$tp : $filetypes{$tp}\n";
+	}
     }
+
     exit(0);
 }
 
@@ -86,36 +157,6 @@ if (! exists $proddesc{$prodtype})
     exit(0);
 }
 
-my $filenamestring;
-if ($prodtype == 1)
-{
-    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm-";
-}
-elsif ($prodtype == 2)
-{
-    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
-}
-elsif ($prodtype == 3)
-{
-    $filenamestring = "pythia8_mb";
-}
-elsif ($prodtype == 4)
-{
-    $filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
-}
-elsif ($prodtype == 5)
-{
-    $filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm-";
-}
-elsif ($prodtype == 6)
-{
-    $filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
-}
-else
-{
-    print "no file substring for production type $prodtype\n";
-    exit(1);
-}
 #check dst types
 my %req_types = ();
 
@@ -123,6 +164,9 @@ my %req_types = ();
 my %allfilehash = ();
 
 my %allevthash = ();
+
+my %nocombine = ();
+&fill_nocombine_files;
 
 while($#ARGV >= 0)
 {
@@ -136,6 +180,21 @@ while($#ARGV >= 0)
 	}
 	exit(1);
     }
+    if (exists $req_types{$ARGV[0]})
+    {
+	print "please no duplicate file types ($ARGV[0])\n";
+	exit(1);
+    }
+
+    if (exists $nocombine{$ARGV[0]})
+    {
+	if ($#ARGV >= 1 || keys %req_types > 0)
+	{
+	    print "File type $ARGV[0] cannot be combined with other files\n";
+	    exit(1);
+	}
+    }
+
     $req_types{$ARGV[0]} = 1;
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
@@ -271,3 +330,56 @@ foreach my $tp (keys %getfiles)
     $getfiles{$tp}->finish();
 }
 $dbh->disconnect;
+
+sub hijingfiletypes
+{
+# pass1
+    $filetypes{"G4Hits"} = "G4 Hits";
+# pass2
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
+    $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
+    $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
+    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
+# pass3 calo
+    $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
+#pass3 trk
+    $filetypes{"DST_TRKR_CLUSTER"} = "TPC/Silicon Clusters";
+#pass4 tracks
+    $filetypes{"DST_TRACKS"} = "Reconstructed Tracks";
+}
+
+sub charmfiletypes
+{
+    $filetypes{"DST_HF_CHARM"} = "Charm DST";
+    $filetypes{"QA_DST_HF_CHARM"} = "Charm QA";
+    $filetypes{"JET_EVAL_DST_HF_CHARM"} = "Charm Jet Eval";
+}
+
+sub bottomfiletypes
+{
+    $filetypes{"DST_HF_BOTTOM"} = "Bottom DST";
+    $filetypes{"QA_DST_HF_BOTTOM"} = "Bottom QA";
+    $filetypes{"JET_EVAL_DST_HF_BOTTOM"} = "Bottom Jet Eval";
+}
+
+sub pythiambfiletypes
+{
+    $filetypes{"G4Hits"} = "G4 Hits";
+# pass2
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
+    $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
+    $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
+    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
+}
+
+# here are filetypes which are ntuples or cannot be combined
+# with other files for any other reason
+sub fill_nocombine_files
+{
+    $nocombine{"JET_EVAL_DST_HF_CHARM"} = 1;
+    $nocombine{"JET_EVAL_DST_HF_BOTTOM"} = 1;
+    $nocombine{"QA_DST_HF_CHARM"} = 1;
+    $nocombine{"QA_DST_HF_BOTTOM"} = 1;
+}
