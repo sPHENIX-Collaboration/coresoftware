@@ -13,6 +13,7 @@
 class PHG4Shower;
 class PHG4Particle;
 class PHG4VtxPoint;
+class G4Track;
 
 class PHG4TruthInfoContainer : public PHObject
 {
@@ -45,6 +46,7 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
+  ConstIterator AddParticle(G4Track* track);
   void delete_particle(Iterator piter);
 
   PHG4Particle* GetParticle(const int trackid);
