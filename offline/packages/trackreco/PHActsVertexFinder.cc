@@ -258,6 +258,10 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 				       KeyMap& keyMap)
 {
   unsigned int key = 0;
+
+  if(vertices.size() > 0)
+    m_svtxVertexMap->clear();
+
   for(auto vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
@@ -418,13 +422,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
     }
 
   m_svtxVertexMap = 
-    findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
+    findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_svtxVertexMap)
     {
       m_svtxVertexMap = new SvtxVertexMap_v1;
       PHIODataNode<PHObject> *node = 
 	new PHIODataNode<PHObject>(m_svtxVertexMap,
-				   "SvtxVertexMapActs", "PHObject");
+				   "SvtxVertexMap", "PHObject");
       svtxNode->addNode(node);
     }
 
@@ -459,6 +463,7 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting."
 		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
