@@ -122,17 +122,16 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track)
 std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
 {
   if (!has_node_pointers()) return std::set<PHG4Particle*>();
-
   if (_strict)
   {
     assert(track);
   }
+
   else if (!track)
   {
     ++_errors;
     return std::set<PHG4Particle*>();
   }
-
   if (_do_cache)
   {
     std::map<SvtxTrack*, std::set<PHG4Particle*> >::iterator iter =
@@ -142,33 +141,41 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
       return iter->second;
     }
   }
-
   std::set<PHG4Particle*> truth_particles;
+  SvtxTrack_FastSim * fastsim_track = dynamic_cast<SvtxTrack_FastSim * >(track);                                                                                            
 
-  // loop over all clusters...
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  if (fastsim_track)
   {
-    TrkrDefs::cluskey cluster_key = *iter;
-
-    //    if (_strict)
-    //    {
-    //      assert(cluster_key);
-    //    }
-    //    else if (!cluster_key)
-    //    {
-    //      ++_errors;
-    //      continue;
-    //    }
-
-    std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster_key);
-
-    for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
-         jter != new_particles.end();
-         ++jter)
+    // exception for fast sim track
+    unsigned int track_id = fastsim_track -> get_truth_track_id();
+    truth_particles.insert(get_truth_eval()->get_particle(track_id));
+  }
+  else{                
+    // loop over all clusters...
+    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+        iter != track->end_cluster_keys();
+        ++iter)
     {
-      truth_particles.insert(*jter);
+      TrkrDefs::cluskey cluster_key = *iter;
+
+      //    if (_strict)
+      //    {
+      //      assert(cluster_key);
+      //    }
+      //    else if (!cluster_key)
+      //    {
+      //      ++_errors;
+      //      continue;
+      //    }
+
+      std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster_key);
+
+      for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
+          jter != new_particles.end();
+          ++jter)
+      {
+        truth_particles.insert(*jter);
+      }
     }
   }
 
@@ -203,7 +210,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
 
   std::set<PHG4Particle*> particles = all_truth_particles(track);
   PHG4Particle* max_particle = nullptr;
-
+  
   SvtxTrack_FastSim * fastsim_track = dynamic_cast<SvtxTrack_FastSim * >(track);
   if (fastsim_track)
   {
@@ -228,6 +235,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
       }
     }
   }
+
   if (_do_cache) _cache_max_truth_particle_by_nclusters.insert(make_pair(track, max_particle));
 
   return max_particle;
@@ -882,7 +890,6 @@ void SvtxTrackEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
-
   return;
 }
 
@@ -893,6 +900,5 @@ bool SvtxTrackEval::has_node_pointers()
     assert(_trackmap);
   else if (!_trackmap)
     return false;
-
   return true;
 }
