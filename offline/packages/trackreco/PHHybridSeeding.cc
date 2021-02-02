@@ -263,6 +263,15 @@ int PHHybridSeeding::Process(PHCompositeNode *topNode)
     }
     clusterLists.push_back(k);
   }
+  for(auto clist : clusterLists)
+  {
+    if(clist.size()>1 && TrkrDefs::getLayer(clist[0])<TrkrDefs::getLayer(clist[1])) std::reverse(clist.begin(),clist.end());
+    cout << "track cluster layers: " << endl;
+    for(auto cluster : clist)
+    {
+      cout << (int)TrkrDefs::getLayer(cluster) << endl;
+    }
+  }
   vector<SvtxTrack_v1> seeds = ALICEKalmanFilter(clusterLists,true);
   if(Verbosity()>0) cout << "nseeds: " << seeds.size() << "\n";
   publishSeeds(seeds);
@@ -324,7 +333,7 @@ vector<SvtxTrack_v1> PHHybridSeeding::ALICEKalmanFilter(vector<keylist> trackSee
     float second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
     float init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
     float delta_z = second_z - z0;
-    float init_DzDs = delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
+    float init_DzDs = delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y + delta_z*delta_z);
     trackSeed.SetSinPhi(init_SinPhi);
     LogDebug("Set initial SinPhi to " << init_SinPhi << endl);
     trackSeed.SetDzDs(init_DzDs);
@@ -378,8 +387,8 @@ vector<SvtxTrack_v1> PHHybridSeeding::ALICEKalmanFilter(vector<keylist> trackSee
       LogDebug("cos_phi = " << cos_phi << endl);
       float sin_phi = y/sqrt(x*x+y*y);
       LogDebug("sin phi = " << sin_phi << endl);
-      trackCartesian_x = predicted_alice_x*cos_phi+predicted_alice_y*sin_phi;
-      trackCartesian_y = predicted_alice_x*sin_phi-predicted_alice_y*cos_phi;
+      trackCartesian_x = predicted_alice_x*cos_phi-predicted_alice_y*sin_phi;
+      trackCartesian_y = predicted_alice_x*sin_phi+predicted_alice_y*cos_phi;
       // trackCartesian_z = predicted_z;
       LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl);
       LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl);
@@ -407,6 +416,13 @@ vector<SvtxTrack_v1> PHHybridSeeding::ALICEKalmanFilter(vector<keylist> trackSee
       #endif
       ++cluster_ctr;
     }
+    if(!trackSeed.TransportToX(0.,trackLine,_Bz,_max_sin_phi))
+    {
+      LogWarning("Transport failed! Aborting for this seed...\n");
+      aborted = true;
+      break;
+    }
+
 /*    
     if(cluster_ctr!=1 && !trackSeed.CheckNumericalQuality())
     {

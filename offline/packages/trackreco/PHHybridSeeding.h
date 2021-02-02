@@ -63,20 +63,18 @@ class PHHybridSeeding : public PHTrackSeeding
   
   void set_field_dir(const double rescale)
   {
-    _fieldDir = -1;
     if(rescale > 0)
-      _fieldDir = 1;     
+      _fieldDir = 1;
+    else
+    {
+      _fieldDir = -1;
+      _Bz = -1*_Bz;
+    }  
   }
   void setSearchRadius(float r1, float r2) {_search_radius1 = r1; _search_radius2 = r2;}
   void setSearchAngle(float a1, float a2) {_search_angle1 = a1; _search_angle2 = a2;}
   void setMinTrackSize(size_t n1, size_t n2) {_min_track_size1 = n1; _min_track_size2 = n2;}
   void setNThreads(size_t n) {_nthreads = n;} 
-  void set_field_dir(const double rescale)
-  {
-    _fieldDir = -1;
-    if(rescale > 0)
-      _fieldDir = 1;
-  }
 
  protected:
   virtual int Setup(PHCompositeNode *topNode);
