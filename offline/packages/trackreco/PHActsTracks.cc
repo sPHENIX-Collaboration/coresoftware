@@ -72,6 +72,9 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     std::cout << "Start process_event in PHActsTracks" << std::endl;
   }
 
+  /// Start fresh in this event in this module
+  m_actsTrackMap->clear();
+
   auto eventTimer = std::make_unique<PHTimer>("PHActsTracksTimer");
   eventTimer->stop();
   eventTimer->restart();
@@ -103,14 +106,21 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     unsigned int vertexId = track->get_vertex_id();
 
-    /// hack for now since TPC seeders don't set vertex id
-    if(vertexId == UINT_MAX)
-      vertexId = 0;
 
     const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-    Acts::Vector3D vertex = {svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			     svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			     svtxVertex->get_z() * Acts::UnitConstants::cm};
+    double vertX = track->get_x() * Acts::UnitConstants::cm;
+    double vertY = track->get_y() * Acts::UnitConstants::cm;
+    double vertZ = track->get_z() * Acts::UnitConstants::cm;
+
+    /// If the vertex is available, use it. Otherwise use track position
+    if(svtxVertex)
+      {
+	vertX = svtxVertex->get_x() * Acts::UnitConstants::cm;
+	vertY = svtxVertex->get_y() * Acts::UnitConstants::cm;
+	vertZ = svtxVertex->get_z() * Acts::UnitConstants::cm;
+      }
+
+    Acts::Vector3D vertex = {vertX, vertY, vertZ};
     
     if(Verbosity() > 4)
       {
@@ -276,10 +286,16 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
     {
-      std::cout << PHWHERE << "SvtxVertexMap not found on node tree. Exiting."
-		<< std::endl;
+      /// Check the Acts vertex map node
+      m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
+      if(!m_vertexMap)
+	{
 
-      return Fun4AllReturnCodes::ABORTEVENT;
+	  std::cout << PHWHERE << "SvtxVertexMap not found on node tree. Exiting."
+		    << std::endl;
+	  
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
     }
 
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
