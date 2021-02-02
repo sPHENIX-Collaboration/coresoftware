@@ -12,6 +12,7 @@
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4PrimaryParticle.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Track.hh>
 
 #include <boost/tuple/tuple.hpp>
@@ -24,6 +25,7 @@ using namespace std;
 PHG4TruthInfoContainer::PHG4TruthInfoContainer()
   : particlemap()
   , vtxmap()
+  , vtxset()
   , particle_embed_flags()
   , vertex_embed_flags()
 {
@@ -44,6 +46,7 @@ void PHG4TruthInfoContainer::Reset()
     delete iter->second;
   }
   vtxmap.clear();
+  vtxset.clear();
 
   for (ShowerIterator iter = showermap.begin(); iter != showermap.end(); ++iter)
   {
@@ -275,6 +278,23 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   cerr << "PHG4TruthInfoContainer::AddVertex"
        << " - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
+}
+
+PHG4TruthInfoContainer::ConstVtxIterator
+PHG4TruthInfoContainer::AddVertex(const G4Track* track)
+{
+  G4ThreeVector v = track->GetVertexPosition();
+  int vtxindex = track->GetParentID() ? minvtxindex() - 1 : maxvtxindex() + 1;
+  auto [iter, inserted] = vtxset.insert({v[0]/cm, v[1]/cm, v[2]/cm, vtxindex});
+
+  if (!inserted)
+  {
+    return vtxmap.find(iter->vtxindex);
+  }
+
+  PHG4VtxPointv1 vtxpt(v[0]/cm, v[1]/cm, v[2]/cm, track->GetGlobalTime()/ns, vtxindex);
+
+  return vtxmap.insert(std::make_pair(vtxindex, new PHG4VtxPointv1(vtxpt))).first;
 }
 
 PHG4TruthInfoContainer::ConstShowerIterator

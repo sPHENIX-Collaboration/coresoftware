@@ -32,29 +32,7 @@ PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventActi
 void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
 {
   // create a new vertex object ------------------------------------------------
-  G4ThreeVector v = track->GetVertexPosition();
-  map<G4ThreeVector, int>::const_iterator viter = m_VertexMap.find(v);
-  int vtxindex = 0;
-  if (viter != m_VertexMap.end())
-  {
-    vtxindex = viter->second;
-  }
-  else
-  {
-    vtxindex = m_TruthInfoList->maxvtxindex() + 1;
-    if (track->GetParentID())
-    {
-      vtxindex = m_TruthInfoList->minvtxindex() - 1;
-    }
-
-    m_VertexMap[v] = vtxindex;
-    PHG4VtxPointv1* vtxpt = new PHG4VtxPointv1(v[0] / cm,
-                                               v[1] / cm,
-                                               v[2] / cm,
-                                               track->GetGlobalTime() / ns);
-    // insert new vertex into the output
-    m_TruthInfoList->AddVertex(vtxindex, vtxpt);
-  }
+  int vtxindex = m_TruthInfoList->AddVertex(track);
 
   // insert particle into the output
   PHG4Particle* ti = (*m_TruthInfoList->AddParticle(const_cast<G4Track*>(track))).second;
@@ -153,6 +131,5 @@ void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
 
 int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
 {
-  m_VertexMap.clear();
   return 0;
 }
