@@ -266,11 +266,6 @@ int PHHybridSeeding::Process(PHCompositeNode *topNode)
   for(auto clist : clusterLists)
   {
     if(clist.size()>1 && TrkrDefs::getLayer(clist[0])<TrkrDefs::getLayer(clist[1])) std::reverse(clist.begin(),clist.end());
-    cout << "track cluster layers: " << endl;
-    for(auto cluster : clist)
-    {
-      cout << (int)TrkrDefs::getLayer(cluster) << endl;
-    }
   }
   vector<SvtxTrack_v1> seeds = ALICEKalmanFilter(clusterLists,true);
   if(Verbosity()>0) cout << "nseeds: " << seeds.size() << "\n";
