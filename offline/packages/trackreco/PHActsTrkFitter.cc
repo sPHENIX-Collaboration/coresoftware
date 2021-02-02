@@ -112,6 +112,9 @@ int PHActsTrkFitter::Process()
   eventTimer->stop();
   eventTimer->restart();
   
+  /// Start fresh for this event and for this execution of the module
+  m_actsFitResults->clear();
+
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
