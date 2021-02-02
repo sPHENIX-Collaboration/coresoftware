@@ -34,9 +34,7 @@ PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event)
 
   _embedding_id = event.get_embedding_id();
   _isSimulated = event.is_simulated();
-
-  const HepMC::GenEvent* hepmc = event.getEvent();
-  _theEvt = new HepMC::GenEvent(*(hepmc));
+  _theEvt = new HepMC::GenEvent(*event.getEvent());
 
   return *this;
 }
@@ -67,7 +65,9 @@ const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
 {
-  if (_theEvt) delete _theEvt;
+// clean up old event if it exists,
+// no check needed, one can delete null pointers
+  delete _theEvt;
 
   _theEvt = evt;
   if (!_theEvt) return false;

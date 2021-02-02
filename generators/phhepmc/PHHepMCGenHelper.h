@@ -11,6 +11,10 @@
 #ifndef PHHEPMC_PHHEPMCGENHELPER_H
 #define PHHEPMC_PHHEPMCGENHELPER_H
 
+#include <gsl/gsl_rng.h>
+
+#include <string>
+
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
@@ -20,9 +24,6 @@ namespace HepMC
   class GenEvent;
 }
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <gsl/gsl_rng.h>
-#endif
 
 /*!
  * \brief PHHepMCGenHelper provides service of DST upload of HepMC subevent, vertex assignment and random generator
@@ -90,26 +91,25 @@ class PHHepMCGenHelper
     return _geneventmap;
   }
 
-#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *get_random_generator()
   {
     return RandomGenerator;
   }
-#endif
 
   void set_geneventmap(PHHepMCGenEventMap *geneventmap)
   {
     _geneventmap = geneventmap;
   }
 
- protected:
-#if !defined(__CINT__) || defined(__CLING__)
+  void CopySettings(PHHepMCGenHelper &helper);
+
+  void Print(const std::string &what = "ALL") const;
+
+ private:
   gsl_rng *RandomGenerator;
-#endif
 
   double smear(const double position, const double width, VTXFUNC dist) const;
 
- private:
   VTXFUNC _vertex_func_x;
   VTXFUNC _vertex_func_y;
   VTXFUNC _vertex_func_z;

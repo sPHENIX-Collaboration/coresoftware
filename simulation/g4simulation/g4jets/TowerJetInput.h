@@ -5,7 +5,7 @@
 
 #include "Jet.h"
 
-#include <iostream>    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <vector>
 
 // forward declarations
@@ -24,7 +24,6 @@ class TowerJetInput : public JetInput
   std::vector<Jet*> get_input(PHCompositeNode* topNode);
 
  private:
-  int _verbosity;
   Jet::SRC _input;
 };
 

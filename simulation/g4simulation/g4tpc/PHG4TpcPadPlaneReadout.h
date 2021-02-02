@@ -5,10 +5,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <array>
-#endif
+#include <gsl/gsl_rng.h>
 
+#include <array>
 #include <climits>
 #include <cmath>
 #include <string>                     // for string
@@ -28,11 +27,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
  public:
   PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
 
+  virtual ~PHG4TpcPadPlaneReadout();
+
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
   void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
-  void MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
   void SetDefaultParameters();
   void UpdateInternalParameters();
@@ -43,7 +44,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins(const double z, const std::array<double,2>& cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
 
-#if !defined(__CINT__) || defined(__CLING__)
   std::string seggeonodename;
 
   PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
@@ -51,6 +51,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double rad_gem = NAN;
   double output_radius = 0;
+
+  static const unsigned int print_layer = 18;
 
   double neffelectrons_threshold = NAN;
 
@@ -75,14 +77,18 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   // gaussian sampling
   static constexpr double _nsigmas = 5;
-  static constexpr int _ngauss_steps = 100;
-  std::array<double, _ngauss_steps> _gauss_weights;
-#endif
+
+  double averageGEMGain = NAN;
 
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_zbin_share;
+
+  // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
+  double getSingleEGEMAmplification();
+  gsl_rng *RandomGenerator;
+
 };
 
 #endif

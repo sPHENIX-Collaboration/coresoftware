@@ -7,6 +7,7 @@
 
 #include <map>
 #include <set>
+#include <string>  // for string
 #include <utility>
 
 class PHCompositeNode;
@@ -70,6 +71,8 @@ class SvtxTrackEval
   unsigned int get_nwrongclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
   unsigned int get_errors() { return _errors + _clustereval.get_errors(); }
 
+  void set_track_nodename(const std::string& name) { m_TrackNodeName = name; }
+
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
@@ -94,6 +97,7 @@ class SvtxTrackEval
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nwrongclusters_contribution;
+  std::string m_TrackNodeName;
 };
 
 #endif  // G4EVAL_SVTXTRACKEVAL_H

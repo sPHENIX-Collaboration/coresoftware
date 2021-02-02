@@ -9,9 +9,8 @@
 
 
 // rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
-#endif
+
 #include <string>             // for string
 #include <vector>
 
@@ -44,6 +43,14 @@ class PHTruthVertexing : public PHInitVertexing
   {
     return _vertex_error;
   }
+  void set_acts_silicon(bool acts_silicon)
+  {
+    _acts_silicon = acts_silicon;
+  }
+  void set_embed_only(bool embed_only)
+  {
+    _embed_only = embed_only;
+  }
 
  protected:
 
@@ -57,14 +64,17 @@ class PHTruthVertexing : public PHInitVertexing
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 
+  void assignStubsVertices(PHCompositeNode *topNode);
+
   PHG4TruthInfoContainer *_g4truth_container;
 
   /// manually assigned vertex error (standard dev), cm
   std::vector<float> _vertex_error;
 
-#if !defined(__CINT__) || defined(__CLING__)
+  bool _embed_only;
+  bool _acts_silicon = false;
+
   gsl_rng *m_RandomGenerator;
-#endif
 };
 
 #endif

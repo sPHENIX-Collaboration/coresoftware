@@ -26,18 +26,14 @@ dnl need to check for *g++ since $CXX contains full path to g++
 case $CXX in
  *g++)
   if test `g++ -dumpversion | awk '{print $1>=8.3?"1":"0"}'` = 1; then
-     CXXFLAGS="$CXXFLAGS -Wno-class-memaccess"
+     CXXFLAGS="$CXXFLAGS -Wno-class-memaccess -Wno-unused-local-typedefs -Wno-sign-compare -Wno-switch -Wno-unused-function -Wno-unused-value"
   fi
 dnl ACTS needs at least gcc 6
   AM_CONDITIONAL([MAKE_ACTS],test `g++ -dumpversion | awk '{print $1>=6.0?"1":"0"}'` = 1)
  ;;
 esac
-dnl test for root 6
-if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
-fi
-AM_CONDITIONAL([MAKEROOT6],[test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

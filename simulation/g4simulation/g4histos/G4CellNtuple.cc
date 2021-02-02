@@ -1,12 +1,13 @@
 #include "G4CellNtuple.h"
 
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>  // for get_phibin
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -15,10 +16,10 @@
 #include <TNtuple.h>
 
 #include <cassert>
-#include <cmath>                                        // for isfinite
-#include <iostream>                                     // for operator<<
+#include <cmath>     // for isfinite
+#include <iostream>  // for operator<<
 #include <sstream>
-#include <utility>                                      // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -64,13 +65,13 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
     nodename << "G4CELL_" << *iter;
     geonodename.str("");
     geonodename << "CYLINDERCELLGEOM_" << *iter;
-    PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geonodename.str().c_str());
+    PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geonodename.str());
     if (!cellgeos)
     {
       cout << "no geometry node " << geonodename.str() << " for " << *iter << endl;
       continue;
     }
-    PHG4CylinderCellContainer *cells = findNode::getClass<PHG4CylinderCellContainer>(topNode, nodename.str().c_str());
+    PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, nodename.str());
     if (cells)
     {
       int previouslayer = -1;
@@ -79,8 +80,8 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
       //          double numcells = cells->size();
       //          ncells[i]->Fill(numcells);
       //	  cout << "number of cells: " << cells->size() << endl;
-      PHG4CylinderCellContainer::ConstRange cell_range = cells->getCylinderCells();
-      for (PHG4CylinderCellContainer::ConstIterator cell_iter = cell_range.first; cell_iter != cell_range.second; cell_iter++)
+      PHG4CellContainer::ConstRange cell_range = cells->getCells();
+      for (PHG4CellContainer::ConstIterator cell_iter = cell_range.first; cell_iter != cell_range.second; cell_iter++)
 
       {
         double edep = cell_iter->second->get_edep();
@@ -89,8 +90,10 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
           cout << "invalid edep: " << edep << endl;
         }
         esum += cell_iter->second->get_edep();
-        int phibin = cell_iter->second->get_binphi();
-        int etabin = cell_iter->second->get_bineta();
+        int phibin = ~0x0;
+        int etabin = ~0x0;
+        double phi = NAN;
+        double eta = NAN;
         int layer = cell_iter->second->get_layer();
         // to search the map fewer times, cache the geom object until the layer changes
         if (layer != previouslayer)
@@ -98,9 +101,21 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
           cellgeom = cellgeos->GetLayerCellGeom(layer);
           previouslayer = layer;
         }
+        if (cell_iter->second->has_binning(PHG4CellDefs::etaphibinning))
+        {
+          phibin = PHG4CellDefs::EtaPhiBinning::get_phibin(cell_iter->second->get_cellid());
+          etabin = PHG4CellDefs::EtaPhiBinning::get_etabin(cell_iter->second->get_cellid());
+          phi = cellgeom->get_phicenter(phibin);
+          eta = cellgeom->get_etacenter(etabin);
+        }
+        else if (cell_iter->second->has_binning(PHG4CellDefs::sizebinning))
+        {
+          phibin = PHG4CellDefs::SizeBinning::get_phibin(cell_iter->second->get_cellid());
+          etabin = PHG4CellDefs::SizeBinning::get_zbin(cell_iter->second->get_cellid());
+          phi = cellgeom->get_phicenter(phibin);
+          eta = cellgeom->get_zcenter(etabin);
+        }
         assert(cellgeom != nullptr);
-        double phi = cellgeom->get_phicenter(phibin);
-        double eta = cellgeom->get_etacenter(etabin);
         ntup->Fill(detid,
                    cell_iter->second->get_layer(),
                    phi,

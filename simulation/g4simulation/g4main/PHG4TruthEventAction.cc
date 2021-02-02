@@ -371,11 +371,11 @@ void PHG4TruthEventAction::PruneShowers()
 void PHG4TruthEventAction::ProcessShowers()
 {
   PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
-  for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
-       iter != range.second;
-       ++iter)
+  for (PHG4TruthInfoContainer::ShowerIterator shwiter = range.first;
+       shwiter != range.second;
+       ++shwiter)
   {
-    PHG4Shower* shower = iter->second;
+    PHG4Shower* shower = shwiter->second;
 
     // Data structures to hold weighted pca
     std::vector<std::vector<float> > points;
@@ -523,7 +523,7 @@ void PHG4TruthEventAction::ProcessShowers()
     }
 
     // weighted covariance matrix
-    prefactor = sumw / (pow(sumw, 2) - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
+    prefactor = sumw / (sumw*sumw - sumw2);  // effectivelly 1/(N-1) when w_i = 1.0
     Eigen::Matrix<double, 3, 3> covar = prefactor * (X.transpose() * W.asDiagonal() * X);
 
     shower->set_x(mean(0, 0));

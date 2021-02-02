@@ -22,6 +22,7 @@
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 
+#include <micromegas/MicromegasDefs.h>
 #include <mvtx/MvtxDefs.h>
 
 #include <intt/InttDefs.h>
@@ -207,7 +208,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 
   if (_do_eval)
   {
-    if (Verbosity() >= 1)
+    if (Verbosity() > 1)
       cout << PHWHERE << " Openning file: " << _eval_outname << endl;
     PHTFileServer::get().open(_eval_outname, "RECREATE");
     init_eval_tree();
@@ -228,7 +229,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 {
   _event++;
-
+  
   if (Verbosity() > 1)
     std::cout << PHWHERE << "Events processed: " << _event << std::endl;
   //	if (_event % 1000 == 0)
@@ -241,40 +242,43 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   //! stands for Refit_GenFit_Tracks
   vector<genfit::Track*> rf_gf_tracks;
   vector<std::shared_ptr<PHGenFit::Track> > rf_phgf_tracks;
-
+  
   map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
-
+  
   if (_trackmap_refit)
     _trackmap_refit->empty();
-
+  
   // _trackmap is SvtxTrackMap from the node tree
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
-  {
-    SvtxTrack* svtx_track = iter->second;
-    if(Verbosity() > 10)
-      {
-  cout << "   process SVTXTrack " << iter->first << endl;
-  svtx_track->identify();
+    {
+      SvtxTrack* svtx_track = iter->second;
+      if(Verbosity() > 10){
+	cout << "   process SVTXTrack " << iter->first << endl;
+	svtx_track->identify();
       }
-    if (!svtx_track)
-      continue;
-    if (!(svtx_track->get_pt() > _fit_min_pT))
-      continue;
+      if (!svtx_track)
+	continue;
+      if (!(svtx_track->get_pt() > _fit_min_pT))
+	continue;
 
-    // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
-    //! rf_phgf_track stands for Refit_PHGenFit_Track
-    std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
-    if (rf_phgf_track)
-      {
-  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
-  rf_phgf_tracks.push_back(rf_phgf_track);
-  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
+      // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
+      //! rf_phgf_track stands for Refit_PHGenFit_Track
+      std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+      if (rf_phgf_track)
+	{
+	  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
+	  rf_phgf_tracks.push_back(rf_phgf_track);
+	  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
+	    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+	  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
+	}
+      else{
+	if(Verbosity() >= 1) 
+	  cout << "failed refitting input track# " << iter->first << endl;
       }
-
-  }
+      
+    }
 
   /*
    * add tracks to event display
@@ -293,9 +297,17 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   //! find vertices using final tracks
   std::vector<genfit::GFRaveVertex*> rave_vertices;
+
   if (rf_gf_tracks.size() >= 2)
   {
-    if(Verbosity() > 10) cout << "Call Rave vertex finder" << endl;
+    if(Verbosity() > 10)
+      {cout << "Call Rave vertex finder" << endl;
+  cout << " rf_gf_tracks size " << rf_gf_tracks.size() << endl;
+  for(long unsigned int i=0;i<rf_gf_tracks.size();++i)
+    {
+      cout << "   track " << i << " num points " << rf_gf_tracks[i]->getNumPointsWithMeasurement() << endl;
+    }
+      }
     try
     {
       _vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
@@ -365,6 +377,9 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
         auto key = iter->first;
         ++iter;
         _trackmap->erase(key);
+        continue;
+      } else {
+        ++iter;
         continue;
       }
   }
@@ -497,7 +512,7 @@ int PHGenFitTrkFitter::End(PHCompositeNode* topNode)
 {
   if (_do_eval)
   {
-    if (Verbosity() >= 1)
+    if (Verbosity() > 1)
       cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
     PHTFileServer::get().cd(_eval_outname);
     _eval_tree->Write();
@@ -941,8 +956,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
   for (auto iter = intrack->begin_cluster_keys();
-       iter != intrack->end_cluster_keys(); ++iter)
-  {
+       iter != intrack->end_cluster_keys(); ++iter){
     TrkrDefs::cluskey cluster_key = *iter;
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
     float x = cluster->getPosition(0);
@@ -953,6 +967,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
+  /* 
+  need to store micromegas separately before adding them to the track. 
+  this is because they only measure one coordinate. One needs to add the other coordinate for each cluster
+  in order to facilitate the fit, event if the uncertainty on that quantity remains large
+  */
+  std::map<TrkrDefs::cluskey, TrkrCluster*> clusters_mm;
+  
   for (auto iter = m_r_cluster_id.begin();
        iter != m_r_cluster_id.end();
        ++iter)
@@ -1002,8 +1023,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   int chip_index = MvtxDefs::getChipId(cluster_key);
 
   double ladder_location[3] = {0.0, 0.0, 0.0};
-  CylinderGeom_Mvtx* geom =
-          dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+  auto geom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
   // returns the center of the sensor in world coordinates - used to get the ladder phi location
   geom->find_sensor_center(stave_index, 0,
          0, chip_index, ladder_location);
@@ -1015,8 +1035,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       }
     else if(trkrid == TrkrDefs::inttId)
       {
-  CylinderGeomIntt* geom =
-          dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+  auto geom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
   double hit_location[3] = {0.0, 0.0, 0.0};
   geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
           InttDefs::getLadderPhiId(cluster_key), hit_location);
@@ -1025,26 +1044,97 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
   n.SetXYZ(hit_location[0], hit_location[1], 0);
   n.RotateZ(geom->get_strip_phi_tilt());
+      } else if( trkrid == TrkrDefs::micromegasId ) {
+  clusters_mm.insert( std::make_pair( cluster_key, cluster ) );
+  continue;
       }
-    // end new
-    //-----------------
 
-    PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+    auto meas = new PHGenFit::PlanarMeasurement(pos, n,
                   cluster->getRPhiError(), cluster->getZError());
-
+    
     if(Verbosity() > 10)
-      {
-  cout << "Add meas layer " << layer << " cluskey " << cluster_key
-       << endl
-       << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-       << "  n.X " <<  n.X() << " n.Y " << n.Y()
-       << " RPhiErr " << cluster->getRPhiError()
-       << " ZErr " << cluster->getZError()
-       << endl;
-      }
-      measurements.push_back(meas);
+    {
+      cout << "Add meas layer " << layer << " cluskey " << cluster_key
+        << endl
+        << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
+        << "  n.X " <<  n.X() << " n.Y " << n.Y()
+        << " RPhiErr " << cluster->getRPhiError()
+        << " ZErr " << cluster->getZError()
+        << endl;
+    }
+    measurements.push_back(meas);
   }
 
+  // special handling of the micromegas clusters
+  {
+    bool has_phi = false;
+    bool has_z = false;
+    float phi = 0;
+    float z = 0;
+    
+    // first loop to store precise z and rphi coordinates
+    for( const auto& pair:clusters_mm )
+    {
+      const auto& cluster = pair.second;
+      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
+      switch( segmentationType )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
+        if( !has_phi )
+        { 
+          has_phi = true; 
+          phi = std::atan2( cluster->getY(), cluster->getX() );
+        }
+        break;
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
+        if( !has_z )
+        { 
+          has_z = true; 
+          z = cluster->getZ();
+        }
+        break;
+      }
+      
+      if( has_phi && has_z ) break;
+    }
+        
+    // second loop to update the coordinate that is not measured and add measurement to track
+    for( const auto& pair:clusters_mm )
+    {
+      
+      // keep cluster
+      const auto& cluster = pair.second;
+      
+      // update the coordinate that is not measured
+      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
+      switch( segmentationType )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
+        if( has_z ) cluster->setZ(z);
+        break;
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
+        if( has_phi )
+        { 
+          const auto radius = std::sqrt( square(cluster->getX()) + square(cluster->getY()) );
+          cluster->setX(radius*std::cos(phi));
+          cluster->setY(radius*std::sin(phi));
+        }
+        break;
+      }
+        
+      // create measurement
+      TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+      seed_mom.SetPhi(pos.Phi());
+      seed_mom.SetTheta(pos.Theta());
+      
+      TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
+      auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+      measurements.push_back(meas);
+      
+    }
+  
+  }
+  
   /*!
    * mu+:	-13
    * mu-:	13
@@ -1066,16 +1156,19 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
    *  Fit the track
    *  ret code 0 means 0 error or good status
    */
+
   if (_fitter->processTrack(track.get(), false) != 0)
   {
     if (Verbosity() >= 1)
       {
-  LogWarning("Track fitting failed");
-  cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
-       << " mom.X " << track->get_mom().X()
-       << " mom.Y " << track->get_mom().Y()
-       << " mom.Z " << track->get_mom().Z()
-       << endl;
+	LogWarning("Track fitting failed");
+	/*
+	cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
+	     << " mom.X " << track->get_mom().X()
+	     << " mom.Y " << track->get_mom().Y()
+	     << " mom.Z " << track->get_mom().Z()
+	     << endl;
+	*/
       }
     //delete track;
     return nullptr;
@@ -1478,12 +1571,12 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     }
     catch (...)
     {
-      if (Verbosity() > 1)
+      if (Verbosity() >= 1)
         LogWarning("Exrapolation failed!");
     }
     if (!gf_state)
     {
-      if (Verbosity() > 1)
+      if (Verbosity() >= 1)
         LogWarning("Exrapolation failed!");
       continue;
     }
@@ -1564,24 +1657,38 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       if( id > 0 )  id_min = id-1;
 
       // extrapolate forward
+      try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
+        if( !trpoint ) continue;
+
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         gf_state = *kfi->getForwardUpdate();
         pathlength = gf_state.extrapolateToPoint( pos );
         auto tmp = *kfi->getBackwardUpdate();
         pathlength -= tmp.extrapolateToPoint( vertex_position );
+      } catch (...) {
+        if(Verbosity() > 0)
+        { std::cerr << PHWHERE << "Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
+        continue;
       }
 
       // also extrapolate backward from next state if any
       // and take the weighted average between both points
       if( id > 0 && id < gftrack->getNumPointsWithMeasurement() )
+      try
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+        if( !trpoint ) continue;
+
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         genfit::KalmanFittedStateOnPlane gf_state_backward = *kfi->getBackwardUpdate();
         gf_state_backward.extrapolateToPlane( gf_state.getPlane() );
         gf_state = genfit::calcAverageState( gf_state, gf_state_backward );
+      } catch (...) {
+        if(Verbosity() > 0)
+        { std::cerr << PHWHERE << "Failed to backward extrapolate from id " << id << " to disabled layer " << layer << std::endl; }
+        continue;
       }
 
       // create new svtx state and add to track

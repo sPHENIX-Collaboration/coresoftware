@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <string>            // for string, basic_string
+#include <string>  // for string, basic_string
 
 class PHObject;
 
@@ -53,12 +53,16 @@ class SvtxTrackState_v1 : public SvtxTrackState
   float get_error(unsigned int i, unsigned int j) const;
   void set_error(unsigned int i, unsigned int j, float value);
 
-  std::string get_name() { return state_name; }
-  void set_name(std::string &name) { state_name = name; }
+  std::string get_name() const { return state_name; }
+  void set_name(const std::string &name) { state_name = name; }
+
+  virtual float get_rphi_error() const;
+  virtual float get_phi_error() const;
+  virtual float get_z_error() const;
+
+  //@}
 
  private:
-  unsigned int covar_index(unsigned int i, unsigned int j) const;
-
   float _pathlength;
   float _pos[3];
   float _mom[3];

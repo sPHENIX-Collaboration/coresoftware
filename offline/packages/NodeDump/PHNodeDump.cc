@@ -3,6 +3,7 @@
 
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
+#include "DumpEventHeader.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpJetMap.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
@@ -15,14 +16,13 @@
 #include "DumpPHG4InEvent.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
+#include "DumpPHHepMCGenEventMap.h"
 #include "DumpPdbParameterMap.h"
 #include "DumpPdbParameterMapContainer.h"
 #include "DumpRawClusterContainer.h"
 #include "DumpRawTowerContainer.h"
 #include "DumpRawTowerGeomContainer.h"
 #include "DumpRunHeader.h"
-#include "DumpSvtxClusterMap.h"
-#include "DumpSvtxHitMap.h"
 #include "DumpSvtxTrackMap.h"
 #include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
@@ -176,6 +176,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
       }
+      else if (tmp->InheritsFrom("EventHeader"))
+      {
+        newdump = new DumpEventHeader(NodeName);
+      }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {
         newdump = new DumpGlobalVertexMap(NodeName);
@@ -232,6 +236,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       {
         newdump = new DumpPHG4TruthInfoContainer(NodeName);
       }
+      else if (tmp->InheritsFrom("PHHepMCGenEventMap"))
+      {
+        newdump = new DumpPHHepMCGenEventMap(NodeName);
+      }
       else if (tmp->InheritsFrom("RawClusterContainer"))
       {
         newdump = new DumpRawClusterContainer(NodeName);
@@ -247,14 +255,6 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("RunHeader"))
       {
         newdump = new DumpRunHeader(NodeName);
-      }
-      else if (tmp->InheritsFrom("SvtxClusterMap"))
-      {
-        newdump = new DumpSvtxClusterMap(NodeName);
-      }
-      else if (tmp->InheritsFrom("SvtxHitMap"))
-      {
-        newdump = new DumpSvtxHitMap(NodeName);
       }
       else if (tmp->InheritsFrom("SvtxTrackMap"))
       {

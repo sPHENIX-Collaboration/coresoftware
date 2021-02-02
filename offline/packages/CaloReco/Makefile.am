@@ -12,12 +12,13 @@ libcalo_reco_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcalo_reco_la_LIBADD = \
+  -lCLHEP \
   -lphool \
   -lSubsysReco \
   -lgsl \
   -lgslcblas \
+  -lg4vertex_io \
   -lcalo_io \
-  -lcalo_util  \
   -lphparameter
 
 AM_CPPFLAGS = \
@@ -30,30 +31,10 @@ pkginclude_HEADERS = \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
-  RawClusterBuilderTemplateFEMC.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h
 
-
-if ! MAKEROOT6
-  ROOT5_DICTS = \
-  RawClusterBuilderGraph_Dict.cc \
-  RawClusterBuilderTopo_Dict.cc \
-  RawClusterBuilderTemplate_Dict.cc \
-  RawClusterBuilderTemplateFEMC_Dict.cc \
-  RawClusterBuilderTemplateEEMC_Dict.cc \
-  RawClusterBuilderFwd_Dict.cc \
-  RawClusterPositionCorrection_Dict.cc \
-  RawClusterDeadAreaMask_Dict.cc \
-  RawTowerCombiner_Dict.cc \
-  RawTowerCalibration_Dict.cc \
-  RawTowerDeadTowerInterp_Dict.cc \
-  RawTowerDeadMapLoader_Dict.cc
-endif
-
-
 libcalo_reco_la_SOURCES = \
-  $(ROOT5_DICTS) \
   BEmcCluster.cc \
   BEmcProfile.cc \
   BEmcRec.cc \
@@ -63,8 +44,6 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderTemplateFEMC.cc \
-  RawClusterBuilderTemplateEEMC.cc \
   RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
   RawClusterDeadAreaMask.cc \
@@ -72,11 +51,6 @@ libcalo_reco_la_SOURCES = \
   RawTowerCalibration.cc \
   RawTowerDeadTowerInterp.cc \
   RawTowerDeadMapLoader.cc
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 
 ################################################
 # linking tests
@@ -100,4 +74,4 @@ testexternals.cc:
 # please add new classes in alphabetical order
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

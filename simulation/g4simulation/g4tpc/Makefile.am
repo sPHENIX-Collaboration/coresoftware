@@ -29,49 +29,29 @@ pkginclude_HEADERS = \
   PHG4TpcPadPlaneReadout.h \
   PHG4TpcDigitizer.h \
   PHG4TpcSubsystem.h \
-  PHG4TpcDistortion.h \
-  PHG4TpcAnalyticSpaceChargeDistortion.h \
-  PHG4TpcSpaceChargeDistortion.h 
-
-if MAKEROOT6
-else
-  ROOT5_DICTS = \
-    PHG4TpcElectronDrift_Dict.cc \
-    PHG4TpcPadPlane_Dict.cc \
-    PHG4TpcPadPlaneReadout_Dict.cc \
-    PHG4TpcDigitizer_Dict.cc \
-    PHG4TpcSubsystem_Dict.cc \
-    PHG4TpcDistortion_Dict.cc\
-    PHG4TpcAnalyticSpaceChargeDistortion_Dict.cc \
-    PHG4TpcSpaceChargeDistortion_Dict.cc 
-endif
+  PHG4TpcEndCapSubsystem.h \
+  PHG4TpcDistortion.h
 
 libg4tpc_la_SOURCES = \
-  $(ROOT5_DICTS) \
   PHG4TpcDetector.cc \
+  PHG4TpcEndCapDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDisplayAction.cc \
+  PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcDistortion.cc \
   PHG4TpcElectronDrift.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
-  PHG4TpcSpaceChargeDistortion.cc \
-  PHG4TpcAnalyticSpaceChargeDistortion.cc \
   PHG4TpcSteppingAction.cc \
-  PHG4TpcSubsystem.cc
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
+  PHG4TpcEndCapSteppingAction.cc \
+  PHG4TpcSubsystem.cc \
+  PHG4TpcEndCapSubsystem.cc
 
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals 
+  testexternals
 
 BUILT_SOURCES = testexternals.cc
 
@@ -86,4 +66,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

@@ -37,7 +37,7 @@ int G4HitNtuple::Init(PHCompositeNode *)
 {
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
-  ntup = new TNtuple("hitntup", "G4Hits", "detid:row:slat:x0:y0:z0:x1:y1:z1:edep");
+  ntup = new TNtuple("hitntup", "G4Hits", "detid:lyr:slat:x0:y0:z0:x1:y1:z1:edep");
   //  ntup->SetDirectory(0);
   TH1 *h1 = new TH1F("edep1GeV", "edep 0-1GeV", 1000, 0, 1);
   eloss.push_back(h1);
@@ -56,7 +56,7 @@ int G4HitNtuple::process_event(PHCompositeNode *topNode)
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
     nodename << "G4HIT_" << *iter;
-    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (hits)
     {
       double esum = 0;
@@ -68,7 +68,7 @@ int G4HitNtuple::process_event(PHCompositeNode *topNode)
       {
         esum += hit_iter->second->get_edep();
         ntup->Fill(detid,
-                   hit_iter->second->get_row(),
+                   hit_iter->second->get_layer(),
                    hit_iter->second->get_scint_id(),
                    hit_iter->second->get_x(0),
                    hit_iter->second->get_y(0),

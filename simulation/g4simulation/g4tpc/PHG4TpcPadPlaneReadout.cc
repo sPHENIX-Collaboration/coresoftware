@@ -9,6 +9,7 @@
 
 #include <g4main/PHG4Hit.h>                             // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
+#include <phool/PHRandomSeed.h>
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>                         // for hitkey, hitse...
@@ -23,7 +24,11 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
+
 #include <cmath>
+#include <cassert>
 #include <climits>                                     // for INT_MAX
 #include <cstdio>                                      // for sprintf
 #include <iostream>
@@ -38,12 +43,14 @@ using namespace std;
 namespace
 {
 
-  //______________________________________________________________________
-  template<class T> constexpr T square( const T& x ) { return x*x; }
+  //! convenient square function
+  template<class T> 
+    inline constexpr T square( const T& x ) { return x*x; }
 
-  //______________________________________________________________________
-  double get_pad_response( double position, const std::array<double,2>& par )
-  { return std::get<0>(par)-std::abs(position - std::get<1>(par)); }
+  //! return normalized gaussian centered on zero and of width sigma
+  template<class T> 
+    inline T gaus( const T& x, const T& sigma )
+  { return std::exp( -square(x/sigma)/2 )/(sigma*std::sqrt(2*M_PI)); }
 
 }
 
@@ -52,14 +59,15 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
 {
   InitializeParameters();
 
-  // initialize gaussian weights
-  for( int i = 0; i < _ngauss_steps; ++i )
-  {
-    const double x = -4.5 + 2.0*_nsigmas*i/_ngauss_steps;
-    _gauss_weights[i] = std::exp( -square( x )/2 );
-  }
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
 
   return;
+}
+
+PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
+{
+  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
@@ -107,6 +115,7 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
   return 0;
 }
 
+// This is obsolete, it uses the old PHG4Cell containers
 void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
@@ -137,7 +146,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      if (Verbosity())
+      if (Verbosity() > 1000 && layernum == print_layer)
         cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
              << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
@@ -163,8 +172,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // amplify the single electron in the gem stack
   //===============================
 
-  // should be obtained from a distribution of avalanche gains, make constant for now
-  float nelec = 2000.0;
+  double nelec = getSingleEGEMAmplification();
+
 
   // Distribute the charge between the pads in phi
   //====================================
@@ -196,7 +205,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Distribute the charge between the pads in z
   //====================================
-  if (Verbosity() > 100 && layernum == 47)
+  if (Verbosity() > 100 && layernum == print_layer)
     cout << "  populate z bins for layernum " << layernum
          << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -246,7 +255,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       phi_integral += phicenter * neffelectrons;
       z_integral += zcenter * neffelectrons;
       weight += neffelectrons;
-      if (Verbosity() > 100 && layernum == 47)
+      if (Verbosity() > 1000 && layernum == print_layer)
         cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
              << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
 
@@ -266,17 +275,21 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
-    if (layernum == 47)
+    if (layernum == print_layer)
     {
       cout << " hit " << hit << " quick centroid for this electron " << endl;
       cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << endl;
       cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << endl;
-      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
-      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer 47, if everything is working
+      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
+      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 
@@ -285,7 +298,24 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   return;
 }
 
-void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
+{
+
+
+  // Jin H.: For the GEM gain in sPHENIX TPC,
+  //         Bob pointed out the PHENIX HBD measured it as the Polya function with theta parameter = 0.8.
+  //         Just talked with Tom too, he suggest us to start the TPC modeling with simpler exponential function
+  //         with lambda parameter of 1/2000, (i.e. Polya function with theta parameter = 0, q_bar = 2000). Please note, this gain variation need to be sampled for each initial electron individually.
+  //         Summing over ~30 initial electrons, the distribution is pushed towards more Gauss like.
+  // Bob A.: I like Tom's suggestion to use the exponential distribution as a first approximation
+  //         for the single electron gain distribution -
+  //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
+  double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
+
+  return nelec;
+}
+
+void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -315,7 +345,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      if (Verbosity() > 20)
+      if (Verbosity() > 1000)
         cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
              << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
@@ -341,8 +371,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
   // amplify the single electron in the gem stack
   //===============================
 
-  // should be obtained from a distribution of avalanche gains, make constant for now
-  float nelec = 2000.0;
+  double nelec = getSingleEGEMAmplification();
 
   // Distribute the charge between the pads in phi
   //====================================
@@ -374,7 +403,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
 
   // Distribute the charge between the pads in z
   //====================================
-  if (Verbosity() > 100 && layernum == 47)
+  if (Verbosity() > 100 && layernum == print_layer)
     cout << "  populate z bins for layernum " << layernum
          << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -424,7 +453,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       phi_integral += phicenter * neffelectrons;
       z_integral += zcenter * neffelectrons;
       weight += neffelectrons;
-      if (Verbosity() > 100 && layernum == 47)
+      if (Verbosity() > 1000 && layernum == print_layer)
         cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
              << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
 
@@ -443,6 +472,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
+      TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
 
       // generate the key for this hit, requires zbin and phibin
       TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) zbin_num);
@@ -455,26 +485,49 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
         hit = new TpcHit();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
-
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
+
+      // repeat for the single_hitsetcontainer
+      // See if this hit already exists
+      TrkrHit *single_hit = nullptr;
+      single_hit = single_hitsetit->second->getHit(hitkey);
+      if (!single_hit)
+      {
+        // create a new one
+        single_hit = new TpcHit();
+        single_hitsetit->second->addHitSpecificKey(hitkey, single_hit);
+      }
+      // Either way, add the energy to it  -- adc values will be added at digitization
+      single_hit->addEnergy(neffelectrons);
+
+      if (Verbosity() > 0)
+      {
+        assert(nthit);
+        nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
+      }
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
-    if (layernum == 47)
+    if (layernum == print_layer)
     {
       cout << " hit " << hit << " quick centroid for this electron " << endl;
       cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << endl;
       cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << endl;
-      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
-      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer 47, if everything is working
+      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
+      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 
@@ -530,7 +583,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   // make the charge distribution gaussian
   double rphi = phi * radius;
   if (Verbosity() > 100)
-    if (LayerGeom->get_layer() == 47)
+    if (LayerGeom->get_layer() == print_layer)
     {
       cout << " populate_zigzag_phibins for layer " << layernum << " with radius " << radius << " phi " << phi
            << " rphi " << rphi << " phistepsize " << phistepsize << endl;
@@ -546,8 +599,8 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   int phibin_high = LayerGeom->get_phibin(philim_high);
   int npads = phibin_high - phibin_low;
 
-  if (Verbosity() > 100)
-    if (layernum == 47)
+  if (Verbosity() > 1000)
+    if (layernum == print_layer)
       cout << "           zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low
            << " philim_high " << philim_high << " phibin_high " << phibin_high << " npads " << npads << endl;
 
@@ -570,34 +623,33 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
     const double rphi_pad_now = LayerGeom->get_phicenter(pad_now) * radius;
     pad_parameters[ipad] = {{ pad_rphi / 2.0, rphi_pad_now }};
 
-    if (Verbosity() > 100)
-      if (layernum == 47)
+    if (Verbosity() > 1000)
+      if (layernum == print_layer)
         cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi / 2.0
              << " rphi_pad_now " << rphi_pad_now << endl;
   }
 
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
+  std::array<double,10> overlap = {{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }};
 
-  double overlap[10];
-  for (int i = 0; i < 10; i++)
-    overlap[i] = 0;
-
-  double xstep = 2.0 * _nsigmas * cloud_sig_rp / (double) _ngauss_steps;
-  for (int i = 0; i < _ngauss_steps; i++)
+  // use analytic integral
+  for( int ipad = 0; ipad <= npads; ipad++ )
   {
-    const double x = rphi - 4.5 * cloud_sig_rp + (double) i * xstep;
-    const double charge = _gauss_weights[i];
-    for (int ipad = 0; ipad <= npads; ipad++)
-    {
-      const double pad_response = get_pad_response( x, pad_parameters[ipad] );
-      if( pad_response > 0 )
-      {
-        const double prod = charge * pad_response;
-        overlap[ipad] += prod;
-      }
-    }  // pads
+    const double pitch = pad_parameters[ipad][0];
+    const double x_loc = pad_parameters[ipad][1] - rphi;
+    const double sigma  = cloud_sig_rp;
 
-  }  // steps
+    // calculate fraction of the total charge on this strip
+    /* 
+    this corresponds to integrating the charge distribution Gaussian function (centered on rphi and of width cloud_sig_rp), 
+    convoluted with a strip response function, which is triangular from -pitch to +pitch, with a maximum of 1. at stript center
+    */
+    overlap[ipad] =
+      (pitch - x_loc)*(std::erf(x_loc/(M_SQRT2*sigma)) - std::erf((x_loc-pitch)/(M_SQRT2*sigma)))/(pitch*2)
+      + (pitch + x_loc)*(std::erf((x_loc+pitch)/(M_SQRT2*sigma)) - std::erf(x_loc/(M_SQRT2*sigma)))/(pitch*2)
+      + (gaus(x_loc-pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch
+      + (gaus(x_loc+pitch, sigma) - gaus(x_loc, sigma))*square(sigma)/pitch;
+  }
 
   // now we have the overlap for each pad
   for (int ipad = 0; ipad <= npads; ipad++)
@@ -622,9 +674,9 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
   double zstepsize = LayerGeom->get_zstep();
   double zdisp = z - LayerGeom->get_zcenter(zbin);
 
-  if (Verbosity() > 100)
+  if (Verbosity() > 1000)
     cout << "     input:  z " << z << " zbin " << zbin << " zstepsize " << zstepsize << " z center " << LayerGeom->get_zcenter(zbin) << " zdisp " << zdisp << endl;
-
+  
   // Because of diffusion, hits can be shared across the membrane, so we allow all z bins
   int min_cell_zbin = 0;
   int max_cell_zbin = NZBins - 1;
@@ -640,13 +692,13 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
     zsect = 1;
 
   int n_zz = int(3 * (cloud_sig_zz[0] + cloud_sig_zz[1]) / (2.0 * zstepsize) + 1);
-  if (Verbosity() > 100) cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
+  if (Verbosity() > 1000) cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
   for (int iz = -n_zz; iz != n_zz + 1; ++iz)
   {
     int cur_z_bin = zbin + iz;
     if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
 
-    if (Verbosity() > 100)
+    if (Verbosity() > 1000)
       cout << " iz " << iz << " cur_z_bin " << cur_z_bin << " min_cell_zbin " << min_cell_zbin << " max_cell_zbin " << max_cell_zbin << endl;
 
     double z_integral = 0.0;
@@ -671,8 +723,8 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
       // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
       double z_integral1 = 0.5 * (erf(zLim1) - erf(zLim2));
 
-      if (Verbosity() > 100)
-        if (LayerGeom->get_layer() == 47)
+      if (Verbosity() > 1000)
+        if (LayerGeom->get_layer() == print_layer)
           cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin)
                << " index1 " << index1 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral1 " << z_integral1 << endl;
 
@@ -680,8 +732,8 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
       zLim1 = 0.5 * M_SQRT2 * (0.5 * zstepsize - zdisp) * cloud_sig_zz_inv[index2];
       double z_integral2 = 0.5 * (erf(zLim1) - erf(zLim2));
 
-      if (Verbosity() > 100)
-        if (LayerGeom->get_layer() == 47)
+      if (Verbosity() > 1000)
+        if (LayerGeom->get_layer() == print_layer)
           cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin)
                << " index2 " << index2 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral2 " << z_integral2 << endl;
 
@@ -710,8 +762,8 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
       double zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[index];
       z_integral = 0.5 * (erf(zLim1) - erf(zLim2));
 
-      if (Verbosity() > 100)
-        if (LayerGeom->get_layer() == 47)
+      if (Verbosity() > 1000)
+        if (LayerGeom->get_layer() == print_layer)
           cout << "   populate_zbins:  z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin)
                << " index " << index << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
     }
@@ -754,6 +806,12 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("zigzag_pads", 1);
 
+  // GEM Gain
+  /*
+  hp (2020/09/04): gain changed from 2000 to 1400, to accomodate gas mixture change 
+  from Ne/CF4 90/10 to Ne/CF4 50/50, and keep the average charge per particle per pad constant
+  */
+  set_default_double_param("gem_amplification", 1400); 
   return;
 }
 
@@ -805,4 +863,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
 
   zigzag_pads = get_int_param("zigzag_pads");
+
+  averageGEMGain = get_double_param("gem_amplification");
 }

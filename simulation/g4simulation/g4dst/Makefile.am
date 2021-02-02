@@ -12,6 +12,7 @@ libg4dst_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
   -lcalotrigger_io \
+  -lffaobjects \
   -lg4bbc_io \
   -lg4detectors_io \
   -lg4intt_io \
@@ -19,7 +20,9 @@ libg4dst_la_LDFLAGS = \
   -lg4vertex_io \
   -lintt_io \
   -ljetbackground_io \
+  -lmicromegas_io \
   -lmvtx_io \
+  -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \
   -lphgeom_io \

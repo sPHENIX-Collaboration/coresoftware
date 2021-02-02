@@ -6,40 +6,46 @@
 #include "RunHeader.h"
 
 #include <iostream>
-#include <ctime>
+#include <map>
+#include <string>
 
-
-class RunHeaderv1: public RunHeader
+class RunHeaderv1 : public RunHeader
 {
  public:
-  RunHeaderv1();
-  virtual ~RunHeaderv1() {}
+  RunHeaderv1() = default;
+  virtual ~RunHeaderv1() = default;
 
-  void Reset();
-  void identify(std::ostream& os = std::cout) const;
-  int isValid() const;
+  void Reset() override {return;}
+  void identify(std::ostream &os = std::cout) const override;
+  int isValid() const override;
 
-   int get_RunNumber() const {return RunNumber;}
-   void set_RunNumber(const int run) {RunNumber= run; return;}
+  int get_RunNumber() const override { return RunNumber; }
+  void set_RunNumber(const int run) override
+  {
+    RunNumber = run;
+    return;
+  }
 
-   double get_Bfield() const {return Bfield;}
-   void set_Bfield(const double rval) {Bfield = rval; return;}
+  void set_floatval(const std::string &name, const float fval) override;
+  float get_floatval(const std::string &name) const override;
 
-   time_t get_TimeStart() const {return 0;}
-   void set_TimeStart(const time_t start);
+  void set_intval(const std::string &name, const int ival) override;
+  int get_intval(const std::string &name) const override;
 
-   time_t get_TimeStop() const {return 0;}
-   void set_TimeStop(const time_t stop);
+ private:
+  int RunNumber = 0;
+  std::map<std::string, int> m_IntRunProperties;
+  std::map<std::string, float> m_FloatRunProperties;
 
- protected:
-   int RunNumber;
-   time_t TimeStart;
-   time_t TimeStop;
-   double Bfield;
-
-   ClassDef(RunHeaderv1,1)
-
+// rootcling and clang complain about inconsistent overrides in the ClassDef
+// this can be supressed with ignoring -Winconsistent-missing-override
+// this pragma is not known to gcc, so we need an #ifdef __clang__ here
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
+#endif
+  ClassDef(RunHeaderv1, 1)
+#pragma GCC diagnostic pop
 };
 
-#endif /* __RUNHEADERV1_H */
-
+#endif /* FFAOBJECTS_RUNHEADERV1_H */

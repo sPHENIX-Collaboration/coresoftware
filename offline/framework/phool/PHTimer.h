@@ -79,15 +79,15 @@ class PHTimer
   //! Dump statistics
   void print_stat(std::ostream& os = std::cout) const
   {
-    PRINT(os, std::string("Stats for " + _name));
+    //   PRINT(os, std::string("Stats for " + _name));
     if (_ncycle)
     {
-      os << "accumulated time (ms):	" << _accumulated_time << std::endl;
-      os << "per event time: (ms)	 " << _accumulated_time / _ncycle << std::endl;
+      os << _name << ": accumulated time (ms):  " << _accumulated_time << std::endl;
+      os << _name << ": per event time (ms):    " << _accumulated_time / _ncycle << std::endl;
     }
     else
     {
-      os << "never started.\n";
+      os <<  _name << ": timer never started.\n";
     }
     PRINT(os, "**");
   }
@@ -183,7 +183,7 @@ class PHTimer
     double _period;
 
     //! read pc frequency from cpuinfo place
-    void set_cpu_freq(const char* cpuinfopath = "/proc/cpuinfo");
+    void set_cpu_freq(const std::string &cpuinfopath = "/proc/cpuinfo");
   };
 
   //! used to store high precision time using two integers

@@ -7,11 +7,7 @@
 #ifndef TRACKBASE_TRKRDEFUTIL_H
 #define TRACKBASE_TRKRDEFUTIL_H
 
-#if defined(__CINT__) && !defined(__CLING__)
-#include <stdint.h>
-#else
 #include <cstdint>
-#endif
 #include <iostream>
 
 /**
@@ -24,9 +20,8 @@ namespace TrkrDefs
   typedef uint32_t hitsetkey;   // 32 bit TrkrHitSet key type
   typedef uint64_t cluskey;     // 64 but TrkrCluster id type
   typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
-  
-#if !defined(__CINT__) || defined(__CLING__)
-  
+
+
   /// Max values for keys (used as defaults or invalid values)
   static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
   static hitsetkey HITSETKEYMAX __attribute__((unused)) = UINT32_MAX;
@@ -44,23 +39,23 @@ namespace TrkrDefs
   //  hitsetkey upper 32 bits
   //  cluster id lower 32 bits
   static const unsigned int kBitShiftClusId __attribute__((unused)) = 32;
-  
-#endif
-  
+
+
   /// Enumeration for tracker id to easily maintain consistency
   enum TrkrId
   {
     mvtxId = 0,
     inttId = 1,
-    tpcId = 2
+    tpcId = 2,
+    micromegasId = 3,
   };
-  
-  
+
+
   /// Print the bits for each key type
   void printBits(const TrkrDefs::hitsetkey key, std::ostream& os = std::cout);
   void printBits(const TrkrDefs::cluskey key, std::ostream& os = std::cout);
   // void print_bits(const TrkrDefs::hitkey key, std::ostream& os = std::cout);
-  
+
   /// Get the tracker ID from either key type
   uint8_t getTrkrId(const TrkrDefs::hitsetkey key);
   uint8_t getTrkrId(const TrkrDefs::cluskey key);

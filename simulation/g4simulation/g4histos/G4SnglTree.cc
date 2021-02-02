@@ -102,7 +102,7 @@ int G4SnglTree::process_event(PHCompositeNode *topNode)
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
     nodename << "G4HIT_" << *iter;
-    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
 
     if (!strcmp("G4HIT_CEMC", nodename.str().c_str()))  //CEMC scintillator
     {

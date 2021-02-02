@@ -19,7 +19,7 @@ using namespace std;
 BaseTruthEval::BaseTruthEval(PHCompositeNode* topNode)
   : m_TruthInfo(nullptr)
   , m_Strict(false)
-  , m_Verbosity(1)
+  , m_Verbosity(0)
   , m_Errors(0)
 {
   get_node_pointers(topNode);
@@ -526,6 +526,11 @@ PHG4Particle* BaseTruthEval::get_primary_particle(PHG4Hit* g4hit)
   }
 
   return primary;
+}
+
+PHG4Particle* BaseTruthEval::get_particle(const int trackid)
+{
+  return m_TruthInfo->GetParticle(trackid);
 }
 
 bool BaseTruthEval::is_g4hit_from_primary_shower(PHG4Hit* g4hit, PHG4Shower* shower)

@@ -140,17 +140,17 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
 {
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
-  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
+  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename);
   if (!towers)
   {
-    std::cout << PHWHERE << ": Could not find node " << towernodename.c_str() << std::endl;
+    std::cout << PHWHERE << ": Could not find node " << towernodename << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
   string towergeomnodename = "TOWERGEOM_" + detector;
-  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
+    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   // make the list of towers above threshold
@@ -303,6 +303,6 @@ void RawClusterBuilderGraph::CreateNodes(PHCompositeNode *topNode)
 
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
-  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName.c_str(), "PHObject");
+  PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   DetNode->addNode(clusterNode);
 }

@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class FlagSave+;
+#pragma link C++ class FlagSave + ;
 
 #endif

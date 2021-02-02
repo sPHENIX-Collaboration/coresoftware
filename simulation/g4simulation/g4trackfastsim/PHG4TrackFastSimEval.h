@@ -11,9 +11,12 @@
 #define G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H
 
 #include <fun4all/SubsysReco.h>
-#include <string>
 
-//Forward declerations
+#include <map>
+#include <string>
+#include <vector>
+
+//Forward declarations
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
@@ -33,6 +36,9 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Initialization, called for initialization
   int Init(PHCompositeNode*);
 
+  //Initialization, called for initialization
+  int InitRun(PHCompositeNode*);
+
   //Process Event, called for each event
   int process_event(PHCompositeNode*);
 
@@ -40,95 +46,94 @@ class PHG4TrackFastSimEval : public SubsysReco
   int End(PHCompositeNode*);
 
   //Change output filename
-  void set_filename(const char* file)
+  void set_filename(const std::string& file)
   {
-    if (file) _outfile_name = file;
+    m_OutFileName = file;
   }
 
-  //Flags of different kinds of outputs
-  enum Flag
+  // set the name of the node with the trackmap
+  void set_trackmapname(const std::string& name)
   {
-    //all disabled
-    NONE = 0,
-  };
-
-  //Set the flag
-  //Flags should be set like set_flag(PHG4TrackFastSimEval::TRUTH, true) from macro
-  void set_flag(const Flag& flag, const bool& value)
-  {
-    if (value)
-      _flags |= flag;
-    else
-      _flags &= (~flag);
+    m_TrackMapName = name;
   }
 
   //User modules
   void reset_variables();
 
+  void AddProjection(const std::string& name);
+
  private:
   void fill_track_tree(PHCompositeNode*);
   void fill_vertex_tree(PHCompositeNode*);
 
-  //output filename
-  std::string _outfile_name;
-
-  //name of SvtxTrackMap collection
-  std::string _trackmapname;
-
-  //Event counter
-  int _event;
-
   //Get all the nodes
   int GetNodes(PHCompositeNode*);
 
-  //flags
-  unsigned int _flags;
+  //Node pointers
+  PHG4TruthInfoContainer* m_TruthInfoContainer;
+  SvtxTrackMap* m_TrackMap;
+  SvtxVertexMap* m_VertexMap;
 
   //TTrees
-  TTree* _eval_tree_tracks;
-  TTree* _eval_tree_vertex;
-  int event;
-  //-- truth
-  int gtrackID;
-  int gflavor;
-  float gpx;
-  float gpy;
-  float gpz;
-  float gvx;
-  float gvy;
-  float gvz;
-  float gvt;
-
-  //-- reco
-  int trackID;
-  int charge;
-  int nhits;
-  float px;
-  float py;
-  float pz;
-  float pcax;
-  float pcay;
-  float pcaz;
-  float dca2d;
-
-  //vertex
-  float vx;
-  float vy;
-  float vz;
-  float deltavx;
-  float deltavy;
-  float deltavz;
-  int ntracks;
-  int n_from_truth;
+  TTree* m_TracksEvalTree;
+  TTree* m_VertexEvalTree;
 
   //Histos
-  TH2D* _h2d_Delta_mom_vs_truth_mom;
-  TH2D* _h2d_Delta_mom_vs_truth_eta;
+  TH2D* m_H2D_DeltaMomVsTruthMom;
+  TH2D* m_H2D_DeltaMomVsTruthEta;
 
-  //Node pointers
-  PHG4TruthInfoContainer* _truth_container;
-  SvtxTrackMap* _trackmap;
-  SvtxVertexMap* _vertexmap;
+  //Event counter
+  int m_EventCounter;
+
+  // TTree variables
+  int m_TTree_Event;
+  //-- truth
+  int m_TTree_gTrackID;
+  int m_TTree_gFlavor;
+  float m_TTree_gpx;
+  float m_TTree_gpy;
+  float m_TTree_gpz;
+  float m_TTree_gvx;
+  float m_TTree_gvy;
+  float m_TTree_gvz;
+  float m_TTree_gvt;
+
+  //-- reco
+  int m_TTree_TrackID;
+  int m_TTree_Charge;
+  int m_TTree_nHits;
+  float m_TTree_px;
+  float m_TTree_py;
+  float m_TTree_pz;
+  float m_TTree_pcax;
+  float m_TTree_pcay;
+  float m_TTree_pcaz;
+  float m_TTree_dca2d;
+
+  //vertex
+  float m_TTree_vx;
+  float m_TTree_vy;
+  float m_TTree_vz;
+  float m_TTree_DeltaVx;
+  float m_TTree_DeltaVy;
+  float m_TTree_DeltaVz;
+  int m_TTree_nTracks;
+  int m_TTree_nFromTruth;
+
+  //output filename
+  std::string m_OutFileName;
+
+  //name of SvtxTrackMap collection
+  std::string m_TrackMapName;
+
+  // names and index of projections
+  std::map<std::string, unsigned int> m_ProjectionNameMap;
+  // projections to cylinders and planes
+  std::vector<std::vector<float>> m_TTree_proj_vec;
+  std::vector<std::vector<float>> m_TTree_proj_p_vec;
+  // hits on reference cylinders and planes
+  std::vector<std::vector<float>> m_TTree_ref_vec;
+  std::vector<std::vector<float>> m_TTree_ref_p_vec;
 };
 
-#endif  //* __PHG4TrackFastSimEval_H__ *//
+#endif  //* G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H *//

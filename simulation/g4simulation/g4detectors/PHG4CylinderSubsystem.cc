@@ -7,22 +7,21 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>   // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
-#include <Geant4/G4Types.hh>             // for G4double
-
-#include <cmath>                        // for NAN
-#include <iostream>                      // for operator<<, basic_ostream, endl
+#include <cmath>     // for NAN
+#include <iostream>  // for operator<<, basic_ostream, endl
 #include <sstream>
 
 class PHG4CylinderGeom;
@@ -33,14 +32,12 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   m_ColorArray.fill(NAN);
   InitializeParameters();
 }
 
+//_______________________________________________________________________
 PHG4CylinderSubsystem::~PHG4CylinderSubsystem()
 {
   delete m_DisplayAction;
@@ -50,9 +47,21 @@ PHG4CylinderSubsystem::~PHG4CylinderSubsystem()
 int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   // create hit list only for active layers
-  if (GetParams()->get_int_param("lengthviarapidity"))
+  double detlength = GetParams()->get_double_param("length");
+  if (!isfinite(detlength) && GetParams()->get_int_param("lengthviarapidity"))
   {
     GetParams()->set_double_param("length", PHG4Utils::GetLengthForRapidityCoverage(GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness")) * 2);
+    detlength = GetParams()->get_double_param("length");
+  }
+  else
+  {
+    GetParams()->set_int_param("lengthviarapidity", 0);
+  }
+  // use world material if material was not set so far
+  if (GetParams()->get_string_param("material") == "WorldMaterial")
+  {
+    recoConsts *rc = recoConsts::instance();
+    GetParams()->set_string_param("material", rc->get_StringFlag("WorldMaterial"));
   }
   // create display settings before detector
   PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());
@@ -61,13 +70,12 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       isfinite(m_ColorArray[2]) &&
       isfinite(m_ColorArray[3]))
   {
-    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1],m_ColorArray[2],m_ColorArray[3]);
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
   m_DisplayAction = disp_action;
 
   // create detector
   m_Detector = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
-  G4double detlength = GetParams()->get_double_param("length");
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
@@ -122,11 +130,15 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv1(GetParams()->get_double_param("radius"), GetParams()->get_double_param("place_z") - detlength / 2., GetParams()->get_double_param("place_z") + detlength / 2., GetParams()->get_double_param("thickness"));
     geo->AddLayerGeom(GetLayer(), mygeom);
-    m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
+    m_SteppingAction = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
-    m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
+    m_SteppingAction = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
+  }
+  if (m_SteppingAction)
+  {
+    (dynamic_cast<PHG4CylinderSteppingAction *>(m_SteppingAction))->SaveAllHits(m_SaveAllHitsFlag);
   }
   return 0;
 }
@@ -145,13 +157,13 @@ int PHG4CylinderSubsystem::process_event(PHCompositeNode *topNode)
 
 void PHG4CylinderSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("length", 100);
+  set_default_double_param("length", NAN);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
-  set_default_double_param("radius", 100);
+  set_default_double_param("radius", NAN);
   set_default_double_param("steplimits", NAN);
-  set_default_double_param("thickness", 100);
+  set_default_double_param("thickness", NAN);
   set_default_double_param("tmin", NAN);
   set_default_double_param("tmax", NAN);
 
@@ -159,7 +171,8 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_int_param("lightyield", 0);
   set_default_int_param("use_g4steps", 0);
 
-  set_default_string_param("material", "G4_Galactic");
+  // place holder, will be replaced by world material if not set by other means (macro)
+  set_default_string_param("material", "WorldMaterial");
 }
 
 PHG4Detector *

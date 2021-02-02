@@ -14,12 +14,9 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
-#include <string>                        // for string
-#include <utility>
-
-#if !defined(__CINT__) || defined(__CLING__)
+#include <string>  // for string
 #include <type_traits>
-#endif
+#include <utility>
 
 class RawCluster : public PHObject
 {
@@ -33,7 +30,7 @@ class RawCluster : public PHObject
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
 
-  virtual PHObject *CloneMe() const {return nullptr;}
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   virtual int isValid() const
   {

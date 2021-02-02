@@ -9,134 +9,158 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "PHTrackFitting.h"
-
+#include "ActsTrackingGeometry.h"
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Geometry/GeometryContext.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
-#include <TMatrixDfwd.h>                      // for TMatrixD
+#include <Acts/EventData/MeasurementHelpers.hpp>
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
+#include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <map>
-#include <memory>                // for shared_ptr
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+
+#include <boost/bimap.hpp>
+
+#include <memory>
 #include <string>
-#include <vector>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
 
+namespace ActsExamples
+{
+  class TrkrClusterSourceLink;
+}
 
+class ActsTrack;
+class MakeActsGeometry;
+class SvtxTrack;
 class SvtxTrackMap;
-class PHCompositeNode;
-class PHG4CylinderGeomContainer;
-class PHG4CylinderCellGeomContainer;
-class TrkrClusterContainer;
-class TGeoManager;
-class TGeoNode;
 
-namespace FW {
-  class IBaseDetector;
-  class IContextDecorator;
-}
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
+using FitResult = Acts::KalmanFitterResult<SourceLink>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
+using SurfacePtrVec = std::vector<const Acts::Surface*>;
+using SourceLinkVec = std::vector<SourceLink>;
 
-namespace Acts {
-  class Surface;
-}
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
-//! \brief		Refit SvtxTracks with Acts.
+
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
-  /*!
-	 */
-
-  //! Default constructor
+  /// Default constructor
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
-  //! dtor
+  /// Destructor
   ~PHActsTrkFitter();
 
-  //!Initialization, called for initialization
-  //int Init(PHCompositeNode*);
+  /// End, write and close files
+  int End(PHCompositeNode *topNode);
 
-  //!Initialization Run, called for initialization of a run
-  //  int InitRun(PHCompositeNode*);
+  /// Get and create nodes
+  int Setup(PHCompositeNode* topNode);
 
-  //!Process Event, called for each event
-  //int process_event(PHCompositeNode*);
+  /// Process each event by calling the fitter
+  int Process();
 
-  //!End, write and close files
-  int End(PHCompositeNode*);
+  int ResetEvent(PHCompositeNode *topNode);
 
-int Setup(PHCompositeNode* topNode);
+  /// Do some internal time benchmarking analysis
+  void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
 
-int Process();
+  /// Run the direct navigator to fit only tracks with silicon+MM hits
+  void fitSiliconMMs(bool fitSiliconMMs)
+       {m_fitSiliconMMs = fitSiliconMMs;}
 
-  //Flags of different kinds of outputs
-  enum Flag
-  {
-    //all disabled
-    NONE = 0,
-  };
-
+  void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
+       { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
  private:
-  //! Event counter
-  int _event;
 
-  //! Get all the nodes
-  int GetNodes(PHCompositeNode*);
+  /// Event counter
+  int m_event;
 
-  //!Create New nodes
-  int CreateNodes(PHCompositeNode*);
-  void BuildSiliconLayers();
-void BuildTpcSurfaceMap();
-  void isActive(TGeoNode *gnode);
-  void MakeTGeoNodeMap(PHCompositeNode*);
-  void getInttKeyFromNode(TGeoNode *gnode);
-  void getMvtxKeyFromNode(TGeoNode *gnode);
-  int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
-  TMatrixD GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-  TMatrixD GetInttCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
-  TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
-  TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  /// Get all the nodes
+  int getNodes(PHCompositeNode *topNode);
 
-  /*
-	 * fit track with SvtxTrack as input seed.
-	 * \param intrack Input SvtxTrack
-	 * \param invertex Input Vertex, if fit track as a primary vertex
-	 */
-  PHG4CylinderGeomContainer* _geom_container_mvtx;
-  PHG4CylinderGeomContainer* _geom_container_intt;
-  PHG4CylinderCellGeomContainer* _geom_container_tpc;
+  /// Create new nodes
+  int createNodes(PHCompositeNode *topNode);
 
-  SvtxTrackMap* _trackmap;
-  TrkrClusterContainer* _clustermap;
+  void loopTracks(Acts::Logging::Level logLevel);
 
-  TGeoManager* _geomanager;
+  /// Convert the acts track fit result to an svtx track
+  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
+		       Acts::Vector3D vertex);
 
-  Acts::GeometryContext  geo_ctxt;
+  /// Helper function to call either the regular navigation or direct
+  /// navigation, depending on m_fitSiliconMMs
+  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(
+           const SourceLinkVec& sourceLinks, 
+	   const ActsExamples::TrackParameters& seed,
+	   const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
+	         kfOptions,
+	   const SurfacePtrVec& surfSequence);
 
-  std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
+  /// Functions to get list of sorted surfaces for direct navigation, if
+  /// applicable
+  SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
+				 SurfacePtrVec& surfaces);
+  void checkSurfaceVec(SurfacePtrVec& surfaces);
+  void getTrackFitResult(const FitResult& fitOutput, 
+			 const unsigned int trackKey,
+			 const Acts::Vector3D vertex);
+  void updateActsProtoTrack(const FitResult& fitOutput,
+		       std::map<unsigned int, ActsTrack>::iterator iter);
 
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
-  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
+  Acts::BoundSymMatrix setDefaultCovariance();
 
+  /// Map of Acts fit results and track key to be placed on node tree
+  std::map<const unsigned int, Trajectory> 
+    *m_actsFitResults;
 
-  // TPC surface subdivisions
-  double MinSurfZ;
-  double MaxSurfZ;
-  unsigned int NSurfZ;
-  unsigned int NSurfPhi;
-  double SurfStepPhi;
-  double SurfStepZ;
-  double ModuleStepPhi;
-  double ModulePhiStart;
+  /// Map of acts tracks and track key created by PHActsTracks
+  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
 
-  // these don't change, we are building the tpc this way!
-  const unsigned int NTpcLayers = 48;
-  const unsigned int NTpcModulesPerLayer = 12;
-  const unsigned int NTpcSides = 2;
+  /// Options that Acts::Fitter needs to run from MakeActsGeometry
+  ActsTrackingGeometry *m_tGeometry;
 
+  /// Configuration containing the fitting function instance
+  ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
 
+  /// TrackMap containing SvtxTracks
+  SvtxTrackMap *m_trackMap;
+
+  // map relating acts hitid's to clusterkeys
+  CluskeyBimap *m_hitIdClusKey;
+
+  /// Number of acts fits that returned an error
+  int m_nBadFits;
+
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fitSiliconMMs;
+
+  /// A bool to update the SvtxTrackState information (or not)
+  bool m_fillSvtxTrackStates;
+
+  /// Variables for doing event time execution analysis
+  bool m_timeAnalysis;
+  TFile *m_timeFile;
+  TH1 *h_eventTime;
+  TH2 *h_fitTime;
+  TH1 *h_updateTime;
+  TH1 *h_stateTime;
+  TH1 *h_rotTime;
 };
 
 #endif

@@ -23,7 +23,6 @@ pkginclude_HEADERS = \
   TrkrClusterHitAssoc.h \
   TrkrDefs.h \
   TrkrHit.h \
-  TrkrHitCellAssoc.h \
   TrkrHitTruthAssoc.h \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \
@@ -37,40 +36,31 @@ ROOTDICTS = \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
-  TrkrHitCellAssoc_Dict.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
   TrkrTrack_Dict.cc \
   TrkrTrackContainer_Dict.cc
 
-if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-    TrkrCluster_Dict_rdict.pcm \
-    TrkrClusterv1_Dict_rdict.pcm \
-    TrkrClusterContainer_Dict_rdict.pcm \
-    TrkrClusterHitAssoc_Dict_rdict.pcm \
-    TrkrHit_Dict_rdict.pcm \
-    TrkrHitTruthAssoc_Dict_rdict.pcm \
-    TrkrHitCellAssoc_Dict_rdict.pcm \
-    TrkrHitSet_Dict_rdict.pcm \
-    TrkrHitSetContainer_Dict_rdict.pcm \
-    TrkrTrack_Dict_rdict.pcm \
-    TrkrTrackContainer_Dict_rdict.pcm
-else
-  ROOT5_IO_DICTS = \
-    TrkrDefs_Dict.cc
-endif
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TrkrCluster_Dict_rdict.pcm \
+  TrkrClusterv1_Dict_rdict.pcm \
+  TrkrClusterContainer_Dict_rdict.pcm \
+  TrkrClusterHitAssoc_Dict_rdict.pcm \
+  TrkrHit_Dict_rdict.pcm \
+  TrkrHitTruthAssoc_Dict_rdict.pcm \
+  TrkrHitSet_Dict_rdict.pcm \
+  TrkrHitSetContainer_Dict_rdict.pcm \
+  TrkrTrack_Dict_rdict.pcm \
+  TrkrTrackContainer_Dict_rdict.pcm
 
 # sources for io library
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
-  $(ROOT5_IO_DICTS) \
   TrkrClusterv1.cc \
   TrkrClusterContainer.cc \
   TrkrClusterHitAssoc.cc \
   TrkrDefs.cc \
-  TrkrHitCellAssoc.cc \
   TrkrHitTruthAssoc.cc \
   TrkrHit.cc \
   TrkrHitSet.cc \
@@ -82,7 +72,7 @@ libtrack_io_la_LIBADD = \
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

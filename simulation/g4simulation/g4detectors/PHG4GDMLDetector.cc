@@ -15,6 +15,8 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phparameter/PHParameters.h>
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4GDMLParser.hh>
@@ -31,6 +33,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, degree
 
+#include <cassert>
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 #include <memory>
@@ -48,7 +51,14 @@ PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   , m_rotationX(parameters->get_double_param("rot_x") * degree)
   , m_rotationY(parameters->get_double_param("rot_y") * degree)
   , m_rotationZ(parameters->get_double_param("rot_z") * degree)
+  , m_skipDSTGeometryExport(parameters->get_int_param("skip_DST_geometry_export"))
+  , gdml_config(nullptr)
 {
+  if (m_skipDSTGeometryExport)
+  {
+    gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+    assert(gdml_config);
+  }
 }
 
 PHG4GDMLDetector::~PHG4GDMLDetector()
@@ -98,7 +108,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
     Print();
     exit(121);
   }
-  PHG4Subsystem *mysys = GetMySubsystem();
+  PHG4Subsystem* mysys = GetMySubsystem();
   mysys->SetLogicalVolume(vol);
 
   G4RotationMatrix* rotm = new G4RotationMatrix();
@@ -109,11 +119,18 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   //  av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
 
-  new G4PVPlacement(rotm, placeVec,
-                    vol,
-                    G4String(GetName().c_str()),
-                    logicWorld, false, 0, OverlapCheck());
+  G4PVPlacement* gdml_phys =
+      new G4PVPlacement(rotm, placeVec,
+                        vol,
+                        G4String(GetName().c_str()),
+                        logicWorld, false, 0, OverlapCheck());
   SetDisplayProperty(vol);
+
+  if (m_skipDSTGeometryExport)
+  {
+    assert(gdml_config);
+    gdml_config->exclude_physical_vol(gdml_phys);
+  }
 }
 
 void PHG4GDMLDetector::SetDisplayProperty(G4AssemblyVolume* av)

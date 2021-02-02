@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libg4mvtx.la 
+  libg4mvtx.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -26,32 +26,19 @@ pkginclude_HEADERS = \
   PHG4MvtxDefs.h \
   PHG4MvtxHitReco.h \
   PHG4MvtxSubsystem.h \
-  PHG4MvtxDigitizer.h 
-
-if MAKEROOT6
-else
-  ROOT5_DICTS = \
-    PHG4MvtxHitReco_Dict.cc \
-    PHG4MvtxDefs_Dict.cc \
-    PHG4MvtxSubsystem_Dict.cc \
-    PHG4MvtxDigitizer_Dict.cc
-endif
+  PHG4EICMvtxSubsystem.h \
+  PHG4MvtxDigitizer.h
 
 libg4mvtx_la_SOURCES = \
-  $(ROOT5_DICTS) \
   PHG4MvtxHitReco.cc \
   PHG4MvtxDetector.cc \
+  PHG4EICMvtxDetector.cc \
   PHG4MvtxDisplayAction.cc \
   PHG4MvtxSteppingAction.cc \
+  PHG4EICMvtxSteppingAction.cc \
   PHG4MvtxSubsystem.cc \
+  PHG4EICMvtxSubsystem.cc \
   PHG4MvtxDigitizer.cc
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -63,6 +50,7 @@ noinst_PROGRAMS = \
 
 testexternals_SOURCES = \
   testexternals.cc
+
 testexternals_LDADD = \
   libg4mvtx.la
 
@@ -76,4 +64,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

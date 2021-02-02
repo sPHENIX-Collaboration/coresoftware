@@ -1,37 +1,55 @@
 #include "BEmcRecEEMC.h"
+
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
 #include <cmath>
-#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
-BEmcRecEEMC::BEmcRecEEMC() : _emcprof(nullptr) 
+BEmcRecEEMC::BEmcRecEEMC()
+//  : _emcprof(nullptr)
 {
+  Name("BEmcRecEEMC");
   SetPlanarGeometry();
 }
 
 BEmcRecEEMC::~BEmcRecEEMC()
 {
-  if (_emcprof) delete _emcprof;
+  // you can delete null pointers
+  //  delete _emcprof;
 }
 
-void BEmcRecEEMC::LoadProfile(const char *fname)
+void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
-  printf("Infor from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC\n");
+  //  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
+  _emcprof = new BEmcProfile(fname);
 }
 
-float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
-// et, xg, yg, zg not used here
+void BEmcRecEEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
+{
+  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  phi = atan2(yg,xg);
+}
+
+/*
+float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float yg, float zg, float& chi2, int& ndf)
+// ecl, xg, yg, zg not used here
 {
   chi2 = 0;
   ndf = 0;
   float prob = -1;
+
+  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
+  float phi = atan2(yg,xg);
+  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
+
   return prob;
 }
+*/
 
-void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC )
+void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // DZ, D and X0 should be negative for -Z direction
   const float DZ = -9;     // in cm, tower half length
@@ -51,19 +69,19 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
 }
 
 void BEmcRecEEMC::CorrectEnergy(float Energy, float x, float y,
-                                float* Ecorr)
+                                float& Ecorr)
 {
-  *Ecorr = Energy;
+  Ecorr = Energy;
 }
 
-void BEmcRecEEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
+void BEmcRecEEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance
   //
   // (x,y) - shower CG in tower units (not projected anywhere!)
 
-  *Ecorr = Ecore;
+  Ecorr = Ecore;
 }
 
 float BEmcRecEEMC::GetImpactAngle(float e, float x, float y)
@@ -84,20 +102,20 @@ float BEmcRecEEMC::GetImpactAngle(float e, float x, float y)
 }
 
 void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
+                                  float& xc, float& yc)
 {
   // Corrects the Shower Center of Gravity for the systematic shift due to
   // the limited tower size
   //
   // Everything here is in tower units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
+  // (x,y) - CG position, (xc,yc) - corrected position
 
   float xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
 
-  *pxc = x;
-  *pyc = y;
+  xc = x;
+  yc = y;
   //  return;
 
   if (Energy < 0.01) return;
@@ -107,7 +125,7 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA); // x is second index in here
+  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
   float sinTx = yA / sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
@@ -135,12 +153,13 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
-    *pxc = x0;
+    xc = x0;
   }
   else
   {
-    *pxc = x;
-    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
+    xc = x;
+    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
+         << x << ", dx = " << x0 - ix0 << endl;
   }
 
   y0 = y + yZero;
@@ -149,11 +168,12 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(y0 - iy0) <= 0.5)
   {
     y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
-    *pyc = y0;
+    yc = y0;
   }
   else
   {
-    *pyc = y;
-    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
+    yc = y;
+    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << endl;
   }
 }

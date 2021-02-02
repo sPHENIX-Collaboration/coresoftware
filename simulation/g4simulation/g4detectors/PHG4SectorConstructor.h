@@ -12,13 +12,11 @@
 #ifndef G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 #define G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 
+#include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>   // for G4int
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#endif
 
 class G4LogicalVolume;
 class G4PVPlacement;
@@ -99,13 +97,11 @@ class Sector_Geometry
     return N_Sector;
   }
 
-#if !defined(__CINT__) || defined(__CLING__)
   std::vector<Layer> &
   get_layer_list()
   {
     return layer_list;
   }
-#endif
 
   std::string
   get_material() const
@@ -145,13 +141,11 @@ class Sector_Geometry
     N_Sector = sector;
   }
 
-#if !defined(__CINT__) || defined(__CLING__)
   void
   set_layer_list(const std::vector<Layer> &layerList)
   {
     layer_list = layerList;
   }
-#endif
 
   void
   set_material(const std::string &_material)
@@ -225,12 +219,9 @@ class Sector_Geometry
 
   // layer descriptions
  public:
-#if !defined(__CINT__) || defined(__CLING__)
 
   typedef std::vector<Layer> t_layer_list;
   t_layer_list layer_list;
-
-#endif
 
   int GetNumActiveLayers() const
   {
@@ -357,7 +348,6 @@ class Sector_Geometry
   std::string material;
 };
 
-#if !defined(__CINT__) || defined(__CLING__)
 
 //! \brief Generalized detector which use sectors of flat panels to cover full azimuthal acceptance
 class PHG4SectorConstructor
@@ -374,6 +364,9 @@ class PHG4SectorConstructor
   {
     overlapcheck_sector = check;
   }
+
+  void Verbosity(int v) {m_Verbosity = v;}
+  int Verbosity() const {return m_Verbosity;}
 
  protected:
   bool overlapcheck_sector;
@@ -395,6 +388,7 @@ class PHG4SectorConstructor
 
  private:
   PHG4SectorDisplayAction *m_DisplayAction;
+  int m_Verbosity;
 
  protected:
   G4LogicalVolume *
@@ -412,6 +406,5 @@ class PHG4SectorConstructor
   map_phy_vol_t map_active_phy_vol;  //! active physics volume
 };
 
-#endif  // #if !defined(__CINT__) || defined(__CLING__)
 }  // namespace PHG4Sector
 #endif /* PHG4SectorConstructor_H_ */

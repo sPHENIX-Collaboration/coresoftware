@@ -3,14 +3,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <cstdint>
 #include <memory>
 #include <string>
-
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
@@ -34,7 +29,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
 
-  virtual ~QAG4SimulationCalorimeterSum(){}
+  virtual ~QAG4SimulationCalorimeterSum() {}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -125,13 +120,10 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
   int Init_TrackProj(PHCompositeNode *topNode);
   int process_event_TrackProj(PHCompositeNode *topNode);
 
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
   std::shared_ptr<CaloEvalStack> _caloevalstack_cemc;
   std::shared_ptr<CaloEvalStack> _caloevalstack_hcalin;
   std::shared_ptr<CaloEvalStack> _caloevalstack_hcalout;
   std::shared_ptr<SvtxEvalStack> _svtxevalstack;
-#endif
 
   uint32_t _flags;
 

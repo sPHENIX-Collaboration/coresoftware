@@ -111,7 +111,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
     PHG4Hit *g4hit_i = hiter->second;
 
     // Don't include hits with zero energy
-    if (g4hit_i->get_edep() <= 0) continue;
+    if (g4hit_i->get_edep() <= 0 && g4hit_i->get_edep() != -1) continue;
 
     /* encode CaloTowerID from j, k index of tower / hit and calorimeter ID */
     RawTowerDefs::keytype calotowerid = RawTowerDefs::encode_towerid(m_CaloId,

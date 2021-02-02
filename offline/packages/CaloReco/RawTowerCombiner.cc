@@ -1,20 +1,20 @@
 #include "RawTowerCombiner.h"
 
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTower.h>
-#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTowerv1.h>
 
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <CLHEP/Vector/ThreeVector.h>
 
@@ -218,7 +218,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
   const string iTowerGeomNodeName = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<
-      RawTowerGeomContainer>(topNode, iTowerGeomNodeName.c_str());
+      RawTowerGeomContainer>(topNode, iTowerGeomNodeName);
   if (!towergeom)
   {
     std::cerr << __PRETTY_FUNCTION__ << " - " << iTowerGeomNodeName
@@ -313,7 +313,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
   const string input_TowerNodeName = "TOWER_" + _tower_node_prefix + "_" + detector;
   _towers = findNode::getClass<RawTowerContainer>(topNode,
-                                                  input_TowerNodeName.c_str());
+                                                  input_TowerNodeName);
   if (!_towers)
   {
     std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__

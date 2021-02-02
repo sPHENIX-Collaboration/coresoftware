@@ -1,11 +1,13 @@
 #include "PHField2D.h"
 
 //root framework
+#include <TDirectory.h>
 #include <TFile.h>
 #include <TNtuple.h>
-#include <TDirectory.h>
 
-#include <CLHEP/Units/SystemOfUnits.h>
+#include <Geant4/G4SystemOfUnits.hh>
+
+#include <TSystem.h>
 
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -14,29 +16,28 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <memory>
 #include <set>
 #include <utility>
 
 using namespace std;
-using namespace CLHEP;  // units
 
 PHField2D::PHField2D(const string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)
+  , r_index0_cache(0)
+  , r_index1_cache(0)
+  , z_index0_cache(0)
+  , z_index1_cache(0)
 {
-  r_index0_cache = 0;
-  r_index1_cache = 0;
-  z_index0_cache = 0;
-  z_index1_cache = 0;
-
   if (Verbosity() > 0)
+  {
     cout << " ------------- PHField2D::PHField2D() ------------------" << endl;
-
+  }
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
   if (!rootinput)
   {
     cout << " could not open " << filename << " exiting now" << endl;
+    gSystem->Exit(1);
     exit(1);
   }
   if (Verbosity() > 0) cout << "  Field grid file: " << filename << endl;
@@ -202,8 +203,7 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
 
   }  // end loop over root field map file
 
-  if (rootinput)
-    rootinput->Close();
+  rootinput->Close();
 
   if (Verbosity() > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
   if (Verbosity() > 0) cout << "  Mag field r max boundary: " << r_map_.back() / cm << " cm" << endl;

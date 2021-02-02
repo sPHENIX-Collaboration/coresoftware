@@ -13,11 +13,9 @@
 #define G4DETECTORS_EPHENIXRICHCONSTRUCTION_H
 
 #include <Geant4/G4String.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>  // for G4int
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <Geant4/G4SystemOfUnits.hh>
-#endif
 
 #include <map>
 #include <set>
@@ -111,9 +109,19 @@ class RICH_Geometry
   get_Rotation_HBD() const;
 
   double
-  get_R_beam_pipe() const
+  get_R_beam_pipe_front() const
   {
-    return R_beam_pipe;
+    return R_beam_pipe_front;
+  }
+  double
+  get_R_beam_pipe_back() const
+  {
+    return R_beam_pipe_back;
+  }
+  double
+  get_R_beam_pipe_min() const
+  {
+    return R_beam_pipe_front<R_beam_pipe_back ? R_beam_pipe_front : R_beam_pipe_back;
   }
 
   double
@@ -228,9 +236,19 @@ class RICH_Geometry
      */
   ///@{
   void
-  set_R_beam_pipe(double beamPipe)
+  set_R_beam_pipe_front(double beamPipe)
   {
-    R_beam_pipe = beamPipe;
+    R_beam_pipe_front = beamPipe;
+  }
+
+  /** @name Set Parameters
+     *  Group of functions to set parameters.
+     */
+  ///@{
+  void
+  set_R_beam_pipe_back(double beamPipe)
+  {
+    R_beam_pipe_back = beamPipe;
   }
 
   void
@@ -334,7 +352,8 @@ class RICH_Geometry
   int N_RICH_Sector;
 
   double min_eta;
-  double R_beam_pipe;
+  double R_beam_pipe_front;
+  double R_beam_pipe_back;
 
   double z_shift;
   double R_shift;
@@ -358,7 +377,6 @@ class RICH_Geometry
   G4OpticalSurface* RICH_Photocathode_OpticalSurface;
 };
 
-#if !defined(__CINT__) || defined(__CLING__)
 
 /**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 based on the geometry
@@ -425,8 +443,6 @@ class ePHENIXRICHConstruction
      */
   std::set<G4VPhysicalVolume*> sector_vec;
 };
-
-#endif // #if !defined(__CINT__) || defined(__CLING__)
 
 }  //namespace ePHENIXRICH
 

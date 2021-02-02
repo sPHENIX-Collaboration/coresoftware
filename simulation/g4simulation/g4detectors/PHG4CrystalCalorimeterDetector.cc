@@ -1,9 +1,13 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
+
+#include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
@@ -12,13 +16,15 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4String.hh>                     // for G4String
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>      // for G4Transform3D
 #include <Geant4/G4Types.hh>            // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
+
+#include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -32,56 +38,34 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , _place_in_x(0.0 * mm)
-  , _place_in_y(0.0 * mm)
-  , _place_in_z(-1080.0 * mm)
-  , _rot_in_x(0.0)
-  , _rot_in_y(M_PI)
-  , _rot_in_z(0.0)
-  , _rMin1(22 * mm)
-  , _rMax1(656 * mm)
-  , _rMin2(26 * mm)
-  , _rMax2(775 * mm)
-  , _dZ(180 * mm)
-  , _sPhi(0)
-  , _dPhi(2 * M_PI)
-  , _crystal_dx(20 * mm)
-  , _crystal_dy(20 * mm)
-  , _crystal_dz(180.0 * mm)
-  , _materialCrystal("G4_PbWO4")
-  , _active(1)
-  , _absorberactive(0)
-  , _layer(0)
-  , _blackhole(0)
-  , _superdetector("NONE")
-  , _mapping_tower_file("")
+  , m_SuperDetector("NONE")
+  , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction()))
   , _towerlogicnameprefix("CrystalCalorimeterTower")
+  , m_IsActive(m_Params->get_int_param("active"))
+  , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
 {
 }
 
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* volume) const
 {
-  if (volume->GetName().find(_towerlogicnameprefix) != string::npos)
+  if (m_IsActive)
   {
-    if (volume->GetName().find("crystal") != string::npos)
+    if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
     {
-      return 1;
+      return GetCaloType();
     }
-    /* only record energy in actual absorber- drop energy lost in air gaps inside envelope */
-    else if (volume->GetName().find("absorber") != string::npos)
+  }
+  if (m_AbsorberActive)
+  {
+    if (m_PassiveVolumeSet.find(volume) != m_PassiveVolumeSet.end())
     {
       return -1;
     }
-    else if (volume->GetName().find("envelope") != string::npos)
-    {
-      return 0;
-    }
   }
-
   return 0;
 }
 
@@ -93,41 +77,42 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
     cout << "PHG4CrystalCalorimeterDetector: Begin Construction" << endl;
   }
 
-  if (_mapping_tower_file.empty())
+  if (m_Params->get_string_param("mappingtower").empty())
   {
     cout << "ERROR in PHG4CrystalCalorimeterDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
+    cout << "Please run set_string_param(\"mappingtower\", std::string filename ) first." << endl;
     exit(1);
   }
 
-  /* Read parameters for detector construction and mappign from file */
+  /* Read parameters for detector construction and mapping from file */
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* eemc_envelope_solid = new G4Cons("eemc_envelope_solid",
-                                             _rMin1, _rMax1,
-                                             _rMin2, _rMax2,
-                                             _dZ / 2.,
-                                             _sPhi, _dPhi);
+                                             m_Params->get_double_param("rMin1") * cm, m_Params->get_double_param("rMax1") * cm,
+                                             m_Params->get_double_param("rMin2") * cm, m_Params->get_double_param("rMax2") * cm,
+                                             m_Params->get_double_param("dz") * cm / 2.,
+                                             0, 2 * M_PI);
 
-  G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, Air, G4String("eemc_envelope"), 0, 0, 0);
+  G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, WorldMaterial, G4String("eemc_envelope"), 0, 0, 0);
 
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix eemc_rotm;
-  eemc_rotm.rotateX(_rot_in_x);
-  eemc_rotm.rotateY(_rot_in_y);
-  eemc_rotm.rotateZ(_rot_in_z);
+  eemc_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
+  eemc_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
+  eemc_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
 
   /* Place envelope cone in simulation */
-  ostringstream name_envelope;
-  name_envelope.str("");
-  name_envelope << _towerlogicnameprefix << "_envelope" << endl;
+  //  ostringstream name_envelope;
+  //  name_envelope.str("");
+  string name_envelope = _towerlogicnameprefix + "_envelope";
 
-  new G4PVPlacement(G4Transform3D(eemc_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
-                    eemc_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
+  new G4PVPlacement(G4Transform3D(eemc_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)),
+                    eemc_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
   G4LogicalVolume* singletower = ConstructTower();
@@ -151,12 +136,13 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   G4double airgap_crystal_carbon = 0.012 * cm;
 
   /* dimesnions of full tower */
-  G4double tower_dx = _crystal_dx + 2 * (carbon_thickness + airgap_crystal_carbon);
-  G4double tower_dy = _crystal_dy + 2 * (carbon_thickness + airgap_crystal_carbon);
-  G4double tower_dz = _crystal_dz;
+  G4double tower_dx = m_Params->get_double_param("crystal_dx") * cm + 2 * (carbon_thickness + airgap_crystal_carbon);
+  G4double tower_dy = m_Params->get_double_param("crystal_dy") * cm + 2 * (carbon_thickness + airgap_crystal_carbon);
+  G4double tower_dz = m_Params->get_double_param("crystal_dz") * cm;
 
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid"),
                                            tower_dx / 2.0,
@@ -164,17 +150,17 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                                            tower_dz / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
+                                                            WorldMaterial,
                                                             "single_tower_logic",
                                                             0, 0, 0);
 
   /* create geometry volume for crystal inside single_tower */
   G4VSolid* solid_crystal = new G4Box(G4String("single_crystal_solid"),
-                                      _crystal_dx / 2.0,
-                                      _crystal_dy / 2.0,
-                                      _crystal_dz / 2.0);
+                                      m_Params->get_double_param("crystal_dx") * cm / 2.0,
+                                      m_Params->get_double_param("crystal_dy") * cm / 2.0,
+                                      m_Params->get_double_param("crystal_dz") * cm / 2.0);
 
-  /* create geometry volume for frame (carbon fober shell) inside single_tower */
+  /* create geometry volume for frame (carbon fiber shell) inside single_tower */
   G4VSolid* Carbon_hunk_solid = new G4Box(G4String("Carbon_hunk_solid"),
                                           tower_dx / 2.0,
                                           tower_dy / 2.0,
@@ -195,7 +181,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
                                                                   G4ThreeVector(0.00 * mm, 0.00 * mm, 0.00 * mm));
 
   /* create logical volumes for crystal inside single_tower */
-  G4Material* material_crystal = G4Material::GetMaterial(_materialCrystal.c_str());
+  G4Material* material_crystal = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
   G4LogicalVolume* logic_crystal = new G4LogicalVolume(solid_crystal,
                                                        material_crystal,
@@ -206,13 +192,14 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 
   /* create logical volumes for structural frame */
   //Carbon Fiber
+  /*
   G4double a = 12.01 * g / mole;
   G4Element* elC = new G4Element("Carbon", "C", 6., a);
   G4double density_carbon_fiber = 0.144 * g / cm3;
   G4Material* CarbonFiber = new G4Material("CarbonFiber", density_carbon_fiber, 1);
   CarbonFiber->AddElement(elC, 1);
-
-  G4Material* material_shell = CarbonFiber;
+*/
+  G4Material* material_shell = GetCarbonFiber();
 
   G4LogicalVolume* logic_shell = new G4LogicalVolume(Carbon_shell_solid,
                                                      material_shell,
@@ -222,27 +209,25 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
   GetDisplayAction()->AddVolume(logic_shell, "CarbonShell");
 
   /* Place structural frame in logical tower volume */
-  ostringstream name_shell;
-  name_shell.str("");
-  name_shell << _towerlogicnameprefix << "_single_absorber" << endl;
-
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                    logic_shell,
-                    name_shell.str().c_str(),
-                    single_tower_logic,
-                    0, 0, OverlapCheck());
-
+  // ostringstream name_shell;
+  // name_shell.str("");
+  // name_shell << _towerlogicnameprefix << "_single_absorber";
+  string name_shell = _towerlogicnameprefix + "_single_absorber";
+  G4VPhysicalVolume* physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
+                                                 logic_shell,
+                                                 name_shell,
+                                                 single_tower_logic,
+                                                 0, 0, OverlapCheck());
+  m_PassiveVolumeSet.insert(physvol);
   /* Place crystal in logical tower volume */
-  ostringstream name_crystal;
-  name_crystal.str("");
-  name_crystal << _towerlogicnameprefix << "_single_crystal" << endl;
+  string name_crystal = _towerlogicnameprefix + "_single_crystal";
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                    logic_crystal,
-                    name_crystal.str().c_str(),
-                    single_tower_logic,
-                    0, 0, OverlapCheck());
-
+  physvol = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
+                              logic_crystal,
+                              name_crystal,
+                              single_tower_logic,
+                              0, 0, OverlapCheck());
+  m_ActiveVolumeSet.insert(physvol);
   if (Verbosity() > 0)
   {
     cout << "PHG4CrystalCalorimeterDetector: Building logical volume for single tower done." << endl;
@@ -261,14 +246,15 @@ int PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4
     if (Verbosity() > 0)
     {
       cout << "PHG4CrystalCalorimeterDetector: Place tower " << iterator->first
+           << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
-
+    int copyno = (iterator->second.idx_j << 16) + iterator->second.idx_k;
     new G4PVPlacement(0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
                       singletower,
-                      iterator->first.c_str(),
+                      iterator->first,
                       eemcenvelope,
-                      0, 0, OverlapCheck());
+                      0, copyno, OverlapCheck());
   }
 
   return 0;
@@ -277,15 +263,11 @@ int PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4
 int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
-  ifstream istream_mapping;
+  ifstream istream_mapping(m_Params->get_string_param("mappingtower"));
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(_mapping_tower_file.c_str());
-    if (!istream_mapping)
-    {
-      cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << _mapping_tower_file << endl;
-      exit(1);
-    }
+    cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to open mapping file " << m_Params->get_string_param("mappingtower") << endl;
+    gSystem->Exit(1);
   }
 
   /* loop over lines in file */
@@ -317,8 +299,8 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
-        exit(1);
+        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
+        gSystem->Exit(1);
       }
 
       /* Construct unique name for tower */
@@ -337,6 +319,8 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       tower_new.x = pos_x;
       tower_new.y = pos_y;
       tower_new.z = pos_z;
+      tower_new.idx_j = idx_j;
+      tower_new.idx_k = idx_k;
       _map_tower.insert(make_pair(towername.str(), tower_new));
     }
     else
@@ -348,8 +332,8 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
-        exit(1);
+        cout << "ERROR in PHG4CrystalCalorimeterDetector: Failed to read line in mapping file " << m_Params->get_string_param("mappingtower") << endl;
+        gSystem->Exit(1);
       }
 
       _map_global_parameter.insert(make_pair(parname, parval));
@@ -361,59 +345,98 @@ int PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Gcrystal_dx");
   if (parit != _map_global_parameter.end())
-    _crystal_dx = parit->second * cm;
+  {
+    m_Params->set_double_param("crystal_dx", parit->second);  // in cm
+  }
 
   parit = _map_global_parameter.find("Gcrystal_dy");
   if (parit != _map_global_parameter.end())
-    _crystal_dy = parit->second * cm;
+  {
+    m_Params->set_double_param("crystal_dy", parit->second);  // in cm
+  }
 
   parit = _map_global_parameter.find("Gcrystal_dz");
   if (parit != _map_global_parameter.end())
-    _crystal_dz = parit->second * cm;
+  {
+    m_Params->set_double_param("crystal_dz", parit->second);  // in cm
+  }
 
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
-    _rMin1 = parit->second * cm;
+  {
+    m_Params->set_double_param("rMin1", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gr1_outer");
   if (parit != _map_global_parameter.end())
-    _rMax1 = parit->second * cm;
+  {
+    m_Params->set_double_param("rMax1", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gr2_inner");
   if (parit != _map_global_parameter.end())
-    _rMin2 = parit->second * cm;
+  {
+    m_Params->set_double_param("rMin2", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gr2_outer");
   if (parit != _map_global_parameter.end())
-    _rMax2 = parit->second * cm;
+  {
+    m_Params->set_double_param("rMax2", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
-    _dZ = parit->second * cm;
+  {
+    m_Params->set_double_param("dz", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
-    _place_in_x = parit->second * cm;
+  {
+    m_Params->set_double_param("place_x", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gy0");
   if (parit != _map_global_parameter.end())
-    _place_in_y = parit->second * cm;
+  {
+    m_Params->set_double_param("place_y", parit->second);
+  }
 
   parit = _map_global_parameter.find("Gz0");
   if (parit != _map_global_parameter.end())
-    _place_in_z = parit->second * cm;
+  {
+    m_Params->set_double_param("place_z", parit->second);
+  }
 
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
-    _rot_in_x = parit->second;
+  {
+    m_Params->set_double_param("rot_x", parit->second * rad / deg);
+  }
 
   parit = _map_global_parameter.find("Grot_y");
   if (parit != _map_global_parameter.end())
-    _rot_in_y = parit->second;
-
+  {
+    m_Params->set_double_param("rot_y", parit->second * rad / deg);
+  }
   parit = _map_global_parameter.find("Grot_z");
   if (parit != _map_global_parameter.end())
-    _rot_in_z = parit->second;
-
+  {
+    m_Params->set_double_param("rot_z", parit->second * rad / deg);
+  }
   return 0;
+}
+
+G4Material* PHG4CrystalCalorimeterDetector::GetCarbonFiber()
+{
+  static string matname = "CrystalCarbonFiber";
+  G4Material* carbonfiber = G4Material::GetMaterial(matname, false);  // false suppresses warning that material does not exist
+  if (!carbonfiber)
+  {
+    G4double density_carbon_fiber = 1.44 * g / cm3;
+    carbonfiber = new G4Material(matname, density_carbon_fiber, 1);
+    carbonfiber->AddElement(G4Element::GetElement("C"), 1);
+  }
+  return carbonfiber;
 }
