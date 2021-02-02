@@ -422,13 +422,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
     }
 
   m_svtxVertexMap = 
-    findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
   if(!m_svtxVertexMap)
     {
       m_svtxVertexMap = new SvtxVertexMap_v1;
       PHIODataNode<PHObject> *node = 
 	new PHIODataNode<PHObject>(m_svtxVertexMap,
-				   "SvtxVertexMap", "PHObject");
+				   "SvtxVertexMapActs", "PHObject");
       svtxNode->addNode(node);
     }
 
