@@ -620,8 +620,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   /// vertex fitting in PHActsVertexFinder
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
-  track->set_dca3d_xy_error(sqrt(dca3DxyCov) / Acts::UnitConstants::cm);
-  track->set_dca3d_z_error(sqrt(dca3DzCov) / Acts::UnitConstants::cm);
+
+  /// The covariance that goes into the rotater is already in sphenix
+  /// units, so we don't need to convert back
+  track->set_dca3d_xy_error(sqrt(dca3DxyCov));
+  track->set_dca3d_z_error(sqrt(dca3DzCov));
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
