@@ -93,6 +93,8 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       delete track;
     }
 
+  m_svtxVertexMapActs = dynamic_cast<SvtxVertexMap*>(m_svtxVertexMap->CloneMe());
+
   if(Verbosity() > 0)
     std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
 
@@ -112,6 +114,10 @@ int PHActsVertexFinder::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::End(PHCompositeNode *topNode)
 {
+  std::cout << "Acts Final vertex finder succeeeded " << m_goodFits
+	    << " out of " << m_totalFits << " events processed"
+	    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -156,9 +162,10 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 
 VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 {
+  m_totalFits++;
+  
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-
   return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
@@ -223,6 +230,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       if(result.ok())
 	{
 	  auto vertexCollection = *result;
+	  m_goodFits++;
 	  
 	  if(Verbosity() > 1)
 	    {
@@ -434,13 +442,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       svtxNode->addNode(node);
     }
 
-  m_svtxVertexMap = 
+  m_svtxVertexMapActs = 
     findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
-  if(!m_svtxVertexMap)
+  if(!m_svtxVertexMapActs)
     {
-      m_svtxVertexMap = new SvtxVertexMap_v1;
+      m_svtxVertexMapActs = new SvtxVertexMap_v1;
       PHIODataNode<PHObject> *node = 
-	new PHIODataNode<PHObject>(m_svtxVertexMap,
+	new PHIODataNode<PHObject>(m_svtxVertexMapActs,
 				   "SvtxVertexMapActs", "PHObject");
       svtxNode->addNode(node);
     }
@@ -450,6 +458,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 {
+  m_svtxVertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_svtxVertexMap)
+    {
+      std::cout << PHWHERE << "No SvtxVertexMap on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
     (topNode, "ActsFitResults");

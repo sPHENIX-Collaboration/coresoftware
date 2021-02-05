@@ -289,11 +289,7 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
 
 int PHActsTracks::getNodes(PHCompositeNode *topNode)
 {
-  std::string mapName = "SvtxVertexMap";
-  if(m_secondFit)
-    mapName = "SvtxVertexMapActs";
-
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, mapName.c_str());
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
     {
       std::cout << PHWHERE << "SvtxVertexMap not found on node tree. Exiting."
