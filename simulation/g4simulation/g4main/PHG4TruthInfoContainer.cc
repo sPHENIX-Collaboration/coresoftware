@@ -202,6 +202,10 @@ PHG4TruthInfoContainer::AddParticle(G4Track* track)
     if (userdata) ti->set_barcode(userdata->get_user_barcode());
   }
 
+  // Add new vertex and let the track know about it
+  ConstVtxIterator vtxiter = AddVertex(track);
+  ti->set_vtx_id(vtxiter->first);
+
   return particlemap.insert(std::make_pair(trackid, ti)).first;
 }
 
