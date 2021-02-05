@@ -172,6 +172,10 @@ PHG4TruthInfoContainer::AddParticle(G4Track* track)
   ti->set_name(def->GetParticleName());
   ti->set_e(track->GetTotalEnergy() / GeV);
 
+  // Add new vertex and let the track know about it
+  ConstVtxIterator vtxiter = AddVertex(track);
+  ti->set_vtx_id(vtxiter->first);
+
   return particlemap.insert(std::make_pair(trackid, ti)).first;
 }
 

@@ -32,9 +32,6 @@ PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventActi
 
 void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-  // create a new vertex object ------------------------------------------------
-  int vtxindex = m_TruthInfoList->AddVertex(track);
-
   // insert particle into the output
   PHG4Particle* ti = (*m_TruthInfoList->AddParticle(const_cast<G4Track*>(track))).second;
   int trackid = ti->get_track_id();
@@ -63,6 +60,8 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
     PHG4UserPrimaryParticleInformation* userdata = static_cast<PHG4UserPrimaryParticleInformation*>(track->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation());
     if (userdata) ti->set_barcode(userdata->get_user_barcode());
   }
+
+  int vtxindex = ti->get_vtx_id();
 
   // create or add to a new shower object --------------------------------------
   if (!track->GetParentID())
