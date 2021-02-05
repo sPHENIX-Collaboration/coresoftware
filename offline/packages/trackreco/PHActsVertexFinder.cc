@@ -313,6 +313,8 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 	  const auto trackKey = keyMap.find(originalParams)->second;
 	  svtxVertex->insert_track(trackKey);
 
+	  const auto svtxTrack = m_svtxTrackMap->find(trackKey)->second;
+	  svtxTrack->set_vertex_id(key);
 	  updateTrackDCA(trackKey, Acts::Vector3D(vertexX,
 						  vertexY,
 						  vertexZ));
@@ -328,6 +330,17 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       ++key;
     }
       
+
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "Identify vertices in vertex map" << std::endl;
+      for(auto& [key, vert] : *m_svtxVertexMap)
+	{
+	  vert->identify();
+	}
+    }
+
   return;
 }
 

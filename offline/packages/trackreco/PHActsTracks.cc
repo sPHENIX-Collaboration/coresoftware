@@ -122,12 +122,11 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     Acts::Vector3D vertex = {vertX, vertY, vertZ};
     
-    if(Verbosity() > 4)
+    if(Verbosity() > 2)
       {
-	std::cout << "Vertex estimate : ("; 
-	for(int i = 0; i < vertex.size(); i++)
-	  std::cout<<vertex(i)<<", ";
-	std::cout << ")" << std::endl;
+	std::cout << "Vertex estimate :"
+		  << vertex.transpose()
+		  <<std::endl;
       }
 
     /// Get the necessary parameters and values for the TrackParameters
@@ -138,10 +137,17 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     /// just set to 10 ns for now. Time isn't needed by Acts, only if TOF is present
     const double trackTime = 10 * Acts::UnitConstants::ns;
 
-    Acts::Vector4D seed4Vec(track->get_x()  * Acts::UnitConstants::cm,
-			    track->get_y()  * Acts::UnitConstants::cm,
-			    track->get_z()  * Acts::UnitConstants::cm,
-			    trackTime);
+    double trackX = track->get_x()  * Acts::UnitConstants::cm;
+    double trackY = track->get_y()  * Acts::UnitConstants::cm;
+    double trackZ = track->get_z()  * Acts::UnitConstants::cm;
+    if(m_secondFit && svtxVertex){
+      trackX = vertX;
+      trackY = vertY;
+      trackZ = vertZ;
+
+    }
+
+    Acts::Vector4D seed4Vec(trackX, trackY, trackZ, trackTime);
     
     if(m_truthTrackSeeding)
       {
