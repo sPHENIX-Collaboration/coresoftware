@@ -1169,7 +1169,11 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
 
   // Endcap ring in simulations = Endcap rings + endcap staves
-
+  int inttlayer = (m_LayerBeginEndIteratorPair.first)->second;
+  const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
+  const int laddertype = params1->get_int_param("laddertype");
+  const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
+    
   // Aluminum ring
   G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
                                       supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
@@ -1200,7 +1204,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, G4Material::GetMaterial("WaterGlycol_INTT"),
                                                                "endcap_WG_ring_volume", 0, 0, 0);
 
-  // Carbon PEEK ring
+  // Carbon PEEK ring ////////////////////////////////////////////////////////////////////////////////////
   G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
                                       supportparams->get_double_param("endcap_CPring_outer_radius") * cm,
@@ -1210,6 +1214,62 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, G4Material::GetMaterial("CF30_PEEK70"),
                                                                "endcap_CP_ring_volume", 0, 0, 0);
   m_DisplayAction->AddVolume(endcap_CP_ring_volume, "EndcapCPRing");
+
+  // new Al-PEEK ring from Jan/2021    //////////////////////////////////////////////////////////////////////////
+  // outermost part (Al)
+  G4Tubs *endcap_AlPEEK_Alring_1 = new G4Tubs("endcap_AlPEEK_Alring_1",
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_1_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_AlPEEK_Alring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_1, G4Material::GetMaterial("G4_Al"),
+								     "endcap_AlPEEK_Alring_1_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_1_volume, "EndcapAlPEEK_Al1");
+
+  // 2nd outermost part (Carbon PEEK)
+  G4Tubs *endcap_AlPEEK_Cring_1 = new G4Tubs("endcap_AlPEEK_Cring_1",
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_AlPEEK_Cring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_1, G4Material::GetMaterial("CF30_PEEK70"),
+								     "endcap_AlPEEK_Cring_1_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(endcap_AlPEEK_Cring_1_volume, "EndcapAlPEEK_C1");
+
+  // 3rd outermost part (Al)
+  G4Tubs *endcap_AlPEEK_Alring_2 = new G4Tubs("endcap_AlPEEK_Alring_2",
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_AlPEEK_Alring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_2, G4Material::GetMaterial("G4_Al"),
+								     "endcap_AlPEEK_Alring_2_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_2_volume, "EndcapAlPEEK_Al2");
+
+  // 4th outermost part (Carbon PEEK)
+  G4Tubs *endcap_AlPEEK_Cring_2 = new G4Tubs("endcap_AlPEEK_Cring_2",
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_AlPEEK_Cring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_2, G4Material::GetMaterial("CF30_PEEK70"),
+								     "endcap_AlPEEK_Cring_2_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(endcap_AlPEEK_Cring_2_volume, "EndcapAlPEEK_C2");
+
+  // 5th outermost part (innermost) (Al)
+  G4Tubs *endcap_AlPEEK_Alring_3 = new G4Tubs("endcap_AlPEEK_Alring_3",
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_3_inner_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, G4Material::GetMaterial("G4_Al"),
+								       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
+  m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_3_volume, "EndcapAlPEEK_Al3");
 
   double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
 
@@ -1251,13 +1311,13 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                             endcap_Al_ring_volume,
                             (boost::format("endcap_Al_ring_pv_%d_%d") % i % j).str(),
                             trackerenvelope, false, 0, OverlapCheck());
-        }
-      }
-    }
+        }  // end of the loop over positive/negative sides with j
+      } // end of the loop over positive/negative sides with i
+    } // end of endcap_ring_type == 0 
     else if (supportparams->get_int_param("endcap_ring_type") == 1)  // Place CP endcap rings
     {
       double endcap_ring_z = supportparams->get_double_param("endcap_CPring_z") * cm;
-      
+
       for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
       {
         endcap_ring_z = (i == 0) ? endcap_ring_z : -1.0 * endcap_ring_z;
@@ -1268,10 +1328,56 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                           (boost::format("endcap_CP_ring_pv_%d") % i).str(),
                           trackerenvelope, false, 0, OverlapCheck());
 
-      }
-    }
-  
+      } // end of the loop over positive/negative sides
+    } // end of endcap_ring_type == 1
+    else if (supportparams->get_int_param("endcap_ring_type") == 2 )  // the new endcap introduced in Jan/2021
+      {
 
+	double si_0_width = params->get_double_param("strip_z_0") * params->get_int_param("nstrips_z_sensor_0") * cm
+	  + 2 * params->get_double_param("sensor_edge_z") * cm; // length of the smaller cells
+	double si_1_width = params->get_double_param("strip_z_1") * params->get_int_param("nstrips_z_sensor_1") * cm
+	  + 2 * params->get_double_param("sensor_edge_z") * cm; // length of the larger cells
+	double sifull_width = si_0_width + si_1_width; // length of the Si module
+	double hdi_width = sifull_width + params->get_double_param("hdi_edge_z") * cm;
+	double hdiext_width = params->get_double_param("halfladder_inside_z") * cm - sifull_width;
+	double hdifull_width = hdi_width + hdiext_width; // length of a half lader
+	double endcap_ring_z = hdifull_width + supportparams->get_double_param("endcap_AlPEEK_Cring_length") / 2.0 * cm;
+
+	for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
+	  {
+	    endcap_ring_z = (i == 0) ? endcap_ring_z : -1.0 * endcap_ring_z;
+	    endcap_outer_edge_z = fabs(endcap_ring_z) + supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.0;
+	    
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+			      endcap_AlPEEK_Alring_1_volume,
+			      (boost::format("endcap_AlPEEK_Alring_1_pv_%d") % i).str(),
+			      trackerenvelope, false, 0, OverlapCheck());
+
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+			      endcap_AlPEEK_Cring_1_volume,
+			      (boost::format("endcap_AlPEEK_Cring_1_pv_%d") % i).str(),
+			      trackerenvelope, false, 0, OverlapCheck());
+
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+			      endcap_AlPEEK_Alring_2_volume,
+			      (boost::format("endcap_AlPEEK_Alring_2_pv_%d") % i).str(),
+			      trackerenvelope, false, 0, OverlapCheck());
+
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+			      endcap_AlPEEK_Cring_2_volume,
+			      (boost::format("endcap_AlPEEK_Cring_2_pv_%d") % i).str(),
+			      trackerenvelope, false, 0, OverlapCheck());
+
+	    new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+			      endcap_AlPEEK_Alring_3_volume,
+			      (boost::format("endcap_AlPEEK_Alring_3_pv_%d") % i).str(),
+			      trackerenvelope, false, 0, OverlapCheck());
+
+	  }
+      }
+  
+  
+  /////////////////////////////////////////////////////////////////////
   // Mimic cylinders for the bus extender (very simplified for the moment)
   double bus_extender_radius_innermost = supportparams->get_double_param("bus_extender_radius")   * cm;
   double bus_extender_length           = supportparams->get_double_param("bus_extender_length")   * cm;
@@ -1347,7 +1453,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 			(boost::format("bus_extender_kapton_outer_layer_pv_%d") % i ).str(),
 			trackerenvelope, false, 0, OverlapCheck());
     }
-  }
+}
   return 0;
 }
 
