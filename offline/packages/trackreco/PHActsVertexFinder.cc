@@ -93,7 +93,10 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       delete track;
     }
 
-  m_svtxVertexMapActs = dynamic_cast<SvtxVertexMap*>(m_svtxVertexMap->CloneMe());
+  for(auto [key, svtxVertex] : *m_svtxVertexMap)
+    { 
+      m_svtxVertexMapActs->insert(dynamic_cast<SvtxVertex*>(svtxVertex->CloneMe()));
+    }
 
   if(Verbosity() > 0)
     std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
