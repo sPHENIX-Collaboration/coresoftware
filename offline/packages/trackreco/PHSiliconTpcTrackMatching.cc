@@ -134,10 +134,10 @@ int PHSiliconTpcTrackMatching::Process()
       // hard code this here for now
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
-      // not well optimized yet - smaller may work
+      // it would be better if this was a smooth function
       double mag = 1.0;
-      //if(tpc_pt < 5) mag = 2.0;
-      //if(tpc_pt < 2) mag = 4.0;
+      if(tpc_pt < 6.0) mag = 2;
+      if(tpc_pt < 2.0)  mag = 4.0;
 
       if(Verbosity() > 3)
 	{
