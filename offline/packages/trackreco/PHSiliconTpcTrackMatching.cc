@@ -137,7 +137,7 @@ int PHSiliconTpcTrackMatching::Process()
       // it would be better if this was a smooth function
       double mag = 1.0;
       if(tpc_pt < 6.0) mag = 2;
-      if(tpc_pt < 2.0)  mag = 4.0;
+      if(tpc_pt < 3.0)  mag = 4.0;
 
       if(Verbosity() > 3)
 	{
