@@ -93,6 +93,11 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       delete track;
     }
 
+  for(auto [key, svtxVertex] : *m_svtxVertexMap)
+    { 
+      m_svtxVertexMapActs->insert(dynamic_cast<SvtxVertex*>(svtxVertex->CloneMe()));
+    }
+
   if(Verbosity() > 0)
     std::cout << "Finished PHActsVertexFinder::process_event" << std::endl;
 
@@ -112,6 +117,10 @@ int PHActsVertexFinder::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::End(PHCompositeNode *topNode)
 {
+  std::cout << "Acts Final vertex finder succeeeded " << m_goodFits
+	    << " out of " << m_totalFits << " events processed"
+	    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -156,9 +165,10 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 
 VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 {
+  m_totalFits++;
+  
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-
   return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
@@ -223,6 +233,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       if(result.ok())
 	{
 	  auto vertexCollection = *result;
+	  m_goodFits++;
 	  
 	  if(Verbosity() > 1)
 	    {
@@ -313,6 +324,8 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 	  const auto trackKey = keyMap.find(originalParams)->second;
 	  svtxVertex->insert_track(trackKey);
 
+	  const auto svtxTrack = m_svtxTrackMap->find(trackKey)->second;
+	  svtxTrack->set_vertex_id(key);
 	  updateTrackDCA(trackKey, Acts::Vector3D(vertexX,
 						  vertexY,
 						  vertexZ));
@@ -328,6 +341,17 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
       ++key;
     }
       
+
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "Identify vertices in vertex map" << std::endl;
+      for(auto& [key, vert] : *m_svtxVertexMap)
+	{
+	  vert->identify();
+	}
+    }
+
   return;
 }
 
@@ -421,13 +445,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       svtxNode->addNode(node);
     }
 
-  m_svtxVertexMap = 
+  m_svtxVertexMapActs = 
     findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
-  if(!m_svtxVertexMap)
+  if(!m_svtxVertexMapActs)
     {
-      m_svtxVertexMap = new SvtxVertexMap_v1;
+      m_svtxVertexMapActs = new SvtxVertexMap_v1;
       PHIODataNode<PHObject> *node = 
-	new PHIODataNode<PHObject>(m_svtxVertexMap,
+	new PHIODataNode<PHObject>(m_svtxVertexMapActs,
 				   "SvtxVertexMapActs", "PHObject");
       svtxNode->addNode(node);
     }
@@ -437,6 +461,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 {
+  m_svtxVertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_svtxVertexMap)
+    {
+      std::cout << PHWHERE << "No SvtxVertexMap on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
     (topNode, "ActsFitResults");
