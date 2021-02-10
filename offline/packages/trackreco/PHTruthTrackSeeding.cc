@@ -84,13 +84,14 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
        ++iter){
     ClusterKeyList.clear();
     PHG4Particle* g4particle = iter->second;
-    float gtrackID = g4particle->get_track_id();
 
-    if (!g4particle){
+    if (g4particle==NULL){
       cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "
 	   << gtrackID <<". Exiting..."<<endl;
       exit(1);
     }
+
+    float gtrackID = g4particle->get_track_id();
 
     // monentum cut-off
     if (_min_momentum>0){
