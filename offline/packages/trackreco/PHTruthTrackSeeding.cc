@@ -48,6 +48,7 @@ using namespace std;
 
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
+  , _clustereval(nullptr)
 {}
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)

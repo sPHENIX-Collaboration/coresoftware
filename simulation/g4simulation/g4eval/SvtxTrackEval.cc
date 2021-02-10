@@ -455,7 +455,7 @@ void SvtxTrackEval::create_cache_track_from_cluster()
          ++iter)
     {
       TrkrDefs::cluskey candidate_key = *iter;
-      unsigned int cluster_layer = TrkrDefs::getLayer(candidate_key);
+      // unsigned int cluster_layer = TrkrDefs::getLayer(candidate_key);
       //      if (_strict)
       //      {
       //        assert(candidate_key);
