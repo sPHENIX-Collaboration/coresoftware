@@ -52,7 +52,7 @@ void KFParticle_nTuple::initializeBranches()
   std::string open_bracket = "("; 
   std::string close_bracket = ")"; 
   std::string plus_symb = "+";
-  std::string plus_work = "plus";
+  std::string plus_word = "plus";
   std::string minus_symb = "-";
   std::string minus_word = "minus"; 
   std::string undrscr = "_"; 
@@ -61,7 +61,7 @@ void KFParticle_nTuple::initializeBranches()
   while ((pos = mother_name.find(fwd_slsh)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
   while ((pos = mother_name.find(open_bracket)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
   while ((pos = mother_name.find(close_bracket)) != std::string::npos) mother_name.replace(pos, 1, nothing);
-  while ((pos = mother_name.find(plus_symb)) != std::string::npos) mother_name.replace(pos, 1, plus_work);
+  while ((pos = mother_name.find(plus_symb)) != std::string::npos) mother_name.replace(pos, 1, plus_word);
   while ((pos = mother_name.find(minus_symb)) != std::string::npos) mother_name.replace(pos, 1, minus_word);
 
   m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
@@ -115,7 +115,7 @@ void KFParticle_nTuple::initializeBranches()
       while ((pos = intermediate_name.find(fwd_slsh)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
       while ((pos = intermediate_name.find(open_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
       while ((pos = intermediate_name.find(close_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, nothing);
-      while ((pos = intermediate_name.find(plus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, plus_work);
+      while ((pos = intermediate_name.find(plus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, plus_word);
       while ((pos = intermediate_name.find(minus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, minus_word);
 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");

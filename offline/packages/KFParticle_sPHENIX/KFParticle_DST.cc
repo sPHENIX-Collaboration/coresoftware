@@ -56,7 +56,7 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   std::string open_bracket = "(";
   std::string close_bracket = ")";
   std::string plus_symb = "+";
-  std::string plus_work = "plus"; 
+  std::string plus_word = "plus"; 
   std::string minus_symb = "-"; 
   std::string minus_word = "minus"; 
   std::string undrscr = "_";
@@ -65,7 +65,7 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
-  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_work);
+  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_word);
   while ((pos = baseName.find(minus_symb)) != std::string::npos) baseName.replace(pos, 1, minus_word);
 
   trackNodeName = baseName + "_SvtxTrackMap";
@@ -128,7 +128,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
   std::string open_bracket = "(";
   std::string close_bracket = ")";
   std::string plus_symb = "+";
-  std::string plus_work = "plus"; 
+  std::string plus_word = "plus"; 
   std::string minus_symb = "-"; 
   std::string minus_word = "minus"; 
   std::string undrscr = "_";
@@ -137,7 +137,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
-  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_work);
+  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_word);
   while ((pos = baseName.find(minus_symb)) != std::string::npos) baseName.replace(pos, 1, minus_word);
 
   trackNodeName = baseName + "_SvtxTrackMap";
@@ -198,7 +198,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
   std::string open_bracket = "(";
   std::string close_bracket = ")";
   std::string plus_symb = "+";
-  std::string plus_work = "plus"; 
+  std::string plus_word = "plus"; 
   std::string minus_symb = "-"; 
   std::string minus_word = "minus"; 
   std::string undrscr = "_";
@@ -207,7 +207,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr);
   while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
-  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_work);
+  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_word);
   while ((pos = baseName.find(minus_symb)) != std::string::npos) baseName.replace(pos, 1, minus_word);
 
   particleNodeName = baseName + "_KFParticle_Container";
@@ -269,7 +269,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
   std::string open_bracket = "("; 
   std::string close_bracket = ")"; 
   std::string plus_symb = "+"; 
-  std::string plus_work = "plus"; 
+  std::string plus_word = "plus"; 
   std::string minus_symb = "-"; 
   std::string minus_word = "minus"; 
   std::string undrscr = "_"; 
@@ -278,7 +278,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
   while ((pos = baseName.find(fwd_slsh)) != std::string::npos) baseName.replace(pos, 1, undrscr); 
   while ((pos = baseName.find(open_bracket)) != std::string::npos) baseName.replace(pos, 1, undrscr); 
   while ((pos = baseName.find(close_bracket)) != std::string::npos) baseName.replace(pos, 1, nothing);
-  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_work);
+  while ((pos = baseName.find(plus_symb)) != std::string::npos) baseName.replace(pos, 1, plus_word);
   while ((pos = baseName.find(minus_symb)) != std::string::npos) baseName.replace(pos, 1, minus_word);
 
   if (m_write_track_container)
