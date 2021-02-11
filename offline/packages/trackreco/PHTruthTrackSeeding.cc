@@ -86,8 +86,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     PHG4Particle* g4particle = iter->second;
 
     if (g4particle==NULL){
-      cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "
-	   << gtrackID <<". Exiting..."<<endl;
+      cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle" <<endl;
       exit(1);
     }
 
