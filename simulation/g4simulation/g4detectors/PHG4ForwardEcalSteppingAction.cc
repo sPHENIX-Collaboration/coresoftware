@@ -159,11 +159,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       }
       m_Hit->set_scint_id(tower_id);
 
-      /* Set hit location (tower index) */
-      m_Hit->set_index_j(idx_j);
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_l(idx_l);
-
       /* Set hit location (space point) */
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -176,14 +171,19 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
       m_Hit->set_edep(0);
-      m_Hit->set_eion(0);
 
       /* Now add the hit to the hit collection */
       // here we do things which are different between scintillator and absorber hits
       if (whichactive > 0)
       {
         m_CurrentHitContainer = m_SignalHitContainer;
+        m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+      /* Set hit location (tower index) */
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
+      m_Hit->set_index_l(idx_l);
+
       }
       else
       {
@@ -247,18 +247,18 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     /* sum up the energy to get total deposited */
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      m_Hit->set_eion(-1);
       if (whichactive > 0)
       {
+        m_Hit->set_eion(-1);
         m_Hit->set_light_yield(-1);
       }
     }
