@@ -11,6 +11,8 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -111,7 +113,8 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
                                              m_RMin[0], m_RMax[0],
@@ -119,7 +122,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              m_dZ / 2.,
                                              0, 2 * M_PI);
 
-  G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
+  G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, WorldMaterial, G4String("hEcal_envelope"), 0, 0, 0);
 
   /* Define visualization attributes for envelope cone */
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
@@ -177,7 +180,8 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   if ((type == 3) || (type == 4) || (type == 5) || (type == 6)) return ConstructTowerType3_4_5_6(type);
 
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4Material* material_scintillator;
   double tower_dx = m_TowerDx[type];
@@ -201,7 +205,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   ostringstream single_tower_solid_name;
   single_tower_solid_name << m_TowerLogicNamePrefix << "_single_scintillator_type" << type;
 
-  G4VSolid* single_tower_solid = new G4Box(G4String(single_tower_solid_name.str().c_str()),
+  G4VSolid* single_tower_solid = new G4Box(G4String(single_tower_solid_name.str()),
                                            tower_dx / 2.0,
                                            tower_dy / 2.0,
                                            tower_dz / 2.0);
@@ -210,14 +214,14 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   single_tower_logic_name << "single_tower_logic_type" << type;
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
-                                                            single_tower_logic_name.str().c_str(),
+                                                            WorldMaterial,
+                                                            single_tower_logic_name.str(),
                                                             0, 0, 0);
 
   ostringstream single_scintillator_name;
   single_scintillator_name << "single_scintillator_type" << type;
 
-  G4VSolid* solid_scintillator = new G4Box(G4String(single_scintillator_name.str().c_str()),
+  G4VSolid* solid_scintillator = new G4Box(G4String(single_scintillator_name.str()),
                                            tower_dx / 2.0,
                                            tower_dy / 2.0,
                                            tower_dz / 2.0);
@@ -260,7 +264,8 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << endl;
   }
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid2"),
                                            m_TowerDx[2] / 2.0,
@@ -268,7 +273,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
                                            m_TowerDz[2] / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
+                                                            WorldMaterial,
                                                             "single_tower_logic2",
                                                             0, 0, 0);
 
@@ -382,7 +387,8 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   }
 
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4String solidName = "single_tower_solid";
   solidName += type;
@@ -395,7 +401,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   name_single_tower_logic << "single_tower_logic" << type;
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
+                                                            WorldMaterial,
                                                             name_single_tower_logic.str(),
                                                             0, 0, 0);
 
