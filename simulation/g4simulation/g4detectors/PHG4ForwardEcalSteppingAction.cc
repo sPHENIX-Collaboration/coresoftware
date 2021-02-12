@@ -101,20 +101,13 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   int layer_id = m_Detector->get_Layer();
-  int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
-  //  int idx_l = -1;
 
   if (whichactive > 0)  // in scintillator
   {
     /* Find indices of scintillator / tower containing this step */
     FindTowerIndex(touch, idx_j, idx_k);
-    tower_id = touch->GetCopyNumber();
-  }
-  else
-  {
-    tower_id = touch->GetCopyNumber();
   }
 
   /* Get energy deposited by this step */
@@ -157,7 +150,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       {
         m_Hit = new PHG4Hitv1();
       }
-      m_Hit->set_scint_id(tower_id);
 
       /* Set hit location (space point) */
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
