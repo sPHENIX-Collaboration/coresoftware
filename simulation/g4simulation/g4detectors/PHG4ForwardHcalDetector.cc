@@ -168,10 +168,10 @@ PHG4ForwardHcalDetector::ConstructTower()
                                                             0, 0, 0);
 
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
-  G4int nlayers = 30;
+  G4double thickness_absorber = 20 * mm;      // 4/5th absorber
+  G4double thickness_scintillator = 2.31 * mm;  // 1/5th scintillator
+  G4int nlayers = _tower_dz / (thickness_absorber + thickness_scintillator);
   G4double thickness_layer = _tower_dz / (float) nlayers;
-  G4double thickness_absorber = thickness_layer / 5.0 * 4.0;      // 4/5th absorber
-  G4double thickness_scintillator = thickness_layer / 5.0 * 1.0;  // 1/5th scintillator
 
   G4VSolid* solid_absorber = new G4Box(G4String("single_plate_absorber_solid"),
                                        _tower_dx / 2.0,
