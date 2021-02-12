@@ -171,11 +171,10 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         m_CurrentHitContainer = m_SignalHitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
-      /* Set hit location (tower index) */
-      m_Hit->set_index_j(idx_j);
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_l(idx_l);
-
+        /* Set hit location (tower index) */
+        m_Hit->set_index_j(idx_j);
+        m_Hit->set_index_k(idx_k);
+        m_Hit->set_index_l(idx_l);
       }
       else
       {
