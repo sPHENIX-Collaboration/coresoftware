@@ -51,11 +51,20 @@ void PHG4ForwardHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol
     }
     else if (it.second == "Scintillator")
     {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "WLSplate")
+    {
+      visatt->SetColour(G4Colour::Yellow());
+    }
+    else if (it.second == "SupportPlate")
+    {
       visatt->SetColour(G4Colour::Gray());
     }
     else if (it.second == "SingleScintillator")
     {
       visatt->SetColour(G4Colour::Cyan());
+      visatt->SetVisibility(false);
     }
     else
     {

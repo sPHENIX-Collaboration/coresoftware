@@ -115,6 +115,9 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   G4double _tower_dy;
   G4double _tower_dz;
 
+  G4double _wls_dw;
+  G4double _support_dw;
+
   G4String _materialScintillator;
   G4String _materialAbsorber;
 
