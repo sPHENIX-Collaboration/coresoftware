@@ -111,6 +111,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
   ConstVtxIterator AddVertex(const G4Track* track);
   void delete_vtx(VtxIterator viter);
+  void delete_vtx(int vtxid);
 
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
