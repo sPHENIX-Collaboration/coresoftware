@@ -397,6 +397,13 @@ void PHG4TruthInfoContainer::delete_vtx(VtxIterator viter)
   return;
 }
 
+void PHG4TruthInfoContainer::delete_vtx(int vtxid)
+{
+  VtxIterator it = vtxmap.find(vtxid);
+  if (it != vtxmap.end())
+    delete_vtx(it);
+}
+
 void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter)
 {
   delete siter->second;
