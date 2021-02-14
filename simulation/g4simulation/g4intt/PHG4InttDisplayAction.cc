@@ -35,6 +35,8 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
   G4Colour colour_air    ( 0.0, 0.0, 0.0, 0.0 );
   G4Colour colour_CFRP   ( 0.4, 0.4, 0.4, 1   );
   G4Colour colour_endcap ( 0.0, 0.0, 1.0, 0.2 );
+  G4Colour colour_endcap_Al ( 0.3, 0.0, 1.0, 0.4);
+  G4Colour colour_endcap_C ( 0.4, 0.4, 0.4, 0.4 );
   G4Colour colour_copper ( 0.7, 0.4, 0,   1   );
   
   for (auto it : m_LogicalVolumeMap)
@@ -132,8 +134,13 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     }
     else if (it.second.find("Endcap") != string::npos ) // any Endcap
     {
-      visatt->SetColour( colour_endcap );
-      //visatt->SetVisibility( false );
+      if( it.second.find("_Al" ) != string::npos )
+	visatt->SetColour( colour_endcap_Al );
+      else if( it.second.find("_C" ) != string::npos )
+	visatt->SetColour( colour_endcap_C );
+      else
+	visatt->SetColour( colour_endcap );
+      visatt->SetVisibility( true );
     }
     else if(it.second.find("Glue") != string::npos )
     {

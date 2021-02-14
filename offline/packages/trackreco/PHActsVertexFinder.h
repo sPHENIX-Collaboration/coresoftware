@@ -79,7 +79,12 @@ class PHActsVertexFinder: public PHInitVertexing
   /// Maximum number of vertices that the Acts finder is allowed
   /// to find
   int m_maxVertices = 20;
+
+  int m_goodFits = 0;
+  int m_totalFits = 0;
+
   SvtxVertexMap *m_svtxVertexMap = nullptr;
+  SvtxVertexMap *m_svtxVertexMapActs = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_svtxTrackMap = nullptr;
 };

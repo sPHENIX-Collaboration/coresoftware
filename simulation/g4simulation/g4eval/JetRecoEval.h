@@ -121,7 +121,7 @@ class JetRecoEval
   /// what was the energy contribution to this reconstructed jet from a particular source
   float get_energy_contribution(Jet* recojet, Jet::SRC src);
 
-  void set_track_nodename(const std::string& name) { m_TrackNodeName = name; }
+  void set_track_nodename(const std::string& name);
 
   // ---full sim node required--------------------------------------------------
 
