@@ -501,7 +501,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     // }
   }
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-  // G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
+  // std::cout << " AddDiscreteProcess to OpticalPhoton " << std::endl;
   pmanager->AddDiscreteProcess(new G4OpAbsorption());
   pmanager->AddDiscreteProcess(new G4OpRayleigh());
   pmanager->AddDiscreteProcess(new G4OpMieHG());
