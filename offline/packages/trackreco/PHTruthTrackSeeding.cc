@@ -108,7 +108,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       }
     }
 
-    for(Int_t layer = _min_layer;layer < _max_layer;layer++){
+    for(unsigned int layer = _min_layer;layer < _max_layer;layer++){
       TrkrDefs::cluskey cluskey = _clustereval->best_cluster_by_nhit(gtrackID, layer);
       if(cluskey!=0)
 	ClusterKeyList.push_back(cluskey);
