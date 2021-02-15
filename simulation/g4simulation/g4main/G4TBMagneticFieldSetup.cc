@@ -52,7 +52,6 @@
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4UniformMagField.hh>
-#include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <cassert>
 #include <cstdlib>  // for exit, size_t
@@ -258,10 +257,10 @@ void G4TBMagneticFieldSetup::SetStepper()
 
   if (verbosity > 0)
   {
-    G4cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << G4endl;
-    G4cout << "  " << message.str() << endl;
-    G4cout << "  Minimum step size: " << fMinStep / mm << " mm" << G4endl;
-    G4cout << " -----------------------------------------------------------" << G4endl;
+    std::cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << std::endl;
+    std::cout << "  " << message.str() << endl;
+    std::cout << "  Minimum step size: " << fMinStep / mm << " mm" << std::endl;
+    std::cout << " -----------------------------------------------------------" << std::endl;
   }
 
   if (!fStepper)

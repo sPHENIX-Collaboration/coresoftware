@@ -27,7 +27,6 @@
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>              // for G4int
-#include <Geant4/G4ios.hh>    // for G4cout, G4endl
 #include <Geant4/globals.hh>  // for G4Exception
 
 #include <algorithm>  // for max
@@ -139,7 +138,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
     std::string msg = "Can not find definition of material ";
     msg += geom.get_material();
 
-    G4cout << "PHG4SectorConstructor::Construct_Sectors - ERROR -" << msg << ". Print all available materials:" << G4endl;
+    std::cout << "PHG4SectorConstructor::Construct_Sectors - ERROR -" << msg << ". Print all available materials:" << std::endl;
 
     for (G4MaterialTable::const_iterator it =
              (G4Material::GetMaterialTable())->begin();
@@ -216,14 +215,14 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   m_DisplayAction->AddVolume(DetectorLog_Det, "DetectorBox");
   if (Verbosity() > 1)
   {
-    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
+    std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
 	   << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
-	   << G4endl;
-    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-	   << map_log_vol.size() << " logical volume constructed" << G4endl;
-    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
+	   << std::endl;
+    std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
+	   << map_log_vol.size() << " logical volume constructed" << std::endl;
+    std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
 	   << map_phy_vol.size() << " physical volume constructed; "
-	   << map_active_phy_vol.size() << " is active." << G4endl;
+	   << map_active_phy_vol.size() << " is active." << std::endl;
   }
 }
 
@@ -282,15 +281,15 @@ PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
 {
   if (!v)
   {
-    G4cout
+    std::cout
         << "PHG4SectorConstructor::RegisterVolume - Error - invalid volume!"
-        << G4endl;
+        << std::endl;
     return v;
   }
   if (map_log_vol.find(v->GetName()) != map_log_vol.end())
   {
-    G4cout << "PHG4SectorConstructor::RegisterVolume - Warning - replacing "
-           << v->GetName() << G4endl;
+    std::cout << "PHG4SectorConstructor::RegisterVolume - Warning - replacing "
+           << v->GetName() << std::endl;
   }
 
   map_log_vol[v->GetName()] = v;
@@ -304,9 +303,9 @@ PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
 {
   if (!v)
   {
-    G4cout
+    std::cout
         << "PHG4SectorConstructor::RegisterPhysicalVolume - Error - invalid volume!"
-        << G4endl;
+        << std::endl;
     return v;
   }
 
@@ -314,9 +313,9 @@ PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
 
   if (map_phy_vol.find(id) != map_phy_vol.end())
   {
-    G4cout
+    std::cout
         << "PHG4SectorConstructor::RegisterPhysicalVolume - Warning - replacing "
-        << v->GetName() << "[" << v->GetCopyNo() << "]" << G4endl;
+        << v->GetName() << "[" << v->GetCopyNo() << "]" << std::endl;
   }
 
   map_phy_vol[id] = v;
