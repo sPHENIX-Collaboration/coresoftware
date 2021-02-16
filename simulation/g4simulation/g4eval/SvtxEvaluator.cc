@@ -112,6 +112,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
   _ievent = 0;
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
+  _tfile->SetCompressionLevel(0);
   if (_do_info_eval) _ntp_info = new TNtuple("ntp_info", "event info",
                                                  "event:seed:"
 					         "occ11:occ116:occ21:occ216:occ31:occ316:"
@@ -1732,7 +1733,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float zsize = cluster->getZSize();
 
         float trackID = NAN;
-        if (track) trackID = track->get_id();
+        if (track!=NULL) trackID = track->get_id();
 
         float g4hitID = NAN;
         float gx = NAN;
