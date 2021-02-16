@@ -289,7 +289,9 @@ PHG4TruthInfoContainer::AddVertex(const G4Track* track)
 {
   G4ThreeVector v = track->GetVertexPosition();
   int vtxindex = track->GetParentID() ? minvtxindex() - 1 : maxvtxindex() + 1;
-  auto [iter, inserted] = vtxset.insert({v[0]/cm, v[1]/cm, v[2]/cm, vtxindex});
+  std::set<VtxPos>::iterator iter;
+  bool inserted;
+  std::tie(iter, inserted) = vtxset.insert({v[0]/cm, v[1]/cm, v[2]/cm, vtxindex});
 
   if (!inserted)
   {
