@@ -74,6 +74,10 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 
   fillVertexMap(vertices, keyMap);
 
+  /// Need to check that silicon stubs which were skipped over
+  /// still have a vertex associated to them
+  checkTrackVertexAssociation();
+
   for(auto track : trackPointers)
     {
       delete track;
@@ -103,6 +107,38 @@ int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHActsInitialVertexFinder::checkTrackVertexAssociation()
+{
+  
+  for(auto& [trackKey, track] : *m_trackMap)
+    {
+      /// If the track wasn't already given a vertex ID, it wasn't 
+      /// included in the initial vertex finding due to Acts not liking
+      /// tracks with large transverse position. So find the closest
+      /// z vertex to it and assign it
+      if(track->get_vertex_id() != UINT_MAX)
+	continue;
+
+      const auto trackZ = track->get_z();
+      
+      double closestVertZ = 9999;
+      int vertId = -1;
+      for(auto& [vertexKey, vertex] : *m_vertexMap)
+	{
+	  double dz = fabs(trackZ - vertex->get_z());
+
+	  if(dz < closestVertZ) 
+	    {
+	      vertId = vertexKey;
+	      closestVertZ = dz;
+	    }
+
+	}
+      track->set_vertex_id(vertId);	
+
+    }
+
+}
 void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
@@ -113,6 +149,9 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
   if(vertices.size() == 0)
     {
       createDummyVertex();
+      if(Verbosity() > 1)
+	std::cout << "No vertices found. Adding a dummy vertex"
+		  << std::endl;
       return;
     }
     
@@ -161,7 +200,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 	  /// Give the track the appropriate vertex id
 	  const auto svtxTrack = m_trackMap->find(trackKey)->second;
 	  
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 3)
 	    {   
 	      svtxTrack->identify();
 	      std::cout << "Updating track key " << trackKey << " with vertex "
@@ -281,6 +320,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 						 std::move(seeder), ipEst);
       finderConfig.maxVertices = m_maxVertices;
       finderConfig.reassignTracksAfterFirstFit = true;
+      finderConfig.maximumChi2cutForSeeding = 10.;
       VertexFinder finder(finderConfig, std::move(logger));
 
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
@@ -337,13 +377,17 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
   for(auto& [key,track] : *m_trackMap)
     {
-      if(Verbosity() > 1)
+      if(Verbosity() > 3)
 	{
 	  std::cout << "Adding track seed to vertex finder " 
 		    << std::endl;
 	  track->identify();
 	}
 
+      /// IVF dislikes large x-y position tracks, so skip them
+      if(fabs(track->get_x()) > 0.05 or fabs(track->get_y()) > 0.05)
+	continue;
+      
       const Acts::Vector4D stubVec(
                   track->get_x() * Acts::UnitConstants::cm,
 		  track->get_y() * Acts::UnitConstants::cm,
@@ -359,7 +403,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
       
-      cov << 100 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
            0., 0., 0.05, 0., 0., 0.,
            0., 0., 0., 0.05, 0., 0.,

@@ -48,8 +48,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   VertexVector findVertices(TrackParamVec& tracks);
   void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
   void createDummyVertex();
+  void checkTrackVertexAssociation();
   
-  int m_maxVertices = 10;
+  int m_maxVertices = 5;
   int m_event = 0;
   unsigned int m_totVertexFits = 0;
   unsigned int m_successFits = 0;
