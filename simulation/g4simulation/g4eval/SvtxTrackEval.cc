@@ -52,7 +52,7 @@ void SvtxTrackEval::next_event(PHCompositeNode* topNode)
   _cache_best_track_from_particle.clear();
   _cache_all_tracks_from_g4hit.clear();
   _cache_all_tracks_from_cluster.clear();
-  //  _cache_best_track_from_cluster.clear();
+  _cache_best_track_from_cluster.clear();
   _cache_get_nclusters_contribution.clear();
   _cache_get_nclusters_contribution_by_layer.clear();
   _cache_get_nwrongclusters_contribution.clear();
