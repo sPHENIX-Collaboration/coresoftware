@@ -131,7 +131,6 @@ dist_data_DATA = \
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
-  -lg4eval \
   -lActsCore \
   -lActsFatras \
   -lActsPluginTGeo \
@@ -180,6 +179,7 @@ libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
   $(ACTS_LIBS) \
   -lSubsysReco \
+  -lg4eval \
   -lg4testbench \
   -lg4detectors \
   -lgsl \
