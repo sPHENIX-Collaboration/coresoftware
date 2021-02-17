@@ -130,9 +130,11 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   TrkrDefs::cluskey clusKey = *track->begin_cluster_keys();
   g4particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
 
-  true_px = (Float_t) g4particle->get_px();
-  true_py = (Float_t) g4particle->get_py();
-  true_pz = (Float_t) g4particle->get_pz();
+  bool isParticleValid = g4particle == nullptr ? 0 : 1;
+  
+  true_px = isParticleValid ? (Float_t) g4particle->get_px() : 0.;
+  true_py = isParticleValid ? (Float_t) g4particle->get_py() : 0.;
+  true_pz = isParticleValid ? (Float_t) g4particle->get_pz() : 0.;
   true_p = sqrt(pow(true_px, 2) + pow(true_py, 2) + pow(true_pz, 2));
   true_pt = sqrt(pow(true_px, 2) + pow(true_py, 2));
 
@@ -141,12 +143,16 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   m_true_daughter_pz[daughter_id] = true_pz;
   m_true_daughter_p[daughter_id] = true_p;
   m_true_daughter_pt[daughter_id] = true_pt;
-  m_true_daughter_id[daughter_id] = g4particle->get_pid();
+  m_true_daughter_id[daughter_id] = isParticleValid ? g4particle->get_pid() : 0;
 
-  g4vertex_point = trutheval->get_vertex(g4particle);
-  m_true_daughter_vertex_x[daughter_id] = g4vertex_point->get_x();
-  m_true_daughter_vertex_y[daughter_id] = g4vertex_point->get_y();
-  m_true_daughter_vertex_z[daughter_id] = g4vertex_point->get_z();
+  if (isParticleValid)
+  {
+    g4vertex_point = trutheval->get_vertex(g4particle);
+  }
+
+  m_true_daughter_vertex_x[daughter_id] = isParticleValid ? g4vertex_point->get_x() : 0.;
+  m_true_daughter_vertex_y[daughter_id] = isParticleValid ? g4vertex_point->get_y() : 0.;
+  m_true_daughter_vertex_z[daughter_id] = isParticleValid ? g4vertex_point->get_z() : 0.;
 
   if (m_constrain_to_vertex_truthMatch)  
   {
