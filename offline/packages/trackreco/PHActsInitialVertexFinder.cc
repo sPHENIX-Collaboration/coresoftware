@@ -272,7 +272,6 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       using Stepper = Acts::EigenStepper<MagneticField>;
       using Propagator = Acts::Propagator<Stepper>;
-      using PropagatorOptions = Acts::PropagatorOptions<>;
       using TrackParameters = Acts::BoundTrackParameters;
       using Linearizer = Acts::HelicalTrackLinearizer<Propagator>;
       using VertexFitter = 
@@ -300,6 +299,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       /// Setup vertex finder now
       typename VertexFitter::Config vertexFitterConfig;
+      vertexFitterConfig.maxIterations = 1;
       VertexFitter vertexFitter(std::move(vertexFitterConfig));
       
       typename Linearizer::Config linearizerConfig(bField, propagator);
@@ -384,10 +384,6 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	  track->identify();
 	}
 
-      /// IVF dislikes large x-y position tracks, so skip them
-      if(fabs(track->get_x()) > 0.05 or fabs(track->get_y()) > 0.05)
-	continue;
-      
       const Acts::Vector4D stubVec(
                   track->get_x() * Acts::UnitConstants::cm,
 		  track->get_y() * Acts::UnitConstants::cm,
