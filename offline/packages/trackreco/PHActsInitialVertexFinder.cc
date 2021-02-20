@@ -74,8 +74,8 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 
   fillVertexMap(vertices, keyMap);
 
-  /// Need to check that silicon stubs which were skipped over
-  /// still have a vertex associated to them
+  /// Need to check that silicon stubs which may have been
+  /// skipped over still have a vertex association
   checkTrackVertexAssociation();
 
   for(auto track : trackPointers)
@@ -299,7 +299,14 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       /// Setup vertex finder now
       typename VertexFitter::Config vertexFitterConfig;
+
+      /// Vertex fitter seems to have no performance difference when
+      /// iterating once vs. default of 5 times. Additionally, iterating
+      /// more than once causes vertices with low numbers of tracks to
+      /// fail fitting, causing an error to be thrown and 0 vertices 
+      /// returned
       vertexFitterConfig.maxIterations = 1;
+
       VertexFitter vertexFitter(std::move(vertexFitterConfig));
       
       typename Linearizer::Config linearizerConfig(bField, propagator);
@@ -320,7 +327,6 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 						 std::move(seeder), ipEst);
       finderConfig.maxVertices = m_maxVertices;
       finderConfig.reassignTracksAfterFirstFit = true;
-      finderConfig.maximumChi2cutForSeeding = 10.;
       VertexFinder finder(finderConfig, std::move(logger));
 
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
