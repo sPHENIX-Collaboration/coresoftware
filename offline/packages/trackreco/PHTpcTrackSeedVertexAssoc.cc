@@ -169,7 +169,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
-      line_fit(clusters, A, B);
+      line_fit_clusters(clusters, A, B);
       if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the beam line and store the projections
@@ -230,16 +230,42 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	{
 	  std::cout << "TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
 	} 
+
+      // Repeat the z fit including the vertex position, get theta
+      std::vector<std::pair<double, double>> points;
+
+      double r_vertex = sqrt(vertex->getX()*vertex->getX() + vertex->getY()*vertex->getY());
+      double z_vertex = vertex->getZ();
+      points.push_back(make_pair(r_vertex, z_vertex));
+
+      for (unsigned int i=0; i<clusters.size(); ++i)
+	{
+	  double z = clusters[i]->getZ();
+	  double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+	  
+	  points.push_back(make_pair(r,z));
+	}
+      
+      line_fit(points, A, B);
+      if(Verbosity() > 10) std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
+
+      // extract the track theta, update pz of track?
+
+
+      // add circle fit including vertex as point
+
+
+      // Update track pT magnitude from circle fit?
+
+
+      // extract the track phi (tangent to circle at r_vertex, maybe at y = y_vertex), update px, py of track?
+
+
+      // update track on node tree, done
+
+      
     }  // end loop over TPC track seeds
   
-
-
-  // what next?
-  // Done for now?
-  // call Acts track fitter next for TPC tracklets only?
-
-
-
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
   
@@ -271,34 +297,53 @@ int  PHTpcTrackSeedVertexAssoc::GetNodes(PHCompositeNode* topNode)
 }
 
 
-void  PHTpcTrackSeedVertexAssoc::line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b)
+void  PHTpcTrackSeedVertexAssoc::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
   
    double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
-   for (unsigned int i=0; i<clusters.size(); ++i)
+   for (unsigned int i=0; i<points.size(); ++i)
     {
-      double z = clusters[i]->getZ();
-      double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+      //double z = clusters[i]->getZ();
+      //double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+      double r = points[i].first;
+      double z = points[i].second;
 
       xsum=xsum+r;                        //calculate sigma(xi)
       ysum=ysum+z;                        //calculate sigma(yi)
       x2sum=x2sum+pow(r,2);                //calculate sigma(x^2i)
       xysum=xysum+r*z;                    //calculate sigma(xi*yi)
     }
-   a=(clusters.size()*xysum-xsum*ysum)/(clusters.size()*x2sum-xsum*xsum);            //calculate slope
-   b=(x2sum*ysum-xsum*xysum)/(x2sum*clusters.size()-xsum*xsum);            //calculate intercept
+   a=(points.size()*xysum-xsum*ysum)/(points.size()*x2sum-xsum*xsum);            //calculate slope
+   b=(x2sum*ysum-xsum*xysum)/(x2sum*points.size()-xsum*xsum);            //calculate intercept
 
    if(Verbosity() > 10)
      {
-       for (unsigned int i=0;i<clusters.size(); ++i)
+       for (unsigned int i=0;i<points.size(); ++i)
 	 {
-	   double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-	   double z_fit = a * r + b;                    //to calculate y(fitted) at given x points
-	   std::cout << " r " << r << " z " << clusters[i]->getZ() << " z_fit " << z_fit << std::endl; 
+	   double r = points[i].first;
+	   double z_fit = a * r + b;                    //to calculate z(fitted) at given r points
+	   std::cout << " r " << r << " z " << points[i].second << " z_fit " << z_fit << std::endl; 
 	 } 
      }
 
     return;
 }   
+
+void  PHTpcTrackSeedVertexAssoc::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
+{
+  std::vector<std::pair<double,double>> points;
+  
+   for (unsigned int i=0; i<clusters.size(); ++i)
+     {
+       double z = clusters[i]->getZ();
+       double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+
+       points.push_back(make_pair(r,z));
+     }
+
+   line_fit(points, a, b);
+
+    return;
+}

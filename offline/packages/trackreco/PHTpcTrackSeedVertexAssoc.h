@@ -52,7 +52,8 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   int GetNodes(PHCompositeNode* topNode);
 
-  void  line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b);
+  void  line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b);
+  void  line_fit(std::vector<std::pair<double,double>> points, double &a, double &b);
 
   std::string _track_map_name_silicon;
 
