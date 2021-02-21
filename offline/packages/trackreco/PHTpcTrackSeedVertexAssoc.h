@@ -54,7 +54,8 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   void  line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b);
   void  line_fit(std::vector<std::pair<double,double>> points, double &a, double &b);
-
+  void CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0);
+						    
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro

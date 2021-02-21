@@ -117,8 +117,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	    << __LINE__
 	    << ": Processing seed itrack: " << phtrk_iter->first
 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
-	    << ": Total tracks: " << _track_map->size()
 	    << ": phi: " << _tracklet_tpc->get_phi()
+	    << ": eta: " << _tracklet_tpc->get_eta()
 	    << endl;
 	}
 
@@ -144,16 +144,16 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  tpc_clusters_map.insert(std::make_pair(layer, tpc_clus));
 	  clusters.push_back(tpc_clus);
 
-	  if(Verbosity() > 10) 
+	  if(Verbosity() > 5) 
 	    std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
-		      << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " outer_clusters.size() " << tpc_clusters_map.size() << std::endl;
+		      << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " clusters.size() " << tpc_clusters_map.size() << std::endl;
 	}
 
 
       // need at least 3 clusters to fit a circle
       if(tpc_clusters_map.size() < 3)
 	{
-	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough outer clusters " << std::endl; 
+	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough clusters " << std::endl; 
 	  continue;  // skip to the next TPC tracklet
 	}
 
@@ -170,7 +170,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
       line_fit_clusters(clusters, A, B);
-      if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
+      if(Verbosity() > 5) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the beam line and store the projections
       //bool skip_tracklet = false;
@@ -231,11 +231,13 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  std::cout << "TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
 	} 
 
-      // Repeat the z fit including the vertex position, get theta
-      std::vector<std::pair<double, double>> points;
+      // Finished association of track with vertex
+      // Now we modify the track parameters
 
-      double r_vertex = sqrt(vertex->getX()*vertex->getX() + vertex->getY()*vertex->getY());
-      double z_vertex = vertex->getZ();
+      // Repeat the z line fit including the vertex position, get theta, update pz
+      std::vector<std::pair<double, double>> points;
+      double r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
+      double z_vertex = vertex->get_z();
       points.push_back(make_pair(r_vertex, z_vertex));
 
       for (unsigned int i=0; i<clusters.size(); ++i)
@@ -247,22 +249,79 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	}
       
       line_fit(points, A, B);
-      if(Verbosity() > 10) std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
+      if(Verbosity() > 5) std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
 
-      // extract the track theta, update pz of track?
+      // extract the track theta
+      double track_angle = atan(A);  // referenced to 90 degrees
 
+      //  update pz of track
+      double pt_track = _tracklet_tpc->get_pt();
+      double ptrack = sqrt(pt_track*pt_track + _tracklet_tpc->get_pz()*_tracklet_tpc->get_pz());
+      double pz_new = ptrack * sin(track_angle);
+      if(Verbosity() > 5)
+	std::cout << " Original pz = " << _tracklet_tpc->get_pz() << " new pz " << pz_new << " track angle " << track_angle << std::endl;
+      _tracklet_tpc->set_pz(pz_new);
+      if(Verbosity() > 5)
+	std::cout << "       new eta " <<  _tracklet_tpc->get_eta() << std::endl;
+      // total momentum is now a bit different because pt was not changed - OK - we measure pt from bend, pz from dz/dr
 
-      // add circle fit including vertex as point
+      // make circle fit including vertex as point
+      std::vector<std::pair<double, double>> cpoints;
+      double x_vertex = vertex->get_x();
+      double y_vertex = vertex->get_y();
+      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+      for (unsigned int i=0; i<clusters.size(); ++i)
+	{
+	  double x = clusters[i]->getX();
+	  double y = clusters[i]->getY();	  
+	  cpoints.push_back(make_pair(x, y));
+	}
+      double R, X0, Y0;
+      CircleFitByTaubin(cpoints, R, X0, Y0);
+      if(Verbosity() > 5) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
+      //  could take new pT from radius of circle - we choose to keep the seed pT
 
-      // Update track pT magnitude from circle fit?
+      // We want the angle of the tangent relative to the positive x axis
+      // start with the angle of the radial line from vertex to circle center
+      double dx = X0 - x_vertex;
+      double dy = Y0 - y_vertex;
+      double phi= atan2(dy,dx);
+      std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
+      // convert to the angle of the tangent to the circle
+      // we need to know if the track proceeds clockwise or CCW around the circle
+      int charge = _tracklet_tpc->get_charge();
+      double dx0 = cpoints[0].first - X0;
+      double dy0 = cpoints[0].second - Y0;
+      double phi0 = atan2(dy0, dx0);
+      double dx1 = cpoints[1].first - X0;
+      double dy1 = cpoints[1].second - Y0;
+      double phi1 = atan2(dy1, dx1);
+      double dphi = phi1 - phi0;
+      std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
+      //if(phi0 < 0.0) phi0 += 2.0 * M_PI;
+      //if(phi1 < 0.0) phi1 += 2.0 * M_PI;
+      //std::cout << " now: charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
+      // check to make sure we did not cross +/- pi
+      //if(dphi > 2.0 * M_PI) dphi -= 2.0*M_PI;
+      //if(dphi < -2.0 * M_PI) dphi += 2.0*M_PI;
+      std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
 
+      // whether we add or subtract 90 degrees depends on the track propagation direction determined above
+      if(dphi < 0)
+	phi += M_PI / 2.0;  
+      else
+	phi -= M_PI / 2.0;  
+      //std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << " charge " << charge << std::endl;  
 
-      // extract the track phi (tangent to circle at r_vertex, maybe at y = y_vertex), update px, py of track?
+      // update px, py of track
+      double px_new = pt_track * cos(phi);
+      double py_new = pt_track * sin(phi);
+      std::cout << " input track px " << _tracklet_tpc->get_px()  << " new px " << px_new << " input py " << _tracklet_tpc->get_py() << " new py " << py_new << std::endl;
 
-
-      // update track on node tree, done
-
+      // update track on node tree
+      _tracklet_tpc->set_px(px_new);
+      _tracklet_tpc->set_py(py_new);
       
     }  // end loop over TPC track seeds
   
@@ -346,4 +405,97 @@ void  PHTpcTrackSeedVertexAssoc::line_fit_clusters(std::vector<TrkrCluster*> clu
    line_fit(points, a, b);
 
     return;
+}
+
+void PHTpcTrackSeedVertexAssoc::CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
+/*  
+      Circle fit to a given set of data points (in 2D)
+      This is an algebraic fit, due to Taubin, based on the journal article
+      G. Taubin, "Estimation Of Planar Curves, Surfaces And Nonplanar
+                  Space Curves Defined By Implicit Equations, With 
+                  Applications To Edge And Range Image Segmentation",
+                  IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
+*/
+{
+  int iter,IterMAX=99;
+  
+  double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
+  double A0,A1,A2,A22,A3,A33;
+  double x,y;
+  double DET,Xcenter,Ycenter;
+  
+  // Compute x- and y- sample means   
+  double meanX = 0;
+  double meanY = 0;
+  double weight = 0;
+  for(unsigned int i = 0; i < points.size(); ++i)
+    {
+      meanX += points[i].first;
+      meanY += points[i].second;
+      weight++;
+    }
+  meanX /= weight;
+  meanY /= weight;
+
+  //     computing moments 
+  
+  Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
+  
+  for (unsigned int i=0; i<points.size(); i++)
+    {
+      double Xi = points[i].first - meanX;   //  centered x-coordinates
+      double Yi = points[i].second - meanY;   //  centered y-coordinates
+      double Zi = Xi*Xi + Yi*Yi;
+      
+      Mxy += Xi*Yi;
+      Mxx += Xi*Xi;
+      Myy += Yi*Yi;
+      Mxz += Xi*Zi;
+      Myz += Yi*Zi;
+      Mzz += Zi*Zi;
+    }
+  Mxx /= weight;
+  Myy /= weight;
+  Mxy /= weight;
+  Mxz /= weight;
+  Myz /= weight;
+  Mzz /= weight;
+  
+  //  computing coefficients of the characteristic polynomial
+  
+  Mz = Mxx + Myy;
+  Cov_xy = Mxx*Myy - Mxy*Mxy;
+  Var_z = Mzz - Mz*Mz;
+  A3 = 4*Mz;
+  A2 = -3*Mz*Mz - Mzz;
+  A1 = Var_z*Mz + 4*Cov_xy*Mz - Mxz*Mxz - Myz*Myz;
+  A0 = Mxz*(Mxz*Myy - Myz*Mxy) + Myz*(Myz*Mxx - Mxz*Mxy) - Var_z*Cov_xy;
+  A22 = A2 + A2;
+  A33 = A3 + A3 + A3;
+  
+  //    finding the root of the characteristic polynomial
+  //    using Newton's method starting at x=0  
+  //    (it is guaranteed to converge to the right root)
+  
+  for (x=0.,y=A0,iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
+    {
+      double Dy = A1 + x*(A22 + A33*x);
+      double xnew = x - y/Dy;
+      if ((xnew == x)||(!isfinite(xnew))) break;
+      double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
+      if (fabs(ynew)>=fabs(y))  break;
+      x = xnew;  y = ynew;
+    }
+  
+  //  computing parameters of the fitting circle
+  
+  DET = x*x - x*Mz + Cov_xy;
+  Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
+  Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
+  
+  //  assembling the output
+  
+  X0 = Xcenter + meanX;
+  Y0 = Ycenter + meanY;
+  R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
 }
