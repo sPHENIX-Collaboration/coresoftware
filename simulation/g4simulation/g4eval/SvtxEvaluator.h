@@ -74,7 +74,7 @@ class SvtxEvaluator : public SubsysReco
   // evaluator output ntuples
 
   bool _strict;
-  bool _use_initial_vertex = false;
+  bool _use_initial_vertex = true;
   bool _use_genfit_vertex = false;
   unsigned int _errors;
 
