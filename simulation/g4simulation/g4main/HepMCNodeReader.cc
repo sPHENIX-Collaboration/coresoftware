@@ -25,6 +25,8 @@
 #include <HepMC/SimpleVector.h>
 #include <HepMC/Units.h>
 
+#include <CLHEP/Vector/LorentzRotation.h>
+
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -197,6 +199,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
     double tshift = vertex_t0 + genevt->get_collision_vertex().t();
 
+    const CLHEP::HepLorentzRotation lortentz_rotation(genevt->get_LorentzRotation_EvtGen2Lab());
+
     if (width_vx > 0.0)
       xshift += smeargauss(width_vx);
     else if (width_vx < 0.0)
@@ -250,10 +254,18 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
       if (!finalstateparticles.empty())
       {
-        double xpos = (*v)->position().x() * length_factor + xshift;
-        double ypos = (*v)->position().y() * length_factor + yshift;
-        double zpos = (*v)->position().z() * length_factor + zshift;
-        double time = (*v)->position().t() * time_factor + tshift;
+        CLHEP::HepLorentzVector lv_vertex((*v)->position().x(),
+                                          (*v)->position().y(),
+                                          (*v)->position().z(),
+                                          (*v)->position().t());
+
+        // event gen frame to lab frame
+        lv_vertex = lortentz_rotation(lv_vertex);
+
+        double xpos = lv_vertex.x() * length_factor + xshift;
+        double ypos = lv_vertex.y() * length_factor + yshift;
+        double zpos = lv_vertex.z() * length_factor + zshift;
+        double time = lv_vertex.t() * time_factor + tshift;
 
         if (Verbosity() > 1)
         {
@@ -306,11 +318,19 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         {
           if (Verbosity() > 1) (*fiter)->print();
 
+          CLHEP::HepLorentzVector lv_momentum((*fiter)->momentum().px(),
+                                              (*fiter)->momentum().py(),
+                                              (*fiter)->momentum().pz(),
+                                              (*fiter)->momentum().e());
+
+          // event gen frame to lab frame
+          lv_momentum = lortentz_rotation(lv_momentum);
+
           PHG4Particle *particle = new PHG4Particlev1();
           particle->set_pid((*fiter)->pdg_id());
-          particle->set_px((*fiter)->momentum().px() * mom_factor);
-          particle->set_py((*fiter)->momentum().py() * mom_factor);
-          particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+          particle->set_px(lv_momentum.x() * mom_factor);
+          particle->set_py(lv_momentum.y() * mom_factor);
+          particle->set_pz(lv_momentum.z() * mom_factor);
           particle->set_barcode((*fiter)->barcode());
 
           ineve->AddParticle(vtxindex, particle);

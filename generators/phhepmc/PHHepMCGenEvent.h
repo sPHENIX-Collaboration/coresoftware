@@ -6,8 +6,9 @@
 #include <phool/phool.h>
 
 #include <HepMC/SimpleVector.h>
+#include <CLHEP/Vector/LorentzRotation.h>
 
-#include <iostream>                // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 namespace HepMC
 {
@@ -58,6 +59,30 @@ class PHHepMCGenEvent : public PHObject
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
   void set_collision_vertex(const HepMC::FourVector& v) { _collisionVertex = v; }
 
+  //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  const HepMC::ThreeVector& get_boost_beta_vector() const { return m_boost_beta_vector; }
+
+  //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  void set_boost_beta_vector(const HepMC::ThreeVector& v) { m_boost_beta_vector = v; }
+
+  //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  const HepMC::ThreeVector& get_rotation_vector() const { return m_rotation_vector; }
+
+  //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  void set_rotation_vector(const HepMC::ThreeVector& v) { m_rotation_vector = v; }
+
+  //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  double get_rotation_angle() const { return m_rotation_angle; }
+
+  //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  void set_rotation_angle(const double a) { m_rotation_angle = a; }
+
+  //!LorentzRotation to translate from hepmc event frame to lab frame
+  CLHEP::HepLorentzRotation get_LorentzRotation_EvtGen2Lab() const;
+
+  //!LorentzRotation to translate from lab frame to hepmc event frame
+  CLHEP::HepLorentzRotation get_LorentzRotation_Lab2EvtGen() const;
+
   //! host an HepMC event
   bool addEvent(HepMC::GenEvent* evt);
   bool addEvent(HepMC::GenEvent& evt);
@@ -88,10 +113,19 @@ class PHHepMCGenEvent : public PHObject
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
   HepMC::FourVector _collisionVertex;
 
+  //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  HepMC::ThreeVector m_boost_beta_vector;
+
+  //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  HepMC::ThreeVector m_rotation_vector;
+
+  //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  double m_rotation_angle;
+
   //! The HEP MC record from event generator. Note the units are recorded in GenEvent
   HepMC::GenEvent* _theEvt;
 
-  ClassDef(PHHepMCGenEvent, 5)
+  ClassDef(PHHepMCGenEvent, 6)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENT_H

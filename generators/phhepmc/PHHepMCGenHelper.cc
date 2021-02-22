@@ -107,6 +107,9 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
   assert(genevent);
 
   assert(_vertex_width_x >= 0);
+  assert(_vertex_width_y >= 0);
+  assert(_vertex_width_z >= 0);
+  assert(_vertex_width_t >= 0);
 
   if (_reuse_vertex)
   {

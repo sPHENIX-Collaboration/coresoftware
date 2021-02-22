@@ -78,7 +78,8 @@ libphhepmc_io_la_LDFLAGS = \
 
 libphhepmc_io_la_LIBADD = \
   -lphool \
-  -lHepMC
+  -lHepMC \
+  -lCLHEP
 
 BUILT_SOURCES = \
   testexternals.cc
