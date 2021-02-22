@@ -13,7 +13,9 @@
 
 #include <gsl/gsl_rng.h>
 
+#include <cmath>
 #include <string>
+#include <utility>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
@@ -23,7 +25,6 @@ namespace HepMC
 {
   class GenEvent;
 }
-
 
 /*!
  * \brief PHHepMCGenHelper provides service of DST upload of HepMC subevent, vertex assignment and random generator
@@ -101,6 +102,34 @@ class PHHepMCGenHelper
     _geneventmap = geneventmap;
   }
 
+  //! Beam angle in lab polar coordinate.
+  //! @param[in] beamA_theta beamA, in pair of Theta-Phi. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamA_phi beamA, in pair of Theta-Phi. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_theta  beamB, in pair of Theta-Phi. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_phi  beamB, in pair of Theta-Phi. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  void set_beam_direction_theta_phi(
+      const double beamA_theta,
+      const double beamA_phi,
+      const double beamB_theta,
+      const double beamB_phi)
+  {
+    m_beam_direction_theta_phi = {{beamA_theta, beamA_phi}, {beamB_theta, beamB_phi}};
+  }
+
+  //! Beam angle divergence in accelerator beam coordinate.
+  //! @param[in] beamA_divergence_x beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamA_divergence_y beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_divergence_x beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_divergence_y beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  void set_beam_angular_divergence_xy(
+      const double beamA_divergence_x,
+      const double beamA_divergence_y,
+      const double beamB_divergence_x,
+      const double beamB_divergence_y)
+  {
+    m_beam_angular_divergence_xy = {{beamA_divergence_x, beamA_divergence_y}, {beamB_divergence_x, beamB_divergence_y}};
+  }
+
   void CopySettings(PHHepMCGenHelper &helper);
 
   void Print(const std::string &what = "ALL") const;
@@ -124,6 +153,22 @@ class PHHepMCGenHelper
   double _vertex_width_y;
   double _vertex_width_z;
   double _vertex_width_t;
+
+  //! Beam angle in lab polar coordinate.
+  //! First element is beamA, in pair of Theta-Phi. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! Second element is beamB, in pair of Theta-Phi. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_direction_theta_phi = {
+      {0, 0},    //+z beam
+      {M_PI, 0}  //-z beam
+  };
+
+  //! Beam angle divergence in accelerator beam coordinate.
+  //! First element is beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! Second element is beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_angular_divergence_xy = {
+      {0, 0},  //+z beam
+      {0, 0}   //-z beam
+  };
 
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
