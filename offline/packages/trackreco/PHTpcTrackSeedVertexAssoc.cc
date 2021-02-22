@@ -186,32 +186,15 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  viter != _vertex_map->end();
 	  ++viter)
 	{
-	  /*
-	  const double trackX = track->get_x();
-	  const double trackY = track->get_y();
-	  const double trackZ = track->get_z();
-	  double dx = 9999.;
-	  double dy = 9999.;
-	  */
-
 	  auto vertexKey = viter->first;
 	  auto vertex = viter->second;
 	  if(Verbosity() > 100)
 	    vertex->identify();
 
-	  /*	  
-	  const double vertexX = vertex->get_x();
-	  const double vertexY = vertex->get_y();
-	  */
 	  const double vertexZ = vertex->get_z();
 	  
-	  if( 
-	     //fabs(trackX - vertexX) < dx &&
-	     //fabs(trackY - vertexY) < dy &&
-	      fabs(_z_proj - vertexZ) < dz )
+	  if(fabs(_z_proj - vertexZ) < dz )
 	    {
-	      //dx = fabs(trackX - vertexX);
-	      //dy = fabs(trackY - vertexY);
 	      dz = fabs(_z_proj - vertexZ);
 	      trackVertexId = vertexKey;
 	    }	  
@@ -239,7 +222,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
       double r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
       double z_vertex = vertex->get_z();
       points.push_back(make_pair(r_vertex, z_vertex));
-
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  double z = clusters[i]->getZ();
@@ -249,7 +231,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	}
       
       line_fit(points, A, B);
-      if(Verbosity() > 5) std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
+      if(Verbosity() > 5) 
+	std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
 
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
@@ -278,7 +261,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	}
       double R, X0, Y0;
       CircleFitByTaubin(cpoints, R, X0, Y0);
-      if(Verbosity() > 5) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+      if(Verbosity() > 5) 
+	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
       //  could take new pT from radius of circle - we choose to keep the seed pT
 
@@ -287,10 +271,9 @@ int PHTpcTrackSeedVertexAssoc::Process()
       double dx = X0 - x_vertex;
       double dy = Y0 - y_vertex;
       double phi= atan2(dy,dx);
-      std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
+      //std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
       // convert to the angle of the tangent to the circle
       // we need to know if the track proceeds clockwise or CCW around the circle
-      int charge = _tracklet_tpc->get_charge();
       double dx0 = cpoints[0].first - X0;
       double dy0 = cpoints[0].second - Y0;
       double phi0 = atan2(dy0, dx0);
@@ -298,26 +281,26 @@ int PHTpcTrackSeedVertexAssoc::Process()
       double dy1 = cpoints[1].second - Y0;
       double phi1 = atan2(dy1, dx1);
       double dphi = phi1 - phi0;
-      std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
-      //if(phi0 < 0.0) phi0 += 2.0 * M_PI;
-      //if(phi1 < 0.0) phi1 += 2.0 * M_PI;
-      //std::cout << " now: charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
-      // check to make sure we did not cross +/- pi
-      //if(dphi > 2.0 * M_PI) dphi -= 2.0*M_PI;
-      //if(dphi < -2.0 * M_PI) dphi += 2.0*M_PI;
-      std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
+
+      if(Verbosity() > 5) 
+	{
+	  int charge = _tracklet_tpc->get_charge();   // needed for diagnostic output only
+	  std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
+	}
 
       // whether we add or subtract 90 degrees depends on the track propagation direction determined above
       if(dphi < 0)
 	phi += M_PI / 2.0;  
       else
 	phi -= M_PI / 2.0;  
-      //std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << " charge " << charge << std::endl;  
+      if(Verbosity() > 5) 
+	std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << std::endl;  
 
       // update px, py of track
       double px_new = pt_track * cos(phi);
       double py_new = pt_track * sin(phi);
-      std::cout << " input track px " << _tracklet_tpc->get_px()  << " new px " << px_new << " input py " << _tracklet_tpc->get_py() << " new py " << py_new << std::endl;
+      if(Verbosity() > 5)
+	std::cout << " input track px " << _tracklet_tpc->get_px()  << " new px " << px_new << " input py " << _tracklet_tpc->get_py() << " new py " << py_new << std::endl;
 
       // update track on node tree
       _tracklet_tpc->set_px(px_new);
