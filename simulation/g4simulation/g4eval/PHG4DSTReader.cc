@@ -261,7 +261,7 @@ void PHG4DSTReader::build_tree()
   {
     cout << "PHG4DSTReader::build_tree - added " << nblocks << " nodes" << endl;
   }
-  _T->SetAutoSave(10);
+  _T->SetAutoSave(16000);
 }
 
 int PHG4DSTReader::process_event(PHCompositeNode *topNode)
