@@ -17,7 +17,6 @@ PHHepMCGenEvent::PHHepMCGenEvent()
   : _embedding_id(0)
   , _isSimulated(false)
   , _collisionVertex(0, 0, 0, 0)
-  , m_rotation_angle(0)
   , _theEvt(nullptr)
 {
 }
@@ -26,9 +25,6 @@ PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
   : _embedding_id(event.get_embedding_id())
   , _isSimulated(event.is_simulated())
   , _collisionVertex(event.get_collision_vertex())
-  , m_boost_beta_vector(event.get_boost_beta_vector())
-  , m_rotation_vector(event.get_rotation_vector())
-  , m_rotation_angle(event.get_rotation_angle())
   , _theEvt(nullptr)
 {
   _theEvt = new HepMC::GenEvent(*event.getEvent());
@@ -128,17 +124,13 @@ int PHHepMCGenEvent::vertexSize(void) const
 //_____________________________________________________________________________
 void PHHepMCGenEvent::identify(std::ostream& os) const
 {
-  os << "identify yourself: PHHepMCGenEvent Object, " << endl;
+  os << "identify yourself: PHHepMCGenEvent Object";
+  os << ", No of Particles: " << size();
+  os << ", No of Vertices:  " << vertexSize() << endl;
   os << " embedding_id = " << _embedding_id << endl;
   os << " isSimulated = " << _isSimulated << endl;
   os << " collisionVertex = (" << _collisionVertex.x() << "," << _collisionVertex.y() << "," << _collisionVertex.z() << ") cm, " << _collisionVertex.t() << " ns" << endl;
-  os << " m_boost_beta_vector = (" << m_boost_beta_vector.x() << "," << m_boost_beta_vector.y() << "," << m_boost_beta_vector.z() << ") " << endl;
-  os << " m_rotation_vector = (" << m_rotation_vector.x() << "," << m_rotation_vector.y() << "," << m_rotation_vector.z() << ") by " << m_rotation_angle << " rad" << endl;
 
-  os << ", No of Particles: " << size();
-  os << ", No of Vertices:  " << vertexSize();
-
-  os << endl;
   return;
 }
 
@@ -150,18 +142,4 @@ void PHHepMCGenEvent::print(std::ostream& out) const
 void PHHepMCGenEvent::PrintEvent()
 {
   _theEvt->print();
-}
-
-CLHEP::HepLorentzRotation PHHepMCGenEvent::get_LorentzRotation_EvtGen2Lab() const
-{
-  CLHEP::HepBoost boost(m_boost_beta_vector.x(), m_boost_beta_vector.y(), m_boost_beta_vector.z());
-  CLHEP::Hep3Vector axis(m_rotation_vector.x(), m_rotation_vector.y(), m_rotation_vector.z());
-  CLHEP::HepRotation rotation(axis, m_rotation_angle);
-
-  return CLHEP::HepLorentzRotation(boost, rotation);
-}
-
-CLHEP::HepLorentzRotation PHHepMCGenEvent::get_LorentzRotation_Lab2EvtGen() const
-{
-  return get_LorentzRotation_EvtGen2Lab().inverse();
 }
