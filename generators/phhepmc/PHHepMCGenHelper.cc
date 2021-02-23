@@ -12,27 +12,28 @@
 
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
+#include "PHHepMCGenEventv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                 // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
-#include <HepMC/SimpleVector.h>          // for FourVector
+#include <HepMC/SimpleVector.h>  // for FourVector
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
-#include <limits>
-#include <cstdlib>                      // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -88,13 +89,22 @@ int PHHepMCGenHelper::create_node_tree(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//! choice of reference version of the PHHepMCGenEvent
+const PHHepMCGenEvent *PHHepMCGenHelper::get_PHHepMCGenEvent_template() const
+{
+  // choice of version of PHHepMCGenEvent
+  const static PHHepMCGenEventv1 mc_evnet_template;
+
+  return &mc_evnet_template;
+}
+
 //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
 PHHepMCGenEvent *PHHepMCGenHelper::insert_event(HepMC::GenEvent *evt)
 {
   assert(evt);
   assert(_geneventmap);
 
-  PHHepMCGenEvent *genevent = _geneventmap->insert_event(_embedding_id);
+  PHHepMCGenEvent *genevent = _geneventmap->insert_event(_embedding_id, get_PHHepMCGenEvent_template());
 
   genevent->addEvent(evt);
   move_vertex(genevent);
@@ -194,17 +204,39 @@ double PHHepMCGenHelper::smear(const double position,
   return res;
 }
 
-void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper)
+void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
 {
-  helper.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
-  helper.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
-  helper.set_vertex_distribution_mean( _vertex_x, _vertex_y, _vertex_z, _vertex_t);
+  helper_dest.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
+  helper_dest.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
+  helper_dest.set_vertex_distribution_mean(_vertex_x, _vertex_y, _vertex_z, _vertex_t);
   return;
+}
+
+void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper *helper_dest)
+{
+  if (helper_dest)
+    CopySettings(*helper_dest);
+  else
+  {
+    cout << "PHHepMCGenHelper::CopySettings - fatal error - invalid input class helper_dest which is nullptr!" << endl;
+    exit(1);
+  }
+}
+
+void PHHepMCGenHelper::CopyHelperSettings(PHHepMCGenHelper *helper_src)
+{
+  if (helper_src)
+    helper_src -> CopySettings(this);
+  else
+  {
+    cout << "PHHepMCGenHelper::CopyHelperSettings - fatal error - invalid input class helper_src which is nullptr!" << endl;
+    exit(1);
+  }
 }
 
 void PHHepMCGenHelper::Print(const std::string &what) const
 {
-  map<VTXFUNC,string> vtxfunc = {{VTXFUNC::Uniform,"Uniform"},{VTXFUNC::Gaus,"Gaus"}};
+  map<VTXFUNC, string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
   cout << "Vertex distribution width x: " << _vertex_width_x
        << ", y: " << _vertex_width_y
        << ", z: " << _vertex_width_z

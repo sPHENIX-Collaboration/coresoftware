@@ -27,7 +27,7 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   Repeat(1);
 
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
-  hepmc_helper.set_embedding_id(-1);
+  PHHepMCGenHelper::set_embedding_id(-1);
 
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -226,7 +226,7 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
     }
     m_EventPushedBackFlag = -1;
     HepMC::IO_GenEvent ascii_io(m_HepMCTmpFile, std::ios::out);
-    PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+    PHHepMCGenEventMap *geneventmap = PHHepMCGenHelper::get_geneventmap();
     for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
     {
       if (m_EventNumberMap.find((iter->second)->getEvent()->event_number()) != m_EventNumberMap.end())
@@ -242,24 +242,24 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
 }
 int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const double crossing_time)
 {
-  PHHepMCGenEventMap *geneventmap = hepmc_helper.get_geneventmap();
+  PHHepMCGenEventMap *geneventmap = PHHepMCGenHelper::get_geneventmap();
   PHHepMCGenEvent *genevent = nullptr;
-  if (hepmc_helper.get_embedding_id() > 0)
+  if (PHHepMCGenHelper::get_embedding_id() > 0)
   {
     //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 
-    genevent = geneventmap->insert_active_event();
+    genevent = geneventmap->insert_active_event(get_PHHepMCGenEvent_template() );
   }
   else
   {
     //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
 
-    genevent = geneventmap->insert_background_event();
+    genevent = geneventmap->insert_background_event(get_PHHepMCGenEvent_template() );
   }
   assert(genevent);
   assert(evt);
   genevent->addEvent(evt);
-  hepmc_helper.move_vertex(genevent);
+  PHHepMCGenHelper::move_vertex(genevent);
   // place to the crossing center in time
   genevent->moveVertex(0, 0, 0, crossing_time);
   return 0;

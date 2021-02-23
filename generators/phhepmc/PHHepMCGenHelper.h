@@ -76,6 +76,9 @@ class PHHepMCGenHelper
   //! init interface nodes
   int create_node_tree(PHCompositeNode *topNode);
 
+  //! choice of reference version of the PHHepMCGenEvent
+  const PHHepMCGenEvent * get_PHHepMCGenEvent_template() const;
+
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
 
@@ -131,6 +134,12 @@ class PHHepMCGenHelper
   }
 
   void CopySettings(PHHepMCGenHelper &helper);
+
+  //! copy setting to helper_dest
+  void CopySettings(PHHepMCGenHelper * helper_dest) ;
+
+  //! copy setting from helper_src
+  void CopyHelperSettings(PHHepMCGenHelper * helper_src) ;
 
   void Print(const std::string &what = "ALL") const;
 
