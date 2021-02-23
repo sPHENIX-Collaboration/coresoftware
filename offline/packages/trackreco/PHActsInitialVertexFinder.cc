@@ -1,4 +1,5 @@
 #include "PHActsInitialVertexFinder.h"
+#include "ActsTransformations.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -404,13 +405,21 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
+      if(m_initial)
+	cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	       0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	       0., 0., 0.05, 0., 0., 0.,
+	       0., 0., 0., 0.05, 0., 0.,
+	       0., 0., 0., 0., 0.1 , 0.,
+	       0., 0., 0., 0., 0., 1.;
       
-      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.1 , 0.,
-           0., 0., 0., 0., 0., 1.;
+      else 
+	{
+	  ActsTransformations transform;
+	  transform.setVerbosity(Verbosity());
+	  cov = transform.rotateSvtxTrackCovToActs(track,
+						   m_tGeometry->geoContext);
+	}
 
       /// Make a dummy perigeee surface to bound the track to
       auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -435,10 +444,11 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_svtxTrackMapName.c_str());
   if(!m_trackMap)
     {
-      std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."
+      std::cout << PHWHERE << "No " << m_svtxTrackMapName.c_str() 
+		<< " on node tree, bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -480,13 +490,13 @@ int PHActsInitialVertexFinder::createNodes(PHCompositeNode *topNode)
   }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
+						  m_svtxVertexMapName.c_str());
   
   if(!m_vertexMap)
     {
       m_vertexMap = new SvtxVertexMap_v1;
       PHIODataNode<PHObject>* vertexNode = new PHIODataNode<PHObject>( 
-              m_vertexMap, "SvtxVertexMap","PHObject");
+		   m_vertexMap, m_svtxVertexMapName.c_str(),"PHObject");
 
       svtxNode->addNode(vertexNode);
 
