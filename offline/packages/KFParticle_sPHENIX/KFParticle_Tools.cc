@@ -60,6 +60,7 @@ std::map<std::string, particle_pair> particleMasses = kfp_particleList.getPartic
 KFParticle_Tools::KFParticle_Tools()
   : m_daughter_name{"pion", "pion", "pion", "pion"}
   , m_daughter_charge{1, -1, 1, -1}
+  , m_num_tracks(2)
   , m_min_mass(0)
   , m_max_mass(1e1)
   , m_track_pt(0.25)
@@ -443,9 +444,18 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   bool daughterMassCheck = true;
   float unique_vertexID = 0;
 
+  //Figure out if the decay has reco. tracks mixed with resonances
+  int num_tracks_used_by_intermediates = 0;
+  for (int i = 0; i < m_num_intermediate_states; ++i) num_tracks_used_by_intermediates += m_num_tracks_from_intermediate[i];
+  int num_remaining_tracks = m_num_tracks - num_tracks_used_by_intermediates;
+
   for (int i = 0; i < nTracks; ++i)
   {
     float daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
+    if (num_remaining_tracks > 0 && i >= m_num_intermediate_states) 
+    { 
+      daughterMass = particleMasses.find(daughterOrder[i].c_str())->second.second;
+    }
     inputTracks[i].Create(vDaughters[i].Parameters(),
                           vDaughters[i].CovarianceMatrix(),
                           (Int_t) vDaughters[i].GetQ(),
