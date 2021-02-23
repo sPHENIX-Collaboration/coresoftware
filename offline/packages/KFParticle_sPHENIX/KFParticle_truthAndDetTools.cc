@@ -166,7 +166,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
     if (truePoint == NULL)
     {
-      std::cout << "KFParticle Truth Matching: This event has no PHG4VtxPoint information!\n";
+      std::cout << "KFParticle truth matching: This event has no PHG4VtxPoint information!\n";
       std::cout << "Your truth track DCA will be measured wrt a reconstructed vertex!" << std::endl; 
 
       f_vertexParameters[0] = recoVertex->get_x(); 
