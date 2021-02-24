@@ -193,14 +193,14 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     Print();
   }
 
-  // y direction in accelerator
-  static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
-
-  auto smear_beam_divergence = [accelerator_plane](
+  auto smear_beam_divergence = [&, this](
                                    const CLHEP::Hep3Vector &beam_center,
                                    const std::pair<double, double> &divergence_xy) {
     const double &x_divergence = divergence_xy.first;
     const double &y_divergence = divergence_xy.second;
+
+    // y direction in accelerator
+    static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
 
     CLHEP::Hep3Vector beam_direction(beam_center);
     CLHEP::HepRotation x_smear_in_accelerator_plane(accelerator_plane, smear(0, x_divergence, Gaus));
