@@ -244,7 +244,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     //non-zero boost
 
     // split the boost to half for each beam for minimal beam  energy shift
-    genevent->set_boost_beta_vector(-0.5 * boost_axis);
+    genevent->set_boost_beta_vector(0.5 * boost_axis);
 
     if (m_verbosity)
     {
@@ -261,7 +261,23 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   }
 
   //rotation to collision to along z-axis with beamA pointing to +z
-  double cos_rotation_angle_to_z = (beamA_vec - beamB_vec).dot(z_axis);
+  CLHEP::Hep3Vector beamDiffAxis = (beamA_vec - beamB_vec);
+  if (beamDiffAxis.mag2() <CLHEP::Hep3Vector::getTolerance())
+  {
+    cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal error -"
+         << "Beam A and Beam B are too close to each other in direction "
+         << "Please double check beam direction and divergence setting. "
+         << "beamA_vec = " << beamA_vec << ","
+         << "beamB_vec = " << beamB_vec << ","
+         << " Current setting:";
+
+    Print();
+
+    exit(1);
+  }
+
+  beamDiffAxis = beamDiffAxis / beamDiffAxis.mag();
+  double cos_rotation_angle_to_z = beamDiffAxis.dot(z_axis);
   if (m_verbosity)
   {
     cout << __PRETTY_FUNCTION__ << ": check rotation ";
@@ -293,7 +309,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   {
     // need a rotation
     CLHEP::Hep3Vector rotation_axis = (beamA_vec - beamB_vec).cross(z_axis);
-    const double rotation_angle_to_z = acos(cos_rotation_angle_to_z);
+    const double rotation_angle_to_z = -acos(cos_rotation_angle_to_z);
 
     genevent->set_rotation_vector(rotation_axis);
     genevent->set_rotation_angle(rotation_angle_to_z);
