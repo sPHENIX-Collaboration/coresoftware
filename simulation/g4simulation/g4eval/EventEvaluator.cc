@@ -858,11 +858,11 @@ void EventEvaluator::resetBuffer(){
   _tower_FEMC_trueID[itow]                       = 0;
   }
   for(Int_t itrk = 0; itrk < _maxNTracks; itrk++){
-    _track_ID[itrk]                       = 0;
-    _track_trueID[itrk]                       = 0;
-    _track_px[itrk]                       = 0;
-    _track_py[itrk]                       = 0;
-    _track_pz[itrk]                       = 0;
+    _track_ID[itrk]                         = 0;
+    _track_trueID[itrk]                     = 0;
+    _track_px[itrk]                         = 0;
+    _track_py[itrk]                         = 0;
+    _track_pz[itrk]                         = 0;
     _track_TLP_FTTL_0[itrk]                       =TLorentzVector();
     _track_TLP_FTTL_0_true[itrk]                       =TLorentzVector();
     _track_TLP_FTTL_1[itrk]                       =TLorentzVector();
