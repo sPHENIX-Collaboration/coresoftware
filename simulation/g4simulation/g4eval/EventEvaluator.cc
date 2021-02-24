@@ -74,6 +74,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _vertex_z(0)
 
   , _nTracks(0)
+  , _track_ID(0)
   , _track_px(0)
   , _track_py(0)
   , _track_pz(0)
@@ -112,10 +113,6 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _reco_e_threshold(0.0)
   , _caloevalstack(nullptr)
   , _strict(false)
-  , _do_gpoint_eval(true)
-  , _do_gshower_eval(true)
-  , _do_tower_eval(true)
-  , _do_cluster_eval(true)
   , _event_tree(nullptr)
   , _filename(filename)
   , _tfile(nullptr)
@@ -134,6 +131,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _tower_FEMC_trueID        = new float[_maxNTowers];
 
   _track_ID                 = new float[_maxNTracks];
+  _track_trueID             = new float[_maxNTracks];
   _track_px                 = new float[_maxNTracks];
   _track_py                 = new float[_maxNTracks];
   _track_pz                 = new float[_maxNTracks];
@@ -367,13 +365,12 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
     } else {
       if(Verbosity() > 0)cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFHCAL << endl;
-      exit(-1);
+      return;
     }
     if(Verbosity() > 0)cout << "saved\t" << _nTowers_FHCAL << "\tFHCAL towers" << endl;
   } else {
     if(Verbosity() > 0)cout << PHWHERE << " ERROR: Can't find " << towernodeFHCAL << endl;
     return;
-    // exit(-1);
   }
 
   //----------------------
@@ -412,7 +409,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
     } else {
       if(Verbosity() > 0)cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFEMC << endl;
-      exit(-1);
+      return;
     }
     if(Verbosity() > 0)cout << "saved\t" << _nTowers_FEMC << "\tFEMC towers" << endl;
 
@@ -436,11 +433,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _track_px[_nTracks] = track->get_px();
         _track_py[_nTracks] = track->get_py();
         _track_pz[_nTracks] = track->get_pz();
-        // _track_trueID[_nTracks] = track->get_truth_track_id();
-
-        //_track_TL_projFEMC
-        //_track_TL_projFHCAL
-
+        _track_trueID[_nTracks] = track->get_truth_track_id();
 
         // find projections
         bool printverb = false;
@@ -560,7 +553,7 @@ void EventEvaluator::printOutputInfo(PHCompositeNode* topNode)
     if (!truthinfo)
     {
       cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-      exit(-1);
+      return;
     }
 
     // need things off of the DST...
@@ -715,7 +708,7 @@ void EventEvaluator::printInputInfo(PHCompositeNode* topNode)
     if (!truthinfo)
     {
       cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
-      exit(-1);
+      return;
     }
 
     cout << Name() << ": PHG4TruthInfoContainer contents: " << endl;
@@ -840,7 +833,6 @@ void EventEvaluator::FillTrackProjVector(int trackindex, int trackStateIndex, bo
 }
 
 void EventEvaluator::resetBuffer(){
-
   _nTowers_FHCAL= 0;
   _nTowers_FEMC= 0;
   _vertex_x= 0;
@@ -850,28 +842,25 @@ void EventEvaluator::resetBuffer(){
   _nMCPart= 0;
   _nHitsLayers = 0;
   for(Int_t ihit = 0; ihit < _maxNHits; ihit++){
-  _hits_layerID[ihit]                       = 0;
-  _hits_TLH_xyzt[ihit]                       = TLorentzVector();
+    _hits_layerID[ihit]                       = 0;
+    _hits_TLH_xyzt[ihit]                       = TLorentzVector();
   }
   for(Int_t itow = 0; itow < _maxNTowers; itow++){
-
   _tower_FHCAL_E[itow]                       = 0;
   _tower_FHCAL_iEta[itow]                       = 0;
   _tower_FHCAL_iPhi[itow]                       = 0;
   _tower_FHCAL_trueID[itow]                       = 0;
-
   _tower_FEMC_E[itow]                       = 0;
   _tower_FEMC_iEta[itow]                       = 0;
   _tower_FEMC_iPhi[itow]                       = 0;
   _tower_FEMC_trueID[itow]                       = 0;
   }
-
   for(Int_t itrk = 0; itrk < _maxNTracks; itrk++){
     _track_ID[itrk]                       = 0;
+    _track_trueID[itrk]                       = 0;
     _track_px[itrk]                       = 0;
     _track_py[itrk]                       = 0;
     _track_pz[itrk]                       = 0;
-
     _track_TLP_FTTL_0[itrk]                       =TLorentzVector();
     _track_TLP_FTTL_0_true[itrk]                       =TLorentzVector();
     _track_TLP_FTTL_1[itrk]                       =TLorentzVector();
@@ -893,7 +882,6 @@ void EventEvaluator::resetBuffer(){
     _track_TLP_CTTL_2[itrk]                       =TLorentzVector();
     _track_TLP_CTTL_2_true[itrk]                       =TLorentzVector();
   }
-
   for(Int_t imcpart = 0; imcpart < _maxNMCPart; imcpart++){
     _mcpart_ID[imcpart]                       = 0;
     _mcpart_ID_parent[imcpart]                       = 0;

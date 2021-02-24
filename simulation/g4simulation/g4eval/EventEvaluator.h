@@ -51,13 +51,6 @@ class EventEvaluator : public SubsysReco
     _reco_e_threshold = thresh;
   }
 
-  // functions to limit the output size ------------------
-  // will no evaluate or write out these particular ntuples
-  // mostly intended for size savings, but some time savings will result
-  void set_do_gpoint_eval(bool b) { _do_gpoint_eval = b; }
-  void set_do_gshower_eval(bool b) { _do_gshower_eval = b; }
-  void set_do_tower_eval(bool b) { _do_tower_eval = b; }
-  void set_do_cluster_eval(bool b) { _do_cluster_eval = b; }
 
 private:
 
@@ -133,11 +126,6 @@ private:
   // evaluator output ntuples
 
   bool _strict;
-
-  bool _do_gpoint_eval;
-  bool _do_gshower_eval;
-  bool _do_tower_eval;
-  bool _do_cluster_eval;
 
   TNtuple *_ntp_gpoint;
   // TNtuple *_ntp_gshower;
