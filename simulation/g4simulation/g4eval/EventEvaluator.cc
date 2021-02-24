@@ -302,6 +302,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //    HITS
   //----------------------
   if(Verbosity() > 0)cout << "saving hits" << endl;
+  _nHitsLayers = 0;
   for(int iIndex=0; iIndex<10;++iIndex){
     bool printverb = false;
     string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
@@ -421,6 +422,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //------------------------
   // TRACKS
   //------------------------
+  _nTracks=0;
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"TrackMap");
   if (trackmap){
     if(Verbosity() > 0)cout << "saving tracks" << endl;

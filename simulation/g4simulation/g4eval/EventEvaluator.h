@@ -137,7 +137,7 @@ private:
   std::string _filename;
   TFile *_tfile;
 
-  const int _maxNHits = 200;
+  const int _maxNHits = 5000;
   const int _maxNTowers = 50*50;
   const int _maxNProjections = 10;
   const int _maxNTracks = 200;
