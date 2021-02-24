@@ -74,7 +74,7 @@ class PHHepMCGenHelper
 
   //
   //! init interface nodes
-  int create_node_tree(PHCompositeNode *topNode);
+  virtual int create_node_tree(PHCompositeNode *topNode);
 
   //! choice of reference version of the PHHepMCGenEvent
   const PHHepMCGenEvent * get_PHHepMCGenEvent_template() const;
