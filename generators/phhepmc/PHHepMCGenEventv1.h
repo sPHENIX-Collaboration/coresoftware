@@ -46,9 +46,6 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
   CLHEP::HepLorentzRotation get_LorentzRotation_Lab2EvtGen() const final;
 
  protected:
-  //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
-  HepMC::FourVector _collisionVertex;
-
   //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   HepMC::ThreeVector m_boost_beta_vector;
 
