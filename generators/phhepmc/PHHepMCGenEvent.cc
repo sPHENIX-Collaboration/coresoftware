@@ -27,7 +27,8 @@ PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
   , _collisionVertex(event.get_collision_vertex())
   , _theEvt(nullptr)
 {
-  _theEvt = new HepMC::GenEvent(*event.getEvent());
+  if (event.getEvent())
+    _theEvt = new HepMC::GenEvent(*event.getEvent());
   return;
 }
 
