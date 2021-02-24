@@ -259,7 +259,7 @@ int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const doub
   assert(genevent);
   assert(evt);
   genevent->addEvent(evt);
-  PHHepMCGenHelper::move_vertex(genevent);
+  PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(genevent);
   // place to the crossing center in time
   genevent->moveVertex(0, 0, 0, crossing_time);
   return 0;

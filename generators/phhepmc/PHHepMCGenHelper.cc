@@ -27,10 +27,17 @@
 
 #include <HepMC/SimpleVector.h>  // for FourVector
 
+#include <CLHEP/Vector/Boost.h>
+#include <CLHEP/Vector/LorentzRotation.h>
+#include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/Rotation.h>
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <limits>
@@ -107,7 +114,7 @@ PHHepMCGenEvent *PHHepMCGenHelper::insert_event(HepMC::GenEvent *evt)
   PHHepMCGenEvent *genevent = _geneventmap->insert_event(_embedding_id, get_PHHepMCGenEvent_template());
 
   genevent->addEvent(evt);
-  move_vertex(genevent);
+  HepMC2Lab_boost_rotation_translation(genevent);
 
   return genevent;
 }
@@ -148,6 +155,102 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
       (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
       (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
       (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
+}
+
+//! move vertex in translation,boost,rotation according to vertex settings
+void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent)
+{
+  assert(genevent);
+
+  move_vertex(genevent);
+
+  // boost-rotation from beam angles
+
+  const static CLHEP::Hep3Vector z_axis(0, 0, 1);
+
+  auto pair2Hep3Vector = [](const std::pair<double, double> &theta_phi) {
+    const double &theta = theta_phi.first;
+    const double &phi = theta_phi.second;
+
+    return CLHEP::Hep3Vector(
+        sin(theta) * cos(phi),
+        sin(theta) * sin(phi),
+        cos(theta));
+  };
+
+  CLHEP::Hep3Vector beamA_center = pair2Hep3Vector(m_beam_direction_theta_phi.first);
+  CLHEP::Hep3Vector beamB_center = pair2Hep3Vector(m_beam_direction_theta_phi.second);
+
+  if (beamA_center.dot(beamB_center) > -0.5)
+  {
+    cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - WARNING -"
+         << "Beam A and Beam B are not near back to back. "
+         << "Please double check beam direction setting at set_beam_direction_theta_phi()."
+         << "beamA_center = " << beamA_center << ","
+         << "beamB_center = " << beamB_center << ","
+         << " Current setting:";
+
+    Print();
+  }
+
+  // y direction in accelerator
+  static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
+
+  auto smear_beam_divergence = [accelerator_plane](
+                                   const CLHEP::Hep3Vector &beam_center,
+                                   const std::pair<double, double> &divergence_xy) {
+    const double &x_divergence = divergence_xy.first;
+    const double &y_divergence = divergence_xy.second;
+
+    CLHEP::Hep3Vector beam_direction(beam_center);
+    CLHEP::HepRotation x_smear_in_accelerator_plane(accelerator_plane, smear(0, x_divergence, Gaus));
+    CLHEP::HepRotation y_smear_out_accelerator_plane(accelerator_plane.cross(beam_center), smear(0, y_divergence, Gaus));
+
+    return y_smear_out_accelerator_plane * x_smear_in_accelerator_plane * beam_center;
+  };
+
+  CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center, m_beam_angular_divergence_xy.first);
+  CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center, m_beam_angular_divergence_xy.second);
+
+  // apply minimal beam energy shift rotation and boost
+  CLHEP::Hep3Vector boost_axis = beamA_vec + beamB_vec;
+  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
+  {
+    //non-zero boost
+
+    // split the boost to half for each beam for minimal beam  energy shift
+    genevent->set_boost_beta_vector(-0.5 * boost_axis);
+
+  }  //    if (cos_rotation_angle> CLHEP::Hep3Vector::getTolerance())
+  else
+  {
+    genevent->set_boost_beta_vector(CLHEP::Hep3Vector(0, 0, 0));
+  }
+
+  //rotation to collision to along z-axis with beamA pointing to +z
+  double cos_rotation_angle_to_z = (beamA_vec - beamB_vec).dot(z_axis);
+  if (1 - cos_rotation_angle_to_z < CLHEP::Hep3Vector::getTolerance())
+  {
+    //no rotation
+    genevent->set_rotation_vector(z_axis);
+    genevent->set_rotation_angle(0);
+  }
+  if (cos_rotation_angle_to_z + 1 < CLHEP::Hep3Vector::getTolerance())
+  {
+    // you got beam flipped
+    genevent->set_rotation_vector(CLHEP::Hep3Vector(0, 1, 0));
+    genevent->set_rotation_angle(M_PI);
+  }
+  else
+  {
+    // need a rotation
+    CLHEP::Hep3Vector rotation_axis = (beamA_vec - beamB_vec).cross(z_axis);
+    const double rotation_angle_to_z = acos(cos_rotation_angle_to_z);
+
+    genevent->set_rotation_vector(rotation_axis);
+    genevent->set_rotation_angle(rotation_angle_to_z);
+
+  }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
 }
 
 void PHHepMCGenHelper::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VTXFUNC z, VTXFUNC t)
@@ -226,7 +329,7 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper *helper_dest)
 void PHHepMCGenHelper::CopyHelperSettings(PHHepMCGenHelper *helper_src)
 {
   if (helper_src)
-    helper_src -> CopySettings(this);
+    helper_src->CopySettings(this);
   else
   {
     cout << "PHHepMCGenHelper::CopyHelperSettings - fatal error - invalid input class helper_src which is nullptr!" << endl;
@@ -236,21 +339,29 @@ void PHHepMCGenHelper::CopyHelperSettings(PHHepMCGenHelper *helper_src)
 
 void PHHepMCGenHelper::Print(const std::string &what) const
 {
-  map<VTXFUNC, string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
+  static map<VTXFUNC, string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
+
   cout << "Vertex distribution width x: " << _vertex_width_x
        << ", y: " << _vertex_width_y
        << ", z: " << _vertex_width_z
        << ", t: " << _vertex_width_t
        << endl;
+
   cout << "Vertex distribution function x: " << vtxfunc[_vertex_func_x]
        << ", y: " << vtxfunc[_vertex_func_y]
        << ", z: " << vtxfunc[_vertex_func_z]
        << ", t: " << vtxfunc[_vertex_func_t]
        << endl;
-  cout << "Vertex distribution mean x: " << _vertex_x
-       << ", y: " << _vertex_y
-       << ", z: " << _vertex_z
-       << ", t: " << _vertex_t
-       << endl;
+
+  cout << "Beam direction: A  theta-phi = " << m_beam_direction_theta_phi.first.first
+       << ", " << m_beam_direction_theta_phi.first.second << endl;
+  cout << "Beam direction: B  theta-phi = " << m_beam_direction_theta_phi.second.first
+       << ", " << m_beam_direction_theta_phi.second.second << endl;
+
+  cout << "Beam divergence: A X-Y = " << m_beam_angular_divergence_xy.first.first
+       << ", " << m_beam_angular_divergence_xy.first.second << endl;
+  cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_xy.second.first
+       << ", " << m_beam_angular_divergence_xy.second.second << endl;
+
   return;
 }

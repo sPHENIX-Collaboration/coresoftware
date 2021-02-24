@@ -82,7 +82,10 @@ class PHHepMCGenHelper
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
 
-  //! move vertex according to vertex settings
+  //! Record the translation,boost,rotation for HepMC frame to lab frame according to collision settings
+  void HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent);
+
+  //! move vertex in translation according to vertex settings
   void move_vertex(PHHepMCGenEvent *genevent);
 
   const PHHepMCGenEventMap *get_geneventmap() const
