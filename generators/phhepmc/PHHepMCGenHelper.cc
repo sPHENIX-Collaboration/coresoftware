@@ -160,6 +160,11 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
 //! move vertex in translation,boost,rotation according to vertex settings
 void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent)
 {
+  if (m_verbosity)
+  {
+    Print();
+  }
+
   assert(genevent);
 
   move_vertex(genevent);

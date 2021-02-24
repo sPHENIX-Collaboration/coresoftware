@@ -182,12 +182,24 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       continue;
     }
 
+    if (Verbosity())
+    {
+      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found PHHepMCGenEvent:" << endl;
+      genevt->identify();
+    }
+
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
       cout << PHWHERE << " no evt pointer under HEPMC Node found:";
       genevt->identify();
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    if (Verbosity())
+    {
+      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found HepMC::GenEvent:" << endl;
+      evt->print();
     }
 
     genevt->is_simulated(true);
@@ -228,6 +240,12 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
          v != evt->vertices_end();
          ++v)
     {
+      if (Verbosity() > 1)
+      {
+        cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found vertex:" << endl;
+        (*v)->print();
+      }
+
       finalstateparticles.clear();
       for (HepMC::GenVertex::particle_iterator p =
                (*v)->particles_begin(HepMC::children);
@@ -235,7 +253,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       {
         if (Verbosity() > 1)
         {
-          cout << __PRETTY_FUNCTION__ << " : " << __LINE__ << endl;
+          cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found particle:" << endl;
           (*p)->print();
           cout << "end vertex " << (*p)->end_vertex() << endl;
         }

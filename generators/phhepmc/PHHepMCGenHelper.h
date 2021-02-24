@@ -146,6 +146,10 @@ class PHHepMCGenHelper
 
   void Print(const std::string &what = "ALL") const;
 
+  void PHHepMCGenHelper_Verbosity(int v) {m_verbosity = v;}
+
+  int PHHepMCGenHelper_Verbosity() {return m_verbosity;}
+
  private:
   gsl_rng *RandomGenerator;
 
@@ -195,6 +199,9 @@ class PHHepMCGenHelper
 
   //! pointer to the output container
   PHHepMCGenEventMap *_geneventmap;
+
+  //!verbosity
+  int m_verbosity = 0;
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */
