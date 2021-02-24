@@ -186,6 +186,16 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   CLHEP::Hep3Vector beamA_center = pair2Hep3Vector(m_beam_direction_theta_phi.first);
   CLHEP::Hep3Vector beamB_center = pair2Hep3Vector(m_beam_direction_theta_phi.second);
 
+  if (m_verbosity)
+  {
+    cout << __PRETTY_FUNCTION__ << ": " << endl;
+    cout << "beamA_center = " << beamA_center << endl;
+    cout << "beamB_center = " << beamB_center << endl;
+  }
+
+  assert(fabs(beamB_center.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
+  assert(fabs(beamB_center.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
+
   if (beamA_center.dot(beamB_center) > -0.5)
   {
     cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - WARNING -"
@@ -217,6 +227,16 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center, m_beam_angular_divergence_xy.first);
   CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center, m_beam_angular_divergence_xy.second);
 
+  if (m_verbosity)
+  {
+    cout << __PRETTY_FUNCTION__ << ": " << endl;
+    cout << "beamA_vec = " << beamA_vec << endl;
+    cout << "beamB_vec = " << beamB_vec << endl;
+  }
+
+  assert(fabs(beamA_vec.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
+  assert(fabs(beamB_vec.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
+
   // apply minimal beam energy shift rotation and boost
   CLHEP::Hep3Vector boost_axis = beamA_vec + beamB_vec;
   if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
@@ -226,25 +246,48 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     // split the boost to half for each beam for minimal beam  energy shift
     genevent->set_boost_beta_vector(-0.5 * boost_axis);
 
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": non-zero boost " << endl;
+    }
   }  //    if (cos_rotation_angle> CLHEP::Hep3Vector::getTolerance())
   else
   {
     genevent->set_boost_beta_vector(CLHEP::Hep3Vector(0, 0, 0));
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": zero boost " << endl;
+    }
   }
 
   //rotation to collision to along z-axis with beamA pointing to +z
   double cos_rotation_angle_to_z = (beamA_vec - beamB_vec).dot(z_axis);
+  if (m_verbosity)
+  {
+    cout << __PRETTY_FUNCTION__ << ": check rotation ";
+    cout << "cos_rotation_angle_to_z= " << cos_rotation_angle_to_z << endl;
+  }
+
   if (1 - cos_rotation_angle_to_z < CLHEP::Hep3Vector::getTolerance())
   {
     //no rotation
     genevent->set_rotation_vector(z_axis);
     genevent->set_rotation_angle(0);
+
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": no rotation " << endl;
+    }
   }
-  if (cos_rotation_angle_to_z + 1 < CLHEP::Hep3Vector::getTolerance())
+  else if (cos_rotation_angle_to_z + 1 < CLHEP::Hep3Vector::getTolerance())
   {
     // you got beam flipped
     genevent->set_rotation_vector(CLHEP::Hep3Vector(0, 1, 0));
     genevent->set_rotation_angle(M_PI);
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": reverse beam direction " << endl;
+    }
   }
   else
   {
@@ -255,7 +298,17 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     genevent->set_rotation_vector(rotation_axis);
     genevent->set_rotation_angle(rotation_angle_to_z);
 
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": has rotation " << endl;
+    }
   }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
+
+  if (m_verbosity)
+  {
+    cout << __PRETTY_FUNCTION__ << ": final boost rotation " << endl;
+    genevent->identify();
+  }
 }
 
 void PHHepMCGenHelper::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VTXFUNC z, VTXFUNC t)
