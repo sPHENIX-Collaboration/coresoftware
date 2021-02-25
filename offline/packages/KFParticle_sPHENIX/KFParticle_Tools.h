@@ -94,6 +94,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   int m_num_tracks_from_intermediate[max_tracks] = {0};
   std::string m_daughter_name[max_tracks];
   int m_daughter_charge[max_tracks] = {0};
+  int m_num_tracks = -1;
   std::string m_intermediate_name[max_tracks];
   float m_min_mass = -1;
 

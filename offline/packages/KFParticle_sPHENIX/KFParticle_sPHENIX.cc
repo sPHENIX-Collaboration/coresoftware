@@ -154,21 +154,21 @@ void KFParticle_sPHENIX::printParticles(KFParticle motherParticle,
   std::cout << "\n---------------KFParticle candidate information---------------" << std::endl;
 
   std::cout << "Mother information:" << std::endl;
-  kfpTupleTools_Top.identify(motherParticle);
+  identify(motherParticle);
 
   if (m_has_intermediates_sPHENIX)
   {
     std::cout << "Intermediate state information:" << std::endl;
     for (unsigned int i = 0; i < intermediateParticles.size(); i++)
     {
-      kfpTupleTools_Top.identify(intermediateParticles[i]);
+      identify(intermediateParticles[i]);
     }
   }
 
   std::cout << "Final track information:" << std::endl;
   for (unsigned int i = 0; i < daughterParticles.size(); i++)
   {
-    kfpTupleTools_Top.identify(daughterParticles[i]);
+    identify(daughterParticles[i]);
   }
 
   if (m_constrain_to_vertex_sPHENIX)
