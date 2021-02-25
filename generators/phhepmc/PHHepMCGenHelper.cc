@@ -210,9 +210,9 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   auto smear_beam_divergence = [&, this](
                                    const CLHEP::Hep3Vector &beam_center,
-                                   const std::pair<double, double> &divergence_xy) {
-    const double &x_divergence = divergence_xy.first;
-    const double &y_divergence = divergence_xy.second;
+                                   const std::pair<double, double> &divergence_hv) {
+    const double &x_divergence = divergence_hv.first;
+    const double &y_divergence = divergence_hv.second;
 
     // y direction in accelerator
     static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
@@ -224,8 +224,8 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     return y_smear_out_accelerator_plane * x_smear_in_accelerator_plane * beam_center;
   };
 
-  CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center, m_beam_angular_divergence_xy.first);
-  CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center, m_beam_angular_divergence_xy.second);
+  CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center, m_beam_angular_divergence_hv.first);
+  CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center, m_beam_angular_divergence_hv.second);
 
   if (m_verbosity)
   {
@@ -432,10 +432,10 @@ void PHHepMCGenHelper::Print(const std::string &what) const
   cout << "Beam direction: B  theta-phi = " << m_beam_direction_theta_phi.second.first
        << ", " << m_beam_direction_theta_phi.second.second << endl;
 
-  cout << "Beam divergence: A X-Y = " << m_beam_angular_divergence_xy.first.first
-       << ", " << m_beam_angular_divergence_xy.first.second << endl;
-  cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_xy.second.first
-       << ", " << m_beam_angular_divergence_xy.second.second << endl;
+  cout << "Beam divergence: A X-Y = " << m_beam_angular_divergence_hv.first.first
+       << ", " << m_beam_angular_divergence_hv.first.second << endl;
+  cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_hv.second.first
+       << ", " << m_beam_angular_divergence_hv.second.second << endl;
 
   return;
 }

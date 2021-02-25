@@ -123,17 +123,17 @@ class PHHepMCGenHelper
   }
 
   //! Beam angle divergence in accelerator beam coordinate.
-  //! @param[in] beamA_divergence_x beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
-  //! @param[in] beamA_divergence_y beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
-  //! @param[in] beamB_divergence_x beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
-  //! @param[in] beamB_divergence_y beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
-  void set_beam_angular_divergence_xy(
-      const double beamA_divergence_x,
-      const double beamA_divergence_y,
-      const double beamB_divergence_x,
-      const double beamB_divergence_y)
+  //! @param[in] beamA_divergence_h beamA, horizontal divergence Gaussian Sigma. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamA_divergence_v beamA, vertical divergence Gaussian Sigma. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_divergence_h beamB, horizontal divergence Gaussian Sigma. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_divergence_v beamB, vertical divergence Gaussian Sigma. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  void set_beam_angular_divergence_hv(
+      const double beamA_divergence_h,
+      const double beamA_divergence_v,
+      const double beamB_divergence_h,
+      const double beamB_divergence_v)
   {
-    m_beam_angular_divergence_xy = {{beamA_divergence_x, beamA_divergence_y}, {beamB_divergence_x, beamB_divergence_y}};
+    m_beam_angular_divergence_hv = {{beamA_divergence_h, beamA_divergence_v}, {beamB_divergence_h, beamB_divergence_v}};
   }
 
   void CopySettings(PHHepMCGenHelper &helper);
@@ -179,9 +179,9 @@ class PHHepMCGenHelper
   };
 
   //! Beam angle divergence in accelerator beam coordinate.
-  //! First element is beamA, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to +z direction in the HepMC event generator's coordinate
-  //! Second element is beamB, in pair of Gaussian Sigma_X Sigma_Y. BeamA is aimed to -z direction in the HepMC event generator's coordinate
-  std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_angular_divergence_xy = {
+  //! First element is beamA, in pair of Gaussian Sigma_H Sigma_V. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! Second element is beamB, in pair of Gaussian Sigma_H Sigma_V. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_angular_divergence_hv = {
       {0, 0},  //+z beam
       {0, 0}   //-z beam
   };
