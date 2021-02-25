@@ -90,11 +90,28 @@ int PHSiliconTpcTrackMatching::Process()
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
   if(Verbosity() > 0)
-    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map->size() << endl;
+    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
 
- // We remember the original size of the TPC track map here
+  if(Verbosity() > 2)
+    {
+      // list silicon tracks
+      for (auto phtrk_iter_si = _track_map_silicon->begin();
+	   phtrk_iter_si != _track_map_silicon->end(); 
+	   ++phtrk_iter_si)
+	{
+	  _tracklet_si = phtrk_iter_si->second;	  
+	  
+	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
+	  double si_eta = _tracklet_si->get_eta();
+	  
+	  cout << " Si track " << _tracklet_si->get_id()  << " si_phi " << si_phi  << " si_eta " << si_eta << endl;
+	}  
+    }
+  
+  
+  // We remember the original size of the TPC track map here
   const unsigned int original_track_map_lastkey = _track_map->end()->first;
-
+  
   // loop over the original TPC tracks
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
@@ -280,7 +297,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  // get the si tracklet for this id
 	  _tracklet_si = _track_map_silicon->get(*si_it);
 
-	  if(Verbosity() > 3)
+	  if(Verbosity() > 0)
 	    cout << "   isi = " << isi << " si tracklet " << _tracklet_si->get_id() << " was matched to TPC tracklet " << _tracklet_tpc->get_id() << endl;
 
 	  // get the silicon clusters

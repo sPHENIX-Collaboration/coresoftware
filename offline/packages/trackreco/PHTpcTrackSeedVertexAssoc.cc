@@ -136,7 +136,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
 	  if(layer < _min_tpc_layer) continue;
-	  if(layer >= _max_tpc_layer) continue;
+	  if(layer > _max_tpc_layer) continue;
 
 	  // get the cluster
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
@@ -237,17 +237,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
 
-      //  update pz of track
-      double pt_track = _tracklet_tpc->get_pt();
-      double ptrack = sqrt(pt_track*pt_track + _tracklet_tpc->get_pz()*_tracklet_tpc->get_pz());
-      double pz_new = ptrack * sin(track_angle);
-      if(Verbosity() > 5)
-	std::cout << " Original pz = " << _tracklet_tpc->get_pz() << " new pz " << pz_new << " track angle " << track_angle << std::endl;
-      _tracklet_tpc->set_pz(pz_new);
-      if(Verbosity() > 5)
-	std::cout << "       new eta " <<  _tracklet_tpc->get_eta() << std::endl;
-      // total momentum is now a bit different because pt was not changed - OK - we measure pt from bend, pz from dz/dr
-
       // make circle fit including vertex as point
       std::vector<std::pair<double, double>> cpoints;
       double x_vertex = vertex->get_x();
@@ -264,7 +253,16 @@ int PHTpcTrackSeedVertexAssoc::Process()
       if(Verbosity() > 5) 
 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
-      //  could take new pT from radius of circle - we choose to keep the seed pT
+      double pt_track = _tracklet_tpc->get_pt();
+      bool use_circle_pt = false;    // true for testing only, normally use track seed pT
+      if(use_circle_pt)
+	{
+	  //  get the pT from radius of circle as a check 
+	  double Bfield = 1.4;  // T
+	  double pt_new = 0.3 * Bfield * R * 0.01;  // convert cm to m 
+	  std::cout << " pT from circle of radius R = " << R << " in field of " << Bfield << " Tesla is " << pt_new << " seed pT is " << _tracklet_tpc->get_pt()  << std::endl; 
+	  //pt_track = pt_new;
+	}
 
       // We want the angle of the tangent relative to the positive x axis
       // start with the angle of the radial line from vertex to circle center
@@ -282,6 +280,11 @@ int PHTpcTrackSeedVertexAssoc::Process()
       double phi1 = atan2(dy1, dx1);
       double dphi = phi1 - phi0;
 
+      // need to deal with the switch from -pi to +pi at phi = 180 degrees
+      // final phi - initial phi must be < 180 degrees for it to be a valid track
+      if(dphi > M_PI) dphi -= 2.0 * M_PI;
+      if(dphi < - M_PI) dphi += M_PI;
+
       if(Verbosity() > 5) 
 	{
 	  int charge = _tracklet_tpc->get_charge();   // needed for diagnostic output only
@@ -296,15 +299,28 @@ int PHTpcTrackSeedVertexAssoc::Process()
       if(Verbosity() > 5) 
 	std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << std::endl;  
 
-      // update px, py of track
+      // get the updated values of px, py, pz from the pT and the angles found here
       double px_new = pt_track * cos(phi);
       double py_new = pt_track * sin(phi);
+      double ptrack_new = pt_track / cos(track_angle);
+      double pz_new = ptrack_new * sin(track_angle);
+
       if(Verbosity() > 5)
-	std::cout << " input track px " << _tracklet_tpc->get_px()  << " new px " << px_new << " input py " << _tracklet_tpc->get_py() << " new py " << py_new << std::endl;
+	std::cout << " input track mom " << _tracklet_tpc->get_p() << " new mom " << ptrack_new
+		  << " px in " << _tracklet_tpc->get_px()  << " px " << px_new 
+		  << " py in " << _tracklet_tpc->get_py() << " py " << py_new 
+		  << " pz in " << _tracklet_tpc->get_pz() << " pz " << pz_new 
+		  << " eta in " <<  _tracklet_tpc->get_eta() << " phi in " <<  _tracklet_tpc->get_phi() * 180.0 / M_PI
+		  << " track angle " << track_angle * 180.0 / M_PI 
+		  << std::endl;
 
       // update track on node tree
       _tracklet_tpc->set_px(px_new);
       _tracklet_tpc->set_py(py_new);
+      _tracklet_tpc->set_pz(pz_new);
+
+      if(Verbosity() > 5)
+	std::cout << " new mom " <<  _tracklet_tpc->get_p() <<  "  new eta " <<  _tracklet_tpc->get_eta() << " new phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
       
     }  // end loop over TPC track seeds
   

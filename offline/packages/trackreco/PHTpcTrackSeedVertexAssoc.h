@@ -86,7 +86,7 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   bool _test_windows = false;
 
   unsigned int _min_tpc_layer = 7;
-  unsigned int _max_tpc_layer = 47;
+  unsigned int _max_tpc_layer = 54;
 
   double _z_proj= 0;
 
