@@ -12,8 +12,6 @@
 #include <set>
 #include <string>
 
-#include <TLorentzVector.h>  // for TLorentzVector
-
 class CaloEvalStack;
 class PHCompositeNode;
 class TFile;
@@ -58,8 +56,11 @@ private:
 
   // track hits
   int _nHitsLayers;
-  TLorentzVector* _hits_TLH_xyzt;
   int* _hits_layerID;
+  float* _hits_x;
+  float* _hits_y;
+  float* _hits_z;
+  float* _hits_t;
 
   // towers
   int _nTowers_FHCAL;
@@ -75,6 +76,22 @@ private:
   int* _tower_FEMC_iPhi;
   float* _tower_FEMC_trueID;
 
+  // clusters
+  int _nclusters_FHCAL;
+  float* _cluster_FHCAL_E;
+  float* _cluster_FHCAL_Eta;
+  float* _cluster_FHCAL_Phi;
+  int* _cluster_FHCAL_NTower;
+  float* _cluster_FHCAL_trueID;
+
+  // clusters
+  int _nclusters_FEMC;
+  float* _cluster_FEMC_E;
+  float* _cluster_FEMC_Eta;
+  float* _cluster_FEMC_Phi;
+  int* _cluster_FEMC_NTower;
+  float* _cluster_FEMC_trueID;
+
   // vertex
   int _vertex_x;
   int _vertex_y;
@@ -87,26 +104,18 @@ private:
   float* _track_py;
   float* _track_pz;
   float* _track_trueID;
-  TLorentzVector* _track_TLP_FTTL_0;
-  TLorentzVector* _track_TLP_FTTL_0_true;
-  TLorentzVector* _track_TLP_FTTL_1;
-  TLorentzVector* _track_TLP_FTTL_1_true;
-  TLorentzVector* _track_TLP_FTTL_2;
-  TLorentzVector* _track_TLP_FTTL_2_true;
-  TLorentzVector* _track_TLP_ETTL_0;
-  TLorentzVector* _track_TLP_ETTL_0_true;
-  TLorentzVector* _track_TLP_ETTL_1;
-  TLorentzVector* _track_TLP_ETTL_1_true;
-  TLorentzVector* _track_TLP_FHCAL_0;
-  TLorentzVector* _track_TLP_FHCAL_0_true;
-  TLorentzVector* _track_TLP_FEMC_0;
-  TLorentzVector* _track_TLP_FEMC_0_true;
-  TLorentzVector* _track_TLP_CTTL_0;
-  TLorentzVector* _track_TLP_CTTL_0_true;
-  TLorentzVector* _track_TLP_CTTL_1;
-  TLorentzVector* _track_TLP_CTTL_1_true;
-  TLorentzVector* _track_TLP_CTTL_2;
-  TLorentzVector* _track_TLP_CTTL_2_true;
+
+  int _nProjections;
+  float* _track_ProjTrackID;
+  int* _track_ProjLayer;
+  float* _track_TLP_x;
+  float* _track_TLP_y;
+  float* _track_TLP_z;
+  float* _track_TLP_t;
+  float* _track_TLP_true_x;
+  float* _track_TLP_true_y;
+  float* _track_TLP_true_z;
+  float* _track_TLP_true_t;
 
   // MC particles
   int _nMCPart;
@@ -127,30 +136,28 @@ private:
 
   bool _strict;
 
-  TNtuple *_ntp_gpoint;
-  // TNtuple *_ntp_gshower;
-  // TNtuple *_ntp_tower;
   TTree *_event_tree;  //Added by Barak
-  // TNtuple *_ntp_cluster;
 
   // evaluator output file
   std::string _filename;
   TFile *_tfile;
 
-  const int _maxNHits = 5000;
-  const int _maxNTowers = 50*50;
-  const int _maxNProjections = 10;
-  const int _maxNTracks = 200;
-  const int _maxNMCPart = 1000;
 
   // subroutines
-  int GetProjectionIndex(std::string projname);     ///< print out the input object information (debugging upstream components)
-  std::string GetProjectionNameFromIndex(int projindex);
+  int GetProjectionIndex(std::string projname);     ///< return track projection index for given track projection layer
+  std::string GetProjectionNameFromIndex(int projindex); ///< return track projection layer name from projection index (see GetProjectionIndex)
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
-  void resetBuffer();    ///< print out the ancestry information for detailed diagnosis
-  void FillTrackProjVector(int trackindex, int trackStateIndex, bool truevalues,float xpostrk,float ypostrk,float zpostrk,float timetrk);
+  void resetBuffer();    ///< reset the tree variables before filling for a new event
+
+
+  const int _maxNHits = 5000;
+  const int _maxNTowers = 50*50;
+  const int _maxNclusters = 100;
+  const int _maxNTracks = 200;
+  const int _maxNProjections = 2000;
+  const int _maxNMCPart = 1000;
 
 };
 

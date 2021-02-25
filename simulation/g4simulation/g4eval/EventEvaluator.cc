@@ -52,10 +52,12 @@ using namespace std;
 EventEvaluator::EventEvaluator(const string& name, const string& filename)
   : SubsysReco(name)
   , _ievent(0)
-
   , _nHitsLayers(0)
-  , _hits_TLH_xyzt(0)
   , _hits_layerID(0)
+  , _hits_x(0)
+  , _hits_y(0)
+  , _hits_z(0)
+  , _hits_t(0)
 
   , _nTowers_FHCAL(0)
   , _tower_FHCAL_E(0)
@@ -69,6 +71,20 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _tower_FEMC_iPhi(0)
   , _tower_FEMC_trueID(0)
 
+  , _nclusters_FHCAL(0)
+  , _cluster_FHCAL_E(0)
+  , _cluster_FHCAL_Eta(0)
+  , _cluster_FHCAL_Phi(0)
+  , _cluster_FHCAL_NTower(0)
+  , _cluster_FHCAL_trueID(0)
+
+  , _nclusters_FEMC(0)
+  , _cluster_FEMC_E(0)
+  , _cluster_FEMC_Eta(0)
+  , _cluster_FEMC_Phi(0)
+  , _cluster_FEMC_NTower(0)
+  , _cluster_FEMC_trueID(0)
+
   , _vertex_x(0)
   , _vertex_y(0)
   , _vertex_z(0)
@@ -79,26 +95,17 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _track_py(0)
   , _track_pz(0)
   , _track_trueID(0)
-  , _track_TLP_FTTL_0(0)
-  , _track_TLP_FTTL_0_true(0)
-  , _track_TLP_FTTL_1(0)
-  , _track_TLP_FTTL_1_true(0)
-  , _track_TLP_FTTL_2(0)
-  , _track_TLP_FTTL_2_true(0)
-  , _track_TLP_ETTL_0(0)
-  , _track_TLP_ETTL_0_true(0)
-  , _track_TLP_ETTL_1(0)
-  , _track_TLP_ETTL_1_true(0)
-  , _track_TLP_FHCAL_0(0)
-  , _track_TLP_FHCAL_0_true(0)
-  , _track_TLP_FEMC_0(0)
-  , _track_TLP_FEMC_0_true(0)
-  , _track_TLP_CTTL_0(0)
-  , _track_TLP_CTTL_0_true(0)
-  , _track_TLP_CTTL_1(0)
-  , _track_TLP_CTTL_1_true(0)
-  , _track_TLP_CTTL_2(0)
-  , _track_TLP_CTTL_2_true(0)
+  , _nProjections(0)
+  , _track_ProjTrackID(0)
+  , _track_ProjLayer(0)
+  , _track_TLP_x(0)
+  , _track_TLP_y(0)
+  , _track_TLP_z(0)
+  , _track_TLP_t(0)
+  , _track_TLP_true_x(0)
+  , _track_TLP_true_y(0)
+  , _track_TLP_true_z(0)
+  , _track_TLP_true_t(0)
 
   , _nMCPart(0)
   , _mcpart_ID(0)
@@ -117,8 +124,11 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _filename(filename)
   , _tfile(nullptr)
 {
-  _hits_TLH_xyzt             = new TLorentzVector[_maxNHits];
   _hits_layerID              = new int[_maxNHits];
+  _hits_x              = new float[_maxNHits];
+  _hits_y              = new float[_maxNHits];
+  _hits_z              = new float[_maxNHits];
+  _hits_t              = new float[_maxNHits];
 
   _tower_FHCAL_E            = new float[_maxNTowers];
   _tower_FHCAL_iEta         = new int[_maxNTowers];
@@ -130,32 +140,34 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _tower_FEMC_iPhi          = new int[_maxNTowers];
   _tower_FEMC_trueID        = new float[_maxNTowers];
 
+  _cluster_FHCAL_E            = new float[_maxNclusters];
+  _cluster_FHCAL_Eta         = new float[_maxNclusters];
+  _cluster_FHCAL_Phi         = new float[_maxNclusters];
+  _cluster_FHCAL_NTower         = new int[_maxNclusters];
+  _cluster_FHCAL_trueID       = new float[_maxNclusters];
+
+  _cluster_FEMC_E             = new float[_maxNclusters];
+  _cluster_FEMC_Eta          = new float[_maxNclusters];
+  _cluster_FEMC_Phi          = new float[_maxNclusters];
+  _cluster_FEMC_NTower          = new int[_maxNclusters];
+  _cluster_FEMC_trueID        = new float[_maxNclusters];
+
   _track_ID                 = new float[_maxNTracks];
   _track_trueID             = new float[_maxNTracks];
   _track_px                 = new float[_maxNTracks];
   _track_py                 = new float[_maxNTracks];
   _track_pz                 = new float[_maxNTracks];
 
-  _track_TLP_FTTL_0         = new TLorentzVector[_maxNTracks];
-  _track_TLP_FTTL_0_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_FTTL_1         = new TLorentzVector[_maxNTracks];
-  _track_TLP_FTTL_1_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_FTTL_2         = new TLorentzVector[_maxNTracks];
-  _track_TLP_FTTL_2_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_ETTL_0         = new TLorentzVector[_maxNTracks];
-  _track_TLP_ETTL_0_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_ETTL_1         = new TLorentzVector[_maxNTracks];
-  _track_TLP_ETTL_1_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_FHCAL_0        = new TLorentzVector[_maxNTracks];
-  _track_TLP_FHCAL_0_true   = new TLorentzVector[_maxNTracks];
-  _track_TLP_FEMC_0         = new TLorentzVector[_maxNTracks];
-  _track_TLP_FEMC_0_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_0         = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_0_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_1         = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_1_true    = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_2         = new TLorentzVector[_maxNTracks];
-  _track_TLP_CTTL_2_true    = new TLorentzVector[_maxNTracks];
+  _track_ProjTrackID                 = new float[_maxNProjections];
+  _track_ProjLayer                 = new int[_maxNProjections];
+  _track_TLP_x                 = new float[_maxNProjections];
+  _track_TLP_y                 = new float[_maxNProjections];
+  _track_TLP_z                 = new float[_maxNProjections];
+  _track_TLP_t                 = new float[_maxNProjections];
+  _track_TLP_true_x                 = new float[_maxNProjections];
+  _track_TLP_true_y                 = new float[_maxNProjections];
+  _track_TLP_true_z                 = new float[_maxNProjections];
+  _track_TLP_true_t                 = new float[_maxNProjections];
 
   _mcpart_ID                = new float[_maxNMCPart];
   _mcpart_ID_parent         = new float[_maxNMCPart];
@@ -176,7 +188,10 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   // tracks and hits
   _event_tree->Branch("nHits",                        &_nHitsLayers,             "nHits/I");
   _event_tree->Branch("hits_layerID",                 _hits_layerID,             "hits_layerID[nHits]/I");
-  _event_tree->Branch("hits_TLH_xyzt.",               _hits_TLH_xyzt,     "TLorentzVector[nHits]");       _event_tree->SetBranchStatus("hits_TLH_xyzt.*", 1);
+  _event_tree->Branch("hits_x",                 _hits_x,             "hits_x[nHits]/F");
+  _event_tree->Branch("hits_y",                 _hits_y,             "hits_y[nHits]/F");
+  _event_tree->Branch("hits_z",                 _hits_z,             "hits_z[nHits]/F");
+  _event_tree->Branch("hits_t",                 _hits_t,             "hits_t[nHits]/F");
 
   _event_tree->Branch("nTracks",                      &_nTracks,          "nTracks/I");
   _event_tree->Branch("tracks_ID",                    _track_ID,          "tracks_ID[nTracks]/F");
@@ -185,26 +200,17 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   _event_tree->Branch("tracks_pz",                    _track_pz,          "tracks_pz[nTracks]/F");
   _event_tree->Branch("tracks_trueID",                _track_trueID,      "tracks_trueID[nTracks]/F");
 
-  _event_tree->Branch("track_TLP_FTTL_0.",           _track_TLP_FTTL_0,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_FTTL_0.*", 1);
-  _event_tree->Branch("track_TLP_FTTL_0_true.",      _track_TLP_FTTL_0_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_FTTL_0_true.*",1);
-  _event_tree->Branch("track_TLP_FTTL_1.",           _track_TLP_FTTL_1,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_FTTL_1.*", 1);
-  _event_tree->Branch("track_TLP_FTTL_1_true.",      _track_TLP_FTTL_1_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_FTTL_1_true.*",1);
-  _event_tree->Branch("track_TLP_FTTL_2.",           _track_TLP_FTTL_2,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_FTTL_2.*", 1);
-  _event_tree->Branch("track_TLP_FTTL_2_true.",      _track_TLP_FTTL_2_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_FTTL_2_true.*",1);
-  _event_tree->Branch("track_TLP_ETTL_0.",           _track_TLP_ETTL_0,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_ETTL_0.*", 1);
-  _event_tree->Branch("track_TLP_ETTL_0_true.",      _track_TLP_ETTL_0_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_ETTL_0_true.*",1);
-  _event_tree->Branch("track_TLP_ETTL_1.",           _track_TLP_ETTL_1,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_ETTL_1.*", 1);
-  _event_tree->Branch("track_TLP_ETTL_1_true.",      _track_TLP_ETTL_1_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_ETTL_1_true.*",1);
-  _event_tree->Branch("track_TLP_FHCAL_0.",          _track_TLP_FHCAL_0,      "TLorentzVector[nTracks]");      _event_tree->SetBranchStatus("track_TLP_FHCAL_0.*", 1);
-  _event_tree->Branch("track_TLP_FHCAL_0_true.",     _track_TLP_FHCAL_0_true, "TLorentzVector[nTracks]");  _event_tree->SetBranchStatus("track_TLP_FHCAL_0_true.*",1);
-  _event_tree->Branch("track_TLP_FEMC_0.",           _track_TLP_FEMC_0,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_FEMC_0.*", 1);
-  _event_tree->Branch("track_TLP_FEMC_0_true.",      _track_TLP_FEMC_0_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_FEMC_0_true.*",1);
-  _event_tree->Branch("track_TLP_CTTL_0.",           _track_TLP_CTTL_0,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_CTTL_0.*", 1);
-  _event_tree->Branch("track_TLP_CTTL_0_true.",      _track_TLP_CTTL_0_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_CTTL_0_true.*",1);
-  _event_tree->Branch("track_TLP_CTTL_1.",           _track_TLP_CTTL_1,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_CTTL_1.*", 1);
-  _event_tree->Branch("track_TLP_CTTL_1_true.",      _track_TLP_CTTL_1_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_CTTL_1_true.*",1);
-  _event_tree->Branch("track_TLP_CTTL_2.",           _track_TLP_CTTL_2,       "TLorentzVector[nTracks]");       _event_tree->SetBranchStatus("track_TLP_CTTL_2.*", 1);
-  _event_tree->Branch("track_TLP_CTTL_2_true.",      _track_TLP_CTTL_2_true,  "TLorentzVector[nTracks]");   _event_tree->SetBranchStatus("track_TLP_CTTL_2_true.*",1);
+  _event_tree->Branch("nProjections",             &_nProjections,                 "nProjections/I");
+  _event_tree->Branch("track_ProjTrackID",        _track_ProjTrackID,             "track_ProjTrackID[nProjections]/F");
+  _event_tree->Branch("track_ProjLayer",        _track_ProjLayer,             "track_ProjLayer[nProjections]/I");
+  _event_tree->Branch("track_TLP_x",        _track_TLP_x,             "track_TLP_x[nProjections]/F");
+  _event_tree->Branch("track_TLP_y",        _track_TLP_y,             "track_TLP_y[nProjections]/F");
+  _event_tree->Branch("track_TLP_z",        _track_TLP_z,             "track_TLP_z[nProjections]/F");
+  _event_tree->Branch("track_TLP_t",        _track_TLP_t,             "track_TLP_t[nProjections]/F");
+  _event_tree->Branch("track_TLP_true_x",        _track_TLP_true_x,             "track_TLP_true_x[nProjections]/F");
+  _event_tree->Branch("track_TLP_true_y",        _track_TLP_true_y,             "track_TLP_true_y[nProjections]/F");
+  _event_tree->Branch("track_TLP_true_z",        _track_TLP_true_z,             "track_TLP_true_z[nProjections]/F");
+  _event_tree->Branch("track_TLP_true_t",        _track_TLP_true_t,             "track_TLP_true_t[nProjections]/F");
 
   // towers HCAL
   _event_tree->Branch("tower_FHCAL_N",                &_nTowers_FHCAL,             "tower_FHCAL_N/I");
@@ -219,6 +225,22 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   _event_tree->Branch("tower_FEMC_iEta",              _tower_FEMC_iEta,           "tower_FEMC_iEta[tower_FEMC_N]/I");
   _event_tree->Branch("tower_FEMC_iPhi",              _tower_FEMC_iPhi,           "tower_FEMC_iPhi[tower_FEMC_N]/I");
   _event_tree->Branch("tower_FEMC_trueID",            _tower_FEMC_trueID,         "tower_FEMC_trueID[tower_FEMC_N]/F");
+
+  // clusters HCAL
+  _event_tree->Branch("cluster_FHCAL_N",                &_nclusters_FHCAL,             "cluster_FHCAL_N/I");
+  _event_tree->Branch("cluster_FHCAL_E",                _cluster_FHCAL_E,              "cluster_FHCAL_E[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Eta",             _cluster_FHCAL_Eta,           "cluster_FHCAL_Eta[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Phi",             _cluster_FHCAL_Phi,           "cluster_FHCAL_Phi[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_NTower",             _cluster_FHCAL_NTower,           "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
+  _event_tree->Branch("cluster_FHCAL_trueID",           _cluster_FHCAL_trueID,         "cluster_FHCAL_trueID[cluster_FHCAL_N]/F");
+
+  // clusters EMC
+  _event_tree->Branch("cluster_FEMC_N",                 &_nclusters_FEMC,             "cluster_FEMC_N/I");
+  _event_tree->Branch("cluster_FEMC_E",                 _cluster_FEMC_E,              "cluster_FEMC_E[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Eta",              _cluster_FEMC_Eta,           "cluster_FEMC_Eta[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Phi",              _cluster_FEMC_Phi,           "cluster_FEMC_Phi[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_NTower",              _cluster_FEMC_NTower,           "cluster_FEMC_NTower[cluster_FEMC_N]/I");
+  _event_tree->Branch("cluster_FEMC_trueID",            _cluster_FEMC_trueID,         "cluster_FEMC_trueID[cluster_FEMC_N]/F");
 
   // vertex
   _event_tree->Branch("vertex_x",                     &_vertex_x,             "vertex_x/I");
@@ -317,7 +339,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         // if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
         // {
           if(Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
-        _hits_TLH_xyzt[_nHitsLayers].SetXYZT( hit_iter->second->get_x(0),hit_iter->second->get_y(0),hit_iter->second->get_z(0),hit_iter->second->get_t(0));
+        _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
+        _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
+        _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
+        _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
         _hits_layerID[_nHitsLayers] = iIndex;
         _nHitsLayers++;
 
@@ -419,10 +444,98 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     return;
   }
 
+
+  //------------------------
+  // CLUSTERS FHCAL
+  //------------------------
+  _nclusters_FHCAL = 0;
+  if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+
+  string clusternodeFHCAL = "CLUSTER_FHCAL";
+  RawClusterContainer* clustersFHCAL = findNode::getClass<RawClusterContainer>(topNode, clusternodeFHCAL.c_str());
+  if (clustersFHCAL)
+  {
+    // for every cluster
+    for (const auto& iterator : clustersFHCAL->getClustersMap())
+    {
+      RawCluster* cluster = iterator.second;
+
+      if (cluster->get_energy() < _reco_e_threshold) continue;
+
+      _cluster_FHCAL_E[_nclusters_FHCAL]            = cluster->get_energy();
+      _cluster_FHCAL_NTower[_nclusters_FHCAL]         = cluster->getNTowers();
+      _cluster_FHCAL_Phi[_nclusters_FHCAL]         = cluster->get_phi();
+
+      // require vertex for cluster eta calculation
+      if (vertexmap)
+      {
+        if (!vertexmap->empty())
+        {
+          GlobalVertex* vertex = (vertexmap->begin()->second);
+          _cluster_FHCAL_Eta[_nclusters_FHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+        } else _cluster_FHCAL_Eta[_nclusters_FHCAL] = -10000;
+      } else _cluster_FHCAL_Eta[_nclusters_FHCAL] = -10000;
+
+
+      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
+
+      if (primary)_cluster_FHCAL_trueID[_nclusters_FHCAL]       = primary->get_track_id();
+
+      _nclusters_FHCAL++;
+    }
+  } else {
+    cerr << PHWHERE << " ERROR: Can't find " << clusternodeFHCAL << endl;
+    return;
+  }
+
+  //------------------------
+  // CLUSTERS FEMC
+  //------------------------
+  _nclusters_FEMC = 0;
+  if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+
+  string clusternodeFEMC = "CLUSTER_FEMC";
+  RawClusterContainer* clustersFEMC = findNode::getClass<RawClusterContainer>(topNode, clusternodeFEMC.c_str());
+  if (clustersFEMC)
+  {
+    // for every cluster
+    for (const auto& iterator : clustersFEMC->getClustersMap())
+    {
+      RawCluster* cluster = iterator.second;
+
+      if (cluster->get_energy() < _reco_e_threshold) continue;
+
+      _cluster_FEMC_E[_nclusters_FEMC]            = cluster->get_energy();
+      _cluster_FEMC_NTower[_nclusters_FEMC]         = cluster->getNTowers();
+      _cluster_FEMC_Phi[_nclusters_FEMC]         = cluster->get_phi();
+
+      // require vertex for cluster eta calculation
+      if (vertexmap)
+      {
+        if (!vertexmap->empty())
+        {
+          GlobalVertex* vertex = (vertexmap->begin()->second);
+          _cluster_FEMC_Eta[_nclusters_FEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+        } else _cluster_FEMC_Eta[_nclusters_FEMC] = -10000;
+      } else _cluster_FEMC_Eta[_nclusters_FEMC] = -10000;
+
+
+      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
+
+      if (primary)_cluster_FEMC_trueID[_nclusters_FEMC]       = primary->get_track_id();
+
+      _nclusters_FEMC++;
+    }
+  } else {
+    cerr << PHWHERE << " ERROR: Can't find " << clusternodeFEMC << endl;
+    return;
+  }
+
   //------------------------
   // TRACKS
   //------------------------
   _nTracks=0;
+  _nProjections = 0;
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,"TrackMap");
   if (trackmap){
     if(Verbosity() > 0)cout << "saving tracks" << endl;
@@ -446,8 +559,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           if(Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;
           int trackStateIndex = GetProjectionIndex(trackStateName);
           if(trackStateIndex>-1){
-            // save true TLorentzVector to given branch
-            FillTrackProjVector(_nTracks, trackStateIndex, true ,trkstates->second->get_pos(0),trkstates->second->get_pos(1),trkstates->second->get_pos(2),trkstates->first);
+            // save true projection info to given branch
+            _track_TLP_true_x[_nProjections] = trkstates->second->get_pos(0);
+            _track_TLP_true_y[_nProjections] = trkstates->second->get_pos(1);
+            _track_TLP_true_z[_nProjections] = trkstates->second->get_pos(2);
+            _track_TLP_true_t[_nProjections] = trkstates->first;
+            _track_ProjLayer[_nProjections] = trackStateIndex;
+            _track_ProjTrackID[_nProjections] = _nTracks;
+
             string nodename = "G4HIT_" + trkstates->second->get_name();
             PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
             if (hits)
@@ -460,14 +579,18 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
                 {
                   if(Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
-                  // save reco TLorentzVector to given branch
-                  FillTrackProjVector(_nTracks, trackStateIndex, false,hit_iter->second->get_x(0),hit_iter->second->get_y(0),hit_iter->second->get_z(0),hit_iter->second->get_t(0));
+                  // save reco projection info to given branch
+                  _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
+                  _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
+                  _track_TLP_z[_nProjections] = hit_iter->second->get_z(0);
+                  _track_TLP_t[_nProjections] = hit_iter->second->get_t(0);
                 }
               }
             } else {
               if(Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
               continue;
             }
+            _nProjections++;
           }
         }
         _nTracks++;
@@ -787,65 +910,25 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
   }
 }
 
-void EventEvaluator::FillTrackProjVector(int trackindex, int trackStateIndex, bool truevalues,float xpostrk,float ypostrk,float zpostrk,float timetrk)
-{
-  switch(trackStateIndex){
-    case 0:
-      if(truevalues) _track_TLP_FTTL_0_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_FTTL_0[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 1:
-      if(truevalues) _track_TLP_FTTL_1_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_FTTL_1[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 2:
-      if(truevalues) _track_TLP_FTTL_2_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_FTTL_2[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 3:
-      if(truevalues) _track_TLP_ETTL_0_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_ETTL_0[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 4:
-      if(truevalues) _track_TLP_ETTL_1_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_ETTL_1[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 5:
-      if(truevalues) _track_TLP_FHCAL_0_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_FHCAL_0[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 6:
-      if(truevalues) _track_TLP_FEMC_0_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_FEMC_0[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 7:
-      if(truevalues) _track_TLP_CTTL_0_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_CTTL_0[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 8:
-      if(truevalues) _track_TLP_CTTL_1_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_CTTL_1[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    case 9:
-      if(truevalues) _track_TLP_CTTL_2_true[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      else           _track_TLP_CTTL_2[trackindex].SetXYZT( xpostrk,ypostrk,zpostrk,timetrk);
-      break;
-    default: return;
-  }
-}
-
 void EventEvaluator::resetBuffer(){
   _nTowers_FHCAL= 0;
   _nTowers_FEMC= 0;
+  _nclusters_FHCAL= 0;
+  _nclusters_FEMC= 0;
   _vertex_x= 0;
   _vertex_y= 0;
   _vertex_z= 0;
   _nTracks= 0;
   _nMCPart= 0;
   _nHitsLayers = 0;
+  _nProjections = 0;
+
   for(Int_t ihit = 0; ihit < _maxNHits; ihit++){
     _hits_layerID[ihit]                       = 0;
-    _hits_TLH_xyzt[ihit]                       = TLorentzVector();
+    _hits_x[ihit]                       = 0;
+    _hits_y[ihit]                       = 0;
+    _hits_z[ihit]                       = 0;
+    _hits_t[ihit]                       = 0;
   }
   for(Int_t itow = 0; itow < _maxNTowers; itow++){
   _tower_FHCAL_E[itow]                       = 0;
@@ -857,32 +940,36 @@ void EventEvaluator::resetBuffer(){
   _tower_FEMC_iPhi[itow]                       = 0;
   _tower_FEMC_trueID[itow]                       = 0;
   }
+  for(Int_t itow = 0; itow < _maxNclusters; itow++){
+  _cluster_FHCAL_E[itow]                       = 0;
+  _cluster_FHCAL_Eta[itow]                       = 0;
+  _cluster_FHCAL_Phi[itow]                       = 0;
+  _cluster_FHCAL_NTower[itow]                       = 0;
+  _cluster_FHCAL_trueID[itow]                       = 0;
+  _cluster_FEMC_E[itow]                       = 0;
+  _cluster_FEMC_Eta[itow]                       = 0;
+  _cluster_FEMC_Phi[itow]                       = 0;
+  _cluster_FEMC_NTower[itow]                       = 0;
+  _cluster_FEMC_trueID[itow]                       = 0;
+  }
   for(Int_t itrk = 0; itrk < _maxNTracks; itrk++){
     _track_ID[itrk]                         = 0;
     _track_trueID[itrk]                     = 0;
     _track_px[itrk]                         = 0;
     _track_py[itrk]                         = 0;
     _track_pz[itrk]                         = 0;
-    _track_TLP_FTTL_0[itrk]                       =TLorentzVector();
-    _track_TLP_FTTL_0_true[itrk]                       =TLorentzVector();
-    _track_TLP_FTTL_1[itrk]                       =TLorentzVector();
-    _track_TLP_FTTL_1_true[itrk]                       =TLorentzVector();
-    _track_TLP_FTTL_2[itrk]                       =TLorentzVector();
-    _track_TLP_FTTL_2_true[itrk]                       =TLorentzVector();
-    _track_TLP_ETTL_0[itrk]                       =TLorentzVector();
-    _track_TLP_ETTL_0_true[itrk]                       =TLorentzVector();
-    _track_TLP_ETTL_1[itrk]                       =TLorentzVector();
-    _track_TLP_ETTL_1_true[itrk]                       =TLorentzVector();
-    _track_TLP_FHCAL_0[itrk]                       =TLorentzVector();
-    _track_TLP_FHCAL_0_true[itrk]                       =TLorentzVector();
-    _track_TLP_FEMC_0[itrk]                       =TLorentzVector();
-    _track_TLP_FEMC_0_true[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_0[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_0_true[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_1[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_1_true[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_2[itrk]                       =TLorentzVector();
-    _track_TLP_CTTL_2_true[itrk]                       =TLorentzVector();
+  }
+  for(Int_t iproj = 0; iproj < _maxNProjections; iproj++){
+    _track_ProjLayer[iproj]                         = -1;
+    _track_ProjTrackID[iproj]                         = 0;
+    _track_TLP_x[iproj]                       =0;
+    _track_TLP_y[iproj]                       =0;
+    _track_TLP_z[iproj]                       =0;
+    _track_TLP_t[iproj]                       =0;
+    _track_TLP_true_x[iproj]                       =0;
+    _track_TLP_true_y[iproj]                       =0;
+    _track_TLP_true_z[iproj]                       =0;
+    _track_TLP_true_t[iproj]                       =0;
   }
   for(Int_t imcpart = 0; imcpart < _maxNMCPart; imcpart++){
     _mcpart_ID[imcpart]                       = 0;
