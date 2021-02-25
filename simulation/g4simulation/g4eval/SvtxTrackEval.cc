@@ -449,14 +449,13 @@ void SvtxTrackEval::create_cache_track_from_cluster()
        ++iter)
   {
     SvtxTrack* track = iter->second;
-
     // loop over all clusters
     for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
          iter != track->end_cluster_keys();
          ++iter)
     {
       TrkrDefs::cluskey candidate_key = *iter;
-
+      // unsigned int cluster_layer = TrkrDefs::getLayer(candidate_key);
       //      if (_strict)
       //      {
       //        assert(candidate_key);
@@ -596,7 +595,6 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
        ++iter)
   {
     SvtxTrack* candidate = *iter;
-
     if (candidate->get_quality() < best_quality)
     {
       best_quality = candidate->get_quality();
@@ -605,7 +603,6 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
   }
 
   if (_do_cache) _cache_best_track_from_cluster.insert(make_pair(cluster_key, best_track));
-
   return best_track;
 }
 

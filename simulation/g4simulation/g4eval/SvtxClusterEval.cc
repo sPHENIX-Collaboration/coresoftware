@@ -11,6 +11,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -23,6 +24,7 @@
 #include <iostream>                          // for operator<<, basic_ostream
 #include <map>
 #include <set>
+#include <TVector3.h>
 
 using namespace std;
 
@@ -46,7 +48,7 @@ SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   , _cache_best_cluster_from_g4hit()
   , _cache_get_energy_contribution_g4particle()
   , _cache_get_energy_contribution_g4hit()
-  ,_cache_reco_cluster_from_truth_cluster()
+  , _cache_reco_cluster_from_truth_cluster()
 {
   get_node_pointers(topNode);
 }
@@ -76,7 +78,7 @@ void SvtxClusterEval::next_event(PHCompositeNode* topNode)
   _cache_best_cluster_from_g4hit.clear();
   _cache_get_energy_contribution_g4particle.clear();
   _cache_get_energy_contribution_g4hit.clear();
-  
+  _cache_best_cluster_from_gtrackid_layer.clear();
   _clusters_per_layer.clear();
   //  _g4hits_per_layer.clear();
   _hiteval.next_event(topNode);
@@ -413,6 +415,266 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster_key, truth_hits));
 
   return truth_hits;
+}
+
+PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
+{
+  if (!has_node_pointers())
+    {
+      ++_errors;
+      return nullptr;
+    }
+  
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return std::set<PHG4Hit*>();
+//    }
+  /*
+  if (_do_cache)
+    {
+      std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> >::iterator iter =
+        _cache_all_truth_hits.find(cluster_key);
+      if (iter != _cache_all_truth_hits.end())
+	{
+	  return iter->second;
+	}
+    }
+  */
+  TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
+  TVector3 cvec(cluster->getX(), cluster->getY(), cluster->getZ());
+  unsigned int layer = TrkrDefs::getLayer(cluster_key);
+  std::set<PHG4Hit*> truth_hits;
+
+  std::multimap<PHG4HitDefs::keytype,TrkrDefs::hitkey> g4keyperhit;
+  std::vector<PHG4HitDefs::keytype> g4hitkeys;
+  // get all truth hits for this cluster
+  //_cluster_hit_map->identify();
+  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
+
+  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+  for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+    {
+      TrkrDefs::hitkey hitkey = clushititer->second;
+      // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
+
+      // get all of the g4hits for this hitkey
+      std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
+      _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+      for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
+	{
+	  // extract the g4 hit key here and add the hits to the set
+	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+	  if(_verbosity > 2)
+	    cout << " g4key:  " <<  g4hitkey << " layer: " << layer << endl;
+	  TrkrDefs::hitkey hitkey =  htiter->second.first;
+	  /*	  if(layer>=7){
+	    PHG4Hit *match_g4hit = _g4hits_tpc->findHit(g4hitkey);
+	    if(layer != match_g4hit->get_layer() ) continue;
+	    }
+	  */
+	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,hitkey));
+	  std::vector<PHG4HitDefs::keytype>::iterator itg4keys = find(g4hitkeys.begin(),g4hitkeys.end(),g4hitkey);
+	  if(itg4keys==g4hitkeys.end()) g4hitkeys.push_back(g4hitkey);
+	} // end loop over g4hits associated with hitsetkey and hitkey
+    } // end loop over hits associated with cluskey  
+
+  //  if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster_key, truth_hits));
+  PHG4HitDefs::keytype max_key = 0;
+  unsigned int n_max = 0;
+
+  if(g4hitkeys.size()==1 ){
+    std::vector<PHG4HitDefs::keytype>::iterator it = g4hitkeys.begin();
+    max_key = *it;
+  }else{
+    for(std::vector<PHG4HitDefs::keytype>::iterator it = g4hitkeys.begin(); it != g4hitkeys.end(); ++it){
+      unsigned int ng4hit = g4keyperhit.count(*it);
+      PHG4Hit * this_g4hit = _g4hits_tpc->findHit(*it);
+      
+      if(layer >= 7 ){ //in tpc
+	if(this_g4hit!=NULL){
+	  unsigned int glayer = this_g4hit->get_layer();
+	  if(layer != glayer) continue;
+	  
+	  TVector3 vec(this_g4hit->get_avg_x(), this_g4hit->get_avg_y(), this_g4hit->get_avg_z());
+	  //cout << "layer: " << layer << " (" << glayer << ") " << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << *it << endl; //<< " keyrec: "<< *it.second << endl;
+	}
+	/*else{
+	  cout << "g4hit == NULL " << endl; 
+	}
+	*/
+      }
+      if(ng4hit>n_max){
+	max_key = *it;
+	n_max = ng4hit;
+      }
+      
+    }
+  }
+
+  PHG4Hit * g4hit = nullptr;
+  unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
+  switch( trkrid )
+    {
+    case TrkrDefs::tpcId: g4hit        = _g4hits_tpc->findHit(max_key); break;
+    case TrkrDefs::inttId: g4hit       = _g4hits_intt->findHit(max_key); break;
+    case TrkrDefs::mvtxId: g4hit       = _g4hits_mvtx->findHit(max_key); break;
+    case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(max_key); break;
+    default: break;
+    }
+  if( g4hit ) truth_hits.insert(g4hit);	 
+
+  return g4hit;
+}
+
+std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluskey cluster_key)
+{
+  if (!has_node_pointers())
+    {
+      ++_errors;
+      return make_pair(0,0);
+    }
+  
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return std::set<PHG4Hit*>();
+//    }
+  /*
+  if (_do_cache)
+    {
+      std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> >::iterator iter =
+        _cache_all_truth_hits.find(cluster_key);
+      if (iter != _cache_all_truth_hits.end())
+	{
+	  return iter->second;
+	}
+    }
+  */
+
+  std::pair<int, int> out_pair;
+  out_pair.first = 0;
+  out_pair.second = -1;
+
+  TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
+  TVector3 cvec(cluster->getX(), cluster->getY(), cluster->getZ());
+  unsigned int layer = TrkrDefs::getLayer(cluster_key);
+
+  std::multimap<PHG4HitDefs::keytype,TrkrDefs::hitkey> g4keyperhit;
+  std::vector<PHG4HitDefs::keytype> g4hitkeys;
+  // get all truth hits for this cluster
+  //_cluster_hit_map->identify();
+  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
+
+  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+  for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+    {
+      TrkrDefs::hitkey hitkey = clushititer->second;
+      // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
+
+      // get all of the g4hits for this hitkey
+      std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
+      _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+      for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
+	{
+	  // extract the g4 hit key here and add the hits to the set
+	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+	  if(_verbosity > 2)
+	    cout << " g4key:  " <<  g4hitkey << " layer: " << layer << endl;
+	  TrkrDefs::hitkey hitkey =  htiter->second.first;
+	  /*	  if(layer>=7){
+	    PHG4Hit *match_g4hit = _g4hits_tpc->findHit(g4hitkey);
+	    if(layer != match_g4hit->get_layer() ) continue;
+	    }
+	  */
+	  g4keyperhit.insert(std::pair<PHG4HitDefs::keytype,TrkrDefs::hitkey>(g4hitkey,hitkey));
+	  std::vector<PHG4HitDefs::keytype>::iterator itg4keys = find(g4hitkeys.begin(),g4hitkeys.end(),g4hitkey);
+	  if(itg4keys==g4hitkeys.end()) g4hitkeys.push_back(g4hitkey);
+	} // end loop over g4hits associated with hitsetkey and hitkey
+    } // end loop over hits associated with cluskey  
+
+  PHG4HitDefs::keytype max_key = 0;
+  unsigned int n_max = 0;
+  if(_verbosity > 2)
+    cout << " n matches found: " << g4hitkeys.size() << " phi: " << cvec.Phi() << " z: " << cvec.Z() << " ckey: " << cluster_key << endl;
+
+  if(g4hitkeys.size()==1 ){
+    std::vector<PHG4HitDefs::keytype>::iterator it = g4hitkeys.begin();
+    max_key = *it;
+  }else{
+    for(std::vector<PHG4HitDefs::keytype>::iterator it = g4hitkeys.begin(); it != g4hitkeys.end(); ++it){
+      unsigned int ng4hit = g4keyperhit.count(*it);
+      PHG4Hit * this_g4hit = _g4hits_tpc->findHit(*it);
+      
+      
+      if(layer >= 7 ){ //in tpc
+	if(this_g4hit!=NULL){
+	  unsigned int glayer = this_g4hit->get_layer();
+	  //  if(layer != glayer) continue;
+	    
+	  TVector3 vec(this_g4hit->get_avg_x(), this_g4hit->get_avg_y(), this_g4hit->get_avg_z());
+	  if(_verbosity > 2)
+	    cout << "layer: " << layer << " (" << glayer << ") " << " gtrackID: " << this_g4hit->get_trkid() << " novlp: " << ng4hit << " phi: " << vec.Phi() << " z: " << this_g4hit->get_avg_z() << " r: " << vec.Perp() << " keyg4: " << *it << " cz: " << cluster->getZ() << endl; //<< " keyrec: "<< *it.second << endl;
+	}
+      }
+      if(ng4hit>n_max){
+	max_key = *it;
+	n_max = ng4hit;
+      }
+      
+    }
+  }
+  if(_verbosity > 2)
+    cout << "found in layer: " << layer << " n_max: " << n_max << " max_key: " << max_key << " ckey: " << cluster_key << endl;  
+  if(max_key !=0){
+    PHG4Hit * g4hit = nullptr;
+    unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
+    switch( trkrid )
+    {
+    case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(max_key); break;
+    case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(max_key); break;
+    case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(max_key); break;
+    case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(max_key); break;
+    default: break;
+    }
+    
+    //check if we on a looper
+    PHG4Particle* g4particle = _truthinfo->GetParticle(g4hit->get_trkid());
+
+    PHG4VtxPoint* vtx = _truthinfo->GetVtx(g4particle->get_vtx_id());
+    float vtx_z = vtx->get_z();
+    float gpx = g4particle->get_px();
+    float gpy = g4particle->get_py();
+    float gpz = g4particle->get_pz();
+    float gpeta = NAN;
+    
+    TVector3 gv(gpx, gpy, gpz);
+    gpeta = gv.Eta();
+    TVector3 this_vec( g4hit->get_avg_x() ,
+		       g4hit->get_avg_y() ,
+		       g4hit->get_avg_z() - vtx_z);
+    double deta = TMath::Abs(gpeta - this_vec.Eta());
+    
+    int is_loop = 0;
+    
+    if(layer >= 7){
+      //	    cout << " in tpc " << endl;
+      if(deta>0.1) is_loop = 1;
+    }
+    
+    out_pair.first = g4hit->get_trkid();
+    if(!is_loop)
+      out_pair.second = layer;
+  }
+  return out_pair;
 }
 
 PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
@@ -771,6 +1033,66 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
   }
       
    return clusters;
+}
+
+TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
+{
+   TrkrDefs::cluskey val =0;
+  if (!has_node_pointers())
+  {
+    ++_errors;
+    return  val;
+  }
+
+  /*  if (_strict)
+  {
+    assert(truthhit);
+  }
+  else if (!truthhit)
+  {
+    ++_errors;
+    return val;
+  }
+  */
+  // one time, fill cache of g4hit/cluster pairs
+  if(_cache_best_cluster_from_gtrackid_layer.size() == 0){
+    // get all reco clusters
+    // cout << "cache size ==0" << endl;
+    TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();      
+    
+    if(_verbosity > 1) 
+      cout << "all_clusters: found # " << std::distance(all_clusters.first, all_clusters.second) << endl;
+    // loop over clusters and get all contributing hits
+    for (TrkrClusterContainer::ConstIterator iter = all_clusters.first; iter != all_clusters.second; ++iter){
+      TrkrDefs::cluskey cluster_key = iter->first;
+      int layer = TrkrDefs::getLayer(cluster_key);
+      if(layer<0) continue;
+      // TrkrCluster *clus = iter->second;
+      
+      std::pair<int, int> gid_lay = gtrackid_and_layer_by_nhit(cluster_key);
+      //      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
+      //      it_exists = 
+      if(_cache_best_cluster_from_gtrackid_layer.count(gid_lay)==0){
+	if(gid_lay.second >=0)
+	  _cache_best_cluster_from_gtrackid_layer.insert(make_pair(gid_lay, cluster_key));
+      }
+      else
+	if(_verbosity > 2){ cout <<  "found doublematch" << endl;
+	  cout << "ckey: " << cluster_key << " gtrackID: " << gid_lay.first << " layer: " << gid_lay.second << endl; 
+	}
+    }
+  }
+  
+  // get the clusters
+  TrkrDefs::cluskey best_cluster = 0;
+  //  PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
+
+  std::map<std::pair<int, int>, TrkrDefs::cluskey>::iterator iter = _cache_best_cluster_from_gtrackid_layer.find(make_pair(gid,layer));
+  if (iter != _cache_best_cluster_from_gtrackid_layer.end())
+    {
+      return iter->second;
+    }
+  return best_cluster;
 }
 
 TrkrDefs::cluskey SvtxClusterEval::best_cluster_from(PHG4Hit* truthhit)

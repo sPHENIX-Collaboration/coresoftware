@@ -38,6 +38,7 @@
 #include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
+#include <algorithm>
 #include <assert.h>
 #include <map>
 
@@ -51,7 +52,7 @@ std::map<std::string, particle_pair> particleMasses_evtReco = kfp_particleList_e
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
   : m_has_intermediates(false)
-  , m_num_tracks(2)
+  //, m_num_tracks(2)
   , m_daughter_name_evt{"pion", "pion", "pion", "pion"}
   , m_daughter_charge_evt{1, -1, 1, -1}
   , m_intermediate_charge{1, -1, 1, -1}
@@ -173,12 +174,23 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
             std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
-            for (int m = 0; m < m_num_intermediate_states; ++m)
+            for (int m = 0; m < num_tracks_used_by_intermediates; ++m)
             {
               int trackID_to_remove = finalTracks[m].Id();
+              int trackElement_to_remove = -1;
+
+              auto it = std::find_if(daughterParticlesAdv.begin(), daughterParticlesAdv.end(), 
+                                     [&trackID_to_remove](const KFParticle& obj)
+                                     {return obj.Id() == trackID_to_remove;});
+
+              if (it != daughterParticlesAdv.end())
+              {
+                trackElement_to_remove = std::distance(daughterParticlesAdv.begin(), it);
+              }
+
               goodTrackIndexAdv_withoutIntermediates.erase(remove(goodTrackIndexAdv_withoutIntermediates.begin(),
-                                                               goodTrackIndexAdv_withoutIntermediates.end(), trackID_to_remove),
-                                                         goodTrackIndexAdv_withoutIntermediates.end());
+                                                           goodTrackIndexAdv_withoutIntermediates.end(), trackElement_to_remove),
+                                                           goodTrackIndexAdv_withoutIntermediates.end());
             }
 
             float required_unique_vertexID = 0;
@@ -225,7 +237,20 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                     if (m_constrain_to_vertex) goodVertex.push_back(primaryVerticesAdv[i_pv]);
                     for (int k = 0; k < m_num_intermediate_states; ++k) goodIntermediates[k].push_back(motherDecayProducts[k]);
                     for (int k = 0; k < num_tracks_used_by_intermediates; ++k) goodDaughters[k].push_back(finalTracks[k]);
-                    for (int k = 0; k < num_remaining_tracks; ++k) goodDaughters[k + num_tracks_used_by_intermediates].push_back(motherDecayProducts[k + m_num_intermediate_states]);
+                    for (int k = 0; k < num_remaining_tracks; ++k)
+                    { //Need to deal with track mass and PID assignment for extra tracks
+                      int trackArrayID = k + m_num_intermediate_states;
+                      KFParticle slowTrack;
+                      slowTrack.Create(motherDecayProducts[trackArrayID].Parameters(),
+                                       motherDecayProducts[trackArrayID].CovarianceMatrix(),
+                                       (Int_t) motherDecayProducts[trackArrayID].GetQ(),
+                                       particleMasses_evtReco.find(uniqueCombinations[n_names][trackArrayID].c_str())->second.second);
+                      slowTrack.SetId(motherDecayProducts[trackArrayID].Id());
+                      slowTrack.SetPDG(motherDecayProducts[trackArrayID].GetQ() * particleMasses_evtReco.find(uniqueCombinations[n_names][trackArrayID].c_str())->second.first);
+                      //goodDaughters[trackArrayID].push_back(slowTrack);
+                      goodDaughters[k + num_tracks_used_by_intermediates].push_back(slowTrack);
+//goodDaughters[k + num_tracks_used_by_intermediates].push_back(motherDecayProducts[k + m_num_intermediate_states]);
+                    }
                   }
                 }
               }

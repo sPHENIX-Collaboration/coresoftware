@@ -1,4 +1,5 @@
 #include "PHActsInitialVertexFinder.h"
+#include "ActsTransformations.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -74,6 +75,10 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 
   fillVertexMap(vertices, keyMap);
 
+  /// Need to check that silicon stubs which may have been
+  /// skipped over still have a vertex association
+  checkTrackVertexAssociation();
+
   for(auto track : trackPointers)
     {
       delete track;
@@ -103,6 +108,38 @@ int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHActsInitialVertexFinder::checkTrackVertexAssociation()
+{
+  
+  for(auto& [trackKey, track] : *m_trackMap)
+    {
+      /// If the track wasn't already given a vertex ID, it wasn't 
+      /// included in the initial vertex finding due to Acts not liking
+      /// tracks with large transverse position. So find the closest
+      /// z vertex to it and assign it
+      if(track->get_vertex_id() != UINT_MAX)
+	continue;
+
+      const auto trackZ = track->get_z();
+      
+      double closestVertZ = 9999;
+      int vertId = -1;
+      for(auto& [vertexKey, vertex] : *m_vertexMap)
+	{
+	  double dz = fabs(trackZ - vertex->get_z());
+
+	  if(dz < closestVertZ) 
+	    {
+	      vertId = vertexKey;
+	      closestVertZ = dz;
+	    }
+
+	}
+      track->set_vertex_id(vertId);	
+
+    }
+
+}
 void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
@@ -113,6 +150,9 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
   if(vertices.size() == 0)
     {
       createDummyVertex();
+      if(Verbosity() > 1)
+	std::cout << "No vertices found. Adding a dummy vertex"
+		  << std::endl;
       return;
     }
     
@@ -161,7 +201,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 	  /// Give the track the appropriate vertex id
 	  const auto svtxTrack = m_trackMap->find(trackKey)->second;
 	  
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 3)
 	    {   
 	      svtxTrack->identify();
 	      std::cout << "Updating track key " << trackKey << " with vertex "
@@ -233,7 +273,6 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       using Stepper = Acts::EigenStepper<MagneticField>;
       using Propagator = Acts::Propagator<Stepper>;
-      using PropagatorOptions = Acts::PropagatorOptions<>;
       using TrackParameters = Acts::BoundTrackParameters;
       using Linearizer = Acts::HelicalTrackLinearizer<Propagator>;
       using VertexFitter = 
@@ -261,6 +300,14 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       /// Setup vertex finder now
       typename VertexFitter::Config vertexFitterConfig;
+
+      /// Vertex fitter seems to have no performance difference when
+      /// iterating once vs. default of 5 times. Additionally, iterating
+      /// more than once causes vertices with low numbers of tracks to
+      /// fail fitting, causing an error to be thrown and 0 vertices 
+      /// returned
+      vertexFitterConfig.maxIterations = 1;
+
       VertexFitter vertexFitter(std::move(vertexFitterConfig));
       
       typename Linearizer::Config linearizerConfig(bField, propagator);
@@ -337,7 +384,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
   for(auto& [key,track] : *m_trackMap)
     {
-      if(Verbosity() > 1)
+      if(Verbosity() > 3)
 	{
 	  std::cout << "Adding track seed to vertex finder " 
 		    << std::endl;
@@ -358,13 +405,21 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
+      if(m_initial)
+	cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	       0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	       0., 0., 0.05, 0., 0., 0.,
+	       0., 0., 0., 0.05, 0., 0.,
+	       0., 0., 0., 0., 0.1 , 0.,
+	       0., 0., 0., 0., 0., 1.;
       
-      cov << 100 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.1 , 0.,
-           0., 0., 0., 0., 0., 1.;
+      else 
+	{
+	  ActsTransformations transform;
+	  transform.setVerbosity(Verbosity());
+	  cov = transform.rotateSvtxTrackCovToActs(track,
+						   m_tGeometry->geoContext);
+	}
 
       /// Make a dummy perigeee surface to bound the track to
       auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -389,10 +444,11 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_svtxTrackMapName.c_str());
   if(!m_trackMap)
     {
-      std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."
+      std::cout << PHWHERE << "No " << m_svtxTrackMapName.c_str() 
+		<< " on node tree, bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -434,13 +490,13 @@ int PHActsInitialVertexFinder::createNodes(PHCompositeNode *topNode)
   }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
+						  m_svtxVertexMapName.c_str());
   
   if(!m_vertexMap)
     {
       m_vertexMap = new SvtxVertexMap_v1;
       PHIODataNode<PHObject>* vertexNode = new PHIODataNode<PHObject>( 
-              m_vertexMap, "SvtxVertexMap","PHObject");
+		   m_vertexMap, m_svtxVertexMapName.c_str(),"PHObject");
 
       svtxNode->addNode(vertexNode);
 

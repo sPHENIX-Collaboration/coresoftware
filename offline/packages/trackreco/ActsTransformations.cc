@@ -8,7 +8,6 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
 				Acts::GeometryContext geoCtxt)
 {
-  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
 
   for(int i = 0; i < 6; ++i)
@@ -32,7 +31,6 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   const double px = track->get_px();
   const double py = track->get_py();
   const double pz = track->get_pz();
-  const int charge = track->get_charge();
   const double p = sqrt(px*px + py*py + pz*pz);
   
   const double uPx = px / p;
@@ -46,43 +44,50 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   const double cosPhi = uPx * invSinTheta; // equivalent to x/r
   const double sinPhi = uPy * invSinTheta; // equivalent to y/r
     
-  const double x = track->get_x();
-  const double y = track->get_y();
-  const double z = track->get_z();
-  const double r = sqrt(x*x + y*y + z*z);
+  /// First we rotate to (x,y,z,time,Tx,Ty,Tz,q/p) to take advantage of the
+  /// already created Acts rotation matrix from this basis into the Acts local basis
+  /// We basically go backwards from rotateActsCovToSvtxTrack to get the Acts cov 
+  /// from the SvtxTrack cov
+
+  /// This is going from Acts->Svtx, so we will take the transpose
+  Acts::ActsMatrixD<6,8> sphenixRot;
+  sphenixRot.setZero();
+  /// Make the xyz transform unity
+  sphenixRot(0,0) = 1;
+  sphenixRot(1,1) = 1;
+  sphenixRot(2,2) = 1;
+  sphenixRot(3,4) = 1./p;
+  sphenixRot(4,5) = 1./p;
+  sphenixRot(5,6) = 1./p;
+  sphenixRot(3,7) = uPx * p * p;
+  sphenixRot(4,7) = uPy * p * p;
+  sphenixRot(5,7) = uPz * p * p;
+
+  auto rotatedMatrix 
+    = sphenixRot.transpose() * svtxCovariance * sphenixRot;
   
-  const double posCosTheta = z / r;
-  const double posSinTheta = sqrt(x*x + y*y) / r;
-  const double posInvSinTheta = 1. / posSinTheta;
-  const double posCosPhi = x * posInvSinTheta / r;
-  const double posSinPhi = y * posInvSinTheta / r;
+  /// Now take the 8x8 matrix and rotate it to Acts basis
+  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
+  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
+  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
+  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
+  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
+  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
+  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
+  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
+  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
+  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
 
-  /// Position rotation to Acts loc0 and loc1, which are the local points
-  /// on a surface centered at the (x,y,z) global position with normal
-  /// vector in the direction of the unit momentum vector
-  rotation(0,0) = - posSinPhi;
-  rotation(0,1) =   posCosPhi;
-  rotation(1,0) =   posCosPhi * posCosTheta;
-  rotation(1,1) = - posSinPhi * posCosTheta;
-  rotation(1,2) = - posSinTheta;
+  /// Since we are using the local to global jacobian we do R^TCR instead of 
+  /// RCR^T
+  Acts::BoundSymMatrix actsLocalCov = 
+  jacobianLocalToGlobal.transpose() * rotatedMatrix * jacobianLocalToGlobal;
 
-  // Directional and momentum parameters for curvilinear
-  rotation(2, 3) = - p * sinPhi * sinTheta;
-  rotation(2, 4) =   p * cosPhi * sinTheta;
-  rotation(3, 3) =   p * cosPhi * cosTheta;
-  rotation(3, 4) =   p * sinPhi * cosTheta;
-  rotation(3, 5) = - p * sinTheta;
-
-  ///q/p rotaton
-  rotation(4,3) = -charge * px / pow(p,0.5);
-  rotation(4,4) = -charge * py / pow(p,0.5);
-  rotation(4,5) = -charge * pz / pow(p,0.5);
-
-  /// time is left as 0
-  printMatrix("rotation is : ",rotation);
-  Acts::BoundSymMatrix matrix = rotation * svtxCovariance * rotation.transpose();
-  printMatrix("Rotated is : ",matrix);
-  return matrix;
+  printMatrix("Rotated to Acts local cov : ",actsLocalCov);
+  return actsLocalCov;
 
 }
 

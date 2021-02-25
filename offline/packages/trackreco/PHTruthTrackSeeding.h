@@ -17,6 +17,7 @@ class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
+class SvtxClusterEval;
 
 //class SvtxHitMap;
 //class PHG4CellContainer;
@@ -83,10 +84,11 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 
   TrkrHitTruthAssoc* hittruthassoc = nullptr;
   TrkrClusterHitAssoc* clusterhitassoc = nullptr;
+  SvtxClusterEval* _clustereval;
 
   unsigned int _min_clusters_per_track = 3;
   unsigned int _min_layer = 0;
-  unsigned int _max_layer = 10000;
+  unsigned int _max_layer = 60;
 
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
