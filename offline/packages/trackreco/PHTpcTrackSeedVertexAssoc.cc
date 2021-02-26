@@ -51,28 +51,6 @@ PHTpcTrackSeedVertexAssoc::~PHTpcTrackSeedVertexAssoc()
 //____________________________________________________________________________..
 int PHTpcTrackSeedVertexAssoc::Setup(PHCompositeNode *topNode)
 {
-  // put these in the output file
-  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " 
-       << _par2 << " Search windows: phi " << _phi_search_win << " eta " 
-       << _eta_search_win << endl;
-
-  // corrects the PHTpcTracker phi bias
-  fdphi = new TF1("f1", "[0] + [1]/x^[2]");
-  fdphi->SetParameter(0, _par0);
-  fdphi->SetParameter(1, _par1);
-  fdphi->SetParameter(2, _par2);
-
-  // corrects the space charge distortion phi bias
-  if(!_is_ca_seeder)
-    {
-      // PHTpcTracker correction is opposite in sign
-      // and different in magnitude - why?
-      _parsc0 *= -1.0 * 0.7;
-      _parsc1 *= -1.0 * 0.7;
-    }
-  fscdphi = new TF1("f2","[0] + [1]*x^2");
-  fscdphi->SetParameter(0, _parsc0 * _collision_rate / _reference_collision_rate);
-  fscdphi->SetParameter(1, _parsc1 * _collision_rate / _reference_collision_rate);
 
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -89,26 +67,18 @@ int PHTpcTrackSeedVertexAssoc::Process()
   // _track_map contains the TPC seed track stubs
   // We want to associate these TPC track seeds with a collision vertex
   // Then we add the collision vertex position as the track seed position
-
   // All we need is to project the TPC clusters in Z to the beam line.
 
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
-  /*
- // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
-  */
 
   // loop over the TPC track seeds
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
        ++phtrk_iter)
     {
-      /*
-      // we may add tracks to the map, so we stop at the last original track
-      if(phtrk_iter->first >= original_track_map_lastkey)  break;
-      */      
+
       _tracklet_tpc = phtrk_iter->second;
       
       if (Verbosity() >= 1)
@@ -156,16 +126,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough clusters " << std::endl; 
 	  continue;  // skip to the next TPC tracklet
 	}
-
-      /*
-      // fit a circle to the clusters
-      double R, X0, Y0;
-      CircleFitByTaubin(clusters, R, X0, Y0);
-      if(Verbosity() > 10) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
-
-      // toss tracks for which the fitted circle could not have come from the vertex
-      if(R < 40.0) continue;
-      */
 
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
@@ -343,14 +303,7 @@ int  PHTpcTrackSeedVertexAssoc::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get additional objects off the Node Tree
   //---------------------------------
-  /*
-  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode,  "SvtxSiliconTrackMap");
-  if (!_track_map_silicon)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -363,8 +316,6 @@ void  PHTpcTrackSeedVertexAssoc::line_fit(std::vector<std::pair<double,double>> 
    double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
    for (unsigned int i=0; i<points.size(); ++i)
     {
-      //double z = clusters[i]->getZ();
-      //double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
       double r = points[i].first;
       double z = points[i].second;
 
