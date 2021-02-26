@@ -50,6 +50,8 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , _tower_dx(100 * mm)
   , _tower_dy(100 * mm)
   , _tower_dz(1000.0 * mm)
+  , _wls_dw(3 * mm)
+  , _support_dw(2 * mm)
   , _materialScintillator("G4_POLYSTYRENE")
   , _materialAbsorber("G4_Fe")
   , _active(1)
@@ -61,7 +63,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , _mapping_tower_file("")
 {
 }
-
 //_______________________________________________________________________
 int PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume* volume) const
 {
@@ -76,6 +77,14 @@ int PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume* volume) const
     }
     /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
     else if (volume->GetName().find("absorber") != string::npos)
+    {
+      if (_absorberactive)
+        return -1;
+      else
+        return 0;
+    }
+    /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
+    else if (volume->GetName().find("wls") != string::npos)
     {
       if (_absorberactive)
         return -1;
@@ -168,24 +177,36 @@ PHG4ForwardHcalDetector::ConstructTower()
                                                             0, 0, 0);
 
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
-  G4int nlayers = 30;
-  G4double thickness_layer = _tower_dz / (float) nlayers;
-  G4double thickness_absorber = thickness_layer / 5.0 * 4.0;      // 4/5th absorber
-  G4double thickness_scintillator = thickness_layer / 5.0 * 1.0;  // 1/5th scintillator
+  // based on STAR forward upgrade design: https://drupal.star.bnl.gov/STAR/files/ForwardUpgrade.v20.pdf
+  G4double thickness_absorber = 20 * mm;
+  G4double thickness_scintillator = 2.31 * mm;
+  G4int nlayers = _tower_dz / (thickness_absorber + thickness_scintillator);
 
   G4VSolid* solid_absorber = new G4Box(G4String("single_plate_absorber_solid"),
-                                       _tower_dx / 2.0,
-                                       _tower_dy / 2.0,
-                                       thickness_absorber / 2.0);
+                                      (_tower_dx - _wls_dw) / 2.0,
+                                      (_tower_dy - _support_dw) / 2.0,
+                                      thickness_absorber / 2.0);
 
   G4VSolid* solid_scintillator = new G4Box(G4String("single_plate_scintillator"),
-                                           _tower_dx / 2.0,
-                                           _tower_dy / 2.0,
-                                           thickness_scintillator / 2.0);
+                                          (_tower_dx - _wls_dw) / 2.0,
+                                          (_tower_dy - _support_dw) / 2.0,
+                                          thickness_scintillator / 2.0);
+
+  G4VSolid* solid_WLS_plate = new G4Box(G4String("single_plate_wls"),
+                                          (_wls_dw) / 2.0,
+                                          (_tower_dy - _support_dw) / 2.0,
+                                          _tower_dz / 2.0);
+
+  G4VSolid* solid_support_plate = new G4Box(G4String("single_plate_support"),
+                                          (_tower_dx) / 2.0,
+                                          (_support_dw) / 2.0,
+                                          _tower_dz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
   G4Material* material_scintillator = G4Material::GetMaterial(_materialScintillator.c_str());
   G4Material* material_absorber = G4Material::GetMaterial(_materialAbsorber.c_str());
+  G4Material* material_wls = G4Material::GetMaterial(_materialScintillator.c_str());
+  G4Material* material_support = G4Material::GetMaterial("G4_Fe");
 
   G4LogicalVolume* logic_absorber = new G4LogicalVolume(solid_absorber,
                                                         material_absorber,
@@ -197,12 +218,24 @@ PHG4ForwardHcalDetector::ConstructTower()
                                                      "hHcal_scintillator_plate_logic",
                                                      0, 0, 0);
 
+  G4LogicalVolume* logic_wls = new G4LogicalVolume(solid_WLS_plate,
+                                                     material_wls,
+                                                     "hHcal_wls_plate_logic",
+                                                     0, 0, 0);
+
+  G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
+                                                     material_support,
+                                                     "hHcal_support_plate_logic",
+                                                     0, 0, 0);
+
   m_DisplayAction->AddVolume(logic_absorber, "Absorber");
   m_DisplayAction->AddVolume(logic_scint, "Scintillator");
+  m_DisplayAction->AddVolume(logic_wls, "WLSplate");
+  m_DisplayAction->AddVolume(logic_support, "SupportPlate");
 
   /* place physical volumes for absorber and scintillator plates */
-  G4double xpos_i = 0;
-  G4double ypos_i = 0;
+  G4double xpos_i = - _wls_dw / 2.0;
+  G4double ypos_i = - _support_dw / 2.0;
   G4double zpos_i = (-1 * _tower_dz / 2.0) + thickness_absorber / 2.0;
 
   ostringstream name_absorber;
@@ -212,6 +245,14 @@ PHG4ForwardHcalDetector::ConstructTower()
   ostringstream name_scintillator;
   name_scintillator.str("");
   name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+
+  ostringstream name_wls;
+  name_wls.str("");
+  name_wls << _towerlogicnameprefix << "_single_plate_wls" << endl;
+
+  ostringstream name_support;
+  name_support.str("");
+  name_support << _towerlogicnameprefix << "_single_plate_support" << endl;
 
   for (int i = 1; i <= nlayers; i++)
   {
@@ -231,7 +272,17 @@ PHG4ForwardHcalDetector::ConstructTower()
 
     zpos_i += (thickness_absorber / 2. + thickness_scintillator / 2.);
   }
+  new G4PVPlacement(0, G4ThreeVector( 0, (_tower_dy/2)-_support_dw/2, 0),
+                    logic_support,
+                    name_support.str().c_str(),
+                    single_tower_logic,
+                    0, 0, OverlapCheck());
 
+  new G4PVPlacement(0, G4ThreeVector((_tower_dx/2)-_wls_dw/2, -_support_dw/2, 0),
+                    logic_wls,
+                    name_wls.str().c_str(),
+                    single_tower_logic,
+                    0, 0, OverlapCheck());
   m_DisplayAction->AddVolume(single_tower_logic, "SingleScintillator");
 
   if (Verbosity() > 0)
