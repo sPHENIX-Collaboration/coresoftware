@@ -49,7 +49,6 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   std::string _track_map_name_silicon;
 
   
-  SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
 
   unsigned int _min_tpc_layer = 7;
