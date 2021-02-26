@@ -122,58 +122,58 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _filename(filename)
   , _tfile(nullptr)
 {
-  _hits_layerID              = new int[_maxNHits];
-  _hits_x              = new float[_maxNHits];
-  _hits_y              = new float[_maxNHits];
-  _hits_z              = new float[_maxNHits];
-  _hits_t              = new float[_maxNHits];
+  _hits_layerID = new int[_maxNHits];
+  _hits_x = new float[_maxNHits];
+  _hits_y = new float[_maxNHits];
+  _hits_z = new float[_maxNHits];
+  _hits_t = new float[_maxNHits];
 
-  _tower_FHCAL_E            = new float[_maxNTowers];
-  _tower_FHCAL_iEta         = new int[_maxNTowers];
-  _tower_FHCAL_iPhi         = new int[_maxNTowers];
-  _tower_FHCAL_trueID       = new int[_maxNTowers];
+  _tower_FHCAL_E = new float[_maxNTowers];
+  _tower_FHCAL_iEta  = new int[_maxNTowers];
+  _tower_FHCAL_iPhi = new int[_maxNTowers];
+  _tower_FHCAL_trueID = new int[_maxNTowers];
 
-  _tower_FEMC_E             = new float[_maxNTowers];
-  _tower_FEMC_iEta          = new int[_maxNTowers];
-  _tower_FEMC_iPhi          = new int[_maxNTowers];
-  _tower_FEMC_trueID        = new int[_maxNTowers];
+  _tower_FEMC_E = new float[_maxNTowers];
+  _tower_FEMC_iEta = new int[_maxNTowers];
+  _tower_FEMC_iPhi = new int[_maxNTowers];
+  _tower_FEMC_trueID = new int[_maxNTowers];
 
-  _cluster_FHCAL_E            = new float[_maxNclusters];
-  _cluster_FHCAL_Eta         = new float[_maxNclusters];
-  _cluster_FHCAL_Phi         = new float[_maxNclusters];
-  _cluster_FHCAL_NTower         = new int[_maxNclusters];
-  _cluster_FHCAL_trueID       = new int[_maxNclusters];
+  _cluster_FHCAL_E = new float[_maxNclusters];
+  _cluster_FHCAL_Eta = new float[_maxNclusters];
+  _cluster_FHCAL_Phi = new float[_maxNclusters];
+  _cluster_FHCAL_NTower = new int[_maxNclusters];
+  _cluster_FHCAL_trueID = new int[_maxNclusters];
 
-  _cluster_FEMC_E             = new float[_maxNclusters];
-  _cluster_FEMC_Eta          = new float[_maxNclusters];
-  _cluster_FEMC_Phi          = new float[_maxNclusters];
-  _cluster_FEMC_NTower          = new int[_maxNclusters];
-  _cluster_FEMC_trueID        = new int[_maxNclusters];
+  _cluster_FEMC_E = new float[_maxNclusters];
+  _cluster_FEMC_Eta = new float[_maxNclusters];
+  _cluster_FEMC_Phi = new float[_maxNclusters];
+  _cluster_FEMC_NTower = new int[_maxNclusters];
+  _cluster_FEMC_trueID = new int[_maxNclusters];
 
-  _track_ID                 = new float[_maxNTracks];
-  _track_trueID             = new float[_maxNTracks];
-  _track_px                 = new float[_maxNTracks];
-  _track_py                 = new float[_maxNTracks];
-  _track_pz                 = new float[_maxNTracks];
+  _track_ID = new float[_maxNTracks];
+  _track_trueID = new float[_maxNTracks];
+  _track_px = new float[_maxNTracks];
+  _track_py= new float[_maxNTracks];
+  _track_pz = new float[_maxNTracks];
 
-  _track_ProjTrackID                 = new float[_maxNProjections];
-  _track_ProjLayer                 = new int[_maxNProjections];
-  _track_TLP_x                 = new float[_maxNProjections];
-  _track_TLP_y                 = new float[_maxNProjections];
-  _track_TLP_z                 = new float[_maxNProjections];
-  _track_TLP_t                 = new float[_maxNProjections];
-  _track_TLP_true_x                 = new float[_maxNProjections];
-  _track_TLP_true_y                 = new float[_maxNProjections];
-  _track_TLP_true_z                 = new float[_maxNProjections];
-  _track_TLP_true_t                 = new float[_maxNProjections];
+  _track_ProjTrackID = new float[_maxNProjections];
+  _track_ProjLayer = new int[_maxNProjections];
+  _track_TLP_x = new float[_maxNProjections];
+  _track_TLP_y = new float[_maxNProjections];
+  _track_TLP_z = new float[_maxNProjections];
+  _track_TLP_t = new float[_maxNProjections];
+  _track_TLP_true_x = new float[_maxNProjections];
+  _track_TLP_true_y = new float[_maxNProjections];
+  _track_TLP_true_z = new float[_maxNProjections];
+  _track_TLP_true_t = new float[_maxNProjections];
 
-  _mcpart_ID                = new float[_maxNMCPart];
-  _mcpart_ID_parent         = new float[_maxNMCPart];
-  _mcpart_PDG               = new float[_maxNMCPart];
-  _mcpart_E                 = new float[_maxNMCPart];
-  _mcpart_px                = new float[_maxNMCPart];
-  _mcpart_py                = new float[_maxNMCPart];
-  _mcpart_pz                = new float[_maxNMCPart];
+  _mcpart_ID = new float[_maxNMCPart];
+  _mcpart_ID_parent = new float[_maxNMCPart];
+  _mcpart_PDG = new float[_maxNMCPart];
+  _mcpart_E = new float[_maxNMCPart];
+  _mcpart_px = new float[_maxNMCPart];
+  _mcpart_py = new float[_maxNMCPart];
+  _mcpart_pz = new float[_maxNMCPart];
 }
 
 int EventEvaluator::Init(PHCompositeNode* topNode)
@@ -211,34 +211,34 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   _event_tree->Branch("track_TLP_true_t", _track_TLP_true_t, "track_TLP_true_t[nProjections]/F");
 
   // towers HCAL
-  _event_tree->Branch("tower_FHCAL_N",                &_nTowers_FHCAL,             "tower_FHCAL_N/I");
-  _event_tree->Branch("tower_FHCAL_E",                _tower_FHCAL_E,              "tower_FHCAL_E[tower_FHCAL_N]/F");
-  _event_tree->Branch("tower_FHCAL_iEta",             _tower_FHCAL_iEta,           "tower_FHCAL_iEta[tower_FHCAL_N]/I");
-  _event_tree->Branch("tower_FHCAL_iPhi",             _tower_FHCAL_iPhi,           "tower_FHCAL_iPhi[tower_FHCAL_N]/I");
-  _event_tree->Branch("tower_FHCAL_trueID",           _tower_FHCAL_trueID,         "tower_FHCAL_trueID[tower_FHCAL_N]/I");
+  _event_tree->Branch("tower_FHCAL_N", &_nTowers_FHCAL,"tower_FHCAL_N/I");
+  _event_tree->Branch("tower_FHCAL_E", _tower_FHCAL_E, "tower_FHCAL_E[tower_FHCAL_N]/F");
+  _event_tree->Branch("tower_FHCAL_iEta",_tower_FHCAL_iEta, "tower_FHCAL_iEta[tower_FHCAL_N]/I");
+  _event_tree->Branch("tower_FHCAL_iPhi",_tower_FHCAL_iPhi, "tower_FHCAL_iPhi[tower_FHCAL_N]/I");
+  _event_tree->Branch("tower_FHCAL_trueID", _tower_FHCAL_trueID, "tower_FHCAL_trueID[tower_FHCAL_N]/I");
 
   // towers EMC
-  _event_tree->Branch("tower_FEMC_N",                 &_nTowers_FEMC,             "tower_FEMC_N/I");
-  _event_tree->Branch("tower_FEMC_E",                 _tower_FEMC_E,              "tower_FEMC_E[tower_FEMC_N]/F");
-  _event_tree->Branch("tower_FEMC_iEta",              _tower_FEMC_iEta,           "tower_FEMC_iEta[tower_FEMC_N]/I");
-  _event_tree->Branch("tower_FEMC_iPhi",              _tower_FEMC_iPhi,           "tower_FEMC_iPhi[tower_FEMC_N]/I");
-  _event_tree->Branch("tower_FEMC_trueID",            _tower_FEMC_trueID,         "tower_FEMC_trueID[tower_FEMC_N]/I");
+  _event_tree->Branch("tower_FEMC_N",  &_nTowers_FEMC,"tower_FEMC_N/I");
+  _event_tree->Branch("tower_FEMC_E",  _tower_FEMC_E, "tower_FEMC_E[tower_FEMC_N]/F");
+  _event_tree->Branch("tower_FEMC_iEta", _tower_FEMC_iEta, "tower_FEMC_iEta[tower_FEMC_N]/I");
+  _event_tree->Branch("tower_FEMC_iPhi", _tower_FEMC_iPhi, "tower_FEMC_iPhi[tower_FEMC_N]/I");
+  _event_tree->Branch("tower_FEMC_trueID",  _tower_FEMC_trueID, "tower_FEMC_trueID[tower_FEMC_N]/I");
 
   // clusters HCAL
-  _event_tree->Branch("cluster_FHCAL_N",                &_nclusters_FHCAL,             "cluster_FHCAL_N/I");
-  _event_tree->Branch("cluster_FHCAL_E",                _cluster_FHCAL_E,              "cluster_FHCAL_E[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_Eta",             _cluster_FHCAL_Eta,           "cluster_FHCAL_Eta[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_Phi",             _cluster_FHCAL_Phi,           "cluster_FHCAL_Phi[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_NTower",             _cluster_FHCAL_NTower,           "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
-  _event_tree->Branch("cluster_FHCAL_trueID",           _cluster_FHCAL_trueID,         "cluster_FHCAL_trueID[cluster_FHCAL_N]/I");
+  _event_tree->Branch("cluster_FHCAL_N", &_nclusters_FHCAL,"cluster_FHCAL_N/I");
+  _event_tree->Branch("cluster_FHCAL_E", _cluster_FHCAL_E, "cluster_FHCAL_E[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Eta",_cluster_FHCAL_Eta, "cluster_FHCAL_Eta[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Phi",_cluster_FHCAL_Phi, "cluster_FHCAL_Phi[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_NTower",_cluster_FHCAL_NTower, "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
+  _event_tree->Branch("cluster_FHCAL_trueID", _cluster_FHCAL_trueID, "cluster_FHCAL_trueID[cluster_FHCAL_N]/I");
 
   // clusters EMC
-  _event_tree->Branch("cluster_FEMC_N",                 &_nclusters_FEMC,             "cluster_FEMC_N/I");
-  _event_tree->Branch("cluster_FEMC_E",                 _cluster_FEMC_E,              "cluster_FEMC_E[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_Eta",              _cluster_FEMC_Eta,           "cluster_FEMC_Eta[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_Phi",              _cluster_FEMC_Phi,           "cluster_FEMC_Phi[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_NTower",              _cluster_FEMC_NTower,           "cluster_FEMC_NTower[cluster_FEMC_N]/I");
-  _event_tree->Branch("cluster_FEMC_trueID",            _cluster_FEMC_trueID,         "cluster_FEMC_trueID[cluster_FEMC_N]/I");
+  _event_tree->Branch("cluster_FEMC_N",  &_nclusters_FEMC,"cluster_FEMC_N/I");
+  _event_tree->Branch("cluster_FEMC_E",  _cluster_FEMC_E, "cluster_FEMC_E[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Eta", _cluster_FEMC_Eta, "cluster_FEMC_Eta[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Phi", _cluster_FEMC_Phi, "cluster_FEMC_Phi[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_NTower", _cluster_FEMC_NTower, "cluster_FEMC_NTower[cluster_FEMC_N]/I");
+  _event_tree->Branch("cluster_FEMC_trueID",  _cluster_FEMC_trueID, "cluster_FEMC_trueID[cluster_FEMC_N]/I");
 
   // vertex
   _event_tree->Branch("vertex_x", &_vertex_x, "vertex_x/I");
