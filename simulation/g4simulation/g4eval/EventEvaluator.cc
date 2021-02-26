@@ -115,64 +115,65 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _mcpart_pz(0)
 
   , _reco_e_threshold(0.0)
-  , _caloevalstack(nullptr)
+  , _caloevalstackFHCAL(nullptr)
+  , _caloevalstackFEMC(nullptr)
   , _strict(false)
   , _event_tree(nullptr)
   , _filename(filename)
   , _tfile(nullptr)
 {
-  _hits_layerID = new int[_maxNHits];
-  _hits_x = new float[_maxNHits];
-  _hits_y = new float[_maxNHits];
-  _hits_z = new float[_maxNHits];
-  _hits_t = new float[_maxNHits];
+  _hits_layerID              = new int[_maxNHits];
+  _hits_x              = new float[_maxNHits];
+  _hits_y              = new float[_maxNHits];
+  _hits_z              = new float[_maxNHits];
+  _hits_t              = new float[_maxNHits];
 
-  _tower_FHCAL_E = new float[_maxNTowers];
-  _tower_FHCAL_iEta = new int[_maxNTowers];
-  _tower_FHCAL_iPhi = new int[_maxNTowers];
-  _tower_FHCAL_trueID = new float[_maxNTowers];
+  _tower_FHCAL_E            = new float[_maxNTowers];
+  _tower_FHCAL_iEta         = new int[_maxNTowers];
+  _tower_FHCAL_iPhi         = new int[_maxNTowers];
+  _tower_FHCAL_trueID       = new int[_maxNTowers];
 
-  _tower_FEMC_E = new float[_maxNTowers];
-  _tower_FEMC_iEta = new int[_maxNTowers];
-  _tower_FEMC_iPhi = new int[_maxNTowers];
-  _tower_FEMC_trueID = new float[_maxNTowers];
+  _tower_FEMC_E             = new float[_maxNTowers];
+  _tower_FEMC_iEta          = new int[_maxNTowers];
+  _tower_FEMC_iPhi          = new int[_maxNTowers];
+  _tower_FEMC_trueID        = new int[_maxNTowers];
 
-  _cluster_FHCAL_E = new float[_maxNclusters];
-  _cluster_FHCAL_Eta = new float[_maxNclusters];
-  _cluster_FHCAL_Phi = new float[_maxNclusters];
-  _cluster_FHCAL_NTower = new int[_maxNclusters];
-  _cluster_FHCAL_trueID = new float[_maxNclusters];
+  _cluster_FHCAL_E            = new float[_maxNclusters];
+  _cluster_FHCAL_Eta         = new float[_maxNclusters];
+  _cluster_FHCAL_Phi         = new float[_maxNclusters];
+  _cluster_FHCAL_NTower         = new int[_maxNclusters];
+  _cluster_FHCAL_trueID       = new int[_maxNclusters];
 
-  _cluster_FEMC_E = new float[_maxNclusters];
-  _cluster_FEMC_Eta = new float[_maxNclusters];
-  _cluster_FEMC_Phi = new float[_maxNclusters];
-  _cluster_FEMC_NTower = new int[_maxNclusters];
-  _cluster_FEMC_trueID = new float[_maxNclusters];
+  _cluster_FEMC_E             = new float[_maxNclusters];
+  _cluster_FEMC_Eta          = new float[_maxNclusters];
+  _cluster_FEMC_Phi          = new float[_maxNclusters];
+  _cluster_FEMC_NTower          = new int[_maxNclusters];
+  _cluster_FEMC_trueID        = new int[_maxNclusters];
 
-  _track_ID = new float[_maxNTracks];
-  _track_trueID = new float[_maxNTracks];
-  _track_px = new float[_maxNTracks];
-  _track_py = new float[_maxNTracks];
-  _track_pz = new float[_maxNTracks];
+  _track_ID                 = new float[_maxNTracks];
+  _track_trueID             = new float[_maxNTracks];
+  _track_px                 = new float[_maxNTracks];
+  _track_py                 = new float[_maxNTracks];
+  _track_pz                 = new float[_maxNTracks];
 
-  _track_ProjTrackID = new float[_maxNProjections];
-  _track_ProjLayer = new int[_maxNProjections];
-  _track_TLP_x = new float[_maxNProjections];
-  _track_TLP_y = new float[_maxNProjections];
-  _track_TLP_z = new float[_maxNProjections];
-  _track_TLP_t = new float[_maxNProjections];
-  _track_TLP_true_x = new float[_maxNProjections];
-  _track_TLP_true_y = new float[_maxNProjections];
-  _track_TLP_true_z = new float[_maxNProjections];
-  _track_TLP_true_t = new float[_maxNProjections];
+  _track_ProjTrackID                 = new float[_maxNProjections];
+  _track_ProjLayer                 = new int[_maxNProjections];
+  _track_TLP_x                 = new float[_maxNProjections];
+  _track_TLP_y                 = new float[_maxNProjections];
+  _track_TLP_z                 = new float[_maxNProjections];
+  _track_TLP_t                 = new float[_maxNProjections];
+  _track_TLP_true_x                 = new float[_maxNProjections];
+  _track_TLP_true_y                 = new float[_maxNProjections];
+  _track_TLP_true_z                 = new float[_maxNProjections];
+  _track_TLP_true_t                 = new float[_maxNProjections];
 
-  _mcpart_ID = new float[_maxNMCPart];
-  _mcpart_ID_parent = new float[_maxNMCPart];
-  _mcpart_PDG = new float[_maxNMCPart];
-  _mcpart_E = new float[_maxNMCPart];
-  _mcpart_px = new float[_maxNMCPart];
-  _mcpart_py = new float[_maxNMCPart];
-  _mcpart_pz = new float[_maxNMCPart];
+  _mcpart_ID                = new float[_maxNMCPart];
+  _mcpart_ID_parent         = new float[_maxNMCPart];
+  _mcpart_PDG               = new float[_maxNMCPart];
+  _mcpart_E                 = new float[_maxNMCPart];
+  _mcpart_px                = new float[_maxNMCPart];
+  _mcpart_py                = new float[_maxNMCPart];
+  _mcpart_pz                = new float[_maxNMCPart];
 }
 
 int EventEvaluator::Init(PHCompositeNode* topNode)
@@ -210,34 +211,34 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   _event_tree->Branch("track_TLP_true_t", _track_TLP_true_t, "track_TLP_true_t[nProjections]/F");
 
   // towers HCAL
-  _event_tree->Branch("tower_FHCAL_N", &_nTowers_FHCAL, "tower_FHCAL_N/I");
-  _event_tree->Branch("tower_FHCAL_E", _tower_FHCAL_E, "tower_FHCAL_E[tower_FHCAL_N]/F");
-  _event_tree->Branch("tower_FHCAL_iEta", _tower_FHCAL_iEta, "tower_FHCAL_iEta[tower_FHCAL_N]/I");
-  _event_tree->Branch("tower_FHCAL_iPhi", _tower_FHCAL_iPhi, "tower_FHCAL_iPhi[tower_FHCAL_N]/I");
-  _event_tree->Branch("tower_FHCAL_trueID", _tower_FHCAL_trueID, "tower_FHCAL_trueID[tower_FHCAL_N]/F");
+  _event_tree->Branch("tower_FHCAL_N",                &_nTowers_FHCAL,             "tower_FHCAL_N/I");
+  _event_tree->Branch("tower_FHCAL_E",                _tower_FHCAL_E,              "tower_FHCAL_E[tower_FHCAL_N]/F");
+  _event_tree->Branch("tower_FHCAL_iEta",             _tower_FHCAL_iEta,           "tower_FHCAL_iEta[tower_FHCAL_N]/I");
+  _event_tree->Branch("tower_FHCAL_iPhi",             _tower_FHCAL_iPhi,           "tower_FHCAL_iPhi[tower_FHCAL_N]/I");
+  _event_tree->Branch("tower_FHCAL_trueID",           _tower_FHCAL_trueID,         "tower_FHCAL_trueID[tower_FHCAL_N]/I");
 
   // towers EMC
-  _event_tree->Branch("tower_FEMC_N", &_nTowers_FEMC, "tower_FEMC_N/I");
-  _event_tree->Branch("tower_FEMC_E", _tower_FEMC_E, "tower_FEMC_E[tower_FEMC_N]/F");
-  _event_tree->Branch("tower_FEMC_iEta", _tower_FEMC_iEta, "tower_FEMC_iEta[tower_FEMC_N]/I");
-  _event_tree->Branch("tower_FEMC_iPhi", _tower_FEMC_iPhi, "tower_FEMC_iPhi[tower_FEMC_N]/I");
-  _event_tree->Branch("tower_FEMC_trueID", _tower_FEMC_trueID, "tower_FEMC_trueID[tower_FEMC_N]/F");
+  _event_tree->Branch("tower_FEMC_N",                 &_nTowers_FEMC,             "tower_FEMC_N/I");
+  _event_tree->Branch("tower_FEMC_E",                 _tower_FEMC_E,              "tower_FEMC_E[tower_FEMC_N]/F");
+  _event_tree->Branch("tower_FEMC_iEta",              _tower_FEMC_iEta,           "tower_FEMC_iEta[tower_FEMC_N]/I");
+  _event_tree->Branch("tower_FEMC_iPhi",              _tower_FEMC_iPhi,           "tower_FEMC_iPhi[tower_FEMC_N]/I");
+  _event_tree->Branch("tower_FEMC_trueID",            _tower_FEMC_trueID,         "tower_FEMC_trueID[tower_FEMC_N]/I");
 
   // clusters HCAL
-  _event_tree->Branch("cluster_FHCAL_N", &_nclusters_FHCAL, "cluster_FHCAL_N/I");
-  _event_tree->Branch("cluster_FHCAL_E", _cluster_FHCAL_E, "cluster_FHCAL_E[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_Eta", _cluster_FHCAL_Eta, "cluster_FHCAL_Eta[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_Phi", _cluster_FHCAL_Phi, "cluster_FHCAL_Phi[cluster_FHCAL_N]/F");
-  _event_tree->Branch("cluster_FHCAL_NTower", _cluster_FHCAL_NTower, "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
-  _event_tree->Branch("cluster_FHCAL_trueID", _cluster_FHCAL_trueID, "cluster_FHCAL_trueID[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_N",                &_nclusters_FHCAL,             "cluster_FHCAL_N/I");
+  _event_tree->Branch("cluster_FHCAL_E",                _cluster_FHCAL_E,              "cluster_FHCAL_E[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Eta",             _cluster_FHCAL_Eta,           "cluster_FHCAL_Eta[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_Phi",             _cluster_FHCAL_Phi,           "cluster_FHCAL_Phi[cluster_FHCAL_N]/F");
+  _event_tree->Branch("cluster_FHCAL_NTower",             _cluster_FHCAL_NTower,           "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
+  _event_tree->Branch("cluster_FHCAL_trueID",           _cluster_FHCAL_trueID,         "cluster_FHCAL_trueID[cluster_FHCAL_N]/I");
 
   // clusters EMC
-  _event_tree->Branch("cluster_FEMC_N", &_nclusters_FEMC, "cluster_FEMC_N/I");
-  _event_tree->Branch("cluster_FEMC_E", _cluster_FEMC_E, "cluster_FEMC_E[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_Eta", _cluster_FEMC_Eta, "cluster_FEMC_Eta[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_Phi", _cluster_FEMC_Phi, "cluster_FEMC_Phi[cluster_FEMC_N]/F");
-  _event_tree->Branch("cluster_FEMC_NTower", _cluster_FEMC_NTower, "cluster_FEMC_NTower[cluster_FEMC_N]/I");
-  _event_tree->Branch("cluster_FEMC_trueID", _cluster_FEMC_trueID, "cluster_FEMC_trueID[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_N",                 &_nclusters_FEMC,             "cluster_FEMC_N/I");
+  _event_tree->Branch("cluster_FEMC_E",                 _cluster_FEMC_E,              "cluster_FEMC_E[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Eta",              _cluster_FEMC_Eta,           "cluster_FEMC_Eta[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_Phi",              _cluster_FEMC_Phi,           "cluster_FEMC_Phi[cluster_FEMC_N]/F");
+  _event_tree->Branch("cluster_FEMC_NTower",              _cluster_FEMC_NTower,           "cluster_FEMC_NTower[cluster_FEMC_N]/I");
+  _event_tree->Branch("cluster_FEMC_trueID",            _cluster_FEMC_trueID,         "cluster_FEMC_trueID[cluster_FEMC_N]/I");
 
   // vertex
   _event_tree->Branch("vertex_x", &_vertex_x, "vertex_x/I");
@@ -259,16 +260,26 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
 
 int EventEvaluator::process_event(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0) cout << "entered process_event" << endl;
-  if (!_caloevalstack)
+  if(Verbosity() > 0)cout << "entered process_event" << endl;
+  if (!_caloevalstackFHCAL)
   {
-    _caloevalstack = new CaloEvalStack(topNode, "FHCAL");
-    _caloevalstack->set_strict(_strict);
-    _caloevalstack->set_verbosity(Verbosity() + 1);
+    _caloevalstackFHCAL = new CaloEvalStack(topNode, "FHCAL");
+    _caloevalstackFHCAL->set_strict(_strict);
+    _caloevalstackFHCAL->set_verbosity(Verbosity() + 1);
   }
   else
   {
-    _caloevalstack->next_event(topNode);
+    _caloevalstackFHCAL->next_event(topNode);
+  }
+  if (!_caloevalstackFEMC)
+  {
+    _caloevalstackFEMC = new CaloEvalStack(topNode, "FEMC");
+    _caloevalstackFEMC->set_strict(_strict);
+    _caloevalstackFEMC->set_verbosity(Verbosity() + 1);
+  }
+  else
+  {
+    _caloevalstackFEMC->next_event(topNode);
   }
   if (Verbosity() > 0) cout << "loaded evalstack" << endl;
 
@@ -291,9 +302,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
   if (Verbosity() > 2) cout << "EventEvaluator::fillOutputNtuples() entered" << endl;
 
-  CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
-  CaloRawTowerEval* towereval = _caloevalstack->get_rawtower_eval();
-  //  CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
 
   //----------------------
   // fill the Event Tree
@@ -355,6 +363,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //----------------------
   //    TOWERS FHCAL
   //----------------------
+  CaloRawTowerEval* towerevalFHCAL = _caloevalstackFHCAL->get_rawtower_eval();
   _nTowers_FHCAL = 0;
   string towernodeFHCAL = "TOWER_CALIB_FHCAL";
   RawTowerContainer* towersFHCAL = findNode::getClass<RawTowerContainer>(topNode, towernodeFHCAL.c_str());
@@ -379,12 +388,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           _tower_FHCAL_iPhi[_nTowers_FHCAL] = tower->get_binphi();
           _tower_FHCAL_E[_nTowers_FHCAL] = tower->get_energy();
 
-          PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
+          PHG4Particle* primary = towerevalFHCAL->max_truth_primary_particle_by_energy(tower);
           if (primary)
           {
             _tower_FHCAL_trueID[_nTowers_FHCAL] = primary->get_track_id();
             // gflavor = primary->get_pid();
-            // efromtruth = towereval->get_energy_contribution(tower, primary);
+            // efromtruth = towerevalFHCAL->get_energy_contribution(tower, primary);
+          } else {
+            _tower_FHCAL_trueID[_nTowers_FHCAL] = -10;
           }
           _nTowers_FHCAL++;
         }
@@ -406,6 +417,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //----------------------
   //    TOWERS
   //----------------------
+  CaloRawTowerEval* towerevalFEMC = _caloevalstackFEMC->get_rawtower_eval();
   _nTowers_FEMC = 0;
   string towernodeFEMC = "TOWER_CALIB_FEMC";
   RawTowerContainer* towersFEMC = findNode::getClass<RawTowerContainer>(topNode, towernodeFEMC.c_str());
@@ -430,12 +442,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           _tower_FEMC_iPhi[_nTowers_FEMC] = tower->get_binphi();
           _tower_FEMC_E[_nTowers_FEMC] = tower->get_energy();
 
-          PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
+          PHG4Particle* primary = towerevalFEMC->max_truth_primary_particle_by_energy(tower);
           if (primary)
           {
             _tower_FEMC_trueID[_nTowers_FEMC] = primary->get_track_id();
             // gflavor = primary->get_pid();
-            // efromtruth = towereval->get_energy_contribution(tower, primary);
+            // efromtruth = towerevalFEMC->get_energy_contribution(tower, primary);
+          } else {
+            _tower_FEMC_trueID[_nTowers_FEMC] = -10;
           }
           _nTowers_FEMC++;
         }
@@ -457,6 +471,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //------------------------
   // CLUSTERS FHCAL
   //------------------------
+  CaloRawClusterEval* clusterevalFHCAL = _caloevalstackFHCAL->get_rawcluster_eval();
   _nclusters_FHCAL = 0;
   if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
 
@@ -489,9 +504,13 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       else
         _cluster_FHCAL_Eta[_nclusters_FHCAL] = -10000;
 
-      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
+      PHG4Particle* primary = clusterevalFHCAL->max_truth_primary_particle_by_energy(cluster);
 
-      if (primary) _cluster_FHCAL_trueID[_nclusters_FHCAL] = primary->get_track_id();
+      if (primary){
+        _cluster_FHCAL_trueID[_nclusters_FHCAL]       = primary->get_track_id();
+      } else {
+        _cluster_FHCAL_trueID[_nclusters_FHCAL]       = -10;
+      }
 
       _nclusters_FHCAL++;
     }
@@ -505,6 +524,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //------------------------
   // CLUSTERS FEMC
   //------------------------
+  CaloRawClusterEval* clusterevalFEMC = _caloevalstackFEMC->get_rawcluster_eval();
   _nclusters_FEMC = 0;
   if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
 
@@ -537,9 +557,13 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       else
         _cluster_FEMC_Eta[_nclusters_FEMC] = -10000;
 
-      PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
+      PHG4Particle* primary = clusterevalFEMC->max_truth_primary_particle_by_energy(cluster);
 
-      if (primary) _cluster_FEMC_trueID[_nclusters_FEMC] = primary->get_track_id();
+      if (primary){
+        _cluster_FEMC_trueID[_nclusters_FEMC]       = primary->get_track_id(); 
+      } else {
+        _cluster_FEMC_trueID[_nclusters_FEMC] = -10;
+      }
 
       _nclusters_FEMC++;
     }
@@ -681,8 +705,8 @@ void EventEvaluator::printOutputInfo(PHCompositeNode* topNode)
 {
   if (Verbosity() > 2) cout << "EventEvaluator::printOutputInfo() entered" << endl;
 
-  CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
-  CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
+  CaloRawClusterEval* clustereval = _caloevalstackFHCAL->get_rawcluster_eval();
+  CaloTruthEval* trutheval = _caloevalstackFHCAL->get_truth_eval();
 
   //==========================================
   // print out some useful stuff for debugging
@@ -889,7 +913,8 @@ int EventEvaluator::End(PHCompositeNode* topNode)
     cout << "===========================================================================" << endl;
   }
 
-  if (_caloevalstack) delete _caloevalstack;
+  if (_caloevalstackFHCAL) delete _caloevalstackFHCAL;
+  if (_caloevalstackFEMC) delete _caloevalstackFEMC;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

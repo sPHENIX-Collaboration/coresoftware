@@ -65,14 +65,14 @@ class EventEvaluator : public SubsysReco
   float* _tower_FHCAL_E;
   int* _tower_FHCAL_iEta;
   int* _tower_FHCAL_iPhi;
-  float* _tower_FHCAL_trueID;
+  int* _tower_FHCAL_trueID;
 
   // towers
   int _nTowers_FEMC;
   float* _tower_FEMC_E;
   int* _tower_FEMC_iEta;
   int* _tower_FEMC_iPhi;
-  float* _tower_FEMC_trueID;
+  int* _tower_FEMC_trueID;
 
   // clusters
   int _nclusters_FHCAL;
@@ -80,7 +80,7 @@ class EventEvaluator : public SubsysReco
   float* _cluster_FHCAL_Eta;
   float* _cluster_FHCAL_Phi;
   int* _cluster_FHCAL_NTower;
-  float* _cluster_FHCAL_trueID;
+  int* _cluster_FHCAL_trueID;
 
   // clusters
   int _nclusters_FEMC;
@@ -88,7 +88,7 @@ class EventEvaluator : public SubsysReco
   float* _cluster_FEMC_Eta;
   float* _cluster_FEMC_Phi;
   int* _cluster_FEMC_NTower;
-  float* _cluster_FEMC_trueID;
+  int* _cluster_FEMC_trueID;
 
   // vertex
   int _vertex_x;
@@ -127,7 +127,8 @@ class EventEvaluator : public SubsysReco
 
   float _reco_e_threshold;
 
-  CaloEvalStack* _caloevalstack;
+  CaloEvalStack *_caloevalstackFHCAL;
+  CaloEvalStack *_caloevalstackFEMC;
 
   //----------------------------------
   // evaluator output ntuples
