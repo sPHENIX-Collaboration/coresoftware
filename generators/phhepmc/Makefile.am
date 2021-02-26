@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   PHGenIntegral.h \
   PHGenIntegralv1.h \
   PHHepMCGenEvent.h \
+  PHHepMCGenEventv1.h \
   PHHepMCGenEventMap.h \
   PHHepMCGenHelper.h
 
@@ -45,6 +46,7 @@ ROOT_DICTS = \
   PHGenIntegralv1_Dict.cc \
   PHHepMC_io_Dict.cc \
   PHHepMCGenEvent_Dict.cc \
+  PHHepMCGenEventv1_Dict.cc \
   PHHepMCGenEventMap_Dict.cc
 
 pcmdir = $(libdir)
@@ -53,6 +55,7 @@ nobase_dist_pcm_DATA = \
   PHGenIntegralv1_Dict_rdict.pcm \
   PHHepMC_io_Dict_rdict.pcm \
   PHHepMCGenEvent_Dict_rdict.pcm \
+  PHHepMCGenEventv1_Dict_rdict.pcm \
   PHHepMCGenEventMap_Dict_rdict.pcm
 
 libphhepmc_la_SOURCES = \
@@ -67,6 +70,7 @@ libphhepmc_la_SOURCES = \
 libphhepmc_io_la_SOURCES = \
   $(ROOT_DICTS) \
   PHHepMCGenEvent.cc \
+  PHHepMCGenEventv1.cc \
   PHHepMCGenEventMap.cc \
   PHGenIntegral.cc \
   PHGenIntegralv1.cc
@@ -78,7 +82,8 @@ libphhepmc_io_la_LDFLAGS = \
 
 libphhepmc_io_la_LIBADD = \
   -lphool \
-  -lHepMC
+  -lHepMC \
+  -lCLHEP
 
 BUILT_SOURCES = \
   testexternals.cc
