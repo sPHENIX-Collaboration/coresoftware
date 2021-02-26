@@ -29,13 +29,13 @@ class TTree;  //Added by Barak
 class EventEvaluator : public SubsysReco
 {
  public:
-  EventEvaluator(const std::string &name = "EventEvaluator",
-                const std::string &filename = "g4eval_cemc.root");
+  EventEvaluator(const std::string& name = "EventEvaluator",
+                 const std::string& filename = "g4eval_cemc.root");
   virtual ~EventEvaluator(){};
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode* topNode);
+  int process_event(PHCompositeNode* topNode);
+  int End(PHCompositeNode* topNode);
 
   void set_strict(bool b) { _strict = b; }
   // funtions to limit the tracing to only part of the event ---------
@@ -49,9 +49,7 @@ class EventEvaluator : public SubsysReco
     _reco_e_threshold = thresh;
   }
 
-
-private:
-
+ private:
   unsigned int _ievent;
 
   // track hits
@@ -129,36 +127,33 @@ private:
 
   float _reco_e_threshold;
 
-  CaloEvalStack *_caloevalstack;
+  CaloEvalStack* _caloevalstack;
 
   //----------------------------------
   // evaluator output ntuples
 
   bool _strict;
 
-  TTree *_event_tree;  //Added by Barak
+  TTree* _event_tree;  //Added by Barak
 
   // evaluator output file
   std::string _filename;
-  TFile *_tfile;
-
+  TFile* _tfile;
 
   // subroutines
-  int GetProjectionIndex(std::string projname);     ///< return track projection index for given track projection layer
-  std::string GetProjectionNameFromIndex(int projindex); ///< return track projection layer name from projection index (see GetProjectionIndex)
-  void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
-  void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis
-  void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
-  void resetBuffer();    ///< reset the tree variables before filling for a new event
-
+  int GetProjectionIndex(std::string projname);           ///< return track projection index for given track projection layer
+  std::string GetProjectionNameFromIndex(int projindex);  ///< return track projection layer name from projection index (see GetProjectionIndex)
+  void printInputInfo(PHCompositeNode* topNode);          ///< print out the input object information (debugging upstream components)
+  void fillOutputNtuples(PHCompositeNode* topNode);       ///< dump the evaluator information into ntuple for external analysis
+  void printOutputInfo(PHCompositeNode* topNode);         ///< print out the ancestry information for detailed diagnosis
+  void resetBuffer();                                     ///< reset the tree variables before filling for a new event
 
   const int _maxNHits = 5000;
-  const int _maxNTowers = 50*50;
+  const int _maxNTowers = 50 * 50;
   const int _maxNclusters = 100;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
   const int _maxNMCPart = 1000;
-
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H
