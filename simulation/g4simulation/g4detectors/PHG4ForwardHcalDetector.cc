@@ -5,6 +5,8 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -102,7 +104,8 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* hcal_envelope_solid = new G4Cons("hHcal_envelope_solid",
                                              _rMin1, _rMax1,
@@ -110,7 +113,7 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              _dZ / 2.,
                                              _sPhi, _dPhi);
 
-  G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, Air, G4String("hHcal_envelope"), 0, 0, 0);
+  G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, WorldMaterial, G4String("hHcal_envelope"), 0, 0, 0);
 
   m_DisplayAction->AddVolume(hcal_envelope_log, "FHcalEnvelope");
 
@@ -145,7 +148,8 @@ PHG4ForwardHcalDetector::ConstructTower()
   }
 
   /* create logical volume for single tower */
-  G4Material* material_air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid"),
                                            _tower_dx / 2.0,
@@ -153,7 +157,7 @@ PHG4ForwardHcalDetector::ConstructTower()
                                            _tower_dz / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
-                                                            material_air,
+                                                            WorldMaterial,
                                                             "single_tower_logic",
                                                             0, 0, 0);
 
