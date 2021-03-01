@@ -95,13 +95,12 @@ TrkrClusterContainer::getClusters(void) const
 TrkrClusterContainer::Iterator
 TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key)
 {
-  TrkrClusterContainer::Iterator it = m_clusmap.find(key);
-  if (it == m_clusmap.end())
+  auto it = m_clusmap.lower_bound( key );
+  if (it == m_clusmap.end()|| (key < it->first ))
   {
     // add new cluster and set its key
-    auto ret = m_clusmap.insert(std::make_pair(key, new TrkrClusterv1()));
-    (ret.first->second)->setClusKey(key);
-    it = ret.first;
+    it = m_clusmap.insert(it, std::make_pair(key, new TrkrClusterv1()));
+    it->second->setClusKey(key);
   }
   return it;
 }
