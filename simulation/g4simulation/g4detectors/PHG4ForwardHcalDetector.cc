@@ -138,12 +138,10 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   hcal_rotm.rotateZ(_rot_in_z);
 
   /* Place envelope cone in simulation */
-  ostringstream name_envelope;
-  name_envelope.str("");
-  name_envelope << _towerlogicnameprefix << "_envelope" << endl;
+  string name_envelope = _towerlogicnameprefix + "_envelope";
 
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
-                    hcal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
+                    hcal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
   G4LogicalVolume* singletower = ConstructTower();
@@ -203,9 +201,9 @@ PHG4ForwardHcalDetector::ConstructTower()
                                           _tower_dz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
-  G4Material* material_scintillator = G4Material::GetMaterial(_materialScintillator.c_str());
-  G4Material* material_absorber = G4Material::GetMaterial(_materialAbsorber.c_str());
-  G4Material* material_wls = G4Material::GetMaterial(_materialScintillator.c_str());
+  G4Material* material_scintillator = G4Material::GetMaterial(_materialScintillator);
+  G4Material* material_absorber = G4Material::GetMaterial(_materialAbsorber);
+  G4Material* material_wls = G4Material::GetMaterial(_materialScintillator);
   G4Material* material_support = G4Material::GetMaterial("G4_Fe");
 
   G4LogicalVolume* logic_absorber = new G4LogicalVolume(solid_absorber,
@@ -238,27 +236,19 @@ PHG4ForwardHcalDetector::ConstructTower()
   G4double ypos_i = - _support_dw / 2.0;
   G4double zpos_i = (-1 * _tower_dz / 2.0) + thickness_absorber / 2.0;
 
-  ostringstream name_absorber;
-  name_absorber.str("");
-  name_absorber << _towerlogicnameprefix << "_single_plate_absorber" << endl;
+  string name_absorber = _towerlogicnameprefix + "_single_plate_absorber";
 
-  ostringstream name_scintillator;
-  name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+  string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator";
 
-  ostringstream name_wls;
-  name_wls.str("");
-  name_wls << _towerlogicnameprefix << "_single_plate_wls" << endl;
+  string name_wls = _towerlogicnameprefix + "_single_plate_wls";
 
-  ostringstream name_support;
-  name_support.str("");
-  name_support << _towerlogicnameprefix << "_single_plate_support" << endl;
+  string name_support =  _towerlogicnameprefix + "_single_plate_support";
 
   for (int i = 1; i <= nlayers; i++)
   {
     new G4PVPlacement(0, G4ThreeVector(xpos_i, ypos_i, zpos_i),
                       logic_absorber,
-                      name_absorber.str().c_str(),
+                      name_absorber,
                       single_tower_logic,
                       0, 0, OverlapCheck());
 
@@ -266,7 +256,7 @@ PHG4ForwardHcalDetector::ConstructTower()
 
     new G4PVPlacement(0, G4ThreeVector(xpos_i, ypos_i, zpos_i),
                       logic_scint,
-                      name_scintillator.str().c_str(),
+                      name_scintillator,
                       single_tower_logic,
                       0, 0, OverlapCheck());
 
@@ -274,13 +264,13 @@ PHG4ForwardHcalDetector::ConstructTower()
   }
   new G4PVPlacement(0, G4ThreeVector( 0, (_tower_dy/2)-_support_dw/2, 0),
                     logic_support,
-                    name_support.str().c_str(),
+                    name_support,
                     single_tower_logic,
                     0, 0, OverlapCheck());
 
   new G4PVPlacement(0, G4ThreeVector((_tower_dx/2)-_wls_dw/2, -_support_dw/2, 0),
                     logic_wls,
-                    name_wls.str().c_str(),
+                    name_wls,
                     single_tower_logic,
                     0, 0, OverlapCheck());
   m_DisplayAction->AddVolume(single_tower_logic, "SingleScintillator");
@@ -308,7 +298,7 @@ int PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4Logical
 
     new G4PVPlacement(0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
                       singletower,
-                      iterator->first.c_str(),
+                      iterator->first,
                       hcalenvelope,
                       0, 0, OverlapCheck());
   }
@@ -322,13 +312,13 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   ifstream istream_mapping;
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(_mapping_tower_file.c_str());
+    istream_mapping.open(_mapping_tower_file);
     if (!istream_mapping)
     {
       cerr << "ERROR in PHG4ForwardHcalDetector: Failed to open mapping file " << _mapping_tower_file << endl;
       exit(1);
     }
-  }
+ }
 
   /* loop over lines in file */
   string line_mapping;
