@@ -54,8 +54,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , _support_dw(2 * mm)
   , _materialScintillator("G4_POLYSTYRENE")
   , _materialAbsorber("G4_Fe")
-  , _active(1)
-  , _absorberactive(0)
   , _layer(0)
   , _blackhole(0)
   , _towerlogicnameprefix("hHcalTower")
@@ -66,37 +64,22 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
 //_______________________________________________________________________
 int PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume* volume) const
 {
-  if (volume->GetName().find(_towerlogicnameprefix) != string::npos)
+  G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
+  if (m_ActiveFlag)
   {
-    if (volume->GetName().find("scintillator") != string::npos)
+    if (m_ScintiLogicalVolSet.find(mylogvol) != m_ScintiLogicalVolSet.end())
     {
-      if (_active)
-        return 1;
-      else
-        return 0;
-    }
-    /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
-    else if (volume->GetName().find("absorber") != string::npos)
-    {
-      if (_absorberactive)
-        return -1;
-      else
-        return 0;
-    }
-    /* only record energy in actual absorber- drop energy lost in air gaps inside hcal envelope */
-    else if (volume->GetName().find("wls") != string::npos)
-    {
-      if (_absorberactive)
-        return -1;
-      else
-        return 0;
-    }
-    else if (volume->GetName().find("envelope") != string::npos)
-    {
-      return 0;
+      return 1;
     }
   }
 
+  if (m_AbsorberActiveFlag)
+  {
+    if (m_AbsorberLogicalVolSet.find(mylogvol) != m_AbsorberLogicalVolSet.end())
+    {
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -211,21 +194,26 @@ PHG4ForwardHcalDetector::ConstructTower()
                                                         "single_plate_absorber_logic",
                                                         0, 0, 0);
 
+  m_AbsorberLogicalVolSet.insert(logic_absorber);
+
   G4LogicalVolume* logic_scint = new G4LogicalVolume(solid_scintillator,
                                                      material_scintillator,
                                                      "hHcal_scintillator_plate_logic",
                                                      0, 0, 0);
+  m_ScintiLogicalVolSet.insert(logic_scint);
 
   G4LogicalVolume* logic_wls = new G4LogicalVolume(solid_WLS_plate,
                                                      material_wls,
                                                      "hHcal_wls_plate_logic",
                                                      0, 0, 0);
 
-  G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
+  m_AbsorberLogicalVolSet.insert(logic_wls);
+G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
                                                      material_support,
                                                      "hHcal_support_plate_logic",
                                                      0, 0, 0);
 
+//  m_AbsorberLogicalVolSet.insert(logic_support);
   m_DisplayAction->AddVolume(logic_absorber, "Absorber");
   m_DisplayAction->AddVolume(logic_scint, "Scintillator");
   m_DisplayAction->AddVolume(logic_wls, "WLSplate");
