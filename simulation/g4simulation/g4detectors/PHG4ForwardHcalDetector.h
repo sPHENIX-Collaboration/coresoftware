@@ -9,6 +9,7 @@
 #include <Geant4/G4Types.hh>   // for G4double
 
 #include <map>
+#include <set>
 #include <string>
 
 class G4LogicalVolume;
@@ -65,10 +66,10 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   void SetMaterialScintillator(G4String material) { _materialScintillator = material; }
   void SetMaterialAbsorber(G4String material) { _materialAbsorber = material; }
 
-  void SetActive(const int i = 1) { _active = i; }
-  void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
+  void SetActive(const int i = 1) { m_ActiveFlag = i; }
+  void SetAbsorberActive(const int i = 1) { m_AbsorberActiveFlag = i; }
 
-  int IsActive() const { return _active; }
+  int IsActive() const { return m_ActiveFlag; }
 
   void SuperDetector(const std::string &name) { _superdetector = name; }
   const std::string SuperDetector() const { return _superdetector; }
@@ -121,8 +122,8 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   G4String _materialScintillator;
   G4String _materialAbsorber;
 
-  int _active;
-  int _absorberactive;
+  int m_ActiveFlag = 1;
+  int m_AbsorberActiveFlag = 0;
   int _layer;
   int _blackhole;
 
@@ -132,6 +133,9 @@ class PHG4ForwardHcalDetector : public PHG4Detector
 
   std::map<std::string, G4double> _map_global_parameter;
   std::map<std::string, towerposition> _map_tower;
+
+  std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
+  std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 };
 
 #endif
