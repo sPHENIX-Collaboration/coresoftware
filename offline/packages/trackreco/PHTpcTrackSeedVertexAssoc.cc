@@ -69,6 +69,10 @@ int PHTpcTrackSeedVertexAssoc::Process()
   // Then we add the collision vertex position as the track seed position
   // All we need is to project the TPC clusters in Z to the beam line.
 
+  double grand_circle_rms_squared = 0.0;
+  double grand_circle_wt = 0.0;
+  double grand_line_rms_squared = 0.0;
+  double grand_line_wt = 0.0;
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
@@ -78,6 +82,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
        phtrk_iter != _track_map->end(); 
        ++phtrk_iter)
     {
+      std::set<TrkrDefs::cluskey> bad_clusters;
 
       _tracklet_tpc = phtrk_iter->second;
       
@@ -87,6 +92,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	    << __LINE__
 	    << ": Processing seed itrack: " << phtrk_iter->first
 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
+	    << ": pT: " << _tracklet_tpc->get_pt()
 	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << ": eta: " << _tracklet_tpc->get_eta()
 	    << endl;
@@ -94,34 +100,11 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
       // get the tpc track seed cluster positions in z and r
 
-      // Get the outermost TPC clusters for this tracklet
-      std::map<unsigned int, TrkrCluster*> tpc_clusters_map;
-      std::vector<TrkrCluster*> clusters;
+      // Get the TPC clusters for this tracklet
+      std::vector<TrkrCluster*> clusters = getTrackClusters(_tracklet_tpc);
       
-      for (SvtxTrack::ConstClusterKeyIter key_iter = _tracklet_tpc->begin_cluster_keys();
-	   key_iter != _tracklet_tpc->end_cluster_keys();
-	   ++key_iter)
-	{
-	  TrkrDefs::cluskey cluster_key = *key_iter;
-	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-	  if(layer < _min_tpc_layer) continue;
-	  if(layer > _max_tpc_layer) continue;
-
-	  // get the cluster
-	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
-
-	  tpc_clusters_map.insert(std::make_pair(layer, tpc_clus));
-	  clusters.push_back(tpc_clus);
-
-	  if(Verbosity() > 5) 
-	    std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
-		      << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " clusters.size() " << tpc_clusters_map.size() << std::endl;
-	}
-
-
       // need at least 3 clusters to fit a circle
-      if(tpc_clusters_map.size() < 3)
+      if(clusters.size() < 3)
 	{
 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough clusters " << std::endl; 
 	  continue;  // skip to the next TPC tracklet
@@ -130,16 +113,12 @@ int PHTpcTrackSeedVertexAssoc::Process()
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
       line_fit_clusters(clusters, A, B);
-      if(Verbosity() > 5) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
+      if(Verbosity() > 2) std::cout << " First fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the beam line and store the projections
-      //bool skip_tracklet = false;
-      // z projection is unique
       _z_proj = B;
       
       // Find the nearest collision vertex
-      // if find multiple close matches, duplicate the track?
-
       int trackVertexId = 9999;
       double dz = 9999.;	  
       for(SvtxVertexMap::Iter viter = _vertex_map->begin();
@@ -160,6 +139,12 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	    }	  
 	}  // end loop over collision vertices
 
+      if(trackVertexId == 9999)
+	{
+	  // line fit failed, means that track does not point to beam line with a reasonable Z intercept, skip this track
+	  continue;	  
+	}
+
       _tracklet_tpc->set_vertex_id(trackVertexId);
       auto vertex = _vertex_map->find(trackVertexId)->second;
       vertex->insert_track(phtrk_iter->first);
@@ -170,12 +155,9 @@ int PHTpcTrackSeedVertexAssoc::Process()
       _tracklet_tpc->set_z(vertex->get_z());
 
       if(Verbosity() > 1)
-	{
-	  std::cout << "TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
-	} 
+	  std::cout << "    TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
 
-      // Finished association of track with vertex
-      // Now we modify the track parameters
+      // Finished association of track with vertex, now we modify the track parameters
 
       // Repeat the z line fit including the vertex position, get theta, update pz
       std::vector<std::pair<double, double>> points;
@@ -191,8 +173,79 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	}
       
       line_fit(points, A, B);
-      if(Verbosity() > 5) 
-	std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
+      if(Verbosity() > 2) 
+	std::cout << "       Fitted line including vertex has A " << A << " B " << B << std::endl;      
+
+      // optionally reject clusters with large residuals
+      if(_reject_z_outliers)
+	{
+	  std::vector<double> line_residuals = GetLineClusterResiduals(points, A, B);
+	  double line_rms_squared = 0.0;
+	  double line_wt = 0.0;
+	  for(unsigned int i = 1; i < points.size(); ++i)
+	    {
+	      double res_squared =  line_residuals[i]*line_residuals[i];
+	      if(sqrt(res_squared) < 0.15)  // 1.5 mm, about 3 sigma
+		{
+		  line_rms_squared += res_squared;
+		  line_wt += 1.0;
+		  //std::cout << " cluster " << i-1 << " r " << points[i].first << " z " << points[i].second << " residual " << line_residuals[i] << std::endl;
+		}
+	      else
+		{
+		  // flag this cluster for removal from the track
+		  bad_clusters.insert(clusters[i-1]->getClusKey());
+		  //std::cout << " bad cluster " << i << " r " << points[i].first << " z " << points[i].second << " line residual " << line_residuals[i] 
+		  //	<< " z from cluster " << clusters[i-1]->getZ() << std::endl;
+		}
+	    }
+	  double line_rms = sqrt(line_rms_squared / line_wt);
+	  if(Verbosity() > 5) 
+	    std::cout << " line_rms = " << line_rms << " line_rms_squared " << line_rms_squared << " line_wt " << line_wt << std::endl;
+	  
+	  grand_line_rms_squared += line_rms_squared;
+	  grand_line_wt += line_wt;
+
+	  // Remove the bad clusters from the track here, remake the clusters list,  and refit the line
+	  for(auto &key : bad_clusters)
+	    {
+	      if(Verbosity() > 5) std::cout << " TPC tracklet " << _tracklet_tpc->get_id() << " removing bad Z cluster " << key << std::endl;
+	      _tracklet_tpc->erase_cluster_key(key);
+	    }
+	  
+	  // remake the cluster list for this track
+	  clusters.clear();
+	  clusters = getTrackClusters(_tracklet_tpc);
+
+	  if(Verbosity() > 2) 
+	    std::cout << "    z rejection: removed " << bad_clusters.size() << " bad clusters from track " << _tracklet_tpc->get_id() 
+		      << "    remaining clusters " << clusters.size() << " in track " << _tracklet_tpc->get_id() << std::endl;
+
+	  if(clusters.size() < 10)
+	    {
+	      if(Verbosity() > 2) std::cout << "    erasing tracklet " << _tracklet_tpc->get_id()  << std::endl;
+	      _track_map->erase(_tracklet_tpc->get_id());	      
+	      continue;
+	    }
+
+	  // refit the line
+	  points.clear();
+	  r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
+	  z_vertex = vertex->get_z();
+	  points.push_back(make_pair(r_vertex, z_vertex));
+	  for (unsigned int i=0; i<clusters.size(); ++i)
+	    {
+	      double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+	      double z = clusters[i]->getZ();	      
+	      points.push_back(make_pair(r,z));
+	    }
+	  
+	  line_fit(points, A, B);
+	  if(Verbosity() > 2) 
+	    std::cout << "       After bad cluster removal, re-fitted line including vertex has A " << A << " B " << B << std::endl;      	  
+
+	  bad_clusters.clear();
+	}
 
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
@@ -204,26 +257,89 @@ int PHTpcTrackSeedVertexAssoc::Process()
       cpoints.push_back(std::make_pair(x_vertex, y_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  double x = clusters[i]->getX();
-	  double y = clusters[i]->getY();	  
-	  cpoints.push_back(make_pair(x, y));
+	  //double x = clusters[i]->getX();
+	  //double y = clusters[i]->getY();	  
+	  //cpoints.push_back(make_pair(x, y));
+	  cpoints.push_back(make_pair(clusters[i]->getX(), clusters[i]->getY()));
 	}
       double R, X0, Y0;
       CircleFitByTaubin(cpoints, R, X0, Y0);
-      if(Verbosity() > 5) 
+      if(Verbosity() > 2) 
 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
+      // optionally reject clusters with large residuals in (x,y)
+      if(_reject_xy_outliers)
+	{
+	  double circle_rms_squared = 0.0;
+	  double circle_wt = 0.0;
+	  std::vector<double> residuals = GetCircleClusterResiduals(cpoints, R, X0, Y0);
+	  for(unsigned int i = 1; i < cpoints.size(); ++i)
+	    {
+	      double res_squared =  residuals[i]*residuals[i];
+	      if(sqrt(res_squared) < 0.06)  // about 3.5-4 sigma
+		{
+		  circle_rms_squared += res_squared;
+		  circle_wt += 1.0;
+		  //std::cout << " cluster " << i << " x " << cpoints[i].first << " y " << cpoints[i].second << " residual " << residuals[i] << std::endl;
+		}
+	      else
+		{
+		  // flag this cluster for removal from the track
+		  bad_clusters.insert(clusters[i-1]->getClusKey());
+		  //std::cout << " bad cluster " << i << " x " << cpoints[i].first << " y " << cpoints[i].second << " residual " << residuals[i]  << std::endl;
+		}
+	    }
+	  double circle_rms = sqrt(circle_rms_squared / circle_wt);
+	  if(Verbosity() > 5) std::cout << " circle_rms = " << circle_rms << " circle_rms_squared " << circle_rms_squared << " circle_wt " << circle_wt << std::endl;
+	  
+	  grand_circle_rms_squared += circle_rms_squared;
+	  grand_circle_wt += circle_wt;
+
+	  // Remove the bad clusters from the track here, remake the clusters list,  and refit the line
+	  for(auto &key : bad_clusters)
+	    {
+	      if(Verbosity() > 5) std::cout << " TPC tracklet " << _tracklet_tpc->get_id() << " removing bad xy cluster " << key << std::endl;
+	      _tracklet_tpc->erase_cluster_key(key);
+	    }
+
+	  clusters.clear();
+	  clusters = getTrackClusters(_tracklet_tpc);
+
+	  if(Verbosity() > 2) 
+	    std::cout << "    xy rejection:  removed " << bad_clusters.size() << " bad clusters from track " << _tracklet_tpc->get_id() 
+		      << "    remaining clusters " << clusters.size() << " in track " << _tracklet_tpc->get_id() << std::endl;
+
+	  if(clusters.size() < 10)
+	    {
+	      if(Verbosity() > 2) std::cout << "   erasing  tracklet " << _tracklet_tpc->get_id()  << std::endl;
+	      _track_map->erase(_tracklet_tpc->get_id());	      
+	      continue;
+	    }
+
+	  // refit the circle
+	  cpoints.clear();
+	  cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+	  for (unsigned int i=0; i<clusters.size(); ++i)
+	    {
+	      double x = clusters[i]->getX();
+	      double y = clusters[i]->getY();	  
+	      cpoints.push_back(make_pair(x, y));
+	    }
+	  double R, X0, Y0;
+	  CircleFitByTaubin(cpoints, R, X0, Y0);
+	  if(Verbosity() > 2) 
+	    std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+	}
+      
       double pt_track = _tracklet_tpc->get_pt();
-      bool use_circle_pt = false;    // true for testing only, normally use track seed pT
-      if(use_circle_pt)
+      if(Verbosity() > 5)
 	{
 	  //  get the pT from radius of circle as a check 
 	  double Bfield = 1.4;  // T
-	  double pt_new = 0.3 * Bfield * R * 0.01;  // convert cm to m 
-	  std::cout << " pT from circle of radius R = " << R << " in field of " << Bfield << " Tesla is " << pt_new << " seed pT is " << _tracklet_tpc->get_pt()  << std::endl; 
-	  //pt_track = pt_new;
+	  double pt_circle = 0.3 * Bfield * R * 0.01;  // convert cm to m 
+	  std::cout << " pT from circle of radius R = " << R << " in field of " << Bfield << " Tesla is " << pt_circle << " seed pT is " << pt_track  << std::endl; 
 	}
-
+      
       // We want the angle of the tangent relative to the positive x axis
       // start with the angle of the radial line from vertex to circle center
       double dx = X0 - x_vertex;
@@ -246,10 +362,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
       if(dphi < - M_PI) dphi += M_PI;
 
       if(Verbosity() > 5) 
-	{
-	  int charge = _tracklet_tpc->get_charge();   // needed for diagnostic output only
-	  std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
-	}
+	  std::cout << " charge " <<  _tracklet_tpc->get_charge() << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
 
       // whether we add or subtract 90 degrees depends on the track propagation direction determined above
       if(dphi < 0)
@@ -283,6 +396,18 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	std::cout << " new mom " <<  _tracklet_tpc->get_p() <<  "  new eta " <<  _tracklet_tpc->get_eta() << " new phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
       
     }  // end loop over TPC track seeds
+
+  if(_reject_z_outliers && Verbosity() > 5)
+    {
+      double grand_line_rms =  sqrt(grand_line_rms_squared / grand_line_wt);  
+      std::cout << "grand_line_rms = " << grand_line_rms << " grand_line_rms_squared " << grand_line_rms_squared << " grand_line_wt " << grand_line_wt << std::endl;
+    }
+
+  if(_reject_xy_outliers && Verbosity() > 5)
+    {
+      double grand_circle_rms =  sqrt(grand_circle_rms_squared / grand_circle_wt);  
+      std::cout << "grand circle rms = " << grand_circle_rms << " grand_circle_rms_squared " << grand_circle_rms_squared << " grand_circle_wt " << grand_circle_wt << std::endl;
+    }
   
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
@@ -448,4 +573,68 @@ void PHTpcTrackSeedVertexAssoc::CircleFitByTaubin (std::vector<std::pair<double,
   X0 = Xcenter + meanX;
   Y0 = Ycenter + meanY;
   R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
+}
+
+std::vector<double> PHTpcTrackSeedVertexAssoc::GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
+{
+  std::vector<double> residues;
+  // calculate cluster residuals from the fitted circle
+  for(unsigned int i = 0; i < points.size(); ++i)
+    {
+      double x = points[i].first;
+      double y = points[i].second;
+
+      // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+      double dca = sqrt( (x - X0)*(x-X0) + (y-Y0)*(y-Y0) )  -  R;  
+      residues.push_back(dca);
+    }
+  return residues;  
+}
+
+std::vector<double> PHTpcTrackSeedVertexAssoc::GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
+{
+  std::vector<double> residues;
+  // calculate cluster residuals from the fitted circle
+  for(unsigned int i = 0; i < points.size(); ++i)
+    {
+      double r = points[i].first;
+      double z = points[i].second;
+
+      // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+
+      double a = -A;
+      double b = 1.0;
+      double c = -B;
+      double dca = sqrt(pow(a*r+b*z+c, 2)) / sqrt(a*a+b*b);
+
+      residues.push_back(dca);
+    }
+  return residues;  
+}
+
+std::vector<TrkrCluster*> PHTpcTrackSeedVertexAssoc::getTrackClusters(SvtxTrack *_tracklet_tpc)
+{
+  std::vector<TrkrCluster*> clusters;
+  
+  for (SvtxTrack::ConstClusterKeyIter key_iter = _tracklet_tpc->begin_cluster_keys();
+       key_iter != _tracklet_tpc->end_cluster_keys();
+       ++key_iter)
+    {
+      TrkrDefs::cluskey cluster_key = *key_iter;
+      unsigned int layer = TrkrDefs::getLayer(cluster_key);
+      
+      if(layer < _min_tpc_layer) continue;
+      if(layer > _max_tpc_layer) continue;
+      
+      // get the cluster
+      TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
+      
+      //tpc_clusters_map.insert(std::make_pair(layer, tpc_clus));
+      clusters.push_back(tpc_clus);
+      
+      if(Verbosity() > 5) 
+	std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
+		  << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " clusters.size() " << clusters.size() << std::endl;
+    }
+  return clusters;
 }

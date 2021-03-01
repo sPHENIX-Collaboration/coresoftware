@@ -31,6 +31,9 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   }
   void set_field(const std::string &field) { _field = field;}
 
+  void reject_xy_outliers(bool reject){_reject_xy_outliers = reject;}  
+  void reject_z_outliers(bool reject){_reject_z_outliers = reject;}
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -45,6 +48,9 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   void  line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b);
   void  line_fit(std::vector<std::pair<double,double>> points, double &a, double &b);
   void CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0);
+  std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0);
+  std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B);
+  std::vector<TrkrCluster*> getTrackClusters(SvtxTrack *_tracklet_tpc);
 						    
   std::string _track_map_name_silicon;
 
@@ -55,6 +61,9 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   unsigned int _max_tpc_layer = 54;
 
   double _z_proj= 0;
+
+  bool _reject_xy_outliers = false;
+  bool _reject_z_outliers = false;
 
   std::string _field;
   int _fieldDir = -1;
