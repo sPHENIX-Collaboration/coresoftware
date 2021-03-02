@@ -83,7 +83,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   /* Get energy deposited by this step */
   double edep = aStep->GetTotalEnergyDeposit() / GeV;
   double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -101,6 +100,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   {
     /* Check if particle is 'geantino' */
     bool geantino = false;
+    double light_yield = 0;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
         aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
