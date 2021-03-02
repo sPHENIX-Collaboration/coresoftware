@@ -54,6 +54,8 @@ class PHG4ForwardHcalDetector : public PHG4Detector
     G4double x;
     G4double y;
     G4double z;
+    int idx_j;
+    int idx_k;
   };
 
   PHG4ForwardHcalDisplayAction *m_DisplayAction = nullptr;

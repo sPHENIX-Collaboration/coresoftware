@@ -106,8 +106,11 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   if (whichactive > 0)  // in sctintillator
   {
     /* Find indizes of sctintillator / tower containing this step */
-    FindTowerIndex(touch, idx_j, idx_k);
+//    FindTowerIndex(touch, idx_j, idx_k);
     tower_id = touch->GetCopyNumber();
+    unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+    idx_j = icopy >> 16;
+    idx_k = icopy & 0xFFFF;
   }
   else
   {

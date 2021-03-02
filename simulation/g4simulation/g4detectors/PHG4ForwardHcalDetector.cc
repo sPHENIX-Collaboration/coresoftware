@@ -274,14 +274,16 @@ int PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4Logical
     if (Verbosity() > 0)
     {
       std::cout << "PHG4ForwardHcalDetector: Place tower " << iterator->first
+           << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << std::endl;
     }
 
+    int copyno = (iterator->second.idx_j << 16) + iterator->second.idx_k;
     new G4PVPlacement(0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
                       singletower,
                       iterator->first,
                       hcalenvelope,
-                      0, 0, OverlapCheck());
+                      0, copyno, OverlapCheck());
   }
 
   return 0;
@@ -347,6 +349,8 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
       tower_new.x = pos_x;
       tower_new.y = pos_y;
       tower_new.z = pos_z;
+      tower_new.idx_j = idx_j;
+      tower_new.idx_k = idx_k;
       m_TowerPostionMap.insert(make_pair(towername.str(), tower_new));
     }
     else
