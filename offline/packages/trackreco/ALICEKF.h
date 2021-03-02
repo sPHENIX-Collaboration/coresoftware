@@ -36,7 +36,7 @@ class ALICEKF
   Eigen::Matrix<double,6,6> getEigenCov(SvtxTrack_v1 &track);
   bool covIsPosDef(SvtxTrack_v1 &track);
   void repairCovariance(SvtxTrack_v1 &track);
-  bool checknan(double val, std::string msg, int num);
+  bool checknan(double val, const std::string &msg, int num);
   double get_Bz(double x, double y, double z);
   void CircleFitByTaubin(std::vector<std::pair<double,double>> pts, double &R, double &X0, double &Y0);
   private:

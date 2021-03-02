@@ -67,15 +67,15 @@ class PHSimpleKFProp : public PHTrackPropagating
 
 
   //SvtxClusterMap *_cluster_map;
-  TrkrClusterContainer *_cluster_map;
-  SvtxVertexMap *_vertex_map;
-  SvtxTrackMap *_track_map;
-  AssocInfoContainer *_assoc_container;
+  //TrkrClusterContainer *_cluster_map;
+  //SvtxVertexMap *_vertex_map;
+  //SvtxTrackMap *_track_map;
+  //AssocInfoContainer *_assoc_container;
   PHField* _field_map;
 
-  std::string _track_map_name;
+  //std::string _track_map_name;
 
-  bool _use_truth_clusters = false;
+  //bool _use_truth_clusters = false;
 
  private:
   /// fetch node pointers
@@ -89,7 +89,7 @@ class PHSimpleKFProp : public PHTrackPropagating
   std::vector<double> _vertex_zerr;
   std::vector<double> _vertex_ids;
   double _Bzconst = 10*0.000299792458f;
-  double _Bz = 1.4*_Bzconst;
+  //double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
   size_t _min_clusters_per_track = 20;
   double _fieldDir = -1;
@@ -131,7 +131,6 @@ class PHSimpleKFProp : public PHTrackPropagating
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>,
                                                 KDPointCloud<double>,3>>> _kdtrees;
   std::shared_ptr<ALICEKF> fitter;
-  PHField* _field;
   double get_Bz(double x, double y, double z);
   void publishSeeds(std::vector<SvtxTrack_v1>);
   void MoveToVertex();

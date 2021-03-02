@@ -23,7 +23,7 @@
 using namespace std;
 typedef vector<TrkrDefs::cluskey> keylist;
 
-bool ALICEKF::checknan(double val, std::string name, int num)
+bool ALICEKF::checknan(double val, const std::string &name, int num)
 {
   if(std::isnan(val))
   {
@@ -98,7 +98,7 @@ vector<SvtxTrack_v1> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     
     // get initial pt estimate
     std::vector<std::pair<double,double>> pts;
-    for(int c=0;c<trackKeyChain->size();++c)
+    for(size_t c=0;c<trackKeyChain->size();++c)
     {
       TrkrCluster* cl = _cluster_map->findCluster(trackKeyChain->at(c));
       pts.push_back(std::make_pair(cl->getX(),cl->getY()));
@@ -257,7 +257,7 @@ vector<SvtxTrack_v1> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         zsize.push_back(nextCluster->getZSize());
       }
     }
-    if(aborted) continue;
+//    if(aborted) continue;
     if(Verbosity()>0) cout << "finished track\n";
 /*
     // transport to beamline

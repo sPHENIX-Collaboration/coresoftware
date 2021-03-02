@@ -76,6 +76,7 @@ using namespace std;
 PHHybridSeeding::PHHybridSeeding(
     const string &name,
     double maxSinPhi,
+    double fieldDir,
     double search_radius1,
     double search_angle1,
     size_t min_track_size1,
@@ -86,6 +87,7 @@ PHHybridSeeding::PHHybridSeeding(
     )
   : PHTrackSeeding(name)
   , _max_sin_phi(maxSinPhi)
+  , _fieldDir(fieldDir)
   , _search_radius1(search_radius1)
   , _search_angle1(search_angle1)
   , _min_track_size1(min_track_size1)
@@ -252,7 +254,7 @@ int PHHybridSeeding::Process(PHCompositeNode *topNode)
     _vertex_ids.push_back(v->get_id());
   }
   if(Verbosity()>1) cout << "vertices:\n";
-  for(int i=0;i<_vertex_x.size();i++)
+  for(size_t i=0;i<_vertex_x.size();i++)
   {
     if(Verbosity()>1) cout << "(" << _vertex_x[i] << "," << _vertex_y[i] << "," << _vertex_z[i] << ")\n";
   }

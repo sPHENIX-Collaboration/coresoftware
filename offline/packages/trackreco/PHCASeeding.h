@@ -160,8 +160,8 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _end_layer;
   unsigned int _min_nhits_per_cluster;
   unsigned int _min_clusters_per_track;
-  float _cluster_z_error;
-  float _cluster_alice_y_error;
+//  float _cluster_z_error;
+//  float _cluster_alice_y_error;
   float _neighbor_phi_width;
   float _neighbor_eta_width;
   float _max_sin_phi;

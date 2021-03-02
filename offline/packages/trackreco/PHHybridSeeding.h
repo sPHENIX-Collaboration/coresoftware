@@ -43,6 +43,7 @@ class PHHybridSeeding : public PHTrackSeeding
   PHHybridSeeding(
       const std::string &name = "PHHybridSeeding",
       double max_sin_phi = 1000.,
+      double fieldDir = 1,
       double search_radius1 = 3.,
       double search_angle1 = M_PI/8.,
       size_t min_track_size1 = 10,
@@ -102,6 +103,7 @@ class PHHybridSeeding : public PHTrackSeeding
   void publishSeeds(std::vector<SvtxTrack_v1> seeds);
 
   double _max_sin_phi;
+  double _fieldDir;
   double _search_radius1;
   double _search_angle1;
   size_t _min_track_size1;
@@ -109,7 +111,6 @@ class PHHybridSeeding : public PHTrackSeeding
   double _search_angle2;
   size_t _min_track_size2;
   size_t _nthreads;
-  double _fieldDir;
   size_t _min_fit_track_size = 5;
   std::shared_ptr<ALICEKF> fitter;
 };

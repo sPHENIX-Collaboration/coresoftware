@@ -46,11 +46,7 @@ using namespace std;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : PHTrackPropagating(name)
-  , _cluster_map(nullptr)
-  , _vertex_map(nullptr)
-  , _track_map(nullptr)
-  , _assoc_container(nullptr)
-  , _track_map_name("SvtxTrackMap")
+  , _field_map(nullptr)
 {
   //cout << "created PHSimpleKFProp\n";
 }
@@ -83,7 +79,7 @@ int PHSimpleKFProp::Setup(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
-  _field = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -91,7 +87,7 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z)
 {
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
-  _field->GetFieldValue(p,bfield);
+  _field_map->GetFieldValue(p,bfield);
   return bfield[2]/tesla;
 }
 
@@ -181,7 +177,7 @@ int PHSimpleKFProp::Process()
     std::vector<TrkrDefs::cluskey> ckeys;
     SvtxTrack* track = track_it->second;
     std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-    for(int i=0;i<ckeys.size();i++)
+    for(size_t i=0;i<ckeys.size();i++)
     {
       if(TrkrDefs::getLayer(ckeys[i])>=7) is_tpc = true;
     }
@@ -233,13 +229,13 @@ void PHSimpleKFProp::PrepareKDTrees()
   }
   _ptclouds.resize(kdhits.size());
   _kdtrees.resize(kdhits.size());
-  for(int l=0;l<kdhits.size();++l)
+  for(size_t l=0;l<kdhits.size();++l)
   {
     if(Verbosity()>0) cout << "l: " << l << endl;
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
     _ptclouds[l]->pts.resize(kdhits[l].size());
     if(Verbosity()>0) cout << "resized to " << kdhits[l].size() << endl;
-    for(int i=0;i<kdhits[l].size();++i)
+    for(size_t i=0;i<kdhits[l].size();++i)
     {
       _ptclouds[l]->pts[i] = kdhits[l][i];
     }
@@ -384,7 +380,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   // get layer for each cluster
   std::vector<unsigned int> layers;
   if(Verbosity()>0) cout << "cluster layers:" << endl;
-  for(int i=0;i<ckeys.size();i++)
+  for(size_t i=0;i<ckeys.size();i++)
   {
     layers.push_back(TrkrDefs::getLayer(ckeys[i]));
     if(Verbosity()>0) cout << layers[i] << endl;
@@ -507,7 +503,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     // choosing the first one first (clusters organized from outside in)
     bool layer_filled = false;
     TrkrDefs::cluskey next_ckey = 0;
-    for(int k=0; k<ckeys.size(); k++)
+    for(size_t k=0; k<ckeys.size(); k++)
     {
       if(layer_filled) continue;
       if(layers[k]==l)
