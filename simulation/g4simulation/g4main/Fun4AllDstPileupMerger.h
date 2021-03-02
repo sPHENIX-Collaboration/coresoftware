@@ -9,6 +9,7 @@
  */
 
 #include <map>
+#include <string>
 
 class PHCompositeNode;
 class PHG4HitContainer;
