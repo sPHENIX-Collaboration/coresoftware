@@ -130,6 +130,10 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       /* Set hit time */
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
+      /* Set hit location (tower index) */
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
+
       //set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
@@ -142,9 +146,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         m_CurrentHitContainer = m_SignalHitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
-        /* Set hit location (tower index) */
-        m_Hit->set_index_j(idx_j);
-        m_Hit->set_index_k(idx_k);
        }
       else
       {
