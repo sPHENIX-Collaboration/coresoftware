@@ -59,27 +59,6 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   PHG4ForwardHcalDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
 
-  /* Calorimeter envelope geometry */
-  G4double m_PlaceX;
-  G4double m_PlaceY;
-  G4double m_PlaceZ;
-
-  G4double m_XRot;
-  G4double m_YRot;
-  G4double m_ZRot;
-
-  G4double m_RMin1;
-  G4double m_RMax1;
-  G4double m_RMin2;
-  G4double m_RMax2;
-
-  G4double m_dZ;
-  G4double m_SPhi;
-  G4double m_DPhi;
-
-  G4double m_WlsDw;
-  G4double m_SupportDw;
-
   int m_ActiveFlag = 1;
   int m_AbsorberActiveFlag = 0;
   int m_Layer = 0;

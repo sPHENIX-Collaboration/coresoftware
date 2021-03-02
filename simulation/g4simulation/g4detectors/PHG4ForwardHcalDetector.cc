@@ -40,21 +40,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardHcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
-  , m_PlaceX(0.0 * mm)
-  , m_PlaceY(0.0 * mm)
-  , m_PlaceZ(4000.0 * mm)
-  , m_XRot(0.0)
-  , m_YRot(0.0)
-  , m_ZRot(0.0)
-  , m_RMin1(50 * mm)
-  , m_RMax1(2620 * mm)
-  , m_RMin2(50 * mm)
-  , m_RMax2(3369 * mm)
-  , m_dZ(1000 * mm)
-  , m_SPhi(0)
-  , m_DPhi(2 * M_PI)
-  , m_WlsDw(3 * mm)
-  , m_SupportDw(2 * mm)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_TowerLogicNamePrefix("hHcalTower")
@@ -91,6 +76,13 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     std::cout << "PHG4ForwardHcalDetector: Begin Construction" << std::endl;
   }
 
+  if (m_Params->get_string_param("mapping_file").empty())
+  {
+    cout << "ERROR in PHG4ForwardHcalDetector: No mapping file specified. Abort detector construction." << endl;
+    cout << "Please run set_string_param(\"mapping_file\", std::string filename ) first." << endl;
+    gSystem->Exit(1);
+  }
+
   /* Read parameters for detector construction and mappign from file */
   ParseParametersFromTable();
 
@@ -103,10 +95,7 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              m_Params->get_double_param("rMax1")*cm,
                                              m_Params->get_double_param("rMin2")*cm,
                                              m_Params->get_double_param("rMax2")*cm,
-//m_RMin1, m_RMax1,
-//                                             m_RMin2, m_RMax2,
                                              m_Params->get_double_param("dz")*cm/2.,
-//m_dZ / 2.,
                                              0., 2.*M_PI);
 
   G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, WorldMaterial, "hHcal_envelope", 0, 0, 0);
@@ -402,77 +391,66 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rMin1",parit->second);
-    m_RMin1 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr1_outer");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rMax1",parit->second);
-    m_RMax1 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr2_inner");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rMin2",parit->second);
-    m_RMin2 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr2_outer");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rMax2",parit->second);
-    m_RMax2 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gdz");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("dZ",parit->second);
-    m_dZ = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gx0");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("place_x",parit->second);
-    m_PlaceX = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gy0");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("place_y",parit->second);
-    m_PlaceY = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gz0");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("place_z",parit->second);
-    m_PlaceZ = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Grot_x");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rot_x",parit->second*rad/deg);
-    m_XRot = parit->second;
   }
 
   parit = m_GlobalParameterMap.find("Grot_y");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rot_y",parit->second*rad/deg);
-    m_YRot = parit->second;
   }
 
   parit = m_GlobalParameterMap.find("Grot_z");
   if (parit != m_GlobalParameterMap.end())
   {
     m_Params->set_double_param("rot_z",parit->second*rad/deg);
-    m_ZRot = parit->second;
   }
 
   return 0;
