@@ -18,7 +18,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>      // for G4Transform3D
-#include <Geant4/G4Types.hh>               // for G4double, G4int
+#include <Geant4/G4Types.hh>            // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <TSystem.h>
@@ -87,16 +87,16 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* hcal_envelope_solid = new G4Cons("hHcal_envelope_solid",
-                                             m_Params->get_double_param("rMin1")*cm,
-                                             m_Params->get_double_param("rMax1")*cm,
-                                             m_Params->get_double_param("rMin2")*cm,
-                                             m_Params->get_double_param("rMax2")*cm,
-                                             m_Params->get_double_param("dz")*cm/2.,
-                                             0., 2.*M_PI);
+                                             m_Params->get_double_param("rMin1") * cm,
+                                             m_Params->get_double_param("rMax1") * cm,
+                                             m_Params->get_double_param("rMin2") * cm,
+                                             m_Params->get_double_param("rMax2") * cm,
+                                             m_Params->get_double_param("dz") * cm / 2.,
+                                             0., 2. * M_PI);
 
   G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, WorldMaterial, "hHcal_envelope", 0, 0, 0);
 
@@ -104,16 +104,16 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix hcal_rotm;
-  hcal_rotm.rotateX(m_Params->get_double_param("rot_x")*deg);
-  hcal_rotm.rotateY(m_Params->get_double_param("rot_y")*deg);
-  hcal_rotm.rotateZ(m_Params->get_double_param("rot_z")*deg);
+  hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
+  hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
+  hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
 
   /* Place envelope cone in simulation */
   string name_envelope = m_TowerLogicNamePrefix + "_envelope";
 
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x")*cm,
-							   m_Params->get_double_param("place_y")*cm,
-							   m_Params->get_double_param("place_z")*cm)),
+  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+                                                           m_Params->get_double_param("place_y") * cm,
+                                                           m_Params->get_double_param("place_z") * cm)),
                     hcal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
@@ -135,7 +135,7 @@ PHG4ForwardHcalDetector::ConstructTower()
   }
 
   /* create logical volume for single tower */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
   double TowerDx = m_Params->get_double_param("tower_dx") * cm;
   double TowerDy = m_Params->get_double_param("tower_dy") * cm;
@@ -159,24 +159,24 @@ PHG4ForwardHcalDetector::ConstructTower()
   G4int nlayers = TowerDz / (thickness_absorber + thickness_scintillator);
 
   G4VSolid* solid_absorber = new G4Box("single_plate_absorber_solid",
-                                      (TowerDx - WlsDw) / 2.0,
-                                      (TowerDy - SupportDw) / 2.0,
-                                      thickness_absorber / 2.0);
+                                       (TowerDx - WlsDw) / 2.0,
+                                       (TowerDy - SupportDw) / 2.0,
+                                       thickness_absorber / 2.0);
 
   G4VSolid* solid_scintillator = new G4Box("single_plate_scintillator",
-                                          (TowerDx - WlsDw) / 2.0,
-                                          (TowerDy - SupportDw) / 2.0,
-                                          thickness_scintillator / 2.0);
+                                           (TowerDx - WlsDw) / 2.0,
+                                           (TowerDy - SupportDw) / 2.0,
+                                           thickness_scintillator / 2.0);
 
   G4VSolid* solid_WLS_plate = new G4Box("single_plate_wls",
-                                          (WlsDw) / 2.0,
-                                          (TowerDy - SupportDw) / 2.0,
-                                          TowerDz / 2.0);
+                                        (WlsDw) / 2.0,
+                                        (TowerDy - SupportDw) / 2.0,
+                                        TowerDz / 2.0);
 
   G4VSolid* solid_support_plate = new G4Box("single_plate_support",
-                                          (TowerDx) / 2.0,
-                                          (SupportDw) / 2.0,
-                                          TowerDz / 2.0);
+                                            (TowerDx) / 2.0,
+                                            (SupportDw) / 2.0,
+                                            TowerDz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
   G4Material* material_scintillator = G4Material::GetMaterial(m_Params->get_string_param("scintillator"));
@@ -198,25 +198,25 @@ PHG4ForwardHcalDetector::ConstructTower()
   m_ScintiLogicalVolSet.insert(logic_scint);
 
   G4LogicalVolume* logic_wls = new G4LogicalVolume(solid_WLS_plate,
-                                                     material_wls,
-                                                     "hHcal_wls_plate_logic",
-                                                     0, 0, 0);
+                                                   material_wls,
+                                                   "hHcal_wls_plate_logic",
+                                                   0, 0, 0);
 
   m_AbsorberLogicalVolSet.insert(logic_wls);
-G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
-                                                     material_support,
-                                                     "hHcal_support_plate_logic",
-                                                     0, 0, 0);
+  G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
+                                                       material_support,
+                                                       "hHcal_support_plate_logic",
+                                                       0, 0, 0);
 
-//  m_AbsorberLogicalVolSet.insert(logic_support);
+  //  m_AbsorberLogicalVolSet.insert(logic_support);
   m_DisplayAction->AddVolume(logic_absorber, "Absorber");
   m_DisplayAction->AddVolume(logic_scint, "Scintillator");
   m_DisplayAction->AddVolume(logic_wls, "WLSplate");
   m_DisplayAction->AddVolume(logic_support, "SupportPlate");
 
   /* place physical volumes for absorber and scintillator plates */
-  G4double xpos_i = - WlsDw / 2.0;
-  G4double ypos_i = - SupportDw / 2.0;
+  G4double xpos_i = -WlsDw / 2.0;
+  G4double ypos_i = -SupportDw / 2.0;
   G4double zpos_i = (-1 * TowerDz / 2.0) + thickness_absorber / 2.0;
 
   string name_absorber = m_TowerLogicNamePrefix + "_single_plate_absorber";
@@ -225,7 +225,7 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
 
   string name_wls = m_TowerLogicNamePrefix + "_single_plate_wls";
 
-  string name_support =  m_TowerLogicNamePrefix + "_single_plate_support";
+  string name_support = m_TowerLogicNamePrefix + "_single_plate_support";
 
   for (int i = 1; i <= nlayers; i++)
   {
@@ -245,13 +245,13 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
 
     zpos_i += (thickness_absorber / 2. + thickness_scintillator / 2.);
   }
-  new G4PVPlacement(0, G4ThreeVector( 0, (TowerDy/2)-SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector(0, (TowerDy / 2) - SupportDw / 2, 0),
                     logic_support,
                     name_support,
                     single_tower_logic,
                     0, 0, OverlapCheck());
 
-  new G4PVPlacement(0, G4ThreeVector((TowerDx/2)-WlsDw/2, -SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector((TowerDx / 2) - WlsDw / 2, -SupportDw / 2, 0),
                     logic_wls,
                     name_wls,
                     single_tower_logic,
@@ -274,8 +274,8 @@ int PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4Logical
     if (Verbosity() > 0)
     {
       std::cout << "PHG4ForwardHcalDetector: Place tower " << iterator->first
-           << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
-           << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << std::endl;
+                << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
+                << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << std::endl;
     }
 
     int copyno = (iterator->second.idx_j << 16) + iterator->second.idx_k;
@@ -297,8 +297,8 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   if (!istream_mapping.is_open())
   {
     std::cout << "ERROR in PHG4ForwardHcalDetector: Failed to open mapping file " << m_Params->get_string_param("mapping_file") << std::endl;
-      gSystem->Exit(1);
- }
+    gSystem->Exit(1);
+  }
 
   /* loop over lines in file */
   string line_mapping;
@@ -329,7 +329,7 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cout << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " <<  m_Params->get_string_param("mapping_file") << std::endl;
+        cout << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " << m_Params->get_string_param("mapping_file") << std::endl;
         gSystem->Exit(1);
       }
 
@@ -376,85 +376,85 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   parit = m_GlobalParameterMap.find("Gtower_dx");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("tower_dx",parit->second); // in cm
+    m_Params->set_double_param("tower_dx", parit->second);  // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gtower_dy");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("tower_dy",parit->second); // in cm
+    m_Params->set_double_param("tower_dy", parit->second);  // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gtower_dz");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("tower_dz",parit->second); // in cm
+    m_Params->set_double_param("tower_dz", parit->second);  // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gr1_inner");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rMin1",parit->second);
+    m_Params->set_double_param("rMin1", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gr1_outer");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rMax1",parit->second);
+    m_Params->set_double_param("rMax1", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gr2_inner");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rMin2",parit->second);
+    m_Params->set_double_param("rMin2", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gr2_outer");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rMax2",parit->second);
+    m_Params->set_double_param("rMax2", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gdz");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("dZ",parit->second);
+    m_Params->set_double_param("dZ", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gx0");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("place_x",parit->second);
+    m_Params->set_double_param("place_x", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gy0");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("place_y",parit->second);
+    m_Params->set_double_param("place_y", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Gz0");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("place_z",parit->second);
+    m_Params->set_double_param("place_z", parit->second);
   }
 
   parit = m_GlobalParameterMap.find("Grot_x");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rot_x",parit->second*rad/deg);
+    m_Params->set_double_param("rot_x", parit->second * rad / deg);
   }
 
   parit = m_GlobalParameterMap.find("Grot_y");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rot_y",parit->second*rad/deg);
+    m_Params->set_double_param("rot_y", parit->second * rad / deg);
   }
 
   parit = m_GlobalParameterMap.find("Grot_z");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_Params->set_double_param("rot_z",parit->second*rad/deg);
+    m_Params->set_double_param("rot_z", parit->second * rad / deg);
   }
 
   return 0;

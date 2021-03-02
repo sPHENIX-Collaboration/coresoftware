@@ -5,7 +5,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                  // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;

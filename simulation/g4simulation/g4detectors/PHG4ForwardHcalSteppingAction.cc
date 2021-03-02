@@ -8,32 +8,32 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
-#include <Geant4/G4IonisParamMat.hh>           // for G4IonisParamMat
-#include <Geant4/G4Material.hh>                // for G4Material
+#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
+#include <Geant4/G4Material.hh>       // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
-#include <string>                              // for basic_string, operator+
+#include <string>  // for basic_string, operator+
 
 class PHCompositeNode;
 
@@ -76,18 +76,9 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   int layer_id = m_Detector->get_Layer();
-    unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
-    int idx_j = icopy >> 16;
-    int idx_k = icopy & 0xFFFF;
-
-//  if (whichactive > 0)  // in scintillator
-//  {
-//    /* Find indizes of sctintillator / tower containing this step */
-// it is coded into the copy number in the detector class
-//    unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
-//    idx_j = icopy >> 16;
-//    idx_k = icopy & 0xFFFF;
-//  }
+  unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+  int idx_j = icopy >> 16;
+  int idx_k = icopy & 0xFFFF;
 
   /* Get energy deposited by this step */
   double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -137,9 +128,9 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       /* Set hit time */
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
-// set the tower index
-         m_Hit->set_index_j(idx_j);
-         m_Hit->set_index_k(idx_k);
+      // set the tower index
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
 
       //set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
@@ -147,11 +138,10 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       m_Hit->set_edep(0);
       /* Set hit location (tower index) */
 
-
       /* Now add the hit to the hit collection */
       if (whichactive > 0)
       {
-         m_Hit->set_eion(0);
+        m_Hit->set_eion(0);
         m_SaveHitContainer = m_HitContainer;
         m_Hit->set_light_yield(0);
       }
@@ -179,26 +169,26 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       static bool once = true;
       if (once && edep > 0)
       {
-	once = false;
+        once = false;
 
-	if (Verbosity() > 0)
-	{
-	  std::cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
-	    //
-	       << m_Detector->GetName() << " - "
-	       << " use scintillating light model at each Geant4 steps. "
-	       << "First step: "
-	       << "Material = "
-	       << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-	       << ", "
-	       << "Birk Constant = "
-	       << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-	       << ","
-	       << "edep = " << edep << ", "
-	       << "eion = " << eion
-	       << ", "
-	       << "light_yield = " << light_yield << std::endl;
-	}
+        if (Verbosity() > 0)
+        {
+          std::cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
+        }
       }
     }
 
@@ -311,4 +301,3 @@ void PHG4ForwardHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
     }
   }
 }
-

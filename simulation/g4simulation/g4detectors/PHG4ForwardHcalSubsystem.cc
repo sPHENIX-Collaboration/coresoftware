@@ -6,22 +6,22 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>       // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>      // for PHG4SteppingAction
-#include <g4main/PHG4Subsystem.h>           // for PHG4Subsystem
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
+#include <g4main/PHG4Subsystem.h>       // for PHG4Subsystem
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>             // for PHIODataNode
-#include <phool/PHNode.h>                   // for PHNode
-#include <phool/PHNodeIterator.h>           // for PHNodeIterator
-#include <phool/PHObject.h>                 // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <TSystem.h>
 
-#include <set>                              // for set
+#include <set>  // for set
 #include <sstream>
 
 class PHG4Detector;
@@ -63,8 +63,8 @@ int PHG4ForwardHcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
       if (!DetNode)
       {
-	DetNode = new PHCompositeNode(SuperDetector());
-	dstNode->addNode(DetNode);
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
       }
     }
     // create hit output node
@@ -100,7 +100,7 @@ int PHG4ForwardHcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
     }
     // create stepping action
-    m_SteppingAction = new PHG4ForwardHcalSteppingAction(m_Detector,GetParams());
+    m_SteppingAction = new PHG4ForwardHcalSteppingAction(m_Detector, GetParams());
   }
 
   return 0;
@@ -129,9 +129,9 @@ void PHG4ForwardHcalSubsystem::SetDefaultParameters()
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 400.);
-set_default_double_param("tower_dx", 10.);
-set_default_double_param("tower_dy", 10.);
-set_default_double_param("tower_dz", 100.);
+  set_default_double_param("tower_dx", 10.);
+  set_default_double_param("tower_dy", 10.);
+  set_default_double_param("tower_dz", 100.);
   set_default_double_param("dz", 100.);
   set_default_double_param("rMin1", 5.);
   set_default_double_param("rMax1", 262.);
@@ -160,9 +160,9 @@ set_default_double_param("tower_dz", 100.);
   mappingfilename << "/ForwardHcal/mapping/towerMap_FHCAL_v005.txt";
   set_default_string_param("mapping_file", mappingfilename.str());
   set_default_string_param("mapping_file_md5", PHG4Utils::md5sum(mappingfilename.str()));
-  set_default_string_param("scintillator","G4_POLYSTYRENE");
-  set_default_string_param("absorber","G4_Fe");
-  set_default_string_param("support","G4_Fe");
+  set_default_string_param("scintillator", "G4_POLYSTYRENE");
+  set_default_string_param("absorber", "G4_Fe");
+  set_default_string_param("support", "G4_Fe");
 
   return;
 }

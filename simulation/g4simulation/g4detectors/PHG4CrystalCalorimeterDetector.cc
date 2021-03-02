@@ -19,9 +19,9 @@
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
-#include <Geant4/G4Types.hh>            // for G4double
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D
+#include <Geant4/G4Types.hh>        // for G4double
 
 #include <TSystem.h>
 
