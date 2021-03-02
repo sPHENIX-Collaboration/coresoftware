@@ -35,6 +35,9 @@
 
 PHActsToSvtxTracks::PHActsToSvtxTracks(const std::string &name)
   : SubsysReco(name)
+  , m_actsFitResults(nullptr)
+  , m_hitIdClusKey(nullptr)
+  ,
 {
   Verbosity(0);
 }
