@@ -17,6 +17,7 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4ForwardHcalDisplayAction;
 class PHG4Subsystem;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -28,7 +29,7 @@ class PHG4ForwardHcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ForwardHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
+  PHG4ForwardHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4ForwardHcalDetector() {}
@@ -66,10 +67,7 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   void SetMaterialScintillator(G4String material) { _materialScintillator = material; }
   void SetMaterialAbsorber(G4String material) { _materialAbsorber = material; }
 
-  void SetActive(const int i = 1) { m_ActiveFlag = i; }
-  void SetAbsorberActive(const int i = 1) { m_AbsorberActiveFlag = i; }
-
-  int IsActive() const { return m_ActiveFlag; }
+//  int IsActive() const { return m_ActiveFlag; }
 
   void SuperDetector(const std::string &name) { _superdetector = name; }
   const std::string SuperDetector() const { return _superdetector; }
@@ -91,7 +89,8 @@ class PHG4ForwardHcalDetector : public PHG4Detector
     G4double z;
   };
 
-  PHG4ForwardHcalDisplayAction *m_DisplayAction;
+  PHG4ForwardHcalDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;

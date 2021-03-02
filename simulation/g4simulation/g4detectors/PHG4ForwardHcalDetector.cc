@@ -1,6 +1,8 @@
 #include "PHG4ForwardHcalDetector.h"
 #include "PHG4ForwardHcalDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
@@ -33,9 +35,10 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardHcalDisplayAction*>(subsys->GetDisplayAction()))
+  , m_Params(parameters)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(4000.0 * mm)
@@ -56,6 +59,8 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , _support_dw(2 * mm)
   , _materialScintillator("G4_POLYSTYRENE")
   , _materialAbsorber("G4_Fe")
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , _layer(0)
   , _blackhole(0)
   , _towerlogicnameprefix("hHcalTower")

@@ -1,5 +1,8 @@
 #include "PHG4ForwardHcalSteppingAction.h"
+
 #include "PHG4ForwardHcalDetector.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -52,7 +55,7 @@ class PHCompositeNode;
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const int absorberactive)
+PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -60,7 +63,8 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDete
   , hitcontainer(nullptr)
   , hit(nullptr)
   , saveshower(nullptr)
-  , absorbertruth(absorberactive)
+  , m_IsActiveFlag(parameters->get_int_param("active"))
+  , absorbertruth(parameters->get_int_param("absorberactive"))
   , light_scint_model(1)
 {
 }
@@ -126,7 +130,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   /* Make sure we are in a volume */
-  if (detector_->IsActive())
+  if (m_IsActiveFlag)
   {
     int idx_l = -1;
     /* Check if particle is 'geantino' */

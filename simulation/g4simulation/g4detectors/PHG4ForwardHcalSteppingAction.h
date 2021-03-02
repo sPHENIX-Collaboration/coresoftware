@@ -14,12 +14,13 @@ class PHG4ForwardHcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*, const int absorberactive);
+  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*, const PHParameters* parameters);
 
   //! destructor
   virtual ~PHG4ForwardHcalSteppingAction();
@@ -45,6 +46,7 @@ class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
   PHG4Hit* hit;
   PHG4Shower* saveshower;
 
+  int m_IsActiveFlag = 0;
   int absorbertruth;
   int light_scint_model;
 };
