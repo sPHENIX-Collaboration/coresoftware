@@ -84,11 +84,6 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   G4double m_SPhi;
   G4double m_DPhi;
 
-  /* HCAL tower geometry */
-  G4double m_TowerDx;
-  G4double m_TowerDy;
-  G4double m_TowerDz;
-
   G4double m_WlsDw;
   G4double m_SupportDw;
 

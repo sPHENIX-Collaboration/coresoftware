@@ -126,6 +126,23 @@ PHG4Detector* PHG4ForwardHcalSubsystem::GetDetector() const
 
 void PHG4ForwardHcalSubsystem::SetDefaultParameters()
 {
+  set_default_double_param("place_x", 0.);
+  set_default_double_param("place_y", 0.);
+  set_default_double_param("place_z", 400.);
+set_default_double_param("tower_dx", 10.);
+set_default_double_param("tower_dy", 10.);
+set_default_double_param("tower_dz", 100.);
+  set_default_double_param("dz", 18.);
+  set_default_double_param("rMin1", 5.);
+  set_default_double_param("rMax1", 262.);
+  set_default_double_param("rMin2", 5.);
+  set_default_double_param("rMax2", 336.9);
+  set_default_double_param("wls_dw", 0.3);
+  set_default_double_param("support_dw", 0.2);
+  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_z", 0.);
+
   std::ostringstream mappingfilename;
   const char* calibroot = getenv("CALIBRATIONROOT");
   if (calibroot)
@@ -141,6 +158,9 @@ void PHG4ForwardHcalSubsystem::SetDefaultParameters()
   mappingfilename << "/ForwardHcal/mapping/towerMap_FHCAL_v005.txt";
   set_default_string_param("mapping_file", mappingfilename.str());
   set_default_string_param("mapping_file_md5", PHG4Utils::md5sum(mappingfilename.str()));
+  set_default_string_param("scintillator","G4_POLYSTYRENE");
+  set_default_string_param("absorber","G4_Fe");
+
   return;
 }
 

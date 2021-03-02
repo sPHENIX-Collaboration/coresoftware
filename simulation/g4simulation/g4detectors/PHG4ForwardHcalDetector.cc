@@ -53,9 +53,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_dZ(1000 * mm)
   , m_SPhi(0)
   , m_DPhi(2 * M_PI)
-  , m_TowerDx(100 * mm)
-  , m_TowerDy(100 * mm)
-  , m_TowerDz(1000.0 * mm)
   , m_WlsDw(3 * mm)
   , m_SupportDw(2 * mm)
   , m_MaterialScintillator("G4_POLYSTYRENE")
@@ -146,11 +143,13 @@ PHG4ForwardHcalDetector::ConstructTower()
   /* create logical volume for single tower */
   recoConsts *rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
-
+  double TowerDx = m_Params->get_double_param("tower_dx") * cm;
+  double TowerDy = m_Params->get_double_param("tower_dy") * cm;
+  double TowerDz = m_Params->get_double_param("tower_dz") * cm;
   G4VSolid* single_tower_solid = new G4Box("single_tower_solid",
-                                           m_TowerDx / 2.0,
-                                           m_TowerDy / 2.0,
-                                           m_TowerDz / 2.0);
+                                           TowerDx / 2.0,
+                                           TowerDy / 2.0,
+                                           TowerDz / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
                                                             WorldMaterial,
@@ -161,27 +160,27 @@ PHG4ForwardHcalDetector::ConstructTower()
   // based on STAR forward upgrade design: https://drupal.star.bnl.gov/STAR/files/ForwardUpgrade.v20.pdf
   G4double thickness_absorber = 20 * mm;
   G4double thickness_scintillator = 2.31 * mm;
-  G4int nlayers = m_TowerDz / (thickness_absorber + thickness_scintillator);
+  G4int nlayers = TowerDz / (thickness_absorber + thickness_scintillator);
 
   G4VSolid* solid_absorber = new G4Box("single_plate_absorber_solid",
-                                      (m_TowerDx - m_WlsDw) / 2.0,
-                                      (m_TowerDy - m_SupportDw) / 2.0,
+                                      (TowerDx - m_WlsDw) / 2.0,
+                                      (TowerDy - m_SupportDw) / 2.0,
                                       thickness_absorber / 2.0);
 
   G4VSolid* solid_scintillator = new G4Box("single_plate_scintillator",
-                                          (m_TowerDx - m_WlsDw) / 2.0,
-                                          (m_TowerDy - m_SupportDw) / 2.0,
+                                          (TowerDx - m_WlsDw) / 2.0,
+                                          (TowerDy - m_SupportDw) / 2.0,
                                           thickness_scintillator / 2.0);
 
   G4VSolid* solid_WLS_plate = new G4Box("single_plate_wls",
                                           (m_WlsDw) / 2.0,
-                                          (m_TowerDy - m_SupportDw) / 2.0,
-                                          m_TowerDz / 2.0);
+                                          (TowerDy - m_SupportDw) / 2.0,
+                                          TowerDz / 2.0);
 
   G4VSolid* solid_support_plate = new G4Box("single_plate_support",
-                                          (m_TowerDx) / 2.0,
+                                          (TowerDx) / 2.0,
                                           (m_SupportDw) / 2.0,
-                                          m_TowerDz / 2.0);
+                                          TowerDz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
   G4Material* material_scintillator = G4Material::GetMaterial(m_MaterialScintillator);
@@ -222,7 +221,7 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = - m_WlsDw / 2.0;
   G4double ypos_i = - m_SupportDw / 2.0;
-  G4double zpos_i = (-1 * m_TowerDz / 2.0) + thickness_absorber / 2.0;
+  G4double zpos_i = (-1 * TowerDz / 2.0) + thickness_absorber / 2.0;
 
   string name_absorber = m_TowerLogicNamePrefix + "_single_plate_absorber";
 
@@ -250,13 +249,13 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
 
     zpos_i += (thickness_absorber / 2. + thickness_scintillator / 2.);
   }
-  new G4PVPlacement(0, G4ThreeVector( 0, (m_TowerDy/2)-m_SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector( 0, (TowerDy/2)-m_SupportDw/2, 0),
                     logic_support,
                     name_support,
                     single_tower_logic,
                     0, 0, OverlapCheck());
 
-  new G4PVPlacement(0, G4ThreeVector((m_TowerDx/2)-m_WlsDw/2, -m_SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector((TowerDx/2)-m_WlsDw/2, -m_SupportDw/2, 0),
                     logic_wls,
                     name_wls,
                     single_tower_logic,
@@ -377,19 +376,19 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   parit = m_GlobalParameterMap.find("Gtower_dx");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_TowerDx = parit->second * cm;
+    m_Params->set_double_param("tower_dx",parit->second); // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gtower_dy");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_TowerDy = parit->second * cm;
+    m_Params->set_double_param("tower_dy",parit->second); // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gtower_dz");
   if (parit != m_GlobalParameterMap.end())
   {
-    m_TowerDz = parit->second * cm;
+    m_Params->set_double_param("tower_dz",parit->second); // in cm
   }
 
   parit = m_GlobalParameterMap.find("Gr1_inner");
