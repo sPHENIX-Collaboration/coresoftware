@@ -208,7 +208,7 @@ PHG4ForwardHcalDetector::ConstructTower()
                                                        "hHcal_support_plate_logic",
                                                        0, 0, 0);
 
-  //  m_AbsorberLogicalVolSet.insert(logic_support);
+  m_AbsorberLogicalVolSet.insert(logic_support);
   m_DisplayAction->AddVolume(logic_absorber, "Absorber");
   m_DisplayAction->AddVolume(logic_scint, "Scintillator");
   m_DisplayAction->AddVolume(logic_wls, "WLSplate");
