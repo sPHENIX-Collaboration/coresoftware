@@ -162,6 +162,7 @@ set_default_double_param("tower_dz", 100.);
   set_default_string_param("mapping_file_md5", PHG4Utils::md5sum(mappingfilename.str()));
   set_default_string_param("scintillator","G4_POLYSTYRENE");
   set_default_string_param("absorber","G4_Fe");
+  set_default_string_param("support","G4_Fe");
 
   return;
 }

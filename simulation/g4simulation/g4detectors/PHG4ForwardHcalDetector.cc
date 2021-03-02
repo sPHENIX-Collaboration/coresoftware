@@ -165,8 +165,8 @@ PHG4ForwardHcalDetector::ConstructTower()
 
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
   // based on STAR forward upgrade design: https://drupal.star.bnl.gov/STAR/files/ForwardUpgrade.v20.pdf
-  G4double thickness_absorber = 20 * mm;
-  G4double thickness_scintillator = 2.31 * mm;
+  G4double thickness_absorber = m_Params->get_double_param("thickness_absorber") * cm;
+  G4double thickness_scintillator = m_Params->get_double_param("thickness_scintillator") * cm;
   G4int nlayers = TowerDz / (thickness_absorber + thickness_scintillator);
 
   G4VSolid* solid_absorber = new G4Box("single_plate_absorber_solid",
@@ -193,7 +193,7 @@ PHG4ForwardHcalDetector::ConstructTower()
   G4Material* material_scintillator = G4Material::GetMaterial(m_Params->get_string_param("scintillator"));
   G4Material* material_absorber = G4Material::GetMaterial(m_Params->get_string_param("absorber"));
   G4Material* material_wls = G4Material::GetMaterial(m_Params->get_string_param("scintillator"));
-  G4Material* material_support = G4Material::GetMaterial("G4_Fe");
+  G4Material* material_support = G4Material::GetMaterial(m_Params->get_string_param("support"));
 
   G4LogicalVolume* logic_absorber = new G4LogicalVolume(solid_absorber,
                                                         material_absorber,
