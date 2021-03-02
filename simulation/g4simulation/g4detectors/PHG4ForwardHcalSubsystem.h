@@ -58,11 +58,6 @@ class PHG4ForwardHcalSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction = nullptr;
-
-  int blackhole;
-
-  std::string detector_type;
-  std::string mappingfile_;
 };
 
 #endif

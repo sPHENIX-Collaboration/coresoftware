@@ -26,14 +26,9 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , blackhole(0)
-  , detector_type(name)
-  , mappingfile_("")
 {
   InitializeParameters();
 }
@@ -57,9 +52,8 @@ int PHG4ForwardHcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  m_Detector->SetTowerMappingFile(mappingfile_);
 
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -74,7 +68,7 @@ int PHG4ForwardHcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
     }
     // create hit output node
-    string nodename;
+    std::string nodename;
     if (SuperDetector() != "NONE")
     {
       nodename = "G4HIT_" + SuperDetector();
@@ -132,7 +126,7 @@ PHG4Detector* PHG4ForwardHcalSubsystem::GetDetector() const
 
 void PHG4ForwardHcalSubsystem::SetDefaultParameters()
 {
-  ostringstream mappingfilename;
+  std::ostringstream mappingfilename;
   const char* calibroot = getenv("CALIBRATIONROOT");
   if (calibroot)
   {
@@ -154,5 +148,4 @@ void PHG4ForwardHcalSubsystem::SetTowerMappingFile(const std::string& filename)
 {
   set_string_param("mapping_file", filename);
   set_string_param("mapping_file_md5", PHG4Utils::md5sum(get_string_param("mapping_file")));
-mappingfile_ = filename;
 }

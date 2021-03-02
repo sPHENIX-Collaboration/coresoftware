@@ -47,8 +47,9 @@ class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
   PHG4Shower* saveshower;
 
   int m_IsActiveFlag = 0;
-  int absorbertruth;
+  int absorbertruth = 0;
   int light_scint_model;
+  int m_IsBlackHole = 0;
 };
 
 #endif  // G4DETECTORS_PHG4FORWARDHCALSTEPPINGACTION_H

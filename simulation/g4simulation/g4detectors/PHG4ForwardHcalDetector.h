@@ -5,7 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4Types.hh>   // for G4double
 
 #include <map>
@@ -40,42 +39,17 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   //!@name volume accessors
   int IsInForwardHcal(G4VPhysicalVolume *) const;
 
-  //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile(const std::string &filename)
-  {
-    _mapping_tower_file = filename;
-  }
+  void SetXRot(G4double rot_in_x) { m_XRot = rot_in_x; }
+  void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
+  void SetZRot(G4double rot_in_z) { m_ZRot = rot_in_z; }
 
-  void SetTowerDimensions(G4double dx, G4double dy, G4double dz)
-  {
-    _tower_dx = dx;
-    _tower_dy = dy;
-    _tower_dz = dz;
-  }
+  void SetMaterialScintillator(const std::string &material) { m_MaterialScintillator = material; }
+  void SetMaterialAbsorber(const std::string &material) { m_MaterialAbsorber = material; }
 
-  void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
-  {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
-  }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
-  void SetXRot(G4double rot_in_x) { _rot_in_x = rot_in_x; }
-  void SetYRot(G4double rot_in_y) { _rot_in_y = rot_in_y; }
-  void SetZRot(G4double rot_in_z) { _rot_in_z = rot_in_z; }
-
-  void SetMaterialScintillator(G4String material) { _materialScintillator = material; }
-  void SetMaterialAbsorber(G4String material) { _materialAbsorber = material; }
-
-//  int IsActive() const { return m_ActiveFlag; }
-
-  void SuperDetector(const std::string &name) { _superdetector = name; }
-  const std::string SuperDetector() const { return _superdetector; }
-
-  int get_Layer() const { return _layer; }
-
-  void BlackHole(const int i = 1) { _blackhole = i; }
-  int IsBlackHole() const { return _blackhole; }
+  int get_Layer() const { return m_Layer; }
 
  private:
   G4LogicalVolume *ConstructTower();
@@ -93,45 +67,43 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   PHParameters *m_Params = nullptr;
 
   /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
+  G4double m_PlaceX;
+  G4double m_PlaceY;
+  G4double m_PlaceZ;
 
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
+  G4double m_XRot;
+  G4double m_YRot;
+  G4double m_ZRot;
 
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
+  G4double m_RMin1;
+  G4double m_RMax1;
+  G4double m_RMin2;
+  G4double m_RMax2;
 
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
+  G4double m_dZ;
+  G4double m_SPhi;
+  G4double m_DPhi;
 
   /* HCAL tower geometry */
-  G4double _tower_dx;
-  G4double _tower_dy;
-  G4double _tower_dz;
+  G4double m_TowerDx;
+  G4double m_TowerDy;
+  G4double m_TowerDz;
 
-  G4double _wls_dw;
-  G4double _support_dw;
+  G4double m_WlsDw;
+  G4double m_SupportDw;
 
-  G4String _materialScintillator;
-  G4String _materialAbsorber;
+  std::string m_MaterialScintillator;
+  std::string m_MaterialAbsorber;
 
   int m_ActiveFlag = 1;
   int m_AbsorberActiveFlag = 0;
-  int _layer;
-  int _blackhole;
+  int m_Layer = 0;
 
-  std::string _towerlogicnameprefix;
-  std::string _superdetector;
-  std::string _mapping_tower_file;
+  std::string m_TowerLogicNamePrefix;
+  std::string m_SuperDetector;
 
-  std::map<std::string, G4double> _map_global_parameter;
-  std::map<std::string, towerposition> _map_tower;
+  std::map<std::string, G4double> m_GlobalParameterMap;
+  std::map<std::string, towerposition> m_TowerPostionMap;
 
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;

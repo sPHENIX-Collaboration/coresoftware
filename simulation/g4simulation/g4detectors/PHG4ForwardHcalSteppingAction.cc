@@ -66,6 +66,7 @@ PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDete
   , m_IsActiveFlag(parameters->get_int_param("active"))
   , absorbertruth(parameters->get_int_param("absorberactive"))
   , light_scint_model(1)
+  , m_IsBlackHole(parameters->get_int_param("blackhole"))
 {
 }
 
@@ -122,7 +123,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (m_IsBlackHole)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
