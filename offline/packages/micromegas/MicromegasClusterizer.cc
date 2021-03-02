@@ -105,8 +105,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 {
 
   // geometry
-  const std::string geonodename = "CYLINDERGEOM_" + m_detector;
-  auto geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer* geonode = nullptr;
+  for( const std::string& geonodename: {"CYLINDERGEOM_" + m_detector + "_FULL", "CYLINDERGEOM_" + m_detector } )
+  { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
   assert(geonode);
 
   // hitset container
