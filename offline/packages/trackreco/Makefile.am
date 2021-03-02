@@ -76,7 +76,10 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp
+  ../PHTpcTracker/externals/kdfinder.hpp \
+  ALICEKF.h \
+  nanoflann.hpp \
+  PHSimpleKFProp.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -171,7 +174,9 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
   PHRaveVertexing.cc \
-  PHTpcTrackSeedVertexAssoc.cc
+  PHTpcTrackSeedVertexAssoc.cc \
+  ALICEKF.cc \
+  PHSimpleKFProp.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
