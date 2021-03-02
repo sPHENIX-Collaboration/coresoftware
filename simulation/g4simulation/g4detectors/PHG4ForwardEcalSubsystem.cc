@@ -18,6 +18,8 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <cstdlib>                         // for getenv
 #include <set>  // for set
 #include <sstream>
@@ -141,6 +143,11 @@ void PHG4ForwardEcalSubsystem::SetDefaultParameters()
   if (calibroot)
   {
     mappingfilename << calibroot;
+  }
+  else
+  {
+    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+    gSystem->Exit(1);
   }
   mappingfilename << "/ForwardEcal/mapping/towerMap_FEMC_fsPHENIX_v004.txt";
   set_default_string_param("mapping_file", mappingfilename.str());
