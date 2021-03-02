@@ -76,17 +76,18 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   int layer_id = m_Detector->get_Layer();
-  int idx_j = -1;
-  int idx_k = -1;
-
-  if (whichactive > 0)  // in sctintillator
-  {
-    /* Find indizes of sctintillator / tower containing this step */
-// it is coded into the copy number in the detector class
     unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
-    idx_j = icopy >> 16;
-    idx_k = icopy & 0xFFFF;
-  }
+    int idx_j = icopy >> 16;
+    int idx_k = icopy & 0xFFFF;
+
+//  if (whichactive > 0)  // in scintillator
+//  {
+//    /* Find indizes of sctintillator / tower containing this step */
+// it is coded into the copy number in the detector class
+//    unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+//    idx_j = icopy >> 16;
+//    idx_k = icopy & 0xFFFF;
+//  }
 
   /* Get energy deposited by this step */
   double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -107,7 +108,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   /* Make sure we are in a volume */
   if (m_ActiveFlag)
   {
-    int idx_l = -1;
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -128,10 +128,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       {
         m_Hit = new PHG4Hitv1();
       }
-      /* Set hit location (tower index) */
-      m_Hit->set_index_j(idx_j);
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_l(idx_l);
 
       /* Set hit location (space point) */
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -141,15 +137,21 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       /* Set hit time */
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
+// set the tower index
+         m_Hit->set_index_j(idx_j);
+         m_Hit->set_index_k(idx_k);
+
       //set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
       m_Hit->set_edep(0);
-      m_Hit->set_eion(0);
+      /* Set hit location (tower index) */
+
 
       /* Now add the hit to the hit collection */
       if (whichactive > 0)
       {
+         m_Hit->set_eion(0);
         m_SaveHitContainer = m_HitContainer;
         m_Hit->set_light_yield(0);
       }
@@ -210,18 +212,18 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     /* sum up the energy to get total deposited */
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      m_Hit->set_eion(-1);
       if (whichactive > 0)
       {
+        m_Hit->set_eion(-1);
         m_Hit->set_light_yield(-1);
       }
     }
