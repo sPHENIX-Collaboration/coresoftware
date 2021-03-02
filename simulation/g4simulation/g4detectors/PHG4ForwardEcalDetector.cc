@@ -92,7 +92,7 @@ int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
 //_______________________________________________________________________
 void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
-  if ( Verbosity() > 0 )
+  if (Verbosity() > 0)
   {
     std::cout << "PHG4ForwardEcalDetector: Begin Construction" << std::endl;
   }
@@ -101,7 +101,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   ParseParametersFromTable();
 
   /* Create the cone envelope = 'world volume' for the crystal calorimeter */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
@@ -168,7 +168,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   if ((type == 3) || (type == 4) || (type == 5) || (type == 6)) return ConstructTowerType3_4_5_6(type);
 
   /* create logical volume for single tower */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4Material* material_scintillator;
@@ -248,7 +248,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
     std::cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << std::endl;
   }
   /* create logical volume for single tower */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* single_tower_solid = new G4Box("single_tower_solid2",
@@ -266,8 +266,8 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   G4int nlayers = 66;
   G4double thickness_layer = m_TowerDz[2] / (float) nlayers;
   // update layer thickness with https://doi.org/10.1016/S0168-9002(02)01954-X
-  G4double thickness_absorber = thickness_layer * (1.5/5.6);      // 1.5mm absorber
-  G4double thickness_scintillator = thickness_layer * (4.0/5.6);  // 4mm scintillator
+  G4double thickness_absorber = thickness_layer * (1.5 / 5.6);      // 1.5mm absorber
+  G4double thickness_scintillator = thickness_layer * (4.0 / 5.6);  // 4mm scintillator
 
   G4VSolid* solid_absorber = new G4Box("single_plate_absorber_solid2",
                                        m_TowerDx[2] / 2.0,
@@ -371,7 +371,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   }
 
   /* create logical volume for single tower */
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   std::string solidName = "single_tower_solid" + std::to_string(type);
@@ -395,7 +395,8 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
                                               tower_dy / 2.0,
                                               tower_dz / 2.0);
 
-  std::string absorberLogicName = "single_absorber_logic" + std::to_string(type);;
+  std::string absorberLogicName = "single_absorber_logic" + std::to_string(type);
+  ;
   // E864 Pb-Scifi calorimeter
   // E864 Calorimeter is 99% Pb, 1% Antimony
   G4LogicalVolume* single_absorber_logic = new G4LogicalVolume(single_absorber_solid,
@@ -473,7 +474,7 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
     {
       std::cout << "PHG4ForwardEcalDetector: Place tower " << iterator->first
                 << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
-           << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << std::endl;
+                << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << std::endl;
     }
 
     assert(iterator->second.type >= 0 && iterator->second.type <= 6);
@@ -565,7 +566,7 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-	std::cout << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_Params->get_string_param("mapping_file") << std::endl;
+        std::cout << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_Params->get_string_param("mapping_file") << std::endl;
         gSystem->Exit(1);
       }
 

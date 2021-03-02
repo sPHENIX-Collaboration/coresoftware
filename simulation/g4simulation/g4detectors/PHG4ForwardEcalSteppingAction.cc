@@ -146,7 +146,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         m_CurrentHitContainer = m_SignalHitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
-       }
+      }
       else
       {
         m_CurrentHitContainer = m_AbsorberHitContainer;
@@ -172,26 +172,26 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       static bool once = true;
       if (once && edep > 0)
       {
-	once = false;
+        once = false;
 
-	if (Verbosity() > 0)
-	{
-	  std::cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
-	    //
-	       << m_Detector->GetName() << " - "
-	       << " use scintillating light model at each Geant4 steps. "
-	       << "First step: "
-	       << "Material = "
-	       << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-	       << ", "
-	       << "Birk Constant = "
-	       << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-	       << ","
-	       << "edep = " << edep << ", "
-	       << "eion = " << eion
-	       << ", "
-	       << "light_yield = " << light_yield << std::endl;
-	}
+        if (Verbosity() > 0)
+        {
+          std::cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
+        }
       }
     }
 
@@ -305,4 +305,3 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
     }
   }
 }
-

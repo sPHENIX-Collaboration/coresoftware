@@ -20,8 +20,8 @@
 
 #include <TSystem.h>
 
-#include <cstdlib>                         // for getenv
-#include <set>  // for set
+#include <cstdlib>  // for getenv
+#include <set>      // for set
 #include <sstream>
 
 class PHG4Detector;
