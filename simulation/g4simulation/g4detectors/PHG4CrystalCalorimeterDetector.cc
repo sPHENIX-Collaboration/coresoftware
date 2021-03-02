@@ -22,7 +22,6 @@
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>      // for G4Transform3D
 #include <Geant4/G4Types.hh>            // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <TSystem.h>
 
