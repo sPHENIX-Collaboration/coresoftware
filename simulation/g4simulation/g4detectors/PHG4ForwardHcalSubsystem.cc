@@ -132,7 +132,7 @@ void PHG4ForwardHcalSubsystem::SetDefaultParameters()
 set_default_double_param("tower_dx", 10.);
 set_default_double_param("tower_dy", 10.);
 set_default_double_param("tower_dz", 100.);
-  set_default_double_param("dz", 18.);
+  set_default_double_param("dz", 100.);
   set_default_double_param("rMin1", 5.);
   set_default_double_param("rMax1", 262.);
   set_default_double_param("rMin2", 5.);
@@ -142,6 +142,8 @@ set_default_double_param("tower_dz", 100.);
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
+  set_default_double_param("thickness_absorber", 2.);
+  set_default_double_param("thickness_scintillator", 0.231);
 
   std::ostringstream mappingfilename;
   const char* calibroot = getenv("CALIBRATIONROOT");

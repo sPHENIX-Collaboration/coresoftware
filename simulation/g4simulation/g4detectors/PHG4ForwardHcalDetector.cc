@@ -105,8 +105,9 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              m_Params->get_double_param("rMax2")*cm,
 //m_RMin1, m_RMax1,
 //                                             m_RMin2, m_RMax2,
-                                             m_dZ / 2.,
-                                             m_SPhi, m_DPhi);
+                                             m_Params->get_double_param("dz")*cm/2.,
+//m_dZ / 2.,
+                                             0., 2.*M_PI);
 
   G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, WorldMaterial, "hHcal_envelope", 0, 0, 0);
 
@@ -150,6 +151,8 @@ PHG4ForwardHcalDetector::ConstructTower()
   double TowerDx = m_Params->get_double_param("tower_dx") * cm;
   double TowerDy = m_Params->get_double_param("tower_dy") * cm;
   double TowerDz = m_Params->get_double_param("tower_dz") * cm;
+  double WlsDw = m_Params->get_double_param("wls_dw") * cm;
+  double SupportDw = m_Params->get_double_param("support_dw") * cm;
   G4VSolid* single_tower_solid = new G4Box("single_tower_solid",
                                            TowerDx / 2.0,
                                            TowerDy / 2.0,
@@ -167,23 +170,23 @@ PHG4ForwardHcalDetector::ConstructTower()
   G4int nlayers = TowerDz / (thickness_absorber + thickness_scintillator);
 
   G4VSolid* solid_absorber = new G4Box("single_plate_absorber_solid",
-                                      (TowerDx - m_WlsDw) / 2.0,
-                                      (TowerDy - m_SupportDw) / 2.0,
+                                      (TowerDx - WlsDw) / 2.0,
+                                      (TowerDy - SupportDw) / 2.0,
                                       thickness_absorber / 2.0);
 
   G4VSolid* solid_scintillator = new G4Box("single_plate_scintillator",
-                                          (TowerDx - m_WlsDw) / 2.0,
-                                          (TowerDy - m_SupportDw) / 2.0,
+                                          (TowerDx - WlsDw) / 2.0,
+                                          (TowerDy - SupportDw) / 2.0,
                                           thickness_scintillator / 2.0);
 
   G4VSolid* solid_WLS_plate = new G4Box("single_plate_wls",
-                                          (m_WlsDw) / 2.0,
-                                          (TowerDy - m_SupportDw) / 2.0,
+                                          (WlsDw) / 2.0,
+                                          (TowerDy - SupportDw) / 2.0,
                                           TowerDz / 2.0);
 
   G4VSolid* solid_support_plate = new G4Box("single_plate_support",
                                           (TowerDx) / 2.0,
-                                          (m_SupportDw) / 2.0,
+                                          (SupportDw) / 2.0,
                                           TowerDz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
@@ -223,8 +226,8 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
   m_DisplayAction->AddVolume(logic_support, "SupportPlate");
 
   /* place physical volumes for absorber and scintillator plates */
-  G4double xpos_i = - m_WlsDw / 2.0;
-  G4double ypos_i = - m_SupportDw / 2.0;
+  G4double xpos_i = - WlsDw / 2.0;
+  G4double ypos_i = - SupportDw / 2.0;
   G4double zpos_i = (-1 * TowerDz / 2.0) + thickness_absorber / 2.0;
 
   string name_absorber = m_TowerLogicNamePrefix + "_single_plate_absorber";
@@ -253,13 +256,13 @@ G4LogicalVolume* logic_support = new G4LogicalVolume(solid_support_plate,
 
     zpos_i += (thickness_absorber / 2. + thickness_scintillator / 2.);
   }
-  new G4PVPlacement(0, G4ThreeVector( 0, (TowerDy/2)-m_SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector( 0, (TowerDy/2)-SupportDw/2, 0),
                     logic_support,
                     name_support,
                     single_tower_logic,
                     0, 0, OverlapCheck());
 
-  new G4PVPlacement(0, G4ThreeVector((TowerDx/2)-m_WlsDw/2, -m_SupportDw/2, 0),
+  new G4PVPlacement(0, G4ThreeVector((TowerDx/2)-WlsDw/2, -SupportDw/2, 0),
                     logic_wls,
                     name_wls,
                     single_tower_logic,
