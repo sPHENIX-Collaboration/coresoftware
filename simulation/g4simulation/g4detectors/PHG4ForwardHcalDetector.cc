@@ -99,8 +99,12 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
   G4VSolid* hcal_envelope_solid = new G4Cons("hHcal_envelope_solid",
-                                             m_RMin1, m_RMax1,
-                                             m_RMin2, m_RMax2,
+                                             m_Params->get_double_param("rMin1")*cm,
+                                             m_Params->get_double_param("rMax1")*cm,
+                                             m_Params->get_double_param("rMin2")*cm,
+                                             m_Params->get_double_param("rMax2")*cm,
+//m_RMin1, m_RMax1,
+//                                             m_RMin2, m_RMax2,
                                              m_dZ / 2.,
                                              m_SPhi, m_DPhi);
 
@@ -110,9 +114,9 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix hcal_rotm;
-  hcal_rotm.rotateX(m_XRot);
-  hcal_rotm.rotateY(m_YRot);
-  hcal_rotm.rotateZ(m_ZRot);
+  hcal_rotm.rotateX(m_Params->get_double_param("rot_x")*deg);
+  hcal_rotm.rotateY(m_Params->get_double_param("rot_y")*deg);
+  hcal_rotm.rotateZ(m_Params->get_double_param("rot_z")*deg);
 
   /* Place envelope cone in simulation */
   string name_envelope = m_TowerLogicNamePrefix + "_envelope";

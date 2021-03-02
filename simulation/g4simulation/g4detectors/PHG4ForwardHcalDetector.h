@@ -39,10 +39,6 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   //!@name volume accessors
   int IsInForwardHcal(G4VPhysicalVolume *) const;
 
-  void SetXRot(G4double rot_in_x) { m_XRot = rot_in_x; }
-  void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
-  void SetZRot(G4double rot_in_z) { m_ZRot = rot_in_z; }
-
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
