@@ -55,8 +55,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_DPhi(2 * M_PI)
   , m_WlsDw(3 * mm)
   , m_SupportDw(2 * mm)
-  , m_MaterialScintillator("G4_POLYSTYRENE")
-  , m_MaterialAbsorber("G4_Fe")
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_TowerLogicNamePrefix("hHcalTower")
@@ -119,7 +117,9 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   /* Place envelope cone in simulation */
   string name_envelope = m_TowerLogicNamePrefix + "_envelope";
 
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, m_PlaceZ)),
+  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x")*cm,
+							   m_Params->get_double_param("place_y")*cm,
+							   m_Params->get_double_param("place_z")*cm)),
                     hcal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
@@ -183,9 +183,9 @@ PHG4ForwardHcalDetector::ConstructTower()
                                           TowerDz / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
-  G4Material* material_scintillator = G4Material::GetMaterial(m_MaterialScintillator);
-  G4Material* material_absorber = G4Material::GetMaterial(m_MaterialAbsorber);
-  G4Material* material_wls = G4Material::GetMaterial(m_MaterialScintillator);
+  G4Material* material_scintillator = G4Material::GetMaterial(m_Params->get_string_param("scintillator"));
+  G4Material* material_absorber = G4Material::GetMaterial(m_Params->get_string_param("absorber"));
+  G4Material* material_wls = G4Material::GetMaterial(m_Params->get_string_param("scintillator"));
   G4Material* material_support = G4Material::GetMaterial("G4_Fe");
 
   G4LogicalVolume* logic_absorber = new G4LogicalVolume(solid_absorber,
@@ -394,66 +394,77 @@ int PHG4ForwardHcalDetector::ParseParametersFromTable()
   parit = m_GlobalParameterMap.find("Gr1_inner");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rMin1",parit->second);
     m_RMin1 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr1_outer");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rMax1",parit->second);
     m_RMax1 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr2_inner");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rMin2",parit->second);
     m_RMin2 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gr2_outer");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rMax2",parit->second);
     m_RMax2 = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gdz");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("dZ",parit->second);
     m_dZ = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gx0");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("place_x",parit->second);
     m_PlaceX = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gy0");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("place_y",parit->second);
     m_PlaceY = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Gz0");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("place_z",parit->second);
     m_PlaceZ = parit->second * cm;
   }
 
   parit = m_GlobalParameterMap.find("Grot_x");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rot_x",parit->second*rad/deg);
     m_XRot = parit->second;
   }
 
   parit = m_GlobalParameterMap.find("Grot_y");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rot_y",parit->second*rad/deg);
     m_YRot = parit->second;
   }
 
   parit = m_GlobalParameterMap.find("Grot_z");
   if (parit != m_GlobalParameterMap.end())
   {
+    m_Params->set_double_param("rot_z",parit->second*rad/deg);
     m_ZRot = parit->second;
   }
 

@@ -43,9 +43,6 @@ class PHG4ForwardHcalDetector : public PHG4Detector
   void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
   void SetZRot(G4double rot_in_z) { m_ZRot = rot_in_z; }
 
-  void SetMaterialScintillator(const std::string &material) { m_MaterialScintillator = material; }
-  void SetMaterialAbsorber(const std::string &material) { m_MaterialAbsorber = material; }
-
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
@@ -86,9 +83,6 @@ class PHG4ForwardHcalDetector : public PHG4Detector
 
   G4double m_WlsDw;
   G4double m_SupportDw;
-
-  std::string m_MaterialScintillator;
-  std::string m_MaterialAbsorber;
 
   int m_ActiveFlag = 1;
   int m_AbsorberActiveFlag = 0;
