@@ -132,12 +132,12 @@ int MicromegasEvaluator_hp::Init(PHCompositeNode* topNode )
 int MicromegasEvaluator_hp::InitRun(PHCompositeNode* topNode )
 {
   // load geometry
-  const std::string geonodename = "CYLINDERGEOM_MICROMEGAS";
-  const auto geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer* geonode = nullptr;
+  for( const std::string& geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
+  { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
   assert(geonode);
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 //_____________________________________________________________________
