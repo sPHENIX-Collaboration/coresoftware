@@ -40,6 +40,7 @@ pkginclude_HEADERS = \
   CaloRawTowerEval.h \
   CaloTruthEval.h \
   EventCounter_hp.h \
+  EventEvaluator.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -66,6 +67,7 @@ libg4eval_la_SOURCES = \
   CaloRawClusterEval.cc \
   CaloEvaluator.cc \
   EventCounter_hp.cc \
+  EventEvaluator.cc \
   JetEvalStack.cc \
   JetTruthEval.cc \
   JetRecoEval.cc \

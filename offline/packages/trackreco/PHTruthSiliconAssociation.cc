@@ -99,7 +99,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       
       // identify the best truth track match(es) for this seed track       
       std::vector<PHG4Particle*> g4particle_vec = getG4PrimaryParticle(_tracklet);
-      //std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
+      if(Verbosity() > 0)  std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
 
       if(g4particle_vec.size() < 1) continue;
 

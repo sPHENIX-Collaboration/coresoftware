@@ -61,6 +61,7 @@ pkginclude_HEADERS = \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
   PHTpcResiduals.h \
+  PHTpcTrackSeedVertexAssoc.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -169,7 +170,8 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
-  PHRaveVertexing.cc 
+  PHRaveVertexing.cc \
+  PHTpcTrackSeedVertexAssoc.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
