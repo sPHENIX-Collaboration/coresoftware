@@ -498,18 +498,20 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
     if (Verbosity() > 0)
     {
       cout << "PHG4ForwardEcalDetector: Place tower " << iterator->first
+                << " idx_j = " << iterator->second.idx_j << ", idx_k = " << iterator->second.idx_k
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
 
     assert(iterator->second.type >= 0 && iterator->second.type <= 6);
     G4LogicalVolume* singletower = singletowerIn[iterator->second.type];
+    int copyno = (iterator->second.idx_j << 16) + iterator->second.idx_k;
 
     G4PVPlacement* tower_placement =
         new G4PVPlacement(0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
                           singletower,
                           iterator->first,
                           ecalenvelope,
-                          0, 0, OverlapCheck());
+                          0, copyno, OverlapCheck());
 
     m_GdmlConfig->exclude_physical_vol(tower_placement);
   }
@@ -575,6 +577,8 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       tower_new.x = pos_x;
       tower_new.y = pos_y;
       tower_new.z = pos_z;
+      tower_new.idx_j = idx_j;
+      tower_new.idx_k = idx_k;
       tower_new.type = type;
       m_TowerPositionMap.insert(make_pair(towername.str(), tower_new));
     }

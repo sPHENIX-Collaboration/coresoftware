@@ -110,6 +110,8 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     double y;
     double z;
     int type;
+    int idx_j;
+    int idx_k;
   };
 
   PHG4ForwardEcalDisplayAction *m_DisplayAction;
