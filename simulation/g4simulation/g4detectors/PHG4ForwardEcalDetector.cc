@@ -202,36 +202,32 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
     material_scintillator = nullptr;
   }
 
-  ostringstream single_tower_solid_name;
-  single_tower_solid_name << m_TowerLogicNamePrefix << "_single_scintillator_type" << type;
+  string single_tower_solid_name = m_TowerLogicNamePrefix + "_single_scintillator_type" + std::to_string(type);
 
-  G4VSolid* single_tower_solid = new G4Box(G4String(single_tower_solid_name.str()),
+  G4VSolid* single_tower_solid = new G4Box(single_tower_solid_name,
                                            tower_dx / 2.0,
                                            tower_dy / 2.0,
                                            tower_dz / 2.0);
 
-  ostringstream single_tower_logic_name;
-  single_tower_logic_name << "single_tower_logic_type" << type;
+  std::string single_tower_logic_name = "single_tower_logic_type" + std::to_string(type);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
                                                             WorldMaterial,
-                                                            single_tower_logic_name.str(),
+                                                            single_tower_logic_name,
                                                             0, 0, 0);
 
-  ostringstream single_scintillator_name;
-  single_scintillator_name << "single_scintillator_type" << type;
+  std::string single_scintillator_name = "single_scintillator_type" + std::to_string(type);
 
-  G4VSolid* solid_scintillator = new G4Box(G4String(single_scintillator_name.str()),
+  G4VSolid* solid_scintillator = new G4Box(single_scintillator_name,
                                            tower_dx / 2.0,
                                            tower_dy / 2.0,
                                            tower_dz / 2.0);
 
-  ostringstream hEcal_scintillator_plate_logic_name;
-  hEcal_scintillator_plate_logic_name << "hEcal_scintillator_plate_logic_type" << type;
+  std::string hEcal_scintillator_plate_logic_name = "hEcal_scintillator_plate_logic_type" + std::to_string(type);
 
   G4LogicalVolume* logic_scint = new G4LogicalVolume(solid_scintillator,
                                                      material_scintillator,
-                                                     hEcal_scintillator_plate_logic_name.str(),
+                                                     hEcal_scintillator_plate_logic_name,
                                                      0, 0, 0);
 
   GetDisplayAction()->AddVolume(logic_scint, "Scintillator");
@@ -390,32 +386,28 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   recoConsts *rc = recoConsts::instance();
   G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
 
-  G4String solidName = "single_tower_solid";
-  solidName += type;
+  std::string solidName = "single_tower_solid" + std::to_string(type);
   G4VSolid* single_tower_solid = new G4Box(solidName,
                                            tower_dx / 2.0,
                                            tower_dy / 2.0,
                                            tower_dz / 2.0);
 
-  ostringstream name_single_tower_logic;
-  name_single_tower_logic << "single_tower_logic" << type;
+  std::string name_single_tower_logic = "single_tower_logic" + std::to_string(type);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
                                                             WorldMaterial,
-                                                            name_single_tower_logic.str(),
+                                                            name_single_tower_logic,
                                                             0, 0, 0);
 
   // Now the absorber and then the fibers:
 
-  G4String absorberName = "single_absorber_solid";
-  absorberName += type;
+  std::string absorberName = "single_absorber_solid" + std::to_string(type);
   G4VSolid* single_absorber_solid = new G4Box(absorberName,
                                               tower_dx / 2.0,
                                               tower_dy / 2.0,
                                               tower_dz / 2.0);
 
-  G4String absorberLogicName = "single_absorber_logic";
-  absorberLogicName += type;
+  std::string absorberLogicName = "single_absorber_logic" + std::to_string(type);;
   // E864 Pb-Scifi calorimeter
   // E864 Calorimeter is 99% Pb, 1% Antimony
   G4LogicalVolume* single_absorber_logic = new G4LogicalVolume(single_absorber_solid,
@@ -427,16 +419,14 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   /* create geometry volumes for scintillator and place inside single_tower */
   // 1.1mm fibers
 
-  G4String fiberName = "single_fiber_scintillator_solid";
-  fiberName += type;
+  std::string fiberName = "single_fiber_scintillator_solid" + std::to_string(type);
   G4VSolid* single_scintillator_solid = new G4Tubs(fiberName,
                                                    0.0, 0.055 * cm, (tower_dz / 2.0), 0.0, CLHEP::twopi);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
   G4Material* material_scintillator = G4Material::GetMaterial("G4_POLYSTYRENE");
 
-  G4String fiberLogicName = "hEcal_scintillator_fiber_logic";
-  fiberLogicName += type;
+  std::string fiberLogicName = "hEcal_scintillator_fiber_logic" + std::to_string(type);
   G4LogicalVolume* single_scintillator_logic = new G4LogicalVolume(single_scintillator_solid,
                                                                    material_scintillator,
                                                                    fiberLogicName,
@@ -448,13 +438,12 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 
   // place array of fibers inside absorber
 
-  G4double fiber_unit_cell = 10.0 * cm / 47.0;
-  G4double xpos_i = -(tower_dx / 2.0) + (fiber_unit_cell / 2.0);
-  G4double ypos_i = -(tower_dy / 2.0) + (fiber_unit_cell / 2.0);
-  G4double zpos_i = 0.0;
+  double fiber_unit_cell = 10.0 * cm / 47.0;
+  double xpos_i = -(tower_dx / 2.0) + (fiber_unit_cell / 2.0);
+  double ypos_i = -(tower_dy / 2.0) + (fiber_unit_cell / 2.0);
+  double zpos_i = 0.0;
 
-  ostringstream name_scintillator;
-  name_scintillator << m_TowerLogicNamePrefix << "_single_fiber_scintillator" << type;
+  std::string name_scintillator = m_TowerLogicNamePrefix + "_single_fiber_scintillator" + std::to_string(type);
 
   for (int i = 0; i < num_fibers_x; i++)
   {
@@ -462,7 +451,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
     {
       new G4PVPlacement(0, G4ThreeVector(xpos_i + i * fiber_unit_cell, ypos_i + j * fiber_unit_cell, zpos_i),
                         single_scintillator_logic,
-                        name_scintillator.str(),
+                        name_scintillator,
                         single_absorber_logic,
                         0, 0, OverlapCheck());
     }
@@ -470,12 +459,11 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 
   // Place the absorber inside the envelope
 
-  ostringstream name_absorber;
-  name_absorber << m_TowerLogicNamePrefix << "_single_absorber" << type;
+  std::string name_absorber = m_TowerLogicNamePrefix + "_single_absorber" + std::to_string(type);
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0),
                     single_absorber_logic,
-                    name_absorber.str().c_str(),
+                    name_absorber,
                     single_tower_logic,
                     0, 0, OverlapCheck());
   GetDisplayAction()->AddVolume(single_tower_logic, "ScintillatorSingleTower");
@@ -491,9 +479,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletowerIn[7])
 {
   /* Loop over all tower positions in vector and place tower */
-  typedef std::map<std::string, towerposition>::iterator it_type;
-
-  for (it_type iterator = m_TowerPositionMap.begin(); iterator != m_TowerPositionMap.end(); ++iterator)
+  for (std::map<std::string, towerposition>::iterator iterator = m_TowerPositionMap.begin(); iterator != m_TowerPositionMap.end(); ++iterator)
   {
     if (Verbosity() > 0)
     {

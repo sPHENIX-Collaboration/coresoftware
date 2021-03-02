@@ -39,8 +39,6 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -107,7 +105,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -180,7 +178,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
 	if (Verbosity() > 0)
 	{
-	  cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
+	  std::cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
 	    //
 	       << m_Detector->GetName() << " - "
 	       << " use scintillating light model at each Geant4 steps. "
@@ -194,7 +192,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 	       << "edep = " << edep << ", "
 	       << "eion = " << eion
 	       << ", "
-	       << "light_yield = " << light_yield << endl;
+	       << "light_yield = " << light_yield << std::endl;
 	}
       }
     }
@@ -276,8 +274,8 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 //____________________________________________________________________________..
 void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
 
   if (m_Detector->SuperDetector() != "NONE")
   {
@@ -292,7 +290,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
 
   //now look for the map and grab a pointer to it.
   m_SignalHitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!m_SignalHitContainer)
@@ -305,7 +303,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
 }
