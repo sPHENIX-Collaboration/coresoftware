@@ -83,9 +83,9 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   int idx_k = icopy & 0xFFFF;
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -101,7 +101,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   /* Make sure we are in a volume */
   if (m_ActiveFlag)
   {
-    int idx_l = -1;
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -146,8 +145,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         /* Set hit location (tower index) */
         m_Hit->set_index_j(idx_j);
         m_Hit->set_index_k(idx_k);
-        m_Hit->set_index_l(idx_l);
-      }
+       }
       else
       {
         m_CurrentHitContainer = m_AbsorberHitContainer;
@@ -169,7 +167,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     if (whichactive > 0)
     {
-      light_yield = eion;
       light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       static bool once = true;
       if (once && edep > 0)

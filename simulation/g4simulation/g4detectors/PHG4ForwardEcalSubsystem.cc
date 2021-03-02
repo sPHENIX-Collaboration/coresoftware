@@ -100,15 +100,15 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
       nodes.insert(nodename.str());
     }
-    for (auto nodename : nodes)
+    for (auto thisnode : nodes)
 
     //    BOOST_FOREACH (string node, nodes)
     {
-      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, thisnode);
       if (!g4_hits)
       {
-        g4_hits = new PHG4HitContainer(nodename);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+        g4_hits = new PHG4HitContainer(thisnode);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, thisnode, "PHObject"));
       }
     }
     // create stepping action
