@@ -22,7 +22,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>               // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
 #include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
@@ -37,8 +36,6 @@
 #include <string>                              // for basic_string, operator+
 
 class PHCompositeNode;
-
-using namespace std;
 
 //____________________________________________________________________________..
 PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const PHParameters* parameters)
@@ -79,7 +76,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   int layer_id = m_Detector->get_Layer();
-  int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
 
@@ -87,20 +83,15 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   {
     /* Find indizes of sctintillator / tower containing this step */
 // it is coded into the copy number in the detector class
-    tower_id = touch->GetCopyNumber();
     unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
     idx_j = icopy >> 16;
     idx_k = icopy & 0xFFFF;
   }
-  else
-  {
-    tower_id = touch->GetCopyNumber();
-  }
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
@@ -120,7 +111,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -137,8 +128,6 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       {
         m_Hit = new PHG4Hitv1();
       }
-      m_Hit->set_scint_id(tower_id);
-
       /* Set hit location (tower index) */
       m_Hit->set_index_j(idx_j);
       m_Hit->set_index_k(idx_k);
@@ -192,7 +181,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
 	if (Verbosity() > 0)
 	{
-	  cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
+	  std::cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
 	    //
 	       << m_Detector->GetName() << " - "
 	       << " use scintillating light model at each Geant4 steps. "
@@ -206,7 +195,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 	       << "edep = " << edep << ", "
 	       << "eion = " << eion
 	       << ", "
-	       << "light_yield = " << light_yield << endl;
+	       << "light_yield = " << light_yield << std::endl;
 	}
       }
     }
@@ -289,8 +278,8 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 //____________________________________________________________________________..
 void PHG4ForwardHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
 
   if (m_Detector->SuperDetector() != "NONE")
   {
@@ -316,7 +305,7 @@ void PHG4ForwardHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ForwardHcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4ForwardHcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
 }
