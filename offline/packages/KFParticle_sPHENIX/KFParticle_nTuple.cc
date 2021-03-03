@@ -108,6 +108,7 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch(TString(mother_name) + "_PDG_ID", &m_calculated_mother_pdgID, TString(mother_name) + "_PDG_ID/I");
   m_tree->Branch(TString(mother_name) + "_Covariance", &m_calculated_mother_cov, TString(mother_name) + "_Covariance[21]/F", 21);
 
+  std::vector<std::string> intermediateNameMapping; //What intermediate is associate to what track
   if (m_has_intermediates_nTuple)
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
@@ -161,12 +162,25 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch(TString(intermediate_name) + "_nDoF", &m_calculated_intermediate_ndof[i], TString(intermediate_name) + "_nDoF/I");
       m_tree->Branch(TString(intermediate_name) + "_PDG_ID", &m_calculated_intermediate_pdgID[i], TString(intermediate_name) + "_PDG_ID/I");
       m_tree->Branch(TString(intermediate_name) + "_Covariance", &m_calculated_intermediate_cov[i], TString(intermediate_name) + "_Covariance[21]/F", 21);
+
+      for (int j = 0; j < m_num_tracks_from_intermediate_nTuple[i]; ++j)
+      {
+        intermediateNameMapping.push_back(intermediate_name + "_");
+      }
     }
+  }
+
+  int num_intermediate_tracks = 0;
+  for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
+  { 
+    num_intermediate_tracks += m_num_tracks_from_intermediate_nTuple[i];
   }
 
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     std::string daughter_number = "track_" + std::to_string(i + 1);
+
+    if (m_has_intermediates_nTuple && i < num_intermediate_tracks) daughter_number.insert(0, intermediateNameMapping[i]);
 
     m_tree->Branch(TString(daughter_number) + "_mass", &m_calculated_daughter_mass[i], TString(daughter_number) + "_mass/F");
     if (m_constrain_to_vertex_nTuple)
@@ -198,8 +212,8 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
 
-    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i, m_constrain_to_vertex_nTuple);
-    if (m_detector_info) kfpTruthAndDetTools.initializeDetectorBranches(m_tree, i);
+    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i, daughter_number, m_constrain_to_vertex_nTuple);
+    if (m_detector_info) kfpTruthAndDetTools.initializeDetectorBranches(m_tree, i, daughter_number);
   }
 
   int iter = 0;
