@@ -36,6 +36,7 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   void set_xy_residual_cut(const double cut){_xy_residual_cut = cut;}
   void set_z_residual_cut(const double cut){_z_residual_cut = cut;}
+  void set_refit(const bool refit) {_refit = refit;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -67,6 +68,7 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   bool _reject_xy_outliers = false;
   bool _reject_z_outliers = false;
+  bool _refit  = false;
 
   double _xy_residual_cut = 0.06;
   double _z_residual_cut = 0.15;

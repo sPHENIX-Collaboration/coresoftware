@@ -252,21 +252,25 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	      continue;
 	    }
 
-	  // refit the line
-	  points.clear();
-	  r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
-	  z_vertex = vertex->get_z();
-	  points.push_back(make_pair(r_vertex, z_vertex));
-	  for (unsigned int i=0; i<clusters.size(); ++i)
+	  //optionally refit the line
+	  if(_refit)
 	    {
-	      double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-	      double z = clusters[i]->getZ();	      
-	      points.push_back(make_pair(r,z));
+	      // refit the line
+	      points.clear();
+	      r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
+	      z_vertex = vertex->get_z();
+	      points.push_back(make_pair(r_vertex, z_vertex));
+	      for (unsigned int i=0; i<clusters.size(); ++i)
+		{
+		  double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+		  double z = clusters[i]->getZ();	      
+		  points.push_back(make_pair(r,z));
+		}
+	      
+	      line_fit(points, A, B);
+	      if(Verbosity() > 2) 
+		std::cout << "       After bad cluster removal, re-fitted line including vertex has A " << A << " B " << B << std::endl;      	  
 	    }
-	  
-	  line_fit(points, A, B);
-	  if(Verbosity() > 2) 
-	    std::cout << "       After bad cluster removal, re-fitted line including vertex has A " << A << " B " << B << std::endl;      	  
 
 	  bad_clusters.clear();
 	}
@@ -344,21 +348,24 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	      continue;
 	    }
 
-	  // refit the circle
-	  cpoints.clear();
-	  cpoints.push_back(std::make_pair(x_vertex, y_vertex));
-	  for (unsigned int i=0; i<clusters.size(); ++i)
+	  if(_refit)
 	    {
-	      double x = clusters[i]->getX();
-	      double y = clusters[i]->getY();	  
-	      cpoints.push_back(make_pair(x, y));
+	      // refit the circle
+	      cpoints.clear();
+	      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+	      for (unsigned int i=0; i<clusters.size(); ++i)
+		{
+		  double x = clusters[i]->getX();
+		  double y = clusters[i]->getY();	  
+		  cpoints.push_back(make_pair(x, y));
+		}
+	      double R, X0, Y0;
+	      CircleFitByTaubin(cpoints, R, X0, Y0);
+	      if(Verbosity() > 2) 
+		std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 	    }
-	  double R, X0, Y0;
-	  CircleFitByTaubin(cpoints, R, X0, Y0);
-	  if(Verbosity() > 2) 
-	    std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 	}
-      
+
       double pt_track = _tracklet_tpc->get_pt();
       if(Verbosity() > 5)
 	{
