@@ -11,8 +11,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4ForwardEcalDisplayAction::PHG4ForwardEcalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -57,15 +55,16 @@ void PHG4ForwardEcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol
     }
     else if (it.second == "Scintillator")
     {
-      visatt->SetColour(G4Colour::Cyan());
+      visatt->SetColour(G4Colour::White());
     }
     else if (it.second == "ScintillatorSingleTower")
     {
       visatt->SetColour(G4Colour::Cyan());
+      visatt->SetVisibility(false);
     }
     else
     {
-      cout << "unknown logical volume " << it.second << endl;
+      std::cout << "unknown logical volume " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

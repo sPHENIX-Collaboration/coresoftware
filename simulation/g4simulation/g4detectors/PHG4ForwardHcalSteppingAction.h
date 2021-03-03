@@ -14,12 +14,13 @@ class PHG4ForwardHcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*, const int absorberactive);
+  PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector*, const PHParameters* parameters);
 
   //! destructor
   virtual ~PHG4ForwardHcalSteppingAction();
@@ -31,22 +32,19 @@ class PHG4ForwardHcalSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-  int FindTowerIndex(G4TouchableHandle touch, int& j, int& k);
-
-  int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
-
   //! pointer to the detector
-  PHG4ForwardHcalDetector* detector_;
+  PHG4ForwardHcalDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
-  PHG4HitContainer* hitcontainer;
-  PHG4Hit* hit;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4Shower* m_SaveShower = nullptr;
 
-  int absorbertruth;
-  int light_scint_model;
+  int m_ActiveFlag = 0;
+  int m_AbsorberTruthFlag = 0;
+  int m_BlackHoleFlag = 0;
 };
 
 #endif  // G4DETECTORS_PHG4FORWARDHCALSTEPPINGACTION_H

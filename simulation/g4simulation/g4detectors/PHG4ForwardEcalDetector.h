@@ -5,11 +5,13 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <Geant4/G4SystemOfUnits.hh>
+
 #include <cassert>
 #include <map>
 #include <set>
 #include <string>
-#include <utility>                // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -110,37 +112,39 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     double y;
     double z;
     int type;
+    int idx_j;
+    int idx_k;
   };
 
-  PHG4ForwardEcalDisplayAction *m_DisplayAction;
-  PHParameters *m_Params;
+  PHG4ForwardEcalDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *m_GdmlConfig;
+  PHG4GDMLConfig *m_GdmlConfig = nullptr;
 
   /* ECAL tower geometry */
   double m_TowerDx[7];
   double m_TowerDy[7];
   double m_TowerDz[7];
 
-  double m_XRot;
-  double m_YRot;
-  double m_ZRot;
+  double m_XRot = 0.;
+  double m_YRot = 0.;
+  double m_ZRot = 0.;
 
-  double m_PlaceX;
-  double m_PlaceY;
-  double m_PlaceZ;
+  double m_PlaceX = 0.0 * mm;
+  double m_PlaceY = 0.0 * mm;
+  double m_PlaceZ = 3150.0 * mm;
 
   double m_RMin[2];
   double m_RMax[2];
 
-  double m_dZ;
+  double m_dZ = 170 * mm;
 
-  int m_ActiveFlag;
-  int m_AbsorberActiveFlag;
-  int m_Layer;
+  int m_ActiveFlag = 0;
+  int m_AbsorberActiveFlag = 0;
+  int m_Layer = 0;
 
-  std::string m_SuperDetector;
-  std::string m_TowerLogicNamePrefix;
+  std::string m_SuperDetector = "NONE";
+  std::string m_TowerLogicNamePrefix = "hEcalTower";
 
   std::map<std::string, towerposition> m_TowerPositionMap;
   std::map<std::string, double> m_GlobalParameterMap;
