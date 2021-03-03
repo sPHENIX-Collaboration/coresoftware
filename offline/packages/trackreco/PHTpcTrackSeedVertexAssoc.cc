@@ -301,7 +301,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  for(unsigned int i = 1; i < cpoints.size(); ++i)
 	    {
 	      double res_squared =  residuals[i]*residuals[i];
-	      //if(sqrt(res_squared) < 0.06)  // about 3.5-4 sigma
 	      if(sqrt(res_squared) < _xy_residual_cut)  
 		{
 		  circle_rms_squared += res_squared;
@@ -359,7 +358,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 		  double y = clusters[i]->getY();	  
 		  cpoints.push_back(make_pair(x, y));
 		}
-	      double R, X0, Y0;
+
 	      CircleFitByTaubin(cpoints, R, X0, Y0);
 	      if(Verbosity() > 2) 
 		std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
