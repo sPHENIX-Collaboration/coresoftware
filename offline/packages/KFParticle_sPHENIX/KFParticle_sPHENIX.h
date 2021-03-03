@@ -90,7 +90,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setNumberTracksFromIntermeditateState(int num_tracks[max_particles])
   {
-    for (int i = 0; i < max_particles; ++i) m_num_tracks_from_intermediate[i] = num_tracks[i];
+    for (int i = 0; i < max_particles; ++i) 
+   {
+     m_num_tracks_from_intermediate[i] = num_tracks[i];
+     m_num_tracks_from_intermediate_nTuple[i] = num_tracks[i];
+   }
   }
 
   void setNumberOfIntermediateStates(int n_intermediates)
@@ -121,8 +125,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (int i = 0; i < max_particles; ++i)
     {
       m_intermediate_name_ntuple[i] = intermediate_list[i].first;
-      //m_intermediate_name_evt[i] = intermediate_list[i].first;
-      //m_intermediate_charge_evt[i] = intermediate_list[i].second;
       m_intermediate_name[i] = intermediate_list[i].first;
       m_intermediate_charge[i] = intermediate_list[i].second;
     }
@@ -139,6 +141,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setMinimumTrackPT(float pt) { m_track_pt = pt; }
 
   void setMaximumTrackPTchi2(float ptchi2) { m_track_ptchi2 = ptchi2; }
+
+  void setMinimumTrackIP(float ip) { m_track_ip = ip; }
 
   void setMinimumTrackIPchi2(float ipchi2) { m_track_ipchi2 = ipchi2; }
 
@@ -175,6 +179,26 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setIntermediateMinPT(float intermediate_min_pt[max_particles])
   {
     for (int i = 0; i < max_particles; ++i) m_intermediate_min_pt[i] = intermediate_min_pt[i];
+  }
+
+  void setIntermediateMinIP(float intermediate_min_IP[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i) m_intermediate_min_ip[i] = intermediate_min_IP[i];
+  }
+
+  void setIntermediateMinIPchi2(float intermediate_min_IPchi2[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i) m_intermediate_min_ipchi2[i] = intermediate_min_IPchi2[i];
+  }
+
+  void setIntermediateMinDIRA(float intermediate_min_DIRA[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i) m_intermediate_min_dira[i] = intermediate_min_DIRA[i];
+  }
+
+  void setIntermediateMinFDchi2(float intermediate_min_FDchi2[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i) m_intermediate_min_fdchi2[i] = intermediate_min_FDchi2[i];
   }
 
   void useMVA(bool require_mva) { m_require_mva = require_mva; }

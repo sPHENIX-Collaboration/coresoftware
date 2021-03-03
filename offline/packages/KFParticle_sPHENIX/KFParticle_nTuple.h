@@ -39,6 +39,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   bool m_constrain_to_vertex_nTuple;
   int m_num_tracks_nTuple;
   int m_num_intermediate_states_nTuple;
+  int m_num_tracks_from_intermediate_nTuple[99];
   bool m_truth_matching;
   bool m_detector_info;
   std::string m_mother_name;
@@ -91,6 +92,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_decaytime_err[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength_err[max_intermediates] = {0};
+  float m_calculated_intermediate_dira[max_intermediates] = {0};
+  float m_calculated_intermediate_fdchi2[max_intermediates] = {0};
   float m_calculated_intermediate_ip[max_intermediates] = {0};
   float m_calculated_intermediate_ip_xy[max_intermediates] = {0};
   float m_calculated_intermediate_ipchi2[max_intermediates] = {0};

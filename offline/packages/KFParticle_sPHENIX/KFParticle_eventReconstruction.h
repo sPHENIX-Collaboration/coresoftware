@@ -78,12 +78,11 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
  protected:
-  //static const int max_tracks = 99;
-  bool m_has_intermediates;
-  //int m_num_tracks = -1;
   std::string m_daughter_name_evt[max_tracks];
   int m_daughter_charge_evt[max_tracks] = {0};
   int m_intermediate_charge[max_tracks] = {0};
+  float m_intermediate_min_ip[max_tracks] = {-1.};
+  float m_intermediate_min_ipchi2[max_tracks] = {-1.};
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
 };
