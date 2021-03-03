@@ -28,6 +28,7 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_constrain_to_vertex_nTuple(false)
   , m_num_tracks_nTuple(2)
   , m_num_intermediate_states_nTuple(0)
+  , m_num_tracks_from_intermediate_nTuple{0}
   , m_truth_matching(false)
   , m_detector_info(false)
   , m_use_intermediate_name(true)

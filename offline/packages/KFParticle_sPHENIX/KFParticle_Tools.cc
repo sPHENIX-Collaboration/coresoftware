@@ -185,7 +185,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   return associatedVertex->size_tracks();
 }
 
-const bool KFParticle_Tools::isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices)
+const bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
 {
   bool goodTrack = false;
   
@@ -209,10 +209,10 @@ int KFParticle_Tools::calcMinIP(KFParticle track, std::vector<KFParticle> PVs,
   std::vector<float> ip, ipchi2;
 
   for (unsigned int i_verts = 0; i_verts < PVs.size(); ++i_verts)
-{
+  {
     ip.push_back(track.GetDistanceFromVertex(PVs[i_verts]));
     ipchi2.push_back(track.GetDeviationFromVertex(PVs[i_verts]));
-}
+  }
 
   auto minmax_ip = minmax_element(ip.begin(), ip.end());  //Order the IP chi2 from small to large
   minimumIP = *minmax_ip.first;

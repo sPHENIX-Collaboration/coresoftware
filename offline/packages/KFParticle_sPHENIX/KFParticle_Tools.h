@@ -54,7 +54,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex);
 
-  const bool isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices);
 
   int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float& minimumIP, float& minimumIPchi2);
 
