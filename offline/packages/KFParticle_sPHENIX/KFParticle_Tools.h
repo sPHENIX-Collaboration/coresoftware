@@ -101,14 +101,17 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   bool m_has_intermediates;
   std::string m_intermediate_name[max_tracks];
 
+  std::pair<float, float> m_intermediate_mass_range[max_tracks];
+  float m_intermediate_min_pt[max_tracks] = {0};
+
+  float m_intermediate_min_dira[max_tracks] = {-1.};
+
+  float m_intermediate_min_fdchi2[max_tracks] = {-1.};
+
   float m_min_mass = -1;
 
   float m_max_mass = -1;
 
-  std::pair<float, float> m_intermediate_mass_range[max_tracks];
-  float m_intermediate_min_pt[max_tracks] = {0};
-  float m_intermediate_min_dira[max_tracks] = {-1.};
-  float m_intermediate_min_fdchi2[max_tracks] = {-1.};
   float m_min_lifetime = -1;
 
   float m_max_lifetime = -1;
