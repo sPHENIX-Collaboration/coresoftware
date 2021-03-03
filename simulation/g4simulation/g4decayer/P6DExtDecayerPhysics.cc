@@ -42,7 +42,6 @@
 #include <Geant4/G4VPhysicsConstructor.hh>
 #include <Geant4/G4VProcess.hh>  // for G4VProcess
 #include <Geant4/G4Version.hh>
-#include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <ostream>  // for operator<<, basic_ostream
 #include <string>   // for operator<<
@@ -100,9 +99,9 @@ void P6DExtDecayerPhysics::ConstructProcess()
 
     if (verboseLevel > 1)
     {
-      G4cout << "Setting ext decayer for: "
+      std::cout << "Setting ext decayer for: "
              << aParticleIterator->value()->GetParticleName()
-             << G4endl;
+             << std::endl;
     }
 
     G4ProcessVector* processVector = pmanager->GetProcessList();
@@ -138,7 +137,7 @@ void P6DExtDecayerPhysics::ConstructProcess()
   }
   if (verboseLevel > 0)
   {
-    G4cout << "External decayer physics constructed." << G4endl;
+    std::cout << "External decayer physics constructed." << std::endl;
   }
 }
 

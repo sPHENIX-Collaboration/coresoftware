@@ -274,7 +274,7 @@ void PHG4GDMLWriteMaterials::PropertyWrite(xercesc::DOMElement* matElement,
 
 void PHG4GDMLWriteMaterials::MaterialsWrite(xercesc::DOMElement* element)
 {
-   G4cout << "G4GDML: Writing materials..." << G4endl;
+  std::cout << "G4GDML: Writing materials..." << std::endl;
 
    materialsElement = NewElement("materials");
    element->appendChild(materialsElement);

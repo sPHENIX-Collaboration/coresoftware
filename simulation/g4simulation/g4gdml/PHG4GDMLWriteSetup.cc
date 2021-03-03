@@ -47,7 +47,7 @@ PHG4GDMLWriteSetup::~PHG4GDMLWriteSetup()
 void PHG4GDMLWriteSetup::SetupWrite(xercesc::DOMElement* gdmlElement,
                                   const G4LogicalVolume* const logvol)
 {
-   G4cout << "G4GDML: Writing setup..." << G4endl;
+  std::cout << "G4GDML: Writing setup..." << std::endl;
 
    const G4String worldref = GenerateName(logvol->GetName(),logvol);
 

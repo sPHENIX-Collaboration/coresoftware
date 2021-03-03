@@ -6,8 +6,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-using namespace std;
-
 PHG4OuterHcalDisplayAction::PHG4OuterHcalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
   , m_MyTopVolume(nullptr)

@@ -915,7 +915,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
   return trackSeedKeyLists;
 }
 
-bool checknan(float val, std::string name, int num)
+bool PHCASeeding::checknan(float val, std::string name, int num)
 {
   if(std::isnan(val))
   {

@@ -177,7 +177,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv3.cc \
-  PHG4CylinderGeom_Spacalv3_2015.cc \
   PHG4CylinderGeomContainer.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv2.cc \

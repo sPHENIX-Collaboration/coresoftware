@@ -87,13 +87,13 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-   
+  
  private:
 
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
-  GridSeeds runSeeder();
+  GridSeeds runSeeder(std::vector<const SpacePoint*>& spVec);
 
   /// Configure the seeding parameters for Acts. There
   /// are a number of tunable parameters for the seeder here
@@ -113,8 +113,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Perform circle/line fits with the final MVTX seed to get
   /// initial point and momentum estimates for stub matching
   int circleFitSeed(std::vector<TrkrCluster*>& clusters,
-		     double& x, double& y, double& z,
-		     double& px, double& py, double& pz);
+		    double& x, double& y, double& z,
+		    double& px, double& py, double& pz);
+
   void circleFitByTaubin(const std::vector<TrkrCluster*>& clusters,
 			 double& R, double& X0, double& Y0);
   void lineFit(const std::vector<TrkrCluster*>& clusters,
@@ -199,7 +200,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_event = 0;
 
-  double m_maxSeedPCA = 0.03;
+  /// Maximum allowed transverse PCA for seed, cm
+  double m_maxSeedPCA = 0.1;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 
@@ -211,12 +213,16 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
+  int m_nBadUpdates = 0;
+  int m_nBadInitialFits = 0;
+  
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;
   TH2 *h_nHits = nullptr;
   TH1 *h_nSeeds = nullptr;
+  TH1 *h_nActsSeeds = nullptr;
   TH1 *h_nTotSeeds = nullptr;
   TH1 *h_nInputMeas = nullptr;
   TH1 *h_nInputMvtxMeas = nullptr;

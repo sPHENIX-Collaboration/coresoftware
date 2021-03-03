@@ -301,7 +301,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     // Endcap ring flag
     set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
-    set_default_int_param(SUPPORTPARAMS, "endcap_ring_type",    1);  // 0: Al+SS+WG, 1 : CarbonPEEK
+    set_default_int_param(SUPPORTPARAMS, "endcap_ring_type",    2);  // 0: Al+SS+WG, 1 : CarbonPEEK, 2(default) : new  model Jan/2021
 
     // Aluminum endcap ring position
     set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);
@@ -329,6 +329,19 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_outer_radius", 11.43  );
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_length",        0.6370);
 
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // the new endcap model
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_z", 24.4185);
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_outer_radius", 11.7475 ); // outer radius of the outermost part
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_outer_radius",  11.2020 ); // outer radius of the 2nd outermost part
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_outer_radius",  9.65   ); // outer radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_outer_radius",   8.7095 ); // outer radius of the 4th outermost part
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_outer_radius",  7.15 );   // outer radius of the 5th outermost part, slightly shrinked from the real drawing of 7.2045 cm to avoid overlapping 
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_inner_radius",  6.5088 ); // inner radius of the 5th outermost (=the outer most) part
+
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_length",          0.75   );
+    set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Cring_length",           0.5    );
+			         
     // Cylinders for the bus extenders
     set_default_int_param(SUPPORTPARAMS,    "bus_extender",    1);  // 0: OFF, 1: ON
     set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm

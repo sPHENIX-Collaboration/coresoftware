@@ -15,7 +15,7 @@
 
 ## TODOs (if applicable)
 
-[comment]: <> ( In case this is a draft PR, e.g. for run checks using Jenkins, please add the Label `preview-do-not-merge` on the right column  )
+[comment]: <> ( In case this is a draft PR, e.g. for running checks using Jenkins, please make the pull request as a draft: https://github.blog/2019-02-14-introducing-draft-pull-requests/  )
 
 
 ## Links to other PRs in macros and calibration repositories (if applicable)

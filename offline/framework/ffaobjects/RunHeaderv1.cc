@@ -1,5 +1,8 @@
 #include "RunHeaderv1.h"
 
+#include <cmath>    // for NAN
+#include <utility>  // for pair
+
 void RunHeaderv1::identify(std::ostream &out) const
 {
   out << "identify yourself: I am an RunHeaderv1 Object" << std::endl;

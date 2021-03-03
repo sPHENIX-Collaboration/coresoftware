@@ -5,10 +5,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <map>
+#include <memory>
 #include <set>
 #include <string>
-#include <memory>
-#include <map>
 
 class PHCompositeNode;
 class PHG4Hit;
@@ -34,7 +34,7 @@ class QAG4SimulationTpc : public SubsysReco
   std::string get_histo_prefix() const;
 
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
- PHG4TruthInfoContainer *m_truthContainer;
+  PHG4TruthInfoContainer* m_truthContainer;
 
   /// load nodes
   int load_nodes(PHCompositeNode*);

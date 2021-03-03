@@ -13,33 +13,20 @@
 
 #include <frog/FROG.h>
 
-#include <phhepmc/PHHepMCGenEvent.h>  // for PHHepMCGenEvent
-#include <phhepmc/PHHepMCGenEventMap.h>
-
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>  // for PHIODataNode
-#include <phool/PHNode.h>        // for PHNode
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHNodeOperation.h>
-#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
-#include <HepMC/GenEvent.h>
-
 #include <gsl/gsl_randist.h>
 
 #include <cassert>
-#include <climits>
-#include <cstdint>
-#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
-#include <iterator>  // for reverse_iterator, operator!=
 #include <utility>   // for pair
 
 //_____________________________________________________________________________
@@ -221,7 +208,10 @@ readagain:
   }
 
   // load relevant DST nodes to internal pointers
-  std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "Fun4AllSingleDstPileupInputManager::run - loaded event " << m_ievent_thisfile - 1 << std::endl;
+  }
 
   Fun4AllDstPileupMerger merger;
   merger.load_nodes(m_dstNode);
@@ -244,7 +234,11 @@ readagain:
       if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
 
       // merge
-      std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+
+      if (Verbosity() > 0)
+      {
+	std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+      }
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
       ++neventsbackground;

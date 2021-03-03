@@ -112,6 +112,9 @@ int PHActsTrkFitter::Process()
   eventTimer->stop();
   eventTimer->restart();
   
+  /// Start fresh for this event and for this execution of the module
+  m_actsFitResults->clear();
+
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
@@ -585,6 +588,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   auto rotater = std::make_unique<ActsTransformations>();
   rotater->setVerbosity(Verbosity());
   
+  float dca3Dxy = NAN;
+  float dca3Dz = NAN;
+  float dca3DxyCov = NAN;
+  float dca3DzCov = NAN;
+      
   if(params.covariance())
     {
    
@@ -599,21 +607,24 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	      track->set_error(i,j, rotatedCov(i,j));
 	    }
 	}
+    
+ 
+
+      rotater->calculateDCA(params, vertex, rotatedCov,
+			    m_tGeometry->geoContext, 
+			    dca3Dxy, dca3Dz, 
+			    dca3DxyCov, dca3DzCov);
     }
  
-  float dca3Dxy = -9999.;
-  float dca3Dz = -9999.;
-  float dca3DxyCov = -9999.;
-  float dca3DzCov = -9999.;
-
-  rotater->calculateDCA(params, vertex, m_tGeometry->geoContext, 
-			dca3Dxy, dca3Dz, dca3DxyCov, dca3DzCov);
-
-  // convert from mm to cm
+  /// Set the DCA here. The DCA will be updated after the final
+  /// vertex fitting in PHActsVertexFinder
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
   track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
-  track->set_dca3d_xy_error(dca3DxyCov / Acts::UnitConstants::cm);
-  track->set_dca3d_z_error(dca3DzCov / Acts::UnitConstants::cm);
+
+  /// The covariance that goes into the rotater is already in sphenix
+  /// units, so we don't need to convert back
+  track->set_dca3d_xy_error(sqrt(dca3DxyCov));
+  track->set_dca3d_z_error(sqrt(dca3DzCov));
   
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack

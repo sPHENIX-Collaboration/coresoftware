@@ -1,8 +1,5 @@
 #include "PHG4BbcDetector.h"
 
-#include <phparameter/PHParameters.h>
-#include <phool/phool.h>
-
 #include <g4main/PHG4Detector.h>                // for PHG4Detector
 
 #include <Geant4/G4Polyhedra.hh>
@@ -10,8 +7,8 @@
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4VPhysicalVolume.hh>          // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>           // for G4RotationMatrix
 #include <Geant4/G4String.hh>                   // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>              // for G4ThreeVector
@@ -19,9 +16,9 @@
 
 #include <cmath>
 #include <iostream>                             // for operator<<, endl, bas...
-#include <utility>                              // for pair
 
 class PHCompositeNode;
+class PHG4Subsystem;
 
 using namespace std;
 

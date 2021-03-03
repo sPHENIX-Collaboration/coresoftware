@@ -48,7 +48,6 @@ void ClusterJetInput::identify(std::ostream &os)
 std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 {
   if (_verbosity > 0) cout << "ClusterJetInput::process_event -- entered" << endl;
-
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -108,6 +107,22 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   else if (_input == Jet::ECAL_TOPO_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_EMCAL");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+  else if (_input == Jet::FEMC_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_FEMC");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+  else if (_input == Jet::FHCAL_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_FHCAL");
     if (!clusters)
     {
       return std::vector<Jet *>();

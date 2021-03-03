@@ -99,11 +99,11 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
       
       // identify the best truth track match(es) for this seed track       
       std::vector<PHG4Particle*> g4particle_vec = getG4PrimaryParticle(_tracklet);
-      //std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
+      if(Verbosity() > 0)  std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
 
       if(g4particle_vec.size() < 1) continue;
 
-      bool test_phi_matching = true;   // normally false
+      bool test_phi_matching = false;   // normally false
       if(test_phi_matching)
 	{
 	  // for getting the pT dependence of dphi  to eliminate the bias in phi from PHTpcTracker

@@ -18,21 +18,17 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cstdlib>                         // for getenv
-#include <set>  // for set
+#include <TSystem.h>
+
+#include <cstdlib>  // for getenv
+#include <set>      // for set
 #include <sstream>
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
-  , m_EICDetectorFlag(0)
 {
   InitializeParameters();
 }
@@ -64,7 +60,7 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -74,39 +70,37 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       DetNode = new PHCompositeNode(SuperDetector());
       dstNode->addNode(DetNode);
     }
-    ostringstream nodename;
+    std::string nodename;
     if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector();
+      nodename = "G4HIT_" + SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" << Name();
+      nodename = "G4HIT_" + Name();
     }
-    nodes.insert(nodename.str());
+    nodes.insert(nodename);
 
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
       if (SuperDetector() != "NONE")
       {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
+        nodename = "G4HIT_ABSORBER_" + SuperDetector();
       }
       else
       {
-        nodename << "G4HIT_ABSORBER_" << Name();
+        nodename = "G4HIT_ABSORBER_" + Name();
       }
-      nodes.insert(nodename.str());
+      nodes.insert(nodename);
     }
-    for (auto nodename : nodes)
 
-    //    BOOST_FOREACH (string node, nodes)
+    for (auto thisnode : nodes)
     {
-      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, thisnode);
       if (!g4_hits)
       {
-        g4_hits = new PHG4HitContainer(nodename);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+        g4_hits = new PHG4HitContainer(thisnode);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, thisnode, "PHObject"));
       }
     }
     // create stepping action
@@ -136,11 +130,16 @@ PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector(void) const
 
 void PHG4ForwardEcalSubsystem::SetDefaultParameters()
 {
-  ostringstream mappingfilename;
+  std::ostringstream mappingfilename;
   const char* calibroot = getenv("CALIBRATIONROOT");
   if (calibroot)
   {
     mappingfilename << calibroot;
+  }
+  else
+  {
+    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+    gSystem->Exit(1);
   }
   mappingfilename << "/ForwardEcal/mapping/towerMap_FEMC_fsPHENIX_v004.txt";
   set_default_string_param("mapping_file", mappingfilename.str());

@@ -75,6 +75,12 @@ class JetTruthEval
     _eemcevalstack.set_verbosity(verbosity);
   }
 
+  //set track node name
+  void set_track_nodename(const std::string& name)
+  {
+    _svtxevalstack.set_track_nodename(name);
+  }
+
   /// get a copy of the lower level eval and its memory cache
   SvtxEvalStack* get_svtx_eval_stack() { return &_svtxevalstack; }
 
