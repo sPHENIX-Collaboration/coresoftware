@@ -5,16 +5,9 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4String.hh>  // for G4String
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>
-
 #include <string>  // for string
 
-class G4Cons;
 class G4LogicalVolume;
-class G4Material;
-class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4ConeDisplayAction;

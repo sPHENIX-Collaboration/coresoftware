@@ -4,8 +4,8 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -15,14 +15,12 @@
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
-#include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>     // for M_PI
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
-using namespace std;
+class G4VSolid;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length

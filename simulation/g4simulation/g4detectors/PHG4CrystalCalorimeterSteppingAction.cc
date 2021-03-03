@@ -20,7 +20,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>   // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
 #include <Geant4/G4Track.hh>                  // for G4Track
@@ -28,19 +27,15 @@
 #include <Geant4/G4Types.hh>                  // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4TouchableHandle.hh>                // for G4TouchableHandle
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <TSystem.h>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/tokenizer.hpp>
 
 #include <iostream>
 #include <string>  // for basic_string, string
 
 class PHCompositeNode;
-
-using namespace std;
 
 //____________________________________________________________________________..
 PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector, const PHParameters* parameters)
@@ -130,7 +125,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -270,8 +265,8 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
 //____________________________________________________________________________..
 void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
 
   if (m_Detector->SuperDetector() != "NONE")
   {
@@ -298,7 +293,7 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers(PHCompositeNode*
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers - unable to find " << absorbernodename << std::endl;
     }
   }
 }
