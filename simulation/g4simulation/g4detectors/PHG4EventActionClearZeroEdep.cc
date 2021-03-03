@@ -5,10 +5,8 @@
 
 #include <boost/foreach.hpp>
 
-using namespace std;
-
 //___________________________________________________
-PHG4EventActionClearZeroEdep::PHG4EventActionClearZeroEdep( PHCompositeNode *node, const string &name ):
+PHG4EventActionClearZeroEdep::PHG4EventActionClearZeroEdep( PHCompositeNode *node, const std::string &name ):
   topNode(node)
 {
   AddNode(name);
@@ -24,9 +22,9 @@ PHG4EventActionClearZeroEdep::AddNode(const std::string &name)
 //___________________________________________________
 void PHG4EventActionClearZeroEdep::EndOfEventAction(const G4Event* evt)
 {
-  BOOST_FOREACH(string node, nodename_set)
+  BOOST_FOREACH(std::string node, nodename_set)
     {
-      PHG4HitContainer* generic_hits =  findNode::getClass<PHG4HitContainer>( topNode , node.c_str());
+      PHG4HitContainer* generic_hits =  findNode::getClass<PHG4HitContainer>( topNode , node);
       if (generic_hits)
 	{
 	  generic_hits->RemoveZeroEDep();

@@ -15,11 +15,10 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <g4eval/SvtxTrackEval.h>            // for SvtxTrackEval
+#include <g4eval/SvtxTrackEval.h>  // for SvtxTrackEval
 
-
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
@@ -33,8 +32,8 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <iterator>                          // for reverse_iterator
-#include <utility>                           // for pair
+#include <iterator>  // for reverse_iterator
+#include <utility>   // for pair
 #include <vector>
 
 using namespace std;
@@ -342,9 +341,9 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTra
   std::vector<double> point;
   point.assign(3, NAN);
 
-//  const double radius = towergeo->get_radius() + towergeo->get_thickness() * 0.5;
+  //  const double radius = towergeo->get_radius() + towergeo->get_thickness() * 0.5;
 
-//  PHG4HoughTransform::projectToRadius(track, _magField, radius, point);
+  //  PHG4HoughTransform::projectToRadius(track, _magField, radius, point);
 
   if (std::isnan(point[0]) or std::isnan(point[1]) or std::isnan(point[2]))
   {

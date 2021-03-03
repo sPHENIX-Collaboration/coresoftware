@@ -7,8 +7,8 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <phool/getClass.h>
@@ -161,7 +161,6 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(SvtxVertex* vertex)
        iter != particles.end();
        ++iter)
   {
-
     PHG4Particle* particle = *iter;
     PHG4VtxPoint* point = get_truth_eval()->get_vertex(particle);
 
@@ -409,14 +408,14 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");  // always there, initial vertices
   }
   else if (_use_genfit_vertex)
-    {
-      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
-    }
+  {
+    _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
+  }
   else
   {
     _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
   }
-  if(!_vertexmap)
+  if (!_vertexmap)
     std::cout << PHWHERE << "Did not find_vertexmap on node tree" << endl;
 
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
@@ -431,26 +430,26 @@ bool SvtxVertexEval::has_node_pointers()
   if (_strict)
     assert(_vertexmap);
   else if (!_vertexmap)
-    {
-      std::cout << PHWHERE << " did not find _vertexmap " << std::endl;
-      return false;
-    }
+  {
+    std::cout << PHWHERE << " did not find _vertexmap " << std::endl;
+    return false;
+  }
 
   if (_strict)
     assert(_trackmap);
   else if (!_trackmap)
-    {
-      std::cout << PHWHERE << " did not find _trackmap " << std::endl;
-      return false;
-    }
+  {
+    std::cout << PHWHERE << " did not find _trackmap " << std::endl;
+    return false;
+  }
 
   if (_strict)
     assert(_truthinfo);
   else if (!_truthinfo)
-    {
-      std::cout << PHWHERE << " did not find _truthinfo " << std::endl;
-      return false;
-    }
+  {
+    std::cout << PHWHERE << " did not find _truthinfo " << std::endl;
+    return false;
+  }
 
   return true;
 }

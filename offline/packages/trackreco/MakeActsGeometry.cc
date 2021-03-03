@@ -515,9 +515,15 @@ void MakeActsGeometry::buildActsSurfaces()
   /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magFieldRescale *= -1;
       m_magField = "1.5";
     }
+  
+  /// The acts constant field and geant field are backwards in convention
+  m_magFieldRescale *= -1;
+
+  if(Verbosity() > 0)
+    std::cout << "Mag field now " << m_magField << " with rescale "
+	      << m_magFieldRescale << std::endl;
 
   std::string responseFile = "tgeo-sphenix.response";
   std::string materialFile = "sphenix-material.json";

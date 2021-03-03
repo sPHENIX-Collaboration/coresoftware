@@ -1,31 +1,31 @@
 #include "PHPythia6.h"
 #include "PHPy6GenTrigger.h"
 
-#include <phhepmc/PHHepMCGenHelper.h>    // for PHHepMCGenHelper
+#include <phhepmc/PHHepMCGenHelper.h>  // for PHHepMCGenHelper
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>          // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHRandomSeed.h>
-#include <phool/phool.h>                 // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
-#include <Rtypes.h>                      // for Int_t Float_t
+#include <Rtypes.h>  // for Int_t Float_t
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/HEPEVT_Wrapper.h>        // for HEPEVT_Wrappe
-#include <HepMC/IO_BaseClass.h>          // for IO_BaseClass
+#include <HepMC/HEPEVT_Wrapper.h>  // for HEPEVT_Wrappe
+#include <HepMC/IO_BaseClass.h>    // for IO_BaseClass
 #include <HepMC/IO_GenEvent.h>
 #include <HepMC/IO_HEPEVT.h>
-#include <HepMC/PdfInfo.h>               // for PdfInfo
+#include <HepMC/PdfInfo.h>  // for PdfInfo
 #include <HepMC/PythiaWrapper.h>
-#include <HepMC/PythiaWrapper6_4.h>      // for (anonymous), pypars, pydat1
-#include <HepMC/Units.h>                 // for GEV, MM
+#include <HepMC/PythiaWrapper6_4.h>  // for (anonymous), pypars, pydat1
+#include <HepMC/Units.h>             // for GEV, MM
 
-#include <algorithm>                     // for transform
-#include <cctype>                       // for tolower
-#include <cmath>                        // for fmod
-#include <cstdlib>                      // for exit, abs
-#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <algorithm>  // for transform
+#include <cctype>     // for tolower
+#include <cmath>      // for fmod
+#include <cstdlib>    // for exit, abs
+#include <iostream>   // for operator<<, endl, basic_ostream
 #include <sstream>
 
 class PHHepMCGenEvent;
@@ -46,13 +46,13 @@ PHPythia6::PHPythia6(const std::string &name)
   , _triggersOR(true)
   , _triggersAND(false)
 {
-  hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
+  PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
 }
 
 int PHPythia6::Init(PHCompositeNode *topNode)
 {
   /* Create node tree */
-  CreateNodeTree(topNode);
+  create_node_tree(topNode);
 
   /* event numbering will start from 1 */
   _eventcount = 0;
@@ -81,7 +81,7 @@ int PHPythia6::Init(PHCompositeNode *topNode)
     exit(2);
   }
   // print out seed so we can make this is reproducible
-  cout << "PHPythia6 random seed: " << fSeed << endl;
+  if (Verbosity()) cout << "PHPythia6 random seed: " << fSeed << endl;
 
   /* read pythia configuration and initialize */
   if (!_configFile.empty()) ReadConfig(_configFile);
@@ -440,7 +440,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode)
 
   /* pass HepMC to PHNode*/
 
-  PHHepMCGenEvent *success = hepmc_helper.insert_event(evt);
+  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(evt);
   if (!success)
   {
     cout << "PHPythia6::process_event - Failed to add event to HepMC record!" << endl;
@@ -450,13 +450,6 @@ int PHPythia6::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 
   ++_eventcount;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHPythia6::CreateNodeTree(PHCompositeNode *topNode)
-{
-  hepmc_helper.create_node_tree(topNode);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

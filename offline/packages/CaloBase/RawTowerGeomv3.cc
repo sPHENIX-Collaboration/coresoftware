@@ -5,12 +5,13 @@
 
 RawTowerGeomv3::RawTowerGeomv3(RawTowerDefs::keytype id)
   : _towerid(id)
-{}
+{
+}
 
 double RawTowerGeomv3::get_center_radius() const
 {
   return std::sqrt(_center_x * _center_x +
-              _center_y * _center_y);
+                   _center_y * _center_y);
 }
 
 double RawTowerGeomv3::get_theta() const

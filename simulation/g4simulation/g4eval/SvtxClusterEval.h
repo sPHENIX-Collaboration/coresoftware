@@ -56,8 +56,12 @@ class SvtxClusterEval
   // backtrace through to PHG4Hits
   std::set<PHG4Hit*> all_truth_hits(TrkrDefs::cluskey cluster);
   PHG4Hit* max_truth_hit_by_energy(TrkrDefs::cluskey);
+
   std::set<std::shared_ptr<TrkrCluster> > all_truth_clusters(TrkrDefs::cluskey cluster_key);
   std::shared_ptr<TrkrCluster> max_truth_cluster_by_energy(TrkrDefs::cluskey cluster_key);
+
+  PHG4Hit* all_truth_hits_by_nhit(TrkrDefs::cluskey cluster);
+  std::pair<int, int> gtrackid_and_layer_by_nhit(TrkrDefs::cluskey cluster);
 
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles(TrkrDefs::cluskey);
@@ -68,6 +72,7 @@ class SvtxClusterEval
   std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Particle* truthparticle);
   std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Hit* truthhit);
   TrkrDefs::cluskey best_cluster_from(PHG4Hit* truthhit);
+  TrkrDefs::cluskey best_cluster_by_nhit(int gid, int layer);
 
   // overlap calculations
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
@@ -114,6 +119,7 @@ class SvtxClusterEval
   std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_particle;
   std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_g4hit;
   std::map<PHG4Hit*, TrkrDefs::cluskey> _cache_best_cluster_from_g4hit;
+  std::map<std::pair<int, int>, TrkrDefs::cluskey> _cache_best_cluster_from_gtrackid_layer;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
   std::map<std::shared_ptr<TrkrCluster>, TrkrCluster* > _cache_reco_cluster_from_truth_cluster;

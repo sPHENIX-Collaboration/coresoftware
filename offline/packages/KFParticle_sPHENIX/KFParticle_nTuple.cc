@@ -14,9 +14,12 @@
 
 #include <cmath>
 
+<<<<<<< HEAD
 /// Create necessary objects
 typedef std::pair<int, float> particle_pair_nTuple;
 KFParticle_particleList kfp_particleList_nTuple;
+=======
+>>>>>>> master
 KFParticle_Tools kfpTupleTools;
 KFParticle_truthAndDetTools kfpTruthAndDetTools;
 
@@ -245,7 +248,15 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
 {
+<<<<<<< HEAD
   const float speedOfLight = 2.99792458e-1;
+=======
+  const float speedOfLight = 2.99792458e-2; //c in cm/ps
+
+  KFPVertex kfpVertex;  // = new KFPVertex;
+  kfpVertex.SetXYZ(vertex.Parameters());
+  kfpVertex.SetCovarianceMatrix(vertex.CovarianceMatrix());
+>>>>>>> master
 
   if (m_constrain_to_vertex_nTuple)
   {
@@ -280,6 +291,18 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   for (int j = 0; j < 21; ++j) m_calculated_mother_cov[j] = motherParticle.GetCovariance(j);
 
   motherParticle.GetMass(m_calculated_mother_mass, m_calculated_mother_mass_err);
+<<<<<<< HEAD
+=======
+  if (m_constrain_to_vertex_nTuple)
+  {
+    motherParticle.SetProductionVertex(vertex);
+    motherParticle.GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
+    motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
+
+    m_calculated_mother_decaytime /= speedOfLight;
+    m_calculated_mother_decaytime_err /= speedOfLight; 
+  }
+>>>>>>> master
 
   if (m_has_intermediates_nTuple)
   {
@@ -287,6 +310,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
+<<<<<<< HEAD
       m_calculated_intermediate_dira[i] = kfpTupleTools.eventDIRA(intermediateArray[i], motherParticle);
       m_calculated_intermediate_fdchi2[i] = kfpTupleTools.flightDistanceChi2(intermediateArray[i], motherParticle);
       if (m_constrain_to_vertex_nTuple)
@@ -296,6 +320,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         m_calculated_intermediate_ip_err[i] = m_calculated_intermediate_ip[i]/sqrt(m_calculated_intermediate_ipchi2[i]);
         m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex);
       }
+=======
+      m_calculated_intermediate_ip[i] = intermediateArray[i].GetDistanceFromVertex(vertex);
+      m_calculated_intermediate_ipchi2[i] = intermediateArray[i].GetDeviationFromVertex(vertex);
+      m_calculated_intermediate_ip_err[i] = m_calculated_intermediate_ip[i]/sqrt(m_calculated_intermediate_ipchi2[i]);
+      m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex);
+>>>>>>> master
       m_calculated_intermediate_x[i] = intermediateArray[i].GetX();
       m_calculated_intermediate_y[i] = intermediateArray[i].GetY();
       m_calculated_intermediate_z[i] = intermediateArray[i].GetZ();
@@ -407,6 +437,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
+<<<<<<< HEAD
     if (m_constrain_to_vertex_nTuple)
     {
       m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex);
@@ -414,6 +445,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i]/sqrt(m_calculated_daughter_ipchi2[i]);
       m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex);
     }
+=======
+    m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex);
+    m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex);
+    m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i]/sqrt(m_calculated_daughter_ipchi2[i]);
+    m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex);
+>>>>>>> master
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
     m_calculated_daughter_y[i] = daughterArray[i].GetY();
     m_calculated_daughter_z[i] = daughterArray[i].GetZ();

@@ -4,8 +4,8 @@
 #define G4MAIN_PHG4TRACKUSERINFOV1_H
 
 #include <Geant4/G4VUserTrackInformation.hh>
-#include <Geant4/G4ios.hh>                    // for G4cout
 
+#include <iostream>
 #include <ostream>                            // for operator<<, basic_ostre...
 
 class PHG4Shower;
@@ -34,12 +34,12 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
 
   void Print() const
   {
-    G4cout << "PHG4TrackUserInfoV1: " << std::endl;
-    G4cout << "   UserTrackId = " << usertrackid << std::endl;
-    G4cout << "   UserParentId = " << userparentid << std::endl;
-    G4cout << "   UserPrimaryId = " << userprimaryid << std::endl;
-    G4cout << "   Wanted = " << wanted << std::endl;
-    G4cout << "   Keep = " << keep << std::endl;
+    std::cout << "PHG4TrackUserInfoV1: " << std::endl;
+    std::cout << "   UserTrackId = " << usertrackid << std::endl;
+    std::cout << "   UserParentId = " << userparentid << std::endl;
+    std::cout << "   UserPrimaryId = " << userprimaryid << std::endl;
+    std::cout << "   Wanted = " << wanted << std::endl;
+    std::cout << "   Keep = " << keep << std::endl;
   }
 
   void SetUserTrackId(const int val) { usertrackid = val; }

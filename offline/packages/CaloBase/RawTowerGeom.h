@@ -161,7 +161,6 @@ class RawTowerGeom : public PHObject
     return -1;
   }
 
-
  protected:
   RawTowerGeom() {}
 

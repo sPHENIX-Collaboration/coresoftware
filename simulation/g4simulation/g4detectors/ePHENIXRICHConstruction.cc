@@ -36,7 +36,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>                    // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
-#include <Geant4/G4ios.hh>              // for G4cout, G4endl
 
 #include <cassert>
 #include <cmath>
@@ -66,14 +65,14 @@ G4LogicalVolume *ePHENIXRICHConstruction::RegisterLogicalVolume(G4LogicalVolume 
 {
   if (!v)
   {
-    G4cout << "ePHENIXRICHConstruction::RegisterVolume - Error - invalid volume!"
-           << G4endl;
+    std::cout << "ePHENIXRICHConstruction::RegisterVolume - Error - invalid volume!"
+           << std::endl;
     return v;
   }
   if (map_log_vol.find(v->GetName()) != map_log_vol.end())
   {
-    G4cout << "ePHENIXRICHConstruction::RegisterVolume - Warning - replacing "
-           << v->GetName() << G4endl;
+    std::cout << "ePHENIXRICHConstruction::RegisterVolume - Warning - replacing "
+           << v->GetName() << std::endl;
   }
 
   map_log_vol[v->GetName()] = v;
@@ -85,8 +84,8 @@ G4PVPlacement *ePHENIXRICHConstruction::RegisterPhysicalVolume(G4PVPlacement *v)
 {
   if (!v)
   {
-    G4cout << "ePHENIXRICHConstruction::RegisterPhysicalVolume - Error - invalid volume!"
-           << G4endl;
+    std::cout << "ePHENIXRICHConstruction::RegisterPhysicalVolume - Error - invalid volume!"
+           << std::endl;
     return v;
   }
 
@@ -94,8 +93,8 @@ G4PVPlacement *ePHENIXRICHConstruction::RegisterPhysicalVolume(G4PVPlacement *v)
 
   if (map_phy_vol.find(id) != map_phy_vol.end())
   {
-    G4cout << "ePHENIXRICHConstruction::RegisterPhysicalVolume - Warning - replacing "
-           << v->GetName() << "[" << v->GetCopyNo() << "]" << G4endl;
+    std::cout << "ePHENIXRICHConstruction::RegisterPhysicalVolume - Warning - replacing "
+           << v->GetName() << "[" << v->GetCopyNo() << "]" << std::endl;
   }
 
   map_phy_vol[id] = v;
@@ -259,10 +258,10 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
   GetDisplayAction()->AddVolume(RICHHBDLog, "HBD");
 
 // if you want this printout - put some verbosity around it
-  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
-  //        << " logical volume constructed" << G4endl;
-  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
-  //        << " physical volume constructed" << G4endl;
+  // std::cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
+  //        << " logical volume constructed" << std::endl;
+  // std::cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
+  //        << " physical volume constructed" << std::endl;
 
   return WorldLog;
 }

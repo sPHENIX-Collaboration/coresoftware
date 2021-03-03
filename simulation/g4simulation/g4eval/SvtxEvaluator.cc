@@ -112,6 +112,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
   _ievent = 0;
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
+  _tfile->SetCompressionLevel(0);
   if (_do_info_eval) _ntp_info = new TNtuple("ntp_info", "event info",
                                                  "event:seed:"
 					         "occ11:occ116:occ21:occ216:occ31:occ316:"
@@ -119,7 +120,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
-                                                 "event:seed:vx:vy:vz:ntracks:"
+                                                 "event:seed:vx:vy:vz:ntracks:chi2:ndof:"
                                                  "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
                                                  "gnembed:nfromtruth:"
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
@@ -1060,6 +1061,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float vy = vertex->get_y();
         float vz = vertex->get_z();
         float ntracks = vertex->size_tracks();
+	float chi2 = vertex->get_chisq();
+	float ndof = vertex->get_ndof();
         float gvx = NAN;
         float gvy = NAN;
         float gvz = NAN;
@@ -1090,6 +1093,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                vy,
                                vz,
                                ntracks,
+			       chi2,
+			       ndof,
                                gvx,
                                gvy,
                                gvz,
@@ -1732,7 +1737,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float zsize = cluster->getZSize();
 
         float trackID = NAN;
-        if (track) trackID = track->get_id();
+        if (track!=NULL) trackID = track->get_id();
 
         float g4hitID = NAN;
         float gx = NAN;

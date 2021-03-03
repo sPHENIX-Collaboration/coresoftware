@@ -5,6 +5,7 @@
 
 #include <map>
 #include <set>
+#include <string>  // for string
 #include <utility>
 
 class PHCompositeNode;
@@ -80,7 +81,7 @@ class SvtxVertexEval
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
-  bool _use_initial_vertex = false;
+  bool _use_initial_vertex = true;
   bool _use_genfit_vertex = false;
   int _verbosity;
   unsigned int _errors;

@@ -12,6 +12,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -19,18 +20,14 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>
 #include <phool/recoConsts.h>
-
-#include <TSystem.h>
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/HeavyIon.h>  // for HeavyIon
 
-#include <cstdlib>
 #include <iostream>
-
-using namespace std;
+#include <iterator>  // for operator!=, reverse_iterator
+#include <utility>   // for pair
 
 HeadReco::HeadReco(const std::string &name)
   : SubsysReco(name)
@@ -115,7 +112,7 @@ int HeadReco::EndRun(const int runno)
   if (flagsave)
   {
     recoConsts *rc = recoConsts::instance();
-    cout << "Saving recoConst Flags: " << endl;
+    std::cout << "Saving recoConst Flags: " << std::endl;
     flagsave->FillFromPHFlag(rc);
     flagsave->identify();
   }

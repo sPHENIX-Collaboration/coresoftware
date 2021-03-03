@@ -40,7 +40,6 @@
 #include <Geant4/G4Types.hh>                    // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <algorithm>  // for fill, max
 #include <cmath>      // for floor, sqrt, acos, asin
@@ -254,7 +253,7 @@ G4double PHG4mRICHDetector::LensPar::GetSagita(G4double r)
 
   if (ArgSqrt < 0.0)
   {
-    G4cout << "UltraFresnelLensParameterisation::Sagita: Square Root of <0 !" << G4endl;
+    std::cout << "UltraFresnelLensParameterisation::Sagita: Square Root of <0 !" << std::endl;
   }
 
   G4double Sagita_value = Curvature * std::pow(r, 2) / (1.0 + std::sqrt(ArgSqrt)) + TotAspher;
