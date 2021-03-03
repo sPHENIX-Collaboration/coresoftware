@@ -31,8 +31,11 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   }
   void set_field(const std::string &field) { _field = field;}
 
-  void reject_xy_outliers(bool reject){_reject_xy_outliers = reject;}  
-  void reject_z_outliers(bool reject){_reject_z_outliers = reject;}
+  void reject_xy_outliers(const bool reject){_reject_xy_outliers = reject;}  
+  void reject_z_outliers(const bool reject){_reject_z_outliers = reject;}
+
+  void set_xy_residual_cut(const double cut){_xy_residual_cut = cut;}
+  void set_z_residual_cut(const double cut){_z_residual_cut = cut;}
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -64,6 +67,10 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   bool _reject_xy_outliers = false;
   bool _reject_z_outliers = false;
+
+  double _xy_residual_cut = 0.06;
+  double _z_residual_cut = 0.15;
+
 
   std::string _field;
   int _fieldDir = -1;

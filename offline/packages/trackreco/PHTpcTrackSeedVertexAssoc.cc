@@ -51,6 +51,9 @@ PHTpcTrackSeedVertexAssoc::~PHTpcTrackSeedVertexAssoc()
 //____________________________________________________________________________..
 int PHTpcTrackSeedVertexAssoc::Setup(PHCompositeNode *topNode)
 {
+  std::cout << PHWHERE << " Parameters: _reject_xy_outliers " << _reject_xy_outliers << " _xy_residual_cut " << _xy_residual_cut
+	    << " _reject_z_outliers " << _reject_z_outliers << " _z_residual_cut " << _z_residual_cut
+	    << std::endl; 
 
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -73,6 +76,11 @@ int PHTpcTrackSeedVertexAssoc::Process()
   double grand_circle_wt = 0.0;
   double grand_line_rms_squared = 0.0;
   double grand_line_wt = 0.0;
+
+  double bad_clusters_per_track_xy = 0.0;
+  double bad_clusters_per_track_xy_wt = 0.0;
+  double bad_clusters_per_track_z = 0.0;
+  double bad_clusters_per_track_z_wt = 0.0;
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
@@ -102,11 +110,20 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
       // Get the TPC clusters for this tracklet
       std::vector<TrkrCluster*> clusters = getTrackClusters(_tracklet_tpc);
-      
-      // need at least 3 clusters to fit a circle
+
+      // count TPC layers for this track
+      std::set<unsigned int> layers;
+      for (unsigned int i=0; i<clusters.size(); ++i)
+	{
+	  unsigned int layer = TrkrDefs::getLayer(clusters[i]->getClusKey());
+	  layers.insert(layer);
+	}
+      unsigned int nlayers = layers.size();
+      if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
+
       if(clusters.size() < 3)
 	{
-	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough clusters " << std::endl; 
+	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough TPC clusters " << std::endl; 
 	  continue;  // skip to the next TPC tracklet
 	}
 
@@ -185,7 +202,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  for(unsigned int i = 1; i < points.size(); ++i)
 	    {
 	      double res_squared =  line_residuals[i]*line_residuals[i];
-	      if(sqrt(res_squared) < 0.15)  // 1.5 mm, about 3 sigma
+	      //if(sqrt(res_squared) < 0.15)  // 1.5 mm, about 3 sigma
+	      if(sqrt(res_squared) < _z_residual_cut)  
 		{
 		  line_rms_squared += res_squared;
 		  line_wt += 1.0;
@@ -212,7 +230,13 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	      if(Verbosity() > 5) std::cout << " TPC tracklet " << _tracklet_tpc->get_id() << " removing bad Z cluster " << key << std::endl;
 	      _tracklet_tpc->erase_cluster_key(key);
 	    }
-	  
+
+	  if(nlayers > 40)
+	    {
+	      bad_clusters_per_track_z += bad_clusters.size();
+	      bad_clusters_per_track_z_wt += 1.0;
+	    }
+
 	  // remake the cluster list for this track
 	  clusters.clear();
 	  clusters = getTrackClusters(_tracklet_tpc);
@@ -257,9 +281,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
       cpoints.push_back(std::make_pair(x_vertex, y_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  //double x = clusters[i]->getX();
-	  //double y = clusters[i]->getY();	  
-	  //cpoints.push_back(make_pair(x, y));
 	  cpoints.push_back(make_pair(clusters[i]->getX(), clusters[i]->getY()));
 	}
       double R, X0, Y0;
@@ -276,7 +297,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  for(unsigned int i = 1; i < cpoints.size(); ++i)
 	    {
 	      double res_squared =  residuals[i]*residuals[i];
-	      if(sqrt(res_squared) < 0.06)  // about 3.5-4 sigma
+	      //if(sqrt(res_squared) < 0.06)  // about 3.5-4 sigma
+	      if(sqrt(res_squared) < _xy_residual_cut)  
 		{
 		  circle_rms_squared += res_squared;
 		  circle_wt += 1.0;
@@ -294,6 +316,12 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  
 	  grand_circle_rms_squared += circle_rms_squared;
 	  grand_circle_wt += circle_wt;
+
+	  if(nlayers > 40)
+	    {
+	      bad_clusters_per_track_xy += bad_clusters.size();
+	      bad_clusters_per_track_xy_wt += 1.0;
+	    }
 
 	  // Remove the bad clusters from the track here, remake the clusters list,  and refit the line
 	  for(auto &key : bad_clusters)
@@ -396,6 +424,11 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	std::cout << " new mom " <<  _tracklet_tpc->get_p() <<  "  new eta " <<  _tracklet_tpc->get_eta() << " new phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
       
     }  // end loop over TPC track seeds
+
+  bad_clusters_per_track_z /= bad_clusters_per_track_z_wt;
+  bad_clusters_per_track_xy /= bad_clusters_per_track_xy_wt;
+  std::cout << "Bad clusters per track:  z:  wt " << bad_clusters_per_track_z_wt << " bad clusters "  << bad_clusters_per_track_z 
+	    << " xy: wt " << bad_clusters_per_track_xy_wt << " bad clusters "  << bad_clusters_per_track_xy << std::endl;
 
   if(_reject_z_outliers && Verbosity() > 5)
     {
