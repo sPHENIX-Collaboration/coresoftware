@@ -1,67 +1,49 @@
 #include "PHG4ForwardHcalSteppingAction.h"
+
 #include "PHG4ForwardHcalDetector.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
-#include <Geant4/G4IonisParamMat.hh>           // for G4IonisParamMat
-#include <Geant4/G4Material.hh>                // for G4Material
+#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
+#include <Geant4/G4Material.hh>       // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
-
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
-#include <string>                              // for basic_string, operator+
+#include <string>  // for basic_string, operator+
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
-PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const int absorberactive)
+PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction(PHG4ForwardHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
-  , detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
-  , hitcontainer(nullptr)
-  , hit(nullptr)
-  , saveshower(nullptr)
-  , absorbertruth(absorberactive)
-  , light_scint_model(1)
+  , m_Detector(detector)
+  , m_ActiveFlag(parameters->get_int_param("active"))
+  , m_AbsorberTruthFlag(parameters->get_int_param("absorberactive"))
+  , m_BlackHoleFlag(parameters->get_int_param("blackhole"))
 {
 }
 
@@ -71,7 +53,7 @@ PHG4ForwardHcalSteppingAction::~PHG4ForwardHcalSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -80,45 +62,33 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInForwardHcal(volume)
+  // m_Detector->IsInForwardHcal(volume)
   // returns
   //  0 is outside of Forward HCAL
   //  1 is inside scintillator
   // -1 is inside absorber (dead material)
 
-  int whichactive = detector_->IsInForwardHcal(volume);
+  int whichactive = m_Detector->IsInForwardHcal(volume);
 
   if (!whichactive)
   {
     return false;
   }
 
-  int layer_id = detector_->get_Layer();
-  int tower_id = -1;
-  int idx_j = -1;
-  int idx_k = -1;
-
-  if (whichactive > 0)  // in sctintillator
-  {
-    /* Find indizes of sctintillator / tower containing this step */
-    FindTowerIndex(touch, idx_j, idx_k);
-    tower_id = touch->GetCopyNumber();
-  }
-  else
-  {
-    tower_id = touch->GetCopyNumber();
-  }
+  int layer_id = m_Detector->get_Layer();
+  unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+  int idx_j = icopy >> 16;
+  int idx_k = icopy & 0xFFFF;
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -126,13 +96,13 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   /* Make sure we are in a volume */
-  if (detector_->IsActive())
+  if (m_ActiveFlag)
   {
-    int idx_l = -1;
     /* Check if particle is 'geantino' */
     bool geantino = false;
+    double light_yield = 0;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -145,48 +115,47 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
     {
     case fGeomBoundary:
     case fUndefined:
-      if (!hit)
+      if (!m_Hit)
       {
-        hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
-      hit->set_scint_id(tower_id);
-
-      /* Set hit location (tower index) */
-      hit->set_index_j(idx_j);
-      hit->set_index_k(idx_k);
-      hit->set_index_l(idx_l);
 
       /* Set hit location (space point) */
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       /* Set hit time */
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+
+      // set the tower index
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
 
       //set the track ID
-      hit->set_trkid(aTrack->GetTrackID());
+      m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
-      hit->set_edep(0);
-      hit->set_eion(0);
+      m_Hit->set_edep(0);
+      /* Set hit location (tower index) */
 
       /* Now add the hit to the hit collection */
       if (whichactive > 0)
       {
-        hitcontainer = hits_;
-        hit->set_light_yield(0);
+        m_Hit->set_eion(0);
+        m_SaveHitContainer = m_HitContainer;
+        m_Hit->set_light_yield(0);
       }
       else
       {
-        hitcontainer = absorberhits_;
+        m_SaveHitContainer = m_AbsorberHitContainer;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_SaveShower = pp->GetShower();
         }
       }
       break;
@@ -196,66 +165,59 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     if (whichactive > 0)
     {
-      if (light_scint_model)
+      light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+      static bool once = true;
+      if (once && edep > 0)
       {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-        static bool once = true;
-        if (once && edep > 0)
-        {
-          once = false;
+        once = false;
 
-          if (Verbosity() > 0)
-          {
-            cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
-                 //
-                 << detector_->GetName() << " - "
-                 << " use scintillating light model at each Geant4 steps. "
-                 << "First step: "
-                 << "Material = "
-                 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-                 << ", "
-                 << "Birk Constant = "
-                 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-                 << ","
-                 << "edep = " << edep << ", "
-                 << "eion = " << eion
-                 << ", "
-                 << "light_yield = " << light_yield << endl;
-          }
+        if (Verbosity() > 0)
+        {
+          std::cout << "PHG4ForwardHcalSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
-      }
-      else
-      {
-        light_yield = eion;
       }
     }
 
     /* Update exit values- will be overwritten with every step until
        * we leave the volume or the particle ceases to exist */
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     /* sum up the energy to get total deposited */
-    hit->set_edep(hit->get_edep() + edep);
-    hit->set_eion(hit->get_eion() + eion);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)
     {
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     if (geantino)
     {
-      hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      hit->set_eion(-1);
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       if (whichactive > 0)
       {
-        hit->set_light_yield(-1);
+        m_Hit->set_eion(-1);
+        m_Hit->set_light_yield(-1);
       }
     }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+    if (edep > 0 && (whichactive > 0 || m_AbsorberTruthFlag > 0))
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -277,23 +239,23 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep())
+      if (m_Hit->get_edep())
       {
-        hitcontainer->AddHit(layer_id, hit);
-        if (saveshower)
+        m_SaveHitContainer->AddHit(layer_id, m_Hit);
+        if (m_SaveShower)
         {
-          saveshower->add_g4hit_id(hitcontainer->GetID(), hit->get_hit_id());
+          m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = nullptr;
+        m_Hit = nullptr;
       }
       else
       {
         // if this hit has no energy deposit, just reset it for reuse
         // this means we have to delete it in the dtor. If this was
         // the last hit we processed the memory is still allocated
-        hit->Reset();
+        m_Hit->Reset();
       }
     }
 
@@ -308,71 +270,34 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 //____________________________________________________________________________..
 void PHG4ForwardHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
 
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_HitContainer)
   {
     std::cout << "PHG4ForwardHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
-  if (!absorberhits_)
+  if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ForwardHcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4ForwardHcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
-}
-
-int PHG4ForwardHcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
-{
-  int j_0, k_0;  //The j and k indices for the scintillator / tower
-
-  G4VPhysicalVolume* tower = touch->GetVolume(1);  //Get the tower solid
-  ParseG4VolumeName(tower, j_0, k_0);
-
-  j = (j_0 * 1);
-  k = (k_0 * 1);
-
-  return 0;
-}
-
-int PHG4ForwardHcalSteppingAction::ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k)
-{
-  boost::char_separator<char> sep("_");
-  boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-  boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-  {
-    if (*tokeniter == "j")
-    {
-      ++tokeniter;
-      if (tokeniter == tok.end()) break;
-      j = boost::lexical_cast<int>(*tokeniter);
-    }
-    else if (*tokeniter == "k")
-    {
-      ++tokeniter;
-      if (tokeniter == tok.end()) break;
-      k = boost::lexical_cast<int>(*tokeniter);
-    }
-  }
-
-  return 0;
 }

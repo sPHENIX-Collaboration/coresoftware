@@ -8,7 +8,6 @@
 #include <phool/recoConsts.h>
 
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -22,10 +21,10 @@
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Types.hh>            // for G4double, G4int
-#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <TSystem.h>
 
+#include <cmath> // for M_PI
 #include <cstdlib>
 #include <iostream>
 #include <sstream>

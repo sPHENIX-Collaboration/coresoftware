@@ -11,9 +11,7 @@
 
 #include <cmath>  // for isfinite
 
-using namespace std;
-
-PHG4BlockDisplayAction::PHG4BlockDisplayAction(const string &name, PHParameters *pars)
+PHG4BlockDisplayAction::PHG4BlockDisplayAction(const std::string &name, PHParameters *pars)
   : PHG4DisplayAction(name)
   , m_Params(pars)
   , m_MyVolume(nullptr)
@@ -63,7 +61,7 @@ void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 
 void PHG4BlockDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
 {
-  if (isfinite(red) && isfinite(green) && isfinite(blue) && isfinite(alpha))
+  if (std::isfinite(red) && std::isfinite(green) && std::isfinite(blue) && std::isfinite(alpha))
   {
     m_Colour = new G4Colour(red, green, blue, alpha);
   }
