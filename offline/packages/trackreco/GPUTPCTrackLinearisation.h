@@ -34,32 +34,32 @@ class GPUTPCTrackLinearisation
 {
  public:
   GPUTPCTrackLinearisation() : mSinPhi(0), mCosPhi(1), mDzDs(0), mQPt(0) {}
-  GPUTPCTrackLinearisation(float SinPhi1, float CosPhi1, float DzDs1, float QPt1) : mSinPhi(SinPhi1), mCosPhi(CosPhi1), mDzDs(DzDs1), mQPt(QPt1) {}
+  GPUTPCTrackLinearisation(double SinPhi1, double CosPhi1, double DzDs1, double QPt1) : mSinPhi(SinPhi1), mCosPhi(CosPhi1), mDzDs(DzDs1), mQPt(QPt1) {}
 
   GPUTPCTrackLinearisation(const GPUTPCTrackParam& t);
 
-  void Set(float SinPhi1, float CosPhi1, float DzDs1, float QPt1);
+  void Set(double SinPhi1, double CosPhi1, double DzDs1, double QPt1);
 
-  float SinPhi() const { return mSinPhi; }
-  float CosPhi() const { return mCosPhi; }
-  float DzDs() const { return mDzDs; }
-  float QPt() const { return mQPt; }
+  double SinPhi() const { return mSinPhi; }
+  double CosPhi() const { return mCosPhi; }
+  double DzDs() const { return mDzDs; }
+  double QPt() const { return mQPt; }
 
-  float GetSinPhi() const { return mSinPhi; }
-  float GetCosPhi() const { return mCosPhi; }
-  float GetDzDs() const { return mDzDs; }
-  float GetQPt() const { return mQPt; }
+  double GetSinPhi() const { return mSinPhi; }
+  double GetCosPhi() const { return mCosPhi; }
+  double GetDzDs() const { return mDzDs; }
+  double GetQPt() const { return mQPt; }
 
-  void SetSinPhi(float v) { mSinPhi = v; }
-  void SetCosPhi(float v) { mCosPhi = v; }
-  void SetDzDs(float v) { mDzDs = v; }
-  void SetQPt(float v) { mQPt = v; }
+  void SetSinPhi(double v) { mSinPhi = v; }
+  void SetCosPhi(double v) { mCosPhi = v; }
+  void SetDzDs(double v) { mDzDs = v; }
+  void SetQPt(double v) { mQPt = v; }
 
  private:
-  float mSinPhi; // SinPhi
-  float mCosPhi; // CosPhi
-  float mDzDs;   // DzDs
-  float mQPt;    // QPt
+  double mSinPhi; // SinPhi
+  double mCosPhi; // CosPhi
+  double mDzDs;   // DzDs
+  double mQPt;    // QPt
 };
 
 inline GPUTPCTrackLinearisation::GPUTPCTrackLinearisation(const GPUTPCTrackParam& t) : mSinPhi(t.SinPhi()), mCosPhi(0), mDzDs(t.DzDs()), mQPt(t.QPt())
@@ -75,7 +75,7 @@ inline GPUTPCTrackLinearisation::GPUTPCTrackLinearisation(const GPUTPCTrackParam
   }
 }
 
-inline void GPUTPCTrackLinearisation::Set(float SinPhi1, float CosPhi1, float DzDs1, float QPt1)
+inline void GPUTPCTrackLinearisation::Set(double SinPhi1, double CosPhi1, double DzDs1, double QPt1)
 {
   SetSinPhi(SinPhi1);
   SetCosPhi(CosPhi1);
