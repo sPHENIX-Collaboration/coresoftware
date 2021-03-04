@@ -144,7 +144,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
-                                           "event:seed:hitID:e:adc:layer:"
+                                           "event:seed:hitID:e:adc:layer:phielem:zelem:"
                                            "cellID:ecell:phibin:zbin:phi:z:"
                                            "g4hitID:gedep:gx:gy:gz:gt:"
                                            "gtrackID:gflavor:"
@@ -155,7 +155,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                                    "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
-                                                   "e:adc:layer:size:phisize:"
+                                                   "e:adc:layer:phielem:zelem:size:phisize:"
                                                    "zsize:trackID:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                                    "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
@@ -1531,6 +1531,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float e = hit->getEnergy();
 	    float adc = hit->getAdc();
 	    float layer = TrkrDefs::getLayer(hitset_key);
+	    float sector = TpcDefs::getSectorId(hitset_key);
+	    float side = TpcDefs::getSide(hitset_key);
 	    float cellID = 0;
 	    float ecell = hit->getAdc();
 	    
@@ -1635,6 +1637,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      e,
 	      adc,
 	      layer,
+	      sector,
+	      side,
 	      cellID,
 	      ecell,
 	      (float) phibin,
@@ -1726,6 +1730,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float e = cluster->getAdc();
         float adc = cluster->getAdc();
         float layer = (float) TrkrDefs::getLayer(cluster_key);
+	float sector = TpcDefs::getSectorId(cluster_key);
+	float side = TpcDefs::getSide(cluster_key);
         float size = 0;
 	// count all hits for this cluster
 	TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
@@ -1860,6 +1866,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 e,
                                 adc,
                                 layer,
+				sector,
+				side,
                                 size,
                                 phisize,
                                 zsize,
