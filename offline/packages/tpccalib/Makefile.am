@@ -19,10 +19,12 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  TpcSpaceChargeReconstruction.h
+  TpcSpaceChargeReconstruction.h \
+  TpcSpaceChargeReconstructionHelper.h
 
 libtpccalib_la_SOURCES = \
-  TpcSpaceChargeReconstruction.cc
+  TpcSpaceChargeReconstruction.cc \
+  TpcSpaceChargeReconstructionHelper.cc
 
 libtpccalib_la_LIBADD = \
   -lphool \
