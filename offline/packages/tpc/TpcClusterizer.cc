@@ -36,6 +36,8 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>
+// Terra incognita....
+#include <pthread.h>
 
 namespace 
 {
@@ -44,89 +46,35 @@ namespace
 
 using namespace std;
 
-typedef std::pair<int, int> iphiz;
-typedef std::pair<double, iphiz> ihit;
+typedef std::pair<unsigned short, unsigned short> iphiz;
+typedef std::pair<unsigned short, iphiz> ihit;
 
-TpcClusterizer::TpcClusterizer(const string &name)
-  : SubsysReco(name)
-  , m_hits(nullptr)
-  , m_clusterlist(nullptr)
-  , m_clusterhitassoc(nullptr)
-  , zz_shaping_correction(0.0754)
-  , pedestal(74.4)
-  , SectorFiducialCut(0.5)
-  , NSearch(2)
-  , NPhiBinsMax(0)
-  , NPhiBinsMin(0)
-  , NZBinsMax(0)
-  , NZBinsMin(0)
+struct thread_data {
+  PHG4CylinderCellGeom *layergeom;
+  TrkrHitSet *hitset;
+  unsigned int layer;
+  int side;
+  unsigned int sector;
+  float pedestal;
+  bool do_assoc;
+  unsigned short phibins;
+  unsigned short phioffset;
+  unsigned short zbins;
+  unsigned short zoffset;
+  double zz_shaping_correction;
+  std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist;
+  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc;
+};
+
+pthread_mutex_t mythreadlock;
+
+void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
 {
-}
-
-//===================
-bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vector<double>> &adcval)
-{
-  bool retval = true;
-  double centval = adcval[phibin][zbin];
-  
-  // search contiguous adc values for a larger signal
-  for (int iz = zbin - NSearch; iz <= zbin + NSearch; iz++)
-    for (int iphi = phibin - NSearch; iphi <= phibin + NSearch; iphi++)
-      {
-	if (iz >= NZBinsMax) continue;
-	if (iz < NZBinsMin) continue;
-	
-	if (iphi >= NPhiBinsMax) continue;
-	if (iphi < NPhiBinsMin) continue;
-	
-	if (adcval[iphi][iz] > centval)
-	  {
-	    retval = false;
-	  }
-      }
-  
-  return retval;
-}
-
-bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
-{
-  bool reject_it = false;
-
-  // sector boundaries occur every 1/12 of the full phi bin range  
-  int PhiBins = layergeom->get_phibins();
-  int PhiBinsSector = PhiBins/12;
-
-  double radius = layergeom->get_radius();
-  double PhiBinSize = 2.0* radius * M_PI / (double) PhiBins;
-
-  // sector starts where?
-  int sector_lo = sector * PhiBinsSector;
-  int sector_hi = sector_lo + PhiBinsSector - 1;
-
-  int sector_fiducial_bins = (int) (SectorFiducialCut / PhiBinSize);
-
-  if(phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
-    {
-      reject_it = true;
-      /*
-      int layer = layergeom->get_layer();
-      cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
-      << " PhiBins " << PhiBins << " sector_fiducial_bins " << sector_fiducial_bins
-      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << endl;  
-      */
-    }
-
-  return reject_it;
-}
-
-void TpcClusterizer::remove_hit(double adc, int phibin, int zbin, std::multimap<double, ihit> &all_hit_map, std::vector<std::vector<double>> &adcval)
-{
-  typedef multimap<double, ihit>::iterator hit_iterator;
+  typedef multimap<unsigned short, ihit>::iterator hit_iterator;
   pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
   hit_iterator it = iterpair.first;
   for (; it != iterpair.second; ++it) {
     if (it->second.second.first == phibin && it->second.second.second == zbin) { 
-      if(Verbosity()>10) cout << " found it, erasing it "<< endl;
       all_hit_map.erase(it);
       break;
     }
@@ -134,23 +82,138 @@ void TpcClusterizer::remove_hit(double adc, int phibin, int zbin, std::multimap<
   adcval[phibin][zbin] = 0;
 }
 
-void TpcClusterizer::remove_hits(std::vector<ihit> &ihit_list, std::multimap<double, ihit> &all_hit_map,std::vector<std::vector<double>> &adcval )
+void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
 {
   for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-    double adc = iter->first; 
-    int phibin = iter->second.first;
-    int zbin   = iter->second.second;
-    if(Verbosity()>10) cout << "remove adc: " << adc << " phi: " << phibin << " zbin " << zbin << endl; 
+    unsigned short adc    = iter->first; 
+    unsigned short phibin = iter->second.first;
+    unsigned short zbin   = iter->second.second;
     remove_hit(adc,phibin,zbin,all_hit_map,adcval);
-
   }
 }
 
-void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset)
-{
+void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 
-  ///HERE TODO
-  //cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
+  int FitRangeZ = 5;
+  zup = 0;
+  zdown = 0;
+  for(int iz=0; iz< FitRangeZ; iz++){
+    int cz = zbin + iz;
+
+    if(cz <= 0 || cz >= NZBinsMax){
+      // zup = iz;
+      break; // truncate edge
+    }
+    
+    if(adcval[phibin][cz] <= 0) {
+      break;
+    }
+    //check local minima and break at minimum.
+    if(cz<NZBinsMax-4){//make sure we stay clear from the edge
+      if(adcval[phibin][cz]+adcval[phibin][cz+1] < 
+	 adcval[phibin][cz+2]+adcval[phibin][cz+3]){//rising again
+	zup = iz+1;
+	break;
+      }
+    }
+    zup = iz;
+  }
+  for(int iz=0; iz< FitRangeZ; iz++){
+    int cz = zbin - iz;
+    if(cz <= 0 || cz >= NZBinsMax){
+      //      zdown = iz;
+      break; // truncate edge
+    }
+    if(adcval[phibin][cz] <= 0) {
+      break;
+    }
+
+    if(cz>4){//make sure we stay clear from the edge
+      if(adcval[phibin][cz]+adcval[phibin][cz-1] < 
+	 adcval[phibin][cz-2]+adcval[phibin][cz-3]){//rising again
+	zdown = iz+1;
+	break;
+      }
+    }
+    zdown = iz;
+  }
+}
+
+void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+
+  int FitRangePHI = 3;
+  phidown = 0;
+  phiup = 0;
+  for(int iphi=0; iphi< FitRangePHI; iphi++){
+    int cphi = phibin + iphi;
+    if(cphi < 0 || cphi >= NPhiBinsMax){
+      // phiup = iphi;
+      break; // truncate edge
+    }
+    
+    //break when below minimum
+    if(adcval[cphi][zbin] <= 0) {
+      // phiup = iphi;
+      break;
+    }
+    //check local minima and break at minimum.
+    if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
+      if(adcval[cphi][zbin]+adcval[cphi+1][zbin] < 
+	 adcval[cphi+2][zbin]+adcval[cphi+3][zbin]){//rising again
+	phiup = iphi+1;
+	break;
+      }
+    }
+    phiup = iphi;
+  }
+
+  for(int iphi=0; iphi< FitRangePHI; iphi++){
+    int cphi = phibin - iphi;
+    if(cphi < 0 || cphi >= NPhiBinsMax){
+      // phidown = iphi;
+      break; // truncate edge
+    }
+    
+    if(adcval[cphi][zbin] <= 0) {
+      //phidown = iphi;
+      break;
+    }
+
+    if(cphi>4){//make sure we stay clear from the edge
+      if(adcval[cphi][zbin]+adcval[cphi-1][zbin] < 
+	 adcval[cphi-2][zbin]+adcval[cphi-3][zbin]){//rising again
+	phidown = iphi+1;
+	break;
+      }
+    }
+    phidown = iphi;
+  }
+}
+
+void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+{
+  // search along phi at the peak in z
+ 
+  int zup =0;
+  int zdown =0;
+  find_z_range(phibin, zbin, NZBinsMax, adcval, zdown, zup);
+  //now we have the z extent of the cluster, go find the phi edges
+
+  for(int iz=zbin - zdown ; iz<= zbin + zup; iz++){
+    int phiup = 0;
+    int phidown = 0;
+    find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
+    //if(Verbosity>10) cout << "phibin: " << phibin << " zbin: " << " phidown " << phidown << " phiup " << phiup  << endl;
+    for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
+      iphiz iCoord(make_pair(iphi,iz));
+      ihit  thisHit(adcval[iphi][iz],iCoord);
+      ihit_list.push_back(thisHit);
+    }
+  }
+}
+
+void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset, unsigned short phioffset, unsigned short zoffset, double zz_shaping_correction, std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc, bool do_assoc)
+{
   // loop over the hits in this cluster
   double z_sum = 0.0;
   double phi_sum = 0.0;
@@ -174,14 +237,12 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
 
     if (adc <= 0) continue;
 
-    int iphi = iter->second.first;
-    int iz   = iter->second.second;
+    int iphi = iter->second.first + phioffset;
+    int iz   = iter->second.second + zoffset;
     if(iphi > phibinhi) phibinhi = iphi;
     if(iphi < phibinlo) phibinlo = iphi;
     if(iz > zbinhi) zbinhi = iz;
     if(iz < zbinlo) zbinlo = iz;
-
-    //    if(Verbosity()>10) cout << "remove adc: " << adc << " phi: " << iphi << " zbin " << iz << endl; 
 
     // update phi sums
     double phi_center = layergeom->get_phicenter(iphi);
@@ -195,9 +256,9 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
 
     adc_sum += adc;
 
-    // capture the hitkeys for all non-zero adc values
+    // capture the hitkeys for all adc values above a certain threshold
     TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
-    hitkeyvec.push_back(hitkey);
+    if(adc>5)hitkeyvec.push_back(hitkey);
   }
   if (adc_sum < 10) return;  // skip obvious noise "clusters"
   
@@ -207,14 +268,20 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   
   const double phi_cov = phi2_sum/adc_sum - square(clusphi);
   const double z_cov = z2_sum/adc_sum - square(clusz);
-  
+
   // create the cluster entry directly in the node tree
+
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
-  TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
-  
+  TrkrClusterv1 *clus = new TrkrClusterv1();
+  clus->setClusKey(ckey);
+  clusterlist->insert(std::make_pair(ckey, clus));
+  if(do_assoc){
+    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
+      clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
+    }
+  }
   //  int phi_nsize = phibinhi - phibinlo + 1;
   //  int z_nsize   = zbinhi   - zbinlo + 1;
-  
   double phi_size = (double) (phibinhi - phibinlo + 1) * radius * layergeom->get_phistep();
   double z_size = (double) (zbinhi - zbinlo + 1) * layergeom->get_zstep();
 
@@ -227,8 +294,6 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
     square(layergeom->get_zstep())/12:
     z_cov/(adc_sum*0.14);
 
-  //cout << "   layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
-  
   // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
   // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
   //    - N is the number of electrons that drift to the readout plane
@@ -236,11 +301,12 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
   // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
   // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-
+  
   if (clusz < 0)
     clusz -= zz_shaping_correction;
   else
     clusz += zz_shaping_correction;
+
   
   // Fill in the cluster details
   //================
@@ -288,7 +354,7 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   
   TMatrixF COVAR_DIM(3, 3);
   COVAR_DIM = ROT * DIM * ROT_T;
-  
+  /*
   clus->setSize(0, 0, COVAR_DIM[0][0]);
   clus->setSize(0, 1, COVAR_DIM[0][1]);
   clus->setSize(0, 2, COVAR_DIM[0][2]);
@@ -312,157 +378,138 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   clus->setError(2, 0, COVAR_ERR[2][0]);
   clus->setError(2, 1, COVAR_ERR[2][1]);
   clus->setError(2, 2, COVAR_ERR[2][2]);
-  
+  */
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
-  for (unsigned int i = 0; i < hitkeyvec.size(); i++)
+
+}
+
+void *ProcessSector(void *threadarg) {
+   struct thread_data *my_data;
+   my_data = (struct thread_data *) threadarg;
+   PHG4CylinderCellGeom *layergeom = my_data->layergeom;
+   //   int side = my_data->side;
+   //  unsigned int layer = my_data->layer;
+   // unsigned int sector = my_data->sector;
+   float pedestal = my_data->pedestal;
+   bool do_assoc = my_data->do_assoc;
+
+   unsigned short phibins   = my_data->phibins;
+   unsigned short phioffset = my_data->phioffset;
+   unsigned short zbins     = my_data->zbins ;
+   unsigned short zoffset   = my_data->zoffset ;
+   double zz_shaping_correction = my_data->zz_shaping_correction ;
+   std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = my_data->clusterlist;
+   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc = my_data->clusterhitassoc;
+
+   TrkrHitSet *hitset = my_data->hitset;
+   TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+
+   // for convenience, create a 2D vector to store adc values in and initialize to zero
+   std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(zbins, 0));
+   std::multimap<unsigned short, ihit> all_hit_map;
+   std::vector<ihit> hit_vect;
+
+   for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	hitr != hitrangei.second;
+	++hitr){
+     unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
+     unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
+     
+     float_t fadc = hitr->second->getAdc() - pedestal;
+     unsigned short adc;
+     if(fadc>0) 
+       adc =  (unsigned short) fadc;
+     
+     if(phibin < 0) continue;
+     if(phibin >= phibins) continue;
+     if(zbin   < 0) continue;
+     if(zbin   >= zbins) continue;
+
+     if(adc>0){
+       iphiz iCoord(make_pair(phibin,zbin));
+       ihit  thisHit(adc,iCoord);
+       if(adc>10){
+	 all_hit_map.insert(make_pair(adc, thisHit));
+       }
+       adcval[phibin][zbin] = (unsigned short) adc;
+     }
+   }
+
+   int nclus = 0;
+   while(all_hit_map.size()>0){
+
+     auto iter = all_hit_map.rbegin();
+     if(iter == all_hit_map.rend()){
+       break;
+     }
+     ihit hiHit = iter->second;
+     int iphi = hiHit.second.first;
+     int iz = hiHit.second.second;
+     
+     //put all hits in the all_hit_map (sorted by adc)
+     //start with highest adc hit
+     // -> cluster around it and get vector of hits
+     std::vector<ihit> ihit_list;
+     get_cluster(iphi, iz, phibins, zbins, adcval, ihit_list);
+     nclus++;
+
+     // -> calculate cluster parameters
+     // -> add hits to truth association
+     // remove hits from all_hit_map
+     // repeat untill all_hit_map empty
+     calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, zz_shaping_correction, clusterlist, clusterhitassoc, do_assoc);
+     remove_hits(ihit_list,all_hit_map, adcval);
+   }
+   pthread_exit(NULL);
+}
+
+TpcClusterizer::TpcClusterizer(const string &name)
+  : SubsysReco(name)
+  , m_hits(nullptr)
+  , m_clusterlist(nullptr)
+  , m_clusterhitassoc(nullptr)
+  , do_hit_assoc(false)
+  , zz_shaping_correction(0.0754)
+  , pedestal(74.4)
+  , SectorFiducialCut(0.5)
+  , NSearch(2)
+  , NPhiBinsMax(0)
+  , NPhiBinsMin(0)
+  , NZBinsMax(0)
+  , NZBinsMin(0)
+{
+}
+
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
+{
+  bool reject_it = false;
+
+  // sector boundaries occur every 1/12 of the full phi bin range  
+  int PhiBins = layergeom->get_phibins();
+  int PhiBinsSector = PhiBins/12;
+
+  double radius = layergeom->get_radius();
+  double PhiBinSize = 2.0* radius * M_PI / (double) PhiBins;
+
+  // sector starts where?
+  int sector_lo = sector * PhiBinsSector;
+  int sector_hi = sector_lo + PhiBinsSector - 1;
+
+  int sector_fiducial_bins = (int) (SectorFiducialCut / PhiBinSize);
+
+  if(phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
     {
-      m_clusterhitassoc->addAssoc(ckey, hitkeyvec[i]);
+      reject_it = true;
+      /*
+      int layer = layergeom->get_layer();
+      cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
+      << " PhiBins " << PhiBins << " sector_fiducial_bins " << sector_fiducial_bins
+      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << endl;  
+      */
     }
 
-}
-
-void TpcClusterizer::print_cluster(std::vector<ihit> &ihit_list)
-{
-  for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-    double adc = iter->first; 
-    int phibin = iter->second.first;
-    int zbin   = iter->second.second;
-    if(Verbosity()>10) cout << "  iz: " << zbin << " iphi: " << phibin << " adc: " << adc << endl;
-  }
-}
-
-void TpcClusterizer::find_z_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& zdown, int& zup){
-
-  int FitRangeZ = 5;
-  zup = 0;
-  zdown = 0;
-  for(int iz=0; iz< FitRangeZ; iz++){
-    int cz = zbin + iz;
-
-    if(Verbosity()>10) cout << " cz " << cz << " adc: " << adcval[phibin][cz] << " phibin: " << phibin << " zbin " << cz << endl;
-    if(cz <= 0 || cz >= NZBinsMax){
-      // zup = iz;
-      break; // truncate edge
-    }
-    
-    //break when below minimum
-    if(adcval[phibin][cz] <= 0) {
-      //zup = iz;
-      if(Verbosity() > 1000) cout << " failed threshold cut, set izup to " << zup << endl;
-      break;
-    }
-    //check local minima and break at minimum.
-    if(cz<NZBinsMax-4){//make sure we stay clear from the edge
-      if(adcval[phibin][cz]+adcval[phibin][cz+1] < 
-	 adcval[phibin][cz+2]+adcval[phibin][cz+3]){//rising again
-	zup = iz+1;
-	break;
-      }
-    }
-    zup = iz;
-  }
-  for(int iz=0; iz< FitRangeZ; iz++){
-    int cz = zbin - iz;
-    if(Verbosity()>10) cout << " cz " << cz << " adc: " << adcval[phibin][cz] << " phibin: " << phibin << " zbin " << cz << endl;
-    if(cz <= 0 || cz >= NZBinsMax){
-      //      zdown = iz;
-      break; // truncate edge
-    }
-    if(adcval[phibin][cz] <= 0) {
-      // zdown = iz;
-      if(Verbosity() > 1000) cout << " failed threshold cut, set izup to " << zup << endl;
-      break;
-    }
-
-    if(cz>4){//make sure we stay clear from the edge
-      if(adcval[phibin][cz]+adcval[phibin][cz-1] < 
-	 adcval[phibin][cz-2]+adcval[phibin][cz-3]){//rising again
-	zdown = iz+1;
-	break;
-      }
-    }
-    zdown = iz;
-  }
-}
-
-void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& phidown, int& phiup){
-
-  int FitRangePHI = 3;
-  phidown = 0;
-  phiup = 0;
-  for(int iphi=0; iphi< FitRangePHI; iphi++){
-    int cphi = phibin + iphi;
-    if(Verbosity()>10) cout << " cphi " << cphi << " adc: " << adcval[cphi][zbin] << " phibin: " << phibin << " zbin " << zbin << endl;
-    if(cphi < 0 || cphi >= NPhiBinsMax){
-      // phiup = iphi;
-      break; // truncate edge
-    }
-    // consider only the peak bin in phi when searching for Z limit     
-    
-    //break when below minimum
-    if(adcval[cphi][zbin] <= 0) {
-      // phiup = iphi;
-      if(Verbosity() > 1000) cout << " failed threshold cut, set iphiup to " << phiup << endl;
-      break;
-    }
-    //check local minima and break at minimum.
-    if(cphi<NPhiBinsMax-4){//make sure we stay clear from the edge
-      if(adcval[cphi][zbin]+adcval[cphi+1][zbin] < 
-	 adcval[cphi+2][zbin]+adcval[cphi+3][zbin]){//rising again
-	phiup = iphi+1;
-	break;
-      }
-    }
-    phiup = iphi;
-  }
-  if(Verbosity()>10) cout << " phiup " << phiup << endl; 
-  for(int iphi=0; iphi< FitRangePHI; iphi++){
-    int cphi = phibin - iphi;
-    if(Verbosity()>10) cout << " cphi " << cphi << " adc: " << adcval[cphi][zbin] << " phibin: " << phibin << " zbin " << zbin << endl;
-    if(cphi < 0 || cphi >= NPhiBinsMax){
-      // phidown = iphi;
-      break; // truncate edge
-    }
-    
-    if(adcval[cphi][zbin] <= 0) {
-      //phidown = iphi;
-      if(Verbosity() > 1000) cout << " failed threshold cut, set iphiup to " << phiup << endl;
-      break;
-    }
-
-    if(cphi>4){//make sure we stay clear from the edge
-      if(adcval[cphi][zbin]+adcval[cphi-1][zbin] < 
-	 adcval[cphi-2][zbin]+adcval[cphi-3][zbin]){//rising again
-	phidown = iphi+1;
-	break;
-      }
-    }
-    phidown = iphi;
-  }
-}
-
-void TpcClusterizer::get_cluster(int phibin, int zbin, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list)
-{
-  // search along phi at the peak in z
- 
-  int zup =0;
-  int zdown =0;
-  find_z_range(phibin, zbin, adcval, zdown, zup);
-  if(Verbosity()>10) cout << " zbin: " << zbin << " zdown: " << zdown << " zup: " << zup << " phi " << phibin << endl;
-  //now we have the z extent of the cluster, go find the phi edges
-
-  for(int iz=zbin - zdown ; iz<= zbin + zup; iz++){
-    int phiup = 0;
-    int phidown = 0;
-    find_phi_range(phibin, iz, adcval, phidown, phiup);
-    if(Verbosity()>10) cout << "phibin: " << phibin << " zbin: " << " phidown " << phidown << " phiup " << phiup  << endl;
-    for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
-      iphiz iCoord(make_pair(iphi,iz));
-      ihit  thisHit(adcval[iphi][iz],iCoord);
-      ihit_list.push_back(thisHit);
-    }
-  }
+  return reject_it;
 }
 
 int TpcClusterizer::InitRun(PHCompositeNode *topNode)
@@ -518,7 +565,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
-  int print_layer = 18;
+  //  int print_layer = 18;
 
   if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
@@ -554,7 +601,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
   PHG4CylinderCellGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -562,128 +609,210 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
   // loop over the TPC HitSet objects
+  long i = 0;
+
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
+  int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+
+  pthread_t threads[num_hitsets];
+  struct thread_data td[num_hitsets];
+  //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
+  // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
+  //std::map<long unsigned int, TrkrCluster*> *set_clusterlist[num_hitsets];
+  pthread_attr_t attr;
+  void *status;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  //  int err;
+
+  if (pthread_mutex_init(&mythreadlock, NULL) != 0)
+    {
+      printf("\n mutex init failed\n");
+      return 1;
+    }
+  
+  cout << "num hit sets:" << std::distance(hitsetrange.first,hitsetrange.second)<< endl;
+
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
+    //    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
+    //    if(i>=1)break;
     TrkrHitSet *hitset = hitsetitr->second;
-    int layer = TrkrDefs::getLayer(hitsetitr->first);
-    if (Verbosity() > 2)
-      if (layer == print_layer)
-      {
-	cout << endl << "TpcClusterizer process hitsetkey " << hitsetitr->first
-	     << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
-	     << " side " << (int) TpcDefs::getSide(hitsetitr->first)
-	     << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
-	     << " nhits " << (int) hitset->size() 
-	     << endl;
-	//	if (Verbosity() > 5) hitset->identify();
-      }
-
-    // we have a single hitset, get the info that identifies the module
-    //    int sector = TpcDefs::getSectorId(hitsetitr->first);
+    unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
-
-    // we will need the geometry object for this layer to get the global position
+    unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
     PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
-    int NPhiBins = layergeom->get_phibins();
-    NPhiBinsMin = 0;
-    NPhiBinsMax = NPhiBins;
+    //set_clusterhitassoc[i] = m_clusterhitassoc->getClusterSet(layer,sector,side);
+    //set_clusterlist[i] = m_clusterlist->getClusterSet(layer,sector,side);
 
-    int NZBins = layergeom->get_zbins();
-    if (side == 0)
-    {
+    //    cout << "main() : creating thread, " << i << endl;
+    //    td[i].thread_id = i;
+    //   td[i].message = "This is message";
+    td[i].layergeom = layergeom;
+    td[i].hitset = hitset;
+    td[i].layer = layer;
+    td[i].pedestal = pedestal;
+    td[i].sector = sector;
+    td[i].side = side;
+   
+    td[i].zz_shaping_correction =  zz_shaping_correction;
+    td[i].clusterlist = m_clusterlist->getClusterSet(layer,sector,side);// set_clusterlist[i];
+    td[i].clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);//set_clusterhitassoc[i];
+
+    unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
+    unsigned short NPhiBinsSector = NPhiBins/12;
+    unsigned short NZBins = (unsigned short)layergeom->get_zbins();
+    unsigned short NZBinsSide = NZBins/2;
+    //    unsigned short NPhiBinsMin = 0;
+    // unsigned short NPhiBinsMax = NPhiBins;
+    unsigned short NZBinsMin = 0;
+    // unsigned short NZBinsMax = 0;
+    unsigned short PhiOffset = NPhiBinsSector * sector;
+
+    if (side == 0){
       NZBinsMin = 0;
-      NZBinsMax = NZBins / 2;
+      NZBinsMax = NZBins / 2 -1;
     }
-    else
-    {
-      NZBinsMin = NZBins / 2 + 1;
+    else{
+      NZBinsMin = NZBins / 2;
       NZBinsMax = NZBins;
     }
 
-    // for convenience, create a 2D vector to store adc values in and initialize to zero
-    std::vector<std::vector<double>> adcval(NPhiBins, std::vector<double>(NZBins, 0));
+    unsigned short ZOffset = NZBinsMin;
 
-    std::multimap<double, ihit> all_hit_map;
+    td[i].phibins   = NPhiBinsSector;
+    td[i].phioffset = PhiOffset;
+    td[i].zbins     = NZBinsSide;
+    td[i].zoffset   = ZOffset ;
+
+    int rc = pthread_create(&threads[i], &attr, ProcessSector, (void *)&td[i]);
+    if (rc) {
+      cout << "Error:unable to create thread," << rc << endl;
+      //      exit(-1);
+    }
+    i++;
+  }
+  
+  pthread_attr_destroy(&attr);
+  //  num_hitsets = 1;
+  for( int j = 0; j < num_hitsets; j++ ) {
+    //    cout << "collecting thread :" << j ;
+    int rc2 = pthread_join(threads[j], &status);
+    if (rc2) {
+      cout << "Error:unable to join," << rc2 << endl;
+      //      exit(-1);
+    }
+    //    cout << "Main: completed thread id :" << j ;
+    //  cout << "  exiting with status :" << status << endl;
+  }
+ 
+  cout << "found " << m_clusterlist->size() << " Clusters "  << endl;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TpcClusterizer::process_hitset(TrkrHitSet *hitset, unsigned int layer, int side){
+
+  // we have a single hitset, get the info that identifies the module
+  //    int sector = TpcDefs::getSectorId(hitsetitr->first);
+  //  int side = TpcDefs::getSide(hitsetitr->first);
+  
+  // we will need the geometry object for this layer to get the global position
+  /* PHG4CylinderCellGeom *layergeom = _geom_container->GetLayerCellGeom(layer);
+  int NPhiBins = layergeom->get_phibins();
+  NPhiBinsMin = 0;
+  NPhiBinsMax = NPhiBins;
+  
+  int NZBins = layergeom->get_zbins();
+  if (side == 0){
+    NZBinsMin = 0;
+    NZBinsMax = NZBins / 2;
+  }
+  else{
+    NZBinsMin = NZBins / 2 + 1;
+    NZBinsMax = NZBins;
+  }
+  */
+  //put all hits in an rtree (sortable by adc, and directly accessible by coordinate)
+  //start with highest adc hit
+  // -> cluster around it
+  // -> create list of rtree points that belong to a cluster
+  // -> calculate cluster parameters based on list
+  // -> add hits to truth association ??? 
+  // remove used hits from rtree 
+  // repeat untill rtree empty
+  
+  TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+  if(Verbosity()>10) cout << " New Hitset " << endl;
+  //  clubgi::rtree<point, clubgi::quadratic<8>> hit_tree;
+
+  std::vector<ihit> hit_vect;
+
+  for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+         hitr != hitrangei.second;
+       ++hitr){
+    /*    point hitpoint(TpcDefs::getPad(hitr->first),
+		   TpcDefs::getTBin(hitr->first),
+		   (unsigned short) hitr->second->getAdc()+0.5 - pedestal);
+    */
+
+    iphiz iCoord(make_pair(TpcDefs::getPad(hitr->first),
+			   TpcDefs::getTBin(hitr->first)));
+    ihit  hitpoint(((unsigned short) hitr->second->getAdc()+0.5 - pedestal),iCoord);
+
+    hit_vect.push_back(hitpoint);
+
+    
+    unsigned short iphi = hitpoint.second.first;
+    unsigned short iz   = hitpoint.second.second;
+    unsigned short adc  = hitpoint.first;
+
+    if(Verbosity()>10) cout << " iphi: " << iphi << " iz: " <<  iz << " adc: "  << adc << endl;
+    
+  }
+  //  cout << "layer: " << layer << "side: " << side << endl;
+  //  hitset->identify();
+  /*
+  //put all hits in the all_hit_map (sorted by adc)
+  
+  int nclus = 0;
+  while(all_hit_map.size()>0){
+    auto iter = all_hit_map.rbegin();
+    if(iter == all_hit_map.rend()) break;
+    
+    ihit hiHit = iter->second;
+    //start with highest adc hit
+    if(Verbosity()>10) cout << "  test entries: " << all_hit_map.size() << " adc: " << hiHit.first << " iphi: " << hiHit. second.first << " iz: " << hiHit.second.second << endl;
+    //      double adc = hiHit.first;
+    int iphi = hiHit.second.first;
+    int iz = hiHit.second.second;
     
     //put all hits in the all_hit_map (sorted by adc)
     //start with highest adc hit
-    // -> cluster around it
-    // -> vector of hits
+    // -> cluster around it and get vector of hits
+    std::vector<ihit> ihit_list;
+    get_cluster(iphi, iz, adcval, ihit_list);
+    if(Verbosity()>10) 
+      cout << " cluster size: " << ihit_list.size() << " #clusters: " << nclus<< endl;
     // -> calculate cluster parameters
     // -> add hits to truth association
     // remove hits from all_hit_map
     // repeat untill all_hit_map empty
-
-    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    if(Verbosity()>10) cout << " New Hitset " << endl;
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-         hitr != hitrangei.second;
-         ++hitr)
-    {
-
-      int phibin = TpcDefs::getPad(hitr->first);
-      int zbin = TpcDefs::getTBin(hitr->first);
-      double adc =  (double) hitr->second->getAdc() - pedestal;
-      
-      if(Verbosity()>10) cout << " iphi: " << phibin << " iz: " << zbin << " adc: "  << adc << endl;
-
-      if (hitr->second->getAdc() > 0)
-	{
-	  if(adc>0){
-	    iphiz iCoord(make_pair(phibin,zbin));
-	    ihit  thisHit(adc,iCoord);
-	    all_hit_map.insert(make_pair(adc, thisHit));
-	  }
-	  adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
-
-	  if (Verbosity() > 2)
-	    if (layer == print_layer)
-	      cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
-	}
-      
-    }
-    //put all hits in the all_hit_map (sorted by adc)
-
-    int nclus = 0;
-    while(all_hit_map.size()>0){
-      auto iter = all_hit_map.rbegin();
-      if(iter == all_hit_map.rend()) break;
-
-      ihit hiHit = iter->second;
-      //start with highest adc hit
-      if(Verbosity()>10) cout << "  test entries: " << all_hit_map.size() << " adc: " << hiHit.first << " iphi: " << hiHit. second.first << " iz: " << hiHit.second.second << endl;
-      //      double adc = hiHit.first;
-      int iphi = hiHit.second.first;
-      int iz = hiHit.second.second;
-
-      //put all hits in the all_hit_map (sorted by adc)
-      //start with highest adc hit
-      // -> cluster around it and get vector of hits
-      std::vector<ihit> ihit_list;
-      get_cluster(iphi, iz, adcval, ihit_list);
-      if(Verbosity()>10) 
-	cout << " cluster size: " << ihit_list.size() << " #clusters: " << nclus<< endl;
-      // -> calculate cluster parameters
-      // -> add hits to truth association
-      // remove hits from all_hit_map
-      // repeat untill all_hit_map empty
-      //      print_cluster(ihit_list);
-      calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset);
-      remove_hits(ihit_list,all_hit_map,adcval);
-    }
+    //      print_cluster(ihit_list);
+    calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset);
+    remove_hits(ihit_list,all_hit_map,adcval);
   }
-
+  */
+  hit_vect.clear();
   return Fun4AllReturnCodes::EVENT_OK;
-}
 
+}
 int TpcClusterizer::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
