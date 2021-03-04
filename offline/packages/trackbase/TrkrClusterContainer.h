@@ -42,28 +42,10 @@ class TrkrClusterContainer : public PHObject
   ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
 
   //! preferred removal method, key is currently the clus id
-  void removeCluster(TrkrDefs::cluskey key)
-  {
-    m_clusmap.erase(key);
-  }
+  void removeCluster(TrkrDefs::cluskey key);
 
   //! inefficent, use key where possible instead
-  void removeCluster(TrkrCluster *clus)
-  {
-    Iterator its = m_clusmap.begin();
-    Iterator last = m_clusmap.end();
-    for (; its != last;)
-    {
-      if (its->second == clus)
-      {
-        m_clusmap.erase(its++);
-      }
-      else
-      {
-        ++its;
-      }
-    }
-  }
+  void removeCluster(TrkrCluster *clus);
 
   Iterator findOrAddCluster(TrkrDefs::cluskey key);
 
@@ -71,20 +53,39 @@ class TrkrClusterContainer : public PHObject
   ConstRange getClusters(const TrkrDefs::TrkrId trackerid) const;
 
   //! return all Clusters matching a given detid and layer
-  ConstRange getClusters(const TrkrDefs::TrkrId trackerid, const char layer) const;
+  ConstRange getClusters(const TrkrDefs::TrkrId trackerid, const unsigned int layer) const;
+
+  //! return all Clusters in a given layer
+  ConstRange getClusters(const unsigned int layer) const;
 
   //! return all clusters
   ConstRange getClusters(void) const;
+
+  //! return all clusters
+  std::map<TrkrDefs::cluskey, TrkrCluster *> *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment){
+    return &m_clusmap[layer][phi_segment][z_segment];
+  }
 
   TrkrCluster *findCluster(TrkrDefs::cluskey key);
 
   unsigned int size(void) const
   {
-    return m_clusmap.size();
+    unsigned int size = 0;
+    for(unsigned layer = 0;layer < max_layer; layer++){
+      for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++){
+	for(unsigned z_segment = 0; z_segment < max_zsegment; z_segment++){
+	  size += m_clusmap[layer][phi_segment][z_segment].size(); 
+	}
+      }
+    }
+    return size;
   }
 
  protected:
-  Map m_clusmap;
+  unsigned int max_layer = 57;
+  unsigned int max_phisegment = 12;
+  unsigned int max_zsegment = 8;
+  Map m_clusmap[57][12][8];
   ClassDef(TrkrClusterContainer, 1)
 };
 
