@@ -294,14 +294,21 @@ TH3* TpcSpaceChargeReconstructionHelper::copy_histogram( TH3* hin, const TString
   }
 
   // fill guarding phi bins
+  /*
+   * we use 2pi periodicity to do that:
+   * - last valid bin is copied to first guarding bin;
+   * - first valid bin is copied to last guarding bin
+   */
   for( int ir = 0; ir < rbins+2; ++ir )
     for( int iz = 0; iz < zbins+2; ++iz )
   {
-    hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
-    hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
+    // copy last bin to first guarding bin
+    hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
+    hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
 
-    hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
-    hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
+    // copy first bin to last guarding bin
+    hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
+    hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
   }
 
   // fill guarding r bins
