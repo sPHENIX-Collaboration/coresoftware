@@ -10,6 +10,7 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+#include "ALICEKF.h"
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
@@ -24,7 +25,7 @@
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
-
+#include <memory>
 
  
 class PHCompositeNode;  // lines 196-196
@@ -36,23 +37,18 @@ class SvtxVertexMap;    // lines 206-206
 
 //end
 
-typedef std::vector<TrkrDefs::cluskey> keylist;
-
 class PHHybridSeeding : public PHTrackSeeding
 {
  public:
   PHHybridSeeding(
       const std::string &name = "PHHybridSeeding",
-      unsigned int min_clusters_per_track = 20,
-      float cluster_z_error = 0.015,
-      float cluster_alice_y_error = 0.015,
-      float maxSinPhi = 0.999,
-      float Bz = 14*0.000299792458f,
-      float search_radius1 = 3.,
-      float search_angle1 = M_PI/8.,
+      double max_sin_phi = 1000.,
+      double fieldDir = 1,
+      double search_radius1 = 3.,
+      double search_angle1 = M_PI/8.,
       size_t min_track_size1 = 10,
-      float search_radius2 = 6.,
-      float search_angle2 = M_PI/8.,
+      double search_radius2 = 6.,
+      double search_angle2 = M_PI/8.,
       size_t min_track_size2 = 5,
       size_t nthreads = 1
       );
@@ -63,18 +59,21 @@ class PHHybridSeeding : public PHTrackSeeding
   
   void set_field_dir(const double rescale)
   {
+
     if(rescale > 0)
-      _fieldDir = 1;
+      _fieldDir = -1;
     else
     {
-      _fieldDir = -1;
-      _Bz = -1*_Bz;
-    }  
+      _fieldDir = 1;
+      //_Bz = -1*_Bz;
+    }
+  
   }
-  void setSearchRadius(float r1, float r2) {_search_radius1 = r1; _search_radius2 = r2;}
-  void setSearchAngle(float a1, float a2) {_search_angle1 = a1; _search_angle2 = a2;}
+  void setSearchRadius(double r1, double r2) {_search_radius1 = r1; _search_radius2 = r2;}
+  void setSearchAngle(double a1, double a2) {_search_angle1 = a1; _search_angle2 = a2;}
   void setMinTrackSize(size_t n1, size_t n2) {_min_track_size1 = n1; _min_track_size2 = n2;}
   void setNThreads(size_t n) {_nthreads = n;} 
+  void setMinFitTrackSize(size_t s) {_min_fit_track_size = s;}
 
  protected:
   virtual int Setup(PHCompositeNode *topNode);
@@ -88,31 +87,32 @@ class PHHybridSeeding : public PHTrackSeeding
   // node pointers
   //nodes to get norm vector
 
-  std::vector<float> _radii_all;
+  std::vector<double> _radii_all;
 
-  std::vector<SvtxTrack_v1> ALICEKalmanFilter(std::vector<keylist> trackSeedKeyLists, bool use_nhits_limit = true);
-  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v1 &track);
-  bool covIsPosDef(SvtxTrack_v1 &track);
-  void repairCovariance(SvtxTrack_v1 &track);
-  void publishSeeds(std::vector<SvtxTrack_v1> seeds);
-  bool checknan(float val, std::string name, int num);
+  std::vector<double> _vertex_ids;
+  std::vector<double> _vertex_x;
+  std::vector<double> _vertex_y;
+  std::vector<double> _vertex_z;
+  std::vector<double> _vertex_xerr;
+  std::vector<double> _vertex_yerr;
+  std::vector<double> _vertex_zerr;
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
 
-  unsigned int _min_clusters_per_track;
-  float _cluster_z_error;
-  float _cluster_alice_y_error;
-  float _max_sin_phi;
-  float _Bz;
-  float _search_radius1;
-  float _search_angle1;
+  void publishSeeds(std::vector<SvtxTrack_v1> seeds);
+
+  double _max_sin_phi;
+  double _fieldDir;
+  double _search_radius1;
+  double _search_angle1;
   size_t _min_track_size1;
-  float _search_radius2;
-  float _search_angle2;
+  double _search_radius2;
+  double _search_angle2;
   size_t _min_track_size2;
   size_t _nthreads;
-  double _fieldDir = 1;
+  size_t _min_fit_track_size = 5;
+  std::shared_ptr<ALICEKF> fitter;
 };
 
 #endif

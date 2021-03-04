@@ -61,10 +61,14 @@ KFParticle_Tools::KFParticle_Tools()
   : m_daughter_name{"pion", "pion", "pion", "pion"}
   , m_daughter_charge{1, -1, 1, -1}
   , m_num_tracks(2)
+  , m_has_intermediates(false)
+  , m_intermediate_min_dira{-1, -1, -1, -1}
+  , m_intermediate_min_fdchi2{-1, -1, -1, -1}
   , m_min_mass(0)
   , m_max_mass(1e1)
   , m_track_pt(0.25)
   , m_track_ptchi2(FLT_MAX)
+  , m_track_ip(-1.)
   , m_track_ipchi2(10.)
   , m_track_chi2ndof(4.)
   , m_comb_DCA(0.05)
@@ -181,25 +185,41 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   return associatedVertex->size_tracks();
 }
 
-const bool KFParticle_Tools::isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices)
+const bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
 {
   bool goodTrack = false;
+  
+  float min_ip = 0;
+  float min_ipchi2 = 0;
 
   float pt = particle.GetPt();
   float pterr = particle.GetErrPt();
   float ptchi2 = pow(pterr / pt, 2);
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
-  std::vector<float> ipchi2;
+  calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
 
-  for (unsigned int i_verts = 0; i_verts < primaryVertices.size(); ++i_verts)
-    ipchi2.push_back(particle.GetDeviationFromVertex(primaryVertices[i_verts]));
-
-  auto minmax_ipchi2 = minmax_element(ipchi2.begin(), ipchi2.end());  //Order the IP chi2 from small to large
-  float min_ipchi2 = *minmax_ipchi2.first;
-
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof) goodTrack = true;
+  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof) goodTrack = true;
 
   return goodTrack;
+}
+
+int KFParticle_Tools::calcMinIP(KFParticle track, std::vector<KFParticle> PVs,
+                                float& minimumIP, float& minimumIPchi2)
+{
+  std::vector<float> ip, ipchi2;
+
+  for (unsigned int i_verts = 0; i_verts < PVs.size(); ++i_verts)
+  {
+    ip.push_back(track.GetDistanceFromVertex(PVs[i_verts]));
+    ipchi2.push_back(track.GetDeviationFromVertex(PVs[i_verts]));
+  }
+
+  auto minmax_ip = minmax_element(ip.begin(), ip.end());  //Order the IP chi2 from small to large
+  minimumIP = *minmax_ip.first;
+  auto minmax_ipchi2 = minmax_element(ipchi2.begin(), ipchi2.end());  //Order the IP chi2 from small to large
+  minimumIPchi2 = *minmax_ipchi2.first;
+
+  return 0;
 }
 
 std::vector<int> KFParticle_Tools::findAllGoodTracks(std::vector<KFParticle> daughterParticles, const std::vector<KFParticle> primaryVertices)
@@ -405,7 +425,7 @@ float KFParticle_Tools::eventDIRA(KFParticle particle, KFParticle vertex)
   sizeOfFD = TMatrixD(flightVector, TMatrixD::kTransposeMult, flightVector);
   float f_sizeOfFD = sqrt(sizeOfFD(0, 0));
 
-  return f_momDotFD / (f_sizeOfMom * f_sizeOfFD);  //returns the DIRA
+  return std::abs(f_momDotFD / (f_sizeOfMom * f_sizeOfFD));  //returns the DIRA. abs for now as we have -x positions (barrel detector)
 }
 
 float KFParticle_Tools::flightDistanceChi2(KFParticle particle, KFParticle vertex)
@@ -434,7 +454,9 @@ float KFParticle_Tools::flightDistanceChi2(KFParticle particle, KFParticle verte
   return m_chi2Value(0, 0);
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], std::string daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
+std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], std::string daughterOrder[], 
+                                                           bool isIntermediate, int intermediateNumber, int nTracks, 
+                                                           bool constrainMass, float required_vertexID)
 {
   KFParticle mother;
   KFParticle inputTracks[nTracks];
@@ -490,22 +512,27 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       daughterMassCheck && chargeCheck)
     goodCandidate = true;
 
+  // Check the requirements of an intermediate states against this mother and re-do goodCandidate
+  if (goodCandidate && m_has_intermediates && !isIntermediate) //The decay has intermediate states and we are now looking at the mother
+  {
+    for (int k = 0; k < m_num_intermediate_states; ++k)
+    {
+      float intermediate_DIRA = eventDIRA(vDaughters[k], mother);
+      float intermediate_FDchi2 = flightDistanceChi2(vDaughters[k], mother);
+      if (intermediate_DIRA < m_intermediate_min_dira[k] || 
+          intermediate_FDchi2 < m_intermediate_min_fdchi2[k])
+          goodCandidate = false;
+    }
+  }
+
   return std::make_tuple(mother, goodCandidate);
 }
 
 void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex)
 {
-  //KFParticle prod_vertex( vertex );
-  //prod_vertex.AddDaughter( particle );
-  //particle.SetProductionVertex( prod_vertex );
-  //particle.SetAtProductionVertex( true );
-
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
   float calculated_dira = eventDIRA(particle, vertex);
-  //float calculated_ipchi2  = particle.GetDeviationFromVertex( prod_vertex );
   float calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
-  //float calculated_lifetime, calculated_lifetime_error;
-  //mother.GetLifeTime( calculated_lifetime, calculated_lifetime_error );
   goodCandidate = false;
   if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 &&
       calculated_dira >= m_dira_min && calculated_dira <= m_dira_max) goodCandidate = true;
