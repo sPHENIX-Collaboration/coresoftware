@@ -11,12 +11,14 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(OPT_SPHENIX)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   SvtxTrack.h \
@@ -70,10 +72,14 @@ libtrackbase_historic_io_la_SOURCES = \
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libtrackbase_historic_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lActsCore \
+  -lActsFatras \
+  -lActsExamplesFramework
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

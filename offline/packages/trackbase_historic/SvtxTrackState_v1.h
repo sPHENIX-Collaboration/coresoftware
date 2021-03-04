@@ -60,6 +60,10 @@ class SvtxTrackState_v1 : public SvtxTrackState
   virtual float get_phi_error() const;
   virtual float get_z_error() const;
 
+  SourceLink get_acts_source_link() const { return _sourceLink; }
+  void set_acts_source_link(const SourceLink sourceLink)
+    { _sourceLink = sourceLink; }
+  
   //@}
 
  private:
@@ -67,6 +71,8 @@ class SvtxTrackState_v1 : public SvtxTrackState
   float _pos[3];
   float _mom[3];
   float _covar[21];  //  6x6 triangular packed storage
+
+  SourceLink _sourceLink;
 
   std::string state_name;
 

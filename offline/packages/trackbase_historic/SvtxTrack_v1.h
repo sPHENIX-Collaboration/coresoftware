@@ -183,6 +183,10 @@ class SvtxTrack_v1 : public SvtxTrack
   float get_cal_cluster_e(CAL_LAYER layer) const;
   void set_cal_cluster_e(CAL_LAYER layer, float e) { _cal_cluster_e[layer] = e; }
 
+  // ACTS track information for use by ACTS modules only
+  ActsExamples::TrackParameters get_acts_track_parameters() const;
+
+
  private:
   // track information
   unsigned int _track_id;
@@ -202,7 +206,6 @@ class SvtxTrack_v1 : public SvtxTrack
   float _dca3d_z_error;
 
   // extended track information (primary tracks only)
-
 
   // track state information
   StateMap _states;  //< path length => state object

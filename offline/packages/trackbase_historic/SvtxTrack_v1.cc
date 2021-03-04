@@ -265,3 +265,21 @@ float SvtxTrack_v1::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const
   if (citer == _cal_cluster_e.end()) return NAN;
   return citer->second;
 }
+
+
+ActsExamples::TrackParameters SvtxTrack_v1::get_acts_track_parameters() const
+{
+  Acts::Vector4D position(get_x() * Acts::UnitConstants::cm,
+			  get_y() * Acts::UnitConstants::cm,
+			  get_z() * Acts::UnitConstants::cm,
+			  10 * Acts::UnitConstants::ns);
+  
+  Acts::Vector3D momentum(get_px(), get_py(), get_pz());
+  double mom = get_p();
+  int charge = get_charge();
+
+  Acts::BoundSymMatrix cov;
+  return ActsExamples::TrackParameters(position, momentum,
+				       mom, charge, cov);
+
+}

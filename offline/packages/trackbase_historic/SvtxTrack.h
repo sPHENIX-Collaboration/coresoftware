@@ -4,7 +4,7 @@
 #include "SvtxTrackState.h"
 
 #include <trackbase/TrkrDefs.h>
-
+#include <ActsExamples/EventData/Track.hpp>
 #include <phool/PHObject.h>
 
 #include <limits.h>
@@ -216,6 +216,16 @@ class SvtxTrack : public PHObject
 
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
+
+  
+  // 
+  // ACTS methods for use by ACTS modules only 
+  //
+
+  virtual ActsExamples::TrackParameters get_acts_track_parameters() const
+  { return ActsExamples::TrackParameters(Acts::Vector4D(NAN,NAN,NAN, NAN),
+					 Acts::Vector3D(NAN,NAN,NAN), NAN); }
+
 
  protected:
   SvtxTrack() {}
