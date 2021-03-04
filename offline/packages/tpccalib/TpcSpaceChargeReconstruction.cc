@@ -454,7 +454,9 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
   // also write histograms suitable for space charge reconstruction
   auto process_histogram = []( TH3* h, const TString& name )
   {
-    const auto [hneg, hpos] = TpcSpaceChargeReconstructionHelper::split( h );
+    TH3* hneg;
+    TH3* hpos;
+    std::tie( hneg, hpos ) = TpcSpaceChargeReconstructionHelper::split( h );
     hneg->Write();
     hpos->Write();
     TpcSpaceChargeReconstructionHelper::copy_histogram( h, name )->Write();

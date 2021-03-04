@@ -42,7 +42,7 @@ class TpcSpaceChargeReconstructionHelper
    * this must be done before adding guarding bins around each axis, in order to prevent artifacts during calls to Interpolate
    * at the central membrane (z = 0)
    */
-  static std::array<TH3*, 2> split( TH3* hin );
+  static std::tuple<TH3*, TH3*> split( TH3* hin );
 
   /**
    * copy input histogram into output, with new name, while adding two "guarding bins" on
