@@ -51,11 +51,11 @@ std::map<std::string, particle_pair> particleMasses_evtReco = kfp_particleList_e
 
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
-  : m_has_intermediates(false)
-  //, m_num_tracks(2)
-  , m_daughter_name_evt{"pion", "pion", "pion", "pion"}
+  : m_daughter_name_evt{"pion", "pion", "pion", "pion"}
   , m_daughter_charge_evt{1, -1, 1, -1}
   , m_intermediate_charge{1, -1, 1, -1}
+  , m_intermediate_min_ip{-1, -1, -1, -1}
+  , m_intermediate_min_ipchi2{-1, -1, -1, -1}
   , m_constrain_to_vertex(true)
   , m_constrain_int_mass(false)
 {
@@ -245,11 +245,11 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                        motherDecayProducts[trackArrayID].CovarianceMatrix(),
                                        (Int_t) motherDecayProducts[trackArrayID].GetQ(),
                                        particleMasses_evtReco.find(uniqueCombinations[n_names][trackArrayID].c_str())->second.second);
+                      slowTrack.NDF() = motherDecayProducts[trackArrayID].GetNDF();
+                      slowTrack.Chi2() = motherDecayProducts[trackArrayID].GetChi2();
                       slowTrack.SetId(motherDecayProducts[trackArrayID].Id());
                       slowTrack.SetPDG(motherDecayProducts[trackArrayID].GetQ() * particleMasses_evtReco.find(uniqueCombinations[n_names][trackArrayID].c_str())->second.first);
-                      //goodDaughters[trackArrayID].push_back(slowTrack);
                       goodDaughters[k + num_tracks_used_by_intermediates].push_back(slowTrack);
-//goodDaughters[k + num_tracks_used_by_intermediates].push_back(motherDecayProducts[k + m_num_intermediate_states]);
                     }
                   }
                 }
@@ -332,6 +332,16 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         std::tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                 isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID);
 
+        float min_ip = 0;
+        float min_ipchi2 = 0;
+        if (isIntermediate && isGood)
+        {
+          calcMinIP(candidate, primaryVerticesCand, min_ip, min_ipchi2);
+          if (min_ip < m_intermediate_min_ip[intermediateNumber] || 
+              min_ipchi2 < m_intermediate_min_ipchi2[intermediateNumber])
+              isGood = false;
+        }
+
         if (isGood)
         {
           goodCandidates.push_back(candidate);
@@ -343,6 +353,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
                                daughterTracks[i].CovarianceMatrix(),
                                (Int_t) daughterTracks[i].GetQ(),
                                particleMasses_evtReco.find(names[i].c_str())->second.second);
+            intParticle.NDF() = daughterTracks[i].GetNDF();
+            intParticle.Chi2() = daughterTracks[i].GetChi2();
             intParticle.SetId(daughterTracks[i].Id());
             intParticle.SetPDG(daughterTracks[i].GetQ() * particleMasses_evtReco.find(names[i].c_str())->second.first);
             goodDaughters[i].push_back(intParticle);

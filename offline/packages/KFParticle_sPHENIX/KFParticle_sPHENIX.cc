@@ -35,6 +35,7 @@ typedef std::pair<int, float> particle_pair;
 KFParticle_Tools kfpTupleTools_Top;
 KFParticle_particleList kfp_list;
 std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
+int candidateCounter = 0;
 
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX()
@@ -63,12 +64,15 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
+/*
   if (m_save_output)
   {
     m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
     if (Verbosity() >= VERBOSITY_SOME) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
     initializeBranches();
   }
+*/
+  if (m_save_output && Verbosity() >= VERBOSITY_SOME) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
 
   if (m_save_dst) createParticleNode(topNode);
 
@@ -118,6 +122,14 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   if (mother.size() != 0)
     for (unsigned int i = 0; i < mother.size(); ++i)
     {
+      if (m_save_output && candidateCounter == 0)
+      {
+        m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
+        initializeBranches();
+      }
+
+      candidateCounter += 1;
+
       if (m_save_output) fillBranch(topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
       if (m_save_dst) fillParticleNode(topNode, mother[i], daughters[i], intermediates[i]);
 
@@ -135,6 +147,8 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::End(PHCompositeNode *topNode)
 {
+  std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of canadidates: " << candidateCounter << std::endl;  
+
   if (m_save_output)
   {
     m_outfile->Write();
