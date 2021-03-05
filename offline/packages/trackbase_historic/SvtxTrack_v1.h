@@ -188,6 +188,9 @@ class SvtxTrack_v1 : public SvtxTrack
 
 
  private:
+
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs() const;
+
   // track information
   unsigned int _track_id;
   unsigned int _vertex_id;
