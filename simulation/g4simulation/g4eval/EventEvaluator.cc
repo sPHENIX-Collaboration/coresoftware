@@ -131,6 +131,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
 
   , _reco_e_threshold(0.0)
   , _caloevalstackFHCAL(nullptr)
+  , _caloevalstackDRCALO(nullptr)
   , _caloevalstackFEMC(nullptr)
   , _strict(false)
   , _event_tree(nullptr)
