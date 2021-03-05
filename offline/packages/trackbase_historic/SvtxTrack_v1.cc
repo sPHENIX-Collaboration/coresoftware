@@ -172,14 +172,11 @@ void SvtxTrack_v1::identify(std::ostream& os) const
 
 void SvtxTrack_v1::clear_states()
 {
-  for (StateIter iter = _states.begin();
-       iter != _states.end();
-       ++iter)
+  while(_states.begin() != _states.end())
   {
-    SvtxTrackState* state = iter->second;
-    delete state;
+    delete _states.begin()->second;
+    _states.erase(_states.begin());
   }
-  _states.clear();
 }
 
 int SvtxTrack_v1::isValid() const
