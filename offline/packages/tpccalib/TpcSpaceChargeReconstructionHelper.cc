@@ -197,7 +197,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi2( TH3* hin )
 //_______________________________________________
 std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split( TH3* hin )
 {
-  if( !hin ) return {nullptr, nullptr};
+  if( !hin ) return std::make_tuple<TH3*, TH3*>( nullptr, nullptr );
 
   auto xaxis = hin->GetXaxis();
   auto yaxis = hin->GetYaxis();
@@ -243,7 +243,7 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split( TH3* hin )
     h->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
   }
 
-  return {hneg, hpos};
+  return std::make_tuple( hneg, hpos );
 }
 
 //___________________________________________________________________________
