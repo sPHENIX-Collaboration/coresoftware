@@ -38,6 +38,16 @@ class EventEvaluator : public SubsysReco
   int End(PHCompositeNode* topNode);
 
   void set_strict(bool b) { _strict = b; }
+
+  void set_do_FHCAL(bool b) { _do_FHCAL = b; }
+  void set_do_FEMC(bool b) { _do_FEMC = b; }
+  void set_do_DRCALO(bool b) { _do_DRCALO = b; }
+  void set_do_HITS(bool b) { _do_HITS = b; }
+  void set_do_TRACKS(bool b) { _do_TRACKS = b; }
+  void set_do_CLUSTERS(bool b) { _do_CLUSTERS = b; }
+  void set_do_VERTEX(bool b) { _do_VERTEX = b; }
+  void set_do_PROJECTIONS(bool b) { _do_PROJECTIONS = b; }
+  void set_do_MCPARTICLES(bool b) { _do_MCPARTICLES = b; }
   // funtions to limit the tracing to only part of the event ---------
   // and speed up the evaluation
 
@@ -49,7 +59,16 @@ class EventEvaluator : public SubsysReco
     _reco_e_threshold = thresh;
   }
 
- private:
+private:
+  bool _do_FHCAL;
+  bool _do_FEMC;
+  bool _do_DRCALO;
+  bool _do_HITS;
+  bool _do_TRACKS;
+  bool _do_CLUSTERS;
+  bool _do_VERTEX;
+  bool _do_PROJECTIONS;
+  bool _do_MCPARTICLES;
   unsigned int _ievent;
 
   // track hits
@@ -66,6 +85,13 @@ class EventEvaluator : public SubsysReco
   int* _tower_FHCAL_iEta;
   int* _tower_FHCAL_iPhi;
   int* _tower_FHCAL_trueID;
+
+  // towers
+  int _nTowers_DRCALO;
+  float* _tower_DRCALO_E;
+  int* _tower_DRCALO_iEta;
+  int* _tower_DRCALO_iPhi;
+  int* _tower_DRCALO_trueID;
 
   // towers
   int _nTowers_FEMC;
@@ -128,6 +154,7 @@ class EventEvaluator : public SubsysReco
   float _reco_e_threshold;
 
   CaloEvalStack *_caloevalstackFHCAL;
+  CaloEvalStack *_caloevalstackDRCALO;
   CaloEvalStack *_caloevalstackFEMC;
 
   //----------------------------------
@@ -151,6 +178,7 @@ class EventEvaluator : public SubsysReco
 
   const int _maxNHits = 5000;
   const int _maxNTowers = 50 * 50;
+  const int _maxNTowersDR = 3000 * 3000;
   const int _maxNclusters = 100;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
