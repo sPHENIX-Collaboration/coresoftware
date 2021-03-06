@@ -8,6 +8,8 @@
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
 
+#include <TString.h>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -78,7 +80,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// parameters
   void SetDefaultParameters() override;
-
+  
   private:
 
   /// load nodes

@@ -72,10 +72,8 @@ SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxV
   return matched_vertex;
 }
 
-void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, bool m_constrain_to_vertex_truthMatch)
+void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch)
 {
-  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
-
   m_tree->Branch(TString(daughter_number) + "_true_vertex_x", &m_true_daughter_vertex_x[daughter_id], TString(daughter_number) + "_true_vertex_x/F");
   m_tree->Branch(TString(daughter_number) + "_true_vertex_y", &m_true_daughter_vertex_y[daughter_id], TString(daughter_number) + "_true_vertex_y/F");
   m_tree->Branch(TString(daughter_number) + "_true_vertex_z", &m_true_daughter_vertex_z[daughter_id], TString(daughter_number) + "_true_vertex_z/F");
@@ -203,10 +201,8 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   }
 }
 
-void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id)
+void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, std::string daughter_number)
 {
-  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
-
   m_tree->Branch(TString(daughter_number) + "_local_x", &detector_local_x[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_local_y", &detector_local_y[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_local_z", &detector_local_z[daughter_id]);
@@ -214,14 +210,12 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
 
   for (auto const &subdetector : Use)
   {
-    if (subdetector.second) initializeSubDetectorBranches(m_tree, subdetector.first, daughter_id);
+    if (subdetector.second) initializeSubDetectorBranches(m_tree, subdetector.first, daughter_id, daughter_number);
   }
 }
 
-void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id)
+void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number)
 {
-  std::string daughter_number = "track_" + std::to_string(daughter_id + 1);
-
   if (detectorName == "MVTX")
   {
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_staveID", &mvtx_staveID[daughter_id]);
