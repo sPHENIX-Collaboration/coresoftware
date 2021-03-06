@@ -50,8 +50,7 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
   // put these in the output file
-  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " 
-       << _par2 << " Search windows: phi " << _phi_search_win << " eta " 
+  cout << PHWHERE "_is_ca_seeder " << _is_ca_seeder << " Search windows: phi " << _phi_search_win << " eta " 
        << _eta_search_win << endl;
 
   // corrects the PHTpcTracker phi bias
