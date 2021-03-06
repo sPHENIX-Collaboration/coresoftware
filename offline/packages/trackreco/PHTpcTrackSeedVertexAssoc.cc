@@ -433,8 +433,9 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
   bad_clusters_per_track_z /= bad_clusters_per_track_z_wt;
   bad_clusters_per_track_xy /= bad_clusters_per_track_xy_wt;
-  std::cout << "Bad clusters per track:  z:  wt " << bad_clusters_per_track_z_wt << " bad clusters "  << bad_clusters_per_track_z 
-	    << " xy: wt " << bad_clusters_per_track_xy_wt << " bad clusters "  << bad_clusters_per_track_xy << std::endl;
+  if(Verbosity() > 0)
+    std::cout << "Bad clusters per track:  z:  wt " << bad_clusters_per_track_z_wt << " bad clusters "  << bad_clusters_per_track_z 
+	      << " xy: wt " << bad_clusters_per_track_xy_wt << " bad clusters "  << bad_clusters_per_track_xy << std::endl;
 
   if(_reject_z_outliers && Verbosity() > 5)
     {
