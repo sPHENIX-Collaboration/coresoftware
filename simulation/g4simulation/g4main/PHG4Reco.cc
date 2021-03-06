@@ -1374,18 +1374,20 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
 void PHG4Reco::DefineRegions()
 {
-  const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
-  G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4Region *tpcregion = new G4Region("REGION_TPCGAS");
-  tpcregion->SetProductionCuts(gcuts);
-#if G4VERSION_NUMBER >= 1033
-  // Use this from the new G4 version 10.03 on
-  // add the PAI model to the TPCGAS region
-  // undocumented, painfully digged out with debugger by tracing what
-  // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-//  G4EmParameters *g4emparams = G4EmParameters::Instance();
-//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
-#endif
+// the PAI model does not work anymore in G4 10.06
+//   const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
+//   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
+//   G4Region *tpcregion = new G4Region("REGION_TPCGAS");
+//   tpcregion->SetProductionCuts(gcuts);
+// #if G4VERSION_NUMBER >= 1033
+//   // Use this from the new G4 version 10.03 on
+//   // was commented out, crashes in 10.06 I think
+//   // add the PAI model to the TPCGAS region
+//   // undocumented, painfully digged out with debugger by tracing what
+//   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
+// //  G4EmParameters *g4emparams = G4EmParameters::Instance();
+// //  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+// #endif
   return;
 }
 
