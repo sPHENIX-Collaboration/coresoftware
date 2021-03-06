@@ -23,14 +23,6 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   virtual ~PHTpcTrackSeedVertexAssoc();
 
-  void set_field_dir(const double rescale)
-  {
-    _fieldDir = -1;
-    if(rescale > 0)
-      _fieldDir = 1;     
-  }
-  void set_field(const std::string &field) { _field = field;}
-
   void reject_xy_outliers(const bool reject){_reject_xy_outliers = reject;}  
   void reject_z_outliers(const bool reject){_reject_z_outliers = reject;}
 
@@ -70,13 +62,9 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   bool _reject_z_outliers = false;
   bool _refit  = false;
 
-  double _xy_residual_cut = 0.06;
-  double _z_residual_cut = 0.15;
-
-
-  std::string _field;
-  int _fieldDir = -1;
+  double _xy_residual_cut = 0.08;
+  double _z_residual_cut = 0.22;
 
 };
 
-#endif // PHTRUTHSILICONASSOCIATION_H
+#endif // PHTRACKSEEDVERTEXASSOCIATION_H

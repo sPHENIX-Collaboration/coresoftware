@@ -52,7 +52,7 @@ PHTpcTrackSeedVertexAssoc::~PHTpcTrackSeedVertexAssoc()
 int PHTpcTrackSeedVertexAssoc::Setup(PHCompositeNode *topNode)
 {
   std::cout << PHWHERE << " Parameters: _reject_xy_outliers " << _reject_xy_outliers << " _xy_residual_cut " << _xy_residual_cut
-	    << " _reject_z_outliers " << _reject_z_outliers << " _z_residual_cut " << _z_residual_cut
+	    << " _reject_z_outliers " << _reject_z_outliers << " _z_residual_cut " << _z_residual_cut  << " _refit " << _refit
 	    << std::endl; 
 
   int ret = PHTrackPropagating::Setup(topNode);
