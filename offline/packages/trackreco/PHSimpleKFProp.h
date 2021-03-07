@@ -133,6 +133,7 @@ class PHSimpleKFProp : public PHTrackPropagating
   std::shared_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z);
   void publishSeeds(std::vector<SvtxTrack_v1>);
+  void publishSeeds(std::vector<SvtxTrack>);
   void MoveToVertex();
   void MoveToFirstTPCCluster();
   void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
