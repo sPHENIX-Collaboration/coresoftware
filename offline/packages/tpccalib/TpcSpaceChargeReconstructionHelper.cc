@@ -86,6 +86,10 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z( TH3* hin )
 }
 
 //____________________________________________________________________________________
+std::tuple<double, double> TpcSpaceChargeReconstructionHelper::get_zref_range( double r )
+{ return std::make_tuple( zref_min * r/r_ref, zref_max * r/r_ref ); }
+
+//____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
 {
   if( !hin ) return;
@@ -112,12 +116,26 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
       const auto r = hin->GetYaxis()->GetBinCenter( ir+1 );
 
       // get z integration window for reference
-      const auto zref_min_loc = zref_min * r/r_ref;
-      const auto zref_max_loc = zref_max * r/r_ref;
+      double zref_min_loc, zref_max_loc;
+      std::tie( zref_min_loc, zref_max_loc ) = get_zref_range( r );
 
       // get corresponding bins
-      const int zbin_ref_neg[2] = { hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( -zref_min_loc ) };
-      const int zbin_ref_pos[2] = { hin->GetZaxis()->FindBin( zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) };
+      const int zbin_min[2] = { hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( zref_min_loc ) };
+      const int zbin_max[2] = { hin->GetZaxis()->FindBin( -zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) };
+
+      // get corresponding normalizations
+      const double norm[2] =
+      {
+        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] )/(zbin_max[0]-zbin_min[0]+1),
+        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] )/(zbin_max[1]-zbin_min[1]+1)
+      };
+
+      // get corresponding normalizations
+      const double norm_ref[2] =
+      {
+        hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] )/(zbin_max[0]-zbin_min[0]+1),
+        hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] )/(zbin_max[1]-zbin_min[1]+1)
+      };
 
       // loop over z bins
       for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
@@ -125,16 +143,9 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
         const auto content_ref = hin->GetBinContent( phibin_ref, ir+1, iz+1 );
         const auto error_ref = hin->GetBinError( phibin_ref, ir+1, iz+1 );
 
-        #if true
         // calculate scale factor
         const auto z = hin->GetZaxis()->GetBinCenter( iz+1 );
-        const auto norm_ref = hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, (z>0) ? zbin_ref_pos[0]:zbin_ref_neg[0], (z>0) ? zbin_ref_pos[1]:zbin_ref_neg[1] );
-        const auto norm_loc = hin->Integral( phibin, phibin, ir+1, ir+1, (z>0) ? zbin_ref_pos[0]:zbin_ref_neg[0], (z>0) ? zbin_ref_pos[1]:zbin_ref_neg[1] );
-        const auto scale = (norm_ref == 0) ? 1:norm_loc/norm_ref;
-
-        #else
-        const auto scale = 1;
-        #endif
+        const auto scale = (z > 0) ? (norm[1]/norm_ref[1]) : (norm[0]/norm_ref[0]);
 
         // assign to output histogram
         hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
