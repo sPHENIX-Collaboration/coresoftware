@@ -19,6 +19,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsSurfaceMaps.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \

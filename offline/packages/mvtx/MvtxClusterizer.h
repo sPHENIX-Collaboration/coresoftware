@@ -9,10 +9,11 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <string>                // for string
 #include <utility>
-
 class PHCompositeNode;
 class TrkrHit;
 class TrkrHitSetContainer;
@@ -57,13 +58,15 @@ class MvtxClusterizer : public SubsysReco
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
 
   void ClusterMvtx(PHCompositeNode *topNode);
-
   void PrintClusters(PHCompositeNode *topNode);
+  Surface getSurfaceFromMap(PHCompositeNode *topNode,
+			    TrkrDefs::hitsetkey hitsetkey);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
+  ActsSurfaceMaps *m_surfMaps;
 
   // settings
   bool m_makeZClustering;  // z_clustering_option

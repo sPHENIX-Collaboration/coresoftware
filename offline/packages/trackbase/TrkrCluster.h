@@ -16,7 +16,8 @@
 #include <cmath>
 #include <iostream>
 
-
+using Surface = std::shared_ptr<const Acts::Surface>;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 /**
  * @brief Base class for cluster object
@@ -26,8 +27,6 @@
 class TrkrCluster : public PHObject
 {
  public:
-  using Surface = std::shared_ptr<const Acts::Surface>;
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
   //! dtor
   virtual ~TrkrCluster() {}
@@ -61,10 +60,10 @@ class TrkrCluster : public PHObject
   //
   // Acts functions for use by Acts modules only
   //
-  virtual float getLocalActsX() const { return NAN; }
-  virtual void setLocalActsX(float x) const {}
-  virtual float getLocalActsY() const { return NAN; }
-  virtual void setLocalActsY(float y) const {}
+  virtual float getLocalX() const { return NAN; }
+  virtual void setLocalX(float x) {}
+  virtual float getLocalY() const { return NAN; }
+  virtual void setLocalY(float y) {}
   virtual Surface getActsSurface() const { return nullptr; }
   virtual void setActsSurface(Surface surface) {}
 virtual SourceLink getActsSourceLink() const { return ActsExamples::TrkrClusterSourceLink(); }

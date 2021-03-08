@@ -89,6 +89,7 @@ MvtxClusterizer::MvtxClusterizer(const string &name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
+  , m_surfMaps(nullptr)
   , m_makeZClustering(true)
 {
 }
@@ -194,6 +195,17 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						      "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE 
+		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
+
   // run clustering
   ClusterMvtx(topNode);
   PrintClusters(topNode);
@@ -283,8 +295,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cout << "Filling cluster id " << clusid << endl;
 
 	// make the cluster directly in the node tree
-  auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
-  auto clus = (m_clusterlist->findOrAddCluster(ckey))->second;
+	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	auto clus = (m_clusterlist->findOrAddCluster(ckey))->second;
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
@@ -317,27 +329,27 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    zbins.insert(col);
 	    phibins.insert(row);
 
-      // get local coordinates, in stafe reference frame, for hit
-      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
-
-      /*
-      manually offset position along y (thickness of the sensor),
-      to account for effective hit position in the sensor, resulting from diffusion.
-      Effective position corresponds to 1um above the middle of the sensor
-      */
-      local_coords.SetY( 1e-4 );
-
-      // convert to world coordinates
-      const auto world_coords = layergeom->get_world_from_local_coords( stave, chip, local_coords );
-
-      // update cluster position
+	    // get local coordinates, in stafe reference frame, for hit
+	    auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
+	    
+	    /*
+	      manually offset position along y (thickness of the sensor),
+	      to account for effective hit position in the sensor, resulting from diffusion.
+	      Effective position corresponds to 1um above the middle of the sensor
+	    */
+	    local_coords.SetY( 1e-4 );
+	    
+	    // convert to world coordinates
+	    const auto world_coords = layergeom->get_world_from_local_coords( stave, chip, local_coords );
+	    
+	    // update cluster position
 	    xsum += world_coords.X();
 	    ysum += world_coords.Y();
 	    zsum += world_coords.Z();
-
+	    
 	    // add the association between this cluster key and this hitkey to the table
 	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
-
+      
 	  }  //mapiter
 
 
@@ -352,14 +364,14 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setPosition(1, clusy);
 	clus->setPosition(2, clusz);
 	clus->setGlobal();
-
+	
 	const double thickness = layergeom->get_pixel_thickness();
 	const double pitch = layergeom->get_pixel_x();
 	const double length = layergeom->get_pixel_z();
 	const double phisize = phibins.size() * pitch;
 	const double zsize = zbins.size() * length;
 
-  static const double invsqrt12 = 1./std::sqrt(12);
+	static const double invsqrt12 = 1./std::sqrt(12);
 
   // scale factors (phi direction)
   /*
@@ -392,7 +404,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-  const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
+	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
 
 	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
 	//float tilt = 0.0;
@@ -413,11 +425,11 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ERR[0][1] = 0.0;
 	ERR[0][2] = 0.0;
 	ERR[1][0] = 0.0;
-  ERR[1][1] = square( phierror );
+	ERR[1][1] = square( phierror );
 	ERR[1][2] = 0.0;
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
-  ERR[2][2] = square( zerror );
+	ERR[2][2] = square( zerror );
 
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
@@ -444,7 +456,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	// TILT[2][1] = sin(tilt);
 	// TILT[2][2] = cos(tilt);
 
-  TMatrixF &R = ROT;
+	TMatrixF &R = ROT;
 	//TMatrixF R(3, 3);
 	//R = ROT * TILT;
 
@@ -477,6 +489,24 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
 
+	TVector3 local(0,0,0);
+	TVector3 world(clusx, clusy, clusz);
+	local = layergeom->get_local_from_world_coords(stave, 0, 0,
+						       chip,
+						       world);
+	clus->setLocalX(local[0]);
+	clus->setLocalY(local[2]);
+	/// Take the x and z uncertainty of the cluster
+	clus->setActsLocalError(0,0,ERR[0][0]);
+	clus->setActsLocalError(0,1,ERR[0][2]);
+	clus->setActsLocalError(1,0,ERR[2][0]);
+	clus->setActsLocalError(1,1,ERR[2][2]);
+
+
+	TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer,
+							       stave,
+							       chip);
+	clus->setActsSurface(getSurfaceFromMap(topNode, hitsetkey));
 
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
 
@@ -512,4 +542,38 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
   }
 
   return;
+}
+
+
+Surface MvtxClusterizer::getSurfaceFromMap(PHCompositeNode *topNode,
+					   TrkrDefs::hitsetkey hitsetkey)
+{
+  Surface surface;
+
+  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
+    m_surfMaps->siliconSurfaceMap;
+
+  std::map<TrkrDefs::hitsetkey, Surface>::iterator
+      surfaceIter;
+
+  surfaceIter = clusterSurfaceMap.find(hitsetkey);
+
+  /// Check to make sure we found the surface in the map
+  if (surfaceIter != clusterSurfaceMap.end())
+  {
+    surface = surfaceIter->second;
+    if (Verbosity() > 10)
+      {
+	std::cout << "Got surface pair " << surface->name()
+		  << " surface type " << surface->type()
+		  << std::endl;
+      }
+  }
+  else
+  {
+    /// If it doesn't exit, return nullptr
+    return nullptr;
+  }
+
+  return surface;
 }
