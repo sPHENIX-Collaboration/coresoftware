@@ -79,6 +79,7 @@ InttClusterizer::InttClusterizer(const string& name,
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
+  , m_surfMaps(nullptr)
   , _fraction_of_mip(0.5)
   , _thresholds_by_layer()
   , _make_z_clustering()
@@ -214,7 +215,17 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						      "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE 
+		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
 
@@ -431,20 +442,20 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	float phisize = phibins.size() * pitch;
 	float zsize = zbins.size() * length;
 
-  static const float invsqrt12 = 1./sqrt(12);
-
-  // scale factors (phi direction)
-  /*
-  they corresponds to clusters of size 1 and 2 in phi
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
-  float phierror = pitch*invsqrt12;
-  if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
-  else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
-
-  // z error. All clusters have a z-size of 1.
-  const float zerror = length*invsqrt12;
+	static const float invsqrt12 = 1./sqrt(12);
+	
+	// scale factors (phi direction)
+	/*
+	  they corresponds to clusters of size 1 and 2 in phi
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
+	float phierror = pitch*invsqrt12;
+	if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
+	
+	// z error. All clusters have a z-size of 1.
+	const float zerror = length*invsqrt12;
 	
 	double clusx = NAN;
 	double clusy = NAN;
@@ -468,7 +479,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	geom->find_segment_center(ladder_z_index,
 				  ladder_phi_index,
 				  ladder_location);
-  const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
+	const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
 
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
@@ -554,6 +565,23 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
 	
+	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
+	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
+	const unsigned int layer = TrkrDefs::getLayer(ckey);
+	const TrkrDefs::hitsetkey hitsetkey = 
+	  InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
+	TVector3 local(0,0,0);
+	TVector3 global(clusx, clusy, clusz);
+	local = geom->get_local_from_world_coords(ladderZId,
+						  ladderPhiId,
+						  global);
+	clus->setLocalX(local[1]);
+	clus->setLocalY(local[2]);
+	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
+	clus->setActsLocalError(0,0, ERR[1][1]);
+	clus->setActsLocalError(0,1, ERR[1][2]);
+	clus->setActsLocalError(1,0, ERR[2][1]);
+	clus->setActsLocalError(1,1, ERR[2][2]);
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
@@ -587,3 +615,34 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
   return;
 }
 
+Surface InttClusterizer::getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey)
+{
+  Surface surface;
+
+  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
+    m_surfMaps->siliconSurfaceMap;
+
+  std::map<TrkrDefs::hitsetkey, Surface>::iterator
+      surfaceIter;
+
+  surfaceIter = clusterSurfaceMap.find(hitsetkey);
+
+  /// Check to make sure we found the surface in the map
+  if (surfaceIter != clusterSurfaceMap.end())
+  {
+    surface = surfaceIter->second;
+    if (Verbosity() > 10)
+      {
+	std::cout << "Got surface pair " << surface->name()
+		  << " surface type " << surface->type()
+		  << std::endl;
+      }
+  }
+  else
+  {
+    /// If it doesn't exit, return nullptr
+    return nullptr;
+  }
+
+  return surface;
+}

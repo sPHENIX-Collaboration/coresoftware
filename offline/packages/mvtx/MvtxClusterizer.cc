@@ -196,7 +196,7 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						      "ActsSurfaceMaps");
+						   "ActsSurfaceMaps");
   if(!m_surfMaps)
     {
       std::cout << PHWHERE 
@@ -502,11 +502,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setActsLocalError(1,0,ERR[2][0]);
 	clus->setActsLocalError(1,1,ERR[2][2]);
 
-
 	TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer,
 							       stave,
 							       chip);
-	clus->setActsSurface(getSurfaceFromMap(topNode, hitsetkey));
+	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
 
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
 
@@ -545,8 +544,7 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 }
 
 
-Surface MvtxClusterizer::getSurfaceFromMap(PHCompositeNode *topNode,
-					   TrkrDefs::hitsetkey hitsetkey)
+Surface MvtxClusterizer::getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey)
 {
   Surface surface;
 

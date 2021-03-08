@@ -59,8 +59,7 @@ class MvtxClusterizer : public SubsysReco
 
   void ClusterMvtx(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
-  Surface getSurfaceFromMap(PHCompositeNode *topNode,
-			    TrkrDefs::hitsetkey hitsetkey);
+  Surface getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
