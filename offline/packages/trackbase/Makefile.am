@@ -10,11 +10,13 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   TrkrCluster.h \
@@ -67,7 +69,8 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetContainer.cc
 
 libtrack_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lActsCore
 
 
 # Rule for generating table CINT dictionaries.

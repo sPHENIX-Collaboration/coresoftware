@@ -10,7 +10,8 @@
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
-
+#include <Acts/Surfaces/Surface.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -25,6 +26,9 @@
 class TrkrCluster : public PHObject
 {
  public:
+  using Surface = std::shared_ptr<const Acts::Surface>;
+  using SourceLink = ActsExamples::TrkrClusterSourceLink;
+
   //! dtor
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
@@ -53,6 +57,18 @@ class TrkrCluster : public PHObject
   virtual void setGlobal() {}
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
+
+  //
+  // Acts functions for use by Acts modules only
+  //
+  virtual float getLocalActsX() const { return NAN; }
+  virtual void setLocalActsX(float x) const {}
+  virtual float getLocalActsY() const { return NAN; }
+  virtual void setLocalActsY(float y) const {}
+  virtual Surface getActsSurface() const { return nullptr; }
+  virtual void setActsSurface(Surface surface) {}
+virtual SourceLink getActsSourceLink() const { return ActsExamples::TrkrClusterSourceLink(); }
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value) {}
   //
   // cluster info
   //

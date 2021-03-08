@@ -51,6 +51,14 @@ class TrkrClusterv1 : public TrkrCluster
   virtual void setGlobal() { m_isGlobal = true; }
   virtual void setLocal() { m_isGlobal = false; }
   virtual bool isGlobal() { return m_isGlobal; }
+
+  virtual float getLocalX() const { return m_local[0]; }
+  virtual void setLocalX(float loc0) { m_local[0] = loc0; }
+  virtual float getLocalY() const { return m_local[1]; }
+  virtual void setLocalY(float loc1) { m_local[1] = loc1; }
+  virtual Surface getActsSurface() const { return m_surface; }
+  virtual void setActsSurface(Surface surface) { m_surface = surface; }
+  virtual ActsExamples::TrkrClusterSourceLink getActsSourceLink() const;
   //
   // cluster info
   //
@@ -61,7 +69,7 @@ class TrkrClusterv1 : public TrkrCluster
 
   virtual float getError(unsigned int i, unsigned int j) const;        //< get cluster error covar
   virtual void setError(unsigned int i, unsigned int j, float value);  //< set cluster error covar
-
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value);
   //
   // convenience interface
   //
@@ -80,6 +88,10 @@ class TrkrClusterv1 : public TrkrCluster
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
   float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6];               //< covariance matrix: rad, arc and z
+
+  float m_local[2];             //< 2D local position [cm]
+  Surface m_surface;            //< acts surface that cluster lies on
+  float m_actsLocalErr[2][2];   //< 2D Acts local error [cm]
 
   ClassDef(TrkrClusterv1, 1)
 };
