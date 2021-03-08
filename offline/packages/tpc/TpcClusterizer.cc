@@ -274,12 +274,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
   TrkrClusterv1 *clus = new TrkrClusterv1();
   clus->setClusKey(ckey);
-  clusterlist->insert(std::make_pair(ckey, clus));
-  if(do_assoc){
-    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-      clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
-    }
-  }
+
   //  int phi_nsize = phibinhi - phibinlo + 1;
   //  int z_nsize   = zbinhi   - zbinlo + 1;
   double phi_size = (double) (phibinhi - phibinlo + 1) * radius * layergeom->get_phistep();
@@ -354,7 +349,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   
   TMatrixF COVAR_DIM(3, 3);
   COVAR_DIM = ROT * DIM * ROT_T;
-  /*
+  
   clus->setSize(0, 0, COVAR_DIM[0][0]);
   clus->setSize(0, 1, COVAR_DIM[0][1]);
   clus->setSize(0, 2, COVAR_DIM[0][2]);
@@ -378,10 +373,15 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   clus->setError(2, 0, COVAR_ERR[2][0]);
   clus->setError(2, 1, COVAR_ERR[2][1]);
   clus->setError(2, 2, COVAR_ERR[2][2]);
-  */
+  
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
-
+  clusterlist->insert(std::make_pair(ckey, clus));
+  if(do_assoc){
+    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
+      clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
+    }
+  }
 }
 
 void *ProcessSector(void *threadarg) {
@@ -469,7 +469,7 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
-  , do_hit_assoc(false)
+  , do_hit_assoc(true)
   , zz_shaping_correction(0.0754)
   , pedestal(74.4)
   , SectorFiducialCut(0.5)
@@ -636,7 +636,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       return 1;
     }
   
-  cout << "num hit sets:" << std::distance(hitsetrange.first,hitsetrange.second)<< endl;
+  //  cout << "num hit sets:" << std::distance(hitsetrange.first,hitsetrange.second)<< endl;
 
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
@@ -713,7 +713,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     //  cout << "  exiting with status :" << status << endl;
   }
  
-  cout << "found " << m_clusterlist->size() << " Clusters "  << endl;
+  //  cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

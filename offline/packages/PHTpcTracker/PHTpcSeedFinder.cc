@@ -14,6 +14,7 @@
 #include <log4cpp/CategoryStream.hh>  // for CategoryStream
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 float round(float var)
 {
@@ -34,7 +35,7 @@ PHTpcSeedFinder::PHTpcSeedFinder()
 {
 }
 
-std::vector<kdfinder::TrackCandidate<double>*> PHTpcSeedFinder::findSeeds(TrkrClusterContainer* cluster_map, double B)
+std::vector<kdfinder::TrackCandidate<double>*> PHTpcSeedFinder::findSeeds(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets, double B)
 {
   LOG_WARN_IF("tracking.PHTpcSeedFnder.findSeeds", !cluster_map) << __FILE__ << "," << __LINE__ << " Can't find node TRKR_CLUSTER";
   std::vector<kdfinder::TrackCandidate<double>*> result;
@@ -42,9 +43,14 @@ std::vector<kdfinder::TrackCandidate<double>*> PHTpcSeedFinder::findSeeds(TrkrCl
   {
     return result;
   }
+  LOG_WARN_IF("tracking.PHTpcSeedFnder.findSeeds", !hitsets) << __FILE__ << "," << __LINE__ << " Can't find node TRKR_HITSET";
+  if (!hitsets)
+  {
+    return result;
+  }
 
   //----- convert clusters to kdhits -----
-  std::vector<std::vector<double> > kdhits(PHTpcTrackerUtil::convert_clusters_to_hits(cluster_map));
+  std::vector<std::vector<double> > kdhits(PHTpcTrackerUtil::convert_clusters_to_hits(cluster_map, hitsets));
   LOG_DEBUG("tracking.PHTpcSeedFinder.findSeeds") << "imported " << kdhits.size() << " clusters";
 
   //----- find unfitted kdtracks -----

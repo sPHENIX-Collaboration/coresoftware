@@ -14,6 +14,8 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -233,71 +235,71 @@ void QAG4SimulationMvtx::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  auto range = m_cluster_map->getClusters();
-  for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
-  {
-    // get cluster key, detector id and check
-    const auto& key = clusterIter->first;
-    const auto detId = TrkrDefs::getTrkrId(key);
-    if (detId != TrkrDefs::mvtxId) continue;
-
-    // get cluster
-    const auto& cluster = clusterIter->second;
-
-    // get relevant cluster information
-    const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
-    const auto z_cluster = cluster->getZ();
-    const auto phi_cluster = std::atan2(cluster->getY(), cluster->getX());
-    const auto phi_error = cluster->getPhiError();
-    const auto z_error = cluster->getZError();
-
-    // find associated g4hits
-    const auto g4hits = find_g4hits(key);
-
-    // get relevant truth information
-    const auto x_truth = QAG4Util::interpolate<&PHG4Hit::get_x>(g4hits, r_cluster);
-    const auto y_truth = QAG4Util::interpolate<&PHG4Hit::get_y>(g4hits, r_cluster);
-    const auto z_truth = QAG4Util::interpolate<&PHG4Hit::get_z>(g4hits, r_cluster);
-    const auto phi_truth = std::atan2(y_truth, x_truth);
-
-    const auto dphi = QAG4Util::delta_phi(phi_cluster, phi_truth);
-    const auto dz = z_cluster - z_truth;
-
-    // get layer, get histograms
-    const auto layer = TrkrDefs::getLayer(key);
-    const auto hiter = histograms.find(layer);
-    if (hiter == histograms.end()) continue;
-
-    // fill phi residuals, errors and pulls
-    auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
-    fill(hiter->second.drphi, r_cluster * dphi);
-    fill(hiter->second.rphi_error, r_cluster * phi_error);
-    fill(hiter->second.phi_pulls, dphi / phi_error);
-
-    // fill z residuals, errors and pulls
-    fill(hiter->second.dz, dz);
-    fill(hiter->second.z_error, z_error);
-    fill(hiter->second.z_pulls, dz / z_error);
-
-    // cluster sizes
-    // get associated hits
-    const auto hit_range = m_cluster_hit_map->getHits(key);
-    fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
-
-    std::set<int> phibins;
-    std::set<int> zbins;
-    for (auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
-    {
-      const auto& hit_key = hit_iter->second;
-      phibins.insert(MvtxDefs::getRow(hit_key));
-      zbins.insert(MvtxDefs::getCol(hit_key));
+  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = m_cluster_map->getClusters(hitsetitr->first);
+    for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter ){
+      // get cluster key, detector id and check
+      const auto& key = clusterIter->first;
+      // get cluster
+      const auto& cluster = clusterIter->second;
+      
+      // get relevant cluster information
+      const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
+      const auto z_cluster = cluster->getZ();
+      const auto phi_cluster = std::atan2(cluster->getY(), cluster->getX());
+      const auto phi_error = cluster->getPhiError();
+      const auto z_error = cluster->getZError();
+      
+      // find associated g4hits
+      const auto g4hits = find_g4hits(key);
+      
+      // get relevant truth information
+      const auto x_truth = QAG4Util::interpolate<&PHG4Hit::get_x>(g4hits, r_cluster);
+      const auto y_truth = QAG4Util::interpolate<&PHG4Hit::get_y>(g4hits, r_cluster);
+      const auto z_truth = QAG4Util::interpolate<&PHG4Hit::get_z>(g4hits, r_cluster);
+      const auto phi_truth = std::atan2(y_truth, x_truth);
+      
+      const auto dphi = QAG4Util::delta_phi(phi_cluster, phi_truth);
+      const auto dz = z_cluster - z_truth;
+      
+      // get layer, get histograms
+      const auto layer = TrkrDefs::getLayer(key);
+      const auto hiter = histograms.find(layer);
+      if (hiter == histograms.end()) continue;
+      
+      // fill phi residuals, errors and pulls
+      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      fill(hiter->second.drphi, r_cluster * dphi);
+      fill(hiter->second.rphi_error, r_cluster * phi_error);
+      fill(hiter->second.phi_pulls, dphi / phi_error);
+      
+      // fill z residuals, errors and pulls
+      fill(hiter->second.dz, dz);
+      fill(hiter->second.z_error, z_error);
+      fill(hiter->second.z_pulls, dz / z_error);
+      
+      // cluster sizes
+      // get associated hits
+      const auto hit_range = m_cluster_hit_map->getHits(key);
+      fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
+      
+      std::set<int> phibins;
+      std::set<int> zbins;
+      for (auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
+	{
+	  const auto& hit_key = hit_iter->second;
+	  phibins.insert(MvtxDefs::getRow(hit_key));
+	  zbins.insert(MvtxDefs::getCol(hit_key));
+	}
+      
+      fill(hiter->second.csize_phi, phibins.size());
+      fill(hiter->second.csize_z, zbins.size());
     }
-
-    fill(hiter->second.csize_phi, phibins.size());
-    fill(hiter->second.csize_z, zbins.size());
   }
 }
-
 //_____________________________________________________________________
 QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits(TrkrDefs::cluskey cluster_key) const
 {

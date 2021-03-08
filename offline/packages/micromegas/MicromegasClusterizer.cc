@@ -126,7 +126,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
   {
-
     // get hitset, key and layer
     TrkrHitSet* hitset = hitset_it->second;
     const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
@@ -205,7 +204,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
       auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
-
       TVector3 world_coordinates;
       double weight_sum = 0;
 
@@ -329,7 +327,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     }
 
   }
-
   // done
   return Fun4AllReturnCodes::EVENT_OK;
 }

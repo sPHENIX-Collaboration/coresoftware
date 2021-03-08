@@ -12,6 +12,8 @@
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>                         // for cluskey, getL...
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -1596,16 +1598,19 @@ int PHGenFitTrkProp::BuildLayerZPhiHitMap(unsigned int ivert)
   // make this map for each collision vertex
   std::multimap<unsigned int, TrkrDefs::cluskey> this_layer_thetaID_phiID_clusterID;
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
-    {
-      TrkrCluster *cluster = clusiter->second;
-      TrkrDefs::cluskey cluskey = clusiter->first;
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey cluskey = clusIter->first;
       
       // This z-phi map relative to the collision vertex includes all clusters, 
       // we do not know whch clusters belong to which vertices yet
       // make a map for every vertex?
-
+      
       unsigned int layer = TrkrDefs::getLayer(cluskey);
       float x = cluster->getPosition(0) - _vertex[ivert][0];
       float y = cluster->getPosition(1) - _vertex[ivert][1];
@@ -1614,39 +1619,39 @@ int PHGenFitTrkProp::BuildLayerZPhiHitMap(unsigned int ivert)
       float phi = atan2(y, x);
       float r = sqrt(x * x + y * y);
       float theta = atan2(r, z);
-
+      
 #ifdef _DEBUG_
-//		//float rphi = r*phi;
-//		std::cout
-//		<< __LINE__
-//		<<": ID: " << cluster->get_id()
-//		<<": layer: "<<cluster->get_layer()
-//		<<", r: "<<r
-//		<<", z: "<<z
-//		<<", phi: "<<phi
-//		<<", theta: "<<theta
-//		<<endl;
+      //		//float rphi = r*phi;
+      //		std::cout
+      //		<< __LINE__
+      //		<<": ID: " << cluster->get_id()
+      //		<<": layer: "<<cluster->get_layer()
+      //		<<", r: "<<r
+      //		<<", z: "<<z
+      //		<<", phi: "<<phi
+      //		<<", theta: "<<theta
+      //		<<endl;
 #endif
-
-    unsigned int idx = encode_cluster_index(layer, theta, phi);
-
-// #ifdef _DEBUG_
-// 			cout
-// 			<<__LINE__<<": "
-// 			<<"{ "
-// 			<<layer <<", "
-// 			<<z <<", "
-// 			<<phi << "} =>"
-// 			<<idx << ": size: "
-// 			<<_layer_thetaID_phiID_clusterID.count(idx)
-// 			<<endl;
-// #endif
-
-    this_layer_thetaID_phiID_clusterID.insert(std::make_pair(idx, cluster->getClusKey()));
-    //cout << "BuildLayerPhiZHitmap for ivert "
-    //	 << ivert << " : Inserted pair with  x" << x << " y " << y << " z " << z << " idx " << idx << " cluskey " << cluster->getClusKey() << endl;
+      
+      unsigned int idx = encode_cluster_index(layer, theta, phi);
+      
+      // #ifdef _DEBUG_
+      // 			cout
+      // 			<<__LINE__<<": "
+      // 			<<"{ "
+      // 			<<layer <<", "
+      // 			<<z <<", "
+      // 			<<phi << "} =>"
+      // 			<<idx << ": size: "
+      // 			<<_layer_thetaID_phiID_clusterID.count(idx)
+      // 			<<endl;
+      // #endif
+      
+      this_layer_thetaID_phiID_clusterID.insert(std::make_pair(idx, cluster->getClusKey()));
+      //cout << "BuildLayerPhiZHitmap for ivert "
+      //	 << ivert << " : Inserted pair with  x" << x << " y " << y << " z " << z << " idx " << idx << " cluskey " << cluster->getClusKey() << endl;
+    }
   }
-
   _layer_thetaID_phiID_clusterID.push_back(this_layer_thetaID_phiID_clusterID);
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -19,6 +19,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -337,45 +339,51 @@ void PHCASeeding::FillTree()
   int n_dupli = 0;
   int nlayer[60];
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
+  cout << "Filling Tree. N Clusters: " << _cluster_map->size() << " N assoc " << _cluster_hit_map->size() << endl;
+  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-
-  for (TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-  {
-    TrkrCluster *cluster = iter->second;
-    TrkrDefs::cluskey ckey = iter->first;
-    unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < _start_layer || layer >= _end_layer) continue;
-
-    if(!_use_truth_clusters)
-      {
-	TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
-	unsigned int nhits = std::distance(hitrange.first,hitrange.second);
-	if(nhits<_min_nhits_per_cluster) continue;
-      }
-
-    TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
-    double clus_phi = vec.Phi();
-    if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
-    //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
-    double clus_eta = vec.Eta();
-    double clus_l = layer;  // _radii_all[layer];
-    if(Verbosity() > 0) 
-      std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
-
-    vector<pointKey> testduplicate;
-    QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
-    if (!testduplicate.empty())
-    {
-      ++n_dupli;
-      continue;
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey ckey = clusIter->first;
+      unsigned int layer = TrkrDefs::getLayer(ckey);
+      if (layer < _start_layer || layer >= _end_layer){
+	cout << "layer: " << layer << endl;
+	continue;
+      }/*
+      if(!_use_truth_clusters)
+	{
+	  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
+	  unsigned int nhits = std::distance(hitrange.first,hitrange.second);
+	  if(nhits<_min_nhits_per_cluster) continue;
+	}
+      */
+      TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
+      double clus_phi = vec.Phi();
+      if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
+      //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
+      double clus_eta = vec.Eta();
+      double clus_l = layer;  // _radii_all[layer];
+      if(Verbosity() > 0) 
+	std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
+      
+      vector<pointKey> testduplicate;
+      QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
+      if (!testduplicate.empty())
+	{
+	  ++n_dupli;
+	  continue;
+	}
+      ++nlayer[layer];
+      t_fill->restart();
+      _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
+      t_fill->stop();
     }
-    ++nlayer[layer];
-    t_fill->restart();
-    _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
-    t_fill->stop();
   }
-
+  for (int j = 0; j < 60; ++j) cout << "nhits in layer " << j << ":  " << nlayer[j] << endl;
   if(Verbosity()>0) std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   if(Verbosity()>0) std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
@@ -408,7 +416,10 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
     if(layer < _start_layer || layer >= _end_layer) continue;
     TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(iter->second);
     unsigned int nhits = std::distance(hitrange.first,hitrange.second);
-    if(nhits<_min_nhits_per_cluster) continue;
+    if(nhits<_min_nhits_per_cluster){
+      cout << "min hits fail" << endl;
+      continue;
+    }
     ++nlayer[layer];
     t_fill->restart();
     _rtree.insert(*iter);
@@ -465,7 +476,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger();
   t_seed->stop();
-  if(Verbosity()>0)   cout << "number of seeds " << numberofseeds << endl;
+  //  if(Verbosity()>0)   
+  cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 //  fpara.cd();
 //  fpara.Close();
@@ -533,8 +545,11 @@ int PHCASeeding::FindSeedsWithMerger()
   t_seed->restart();
 
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters));
+  cout << "links size: " << links.first.size() << "| " << links.second.size() << endl;
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
+  cout << "bilinks size: " << biLinks.size() << endl;
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks);
+  cout << "keylistvector size: " << trackSeedKeyLists.size() << endl;
 //  if(Verbosity()>0)  std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
 //  vector<keylist> mergedSeedKeyLists = MergeSeeds(trackSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
@@ -981,6 +996,7 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
 
 void PHCASeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
 {
+  cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)
   {
     _track_map->insert(&(seeds[i]));

@@ -6,6 +6,9 @@
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <tpc/TpcDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -47,70 +50,88 @@ int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
+
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!_cluster_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!_hitsets)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   std::set<TrkrDefs::cluskey>  discard_set;
 
   unsigned int count_discards = 0;
 
   // loop over all TPC clusters
-  if(Verbosity() > 0) 
-    std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
-
-  TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters();
-  TrkrClusterContainer::ConstIterator clusiter;  
-  for (clusiter = clusRange.first; 
-       clusiter != clusRange.second; ++clusiter)
-    {
-      TrkrDefs::cluskey cluskey = clusiter->first;
-      TrkrCluster *cluster = clusiter->second;
-      
-      unsigned int trkrId = TrkrDefs::getTrkrId(cluskey);
-      unsigned int layer = TrkrDefs::getLayer(cluskey);
-      
-      if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
-      
-      if (Verbosity() >= 1)
-	{
+  if(Verbosity() > 0) std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
+  TrkrHitSetContainer::ConstRange hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+      hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    TrkrClusterContainer::ConstRange clusRange = _cluster_map->getClusters(hitsetitr->first);
+    TrkrClusterContainer::ConstIterator clusiter;
+    
+    for (clusiter = clusRange.first; 
+	 clusiter != clusRange.second; ++clusiter)
+      {
+	TrkrDefs::cluskey cluskey = clusiter->first;
+	TrkrCluster *cluster = clusiter->second;
+	
+	unsigned int trkrId = TrkrDefs::getTrkrId(cluskey);
+	unsigned int layer = TrkrDefs::getLayer(cluskey);
+	
+	if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
+	
+	if (Verbosity() >= 1)
+	  {
 	  std::cout << " cluster : " << cluskey << " layer " << layer
 		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
-		      << " ADC " << cluster->getAdc()
+		    << " ADC " << cluster->getAdc()
 		    << std::endl;
 	  std::cout << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError() 
 		    << " phi size " << cluster->getPhiSize() << " Z size " << cluster->getZSize()
 		    << std::endl;
-	}
-      
-      bool discard_cluster = false;
-      
-      // We have a TPC cluster, look for reasons to discard it
+	  }
+	
+	bool discard_cluster = false;
+	
+	// We have a TPC cluster, look for reasons to discard it
 	
       // errors too small
       // associated with very large ADC values
-      if(cluster->getRPhiError() < _rphi_error_low_cut)
-	discard_cluster = true;
-      
-      // errors too large
-      // associated with very small ADC values
-      if(cluster->getRPhiError() > _rphi_error_high_cut)
-	discard_cluster = true;
-      
-      if(discard_cluster)
-	{
-	  count_discards++;
-	  // mark it for modification
-	  discard_set.insert(cluskey);
-	  if(Verbosity() > 0) 
-	    std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
-		    << " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
-	}
-    }
-  
+	if(cluster->getRPhiError() < _rphi_error_low_cut)
+	  discard_cluster = true;
+	
+	// errors too large
+	// associated with very small ADC values
+	if(cluster->getRPhiError() > _rphi_error_high_cut)
+	  discard_cluster = true;
+	
+	if(discard_cluster)
+	  {
+	    count_discards++;
+	    // mark it for modification
+	    discard_set.insert(cluskey);
+	    if(Verbosity() > 0) 
+	      std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+			<< " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
+	  }
+      }
+  }
+
   for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
     {
       /*
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
       */
-
+      
       // increase the errors on the bad clusters to _new_rphi_error in r-phi and _new_z_error in z
       TrkrCluster *clus = _cluster_map->findCluster(*iter);
       double clusphi = atan2(clus->getY() , clus->getX());
@@ -119,7 +140,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       for(int i = 0; i < 3; ++i)
 	for(int j = 0; j < 3; ++j)
 	  clus->setError(i,j,error[i][j]);
-
+      
       if(Verbosity() > 1)
 	{
 	  TrkrDefs::cluskey ckey = clus->getClusKey();
@@ -169,12 +190,6 @@ int TpcClusterCleaner::End(PHCompositeNode *topNode)
 
 int  TpcClusterCleaner::GetNodes(PHCompositeNode* topNode)
 {
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_cluster_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

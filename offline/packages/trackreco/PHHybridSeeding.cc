@@ -258,7 +258,7 @@ int PHHybridSeeding::Process(PHCompositeNode *topNode)
   {
     if(Verbosity()>1) cout << "(" << _vertex_x[i] << "," << _vertex_y[i] << "," << _vertex_z[i] << ")\n";
   }
-  vector<vector<double>> kdhits(PHTpcTrackerUtil::convert_clusters_to_hits(_cluster_map));
+  vector<vector<double>> kdhits(PHTpcTrackerUtil::convert_clusters_to_hits(_cluster_map,_hitsets));
   vector<vector<double> > unused_hits;
   vector<vector<vector<double> > > kdtracks;
 

@@ -15,6 +15,7 @@
 #include <utility>  // for pair
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 PHTpcLookup::PHTpcLookup()
   : mClusterMap(nullptr)
@@ -27,12 +28,12 @@ PHTpcLookup::~PHTpcLookup()
   delete mKDindex;
 }
 
-void PHTpcLookup::init(TrkrClusterContainer* cluster_map)
+void PHTpcLookup::init(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets)
 {
   mClusterMap = cluster_map;
-
+  mHitsets = hitsets;
   // convert cluster_map to kdhits
-  mKDhits = PHTpcTrackerUtil::convert_clusters_to_hits(mClusterMap);
+  mKDhits = PHTpcTrackerUtil::convert_clusters_to_hits(mClusterMap, mHitsets);
 
   // import kdhits into KDPointCloud
   const size_t TOTALHITS = mKDhits.size();

@@ -8,6 +8,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -31,6 +33,7 @@ using namespace std;
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode)
   , _clustermap(nullptr)
+  , _hitsets(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
   , _verbosity(0)
@@ -888,11 +891,12 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
   std::set<TrkrDefs::cluskey> clusters;
 
   // loop over all the clusters
-  TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();
-  for (TrkrClusterContainer::ConstIterator iter = all_clusters.first;
-       iter != all_clusters.second;
-       ++iter)
-  {
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _clustermap->getClusters(hitsetitr->first);
+    for( auto iter = range.first; iter != range.second; ++iter ){
     TrkrDefs::cluskey cluster_key = iter->first;
     
     // loop over all truth particles connected to this cluster
@@ -900,15 +904,15 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
     for (std::set<PHG4Particle*>::iterator jter = particles.begin();
          jter != particles.end();
          ++jter)
-    {
-      PHG4Particle* candidate = *jter;
-      if (get_truth_eval()->are_same_particle(candidate, truthparticle))
       {
-        clusters.insert(cluster_key);
+	PHG4Particle* candidate = *jter;
+	if (get_truth_eval()->are_same_particle(candidate, truthparticle))
+	  {
+	    clusters.insert(cluster_key);
+	  }
       }
     }
   }
-
   if (_do_cache) _cache_all_clusters_from_particle.insert(make_pair(truthparticle, clusters));
 
   return clusters;
@@ -941,12 +945,13 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
       std::map<PHG4HitDefs::keytype, PHG4Hit*> all_g4hits_map;
 
       // get all reco clusters
-      TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();      
-
       if(_verbosity > 1) cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
-      // loop over clusters and get all contributing hits
-      for (TrkrClusterContainer::ConstIterator iter = all_clusters.first; iter != all_clusters.second; ++iter)
-	{
+      auto hitsetrange = _hitsets->getHitSets();
+      for (auto hitsetitr = hitsetrange.first;
+	   hitsetitr != hitsetrange.second;
+	   ++hitsetitr){
+	auto range = _clustermap->getClusters(hitsetitr->first);
+	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  int layer = TrkrDefs::getLayer(cluster_key);
 	  TrkrCluster *clus = iter->second;
@@ -966,7 +971,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 		}
 	      cout << endl;
 	    }
-
+	  
 	  // the returned truth hits were obtained from TrkrAssoc maps
 	  std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
 	  for (std::set<PHG4Hit*>::iterator jter = hits.begin();
@@ -975,7 +980,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 	    {
 	      PHG4Hit* candidate = *jter;
 	      PHG4HitDefs::keytype g4hit_key = candidate->get_hit_id();
-
+	      
 	      if(_verbosity > 5) 
 		{
 		  int gtrackID = candidate->get_trkid();
@@ -983,13 +988,14 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 		       << " gtrackID " << gtrackID 
 		       << endl;
 		}
-
+	      
 	      all_g4hits_set.insert(g4hit_key);
 	      all_g4hits_map.insert(std::make_pair(g4hit_key, candidate));
-
+	      
 	      truth_cluster_map.insert(std::make_pair(g4hit_key, cluster_key));
 	    }	  
 	}
+      }
 
       // now fill the cache
       // loop over all entries in all_g4hits
@@ -1058,28 +1064,31 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
   if(_cache_best_cluster_from_gtrackid_layer.size() == 0){
     // get all reco clusters
     // cout << "cache size ==0" << endl;
-    TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();      
-    
-    if(_verbosity > 1) 
-      cout << "all_clusters: found # " << std::distance(all_clusters.first, all_clusters.second) << endl;
+    if(_verbosity > 1) cout << "all_clusters: found # " << _clustermap->size() << endl;
     // loop over clusters and get all contributing hits
-    for (TrkrClusterContainer::ConstIterator iter = all_clusters.first; iter != all_clusters.second; ++iter){
-      TrkrDefs::cluskey cluster_key = iter->first;
-      int layer = TrkrDefs::getLayer(cluster_key);
-      if(layer<0) continue;
-      // TrkrCluster *clus = iter->second;
-      
-      std::pair<int, int> gid_lay = gtrackid_and_layer_by_nhit(cluster_key);
-      //      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
-      //      it_exists = 
-      if(_cache_best_cluster_from_gtrackid_layer.count(gid_lay)==0){
-	if(gid_lay.second >=0)
-	  _cache_best_cluster_from_gtrackid_layer.insert(make_pair(gid_lay, cluster_key));
-      }
-      else
-	if(_verbosity > 2){ cout <<  "found doublematch" << endl;
-	  cout << "ckey: " << cluster_key << " gtrackID: " << gid_lay.first << " layer: " << gid_lay.second << endl; 
+    auto hitsetrange = _hitsets->getHitSets();
+    for (auto hitsetitr = hitsetrange.first;
+	 hitsetitr != hitsetrange.second;
+	 ++hitsetitr){
+      auto range = _clustermap->getClusters(hitsetitr->first);
+      for( auto iter = range.first; iter != range.second; ++iter ){
+	TrkrDefs::cluskey cluster_key = iter->first;
+	int layer_in = TrkrDefs::getLayer(cluster_key);
+	if(layer_in<0) continue;
+	// TrkrCluster *clus = iter->second;
+	
+	std::pair<int, int> gid_lay = gtrackid_and_layer_by_nhit(cluster_key);
+	//      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
+	//      it_exists = 
+	if(_cache_best_cluster_from_gtrackid_layer.count(gid_lay)==0){
+	  if(gid_lay.second >=0)
+	    _cache_best_cluster_from_gtrackid_layer.insert(make_pair(gid_lay, cluster_key));
 	}
+	else
+	  if(_verbosity > 2){ cout <<  "found doublematch" << endl;
+	    cout << "ckey: " << cluster_key << " gtrackID: " << gid_lay.first << " layer: " << gid_lay.second << endl; 
+	  }
+      }
     }
   }
   
@@ -1245,6 +1254,7 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   // need things off of the DST...
 
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   _hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -1260,25 +1270,29 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
 void SvtxClusterEval::fill_cluster_layer_map()
 {
   // loop over all the clusters
-  TrkrClusterContainer::ConstRange all_clusters = _clustermap->getClusters();
-  for (TrkrClusterContainer::ConstIterator iter = all_clusters.first; iter != all_clusters.second; ++iter)
-  {
-    TrkrDefs::cluskey cluster_key = iter->first;
-    unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
-    TrkrCluster *cluster = iter->second;
-    //float clus_phi = fast_approx_atan2(cluster->getY(), cluster->getX());
-    float clus_phi = atan2(cluster->getY(), cluster->getX());
-
-    multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
-    if (it == _clusters_per_layer.end())
-    {
-      it = _clusters_per_layer.insert(make_pair(ilayer, innerMap()));
+  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _clustermap->getClusters(hitsetitr->first);
+    for( auto iter = range.first; iter != range.second; ++iter ){
+      TrkrDefs::cluskey cluster_key = iter->first;
+      unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
+      TrkrCluster *cluster = iter->second;
+      //float clus_phi = fast_approx_atan2(cluster->getY(), cluster->getX());
+      float clus_phi = atan2(cluster->getY(), cluster->getX());
+      
+      multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
+      if (it == _clusters_per_layer.end())
+	{
+	  it = _clusters_per_layer.insert(make_pair(ilayer, innerMap()));
+	}
+      it->second.insert(make_pair(clus_phi, cluster_key));
+      
+      //address wrapping along +/-PI by filling larger area of the map
+      if (clus_phi - (-M_PI) < _clusters_searching_window) it->second.insert(make_pair(clus_phi + 2 * M_PI, cluster_key));
+      if (M_PI - clus_phi < _clusters_searching_window) it->second.insert(make_pair(clus_phi - 2 * M_PI, cluster_key));
     }
-    it->second.insert(make_pair(clus_phi, cluster_key));
-
-    //address wrapping along +/-PI by filling larger area of the map
-    if (clus_phi - (-M_PI) < _clusters_searching_window) it->second.insert(make_pair(clus_phi + 2 * M_PI, cluster_key));
-    if (M_PI - clus_phi < _clusters_searching_window) it->second.insert(make_pair(clus_phi - 2 * M_PI, cluster_key));
   }
   return;
 }

@@ -49,17 +49,11 @@ class TrkrClusterContainer : public PHObject
 
   Iterator findOrAddCluster(TrkrDefs::cluskey key);
 
-  //! return all Clusters matching a given detid
-  ConstRange getClusters(const TrkrDefs::TrkrId trackerid) const;
+  ConstRange getClusters() const;
 
-  //! return all Clusters matching a given detid and layer
-  ConstRange getClusters(const TrkrDefs::TrkrId trackerid, const unsigned int layer) const;
+  ConstRange getClusters(TrkrDefs::hitsetkey hitsetkey) const;
 
-  //! return all Clusters in a given layer
-  ConstRange getClusters(const unsigned int layer) const;
-
-  //! return all clusters
-  ConstRange getClusters(void) const;
+  ConstRange getClusters(unsigned int layer, unsigned int phi_segment, unsigned int z_segment) const;
 
   //! return all clusters
   std::map<TrkrDefs::cluskey, TrkrCluster *> *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment){

@@ -4,6 +4,8 @@
 #include <phool/getClass.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <TFile.h>
@@ -69,7 +71,9 @@ int TpcSpaceChargeCorrection::process_event(PHCompositeNode* topNode)
 int TpcSpaceChargeCorrection::load_nodes( PHCompositeNode* topNode )
 {
   // cluster map
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -77,15 +81,17 @@ int TpcSpaceChargeCorrection::load_nodes( PHCompositeNode* topNode )
 void TpcSpaceChargeCorrection::transform_clusters()
 {
   if( !m_cluster_map ) return;
-
-  auto range = m_cluster_map->getClusters();
-  for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
-  {
-    // check if cluster belongs to TPC
-    const auto& key = clusterIter->first;
-    const auto trkrid = TrkrDefs::getTrkrId(key);
-    if( trkrid == TrkrDefs::tpcId )
-    { transform_cluster( clusterIter->second ); }
+  if( !m_hitsets ) return;
+  
+  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = m_cluster_map->getClusters(hitsetitr->first);
+    for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+      {
+	transform_cluster( clusterIter->second );
+      }
   }
 
   return;

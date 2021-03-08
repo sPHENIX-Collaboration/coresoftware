@@ -30,6 +30,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
@@ -164,6 +165,7 @@ class PHActsSiliconSeeding : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   CluskeyBimap *m_hitIdCluskey;
   TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrHitSetContainer  *m_hitsets = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   
   /// Configuration classes for Acts seeding
