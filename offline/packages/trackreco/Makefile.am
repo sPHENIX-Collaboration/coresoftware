@@ -24,7 +24,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsTransformations.h \
   ActsTrack.h \
-  ActsSurfaceMaps.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \

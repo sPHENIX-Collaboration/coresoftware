@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSSOURCELINKS_H
 
 #include <trackbase/ActsTrackingGeometry.h>
-#include "ActsSurfaceMaps.h"
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>

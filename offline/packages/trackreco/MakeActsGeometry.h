@@ -12,7 +12,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase/ActsTrackingGeometry.h>
-#include "ActsSurfaceMaps.h"
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
