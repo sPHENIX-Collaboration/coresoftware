@@ -313,6 +313,57 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   clus->setError(2, 1, COVAR_ERR[2][1]);
   clus->setError(2, 2, COVAR_ERR[2][2]);
   
+  // Add Acts relevant quantities
+  const unsigned int layer = TrkrDefs::getLayer(ckey);
+  const unsigned int sectorId = TpcDefs::getSectorId(ckey);
+  const unsigned int side = TpcDefs::getSide(ckey);
+ 
+  /// Get the surface key to find the surface from the map
+  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
+
+  Acts::Vector3D global(clus->getX(), clus->getY(), clus->getZ());
+  
+  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
+						global);
+  Acts::Vector3D center = surface->center(m_tGeometry->geoContext) 
+    / Acts::UnitConstants::cm;
+
+  /// no conversion needed, only used in acts
+  Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
+  
+  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+  double surfPhiCenter = atan2(center[1], center[0]);
+  double surfRphiCenter = surfPhiCenter * surfRadius;
+  double surfZCenter = center[2];
+
+  double clusRadius = sqrt(clus->getX() * clus->getX() + clus->getY() * clus->getY());
+  double rClusPhi = clusRadius * clusphi;
+
+  auto local = surface->globalToLocal(m_tGeometry->geoContext,
+				      global * Acts::UnitConstants::cm,
+				      normal);
+  Acts::Vector2D localPos;
+
+  /// Prefer Acts transformation since we build the TPC surfaces manually
+  if(local.ok())
+    {
+      localPos = local.value() / Acts::UnitConstants::cm;
+    }
+  else
+    {
+      /// otherwise take the manual calculation
+      localPos(0) = rClusPhi - surfRphiCenter;
+      localPos(1) = clusz - surfZCenter; 
+    }
+
+  clus->setLocalX(localPos(0));
+  clus->setLocalY(localPos(1));
+  clus->setActsSurface(surface);
+  clus->setActsLocalError(0,0, ERR[1][1]);
+  clus->setActsLocalError(1,0, ERR[2][1]);
+  clus->setActsLocalError(0,1, ERR[1][2]);
+  clus->setActsLocalError(1,1, ERR[2][2]);
+
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
   for (unsigned int i = 0; i < hitkeyvec.size(); i++)
@@ -322,6 +373,56 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
 
 }
 
+Surface TpcClusterizer::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+						    Acts::Vector3D world)
+{
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  
+  if(mapIter == m_surfMaps->tpcSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+  
+  double surfStepPhi = m_tGeometry->tpcSurfStepPhi;
+  double surfStepZ = m_tGeometry->tpcSurfStepZ;
+
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+  
+      auto vec3d = this_surf->center(m_tGeometry->geoContext);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+ 
+      if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+  if(surf_index == 999)
+    {
+      std::cout << PHWHERE 
+		<< "Error: TPC surface index not defined, skipping cluster!" 
+		<< std::endl;
+      return nullptr;
+    }
+ 
+  return surf_vec[surf_index];
+
+}
 void TpcClusterizer::print_cluster(std::vector<ihit> &ihit_list)
 {
   for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
@@ -562,6 +663,26 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
+							 "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE
+		<< "ActsTrackingGeometry not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						   "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE 
+		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters

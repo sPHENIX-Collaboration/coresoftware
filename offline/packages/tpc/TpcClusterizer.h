@@ -2,6 +2,10 @@
 #define TPC_TPCCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
 #include <map> 
 #include <vector>
 #include <string>
@@ -40,9 +44,14 @@ class TpcClusterizer : public SubsysReco
   void calc_cluster_parameter(std::vector<ihit> &ihit_list, int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset);
   void print_cluster(std::vector<ihit> &ihit_list);
 
+  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+				      Acts::Vector3D world);
+
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist;
   TrkrClusterHitAssoc *m_clusterhitassoc;
+  ActsSurfaceMaps *m_surfMaps;
+  ActsTrackingGeometry *m_tGeometry;
 
   double zz_shaping_correction;
   double pedestal;
