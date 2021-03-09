@@ -10,6 +10,9 @@
  */
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <string>                // for string
 
@@ -36,6 +39,12 @@ class MicromegasClusterizer : public SubsysReco
 
   //! detector name
   std::string m_detector;
+
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+
+  Surface getMmSurfaceFromCoords(PHCompositeNode *topNode, 
+				 TrkrDefs::hitsetkey hitsetkey, 
+				 Acts::Vector3D world);
 
 };
 
