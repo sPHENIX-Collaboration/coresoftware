@@ -16,13 +16,16 @@ class TpcSpaceChargeReconstructionHelper
 {
 
   public:
-    
+
   /// z extrapolation
   /**
    * interpolate between micromegas in the fully equiped sector
    */
   static void extrapolate_z( TH3* hin );
-   
+
+  /// get reference z range used for phi extrapolation normalization at a given radius
+  static std::tuple<double, double> get_zref_range( double r );
+
   /// first phi extrapolation
   /**
    * copy the full z dependence of reference sector to all other sectors, separately for positive and negative z,
@@ -53,7 +56,7 @@ class TpcSpaceChargeReconstructionHelper
    * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
    */
   static TH3* copy_histogram( TH3* hin, const TString& name );
-    
+
 };
 
 #endif
