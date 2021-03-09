@@ -8,8 +8,6 @@
 #include "TrkrClusterHitAssoc.h"
 #include "TrkrDefs.h"
 
-#include <tpc/TpcDefs.h>
-
 #include <ostream>  // for operator<<, endl, basic_ostream, ostream, basic_o...
 
 TrkrClusterHitAssoc::TrkrClusterHitAssoc() 
@@ -79,8 +77,8 @@ void
 TrkrClusterHitAssoc::addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx)
 {
   unsigned int layer = TrkrDefs::getLayer(ckey);
-  unsigned int sector = TpcDefs::getSectorId(ckey);
-  unsigned int side = TpcDefs::getSide(ckey); 
+  unsigned int sector = TrkrDefs::getPhiElement(ckey);
+  unsigned int side = TrkrDefs::getZElement(ckey); 
   m_map[layer][sector][side].insert(std::make_pair(ckey, hidx));
 }
 
@@ -88,8 +86,8 @@ TrkrClusterHitAssoc::ConstRange
 TrkrClusterHitAssoc::getHits(TrkrDefs::cluskey ckey)
 {
   unsigned int layer = TrkrDefs::getLayer(ckey);
-  unsigned int sector = TpcDefs::getSectorId(ckey);
-  unsigned int side = TpcDefs::getSide(ckey); 
+  unsigned int sector = TrkrDefs::getPhiElement(ckey);
+  unsigned int side = TrkrDefs::getZElement(ckey); 
 
   ConstRange retpair;
   retpair.first = m_map[layer][sector][side].lower_bound(ckey);

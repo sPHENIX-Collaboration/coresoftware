@@ -9,8 +9,6 @@
 #include "TrkrClusterv1.h"
 #include "TrkrDefs.h"
 
-#include <tpc/TpcDefs.h>
-
 //#include <boost/range.hpp>
 //#include <boost/range/join.hpp>
 #include <cstdlib>
@@ -56,16 +54,16 @@ void TrkrClusterContainer::identify(std::ostream& os) const
 
 void TrkrClusterContainer::removeCluster(TrkrDefs::cluskey key){
   unsigned int layer = TrkrDefs::getLayer(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  unsigned int side = TpcDefs::getSide(key); 
+  unsigned int sector = TrkrDefs::getPhiElement(key);
+  unsigned int side = TrkrDefs::getZElement(key); 
   m_clusmap[layer][sector][side].erase(key);
 }
 
 void TrkrClusterContainer::removeCluster(TrkrCluster *clus){
   TrkrDefs::cluskey key = clus->getClusKey();
   unsigned int layer = TrkrDefs::getLayer(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  unsigned int side = TpcDefs::getSide(key); 
+  unsigned int sector = TrkrDefs::getPhiElement(key);
+  unsigned int side = TrkrDefs::getZElement(key); 
   m_clusmap[layer][sector][side].erase(key);
 
 }
@@ -80,8 +78,8 @@ TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
   unsigned int layer = TrkrDefs::getLayer(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  unsigned int side = TpcDefs::getSide(key); 
+  unsigned int sector = TrkrDefs::getPhiElement(key);
+  unsigned int side = TrkrDefs::getZElement(key); 
   auto ret = m_clusmap[layer][sector][side].insert(std::make_pair(key, newclus));
   if ( !ret.second )
   {
@@ -109,8 +107,8 @@ TrkrClusterContainer::ConstRange
 TrkrClusterContainer::getClusters(TrkrDefs::hitsetkey hitsetkey) const
 {
   const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const unsigned int side  = TpcDefs::getSide(hitsetkey);
-  const unsigned int sector= TpcDefs::getSectorId(hitsetkey);
+  const unsigned int side  = TrkrDefs::getZElement(hitsetkey);
+  const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);
   ConstRange retpair;
   retpair.first  = m_clusmap[layer][sector][side].begin();
   retpair.second = m_clusmap[layer][sector][side].end();
@@ -136,8 +134,8 @@ TrkrClusterContainer::getClusters(const unsigned int layer, const unsigned int p
 TrkrClusterContainer::Iterator
 TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key){
   unsigned int layer  = TrkrDefs::getLayer(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  unsigned int side   = TpcDefs::getSide(key); 
+  unsigned int sector = TrkrDefs::getPhiElement(key);
+  unsigned int side   = TrkrDefs::getZElement(key); 
   TrkrClusterContainer::Iterator it = m_clusmap[layer][sector][side].find(key);
   if (it == m_clusmap[layer][sector][side].end())
   {
@@ -151,8 +149,8 @@ TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key){
 
 TrkrCluster* TrkrClusterContainer::findCluster(TrkrDefs::cluskey key){
   unsigned int layer  = TrkrDefs::getLayer(key);
-  unsigned int sector = TpcDefs::getSectorId(key);
-  unsigned int side   = TpcDefs::getSide(key); 
+  unsigned int sector = TrkrDefs::getPhiElement(key);
+  unsigned int side   = TrkrDefs::getZElement(key); 
   TrkrClusterContainer::Iterator it = m_clusmap[layer][sector][side].find(key);
 
   if (it != m_clusmap[layer][sector][side].end())

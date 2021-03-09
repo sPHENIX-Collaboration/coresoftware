@@ -67,9 +67,7 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetContainer.cc
 
 libtrack_io_la_LIBADD = \
-  -lphool \
-  -ltpc_io
-
+  -lphool
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
