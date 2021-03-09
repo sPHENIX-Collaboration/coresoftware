@@ -1,7 +1,7 @@
 #include "PHMicromegasTpcTrackMatching.h"
 
 #include "AssocInfoContainer.h"
-#include "PHTrackPropagating.h"     // for PHTrackPropagating
+//#include "PHTrackPropagating.h"     // for PHTrackPropagating
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -18,7 +18,9 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <TF1.h>
@@ -85,7 +87,7 @@ int PHMicromegasTpcTrackMatching::Process()
   // for diagnostics only
   std::map<TrkrDefs::cluskey, int> cluster_matches;
 
-  auto mm_hitsetrange = _hitsets->getHitSets(mm_trkrid);
+  auto mm_hitsetrange = _mm_hitsets->getHitSets(mm_trkrid);
   for (auto hitsetitr = mm_hitsetrange.first;
        hitsetitr != mm_hitsetrange.second;
        ++hitsetitr){
@@ -377,7 +379,13 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get additional objects off the Node Tree
   //---------------------------------
-
+  _mm_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!_mm_hitsets)
+    {
+      std::cout << PHWHERE << "No hitset container on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
