@@ -34,41 +34,18 @@
 
 #include <TSystem.h>
 
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
-
 #include <iostream>
 #include <string>  // for basic_string, operator+
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_SignalHitContainer(nullptr)
-  , m_AbsorberHitContainer(nullptr)
-  , m_Params(parameters)
-  , m_CurrentHitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_CurrentShower(nullptr)
-  , m_IsActiveFlag(m_Params->get_int_param("active"))
-  , absorbertruth(m_Params->get_int_param("absorberactive"))
-  , light_scint_model(1)
-  , m_IsBlackHole(m_Params->get_int_param("blackhole"))
+  , m_ActiveFlag(parameters->get_int_param("active"))
+  , m_AbsorberTruthFlag(parameters->get_int_param("absorberactive"))
+  , m_BlackHoleFlag(parameters->get_int_param("blackhole"))
 {
 }
 
@@ -101,25 +78,20 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   int layer_id = m_Detector->get_Layer();
-  int idx_j = -1;
-  int idx_k = -1;
-
-  if (whichactive > 0)  // in scintillator
-  {
-    /* Find indices of scintillator / tower containing this step */
-    FindTowerIndex(touch, idx_j, idx_k);
-  }
+  unsigned int icopy = touch->GetVolume(1)->GetCopyNo();
+  int idx_j = icopy >> 16;
+  int idx_k = icopy & 0xFFFF;
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  double light_yield = 0;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (m_IsBlackHole)
+  if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -127,13 +99,12 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   /* Make sure we are in a volume */
-  if (m_IsActiveFlag)
+  if (m_ActiveFlag)
   {
-    int idx_l = -1;
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -159,6 +130,10 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
       /* Set hit time */
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
+      /* Set hit location (tower index) */
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
+
       //set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
@@ -171,10 +146,6 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         m_CurrentHitContainer = m_SignalHitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
-        /* Set hit location (tower index) */
-        m_Hit->set_index_j(idx_j);
-        m_Hit->set_index_k(idx_k);
-        m_Hit->set_index_l(idx_l);
       }
       else
       {
@@ -197,33 +168,29 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     if (whichactive > 0)
     {
-      light_yield = eion;
-      if (light_scint_model)
+      light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+      static bool once = true;
+      if (once && edep > 0)
       {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-        static bool once = true;
-        if (once && edep > 0)
-        {
-          once = false;
+        once = false;
 
-          if (Verbosity() > 0)
-          {
-            cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
-                 //
-                 << m_Detector->GetName() << " - "
-                 << " use scintillating light model at each Geant4 steps. "
-                 << "First step: "
-                 << "Material = "
-                 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-                 << ", "
-                 << "Birk Constant = "
-                 << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-                 << ","
-                 << "edep = " << edep << ", "
-                 << "eion = " << eion
-                 << ", "
-                 << "light_yield = " << light_yield << endl;
-          }
+        if (Verbosity() > 0)
+        {
+          std::cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
       }
     }
@@ -253,7 +220,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         m_Hit->set_light_yield(-1);
       }
     }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+    if (edep > 0 && (whichactive > 0 || m_AbsorberTruthFlag > 0))
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -305,8 +272,8 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 //____________________________________________________________________________..
 void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
 
   if (m_Detector->SuperDetector() != "NONE")
   {
@@ -321,7 +288,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
 
   //now look for the map and grab a pointer to it.
   m_SignalHitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!m_SignalHitContainer)
@@ -334,61 +301,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
-}
-
-int PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle& touch, int& j, int& k)
-{
-  int j_0, k_0;  //The j and k indices for the scintillator / tower
-
-  // The volume hierarchy is different for the E864-style FEMC,
-  // with the fibers embedded in the absorber.  Check this first,
-  // but maintain compatability with older FEMC versions.
-
-  G4VPhysicalVolume* tower = touch->GetVolume(2);  //Get the tower solid
-  if (!ParseG4VolumeName(tower, j_0, k_0))
-  {
-    tower = touch->GetVolume(1);
-    ParseG4VolumeName(tower, j_0, k_0);
-  }
-
-  j = (j_0 * 1);
-  k = (k_0 * 1);
-
-  return 0;
-}
-
-int PHG4ForwardEcalSteppingAction::ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k)
-{
-  boost::char_separator<char> sep("_");
-  boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-  boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
-
-  bool j_found = false;
-  bool k_found = false;
-
-  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-  {
-    if (*tokeniter == "j")
-    {
-      ++tokeniter;
-      if (tokeniter == tok.end()) break;
-      j = boost::lexical_cast<int>(*tokeniter);
-      j_found = true;
-    }
-    else if (*tokeniter == "k")
-    {
-      ++tokeniter;
-      if (tokeniter == tok.end()) break;
-      k = boost::lexical_cast<int>(*tokeniter);
-      k_found = true;
-    }
-  }
-
-  if (j_found && k_found)
-    return 1;
-  else
-    return 0;
 }

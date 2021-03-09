@@ -5,7 +5,7 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
-#include <Geant4/G4TouchableHandle.hh>
+//#include <Geant4/G4TouchableHandle.hh>
 
 class G4Step;
 class G4VPhysicalVolume;
@@ -32,25 +32,19 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-  int FindTowerIndex(G4TouchableHandle& touch, int& j, int& k);
-
-  int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
-
   //! pointer to the detector
-  PHG4ForwardEcalDetector* m_Detector;
+  PHG4ForwardEcalDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* m_SignalHitContainer;
-  PHG4HitContainer* m_AbsorberHitContainer;
-  const PHParameters* m_Params;
-  PHG4HitContainer* m_CurrentHitContainer;
-  PHG4Hit* m_Hit;
-  PHG4Shower* m_CurrentShower;
+  PHG4HitContainer* m_SignalHitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4HitContainer* m_CurrentHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4Shower* m_CurrentShower = nullptr;
 
-  int m_IsActiveFlag;
-  int absorbertruth;
-  int light_scint_model;
-  int m_IsBlackHole;
+  int m_ActiveFlag = 0;
+  int m_AbsorberTruthFlag;
+  int m_BlackHoleFlag;
 };
 
 #endif  // G4DETECTORS_PHG4FORWARDECALSTEPPINGACTION_H

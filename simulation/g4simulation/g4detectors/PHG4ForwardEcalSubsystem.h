@@ -51,17 +51,17 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ForwardEcalDetector* m_Detector;
+  PHG4ForwardEcalDetector* m_Detector = nullptr;
 
   /** Stepping action
    */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
-  int m_EICDetectorFlag;
+  int m_EICDetectorFlag = 0;
 };
 
 #endif
