@@ -170,7 +170,8 @@ int PHSimpleKFProp::Process()
   MoveToFirstTPCCluster();
   PrepareKDTrees();
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
-  for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it)
+  std::vector<SvtxTrack> unused_tracks;
+  for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); )
   {
     // if not a TPC track, ignore
     bool is_tpc = false;
@@ -185,15 +186,19 @@ int PHSimpleKFProp::Process()
     {
       if(Verbosity()>0) cout << "is tpc track" << endl;
       new_chains.push_back(PropagateTrack(track));
-      _track_map->erase(track_it->first);
+      ++track_it;
     }
     else
     {
       if(Verbosity()>0) cout << "is NOT tpc track" << endl;
+      unused_tracks.push_back(*track);
+      ++track_it;
     }
   }
+  _track_map->Reset();
   std::vector<SvtxTrack_v1> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
   publishSeeds(ptracks);
+  publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -601,6 +606,14 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 }
 
 void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v1> seeds)
+{
+  for(size_t i=0;i<seeds.size();i++)
+  {
+    _track_map->insert(&(seeds[i]));
+  }
+}
+
+void PHSimpleKFProp::publishSeeds(vector<SvtxTrack> seeds)
 {
   for(size_t i=0;i<seeds.size();i++)
   {
