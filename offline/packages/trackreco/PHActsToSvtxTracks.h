@@ -15,7 +15,7 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <boost/bimap.hpp>
 

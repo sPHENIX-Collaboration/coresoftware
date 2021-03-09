@@ -1,7 +1,7 @@
 #ifndef TRACKRECO_PHACTSSILICONSEEDING_H
 #define TRACKRECO_PHACTSSILICONSEEDING_H
 
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>

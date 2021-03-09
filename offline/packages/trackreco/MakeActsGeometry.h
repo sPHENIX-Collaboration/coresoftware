@@ -11,7 +11,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 #include "ActsSurfaceMaps.h"
 
 #include <Acts/Utilities/Definitions.hpp>

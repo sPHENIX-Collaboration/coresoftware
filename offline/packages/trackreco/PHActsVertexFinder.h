@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSVERTEXFINDER_H
 
 #include "PHInitVertexing.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <trackbase/TrkrDefs.h>
 

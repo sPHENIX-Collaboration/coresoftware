@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSVERTEXFITTER_H
 
 #include <fun4all/SubsysReco.h>
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <Acts/Vertexing/Vertex.hpp>
 
