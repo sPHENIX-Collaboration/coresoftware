@@ -35,8 +35,6 @@
 
 PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
-  , m_sourceLinks(nullptr)
-  , m_hitIdCluskey(nullptr)
 {}
 
 int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
@@ -203,7 +201,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  std::vector<TrkrCluster*> clusters;
 	  for(auto& spacePoint : seed.sp())
 	    {
-	      auto cluskey = m_hitIdCluskey->right.find(spacePoint->m_hitId)->second;
+	      auto cluskey = spacePoint->m_clusKey;
 	      clusters.push_back(m_clusterMap->findCluster(cluskey));
 
 	      if(Verbosity() > 1)
@@ -986,7 +984,7 @@ void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<TrkrCluster*>& cl
 
 }
 
-SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
+SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey cluskey, 
 						   const SourceLink& sl)
 {
   Acts::Vector2D localPos(sl.location()(0), sl.location()(1));
@@ -1003,8 +1001,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
   float r = std::sqrt(x * x + y * y);
   float varianceRphi = cov(0,0);
   float varianceZ = cov(1,1);
-  
-  SpacePointPtr spPtr(new SpacePoint{sl.hitID(), x, y, z, r, 
+
+  SpacePointPtr spPtr(new SpacePoint{cluskey, x, y, z, r, 
 	sl.referenceSurface().geometryId(), varianceRphi, varianceZ});
 
   if(Verbosity() > 2)
@@ -1012,8 +1010,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const unsigned int& hitId,
 	      << x << ", " << y << ", " << z
 	      << " with variances " << varianceRphi 
 	      << ", " << varianceZ 
-	      << " and hit id "
-	      << sl.hitID() << " and geo id "
+	      << " and cluster key "
+	      << cluskey << " and geo id "
 	      << sl.referenceSurface().geometryId() << std::endl;
   
   return spPtr;
@@ -1024,27 +1022,35 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
+  
+  TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
+  TrkrClusterContainer::ConstIterator clusIter;
 
-  for(const auto &[hitId, sl] : *m_sourceLinks)
+  for (clusIter = clusRange.first; 
+       clusIter != clusRange.second; ++clusIter)
     {
+      const TrkrCluster *cluster = clusIter->second;
+      const auto cluskey = clusIter->first;
+      auto sl = cluster->getActsSourceLink();
       /// collect only source links in MVTX
       auto volume = sl.referenceSurface().geometryId().volume();
-
+     
       /// If we run without MMs, volumes are 7, 9, 11 for mvtx, intt, tpc
       /// If we run with MMs, volumes are 10, 12, 14, 16 for mvtx, intt, tpc, mm
       if(volume == 7 or volume == 10)
 	{
-     	  auto sp = makeSpacePoint(hitId, sl).release();
+     	  auto sp = makeSpacePoint(cluskey,sl).release();
 	  spVec.push_back(sp);
 	  numSiliconHits++;
 	}
     }
-  
+
   h_nInputMvtxMeas->Fill(numSiliconHits);
 
   if(Verbosity() > 1)
     std::cout << "Total number of silicon hits to seed find with is "
 	      << numSiliconHits << std::endl;
+
 
   return spVec;
 }
@@ -1106,13 +1112,6 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
-  if(!m_sourceLinks)
-    {
-      std::cout << PHWHERE << "TrkrClusterSourceLinks node not on node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
@@ -1122,14 +1121,6 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_hitIdCluskey = findNode::getClass<CluskeyBimap>(topNode,
-						    "HitIDClusIDActsMap");
-  if(!m_hitIdCluskey)
-    {
-      std::cout << PHWHERE << "No hit id clus id source link map on node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   if(m_useTruthClusters)
     m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,

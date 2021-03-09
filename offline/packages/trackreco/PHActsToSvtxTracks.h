@@ -32,9 +32,6 @@ class MakeActsGeometry;
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
-
-
 class PHActsToSvtxTracks : public SubsysReco
 {
  public:
@@ -66,7 +63,7 @@ class PHActsToSvtxTracks : public SubsysReco
   SvtxVertexMap *m_svtxVertexMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   std::map<const unsigned int, Trajectory> *m_actsFitResults = nullptr;
-  CluskeyBimap *m_hitIdClusKey = nullptr;
+
   std::string m_svtxMapName = "SvtxTrackMap";
 
 };

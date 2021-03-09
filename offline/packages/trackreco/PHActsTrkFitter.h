@@ -41,6 +41,8 @@ class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxVertexMap;
+class TrkrClusterContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
@@ -97,10 +99,11 @@ class PHActsTrkFitter : public PHTrackFitting
   int createNodes(PHCompositeNode *topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
+  SourceLinkVec getSourceLinks(SvtxTrack *track);
+  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
-		       Acts::Vector3D vertex);
+  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -117,19 +120,14 @@ class PHActsTrkFitter : public PHTrackFitting
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
   void getTrackFitResult(const FitResult& fitOutput, 
-			 const unsigned int trackKey,
-			 const Acts::Vector3D vertex);
-  void updateActsProtoTrack(const FitResult& fitOutput,
-		       std::map<unsigned int, ActsTrack>::iterator iter);
+			 SvtxTrack* track);
 
   Acts::BoundSymMatrix setDefaultCovariance();
+  void printTrackSeed(ActsExamples::TrackParameters seed);
 
   /// Map of Acts fit results and track key to be placed on node tree
   std::map<const unsigned int, Trajectory> 
     *m_actsFitResults;
-
-  /// Map of acts tracks and track key created by PHActsTracks
-  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
@@ -139,9 +137,8 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
-
-  // map relating acts hitid's to clusterkeys
-  CluskeyBimap *m_hitIdClusKey;
+  SvtxVertexMap *m_vertexMap;
+  TrkrClusterContainer *m_clusterContainer;
 
   /// Number of acts fits that returned an error
   int m_nBadFits;

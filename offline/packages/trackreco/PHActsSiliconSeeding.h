@@ -38,7 +38,7 @@ typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
  * A struct for Acts to take cluster information for seeding
  */
 struct SpacePoint {
-  unsigned int m_hitId;
+  TrkrDefs::cluskey m_clusKey;
   float m_x;
   float m_y;
   float m_z;
@@ -47,7 +47,7 @@ struct SpacePoint {
   float m_varianceRphi;
   float m_varianceZ;
   
-  unsigned int Id() const { return m_hitId; }
+  TrkrDefs::cluskey Id() const { return m_clusKey; }
 
   /// These are needed by Acts
   float x() const { return m_x; }
@@ -59,7 +59,7 @@ struct SpacePoint {
 
 /// This is needed by the Acts seedfinder 
 inline bool operator==(SpacePoint a, SpacePoint b) {
-  return (a.m_hitId == b.m_hitId);
+  return (a.m_clusKey == b.m_clusKey);
 }
 
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
@@ -104,8 +104,8 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(GridSeeds& seedVector);
   
   /// Create a seeding space point out of an Acts::SourceLink
-  SpacePointPtr makeSpacePoint(const unsigned int& hitId,
-			    const SourceLink& sl);
+  SpacePointPtr makeSpacePoint(const TrkrDefs::cluskey cluskey, 
+			       const SourceLink& sl);
   
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints();
@@ -159,10 +159,8 @@ class PHActsSiliconSeeding : public SubsysReco
   void writeHistograms();
   double normPhi2Pi(const double phi);
 
-  std::map<unsigned int, SourceLink> *m_sourceLinks;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
-  CluskeyBimap *m_hitIdCluskey;
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   

@@ -254,8 +254,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 					      const size_t &trackTip,
 					      SvtxTrack *svtxTrack,
-					      Acts::GeometryContext geoContext,
-					      CluskeyBimap *hitIDCluskeyMap)
+					      Acts::GeometryContext geoContext)
 {
 
  const auto &[trackTips, mj] = traj.trajectory();
@@ -308,9 +307,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		}
 	    }
 
-	  const unsigned int hitId = state.uncalibrated().hitID();
-	  TrkrDefs::cluskey cluskey = 
-	    hitIDCluskeyMap->right.find(hitId)->second;
+	  const unsigned int cluskey = state.uncalibrated().hitID();
 	  svtxTrack->insert_cluster_key(cluskey);
 
 	  if(m_verbosity > 20)
