@@ -395,8 +395,9 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(_do_HITS){
     if (Verbosity() > 0) cout << "saving hits" << endl;
     _nHitsLayers = 0;
-    for (int iIndex = 0; iIndex < 10; ++iIndex)
+    for (int iIndex = 0; iIndex < 60; ++iIndex)
     {
+      if (GetProjectionNameFromIndex(iIndex).find("NOTHING")!= std::string::npos ) continue;
       string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
       PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (hits)
@@ -1069,8 +1070,68 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
     return 7;
   else if (projname.find("CTTL_1") != std::string::npos)
     return 8;
-  else if (projname.find("CTTL_2") != std::string::npos)
-    return 9;
+
+  else if (projname.find("LBLVTX_CENTRAL_10") != std::string::npos)
+    return 10;
+  else if (projname.find("LBLVTX_CENTRAL_11") != std::string::npos)
+    return 11;
+  else if (projname.find("LBLVTX_CENTRAL_12") != std::string::npos)
+    return 12;
+  else if (projname.find("LBLVTX_CENTRAL_13") != std::string::npos)
+    return 13;
+  else if (projname.find("LBLVTX_CENTRAL_14") != std::string::npos)
+    return 14;
+  else if (projname.find("LBLVTX_CENTRAL_15") != std::string::npos)
+    return 15;
+              
+  else if (projname.find("LBLVTX_FORWARD_20") != std::string::npos)
+    return 20;
+  else if (projname.find("LBLVTX_FORWARD_21") != std::string::npos)
+    return 21;
+  else if (projname.find("LBLVTX_FORWARD_22") != std::string::npos)
+    return 22;
+  else if (projname.find("LBLVTX_FORWARD_23") != std::string::npos)
+    return 23;
+  else if (projname.find("LBLVTX_FORWARD_24") != std::string::npos)
+    return 24;
+            
+  else if (projname.find("LBLVTX_BACKWARD_30") != std::string::npos)
+    return 30;
+  else if (projname.find("LBLVTX_BACKWARD_31") != std::string::npos)
+    return 31;
+  else if (projname.find("LBLVTX_BACKWARD_32") != std::string::npos)
+    return 32;
+  else if (projname.find("LBLVTX_BACKWARD_33") != std::string::npos)
+    return 33;
+  else if (projname.find("LBLVTX_BACKWARD_34") != std::string::npos)
+    return 34;
+            
+  else if (projname.find("BARREL_0") != std::string::npos)
+    return 40;
+  else if (projname.find("BARREL_1") != std::string::npos)
+    return 41;
+  else if (projname.find("BARREL_2") != std::string::npos)
+    return 42;
+  else if (projname.find("BARREL_3") != std::string::npos)
+    return 43;
+  else if (projname.find("BARREL_4") != std::string::npos)
+    return 44;
+  else if (projname.find("BARREL_5") != std::string::npos)
+    return 45;
+
+  else if (projname.find("FST_0") != std::string::npos)
+    return 50;
+  else if (projname.find("FST_1") != std::string::npos)
+    return 51;
+  else if (projname.find("FST_2") != std::string::npos)
+    return 52;
+  else if (projname.find("FST_3") != std::string::npos)
+    return 53;
+  else if (projname.find("FST_4") != std::string::npos)
+    return 54;
+  else if (projname.find("FST_5") != std::string::npos)
+    return 55;
+
   else
     return -1;
   return -1;
@@ -1091,15 +1152,75 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
   case 4:
     return "ETTL_1";
   case 5:
-    return "FHCAL_0";
+    return "FHCAL";
   case 6:
-    return "FEMC_0";
+    return "FEMC";
   case 7:
     return "CTTL_0";
   case 8:
     return "CTTL_1";
-  case 9:
-    return "CTTL_2";
+
+
+  case 10:
+    return "LBLVTX_CENTRAL_10";
+  case 11:
+    return "LBLVTX_CENTRAL_11";
+  case 12:
+    return "LBLVTX_CENTRAL_12";
+  case 13:
+    return "LBLVTX_CENTRAL_13";
+  case 14:
+    return "LBLVTX_CENTRAL_14";
+  case 15:
+    return "LBLVTX_CENTRAL_15";
+
+  case 20:
+    return "LBLVTX_FORWARD_20";
+  case 21:
+    return "LBLVTX_FORWARD_21";
+  case 22:
+    return "LBLVTX_FORWARD_22";
+  case 23: 
+    return "LBLVTX_FORWARD_23";
+  case 24:
+    return "LBLVTX_FORWARD_24";
+    
+  case 30:
+    return "LBLVTX_BACKWARD_30";
+  case 31: 
+    return "LBLVTX_BACKWARD_31";
+  case 32:
+    return "LBLVTX_BACKWARD_32";
+  case 33:
+    return "LBLVTX_BACKWARD_33";
+  case 34:  
+    return "LBLVTX_BACKWARD_34";
+            
+  case 40:
+    return "BARREL_0";
+  case 41:
+    return "BARREL_1";
+  case 42:
+    return "BARREL_2";
+  case 43:
+    return "BARREL_3";
+  case 44: 
+    return "BARREL_4";
+  case 45:
+    return "BARREL_5";
+
+  case 50:
+    return "FST_0";
+  case 51:
+    return "FST_1";
+  case 52:
+    return "FST_2";
+  case 53:
+    return "FST_3";
+  case 54:
+    return "FST_4";
+  case 55:
+    return "FST_5";
   default:
     return "NOTHING";
   }

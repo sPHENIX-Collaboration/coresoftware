@@ -120,22 +120,15 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
       std::tie( zref_min_loc, zref_max_loc ) = get_zref_range( r );
 
       // get corresponding bins
-      const int zbin_min[2] = { hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( zref_min_loc ) };
-      const int zbin_max[2] = { hin->GetZaxis()->FindBin( -zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) };
+      const std::array<int,2> zbin_min = {{ hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( zref_min_loc ) }};
+      const std::array<int,2> zbin_max = {{ hin->GetZaxis()->FindBin( -zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) }};
 
       // get corresponding normalizations
-      const double norm[2] =
-      {
-        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] )/(zbin_max[0]-zbin_min[0]+1),
-        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] )/(zbin_max[1]-zbin_min[1]+1)
-      };
-
-      // get corresponding normalizations
-      const double norm_ref[2] =
-      {
-        hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] )/(zbin_max[0]-zbin_min[0]+1),
-        hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] )/(zbin_max[1]-zbin_min[1]+1)
-      };
+      const std::array<double,2> scale_factor =
+      {{
+        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] )/hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] ),
+        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] )/hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] )
+      }};
 
       // loop over z bins
       for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
@@ -145,7 +138,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
 
         // calculate scale factor
         const auto z = hin->GetZaxis()->GetBinCenter( iz+1 );
-        const auto scale = (z > 0) ? (norm[1]/norm_ref[1]) : (norm[0]/norm_ref[0]);
+        const auto scale = (z > 0) ? scale_factor[1]:scale_factor[0];
 
         // assign to output histogram
         hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
