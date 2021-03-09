@@ -20,6 +20,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
+  ActsTrackingGeometry.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
