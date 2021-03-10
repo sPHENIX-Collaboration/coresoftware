@@ -9,8 +9,6 @@
 #include "TrkrClusterv1.h"
 #include "TrkrDefs.h"
 
-//#include <boost/range.hpp>
-//#include <boost/range/join.hpp>
 #include <cstdlib>
 
 void TrkrClusterContainer::Reset()
