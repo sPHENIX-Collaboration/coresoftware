@@ -323,7 +323,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// Get the truth hit corresponding to this trackState
     /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
     /// the map created in PHActsSourceLinks
-    const unsigned int hitId = state.uncalibrated().hitID();
+    const unsigned int hitId = state.uncalibrated().cluskey();
     float gt = -9999;
     Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitId, gt);
     float gx = globalTruthPos(0);
@@ -856,7 +856,7 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       m_SL_ly.push_back(loc(1));
       
       /// Get corresponding truth hit position
-      const unsigned int hitID = sourceLinks.at(i).hitID();
+      const unsigned int hitID = sourceLinks.at(i).cluskey();
       float gt = -9999;
       Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitID, gt);
       float gx = globalTruthPos(0);

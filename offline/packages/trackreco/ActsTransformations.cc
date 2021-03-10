@@ -307,7 +307,8 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
 		}
 	    }
 
-	  const unsigned int cluskey = state.uncalibrated().hitID();
+	  auto cluskey = state.uncalibrated().cluskey();
+	  
 	  svtxTrack->insert_cluster_key(cluskey);
 
 	  if(m_verbosity > 20)

@@ -217,7 +217,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  if(!MMsurface)
 	    continue;
 	}
-      std::cout << "making track params"<<std::endl;
+   
       ActsExamples::TrackParameters trackParams = track->get_acts_track_parameters();
 
       auto actsVertex = getVertex(track);
@@ -225,7 +225,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 					  actsVertex);
 
       Acts::BoundSymMatrix cov = setDefaultCovariance();
-      std::cout <<" new track params"<<std::endl;
+ 
       /// Reset the track seed with the dummy covariance
       ActsExamples::TrackParameters seed(trackParams.fourPosition(m_tGeometry->geoContext),
 					 trackParams.momentum(),
@@ -247,7 +247,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 				Acts::LoggerWrapper(*logger),
 				Acts::PropagatorPlainOptions(),
 				&(*pSurface));
-      std::cout <<"Options"<<std::endl;
+ 
       auto fitTimer = std::make_unique<PHTimer>("FitTimer");
       fitTimer->stop();
       fitTimer->restart();
@@ -328,7 +328,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
        ++clusIter)
     {
       auto key = *clusIter;
-      
+    
       sourcelinks.push_back(m_clusterContainer->findCluster(key)->getActsSourceLink());
     }
 
@@ -365,7 +365,8 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
     }
   
   Trajectory trajectory(fitOutput.fittedStates, 
-			trackTips, indexedParams);
+			trackTips, indexedParams,
+			track->get_vertex_id());
   
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
