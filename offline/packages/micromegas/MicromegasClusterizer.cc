@@ -308,21 +308,11 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       /// Add Acts and local information
-      const unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      unsigned int tile = 0;
-      MicromegasDefs::SegmentationType segtype;
-      if(layer == 55)
-	segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
-      else
-	segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
-      
-      Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
+           Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
           
       /// Get the surface key to find the surface from the map
-      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-
       auto surface = getMmSurfaceFromCoords(topNode,
-					    mmHitSetKey,
+					    hitsetkey,
 					    globalPos);
       
       Acts::Vector3D center = surface->center(m_tGeometry->geoContext)
