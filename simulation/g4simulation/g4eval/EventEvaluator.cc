@@ -49,15 +49,15 @@ using namespace std;
 
 EventEvaluator::EventEvaluator(const string& name, const string& filename)
   : SubsysReco(name)
-  , _do_FHCAL(true)
-  , _do_FEMC(true)
-  , _do_DRCALO(true)
-  , _do_HITS(true)
-  , _do_TRACKS(true)
-  , _do_CLUSTERS(true)
-  , _do_VERTEX(true)
-  , _do_PROJECTIONS(true)
-  , _do_MCPARTICLES(true)
+  , _do_FHCAL(false)
+  , _do_FEMC(false)
+  , _do_DRCALO(false)
+  , _do_HITS(false)
+  , _do_TRACKS(false)
+  , _do_CLUSTERS(false)
+  , _do_VERTEX(false)
+  , _do_PROJECTIONS(false)
+  , _do_MCPARTICLES(false)
   , _ievent(0)
   , _nHitsLayers(0)
   , _hits_layerID(0)
@@ -138,73 +138,60 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _filename(filename)
   , _tfile(nullptr)
 {
-  if(_do_HITS){
-    _hits_layerID = new int[_maxNHits];
-    _hits_x = new float[_maxNHits];
-    _hits_y = new float[_maxNHits];
-    _hits_z = new float[_maxNHits];
-    _hits_t = new float[_maxNHits];
-  }
-  if(_do_FHCAL){
-    _tower_FHCAL_E = new float[_maxNTowers];
-    _tower_FHCAL_iEta  = new int[_maxNTowers];
-    _tower_FHCAL_iPhi = new int[_maxNTowers];
-    _tower_FHCAL_trueID = new int[_maxNTowers];
-    if(_do_CLUSTERS){
-      _cluster_FHCAL_E = new float[_maxNclusters];
-      _cluster_FHCAL_Eta = new float[_maxNclusters];
-      _cluster_FHCAL_Phi = new float[_maxNclusters];
-      _cluster_FHCAL_NTower = new int[_maxNclusters];
-      _cluster_FHCAL_trueID = new int[_maxNclusters];
-    }
-  }
-  if(_do_DRCALO){
-    _tower_DRCALO_E = new float[_maxNTowersDR];
-    _tower_DRCALO_iEta  = new int[_maxNTowersDR];
-    _tower_DRCALO_iPhi = new int[_maxNTowersDR];
-    _tower_DRCALO_trueID = new int[_maxNTowersDR];
-  }
-  if(_do_FEMC){
-    _tower_FEMC_E = new float[_maxNTowers];
-    _tower_FEMC_iEta = new int[_maxNTowers];
-    _tower_FEMC_iPhi = new int[_maxNTowers];
-    _tower_FEMC_trueID = new int[_maxNTowers];
-    if(_do_CLUSTERS){
-      _cluster_FEMC_E = new float[_maxNclusters];
-      _cluster_FEMC_Eta = new float[_maxNclusters];
-      _cluster_FEMC_Phi = new float[_maxNclusters];
-      _cluster_FEMC_NTower = new int[_maxNclusters];
-      _cluster_FEMC_trueID = new int[_maxNclusters];
-    }
-  }
-  if(_do_TRACKS){
-    _track_ID = new float[_maxNTracks];
-    _track_trueID = new float[_maxNTracks];
-    _track_px = new float[_maxNTracks];
-    _track_py= new float[_maxNTracks];
-    _track_pz = new float[_maxNTracks];
-  }
-  if(_do_PROJECTIONS){
-    _track_ProjTrackID = new float[_maxNProjections];
-    _track_ProjLayer = new int[_maxNProjections];
-    _track_TLP_x = new float[_maxNProjections];
-    _track_TLP_y = new float[_maxNProjections];
-    _track_TLP_z = new float[_maxNProjections];
-    _track_TLP_t = new float[_maxNProjections];
-    _track_TLP_true_x = new float[_maxNProjections];
-    _track_TLP_true_y = new float[_maxNProjections];
-    _track_TLP_true_z = new float[_maxNProjections];
-    _track_TLP_true_t = new float[_maxNProjections];
-  }
-  if(_do_MCPARTICLES){
-    _mcpart_ID = new float[_maxNMCPart];
-    _mcpart_ID_parent = new float[_maxNMCPart];
-    _mcpart_PDG = new float[_maxNMCPart];
-    _mcpart_E = new float[_maxNMCPart];
-    _mcpart_px = new float[_maxNMCPart];
-    _mcpart_py = new float[_maxNMCPart];
-    _mcpart_pz = new float[_maxNMCPart];
-  }
+  _hits_layerID = new int[_maxNHits];
+  _hits_x = new float[_maxNHits];
+  _hits_y = new float[_maxNHits];
+  _hits_z = new float[_maxNHits];
+  _hits_t = new float[_maxNHits];
+
+  _tower_FHCAL_E = new float[_maxNTowers];
+  _tower_FHCAL_iEta  = new int[_maxNTowers];
+  _tower_FHCAL_iPhi = new int[_maxNTowers];
+  _tower_FHCAL_trueID = new int[_maxNTowers];
+  _cluster_FHCAL_E = new float[_maxNclusters];
+  _cluster_FHCAL_Eta = new float[_maxNclusters];
+  _cluster_FHCAL_Phi = new float[_maxNclusters];
+  _cluster_FHCAL_NTower = new int[_maxNclusters];
+  _cluster_FHCAL_trueID = new int[_maxNclusters];
+
+  _tower_DRCALO_E = new float[_maxNTowersDR];
+  _tower_DRCALO_iEta  = new int[_maxNTowersDR];
+  _tower_DRCALO_iPhi = new int[_maxNTowersDR];
+  _tower_DRCALO_trueID = new int[_maxNTowersDR];
+
+  _tower_FEMC_E = new float[_maxNTowers];
+  _tower_FEMC_iEta = new int[_maxNTowers];
+  _tower_FEMC_iPhi = new int[_maxNTowers];
+  _tower_FEMC_trueID = new int[_maxNTowers];
+  _cluster_FEMC_E = new float[_maxNclusters];
+  _cluster_FEMC_Eta = new float[_maxNclusters];
+  _cluster_FEMC_Phi = new float[_maxNclusters];
+  _cluster_FEMC_NTower = new int[_maxNclusters];
+  _cluster_FEMC_trueID = new int[_maxNclusters];
+
+  _track_ID = new float[_maxNTracks];
+  _track_trueID = new float[_maxNTracks];
+  _track_px = new float[_maxNTracks];
+  _track_py= new float[_maxNTracks];
+  _track_pz = new float[_maxNTracks];
+  _track_ProjTrackID = new float[_maxNProjections];
+  _track_ProjLayer = new int[_maxNProjections];
+  _track_TLP_x = new float[_maxNProjections];
+  _track_TLP_y = new float[_maxNProjections];
+  _track_TLP_z = new float[_maxNProjections];
+  _track_TLP_t = new float[_maxNProjections];
+  _track_TLP_true_x = new float[_maxNProjections];
+  _track_TLP_true_y = new float[_maxNProjections];
+  _track_TLP_true_z = new float[_maxNProjections];
+  _track_TLP_true_t = new float[_maxNProjections];
+
+  _mcpart_ID = new float[_maxNMCPart];
+  _mcpart_ID_parent = new float[_maxNMCPart];
+  _mcpart_PDG = new float[_maxNMCPart];
+  _mcpart_E = new float[_maxNMCPart];
+  _mcpart_px = new float[_maxNMCPart];
+  _mcpart_py = new float[_maxNMCPart];
+  _mcpart_pz = new float[_maxNMCPart];
 }
 
 int EventEvaluator::Init(PHCompositeNode* topNode)
@@ -452,7 +439,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           {
             // min energy cut
             if (tower->get_energy() < _reco_e_threshold) continue;
-
             _tower_FHCAL_iEta[_nTowers_FHCAL] = tower->get_bineta();
             _tower_FHCAL_iPhi[_nTowers_FHCAL] = tower->get_binphi();
             _tower_FHCAL_E[_nTowers_FHCAL] = tower->get_energy();
@@ -1228,10 +1214,11 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
 
 void EventEvaluator::resetBuffer()
 {
-  _vertex_x = 0;
-  _vertex_y = 0;
-  _vertex_z = 0;
-
+  if(_do_VERTEX){
+    _vertex_x = 0;
+    _vertex_y = 0;
+    _vertex_z = 0;
+  }
   if(_do_HITS){
     _nHitsLayers = 0;
     for (Int_t ihit = 0; ihit < _maxNHits; ihit++)
@@ -1285,39 +1272,44 @@ void EventEvaluator::resetBuffer()
       }
     }
   }
-
-  _nTracks = 0;
-  for (Int_t itrk = 0; itrk < _maxNTracks; itrk++)
-  {
-    _track_ID[itrk] = 0;
-    _track_trueID[itrk] = 0;
-    _track_px[itrk] = 0;
-    _track_py[itrk] = 0;
-    _track_pz[itrk] = 0;
+  if(_do_TRACKS){
+    _nTracks = 0;
+    for (Int_t itrk = 0; itrk < _maxNTracks; itrk++)
+    {
+      _track_ID[itrk] = 0;
+      _track_trueID[itrk] = 0;
+      _track_px[itrk] = 0;
+      _track_py[itrk] = 0;
+      _track_pz[itrk] = 0;
+    }
+    if(_do_PROJECTIONS){
+      _nProjections = 0;
+      for (Int_t iproj = 0; iproj < _maxNProjections; iproj++)
+      {
+        _track_ProjLayer[iproj] = -1;
+        _track_ProjTrackID[iproj] = 0;
+        _track_TLP_x[iproj] = 0;
+        _track_TLP_y[iproj] = 0;
+        _track_TLP_z[iproj] = 0;
+        _track_TLP_t[iproj] = 0;
+        _track_TLP_true_x[iproj] = 0;
+        _track_TLP_true_y[iproj] = 0;
+        _track_TLP_true_z[iproj] = 0;
+        _track_TLP_true_t[iproj] = 0;
+      }
+    }
   }
-  _nProjections = 0;
-  for (Int_t iproj = 0; iproj < _maxNProjections; iproj++)
-  {
-    _track_ProjLayer[iproj] = -1;
-    _track_ProjTrackID[iproj] = 0;
-    _track_TLP_x[iproj] = 0;
-    _track_TLP_y[iproj] = 0;
-    _track_TLP_z[iproj] = 0;
-    _track_TLP_t[iproj] = 0;
-    _track_TLP_true_x[iproj] = 0;
-    _track_TLP_true_y[iproj] = 0;
-    _track_TLP_true_z[iproj] = 0;
-    _track_TLP_true_t[iproj] = 0;
-  }
-  _nMCPart = 0;
-  for (Int_t imcpart = 0; imcpart < _maxNMCPart; imcpart++)
-  {
-    _mcpart_ID[imcpart] = 0;
-    _mcpart_ID_parent[imcpart] = 0;
-    _mcpart_PDG[imcpart] = 0;
-    _mcpart_E[imcpart] = 0;
-    _mcpart_px[imcpart] = 0;
-    _mcpart_py[imcpart] = 0;
-    _mcpart_pz[imcpart] = 0;
+  if(_do_MCPARTICLES){
+    _nMCPart = 0;
+    for (Int_t imcpart = 0; imcpart < _maxNMCPart; imcpart++)
+    {
+      _mcpart_ID[imcpart] = 0;
+      _mcpart_ID_parent[imcpart] = 0;
+      _mcpart_PDG[imcpart] = 0;
+      _mcpart_E[imcpart] = 0;
+      _mcpart_px[imcpart] = 0;
+      _mcpart_py[imcpart] = 0;
+      _mcpart_pz[imcpart] = 0;
+    }
   }
 }
