@@ -6,6 +6,8 @@
 #include <phool/PHTimer.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <array>
+
 class TrkrCluster;
 class TrkrClusterContainer;
 class TFile;
@@ -59,16 +61,10 @@ class TpcSpaceChargeCorrection : public SubsysReco
 
   //!@name space charge distortion histograms
   //@{
-  TH3 *m_hDRint = nullptr;
-  TH3 *m_hDPint = nullptr;
-  TH3 *m_hDZint = nullptr;
+  std::array<TH3*,2> m_hDRint = {{nullptr, nullptr}};
+  std::array<TH3*,2> m_hDPint = {{nullptr, nullptr}};
+  std::array<TH3*,2> m_hDZint = {{nullptr, nullptr}};
   //@}
-
-  /*! \brief
-   true if the maps contain the full z range
-   assume it only contains positive z otherwise
-  */
-  bool m_fullzrange = true;
 
   //* coordinated for which corrections are applied
   unsigned int m_coordinates = COORD_PHI|COORD_R|COORD_Z;
