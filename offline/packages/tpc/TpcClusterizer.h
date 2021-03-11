@@ -47,10 +47,7 @@ class TpcClusterizer : public SubsysReco
   double SectorFiducialCut;
 
   int NSearch;
-  int NPhiBinsMax;
-  int NPhiBinsMin;
   int NZBinsMax;
-  int NZBinsMin;
 
 };
 
