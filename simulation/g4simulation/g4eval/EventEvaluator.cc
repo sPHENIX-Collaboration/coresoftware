@@ -295,7 +295,7 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
 
 int EventEvaluator::process_event(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 0)cout << "entered process_event" << endl;
+  if(Verbosity() > 0){cout << "entered process_event" << endl;}
   if(_do_FHCAL){
     if (!_caloevalstackFHCAL)
     {
@@ -332,11 +332,11 @@ int EventEvaluator::process_event(PHCompositeNode* topNode)
       _caloevalstackFEMC->next_event(topNode);
     }
   }
-  if (Verbosity() > 0) cout << "loaded evalstack" << endl;
+  if (Verbosity() > 0) {cout << "loaded evalstack" << endl;}
 
   // print what is coming into the code
   printInputInfo(topNode);
-  if (Verbosity() > 0) cout << "past printinputinfo" << endl;
+  if (Verbosity() > 0){ cout << "past printinputinfo" << endl;}
 
   // fill the Evaluator Tree
   fillOutputNtuples(topNode);
@@ -351,7 +351,7 @@ int EventEvaluator::process_event(PHCompositeNode* topNode)
 
 void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) cout << "EventEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2){ cout << "EventEvaluator::fillOutputNtuples() entered" << endl;}
 
 
   //----------------------
@@ -367,7 +367,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
       if (!vertexmap->empty())
       {
-        if (Verbosity() > 0) cout << "saving vertex" << endl;
+        if (Verbosity() > 0){ cout << "saving vertex" << endl;}
         GlobalVertex* vertex = (vertexmap->begin()->second);
 
         _vertex_x = vertex->get_x();
@@ -380,23 +380,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //    HITS
   //----------------------
   if(_do_HITS){
-    if (Verbosity() > 0) cout << "saving hits" << endl;
+    if (Verbosity() > 0){cout << "saving hits" << endl;}
     _nHitsLayers = 0;
     for (int iIndex = 0; iIndex < 60; ++iIndex)
     {
       if (GetProjectionNameFromIndex(iIndex).find("NOTHING")!= std::string::npos ) continue;
+      if (GetProjectionNameFromIndex(iIndex).find("FHCAL")!= std::string::npos ) continue;
+      if (GetProjectionNameFromIndex(iIndex).find("FEMC")!= std::string::npos ) continue;
       string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
       PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (hits)
       {
-        if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
+        if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;}
         PHG4HitContainer::ConstRange hit_range = hits->getHits();
         for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
         {
           // if(Verbosity() > 0) cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
           // if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
           // {
-          if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+          if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;}
           _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
           _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
           _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
@@ -406,11 +408,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           // }
         }
-        if (Verbosity() > 0) cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;
+        if (Verbosity() > 0){ cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;}
       }
       else
       {
-        if (Verbosity() > 0) cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+        if (Verbosity() > 0){ cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;}
         continue;
       }
     }
@@ -425,7 +427,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     RawTowerContainer* towersFHCAL = findNode::getClass<RawTowerContainer>(topNode, towernodeFHCAL.c_str());
     if (towersFHCAL)
     {
-      if (Verbosity() > 0) cout << "saving HCAL towers" << endl;
+      if (Verbosity() > 0){ cout << "saving HCAL towers" << endl;}
       string towergeomnodeFHCAL = "TOWERGEOM_FHCAL";
       RawTowerGeomContainer* towergeomFHCAL = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeFHCAL.c_str());
       if (towergeomFHCAL)
@@ -458,14 +460,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
       else
       {
-        if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFHCAL << endl;
+        if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFHCAL << endl;}
         // return;
       }
-      if (Verbosity() > 0) cout << "saved\t" << _nTowers_FHCAL << "\tFHCAL towers" << endl;
+      if (Verbosity() > 0){ cout << "saved\t" << _nTowers_FHCAL << "\tFHCAL towers" << endl;}
     }
     else
     {
-      if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towernodeFHCAL << endl;
+      if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towernodeFHCAL << endl;}
       // return;
     }
   }
@@ -479,7 +481,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     RawTowerContainer* towersDRCALO = findNode::getClass<RawTowerContainer>(topNode, towernodeDRCALO.c_str());
     if (towersDRCALO)
     {
-      if (Verbosity() > 0) cout << "saving DRCALO towers" << endl;
+      if (Verbosity() > 0){ cout << "saving DRCALO towers" << endl;}
       string towergeomnodeDRCALO = "TOWERGEOM_DRCALO";
       RawTowerGeomContainer* towergeomDRCALO = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeDRCALO.c_str());
       if (towergeomDRCALO)
@@ -513,14 +515,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
       else
       {
-        if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towergeomnodeDRCALO << endl;
+        if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towergeomnodeDRCALO << endl;}
         // return;
       }
-      if (Verbosity() > 0) cout << "saved\t" << _nTowers_DRCALO << "\tDRCALO towers" << endl;
+      if (Verbosity() > 0){ cout << "saved\t" << _nTowers_DRCALO << "\tDRCALO towers" << endl;}
     }
     else
     {
-      if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towernodeDRCALO << endl;
+      if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towernodeDRCALO << endl;}
       // return;
     }
   }
@@ -534,7 +536,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     RawTowerContainer* towersFEMC = findNode::getClass<RawTowerContainer>(topNode, towernodeFEMC.c_str());
     if (towersFEMC)
     {
-      if (Verbosity() > 0) cout << "saving EMC towers" << endl;
+      if (Verbosity() > 0){ cout << "saving EMC towers" << endl;}
       string towergeomnodeFEMC = "TOWERGEOM_FEMC";
       RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeFEMC.c_str());
       if (towergeom)
@@ -568,14 +570,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
       else
       {
-        if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFEMC << endl;
+        if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towergeomnodeFEMC << endl;}
         // return;
       }
-      if (Verbosity() > 0) cout << "saved\t" << _nTowers_FEMC << "\tFEMC towers" << endl;
+      if (Verbosity() > 0){ cout << "saved\t" << _nTowers_FEMC << "\tFEMC towers" << endl;}
     }
     else
     {
-      if (Verbosity() > 0) cout << PHWHERE << " ERROR: Can't find " << towernodeFEMC << endl;
+      if (Verbosity() > 0){ cout << PHWHERE << " ERROR: Can't find " << towernodeFEMC << endl;}
       // return;
     }
   }
@@ -585,7 +587,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(_do_FHCAL && _do_CLUSTERS){
     CaloRawClusterEval* clusterevalFHCAL = _caloevalstackFHCAL->get_rawcluster_eval();
     _nclusters_FHCAL = 0;
-    if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+    if (Verbosity() > 1){ cout << "CaloEvaluator::filling gcluster ntuple..." << endl;}
 
     string clusternodeFHCAL = "CLUSTER_FHCAL";
     RawClusterContainer* clustersFHCAL = findNode::getClass<RawClusterContainer>(topNode, clusternodeFHCAL.c_str());
@@ -639,7 +641,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(_do_FEMC && _do_CLUSTERS){
     CaloRawClusterEval* clusterevalFEMC = _caloevalstackFEMC->get_rawcluster_eval();
     _nclusters_FEMC = 0;
-    if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+    if (Verbosity() > 1){ cout << "CaloEvaluator::filling gcluster ntuple..." << endl;}
 
     string clusternodeFEMC = "CLUSTER_FEMC";
     RawClusterContainer* clustersFEMC = findNode::getClass<RawClusterContainer>(topNode, clusternodeFEMC.c_str());
@@ -696,7 +698,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
     if (trackmap)
     {
-      if (Verbosity() > 0) cout << "saving tracks" << endl;
+      if (Verbosity() > 0){ cout << "saving tracks" << endl;}
       for (SvtxTrackMap::ConstIter track_itr = trackmap->begin(); track_itr != trackmap->end(); track_itr++)
       {
         SvtxTrack_FastSim* track = dynamic_cast<SvtxTrack_FastSim*>(track_itr->second);
@@ -711,9 +713,9 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             // find projections
             for (SvtxTrack::ConstStateIter trkstates = track->begin_states(); trkstates != track->end_states(); ++trkstates)
             {
-              if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;
+              if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;}
               string trackStateName = trkstates->second->get_name();
-              if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;
+              if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;}
               int trackStateIndex = GetProjectionIndex(trackStateName);
               if (trackStateIndex > -1)
               {
@@ -729,14 +731,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
                 if (hits)
                 {
-                  if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
+                  if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;}
                   PHG4HitContainer::ConstRange hit_range = hits->getHits();
                   for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
                   {
-                    if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
+                    if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;}
                     if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
                     {
-                      if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+                      if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;}
                       // save reco projection info to given branch
                       _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
                       _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
@@ -747,7 +749,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 }
                 else
                 {
-                  if (Verbosity() > 1) cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+                  if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;}
                   continue;
                 }
                 _nProjections++;
@@ -766,11 +768,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           continue;
         }
       }
-      if (Verbosity() > 0) cout << "saved\t" << _nTracks << "\ttracks" << endl;
+      if (Verbosity() > 0){ cout << "saved\t" << _nTracks << "\ttracks" << endl;}
     }
     else
     {
-      if (Verbosity() > 0) cout << PHWHERE << "SvtxTrackMap node with name TrackMap not found on node tree" << endl;
+      if (Verbosity() > 0){ cout << PHWHERE << "SvtxTrackMap node with name TrackMap not found on node tree" << endl;}
       return;
     }
   }
@@ -782,7 +784,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     PHG4TruthInfoContainer* truthinfocontainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (truthinfocontainer)
     {
-      if (Verbosity() > 0) cout << "saving MC particles" << endl;
+      if (Verbosity() > 0){ cout << "saving MC particles" << endl;}
       //GetParticleRange for all particles
       //GetPrimaryParticleRange for primary particles
       PHG4TruthInfoContainer::ConstRange range = truthinfocontainer->GetPrimaryParticleRange();
@@ -804,15 +806,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _mcpart_pz[_nMCPart] = g4particle->get_pz();
         _nMCPart++;
       }
-      if (Verbosity() > 0) cout << "saved\t" << _nMCPart << "\tMC particles" << endl;
+      if (Verbosity() > 0){ cout << "saved\t" << _nMCPart << "\tMC particles" << endl;}
     }
     else
     {
-      if (Verbosity() > 0) cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << endl;
+      if (Verbosity() > 0){ cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << endl;}
       return;
     }
   }
-
   _event_tree->Fill();
   resetBuffer();
   return;
@@ -820,7 +821,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 void EventEvaluator::printOutputInfo(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 2) cout << "EventEvaluator::printOutputInfo() entered" << endl;
+  if (Verbosity() > 2){ cout << "EventEvaluator::printOutputInfo() entered" << endl;}
 
   CaloRawClusterEval* clustereval = _caloevalstackFHCAL->get_rawcluster_eval();
   CaloTruthEval* trutheval = _caloevalstackFHCAL->get_truth_eval();
