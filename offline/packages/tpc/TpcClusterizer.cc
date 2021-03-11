@@ -417,7 +417,7 @@ void *ProcessSector(void *threadarg) {
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
      float_t fadc = hitr->second->getAdc() - pedestal;
-     unsigned short adc;
+     unsigned short adc = 0;
      if(fadc>0) 
        adc =  (unsigned short) fadc;
      
@@ -474,10 +474,7 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , pedestal(74.4)
   , SectorFiducialCut(0.5)
   , NSearch(2)
-  , NPhiBinsMax(0)
-  , NPhiBinsMin(0)
   , NZBinsMax(0)
-  , NZBinsMin(0)
 {
 }
 
@@ -616,15 +613,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   long i = 0;
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
-
+  int num_hitsets = 1;
+  if(std::distance(hitsetrange.first,hitsetrange.second)>0){
+    num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  }
   pthread_t threads[num_hitsets];
   struct thread_data td[num_hitsets];
   //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
   // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
   //std::map<long unsigned int, TrkrCluster*> *set_clusterlist[num_hitsets];
   pthread_attr_t attr;
-  void *status;
+  // void *status;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
@@ -704,13 +703,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   //  num_hitsets = 1;
   for( int j = 0; j < num_hitsets; j++ ) {
     //    cout << "collecting thread :" << j ;
-    int rc2 = pthread_join(threads[j], &status);
+    int rc2 = pthread_join(threads[j], NULL);
     if (rc2) {
       cout << "Error:unable to join," << rc2 << endl;
       //      exit(-1);
     }
-    //    cout << "Main: completed thread id :" << j ;
-    //  cout << "  exiting with status :" << status << endl;
   }
  
   //  cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;

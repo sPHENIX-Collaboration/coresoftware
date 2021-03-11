@@ -19,6 +19,7 @@ class TrkrHitSetContainer;
 
 PHTpcLookup::PHTpcLookup()
   : mClusterMap(nullptr)
+  , mHitsets(nullptr)
   , mKDindex(nullptr)
 {
 }
