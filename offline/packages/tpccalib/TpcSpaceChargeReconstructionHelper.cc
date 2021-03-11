@@ -124,10 +124,11 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
       const std::array<int,2> zbin_max = {{ hin->GetZaxis()->FindBin( -zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) }};
 
       // get corresponding normalizations
+      auto safe_ratio = []( double numerator, double denominator ) -> double { return denominator == 0 ? 1. : numerator / denominator; };
       const std::array<double,2> scale_factor =
       {{
-        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] )/hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] ),
-        hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] )/hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] )
+        safe_ratio( hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] ), hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] ) ),
+        safe_ratio( hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] ), hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] ) )
       }};
 
       // loop over z bins
@@ -142,7 +143,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
 
         // assign to output histogram
         hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
-        hin->SetBinError( phibin, ir+1, iz+1, error_ref*scale );
+        hin->SetBinError( phibin, ir+1, iz+1, error_ref*std::abs(scale) );
       }
     }
   }
