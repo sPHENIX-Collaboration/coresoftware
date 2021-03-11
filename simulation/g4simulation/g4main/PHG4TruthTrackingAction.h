@@ -7,8 +7,6 @@
 
 #include <Geant4/G4ThreeVector.hh>
 
-#include <map>
-
 class G4Track;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
@@ -34,8 +32,6 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   int ResetEvent(PHCompositeNode*);
 
  private:
-  std::map<G4ThreeVector, int> m_VertexMap;
-
   //! pointer to the "owning" event action
   PHG4TruthEventAction* m_EventAction;
 

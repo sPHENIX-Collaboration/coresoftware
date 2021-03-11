@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>  // for distance
 #include <map>
+#include <set>
 #include <utility>
 
 class PHG4Shower;
@@ -107,6 +108,7 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a vertex and return an iterator to the user
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
+  ConstVtxIterator AddVertex(const G4Track* track);
   void delete_vtx(VtxIterator viter);
 
   PHG4VtxPoint* GetVtx(const int vtxid);
@@ -219,6 +221,17 @@ class PHG4TruthInfoContainer : public PHObject
   /// -M+1
   /// -M   secondary vertex id => vertex*
   VtxMap vtxmap;
+
+  /// A helper container to hold unique vertex positions
+  ///{@
+  struct VtxPos
+  {
+    double x, y, z; int vtxindex;
+    bool operator< (const PHG4TruthInfoContainer::VtxPos& b) const { return std::tie(z, y, x) < std::tie(b.z, b.y, b.x); }
+  };
+
+  std::set<VtxPos> vtxset; //!
+  ///@}
 
   /// shower map
   /// showers encapsulate the secondaries and hits from a primary particle
