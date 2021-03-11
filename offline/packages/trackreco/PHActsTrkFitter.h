@@ -54,9 +54,6 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
 
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
-
-
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:

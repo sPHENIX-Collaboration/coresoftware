@@ -72,10 +72,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-  
+
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-  
+
   m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField);
@@ -125,7 +125,7 @@ int PHActsTrkFitter::Process()
   }
 
   loopTracks(logLevel);
-  
+
   eventTimer->stop();
   auto eventTime = eventTimer->get_accumulated_time();
 
@@ -188,14 +188,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
+  /// Store a vector of track fits that fail to erase, so that the
+  /// track map iterator doesn't crash
+  std::vector<unsigned int> badTracks;
+
   for(auto& [trackKey, track] : *m_trackMap)
     {
+  
+      if(!track)
+	{
+	  continue;
+	}
+
       auto trackTimer = std::make_unique<PHTimer>("TrackTimer");
       trackTimer->stop();
       trackTimer->restart();
-      
+
       auto sourceLinks = getSourceLinks(track);
       /// If using directed navigation, collect surface list to navigate
+   
       SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
 	{	
@@ -278,7 +289,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       else
 	{
 	  /// Track fit failed, get rid of the track from the map
-	  m_trackMap->erase(trackKey);
+	  badTracks.push_back(trackKey);
 	  m_nBadFits++;
 
 	}
@@ -290,6 +301,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	std::cout << "PHActsTrkFitter total single track time "
 		  << trackTime << std::endl;
     
+    }
+
+  /// Now erase bad tracks from the track map
+  for(auto key : badTracks)
+    {
+      m_trackMap->erase(key);
     }
 
   return;
@@ -327,11 +344,13 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
        clusIter != track->end_cluster_keys();
        ++clusIter)
     {
+     
       auto key = *clusIter;
-    
-      sourcelinks.push_back(m_clusterContainer->findCluster(key)->getActsSourceLink());
-    }
 
+      auto cluster = m_clusterContainer->findCluster(key);
+      sourcelinks.push_back(cluster->getActsSourceLink());      
+    }
+ 
   return sourcelinks;
 
 }
