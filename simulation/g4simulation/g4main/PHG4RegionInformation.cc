@@ -30,9 +30,7 @@
 
 #include "PHG4RegionInformation.h"
 
-#include <Geant4/G4ios.hh>
-
-#include <ostream>          // for operator<<, ostream
+#include <iostream>          // for operator<<, ostream
 
 PHG4RegionInformation::PHG4RegionInformation()
 :isWorld(false),isTracker(false),isCalorimeter(false)

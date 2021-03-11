@@ -9,17 +9,18 @@
  */
 
 #include <fun4all/Fun4AllInputManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>   // for SYNC_NOOBJECT, SYNC_OK
 
 #include <phool/PHCompositeNode.h>  // for PHCompositeNode
 #include <phool/PHNodeIOManager.h>  // for PHNodeIOManager
 
 #include <gsl/gsl_rng.h>
 
-#include <cstdint>  // for int64_t
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>  // for vector
+
+class SyncObject;
 
 /*!
  * dedicated input manager that merges single events into "merged" events, containing a trigger event

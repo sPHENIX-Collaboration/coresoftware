@@ -7,9 +7,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4String.hh>  // for G4String
-#include <Geant4/G4Types.hh>
-
 #include <map>
 #include <set>
 #include <string>
