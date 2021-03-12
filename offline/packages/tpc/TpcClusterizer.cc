@@ -613,10 +613,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   long i = 0;
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  int num_hitsets = 1;
-  if(std::distance(hitsetrange.first,hitsetrange.second)>0){
-    num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
-  }
+  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+
   pthread_t threads[num_hitsets];
   struct thread_data td[num_hitsets];
   //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
@@ -641,7 +639,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
-    //    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
+    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
     //    if(i>=1)break;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
@@ -710,7 +708,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }
   }
  
-  //  cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
+  cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
