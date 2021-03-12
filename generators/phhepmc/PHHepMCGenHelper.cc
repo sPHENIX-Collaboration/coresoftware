@@ -149,12 +149,15 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
         vtx_evt->get_collision_vertex().z(),
         vtx_evt->get_collision_vertex().t());
   }
-
-  genevent->moveVertex(
-      (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
-      (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
-      (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
-      (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
+  else
+  {
+    // not reusing vertex so smear with the vertex parameters
+    genevent->moveVertex(
+        (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
+        (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
+        (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
+        (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
+  }
 }
 
 //! move vertex in translation,boost,rotation according to vertex settings
@@ -167,6 +170,8 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   assert(genevent);
 
+  // now handle the collision vertex first, in the head-on collision frame
+  // this is used as input to the Crab angle correction
   move_vertex(genevent);
 
   // boost-rotation from beam angles
@@ -262,7 +267,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   //rotation to collision to along z-axis with beamA pointing to +z
   CLHEP::Hep3Vector beamDiffAxis = (beamA_vec - beamB_vec);
-  if (beamDiffAxis.mag2() <CLHEP::Hep3Vector::getTolerance())
+  if (beamDiffAxis.mag2() < CLHEP::Hep3Vector::getTolerance())
   {
     cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal error -"
          << "Beam A and Beam B are too close to each other in direction "
@@ -320,9 +325,64 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     }
   }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
 
+  // rotate the collision vertex z direction to middle of the beam angles
+  if (not _reuse_vertex)
+  {
+    // the final longitudinal vertex smear axis
+    CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
+    beamCenterDiffAxis = beamCenterDiffAxis / beamDiffAxis.mag();
+
+    double cos_rotation_center_angle_to_z = beamCenterDiffAxis.dot(z_axis);
+
+    if (1 - fabs(cos_rotation_center_angle_to_z) < CLHEP::Hep3Vector::getTolerance())
+    {
+      // new axis is basically beam axis
+
+      if (m_verbosity)
+      {
+        cout << __PRETTY_FUNCTION__
+             << ": collision longitudinal axis is very close to z-axis. No additional rotation of vertexes: "
+             << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z
+             << endl;
+      }
+      else
+      {
+        // need a rotation
+        CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
+        const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
+        const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
+
+        const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
+        CLHEP::Hep3Vector init_3vertex(
+            init_4vertex.x(),
+            init_4vertex.y(),
+            init_4vertex.z());
+
+        CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
+
+        genevent->set_collision_vertex(HepMC::FourVector(
+            final_3vertex.x(),
+            final_3vertex.y(),
+            final_3vertex.z(),
+            init_4vertex.t()));
+
+        if (m_verbosity)
+        {
+          cout << __PRETTY_FUNCTION__
+               << ": collision longitudinal axis is rotated: "
+               << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
+               << "rotation_axis = " << rotation_axis << ", "
+               << "init_3vertex = " << init_3vertex << ", "
+               << "final_3vertex = " << final_3vertex << ", "
+               << endl;
+        }
+      }
+    }
+  }
+
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__ << ": final boost rotation " << endl;
+    cout << __PRETTY_FUNCTION__ << ": final boost rotation shift of the collision" << endl;
     genevent->identify();
   }
 }
