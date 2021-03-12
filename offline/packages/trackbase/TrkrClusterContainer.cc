@@ -50,6 +50,27 @@ void TrkrClusterContainer::identify(std::ostream& os) const
   return;
 }
 
+void TrkrClusterContainer::print() const
+{
+  for(unsigned int layer = 0;layer < max_layer; layer++){
+    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++){
+      for(unsigned int z_segment = 0; z_segment < max_zsegment; z_segment++){
+	auto iter = m_clusmap[layer][phi_segment][z_segment].begin(); 
+	int flayer = TrkrDefs::getLayer(iter->first);
+	unsigned int fsector = TrkrDefs::getPhiElement(iter->first);
+	unsigned int fside = TrkrDefs::getZElement(iter->first); 
+	std::cout << "layer: " << layer << " | " << flayer
+		  << " phi_seg: " << phi_segment << " | " << fsector
+		  << " z_seg: " << z_segment << " | " << fside
+		  << " nclu: " << m_clusmap[layer][phi_segment][z_segment].size()
+		  << std::endl;
+
+      }
+    }
+  }
+  return;
+}
+
 void TrkrClusterContainer::removeCluster(TrkrDefs::cluskey key){
   unsigned int layer = TrkrDefs::getLayer(key);
   unsigned int sector = TrkrDefs::getPhiElement(key);
@@ -63,7 +84,6 @@ void TrkrClusterContainer::removeCluster(TrkrCluster *clus){
   unsigned int sector = TrkrDefs::getPhiElement(key);
   unsigned int side = TrkrDefs::getZElement(key); 
   m_clusmap[layer][sector][side].erase(key);
-
 }
  
 TrkrClusterContainer::ConstIterator
@@ -108,9 +128,13 @@ TrkrClusterContainer::getClusters(TrkrDefs::hitsetkey hitsetkey) const
   const unsigned int side  = TrkrDefs::getZElement(hitsetkey);
   const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);
   ConstRange retpair;
-  retpair.first  = m_clusmap[layer][sector][side].begin();
-  retpair.second = m_clusmap[layer][sector][side].end();
-
+  if(sector<max_phisegment&&side<max_zsegment){
+    retpair.first  = m_clusmap[layer][sector][side].begin();
+    retpair.second = m_clusmap[layer][sector][side].end();
+  }else{
+    retpair.first  = m_clusmap[layer][sector][side].begin();
+    retpair.second = m_clusmap[layer][sector][side].begin();
+  }
   return retpair;
 }
 
@@ -123,17 +147,21 @@ TrkrClusterContainer::getClusters(const unsigned int layer, const unsigned int p
   // retpair.second = m_clusmap.upper_bound(keyhi);
 
   ConstRange retpair;
-  retpair.first  = m_clusmap[layer][phi_segment][z_segment].begin();
-  retpair.second = m_clusmap[layer][phi_segment][z_segment].end();
-
+  if(phi_segment<max_phisegment&&z_segment<max_zsegment){
+    retpair.first  = m_clusmap[layer][phi_segment][z_segment].begin();
+    retpair.second = m_clusmap[layer][phi_segment][z_segment].end();
+  }else{
+    retpair.first  = m_clusmap[layer][phi_segment][z_segment].begin();
+    retpair.second = m_clusmap[layer][phi_segment][z_segment].begin();
+  }
   return retpair;
 }
 
 TrkrClusterContainer::Iterator
 TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key){
-  unsigned int layer  = TrkrDefs::getLayer(key);
-  unsigned int sector = TrkrDefs::getPhiElement(key);
-  unsigned int side   = TrkrDefs::getZElement(key); 
+  const unsigned int layer = TrkrDefs::getLayer(key);
+  const unsigned int side  = TrkrDefs::getZElement(key);
+  const unsigned int sector= TrkrDefs::getPhiElement(key);
   TrkrClusterContainer::Iterator it = m_clusmap[layer][sector][side].find(key);
   if (it == m_clusmap[layer][sector][side].end())
   {
@@ -146,9 +174,9 @@ TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key){
 }
 
 TrkrCluster* TrkrClusterContainer::findCluster(TrkrDefs::cluskey key){
-  unsigned int layer  = TrkrDefs::getLayer(key);
-  unsigned int sector = TrkrDefs::getPhiElement(key);
-  unsigned int side   = TrkrDefs::getZElement(key); 
+  const unsigned int layer = TrkrDefs::getLayer(key);
+  const unsigned int side  = TrkrDefs::getZElement(key);
+  const unsigned int sector= TrkrDefs::getPhiElement(key);
   TrkrClusterContainer::Iterator it = m_clusmap[layer][sector][side].find(key);
 
   if (it != m_clusmap[layer][sector][side].end())
