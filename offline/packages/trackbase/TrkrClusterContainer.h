@@ -37,6 +37,7 @@ class TrkrClusterContainer : public PHObject
   void Reset();
 
   void identify(std::ostream &os = std::cout) const;
+  void print() const;
 
   ConstIterator addCluster(TrkrCluster *newClus);
   ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
@@ -57,7 +58,13 @@ class TrkrClusterContainer : public PHObject
 
   //! return all clusters
   std::map<TrkrDefs::cluskey, TrkrCluster *> *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment){
-    return &m_clusmap[layer][phi_segment][z_segment];
+    //   std::cout << "get_set lphiz: " << layer << "|" << phi_segment << "|" << z_segment << "nclu:" << m_clusmap[layer][phi_segment][z_segment].size() <<std::endl;
+
+    if(phi_segment<max_phisegment&&z_segment<max_zsegment)
+      return &m_clusmap[layer][phi_segment][z_segment];
+    else
+      return &m_clusmap[8][0][6];//guaranteed to be empty
+
   }
 
   TrkrCluster *findCluster(TrkrDefs::cluskey key);
@@ -77,9 +84,9 @@ class TrkrClusterContainer : public PHObject
 
  protected:
   unsigned int max_layer = 57;
-  unsigned int max_phisegment = 12;
-  unsigned int max_zsegment = 8;
-  Map m_clusmap[57][12][8];
+  unsigned int max_phisegment = 20;
+  unsigned int max_zsegment = 15;
+  Map m_clusmap[57][20][15];
   ClassDef(TrkrClusterContainer, 1)
 };
 
