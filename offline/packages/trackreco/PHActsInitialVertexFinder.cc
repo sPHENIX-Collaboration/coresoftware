@@ -144,6 +144,8 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
   unsigned int vertexId = 0;
+  if(vertices.size() != 0)
+    m_vertexMap->clear();
 
   /// Create a fail safe for (e.g.) single particle events which 
   /// don't return a vertex
