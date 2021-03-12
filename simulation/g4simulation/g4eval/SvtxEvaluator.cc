@@ -506,7 +506,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	  auto range = clustermap->getClusters(hitsetiter->first);
 	  for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 	    const auto cluskey = clusIter->first;
-	    const auto cluster = clusIter->second;
+	    //	    const auto cluster = clusIter->second;
 	    unsigned int layer = TrkrDefs::getLayer(cluskey);
 	    nclusters[layer]++;
 	  }
@@ -1707,10 +1707,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     if (clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
 
-      auto hitsetrange = hitsets->getHitSets();
+      auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
       for (auto hitsetitr = hitsetrange.first;
 	   hitsetitr != hitsetrange.second;
 	   ++hitsetitr){
+	int hitsetlayer = TrkrDefs::getLayer(hitsetitr->first);
 	auto range = clustermap->getClusters(hitsetitr->first);
 	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
@@ -1741,6 +1742,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float maxadc = -999;
 	  // count all hits for this cluster
 	  TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	  int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey);
+	  if(hitsetlayer!=layer){
+	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
+	  }else{
+	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
+	  }
 	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
 	  TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
 	  for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)

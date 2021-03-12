@@ -613,10 +613,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   long i = 0;
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  //  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  pthread_t threads[num_hitsets];
-  struct thread_data td[num_hitsets];
+  pthread_t threads[2000];
+  struct thread_data td[2000];
   //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
   // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
   //std::map<long unsigned int, TrkrCluster*> *set_clusterlist[num_hitsets];
