@@ -613,7 +613,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   long i = 0;
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  //  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
   pthread_t threads[2000];
   struct thread_data td[2000];
