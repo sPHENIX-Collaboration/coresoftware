@@ -363,40 +363,40 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
              << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z
              << endl;
       }
-      else
+    }
+    else
+    {
+      // need a rotation
+      CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
+      const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
+      const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
+
+      const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
+      CLHEP::Hep3Vector init_3vertex(
+          init_4vertex.x(),
+          init_4vertex.y(),
+          init_4vertex.z());
+
+      CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
+
+      genevent->set_collision_vertex(HepMC::FourVector(
+          final_3vertex.x(),
+          final_3vertex.y(),
+          final_3vertex.z(),
+          init_4vertex.t()));
+
+      if (m_verbosity)
       {
-        // need a rotation
-        CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
-        const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
-        const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
-
-        const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
-        CLHEP::Hep3Vector init_3vertex(
-            init_4vertex.x(),
-            init_4vertex.y(),
-            init_4vertex.z());
-
-        CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
-
-        genevent->set_collision_vertex(HepMC::FourVector(
-            final_3vertex.x(),
-            final_3vertex.y(),
-            final_3vertex.z(),
-            init_4vertex.t()));
-
-        if (m_verbosity)
-        {
-          cout << __PRETTY_FUNCTION__
-               << ": collision longitudinal axis is rotated: "
-               << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
-               << "rotation_axis = " << rotation_axis << ", "
-               << "init_3vertex = " << init_3vertex << ", "
-               << "final_3vertex = " << final_3vertex << ", "
-               << endl;
-        }
+        cout << __PRETTY_FUNCTION__
+             << ": collision longitudinal axis is rotated: "
+             << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
+             << "rotation_axis = " << rotation_axis << ", "
+             << "init_3vertex = " << init_3vertex << ", "
+             << "final_3vertex = " << final_3vertex << ", "
+             << endl;
       }
     }
-  }
+  }  //  if (not _reuse_vertex)
 
   if (m_verbosity)
   {
