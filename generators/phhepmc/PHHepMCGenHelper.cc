@@ -348,7 +348,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   {
     // the final longitudinal vertex smear axis
     CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
-    beamCenterDiffAxis = beamCenterDiffAxis / beamDiffAxis.mag();
+    beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
 
     double cos_rotation_center_angle_to_z = beamCenterDiffAxis.dot(z_axis);
 
