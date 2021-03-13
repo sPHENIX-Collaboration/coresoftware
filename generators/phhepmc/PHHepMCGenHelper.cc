@@ -173,11 +173,13 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   // now handle the collision vertex first, in the head-on collision frame
   // this is used as input to the Crab angle correction
   move_vertex(genevent);
+  const double init_vertex_longitudinal = genevent->get_collision_vertex().z();
 
   // boost-rotation from beam angles
 
   const static CLHEP::Hep3Vector z_axis(0, 0, 1);
 
+  // function to convert spherical coordinate to Hep3Vector in x-y-z
   auto pair2Hep3Vector = [](const std::pair<double, double> &theta_phi) {
     const double &theta = theta_phi.first;
     const double &phi = theta_phi.second;
@@ -213,9 +215,11 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     Print();
   }
 
+  // function to do angular shifts relative to central beam angle
   auto smear_beam_divergence = [&, this](
                                    const CLHEP::Hep3Vector &beam_center,
-                                   const std::pair<double, double> &divergence_hv) {
+                                   const std::pair<double, double> &divergence_hv,
+                                   const std::pair<double, double> &beam_angular_z_coefficient_hv) {
     const double &x_divergence = divergence_hv.first;
     const double &y_divergence = divergence_hv.second;
 
@@ -223,14 +227,28 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
 
     CLHEP::Hep3Vector beam_direction(beam_center);
-    CLHEP::HepRotation x_smear_in_accelerator_plane(accelerator_plane, smear(0, x_divergence, Gaus));
-    CLHEP::HepRotation y_smear_out_accelerator_plane(accelerator_plane.cross(beam_center), smear(0, y_divergence, Gaus));
+    CLHEP::HepRotation x_smear_in_accelerator_plane(
+        accelerator_plane,
+        smear(
+            init_vertex_longitudinal * beam_angular_z_coefficient_hv.first,  //  central horizontal angle shift
+            x_divergence,                                                    // horizontal angle smear
+            Gaus));
+    CLHEP::HepRotation y_smear_out_accelerator_plane(
+        accelerator_plane.cross(beam_center),
+        smear(
+            init_vertex_longitudinal * beam_angular_z_coefficient_hv.second,  //  central vertical angle shift
+            y_divergence,                                                     // vertical angle smear
+            Gaus));
 
     return y_smear_out_accelerator_plane * x_smear_in_accelerator_plane * beam_center;
   };
 
-  CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center, m_beam_angular_divergence_hv.first);
-  CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center, m_beam_angular_divergence_hv.second);
+  CLHEP::Hep3Vector beamA_vec = smear_beam_divergence(beamA_center,
+                                                      m_beam_angular_divergence_hv.first,
+                                                      m_beam_angular_z_coefficient_hv.first);
+  CLHEP::Hep3Vector beamB_vec = smear_beam_divergence(beamB_center,
+                                                      m_beam_angular_divergence_hv.second,
+                                                      m_beam_angular_z_coefficient_hv.second);
 
   if (m_verbosity)
   {
@@ -446,6 +464,23 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
   helper_dest.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
   helper_dest.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
   helper_dest.set_vertex_distribution_mean(_vertex_x, _vertex_y, _vertex_z, _vertex_t);
+
+  helper_dest.set_beam_direction_theta_phi(
+      m_beam_direction_theta_phi.first.first,
+      m_beam_direction_theta_phi.first.second,
+      m_beam_direction_theta_phi.second.first,
+      m_beam_direction_theta_phi.second.second);
+  helper_dest.set_beam_angular_divergence_hv(
+      m_beam_angular_divergence_hv.first.first,
+      m_beam_angular_divergence_hv.first.second,
+      m_beam_angular_divergence_hv.second.first,
+      m_beam_angular_divergence_hv.second.second);
+  helper_dest.set_beam_angular_z_coefficient_hv(
+      m_beam_angular_z_coefficient_hv.first.first,
+      m_beam_angular_z_coefficient_hv.first.second,
+      m_beam_angular_z_coefficient_hv.second.first,
+      m_beam_angular_z_coefficient_hv.second.second);
+
   return;
 }
 
@@ -496,6 +531,11 @@ void PHHepMCGenHelper::Print(const std::string &what) const
        << ", " << m_beam_angular_divergence_hv.first.second << endl;
   cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_hv.second.first
        << ", " << m_beam_angular_divergence_hv.second.second << endl;
+
+  cout << "Beam angle shift as linear function of longitudinal vertex position : A X-Y = " << m_beam_angular_z_coefficient_hv.first.first
+       << ", " << m_beam_angular_z_coefficient_hv.first.second << endl;
+  cout << "Beam angle shift as linear function of longitudinal vertex position: B X-Y = " << m_beam_angular_z_coefficient_hv.second.first
+       << ", " << m_beam_angular_z_coefficient_hv.second.second << endl;
 
   return;
 }
