@@ -639,7 +639,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
-    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
+    //    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
     //    if(i>=1)break;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);

@@ -383,7 +383,7 @@ void PHCASeeding::FillTree()
       t_fill->stop();
     }
   }
-  for (int j = 0; j < 60; ++j) cout << "nhits in layer " << j << ":  " << nlayer[j] << endl;
+  if(Verbosity()>1)for (int j = 0; j < 60; ++j) cout << "nhits in layer " << j << ":  " << nlayer[j] << endl;
   if(Verbosity()>0) std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   if(Verbosity()>0) std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
@@ -477,7 +477,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   numberofseeds += FindSeedsWithMerger();
   t_seed->stop();
   //  if(Verbosity()>0)   
-  cout << "number of seeds " << numberofseeds << endl;
+if(Verbosity()>1)  cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 //  fpara.cd();
 //  fpara.Close();
@@ -545,11 +545,11 @@ int PHCASeeding::FindSeedsWithMerger()
   t_seed->restart();
 
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters));
-  cout << "links size: " << links.first.size() << "| " << links.second.size() << endl;
+if(Verbosity()>1)  cout << "links size: " << links.first.size() << "| " << links.second.size() << endl;
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
-  cout << "bilinks size: " << biLinks.size() << endl;
+if(Verbosity()>1)  cout << "bilinks size: " << biLinks.size() << endl;
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks);
-  cout << "keylistvector size: " << trackSeedKeyLists.size() << endl;
+if(Verbosity()>1)  cout << "keylistvector size: " << trackSeedKeyLists.size() << endl;
 //  if(Verbosity()>0)  std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
 //  vector<keylist> mergedSeedKeyLists = MergeSeeds(trackSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
@@ -996,7 +996,7 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
 
 void PHCASeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
 {
-  cout << "publishing " << seeds.size() << " seeds" << endl;
+  if(Verbosity()>1) cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)
   {
     _track_map->insert(&(seeds[i]));

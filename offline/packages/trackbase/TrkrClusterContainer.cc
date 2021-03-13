@@ -183,6 +183,11 @@ TrkrCluster* TrkrClusterContainer::findCluster(TrkrDefs::cluskey key){
   {
     return it->second;
   }
-  std::cout << " returning zero " << std::endl;
+  /*
+  std::cout << " returning zero for lpz: " << layer 
+	    << "|" << sector
+	    << "|" << side
+	    << std::endl;
+  */
   return 0;
 }
