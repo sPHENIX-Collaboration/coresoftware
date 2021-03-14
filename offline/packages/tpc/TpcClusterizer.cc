@@ -148,7 +148,6 @@ void TpcClusterizer::remove_hits(std::vector<ihit> &ihit_list, std::multimap<dou
 
 void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset)
 {
-
   ///HERE TODO
   //cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
   // loop over the hits in this cluster
@@ -210,6 +209,8 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   
   // create the cluster entry directly in the node tree
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
+  
+
   TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
   
   //  int phi_nsize = phibinhi - phibinlo + 1;
@@ -325,6 +326,12 @@ void TpcClusterizer::calc_cluster_parameter(std::vector<ihit> &ihit_list,int icl
   
   Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						global);
+  if(!surface)
+    {
+      //we can't track with this cluster so it is useless. remove it
+      m_clusterlist->removeCluster(ckey);
+      return;
+    }
   Acts::Vector3D center = surface->center(m_tGeometry->geoContext) 
     / Acts::UnitConstants::cm;
 
@@ -502,6 +509,7 @@ void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vecto
     // consider only the peak bin in phi when searching for Z limit     
     
     //break when below minimum
+ 
     if(adcval[cphi][zbin] <= 0) {
       // phiup = iphi;
       if(Verbosity() > 1000) cout << " failed threshold cut, set iphiup to " << phiup << endl;
@@ -517,6 +525,7 @@ void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vecto
     }
     phiup = iphi;
   }
+
   if(Verbosity()>10) cout << " phiup " << phiup << endl; 
   for(int iphi=0; iphi< FitRangePHI; iphi++){
     int cphi = phibin - iphi;
@@ -525,7 +534,7 @@ void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vecto
       // phidown = iphi;
       break; // truncate edge
     }
-    
+   
     if(adcval[cphi][zbin] <= 0) {
       //phidown = iphi;
       if(Verbosity() > 1000) cout << " failed threshold cut, set iphiup to " << phiup << endl;
@@ -533,7 +542,7 @@ void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vecto
     }
 
     if(cphi>4){//make sure we stay clear from the edge
-      if(adcval[cphi][zbin]+adcval[cphi-1][zbin] < 
+     if(adcval[cphi][zbin]+adcval[cphi-1][zbin] < 
 	 adcval[cphi-2][zbin]+adcval[cphi-3][zbin]){//rising again
 	phidown = iphi+1;
 	break;
@@ -546,7 +555,6 @@ void TpcClusterizer::find_phi_range(int phibin, int zbin, std::vector<std::vecto
 void TpcClusterizer::get_cluster(int phibin, int zbin, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list)
 {
   // search along phi at the peak in z
- 
   int zup =0;
   int zdown =0;
   find_z_range(phibin, zbin, adcval, zdown, zup);
@@ -742,9 +750,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     // -> add hits to truth association
     // remove hits from all_hit_map
     // repeat untill all_hit_map empty
-
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    if(Verbosity()>10) cout << " New Hitset " << endl;
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)
@@ -755,7 +761,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       double adc =  (double) hitr->second->getAdc() - pedestal;
       
       if(Verbosity()>10) cout << " iphi: " << phibin << " iz: " << zbin << " adc: "  << adc << endl;
-
+    
       if (hitr->second->getAdc() > 0)
 	{
 	  if(adc>0){
@@ -772,7 +778,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       
     }
     //put all hits in the all_hit_map (sorted by adc)
-
     int nclus = 0;
     while(all_hit_map.size()>0){
       auto iter = all_hit_map.rbegin();
@@ -780,10 +785,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       ihit hiHit = iter->second;
       //start with highest adc hit
-      if(Verbosity()>10) cout << "  test entries: " << all_hit_map.size() << " adc: " << hiHit.first << " iphi: " << hiHit. second.first << " iz: " << hiHit.second.second << endl;
+      if(Verbosity()>10) 
+	cout << "  test entries: " << all_hit_map.size() << " adc: " << hiHit.first << " iphi: " << hiHit. second.first << " iz: " << hiHit.second.second << endl;
       //      double adc = hiHit.first;
       int iphi = hiHit.second.first;
       int iz = hiHit.second.second;
+
 
       //put all hits in the all_hit_map (sorted by adc)
       //start with highest adc hit
