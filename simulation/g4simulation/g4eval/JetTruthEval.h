@@ -39,6 +39,7 @@ class JetTruthEval
     _hcaloutevalstack.do_caching(do_cache);
     _femcevalstack.do_caching(do_cache);
     _fhcalevalstack.do_caching(do_cache);
+    _eemcevalstack.do_caching(do_cache);
   }
 
   /// strict mode will assert when an error is detected
@@ -52,12 +53,13 @@ class JetTruthEval
     _hcaloutevalstack.set_strict(strict);
     _femcevalstack.set_strict(strict);
     _fhcalevalstack.set_strict(strict);
+    _eemcevalstack.set_strict(strict);
   }
 
   /// get a count of the errors discovered thus far
   unsigned int get_errors()
   {
-    return _errors + _svtxevalstack.get_errors() + _cemcevalstack.get_errors() + _hcalinevalstack.get_errors() + _hcaloutevalstack.get_errors() + _femcevalstack.get_errors() + _fhcalevalstack.get_errors();
+    return _errors + _svtxevalstack.get_errors() + _cemcevalstack.get_errors() + _hcalinevalstack.get_errors() + _hcaloutevalstack.get_errors() + _femcevalstack.get_errors() + _fhcalevalstack.get_errors() + _eemcevalstack.get_errors();
   }
 
   /// adjust the messaging from the evalutaion module
@@ -70,6 +72,13 @@ class JetTruthEval
     _hcaloutevalstack.set_verbosity(verbosity);
     _femcevalstack.set_verbosity(verbosity);
     _fhcalevalstack.set_verbosity(verbosity);
+    _eemcevalstack.set_verbosity(verbosity);
+  }
+
+  //set track node name
+  void set_track_nodename(const std::string& name)
+  {
+    _svtxevalstack.set_track_nodename(name);
   }
 
   /// get a copy of the lower level eval and its memory cache
@@ -89,6 +98,9 @@ class JetTruthEval
 
   /// get a copy of the lower level eval and its memory cache
   CaloEvalStack* get_fhcal_eval_stack() { return &_fhcalevalstack; }
+
+  /// get a copy of the lower level eval and its memory cache
+  CaloEvalStack* get_eemc_eval_stack() { return &_eemcevalstack; }
 
   // ---reduced sim node or better----------------------------------------------
 
@@ -116,7 +128,8 @@ class JetTruthEval
   CaloEvalStack _hcaloutevalstack;
   CaloEvalStack _femcevalstack;
   CaloEvalStack _fhcalevalstack;
-
+  CaloEvalStack _eemcevalstack;
+  
   PHG4TruthInfoContainer* _truthinfo;
   JetMap* _truthjets;
 

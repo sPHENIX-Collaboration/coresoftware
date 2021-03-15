@@ -37,13 +37,6 @@ using namespace std;
 PHG4HcalSteppingAction::PHG4HcalSteppingAction(PHG4HcalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , m_HitContainer(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_Hit(nullptr)
-  , zmin(NAN)
-  , zmax(NAN)
-  , light_scint_model_(true)
 {
 }
 

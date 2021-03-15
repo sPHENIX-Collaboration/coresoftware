@@ -50,7 +50,7 @@ ReadEICFiles::ReadEICFiles(const string &name)
   , GenEvent(nullptr)
   , _node_name("PHHepMCGenEvent")
 {
-  hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
+  PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
   return;
 }
 
@@ -326,7 +326,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   evt->set_beam_particles(hepmc_beam1, hepmc_beam2);
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = hepmc_helper.insert_event(evt);
+  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(evt);
   if (Verbosity() > 1)
   {
     cout << __PRETTY_FUNCTION__ << " : " << __LINE__ << endl;
@@ -348,7 +348,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
 
 int ReadEICFiles::CreateNodeTree(PHCompositeNode *topNode)
 {
-  hepmc_helper.create_node_tree(topNode);
+  PHHepMCGenHelper::create_node_tree(topNode);
 
   PHNodeIterator iter(topNode);
   // Looking for the DST node

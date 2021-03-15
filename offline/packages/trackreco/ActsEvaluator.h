@@ -4,18 +4,22 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "PHActsSourceLinks.h"
+#include "ActsTrackingGeometry.h"
 #include "ActsTrack.h"
 
 #include <Acts/Utilities/Helpers.hpp>
 
-#include <ACTFW/EventData/TrkrClusterMultiTrajectory.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+
+#include <boost/bimap.hpp>
 
 class TTree;
 class TFile;
 class PHG4Particle;
+class SvtxTrack;
+class SvtxVertexMap;
 class SvtxEvalStack;
 class SvtxTrackMap;
 class PHG4TruthInfoContainer;
@@ -25,16 +29,20 @@ class SvtxEvaluator;
 #include <string>
 #include <vector>
 
-using SourceLink = FW::Data::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = FW::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<FW::Data::TrkrClusterSourceLink,
-                                      Acts::ParDef::eLOC_0,
-                                      Acts::ParDef::eLOC_1>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
+                                      Acts::BoundIndices,
+                                      Acts::eBoundLoc0,
+                                      Acts::eBoundLoc1>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
+
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
 
 /**
  * This class is an analyzing class for the Acts track fitting, and produces
@@ -55,37 +63,54 @@ class ActsEvaluator : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 
  private:
   int getNodes(PHCompositeNode *topNode);
   
+  /// Function to evaluate Trajectories fit results from the KF
   void evaluateTrackFits(PHCompositeNode *topNode);
-
+  
   void initializeTree();
+
   void fillG4Particle(PHG4Particle *part);
+
   void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);
-  void fillFittedTrackParams(const Trajectory traj, const size_t &trackTip);
+
+  void fillFittedTrackParams(const Trajectory traj,
+			     const size_t &trackTip,
+			     const Acts::Vector3D vertex);
+
   void visitTrackStates(const Trajectory traj,
 			const size_t &trackTip, 
 			PHCompositeNode *topNode);
+
   void clearTrackVariables();
   
-  void calculateDCA(const Acts::BoundParameters param);
+  void calculateDCA(const Acts::BoundTrackParameters param, 
+		    const Acts::Vector3D vertex);
 
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
 				   const unsigned int hitID,
 				   float &_gt);
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
 
   SvtxEvaluator *m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
+  std::map<const unsigned int, std::map<const size_t, 
+    const unsigned int>> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
+  CluskeyBimap *m_hitIdClusKey{nullptr};
   std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
   ActsTrackingGeometry *m_tGeometry{nullptr};
- 
+  SvtxVertexMap *m_vertexMap;
+
+  /// boolean indicating whether or not to evaluate the CKF or
+  /// the KF. Must correspond with what was run to do fitting
+  /// i.e. PHActsTrkFitter or PHActsTrkProp
+  bool m_evalCKF;
+
   TFile *m_trackFile{nullptr};
   TTree *m_trackTree{nullptr};
 
@@ -126,6 +151,8 @@ class ActsEvaluator : public SubsysReco
   std::vector<float> m_t_eQOP;    /// truth parameter eQOP
   std::vector<float> m_t_eT;      /// truth parameter eT
 
+  int m_nHoles{0};                  /// number of holes in the track fit
+  int m_nOutliers{0};               /// number of outliers in the track fit
   int m_nStates{0};                 /// number of all states
   int m_nMeasurements{0};           /// number of states with measurements
   std::vector<int> m_volumeID;      /// volume identifier
@@ -164,6 +191,7 @@ class ActsEvaluator : public SubsysReco
   float m_y_fit{-99.};            /// fitted parameter global PCA y
   float m_z_fit{-99.};            /// fitted parameter global PCA z
   float m_chi2_fit{-99.};         /// fitted parameter chi2
+  float m_quality{-99.};          /// SvtxTrack quality parameter
   float m_ndf_fit{-99.};          /// fitted parameter ndf
   float m_dca3Dxy{-99.};          /// fitted parameter 3D DCA in xy plane
   float m_dca3Dz{-99.};           /// fitted parameter 3D DCA in z plane
@@ -283,6 +311,12 @@ class ActsEvaluator : public SubsysReco
   float m_protoTrackX{-9999.};           /// Proto track PCA x
   float m_protoTrackY{-9999.};           /// Proto track PCA y
   float m_protoTrackZ{-9999.};           /// Proto track PCA z
+  float m_protoD0Cov{-9999.};            /// Proto track loc0 covariance
+  float m_protoZ0Cov{-9999.};            /// Proto track loc1 covariance
+  float m_protoPhiCov{-9999.};           /// Proto track phi covariance
+  float m_protoThetaCov{-9999.};         /// Proto track theta covariance
+  float m_protoQopCov{-9999.};           /// Proto track q/p covariance
+  
   
   std::vector<float> m_SL_lx;            /// Proto track source link local x pos
   std::vector<float> m_SL_ly;            /// Proto track source link local y pos

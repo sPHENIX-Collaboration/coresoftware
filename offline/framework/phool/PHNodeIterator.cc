@@ -20,8 +20,6 @@
 #include <utility> 
 #include <vector>
 
-using namespace std;
-
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node)
   : currentNode(node)
 {
@@ -51,7 +49,7 @@ void PHNodeIterator::print()
 }
 
 PHNode*
-PHNodeIterator::findFirst(const string& requiredType, const string& requiredName)
+PHNodeIterator::findFirst(const std::string& requiredType, const std::string& requiredName)
 {
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode* thisNode;
@@ -75,7 +73,7 @@ PHNodeIterator::findFirst(const string& requiredType, const string& requiredName
 }
 
 PHNode*
-PHNodeIterator::findFirst(const string& requiredName)
+PHNodeIterator::findFirst(const std::string& requiredName)
 {
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode* thisNode;
@@ -101,7 +99,7 @@ PHNodeIterator::findFirst(const string& requiredName)
   return 0;
 }
 
-bool PHNodeIterator::cd(const string& pathString)
+bool PHNodeIterator::cd(const std::string& pathString)
 {
   bool success = true;
   if (pathString.empty())
@@ -113,12 +111,12 @@ bool PHNodeIterator::cd(const string& pathString)
   }
   else
   {
-    vector<string> splitpath;
+    std::vector<std::string> splitpath;
     boost::split(splitpath, pathString, boost::is_any_of(phooldefs::nodetreepathdelim));
     bool pathFound;
     PHNode* subNode;
     int i = 0;
-    for (vector<string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
+    for (std::vector<std::string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
     {
       i++;
       if (*iter == "..")

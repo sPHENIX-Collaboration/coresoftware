@@ -19,9 +19,12 @@ class ParticleFlowElement : public PHObject
 
   enum PFLOWTYPE
   {
-    CHARGED = 0,
-    EM = 1,
-    NEUTRAL = 2,
+    UNASSIGNED = -1,
+    MATCHED_CHARGED_HADRON = 0,
+    UNMATCHED_CHARGED_HADRON = 1,
+    UNMATCHED_EM_PARTICLE = 2,
+    UNMATCHED_NEUTRAL_HADRON = 3,
+    LEFTOVER_EM_PARTICLE = 4
   };
 
   ParticleFlowElement() {}
@@ -33,6 +36,9 @@ class ParticleFlowElement : public PHObject
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int id) { return; }
+
+  virtual ParticleFlowElement::PFLOWTYPE get_type() const {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
+  virtual void set_type( ParticleFlowElement::PFLOWTYPE ) { return; }
 
   virtual float get_px() const { return NAN; }
   virtual void set_px(float px) { return; }

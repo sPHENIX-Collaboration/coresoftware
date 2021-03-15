@@ -5,17 +5,12 @@
 
 #include <TString.h>
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <utility>  // std::pair, std::make_pair
-
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 class JetEvalStack;
 class JetTruthEval;
@@ -43,7 +38,7 @@ class QAG4SimulationJet : public SubsysReco
 
   QAG4SimulationJet(const std::string &truth_jet, enu_flags flags =
                                                       kDefaultFlag);
-  virtual ~QAG4SimulationJet(){}
+  virtual ~QAG4SimulationJet() {}
 
   //! add reco jet to the process list
   //! @return number of reco jet on list
@@ -146,12 +141,10 @@ class QAG4SimulationJet : public SubsysReco
   get_histo_prefix(const std::string &src_jet_name = "",
                    const std::string &reco_jet_name = "");
 
-#if !defined(__CINT__) || defined(__CLING__)
   //! cache the jet evaluation modules
   typedef std::map<std::string, std::shared_ptr<JetEvalStack>> jetevalstacks_map;
   jetevalstacks_map _jetevalstacks;
   std::shared_ptr<JetTruthEval> _jettrutheval;
-#endif
 
   //! truth jet name
   std::string _truth_jet;

@@ -29,100 +29,100 @@ class GPUTPCTrackParam
 {
  public:
   struct GPUTPCTrackFitParam {
-    float bethe, e, theta2, EP2, sigmadE2, k22, k33, k43, k44; // parameters
+    double bethe, e, theta2, EP2, sigmadE2, k22, k33, k43, k44; // parameters
   };
 
    const GPUTPCBaseTrackParam& GetParam() const { return mParam; }
    void SetParam(const GPUTPCBaseTrackParam& v) { mParam = v; }
    void InitParam();
 
-   float X() const { return mParam.X(); }
-   float Y() const { return mParam.Y(); }
-   float Z() const { return mParam.Z(); }
-   float SinPhi() const { return mParam.SinPhi(); }
-   float DzDs() const { return mParam.DzDs(); }
-   float QPt() const { return mParam.QPt(); }
-   float ZOffset() const { return mParam.ZOffset(); }
-   float SignCosPhi() const { return mSignCosPhi; }
-   float Chi2() const { return mChi2; }
+   double X() const { return mParam.X(); }
+   double Y() const { return mParam.Y(); }
+   double Z() const { return mParam.Z(); }
+   double SinPhi() const { return mParam.SinPhi(); }
+   double DzDs() const { return mParam.DzDs(); }
+   double QPt() const { return mParam.QPt(); }
+   double ZOffset() const { return mParam.ZOffset(); }
+   double SignCosPhi() const { return mSignCosPhi; }
+   double Chi2() const { return mChi2; }
    int NDF() const { return mNDF; }
 
-   float Err2Y() const { return mC[0]; }
-   float Err2Z() const { return mC[2]; }
-   float Err2SinPhi() const { return mC[5]; }
-   float Err2DzDs() const { return mC[9]; }
-   float Err2QPt() const { return mC[14]; }
+   double Err2Y() const { return mC[0]; }
+   double Err2Z() const { return mC[2]; }
+   double Err2SinPhi() const { return mC[5]; }
+   double Err2DzDs() const { return mC[9]; }
+   double Err2QPt() const { return mC[14]; }
 
-   float GetX() const { return mParam.GetX(); }
-   float GetY() const { return mParam.GetY(); }
-   float GetZ() const { return mParam.GetZ(); }
-   float GetSinPhi() const { return mParam.GetSinPhi(); }
-   float GetDzDs() const { return mParam.GetDzDs(); }
-   float GetQPt() const { return mParam.GetQPt(); }
-   float GetSignCosPhi() const { return mSignCosPhi; }
-   float GetChi2() const { return mChi2; }
+   double GetX() const { return mParam.GetX(); }
+   double GetY() const { return mParam.GetY(); }
+   double GetZ() const { return mParam.GetZ(); }
+   double GetSinPhi() const { return mParam.GetSinPhi(); }
+   double GetDzDs() const { return mParam.GetDzDs(); }
+   double GetQPt() const { return mParam.GetQPt(); }
+   double GetSignCosPhi() const { return mSignCosPhi; }
+   double GetChi2() const { return mChi2; }
    int GetNDF() const { return mNDF; }
 
-   float GetKappa(float Bz) const { return mParam.GetKappa(Bz); }
-   float GetCosPhi() const { return mSignCosPhi * sqrt(1 - SinPhi() * SinPhi()); }
+   double GetKappa(double Bz) const { return mParam.GetKappa(Bz); }
+   double GetCosPhi() const { return mSignCosPhi * sqrt(1 - SinPhi() * SinPhi()); }
 
-   float GetErr2Y() const { return mC[0]; }
-   float GetErr2Z() const { return mC[2]; }
-   float GetErr2SinPhi() const { return mC[5]; }
-   float GetErr2DzDs() const { return mC[9]; }
-   float GetErr2QPt() const { return mC[14]; }
+   double GetErr2Y() const { return mC[0]; }
+   double GetErr2Z() const { return mC[2]; }
+   double GetErr2SinPhi() const { return mC[5]; }
+   double GetErr2DzDs() const { return mC[9]; }
+   double GetErr2QPt() const { return mC[14]; }
 
-   const float* Par() const { return mParam.Par(); }
-   const float* Cov() const { return mC; }
+   const double* Par() const { return mParam.Par(); }
+   const double* Cov() const { return mC; }
 
-   const float* GetPar() const { return mParam.GetPar(); }
-   float GetPar(int i) const { return (mParam.GetPar(i)); }
-   const float* GetCov() const { return mC; }
-   float GetCov(int i) const { return mC[i]; }
+   const double* GetPar() const { return mParam.GetPar(); }
+   double GetPar(int i) const { return (mParam.GetPar(i)); }
+   const double* GetCov() const { return mC; }
+   double GetCov(int i) const { return mC[i]; }
 
-   void SetPar(int i, float v) { mParam.SetPar(i, v); }
-   void SetCov(int i, float v) { mC[i] = v; }
+   void SetPar(int i, double v) { mParam.SetPar(i, v); }
+   void SetCov(int i, double v) { mC[i] = v; }
 
-   void SetX(float v) { mParam.SetX(v); }
-   void SetY(float v) { mParam.SetY(v); }
-   void SetZ(float v) { mParam.SetZ(v); }
-   void SetSinPhi(float v) { mParam.SetSinPhi(v); }
-   void SetDzDs(float v) { mParam.SetDzDs(v); }
-   void SetQPt(float v) { mParam.SetQPt(v); }
-   void SetZOffset(float v) { mParam.SetZOffset(v); }
-   void SetSignCosPhi(float v) { mSignCosPhi = v >= 0 ? 1 : -1; }
-   void SetChi2(float v) { mChi2 = v; }
+   void SetX(double v) { mParam.SetX(v); }
+   void SetY(double v) { mParam.SetY(v); }
+   void SetZ(double v) { mParam.SetZ(v); }
+   void SetSinPhi(double v) { mParam.SetSinPhi(v); }
+   void SetDzDs(double v) { mParam.SetDzDs(v); }
+   void SetQPt(double v) { mParam.SetQPt(v); }
+   void SetZOffset(double v) { mParam.SetZOffset(v); }
+   void SetSignCosPhi(double v) { mSignCosPhi = v >= 0 ? 1 : -1; }
+   void SetChi2(double v) { mChi2 = v; }
    void SetNDF(int v) { mNDF = v; }
 
-   float GetDist2(const GPUTPCTrackParam& t) const;
-   float GetDistXZ2(const GPUTPCTrackParam& t) const;
+   double GetDist2(const GPUTPCTrackParam& t) const;
+   double GetDistXZ2(const GPUTPCTrackParam& t) const;
 
-   float GetS(float x, float y, float Bz) const;
+   double GetS(double x, double y, double Bz) const;
 
-   void GetDCAPoint(float x, float y, float z, float& px, float& py, float& pz, float Bz) const;
+   void GetDCAPoint(double x, double y, double z, double& px, double& py, double& pz, double Bz) const;
 
-   bool TransportToX(float x, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI);
-   bool TransportToXWithMaterial(float x, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool TransportToX(double x, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool TransportToXWithMaterial(double x, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI);
 
-   bool TransportToX(float x, GPUTPCTrackLinearisation& t0, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI, float* DL = nullptr);
+   bool TransportToX(double x, GPUTPCTrackLinearisation& t0, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI, double* DL = nullptr);
 
-   bool TransportToX(float x, float sinPhi0, float cosPhi0, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool TransportToX(double x, double sinPhi0, double cosPhi0, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI);
 
-   bool TransportToXWithMaterial(float x, GPUTPCTrackLinearisation& t0, GPUTPCTrackFitParam& par, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool TransportToXWithMaterial(double x, GPUTPCTrackLinearisation& t0, GPUTPCTrackFitParam& par, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI);
 
-   bool TransportToXWithMaterial(float x, GPUTPCTrackFitParam& par, float Bz, float maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool TransportToXWithMaterial(double x, GPUTPCTrackFitParam& par, double Bz, double maxSinPhi = GPUCA_MAX_SIN_PHI);
 
-   static float ApproximateBetheBloch(float beta2);
-   static float BetheBlochGeant(float bg, float kp0 = 2.33f, float kp1 = 0.20f, float kp2 = 3.00f, float kp3 = 173e-9f, float kp4 = 0.49848f);
-   static float BetheBlochSolid(float bg);
-   static float BetheBlochGas(float bg);
+   static double ApproximateBetheBloch(double beta2);
+   static double BetheBlochGeant(double bg, double kp0 = 2.33f, double kp1 = 0.20f, double kp2 = 3.00f, double kp3 = 173e-9f, double kp4 = 0.49848f);
+   static double BetheBlochSolid(double bg);
+   static double BetheBlochGas(double bg);
 
-   void CalculateFitParameters(GPUTPCTrackFitParam& par, float mass = 0.13957f);
-   bool CorrectForMeanMaterial(float xOverX0, float xTimesRho, const GPUTPCTrackFitParam& par);
+   void CalculateFitParameters(GPUTPCTrackFitParam& par, double mass = 0.13957f);
+   bool CorrectForMeanMaterial(double xOverX0, double xTimesRho, const GPUTPCTrackFitParam& par);
 
-   bool Rotate(float alpha, float maxSinPhi = GPUCA_MAX_SIN_PHI);
-   bool Rotate(float alpha, GPUTPCTrackLinearisation& t0, float maxSinPhi = GPUCA_MAX_SIN_PHI);
-   bool Filter(float y, float z, float err2Y, float err2Z, float maxSinPhi = GPUCA_MAX_SIN_PHI, bool paramOnly = false);
+   bool Rotate(double alpha, double maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool Rotate(double alpha, GPUTPCTrackLinearisation& t0, double maxSinPhi = GPUCA_MAX_SIN_PHI);
+   bool Filter(double y, double z, double err2Y, double err2Z, double maxSinPhi = GPUCA_MAX_SIN_PHI, bool paramOnly = false);
 
    bool CheckNumericalQuality() const;
 
@@ -138,9 +138,9 @@ class GPUTPCTrackParam
   // WARNING, Track Param Data is copied in the GPU Tracklet Constructor element by element instead of using copy constructor!!!
   // This is neccessary for performance reasons!!!
   // Changes to Elements of this class therefore must also be applied to TrackletConstructor!!!
-  float mC[15];      // the covariance matrix for Y,Z,SinPhi,..
-  float mSignCosPhi; // sign of cosPhi
-  float mChi2;       // the chi^2 value
+  double mC[15];      // the covariance matrix for Y,Z,SinPhi,..
+  double mSignCosPhi; // sign of cosPhi
+  double mChi2;       // the chi^2 value
   int mNDF;          // the Number of Degrees of Freedom
 };
 

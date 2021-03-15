@@ -35,6 +35,7 @@ SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
   , _g4hits_tpc(nullptr)
   , _g4hits_intt(nullptr)
   , _g4hits_mvtx(nullptr)
+  , _g4hits_mms(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
   , _verbosity(0)
@@ -224,6 +225,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
         case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
         case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
         case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
+       case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
         default: break;
        }
 	      // fill output set
@@ -691,6 +693,7 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -707,8 +710,8 @@ bool SvtxHitEval::has_node_pointers()
   }
 
   if (_strict)
-    assert(_g4hits_tpc || _g4hits_intt || _g4hits_mvtx);
-  else if (!_g4hits_tpc && !_g4hits_intt && !_g4hits_mvtx)
+    assert(_g4hits_mms || _g4hits_tpc || _g4hits_intt || _g4hits_mvtx);
+  else if (!_g4hits_mms && !_g4hits_tpc && !_g4hits_intt && !_g4hits_mvtx)
   {
     cout << "no hits" << endl;
     return false;

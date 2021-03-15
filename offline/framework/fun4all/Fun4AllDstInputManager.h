@@ -27,26 +27,28 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   virtual int setSyncBranches(PHNodeIOManager *IManager);
   void Print(const std::string &what = "ALL") const;
   int PushBackEvents(const int i);
+  virtual int HasSyncObject() const;
 
  protected:
   int ReadNextEventSyncObject();
   void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
 
  private:
-  int m_ReadRunTTree;
-  int events_total;
-  int events_thisfile;
-  int events_skipped_during_sync;
+  int m_ReadRunTTree = 1;
+  int events_total = 0;
+  int events_thisfile = 0;
+  int events_skipped_during_sync = 0;
+  int m_HaveSyncObject = 0;
   std::string fullfilename;
-  std::string RunNode;
+  std::string RunNode = "RUN";
   std::map<const std::string, int> branchread;
   std::string syncbranchname;
-  PHCompositeNode *dstNode;
-  PHCompositeNode *runNode;
-  PHCompositeNode *runNodeCopy;
-  PHCompositeNode *runNodeSum;
-  PHNodeIOManager *IManager;
-  SyncObject *syncobject;
+  PHCompositeNode *dstNode = nullptr;
+  PHCompositeNode *runNode = nullptr;
+  PHCompositeNode *runNodeCopy = nullptr;
+  PHCompositeNode *runNodeSum = nullptr;
+  PHNodeIOManager *IManager = nullptr;
+  SyncObject *syncobject = nullptr;
 };
 
 #endif /* __FUN4ALLDSTINPUTMANAGER_H__ */

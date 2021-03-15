@@ -315,7 +315,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   return nelec;
 }
 
-void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -472,6 +472,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
+      TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
 
       // generate the key for this hit, requires zbin and phibin
       TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) zbin_num);
@@ -484,9 +485,21 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
         hit = new TpcHit();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
-
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
+
+      // repeat for the single_hitsetcontainer
+      // See if this hit already exists
+      TrkrHit *single_hit = nullptr;
+      single_hit = single_hitsetit->second->getHit(hitkey);
+      if (!single_hit)
+      {
+        // create a new one
+        single_hit = new TpcHit();
+        single_hitsetit->second->addHitSpecificKey(hitkey, single_hit);
+      }
+      // Either way, add the energy to it  -- adc values will be added at digitization
+      single_hit->addEnergy(neffelectrons);
 
       if (Verbosity() > 0)
       {
@@ -793,8 +806,12 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("zigzag_pads", 1);
 
-  set_default_double_param("gem_amplification", 2000); // GEM Gain
-
+  // GEM Gain
+  /*
+  hp (2020/09/04): gain changed from 2000 to 1400, to accomodate gas mixture change 
+  from Ne/CF4 90/10 to Ne/CF4 50/50, and keep the average charge per particle per pad constant
+  */
+  set_default_double_param("gem_amplification", 1400); 
   return;
 }
 

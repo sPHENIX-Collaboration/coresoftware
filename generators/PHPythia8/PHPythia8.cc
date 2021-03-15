@@ -64,7 +64,7 @@ PHPythia8::PHPythia8(const std::string &name)
   m_Pythia8ToHepMC->set_store_pdf(true);
   m_Pythia8ToHepMC->set_store_xsec(true);
 
-  m_HepMC_Helper.set_embedding_id(1);  // default embedding ID to 1
+  PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
 }
 
 PHPythia8::~PHPythia8()
@@ -238,7 +238,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
   m_Pythia8ToHepMC->fill_next_event(*m_Pythia8, genevent, m_EventCount);
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = m_HepMC_Helper.insert_event(genevent);
+  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(genevent);
   if (!success)
   {
     cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << endl;
@@ -268,7 +268,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
 int PHPythia8::create_node_tree(PHCompositeNode *topNode)
 {
   // HepMC IO
-  m_HepMC_Helper.create_node_tree(topNode);
+  PHHepMCGenHelper::create_node_tree(topNode);
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
@@ -282,7 +282,7 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode)
     m_IntegralNode = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
     if (!m_IntegralNode)
     {
-      m_IntegralNode = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(m_HepMC_Helper.get_embedding_id()));
+      m_IntegralNode = new PHGenIntegralv1("PHPythia8 with embedding ID of " + std::to_string(PHHepMCGenHelper::get_embedding_id()));
       PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(m_IntegralNode, "PHGenIntegral", "PHObject");
       sumNode->addNode(newmapnode);
     }

@@ -17,7 +17,7 @@
 #include <gsl/gsl_rng.h>
 #include <memory>
 #include <string>
-#include <utility>  
+#include <utility>
 #include <vector>
 
 class CylinderGeomMicromegas;
@@ -48,6 +48,14 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   private:
 
+  //! return bare geo node name, used for seting up cylinders in G4
+  std::string bare_geonodename() const
+  { return "CYLINDERGEOM_" + m_detector; }
+
+  //! return full geo node name, that also contains tile information
+  std::string full_geonodename() const
+  { return "CYLINDERGEOM_" + m_detector + "_FULL"; }
+
   //! setup tiles definition in CylinderGeom
   void setup_tiles(PHCompositeNode*);
 
@@ -60,7 +68,7 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   //! stores strip number and corresponding charge fraction
   using charge_pair_t = std::pair<int, double>;
-  
+
   //! map strip number to charge fraction
   using charge_list_t = std::vector<charge_pair_t>;
 
@@ -71,26 +79,26 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   std::string m_detector;
 
   //! timing window (ns)
-  double m_tmin = 0;
+  double m_tmin = -20;
 
   //! timing window (ns)
-  double m_tmax = 0;
+  double m_tmax = 800;
 
   //! number of primary electrons per GeV
   double m_electrons_per_gev = 0;
-  
+
   //! min gain
   double m_gain = 0;
-  
+
   //! electron cloud sigma (cm) after avalanche
   double m_cloud_sigma = 0.04;
 
   //! electron transverse diffusion (cm/sqrt(cm))
   double m_diffusion_trans = 0.03;
-  
+
   //! use zig zag pads
   bool m_zigzag_strips = true;
-  
+
   //! micromegas tiles
   MicromegasTile::List m_tiles;
 

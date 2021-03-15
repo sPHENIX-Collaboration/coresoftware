@@ -3,6 +3,7 @@
 
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
+#include "DumpEventHeader.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpJetMap.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
@@ -15,6 +16,7 @@
 #include "DumpPHG4InEvent.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
+#include "DumpPHHepMCGenEventMap.h"
 #include "DumpPdbParameterMap.h"
 #include "DumpPdbParameterMapContainer.h"
 #include "DumpRawClusterContainer.h"
@@ -174,6 +176,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
       }
+      else if (tmp->InheritsFrom("EventHeader"))
+      {
+        newdump = new DumpEventHeader(NodeName);
+      }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {
         newdump = new DumpGlobalVertexMap(NodeName);
@@ -229,6 +235,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("PHG4TruthInfoContainer"))
       {
         newdump = new DumpPHG4TruthInfoContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("PHHepMCGenEventMap"))
+      {
+        newdump = new DumpPHHepMCGenEventMap(NodeName);
       }
       else if (tmp->InheritsFrom("RawClusterContainer"))
       {

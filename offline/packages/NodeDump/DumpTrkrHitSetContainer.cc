@@ -42,11 +42,10 @@ int DumpTrkrHitSetContainer::process_Node(PHNode *myNode)
       for (tsetiter = trset_begin_end.first; tsetiter != trset_begin_end.second; ++tsetiter)
       {
         TrkrHit *hit = tsetiter->second;
-	*fout << "id: " << tsetiter->first << endl;
-	*fout << "edep: " << hit->getEnergy() << endl;
-	*fout << "adc: " << hit->getAdc() << endl;
+        *fout << "id: " << tsetiter->first << endl;
+        *fout << "edep: " << hit->getEnergy() << endl;
+        *fout << "adc: " << hit->getAdc() << endl;
       }
-
     }
   }
   return 0;

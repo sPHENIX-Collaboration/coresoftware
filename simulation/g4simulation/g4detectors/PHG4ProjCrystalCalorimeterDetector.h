@@ -5,14 +5,18 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
+#include "PHG4CrystalCalorimeterDefs.h"
+
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
+#include <set>                               // for set
 #include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4Subsystem;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -24,16 +28,16 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 {
  public:
   //! constructor
-  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
+  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4ProjCrystalCalorimeterDetector(){}
+  virtual ~PHG4ProjCrystalCalorimeterDetector() {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world) override;
 
   //!@name volume accessors
-  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
+  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const override;
 
   // ----- accessing member variables: ------------
 
@@ -58,10 +62,9 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   void GetCarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
 
   void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
-  virtual void SetSupermoduleGeometry(const std::string& filename2)
-  {
-    _4x4_construct_file = filename2;
-  }
+
+ protected:
+  int GetCaloType() const override { return PHG4CrystalCalorimeterDefs::CaloType::projective; }
 
  private:
   int ConstructProjectiveCrystals(G4LogicalVolume* envelope);
@@ -76,9 +79,14 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   G4double _dz_crystal;
 
   std::string _crystallogicnameprefix;
-  std::string _4x4_construct_file;
 
-  bool _overlapcheck_local;
+  std::set<G4VPhysicalVolume*> m_ActiveVolumeSet;
+  std::set<G4VPhysicalVolume*> m_PassiveVolumeSet;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_AbsorberActive;
 };
 
 #endif

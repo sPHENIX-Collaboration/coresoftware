@@ -202,7 +202,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
   assert(g4hitcontainer);
 
   // geometry
-  const std::string geonodename = "CYLINDERGEOM_" + m_detector;
+  const auto geonodename = full_geonodename();
   auto geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
   assert(geonode);
 
@@ -363,8 +363,13 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 void PHG4MicromegasHitReco::SetDefaultParameters()
 {
   // default timing window (ns)
-  set_default_double_param("micromegas_tmin", -5000 );
-  set_default_double_param("micromegas_tmax", 5000 );
+  /*
+   * see https://indico.bnl.gov/event/8548/contributions/37753/attachments/28212/43343/2020_05_Proposal_sPhenixMonitoring_update_19052020.pptx slide 10
+   * small negative time for tmin is set to catch out of time, same-bunch pileup events
+   * similar value is used in PHG4InttReco
+  */
+  set_default_double_param("micromegas_tmin", -20 );
+  set_default_double_param("micromegas_tmax", 800 );
 
   // gas data from
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
@@ -401,16 +406,41 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
 {
 
   // get geometry
-  const std::string geonodename = "CYLINDERGEOM_" + m_detector;
-  auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
-  if (!geonode)
+  const auto geonodename_full = full_geonodename();
+  auto geonode_full = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename_full);
+  if (!geonode_full)
   {
-    std::cout << PHWHERE << "Could not locate geometry node " << geonodename << std::endl;
-    exit(1);
+    // if full geometry (cylinder + tiles) do not exist, try create it from bare geometry (cylinder only)
+    const auto geonodename_bare = bare_geonodename();
+    auto geonode_bare =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename_bare);
+    if( !geonode_bare )
+    {
+      std::cout << PHWHERE << "Could not locate geometry node " << geonodename_bare << std::endl;
+      exit(1);
+    }
+
+    // create new node
+    if( Verbosity() )
+    { std::cout << "PHG4MicromegasHitReco::setup_tiles - " << PHWHERE << " creating node " << geonodename_full << std::endl; }
+
+    geonode_full = new PHG4CylinderGeomContainer();
+    PHNodeIterator iter(topNode);
+    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto newNode = new PHIODataNode<PHObject>(geonode_full, geonodename_full, "PHObject");
+    runNode->addNode(newNode);
+
+    // copy cylinders
+    PHG4CylinderGeomContainer::ConstRange range = geonode_bare->get_begin_end();
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+      const auto layer = iter->first;
+      const auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
+      geonode_full->AddLayerGeom( layer, new CylinderGeomMicromegas( *cylinder ) );
+    }
   }
 
   // get cylinders
-  PHG4CylinderGeomContainer::ConstRange range = geonode->get_begin_end();
+  PHG4CylinderGeomContainer::ConstRange range = geonode_full->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   {
     std::cout << "PHG4MicromegasHitReco::setup_tiles - processing layer " << iter->first << std::endl;

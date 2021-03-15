@@ -12,15 +12,17 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TH1F.h>
+#include <TH1.h>
 #include <TString.h>  // for Form
 
 #include <cassert>
@@ -66,7 +68,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
   // create histograms
   for (const auto& layer : m_layers)
   {
-    std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    if (Verbosity()) std::cout << PHWHERE << " adding layer " << layer << std::endl;
     {
       // rphi residuals (cluster - truth)
       auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("INTT r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -1e-2, 1e-2);

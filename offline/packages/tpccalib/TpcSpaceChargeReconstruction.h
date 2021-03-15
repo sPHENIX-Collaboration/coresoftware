@@ -6,7 +6,9 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
+#include <phparameter/PHParameterInterface.h>
+
+#include <TString.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -16,6 +18,7 @@
 // forward declaration
 class SvtxTrack;
 class SvtxTrackMap;
+class TH3;
 class TrkrCluster;
 class TrkrClusterContainer;
 
@@ -33,7 +36,7 @@ class TrkrClusterContainer;
  The inversion is performed in TpcSpaceChargeReconstruction::calculate_distortions
  */
 
-class TpcSpaceChargeReconstruction: public SubsysReco
+class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
 {
   public:
 
@@ -43,18 +46,16 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   ///@name configuration
   //@{
 
-  /// set tpc layers
-  // TODO: use recoconst instead ?
-  void set_tpc_layers( unsigned int first_layer, unsigned int n_layers );
+  /// set whether to use only tracks with micromegas or not
+  void set_use_micromegas( bool value )
+  { m_use_micromegas = value; }
 
   /// set grid dimensions
-  // TODO: use recoconst instead ?
   /**
-  \param zbins the number of bins along z
-  \param rbins the number of bins in the radial direction. It must be a divider of the number of tpc layers (by default 48), e.g. 1, 12, 24, 48
   \param phibins the number of bins in the azimuth direction
+  \param zbins the number of bins along z
   */
-  void set_grid_dimensions( int zbins, int rbins, int phibins );
+  void set_grid_dimensions( int phibins, int rbins, int zbins );
 
   /// output file
   /**
@@ -66,17 +67,20 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   //@}
 
   /// global initialization
-  virtual int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   /// run initialization
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   /// event processing
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   /// end of processing
-  virtual int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
+  /// parameters
+  void SetDefaultParameters() override;
+  
   private:
 
   /// load nodes
@@ -85,31 +89,65 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   /// process tracks
   void process_tracks();
 
+  /// returns true if track fulfills basic requirement for distortion calculations
+  bool accept_track( SvtxTrack* ) const;
+
   /// process track
   void process_track( SvtxTrack* );
 
   /// calculate distortions
   void calculate_distortions( PHCompositeNode* );
 
-  /// get cell from z, r and phi index
-  int get_cell( int iz, int ir, int iphi ) const;
+  /// get cell from phi, r and z index
+  int get_cell( int iphi, int ir, int iz ) const;
+
+  /// get cell from phi, r and z values
+  int get_cell( float phi, float r, float z ) const;
 
   /// get relevant cell for a given cluster
-  int get_cell( TrkrDefs::cluskey, TrkrCluster* ) const;
+  int get_cell( TrkrCluster* ) const;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeReconstruction.root";
 
-  // tpc layers
-  unsigned int m_firstlayer_tpc = 7;
-  unsigned int m_nlayers_tpc = 48;
+  /// true if only tracks with micromegas must be used
+  bool m_use_micromegas = true;
+
+  ///@name grid dimensions
+  //@{
+
+  // phi range
+  static constexpr float m_phimin = 0;
+  static constexpr float m_phimax = 2.*M_PI;
+
+  // TODO: could try to get the r and z range from TPC geometry
+  // r range
+  static constexpr float m_rmin = 20;
+  static constexpr float m_rmax = 78;
+
+  // z range
+  static constexpr float m_zmin = -105.5;
+  static constexpr float m_zmax = 105.5;
+
+  //@}
 
   ///@name grid size
   //@{
-  int m_zbins = 50;
-  int m_phibins = 72;
-  int m_rbins = 48;
-  int m_totalbins = m_zbins*m_phibins*m_rbins;
+  int m_phibins = 36;
+  int m_rbins = 16;
+  int m_zbins = 80;
+  int m_totalbins = m_phibins*m_rbins*m_zbins;
+  //@}
+
+  ///@name selection parameters
+  //@{
+  // residual cuts in r, phi plane
+  float m_max_talpha = 0.6;
+  float m_max_drphi = 0.5;
+
+  // residual cuts in r, z plane
+  float m_max_tbeta = 1.5;
+  float m_max_dz = 0.5;
   //@}
 
   // shortcut for relevant eigen matrices
@@ -126,6 +164,15 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   /// keep track of how many clusters are used per cell
   std::vector<int> m_cluster_count;
 
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
+  
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;

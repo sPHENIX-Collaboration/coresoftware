@@ -48,11 +48,8 @@ class QAG4SimulationUpsilon : public SubsysReco
   }
 
  private:
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
-#endif
   std::pair<double, double> m_etaRange;
 
   PHG4TruthInfoContainer *_truthContainer;

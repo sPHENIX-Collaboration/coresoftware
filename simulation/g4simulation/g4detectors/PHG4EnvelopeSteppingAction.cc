@@ -57,18 +57,17 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     }
 	
   int layer_id = detector_->get_Layer();
-  int tower_id = -1;
-  tower_id = touch->GetCopyNumber();
+  int tower_id = touch->GetCopyNumber();
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  //G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
 	
   //This detector is a black hole! Just put all kinetic energy into edep
-  edep = aTrack->GetKineticEnergy() / GeV;
+  G4double edep = aTrack->GetKineticEnergy() / GeV;
   G4Track* killtrack = const_cast<G4Track *> (aTrack);
   killtrack->SetTrackStatus(fStopAndKill);
 	

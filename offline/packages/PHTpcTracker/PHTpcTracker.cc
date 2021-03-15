@@ -23,8 +23,10 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase/TrkrDefs.h>  // for cluskey
+
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
 
 #include <trackreco/PHTrackSeeding.h>
 
@@ -37,14 +39,17 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-// GenFit
-#include <GenFit/GFRaveVertex.h>
+#include <TMatrixDSymfwd.h>  // for TMatrixDSym
+#include <TMatrixTSym.h>     // for TMatrixTSym
+#include <TMatrixTUtils.h>   // for TMatrixTRow
+#include <TVector3.h>        // for TVector3
+#include <TVectorDfwd.h>     // for TVectorD
+#include <TVectorT.h>        // for TVectorT
 
-#include <TVector3.h>  // for TVector3
-
-#include <chrono>  // for milliseconds, duration_cast
-#include <limits>  // for numeric_limits
-#include <vector>  // for vector
+#include <iostream>  // for operator<<, endl, basic...
+#include <limits>    // for numeric_limits
+#include <memory>    // for shared_ptr, __shared_ptr
+#include <vector>    // for vector
 
 class PHCompositeNode;
 
@@ -92,13 +97,8 @@ PHTpcTracker::~PHTpcTracker()
 
 int PHTpcTracker::Setup(PHCompositeNode* topNode)
 {
-  cout << "Enter PHTruthTrackSeeding:: Setup" << endl;
-
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  //  ret = GetNodes(topNode);
-  // if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -126,60 +126,23 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
     mFitter = new PHGenFit2::Fitter(mTGeoManager, mField);
   }
 
-  // ---- timer -----
-  //  auto tracking_timer_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
   // ----- Seed finding -----
-  TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  //TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   std::vector<kdfinder::TrackCandidate<double>*> candidates;
-  candidates = mSeedFinder->findSeeds(cluster_map, mB);
+  candidates = mSeedFinder->findSeeds(_cluster_map, mB);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "SeedFinder produced " << candidates.size() << " track seeds";
 
   // ----- Track Following -----
-  mLookup->init(cluster_map);
+  mLookup->init(_cluster_map);
   std::vector<PHGenFit2::Track*> gtracks;
-  gtracks = mTrackFollower->followTracks(cluster_map, candidates, mField, mLookup, mFitter);
+  gtracks = mTrackFollower->followTracks(_cluster_map, candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
-  /*
-  // ---- timer -----
-  auto tracking_timer_stop = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-  auto timediff = (tracking_timer_stop - tracking_timer_start) / 1000.0;
-  auto tracks_per_second = gtracks.size() / timediff;
-  LOG_INFO("tracking.PHTpcTracker.process_event") << "Track Seeding + Track Following took " << timediff << " seconds, " << tracks_per_second << " tracks per second";
-
-  // ----- Vertex Reco -----
-  std::vector<genfit::GFRaveVertex*> vertices;
-
-  if (mEnableVertexing)
-  {
-    vertices = mVertexFinder->findVertices(gtracks);
-    LOG_INFO("tracking.PHTpcTracker.process_event") << "VertexFinder reconstructed " << vertices.size() << " vertices";
-    for (int i = 0, ilen = vertices.size(); i < ilen; i++)
-    {
-      TVector3 pos = vertices[i]->getPos();
-      LOG_INFO_IF("tracking.PHTpcTracker.process_event", i == 0) << "vertex has " << vertices[i]->getNTracks() << " tracks"
-                                                                 << ", pos: " << pos.X() << ", " << pos.Y() << ", " << pos.Z();
-      LOG_DEBUG_IF("tracking.PHTpcTracker.process_event", i != 0) << "vertex has " << vertices[i]->getNTracks() << " tracks"
-                                                                  << ", pos: " << pos.X() << ", " << pos.Y() << ", " << pos.Z();
-    }
-  }
-
-  // ----- Event Export -----
-  if (mEnableJsonExport)
-  {
-    //std::time_t now = std::time(nullptr);
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    std::string filename = std::string("event-hits-gtracks-") + std::to_string(now) + std::string(".json");
-    mEventExporter->exportEvent(cluster_map, gtracks, mB, filename);
-    LOG_INFO("tracking.PHTpcTracker.process_event") << "EventExporter dumped hits and tracks to json file";
-  }
-  */
   // write tracks to fun4all server
   //  cout<<  gtracks[1]->get_vertex_id() << endl;
-  for (int i = 0, ilen = gtracks.size(); i < ilen; i++){
+  for (int i = 0, ilen = gtracks.size(); i < ilen; i++)
+  {
     //  for (auto it = gtracks.begin(); it != gtracks.end(); ++it)
-    std::shared_ptr<SvtxTrack_v1> svtx_track( new SvtxTrack_v1() );
+    std::shared_ptr<SvtxTrack_v1> svtx_track(new SvtxTrack_v1());
     ////// from here:
 
     svtx_track->Reset();
@@ -191,29 +154,36 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
     TMatrixDSym cov = gtracks[i]->getGenFitTrack()->getCovSeed();
     //cout<< "pt: " << pos.Perp() << endl;
 
-    for(int i=0; i<6; i++){
-      for(int j=0; j<6; j++){
-	svtx_track->set_error(i, j, cov[i][j]);
+    double charge = gtracks[i]->get_charge();
+   
+    svtx_track->set_charge(charge);
+
+    for (int k = 0; k < 6; k++)
+    {
+      for (int j = 0; j < 6; j++)
+      {
+        svtx_track->set_error(k, j, cov[k][j]);
       }
     }
-    
+
     svtx_track->set_px(mom.Px());
     svtx_track->set_py(mom.Py());
     svtx_track->set_pz(mom.Pz());
-    
+
     svtx_track->set_x(pos.X());
     svtx_track->set_y(pos.Y());
     svtx_track->set_z(pos.Z());
-    
+
     for (TrkrDefs::cluskey cluster_key : gtracks[i]->get_cluster_keys())
+    {
+      svtx_track->insert_cluster_key(cluster_key);
+    }
+
+    if(Verbosity() > 0) 
       {
-	//_gftrk_hitkey_map.insert(std::make_pair(cluster_key, phtrk_iter->first));
-	svtx_track->insert_cluster_key(cluster_key);
+	std::cout << PHWHERE << " track identify: " << std::endl;
+	svtx_track->identify();
       }
-  
-    //Check track quality
-    //		bool is_good_track = true;
-    
     _track_map->insert(svtx_track.get());
   }
 
@@ -233,30 +203,11 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
 
   // hit lookup cleanup
   mLookup->clear();
-  /*
-  // rave vertices cleanup
-  for (auto it = vertices.begin(); it != vertices.end(); ++it)
-  {
-    delete (*it);
-  }
-  */
+
   LOG_INFO("tracking.PHTpcTracker.process_event") << "---- process event finished -----";
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-/*
-int PHTpcTracker::GetNodes(PHCompositeNode* topNode)
-{
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-*/
-int PHTpcTracker::End()
-{
-  return 0;
-}
-
 
 PHField* PHTpcTracker::getMagField(PHCompositeNode* topNode, double& B)
 {

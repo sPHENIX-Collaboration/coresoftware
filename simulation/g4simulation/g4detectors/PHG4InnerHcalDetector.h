@@ -5,8 +5,9 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/point_generators_2.h>
+#include <CGAL/Point_2.h>  // for Point_2
 
 #include <map>
 #include <set>

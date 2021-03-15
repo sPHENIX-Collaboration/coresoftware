@@ -112,7 +112,7 @@ void PHG4GDMLWrite::UserinfoWrite(xercesc::DOMElement* gdmlElement)
 {
   if(auxList.size()>0)
   {
-    G4cout << "PHG4GDML: Writing userinfo..." << G4endl;
+    std::cout << "PHG4GDML: Writing userinfo..." << std::endl;
 
     userinfoElement = NewElement("userinfo");
     gdmlElement->appendChild(userinfoElement);
@@ -172,8 +172,8 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
    SchemaLocation = setSchemaLocation;
    addPointerToName = refs;
 
-   if (depth==0) { G4cout << "PHG4GDML: Writing '" << fname << "'..." << G4endl; }
-   else   { G4cout << "PHG4GDML: Writing module '" << fname << "'..." << G4endl; }
+   if (depth==0) { std::cout << "PHG4GDML: Writing '" << fname << "'..." << std::endl; }
+   else   { std::cout << "PHG4GDML: Writing module '" << fname << "'..." << std::endl; }
 
    if (FileExists(fname))
    {
@@ -246,20 +246,20 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
    catch (const xercesc::XMLException& toCatch)
    {
       char* message = xercesc::XMLString::transcode(toCatch.getMessage());
-      G4cout << "PHG4GDML: Exception message is: " << message << G4endl;
+      std::cout << "PHG4GDML: Exception message is: " << message << std::endl;
       xercesc::XMLString::release(&message);
       return G4Transform3D::Identity;
    }
    catch (const xercesc::DOMException& toCatch)
    {
       char* message = xercesc::XMLString::transcode(toCatch.msg);
-      G4cout << "PHG4GDML: Exception message is: " << message << G4endl;
+      std::cout << "PHG4GDML: Exception message is: " << message << std::endl;
       xercesc::XMLString::release(&message);
       return G4Transform3D::Identity;
    }
    catch (...)
    {
-      G4cout << "PHG4GDML: Unexpected Exception!" << G4endl;
+      std::cout << "PHG4GDML: Unexpected Exception!" << std::endl;
       return G4Transform3D::Identity;
    }
 
@@ -268,11 +268,11 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 
    if (depth==0)
    {
-     G4cout << "PHG4GDML: Writing '" << fname << "' done !" << G4endl;
+     std::cout << "PHG4GDML: Writing '" << fname << "' done !" << std::endl;
    }
    else
    {
-     G4cout << "PHG4GDML: Writing module '" << fname << "' done !" << G4endl;
+     std::cout << "PHG4GDML: Writing module '" << fname << "' done !" << std::endl;
    }
 
    return R;
@@ -287,7 +287,7 @@ void PHG4GDMLWrite::AddModule(const G4VPhysicalVolume* const physvol)
      return;
    }
    G4String fname = GenerateName(physvol->GetName(),physvol);
-   G4cout << "PHG4GDML: Adding module '" << fname << "'..." << G4endl;
+   std::cout << "PHG4GDML: Adding module '" << fname << "'..." << std::endl;
 
    if (dynamic_cast<const G4PVDivision*>(physvol))
    {

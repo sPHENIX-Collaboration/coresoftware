@@ -10,15 +10,13 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <set>
-#include <vector>
 
 class PHCompositeNode;
 class PHTimer;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
-class PHG4Hit;
+//class TrkrClusterContainer;
 
 /// \class SvtxEvaluator
 ///
@@ -36,7 +34,8 @@ class SvtxEvaluator : public SubsysReco
                 const std::string &trackmapname = "SvtxTrackMap",
                 unsigned int nlayers_maps = 3,
                 unsigned int nlayers_intt = 8,
-                unsigned int nlayers_tpc = 60);
+                unsigned int nlayers_tpc = 48,
+                unsigned int nlayers_mms = 2);
   virtual ~SvtxEvaluator();
 
   int Init(PHCompositeNode *topNode);
@@ -46,6 +45,7 @@ class SvtxEvaluator : public SubsysReco
 
   void set_strict(bool b) { _strict = b; }
   void set_use_initial_vertex(bool use_init_vtx) {_use_initial_vertex = use_init_vtx;}
+  void set_use_genfit_vertex(bool use_genfit_vtx) {_use_genfit_vertex = use_genfit_vtx;}
   void do_info_eval(bool b) { _do_info_eval = b; }
   void do_vertex_eval(bool b) { _do_vertex_eval = b; }
   void do_gpoint_eval(bool b) { _do_gpoint_eval = b; }
@@ -61,9 +61,6 @@ class SvtxEvaluator : public SubsysReco
   void do_eval_light(bool b) { _do_eval_light = b; }
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
 
-  /// This is public so that the Acts evaluator can access it
-  void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &gx, float &gy, float &gz,  float &gt, float &gedep);
-
  private:
   unsigned int _ievent;
   unsigned int _iseed;
@@ -71,11 +68,14 @@ class SvtxEvaluator : public SubsysReco
   // eval stack
   SvtxEvalStack *_svtxevalstack;
 
+  //TrkrClusterContainer *cluster_map{nullptr};
+
   //----------------------------------
   // evaluator output ntuples
 
   bool _strict;
-  bool _use_initial_vertex;
+  bool _use_initial_vertex = true;
+  bool _use_genfit_vertex = false;
   unsigned int _errors;
 
   bool _do_info_eval;
@@ -94,8 +94,9 @@ class SvtxEvaluator : public SubsysReco
   bool _scan_for_embedded;
 
   unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 8;
-  unsigned int _nlayers_tpc = 60;
+  unsigned int _nlayers_intt = 4;
+  unsigned int _nlayers_tpc = 48;
+  unsigned int _nlayers_mms = 2;
 
   TNtuple *_ntp_info;
   TNtuple *_ntp_vertex;
@@ -115,13 +116,6 @@ class SvtxEvaluator : public SubsysReco
   TFile *_tfile;
 
   PHTimer *_timer;
-
-  //  void LayerClusterG4Particle();
-
-  void G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
-
-  
-  float line_circle_intersection(float x[], float y[], float z[], float radius);
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis

@@ -25,6 +25,7 @@ libg4eval_la_LIBADD = \
   -ltpc_io \
   -lmvtx_io \
   -lintt_io \
+  -lmicromegas_io \
   -lphg4hit
 
 pkginclude_HEADERS = \
@@ -34,6 +35,7 @@ pkginclude_HEADERS = \
   CaloRawClusterEval.h \
   CaloRawTowerEval.h \
   CaloTruthEval.h \
+  EventEvaluator.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -49,37 +51,14 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxVertexEval.h
 
-if ! MAKEROOT6
-  ROOT5DICTS = \
-  CaloEvalStack_Dict.cc \
-  CaloTruthEval_Dict.cc \
-  CaloRawTowerEval_Dict.cc \
-  CaloRawClusterEval_Dict.cc \
-  CaloEvaluator_Dict.cc \
-  JetEvalStack_Dict.cc \
-  JetTruthEval_Dict.cc \
-  JetRecoEval_Dict.cc \
-  JetEvaluator_Dict.cc \
-  PHG4DSTReader_Dict.cc \
-  SvtxEvalStack_Dict.cc \
-  SvtxTruthEval_Dict.cc \
-  SvtxHitEval_Dict.cc \
-  SvtxClusterEval_Dict.cc \
-  SvtxTrackEval_Dict.cc \
-  SvtxVertexEval_Dict.cc \
-  SvtxEvaluator_Dict.cc \
-  MomentumEvaluator_Dict.cc \
-  PHG4DstCompressReco_Dict.cc
-endif
-
 libg4eval_la_SOURCES = \
-  $(ROOT5DICTS) \
   BaseTruthEval.cc \
   CaloEvalStack.cc \
   CaloTruthEval.cc \
   CaloRawTowerEval.cc \
   CaloRawClusterEval.cc \
   CaloEvaluator.cc \
+  EventEvaluator.cc \
   JetEvalStack.cc \
   JetTruthEval.cc \
   JetRecoEval.cc \
@@ -94,10 +73,6 @@ libg4eval_la_SOURCES = \
   SvtxEvaluator.cc \
   MomentumEvaluator.cc \
   PHG4DstCompressReco.cc 
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
@@ -121,4 +96,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

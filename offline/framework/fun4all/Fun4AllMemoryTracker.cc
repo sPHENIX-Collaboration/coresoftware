@@ -3,7 +3,7 @@
 #include <TSystem.h>
 
 #include <iostream>
-#include <utility>    // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 using namespace std;
 
@@ -111,7 +111,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
   {
     for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
     {
-      cout << "SubsysReco/OutputManager: " << iter->first << endl;
+      cout << iter->first << ": ";
       vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
@@ -149,7 +149,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
 vector<int> Fun4AllMemoryTracker::GetMemoryVector(const std::string &name) const
 {
   vector<int> memvec;
-  auto iter =  mMemoryTrackerMap.find(name);
+  auto iter = mMemoryTrackerMap.find(name);
   if (iter != mMemoryTrackerMap.end())
   {
     memvec = iter->second;

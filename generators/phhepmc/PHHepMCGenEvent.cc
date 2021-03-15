@@ -3,8 +3,13 @@
 #include <HepMC/GenEvent.h>
 #include <HepMC/SimpleVector.h>  // for FourVector
 
+#include <CLHEP/Vector/Boost.h>
+#include <CLHEP/Vector/LorentzRotation.h>
+#include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/Rotation.h>
+
 #include <sstream>
-#include <utility>               // for swap
+#include <utility>  // for swap
 
 using namespace std;
 
@@ -22,7 +27,8 @@ PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
   , _collisionVertex(event.get_collision_vertex())
   , _theEvt(nullptr)
 {
-  _theEvt = new HepMC::GenEvent(*event.getEvent());
+  if (event.getEvent())
+    _theEvt = new HepMC::GenEvent(*event.getEvent());
   return;
 }
 
@@ -34,9 +40,7 @@ PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event)
 
   _embedding_id = event.get_embedding_id();
   _isSimulated = event.is_simulated();
-
-  const HepMC::GenEvent* hepmc = event.getEvent();
-  _theEvt = new HepMC::GenEvent(*(hepmc));
+  _theEvt = new HepMC::GenEvent(*event.getEvent());
 
   return *this;
 }
@@ -67,7 +71,9 @@ const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
 {
-  if (_theEvt) delete _theEvt;
+  // clean up old event if it exists,
+  // no check needed, one can delete null pointers
+  delete _theEvt;
 
   _theEvt = evt;
   if (!_theEvt) return false;
@@ -119,13 +125,13 @@ int PHHepMCGenEvent::vertexSize(void) const
 //_____________________________________________________________________________
 void PHHepMCGenEvent::identify(std::ostream& os) const
 {
-  os << "identify yourself: PHHepMCGenEvent Object, ";
-  os << " embedding_id = " << _embedding_id;
-  os << " isSimulated = " << _isSimulated;
-  os << " collisionVertex = (" << _collisionVertex.x() << "," << _collisionVertex.y() << "," << _collisionVertex.z() << ") cm, " << _collisionVertex.t() << " ns";
+  os << "identify yourself: PHHepMCGenEvent Object";
   os << ", No of Particles: " << size();
-  os << ", No of Vertices:  " << vertexSize();
-  os << endl;
+  os << ", No of Vertices:  " << vertexSize() << endl;
+  os << " embedding_id = " << _embedding_id << endl;
+  os << " isSimulated = " << _isSimulated << endl;
+  os << " collisionVertex = (" << _collisionVertex.x() << "," << _collisionVertex.y() << "," << _collisionVertex.z() << ") cm, " << _collisionVertex.t() << " ns" << endl;
+
   return;
 }
 

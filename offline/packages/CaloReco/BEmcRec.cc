@@ -8,6 +8,9 @@
 
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
+#include "BEmcProfile.h"
+
+#include <TMath.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -26,6 +29,7 @@ int const BEmcRec::fgMaxLen = 1000;
 
 BEmcRec::BEmcRec()
   : bCYL(true)
+  , bProfileProb(false)
   , fNx(-1)
   , fNy(-1)
   , fVx(0)
@@ -33,8 +37,8 @@ BEmcRec::BEmcRec()
   , fVz(0)
   , fgTowerThresh(0.01)
   , fgMinPeakEnergy(0.08)
+  , _emcprof(nullptr)
   , m_ThisName("NOTSET")
-//  , _emcprof(nullptr)
 {
   fTowerGeom.clear();
   fModules = new vector<EmcModule>;
@@ -58,6 +62,8 @@ BEmcRec::~BEmcRec()
     fClusters->clear();
     delete fClusters;
   }
+
+  if (_emcprof) delete _emcprof;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -141,7 +147,7 @@ bool BEmcRec::CompleteTowerGeometry()
 
   std::map<int, TowerGeom>::iterator it;
 
-  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); it++)
+  for (it = fTowerGeom.begin(); it != fTowerGeom.end(); ++it)
   {
     int ich = it->first;
     TowerGeom geom0 = it->second;
@@ -214,7 +220,7 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   int ix = xC + 0.5;  // tower #
   if (ix < 0 || ix >= fNx)
   {
-    cout << "Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
+    cout << m_ThisName << " Error in BEmcRec::Tower2Global: wrong input x: " << ix << endl;
     return;
   }
 
@@ -442,7 +448,8 @@ int BEmcRec::FindClusters()
 // ///////////////////////////////////////////////////////////////////////////
 
 void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
-                      float& py, float& pxx, float& pyy, float& pyx)
+                      float& py, float& pxx, float& pyy, float& pyx,
+		      float thresh)
 {
   // First and second momenta calculation
 
@@ -489,17 +496,19 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
   while (ph != phit->end())
   {
     a = ph->amp;
-    int iy = ph->ich / fNx;
-    int ix = ph->ich - iy * fNx;
-    int idx = iTowerDist(ixmax, ix);
-    int idy = iy - iymax;
-    e += a;
-    x += idx * a;
-    y += idy * a;
-    xx += a * idx * idx;
-    yy += a * idy * idy;
-    yx += a * idx * idy;
-    ph++;
+    if( a>thresh ) {
+      int iy = ph->ich / fNx;
+      int ix = ph->ich - iy * fNx;
+      int idx = iTowerDist(ixmax, ix);
+      int idy = iy - iymax;
+      e += a;
+      x += idx * a;
+      y += idy * a;
+      xx += a * idx * idx;
+      yy += a * idy * idy;
+      yx += a * idx * idy;
+    }
+    ++ph;
   }
   pe = e;
 
@@ -527,7 +536,16 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-float BEmcRec::PredictEnergy(float xc, float yc, float en)
+float BEmcRec::PredictEnergy(float en, float xcg, float ycg, int ix, int iy)
+{
+  if( _emcprof != nullptr && bProfileProb )  return PredictEnergyProb(en, xcg, ycg, ix, iy);
+
+  float dx = fabs(fTowerDist(float(ix), xcg));
+  float dy = ycg - iy;
+  return PredictEnergyParam(en,dx,dy);
+}
+
+float BEmcRec::PredictEnergyParam(float en, float xc, float yc)
 {
   // Calculates the energy deposited in the tower, the distance between
   // its center and shower Center of Gravity being (xc,yc)
@@ -579,14 +597,169 @@ float BEmcRec::PredictEnergy(float xc, float yc, float en)
   return e;
 }
 
+float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
+// Predict tower energy from profiles used in GetProb()
+// This is expected to be used in BEmcCluster::GetSubClusters
+{
+  if ( _emcprof == nullptr ) return -1;
+
+  while (xcg < -0.5) xcg += float(fNx);
+  while (xcg >= fNx - 0.5) xcg -= float(fNx);
+
+  int ixcg = int(xcg + 0.5);
+  int iycg = int(ycg + 0.5);
+  float ddx = fabs(xcg - ixcg);
+  float ddy = fabs(ycg - iycg);
+
+  float xg, yg, zg;
+  Tower2Global(en, xcg, ycg, xg, yg, zg);
+
+  float theta, phi;
+  GetImpactThetaPhi(xg, yg, zg, theta, phi);
+
+  int isx = 1;
+  if (xcg - ixcg < 0) isx = -1;
+  int isy = 1;
+  if (ycg - iycg < 0) isy = -1;
+
+  int idx = iTowerDist(ixcg, ix) * isx;
+  int idy = (iy-iycg) * isy;
+
+  int id = -1;
+  if(      idx == 0 && idy == 0 ) id = 0;
+  else if( idx == 1 && idy == 0 ) id = 1;
+  else if( idx == 1 && idy == 1 ) id = 2;
+  else if( idx == 0 && idy == 1 ) id = 3;
+
+  if( id < 0 ) {
+    float dx = fabs(fTowerDist(xcg, float(ix)));
+    float dy = fabs(iy-ycg);
+    float rr = sqrt(dx * dx + dy * dy);
+    //    return PredictEnergyParam(en, dx, dy);
+    return _emcprof->PredictEnergyR(en, theta, phi, rr);
+  }
+
+  float ep[4], err[4];
+  for( int ip=0; ip<4; ip++ ) {
+    _emcprof->PredictEnergy(ip, en, theta, phi, ddx, ddy, ep[ip], err[ip]);
+  }
+
+  float eout;
+
+  if(      id==0 ) eout = (ep[1]+ep[2])/2. + ep[3];
+  else if( id==1 ) eout = (ep[0]-ep[2])/2. - ep[3];
+  else if( id==3 ) eout = (ep[0]-ep[1])/2. - ep[3];
+  else             eout = ep[3];
+
+  //  if( eout<0 ) printf("id=%d eout=%f: ep= %f %f %f %f Input: E=%f xcg=%f ycg=%f\n",id,eout,ep[0],ep[1],ep[2],ep[3],en,xcg,ycg);
+  if( eout<0 ) eout = 1e-6;
+
+  return eout;
+}
+
 // ///////////////////////////////////////////////////////////////////////////
 
-float BEmcRec::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
+float BEmcRec::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist)
+{
+  int nn = plist->size();
+  if (nn <= 0) return 0;
+
+  for (int i = 0; i < nn; i++)
+  {
+    int ich = (*plist)[i].ich;
+    int iyt = ich / fNx;
+    int izt = ich % fNx;
+    if (iy == iyt && iz == izt)
+    {
+      return (*plist)[i].amp;
+    }
+  }
+  return 0;
+}
+
+// !!!!! Change here to a ponter to HitList
+float BEmcRec::GetProb(vector<EmcModule> HitList, float en, float xg, float yg, float zg, float& chi2, int& ndf)
 // Do nothing; should be defined in a detector specific module BEmcRec{Name}
 {
+  float enoise = 0.01;  // 10 MeV per tower
+  //  float thresh = 0.01;
+  float thresh = GetTowerThreshold();
+
   chi2 = 0;
   ndf = 0;
-  return -1;
+  if ( _emcprof == nullptr ) return -1;
+
+  if ( !(_emcprof->IsLoaded()) )
+  {
+    return -1;
+  }
+
+  int nn = HitList.size();
+  if (nn <= 0) return -1;
+
+  float theta, phi;
+  GetImpactThetaPhi(xg, yg, zg, theta, phi);
+
+  // z coordinate below means x coordinate
+
+  float etot;
+  float zcg, ycg;
+  float zz, yy, yz;
+  Momenta(&HitList, etot, zcg, ycg, zz, yy, yz, thresh);
+
+  int iz0cg = int(zcg + 0.5);
+  int iy0cg = int(ycg + 0.5);
+  float ddz = fabs(zcg - iz0cg);
+  float ddy = fabs(ycg - iy0cg);
+
+  int isz = 1;
+  if (zcg - iz0cg < 0) isz = -1;
+  int isy = 1;
+  if (ycg - iy0cg < 0) isy = -1;
+
+  // 4 central towers: 43
+  //                   12
+  // Tower 1 - central one
+  float e1, e2, e3, e4;
+  e1 = GetTowerEnergy(iy0cg, iz0cg, &HitList);
+  e2 = GetTowerEnergy(iy0cg, iz0cg + isz, &HitList);
+  e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, &HitList);
+  e4 = GetTowerEnergy(iy0cg + isy, iz0cg, &HitList);
+  if (e1 < thresh) e1 = 0;
+  if (e2 < thresh) e2 = 0;
+  if (e3 < thresh) e3 = 0;
+  if (e4 < thresh) e4 = 0;
+
+  float e1t = (e1 + e2 + e3 + e4) / etot;
+  float e2t = (e1 + e2 - e3 - e4) / etot;
+  float e3t = (e1 - e2 - e3 + e4) / etot;
+  float e4t = (e3) / etot;
+  //  float rr = sqrt((0.5-ddz)*(0.5-ddz)+(0.5-ddy)*(0.5-ddy));
+
+  // Predicted values
+  const int NP = 4; // From BEmcProfile
+  float ep[NP];
+  float err[NP];
+  for (int ip = 0; ip < NP; ip++)
+  {
+    _emcprof->PredictEnergy(ip, en, theta, phi, ddz, ddy, ep[ip], err[ip]);
+    if (ep[ip] < 0) return -1;
+    if (ip < 3)
+      err[ip] = sqrt(err[ip] * err[ip] + 4 * enoise * enoise / etot / etot);
+    else
+      err[ip] = sqrt(err[ip] * err[ip] + 1 * enoise * enoise / etot / etot);
+  }
+
+  chi2 = 0.;
+  chi2 += (ep[0] - e1t) * (ep[0] - e1t) / err[0] / err[0];
+  chi2 += (ep[1] - e2t) * (ep[1] - e2t) / err[1] / err[1];
+  chi2 += (ep[2] - e3t) * (ep[2] - e3t) / err[2] / err[2];
+  chi2 += (ep[3] - e4t) * (ep[3] - e4t) / err[3] / err[3];
+  ndf = 4;
+
+  float prob = TMath::Prob(chi2, ndf);
+
+  return prob;
 }
 
 // ///////////////////////////////////////////////////////////////////////////

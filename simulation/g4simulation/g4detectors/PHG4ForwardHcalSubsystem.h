@@ -3,9 +3,9 @@
 #ifndef G4DETECTORS_PHG4FORWARDHCALSUBSYSTEM_H
 #define G4DETECTORS_PHG4FORWARDHCALSUBSYSTEM_H
 
-#include <g4main/PHG4Subsystem.h>
+#include "PHG4DetectorSubsystem.h"
 
-#include <string>                  // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -13,7 +13,7 @@ class PHG4DisplayAction;
 class PHG4ForwardHcalDetector;
 class PHG4SteppingAction;
 
-class PHG4ForwardHcalSubsystem : public PHG4Subsystem
+class PHG4ForwardHcalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   /** Constructor
@@ -25,11 +25,11 @@ class PHG4ForwardHcalSubsystem : public PHG4Subsystem
   virtual ~PHG4ForwardHcalSubsystem();
 
   /**
-     Creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-     Creates the stepping action and place it on the node tree, under "ACTIONS" node
+     Creates the m_Detector object
+     Creates the stepping action
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *);
 
   /** Event processing
    */
@@ -43,33 +43,21 @@ class PHG4ForwardHcalSubsystem : public PHG4Subsystem
 
   /** Set mapping file for calorimeter towers
    */
-  void SetTowerMappingFile(const std::string &filename)
-  {
-    mappingfile_ = filename;
-  }
-
-  void SetActive(const int i = 1) { active = i; }
-  void SetAbsorberActive(const int i = 1) { absorber_active = i; }
-  void BlackHole(const int i = 1) { blackhole = i; }
+  void SetTowerMappingFile(const std::string &filename);
 
  private:
+  void SetDefaultParameters();
+
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ForwardHcalDetector *m_Detector;
+  PHG4ForwardHcalDetector *m_Detector = nullptr;
 
   /** Stepping action
    */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction *m_SteppingAction = nullptr;
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
-
-  int active;
-  int absorber_active;
-  int blackhole;
-
-  std::string detector_type;
-  std::string mappingfile_;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
 };
 
 #endif

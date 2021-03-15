@@ -37,7 +37,6 @@
 #include <Geant4/G4VProcess.hh>               // for G4VProcess
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
-#include <Geant4/G4ios.hh>                    // for G4endl
 #include <Geant4/globals.hh>                  // for G4Exception, G4Exceptio...
 
 #include <cassert>                           // for assert
@@ -108,7 +107,7 @@ void PHG4RICHSteppingAction::UserSteppingAction(const G4Step* aStep)
           G4ExceptionDescription ed;
           ed << "EicRichGemTbSteppingAction::UserSteppingAction(): "
              << "No reallocation step after reflection!"
-             << G4endl;
+             << std::endl;
           G4Exception("EicRichGemTbSteppingAction::UserSteppingAction()", "EicRichGemTbExpl01",
                       FatalException, ed,
                       "Something is wrong with the surface normal or geometry");

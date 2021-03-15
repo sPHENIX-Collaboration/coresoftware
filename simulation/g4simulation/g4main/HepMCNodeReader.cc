@@ -8,13 +8,13 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
@@ -24,6 +24,8 @@
 #include <HepMC/IteratorRange.h>
 #include <HepMC/SimpleVector.h>
 #include <HepMC/Units.h>
+
+#include <CLHEP/Vector/LorentzRotation.h>
 
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
@@ -180,12 +182,24 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       continue;
     }
 
+    if (Verbosity())
+    {
+      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found PHHepMCGenEvent:" << endl;
+      genevt->identify();
+    }
+
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
       cout << PHWHERE << " no evt pointer under HEPMC Node found:";
       genevt->identify();
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    if (Verbosity())
+    {
+      cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found HepMC::GenEvent:" << endl;
+      evt->print();
     }
 
     genevt->is_simulated(true);
@@ -196,6 +210,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     double yshift = vertex_pos_y + genevt->get_collision_vertex().y();
     double zshift = vertex_pos_z + genevt->get_collision_vertex().z();
     double tshift = vertex_t0 + genevt->get_collision_vertex().t();
+
+    const CLHEP::HepLorentzRotation lortentz_rotation(genevt->get_LorentzRotation_EvtGen2Lab());
 
     if (width_vx > 0.0)
       xshift += smeargauss(width_vx);
@@ -224,16 +240,23 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
          v != evt->vertices_end();
          ++v)
     {
+      if (Verbosity() > 1)
+      {
+        cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found vertex:" << endl;
+        (*v)->print();
+      }
+
       finalstateparticles.clear();
       for (HepMC::GenVertex::particle_iterator p =
                (*v)->particles_begin(HepMC::children);
            p != (*v)->particles_end(HepMC::children); ++p)
       {
-	if(Verbosity()>1){
-	  cout<<__PRETTY_FUNCTION__<<" : "<<__LINE__<<endl;
-	  (*p)->print();
-	  cout<<"end vertex "<<(*p)->end_vertex()<<endl;
-	}
+        if (Verbosity() > 1)
+        {
+          cout << __PRETTY_FUNCTION__ << " : L" << __LINE__ << " Found particle:" << endl;
+          (*p)->print();
+          cout << "end vertex " << (*p)->end_vertex() << endl;
+        }
         if (isfinal(*p))
         {
 	  if(Verbosity()>1){
@@ -247,15 +270,22 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	    cout<<"\tparticle failed "<<endl;
 	  }
 	}
-
       }
 
       if (!finalstateparticles.empty())
       {
-        double xpos = (*v)->position().x() * length_factor + xshift;
-        double ypos = (*v)->position().y() * length_factor + yshift;
-        double zpos = (*v)->position().z() * length_factor + zshift;
-        double time = (*v)->position().t() * time_factor + tshift;
+        CLHEP::HepLorentzVector lv_vertex((*v)->position().x(),
+                                          (*v)->position().y(),
+                                          (*v)->position().z(),
+                                          (*v)->position().t());
+
+        // event gen frame to lab frame
+        lv_vertex = lortentz_rotation(lv_vertex);
+
+        double xpos = lv_vertex.x() * length_factor + xshift;
+        double ypos = lv_vertex.y() * length_factor + yshift;
+        double zpos = lv_vertex.z() * length_factor + zshift;
+        double time = lv_vertex.t() * time_factor + tshift;
 
         if (Verbosity() > 1)
         {
@@ -307,17 +337,24 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
              fiter != finalstateparticles.end();
              ++fiter)
         {
-
           if (Verbosity() > 1){
 	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
 	    (*fiter)->print();
 	  }
 
+          CLHEP::HepLorentzVector lv_momentum((*fiter)->momentum().px(),
+                                              (*fiter)->momentum().py(),
+                                              (*fiter)->momentum().pz(),
+                                              (*fiter)->momentum().e());
+
+          // event gen frame to lab frame
+          lv_momentum = lortentz_rotation(lv_momentum);
+
           PHG4Particle *particle = new PHG4Particlev1();
           particle->set_pid((*fiter)->pdg_id());
-          particle->set_px((*fiter)->momentum().px() * mom_factor);
-          particle->set_py((*fiter)->momentum().py() * mom_factor);
-          particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+          particle->set_px(lv_momentum.x() * mom_factor);
+          particle->set_py(lv_momentum.y() * mom_factor);
+          particle->set_pz(lv_momentum.z() * mom_factor);
           particle->set_barcode((*fiter)->barcode());
 
           ineve->AddParticle(vtxindex, particle);

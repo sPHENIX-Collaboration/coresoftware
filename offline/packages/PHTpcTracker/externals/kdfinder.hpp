@@ -699,7 +699,7 @@ namespace kdfinder
         T t40 = (-t3 * t38);
         if (t40 < 0.)
         {
-          std::cerr << "t40 < 0." << std::endl;
+          //std::cerr << "t40 < 0." << std::endl;
           return VALUE;
         }
         t40 = std::sqrt(t40);
