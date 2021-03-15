@@ -236,12 +236,16 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	}
         if (isfinal(*p))
         {
-	  if(Verbosity()>1)
-	    cout<<"partile passed "<<endl;
+	  if(Verbosity()>1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    cout<<"\tparticle passed "<<endl;
+	  }
           finalstateparticles.push_back(*p);
         }else{
-	  if(Verbosity()>1)
-	    cout<<"partivle failed"<<endl;
+	  if(Verbosity()>1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    cout<<"\tparticle failed "<<endl;
+	  }
 	}
 
       }
@@ -255,6 +259,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
         if (Verbosity() > 1)
         {
+	  cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
           cout << "Vertex : " << endl;
           (*v)->print();
           cout << "id: " << (*v)->barcode() << endl;
@@ -303,7 +308,10 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
              ++fiter)
         {
 
-          if (Verbosity() > 1) (*fiter)->print();
+          if (Verbosity() > 1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    (*fiter)->print();
+	  }
 
           PHG4Particle *particle = new PHG4Particlev1();
           particle->set_pid((*fiter)->pdg_id());
