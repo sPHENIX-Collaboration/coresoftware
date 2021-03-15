@@ -37,6 +37,7 @@ SvtxTrack_v1::SvtxTrack_v1()
   , _cal_cluster_id()
   , _cal_cluster_key()
   , _cal_cluster_e()
+  , _acts_mj(ActsExamples::TrkrClusterMultiTrajectory())
 {
   // always include the pca point
   _states.insert(make_pair(0.0, new SvtxTrackState_v1(0.0)));

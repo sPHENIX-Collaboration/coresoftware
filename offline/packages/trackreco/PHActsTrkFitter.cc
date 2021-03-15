@@ -234,11 +234,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto actsVertex = getVertex(track);
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  actsVertex);
-
+      auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
+					actsVertex(2),
+					10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       /// Reset the track seed with the dummy covariance
-      ActsExamples::TrackParameters seed(trackParams.fourPosition(m_tGeometry->geoContext),
+      ActsExamples::TrackParameters seed(actsFourPos,
 					 trackParams.momentum(),
 					 trackParams.absoluteMomentum(),
 					 trackParams.charge(),
@@ -386,10 +388,10 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   Trajectory trajectory(fitOutput.fittedStates, 
 			trackTips, indexedParams,
 			track->get_vertex_id());
-  
+  track->set_acts_multitrajectory(trajectory);
+
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
-  
   auto updateTrackTimer = std::make_unique<PHTimer>("UpdateTrackTimer");
   updateTrackTimer->stop();
   updateTrackTimer->restart();

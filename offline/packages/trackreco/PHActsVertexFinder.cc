@@ -51,7 +51,6 @@
 
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
-  , m_actsFitResults(nullptr)
   , m_actsVertexMap(nullptr)
 {
 }
@@ -128,8 +127,9 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
-  for(const auto &[key, traj] : *m_actsFitResults)
+  for(const auto &[key, track] : *m_svtxTrackMap)
   {
+    auto traj = track->get_acts_multitrajectory();
     const auto &[trackTips, mj] = traj.trajectory();
     
     for(const size_t &trackTip : trackTips)
@@ -468,17 +468,7 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-    (topNode, "ActsFitResults");
-  if(!m_actsFitResults)
-    {
-      std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-
-    }
-  
+    
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, 
 							 "ActsTrackingGeometry");
   if(!m_tGeometry)

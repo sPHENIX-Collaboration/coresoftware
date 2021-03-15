@@ -5,6 +5,7 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 #include <phool/PHObject.h>
 
 #include <limits.h>
@@ -226,7 +227,8 @@ class SvtxTrack : public PHObject
   { return ActsExamples::TrackParameters(Acts::Vector4D(NAN,NAN,NAN, NAN),
 					 Acts::Vector3D(NAN,NAN,NAN), NAN); }
 
-
+  virtual void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory traj){}
+  virtual ActsExamples::TrkrClusterMultiTrajectory const get_acts_multitrajectory(){return ActsExamples::TrkrClusterMultiTrajectory(); }
  protected:
   SvtxTrack() {}
 
