@@ -266,6 +266,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _eta = 0;
 
     std::array<float,2> _trk_pt = {{0,0}};
+    std::array<int,2> _contributors = {{0,0}};
 
     //@}
   };

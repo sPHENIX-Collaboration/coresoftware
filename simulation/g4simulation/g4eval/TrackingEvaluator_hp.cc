@@ -714,7 +714,10 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
     for( auto  secondIter = m_track_map->begin(); secondIter != firstIter; ++secondIter )
     {
       const auto second = secondIter->second;
-      m_container->addTrackPair( create_track_pair( first, second ) );
+      auto trackpair_struct = create_track_pair( first, second );
+      trackpair_struct._contributors[0] = get_max_contributor( first ).second;
+      trackpair_struct._contributors[1] = get_max_contributor( second ).second;
+      m_container->addTrackPair( trackpair_struct );
     }
   }
 }
