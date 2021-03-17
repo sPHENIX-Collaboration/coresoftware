@@ -127,6 +127,7 @@ TrkrClusterContainer::getClusters(TrkrDefs::hitsetkey hitsetkey) const
   const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   const unsigned int side  = TrkrDefs::getZElement(hitsetkey);
   const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);
+  //  std::cout<< "lpz:" << layer << "|" << sector << "|"<< side << std::endl;
   ConstRange retpair;
   if(sector<max_phisegment&&side<max_zsegment){
     retpair.first  = m_clusmap[layer][sector][side].begin();

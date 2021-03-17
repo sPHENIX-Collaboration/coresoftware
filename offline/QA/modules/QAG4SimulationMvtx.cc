@@ -145,7 +145,7 @@ int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
   // load nodes
   auto res = load_nodes(topNode);
   if (res != Fun4AllReturnCodes::EVENT_OK) return res;
-
+  std::cout << "evaluate clusters " << std::endl;
   // run evaluation
   evaluate_clusters();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -160,6 +160,14 @@ std::string QAG4SimulationMvtx::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
 {
+
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hitsets)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_cluster_map)
   {
@@ -234,7 +242,6 @@ void QAG4SimulationMvtx::evaluate_clusters()
 
     histograms.insert(std::make_pair(layer, h));
   }
-
   auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;

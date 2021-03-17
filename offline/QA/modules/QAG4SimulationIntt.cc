@@ -159,6 +159,12 @@ std::string QAG4SimulationIntt::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationIntt::load_nodes(PHCompositeNode* topNode)
 {
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hitsets)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_cluster_map)
   {
