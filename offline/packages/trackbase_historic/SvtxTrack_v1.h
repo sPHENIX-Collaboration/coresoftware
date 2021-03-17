@@ -186,7 +186,7 @@ class SvtxTrack_v1 : public SvtxTrack
   // ACTS track information for use by ACTS modules only
   ActsExamples::TrackParameters get_acts_track_parameters() const;
   ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const {return _acts_mj;}
-  void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory mj) { _acts_mj = mj; }
+  void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory mj) { _acts_mj = mj;}
 
  private:
 

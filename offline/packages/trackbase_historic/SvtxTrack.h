@@ -228,7 +228,8 @@ class SvtxTrack : public PHObject
 					 Acts::Vector3D(NAN,NAN,NAN), NAN); }
 
   virtual void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory traj){}
-  virtual ActsExamples::TrkrClusterMultiTrajectory const get_acts_multitrajectory(){return ActsExamples::TrkrClusterMultiTrajectory(); }
+  virtual ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const
+  {return ActsExamples::TrkrClusterMultiTrajectory(); }
  protected:
   SvtxTrack() {}
 
