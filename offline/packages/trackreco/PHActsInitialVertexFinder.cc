@@ -322,7 +322,8 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 
       /// Don't weight track contribution by pT, since the momentum
       /// resolution of the silicon seeds is poor
-      seederConfig.disableAllWeights = true;
+      if(m_disableWeights)
+	seederConfig.disableAllWeights = true;
       VertexSeeder seeder(std::move(seederConfig));
       
       typename VertexFinder::Config finderConfig(std::move(vertexFitter), 
@@ -407,7 +408,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
-      if(m_initial)
+      if(m_resetTrackCovariance)
 	cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
 	       0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
 	       0., 0., 0.05, 0., 0., 0.,

@@ -239,7 +239,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 					10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
-      /// Reset the track seed with the dummy covariance
+      /// Reset the track seed with the dummy covariance and the 
+      /// primary vertex as the track position
       ActsExamples::TrackParameters seed(actsFourPos,
 					 trackParams.momentum(),
 					 trackParams.absoluteMomentum(),
@@ -346,10 +347,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
        clusIter != track->end_cluster_keys();
        ++clusIter)
     {
-     
       auto key = *clusIter;
-
       auto cluster = m_clusterContainer->findCluster(key);
+      /// Make a safety check for clusters that couldn't be attached
+      /// to a surface
+      if(!(cluster->getActsSurface()))
+	continue;
       sourcelinks.push_back(cluster->getActsSourceLink());      
     }
  
