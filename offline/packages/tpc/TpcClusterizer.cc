@@ -658,7 +658,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     td[i].pedestal = pedestal;
     td[i].sector = sector;
     td[i].side = side;
-   
+    td[i].do_assoc = do_hit_assoc;
     td[i].zz_shaping_correction =  zz_shaping_correction;
     td[i].clusterlist = m_clusterlist->getClusterSet(layer,sector,side);// set_clusterlist[i];
     td[i].clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);//set_clusterhitassoc[i];
