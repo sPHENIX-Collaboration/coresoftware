@@ -339,7 +339,6 @@ void PHCASeeding::FillTree()
   int n_dupli = 0;
   int nlayer[60];
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
-  cout << "Filling Tree. N Clusters: " << _cluster_map->size() << " N assoc " << _cluster_hit_map->size() << endl;
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;

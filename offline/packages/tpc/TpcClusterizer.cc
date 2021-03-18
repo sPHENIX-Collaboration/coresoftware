@@ -707,8 +707,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       //      exit(-1);
     }
   }
- 
-  cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
+  if (Verbosity() > 0)
+    cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

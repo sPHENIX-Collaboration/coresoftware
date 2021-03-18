@@ -145,7 +145,6 @@ int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
   // load nodes
   auto res = load_nodes(topNode);
   if (res != Fun4AllReturnCodes::EVENT_OK) return res;
-  std::cout << "evaluate clusters " << std::endl;
   // run evaluation
   evaluate_clusters();
   return Fun4AllReturnCodes::EVENT_OK;
