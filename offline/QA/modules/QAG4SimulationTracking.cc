@@ -319,7 +319,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   {
     // loop over clusters
-    auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+    auto hitsetrange = m_hitsets->getHitSets();
     for (auto hitsetitr = hitsetrange.first;
 	 hitsetitr != hitsetrange.second;
 	 ++hitsetitr){
