@@ -615,7 +615,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  pthread_t threads[2000];
+  pthread_t threads[2000] = {0};
   struct thread_data td[2000];
   //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
   // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
