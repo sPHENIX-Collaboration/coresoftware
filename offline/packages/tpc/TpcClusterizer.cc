@@ -35,6 +35,7 @@
 #include <map>  // for _Rb_tree_cons...
 #include <string>
 #include <utility>  // for pair
+#include <array>
 #include <vector>
 // Terra incognita....
 #include <pthread.h>
@@ -615,8 +616,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  pthread_t threads[2000] = {0};
-  struct thread_data td[2000];
+  const static size_t MAX_HITSET (2000);
+  array<pthread_t,MAX_HITSET> threads;
+  array<struct thread_data,MAX_HITSET> td;
   //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
   // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
   //std::map<long unsigned int, TrkrCluster*> *set_clusterlist[num_hitsets];
