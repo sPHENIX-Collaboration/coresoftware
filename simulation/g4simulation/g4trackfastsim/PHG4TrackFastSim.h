@@ -35,6 +35,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
+class PHParameters;
 
 namespace PHGenFit
 {
@@ -271,6 +272,8 @@ class PHG4TrackFastSim : public SubsysReco
   bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
                          const GenFitTrackMap& gf_tracks);
 
+ protected:
+
   // Pointers first
   //! random generator that conform with sPHENIX standard
   gsl_rng* m_RandomGenerator;
@@ -337,6 +340,8 @@ class PHG4TrackFastSim : public SubsysReco
   int m_PrimaryTrackingFlag;
 
   bool m_DoVertexingFlag;
+
+  PHParameters * m_Parameter = nullptr;
 };
 
 #endif /*__PHG4TrackFastSim_H__*/

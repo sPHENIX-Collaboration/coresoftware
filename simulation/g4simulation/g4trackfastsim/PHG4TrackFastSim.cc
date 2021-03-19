@@ -19,7 +19,7 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxTrack_FastSim_v1.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap
 #include <trackbase_historic/SvtxVertexMap_v1.h>
@@ -27,6 +27,8 @@
 
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+
+#include <phparameter/PHParameters.h>
 
 #include <phfield/PHFieldUtility.h>
 
@@ -124,6 +126,8 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(m_RandomGenerator, seed);
+
+  m_Parameter = new PHParameters(Name());
 }
 
 PHG4TrackFastSim::~PHG4TrackFastSim()
@@ -147,7 +151,8 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   {
     return ret;
   }
-
+  //
+  //
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
@@ -224,7 +229,6 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -602,6 +606,9 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
 
 int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
 {
+  assert(m_Parameter);
+  PHNodeIterator iter(topNode);
+
   //DST objects
   //Truth container
   m_TruthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -627,7 +634,32 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
       cout << "PHG4TrackFastSim::GetNodes - node added: " << m_PHG4HitsNames[i] << endl;
     }
     m_PHG4HitContainer.push_back(phg4hit);
+
+    m_Parameter->set_int_param(m_PHG4HitsNames[i], phg4hit->GetID());
   }
+
+  // Update Kalman filter parameter node
+  m_Parameter->set_string_param("SubTopnodeName", m_SubTopnodeName);
+  m_Parameter->set_string_param("TrackmapOutNodeName", m_TrackmapOutNodeName);
+  m_Parameter->set_string_param("VertexingMethod", m_VertexingMethod);
+  m_Parameter->set_string_param("FitAlgoName", m_FitAlgoName);
+
+  PHCompositeNode* runNode = static_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "RUN"));
+  if (!runNode)
+  {
+    std::cout << Name() << "::"
+              << "::" << __PRETTY_FUNCTION__
+              << "Run Node missing!" << std::endl;
+    throw std::runtime_error(
+        "Failed to find Run node in PHG4TrackFastSim::CreateNodes");
+  }
+  if (Verbosity())
+  {
+    cout << __PRETTY_FUNCTION__ << " : ";
+    m_Parameter->identify();
+  }
+  m_Parameter->SaveToNodeTree(runNode, Name() + string("_Parameter"));
 
   //checks
   assert(m_PHG4HitsNames.size() == m_PHG4HitContainer.size());
@@ -866,7 +898,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   TVector3 pos = gf_state->getPos();
   TMatrixDSym cov = gf_state->get6DCov();
 
-  SvtxTrack_FastSim* out_track = new SvtxTrack_FastSim();
+  SvtxTrack_FastSim_v1* out_track = new SvtxTrack_FastSim_v1();
   out_track->set_truth_track_id(truth_track_id);
   /*!
 	 * TODO: check the definition
