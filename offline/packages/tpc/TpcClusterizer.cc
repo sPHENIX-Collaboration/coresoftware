@@ -416,7 +416,7 @@ void *ProcessSector(void *threadarg) {
      unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
-     float_t fadc = hitr->second->getAdc() - pedestal;
+     float_t fadc = (hitr->second->getAdc() +0.5) - pedestal; // proper rounding
      unsigned short adc = 0;
      if(fadc>0) 
        adc =  (unsigned short) fadc;
@@ -429,7 +429,7 @@ void *ProcessSector(void *threadarg) {
      if(adc>0){
        iphiz iCoord(make_pair(phibin,zbin));
        ihit  thisHit(adc,iCoord);
-       if(adc>10){
+       if(adc>5){
 	 all_hit_map.insert(make_pair(adc, thisHit));
        }
        adcval[phibin][zbin] = (unsigned short) adc;
@@ -712,102 +712,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TpcClusterizer::process_hitset(TrkrHitSet *hitset, unsigned int layer, int side){
-
-  // we have a single hitset, get the info that identifies the module
-  //    int sector = TpcDefs::getSectorId(hitsetitr->first);
-  //  int side = TpcDefs::getSide(hitsetitr->first);
-  
-  // we will need the geometry object for this layer to get the global position
-  /* PHG4CylinderCellGeom *layergeom = _geom_container->GetLayerCellGeom(layer);
-  int NPhiBins = layergeom->get_phibins();
-  NPhiBinsMin = 0;
-  NPhiBinsMax = NPhiBins;
-  
-  int NZBins = layergeom->get_zbins();
-  if (side == 0){
-    NZBinsMin = 0;
-    NZBinsMax = NZBins / 2;
-  }
-  else{
-    NZBinsMin = NZBins / 2 + 1;
-    NZBinsMax = NZBins;
-  }
-  */
-  //put all hits in an rtree (sortable by adc, and directly accessible by coordinate)
-  //start with highest adc hit
-  // -> cluster around it
-  // -> create list of rtree points that belong to a cluster
-  // -> calculate cluster parameters based on list
-  // -> add hits to truth association ??? 
-  // remove used hits from rtree 
-  // repeat untill rtree empty
-  
-  TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-  if(Verbosity()>10) cout << " New Hitset " << endl;
-  //  clubgi::rtree<point, clubgi::quadratic<8>> hit_tree;
-
-  std::vector<ihit> hit_vect;
-
-  for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-         hitr != hitrangei.second;
-       ++hitr){
-    /*    point hitpoint(TpcDefs::getPad(hitr->first),
-		   TpcDefs::getTBin(hitr->first),
-		   (unsigned short) hitr->second->getAdc()+0.5 - pedestal);
-    */
-
-    iphiz iCoord(make_pair(TpcDefs::getPad(hitr->first),
-			   TpcDefs::getTBin(hitr->first)));
-    ihit  hitpoint(((unsigned short) hitr->second->getAdc()+0.5 - pedestal),iCoord);
-
-    hit_vect.push_back(hitpoint);
-
-    
-    unsigned short iphi = hitpoint.second.first;
-    unsigned short iz   = hitpoint.second.second;
-    unsigned short adc  = hitpoint.first;
-
-    if(Verbosity()>10) cout << " iphi: " << iphi << " iz: " <<  iz << " adc: "  << adc << endl;
-    
-  }
-  //  cout << "layer: " << layer << "side: " << side << endl;
-  //  hitset->identify();
-  /*
-  //put all hits in the all_hit_map (sorted by adc)
-  
-  int nclus = 0;
-  while(all_hit_map.size()>0){
-    auto iter = all_hit_map.rbegin();
-    if(iter == all_hit_map.rend()) break;
-    
-    ihit hiHit = iter->second;
-    //start with highest adc hit
-    if(Verbosity()>10) cout << "  test entries: " << all_hit_map.size() << " adc: " << hiHit.first << " iphi: " << hiHit. second.first << " iz: " << hiHit.second.second << endl;
-    //      double adc = hiHit.first;
-    int iphi = hiHit.second.first;
-    int iz = hiHit.second.second;
-    
-    //put all hits in the all_hit_map (sorted by adc)
-    //start with highest adc hit
-    // -> cluster around it and get vector of hits
-    std::vector<ihit> ihit_list;
-    get_cluster(iphi, iz, adcval, ihit_list);
-    if(Verbosity()>10) 
-      cout << " cluster size: " << ihit_list.size() << " #clusters: " << nclus<< endl;
-    // -> calculate cluster parameters
-    // -> add hits to truth association
-    // remove hits from all_hit_map
-    // repeat untill all_hit_map empty
-    //      print_cluster(ihit_list);
-    calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset);
-    remove_hits(ihit_list,all_hit_map,adcval);
-  }
-  */
-  hit_vect.clear();
-  return Fun4AllReturnCodes::EVENT_OK;
-
-}
 int TpcClusterizer::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;

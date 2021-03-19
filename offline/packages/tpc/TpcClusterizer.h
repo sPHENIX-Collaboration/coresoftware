@@ -27,7 +27,6 @@ class TpcClusterizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int process_hitset(TrkrHitSet *hitset, unsigned int layer, int side);
   int End(PHCompositeNode *topNode);
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
