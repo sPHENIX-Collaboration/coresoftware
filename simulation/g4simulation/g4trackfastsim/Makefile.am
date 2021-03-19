@@ -23,7 +23,8 @@ libg4trackfastsim_la_LIBADD = \
   -lPHGenFit \
   -lphgeom \
   -lphg4hit \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lphparameter
 
 pkginclude_HEADERS = \
   PHG4TrackFastSim.h \

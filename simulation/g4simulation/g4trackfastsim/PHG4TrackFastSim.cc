@@ -256,11 +256,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
   //		return Fun4AllReturnCodes::ABORTRUN;
   //	}
 
-  if (m_SvtxTrackMapOut)
-  {
-    m_SvtxTrackMapOut->empty();
-  }
-  else
+  if (not m_SvtxTrackMapOut)
   {
     LogError("m_SvtxTrackMapOut not found!");
     return Fun4AllReturnCodes::ABORTRUN;
@@ -314,7 +310,11 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
       measurements.push_back(vtx_meas);
     }
 
-    PseudoPatternRecognition(particle, measurements, seed_pos, seed_mom,
+    unique_ptr<SvtxTrack> svtx_track_out(new SvtxTrack_FastSim_v1());
+    PseudoPatternRecognition(particle,
+                             measurements,
+                             svtx_track_out.get(),
+                             seed_pos, seed_mom,
                              seed_cov);
 
     if (measurements.size() < 3)
@@ -379,22 +379,20 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
     }
 
     TVector3 vtx(vtxPoint.x(), vtxPoint.y(), vtxPoint.z());
-    SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
-                                              particle->get_track_id(),
-                                              measurements.size(), vtx);
+    bool track_made = MakeSvtxTrack(svtx_track_out.get(), track,
+                                    particle->get_track_id(),
+                                    measurements.size(), vtx);
     if (Verbosity() > 1)
     {
       svtx_track_out->identify();
     }
 
-    if (svtx_track_out)
+    if (track_made)
     {
       //      track -> output container
 
-      const unsigned int track_id = m_SvtxTrackMapOut->insert(svtx_track_out)->get_id();
+      const unsigned int track_id = m_SvtxTrackMapOut->insert(svtx_track_out.get())->get_id();
       gf_track_map.insert({track->getGenFitTrack(), track_id});
-
-      delete svtx_track_out;  // insert makes a clone
     }
 
   }  // Loop all primary particles
@@ -690,9 +688,13 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
 }
 
 int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
-                                               std::vector<PHGenFit::Measurement*>& meas_out, TVector3& seed_pos,
+                                               std::vector<PHGenFit::Measurement*>& meas_out,
+                                               SvtxTrack* track_out,
+                                               TVector3& seed_pos,
                                                TVector3& seed_mom, TMatrixDSym& seed_cov, const bool do_smearing)
 {
+  assert(track_out);
+
   seed_cov.ResizeTo(6, 6);
 
   seed_pos.SetXYZ(0, 0, 0);
@@ -816,7 +818,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             }
             //            meas_out.push_back(meas);
             ordered_measurements.insert(make_pair(hit->get_avg_t(), meas));
-
+            track_out->add_g4hit_id(m_PHG4HitContainer[ilayer]->GetID(), hit->get_hit_id());
             //meas->getMeasurement()->Print(); //DEBUG
           }
         }
@@ -855,11 +857,14 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
-                                           const unsigned int truth_track_id,
-                                           const unsigned int nmeas,
-                                           const TVector3& vtx)
+bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
+                                     const PHGenFit::Track* phgf_track,
+                                     const unsigned int truth_track_id,
+                                     const unsigned int nmeas,
+                                     const TVector3& vtx)
 {
+  assert(out_track);
+
   double chi2 = phgf_track->get_chi2();
   double ndf = phgf_track->get_ndf();
 
@@ -891,14 +896,13 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   if (pathlenth_orig_from_first_meas < -999990)
   {
     LogError("Extraction faild!");
-    return nullptr;
+    return false;
   }
 
   TVector3 mom = gf_state->getMom();
   TVector3 pos = gf_state->getPos();
   TMatrixDSym cov = gf_state->get6DCov();
 
-  SvtxTrack_FastSim_v1* out_track = new SvtxTrack_FastSim_v1();
   out_track->set_truth_track_id(truth_track_id);
   /*!
 	 * TODO: check the definition
@@ -976,7 +980,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     delete state;
   }
 
-  return static_cast<SvtxTrack*>(out_track);
+  return true;
 }
 
 PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane(

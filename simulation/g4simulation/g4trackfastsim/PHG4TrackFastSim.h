@@ -26,6 +26,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 class PHG4Hit;
 class PHG4HitContainer;
@@ -248,6 +249,7 @@ class PHG4TrackFastSim : public SubsysReco
 	 */
   int PseudoPatternRecognition(const PHG4Particle* particle,
                                std::vector<PHGenFit::Measurement*>& meas_out,
+                               SvtxTrack* track_out,
                                TVector3& seed_pos,
                                TVector3& seed_mom,
                                TMatrixDSym& seed_cov,
@@ -262,9 +264,9 @@ class PHG4TrackFastSim : public SubsysReco
   /*!
 	 * Make SvtxTrack from PHGenFit::Track
 	 */
-  SvtxTrack* MakeSvtxTrack(const PHGenFit::Track* phgf_track_in,
-                           const unsigned int truth_track_id = UINT_MAX,
-                           const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
+  bool MakeSvtxTrack(SvtxTrack* track_out, const PHGenFit::Track* phgf_track_in,
+                     const unsigned int truth_track_id = UINT_MAX,
+                     const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
   /*
   * Fill SvtxVertexMap from GFRaveVertexes and Tracks
@@ -273,7 +275,6 @@ class PHG4TrackFastSim : public SubsysReco
                          const GenFitTrackMap& gf_tracks);
 
  protected:
-
   // Pointers first
   //! random generator that conform with sPHENIX standard
   gsl_rng* m_RandomGenerator;
@@ -341,7 +342,7 @@ class PHG4TrackFastSim : public SubsysReco
 
   bool m_DoVertexingFlag;
 
-  PHParameters * m_Parameter = nullptr;
+  PHParameters* m_Parameter = nullptr;
 };
 
 #endif /*__PHG4TrackFastSim_H__*/
