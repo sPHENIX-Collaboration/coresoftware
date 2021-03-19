@@ -134,9 +134,21 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumMass(float max_mass) { m_max_mass = max_mass; }
 
-  void setMinimumLifetime(float min_lifetime) { m_min_lifetime = min_lifetime; }
+  //void setMinimumLifetime(float min_lifetime) { m_min_lifetime = min_lifetime; }
 
-  void setMaximumLifetime(float max_lifetime) { m_max_lifetime = max_lifetime; }
+  //void setMaximumLifetime(float max_lifetime) { m_max_lifetime = max_lifetime; }
+
+  void setDecayTimeRange(float min_decayTime, float max_decayTime)
+  {
+    m_min_decayTime = min_decayTime; 
+    m_max_decayTime = max_decayTime; 
+  }
+
+  void setDecayLengthRange(float min_decayLength, float max_decayLength)
+  {
+    m_min_decayLength = min_decayLength; 
+    m_max_decayLength = max_decayLength; 
+  }
 
   void setMinimumTrackPT(float pt) { m_track_pt = pt; }
 

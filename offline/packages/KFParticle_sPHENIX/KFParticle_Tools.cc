@@ -32,6 +32,10 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+//Dont need these yet but I'm going to start an conversation about addid calo info to selection
+//#include <trackbase/TrkrCluster.h>
+//#include <trackbase/TrkrClusterContainer.h>
+
 //sPHENIX stuff
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -65,7 +69,11 @@ KFParticle_Tools::KFParticle_Tools()
   , m_intermediate_min_dira{-1, -1, -1, -1}
   , m_intermediate_min_fdchi2{-1, -1, -1, -1}
   , m_min_mass(0)
-  , m_max_mass(1e1)
+  , m_max_mass(0)
+  , m_min_decayTime(-1*FLT_MAX)
+  , m_max_decayTime(FLT_MAX)
+  , m_min_decayLength(-1*FLT_MAX)
+  , m_max_decayLength(FLT_MAX)
   , m_track_pt(0.25)
   , m_track_ptchi2(FLT_MAX)
   , m_track_ip(-1.)
@@ -152,6 +160,8 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode *topNode)  ///Return a
   kfp_particle.NDF() = m_dst_track->get_ndf();
   kfp_particle.Chi2() = m_dst_track->get_chisq();
   kfp_particle.SetId(m_dst_track->get_id());
+
+  //std::cout << "m_dst_track->get_cal_energy_3x3(PRES): " << m_dst_track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(0)) << std::endl;
 
   return kfp_particle;
 }
@@ -425,7 +435,7 @@ float KFParticle_Tools::eventDIRA(KFParticle particle, KFParticle vertex)
   sizeOfFD = TMatrixD(flightVector, TMatrixD::kTransposeMult, flightVector);
   float f_sizeOfFD = sqrt(sizeOfFD(0, 0));
 
-  return std::abs(f_momDotFD / (f_sizeOfMom * f_sizeOfFD));  //returns the DIRA. abs for now as we have -x positions (barrel detector)
+  return f_momDotFD / (f_sizeOfMom * f_sizeOfFD); 
 }
 
 float KFParticle_Tools::flightDistanceChi2(KFParticle particle, KFParticle vertex)
@@ -465,6 +475,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   bool daughterMassCheck = true;
   float unique_vertexID = 0;
+  float daughterMass = 0;
 
   //Figure out if the decay has reco. tracks mixed with resonances
   int num_tracks_used_by_intermediates = 0;
@@ -473,8 +484,8 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   for (int i = 0; i < nTracks; ++i)
   {
-    float daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
-    if (num_remaining_tracks > 0 && i >= m_num_intermediate_states) 
+    daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
+    if (num_remaining_tracks > 0 && (i >= m_num_intermediate_states || isIntermediate)) 
     { 
       daughterMass = particleMasses.find(daughterOrder[i].c_str())->second.second;
     }
@@ -530,12 +541,32 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
 void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex)
 {
+  KFParticle particleCopy = particle;
+  particleCopy.SetProductionVertex(vertex);
+  particleCopy.TransportToDecayVertex();
+
+  float calculated_decayTime;
+  float calculated_decayTimeErr;
+  float calculated_decayLength;
+  float calculated_decayLengthErr;
+
+  particleCopy.GetLifeTime(calculated_decayTime, calculated_decayTimeErr);
+  particleCopy.GetDecayLength(calculated_decayLength, calculated_decayLengthErr);
+
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
   float calculated_dira = eventDIRA(particle, vertex);
   float calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+
   goodCandidate = false;
-  if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 &&
-      calculated_dira >= m_dira_min && calculated_dira <= m_dira_max) goodCandidate = true;
+
+  const float speed = 2.99792458e-1;
+  calculated_decayTime /= speed;
+
+  if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2
+  &&  calculated_dira >= m_dira_min && calculated_dira <= m_dira_max
+  &&  calculated_decayTime >= m_min_decayTime && calculated_decayTime <= m_max_decayTime
+  &&  calculated_decayLength >= m_min_decayLength && calculated_decayLength <= m_max_decayLength) 
+      goodCandidate = true;
 }
 
 std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
@@ -544,6 +575,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
   bool isGoodCandidate;
 
   std::tie(candidate, isGoodCandidate) = buildMother(vDaughters, daughterOrder, isIntermediate, intermediateNumber, nTracks, constrainMass, required_vertexID);
+
   if (constrain_to_vertex && isGoodCandidate && !isIntermediate) constrainToVertex(candidate, isGoodCandidate, vertex);
 
   return std::make_tuple(candidate, isGoodCandidate);

@@ -85,6 +85,12 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch(TString(daughter_number) + "_true_p", &m_true_daughter_p[daughter_id], TString(daughter_number) + "_true_p/F");
   m_tree->Branch(TString(daughter_number) + "_true_pT", &m_true_daughter_pt[daughter_id], TString(daughter_number) + "_true_pT/F");
   m_tree->Branch(TString(daughter_number) + "_true_ID", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_ID/I");
+  if (m_constrain_to_vertex_truthMatch)
+  {
+    m_tree->Branch(TString(daughter_number) + "_true_PV_x", &m_true_daughter_pv_x[daughter_id], TString(daughter_number) + "_true_pv_x/F");
+    m_tree->Branch(TString(daughter_number) + "_true_PV_y", &m_true_daughter_pv_y[daughter_id], TString(daughter_number) + "_true_pv_y/F");
+    m_tree->Branch(TString(daughter_number) + "_true_PV_z", &m_true_daughter_pv_z[daughter_id], TString(daughter_number) + "_true_pv_x/F");
+  }
 }
 
 void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
@@ -197,6 +203,10 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
     m_true_daughter_ip[daughter_id] = trueKFParticle.GetDistanceFromVertex(trueKFParticleVertex);
     m_true_daughter_ip_xy[daughter_id] = trueKFParticle.GetDistanceFromVertexXY(trueKFParticleVertex);
+
+    m_true_daughter_pv_x[daughter_id] = truePoint == NULL ? -99. : truePoint->get_x();
+    m_true_daughter_pv_y[daughter_id] = truePoint == NULL ? -99. : truePoint->get_y();
+    m_true_daughter_pv_z[daughter_id] = truePoint == NULL ? -99. : truePoint->get_z();
 
   }
 }
