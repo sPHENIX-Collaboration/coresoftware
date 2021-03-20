@@ -44,7 +44,7 @@ namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 }
-
+// query replace vector<unsigned short> vector<double>
 using namespace std;
 
 typedef std::pair<unsigned short, unsigned short> iphiz;
@@ -69,7 +69,7 @@ struct thread_data {
 
 pthread_mutex_t mythreadlock;
 
-void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
+void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<double>> &adcval)
 {
   typedef multimap<unsigned short, ihit>::iterator hit_iterator;
   pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
@@ -83,7 +83,7 @@ void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, 
   adcval[phibin][zbin] = 0;
 }
 
-void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
+void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<double>> &adcval)
 {
   for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
     unsigned short adc    = iter->first; 
@@ -93,7 +93,7 @@ void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihi
   }
 }
 
-void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<double>> &adcval, int& zdown, int& zup){
 
   int FitRangeZ = 5;
   zup = 0;
@@ -140,7 +140,7 @@ void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<u
   }
 }
 
-void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vector<double>> &adcval, int& phidown, int& phiup){
 
   int FitRangePHI = 3;
   phidown = 0;
@@ -191,7 +191,7 @@ void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vect
   }
 }
 
-void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list)
 {
   // search along phi at the peak in z
  
@@ -407,7 +407,7 @@ void *ProcessSector(void *threadarg) {
    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
 
    // for convenience, create a 2D vector to store adc values in and initialize to zero
-   std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(zbins, 0));
+   std::vector<std::vector<double>> adcval(phibins, std::vector<double>(zbins, 0));
    std::multimap<unsigned short, ihit> all_hit_map;
    std::vector<ihit> hit_vect;
 
@@ -417,7 +417,7 @@ void *ProcessSector(void *threadarg) {
      unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
-     float_t fadc = (hitr->second->getAdc() +0.5) - pedestal; // proper rounding
+     float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
      unsigned short adc = 0;
      if(fadc>0) 
        adc =  (unsigned short) fadc;
