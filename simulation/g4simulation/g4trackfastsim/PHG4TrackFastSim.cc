@@ -579,16 +579,21 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   //	if (Verbosity() > 0)
   //		cout << _clustermap_out_name <<" node added" << endl;
 
-  m_SvtxTrackMapOut = new SvtxTrackMap_v1;
-
-  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(m_SvtxTrackMapOut, m_TrackmapOutNodeName, "PHObject");
-  tb_node->addNode(tracks_node);
-  if (Verbosity() > 0)
+  m_SvtxTrackMapOut = findNode::getClass<SvtxTrackMap>(topNode, m_TrackmapOutNodeName);
+  if (!m_SvtxTrackMapOut)
   {
-    cout << m_TrackmapOutNodeName << " node added" << endl;
+    m_SvtxTrackMapOut = new SvtxTrackMap_v1;
+
+    PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(m_SvtxTrackMapOut, m_TrackmapOutNodeName, "PHObject");
+    tb_node->addNode(tracks_node);
+    if (Verbosity() > 0)
+    {
+      cout << m_TrackmapOutNodeName << " node added" << endl;
+    }
   }
 
-  if (m_DoVertexingFlag)
+  m_SvtxVertexMap = findNode::getClass<SvtxVertexMap_v1>(topNode, "SvtxVertexMap");
+  if (not m_SvtxVertexMap)
   {
     m_SvtxVertexMap = new SvtxVertexMap_v1;
     PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(m_SvtxVertexMap, "SvtxVertexMap", "PHObject");
