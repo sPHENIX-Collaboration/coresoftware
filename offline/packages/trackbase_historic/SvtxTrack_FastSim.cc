@@ -28,7 +28,7 @@ SvtxTrack_FastSim::~SvtxTrack_FastSim()
 void SvtxTrack_FastSim::identify(std::ostream& os) const
 {
   os << "SvtxTrack_FastSim Object ";
-  os << "truth_track_id:" << get_truth_track_id() << endl;
+  os << "truth_track_id:" << get_truth_track_id();
   os << "id: " << get_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";
@@ -51,8 +51,8 @@ void SvtxTrack_FastSim::identify(std::ostream& os) const
       unsigned int cluster_id = *iter;
       os << cluster_id << " ";
     }
+    os << endl;
   }
-  os << endl;
 
   return;
 }

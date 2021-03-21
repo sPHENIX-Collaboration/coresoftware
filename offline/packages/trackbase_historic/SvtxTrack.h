@@ -5,6 +5,7 @@
 
 #include <trackbase/TrkrDefs.h>
 
+#include <g4main/PHG4HitDefs.h>
 #include <phool/PHObject.h>
 
 #include <limits.h>
@@ -56,9 +57,6 @@ class SvtxTrack : public PHObject
 
   virtual unsigned int get_vertex_id() const { return UINT_MAX; }
   virtual void set_vertex_id(unsigned int vertex_id) {}
-
-  virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
-  virtual void set_truth_track_id(unsigned int truthTrackId) {}
 
   virtual bool get_positive_charge() const { return false; }
   virtual void set_positive_charge(bool ispos) {}
@@ -216,6 +214,39 @@ class SvtxTrack : public PHObject
 
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
+
+  //
+  // truth track interface ---------------------------------------------------
+  //
+
+  //SvtxTrack_FastSim
+  virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
+  virtual void set_truth_track_id(unsigned int truthTrackId) {}
+  virtual void set_num_measurements(int nmeas) {}
+  virtual unsigned int get_num_measurements() { return 0; }
+
+  //SvtxTrack_FastSim_v1
+  typedef std::map<int, std::set<PHG4HitDefs::keytype> > HitIdMap;
+  typedef HitIdMap::iterator HitIdIter;
+  typedef HitIdMap::const_iterator HitIdConstIter;
+
+  virtual bool empty_g4hit_id() const { return true; }
+  virtual size_t size_g4hit_id() const { return 0; }
+  virtual void add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
+  virtual HitIdIter begin_g4hit_id() { return HitIdMap().end(); }
+  virtual HitIdConstIter begin_g4hit_id() const { return HitIdMap().end(); }
+  virtual HitIdIter find_g4hit_id(int volume) { return HitIdMap().end(); }
+  virtual HitIdConstIter find_g4hit_id(int volume) const { return HitIdMap().end(); }
+  virtual HitIdIter end_g4hit_id() { return HitIdMap().end(); }
+  virtual HitIdConstIter end_g4hit_id() const { return HitIdMap().end(); }
+  virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
+  virtual size_t remove_g4hit_volume(int volume) { return 0; }
+  virtual void clear_g4hit_id() {}
+  virtual const HitIdMap& g4hit_ids() const
+  {
+    static const HitIdMap map;
+    return map;
+  };
 
  protected:
   SvtxTrack() {}
