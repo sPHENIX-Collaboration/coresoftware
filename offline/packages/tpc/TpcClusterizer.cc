@@ -259,7 +259,8 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
     // capture the hitkeys for all adc values above a certain threshold
     TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
-    if(adc>5)hitkeyvec.push_back(hitkey);
+    // if(adc>5)
+    hitkeyvec.push_back(hitkey);
   }
   if (adc_sum < 10) return;  // skip obvious noise "clusters"
   
