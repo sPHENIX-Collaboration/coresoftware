@@ -11,6 +11,7 @@
 #include <vector>  // for vector
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 namespace PHGenFit2
 {
@@ -32,10 +33,10 @@ class PHTpcEventExporter
   PHTpcEventExporter();
   virtual ~PHTpcEventExporter() {}
 
-  void exportEvent(TrkrClusterContainer* cluster_map, std::vector<kdfinder::TrackCandidate<double>*> candidates,
+  void exportEvent(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets, std::vector<kdfinder::TrackCandidate<double>*> candidates,
                    double B, const std::string& filename);
 
-  void exportEvent(TrkrClusterContainer* cluster_map, std::vector<PHGenFit2::Track*> gtracks,
+  void exportEvent(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets,std::vector<PHGenFit2::Track*> gtracks,
                    double B, const std::string& filename);
 
   void exportEvent(std::vector<PHGenFit2::Track*> gtracks, double B, const std::string& filename);

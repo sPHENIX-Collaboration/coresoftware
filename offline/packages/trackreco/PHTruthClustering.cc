@@ -207,28 +207,31 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
     }
 
   // For the other subsystems, we just copy over all of the the clusters from the reco map
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _reco_cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrDefs::cluskey cluskey = clusIter->first;
+      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+      if(trkrid == TrkrDefs::tpcId)  continue;
 
-  TrkrClusterContainer::ConstRange clusrange = _reco_cluster_map->getClusters();
-  for (TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
-  {
-    TrkrDefs::cluskey cluskey = clusiter->first;
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-    if(trkrid == TrkrDefs::tpcId)  continue;
-
-    // we have to make a copy of the cluster, to avoid problems later
-    TrkrCluster* cluster = (TrkrCluster*) clusiter->second->CloneMe();
-
-    unsigned int layer = TrkrDefs::getLayer(cluskey);
-    if (Verbosity() >= 3)
-    {
-      std::cout << PHWHERE <<" copying cluster in layer " << layer << " from reco clusters to truth clusters " << std::endl;;
-      cluster->identify();
+      // we have to make a copy of the cluster, to avoid problems later
+      TrkrCluster* cluster = (TrkrCluster*) clusIter->second->CloneMe();
+      
+      unsigned int layer = TrkrDefs::getLayer(cluskey);
+      if (Verbosity() >= 3)
+	{
+	  std::cout << PHWHERE <<" copying cluster in layer " << layer << " from reco clusters to truth clusters " << std::endl;;
+	  cluster->identify();
+	}
+      
+      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
+      if(iter->first != cluskey)
+	std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
     }
-
-    TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
-    if(iter->first != cluskey)
-      std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
- }
+  }
 
   if(Verbosity() >=3)
     {

@@ -17,6 +17,7 @@
 class PHCompositeNode;
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -52,6 +53,7 @@ class PHTrackPropagating : public SubsysReco
 
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map;
+  TrkrHitSetContainer  *_hitsets;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;

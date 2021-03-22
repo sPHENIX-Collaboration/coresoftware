@@ -12,6 +12,7 @@
 #include <vector>   // for vector
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 namespace kdfinder
 {
@@ -49,7 +50,7 @@ class PHTpcSeedFinder
     mMaxLooperRadius = maxr;
   }
 
-  std::vector<kdfinder::TrackCandidate<double>*> findSeeds(TrkrClusterContainer* cluster_map, double B /* magfield */);
+  std::vector<kdfinder::TrackCandidate<double>*> findSeeds(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets, double B /* magfield */);
 
  protected:
  private:

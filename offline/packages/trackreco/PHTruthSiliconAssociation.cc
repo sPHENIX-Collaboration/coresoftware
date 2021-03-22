@@ -9,6 +9,9 @@
 /// Tracking includes
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
@@ -312,7 +315,13 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!_hitsets)
+    {
+      std::cout << PHWHERE << "No hitset container on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertex_map)
     {
@@ -439,21 +448,22 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
   std::set<TrkrDefs::cluskey> clusters;
 
   // loop over all the clusters
-  TrkrClusterContainer::ConstRange all_clusters = _cluster_map->getClusters();
-  for (TrkrClusterContainer::ConstIterator iter = all_clusters.first;
-       iter != all_clusters.second;
-       ++iter)
-  {
-    TrkrDefs::cluskey cluster_key = iter->first;
-    unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-    if(layer > 6) continue;  // we need the silicon layers only
-
-    // get all truth hits for this cluster
-    TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
-    for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-      {
-	TrkrDefs::hitkey hitkey = clushititer->second;
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrDefs::cluskey cluster_key = clusIter->first;
+      unsigned int layer = TrkrDefs::getLayer(cluster_key);
+      
+      if(layer > 6) continue;  // we need the silicon layers only
+      
+      // get all truth hits for this cluster
+      TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+      for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	{
+	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
 	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
 	  
@@ -482,9 +492,9 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
 		    }		    
 		}
 	    } // end loop over g4hits associated with hitsetkey and hitkey
-      } // end loop over hits associated with cluskey  
-  } // end loop over all cluster keys in silicon layers
-  
+	} // end loop over hits associated with cluskey  
+    } // end loop over all cluster keys in silicon layers
+  }//end loop over hitsets
   return clusters;
   
 }

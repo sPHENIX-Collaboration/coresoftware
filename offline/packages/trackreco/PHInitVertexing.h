@@ -17,6 +17,7 @@
 class PHCompositeNode;
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class SvtxVertexMap;
 
 /// \class PHInitVertexing
@@ -44,6 +45,7 @@ class PHInitVertexing : public SubsysReco
 
 
   TrkrClusterContainer *_cluster_map;
+  TrkrHitSetContainer  *_hitsets;
   SvtxVertexMap *_vertex_map;
 
  private:

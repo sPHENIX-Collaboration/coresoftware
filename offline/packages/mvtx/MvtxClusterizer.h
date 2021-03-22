@@ -63,7 +63,7 @@ class MvtxClusterizer : public SubsysReco
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
-  TrkrClusterHitAssoc *m_clusterhitassoc;
+  TrkrClusterHitAssoc  *m_clusterhitassoc;
 
   // settings
   bool m_makeZClustering;  // z_clustering_option

@@ -69,7 +69,6 @@ libtrack_io_la_SOURCES = \
 libtrack_io_la_LIBADD = \
   -lphool
 
-
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
