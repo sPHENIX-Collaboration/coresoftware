@@ -69,6 +69,9 @@ class KFParticle_truthAndDetTools
   float m_true_daughter_p[max_tracks] = {0};
   float m_true_daughter_pt[max_tracks] = {0};
   int m_true_daughter_id[max_tracks] = {0};
+  float m_true_daughter_pv_x[max_tracks] = {0};
+  float m_true_daughter_pv_y[max_tracks] = {0};
+  float m_true_daughter_pv_z[max_tracks] = {0};
 
   std::vector<float> detector_local_x[max_tracks];  // 7 subdetector including outer and inner hcal plus 4th tracker
   std::vector<float> detector_local_y[max_tracks];

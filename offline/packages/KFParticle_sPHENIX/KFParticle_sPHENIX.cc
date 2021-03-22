@@ -64,14 +64,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
-/*
-  if (m_save_output)
-  {
-    m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-    if (Verbosity() >= VERBOSITY_SOME) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
-    initializeBranches();
-  }
-*/
   if (m_save_output && Verbosity() >= VERBOSITY_SOME) std::cout << "Output nTuple: " << m_outfile_name << std::endl;
 
   if (m_save_dst) createParticleNode(topNode);
@@ -149,7 +141,7 @@ int KFParticle_sPHENIX::End(PHCompositeNode *topNode)
 {
   std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of canadidates: " << candidateCounter << std::endl;  
 
-  if (m_save_output)
+  if (m_save_output && candidateCounter != 0)
   {
     m_outfile->Write();
     m_outfile->Close();
