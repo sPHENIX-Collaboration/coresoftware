@@ -149,6 +149,7 @@ void PHG4ConeSubsystem::SetDefaultParameters()
   set_default_double_param("sphi", 0.);
   set_default_double_param("dphi", 360.);  // degrees
   set_default_double_param("rot_z", 0);
+  set_default_double_param("rot_y", 0);
 
   set_default_string_param("material", "WorldMaterial");
 }

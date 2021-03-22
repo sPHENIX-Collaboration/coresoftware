@@ -90,7 +90,14 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                         nullptr, nullptr, g4userlimits);
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cylinder_logic);
-  m_CylinderPhysicalVolume = new G4PVPlacement(0, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+
+  G4RotationMatrix *rotm = new G4RotationMatrix();
+  rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
+
+  m_CylinderPhysicalVolume = new G4PVPlacement(rotm,
+					       G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+							     m_Params->get_double_param("place_y") * cm,
+							     m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),
                                                logicWorld, 0, false, OverlapCheck());
