@@ -229,6 +229,7 @@ class SvtxTrack : public PHObject
   virtual ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const
     { return ActsExamples::TrkrClusterMultiTrajectory(); }
 
+
   //
   // truth track interface ---------------------------------------------------
   //
