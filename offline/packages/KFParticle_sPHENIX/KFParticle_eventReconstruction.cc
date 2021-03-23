@@ -66,6 +66,7 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
                                                  std::vector<std::vector<KFParticle>>& selectedIntermediates,
                                                  int& nPVs, int& multiplicity)
 {
+  //ALICE field is 0.5T but they set it to -5 in KFParticle? Checked momentum sums and -1.4 is more accurate
   KFParticle::SetField(-1.4e0);
 
   std::vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode);
@@ -162,11 +163,11 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             unsigned int matchIterators[4] = {a, b, c, d};
 
             int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
-            assert(num_mother_decay_products>0);
+            assert(num_mother_decay_products > 0);
             KFParticle motherDecayProducts[num_mother_decay_products];
             std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
 
-            for (int i = 0; i < m_num_intermediate_states; ++i) motherDecayProducts[i] = potentialIntermediates[i][matchIterators[i]];
+            for (int i = 0; i < m_num_intermediate_states; ++i) motherDecayProducts[i] = potentialIntermediates[i][matchIterators[i]]; 
             for (int j = 1; j < m_num_intermediate_states; ++j) 
             {
               finalTracks.insert(finalTracks.end(), potentialDaughters[j][matchIterators[j]].begin(), potentialDaughters[j][matchIterators[j]].end());
@@ -273,12 +274,24 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
   {
     KFParticle smallestMassError = goodCandidates[0];
     int bestCombinationIndex = 0;
-    for (unsigned int i = 0; i < goodCandidates.size(); ++i)
+    for (unsigned int i = 1; i < goodCandidates.size(); ++i)
     {
-      if (goodCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
+      if (m_constrain_to_vertex)
       {
-        smallestMassError = goodCandidates[i];
-        bestCombinationIndex = i;
+        if (goodCandidates[i].GetDeviationFromVertex(goodVertex[i]) <
+            smallestMassError.GetDeviationFromVertex(goodVertex[bestCombinationIndex]))
+        {
+          smallestMassError = goodCandidates[i];
+          bestCombinationIndex = i;
+        }
+      }
+      else
+      {
+        if (goodCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
+        {
+          smallestMassError = goodCandidates[i];
+          bestCombinationIndex = i;
+        }
       }
     }
     selectedMotherAdv.push_back(goodCandidates[bestCombinationIndex]);
@@ -367,12 +380,24 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
     {
       KFParticle smallestMassError = goodCandidates[0];
       int bestCombinationIndex = 0;
-      for (unsigned int i = 0; i < goodCandidates.size(); ++i)
+      for (unsigned int i = 1; i < goodCandidates.size(); ++i)
       {
-        if (goodCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
+        if (fixToPV && !isIntermediate)
         {
-          smallestMassError = goodCandidates[i];
-          bestCombinationIndex = i;
+          if (goodCandidates[i].GetDeviationFromVertex(goodVertex[i]) <
+              smallestMassError.GetDeviationFromVertex(goodVertex[bestCombinationIndex]))
+          {
+            smallestMassError = goodCandidates[i];
+            bestCombinationIndex = i;
+          }
+        }
+        else
+        {
+          if (goodCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
+          {
+            smallestMassError = goodCandidates[i];
+            bestCombinationIndex = i;
+          }
         }
       }
       selectedMotherCand.push_back(goodCandidates[bestCombinationIndex]);
@@ -381,6 +406,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
       for (int i = 0; i < nTracks; ++i) particles.push_back(goodDaughters[i][bestCombinationIndex]);
       selectedDaughtersCand.push_back(particles);
     }
+
     goodCandidates.clear();
     goodVertex.clear();
     for (int j = 0; j < nTracks; ++j) goodDaughters[j].clear();

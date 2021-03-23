@@ -26,6 +26,9 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <Acts/Seeding/BinnedSPGroup.hpp>
 #include <Acts/Seeding/InternalSeed.hpp>
@@ -616,19 +619,19 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 {
   std::vector<TrkrDefs::cluskey> matchedClusters;
   
-  TrkrClusterContainer::ConstRange inttClusRange = 
-    m_clusterMap->getClusters(TrkrDefs::inttId);
-  
-  for(TrkrClusterContainer::ConstIterator clusIter = inttClusRange.first;
-      clusIter != inttClusRange.second; ++clusIter)
-    {
+  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = m_clusterMap->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       const auto cluskey = clusIter->first;
       const auto cluster = clusIter->second;
       
-      /// Subtract three to subtract off the mvtx layers for comparison
-      /// to projections
+      // Subtract three to subtract off the mvtx layers for comparison
+      // to projections
       const auto projLayer = TrkrDefs::getLayer(cluskey) - 3;
-
+	
       const auto sphenixLayer = TrkrDefs::getLayer(cluskey);
   
       auto layerGeom = dynamic_cast<CylinderGeomIntt*>
@@ -679,7 +682,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	}
 
     }
-  
+  }  
   return matchedClusters;
 
 }
@@ -1144,7 +1147,13 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!m_hitsets)
+    {
+      std::cout << PHWHERE << "No hitset container on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)

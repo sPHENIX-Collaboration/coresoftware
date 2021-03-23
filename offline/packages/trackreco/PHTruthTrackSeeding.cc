@@ -30,6 +30,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <Geant4/G4ParticleDefinition.hh>
+#include <Geant4/G4ParticleTable.hh>
+
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl
 #include <map>       // for multimap, map<>::c...
@@ -119,7 +122,20 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
     svtx_track->set_id(_track_map->size());
     svtx_track->set_truth_track_id(gtrackID);
-   
+
+    // set track charge
+    /*
+     * having the proper track charge is necessary for the ACTS fit to work properly
+     * with normal tracking, it is set by the track seeding. Here we get it from the G4Particle
+     * unfortunately, particle charge is not stored into PHG4Particle.
+     * we need to retrieve it from geant4 particle table
+     */
+    {
+      const auto particleTable = G4ParticleTable::GetParticleTable();
+      const auto particledef = particleTable->FindParticle(g4particle->get_pid());
+      if( particledef ) svtx_track->set_charge(particledef->GetPDGCharge());
+    }
+
     // Smear the truth values out by 5% so that the seed momentum and
     // position aren't completely exact
     

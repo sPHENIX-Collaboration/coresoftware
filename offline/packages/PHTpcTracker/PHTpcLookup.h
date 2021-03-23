@@ -14,6 +14,7 @@
 #include <vector>
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 /// \class PHTpcLookup
 ///
@@ -25,13 +26,15 @@ class PHTpcLookup
   PHTpcLookup();
   ~PHTpcLookup();
 
-  void init(TrkrClusterContainer* cluster_map);
+  void init(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets);
   void clear();
 
   std::vector<std::vector<double>*> find(double x, double y, double z, double radius, size_t& nMatches);
 
  protected:
+
   TrkrClusterContainer* mClusterMap;
+  TrkrHitSetContainer* mHitsets;
   std::vector<std::vector<double> > mKDhits;
   kdfinder::KDPointCloud<double> mCloud;
   nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, kdfinder::KDPointCloud<double> >,

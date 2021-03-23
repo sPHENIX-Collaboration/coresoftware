@@ -18,6 +18,8 @@
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -445,35 +447,37 @@ void PHRTreeSeeding::FillTree()
   int nlayer[60];
   for (int j = 0; j < 60; j++) nlayer[j] = 0;
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-
-  for (TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-  {
-    TrkrCluster *cluster = iter->second;
-    TrkrDefs::cluskey ckey = iter->first;
-    unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < 39) continue;
-
-    TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
-
-    double clus_phi = vec.Phi();
-    clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
-    double clus_eta = vec.Eta();
-    double clus_l = layer;  // _radii_all[layer];
-
-    vector<pointKey> testduplicate;
-    QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
-    if (!testduplicate.empty())
-    {
-      n_dupli++;
-      continue;
+  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey ckey = clusIter->first;
+      unsigned int layer = TrkrDefs::getLayer(ckey);
+      if (layer < 39) continue;
+      
+      TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
+      
+      double clus_phi = vec.Phi();
+      clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
+      double clus_eta = vec.Eta();
+      double clus_l = layer;  // _radii_all[layer];
+      
+      vector<pointKey> testduplicate;
+      QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
+      if (!testduplicate.empty())
+	{
+	  n_dupli++;
+	  continue;
+	}
+      nlayer[layer]++;
+      t_fill->restart();
+      _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
+      t_fill->stop();
     }
-    nlayer[layer]++;
-    t_fill->restart();
-    _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
-    t_fill->stop();
   }
-
   std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   std::cout << "number of duplicates : " << n_dupli << std::endl;
 }

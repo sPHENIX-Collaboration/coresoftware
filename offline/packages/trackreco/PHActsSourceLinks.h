@@ -31,6 +31,8 @@
 
 class PHCompositeNode;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
+
 class TrkrCluster;
 class TGeoNode;
 class PHG4CylinderGeomContainer;
@@ -162,6 +164,7 @@ class PHActsSourceLinks : public SubsysReco
 
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrHitSetContainer  *m_hitsets = nullptr;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module

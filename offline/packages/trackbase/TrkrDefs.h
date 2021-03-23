@@ -85,6 +85,14 @@ namespace TrkrDefs
   TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
   TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
 
+  static const unsigned int kBitShiftPhiElement __attribute__((unused)) = 8;//sector
+  static const unsigned int kBitShiftZElement __attribute__((unused)) = 0;//side
+
+  uint8_t getPhiElement(TrkrDefs::hitsetkey key);//sector
+  uint8_t getZElement(TrkrDefs::hitsetkey key);//side
+  uint8_t getPhiElement(TrkrDefs::cluskey key);//sector
+  uint8_t getZElement(TrkrDefs::cluskey key);//side
+
 }
 
 #endif  //TRACKBASE_TRKRDEFUTIL_H

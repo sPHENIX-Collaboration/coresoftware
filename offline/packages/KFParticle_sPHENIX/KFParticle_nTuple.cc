@@ -473,10 +473,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     m_calculated_mother_decaytime /= speedOfLight;
     m_calculated_mother_decaytime_err /= speedOfLight; 
-  }
 
-  if (m_constrain_to_vertex_nTuple)
-  {
     m_calculated_vertex_x = vertex.GetX();
     m_calculated_vertex_y = vertex.GetY();
     m_calculated_vertex_z = vertex.GetZ();
