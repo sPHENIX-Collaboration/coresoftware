@@ -57,7 +57,7 @@ namespace
 
   //! phi
   float get_phi( PHG4Hit* hit, int i )
-  {  return get_phi( hit->get_x(i), hit->get_y(i) ); }
+  { return get_phi( hit->get_x(i), hit->get_y(i) ); }
 
   //! calculate the average of member function called on all members in collection
   template< float (PHG4Hit::*accessor)(int) const>
@@ -539,8 +539,8 @@ void TrackingEvaluator_hp::evaluate_event()
   if( m_hitsetcontainer )
   {
     // fill hit related information
-    const auto range = m_hitsetcontainer->getHitSets();
-    for( auto iter = range.first; iter!=range.second; ++iter )
+    const auto hitsetrange = m_hitsetcontainer->getHitSets();
+    for( auto iter = hitsetrange.first; iter!=hitsetrange.second; ++iter )
     {
       const auto trkrId = TrkrDefs::getTrkrId( iter->first);
       const auto layer = TrkrDefs::getLayer(iter->first);
@@ -561,28 +561,29 @@ void TrackingEvaluator_hp::evaluate_event()
       // nhits per layer, with no threshold cut for the TPC
       event._nhits_raw[layer] += std::distance( hit_range.first, hit_range.second );
 
-    }
-  }
-
-  if(m_cluster_map)
-  {
-    // fill cluster related information
-    const auto range = m_cluster_map->getClusters();
-    for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
-    {
-      const auto& key = clusterIter->first;
-      const auto trkrid = TrkrDefs::getTrkrId(key);
-      switch( trkrid )
+      // also count corresponding clusters
+      if(m_cluster_map)
       {
-        case TrkrDefs::mvtxId: ++event._nclusters_mvtx; break;
-        case TrkrDefs::inttId: ++event._nclusters_intt; break;
-        case TrkrDefs::tpcId: ++event._nclusters_tpc; break;
-        case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
-      }
 
-      const auto layer = static_cast<size_t>(TrkrDefs::getLayer(key));
-      assert(layer<EventStruct::max_layer);
-      ++event._nclusters[layer];
+        // fill cluster related information
+        const auto clusterrange = m_cluster_map->getClusters(iter->first);
+        for( auto clusterIter = clusterrange.first; clusterIter != clusterrange.second; ++clusterIter )
+        {
+          const auto& key = clusterIter->first;
+          const auto trkrid = TrkrDefs::getTrkrId(key);
+          switch( trkrid )
+          {
+            case TrkrDefs::mvtxId: ++event._nclusters_mvtx; break;
+            case TrkrDefs::inttId: ++event._nclusters_intt; break;
+            case TrkrDefs::tpcId: ++event._nclusters_tpc; break;
+            case TrkrDefs::micromegasId: ++event._nclusters_micromegas; break;
+          }
+
+          const auto layer = static_cast<size_t>(TrkrDefs::getLayer(key));
+          assert(layer<EventStruct::max_layer);
+          ++event._nclusters[layer];
+        }
+      }
     }
   }
 
@@ -595,31 +596,37 @@ void TrackingEvaluator_hp::evaluate_event()
 void TrackingEvaluator_hp::evaluate_clusters()
 {
 
-  if( !( m_cluster_map && m_container ) ) return;
+  if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
+
   // clear array
   m_container->clearClusters();
 
-  auto range = m_cluster_map->getClusters();
-  for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+  // first loop over hitsets
+  const auto hitsetrange = m_hitsetcontainer->getHitSets();
+  for( auto iter = hitsetrange.first; iter!=hitsetrange.second; ++iter )
   {
 
-    const auto& key = clusterIter->first;
-    const auto& cluster = clusterIter->second;
+    // get corresponding clusters
+    const auto clusterrange = m_cluster_map->getClusters(iter->first);
+    for( auto clusterIter = clusterrange.first; clusterIter != clusterrange.second; ++clusterIter )
+    {
 
-    // create cluster structure
-    auto cluster_struct = create_cluster( key, cluster );
-    add_cluster_size( cluster_struct, key, m_cluster_hit_map );
-    add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
+      const auto& key = clusterIter->first;
+      const auto& cluster = clusterIter->second;
 
-    // truth information
-    const auto g4hits = find_g4hits( key );
-    add_truth_information( cluster_struct, g4hits );
+      // create cluster structure
+      auto cluster_struct = create_cluster( key, cluster );
+      add_cluster_size( cluster_struct, key, m_cluster_hit_map );
+      add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
 
-    // add in array
-    m_container->addCluster( cluster_struct );
+      // truth information
+      const auto g4hits = find_g4hits( key );
+      add_truth_information( cluster_struct, g4hits );
 
+      // add in array
+      m_container->addCluster( cluster_struct );
+    }
   }
-
 }
 
 //_____________________________________________________________________
@@ -692,13 +699,9 @@ void TrackingEvaluator_hp::evaluate_tracks()
 
       // add to track
       track_struct._clusters.push_back( cluster_struct );
-
     }
-
     m_container->addTrack( track_struct );
-
   }
-
 }
 
 //_____________________________________________________________________
@@ -726,16 +729,22 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
 void TrackingEvaluator_hp::print_clusters() const
 {
 
-  if( !m_cluster_map ) return;
-  auto range = m_cluster_map->getClusters();
-  for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+  if(!(m_cluster_map && m_hitsetcontainer)) return;
+  // first loop over hitsets
+  const auto hitsetrange = m_hitsetcontainer->getHitSets();
+  for( auto iter = hitsetrange.first; iter!=hitsetrange.second; ++iter )
   {
-    const auto& cluster_key = clusterIter->first;
-    const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
-    if( trkrId == TrkrDefs::tpcId )
+    // get corresponding clusters
+    const auto clusterrange = m_cluster_map->getClusters(iter->first);
+    for( auto clusterIter = clusterrange.first; clusterIter != clusterrange.second; ++clusterIter )
     {
-      const auto& cluster = clusterIter->second;
-      print_cluster( cluster_key, cluster );
+      const auto& cluster_key = clusterIter->first;
+      const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
+      if( trkrId == TrkrDefs::tpcId )
+      {
+        const auto& cluster = clusterIter->second;
+        print_cluster( cluster_key, cluster );
+      }
     }
   }
 }
@@ -743,20 +752,16 @@ void TrackingEvaluator_hp::print_clusters() const
 //_____________________________________________________________________
 void TrackingEvaluator_hp::print_tracks() const
 {
-
   if( !m_track_map ) return;
   for(const auto& trackpair:*m_track_map)
   { print_track( trackpair.second ); }
-
 }
 
 //_____________________________________________________________________
 void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
 {
-
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
-
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
