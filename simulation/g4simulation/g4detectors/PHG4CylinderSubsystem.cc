@@ -166,6 +166,7 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
   set_default_double_param("thickness", NAN);
   set_default_double_param("tmin", NAN);
   set_default_double_param("tmax", NAN);
+  set_default_double_param("rot_y", 0.);
 
   set_default_int_param("lengthviarapidity", 1);
   set_default_int_param("lightyield", 0);
