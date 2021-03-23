@@ -27,6 +27,8 @@
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -1090,18 +1092,22 @@ int PHHoughSeeding::translate_input()
   //cout << "_clusters size " << _clusters.size() << endl;  
   int nhits3d = -1;
   unsigned int clusid = -1;
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-    {
+
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       clusid += 1;
-      TrkrCluster *cluster = iter->second;
-      TrkrDefs::cluskey cluskey = iter->first;
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey cluskey = clusIter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-
+      
       count++;
-
+      
       nhits_all[layer]++;
-
+      
       unsigned int ilayer = UINT_MAX;      
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
       if (it != _layer_ilayer_map.end())
@@ -1148,6 +1154,7 @@ int PHHoughSeeding::translate_input()
       _clusters.push_back(hit3d);
       //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
     }
+  }
   //cout << "_clusters size " << _clusters.size() << endl;  
 
   if (Verbosity() > 10)

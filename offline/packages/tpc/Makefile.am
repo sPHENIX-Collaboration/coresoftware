@@ -16,8 +16,8 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
-
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
@@ -41,7 +41,8 @@ libtpc_la_SOURCES = \
 libtpc_la_LIBADD = \
   libtpc_io.la \
   -lfun4all \
-  -lSpectrum
+  -lSpectrum \
+  -lpthread
 
 # sources for io library
 libtpc_io_la_SOURCES = \

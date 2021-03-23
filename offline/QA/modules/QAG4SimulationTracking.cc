@@ -10,6 +10,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
@@ -318,26 +319,31 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   {
     // loop over clusters
-    const auto range = m_cluster_map->getClusters();
-    for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
-    {
-      // store cluster key
-      const auto &key = clusterIter->first;
-
-      // loop over associated g4hits
-      for (const auto &g4hit : find_g4hits(key))
-      {
-        const int trkid = g4hit->get_trkid();
-        auto iter = g4particle_map.lower_bound(trkid);
-        if (iter != g4particle_map.end() && iter->first == trkid)
-        {
-          iter->second.insert(key);
-        }
-        else
-        {
-          g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
-        }
-      }
+    auto hitsetrange = m_hitsets->getHitSets();
+    for (auto hitsetitr = hitsetrange.first;
+	 hitsetitr != hitsetrange.second;
+	 ++hitsetitr){
+      auto range = m_cluster_map->getClusters(hitsetitr->first);
+      for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
+	{
+	  // store cluster key
+	  const auto &key = clusterIter->first;
+	  
+	  // loop over associated g4hits
+	  for (const auto &g4hit : find_g4hits(key))
+	    {
+	      const int trkid = g4hit->get_trkid();
+	      auto iter = g4particle_map.lower_bound(trkid);
+	      if (iter != g4particle_map.end() && iter->first == trkid)
+		{
+		  iter->second.insert(key);
+		}
+	      else
+		{
+		  g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
+		}
+	    }
+	}
     }
   }
 
@@ -635,6 +641,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
 int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
 {
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hitsets)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {

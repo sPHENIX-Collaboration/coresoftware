@@ -19,6 +19,7 @@ class PHCompositeNode;
 //class SvtxClusterMap;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrHitSetContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -56,7 +57,7 @@ class PHTrackSeeding : public SubsysReco
   SvtxVertexMap *_vertex_map = nullptr;
   SvtxTrackMap *_track_map = nullptr;
   AssocInfoContainer *_assoc_container = nullptr;
-
+  TrkrHitSetContainer  *_hitsets = nullptr;
   std::string _track_map_name = "SvtxTrackMap";
 
   bool _use_truth_clusters = false;

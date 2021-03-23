@@ -16,9 +16,12 @@ class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class PHG4CylinderCellGeom;
+class PHG4CylinderCellGeomContainer;
 
-typedef std::pair<int, int> iphiz;
-typedef std::pair<double, iphiz> ihit;
+//typedef std::pair<int, int> iphiz;
+//typedef std::pair<double, iphiz> ihit;
+typedef std::pair<unsigned short, unsigned short> iphiz;
+typedef std::pair<unsigned short, iphiz> ihit;
 
 class TpcClusterizer : public SubsysReco
 {
@@ -32,20 +35,10 @@ class TpcClusterizer : public SubsysReco
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
   void set_search_bins(const int bins){NSearch = bins;}
+  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
 
  private:
-  bool is_local_maximum(int phi, int z, std::vector<std::vector<double>> &adcval);
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
-  void get_cluster(int phibin, int zbin, std::vector<std::vector<double>> &adcval, std::vector<ihit> &ihit_list);
-  void find_z_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& zdown, int& zup);
-  void find_phi_range(int phibin, int zbin, std::vector<std::vector<double>> &adcval, int& phidown, int& phiup);
-  void remove_hit(double adc, int phibin, int zbin, std::multimap<double, ihit> &all_hit_map, std::vector<std::vector<double>> &adcval );
-  void remove_hits(std::vector<ihit> &ihit_list, std::multimap<double, ihit> &all_hit_map, std::vector<std::vector<double>> &adcval);
-  void calc_cluster_parameter(std::vector<ihit> &ihit_list, int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset);
-  void print_cluster(std::vector<ihit> &ihit_list);
-
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-				      Acts::Vector3D world);
 
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist;
@@ -53,16 +46,13 @@ class TpcClusterizer : public SubsysReco
   ActsSurfaceMaps *m_surfMaps;
   ActsTrackingGeometry *m_tGeometry;
 
+  bool do_hit_assoc;
   double zz_shaping_correction;
   double pedestal;
-
   double SectorFiducialCut;
-  int NSearch;
 
-  int NPhiBinsMax;
-  int NPhiBinsMin;
+  int NSearch;
   int NZBinsMax;
-  int NZBinsMin;
 
 };
 

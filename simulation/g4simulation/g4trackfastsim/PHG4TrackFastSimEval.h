@@ -110,6 +110,8 @@ class PHG4TrackFastSimEval : public SubsysReco
   float m_TTree_pcaz;
   float m_TTree_dca2d;
 
+  std::map<int, int> m_TTree_HitContainerID_nHits_map;
+
   //vertex
   float m_TTree_vx;
   float m_TTree_vy;
@@ -134,6 +136,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   // hits on reference cylinders and planes
   std::vector<std::vector<float>> m_TTree_ref_vec;
   std::vector<std::vector<float>> m_TTree_ref_p_vec;
+
 };
 
 #endif  //* G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H *//

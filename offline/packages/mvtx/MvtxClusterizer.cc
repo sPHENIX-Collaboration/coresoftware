@@ -250,8 +250,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       {
 	hitvec.push_back(make_pair(hitr->first, hitr->second));
       }
-    if (Verbosity() > 2)
-      cout << "hitvec.size(): " << hitvec.size() << endl;
+    if (Verbosity() > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
 
     // do the clustering
     typedef adjacency_list<vecS, vecS, undirectedS> Graph;
@@ -284,15 +283,14 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	cluster_ids.insert(component[i]);
 	clusters.insert(make_pair(component[i], hitvec[i]));
       }
-
+    //    cout << "found cluster #: "<< clusters.size()<< endl;
     // loop over the componenets and make clusters
     for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
 	int clusid = *clusiter;
 	auto clusrange = clusters.equal_range(clusid);
 
-	if (Verbosity() > 2)
-	  cout << "Filling cluster id " << clusid << endl;
+	if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 
 	// make the cluster directly in the node tree
 	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);

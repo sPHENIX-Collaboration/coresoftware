@@ -7,10 +7,10 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <cmath>
-#include <cstddef>              // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
-#include <utility>               // for pair
+#include <utility>  // for pair
 
 class PHObject;
 
@@ -155,9 +155,9 @@ class SvtxTrack_v1 : public SvtxTrack
   ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return _cluster_keys.find(clusterid); }
   ConstClusterKeyIter begin_cluster_keys() const { return _cluster_keys.begin(); }
   ConstClusterKeyIter end_cluster_keys() const { return _cluster_keys.end(); }
-  ClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keys.find(clusterid); }
+  ClusterKeyIter find_cluster_keys(unsigned int clusterid) { return _cluster_keys.find(clusterid); }
   ClusterKeyIter begin_cluster_keys() { return _cluster_keys.begin(); }
-  ClusterKeyIter end_cluster_keys()  { return _cluster_keys.end(); }
+  ClusterKeyIter end_cluster_keys() { return _cluster_keys.end(); }
 
   //
   // calo projection methods ---------------------------------------------------

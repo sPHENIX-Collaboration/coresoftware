@@ -112,9 +112,13 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   float m_max_mass = -1;
 
-  float m_min_lifetime = -1;
+  float m_min_decayTime = -1;
 
-  float m_max_lifetime = -1;
+  float m_max_decayTime = -1;
+
+  float m_min_decayLength = -1;
+
+  float m_max_decayLength = -1;
 
   float m_track_pt = -1;
 
@@ -156,6 +160,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
+
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H
