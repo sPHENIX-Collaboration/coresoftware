@@ -52,8 +52,7 @@ class PHTpcTrackFollower
   PHTpcTrackFollower();
   virtual ~PHTpcTrackFollower() {}
 
-  std::vector<PHGenFit2::Track*> followTracks(TrkrClusterContainer* cluster_map,
-                                              std::vector<kdfinder::TrackCandidate<double>*>& candidates,
+  std::vector<PHGenFit2::Track*> followTracks(std::vector<kdfinder::TrackCandidate<double>*>& candidates,
                                               PHField* B, PHTpcLookup* lookup, PHGenFit2::Fitter* fitter);
 
   PHGenFit2::Track* propagateTrack(kdfinder::TrackCandidate<double>* candidate,

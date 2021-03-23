@@ -44,7 +44,9 @@ public:
    * @param[in] hidx Index of the hit in TrkrHitSet
    */
   void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx);
-
+  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment){
+    return &m_map[layer][phi_segment][z_segment];
+  }
   /**
    * @brief Get all the hits associated with a cluster by key
    * @param[in] ckey Cluster key
@@ -52,8 +54,24 @@ public:
    */
   ConstRange getHits(TrkrDefs::cluskey ckey);
 
+  unsigned int size(void) const
+  {
+    unsigned int size = 0;
+    for(unsigned layer = 0;layer < max_layer; layer++){
+      for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++){
+	for(unsigned z_segment = 0; z_segment < max_zsegment; z_segment++){
+	  size += m_map[layer][phi_segment][z_segment].size(); 
+	}
+      }
+    }
+    return size;
+  }
+
 private:
-  MMap m_map;
+  unsigned int max_layer = 57;
+  unsigned int max_phisegment = 12;
+  unsigned int max_zsegment = 8;
+  MMap m_map[57][12][8];
   ClassDef(TrkrClusterHitAssoc, 1);
 };
 

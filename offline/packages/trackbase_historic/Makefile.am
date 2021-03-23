@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_FastSim.h \
+  SvtxTrack_FastSim_v1.h \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxTrackState.h \
@@ -37,6 +38,7 @@ ROOTDICTS = \
   SvtxTrackState_v1_Dict.cc \
   SvtxTrack_v1_Dict.cc \
   SvtxTrack_FastSim_Dict.cc \
+  SvtxTrack_FastSim_v1_Dict.cc \
   SvtxTrackMap_Dict.cc \
   SvtxTrackMap_v1_Dict.cc \
   SvtxVertex_Dict.cc \
@@ -51,6 +53,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrackState_v1_Dict_rdict.pcm \
   SvtxTrack_v1_Dict_rdict.pcm \
   SvtxTrack_FastSim_Dict_rdict.pcm \
+  SvtxTrack_FastSim_v1_Dict_rdict.pcm \
   SvtxTrackMap_Dict_rdict.pcm \
   SvtxTrackMap_v1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
@@ -64,6 +67,7 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackState_v1.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_FastSim.cc \
+  SvtxTrack_FastSim_v1.cc \
   SvtxTrackMap_v1.cc \
   SvtxVertex_v1.cc \
   SvtxVertexMap_v1.cc

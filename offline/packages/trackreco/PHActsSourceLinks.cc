@@ -17,6 +17,10 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrDefs.h>
+
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
@@ -106,128 +110,128 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     {
       addVerticesAsSourceLinks(topNode, hitId);      
     }
-  
-  TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
-  TrkrClusterContainer::ConstIterator clusIter;
-
-  for (clusIter = clusRange.first; 
-       clusIter != clusRange.second; ++clusIter)
-  {
-    const TrkrDefs::cluskey clusKey = clusIter->first;
-    const TrkrCluster *cluster = clusIter->second;
-
-    const unsigned int layer = TrkrDefs::getLayer(clusKey);
-
-    /// Create the clusKey hitId pair to insert into the map
-    const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-
-    m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
-    
-    /// Local coordinates and surface to be set by the correct tracking
-    /// detector function below
-    TMatrixD localErr(3, 3);
-    Acts::Vector2D local2D(0,0);
-    
-    Surface surface;
-    Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-    
-    /// Run the detector specific function for getting the local coordinates
-    /// of the cluster, as well as the corresponding Acts::Surface
-    if (trkrId == TrkrDefs::mvtxId)
-    {
-      surface = getMvtxLocalCoords(local2D, cov, cluster, clusKey);
-      /// Make sure things returned appropriately
-      if (!surface)
-      {
-        /// if we couldn't find the surface (shouldn't happen) just skip this hit
-	continue;
-      }
-    }
-    else if (trkrId == TrkrDefs::inttId)
-    {
-      surface = getInttLocalCoords(local2D, cov, cluster, clusKey);
-      if (!surface)
-      {
-	/// if we couldn't find the surface (shouldn't happen) just skip this hit
-	continue;
-      }
-    }
-    else if (trkrId == TrkrDefs::tpcId)
-    {
-      surface = getTpcLocalCoords(local2D, cov, cluster, clusKey);
-
-      if (!surface)
-      {
-        /// if we couldn't find the surface (shouldn't happen) just skip this hit
-	continue;
-      }
-    }
-    else if (trkrId == TrkrDefs::micromegasId)
-      {
-	surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
+  auto hitsetrange = m_hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = m_clusterMap->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      const TrkrDefs::cluskey clusKey = clusIter->first;
+      const TrkrCluster *cluster = clusIter->second;
+      
+      const unsigned int layer = TrkrDefs::getLayer(clusKey);
+      
+      /// Create the clusKey hitId pair to insert into the map
+	const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
 	
-	if (!surface)
+	m_hitIdClusKey->insert(CluskeyBimap::value_type(clusKey, hitId));
+	
+	// Local coordinates and surface to be set by the correct tracking
+	// detector function below
+	TMatrixD localErr(3, 3);
+	Acts::Vector2D local2D(0,0);
+	
+	Surface surface;
+	Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+	
+	// Run the detector specific function for getting the local coordinates
+	// of the cluster, as well as the corresponding Acts::Surface
+	if (trkrId == TrkrDefs::mvtxId)
 	  {
-	    /// if we couldn't find the surface (shouldn't happen) just skip this hit
+	    surface = getMvtxLocalCoords(local2D, cov, cluster, clusKey);
+	    // Make sure things returned appropriately
+	    if (!surface)
+	      {
+		// if we couldn't find the surface (shouldn't happen) just skip this hit
+		continue;
+	      }
+	  }
+	else if (trkrId == TrkrDefs::inttId)
+	  {
+	    surface = getInttLocalCoords(local2D, cov, cluster, clusKey);
+	    if (!surface)
+	      {
+		// if we couldn't find the surface (shouldn't happen) just skip this hit
+		continue;
+	      }
+	  }
+	else if (trkrId == TrkrDefs::tpcId)
+	  {
+	    surface = getTpcLocalCoords(local2D, cov, cluster, clusKey);
+	    
+	    if (!surface)
+	      {
+		// if we couldn't find the surface (shouldn't happen) just skip this hit
+		continue;
+	      }
+	  }
+	else if (trkrId == TrkrDefs::micromegasId)
+	  {
+	    surface = getMmLocalCoords(local2D, cov, cluster, clusKey);
+	    
+	    if (!surface)
+	      {
+		// if we couldn't find the surface (shouldn't happen) just skip this hit
+		continue;
+	      }
+	  }
+	else
+	  {
+	    std::cout << "Invalid trkrId found in " << PHWHERE
+		      << std::endl
+		      << "Skipping this cluster"
+		      << std::endl;
 	    continue;
 	  }
-      }
-    else
-    {
-      std::cout << "Invalid trkrId found in " << PHWHERE
-                << std::endl
-                << "Skipping this cluster"
-                << std::endl;
-	continue;
+	
+	// ====================================================
+	// Finished with detector specific cluster stuff
+	// We have the data needed to construct an Acts  measurement
+	// for this cluster
+	// ====================================================
+	
+	
+	// local and localErr contain the position and covariance
+	// matrix in local coords
+	if (Verbosity() > 10)
+	  {
+	    std::cout << "    layer " << layer << std::endl;
+	    for (int i = 0; i < 2; ++i)
+	      {
+		std::cout << " i " << i << "   local 2D position " << local2D[i]
+			  << std::endl;
+	      }
+	    
+	    std::cout << "    local covariance matrix:" << std::endl;
+	    std::cout << cov << std::endl;
+	  }
+	
+	// Cluster positions on GeoObject/Surface
+	Acts::BoundVector loc = Acts::BoundVector::Zero();
+	loc[Acts::eBoundLoc0] = local2D[0];
+	loc[Acts::eBoundLoc1] = local2D[1];
+	
+	if (Verbosity() > 1)
+	  {
+	    //if(layer > 54)
+	    std::cout << "Layer " << layer
+		      << " create measurement for trkrid " << trkrId
+		      << " cluskey " << clusKey
+		      << " surface " << surface->name() << " surface type "
+		      << surface->type() << " local x " << loc[Acts::eBoundLoc0]
+		      << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
+	  }
+	
+	// TrkrClusterSourceLink creates an Acts::FittableMeasurement
+	SourceLink sourceLink(hitId, surface, loc, cov);
+	
+	// Add the sourceLink to the container
+	m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId, sourceLink));
+	
+	hitId++;
     }
-
-    /// ====================================================
-    /// Finished with detector specific cluster stuff
-    /// We have the data needed to construct an Acts  measurement
-    /// for this cluster
-    /// ====================================================
-
-
-    /// local and localErr contain the position and covariance
-    /// matrix in local coords
-    if (Verbosity() > 10)
-    {
-      std::cout << "    layer " << layer << std::endl;
-      for (int i = 0; i < 2; ++i)
-      {
-        std::cout << " i " << i << "   local 2D position " << local2D[i]
-                  << std::endl;
-      }
-
-      std::cout << "    local covariance matrix:" << std::endl;
-      std::cout << cov << std::endl;
-    }
-
-    /// Cluster positions on GeoObject/Surface
-    Acts::BoundVector loc = Acts::BoundVector::Zero();
-    loc[Acts::eBoundLoc0] = local2D[0];
-    loc[Acts::eBoundLoc1] = local2D[1];
-
-    if (Verbosity() > 1)
-    {
-      //if(layer > 54)
-	std::cout << "Layer " << layer
-		  << " create measurement for trkrid " << trkrId
-		  << " cluskey " << clusKey
-		  << " surface " << surface->name() << " surface type "
-		  << surface->type() << " local x " << loc[Acts::eBoundLoc0]
-		  << " local y " << loc[Acts::eBoundLoc1] << std::endl << std::endl;
-    }
-
-    /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
-    SourceLink sourceLink(hitId, surface, loc, cov);
-
-    /// Add the sourceLink to the container
-    m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId, sourceLink));
-
-    hitId++;
   }
-
+    
   if (Verbosity() > 10)
   {
     //m_hitIdClusKey
@@ -962,6 +966,14 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!m_hitsets)
+    {
+      std::cout << PHWHERE << "No hitset container on node tree. Bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_geomContainerMvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
