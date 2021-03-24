@@ -71,7 +71,9 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   mysys->SetLogicalVolume(cone_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
+  rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
   rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+
   m_ConePhysVol = new G4PVPlacement(rotm,
                                     G4ThreeVector(m_Params->get_double_param("place_x") * cm,
                                                   m_Params->get_double_param("place_y") * cm,
