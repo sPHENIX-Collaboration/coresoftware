@@ -1026,23 +1026,19 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
   
-  TrkrClusterContainer::ConstRange clusRange = m_clusterMap->getClusters();
-  TrkrClusterContainer::ConstIterator clusIter;
-
-  for (clusIter = clusRange.first; 
-       clusIter != clusRange.second; ++clusIter)
+  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr)
     {
-      const TrkrCluster *cluster = clusIter->second;
-      const auto cluskey = clusIter->first;
-      auto sl = cluster->getActsSourceLink();
-      /// collect only source links in MVTX
-      auto volume = sl.referenceSurface().geometryId().volume();
-     
-      /// If we run without MMs, volumes are 7, 9, 11 for mvtx, intt, tpc
-      /// If we run with MMs, volumes are 10, 12, 14, 16 for mvtx, intt, tpc, mm
-      if(volume == 7 or volume == 10)
+      auto range = m_clusterMap->getClusters(hitsetitr->first);
+      for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	{
-     	  auto sp = makeSpacePoint(cluskey,sl).release();
+	  const auto cluskey = clusIter->first;
+	  const auto cluster = clusIter->second;
+  
+	  auto sl = cluster->getActsSourceLink();
+	  auto sp = makeSpacePoint(cluskey,sl).release();
 	  spVec.push_back(sp);
 	  numSiliconHits++;
 	}
