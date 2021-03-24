@@ -897,7 +897,8 @@ TrackingEvaluator_hp::G4HitSet TrackingEvaluator_hp::find_g4hits( TrkrDefs::clus
 
   // find hitset associated to cluster
   G4HitSet out;
-  for(const auto& [hitset_key,hit_key]:range_adaptor( m_cluster_hit_map->getHits(cluster_key)))
+  const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+  for(const auto& [first,hit_key]:range_adaptor( m_cluster_hit_map->getHits(cluster_key)))
   {
 
     // store hits to g4hit associations
