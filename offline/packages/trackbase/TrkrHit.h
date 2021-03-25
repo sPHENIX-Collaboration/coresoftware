@@ -38,12 +38,9 @@ class TrkrHit : public PHObject
 
   // these set and get the energy before digitization
   void addEnergy(const double edep) {
-    std::cout << " beginning m_adc " << m_adc << std::endl;
     m_adc += (unsigned int) (edep* TrkrDefs::EdepScaleFactor); 
-    std::cout << " edep " << edep << " m_adc now " << m_adc << std::endl;
   }
   double getEnergy() {
-    std::cout << " m_adc " << m_adc << " return energy " <<  ((double) m_adc)  / TrkrDefs::EdepScaleFactor << std::endl;
     return ((double) m_adc)  / TrkrDefs::EdepScaleFactor;
   }
   // after digitization, these are the adc values

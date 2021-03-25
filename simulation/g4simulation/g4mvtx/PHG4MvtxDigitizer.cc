@@ -186,8 +186,8 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
 
       // Remove the hits with energy under threshold
       bool rm_hit = false;
-      if (hit->getEnergy() < _energy_threshold) rm_hit = true;
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
+      if ( (hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold) rm_hit = true;
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
 
       hit->setAdc(adc);
 
