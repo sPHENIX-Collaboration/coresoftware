@@ -418,7 +418,9 @@ void *ProcessSector(void *threadarg) {
      unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
-     float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+     float_t fadc = ((unsigned int) hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl; 
+
      unsigned short adc = 0;
      if(fadc>0) 
        adc =  (unsigned short) fadc;
@@ -434,6 +436,7 @@ void *ProcessSector(void *threadarg) {
        if(adc>5){
 	 all_hit_map.insert(make_pair(adc, thisHit));
        }
+       //adcval[phibin][zbin] = (unsigned short) adc;
        adcval[phibin][zbin] = (unsigned short) adc;
      }
    }

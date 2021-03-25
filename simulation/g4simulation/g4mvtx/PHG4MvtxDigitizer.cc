@@ -181,14 +181,15 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       TrkrHit *hit = hit_iter->second;
 
       // Convert the signal value to an ADC value and write that to the hit
-      unsigned int adc = hit->getEnergy() / _energy_scale[layer];
+      unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
       if (adc > _max_adc[layer]) adc = _max_adc[layer];
-      hit->setAdc(adc);
 
       // Remove the hits with energy under threshold
       bool rm_hit = false;
       if (hit->getEnergy() < _energy_threshold) rm_hit = true;
       if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
+
+      hit->setAdc(adc);
 
       if (rm_hit) hits_rm.insert(hit_iter->first);
     }

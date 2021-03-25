@@ -7,6 +7,8 @@
 #ifndef TRACKBASE_TRKRHIT_H
 #define TRACKBASE_TRKRHIT_H
 
+#include "TrkrDefs.h"
+
 #include <phool/PHObject.h>
 
 #include <iostream>
@@ -34,13 +36,22 @@ class TrkrHit : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
 
-  void addEnergy(const double edep) {m_edep += edep;}
-  double getEnergy() {return m_edep;}
+  // these set and get the energy before digitization
+  void addEnergy(const double edep) {
+    std::cout << " beginning m_adc " << m_adc << std::endl;
+    m_adc += (unsigned int) (edep* TrkrDefs::EdepScaleFactor); 
+    std::cout << " edep " << edep << " m_adc now " << m_adc << std::endl;
+  }
+  double getEnergy() {
+    std::cout << " m_adc " << m_adc << " return energy " <<  ((double) m_adc)  / TrkrDefs::EdepScaleFactor << std::endl;
+    return ((double) m_adc)  / TrkrDefs::EdepScaleFactor;
+  }
+  // after digitization, these are the adc values
   void setAdc(const unsigned int adc) {m_adc = adc;}
   unsigned int getAdc() { return m_adc;}
 
  protected:
-  double m_edep;
+  //double m_edep;
   unsigned int m_adc;
   ClassDef(TrkrHit, 1);
 };

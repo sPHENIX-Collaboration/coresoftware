@@ -469,7 +469,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    // Add the hit-g4hit association
 	    // no need to check for duplicates, since the hit is new
 	    hittruthassoc->addAssoc(node_hitsetkey, single_hitkey, hiter->first);
-	    if(Verbosity() > 2) 
+	    if(Verbosity() > 100) 
 	      std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
 	  }
       }

@@ -267,7 +267,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
 	  int adc = -1;
 	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-	    if (hit->getEnergy() >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() < vadcrange[irange].second * (double) mip_e)
+	    if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
 	      adc = (int) irange;
 
 	  if(adc == -1)

@@ -524,7 +524,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         }
 
         // Either way, add the energy to it
-        hit->addEnergy(venergy[i1].first);
+        hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
 
         // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
         // There is only one TrkrHit per pixel, but there may be multiple g4hits

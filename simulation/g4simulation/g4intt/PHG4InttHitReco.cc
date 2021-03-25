@@ -405,7 +405,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // Either way, add the energy to it
       if (Verbosity() > 2)
         cout << "add energy " << venergy[i1].first << " to intthit " << endl;
-      hit->addEnergy(venergy[i1].first);
+      hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);

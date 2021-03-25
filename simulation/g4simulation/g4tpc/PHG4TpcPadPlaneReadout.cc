@@ -453,7 +453,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       phi_integral += phicenter * neffelectrons;
       z_integral += zcenter * neffelectrons;
       weight += neffelectrons;
-      if (Verbosity() > 1000 && layernum == print_layer)
+      if (Verbosity() > 1 && layernum == print_layer)
         cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
              << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
 
@@ -486,6 +486,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
       // Either way, add the energy to it  -- adc values will be added at digitization
+      //std::cout << " PadPlaneReadout: adding energy " << neffelectrons << " for layer " << layernum << " pad_num " << pad_num << "  zbin_num " << zbin_num << " hitkey " << hitkey << std::endl;
       hit->addEnergy(neffelectrons);
 
       // repeat for the single_hitsetcontainer
