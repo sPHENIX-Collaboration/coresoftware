@@ -48,6 +48,7 @@ libg4testbench_la_LDFLAGS = \
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
+  -lEICPhysicsList \
   -leicsmear \
   -lfun4all \
   -lg4decayer \
