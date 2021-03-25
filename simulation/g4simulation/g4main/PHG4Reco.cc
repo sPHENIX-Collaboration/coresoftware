@@ -39,7 +39,7 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <eicphysicslist/EICPhysicsList.hh>
+//#include <eicphysicslist/EICPhysicsList.hh>
 
 #include <TSystem.h>  // for TSystem, gSystem
 
@@ -243,10 +243,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
-  else if (m_PhysicsList == "EIC")
-  {
-    myphysicslist = new EICPhysicsList();
-  }
+  // else if (m_PhysicsList == "EIC")
+  // {
+  //   myphysicslist = new EICPhysicsList();
+  // }
   else
   {
     cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
