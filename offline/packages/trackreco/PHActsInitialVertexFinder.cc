@@ -393,7 +393,16 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 		    << std::endl;
 	  track->identify();
 	}
-
+      
+      /// Only vertex with stubs that have good transverse position
+      if(m_svtxTrackMapName.find("SiliconTrackMap") != std:;string::npos)
+	{
+	  if(fabs(track->get_x()) > 0.01 or fabs(track->get_y()) > 0.01)
+	    {
+	      continue;
+	    }
+	}
+      
       const Acts::Vector4D stubVec(
                   track->get_x() * Acts::UnitConstants::cm,
 		  track->get_y() * Acts::UnitConstants::cm,
@@ -409,11 +418,11 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       /// Make a dummy loose covariance matrix for Acts
       Acts::BoundSymMatrix cov;
       if(m_resetTrackCovariance)
-	cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-	       0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-	       0., 0., 0.05, 0., 0., 0.,
-	       0., 0., 0., 0.05, 0., 0.,
-	       0., 0., 0., 0., 0.1 , 0.,
+	cov << 5000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	       0., 900 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	       0., 0., 0.005, 0., 0., 0.,
+	       0., 0., 0., 0.001, 0., 0.,
+	       0., 0., 0., 0., 0.3 , 0.,
 	       0., 0., 0., 0., 0., 1.;
       
       else 
@@ -426,9 +435,9 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
       /// Make a dummy perigeee surface to bound the track to
       auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-		 Acts::Vector3D(track->get_x() * Acts::UnitConstants::cm,
-				track->get_y() * Acts::UnitConstants::cm,
-				track->get_z() * Acts::UnitConstants::cm));
+				    Acts::Vector3D(stubVec(0),
+						   stubVec(1),
+						   stubVec(2)));
 								     
 
       const auto param = new Acts::BoundTrackParameters(
