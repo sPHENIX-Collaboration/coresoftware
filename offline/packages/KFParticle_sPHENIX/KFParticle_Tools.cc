@@ -27,23 +27,11 @@
 
 #include "KFParticle_Tools.h"
 
+#include <phool/getClass.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-
-//Dont need these yet but I'm going to start an conversation about addid calo info to selection
-//#include <trackbase/TrkrCluster.h>
-//#include <trackbase/TrkrClusterContainer.h>
-
-//sPHENIX stuff
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxTrackEval.h>
-
-#include <g4main/PHG4Particle.h>
-
-#include <phool/getClass.h>
 
 //KFParticle stuff
 #include <KFPTrack.h>
@@ -52,6 +40,9 @@
 #include <KFVertex.h>
 
 #include <TMatrixD.h>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 /// Create necessary objects
 typedef std::pair<int, float> particle_pair;
@@ -129,6 +120,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   for (SvtxVertexMap::ConstIter iter = m_dst_vertexmap->begin(); iter != m_dst_vertexmap->end(); ++iter)
   {
     m_dst_vertex = iter->second;
+
     primaryVertices.push_back(makeVertex(topNode));
     primaryVertices[vertexID].SetId(iter->first);
     ++vertexID;
@@ -160,8 +152,6 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode *topNode)  ///Return a
   kfp_particle.NDF() = m_dst_track->get_ndf();
   kfp_particle.Chi2() = m_dst_track->get_chisq();
   kfp_particle.SetId(m_dst_track->get_id());
-
-  //std::cout << "m_dst_track->get_cal_energy_3x3(PRES): " << m_dst_track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(0)) << std::endl;
 
   return kfp_particle;
 }
@@ -633,6 +623,18 @@ float KFParticle_Tools::calculateEllipsoidVolume(KFParticle particle)
     volume = (4 / 3) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
 
   return volume;
+}
+
+float KFParticle_Tools::calculateJT(KFParticle mother, KFParticle daughter)
+{
+  Eigen::Vector3f motherP = Eigen::Vector3f(mother.GetPx(), mother.GetPy(), mother.GetPz());
+  Eigen::Vector3f daughterP = Eigen::Vector3f(daughter.GetPx(), daughter.GetPy(), daughter.GetPz());
+
+  Eigen::Vector3f motherP_X_daughterP = motherP.cross(daughterP);
+
+  float jT = (motherP_X_daughterP.norm()) / motherP.norm();
+
+  return jT;
 }
 
 void KFParticle_Tools::removeDuplicates(std::vector<double> &v)

@@ -12,6 +12,7 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(ROOTSYS)/include \
   -DHomogeneousField
 
@@ -58,7 +59,8 @@ libkfparticle_sphenix_la_LIBADD = \
   -lcalo_io \
   -lfun4all \
   -lg4eval \
-  -lTMVA
+  -lTMVA \
+  -lphhepmc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

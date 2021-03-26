@@ -134,10 +134,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumMass(float max_mass) { m_max_mass = max_mass; }
 
-  //void setMinimumLifetime(float min_lifetime) { m_min_lifetime = min_lifetime; }
-
-  //void setMaximumLifetime(float max_lifetime) { m_max_lifetime = max_lifetime; }
-
   void setDecayTimeRange(float min_decayTime, float max_decayTime)
   {
     m_min_decayTime = min_decayTime; 
@@ -243,6 +239,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void doTruthMatching(bool truth) { m_truth_matching = truth; }
 
   void getDetectorInfo(bool detinfo) { m_detector_info = detinfo; }
+
+  void getCaloInfo(bool caloinfo) { m_calo_info = caloinfo; }
 
   ///Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string& vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }

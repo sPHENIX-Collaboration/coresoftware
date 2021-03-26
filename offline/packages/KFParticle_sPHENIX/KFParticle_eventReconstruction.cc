@@ -27,11 +27,6 @@
 
 #include "KFParticle_eventReconstruction.h"
 
-//sPHENIX stuff
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxTrackEval.h>
-
 //KFParticle stuff
 #include <KFPTrack.h>
 #include <KFParticle.h>
@@ -68,7 +63,6 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 {
   //ALICE field is 0.5T but they set it to -5 in KFParticle? Checked momentum sums and -1.4 is more accurate
   KFParticle::SetField(-1.4e0);
-
   std::vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode);
   std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
 

@@ -37,11 +37,11 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
  protected:
   bool m_has_intermediates_nTuple;
   bool m_constrain_to_vertex_nTuple;
-  int m_num_tracks_nTuple;
   int m_num_intermediate_states_nTuple;
   int m_num_tracks_from_intermediate_nTuple[99];
   bool m_truth_matching;
   bool m_detector_info;
+  bool m_calo_info;
   std::string m_mother_name;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
@@ -138,6 +138,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_daughter_p_err[max_tracks] = {0};
   float m_calculated_daughter_pt[max_tracks] = {0};
   float m_calculated_daughter_pt_err[max_tracks] = {0};
+  float m_calculated_daughter_jt[max_tracks] = {0};
   int m_calculated_daughter_q[max_tracks] = {0};
   float m_calculated_daughter_eta[max_tracks] = {0};
   float m_calculated_daughter_rapidity[max_tracks] = {0};

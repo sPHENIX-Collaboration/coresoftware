@@ -87,6 +87,8 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   float calculateEllipsoidVolume(KFParticle particle);
 
+  float calculateJT(KFParticle mother, KFParticle daughter);
+
   void identify(KFParticle particle);
 
  protected:

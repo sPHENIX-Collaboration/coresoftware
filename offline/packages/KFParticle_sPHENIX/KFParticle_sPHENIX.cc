@@ -112,6 +112,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   if (!m_constrain_to_vertex_sPHENIX) vertex = mother;
 
   if (mother.size() != 0)
+  {
     for (unsigned int i = 0; i < mother.size(); ++i)
     {
       if (m_save_output && candidateCounter == 0)
@@ -134,6 +135,8 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
         if (m_save_dst) printNode(topNode);
       }
     }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
