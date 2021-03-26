@@ -395,7 +395,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	}
       
       /// Only vertex with stubs that have good transverse position
-      if(m_svtxTrackMapName.find("SiliconTrackMap") != std:;string::npos)
+      if(m_svtxTrackMapName.find("SiliconTrackMap") != std::string::npos)
 	{
 	  if(fabs(track->get_x()) > 0.01 or fabs(track->get_y()) > 0.01)
 	    {
