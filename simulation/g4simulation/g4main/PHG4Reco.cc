@@ -39,7 +39,7 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-//#include <eicphysicslist/EICPhysicsList.hh>
+#include <eicphysicslist/EICPhysicsList.hh>
 
 #include <TSystem.h>  // for TSystem, gSystem
 
