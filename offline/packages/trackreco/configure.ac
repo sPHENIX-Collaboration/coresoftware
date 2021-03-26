@@ -17,7 +17,7 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-     CXXFLAGS="$CXXFLAGS -Wall -Werror"
+     CXXFLAGS="$CXXFLAGS -Wall"
 fi
 
 AM_CONDITIONAL([MAKE_ACTS],false)
@@ -25,12 +25,16 @@ dnl gcc 8.3 creates warning in boost header, needs -Wno-class-memaccess
 dnl need to check for *g++ since $CXX contains full path to g++
 case $CXX in
  clang++)
-   CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-return-stack-address -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef"
+   CXXFLAGS="$CXXFLAGS -Werror -Wno-undefined-var-template -Wno-return-stack-address -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef"
+   AM_CONDITIONAL([MAKE_ACTS],test `clang++ -dumpversion | awk '{print $1>=10.0?"1":"0"}'` = 1)
+ ;;
+ *analyzer)
+   CXXFLAGS="$CXXFLAGS"
    AM_CONDITIONAL([MAKE_ACTS],test `clang++ -dumpversion | awk '{print $1>=10.0?"1":"0"}'` = 1)
  ;;
  *g++)
   if test `g++ -dumpversion | awk '{print $1>=8.3?"1":"0"}'` = 1; then
-     CXXFLAGS="$CXXFLAGS -Wno-class-memaccess -Wno-unused-local-typedefs -Wno-sign-compare -Wno-switch -Wno-unused-function -Wno-unused-value"
+     CXXFLAGS="$CXXFLAGS -Werror -Wno-class-memaccess -Wno-unused-local-typedefs -Wno-sign-compare -Wno-switch -Wno-unused-function -Wno-unused-value"
   fi
 dnl ACTS needs at least gcc 6
   AM_CONDITIONAL([MAKE_ACTS],test `g++ -dumpversion | awk '{print $1>=6.0?"1":"0"}'` = 1)
