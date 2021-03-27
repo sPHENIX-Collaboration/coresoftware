@@ -10,7 +10,7 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-final-dtor-non-final-class"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
