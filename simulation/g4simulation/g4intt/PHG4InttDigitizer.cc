@@ -265,15 +265,11 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
 	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
-	  int adc = -1;
+	  int adc = 0;
 	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
 	    if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
-	      adc = (int) irange;
+	      adc = (unsigned short) irange;
 
-	  if(adc == -1)
-	    // how do we specify underflow or overflow?
-	    adc = 0;
-	  
 	  hit->setAdc(adc);	      
 
 	  if(Verbosity() > 2)

@@ -15,9 +15,9 @@
  */
 namespace TrkrDefs
 {
-  static double EdepScaleFactor __attribute__((unused)) = 5.0e3;
-  static double MvtxEnergyScaleup __attribute__((unused)) = 1.0e7;
-  static double InttEnergyScaleup __attribute__((unused)) = 1.0e6;
+  static double EdepScaleFactor __attribute__((unused)) = 0.25;
+  static double MvtxEnergyScaleup __attribute__((unused)) = 5.0e8;
+  static double InttEnergyScaleup __attribute__((unused)) = 5.0e7;
 
   /// Key types
   typedef uint32_t hitkey;      // 32 bit TrkrHit key type

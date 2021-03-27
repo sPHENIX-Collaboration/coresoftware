@@ -37,19 +37,17 @@ class TrkrHit : public PHObject
   virtual int isValid() const { return 0; }
 
   // these set and get the energy before digitization
-  void addEnergy(const double edep) {
-    m_adc += (unsigned int) (edep* TrkrDefs::EdepScaleFactor); 
-  }
-  double getEnergy() {
-    return ((double) m_adc)  / TrkrDefs::EdepScaleFactor;
-  }
+  void addEnergy(const double edep);
+  double getEnergy();
+
   // after digitization, these are the adc values
-  void setAdc(const unsigned int adc) {m_adc = adc;}
-  unsigned int getAdc() { return m_adc;}
+  void setAdc(const unsigned short adc) {m_adc = adc;}
+  unsigned short getAdc() { return m_adc;}
 
  protected:
   //double m_edep;
-  unsigned int m_adc;
+  //unsigned int m_adc;
+  unsigned short m_adc;
   ClassDef(TrkrHit, 1);
 };
 
