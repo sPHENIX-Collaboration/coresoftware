@@ -8,9 +8,14 @@ LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
-if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-return-stack-address"
+ ;;
+ g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ ;;
+esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)

@@ -61,6 +61,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _ievent(0)
   , _nHitsLayers(0)
   , _hits_layerID(0)
+  , _hits_trueID(0)
   , _hits_x(0)
   , _hits_y(0)
   , _hits_z(0)
@@ -130,6 +131,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _mcpart_pz(0)
 
   , _reco_e_threshold(0.0)
+  , _depth_MCstack(3)
   , _caloevalstackFHCAL(nullptr)
   , _caloevalstackDRCALO(nullptr)
   , _caloevalstackFEMC(nullptr)
@@ -139,6 +141,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _tfile(nullptr)
 {
   _hits_layerID = new int[_maxNHits];
+  _hits_trueID = new int[_maxNHits];
   _hits_x = new float[_maxNHits];
   _hits_y = new float[_maxNHits];
   _hits_z = new float[_maxNHits];
@@ -205,6 +208,7 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   if(_do_HITS){
     _event_tree->Branch("nHits", &_nHitsLayers, "nHits/I");
     _event_tree->Branch("hits_layerID", _hits_layerID, "hits_layerID[nHits]/I");
+    _event_tree->Branch("hits_trueID", _hits_trueID, "hits_trueID[nHits]/I");
     _event_tree->Branch("hits_x", _hits_x, "hits_x[nHits]/F");
     _event_tree->Branch("hits_y", _hits_y, "hits_y[nHits]/F");
     _event_tree->Branch("hits_z", _hits_z, "hits_z[nHits]/F");
@@ -295,7 +299,9 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
 
 int EventEvaluator::process_event(PHCompositeNode* topNode)
 {
-  if(Verbosity() > 0){cout << "entered process_event" << endl;}
+  // if(Verbosity() > 0){
+    cout << "entered process_event" << endl;
+    // }
   if(_do_FHCAL){
     if (!_caloevalstackFHCAL)
     {
@@ -382,6 +388,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(_do_HITS){
     if (Verbosity() > 0){cout << "saving hits" << endl;}
     _nHitsLayers = 0;
+    PHG4TruthInfoContainer* truthinfocontainerHits = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     for (int iIndex = 0; iIndex < 60; ++iIndex)
     {
       if (GetProjectionNameFromIndex(iIndex).find("NOTHING")!= std::string::npos ) continue;
@@ -404,6 +411,32 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
           _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
           _hits_layerID[_nHitsLayers] = iIndex;
+          if (truthinfocontainerHits)
+          {
+            PHG4Particle *particle = truthinfocontainerHits->GetParticle( hit_iter->second->get_trkid() );
+
+            if(particle->get_parent_id()!=0){
+              PHG4Particle* g4particleMother = truthinfocontainerHits->GetParticle( hit_iter->second->get_trkid() );
+              int mcSteps = 0;
+              while(g4particleMother->get_parent_id()!=0){
+                g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
+                mcSteps+=1;
+              }
+              if(mcSteps<=_depth_MCstack){
+                _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+              } else {
+                PHG4Particle* g4particleMother2 = truthinfocontainerHits->GetParticle( hit_iter->second->get_trkid() );
+                int mcSteps2 = 0;
+                while(g4particleMother2->get_parent_id()!=0 && (mcSteps2<(mcSteps-_depth_MCstack+1))){
+                  g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
+                  mcSteps2+=1;
+                }
+                _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+              }
+            } else {
+              _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+            }
+          }
           _nHitsLayers++;
 
           // }
@@ -787,11 +820,20 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (Verbosity() > 0){ cout << "saving MC particles" << endl;}
       //GetParticleRange for all particles
       //GetPrimaryParticleRange for primary particles
-      PHG4TruthInfoContainer::ConstRange range = truthinfocontainer->GetPrimaryParticleRange();
+      PHG4TruthInfoContainer::ConstRange range = truthinfocontainer->GetParticleRange();
       for (PHG4TruthInfoContainer::ConstIterator truth_itr = range.first; truth_itr != range.second; ++truth_itr)
       {
         PHG4Particle* g4particle = truth_itr->second;
         if (!g4particle) continue;
+        int mcSteps = 0;
+        PHG4Particle* g4particleMother = truth_itr->second;
+        if(g4particle->get_parent_id()!=0){
+          while(g4particleMother->get_parent_id()!=0){
+            g4particleMother = truthinfocontainer->GetParticle(g4particleMother->get_parent_id());
+            mcSteps+=1;
+          }
+        }
+        if(mcSteps>_depth_MCstack) continue;
         // in case of all MC particles, make restrictions on the secondary selection
         // if(g4particle->get_track_id()<0 && g4particle->get_e()<0.5) continue;
         // primary (g4particle->get_parent_id() == 0) selection via:
@@ -1225,6 +1267,7 @@ void EventEvaluator::resetBuffer()
     for (Int_t ihit = 0; ihit < _maxNHits; ihit++)
     {
       _hits_layerID[ihit] = 0;
+      _hits_trueID[ihit] = 0;
       _hits_x[ihit] = 0;
       _hits_y[ihit] = 0;
       _hits_z[ihit] = 0;
