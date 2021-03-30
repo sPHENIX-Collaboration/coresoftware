@@ -1,10 +1,13 @@
-#ifndef TRACKBASEHISTORIC_SVTXTRACKV1_H
-#define TRACKBASEHISTORIC_SVTXTRACKV1_H
+#ifndef TRACKBASEHISTORIC_SVTXTRACKV2_H
+#define TRACKBASEHISTORIC_SVTXTRACKV2_H
 
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
 
 #include <trackbase/TrkrDefs.h>
+
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <cmath>
 #include <cstddef>  // for size_t
@@ -14,19 +17,19 @@
 
 class PHObject;
 
-class SvtxTrack_v1 : public SvtxTrack
+class SvtxTrack_v2 : public SvtxTrack
 {
  public:
-  SvtxTrack_v1();
-  SvtxTrack_v1(const SvtxTrack_v1& track);
-  SvtxTrack_v1& operator=(const SvtxTrack_v1& track);
-  virtual ~SvtxTrack_v1();
+  SvtxTrack_v2();
+  SvtxTrack_v2(const SvtxTrack_v2& track);
+  SvtxTrack_v2& operator=(const SvtxTrack_v2& track);
+  virtual ~SvtxTrack_v2();
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const;
-  void Reset() { *this = SvtxTrack_v1(); }
+  void Reset() { *this = SvtxTrack_v2(); }
   int isValid() const;
-  PHObject* CloneMe() const { return new SvtxTrack_v1(*this); }
+  PHObject* CloneMe() const { return new SvtxTrack_v2(*this); }
 
   //
   // basic track information ---------------------------------------------------
@@ -183,7 +186,14 @@ class SvtxTrack_v1 : public SvtxTrack
   float get_cal_cluster_e(CAL_LAYER layer) const;
   void set_cal_cluster_e(CAL_LAYER layer, float e) { _cal_cluster_e[layer] = e; }
 
+  // ACTS track information for use by ACTS modules only
+  ActsExamples::TrackParameters get_acts_track_parameters() const;
+  ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const {return _acts_mj;}
+  void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory mj) { _acts_mj = mj;}
+
  private:
+
+
   // track information
   unsigned int _track_id;
   unsigned int _vertex_id;
@@ -219,7 +229,10 @@ class SvtxTrack_v1 : public SvtxTrack
   std::map<CAL_LAYER, TrkrDefs::cluskey> _cal_cluster_key;
   std::map<CAL_LAYER, float> _cal_cluster_e;
 
-  ClassDef(SvtxTrack_v1, 1)
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs() const;
+  ActsExamples::TrkrClusterMultiTrajectory _acts_mj;
+
+  ClassDef(SvtxTrack_v2, 1)
 };
 
 #endif

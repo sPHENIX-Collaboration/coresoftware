@@ -23,6 +23,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   SvtxTrack.h \
   SvtxTrack_v1.h \
+  SvtxTrack_v2.h \
   SvtxTrack_FastSim.h \
   SvtxTrack_FastSim_v1.h \
   SvtxTrackMap.h \
@@ -39,6 +40,7 @@ ROOTDICTS = \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
   SvtxTrack_v1_Dict.cc \
+  SvtxTrack_v2_Dict.cc \
   SvtxTrack_FastSim_Dict.cc \
   SvtxTrack_FastSim_v1_Dict.cc \
   SvtxTrackMap_Dict.cc \
@@ -54,6 +56,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
   SvtxTrack_v1_Dict_rdict.pcm \
+  SvtxTrack_v2_Dict_rdict.pcm \
   SvtxTrack_FastSim_Dict_rdict.pcm \
   SvtxTrack_FastSim_v1_Dict_rdict.pcm \
   SvtxTrackMap_Dict_rdict.pcm \
@@ -68,6 +71,7 @@ libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
   SvtxTrackState_v1.cc \
   SvtxTrack_v1.cc \
+  SvtxTrack_v2.cc \
   SvtxTrack_FastSim.cc \
   SvtxTrack_FastSim_v1.cc \
   SvtxTrackMap_v1.cc \
