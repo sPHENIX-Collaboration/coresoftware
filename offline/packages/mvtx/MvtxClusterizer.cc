@@ -12,7 +12,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -294,7 +294,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	// make the cluster directly in the node tree
 	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	auto clus = (m_clusterlist->findOrAddCluster(ckey))->second;
+	auto clus = static_cast<TrkrClusterv2*>((m_clusterlist->findOrAddCluster(ckey))->second);
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;

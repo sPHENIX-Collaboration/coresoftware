@@ -2,6 +2,9 @@
 #define TRACKRECO_ACTSSURFACEMAPS_H
 
 #include <trackbase/TrkrDefs.h>
+
+#include <Acts/Surfaces/Surface.hpp>
+
 #include <TGeoNode.h>
 
 #include <map>

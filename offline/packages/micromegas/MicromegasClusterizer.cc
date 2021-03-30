@@ -10,8 +10,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrCluster.h>                  // for TrkrCluster
+#include <trackbase/TrkrClusterContainer.h>        // for TrkrCluster
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
@@ -207,7 +207,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-      auto cluster = (trkrClusterContainer->findOrAddCluster(cluster_key))->second;
+      auto cluster = static_cast<TrkrClusterv2*>((trkrClusterContainer->findOrAddCluster(cluster_key))->second);
       TVector3 world_coordinates;
       double weight_sum = 0;
 

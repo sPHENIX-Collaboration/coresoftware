@@ -3,7 +3,7 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
@@ -371,7 +371,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+	TrkrClusterv2 *clus = static_cast<TrkrClusterv2 *>((m_clusterlist->findOrAddCluster(ckey))->second);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
