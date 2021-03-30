@@ -1984,7 +1984,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float e = cluster->getAdc();
 	      float adc = cluster->getAdc();
 	      float layer = (float) TrkrDefs::getLayer(cluster_key);
-	      
+	      float sector = TpcDefs::getSectorId(cluster_key);
+	      float side = TpcDefs::getSide(cluster_key);
 	      // count all hits for this cluster
 
 	      float size = 0;
@@ -2114,6 +2115,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      adc,
 				      maxadc,
 				      layer,
+				      sector,
+				      side,
 				      size,
 				      phisize,
 				      zsize,
