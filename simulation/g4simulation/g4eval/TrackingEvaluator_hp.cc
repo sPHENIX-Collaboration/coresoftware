@@ -43,7 +43,7 @@ namespace
     private:
     const T& m_range;
   };
-  
+
   //! square
   template<class T> inline constexpr T square( T x ) { return x*x; }
 
@@ -62,13 +62,6 @@ namespace
   //! radius
   float get_r( PHG4Hit* hit, int i )
   {  return get_r( hit->get_x(i), hit->get_y(i) ); }
-
-  //! phi
-  template<class T> T get_phi( T x, T y ) { return std::atan2( y, x ); }
-
-  //! phi
-  float get_phi( PHG4Hit* hit, int i )
-  { return get_phi( hit->get_x(i), hit->get_y(i) ); }
 
   //! calculate the average of member function called on all members in collection
   template< float (PHG4Hit::*accessor)(int) const>
@@ -158,7 +151,7 @@ namespace
     trackStruct._y = track->get_y();
     trackStruct._z = track->get_z();
     trackStruct._r = get_r( trackStruct._x, trackStruct._y );
-    trackStruct._phi = get_phi( trackStruct._x, trackStruct._y );
+    trackStruct._phi = std::atan2( trackStruct._y, trackStruct._x );
 
     trackStruct._px = track->get_px();
     trackStruct._py = track->get_py();
@@ -205,7 +198,7 @@ namespace
     cluster_struct._y = cluster->getY();
     cluster_struct._z = cluster->getZ();
     cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
-    cluster_struct._phi = get_phi( cluster_struct._x, cluster_struct._y );
+    cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
     cluster_struct._phi_error = cluster->getPhiError();
     cluster_struct._z_error = cluster->getZError();
 
@@ -228,7 +221,7 @@ namespace
     cluster._trk_y = state->get_y() + dr*trk_dydr;
     cluster._trk_z = state->get_z() + dr*trk_dzdr;
     cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
-    cluster._trk_phi = get_phi( cluster._trk_x, cluster._trk_y );
+    cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
 
     /* store local momentum information */
     cluster._trk_px = state->get_px();
@@ -348,7 +341,7 @@ namespace
     cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
     cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
     cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
-    cluster._truth_phi = get_phi( cluster._truth_x, cluster._truth_y );
+    cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
 
     /* add truth momentum information */
     cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
@@ -752,7 +745,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
     // << " position: (" << cluster->getX() << "," << cluster->getY() << "," << cluster->getZ() << ")"
-    << " polar: (" << get_r( cluster->getX(), cluster->getY()) << "," << get_phi( cluster->getX(), cluster->getY()) << "," << cluster->getZ() << ")"
+    << " polar: (" << get_r( cluster->getX(), cluster->getY()) << "," << std::atan2( cluster->getY(), cluster->getX()) << "," << cluster->getZ() << ")"
     << " errors: (" << cluster->getPhiError() << ", " << cluster->getZError() << ")"
     << std::endl;
 
@@ -802,8 +795,8 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
         << " track: " << g4hit->get_trkid()
         << " in: (" << g4hit->get_x(0) << "," << g4hit->get_y(0) << "," << g4hit->get_z(0) << ")"
         << " out: (" << g4hit->get_x(1) << "," << g4hit->get_y(1) << "," << g4hit->get_z(1) << ")"
-        << " polar in: (" << get_r( g4hit->get_x(0), g4hit->get_y(0) ) << "," << get_phi( g4hit->get_x(0), g4hit->get_y(0) ) << "," << g4hit->get_z(0) << ")"
-        << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << get_phi( g4hit->get_x(1), g4hit->get_y(1) ) << "," << g4hit->get_z(1) << ")"
+        << " polar in: (" << get_r( g4hit->get_x(0), g4hit->get_y(0) ) << "," << std::atan2( g4hit->get_y(0), g4hit->get_x(0) ) << "," << g4hit->get_z(0) << ")"
+        << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << std::atan2( g4hit->get_y(1), g4hit->get_x(1) ) << "," << g4hit->get_z(1) << ")"
         << std::endl;
     }
 
@@ -817,7 +810,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
     std::cout
       << "TrackingEvaluator_hp::print_cluster -"
       << " interpolation: (" << xextrap << "," << yextrap << "," << zextrap << ")"
-      << " polar: (" << get_r( xextrap, yextrap ) << "," << get_phi( xextrap, yextrap ) << "," << zextrap << ")"
+      << " polar: (" << get_r( xextrap, yextrap ) << "," << std::atan2( yextrap, xextrap ) << "," << zextrap << ")"
       << std::endl;
 
   }
@@ -856,7 +849,7 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
         << "TrackingEvaluator_hp::print_track -"
         << " cluster layer: "  << (int)TrkrDefs::getLayer(cluster_key)
         << " position: (" << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ() << ")"
-        << " polar: (" << get_r( cluster->getX(), cluster->getY() ) << ", " << get_phi( cluster->getX(), cluster->getY() ) << "," << cluster->getZ() << ")"
+        << " polar: (" << get_r( cluster->getX(), cluster->getY() ) << ", " << std::atan2( cluster->getY(), cluster->getX() ) << "," << cluster->getZ() << ")"
         << std::endl;
 
     }
@@ -874,7 +867,7 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
         << "TrackingEvaluator_hp::print_track -"
         << " state pathLength: " << state_iter->first
         << " position: (" << state->get_x() << ", " << state->get_y() << ", " << state->get_z() << ")"
-        << " polar: (" << get_r( state->get_x(), state->get_y() ) << ", " << get_phi( state->get_x(), state->get_y() ) << "," << state->get_z() << ")"
+        << " polar: (" << get_r( state->get_x(), state->get_y() ) << ", " << std::atan2( state->get_y(), state->get_x() ) << "," << state->get_z() << ")"
         << std::endl;
     }
   }
