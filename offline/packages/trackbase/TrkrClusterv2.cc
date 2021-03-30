@@ -1,10 +1,10 @@
 /**
- * @file trackbase/TrkrClusterv1.cc
- * @author D. McGlinchey
- * @date June 2018
- * @brief Implementation of TrkrClusterv1
+ * @file trackbase/TrkrClusterv2.cc
+ * @author J. Osborn
+ * @date March 2021
+ * @brief Implementation of TrkrClusterv2
  */
-#include "TrkrClusterv1.h"
+#include "TrkrClusterv2.h"
 
 #include <cmath>
 #include <utility>          // for swap
@@ -23,8 +23,8 @@ namespace
   }
 
  // rotate size or covariant matrix to polar coordinates and return the phi component
- template<float (TrkrClusterv1::*accessor)(unsigned int, unsigned int) const>
-    float rotate( const TrkrClusterv1* cluster )
+ template<float (TrkrClusterv2::*accessor)(unsigned int, unsigned int) const>
+    float rotate( const TrkrClusterv2* cluster )
   {
     const auto phi = -std::atan2(cluster->getY(), cluster->getX());
     const auto cosphi = std::cos(phi);
@@ -38,7 +38,7 @@ namespace
 
 }
 
-TrkrClusterv1::TrkrClusterv1()
+TrkrClusterv2::TrkrClusterv2()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_isGlobal(true)
   , m_adc(0xFFFFFFFF)
@@ -55,9 +55,9 @@ TrkrClusterv1::TrkrClusterv1()
   }
 }
 
-void TrkrClusterv1::identify(std::ostream& os) const
+void TrkrClusterv2::identify(std::ostream& os) const
 {
-  os << "---TrkrClusterv1--------------------" << std::endl;
+  os << "---TrkrClusterv2--------------------" << std::endl;
   os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (x,y,z) =  (" << getPosition(0);
@@ -105,7 +105,7 @@ void TrkrClusterv1::identify(std::ostream& os) const
   return;
 }
 
-int TrkrClusterv1::isValid() const
+int TrkrClusterv2::isValid() const
 {
   if (m_cluskey == TrkrDefs::CLUSKEYMAX) return 0;
   for (int i = 0; i < 3; ++i)
@@ -125,39 +125,66 @@ int TrkrClusterv1::isValid() const
   return 1;
 }
 
-void TrkrClusterv1::setSize(unsigned int i, unsigned int j, float value)
+void TrkrClusterv2::setSize(unsigned int i, unsigned int j, float value)
 {
   m_size[covarIndex(i, j)] = value;
   return;
 }
 
-float TrkrClusterv1::getSize(unsigned int i, unsigned int j) const
+float TrkrClusterv2::getSize(unsigned int i, unsigned int j) const
 { return m_size[covarIndex(i, j)]; }
 
-void TrkrClusterv1::setError(unsigned int i, unsigned int j, float value)
+void TrkrClusterv2::setError(unsigned int i, unsigned int j, float value)
 {
   m_err[covarIndex(i, j)] = value;
   return;
 }
 
-float TrkrClusterv1::getError(unsigned int i, unsigned int j) const
+float TrkrClusterv2::getError(unsigned int i, unsigned int j) const
 { return m_err[covarIndex(i, j)]; }
 
-float TrkrClusterv1::getPhiSize() const
-{ return 2*std::sqrt(rotate<&TrkrClusterv1::getSize>(this)); }
+float TrkrClusterv2::getPhiSize() const
+{ return 2*std::sqrt(rotate<&TrkrClusterv2::getSize>(this)); }
 
-float TrkrClusterv1::getZSize() const
+float TrkrClusterv2::getZSize() const
 { return 2.*sqrt(getSize(2, 2)); }
 
-float TrkrClusterv1::getPhiError() const
+float TrkrClusterv2::getPhiError() const
 {
   const float rad = std::sqrt(square(m_pos[0])+square(m_pos[1]));
   if (rad > 0) return getRPhiError() / rad;
   return 0;
 }
 
-float TrkrClusterv1::getRPhiError() const
-{ return std::sqrt(rotate<&TrkrClusterv1::getError>( this )); }
+float TrkrClusterv2::getRPhiError() const
+{ return std::sqrt(rotate<&TrkrClusterv2::getError>( this )); }
 
-float TrkrClusterv1::getZError() const
+float TrkrClusterv2::getZError() const
 { return std::sqrt(getError(2, 2)); }
+
+void TrkrClusterv2::setActsLocalError(unsigned int i, unsigned int j,
+				      float value)
+{
+  m_actsLocalErr[i][j] = value;
+}
+
+ActsExamples::TrkrClusterSourceLink TrkrClusterv2::getActsSourceLink() const
+{
+  Acts::BoundVector loc = Acts::BoundVector::Zero();
+  loc[Acts::eBoundLoc0] = m_local[0] * Acts::UnitConstants::cm;
+  loc[Acts::eBoundLoc1] = m_local[1] * Acts::UnitConstants::cm;
+
+  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+    m_actsLocalErr[0][0] * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+    m_actsLocalErr[0][1] * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+    m_actsLocalErr[1][0] * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+    m_actsLocalErr[1][1] * Acts::UnitConstants::cm2;
+  
+  ActsExamples::TrkrClusterSourceLink sl(m_cluskey, m_surface, loc, cov);
+  return sl;
+
+}

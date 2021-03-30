@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   ActsTrackingGeometry.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
+  TrkrClusterv2.h \
   TrkrClusterContainer.h \
   TrkrClusterHitAssoc.h \
   TrkrDefs.h \
@@ -36,6 +37,7 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
+  TrkrClusterv2_Dict.cc \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrHit_Dict.cc \
@@ -62,6 +64,7 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrkrClusterv1.cc \
+  TrkrClusterv2.cc \
   TrkrClusterContainer.cc \
   TrkrClusterHitAssoc.cc \
   TrkrDefs.cc \

@@ -1,40 +1,41 @@
 /**
- * @file trackbase/TrkrClusterv1.h
- * @author D. McGlinchey
- * @date June 2018
- * @brief Version 1 of TrkrCluster
+ * @file trackbase/TrkrClusterv2.h
+ * @author J. Osborn
+ * @date March 2021
+ * @brief Version 2 of TrkrCluster
  */
-#ifndef TRACKBASE_TRKRCLUSTERV1_H
-#define TRACKBASE_TRKRCLUSTERV1_H
+#ifndef TRACKBASE_TRKRCLUSTERV2_H
+#define TRACKBASE_TRKRCLUSTERV2_H
 
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
-
+#include <Acts/Surfaces/Surface.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <iostream>
 
 class PHObject;
 
 /**
- * @brief Version 1 of TrkrCluster
+ * @brief Version 2 of TrkrCluster
  *
- * Note - D. McGlinchey June 2018:
- *   CINT does not like "override", so ignore where CINT
- *   complains. Should be checked with ROOT 6 once
- *   migration occurs.
+ * This version of TrkrCluster contains Acts source link objects
+ * as member variables, to join the Svtx and Acts worlds
  */
-class TrkrClusterv1 : public TrkrCluster
+class TrkrClusterv2 : public TrkrCluster
 {
  public:
+  using Surface = std::shared_ptr<const Acts::Surface>;
+  using SourceLink = ActsExamples::TrkrClusterSourceLink;
   //! ctor
-  TrkrClusterv1();
+  TrkrClusterv2();
 
   //!dtor
-  virtual ~TrkrClusterv1() {}
+  virtual ~TrkrClusterv2() {}
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset() {}
   virtual int isValid() const;
-  virtual PHObject* CloneMe() const { return new TrkrClusterv1(*this); }
+  virtual PHObject* CloneMe() const { return new TrkrClusterv2(*this); }
   virtual void setClusKey(TrkrDefs::cluskey id) { m_cluskey = id; }
   virtual TrkrDefs::cluskey getClusKey() const { return m_cluskey; }
   //
@@ -51,6 +52,19 @@ class TrkrClusterv1 : public TrkrCluster
   virtual void setGlobal() { m_isGlobal = true; }
   virtual void setLocal() { m_isGlobal = false; }
   virtual bool isGlobal() { return m_isGlobal; }
+
+  virtual float getLocalX() const { return m_local[0]; }
+  virtual void setLocalX(float loc0) { m_local[0] = loc0; }
+  virtual float getLocalY() const { return m_local[1]; }
+  virtual void setLocalY(float loc1) { m_local[1] = loc1; }
+
+  /// Acts functions, for Acts module use only
+  void setActsLocalError(unsigned int i, unsigned int j, float value);
+  Surface getActsSurface() const { return m_surface; }
+  void setActsSurface(Surface surface) { m_surface = surface; }
+  ActsExamples::TrkrClusterSourceLink getActsSourceLink() const;
+
+
   //
   // cluster info
   //
@@ -61,7 +75,7 @@ class TrkrClusterv1 : public TrkrCluster
 
   virtual float getError(unsigned int i, unsigned int j) const;        //< get cluster error covar
   virtual void setError(unsigned int i, unsigned int j, float value);  //< set cluster error covar
-
+  
   //
   // convenience interface
   //
@@ -81,7 +95,11 @@ class TrkrClusterv1 : public TrkrCluster
   float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6];               //< covariance matrix: rad, arc and z
 
-  ClassDef(TrkrClusterv1, 1)
+  float m_local[2];             //< 2D local position [cm]
+  Surface m_surface;            //< acts surface that cluster lies on
+  float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
+
+  ClassDef(TrkrClusterv2, 1)
 };
 
-#endif //TRACKBASE_TRKRCLUSTERV1_H
+#endif //TRACKBASE_TRKRCLUSTERV2_H
