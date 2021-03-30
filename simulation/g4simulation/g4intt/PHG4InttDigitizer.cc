@@ -9,7 +9,7 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHitv2.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -274,7 +274,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
 	  if(Verbosity() > 2)
 	    cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
-		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
+		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << endl;
  
 	} // end loop over hits in this hitset
     } // end loop over hitsets

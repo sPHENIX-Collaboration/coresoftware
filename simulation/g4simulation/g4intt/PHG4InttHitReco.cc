@@ -6,7 +6,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>  // for TrkrHit
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -398,7 +398,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (!hit)
       {
         // Otherwise, create a new one
-        hit = new InttHit();
+        //hit = new InttHit();
+	hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
@@ -411,7 +412,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
       if (Verbosity() > 2)
-        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;
+        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << endl;
     }
 
   }  // end loop over g4hits

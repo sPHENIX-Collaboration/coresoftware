@@ -6,7 +6,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -204,7 +204,6 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
     int phiup = 0;
     int phidown = 0;
     find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
-    //if(Verbosity>10) cout << "phibin: " << phibin << " zbin: " << " phidown " << phidown << " phiup " << phiup  << endl;
     for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
       iphiz iCoord(make_pair(iphi,iz));
       ihit  thisHit(adcval[iphi][iz],iCoord);
@@ -418,8 +417,8 @@ void *ProcessSector(void *threadarg) {
      unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
-     float_t fadc = ((unsigned short) hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
-     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl; 
+     float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl
 
      unsigned short adc = 0;
      if(fadc>0) 
@@ -639,8 +638,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       return 1;
     }
   
-  //  cout << "num hit sets:" << std::distance(hitsetrange.first,hitsetrange.second)<< endl;
-
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)

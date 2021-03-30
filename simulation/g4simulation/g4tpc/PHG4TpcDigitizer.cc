@@ -1,13 +1,13 @@
 #include "PHG4TpcDigitizer.h"
 
-#include <trackbase/TrkrHit.h>
+//#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -411,7 +411,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  // noise bins do not have TrkrHits associated with them, have to make one
 			  if(!hit)
 			    {
-			      hit = new TpcHit();
+			      hit = new TrkrHitv2();
 			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
 			      //hit->addEnergy(adc_input[iz+izup]);
 			      
@@ -421,7 +421,6 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 							       << " energy " << adc_input[iz + izup] << " adc " << adc_output << endl;
 			    }
 
-			  //std::cout << "     set:  for layer " << layer << " iphi " << iphi << " zbin " << iz+izup << " hitkey " << hitkey <<  " adc_output " << adc_output << std::endl;
 			  hit->setAdc(adc_output);
 			  
 			}  // end boundary check
@@ -483,7 +482,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  // noise bins do not have TrkrHits associated with them, have to make one
 			  if(!hit)
 			    {
-			      hit = new TpcHit();
+			      hit = new TrkrHitv2();
 			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
 			      //hit->addEnergy(adc_input[iz-izup]);
 			      
@@ -493,7 +492,6 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 							       << " energy " << adc_input[iz - izup] << " adc " << adc_output << endl;
 			    }
 
-			  //std::cout << "     set:  for layer " << layer << " iphi " << iphi << " zbin " << iz-izup << " hitkey " << hitkey <<  " adc_output " << adc_output << std::endl;
 			  hit->setAdc(adc_output);
 			} // end boundary check
 		      binpointer--;
@@ -551,13 +549,14 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	{
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  TrkrHit *tpchit = hit_iter->second;
+
 	  if(Verbosity() > 2)
 	    cout << "    layer " << layer << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
 		 << " adc " << tpchit->getAdc() << endl;
 
 	  if(tpchit->getAdc() == 0)
 	    {
-	      if(Verbosity() > 2) 
+	      if(Verbosity() > 20) 
 		cout << "                       --   this hit not digitized - delete it" << endl;
 	      // screws up the iterator to delete it here, store the hitkey for later deletion
 		delete_hitkey_list.push_back(std::make_pair(hitsetkey, hitkey));
@@ -571,7 +570,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       TrkrHitSet *hitset = trkrhitsetcontainer->findHitSet(delete_hitkey_list[i].first);
       const unsigned int layer = TrkrDefs::getLayer(delete_hitkey_list[i].first);
       hitset->removeHit(delete_hitkey_list[i].second);
-      if(Verbosity() > 2) 
+      if(Verbosity() > 20) 
 	if (layer == print_layer)
 	  cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first << " and hitkey " << delete_hitkey_list[i].second << endl; 
 
