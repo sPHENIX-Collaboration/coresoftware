@@ -14,7 +14,6 @@
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <intt/InttDefs.h>
-#include <intt/InttHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

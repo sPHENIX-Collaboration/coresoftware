@@ -15,7 +15,6 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 

@@ -4,7 +4,6 @@
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
-#include <mvtx/MvtxHit.h>
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
@@ -519,7 +518,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         if (!hit)
         {
           // Otherwise, create a new one
-          //hit = new MvtxHit();
 	  hit = new TrkrHitv2();
           hitsetit->second->addHitSpecificKey(hitkey, hit);
         }

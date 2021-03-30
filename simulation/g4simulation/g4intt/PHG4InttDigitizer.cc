@@ -16,7 +16,6 @@
 #include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
 
 #include <intt/InttDefs.h>
-#include <intt/InttHit.h>
 
 #include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -232,7 +231,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	{
 	  ++m_nCells;
 
-	  TrkrHit *hit = (InttHit*) hit_iter->second;
+	  TrkrHit *hit = hit_iter->second;
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
 	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index
