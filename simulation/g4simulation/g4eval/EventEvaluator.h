@@ -74,6 +74,7 @@ private:
   // track hits
   int _nHitsLayers;
   int* _hits_layerID;
+  int* _hits_trueID;
   float* _hits_x;
   float* _hits_y;
   float* _hits_z;
@@ -152,6 +153,7 @@ private:
   float* _mcpart_pz;
 
   float _reco_e_threshold;
+  int _depth_MCstack;
 
   CaloEvalStack *_caloevalstackFHCAL;
   CaloEvalStack *_caloevalstackDRCALO;
@@ -182,7 +184,7 @@ private:
   const int _maxNclusters = 100;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
-  const int _maxNMCPart = 1000;
+  const int _maxNMCPart = 10000;
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H
