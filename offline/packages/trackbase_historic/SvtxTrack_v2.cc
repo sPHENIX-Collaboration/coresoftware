@@ -37,7 +37,7 @@ SvtxTrack_v2::SvtxTrack_v2()
   , _cal_cluster_id()
   , _cal_cluster_key()
   , _cal_cluster_e()
-  , _acts_mj(ActsExamples::TrkrClusterMultiTrajectory())
+  , _acts_mj(nullptr)
 {
   // always include the pca point
   _states.insert(make_pair(0.0, new SvtxTrackState_v1(0.0)));
@@ -265,7 +265,7 @@ float SvtxTrack_v2::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const
 }
 
 
-ActsExamples::TrackParameters SvtxTrack_v2::get_acts_track_parameters() const
+ActsTrackParametersPtr SvtxTrack_v2::get_acts_track_parameters() const
 {
   Acts::Vector4D position(get_x() * Acts::UnitConstants::cm,
 			  get_y() * Acts::UnitConstants::cm,
@@ -277,7 +277,8 @@ ActsExamples::TrackParameters SvtxTrack_v2::get_acts_track_parameters() const
   int charge = get_charge();
 
   const Acts::BoundSymMatrix cov = rotateSvtxTrackCovToActs();
-  return ActsExamples::TrackParameters(position, momentum,
+
+  return std::make_shared<ActsExamples::TrackParameters>(position, momentum,
 				       mom, charge, cov);
 
 }

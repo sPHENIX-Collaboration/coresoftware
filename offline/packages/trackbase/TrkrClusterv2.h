@@ -24,8 +24,7 @@ class PHObject;
 class TrkrClusterv2 : public TrkrCluster
 {
  public:
-  using Surface = std::shared_ptr<const Acts::Surface>;
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
+ 
   //! ctor
   TrkrClusterv2();
 
@@ -62,7 +61,7 @@ class TrkrClusterv2 : public TrkrCluster
   void setActsLocalError(unsigned int i, unsigned int j, float value);
   Surface getActsSurface() const { return m_surface; }
   void setActsSurface(Surface surface) { m_surface = surface; }
-  ActsExamples::TrkrClusterSourceLink getActsSourceLink() const;
+  SourceLinkPtr getActsSourceLink() const;
 
 
   //

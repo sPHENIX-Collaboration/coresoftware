@@ -14,6 +14,22 @@
 #include <map>
 #include <set>
 
+namespace Acts 
+{
+  struct SinglyCharged;
+  extern template class SingleCurvilinearTrackParameters<SinglyCharged>;
+  using CurvilinearTrackParameters =
+    SingleCurvilinearTrackParameters<SinglyCharged>;
+}
+namespace ActsExamples 
+{ 
+  class TrkrClusterMultiTrajectory; 
+  using TrackParameters = Acts::CurvilinearTrackParameters;
+}
+
+using TrajectoryPtr = std::shared_ptr<ActsExamples::TrkrClusterMultiTrajectory>;
+using ActsTrackParametersPtr = std::shared_ptr<ActsExamples::TrackParameters>;
+
 class SvtxTrack : public PHObject
 {
  public:
@@ -214,6 +230,12 @@ class SvtxTrack : public PHObject
 
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
+
+  // Acts methods for use by Acts modules only
+  virtual ActsTrackParametersPtr get_acts_track_parameters() const { return nullptr; }
+  virtual TrajectoryPtr get_acts_multitrajectory() const { return nullptr; }
+  virtual void set_acts_multitrajectory(TrajectoryPtr traj) {};
+  
 
   //
   // truth track interface ---------------------------------------------------

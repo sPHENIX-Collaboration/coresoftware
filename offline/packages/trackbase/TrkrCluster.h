@@ -14,8 +14,14 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <memory>
 
+namespace Acts { class Surface; }
+namespace ActsExamples { class TrkrClusterSourceLink; }
 
+using Surface = std::shared_ptr<const Acts::Surface>;
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
+using SourceLinkPtr = std::shared_ptr<SourceLink>;
 
 /**
  * @brief Base class for cluster object
@@ -74,6 +80,13 @@ class TrkrCluster : public PHObject
   virtual float getPhiError() const { return NAN; }
   virtual float getRPhiError() const { return NAN; }
   virtual float getZError() const { return NAN; }
+
+  /// Acts functions, for Acts modules use only
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value){}
+  virtual Surface getActsSurface() const { return nullptr; }
+  virtual void setActsSurface(Surface surface) {}
+  virtual SourceLinkPtr getActsSourceLink() const {return nullptr;}
+
  protected:
   TrkrCluster() {}
   ClassDef(TrkrCluster, 1)
