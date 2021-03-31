@@ -1409,10 +1409,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	// count all hits for this cluster
 
 	TrkrClusterHitAssoc *cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-	//TrkrClusterHitAssoc::ConstRange 
 	std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 	  hitrange = cluster_hit_map->getHits(cluster_key);  
-	//for(TrkrClusterHitAssoc::ConstIterator 
 	for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
 	      clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	  {
@@ -1753,11 +1751,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
 	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	  //TrkrClusterHitAssoc::ConstRange 
-	  //TrkrClusterHitAssoc::ConstRange 
 	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 	    hitrange = clusterhitmap->getHits(cluster_key);  
-	  //for(TrkrClusterHitAssoc::ConstIterator 
 	  for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
 		clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	    {
@@ -2002,10 +1997,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // count all hits for this cluster
 	      TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 	      TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	      //TrkrClusterHitAssoc::ConstRange 
 	      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 		hitrange = clusterhitmap->getHits(cluster_key);  
-	      //for(TrkrClusterHitAssoc::ConstIterator 
 	      for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
 		    clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 		{
