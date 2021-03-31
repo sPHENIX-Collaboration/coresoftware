@@ -10,7 +10,7 @@
 #include <phool/getClass.h>
 
 /// Tracking includes
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 

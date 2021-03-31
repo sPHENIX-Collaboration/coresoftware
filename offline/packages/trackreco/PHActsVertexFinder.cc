@@ -129,7 +129,7 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 
   for(const auto &[key, track] : *m_svtxTrackMap)
   {
-    auto traj = track->get_acts_multitrajectory();
+    auto traj = *(track->get_acts_multitrajectory());
     const auto &[trackTips, mj] = traj.trajectory();
     
     for(const size_t &trackTip : trackTips)

@@ -98,7 +98,7 @@ class TrkrClusterv2 : public TrkrCluster
   Surface m_surface;            //< acts surface that cluster lies on
   float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
 
-  ClassDef(TrkrClusterv2, 1)
+  ClassDef(TrkrClusterv2, 2)
 };
 
 #endif //TRACKBASE_TRKRCLUSTERV2_H

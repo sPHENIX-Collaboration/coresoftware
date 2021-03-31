@@ -10,7 +10,7 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
@@ -196,7 +196,7 @@ int PHSimpleKFProp::Process()
     }
   }
   _track_map->Reset();
-  std::vector<SvtxTrack_v1> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
+  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
   publishSeeds(ptracks);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -605,7 +605,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   return propagated_track;
 }
 
-void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   for(size_t i=0;i<seeds.size();i++)
   {

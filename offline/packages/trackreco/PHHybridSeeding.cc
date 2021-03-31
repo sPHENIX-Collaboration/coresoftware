@@ -14,7 +14,7 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -305,13 +305,13 @@ int PHHybridSeeding::Process(PHCompositeNode *topNode)
       if(Verbosity()>1) cout << (int)TrkrDefs::getLayer(c) << endl;
     }
   }
-  vector<SvtxTrack_v1> seeds = fitter->ALICEKalmanFilter(clusterLists,false);
+  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(clusterLists,false);
   if(Verbosity()>0) cout << "nseeds: " << seeds.size() << "\n";
   publishSeeds(seeds);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHHybridSeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHHybridSeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   for(size_t i=0;i<seeds.size();i++)
   {

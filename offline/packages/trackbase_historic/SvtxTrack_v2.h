@@ -232,7 +232,7 @@ class SvtxTrack_v2 : public SvtxTrack
   Acts::BoundSymMatrix rotateSvtxTrackCovToActs() const;
   TrajectoryPtr _acts_mj;
 
-  ClassDef(SvtxTrack_v2, 1)
+  ClassDef(SvtxTrack_v2, 2)
 };
 
 #endif

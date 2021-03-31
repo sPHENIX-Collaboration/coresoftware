@@ -11,7 +11,7 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -554,7 +554,7 @@ if(Verbosity()>1)  cout << "keylistvector size: " << trackSeedKeyLists.size() <<
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
 //  mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
-  vector<SvtxTrack_v1> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
+  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -993,7 +993,7 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
   return merged;
 }
 
-void PHCASeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHCASeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   if(Verbosity()>1) cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)

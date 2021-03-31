@@ -229,7 +229,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	    continue;
 	}
    
-      ActsExamples::TrackParameters trackParams = track->get_acts_track_parameters();
+      ActsExamples::TrackParameters trackParams = *track->get_acts_track_parameters();
 
       auto actsVertex = getVertex(track);
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
@@ -353,7 +353,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
       /// to a surface
       if(!(cluster->getActsSurface()))
 	continue;
-      sourcelinks.push_back(cluster->getActsSourceLink());      
+      sourcelinks.push_back(*(cluster->getActsSourceLink()));      
     }
  
   return sourcelinks;
@@ -387,10 +387,10 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
         }
     }
-  
-  Trajectory trajectory(fitOutput.fittedStates, 
-			trackTips, indexedParams,
-			track->get_vertex_id());
+  auto trajectory = std::make_shared<Trajectory>(fitOutput.fittedStates,
+						 trackTips, indexedParams, 
+						 track->get_vertex_id());
+
   track->set_acts_multitrajectory(trajectory);
 
   /// Get position, momentum from the Acts output. Update the values of
@@ -399,7 +399,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   updateTrackTimer->stop();
   updateTrackTimer->restart();
   if(fitOutput.fittedParameters)
-    updateSvtxTrack(trajectory, track);
+    updateSvtxTrack(*trajectory, track);
   
   updateTrackTimer->stop();
   auto updateTime = updateTrackTimer->get_accumulated_time();

@@ -23,7 +23,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -286,9 +286,9 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       numSeedsPerActsSeed++;
       
       #if __cplusplus < 201402L
-      auto svtxTrack = boost::make_unique<SvtxTrack_v1>();
+      auto svtxTrack = boost::make_unique<SvtxTrack_v2>();
       #else
-      auto svtxTrack = std::make_unique<SvtxTrack_v1>();
+      auto svtxTrack = std::make_unique<SvtxTrack_v2>();
       #endif
 
       svtxTrack->set_id(m_trackMap->size());
@@ -1038,7 +1038,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 	  const auto cluster = clusIter->second;
   
 	  auto sl = cluster->getActsSourceLink();
-	  auto sp = makeSpacePoint(cluskey,sl).release();
+	  auto sp = makeSpacePoint(cluskey,*sl).release();
 	  spVec.push_back(sp);
 	  numSiliconHits++;
 	}
