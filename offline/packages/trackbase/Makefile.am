@@ -51,6 +51,7 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
+  TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterHitAssoc_Dict_rdict.pcm \
   TrkrHit_Dict_rdict.pcm \

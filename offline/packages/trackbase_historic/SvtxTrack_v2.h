@@ -23,7 +23,7 @@ class SvtxTrack_v2 : public SvtxTrack
   SvtxTrack_v2();
   SvtxTrack_v2(const SvtxTrack_v2& track);
   SvtxTrack_v2& operator=(const SvtxTrack_v2& track);
-  virtual ~SvtxTrack_v2();
+  virtual ~SvtxTrack_v2(); 
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const;
