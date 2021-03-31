@@ -17,7 +17,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -1409,8 +1409,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	// count all hits for this cluster
 
 	TrkrClusterHitAssoc *cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-	TrkrClusterHitAssoc::ConstRange hitrange = cluster_hit_map->getHits(cluster_key);  
-	for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	//TrkrClusterHitAssoc::ConstRange 
+	std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+	  hitrange = cluster_hit_map->getHits(cluster_key);  
+	//for(TrkrClusterHitAssoc::ConstIterator 
+	for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+	      clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	  {
 	    ++size; 
 	  }
@@ -1749,8 +1753,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
 	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	  TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
-	  for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	  //TrkrClusterHitAssoc::ConstRange 
+	  //TrkrClusterHitAssoc::ConstRange 
+	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+	    hitrange = clusterhitmap->getHits(cluster_key);  
+	  //for(TrkrClusterHitAssoc::ConstIterator 
+	  for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+		clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	    {
 	      TrkrHit* hit = hitset->second->getHit(clushititer->second);
 	      ++size; 
@@ -1993,8 +2002,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // count all hits for this cluster
 	      TrkrDefs::hitsetkey hitsetkey =  TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 	      TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
-	      TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
-	      for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	      //TrkrClusterHitAssoc::ConstRange 
+	      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+		hitrange = clusterhitmap->getHits(cluster_key);  
+	      //for(TrkrClusterHitAssoc::ConstIterator 
+	      for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+		    clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 		{
 		  TrkrHit* hit = hitset->second->getHit(clushititer->second);
 		  ++size; 

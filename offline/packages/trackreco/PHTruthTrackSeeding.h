@@ -15,7 +15,6 @@
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4HitContainer;
-class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxClusterEval;
 
@@ -83,7 +82,6 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   PHG4HitContainer* phg4hits_micromegas = nullptr;
 
   TrkrHitTruthAssoc* hittruthassoc = nullptr;
-  TrkrClusterHitAssoc* clusterhitassoc = nullptr;
   SvtxClusterEval* _clustereval;
 
   unsigned int _min_clusters_per_track = 3;

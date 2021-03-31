@@ -8,7 +8,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -144,7 +144,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssoc();
+      clusterhitassoc = new TrkrClusterHitAssocv2();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
