@@ -371,7 +371,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv2 *clus = static_cast<TrkrClusterv2 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+	auto clus = std::make_unique<TrkrClusterv2>();
+	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;

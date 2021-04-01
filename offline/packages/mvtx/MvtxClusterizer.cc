@@ -294,7 +294,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	// make the cluster directly in the node tree
 	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	auto clus = static_cast<TrkrClusterv2*>((m_clusterlist->findOrAddCluster(ckey))->second);
+
+	auto clus = std::make_unique<TrkrClusterv2>();
+	clus->setClusKey(ckey);
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
