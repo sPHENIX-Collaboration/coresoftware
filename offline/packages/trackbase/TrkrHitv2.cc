@@ -27,6 +27,14 @@ double TrkrHitv2::getEnergy()
   return ((double) m_adc)  / TrkrDefs::EdepScaleFactor;
 }
 
+void TrkrHitv2::setAdc(const unsigned int adc)
+ {
+   if(adc > USHRT_MAX)
+     m_adc = USHRT_MAX;
+   else
+     m_adc = (unsigned short) adc;
+ }
+
 unsigned int TrkrHitv2::getAdc() { 
     return (unsigned int) m_adc;
   }

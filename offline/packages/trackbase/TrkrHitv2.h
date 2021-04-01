@@ -42,7 +42,7 @@ class TrkrHitv2 : public TrkrHit
   virtual double getEnergy();
 
   // after digitization, these are the adc values
-  virtual void setAdc(const unsigned short adc) {m_adc = adc;}
+  virtual void setAdc(const unsigned int adc);
   virtual unsigned int getAdc() ;
 
  protected:
