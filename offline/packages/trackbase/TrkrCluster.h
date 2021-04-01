@@ -60,9 +60,9 @@ class TrkrCluster : public PHObject
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
   virtual float getLocalX() const { return NAN; }
-  virtual void setLocalX() {}
+  virtual void setLocalX(float x) {}
   virtual float getLocalY() const { return NAN; }
-  virtual void setLocalY() {}
+  virtual void setLocalY(float y) {}
   //
   // cluster info
   //

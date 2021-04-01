@@ -207,7 +207,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-      auto cluster = static_cast<TrkrClusterv2*>((trkrClusterContainer->findOrAddCluster(cluster_key))->second);
+      auto cluster = std::make_unique<TrkrClusterv2>();
+      cluster->setClusKey(cluster_key);
+      
       TVector3 world_coordinates;
       double weight_sum = 0;
 
