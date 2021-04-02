@@ -506,6 +506,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 							       stave,
 							       chip);
 	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
+	m_clusterlist->addCluster(clus.release());
 
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
 

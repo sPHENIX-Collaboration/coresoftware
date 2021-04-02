@@ -583,6 +583,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setActsLocalError(0,1, ERR[1][2]);
 	clus->setActsLocalError(1,0, ERR[2][1]);
 	clus->setActsLocalError(1,1, ERR[2][2]);
+	m_clusterlist->addCluster(clus.release());
+
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
