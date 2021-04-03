@@ -11,7 +11,10 @@
 
 #include "MicromegasDefs.h"
 #include "MicromegasTile.h"
+
 #include <g4detectors/PHG4CylinderGeom.h>
+
+#include <TGeoMatrix.h>
 
 #include <cmath>
 #include <iostream>
@@ -51,9 +54,6 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //! get number of tiles
   size_t get_tiles_count() const { return m_tiles.size(); }
-  
-  //! get tile and strip for a give world location
-  std::pair<int,int> find_strip( const TVector3& ) const;
 
   //! get strip for a give world location and tile
   int find_strip( uint tileid, const TVector3& ) const;
@@ -70,6 +70,7 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! print information about this layer
   virtual void identify(std::ostream&) const;
 
+  /// reference radius used in macro to convert tile size in azimuth into a angle range (cm)
   static constexpr double reference_radius = 82;
 
   //@}
@@ -85,7 +86,7 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //! tiles
   void set_tiles( const MicromegasTile::List& tiles ) {m_tiles = tiles;}
-
+  
   //! segmentation
   void set_segmentation_type( MicromegasDefs::SegmentationType value ) {m_segmentation_type = value;}
 
@@ -98,6 +99,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   // check if hit radius matches this cylinder
   bool check_radius( const TVector3& ) const;
 
+  // get local to master transformation matrix for a given tile
+  TGeoHMatrix transformation_matrix( uint tileid ) const;
+  
   //! layer id
   int m_layer = 0;
 
