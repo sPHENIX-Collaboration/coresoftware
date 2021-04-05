@@ -4,10 +4,9 @@
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
-#include <mvtx/MvtxHit.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>  // for TrkrHit
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -519,12 +518,12 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         if (!hit)
         {
           // Otherwise, create a new one
-          hit = new MvtxHit();
+	  hit = new TrkrHitv2();
           hitsetit->second->addHitSpecificKey(hitkey, hit);
         }
 
         // Either way, add the energy to it
-        hit->addEnergy(venergy[i1].first);
+        hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
 
         // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
         // There is only one TrkrHit per pixel, but there may be multiple g4hits
