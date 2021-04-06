@@ -61,7 +61,7 @@ class TrkrClusterv2 : public TrkrCluster
 
   /// Acts functions, for Acts module use only
   virtual void setActsLocalError(unsigned int i, unsigned int j, float value);
-  virtual float getActsLocalError(unsigned int i, unsigned int j) { return m_actsLocalErr[i][j]; }
+  virtual float getActsLocalError(unsigned int i, unsigned int j) const { return m_actsLocalErr[i][j]; }
   virtual TrkrDefs::subsurfkey getSubSurfKey() const { return m_subsurfkey; }
   virtual void setSubSurfKey(TrkrDefs::subsurfkey id) { m_subsurfkey = id; }
 
