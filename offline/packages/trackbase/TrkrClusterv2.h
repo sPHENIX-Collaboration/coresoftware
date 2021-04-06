@@ -37,6 +37,8 @@ class TrkrClusterv2 : public TrkrCluster
   virtual PHObject* CloneMe() const { return new TrkrClusterv2(*this); }
   virtual void setClusKey(TrkrDefs::cluskey id) { m_cluskey = id; }
   virtual TrkrDefs::cluskey getClusKey() const { return m_cluskey; }
+  
+  
   //
   // cluster position
   //
@@ -58,11 +60,10 @@ class TrkrClusterv2 : public TrkrCluster
   virtual void setLocalY(float loc1) { m_local[1] = loc1; }
 
   /// Acts functions, for Acts module use only
-  void setActsLocalError(unsigned int i, unsigned int j, float value);
-  Surface getActsSurface() const { return m_surface; }
-  void setActsSurface(Surface surface) { m_surface = surface; }
-  SourceLinkPtr getActsSourceLink() const;
-
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value);
+  virtual float getActsLocalError(unsigned int i, unsigned int j) { return m_actsLocalErr[i][j]; }
+  virtual TrkrDefs::subsurfkey getSubSurfKey() const { return m_subsurfkey; }
+  virtual void setSubSurfKey(TrkrDefs::subsurfkey id) { m_subsurfkey = id; }
 
   //
   // cluster info
@@ -88,6 +89,7 @@ class TrkrClusterv2 : public TrkrCluster
  protected:
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
+  TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps
   float m_pos[3];               //< mean position x,y,z
   bool m_isGlobal;             //< flag for coord sys (true = global)
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
@@ -95,7 +97,6 @@ class TrkrClusterv2 : public TrkrCluster
   float m_err[6];               //< covariance matrix: rad, arc and z
 
   float m_local[2];             //< 2D local position [cm]
-  Surface m_surface;            //< acts surface that cluster lies on
   float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
 
   ClassDef(TrkrClusterv2, 2)

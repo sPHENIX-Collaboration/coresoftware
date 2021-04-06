@@ -16,12 +16,6 @@
 #include <iostream>
 #include <memory>
 
-namespace Acts { class Surface; }
-namespace ActsExamples { class TrkrClusterSourceLink; }
-
-using Surface = std::shared_ptr<const Acts::Surface>;
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using SourceLinkPtr = std::shared_ptr<SourceLink>;
 
 /**
  * @brief Base class for cluster object
@@ -45,6 +39,7 @@ class TrkrCluster : public PHObject
   //
   virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
   virtual void setClusKey(TrkrDefs::cluskey id) {}
+ 
   //
   // cluster position
   //
@@ -83,9 +78,9 @@ class TrkrCluster : public PHObject
 
   /// Acts functions, for Acts modules use only
   virtual void setActsLocalError(unsigned int i, unsigned int j, float value){}
-  virtual Surface getActsSurface() const { return nullptr; }
-  virtual void setActsSurface(Surface surface) {}
-  virtual SourceLinkPtr getActsSourceLink() const {return nullptr;}
+  virtual float getActsLocalError(unsigned int i, unsigned int j) const { return NAN; }
+  virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
+  virtual void setSubSurfKey(TrkrDefs::subsurfkey id) {}
 
  protected:
   TrkrCluster() {}

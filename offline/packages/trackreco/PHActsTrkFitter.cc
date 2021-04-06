@@ -47,6 +47,9 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_event(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
+  , m_vertexMap(nullptr)
+  , m_clusterContainer(nullptr)
+  , m_surfMaps(nullptr)
   , m_nBadFits(0)
   , m_fitSiliconMMs(false)
   , m_fillSvtxTrackStates(true)
@@ -337,7 +340,52 @@ Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
 			svtxVertex->get_z() * Acts::UnitConstants::cm);
   return vertex;
 }
+Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, 
+				    TrkrDefs::subsurfkey surfkey)
+{
 
+  auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  if(trkrid == TrkrDefs::TrkrId::mvtxId or
+     trkrid == TrkrDefs::TrkrId::inttId)
+    {
+      return getSiliconSurface(hitsetkey);
+    }
+  else
+    {
+      return getTpcMMSurface(hitsetkey, surfkey);
+    }
+
+}
+Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  return nullptr;
+
+}
+Surface PHActsTrkFitter::getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
+					 TrkrDefs::subsurfkey surfkey)
+{
+  auto surfMap = m_surfMaps->tpcSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      auto surfvec = iter->second;
+      return surfvec.at(surfkey);
+    }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+
+}
 SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 {
 
@@ -349,11 +397,40 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
     {
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
+
+      auto subsurfkey = cluster->getSubSurfKey();
+      
       /// Make a safety check for clusters that couldn't be attached
       /// to a surface
-      if(!(cluster->getActsSurface()))
+      auto surf = getSurface(key, subsurfkey);
+      if(!surf)
 	continue;
-      sourcelinks.push_back(*(cluster->getActsSourceLink()));      
+  
+      Acts::BoundVector loc = Acts::BoundVector::Zero();
+      loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      
+      SourceLink sl(key, surf, loc, cov);
+      
+     
+      if(Verbosity() > 4)
+	{
+	  std::cout << "Adding SL to track: "<< std::endl;
+	  std::cout << "SL : " << sl.location().transpose() << std::endl
+		    << sl.covariance().transpose() << std::endl 
+		    << sl.geoId() << std::endl;
+	}
+      sourcelinks.push_back(sl);      
     }
  
   return sourcelinks;
@@ -370,7 +447,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   ActsExamples::IndexedParams indexedParams;
   if (fitOutput.fittedParameters)
     {
-      indexedParams.emplace(fitOutput.trackTip, 
+       indexedParams.emplace(fitOutput.trackTip, 
 			    fitOutput.fittedParameters.value());
 
       if (Verbosity() > 2)
@@ -387,11 +464,9 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
         }
     }
-  auto trajectory = std::make_shared<Trajectory>(fitOutput.fittedStates,
+  auto trajectory = std::make_unique<Trajectory>(fitOutput.fittedStates,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
-
-  track->set_acts_multitrajectory(trajectory);
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
@@ -410,7 +485,9 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
-    
+  
+  track->set_acts_multitrajectory(trajectory.release());
+
   return;
 }
 
@@ -699,6 +776,14 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "ActsSurfaceMaps not on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
     {

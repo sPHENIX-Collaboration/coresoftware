@@ -27,8 +27,8 @@ namespace ActsExamples
   using TrackParameters = Acts::CurvilinearTrackParameters;
 }
 
-using TrajectoryPtr = std::shared_ptr<ActsExamples::TrkrClusterMultiTrajectory>;
-using ActsTrackParametersPtr = std::shared_ptr<ActsExamples::TrackParameters>;
+using TrajectoryPtr = ActsExamples::TrkrClusterMultiTrajectory*;
+using ActsTrackParametersPtr = ActsExamples::TrackParameters*;
 
 class SvtxTrack : public PHObject
 {

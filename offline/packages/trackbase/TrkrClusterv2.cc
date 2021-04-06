@@ -167,23 +167,3 @@ void TrkrClusterv2::setActsLocalError(unsigned int i, unsigned int j,
 {
   m_actsLocalErr[i][j] = value;
 }
-
-SourceLinkPtr TrkrClusterv2::getActsSourceLink() const
-{
-  Acts::BoundVector loc = Acts::BoundVector::Zero();
-  loc[Acts::eBoundLoc0] = m_local[0] * Acts::UnitConstants::cm;
-  loc[Acts::eBoundLoc1] = m_local[1] * Acts::UnitConstants::cm;
-
-  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-    m_actsLocalErr[0][0] * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-    m_actsLocalErr[0][1] * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-    m_actsLocalErr[1][0] * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-    m_actsLocalErr[1][1] * Acts::UnitConstants::cm2;
-  
-  return std::make_shared<SourceLink>(m_cluskey, m_surface, loc, cov);
-
-}

@@ -1037,8 +1037,28 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 	  const auto cluskey = clusIter->first;
 	  const auto cluster = clusIter->second;
   
-	  auto sl = cluster->getActsSourceLink();
-	  auto sp = makeSpacePoint(cluskey,*sl).release();
+	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	  const auto surface = getSurface(hitsetkey);
+	  if(!surface)
+	    continue;
+
+	  Acts::BoundVector loc = Acts::BoundVector::Zero();
+	  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
+	  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+	  
+	  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+	  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+	  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+	  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+	  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+
+	  SourceLink sl(cluskey, surface, loc, cov);
+
+	  auto sp = makeSpacePoint(cluskey, sl).release();
 	  spVec.push_back(sp);
 	  numSiliconHits++;
 	}
@@ -1053,7 +1073,21 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 
   return spVec;
 }
+Surface PHActsSiliconSeeding::getSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  /// Only seed with the MVTX, so there is a 1-1 mapping between hitsetkey
+  /// and acts surface
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  return nullptr;
 
+}
 Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
 {
   Acts::SpacePointGridConfig config;
@@ -1103,6 +1137,14 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 {
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "Acts surface maps not on node tree, can't continue."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_geomContainerIntt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   if(!m_geomContainerIntt)
     {

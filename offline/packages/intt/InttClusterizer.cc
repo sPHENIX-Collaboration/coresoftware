@@ -79,7 +79,6 @@ InttClusterizer::InttClusterizer(const string& name,
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
-  , m_surfMaps(nullptr)
   , _fraction_of_mip(0.5)
   , _thresholds_by_layer()
   , _make_z_clustering()
@@ -216,15 +215,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						      "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+ 
   
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
@@ -568,9 +559,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
 	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
-	const unsigned int layer = TrkrDefs::getLayer(ckey);
-	const TrkrDefs::hitsetkey hitsetkey = 
-	  InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
+
 	TVector3 local(0,0,0);
 	TVector3 global(clusx, clusy, clusz);
 	local = geom->get_local_from_world_coords(ladderZId,
@@ -578,7 +567,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 						  global);
 	clus->setLocalX(local[1]);
 	clus->setLocalY(local[2]);
-	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
+	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
+	/// 0
+	clus->setSubSurfKey(0);
 	clus->setActsLocalError(0,0, ERR[1][1]);
 	clus->setActsLocalError(0,1, ERR[1][2]);
 	clus->setActsLocalError(1,0, ERR[2][1]);
@@ -616,36 +607,4 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
   }
 
   return;
-}
-
-Surface InttClusterizer::getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey)
-{
-  Surface surface;
-
-  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
-    m_surfMaps->siliconSurfaceMap;
-
-  std::map<TrkrDefs::hitsetkey, Surface>::iterator
-      surfaceIter;
-
-  surfaceIter = clusterSurfaceMap.find(hitsetkey);
-
-  /// Check to make sure we found the surface in the map
-  if (surfaceIter != clusterSurfaceMap.end())
-  {
-    surface = surfaceIter->second;
-    if (Verbosity() > 10)
-      {
-	std::cout << "Got surface pair " << surface->name()
-		  << " surface type " << surface->type()
-		  << std::endl;
-      }
-  }
-  else
-  {
-    /// If it doesn't exit, return nullptr
-    return nullptr;
-  }
-
-  return surface;
 }

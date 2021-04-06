@@ -278,7 +278,7 @@ ActsTrackParametersPtr SvtxTrack_v2::get_acts_track_parameters() const
 
   const Acts::BoundSymMatrix cov = rotateSvtxTrackCovToActs();
 
-  return std::make_shared<ActsExamples::TrackParameters>(position, momentum,
+  return new ActsExamples::TrackParameters(position, momentum,
 				       mom, charge, cov);
 
 }

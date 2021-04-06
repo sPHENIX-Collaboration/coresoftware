@@ -5,7 +5,6 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <climits>
 #include <map>
@@ -75,14 +74,12 @@ class InttClusterizer : public SubsysReco
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
-  Surface getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey);
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
-  ActsSurfaceMaps *m_surfMaps;
 
   // settings
   float _fraction_of_mip;

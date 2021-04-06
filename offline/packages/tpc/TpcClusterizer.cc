@@ -217,7 +217,8 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
 Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 				    Acts::Vector3D world,
 				    ActsSurfaceMaps *surfMaps,
-				    ActsTrackingGeometry *tGeometry)
+				    ActsTrackingGeometry *tGeometry,
+				    TrkrDefs::subsurfkey& subsurfkey)
 {
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = surfMaps->tpcSurfaceMap.find(hitsetkey);
@@ -255,6 +256,9 @@ Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 	  break;
 	}
     }
+  
+  subsurfkey = surf_index;
+
   if(surf_index == 999)
     {
       std::cout << PHWHERE 
@@ -441,10 +445,12 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   Acts::Vector3D global(clus->getX(), clus->getY(), clus->getZ());
   
+  TrkrDefs::subsurfkey subsurfkey;
   Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						global,
 						surfMaps,
-						tGeometry);
+						tGeometry,
+						subsurfkey);
 
   if(!surface)
     {
@@ -452,6 +458,9 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
       /// just return and don't add the cluster to the container
       return;
     }
+
+  clus->setSubSurfKey(subsurfkey);
+
   Acts::Vector3D center = surface->center(tGeometry->geoContext) 
     / Acts::UnitConstants::cm;
   
@@ -483,7 +492,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
       
   clus->setLocalX(localPos(0));
   clus->setLocalY(localPos(1));
-  clus->setActsSurface(surface);
   clus->setActsLocalError(0,0, ERR[1][1]);
   clus->setActsLocalError(1,0, ERR[2][1]);
   clus->setActsLocalError(0,1, ERR[1][2]);

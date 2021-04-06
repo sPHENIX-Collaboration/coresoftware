@@ -10,7 +10,6 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <string>                // for string
 #include <utility>
@@ -59,14 +58,13 @@ class MvtxClusterizer : public SubsysReco
 
   void ClusterMvtx(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
-  Surface getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
 
   TrkrClusterHitAssoc *m_clusterhitassoc;
-  ActsSurfaceMaps *m_surfMaps;
+
 
 
   // settings

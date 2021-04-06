@@ -89,7 +89,6 @@ MvtxClusterizer::MvtxClusterizer(const string &name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
-  , m_surfMaps(nullptr)
   , m_makeZClustering(true)
 {
 }
@@ -194,17 +193,6 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  
 
   // run clustering
   ClusterMvtx(topNode);
@@ -501,11 +489,11 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setActsLocalError(0,1,ERR[0][2]);
 	clus->setActsLocalError(1,0,ERR[2][0]);
 	clus->setActsLocalError(1,1,ERR[2][2]);
+	
+	/// All silicon surfaces have a 1-1 map to hitsetkey. 
+	/// So set subsurface key to 0
+	clus->setSubSurfKey(0);
 
-	TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer,
-							       stave,
-							       chip);
-	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
 	m_clusterlist->addCluster(clus.release());
 
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
@@ -544,35 +532,3 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
   return;
 }
 
-
-Surface MvtxClusterizer::getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey)
-{
-  Surface surface;
-
-  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
-    m_surfMaps->siliconSurfaceMap;
-
-  std::map<TrkrDefs::hitsetkey, Surface>::iterator
-      surfaceIter;
-
-  surfaceIter = clusterSurfaceMap.find(hitsetkey);
-
-  /// Check to make sure we found the surface in the map
-  if (surfaceIter != clusterSurfaceMap.end())
-  {
-    surface = surfaceIter->second;
-    if (Verbosity() > 10)
-      {
-	std::cout << "Got surface pair " << surface->name()
-		  << " surface type " << surface->type()
-		  << std::endl;
-      }
-  }
-  else
-  {
-    /// If it doesn't exit, return nullptr
-    return nullptr;
-  }
-
-  return surface;
-}

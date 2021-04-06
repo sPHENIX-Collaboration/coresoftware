@@ -3,16 +3,15 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Surfaces/Surface.hpp>
-
-#include <TGeoNode.h>
+namespace Acts{ class Surface; }
+class TGeoNode;
 
 #include <map>
 #include <vector>
+#include <memory>
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SurfaceVec = std::vector<Surface>;
-
 
 struct ActsSurfaceMaps
 {

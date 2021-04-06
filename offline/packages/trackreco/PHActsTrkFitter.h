@@ -11,6 +11,7 @@
 #include "PHTrackFitting.h"
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -119,6 +120,12 @@ class PHActsTrkFitter : public PHTrackFitting
   void getTrackFitResult(const FitResult& fitOutput, 
 			 SvtxTrack* track);
 
+  Surface getSurface(TrkrDefs::cluskey cluskey, 
+		     TrkrDefs::subsurfkey surfkey);
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
+  Surface getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
+			  TrkrDefs::subsurfkey surfkey);
+
   Acts::BoundSymMatrix setDefaultCovariance();
   void printTrackSeed(ActsExamples::TrackParameters seed);
 
@@ -136,6 +143,7 @@ class PHActsTrkFitter : public PHTrackFitting
   SvtxTrackMap *m_trackMap;
   SvtxVertexMap *m_vertexMap;
   TrkrClusterContainer *m_clusterContainer;
+  ActsSurfaceMaps *m_surfMaps;
 
   /// Number of acts fits that returned an error
   int m_nBadFits;
