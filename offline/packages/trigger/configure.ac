@@ -10,7 +10,7 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-return-stack-address"
+  CXXFLAGS="$CXXFLAGS -Wall  -Werror"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
