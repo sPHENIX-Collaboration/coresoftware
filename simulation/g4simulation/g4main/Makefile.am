@@ -125,6 +125,7 @@ libphg4hit_la_SOURCES = \
   PHG4Particlev1.cc \
   PHG4Particlev2.cc \
   PHG4Particlev3.cc \
+  PHG4Shower.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \
