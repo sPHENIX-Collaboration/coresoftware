@@ -1,6 +1,7 @@
 #include "BeamLineMagnetSteppingAction.h"
 #include "BeamLineMagnetDetector.h"
 
+#include <phparameter/PHParameters.h>
 #include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <g4main/PHG4Hit.h>
@@ -41,6 +42,7 @@ using namespace std;
 BeamLineMagnetSteppingAction::BeamLineMagnetSteppingAction(BeamLineMagnetDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
+  , m_Params(parameters)
   , m_HitContainer(nullptr)
   , m_AbsorberHitContainer(nullptr)
   , m_Hit(nullptr)
@@ -52,6 +54,8 @@ BeamLineMagnetSteppingAction::BeamLineMagnetSteppingAction(BeamLineMagnetDetecto
   , m_SavePostStepStatus(-1)
   , m_EdepSum(0)
   , m_EionSum(0)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
 {
 }
 
@@ -85,6 +89,17 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
+
+  // if this block stops everything, just put all kinetic energy into edep
+  if (m_BlackHoleFlag)
+  {
+    edep = aTrack->GetKineticEnergy() / GeV;
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
+    killtrack->SetTrackStatus(fStopAndKill);
+  }
+
+  if (!m_ActiveFlag)
+    return false;
 
   int magnet_id = volume->GetCopyNo();  // magnet id is stored in copy number
   bool geantino = false;

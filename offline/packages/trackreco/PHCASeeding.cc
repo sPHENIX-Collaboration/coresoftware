@@ -18,7 +18,7 @@
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -355,7 +355,8 @@ void PHCASeeding::FillTree()
       }/*
       if(!_use_truth_clusters)
 	{
-	  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
+	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>   
+	  hitrange = _cluster_hit_map->getHits(ckey);
 	  unsigned int nhits = std::distance(hitrange.first,hitrange.second);
 	  if(nhits<_min_nhits_per_cluster) continue;
 	}
@@ -413,7 +414,10 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
   {
     unsigned int layer = TrkrDefs::getLayer(iter->second);
     if(layer < _start_layer || layer >= _end_layer) continue;
-    TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(iter->second);
+
+    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+      hitrange = _cluster_hit_map->getHits(iter->second);
+
     unsigned int nhits = std::distance(hitrange.first,hitrange.second);
     if(nhits<_min_nhits_per_cluster){
       cout << "min hits fail" << endl;

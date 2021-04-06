@@ -4,15 +4,14 @@
  * @date 4 June 2018
  * @brief Base class for hit object
  */
-#ifndef TRACKBASE_TRKRHIT_H
-#define TRACKBASE_TRKRHIT_H
+#ifndef TRACKBASE_TRKRHITV2_H
+#define TRACKBASE_TRKRHITV2_H
 
 #include "TrkrDefs.h"
+#include "TrkrHit.h"
 
 #include <phool/PHObject.h>
 
-#include <climits>
-#include <cmath>
 #include <iostream>
 
 /**
@@ -22,31 +21,34 @@
  * Each subsystem should implement an inherited version
  * which contains the actual storage information.
  */
-class TrkrHit : public PHObject
+class TrkrHitv2 : public TrkrHit
 {
  public:
+  //! ctor
+  TrkrHitv2(); 
 
   //! dtor
-  virtual ~TrkrHit() {}
+  virtual ~TrkrHitv2() {}
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const
   {
-    os << "TrkrHit base class" << std::endl;
+    os << "TrkrHitv2 class with adc = " << m_adc << std::endl;
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
 
   // these set and get the energy before digitization
-  virtual void addEnergy(const double edep){}
-  virtual double getEnergy() {return 0;}
+  virtual void addEnergy(const double edep);
+  virtual double getEnergy();
 
   // after digitization, these are the adc values
-  virtual void setAdc(const unsigned int adc) {}
-  virtual unsigned int getAdc() { return 0;}
+  virtual void setAdc(const unsigned int adc);
+  virtual unsigned int getAdc() ;
 
  protected:
 
-  ClassDef(TrkrHit, 1);
+  unsigned short m_adc = 0;
+  ClassDef(TrkrHitv2, 1);
 };
 
-#endif //TRACKBASE_TRKRHIT_H
+#endif //TRACKBASE_TRKRHITV2_H
