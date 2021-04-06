@@ -10,7 +10,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 

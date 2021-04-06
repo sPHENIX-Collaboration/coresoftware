@@ -9,13 +9,12 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -469,7 +468,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    // Add the hit-g4hit association
 	    // no need to check for duplicates, since the hit is new
 	    hittruthassoc->addAssoc(node_hitsetkey, single_hitkey, hiter->first);
-	    if(Verbosity() > 2) 
+	    if(Verbosity() > 100) 
 	      std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
 	  }
       }
@@ -507,7 +506,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	      {
 		TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
 		TrkrHit *temp_tpchit = temp_hit_iter->second;
-		if (Verbosity() > 100 && layer == print_layer)
+		if (Verbosity() > 10 && layer == print_layer)
 		  {
 		    std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
 			      << " z bin " << TpcDefs::getTBin(temp_hitkey)
@@ -523,7 +522,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 		if (!node_hit)
 		  {
 		    // Otherwise, create a new one
-		    node_hit = new TpcHit();
+		    node_hit = new TrkrHitv2();
 		    node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
 		  }
 
@@ -578,9 +577,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       {
         TrkrDefs::hitkey hitkey = hit_iter->first;
         TrkrHit *tpchit = hit_iter->second;
-
-        std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
-                  << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << std::endl;
+	std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
+		  << "  energy " << tpchit->getEnergy() << std::endl;
       }
     }
   }

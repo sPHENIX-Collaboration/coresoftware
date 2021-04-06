@@ -9,7 +9,7 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitSet.h>
@@ -111,12 +111,15 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
     }
 
     // get the hits for this cluster
-    TrkrClusterHitAssoc::ConstRange hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
-    for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-    {
-      TrkrDefs::hitkey hitkey = clushititer->second;
-      // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
-      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+      hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
+    //for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+    for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+	   clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+      {
+	TrkrDefs::hitkey hitkey = clushititer->second;
+	// TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
+	TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
       if (Verbosity() >= 3)
 	{

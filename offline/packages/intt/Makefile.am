@@ -20,17 +20,14 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   InttDefs.h \
-  InttHit.h \
   InttClusterizer.h \
   CylinderGeomIntt.h
 
 ROOTDICTS = \
-  InttHit_Dict.cc \
   CylinderGeomIntt_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  InttHit_Dict_rdict.pcm \
   CylinderGeomIntt_Dict_rdict.pcm
 
 # sources for intt library
@@ -47,8 +44,7 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
-  InttDefs.cc \
-  InttHit.cc
+  InttDefs.cc
 
 libintt_io_la_LIBADD = \
   -lCLHEP \

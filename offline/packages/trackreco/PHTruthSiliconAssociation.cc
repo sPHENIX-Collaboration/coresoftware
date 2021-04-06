@@ -12,7 +12,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -382,8 +382,12 @@ std::vector<PHG4Particle*> PHTruthSiliconAssociation::getG4PrimaryParticle(SvtxT
       TrkrDefs::cluskey cluster_key = *iter;
 
       // get all reco hits for this cluster
-      TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
-      for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+      //TrkrClusterHitAssoc::ConstRange 
+      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+	hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+      //for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+      for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+	    clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	{
 	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
@@ -460,8 +464,12 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
       if(layer > 6) continue;  // we need the silicon layers only
       
       // get all truth hits for this cluster
-      TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
-      for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+      //TrkrClusterHitAssoc::ConstRange 
+      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
+	hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+      //for(TrkrClusterHitAssoc::ConstIterator 
+      for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+	    clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	{
 	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey

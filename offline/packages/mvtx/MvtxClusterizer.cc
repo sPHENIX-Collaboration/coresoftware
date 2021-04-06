@@ -14,9 +14,10 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                     // for SubsysReco
@@ -149,7 +150,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssoc();
+      clusterhitassoc = new TrkrClusterHitAssocv2();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
