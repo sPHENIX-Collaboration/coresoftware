@@ -79,6 +79,7 @@ libcalo_io_la_SOURCES = \
   RawCluster.cc \
   RawClusterv1.cc \
   RawClusterContainer.cc \
+  RawTower.cc \
   RawTowerv1.cc \
   RawTowerContainer.cc \
   RawTowerDeadMap.cc \

@@ -105,6 +105,7 @@ libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
