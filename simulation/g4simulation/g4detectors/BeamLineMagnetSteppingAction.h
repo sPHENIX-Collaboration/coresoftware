@@ -31,6 +31,7 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   BeamLineMagnetDetector* m_Detector;
+  const PHParameters *m_Params;
   //! pointer to hit container
   PHG4HitContainer* m_HitContainer;
   PHG4HitContainer* m_AbsorberHitContainer;
@@ -44,6 +45,9 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   int m_SavePostStepStatus;
   double m_EdepSum;
   double m_EionSum;
+  int m_ActiveFlag;
+  int m_BlackHoleFlag;
+
 };
 
 #endif  // G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H

@@ -16,7 +16,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -93,7 +93,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterHitAssoc = new TrkrClusterHitAssoc();
+    trkrClusterHitAssoc = new TrkrClusterHitAssocv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(trkrClusterHitAssoc, "TRKR_CLUSTERHITASSOC", "PHObject");
     trkrNode->addNode(newNode);
   }

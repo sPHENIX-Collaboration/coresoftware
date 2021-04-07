@@ -7,7 +7,7 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-undefined-var-template"
+  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-undefined-var-template -Wno-tautological-overlap-compare"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
