@@ -14,12 +14,12 @@ PHG4Shower::ParticleIdConstIter PHG4Shower::end_g4particle_id() const
   return DummyParticleIdSet.end();
 }
 
-PHG4Shower::ParticleIIter PHG4Shower::begin_g4particle_id()
+PHG4Shower::ParticleIdIter PHG4Shower::begin_g4particle_id()
 {
   return DummyParticleIdSet.end();
 }
 
-PHG4Shower::ParticleIIter PHG4Shower::end_g4particle_id()
+PHG4Shower::ParticleIdIter PHG4Shower::end_g4particle_id()
 {
   return DummyParticleIdSet.end();
 }

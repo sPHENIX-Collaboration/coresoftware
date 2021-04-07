@@ -85,7 +85,7 @@ class PHG4Shower : public PHObject
   virtual ParticleIdIter begin_g4particle_id();
   virtual ParticleIdConstIter begin_g4particle_id() const;
   virtual ParticleIdIter end_g4particle_id();
-  virtual ParticleIdConstIter end_g4particle_id();
+  virtual ParticleIdConstIter end_g4particle_id() const;
   virtual size_t remove_g4particle_id(int id) { return 0; }
   virtual void clear_g4particle_id() {}
   virtual const ParticleIdSet& g4particle_ids() const = 0;
