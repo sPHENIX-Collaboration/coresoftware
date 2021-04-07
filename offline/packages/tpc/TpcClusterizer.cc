@@ -16,6 +16,9 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
+#include <Acts/Utilities/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>                         // for PHIODataNode
 #include <phool/PHNode.h>                               // for PHNode

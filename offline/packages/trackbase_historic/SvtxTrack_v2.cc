@@ -37,7 +37,6 @@ SvtxTrack_v2::SvtxTrack_v2()
   , _cal_cluster_id()
   , _cal_cluster_key()
   , _cal_cluster_e()
-  , _acts_mj(nullptr)
 {
   // always include the pca point
   _states.insert(make_pair(0.0, new SvtxTrackState_v1(0.0)));
@@ -265,95 +264,3 @@ float SvtxTrack_v2::get_cal_cluster_e(SvtxTrack::CAL_LAYER layer) const
 }
 
 
-ActsTrackParametersPtr SvtxTrack_v2::get_acts_track_parameters() const
-{
-  Acts::Vector4D position(get_x() * Acts::UnitConstants::cm,
-			  get_y() * Acts::UnitConstants::cm,
-			  get_z() * Acts::UnitConstants::cm,
-			  10 * Acts::UnitConstants::ns);
-  
-  Acts::Vector3D momentum(get_px(), get_py(), get_pz());
-  double mom = get_p();
-  int charge = get_charge();
-
-  const Acts::BoundSymMatrix cov = rotateSvtxTrackCovToActs();
-
-  return new ActsExamples::TrackParameters(position, momentum,
-				       mom, charge, cov);
-
-}
-
-Acts::BoundSymMatrix SvtxTrack_v2::rotateSvtxTrackCovToActs() const
-{
-  Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
-  
-  for(int i = 0; i < 6; i++) {
-    for(int j = 0; j < 6; j++) {
-      svtxCovariance(i,j) = get_error(i,j);
-      
-      /// Convert Svtx to mm and GeV units as Acts expects
-      if(i < 3 && j < 3)
-	svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
-      else if (i < 3)
-	svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-      else if (j < 3)
-	svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-    }
-  }
-
-  double p = get_p();
-  double uPx = get_px() / p;
-  double uPy = get_py() / p;
-  double uPz = get_pz() / p;
-  
-  double cosTheta = uPz;
-  double sinTheta = sqrt(uPx * uPx + uPy * uPy);
-  double invSinTheta = 1. / sinTheta;
-  double cosPhi = uPx * invSinTheta; // equivalent to x/r
-  double sinPhi = uPy * invSinTheta; // equivalent to y/r
-  
-  /// First we rotate to (x,y,z,time,Tx,Ty,Tz,q/p) to take advantage of the
-  /// already created Acts rotation matrix from this basis into the Acts local basis
-  /// We basically go backwards from rotateActsCovToSvtxTrack to get the Acts cov 
-  /// from the SvtxTrack cov
-
-  /// This is going from Acts->Svtx, so we will take the transpose
-  Acts::ActsMatrixD<6,8> sphenixRot;
-  sphenixRot.setZero();
-  /// Make the xyz transform unity
-  sphenixRot(0,0) = 1;
-  sphenixRot(1,1) = 1;
-  sphenixRot(2,2) = 1;
-  sphenixRot(3,4) = 1./p;
-  sphenixRot(4,5) = 1./p;
-  sphenixRot(5,6) = 1./p;
-  sphenixRot(3,7) = uPx * p * p;
-  sphenixRot(4,7) = uPy * p * p;
-  sphenixRot(5,7) = uPz * p * p;
-
-  auto rotatedMatrix 
-    = sphenixRot.transpose() * svtxCovariance * sphenixRot;
-  
-  /// Now take the 8x8 matrix and rotate it to Acts basis
-  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
-  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
-  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
-  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
-  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
-  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
-  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
-  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
-  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
-  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
-  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
-  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
-  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
-
-  /// Since we are using the local to global jacobian we do R^TCR instead of 
-  /// RCR^T
-  Acts::BoundSymMatrix actsLocalCov = 
-  jacobianLocalToGlobal.transpose() * rotatedMatrix * jacobianLocalToGlobal;
-
-  return actsLocalCov;
-
-}

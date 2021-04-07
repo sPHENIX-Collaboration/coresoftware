@@ -1,7 +1,6 @@
 #ifndef __SVTXTRACKSTATE_H__
 #define __SVTXTRACKSTATE_H__
 
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <phool/PHObject.h>
 #include <cmath>
 
@@ -10,8 +9,6 @@ class SvtxTrackState : public PHObject
  public:
   virtual ~SvtxTrackState() {}
     
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
-
   virtual void identify(std::ostream &os = std::cout) const
   {
     os << "SvtxTrackState base class" << std::endl;
@@ -77,11 +74,6 @@ class SvtxTrackState : public PHObject
   }
 
   //@}
-
-  /// ACTS methods for use by ACTS modules only
-  virtual SourceLink get_acts_source_link() const 
-    { return ActsExamples::TrkrClusterSourceLink(); }
-  virtual void set_acts_source_link(const SourceLink sl) {}
 
  protected:
   SvtxTrackState(float pathlength = 0.0) {}

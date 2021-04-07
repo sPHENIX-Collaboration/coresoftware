@@ -195,6 +195,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   /// track map iterator doesn't crash
   std::vector<unsigned int> badTracks;
 
+  ActsTransformations transformer;
+
   for(auto& [trackKey, track] : *m_trackMap)
     {
   
@@ -231,9 +233,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  if(!MMsurface)
 	    continue;
 	}
+  
+      Acts::Vector3D momentum(track->get_px(), 
+			      track->get_py(), 
+			      track->get_pz());
    
-      ActsExamples::TrackParameters trackParams = *track->get_acts_track_parameters();
-
       auto actsVertex = getVertex(track);
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  actsVertex);
@@ -245,9 +249,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Reset the track seed with the dummy covariance and the 
       /// primary vertex as the track position
       ActsExamples::TrackParameters seed(actsFourPos,
-					 trackParams.momentum(),
-					 trackParams.absoluteMomentum(),
-					 trackParams.charge(),
+					 momentum,
+					 track->get_p(),
+					 track->get_charge(),
 					 cov);
 
       if(Verbosity() > 2)
@@ -419,7 +423,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
 	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-      
+    
       SourceLink sl(key, surf, loc, cov);
       
      
@@ -486,8 +490,6 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
   
-  track->set_acts_multitrajectory(trajectory.release());
-
   return;
 }
 
@@ -648,7 +650,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       
   if(params.covariance())
     {
-   
+     
       Acts::BoundSymMatrix rotatedCov = 
 	rotater->rotateActsCovToSvtxTrack(params,
 					  m_tGeometry->geoContext);
@@ -658,6 +660,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	  for(int j = 0; j < 6; j++)
 	    {
 	      track->set_error(i,j, rotatedCov(i,j));
+	      track->set_acts_covariance(i,j, params.covariance().value()(i,j));
 	    }
 	}
     

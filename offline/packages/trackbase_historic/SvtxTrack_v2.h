@@ -6,9 +6,6 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
-
 #include <cmath>
 #include <cstddef>  // for size_t
 #include <iostream>
@@ -187,13 +184,12 @@ class SvtxTrack_v2 : public SvtxTrack
   void set_cal_cluster_e(CAL_LAYER layer, float e) { _cal_cluster_e[layer] = e; }
 
   // ACTS track information for use by ACTS modules only
-  ActsTrackParametersPtr get_acts_track_parameters() const;
-  TrajectoryPtr get_acts_multitrajectory() const {return _acts_mj;}
-  void set_acts_multitrajectory(TrajectoryPtr mj) { _acts_mj = mj;}
+  float get_acts_covariance(unsigned int i, unsigned int j) const {return _acts_trajectory_covariance[i][j]; }
+  void set_acts_covariance(unsigned int i, unsigned int j, float value) { _acts_trajectory_covariance[i][j] = value; }
 
  private:
 
-
+  float _acts_trajectory_covariance[6][6];
   // track information
   unsigned int _track_id;
   unsigned int _vertex_id;
@@ -228,9 +224,6 @@ class SvtxTrack_v2 : public SvtxTrack
   std::map<CAL_LAYER, int> _cal_cluster_id;
   std::map<CAL_LAYER, TrkrDefs::cluskey> _cal_cluster_key;
   std::map<CAL_LAYER, float> _cal_cluster_e;
-
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs() const;
-  TrajectoryPtr _acts_mj;
 
   ClassDef(SvtxTrack_v2, 2)
 };

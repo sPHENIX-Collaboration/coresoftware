@@ -9,8 +9,6 @@
 
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
-#include <Acts/Surfaces/Surface.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <iostream>
 
 class PHObject;
