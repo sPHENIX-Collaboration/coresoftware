@@ -44,6 +44,7 @@ class MicromegasClusterizer : public SubsysReco
 
   Surface getMmSurfaceFromCoords(PHCompositeNode *topNode, 
 				 TrkrDefs::hitsetkey hitsetkey, 
+				 TrkrDefs::subsurfkey &subsurfkey,
 				 Acts::Vector3D world);
 
 };

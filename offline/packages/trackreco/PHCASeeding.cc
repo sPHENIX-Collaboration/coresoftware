@@ -11,14 +11,14 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -355,7 +355,8 @@ void PHCASeeding::FillTree()
       }/*
       if(!_use_truth_clusters)
 	{
-	  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
+	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>   
+	  hitrange = _cluster_hit_map->getHits(ckey);
 	  unsigned int nhits = std::distance(hitrange.first,hitrange.second);
 	  if(nhits<_min_nhits_per_cluster) continue;
 	}
@@ -413,7 +414,10 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
   {
     unsigned int layer = TrkrDefs::getLayer(iter->second);
     if(layer < _start_layer || layer >= _end_layer) continue;
-    TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(iter->second);
+
+    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+      hitrange = _cluster_hit_map->getHits(iter->second);
+
     unsigned int nhits = std::distance(hitrange.first,hitrange.second);
     if(nhits<_min_nhits_per_cluster){
       cout << "min hits fail" << endl;
@@ -554,7 +558,7 @@ if(Verbosity()>1)  cout << "keylistvector size: " << trackSeedKeyLists.size() <<
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
 //  mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
-  vector<SvtxTrack_v1> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
+  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -993,7 +997,7 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
   return merged;
 }
 
-void PHCASeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHCASeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   if(Verbosity()>1) cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)

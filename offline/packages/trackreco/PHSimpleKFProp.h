@@ -10,7 +10,7 @@
 // PHENIX includes
 #include "PHTrackPropagating.h"
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <phfield/PHField.h>
 #include "nanoflann.hpp"
 #include "ALICEKF.h"
@@ -132,7 +132,7 @@ class PHSimpleKFProp : public PHTrackPropagating
                                                 KDPointCloud<double>,3>>> _kdtrees;
   std::shared_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z);
-  void publishSeeds(std::vector<SvtxTrack_v1>);
+  void publishSeeds(std::vector<SvtxTrack_v2>);
   void publishSeeds(std::vector<SvtxTrack>);
   void MoveToVertex();
   void MoveToFirstTPCCluster();

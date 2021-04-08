@@ -8,7 +8,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -30,8 +29,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ParticleTable.hh>
+#include <TDatabasePDG.h>
+#include <TParticlePDG.h>
 
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl
@@ -128,12 +127,11 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
      * having the proper track charge is necessary for the ACTS fit to work properly
      * with normal tracking, it is set by the track seeding. Here we get it from the G4Particle
      * unfortunately, particle charge is not stored into PHG4Particle.
-     * we need to retrieve it from geant4 particle table
+     * we need to retrieve it from TParticlePDG instead
      */
     {
-      const auto particleTable = G4ParticleTable::GetParticleTable();
-      const auto particledef = particleTable->FindParticle(g4particle->get_pid());
-      if( particledef ) svtx_track->set_charge(particledef->GetPDGCharge());
+      const auto particle = TDatabasePDG::Instance()->GetParticle(g4particle->get_pid());
+      if( particle ) svtx_track->set_charge(particle->Charge());
     }
 
     // Smear the truth values out by 5% so that the seed momentum and
@@ -200,13 +198,6 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
   {
     cerr << PHWHERE << " ERROR: Can't find node G4TruthInfo" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!clusterhitassoc)
-  {
-    cout << PHWHERE << "Failed to find TRKR_CLUSTERHITASSOC node, quit!" << endl;
-    exit(1);
   }
 
   hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");

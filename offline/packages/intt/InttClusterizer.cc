@@ -3,12 +3,12 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -79,7 +79,6 @@ InttClusterizer::InttClusterizer(const string& name,
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
-  , m_surfMaps(nullptr)
   , _fraction_of_mip(0.5)
   , _thresholds_by_layer()
   , _make_z_clustering()
@@ -145,7 +144,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssoc();
+      clusterhitassoc = new TrkrClusterHitAssocv2();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
@@ -216,15 +215,7 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						      "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+ 
   
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
@@ -371,7 +362,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+	auto clus = std::make_unique<TrkrClusterv2>();
+	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
@@ -387,7 +379,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double xsum = 0.0;
 	double ysum = 0.0;
 	double zsum = 0.0;
-	double clus_adc = 0.0;
+	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
@@ -400,8 +392,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    phibins.insert(row);
 
 	    // mapiter->second.second is the hit
-	    double hit_adc = (mapiter->second).second->getAdc();
-	    
+	    unsigned int hit_adc = (mapiter->second).second->getAdc();
+
 	    // now get the positions from the geometry
 	    
 	    double hit_location[3] = {0.0, 0.0, 0.0};
@@ -413,9 +405,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    
 	    if (_make_e_weights[layer])
 	      {
-		xsum += hit_location[0] * hit_adc;
-		ysum += hit_location[1] * hit_adc;
-		zsum += hit_location[2] * hit_adc;
+		xsum += hit_location[0] * (double) hit_adc;
+		ysum += hit_location[1] * (double) hit_adc;
+		zsum += hit_location[2] * (double) hit_adc;
 	      }
 	    else
 	      {
@@ -434,7 +426,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    if (Verbosity() > 2)
 	      {
 		cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << endl;
-		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << endl;
+		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << " hit_adc " << hit_adc << endl;
 		
 	      }
 	  }
@@ -464,9 +456,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	if (_make_e_weights[layer])
 	  {
-	    clusx = xsum / clus_adc;
-	    clusy = ysum / clus_adc;
-	    clusz = zsum / clus_adc;
+	    clusx = xsum / (double) clus_adc;
+	    clusy = ysum / (double) clus_adc;
+	    clusz = zsum / (double) clus_adc;
 	  }
 	else
 	  {
@@ -564,12 +556,12 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setError(2, 0, COVAR_ERR[2][0]);
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
+
+	if(Verbosity() > 10) clus->identify();
 	
 	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
 	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
-	const unsigned int layer = TrkrDefs::getLayer(ckey);
-	const TrkrDefs::hitsetkey hitsetkey = 
-	  InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
+
 	TVector3 local(0,0,0);
 	TVector3 global(clusx, clusy, clusz);
 	local = geom->get_local_from_world_coords(ladderZId,
@@ -577,11 +569,15 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 						  global);
 	clus->setLocalX(local[1]);
 	clus->setLocalY(local[2]);
-	clus->setActsSurface(getSurfaceFromMap(hitsetkey));
+	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
+	/// 0
+	clus->setSubSurfKey(0);
 	clus->setActsLocalError(0,0, ERR[1][1]);
 	clus->setActsLocalError(0,1, ERR[1][2]);
 	clus->setActsLocalError(1,0, ERR[2][1]);
 	clus->setActsLocalError(1,1, ERR[2][2]);
+	m_clusterlist->addCluster(clus.release());
+
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
@@ -613,36 +609,4 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
   }
 
   return;
-}
-
-Surface InttClusterizer::getSurfaceFromMap(TrkrDefs::hitsetkey hitsetkey)
-{
-  Surface surface;
-
-  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
-    m_surfMaps->siliconSurfaceMap;
-
-  std::map<TrkrDefs::hitsetkey, Surface>::iterator
-      surfaceIter;
-
-  surfaceIter = clusterSurfaceMap.find(hitsetkey);
-
-  /// Check to make sure we found the surface in the map
-  if (surfaceIter != clusterSurfaceMap.end())
-  {
-    surface = surfaceIter->second;
-    if (Verbosity() > 10)
-      {
-	std::cout << "Got surface pair " << surface->name()
-		  << " surface type " << surface->type()
-		  << std::endl;
-      }
-  }
-  else
-  {
-    /// If it doesn't exit, return nullptr
-    return nullptr;
-  }
-
-  return surface;
 }

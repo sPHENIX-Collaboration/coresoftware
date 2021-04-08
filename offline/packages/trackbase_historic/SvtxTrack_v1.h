@@ -183,14 +183,7 @@ class SvtxTrack_v1 : public SvtxTrack
   float get_cal_cluster_e(CAL_LAYER layer) const;
   void set_cal_cluster_e(CAL_LAYER layer, float e) { _cal_cluster_e[layer] = e; }
 
-  // ACTS track information for use by ACTS modules only
-  ActsExamples::TrackParameters get_acts_track_parameters() const;
-  ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const {return _acts_mj;}
-  void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory mj) { _acts_mj = mj;}
-
  private:
-
-
   // track information
   unsigned int _track_id;
   unsigned int _vertex_id;
@@ -225,9 +218,6 @@ class SvtxTrack_v1 : public SvtxTrack
   std::map<CAL_LAYER, int> _cal_cluster_id;
   std::map<CAL_LAYER, TrkrDefs::cluskey> _cal_cluster_key;
   std::map<CAL_LAYER, float> _cal_cluster_e;
-
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs() const;
-  ActsExamples::TrkrClusterMultiTrajectory _acts_mj;
 
   ClassDef(SvtxTrack_v1, 1)
 };

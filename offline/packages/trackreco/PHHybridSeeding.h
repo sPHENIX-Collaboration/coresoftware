@@ -14,7 +14,7 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -100,7 +100,7 @@ class PHHybridSeeding : public PHTrackSeeding
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
 
-  void publishSeeds(std::vector<SvtxTrack_v1> seeds);
+  void publishSeeds(std::vector<SvtxTrack_v2> seeds);
 
   double _max_sin_phi;
   double _fieldDir;

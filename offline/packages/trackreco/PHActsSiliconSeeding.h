@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
@@ -156,6 +157,9 @@ class PHActsSiliconSeeding : public SubsysReco
 		       const std::vector<TrkrCluster*> clusters);
   std::map<const unsigned int, std::vector<TrkrCluster*>>
     makePossibleStubs(std::vector<TrkrCluster*> allClusters);
+
+  Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
+
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
@@ -165,6 +169,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrHitSetContainer  *m_hitsets = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
   
   /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;

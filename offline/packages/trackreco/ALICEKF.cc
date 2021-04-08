@@ -41,11 +41,11 @@ double ALICEKF::get_Bz(double x, double y, double z)
   return bfield[2]/tesla;
 }
 
-vector<SvtxTrack_v1> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit)
+vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit)
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
-  vector<SvtxTrack_v1> seeds_vector;
+  vector<SvtxTrack_v2> seeds_vector;
   int nseeds = 0;
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
@@ -417,7 +417,7 @@ vector<SvtxTrack_v1> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
-    SvtxTrack_v1 track;
+    SvtxTrack_v2 track;
     track.set_id(nseeds);
 //    track.set_vertex_id(_vertex_ids[best_vtx]);
     for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
@@ -632,7 +632,7 @@ vector<SvtxTrack_v1> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
   return seeds_vector;
 }
 
-Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v1 &track)
+Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v2 &track)
 {
   Eigen::Matrix<double,6,6> cov;
   for(int i=0;i<6;i++)
@@ -645,7 +645,7 @@ Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v1 &track)
   return cov;
 }
 
-bool ALICEKF::covIsPosDef(SvtxTrack_v1 &track)
+bool ALICEKF::covIsPosDef(SvtxTrack_v2 &track)
 {
   // put covariance matrix into Eigen container
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);
@@ -655,7 +655,7 @@ bool ALICEKF::covIsPosDef(SvtxTrack_v1 &track)
   return (chDec.info() != Eigen::NumericalIssue);
 }
 
-void ALICEKF::repairCovariance(SvtxTrack_v1 &track)
+void ALICEKF::repairCovariance(SvtxTrack_v2 &track)
 {
   // find closest positive definite matrix
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);

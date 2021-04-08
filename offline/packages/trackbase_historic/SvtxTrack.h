@@ -4,8 +4,6 @@
 #include "SvtxTrackState.h"
 
 #include <trackbase/TrkrDefs.h>
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
 #include <g4main/PHG4HitDefs.h>
 #include <phool/PHObject.h>
@@ -217,18 +215,11 @@ class SvtxTrack : public PHObject
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
-  // 
-  // ACTS methods for use by ACTS modules only 
-  //
-
-  virtual ActsExamples::TrackParameters get_acts_track_parameters() const
-    { return ActsExamples::TrackParameters(Acts::Vector4D(NAN,NAN,NAN, NAN),
-					    Acts::Vector3D(NAN,NAN,NAN), NAN); }
-
-  virtual void set_acts_multitrajectory(ActsExamples::TrkrClusterMultiTrajectory traj){}
-  virtual ActsExamples::TrkrClusterMultiTrajectory get_acts_multitrajectory() const
-    { return ActsExamples::TrkrClusterMultiTrajectory(); }
-
+  // Acts methods for use by Acts modules only
+  virtual float get_acts_covariance(unsigned int i, unsigned int j) const { return NAN;}
+  virtual void set_acts_covariance(unsigned int i, unsigned int j, float value) {}
+ 
+  
 
   //
   // truth track interface ---------------------------------------------------

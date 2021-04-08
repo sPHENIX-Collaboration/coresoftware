@@ -10,14 +10,12 @@
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
-#include <Acts/Surfaces/Surface.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <memory>
 
-using Surface = std::shared_ptr<const Acts::Surface>;
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 /**
  * @brief Base class for cluster object
@@ -27,7 +25,6 @@ using SourceLink = ActsExamples::TrkrClusterSourceLink;
 class TrkrCluster : public PHObject
 {
  public:
-
   //! dtor
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
@@ -42,6 +39,7 @@ class TrkrCluster : public PHObject
   //
   virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
   virtual void setClusKey(TrkrDefs::cluskey id) {}
+ 
   //
   // cluster position
   //
@@ -56,18 +54,10 @@ class TrkrCluster : public PHObject
   virtual void setGlobal() {}
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
-
-  //
-  // Acts functions for use by Acts modules only
-  //
   virtual float getLocalX() const { return NAN; }
   virtual void setLocalX(float x) {}
   virtual float getLocalY() const { return NAN; }
   virtual void setLocalY(float y) {}
-  virtual Surface getActsSurface() const { return nullptr; }
-  virtual void setActsSurface(Surface surface) {}
-virtual SourceLink getActsSourceLink() const { return ActsExamples::TrkrClusterSourceLink(); }
-  virtual void setActsLocalError(unsigned int i, unsigned int j, float value) {}
   //
   // cluster info
   //
@@ -85,6 +75,13 @@ virtual SourceLink getActsSourceLink() const { return ActsExamples::TrkrClusterS
   virtual float getPhiError() const { return NAN; }
   virtual float getRPhiError() const { return NAN; }
   virtual float getZError() const { return NAN; }
+
+  /// Acts functions, for Acts modules use only
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value){}
+  virtual float getActsLocalError(unsigned int i, unsigned int j) const { return NAN; }
+  virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
+  virtual void setSubSurfKey(TrkrDefs::subsurfkey id) {}
+
  protected:
   TrkrCluster() {}
   ClassDef(TrkrCluster, 1)

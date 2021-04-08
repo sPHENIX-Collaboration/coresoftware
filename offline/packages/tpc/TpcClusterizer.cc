@@ -3,10 +3,10 @@
 #include "TpcDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -15,6 +15,9 @@
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
+#include <Acts/Utilities/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>                         // for PHIODataNode
@@ -206,7 +209,6 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
     int phiup = 0;
     int phidown = 0;
     find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
-    //if(Verbosity>10) cout << "phibin: " << phibin << " zbin: " << " phidown " << phidown << " phiup " << phiup  << endl;
     for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
       iphiz iCoord(make_pair(iphi,iz));
       ihit  thisHit(adcval[iphi][iz],iCoord);
@@ -217,7 +219,8 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
 Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 				    Acts::Vector3D world,
 				    ActsSurfaceMaps *surfMaps,
-				    ActsTrackingGeometry *tGeometry)
+				    ActsTrackingGeometry *tGeometry,
+				    TrkrDefs::subsurfkey& subsurfkey)
 {
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = surfMaps->tpcSurfaceMap.find(hitsetkey);
@@ -255,6 +258,9 @@ Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 	  break;
 	}
     }
+  
+  subsurfkey = surf_index;
+
   if(surf_index == 999)
     {
       std::cout << PHWHERE 
@@ -330,7 +336,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 
-  TrkrClusterv1 *clus = new TrkrClusterv1();
+  TrkrClusterv2 *clus = new TrkrClusterv2();
   clus->setClusKey(ckey);
   //  int phi_nsize = phibinhi - phibinlo + 1;
   //  int z_nsize   = zbinhi   - zbinlo + 1;
@@ -441,10 +447,12 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   Acts::Vector3D global(clus->getX(), clus->getY(), clus->getZ());
   
+  TrkrDefs::subsurfkey subsurfkey;
   Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						global,
 						surfMaps,
-						tGeometry);
+						tGeometry,
+						subsurfkey);
 
   if(!surface)
     {
@@ -452,6 +460,9 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
       /// just return and don't add the cluster to the container
       return;
     }
+
+  clus->setSubSurfKey(subsurfkey);
+
   Acts::Vector3D center = surface->center(tGeometry->geoContext) 
     / Acts::UnitConstants::cm;
   
@@ -483,7 +494,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
       
   clus->setLocalX(localPos(0));
   clus->setLocalY(localPos(1));
-  clus->setActsSurface(surface);
   clus->setActsLocalError(0,0, ERR[1][1]);
   clus->setActsLocalError(1,0, ERR[2][1]);
   clus->setActsLocalError(0,1, ERR[1][2]);
@@ -535,6 +545,8 @@ void *ProcessSector(void *threadarg) {
      unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
      
      float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl
+
      unsigned short adc = 0;
      if(fadc>0) 
        adc =  (unsigned short) fadc;
@@ -550,6 +562,7 @@ void *ProcessSector(void *threadarg) {
        if(adc>5){
 	 all_hit_map.insert(make_pair(adc, thisHit));
        }
+       //adcval[phibin][zbin] = (unsigned short) adc;
        adcval[phibin][zbin] = (unsigned short) adc;
      }
    }
@@ -670,7 +683,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    clusterhitassoc = new TrkrClusterHitAssoc();
+    clusterhitassoc = new TrkrClusterHitAssocv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -773,8 +786,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       return 1;
     }
   
-  //  cout << "num hit sets:" << std::distance(hitsetrange.first,hitsetrange.second)<< endl;
-
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)

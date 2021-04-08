@@ -20,19 +20,16 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   MvtxDefs.h \
-  MvtxHit.h \
   MvtxClusterizer.h \
   CylinderGeom_Mvtx.h \
   SegmentationAlpide.h
 
 
 ROOTDICTS = \
-  MvtxHit_Dict.cc \
   CylinderGeom_Mvtx_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  MvtxHit_Dict_rdict.pcm \
   CylinderGeom_Mvtx_Dict_rdict.pcm
 
 # sources for mvtx library
@@ -50,7 +47,6 @@ libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
   MvtxDefs.cc \
-  MvtxHit.cc \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \
