@@ -15,14 +15,28 @@
 #include <boost/tuple/tuple.hpp>
 
 #include <limits>
+#include <set>
 #include <string>
 
 using namespace std;
 
+namespace {
+  /// A helper container to hold unique vertex positions
+  ///{@
+  struct VtxPos
+  {
+    double x, y, z; int vtxindex;
+    bool operator< (const VtxPos& b) const { return std::tie(z, y, x) < std::tie(b.z, b.y, b.x); }
+  };
+
+  std::set<VtxPos> vtxset;
+  ///@}
+}
+
+
 PHG4TruthInfoContainer::PHG4TruthInfoContainer()
   : particlemap()
   , vtxmap()
-  , vtxset()
   , particle_embed_flags()
   , vertex_embed_flags()
 {
