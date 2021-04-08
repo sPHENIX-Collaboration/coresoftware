@@ -18,6 +18,8 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv2.h>
 
+#include <Acts/Utilities/Units.hpp>
+#include <Acts/Surfaces/Surface.hpp>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                     // for SubsysReco
@@ -321,11 +323,18 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
           
       /// Get the surface key to find the surface from the map
       TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-
+      TrkrDefs::subsurfkey subsurfkey;
       auto surface = getMmSurfaceFromCoords(topNode,
 					    mmHitSetKey,
+					    subsurfkey,
 					    globalPos);
-      
+      if(!surface)
+	{
+	  /// If the surface can't be found, we can't track with it
+	  /// Move to the next one
+	  continue;
+	}
+
       Acts::Vector3D center = surface->center(m_tGeometry->geoContext)
 	/ Acts::UnitConstants::cm;
       Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
@@ -357,7 +366,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   
       cluster->setLocalX(local2D(0));
       cluster->setLocalY(local2D(1));
-      cluster->setActsSurface(surface);
+      cluster->setSubSurfKey(subsurfkey);
       cluster->setActsLocalError(0,0, error(1,1));
       cluster->setActsLocalError(0,1, error(1,2));
       cluster->setActsLocalError(1,0, error(2,1));
@@ -394,6 +403,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
 Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
 						      TrkrDefs::hitsetkey hitsetkey, 
+						      TrkrDefs::subsurfkey& subsurfkey,
 						      Acts::Vector3D world)
 {
   
@@ -448,6 +458,9 @@ Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
 	  break;
 	}
     }
+
+  subsurfkey = surf_index;
+
   if(surf_index == 999)
     {
       std::cout << PHWHERE 
