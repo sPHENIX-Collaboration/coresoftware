@@ -394,14 +394,16 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	  track->identify();
 	}
       
-      /// Only vertex with stubs that have good transverse position
+      /// Only vertex with stubs that have five clusters
       if(m_svtxTrackMapName.find("SiliconTrackMap") != std::string::npos)
 	{
-	  if(fabs(track->get_x()) > 0.01 or fabs(track->get_y()) > 0.01)
+	  if(track->size_cluster_keys() < 5 and
+	     (fabs(track->get_x()) > 0.01 or fabs(track->get_y()) > 0.01))
 	    {
 	      continue;
 	    }
 	}
+
       
       const Acts::Vector4D stubVec(
                   track->get_x() * Acts::UnitConstants::cm,
