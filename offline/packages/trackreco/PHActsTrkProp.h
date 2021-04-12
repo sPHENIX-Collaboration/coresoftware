@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 #include "ActsTrack.h"
 
 #include <fun4all/SubsysReco.h>

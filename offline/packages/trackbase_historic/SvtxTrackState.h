@@ -2,14 +2,13 @@
 #define __SVTXTRACKSTATE_H__
 
 #include <phool/PHObject.h>
-
 #include <cmath>
 
 class SvtxTrackState : public PHObject
 {
  public:
   virtual ~SvtxTrackState() {}
-
+    
   virtual void identify(std::ostream &os = std::cout) const
   {
     os << "SvtxTrackState base class" << std::endl;

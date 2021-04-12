@@ -6,7 +6,9 @@
 
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterv2.h>
+
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -314,7 +316,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	  continue;
 	}
       
-      TrkrClusterv1 *clus(new TrkrClusterv1());
+      TrkrClusterv2 *clus(new TrkrClusterv2());
       clus->setClusKey(ckey);
       iclus++;
 

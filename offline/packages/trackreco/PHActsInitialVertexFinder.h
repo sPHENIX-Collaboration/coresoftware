@@ -2,7 +2,7 @@
 #define TRACKRECO_PHACTSINITIALVERTEXFINDER_H
 
 #include "PHInitVertexing.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <trackbase/TrkrDefs.h>
 
@@ -40,8 +40,11 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   void setSvtxTrackMapName(const std::string& name)
   { m_svtxTrackMapName = name; }
 
-  void setInitialVertexer(const bool initial)
-  { m_initial = initial; }
+  void disablePtWeights(const bool weight)
+  { m_disableWeights = weight; }
+
+  void resetTrackCovariance(const bool initial)
+  { m_resetTrackCovariance = initial; }
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -66,7 +69,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";
-  bool m_initial = true;
+
+  bool m_resetTrackCovariance = true;
+  bool m_disableWeights = true;
 
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;

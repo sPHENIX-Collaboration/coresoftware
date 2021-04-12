@@ -11,8 +11,8 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "ActsTrackingGeometry.h"
-#include "ActsSurfaceMaps.h"
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      

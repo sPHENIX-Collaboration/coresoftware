@@ -97,6 +97,11 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->calibContext = m_calibContext;
   m_actsGeometry->magFieldContext = m_magFieldContext;
   m_actsGeometry->geoContext = m_geoCtxt;
+  m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
+  m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
+  m_actsGeometry->mmSurfStepPhi = m_surfStepPhi;
+  m_actsGeometry->mmSurfStepZ = m_surfStepZ;
+
 
   /// Same for the surface maps
   m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;

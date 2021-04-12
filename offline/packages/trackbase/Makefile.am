@@ -10,15 +10,20 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsSurfaceMaps.h \
+  ActsTrackingGeometry.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
+  TrkrClusterv2.h \
   TrkrClusterContainer.h \
   TrkrClusterHitAssoc.h \
   TrkrClusterHitAssocv1.h \
@@ -36,6 +41,7 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
+  TrkrClusterv2_Dict.cc \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrClusterHitAssocv1_Dict.cc \
@@ -53,6 +59,7 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
+  TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterHitAssoc_Dict_rdict.pcm \
   TrkrClusterHitAssocv1_Dict_rdict.pcm \
@@ -70,6 +77,7 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrkrClusterv1.cc \
+  TrkrClusterv2.cc \
   TrkrClusterContainer.cc \
   TrkrClusterHitAssocv1.cc \
   TrkrClusterHitAssocv2.cc \
@@ -81,7 +89,8 @@ libtrack_io_la_SOURCES = \
   TrkrHitv2.cc
 
 libtrack_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lActsCore
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

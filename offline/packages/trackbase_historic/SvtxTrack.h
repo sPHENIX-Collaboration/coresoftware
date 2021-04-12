@@ -215,6 +215,12 @@ class SvtxTrack : public PHObject
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
+  // Acts methods for use by Acts modules only
+  virtual float get_acts_covariance(unsigned int i, unsigned int j) const { return NAN;}
+  virtual void set_acts_covariance(unsigned int i, unsigned int j, float value) {}
+ 
+  
+
   //
   // truth track interface ---------------------------------------------------
   //
