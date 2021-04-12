@@ -337,7 +337,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       svtxTrack->set_pz(trackPz);
       svtxTrack->set_charge(trackCharge);
       
-      m_trackMap->insert(svtxTrack.release());
+      m_trackMap->insert(svtxTrack.get());
   
     }
 
