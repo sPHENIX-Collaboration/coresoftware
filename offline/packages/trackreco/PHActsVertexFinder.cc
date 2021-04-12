@@ -288,7 +288,7 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
   if(vertices.size() > 0)
     m_svtxVertexMap->clear();
 
-  for(auto vertex : vertices)
+  for(auto& vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
       const auto numTracks = vertex.tracks().size();
@@ -302,9 +302,6 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 		    << " with chi2/ndf " << chi2 / ndf << std::endl;
 	}
 
-      /// Make some basic QA cuts on the vertices 
-      if(numTracks < 3)
-	continue;
 
       /// Fill Acts vertex map
       auto pair = std::make_pair(key, vertex);

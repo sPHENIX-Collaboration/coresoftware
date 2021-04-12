@@ -335,10 +335,19 @@ void PHActsTrkFitter::printTrackSeed(ActsExamples::TrackParameters seed)
 	    << seed.covariance().value() << std::endl;
   
 }
+
 Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
 {
   auto vertexId = track->get_vertex_id();
   const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
+  if(!svtxVertex)
+    {
+      if(Verbosity() > 0)
+	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
+		  << std::endl;
+      return Acts::Vector3D(0,0,0);
+    }
+
   Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			svtxVertex->get_y() * Acts::UnitConstants::cm, 
 			svtxVertex->get_z() * Acts::UnitConstants::cm);
