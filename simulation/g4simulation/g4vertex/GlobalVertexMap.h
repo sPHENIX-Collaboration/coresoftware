@@ -32,13 +32,13 @@ class GlobalVertexMap : public PHObject
   virtual GlobalVertex* insert(GlobalVertex* vertex) { return nullptr; }
   virtual size_t erase(unsigned int idkey) { return 0; }
 
-  virtual ConstIter begin() const { return std::map<unsigned int, GlobalVertex*>().end(); }
-  virtual ConstIter find(unsigned int idkey) const { return std::map<unsigned int, GlobalVertex*>().end(); }
-  virtual ConstIter end() const { return std::map<unsigned int, GlobalVertex*>().end(); }
+  virtual ConstIter begin() const;
+  virtual ConstIter find(unsigned int idkey) const;
+  virtual ConstIter end() const;
 
-  virtual Iter begin() { return std::map<unsigned int, GlobalVertex*>().end(); }
-  virtual Iter find(unsigned int idkey) { return std::map<unsigned int, GlobalVertex*>().end(); }
-  virtual Iter end() { return std::map<unsigned int, GlobalVertex*>().end(); }
+  virtual Iter begin();
+  virtual Iter find(unsigned int idkey);
+  virtual Iter end();
 
  protected:
   GlobalVertexMap() {}

@@ -12,6 +12,7 @@
 #ifdef __CINT__
 
 #pragma link C++ class HepMC::Flow + ;
+#pragma link C++ class HepMC::ThreeVector + ;
 #pragma link C++ class HepMC::FourVector + ;
 #pragma link C++ class HepMC::GenEvent + ;
 #pragma link C++ class HepMC::GenParticle + ;

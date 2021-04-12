@@ -6,9 +6,9 @@
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -144,7 +144,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssoc();
+      clusterhitassoc = new TrkrClusterHitAssocv2();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
@@ -376,7 +376,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double xsum = 0.0;
 	double ysum = 0.0;
 	double zsum = 0.0;
-	double clus_adc = 0.0;
+	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
@@ -389,8 +389,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    phibins.insert(row);
 
 	    // mapiter->second.second is the hit
-	    double hit_adc = (mapiter->second).second->getAdc();
-	    
+	    unsigned int hit_adc = (mapiter->second).second->getAdc();
+
 	    // now get the positions from the geometry
 	    
 	    double hit_location[3] = {0.0, 0.0, 0.0};
@@ -402,9 +402,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    
 	    if (_make_e_weights[layer])
 	      {
-		xsum += hit_location[0] * hit_adc;
-		ysum += hit_location[1] * hit_adc;
-		zsum += hit_location[2] * hit_adc;
+		xsum += hit_location[0] * (double) hit_adc;
+		ysum += hit_location[1] * (double) hit_adc;
+		zsum += hit_location[2] * (double) hit_adc;
 	      }
 	    else
 	      {
@@ -423,7 +423,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    if (Verbosity() > 2)
 	      {
 		cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << endl;
-		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << endl;
+		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << " hit_adc " << hit_adc << endl;
 		
 	      }
 	  }
@@ -453,9 +453,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	if (_make_e_weights[layer])
 	  {
-	    clusx = xsum / clus_adc;
-	    clusy = ysum / clus_adc;
-	    clusz = zsum / clus_adc;
+	    clusx = xsum / (double) clus_adc;
+	    clusy = ysum / (double) clus_adc;
+	    clusz = zsum / (double) clus_adc;
 	  }
 	else
 	  {
@@ -553,6 +553,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setError(2, 0, COVAR_ERR[2][0]);
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
+
+	if(Verbosity() > 10) clus->identify();
 	
       } // end loop over cluster ID's
   }  // end loop over hitsets

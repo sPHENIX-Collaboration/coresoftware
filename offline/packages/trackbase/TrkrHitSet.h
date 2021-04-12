@@ -8,14 +8,14 @@
 #define TRACKBASE_TRKRHITSET_H
 
 #include "TrkrDefs.h"
+#include "TrkrHitv1.h"
+#include "TrkrHitv2.h"
 
 #include <phool/PHObject.h>
 
 #include <iostream>
 #include <map>
 #include <utility>           // for pair
-
-class TrkrHit;
 
 /**
  * @brief Container for storing TrkrHit's

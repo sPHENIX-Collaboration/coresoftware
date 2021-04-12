@@ -65,11 +65,15 @@ nobase_dist_pcm_DATA = \
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
   SvtxTrackState_v1.cc \
+  SvtxTrack.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_FastSim.cc \
   SvtxTrack_FastSim_v1.cc \
+  SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
+  SvtxVertex.cc \
   SvtxVertex_v1.cc \
+  SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \

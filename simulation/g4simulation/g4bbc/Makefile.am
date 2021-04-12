@@ -33,6 +33,7 @@ ROOTDICTS = \
   BbcVertexv1_Dict.cc \
   BbcVertexMap_Dict.cc \
   BbcVertexMapv1_Dict.cc
+
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   BbcVertex_Dict_rdict.pcm \
@@ -43,6 +44,7 @@ nobase_dist_pcm_DATA = \
 libg4bbc_io_la_SOURCES = \
   $(ROOTDICTS) \
   BbcVertexv1.cc \
+  BbcVertexMap.cc \
   BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \

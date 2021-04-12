@@ -1,5 +1,5 @@
-#ifndef __SVTXTRACK_H__
-#define __SVTXTRACK_H__
+#ifndef TRACKBASEHISTORIC_SVTXTRACK_H
+#define TRACKBASEHISTORIC_SVTXTRACK_H
 
 #include "SvtxTrackState.h"
 
@@ -139,13 +139,13 @@ class SvtxTrack : public PHObject
   virtual SvtxTrackState* insert_state(const SvtxTrackState* state) { return nullptr; }
   virtual size_t erase_state(float pathlength) { return 0; }
 
-  virtual ConstStateIter begin_states() const { return StateMap().end(); }
-  virtual ConstStateIter find_state(float pathlength) const { return StateMap().end(); }
-  virtual ConstStateIter end_states() const { return StateMap().end(); }
+  virtual ConstStateIter begin_states() const;
+  virtual ConstStateIter find_state(float pathlength)  const;
+  virtual ConstStateIter end_states() const;
 
-  virtual StateIter begin_states() { return StateMap().end(); }
-  virtual StateIter find_state(float pathlength) { return StateMap().end(); }
-  virtual StateIter end_states() { return StateMap().end(); }
+  virtual StateIter begin_states();
+  virtual StateIter find_state(float pathlength);
+  virtual StateIter end_states();
 
   //
   // associated cluster ids methods --------------------------------------------
@@ -165,17 +165,17 @@ class SvtxTrack : public PHObject
   //! deprecated - please use cluster keys instead
   virtual size_t erase_cluster(unsigned int clusterid) { return 0; }
   //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter begin_clusters() const { return ClusterSet().end(); }
+  virtual ConstClusterIter begin_clusters() const;
   //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter find_cluster(unsigned int clusterid) const { return ClusterSet().end(); }
+  virtual ConstClusterIter find_cluster(unsigned int clusterid) const;
   //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter end_clusters() const { return ClusterSet().end(); }
+  virtual ConstClusterIter end_clusters() const;
   //! deprecated - please use cluster keys instead
-  virtual ClusterIter begin_clusters() { return ClusterSet().end(); }
+  virtual ClusterIter begin_clusters();
   //! deprecated - please use cluster keys instead
-  virtual ClusterIter find_cluster(unsigned int clusterid) { return ClusterSet().end(); }
+  virtual ClusterIter find_cluster(unsigned int clusterid);
   //! deprecated - please use cluster keys instead
-  virtual ClusterIter end_clusters() { return ClusterSet().end(); }
+  virtual ClusterIter end_clusters();
 
   // needed by new tracking
   virtual void clear_cluster_keys() {}
@@ -184,12 +184,12 @@ class SvtxTrack : public PHObject
 
   virtual void insert_cluster_key(TrkrDefs::cluskey clusterid) {}
   virtual size_t erase_cluster_key(TrkrDefs::cluskey clusterid) { return 0; }
-  virtual ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return ClusterKeySet().end(); }
-  virtual ConstClusterKeyIter begin_cluster_keys() const { return ClusterKeySet().end(); }
-  virtual ConstClusterKeyIter end_cluster_keys() const { return ClusterKeySet().end(); }
-  virtual ClusterKeyIter begin_cluster_keys() { return ClusterKeySet().end(); }
-  virtual ClusterKeyIter find_cluster_keys(unsigned int clusterid) { return ClusterKeySet().end(); }
-  virtual ClusterKeyIter end_cluster_keys() { return ClusterKeySet().end(); }
+  virtual ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const;
+  virtual ConstClusterKeyIter begin_cluster_keys() const;
+  virtual ConstClusterKeyIter end_cluster_keys() const;
+  virtual ClusterKeyIter begin_cluster_keys();
+  virtual ClusterKeyIter find_cluster_keys(unsigned int clusterid);
+  virtual ClusterKeyIter end_cluster_keys();
 
   //
   // calo projection methods ---------------------------------------------------
@@ -233,20 +233,16 @@ class SvtxTrack : public PHObject
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
   virtual void add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
-  virtual HitIdIter begin_g4hit_id() { return HitIdMap().end(); }
-  virtual HitIdConstIter begin_g4hit_id() const { return HitIdMap().end(); }
-  virtual HitIdIter find_g4hit_id(int volume) { return HitIdMap().end(); }
-  virtual HitIdConstIter find_g4hit_id(int volume) const { return HitIdMap().end(); }
-  virtual HitIdIter end_g4hit_id() { return HitIdMap().end(); }
-  virtual HitIdConstIter end_g4hit_id() const { return HitIdMap().end(); }
+  virtual HitIdIter begin_g4hit_id();
+  virtual HitIdConstIter begin_g4hit_id() const;
+  virtual HitIdIter find_g4hit_id(int volume);
+  virtual HitIdConstIter find_g4hit_id(int volume) const;
+  virtual HitIdIter end_g4hit_id();
+  virtual HitIdConstIter end_g4hit_id() const;
   virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
   virtual size_t remove_g4hit_volume(int volume) { return 0; }
   virtual void clear_g4hit_id() {}
-  virtual const HitIdMap& g4hit_ids() const
-  {
-    static const HitIdMap map;
-    return map;
-  };
+  virtual const HitIdMap& g4hit_ids() const;
 
  protected:
   SvtxTrack() {}

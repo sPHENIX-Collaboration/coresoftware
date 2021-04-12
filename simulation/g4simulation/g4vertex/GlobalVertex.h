@@ -79,13 +79,13 @@ class GlobalVertex : public PHObject
   virtual void erase_vtxids(VtxIter iter) {}
   virtual void erase_vtxids(VtxIter first, VtxIter last) {}
 
-  virtual ConstVtxIter begin_vtxids() const { return std::map<VTXTYPE, unsigned int>().end(); }
-  virtual ConstVtxIter find_vtxids(VTXTYPE type) const { return std::map<VTXTYPE, unsigned int>().end(); }
-  virtual ConstVtxIter end_vtxids() const { return std::map<VTXTYPE, unsigned int>().end(); }
+  virtual ConstVtxIter begin_vtxids() const;
+  virtual ConstVtxIter find_vtxids(VTXTYPE type) const;
+  virtual ConstVtxIter end_vtxids() const;
 
-  virtual VtxIter begin_vtxids() { return std::map<VTXTYPE, unsigned int>().end(); }
-  virtual VtxIter find_vtxids(VTXTYPE type) { return std::map<VTXTYPE, unsigned int>().end(); }
-  virtual VtxIter end_vtxids() { return std::map<VTXTYPE, unsigned int>().end(); }
+  virtual VtxIter begin_vtxids();
+  virtual VtxIter find_vtxids(VTXTYPE type);
+  virtual VtxIter end_vtxids();
 
  protected:
   GlobalVertex() {}
