@@ -154,7 +154,7 @@ class PHActsSiliconSeeding : public SubsysReco
 		       const double py,
 		       const double pz,
 		       const int charge,
-		       const std::vector<TrkrCluster*> clusters);
+		       const std::vector<TrkrCluster*>& clusters);
   std::map<const unsigned int, std::vector<TrkrCluster*>>
     makePossibleStubs(std::vector<TrkrCluster*> allClusters);
 

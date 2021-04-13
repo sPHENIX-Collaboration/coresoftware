@@ -40,19 +40,25 @@ namespace
 
 TrkrClusterv2::TrkrClusterv2()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
+  , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_isGlobal(true)
   , m_adc(0xFFFFFFFF)
 {
   for (int i = 0; i < 3; ++i) m_pos[i] = NAN;
 
-  for (int j = 0; j < 3; ++j)
+  for (int j = 0; j < 6; ++j)
   {
-    for (int i = j; i < 3; ++i)
-    {
-      setSize(i, j, NAN);
-      setError(i, j, NAN);
-    }
+    m_err[j] = NAN;
+    m_size[j] = NAN;
   }
+  for (int i = 0; i < 2; i++)
+    {
+      m_local[i] = NAN;
+      for(int j = 0; j < 2; j ++)
+	{
+	  m_actsLocalErr[i][j] = NAN;
+	}
+    }
 }
 
 void TrkrClusterv2::identify(std::ostream& os) const
