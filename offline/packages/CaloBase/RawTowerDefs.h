@@ -30,7 +30,9 @@ namespace RawTowerDefs
     CEMC,
     HCALOUT,
     HCALIN,
+    DRCALO,
     EEMC,
+    EHCAL,
     FEMC,
     FHCAL
   };
@@ -123,6 +125,10 @@ namespace RawTowerDefs
       return "NONE";
       break;
 
+    case DRCALO:
+      return "DRCALO";
+      break;
+
     case CEMC:
       return "CEMC";
       break;
@@ -137,6 +143,10 @@ namespace RawTowerDefs
 
     case EEMC:
       return "EEMC";
+      break;
+
+    case EHCAL:
+      return "EHCAL";
       break;
 
     case FEMC:
@@ -166,6 +176,9 @@ namespace RawTowerDefs
     else if (caloname == "CEMC")
       return CEMC;
 
+    else if (caloname == "DRCALO")
+      return DRCALO;
+
     else if (caloname == "HCALIN")
       return HCALIN;
 
@@ -174,6 +187,9 @@ namespace RawTowerDefs
 
     else if (caloname == "EEMC")
       return EEMC;
+
+    else if (caloname == "EHCAL")
+      return EHCAL;
 
     else if (caloname == "FEMC")
       return FEMC;

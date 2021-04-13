@@ -9,6 +9,8 @@ RawTowerv1::RawTowerv1()
   : towerid(~0)
   ,  // initialize all bits on
   energy(0)
+  , scint_gammas(0)
+  , cerenkov_gammas(0)
   , time(NAN)
 {
 }
@@ -17,6 +19,8 @@ RawTowerv1::RawTowerv1(const RawTower& tower)
 {
   towerid = (tower.get_id());
   energy = (tower.get_energy());
+  scint_gammas = (tower.get_scint_gammas());
+  cerenkov_gammas = (tower.get_cerenkov_gammas());
   time = (tower.get_time());
 
   CellConstRange cell_range = tower.get_g4cells();
@@ -39,6 +43,8 @@ RawTowerv1::RawTowerv1(const RawTower& tower)
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id)
   : towerid(id)
   , energy(0)
+  , scint_gammas(0)
+  , cerenkov_gammas(0)
   , time(NAN)
 {
 }
@@ -46,6 +52,8 @@ RawTowerv1::RawTowerv1(RawTowerDefs::keytype id)
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi)
   : towerid(0)
   , energy(0)
+  , scint_gammas(0)
+  , cerenkov_gammas(0)
   , time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
@@ -55,6 +63,8 @@ RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
                        const unsigned int ieta, const unsigned int iphi)
   : towerid(0)
   , energy(0)
+  , scint_gammas(0)
+  , cerenkov_gammas(0)
   , time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
@@ -63,6 +73,8 @@ RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
 void RawTowerv1::Reset()
 {
   energy = 0;
+  scint_gammas = 0;
+  cerenkov_gammas = 0;
   time = NAN;
   ecells.clear();
   eshowers.clear();

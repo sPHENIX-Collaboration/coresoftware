@@ -90,6 +90,8 @@ private:
   // towers
   int _nTowers_DRCALO;
   float* _tower_DRCALO_E;
+  int* _tower_DRCALO_NScint;
+  int* _tower_DRCALO_NCerenkov;
   int* _tower_DRCALO_iEta;
   int* _tower_DRCALO_iPhi;
   int* _tower_DRCALO_trueID;

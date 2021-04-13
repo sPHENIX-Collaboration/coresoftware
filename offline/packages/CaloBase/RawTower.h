@@ -90,6 +90,32 @@ class RawTower : public PHObject
     return;
   }
 
+  //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
+  virtual double get_scint_gammas() const
+  {
+    PHOOL_VIRTUAL_WARN("get_scint_gammas()");
+    return 0.0;
+  }
+  //! scint_gammas assigned to the tower. Depending on stage of process and DST node name, it could be scint_gammas deposition, light yield or calibrated energies
+  virtual void set_scint_gammas(const double)
+  {
+    PHOOL_VIRTUAL_WARN("set_scint_gammas()");
+    return;
+  }
+
+  //! energy assigned to the tower. Depending on stage of process and DST node name, it could be energy deposition, light yield or calibrated energies
+  virtual double get_cerenkov_gammas() const
+  {
+    PHOOL_VIRTUAL_WARN("get_cerenkov_gammas()");
+    return 0.0;
+  }
+  //! cerenkov_gammas assigned to the tower. Depending on stage of process and DST node name, it could be cerenkov_gammas deposition, light yield or calibrated energies
+  virtual void set_cerenkov_gammas(const double)
+  {
+    PHOOL_VIRTUAL_WARN("set_cerenkov_gammas()");
+    return;
+  }
+
   //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
   virtual float get_time() const
   {

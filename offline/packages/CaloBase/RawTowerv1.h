@@ -31,6 +31,10 @@ class RawTowerv1 : public RawTower
   int get_binphi() const { return RawTowerDefs::decode_index2(towerid); }
   double get_energy() const { return energy; }
   void set_energy(const double e) { energy = e; }
+  double get_scint_gammas() const { return scint_gammas; }
+  void set_scint_gammas(const double e) { scint_gammas = e; }
+  double get_cerenkov_gammas() const { return cerenkov_gammas; }
+  void set_cerenkov_gammas(const double e) { cerenkov_gammas = e; }
   float get_time() const { return time; }
   void set_time(const float t) { time = t; }
 
@@ -67,6 +71,8 @@ class RawTowerv1 : public RawTower
   //! energy assigned to the tower. Depending on stage of process and DST node
   //! name, it could be energy deposition, light yield or calibrated energies
   double energy;
+  double scint_gammas;
+  double cerenkov_gammas;
   //! Time stamp assigned to the tower. Depending on the tower maker, it could
   //! be rise time or peak time.
   float time;

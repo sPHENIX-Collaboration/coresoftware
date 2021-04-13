@@ -82,6 +82,10 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
     return make_pair("ionizing energy loss",PHG4Hit::type_float);
   case   prop_light_yield:
     return make_pair("light yield",PHG4Hit::type_float);
+  case   scint_gammas:
+    return make_pair("scintillation photons",PHG4Hit::type_float);
+  case   cerenkov_gammas:
+    return make_pair("cerenkov photons",PHG4Hit::type_float);
   case   prop_px_0:
     return make_pair("px in",PHG4Hit::type_float);
   case   prop_px_1:

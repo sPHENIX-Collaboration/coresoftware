@@ -75,6 +75,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
 
   , _nTowers_DRCALO(0)
   , _tower_DRCALO_E(0)
+  , _tower_DRCALO_NScint(0)
+  , _tower_DRCALO_NCerenkov(0)
   , _tower_DRCALO_iEta(0)
   , _tower_DRCALO_iPhi(0)
   , _tower_DRCALO_trueID(0)
@@ -158,6 +160,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _cluster_FHCAL_trueID = new int[_maxNclusters];
 
   _tower_DRCALO_E = new float[_maxNTowersDR];
+  _tower_DRCALO_NScint  = new int[_maxNTowersDR];
+  _tower_DRCALO_NCerenkov  = new int[_maxNTowersDR];
   _tower_DRCALO_iEta  = new int[_maxNTowersDR];
   _tower_DRCALO_iPhi = new int[_maxNTowersDR];
   _tower_DRCALO_trueID = new int[_maxNTowersDR];
@@ -256,6 +260,8 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     // towers DRCALO
     _event_tree->Branch("tower_DRCALO_N", &_nTowers_DRCALO,"tower_DRCALO_N/I");
     _event_tree->Branch("tower_DRCALO_E", _tower_DRCALO_E, "tower_DRCALO_E[tower_DRCALO_N]/F");
+    _event_tree->Branch("tower_DRCALO_NScint",_tower_DRCALO_NScint, "tower_DRCALO_NScint[tower_DRCALO_N]/I");
+    _event_tree->Branch("tower_DRCALO_NCerenkov",_tower_DRCALO_NCerenkov, "tower_DRCALO_NCerenkov[tower_DRCALO_N]/I");
     _event_tree->Branch("tower_DRCALO_iEta",_tower_DRCALO_iEta, "tower_DRCALO_iEta[tower_DRCALO_N]/I");
     _event_tree->Branch("tower_DRCALO_iPhi",_tower_DRCALO_iPhi, "tower_DRCALO_iPhi[tower_DRCALO_N]/I");
     _event_tree->Branch("tower_DRCALO_trueID", _tower_DRCALO_trueID, "tower_DRCALO_trueID[tower_DRCALO_N]/I");
@@ -519,6 +525,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomDRCALO = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeDRCALO.c_str());
       if (towergeomDRCALO)
       {
+      if (Verbosity() > 0){ cout << "found DRCALO geom" << endl;}
         RawTowerContainer::ConstRange begin_end = towersDRCALO->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -527,11 +534,14 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           if (tower)
           {
             // min energy cut
-            if (tower->get_energy() < _reco_e_threshold) continue;
+            // if (tower->get_energy() < _reco_e_threshold) continue;
 
             _tower_DRCALO_iEta[_nTowers_DRCALO] = tower->get_bineta();
             _tower_DRCALO_iPhi[_nTowers_DRCALO] = tower->get_binphi();
             _tower_DRCALO_E[_nTowers_DRCALO] = tower->get_energy();
+            _tower_DRCALO_NScint[_nTowers_DRCALO] = tower->get_scint_gammas();
+            _tower_DRCALO_NCerenkov[_nTowers_DRCALO] = tower->get_cerenkov_gammas();
+            // cout << "sci gammas: " << tower->get_scint_gammas() << "\tcerenk gammas: " << tower->get_cerenkov_gammas() << endl;
 
             PHG4Particle* primary = towerevalDRCALO->max_truth_primary_particle_by_energy(tower);
             if (primary)
@@ -545,6 +555,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _nTowers_DRCALO++;
           }
         }
+      if (Verbosity() > 0){ cout << "finished DRCALO twr loop" << endl;}
       }
       else
       {
@@ -846,6 +857,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _mcpart_px[_nMCPart] = g4particle->get_px();
         _mcpart_py[_nMCPart] = g4particle->get_py();
         _mcpart_pz[_nMCPart] = g4particle->get_pz();
+            // TVector3 projvec(_mcpart_px[0],_mcpart_py[0],_mcpart_pz[0]);
+            // float projeta = projvec.Eta();
         _nMCPart++;
       }
       if (Verbosity() > 0){ cout << "saved\t" << _nMCPart << "\tMC particles" << endl;}
@@ -858,6 +871,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   }
   _event_tree->Fill();
   resetBuffer();
+  if (Verbosity() > 0){ cout << "EventEvaluator buffer reset" << endl;}
   return;
 }
 
@@ -1314,6 +1328,18 @@ void EventEvaluator::resetBuffer()
         _cluster_FEMC_NTower[itow] = 0;
         _cluster_FEMC_trueID[itow] = 0;
       }
+    }
+  }
+  if(_do_DRCALO){
+    _nTowers_DRCALO = 0;
+    for (Int_t itow = 0; itow < _maxNTowers; itow++)
+    {
+      _tower_DRCALO_E[itow] = 0;
+      _tower_DRCALO_NScint[itow] = 0;
+      _tower_DRCALO_NCerenkov[itow] = 0;
+      _tower_DRCALO_iEta[itow] = 0;
+      _tower_DRCALO_iPhi[itow] = 0;
+      _tower_DRCALO_trueID[itow] = 0;
     }
   }
   if(_do_TRACKS){
