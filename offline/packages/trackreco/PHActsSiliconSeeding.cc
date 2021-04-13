@@ -260,7 +260,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
 					   const double py,
 					   const double pz,
 					   const int charge,
-					   const std::vector<TrkrCluster*> clusters)
+					   const std::vector<TrkrCluster*>& clusters)
 {
 
   auto stubs = makePossibleStubs(clusters);

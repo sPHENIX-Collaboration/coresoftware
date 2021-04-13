@@ -1131,6 +1131,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   {
     std::cout << PHWHERE << "Did not get layergeom for layer " 
 	      << layer << std::endl;
+    return 0;
   }
 
   unsigned int stave = 0;
