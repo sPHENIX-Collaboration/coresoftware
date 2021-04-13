@@ -432,7 +432,7 @@ int PHSiliconTpcTrackMatching::Process()
 		  newTrack->identify();
 		}
 
-	      _track_map->insert(newTrack.release());
+	      _track_map->insert(newTrack.get());
 	 
 	    }
 	  
