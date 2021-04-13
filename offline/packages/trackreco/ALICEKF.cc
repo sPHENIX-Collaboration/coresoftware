@@ -9,7 +9,7 @@
 #include "TFile.h"
 #include "TNtuple.h"
 
-#define _DEBUG_
+//#define _DEBUG_
 
 #if defined(_DEBUG_)
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
