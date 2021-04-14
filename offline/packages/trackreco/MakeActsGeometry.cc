@@ -525,9 +525,11 @@ void MakeActsGeometry::buildActsSurfaces()
       "--response-file", responseFile,
       "--mat-input-type","file",
       "--mat-input-file", materialFile,
-      "--bf-values","0","0",m_magField,
-      "--bf-bscalor", std::to_string(m_magFieldRescale)
-      };
+      "--bf-values","0","0", m_magField,
+      "--bf-bscalor"};
+  
+  argstr[13] = std::to_string(m_magFieldRescale);
+     
 
   /// Alter args if using field map
   if(m_magField.find(".root") != std::string::npos)
