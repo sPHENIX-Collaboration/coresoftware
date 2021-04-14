@@ -40,6 +40,7 @@ libg4detectors_la_LIBADD = \
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \
   ePHENIXRICHConstruction.h \
+  PHG4BackwardHcalSubsystem.h \
   PHG4BbcSubsystem.h \
   PHG4BlockCellGeom.h \
   PHG4BlockCellGeomContainer.h \
@@ -196,6 +197,10 @@ libg4detectors_la_SOURCES = \
   BeamLineMagnetSteppingAction.cc \
   PHG4GDMLDetector.cc \
   PHG4GDMLSubsystem.cc \
+  PHG4BackwardHcalDetector.cc \
+  PHG4BackwardHcalDisplayAction.cc \
+  PHG4BackwardHcalSteppingAction.cc \
+  PHG4BackwardHcalSubsystem.cc \
   PHG4BbcDetector.cc \
   PHG4BbcSteppingAction.cc \
   PHG4BbcSubsystem.cc \
