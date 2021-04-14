@@ -512,7 +512,7 @@ void MakeActsGeometry::buildActsSurfaces()
   const int argc = 20;
   char* arg[argc];
  
-  if(Verbosity() > -1)
+  if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
 
@@ -547,14 +547,14 @@ void MakeActsGeometry::buildActsSurfaces()
 
     }
 
-  if(Verbosity() > -1)
+  if(Verbosity() > 0)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
     {
-      if(Verbosity() > -1)
+      if(Verbosity() > 0)
 	std::cout << argstr[i] << ", ";
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
