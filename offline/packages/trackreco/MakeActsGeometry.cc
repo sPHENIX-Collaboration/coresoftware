@@ -515,23 +515,68 @@ void MakeActsGeometry::buildActsSurfaces()
   if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
-  
-  /// If the 2d fieldmap is provided, for now we just assume a 1.4T
-  /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
+
+  std::string responseFile, materialFile;
+  setMaterialResponseFile(responseFile, materialFile);
+
+  // Response file contains arguments necessary for geometry building
+  std::string argstr[argc]{
+    "-n1", "-l0", 
+      "--response-file", responseFile,
+      "--bf-values","0","0",m_magField,
+      "--bf-bscalor", std::to_string(m_magFieldRescale),
+      "--mat-input-type","file",
+      "--mat-input-file",
+      materialFile
+      };
+
+  /// Alter args if using field map
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magField = "1.5";
+      m_magField = "/cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/fieldmaps/sphenix3dbigmapxyz.root";
+      /// The acts field and field map are backwards in convention
+      m_magFieldRescale = 1;
+
+      argstr[6] = "--bf-map";
+      argstr[7] = m_magField;
+      argstr[8]= "--bf-name";
+      argstr[9] = "fieldmap";
+      argstr[10] = "--bf-lscalor";
+      argstr[11] = "10";
+      argstr[12] = "--bf-bscalor";
+      argstr[13] = std::to_string(m_magFieldRescale);  
+
     }
-  
-  /// The acts constant field and geant field are backwards in convention
-  m_magFieldRescale *= -1;
 
   if(Verbosity() > 0)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
 
-  std::string responseFile = "tgeo-sphenix.response";
-  std::string materialFile = "sphenix-material.json";
+ 
+
+  // Set vector of chars to arguments needed
+  for (int i = 0; i < argc; ++i)
+    {
+      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
+      arg[i] = strdup(argstr[i].c_str());
+    }
+  
+  // We replicate the relevant functionality of  
+  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
+  // so we get access to the results. The layer builder magically gets the TGeoManager
+
+  makeGeometry(argc, arg, m_detector);
+
+  for(int i=0; i<argc; i++)
+    free(arg[i]);
+
+}
+void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
+					       std::string& materialFile)
+{
+  
+  responseFile = "tgeo-sphenix.response";
+  materialFile = "sphenix-material.json";
   if(m_buildMMs)
     materialFile = "sphenix-mm-material.json";
 
@@ -565,37 +610,9 @@ void MakeActsGeometry::buildActsSurfaces()
 		<< std::endl;
     }
   
-
-  // Response file contains arguments necessary for geometry building
-  const std::string argstr[argc]{
-    "-n1", "-l0", 
-      "--response-file",
-      responseFile,
-      "--bf-values","0","0",m_magField,
-      "--bf-bscalor", std::to_string(m_magFieldRescale),
-      "--mat-input-type","file",
-      "--mat-input-file",
-      materialFile
-      };
-
-  // Set vector of chars to arguments needed
-  for (int i = 0; i < argc; ++i)
-    {
-      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-      arg[i] = strdup(argstr[i].c_str());
-    }
-  
-  // We replicate the relevant functionality of  
-  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
-  // so we get access to the results. The layer builder magically gets the TGeoManager
-
-  makeGeometry(argc, arg, m_detector);
-
-  for(int i=0; i<argc; i++)
-    free(arg[i]);
+  return;
 
 }
-
 void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
 				    ActsExamples::IBaseDetector &detector)
 {
