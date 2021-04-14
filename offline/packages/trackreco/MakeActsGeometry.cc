@@ -509,10 +509,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 14;
+  const int argc = 20;
   char* arg[argc];
  
-  if(Verbosity() > 0)
+  if(Verbosity() > -1)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
 
@@ -523,11 +523,10 @@ void MakeActsGeometry::buildActsSurfaces()
   std::string argstr[argc]{
     "-n1", "-l0", 
       "--response-file", responseFile,
-      "--bf-values","0","0",m_magField,
-      "--bf-bscalor", std::to_string(m_magFieldRescale),
       "--mat-input-type","file",
-      "--mat-input-file",
-      materialFile
+      "--mat-input-file", materialFile,
+      "--bf-values","0","0",m_magField,
+      "--bf-bscalor", std::to_string(m_magFieldRescale)
       };
 
   /// Alter args if using field map
@@ -537,26 +536,26 @@ void MakeActsGeometry::buildActsSurfaces()
       /// The acts field and field map are backwards in convention
       m_magFieldRescale = 1;
 
-      argstr[6] = "--bf-map";
-      argstr[7] = m_magField;
-      argstr[8]= "--bf-name";
-      argstr[9] = "fieldmap";
-      argstr[10] = "--bf-lscalor";
-      argstr[11] = "10";
-      argstr[12] = "--bf-bscalor";
-      argstr[13] = std::to_string(m_magFieldRescale);  
+      argstr[8] = "--bf-map";
+      argstr[9] = m_magField;
+      argstr[10]= "--bf-name";
+      argstr[11] = "fieldmap";
+      argstr[12] = "--bf-lscalor";
+      argstr[13] = "10";
+      argstr[14] = "--bf-bscalor";
+      argstr[15] = std::to_string(m_magFieldRescale);  
 
     }
 
-  if(Verbosity() > 0)
+  if(Verbosity() > -1)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
-
- 
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
     {
+      if(Verbosity() > -1)
+	std::cout << argstr[i] << ", ";
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
     }
