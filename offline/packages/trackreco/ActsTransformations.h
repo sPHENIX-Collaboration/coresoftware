@@ -78,8 +78,7 @@ class ActsTransformations
   void fillSvtxTrackStates(const Trajectory traj, 
 			   const size_t &trackTip,
 			   SvtxTrack *svtxTrack,
-			   Acts::GeometryContext geoContext,
-			   CluskeyBimap *hitIDCluskeyMap);
+			   Acts::GeometryContext geoContext);
 
  private:
   int m_verbosity;

@@ -3,7 +3,7 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv2.h>
@@ -214,7 +214,9 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
+ 
+  
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
 
@@ -360,7 +362,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+	auto clus = std::make_unique<TrkrClusterv2>();
+	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
@@ -431,20 +434,20 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	float phisize = phibins.size() * pitch;
 	float zsize = zbins.size() * length;
 
-  static const float invsqrt12 = 1./sqrt(12);
-
-  // scale factors (phi direction)
-  /*
-  they corresponds to clusters of size 1 and 2 in phi
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
-  float phierror = pitch*invsqrt12;
-  if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
-  else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
-
-  // z error. All clusters have a z-size of 1.
-  const float zerror = length*invsqrt12;
+	static const float invsqrt12 = 1./sqrt(12);
+	
+	// scale factors (phi direction)
+	/*
+	  they corresponds to clusters of size 1 and 2 in phi
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
+	float phierror = pitch*invsqrt12;
+	if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
+	
+	// z error. All clusters have a z-size of 1.
+	const float zerror = length*invsqrt12;
 	
 	double clusx = NAN;
 	double clusy = NAN;
@@ -468,7 +471,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	geom->find_segment_center(ladder_z_index,
 				  ladder_phi_index,
 				  ladder_location);
-  const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
+	const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
 
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
@@ -556,6 +559,25 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	if(Verbosity() > 10) clus->identify();
 	
+	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
+	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
+
+	TVector3 local(0,0,0);
+	TVector3 global(clusx, clusy, clusz);
+	local = geom->get_local_from_world_coords(ladderZId,
+						  ladderPhiId,
+						  global);
+	clus->setLocalX(local[1]);
+	clus->setLocalY(local[2]);
+	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
+	/// 0
+	clus->setSubSurfKey(0);
+	clus->setActsLocalError(0,0, ERR[1][1]);
+	clus->setActsLocalError(0,1, ERR[1][2]);
+	clus->setActsLocalError(1,0, ERR[2][1]);
+	clus->setActsLocalError(1,1, ERR[2][2]);
+	m_clusterlist->addCluster(clus.release());
+
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
@@ -588,4 +610,3 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
 
   return;
 }
-

@@ -225,7 +225,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 	for (unsigned int i = 0; i < trackSourceLinks.size(); ++i)
 	  {
 	    std::cout << "proto_track readback: hitid " 
-		      << trackSourceLinks.at(i).hitID() << std::endl;
+		      << trackSourceLinks.at(i).cluskey() << std::endl;
 	  }
       }
 

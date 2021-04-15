@@ -5,7 +5,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include "ActsTrack.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Propagator/Propagator.hpp>
