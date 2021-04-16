@@ -15,18 +15,23 @@
  */
 namespace TrkrDefs
 {
+  static double EdepScaleFactor __attribute__((unused)) = 0.25;
+  static double MvtxEnergyScaleup __attribute__((unused)) = 5.0e8;
+  static double InttEnergyScaleup __attribute__((unused)) = 5.0e7;
+
   /// Key types
   typedef uint32_t hitkey;      // 32 bit TrkrHit key type
   typedef uint32_t hitsetkey;   // 32 bit TrkrHitSet key type
   typedef uint64_t cluskey;     // 64 but TrkrCluster id type
   typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
-
+  typedef uint16_t subsurfkey;    // 16 bit sub surface key type
 
   /// Max values for keys (used as defaults or invalid values)
   static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
   static hitsetkey HITSETKEYMAX __attribute__((unused)) = UINT32_MAX;
   static cluskey CLUSKEYMAX __attribute__((unused)) = UINT64_MAX;
   static clushitkey CLUSHITKEYMAX __attribute__((unused)) = UINT32_MAX;
+  static subsurfkey SUBSURFKEYMAX __attribute__((unused)) = UINT16_MAX;
 
   // hitsetkey layout:
   //  common upper 16 bits

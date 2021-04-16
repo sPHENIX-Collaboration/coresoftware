@@ -10,7 +10,7 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
@@ -18,6 +18,7 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -79,12 +80,18 @@ int PHSimpleKFProp::Setup(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter->useConstBField(_use_const_field);
+  fitter->useFixedClusterError(_use_fixed_clus_err);
+  fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
+  fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
+  fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 double PHSimpleKFProp::get_Bz(double x, double y, double z)
 {
+  if(_use_const_field) return 1.4;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _field_map->GetFieldValue(p,bfield);
@@ -196,7 +203,7 @@ int PHSimpleKFProp::Process()
     }
   }
   _track_map->Reset();
-  std::vector<SvtxTrack_v1> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
+  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
   publishSeeds(ptracks);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -212,25 +219,31 @@ void PHSimpleKFProp::PrepareKDTrees()
     std::cout << "WARNING: (tracking.PHTpcTrackerUtil.convert_clusters_to_hits) cluster map is not provided" << endl;
     return;
   }
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for (TrkrClusterContainer::ConstIterator it = clusrange.first; it != clusrange.second; ++it)
+  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr)
   {
-    TrkrDefs::cluskey cluskey = it->first;
-    TrkrCluster* cluster = it->second;
-    int layer = TrkrDefs::getLayer(cluskey);
-    std::vector<double> kdhit(4);
-    kdhit[0] = cluster->getPosition(0);
-    kdhit[1] = cluster->getPosition(1);
-    kdhit[2] = cluster->getPosition(2);
-    uint64_t key = cluster->getClusKey();
-    std::memcpy(&kdhit[3], &key, sizeof(key));
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto it = range.first; it != range.second; ++it )
+    {
+      TrkrDefs::cluskey cluskey = it->first;
+      TrkrCluster* cluster = it->second;
+      int layer = TrkrDefs::getLayer(cluskey);
+      std::vector<double> kdhit(4);
+      kdhit[0] = cluster->getPosition(0);
+      kdhit[1] = cluster->getPosition(1);
+      kdhit[2] = cluster->getPosition(2);
+      uint64_t key = cluster->getClusKey();
+      std::memcpy(&kdhit[3], &key, sizeof(key));
     
-    //      HINT: way to get original uint64_t value from double:
-    //
-    //      LOG_DEBUG("tracking.PHTpcTrackerUtil.convert_clusters_to_hits")
-    //        << "orig: " << cluster->getClusKey() << ", readback: " << (*((int64_t*)&kdhit[3]));
+      //      HINT: way to get original uint64_t value from double:
+      //
+      //      LOG_DEBUG("tracking.PHTpcTrackerUtil.convert_clusters_to_hits")
+      //        << "orig: " << cluster->getClusKey() << ", readback: " << (*((int64_t*)&kdhit[3]));
 
-    kdhits[layer].push_back(kdhit);
+      kdhits[layer].push_back(kdhit);
+    }
   }
   _ptclouds.resize(kdhits.size());
   _kdtrees.resize(kdhits.size());
@@ -605,7 +618,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   return propagated_track;
 }
 
-void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   for(size_t i=0;i<seeds.size();i++)
   {

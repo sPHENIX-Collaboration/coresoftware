@@ -105,14 +105,9 @@ class RawTower : public PHObject
 
   virtual bool empty_g4cells() const { return true; }
   virtual size_t size_g4cells() const { return 0; }
-  virtual CellConstRange get_g4cells() const
-  {
-    PHOOL_VIRTUAL_WARN("get_g4cells()");
-    CellMap dummy;
-    return make_pair(dummy.begin(), dummy.end());
-  }
-  virtual CellIterator find_g4cell(CellKeyType id) { return CellMap().end(); }
-  virtual CellConstIterator find_g4cell(CellKeyType id) const { return CellMap().end(); }
+  virtual CellConstRange get_g4cells() const;
+  virtual CellIterator find_g4cell(CellKeyType id);
+  virtual CellConstIterator find_g4cell(CellKeyType id) const;
   virtual void add_ecell(const CellKeyType g4cellid, const float ecell)
   {
     PHOOL_VIRTUAL_WARN("add_ecell(const CellKeyType g4cellid, const float ecell)");
@@ -122,14 +117,9 @@ class RawTower : public PHObject
 
   virtual bool empty_g4showers() const { return true; }
   virtual size_t size_g4showers() const { return 0; }
-  virtual ShowerConstRange get_g4showers() const
-  {
-    PHOOL_VIRTUAL_WARN("get_g4showers()");
-    ShowerMap dummy;
-    return make_pair(dummy.begin(), dummy.end());
-  }
-  virtual ShowerIterator find_g4shower(int id) { return ShowerMap().end(); }
-  virtual ShowerConstIterator find_g4shower(int id) const { return ShowerMap().end(); }
+  virtual ShowerConstRange get_g4showers() const;
+  virtual ShowerIterator find_g4shower(int id);
+  virtual ShowerConstIterator find_g4shower(int id) const;
   virtual void add_eshower(const int g4showerid, const float eshower)
   {
     PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)");

@@ -2,7 +2,7 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -43,7 +43,6 @@ int DumpTrkrHitSetContainer::process_Node(PHNode *myNode)
       {
         TrkrHit *hit = tsetiter->second;
         *fout << "id: " << tsetiter->first << endl;
-        *fout << "edep: " << hit->getEnergy() << endl;
         *fout << "adc: " << hit->getAdc() << endl;
       }
     }

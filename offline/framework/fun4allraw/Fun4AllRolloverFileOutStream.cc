@@ -4,7 +4,7 @@
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>  // for oBuffer
-#include <Event/ogzBuffer.h>
+#include <Event/ospBuffer.h>
 
 #include <phool/phool.h>
 
@@ -76,9 +76,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << endl;
     }
     MyManager()->SetOutfileName(outfilename);
-    // compression level 6 is best compromize between speed and compression
-    // max is 9 which is much slower but only squeezes out a few more bytes
-    SetoBuffer(new ogzBuffer(OutFileDescriptor(), xb(), LENGTH, 6, irun, iSeq()));
+    SetoBuffer(new ospBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
     delete[] outfilename;
   }
 

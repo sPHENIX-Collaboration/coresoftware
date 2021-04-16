@@ -36,7 +36,6 @@
 PHActsToSvtxTracks::PHActsToSvtxTracks(const std::string &name)
   : SubsysReco(name)
   , m_actsFitResults(nullptr)
-  , m_hitIdClusKey(nullptr)
 {
   Verbosity(0);
 }
@@ -175,8 +174,7 @@ void PHActsToSvtxTracks::createSvtxTrack(const unsigned int trackKey,
   svtxTrack->set_dca3d_z_error(sqrt(dca3DzCov));
   
   rotater->fillSvtxTrackStates(traj, trackTip, svtxTrack,
-			       m_tGeometry->geoContext,
-			       m_hitIdClusKey);
+			       m_tGeometry->geoContext);
   return;
 }
 
@@ -253,16 +251,6 @@ int PHActsToSvtxTracks::getNodes(PHCompositeNode *topNode)
       std::cout << PHWHERE << "ActsFitResults not on node tree, exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
-  
-  if (!m_hitIdClusKey)
-    {
-      std::cout << PHWHERE << "No HitID:ClusKey map on node tree. Bailing."
-		<< std::endl;
-      
-      return Fun4AllReturnCodes::EVENT_OK;
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

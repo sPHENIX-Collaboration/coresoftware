@@ -8,7 +8,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -199,13 +198,6 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
   {
     cerr << PHWHERE << " ERROR: Can't find node G4TruthInfo" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!clusterhitassoc)
-  {
-    cout << PHWHERE << "Failed to find TRKR_CLUSTERHITASSOC node, quit!" << endl;
-    exit(1);
   }
 
   hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");

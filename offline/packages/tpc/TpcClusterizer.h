@@ -2,6 +2,10 @@
 #define TPC_TPCCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
 #include <map> 
 #include <vector>
 #include <string>
@@ -39,6 +43,8 @@ class TpcClusterizer : public SubsysReco
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist;
   TrkrClusterHitAssoc *m_clusterhitassoc;
+  ActsSurfaceMaps *m_surfMaps;
+  ActsTrackingGeometry *m_tGeometry;
 
   bool do_hit_assoc;
   double zz_shaping_correction;

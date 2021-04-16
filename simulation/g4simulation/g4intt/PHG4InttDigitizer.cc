@@ -9,14 +9,13 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHitv2.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
 
 #include <intt/InttDefs.h>
-#include <intt/InttHit.h>
 
 #include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -232,7 +231,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	{
 	  ++m_nCells;
 
-	  TrkrHit *hit = (InttHit*) hit_iter->second;
+	  TrkrHit *hit = hit_iter->second;
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
 	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index
@@ -265,20 +264,16 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
 	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
-	  int adc = -1;
+	  int adc = 0;
 	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-	    if (hit->getEnergy() >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() < vadcrange[irange].second * (double) mip_e)
-	      adc = (int) irange;
+	    if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
+	      adc = (unsigned short) irange;
 
-	  if(adc == -1)
-	    // how do we specify underflow or overflow?
-	    adc = 0;
-	  
 	  hit->setAdc(adc);	      
 
 	  if(Verbosity() > 2)
 	    cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
-		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
+		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << endl;
  
 	} // end loop over hits in this hitset
     } // end loop over hitsets

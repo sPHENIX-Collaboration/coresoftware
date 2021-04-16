@@ -24,8 +24,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsTransformations.h \
   ActsTrack.h \
-  ActsTrackingGeometry.h \
-  ActsSurfaceMaps.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
@@ -43,7 +41,6 @@ pkginclude_HEADERS = \
   PHActsSourceLinks.h \
   PHActsTracks.h \
   PHActsToSvtxTracks.h \
-  PHActsTrkProp.h \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
@@ -105,6 +102,7 @@ libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
@@ -121,7 +119,6 @@ ACTS_SOURCES = \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
   PHActsToSvtxTracks.cc \
-  PHActsTrkProp.cc \
   PHActsTrkFitter.cc \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
