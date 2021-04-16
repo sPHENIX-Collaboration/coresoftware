@@ -26,15 +26,15 @@ namespace RawTowerDefs
    */
   enum CalorimeterId
   {
-    NONE,
-    CEMC,
-    HCALOUT,
-    HCALIN,
-    DRCALO,
-    EEMC,
-    EHCAL,
-    FEMC,
-    FHCAL
+    NONE = 0,
+    CEMC = 1,
+    HCALOUT = 2,
+    HCALIN = 3,
+    EEMC = 4,
+    FEMC = 5,
+    FHCAL = 6,
+    DRCALO = 7,
+    EHCAL = 8
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
