@@ -3,6 +3,7 @@
 #include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
+#include <algorithm> // for max
 #include <cstdlib>   // for abs
 #include <iostream>  // for operator<<, endl, basic_ostream, basic_o...
 
