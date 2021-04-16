@@ -4,9 +4,8 @@
 
 #include <TLorentzVector.h>  // for TLorentzVector
 
+#include <cmath>            // for abs
 #include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
-
-using namespace std;
 
 //__________________________________________________________
 PHSartreParticleTrigger::PHSartreParticleTrigger(const std::string &name)

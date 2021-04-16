@@ -124,8 +124,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							 "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   assert( m_tGeometry );
 
   // loop over micromegas hitsets
@@ -315,59 +314,52 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       /// We need to use this generation of the hitsetkey as this is what is 
       /// done in the geometry building, so then they match
       const unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      unsigned int tile = 0;
-      MicromegasDefs::SegmentationType segtype;
+      /* MicromegasDefs::SegmentationType segtype;
       if(layer == 55)
 	segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
       else
 	segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
-      
+      */
       Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
-          
+
       /// Get the surface key to find the surface from the map
-      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-
+      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segmentation_type, 0);
       TrkrDefs::subsurfkey subsurfkey;
-      auto surface = getMmSurfaceFromCoords(topNode,
-					    mmHitSetKey,
-					    subsurfkey,
-					    globalPos);
+      auto surface = getMmSurfaceFromCoords(topNode, mmHitSetKey, subsurfkey, globalPos);
       if(!surface)
-	{
-	  /// If the surface can't be found, we can't track with it
-	  /// Move to the next one
-	  continue;
-	}
+      {
+        /// If the surface can't be found, we can't track with it
+        /// Move to the next one
+        continue;
+      }
 
-      Acts::Vector3D center = surface->center(m_tGeometry->geoContext)
-	/ Acts::UnitConstants::cm;
+      Acts::Vector3D center = surface->center(m_tGeometry->geoContext) / Acts::UnitConstants::cm;
       Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
-      
+
       double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
       double surfPhiCenter = atan2(center[1], center[0]);
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
-      
-      double clusRadius = sqrt(cluster->getX() * cluster->getX() 
+
+      double clusRadius = sqrt(cluster->getX() * cluster->getX()
 			       + cluster->getY() * cluster->getY());
       double clusphi = atan2(cluster->getY(), cluster->getX());
       double rClusPhi = clusRadius * clusphi;
       double zMm = globalPos(2);
-      auto vecResult = surface->globalToLocal(m_tGeometry->geoContext, 
+      auto vecResult = surface->globalToLocal(m_tGeometry->geoContext,
 					      globalPos * Acts::UnitConstants::cm,
 					      normal);
       Acts::Vector2D local2D;
       if(vecResult.ok())
-	{
-	  local2D = vecResult.value() / Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  /// Otherwise use manual calculation, which is the same as Acts
-	  local2D(0) = rClusPhi - surfRphiCenter;
-	  local2D(1) = zMm - surfZCenter;
-	}
-  
+      {
+        local2D = vecResult.value() / Acts::UnitConstants::cm;
+      } else {
+
+        /// Otherwise use manual calculation, which is the same as Acts
+        local2D(0) = rClusPhi - surfRphiCenter;
+        local2D(1) = zMm - surfZCenter;
+      }
+
       cluster->setLocalX(local2D(0));
       cluster->setLocalY(local2D(1));
       cluster->setSubSurfKey(subsurfkey);
@@ -398,7 +390,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         cluster->setError( i, j, error(i,j) );
       }
 
-      trkrClusterContainer->addCluster(cluster.release());
+      trkrClusterContainer->addCluster( cluster.release() );
+
     }
 
   }
@@ -407,11 +400,11 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 }
 
 Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
-						      TrkrDefs::hitsetkey hitsetkey, 
+						      TrkrDefs::hitsetkey hitsetkey,
 						      TrkrDefs::subsurfkey& subsurfkey,
 						      Acts::Vector3D world)
 {
-  
+
   auto surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
   if(!surfMaps)
     {
@@ -422,10 +415,10 @@ Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
 
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = surfMaps->mmSurfaceMap.find(hitsetkey);
-  
+
   if(mapIter == surfMaps->mmSurfaceMap.end())
     {
-      std::cout << PHWHERE 
+      std::cout << PHWHERE
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
 		<< hitsetkey << std::endl;
       return nullptr;
@@ -433,7 +426,7 @@ Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
 
   double world_phi = atan2(world[1], world[0]);
   double world_z = world[2];
-  
+
   std::vector<Surface> surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
@@ -442,39 +435,37 @@ Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
   double surfStepZ = m_tGeometry->mmSurfStepZ;
 
   for(unsigned int i=0;i<surf_vec.size(); ++i)
-    {
-      Surface this_surf = surf_vec[i];
-  
-      auto vec3d = this_surf->center(m_tGeometry->geoContext);
-      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double surf_phi = atan2(surf_center[1], surf_center[0]);
-      double surf_z = surf_center[2];
+  {
+    Surface this_surf = surf_vec[i];
 
-      /// Check if the cluster is geometrically within the surface boundaries
-      /// The MMs surfaces span the entire length in z, so we don't divide
-      /// by 2 in the z direction since the center of the surface is z=0
-      bool withinPhi = world_phi >= surf_phi - surfStepPhi / 2.0
-	&& world_phi < surf_phi + surfStepPhi / 2.0;
-      bool withinZ = world_z > surf_z - surfStepZ 
-	&& world_z < surf_z + surfStepZ;
-      if( withinPhi && withinZ )
-	{
-	  surf_index = i;	  
-	  break;
-	}
+    auto vec3d = this_surf->center(m_tGeometry->geoContext);
+    std::vector<double> surf_center = {vec3d(0)/Acts::UnitConstants::cm, vec3d(1)/Acts::UnitConstants::cm, vec3d(2)/Acts::UnitConstants::cm};
+    double surf_phi = atan2(surf_center[1], surf_center[0]);
+    double surf_z = surf_center[2];
+
+    /// Check if the cluster is geometrically within the surface boundaries
+    /// The MMs surfaces span the entire length in z, so we don't divide
+    /// by 2 in the z direction since the center of the surface is z=0
+    bool withinPhi = world_phi >= surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0;
+    bool withinZ = world_z > surf_z - surfStepZ && world_z < surf_z + surfStepZ;
+    if( withinPhi && withinZ )
+    {
+      surf_index = i;
+      break;
     }
+  }
 
   subsurfkey = surf_index;
 
   if(surf_index == 999)
-    {
-      std::cout << PHWHERE 
-		<< "Error: Micromegas surface index not defined, skipping cluster!" 
-		<< std::endl;
-    
-      return nullptr;
-    }
- 
+  {
+    std::cout << PHWHERE
+      << "Error: Micromegas surface index not defined, skipping cluster!"
+      << std::endl;
+
+    return nullptr;
+  }
+
   return surf_vec[surf_index];
 
 }
