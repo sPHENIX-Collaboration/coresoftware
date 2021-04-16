@@ -394,6 +394,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         cluster->setError( i, j, error(i,j) );
       }
 
+      trkrClusterContainer->addCluster(cluster.release());
     }
 
   }
