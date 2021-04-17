@@ -112,17 +112,17 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _tower_FEMC_iPhi(0)
   , _tower_FEMC_trueID(0)
 
-  , _nTowers_CEMC(0)
-  , _tower_CEMC_E(0)
-  , _tower_CEMC_iEta(0)
-  , _tower_CEMC_iPhi(0)
-  , _tower_CEMC_trueID(0)
-
   , _nTowers_EEMC(0)
   , _tower_EEMC_E(0)
   , _tower_EEMC_iEta(0)
   , _tower_EEMC_iPhi(0)
   , _tower_EEMC_trueID(0)
+
+  , _nTowers_CEMC(0)
+  , _tower_CEMC_E(0)
+  , _tower_CEMC_iEta(0)
+  , _tower_CEMC_iPhi(0)
+  , _tower_CEMC_trueID(0)
 
   , _nclusters_FHCAL(0)
   , _cluster_FHCAL_E(0)
