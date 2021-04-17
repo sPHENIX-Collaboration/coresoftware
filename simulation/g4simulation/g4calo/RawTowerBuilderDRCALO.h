@@ -87,10 +87,6 @@ class RawTowerBuilderDRCALO : public SubsysReco
   double m_GlobalPlaceInY;
   double m_GlobalPlaceInZ;
 
-  double m_RotInX;
-  double m_RotInY;
-  double m_RotInZ;
-
   double m_Emin;
 
   std::map<std::string, double> m_GlobalParameterMap;
