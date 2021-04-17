@@ -208,7 +208,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-     
       auto cluster = std::make_unique<TrkrClusterv2>();
       cluster->setClusKey(cluster_key);
 
@@ -311,15 +310,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       /// Add Acts and local information
-      /// We need to use this generation of the hitsetkey as this is what is 
-      /// done in the geometry building, so then they match
-      const unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      /* MicromegasDefs::SegmentationType segtype;
-      if(layer == 55)
-	segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
-      else
-	segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
-      */
       Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
 
       /// Get the surface key to find the surface from the map
