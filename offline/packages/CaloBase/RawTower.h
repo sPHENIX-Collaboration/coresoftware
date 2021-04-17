@@ -8,9 +8,11 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <utility>
 
 class RawTower : public PHObject
 {
@@ -153,8 +155,32 @@ class RawTower : public PHObject
   }
   virtual void clear_g4showers() {}
 
+  //! Procedure to add a new PROPERTY tag:
+  //! 1.add new tag below with unique value,
+  //! 2.add a short name to RawTower::get_property_info
+  enum PROPERTY
+  {  //
+
+    //! Scintillation photon count or energy
+    prop_scint_gammas = 1,
+
+    //! Cherenkov photon count or energy
+    prop_cerenkov_gammas = 2,
+
+    //! max limit in order to fit into 8 bit unsigned number
+    prop_MAX_NUMBER = UCHAR_MAX
+  };
+
+  virtual bool has_property(const PROPERTY prop_id) const { return false; }
+  virtual double get_property(const PROPERTY prop_id) const { return NAN; }
+  virtual void set_property(const PROPERTY prop_id, const double value) { return; }
+  static const std::string get_property_info(PROPERTY prop_id);
+
  protected:
   RawTower() {}
+
+  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const { return UINT_MAX; }
+  virtual void set_property_nocheck(const PROPERTY prop_id, const unsigned int) { return; }
 
   ClassDef(RawTower, 1)
 };
