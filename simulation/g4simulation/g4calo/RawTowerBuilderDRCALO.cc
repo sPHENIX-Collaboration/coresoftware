@@ -49,9 +49,6 @@ RawTowerBuilderDRCALO::RawTowerBuilderDRCALO(const std::string &name)
   , m_GlobalPlaceInX(0)
   , m_GlobalPlaceInY(0)
   , m_GlobalPlaceInZ(0)
-  , m_RotInX(0)
-  , m_RotInY(0)
-  , m_RotInZ(0)
   , m_Emin(1e-6)
 {
 }
