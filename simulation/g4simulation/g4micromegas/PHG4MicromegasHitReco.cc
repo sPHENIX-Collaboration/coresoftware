@@ -10,6 +10,7 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -342,6 +343,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         if( !hit )
         {
           // create hit and insert in hitset
+
           hit = new TrkrHitv2;
           hitset_it->second->addHitSpecificKey(hitkey, hit);
         }
