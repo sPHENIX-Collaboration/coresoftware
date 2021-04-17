@@ -2,39 +2,40 @@
 
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerv2.h>
 
-#include <calobase/RawTower.h>                 // for RawTower
-#include <calobase/RawTowerDefs.h>             // for convert_name_to_caloid
-#include <calobase/RawTowerGeom.h>             // for RawTowerGeom
-#include <calobase/RawTowerGeomv3.h>
-#include <calobase/RawTowerGeomContainer.h>    // for RawTowerGeomContainer
+#include <calobase/RawTower.h>               // for RawTower
+#include <calobase/RawTowerDefs.h>           // for convert_name_to_caloid
+#include <calobase/RawTowerGeom.h>           // for RawTowerGeom
+#include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomContainer
 #include <calobase/RawTowerGeomContainerv1.h>
+#include <calobase/RawTowerGeomv3.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                    // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                       // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TRotation.h>
 #include <TVector3.h>
 
-#include <cstdlib>                            // for exit
-#include <exception>                           // for exception
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <stdexcept>
-#include <utility>                             // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 using namespace std;
 
@@ -113,19 +114,32 @@ int RawTowerBuilderDRCALO::process_event(PHCompositeNode *topNode)
     // Don't include hits with zero energy
     if (g4hit_i->get_edep() <= 0 && g4hit_i->get_edep() != -1) continue;
     // cout << g4hit_i->get_index_j() << "\t" << g4hit_i->get_index_k() << "\t"  << endl;
-    // encode CaloTowerID from j, k index of tower / hit and calorimeter ID 
+    // encode CaloTowerID from j, k index of tower / hit and calorimeter ID
     RawTowerDefs::keytype calotowerid = RawTowerDefs::encode_towerid(m_CaloId,
                                                                      g4hit_i->get_index_j(),
                                                                      g4hit_i->get_index_k());
-    // add the energy to the corresponding tower 
-    RawTowerv1 *tower = dynamic_cast<RawTowerv1 *>(m_Towers->getTower(calotowerid));
+    // add the energy to the corresponding tower
+    RawTower *tower = m_Towers->getTower(calotowerid);
     if (!tower)
     {
-      tower = new RawTowerv1(calotowerid);
+      tower = new RawTowerv2(calotowerid);
       tower->set_energy(0);
       m_Towers->AddTower(tower->get_id(), tower);
     }
-    // cout << g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas) << "\t" << g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas) << endl;;
+    else
+    {
+      // check version consistency
+      if (dynamic_cast<RawTowerv2 *>(tower) == nullptr)
+      {
+        cout << __PRETTY_FUNCTION__ << " : Fatal Error! "
+             << "Expect RawTowerv2, but found this tower:";
+        tower->identify();
+        exit(1);
+      }
+    }
+
+    if (Verbosity() > 3)
+      cout << g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas) << "\t" << g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas) << endl;
 
     tower->set_scint_gammas(tower->get_scint_gammas() + g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas));
     tower->set_cerenkov_gammas(tower->get_cerenkov_gammas() + g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas));
@@ -259,7 +273,6 @@ bool RawTowerBuilderDRCALO::ReadGeometryFromTable()
     // // If line starts with keyword Tower, add to tower positions
     if (line_mapping.find("Tower ") != string::npos)
     {
-
     }
 
     // // If line does not start with keyword Tower, read as parameter
@@ -295,38 +308,39 @@ bool RawTowerBuilderDRCALO::ReadGeometryFromTable()
   if (parit != m_GlobalParameterMap.end())
     m_GlobalPlaceInZ = parit->second;
 
-    // unsigned idx_j, idx_k, idx_l;
-    double pos_x, pos_y, pos_z;
-    // double size_x, size_y, size_z;
-    double size_z = 10;
-    // double rot_x, rot_y, rot_z;
-    double type = 0;
-    string dummys;
+  // unsigned idx_j, idx_k, idx_l;
+  double pos_x, pos_y, pos_z;
+  // double size_x, size_y, size_z;
+  double size_z = 10;
+  // double rot_x, rot_y, rot_z;
+  double type = 0;
+  string dummys;
 
   parit = m_GlobalParameterMap.find("Gdz");
   if (parit != m_GlobalParameterMap.end())
     size_z = parit->second;
 
-
   pos_z = m_GlobalPlaceInZ;
   float twrsize = 1.2;
   float drsize = 220;
   float scaling = 1.;
-  for(int idxj=0;idxj<drsize*2/twrsize;idxj++){
-    pos_x = ( idxj*twrsize - drsize); //TODO DRCALO TOWER SIZE
+  for (int idxj = 0; idxj < drsize * 2 / twrsize; idxj++)
+  {
+    pos_x = (idxj * twrsize - drsize);  //TODO DRCALO TOWER SIZE
     // cout << pos_x << endl;
-    for(int idxk=0;idxk<drsize*2/twrsize;idxk++){
-      pos_y = ( idxk*twrsize - drsize); //TODO DRCALO TOWER SIZE
+    for (int idxk = 0; idxk < drsize * 2 / twrsize; idxk++)
+    {
+      pos_y = (idxk * twrsize - drsize);  //TODO DRCALO TOWER SIZE
       // // Construct unique Tower ID
       unsigned int temp_id = RawTowerDefs::encode_towerid(m_CaloId, idxj, idxk);
 
       // // Create tower geometry object
       RawTowerGeom *temp_geo = new RawTowerGeomv3(temp_id);
-      temp_geo->set_center_x(scaling*pos_x);
-      temp_geo->set_center_y(scaling*pos_y);
+      temp_geo->set_center_x(scaling * pos_x);
+      temp_geo->set_center_y(scaling * pos_y);
       temp_geo->set_center_z(pos_z);
-      temp_geo->set_size_x(scaling*twrsize); //TODO DRCALO TOWER SIZE
-      temp_geo->set_size_y(scaling*twrsize); //TODO DRCALO TOWER SIZE
+      temp_geo->set_size_x(scaling * twrsize);  //TODO DRCALO TOWER SIZE
+      temp_geo->set_size_y(scaling * twrsize);  //TODO DRCALO TOWER SIZE
       temp_geo->set_size_z(size_z);
       temp_geo->set_tower_type((int) type);
 
