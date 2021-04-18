@@ -77,14 +77,24 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
+  ///Method to chose best candidate from a selection of common SV's
+  int selectBestCombination(bool PVconstraint, bool isAnInterMother,
+                             std::vector<KFParticle> possibleCandidates, 
+                             std::vector<KFParticle> possibleVertex);
+
  protected:
   std::string m_daughter_name_evt[max_tracks];
   int m_daughter_charge_evt[max_tracks] = {0};
   int m_intermediate_charge[max_tracks] = {0};
   float m_intermediate_min_ip[max_tracks] = {-1.};
+  float m_intermediate_max_ip[max_tracks] = {FLT_MAX};
   float m_intermediate_min_ipchi2[max_tracks] = {-1.};
+  float m_intermediate_max_ipchi2[max_tracks] = {FLT_MAX};
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
+
+ //private:
+
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H

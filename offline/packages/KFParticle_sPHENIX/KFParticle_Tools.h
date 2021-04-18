@@ -46,13 +46,13 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex);
+  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName);
 
   const bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices);
 
@@ -88,6 +88,8 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   float calculateEllipsoidVolume(KFParticle particle);
 
   float calculateJT(KFParticle mother, KFParticle daughter);
+
+  bool isInRange(float min, float value, float max);
 
   void identify(KFParticle particle);
 

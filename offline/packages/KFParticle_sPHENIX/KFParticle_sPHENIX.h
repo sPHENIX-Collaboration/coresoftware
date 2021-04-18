@@ -194,9 +194,27 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (int i = 0; i < max_particles; ++i) m_intermediate_min_ip[i] = intermediate_min_IP[i];
   }
 
+  void setIntermediateIPRange(std::pair<float, float> intermediate_IP_range[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i)
+    {
+       m_intermediate_min_ip[i] = intermediate_IP_range[i].first;
+       m_intermediate_max_ip[i] = intermediate_IP_range[i].second;
+    }
+  }
+
   void setIntermediateMinIPchi2(float intermediate_min_IPchi2[max_particles])
   {
     for (int i = 0; i < max_particles; ++i) m_intermediate_min_ipchi2[i] = intermediate_min_IPchi2[i];
+  }
+
+  void setIntermediateIPchi2Range(std::pair<float, float> intermediate_IPchi2_range[max_particles])
+  {
+    for (int i = 0; i < max_particles; ++i)
+    {
+       m_intermediate_min_ipchi2[i] = intermediate_IPchi2_range[i].first;
+       m_intermediate_max_ipchi2[i] = intermediate_IPchi2_range[i].second;
+    }
   }
 
   void setIntermediateMinDIRA(float intermediate_min_DIRA[max_particles])
@@ -242,11 +260,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getCaloInfo(bool caloinfo) { m_calo_info = caloinfo; }
 
-  ///Use alternate vertex and track fitters
-  void setVertexMapNodeName(const std::string& vtx_map_node_name) { m_vtx_map_node_name = vtx_map_node_name; }
+  void getAllPVInfo(bool pvinfo) { m_get_all_PVs = pvinfo; }
 
   ///Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string& trk_map_node_name) { m_trk_map_node_name = trk_map_node_name; }
+  void setVertexMapNodeName(const std::string& vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
+
+  ///Use alternate vertex and track fitters
+  void setTrackMapNodeName(const std::string& trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
 
  private:
   bool m_has_intermediates_sPHENIX;

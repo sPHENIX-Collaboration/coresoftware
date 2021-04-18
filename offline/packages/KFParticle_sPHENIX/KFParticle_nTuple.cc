@@ -25,7 +25,8 @@ std::map<std::string, particle_pair_nTuple> particleMasses_nTuple = kfp_particle
 KFParticle_nTuple::KFParticle_nTuple()
   : m_has_intermediates_nTuple(false)
   , m_constrain_to_vertex_nTuple(false)
-  , m_num_intermediate_states_nTuple(0)
+  , m_get_all_PVs(false)
+  //, m_num_intermediate_states_nTuple(0)
   , m_num_tracks_from_intermediate_nTuple{0}
   , m_truth_matching(false)
   , m_detector_info(false)
@@ -85,6 +86,11 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(mother_name) + "_IPErr", &m_calculated_mother_ip_err, TString(mother_name) + "_IPErr/F");
     m_tree->Branch(TString(mother_name) + "_IP_xy", &m_calculated_mother_ip_xy, TString(mother_name) + "_IP_xy/F");
   }
+  if (m_get_all_PVs)
+  {
+    m_tree->Branch(TString(mother_name) + "_IP_allPV", &allPV_mother_IP);
+    m_tree->Branch(TString(mother_name) + "_IPchi2_allPV", &allPV_mother_IPchi2);
+  }
   m_tree->Branch(TString(mother_name) + "_x", &m_calculated_mother_x, TString(mother_name) + "_x/F");
   m_tree->Branch(TString(mother_name) + "_y", &m_calculated_mother_y, TString(mother_name) + "_y/F");
   m_tree->Branch(TString(mother_name) + "_z", &m_calculated_mother_z, TString(mother_name) + "_z/F");
@@ -140,6 +146,11 @@ void KFParticle_nTuple::initializeBranches()
         m_tree->Branch(TString(intermediate_name) + "_IPErr", &m_calculated_intermediate_ip_err[i], TString(intermediate_name) + "_IPErr/F");
         m_tree->Branch(TString(intermediate_name) + "_IP_xy", &m_calculated_intermediate_ip_xy[i], TString(intermediate_name) + "_IP_xy/F");
       }  
+      if (m_get_all_PVs)
+      {
+        m_tree->Branch(TString(intermediate_name) + "_IP_allPV", &allPV_intermediates_IP[i]);
+        m_tree->Branch(TString(intermediate_name) + "_IPchi2_allPV", &allPV_intermediates_IPchi2[i]);
+      }
       m_tree->Branch(TString(intermediate_name) + "_x", &m_calculated_intermediate_x[i], TString(intermediate_name) + "_x/F");
       m_tree->Branch(TString(intermediate_name) + "_y", &m_calculated_intermediate_y[i], TString(intermediate_name) + "_y/F");
       m_tree->Branch(TString(intermediate_name) + "_z", &m_calculated_intermediate_z[i], TString(intermediate_name) + "_z/F");
@@ -188,6 +199,11 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch(TString(daughter_number) + "_IPchi2", &m_calculated_daughter_ipchi2[i], TString(daughter_number) + "_IPchi2/F");
       m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
       m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
+    }
+    if (m_get_all_PVs)
+    {
+      m_tree->Branch(TString(daughter_number) + "_IP_allPV", &allPV_daughter_IP[i]);
+      m_tree->Branch(TString(daughter_number) + "_IPchi2_allPV", &allPV_daughter_IPchi2[i]);
     }
     m_tree->Branch(TString(daughter_number) + "_x", &m_calculated_daughter_x[i], TString(daughter_number) + "_x/F");
     m_tree->Branch(TString(daughter_number) + "_y", &m_calculated_daughter_y[i], TString(daughter_number) + "_y/F");
@@ -244,11 +260,19 @@ void KFParticle_nTuple::initializeBranches()
     //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
+  if (m_get_all_PVs)
+  {
+    m_tree->Branch("all_primary_vertex_x", &allPV_x);
+    m_tree->Branch("all_primary_vertex_y", &allPV_y);
+    m_tree->Branch("all_primary_vertex_z", &allPV_z);
+  }
 
   m_tree->Branch("secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F");
 
   m_tree->Branch("nPrimaryVertices", &m_nPVs, "nPrimaryVertices/I");
   m_tree->Branch("nEventTracks", &m_multiplicity, "nEventTracks/I");
+
+  //initializeMultiplicityBranches(m_tree);
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
@@ -485,6 +509,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         ++iter;
       }
 
+  if (m_get_all_PVs)
+  {
+    std::vector<KFParticle> sortedDaughterVector;
+    for (int i = 0; i < m_num_tracks_nTuple; ++i) sortedDaughterVector.push_back(daughterArray[i]); 
+    allPVInfo(topNode, m_tree, motherParticle, sortedDaughterVector, intermediates);
+  }
+
   if (m_constrain_to_vertex_nTuple)
   {
     motherParticle.SetProductionVertex(vertex);
@@ -502,8 +533,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_vertex_ndof = vertex.GetNDF();
     //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
-    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex);
+    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex, m_vtx_map_node_name_nTuple);
   }
+
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
@@ -524,6 +556,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   {
     m_runNumber = m_evtNumber = -1;
   }
+
+  //calculateMultiplicity(topNode, INTT_meanHits, INTT_asymmHits);
 
   m_tree->Fill();
 

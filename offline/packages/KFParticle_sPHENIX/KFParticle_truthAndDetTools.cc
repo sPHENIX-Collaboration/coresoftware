@@ -1,6 +1,7 @@
 #include "KFParticle_truthAndDetTools.h"
 
-#include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 std::map<std::string, int> Use =
     {
@@ -111,23 +112,23 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   float true_px, true_py, true_pz, true_p, true_pt;
 
   PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
-    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   }
   else
   {
-    std::cout << "KFParticle truth matching: SvtxTrackMap does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
-  findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxVertexMap"));
+  findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
   if (findNode)
   {
-    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
   }
   else
   {
-    std::cout << "KFParticle truth matching: SvtxVertexMap does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
@@ -233,14 +234,14 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree *m
   dummyParticle->set_generated_mass(0.);
 
   PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
-    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   }
   else
   {
-    std::cout << "KFParticle truth matching: SvtxTrackMap does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
@@ -323,20 +324,19 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                     TTree *m_tree, KFParticle daughter, int daughter_id)
+                                                 TTree *m_tree, KFParticle daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
-
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
-    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   }
   else
   {
-    std::cout << "KFParticle detector info: SvtxTrackMap does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
-
+ 
   track = getTrack(daughter.Id(), dst_trackmap);
 
   detector_emcal_deltaphi[daughter_id] = track->get_cal_dphi(SvtxTrack::CAL_LAYER(1));
@@ -395,14 +395,14 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 {
   PHNodeIterator nodeIter(topNode);
 
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("SvtxTrackMap"));
+  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
-    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   }
   else
   {
-    std::cout << "KFParticle detector info: SvtxTrackMap does not exist" << std::endl;
+    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
 
   findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("TRKR_CLUSTER"));
@@ -457,10 +457,74 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
 }
 
+
+void KFParticle_truthAndDetTools::initializeMultiplicityBranches(TTree *m_tree)
+{
+  m_tree->Branch("INTT_meanHits", &INTT_meanHits, "INTT_meanHits/F");
+  m_tree->Branch("INTT_asymmHits", &INTT_asymmHits, "INTT_asymmHits/F");
+}
+
+void KFParticle_truthAndDetTools::calculateMultiplicity(PHCompositeNode *topNode, float& meanMultiplicity, float& asymmetryMultiplicity)
+{
+  TrkrHitSetContainer* hitContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
+  TrkrHitSetContainer::ConstRange inttHitSetRange[2];
+  for (int i = 0; i < 2; i++) inttHitSetRange[i] = hitContainer->getHitSets(TrkrDefs::TrkrId::inttId, i + 4);
+
+  int inttHits[2] = {0};
+
+  for (int i = 0; i < 2; i++) 
+  {
+    for (TrkrHitSetContainer::ConstIterator hitsetitr = inttHitSetRange[i].first;
+         hitsetitr != inttHitSetRange[i].second;
+         ++hitsetitr)
+    {
+      TrkrHitSet *hitset = hitsetitr->second;
+      inttHits[i] += hitset->size();
+    }
+  }
+
+  meanMultiplicity = (inttHits[0] + inttHits[1])/2;
+  asymmetryMultiplicity = (inttHits[0] - inttHits[1])/(inttHits[0] + inttHits[1]);
+}
+
+void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
+                                            TTree *m_tree, 
+                                            KFParticle motherParticle,
+                                            std::vector<KFParticle> daughters,
+                                            std::vector<KFParticle> intermediates)
+{
+  KFParticle_Tools kfpTupleTools;
+  std::vector<KFParticle> primaryVertices = kfpTupleTools.makeAllPrimaryVertices(topNode, m_vtx_map_node_name_nTuple);
+
+  for (unsigned int i = 0; i < primaryVertices.size(); ++i)
+  {
+    allPV_x.push_back(primaryVertices[i].GetX());
+    allPV_y.push_back(primaryVertices[i].GetY());
+    allPV_z.push_back(primaryVertices[i].GetZ());
+  
+    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertices[i]));  
+    allPV_mother_IPchi2.push_back(motherParticle.GetDeviationFromVertex(primaryVertices[i]));
+
+    for (unsigned int j = 0; j < daughters.size(); ++j)
+    {
+      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertices[i]));  
+      allPV_daughter_IPchi2[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertices[i]));
+    }
+
+    for (unsigned int j = 0; j < intermediates.size(); ++j)
+    {
+      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertices[i]));  
+      allPV_intermediates_IPchi2[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertices[i]));
+    }
+  }
+}
+
 void KFParticle_truthAndDetTools::clearVectors()
 {
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
+    //Truth vectors
     m_true_daughter_track_history_PDG_ID[i].clear();
     m_true_daughter_track_history_PDG_mass[i].clear();
     m_true_daughter_track_history_px[i].clear();
@@ -469,6 +533,7 @@ void KFParticle_truthAndDetTools::clearVectors()
     m_true_daughter_track_history_pE[i].clear();
     m_true_daughter_track_history_pT[i].clear();
 
+    //Detector vectors
     detector_local_x[i].clear();
     detector_local_y[i].clear();
     detector_local_z[i].clear();
@@ -479,5 +544,23 @@ void KFParticle_truthAndDetTools::clearVectors()
     intt_ladderPhiID[i].clear();
     tpc_sectorID[i].clear();
     tpc_side[i].clear();
+
+   //PV vectors
+   allPV_daughter_IP[i].clear();
+   allPV_daughter_IPchi2[i].clear();
+  }
+
+  allPV_x.clear();
+  allPV_y.clear();
+  allPV_z.clear();
+  allPV_z.clear();
+
+  allPV_mother_IP.clear();
+  allPV_mother_IPchi2.clear();
+
+  for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
+  {
+    allPV_intermediates_IP[i].clear();
+    allPV_intermediates_IPchi2[i].clear();
   }
 }

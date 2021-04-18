@@ -68,9 +68,11 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["electron"] = std::make_pair(11, 0.000511);
   particleMasses["e+"] = std::make_pair(11, 0.000511);
   particleMasses["e-"] = std::make_pair(11, 0.000511);
+  particleMasses["e"] = std::make_pair(11, 0.000511);
   particleMasses["muon"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["mu+"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["mu-"] = std::make_pair(13, kfpDatabase.GetMass(13));
+  particleMasses["mu"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["tau"] = std::make_pair(15, 1.77686);
 
   //Gauge bosons and Higgs
@@ -83,6 +85,7 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["pion"] = std::make_pair(211, kfpDatabase.GetMass(211));
   particleMasses["pi+"] = std::make_pair(211, kfpDatabase.GetMass(211));
   particleMasses["pi-"] = std::make_pair(211, kfpDatabase.GetMass(211));
+  particleMasses["pi"] = std::make_pair(211, kfpDatabase.GetMass(211));
   particleMasses["pi0"] = std::make_pair(111, kfpDatabase.GetPi0Mass());
   particleMasses["eta"] = std::make_pair(221, 0.547862);
   particleMasses["f0(500)"] = std::make_pair(9000221, 0.5);
@@ -94,8 +97,10 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
 
   //Strange mesons
   particleMasses["kaon"] = std::make_pair(321, kfpDatabase.GetMass(321));
+  particleMasses["Kaon"] = std::make_pair(321, kfpDatabase.GetMass(321));
   particleMasses["K+"] = std::make_pair(321, kfpDatabase.GetMass(321));
   particleMasses["K-"] = std::make_pair(321, kfpDatabase.GetMass(321));
+  particleMasses["K"] = std::make_pair(321, kfpDatabase.GetMass(321));
   particleMasses["K0"] = std::make_pair(311, 0.497611);
   particleMasses["KS0"] = std::make_pair(310, 0.497611);
   particleMasses["KL0"] = std::make_pair(130, 0.497611);  //130 is correct according to the PDG
@@ -142,6 +147,7 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["Bminus"] = std::make_pair(521, 5.279);
   particleMasses["B0"] = std::make_pair(511, 5.279);
   particleMasses["Bs0"] = std::make_pair(531, 5.366);
+  particleMasses["B_s0"] = std::make_pair(531, 5.366);
   particleMasses["Bc+"] = std::make_pair(541, 6.2749);
   particleMasses["Bc-"] = std::make_pair(541, 6.2749);
   particleMasses["Bc"] = std::make_pair(541, 6.2749);

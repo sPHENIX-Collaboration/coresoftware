@@ -37,12 +37,14 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
  protected:
   bool m_has_intermediates_nTuple;
   bool m_constrain_to_vertex_nTuple;
-  int m_num_intermediate_states_nTuple;
+  bool m_get_all_PVs;
+  //int m_num_intermediate_states_nTuple;
   int m_num_tracks_from_intermediate_nTuple[99];
   bool m_truth_matching;
   bool m_detector_info;
   bool m_calo_info;
   std::string m_mother_name;
+  //std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
   std::string m_intermediate_name_ntuple[99];

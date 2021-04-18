@@ -1,6 +1,8 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 
+#include "KFParticle_Tools.h"
+
 #include <intt/InttDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <tpc/TpcDefs.h>
@@ -80,9 +82,20 @@ class KFParticle_truthAndDetTools
   void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
 
+  void initializeMultiplicityBranches(TTree *m_tree);
+  void calculateMultiplicity(PHCompositeNode *topNode, float& meanMultiplicity, float& asymmetryMultiplicity);
+
+  void allPVInfo(PHCompositeNode *topNode, TTree *m_tree, 
+                 KFParticle motherParticle, 
+                 std::vector<KFParticle> daughters,
+                 std::vector<KFParticle> intermediates);
+
   void clearVectors();
 
  protected:
+  std::string m_trk_map_node_name_nTuple = "SvtxTrackMap";
+  std::string m_vtx_map_node_name_nTuple = "SvtxVertexMap";
+
   SvtxEvalStack *m_svtx_evalstack = nullptr;
   SvtxClusterEval *clustereval = nullptr;
   SvtxHitEval *hiteval = nullptr;
@@ -101,7 +114,8 @@ class KFParticle_truthAndDetTools
 
   TrkrClusterContainer *dst_clustermap = nullptr;
 
-  int m_num_tracks_nTuple;
+  int m_num_tracks_nTuple = 0;
+  int m_num_intermediate_states_nTuple = 0;
 
   static const int max_tracks = 20;
 
@@ -154,6 +168,19 @@ class KFParticle_truthAndDetTools
   std::vector<int> intt_ladderPhiID[max_tracks];
   std::vector<int> tpc_sectorID[max_tracks];
   std::vector<int> tpc_side[max_tracks];
+
+  float INTT_meanHits = 0;
+  float INTT_asymmHits = 0;
+
+  std::vector<float> allPV_x;
+  std::vector<float> allPV_y;
+  std::vector<float> allPV_z;
+  std::vector<float> allPV_mother_IP;
+  std::vector<float> allPV_mother_IPchi2;
+  std::vector<float> allPV_daughter_IP[max_tracks];
+  std::vector<float> allPV_daughter_IPchi2[max_tracks];
+  std::vector<float> allPV_intermediates_IP[max_tracks];
+  std::vector<float> allPV_intermediates_IPchi2[max_tracks];
 
   PHHepMCGenEventMap *m_geneventmap = NULL;
   PHHepMCGenEvent *m_genevt = NULL;
