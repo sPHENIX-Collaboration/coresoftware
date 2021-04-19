@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
   RawTower.h \
   RawTowerDefs.h \
   RawTowerv1.h \
+  RawTowerv2.h \
   RawTowerContainer.h  \
   RawTowerDeadMap.h  \
   RawTowerDeadMapv1.h  \
@@ -45,6 +46,7 @@ ROOTDICTS = \
   RawClusterContainer_Dict.cc \
   RawTower_Dict.cc \
   RawTowerv1_Dict.cc \
+  RawTowerv2_Dict.cc \
   RawTowerContainer_Dict.cc \
   RawTowerDeadMap_Dict.cc \
   RawTowerGeom_Dict.cc \
@@ -63,6 +65,7 @@ nobase_dist_pcm_DATA = \
   RawClusterContainer_Dict_rdict.pcm \
   RawTower_Dict_rdict.pcm \
   RawTowerv1_Dict_rdict.pcm \
+  RawTowerv2_Dict_rdict.pcm \
   RawTowerContainer_Dict_rdict.pcm \
   RawTowerDeadMap_Dict_rdict.pcm \
   RawTowerGeom_Dict_rdict.pcm \
@@ -79,7 +82,9 @@ libcalo_io_la_SOURCES = \
   RawCluster.cc \
   RawClusterv1.cc \
   RawClusterContainer.cc \
+  RawTower.cc \
   RawTowerv1.cc \
+  RawTowerv2.cc \
   RawTowerContainer.cc \
   RawTowerDeadMap.cc \
   RawTowerDeadMapv1.cc \

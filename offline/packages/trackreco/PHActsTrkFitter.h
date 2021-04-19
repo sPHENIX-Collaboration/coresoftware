@@ -129,10 +129,6 @@ class PHActsTrkFitter : public PHTrackFitting
   Acts::BoundSymMatrix setDefaultCovariance();
   void printTrackSeed(ActsExamples::TrackParameters seed);
 
-  /// Map of Acts fit results and track key to be placed on node tree
-  std::map<const unsigned int, Trajectory> 
-    *m_actsFitResults;
-
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
 

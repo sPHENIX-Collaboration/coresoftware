@@ -38,6 +38,9 @@ SvtxTrack_v2::SvtxTrack_v2()
   , _cal_cluster_key()
   , _cal_cluster_e()
 {
+  for(int i = 0; i < 6; i++)
+    for(int j = 0; j < 6; j++)
+      _acts_trajectory_covariance[i][j] = NAN;
   // always include the pca point
   _states.insert(make_pair(0.0, new SvtxTrackState_v1(0.0)));
 }
