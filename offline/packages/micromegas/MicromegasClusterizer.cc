@@ -312,18 +312,14 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       /// Add Acts and local information
       /// We need to use this generation of the hitsetkey as this is what is 
-      /// done in the geometry building, so then they match
-      const unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      /* MicromegasDefs::SegmentationType segtype;
-      if(layer == 55)
-	segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
-      else
-	segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
-      */
+      /// done in the geometry building, so then surfi\ace ID matches
+      const unsigned int actslayer = TrkrDefs::getLayer(cluster_key);
       Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
-
+    
       /// Get the surface key to find the surface from the map
-      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segmentation_type, 0);
+      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(actslayer, 
+								     segmentation_type, 0);
+
       TrkrDefs::subsurfkey subsurfkey;
       auto surface = getMmSurfaceFromCoords(topNode, mmHitSetKey, subsurfkey, globalPos);
       if(!surface)
@@ -366,7 +362,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setActsLocalError(0,0, error(1,1));
       cluster->setActsLocalError(0,1, error(1,2));
       cluster->setActsLocalError(1,0, error(2,1));
-      cluster->setActsLocalError(1,1,error(2,2));
+      cluster->setActsLocalError(1,1, error(2,2));
 
       // rotate and save
       matrix_t rotation = matrix_t::Identity();

@@ -369,16 +369,9 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey,
     {
       const unsigned int layer = TrkrDefs::getLayer(cluskey);
       unsigned int tile = 0;
-
-      MicromegasDefs::SegmentationType segtype;
-      if(layer == 55)
-	segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
-      else
-	segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
+      const auto segtype = MicromegasDefs::getSegmentationType(cluskey);
       hitsetkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-
     }
-  
 
   if(trkrid == TrkrDefs::TrkrId::mvtxId or
      trkrid == TrkrDefs::TrkrId::inttId)
