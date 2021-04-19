@@ -312,12 +312,10 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       /// Add Acts and local information
       /// We need to use this generation of the hitsetkey as this is what is 
       /// done in the geometry building, so then surfi\ace ID matches
-      const unsigned int actslayer = TrkrDefs::getLayer(cluster_key);
-
       Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
     
       /// Get the surface key to find the surface from the map
-      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(actslayer, 
+      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, 
 								     segmentation_type, 0);
 
       TrkrDefs::subsurfkey subsurfkey;
