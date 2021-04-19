@@ -17,6 +17,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
