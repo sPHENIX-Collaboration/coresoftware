@@ -89,14 +89,14 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
     {
       // phi pulls (cluster - truth)
       auto h = new TH1F(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer), 100, -3, 3);
-      h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi (cm)");
+      h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi");
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
       auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth} layer_%i", layer), 100, -3e-3, 3e-3);
-      h->GetXaxis()->SetTitle("#Delta#z_{cluster-truth} (cm)");
+      h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
@@ -110,7 +110,7 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
     {
       // z pulls (cluster - truth)
       auto h = new TH1F(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth}/#sigmaz layer_%i", layer), 100, -3, 3);
-      h->GetXaxis()->SetTitle("#Delta#z_{cluster-truth}/#sigmaz (cm)");
+      h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth}/#sigmaz");
       hm->registerHisto(h);
     }
 
