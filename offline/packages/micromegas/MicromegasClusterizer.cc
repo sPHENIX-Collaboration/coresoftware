@@ -208,7 +208,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-     
       auto cluster = std::make_unique<TrkrClusterv2>();
       cluster->setClusKey(cluster_key);
 
@@ -314,6 +313,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       /// We need to use this generation of the hitsetkey as this is what is 
       /// done in the geometry building, so then surfi\ace ID matches
       const unsigned int actslayer = TrkrDefs::getLayer(cluster_key);
+
       Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
     
       /// Get the surface key to find the surface from the map

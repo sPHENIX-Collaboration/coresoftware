@@ -18,8 +18,6 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
-#include <micromegas/MicromegasDefs.h>
-
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -125,7 +123,7 @@ int PHActsTrkFitter::Process()
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
-    if(Verbosity() > 5)
+    if(Verbosity() > 4)
       logLevel = Acts::Logging::VERBOSE;
   }
 
@@ -361,7 +359,6 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey,
 
   auto trkrid = TrkrDefs::getTrkrId(cluskey);
   auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
- 
 
   /// We need to generate the hitsetkey the same way we do in the 
   /// geometry building for proper look up
@@ -378,7 +375,7 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey,
     {
       return getSiliconSurface(hitsetkey);
     }
-  else 
+  else
     {
       return getTpcMMSurface(hitsetkey, surfkey);
     }
@@ -400,22 +397,14 @@ Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 Surface PHActsTrkFitter::getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
 					 TrkrDefs::subsurfkey surfkey)
 {
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> surfMap;
-
-  bool mm = TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::TrkrId::micromegasId;
-  
-  if(mm)
-    surfMap = m_surfMaps->mmSurfaceMap;  
-  else
-    surfMap = m_surfMaps->tpcSurfaceMap;
-
+  auto surfMap = m_surfMaps->tpcSurfaceMap;
   auto iter = surfMap.find(hitsetkey);
   if(iter != surfMap.end())
     {
       auto surfvec = iter->second;
       return surfvec.at(surfkey);
     }
-
+  
   /// If it can't be found, return nullptr to skip this cluster
   return nullptr;
 
@@ -437,11 +426,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
       /// Make a safety check for clusters that couldn't be attached
       /// to a surface
       auto surf = getSurface(key, subsurfkey);
-      if(!surf) 
-	{
-	  continue;
-	}
-
+      if(!surf)
+	continue;
+  
       Acts::BoundVector loc = Acts::BoundVector::Zero();
       loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
       loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
