@@ -1,4 +1,4 @@
-#include "QAG4SimulationMvtx.h"
+#include "QAG4SimulationMicromegas.h"
 #include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
@@ -21,6 +21,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
+#include <micromegas/CylinderGeomMicromegas.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -35,13 +36,13 @@
 #include <utility>   // for pair, make_pair
 
 //________________________________________________________________________
-QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string& name)
+QAG4SimulationMicromegas::QAG4SimulationMicromegas(const std::string& name)
   : SubsysReco(name)
 {
 }
 
 //________________________________________________________________________
-int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
+int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
 {
   // prevent multiple creations of histograms
   if (m_initialized)
@@ -50,19 +51,17 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
     m_initialized = true;
 
   // find mvtx geometry
-  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
   if (!geom_container)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MICROMEGAS_FULL" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   // get layers from mvtx geometry
   const auto range = geom_container->get_begin_end();
   for (auto iter = range.first; iter != range.second; ++iter)
-  {
-    m_layers.insert(iter->first);
-  }
+  { m_layers.insert(iter->first); }
 
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
@@ -72,75 +71,57 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
   for (const auto& layer : m_layers)
   {
     if (Verbosity()) std::cout << PHWHERE << " adding layer " << layer << std::endl;
+
+    // get layer geometry
+    const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geom_container->GetLayerGeom(layer));
+    assert( layergeom );
+
+    // get segmentation type
+    const auto segmentation_type = layergeom->get_segmentation_type();
+    const bool is_segmentation_phi = (segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI);
     {
-      // rphi residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("MVTX r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -2e-3, 2e-3);
-      h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
+      // residuals (cluster - truth)
+      const double max_residual = is_segmentation_phi ? 0.04:0.08;
+      auto h = new TH1F(Form("%sresidual_%i", get_histo_prefix().c_str(), layer),
+        Form("micromegas %s_{cluster-truth} layer_%i",
+        is_segmentation_phi ? "r#Delta#phi":"#Deltaz", layer), 100, -max_residual, max_residual );
+      h->GetXaxis()->SetTitle( Form( "%s_{cluster-truth} (cm)", is_segmentation_phi ? "r#Delta#phi":"#Deltaz" ) );
       hm->registerHisto(h);
     }
 
     {
-      // rphi cluster errors
-      auto h = new TH1F(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer), Form("MVTX r#Delta#phi error layer_%i", layer), 100, 0, 2e-3);
-      h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
+      // cluster errors
+      const double max_error =  is_segmentation_phi ? 0.04:0.08;
+      auto h = new TH1F(Form("%sresidual_error_%i", get_histo_prefix().c_str(), layer),
+        Form("micromegas %s error layer_%i",
+        is_segmentation_phi ? "r#Delta#phi":"#Deltaz", layer), 100, 0, max_error);
+      h->GetXaxis()->SetTitle( Form( "%s error (cm)", is_segmentation_phi ? "r#Delta#phi":"#Deltaz" ) );
       hm->registerHisto(h);
     }
 
     {
-      // phi pulls (cluster - truth)
-      auto h = new TH1F(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer), 100, -3, 3);
-      h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi");
+      // pulls (cluster - truth)
+      auto h = new TH1F(Form("%scluster_pulls_%i", get_histo_prefix().c_str(), layer),
+        Form("micromegas %s layer_%i",
+        is_segmentation_phi ? "#Delta#phi/#sigma#phi":"#Deltaz/#sigmaz", layer), 100, -5, 5);
+      h->GetXaxis()->SetTitle(is_segmentation_phi ? "#Delta#phi/#sigma#phi":"#Deltaz/#sigmaz");
       hm->registerHisto(h);
     }
 
     {
-      // z residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth} layer_%i", layer), 100, -3e-3, 3e-3);
-      h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth} (cm)");
-      hm->registerHisto(h);
-    }
-
-    {
-      // z cluster errors
-      auto h = new TH1F(Form("%sz_error_%i", get_histo_prefix().c_str(), layer), Form("MVTX z error layer_%i", layer), 100, 0, 3e-3);
-      h->GetXaxis()->SetTitle("z error (cm)");
-      hm->registerHisto(h);
-    }
-
-    {
-      // z pulls (cluster - truth)
-      auto h = new TH1F(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth}/#sigmaz layer_%i", layer), 100, -3, 3);
-      h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth}/#sigmaz");
-      hm->registerHisto(h);
-    }
-
-    {
-      // total cluster size
-      auto h = new TH1F(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size layer_%i", layer), 20, 0, 20);
+      // cluster size
+      auto h = new TH1F(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer), Form("micromegas cluster size layer_%i", layer), 20, 0, 20);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
 
-    {
-      // cluster size in phi
-      auto h = new TH1F(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size (#phi) layer_%i", layer), 10, 0, 10);
-      h->GetXaxis()->SetTitle("csize_{#phi}");
-      hm->registerHisto(h);
-    }
-
-    {
-      // cluster size in z
-      auto h = new TH1F(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size (z) layer_%i", layer), 10, 0, 10);
-      h->GetXaxis()->SetTitle("csize_{z}");
-      hm->registerHisto(h);
-    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
-int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
+int QAG4SimulationMicromegas::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res = load_nodes(topNode);
@@ -151,13 +132,13 @@ int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
 }
 
 //________________________________________________________________________
-std::string QAG4SimulationMvtx::get_histo_prefix() const
+std::string QAG4SimulationMicromegas::get_histo_prefix() const
 {
   return std::string("h_") + Name() + std::string("_");
 }
 
 //________________________________________________________________________
-int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
+int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 {
 
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -188,8 +169,8 @@ int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
-  if (!m_g4hits_mvtx)
+  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
+  if (!m_g4hits_micromegas)
   {
     std::cout << PHWHERE << " unable to find DST node G4HIT_MVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -199,7 +180,7 @@ int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
 }
 
 //________________________________________________________________________
-void QAG4SimulationMvtx::evaluate_clusters()
+void QAG4SimulationMicromegas::evaluate_clusters()
 {
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
@@ -208,17 +189,11 @@ void QAG4SimulationMvtx::evaluate_clusters()
   // load relevant histograms
   struct HistogramList
   {
-    TH1* drphi = nullptr;
-    TH1* rphi_error = nullptr;
-    TH1* phi_pulls = nullptr;
-
-    TH1* dz = nullptr;
-    TH1* z_error = nullptr;
-    TH1* z_pulls = nullptr;
+    TH1* residual = nullptr;
+    TH1* residual_error = nullptr;
+    TH1* pulls = nullptr;
 
     TH1* csize = nullptr;
-    TH1* csize_phi = nullptr;
-    TH1* csize_z = nullptr;
   };
 
   using HistogramMap = std::map<int, HistogramList>;
@@ -227,87 +202,84 @@ void QAG4SimulationMvtx::evaluate_clusters()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.drphi = dynamic_cast<TH1*>(hm->getHisto(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer)));
-    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer)));
-    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer)));
-
-    h.dz = dynamic_cast<TH1*>(hm->getHisto(Form("%sdz_%i", get_histo_prefix().c_str(), layer)));
-    h.z_error = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_error_%i", get_histo_prefix().c_str(), layer)));
-    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer)));
-
+    h.residual = dynamic_cast<TH1*>(hm->getHisto(Form("%sresidual_%i", get_histo_prefix().c_str(), layer)));
+    h.residual_error = dynamic_cast<TH1*>(hm->getHisto(Form("%sresidual_error_%i", get_histo_prefix().c_str(), layer)));
+    h.pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%scluster_pulls_%i", get_histo_prefix().c_str(), layer)));
     h.csize = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_z = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer)));
 
     histograms.insert(std::make_pair(layer, h));
   }
-  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+
+  // loop over hitsets
+  const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr){
-    auto range = m_cluster_map->getClusters(hitsetitr->first);
+
+    // get associated clusters
+    const auto range = m_cluster_map->getClusters(hitsetitr->first);
     for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter ){
-      // get cluster key, detector id and check
+
+      // get cluster key
       const auto& key = clusterIter->first;
+
       // get cluster
       const auto& cluster = clusterIter->second;
-      
+
+      // get segmentation type
+      const auto segmentation_type = MicromegasDefs::getSegmentationType( key );
+
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
       const auto z_cluster = cluster->getZ();
       const auto phi_cluster = std::atan2(cluster->getY(), cluster->getX());
       const auto phi_error = cluster->getPhiError();
       const auto z_error = cluster->getZError();
-      
+
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
-      
+
       // get relevant truth information
       const auto x_truth = QAG4Util::interpolate<&PHG4Hit::get_x>(g4hits, r_cluster);
       const auto y_truth = QAG4Util::interpolate<&PHG4Hit::get_y>(g4hits, r_cluster);
       const auto z_truth = QAG4Util::interpolate<&PHG4Hit::get_z>(g4hits, r_cluster);
       const auto phi_truth = std::atan2(y_truth, x_truth);
-      
+
       const auto dphi = QAG4Util::delta_phi(phi_cluster, phi_truth);
       const auto dz = z_cluster - z_truth;
-      
+
       // get layer, get histograms
       const auto layer = TrkrDefs::getLayer(key);
       const auto hiter = histograms.find(layer);
       if (hiter == histograms.end()) continue;
-      
+
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
-      fill(hiter->second.drphi, r_cluster * dphi);
-      fill(hiter->second.rphi_error, r_cluster * phi_error);
-      fill(hiter->second.phi_pulls, dphi / phi_error);
-      
-      // fill z residuals, errors and pulls
-      fill(hiter->second.dz, dz);
-      fill(hiter->second.z_error, z_error);
-      fill(hiter->second.z_pulls, dz / z_error);
-      
-      // cluster sizes
+      switch( segmentation_type )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+        fill(hiter->second.residual, r_cluster * dphi);
+        fill(hiter->second.residual_error, r_cluster * phi_error);
+        fill(hiter->second.pulls, dphi / phi_error);
+        break;
+
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        fill(hiter->second.residual, dz);
+        fill(hiter->second.residual_error, z_error);
+        fill(hiter->second.pulls, dz / z_error);
+        break;
+      }
+
+      // cluster size
       // get associated hits
       const auto hit_range = m_cluster_hit_map->getHits(key);
       fill(hiter->second.csize, std::distance(hit_range.first, hit_range.second));
-      
-      std::set<int> phibins;
-      std::set<int> zbins;
-      for (auto hit_iter = hit_range.first; hit_iter != hit_range.second; ++hit_iter)
-	{
-	  const auto& hit_key = hit_iter->second;
-	  phibins.insert(MvtxDefs::getRow(hit_key));
-	  zbins.insert(MvtxDefs::getCol(hit_key));
-	}
-      
-      fill(hiter->second.csize_phi, phibins.size());
-      fill(hiter->second.csize_z, zbins.size());
+
     }
   }
 }
 //_____________________________________________________________________
-QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits(TrkrDefs::cluskey cluster_key) const
+QAG4SimulationMicromegas::G4HitSet QAG4SimulationMicromegas::find_g4hits(TrkrDefs::cluskey cluster_key) const
 {
   // find hitset associated to cluster
   G4HitSet out;
@@ -331,7 +303,7 @@ QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits(TrkrDefs::cluskey c
       const auto g4hit_key = truth_iter->second.second;
 
       // g4 hit
-      PHG4Hit* g4hit = (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::mvtxId) ? m_g4hits_mvtx->findHit(g4hit_key) : nullptr;
+      PHG4Hit* g4hit = (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::micromegasId) ? m_g4hits_micromegas->findHit(g4hit_key) : nullptr;
 
       // insert in set
       if (g4hit) out.insert(g4hit);
