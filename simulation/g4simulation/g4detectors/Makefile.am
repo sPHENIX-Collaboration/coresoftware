@@ -39,7 +39,6 @@ libg4detectors_la_LIBADD = \
 
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \
-  ePHENIXRICHConstruction.h \
   PHG4BbcSubsystem.h \
   PHG4BlockCellGeom.h \
   PHG4BlockCellGeomContainer.h \
@@ -82,8 +81,6 @@ pkginclude_HEADERS = \
   PHG4InnerHcalSubsystem.h \
   PHG4OuterHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \
-  PHG4RICHSubsystem.h \
-  PHG4mRICHSubsystem.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatv1.h \
   PHG4ScintillatorSlatContainer.h \
@@ -235,11 +232,6 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalFieldSetup.cc \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
-  PHG4RICHDetector.cc \
-  PHG4RICHDisplayAction.cc \
-  PHG4RICHSteppingAction.cc \
-  PHG4RICHSubsystem.cc \
-  ePHENIXRICHConstruction.cc \
   PHG4SectorConstructor.cc \
   PHG4SectorDetector.cc \
   PHG4SectorDisplayAction.cc \
@@ -256,11 +248,7 @@ libg4detectors_la_SOURCES = \
   PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
   PHG4SpacalSteppingAction.cc \
-  PHG4SpacalSubsystem.cc \
-  PHG4mRICHDetector.cc \
-  PHG4mRICHSteppingAction.cc \
-  PHG4mRICHSubsystem.cc
-
+  PHG4SpacalSubsystem.cc 
 bin_SCRIPTS = \
   CreateG4Subsystem.pl
 
