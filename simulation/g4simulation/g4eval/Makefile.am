@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
@@ -49,9 +52,18 @@ pkginclude_HEADERS = \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
   SvtxTruthEval.h \
-  SvtxVertexEval.h
+  SvtxVertexEval.h \
+  TrackEvaluationContainer.h
+
+ROOTDICTS = \
+  TrackEvaluationContainer_Dict.cc
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TrackEvaluationContainer_Dict_rdict.pcm
 
 libg4eval_la_SOURCES = \
+  $(ROOTDICTS) \
   BaseTruthEval.cc \
   CaloEvalStack.cc \
   CaloTruthEval.cc \
@@ -63,7 +75,9 @@ libg4eval_la_SOURCES = \
   JetTruthEval.cc \
   JetRecoEval.cc \
   JetEvaluator.cc \
+  MomentumEvaluator.cc \
   PHG4DSTReader.cc \
+  PHG4DstCompressReco.cc \
   SvtxEvalStack.cc \
   SvtxTruthEval.cc \
   SvtxHitEval.cc \
@@ -71,8 +85,14 @@ libg4eval_la_SOURCES = \
   SvtxTrackEval.cc \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
-  MomentumEvaluator.cc \
-  PHG4DstCompressReco.cc 
+  TrackEvaluationContainer.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -96,4 +116,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
