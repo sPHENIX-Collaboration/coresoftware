@@ -116,12 +116,16 @@ int RawTowerBuilderDRCALO::process_event(PHCompositeNode *topNode)
                                                                      g4hit_i->get_index_j(),
                                                                      g4hit_i->get_index_k());
     // add the energy to the corresponding tower
-    RawTower *tower = m_Towers->getTower(calotowerid);
+    RawTowerv2 *tower = dynamic_cast<RawTowerv2 *>(m_Towers->getTower(calotowerid));
     if (!tower)
     {
       tower = new RawTowerv2(calotowerid);
       tower->set_energy(0);
+      tower->set_scint_gammas(0.);
+      tower->set_cerenkov_gammas(0.);
       m_Towers->AddTower(tower->get_id(), tower);
+//       cout << "intializing tower" << endl;
+//       tower->identify();
     }
     else
     {
@@ -137,7 +141,7 @@ int RawTowerBuilderDRCALO::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 3)
       cout << g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas) << "\t" << g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas) << endl;
-
+//     cout << g4hit_i->get_index_j() << "\t" <<  g4hit_i->get_index_k() << "\t"<< tower->get_scint_gammas() << "\t" << g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas) << "\t" << tower->get_cerenkov_gammas() << "\t" << g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas) << endl;
     tower->set_scint_gammas(tower->get_scint_gammas() + g4hit_i->get_property_float(PHG4Hit::PROPERTY::scint_gammas));
     tower->set_cerenkov_gammas(tower->get_cerenkov_gammas() + g4hit_i->get_property_float(PHG4Hit::PROPERTY::cerenkov_gammas));
 
@@ -145,6 +149,7 @@ int RawTowerBuilderDRCALO::process_event(PHCompositeNode *topNode)
     // cout << (g4hit_i->get_index_j() << 16) + g4hit_i->get_index_k() << "\t" << g4hit_i->get_light_yield() << endl;
     tower->set_energy(tower->get_energy() + g4hit_i->get_light_yield());
     tower->add_eshower(g4hit_i->get_shower_id(), g4hit_i->get_edep());
+//     tower->identify();
   }
 
   float towerE = 0.;
