@@ -267,7 +267,7 @@ private:
   const int _maxNclusters = 100;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
-  const int _maxNMCPart = 10000;
+  const int _maxNMCPart = 100000;
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H

@@ -25,6 +25,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
+#include <calobase/RawTowerv2.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -209,7 +210,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _mcpart_pz(0)
 
   , _reco_e_threshold(0.0)
-  , _depth_MCstack(3)
+  , _depth_MCstack(2)
   , _caloevalstackFHCAL(nullptr)
   , _caloevalstackHCALIN(nullptr)
   , _caloevalstackHCALOUT(nullptr)
