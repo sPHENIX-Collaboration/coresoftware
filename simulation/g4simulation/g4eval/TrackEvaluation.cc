@@ -44,8 +44,8 @@ namespace
   {
     public:
     range_adaptor( const T& range ):m_range(range){}
-    const typename T::first_type& begin() {return m_range.first;}
-    const typename T::second_type& end() {return m_range.second;}
+    inline const typename T::first_type& begin() {return m_range.first;}
+    inline const typename T::second_type& end() {return m_range.second;}
     private:
     const T& m_range;
   };
