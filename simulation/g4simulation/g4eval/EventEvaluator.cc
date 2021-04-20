@@ -980,7 +980,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           // {
           //   cout << __PRETTY_FUNCTION__ << " : Fatal Error! "
           //       << "Expect RawTowerv2, but found this tower:";
-            tower->identify();
+            // tower->identify();
           //   // exit(1);
           // }
           if (tower)
