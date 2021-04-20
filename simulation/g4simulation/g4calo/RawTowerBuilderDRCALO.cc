@@ -124,6 +124,8 @@ int RawTowerBuilderDRCALO::process_event(PHCompositeNode *topNode)
       tower->set_scint_gammas(0.);
       tower->set_cerenkov_gammas(0.);
       m_Towers->AddTower(tower->get_id(), tower);
+//       cout << "intializing tower" << endl;
+//       tower->identify();
     }
     else
     {

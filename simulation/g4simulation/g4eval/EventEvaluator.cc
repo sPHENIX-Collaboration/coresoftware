@@ -976,6 +976,13 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
         {
           RawTower* tower = rtiter->second;
+          // if (dynamic_cast<RawTowerv2 *>(tower) == nullptr)
+          // {
+          //   cout << __PRETTY_FUNCTION__ << " : Fatal Error! "
+          //       << "Expect RawTowerv2, but found this tower:";
+            tower->identify();
+          //   // exit(1);
+          // }
           if (tower)
           {
             // min energy cut
@@ -984,6 +991,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _tower_DRCALO_iEta[_nTowers_DRCALO] = tower->get_bineta();
             _tower_DRCALO_iPhi[_nTowers_DRCALO] = tower->get_binphi();
             _tower_DRCALO_E[_nTowers_DRCALO] = tower->get_energy();
+            // cout << __LINE__ << endl;
             _tower_DRCALO_NScint[_nTowers_DRCALO] = tower->get_scint_gammas();
             _tower_DRCALO_NCerenkov[_nTowers_DRCALO] = tower->get_cerenkov_gammas();
             // cout << "sci gammas: " << tower->get_scint_gammas() << "\tcerenk gammas: " << tower->get_cerenkov_gammas() << endl;
