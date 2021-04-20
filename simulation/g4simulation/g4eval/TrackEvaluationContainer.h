@@ -245,10 +245,22 @@ class TrackEvaluationContainer: public PHObject
   
   //!@name modifiers
   //@{
+
+  void addEvent( const EventStruct& event )
+  { m_events.push_back( event ); }
+  
+  void addCluster( const ClusterStruct& cluster )
+  { m_clusters.push_back( cluster ); }
   
   void addTrack( const TrackStruct& track )
   { m_tracks.push_back( track ); }
-    
+
+  void clearEvents()
+  { m_events.clear(); }
+  
+  void clearClusters()
+  { m_clusters.clear(); }
+  
   void clearTracks()
   { m_tracks.clear(); }
   
