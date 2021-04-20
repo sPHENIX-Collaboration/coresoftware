@@ -1,38 +1,15 @@
 #include "PHG4TruthInfoContainer.h"
 
 #include "PHG4Particle.h"
-#include "PHG4Particlev2.h"
-#include "PHG4Particlev3.h"
 #include "PHG4Shower.h"
 #include "PHG4VtxPoint.h"
-#include "PHG4VtxPointv1.h"
-
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4Track.hh>
 
 #include <boost/tuple/tuple.hpp>
 
 #include <limits>
-#include <set>
 #include <string>
 
 using namespace std;
-
-namespace {
-  /// A helper container to hold unique vertex positions
-  ///{@
-  struct VtxPos
-  {
-    double x, y, z; int vtxindex;
-    bool operator< (const VtxPos& b) const { return std::tie(z, y, x) < std::tie(b.z, b.y, b.x); }
-  };
-
-  std::set<VtxPos> vtxset;
-  ///@}
-}
-
 
 PHG4TruthInfoContainer::PHG4TruthInfoContainer()
   : particlemap()
@@ -57,7 +34,6 @@ void PHG4TruthInfoContainer::Reset()
     delete iter->second;
   }
   vtxmap.clear();
-  vtxset.clear();
 
   for (ShowerIterator iter = showermap.begin(); iter != showermap.end(); ++iter)
   {
@@ -139,60 +115,6 @@ PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle* newparticle
   return particlemap.end();
 }
 
-PHG4TruthInfoContainer::ConstIterator
-PHG4TruthInfoContainer::AddParticle(G4Track* track)
-{
-  int trackid = 0;
-  if (track->GetParentID())
-  {
-    // secondaries get negative user ids and increment downward between geant subevents
-    trackid = mintrkindex() - 1;
-  }
-  else
-  {
-    // primaries get positive user ids and increment upward between geant subevents
-    trackid = maxtrkindex() + 1;
-  }
-
-  // determine the momentum vector
-  G4ParticleDefinition* def = track->GetDefinition();
-  int pdgid = def->GetPDGEncoding();
-  double m = def->GetPDGMass();
-  double ke = track->GetVertexKineticEnergy();
-  double ptot = sqrt(ke * ke + 2.0 * m * ke);
-  G4ThreeVector pdir = track->GetVertexMomentumDirection();
-  pdir *= ptot;
-  PHG4Particle* ti = nullptr;
-  // create a new particle -----------------------------------------------------
-  if (def->IsGeneralIon())  // for ions save a and z in v3 of phg4particle
-  {
-    ti = new PHG4Particlev3();
-    ti->set_A(def->GetAtomicMass());
-    ti->set_Z(def->GetAtomicNumber());
-  }
-  else
-  {
-    ti = new PHG4Particlev2;
-  }
-  ti->set_px(pdir[0] / GeV);
-  ti->set_py(pdir[1] / GeV);
-  ti->set_pz(pdir[2] / GeV);
-  ti->set_track_id(trackid);
-
-  ti->set_parent_id(track->GetParentID());
-  ti->set_primary_id(trackid);
-
-  ti->set_pid(pdgid);
-  ti->set_name(def->GetParticleName());
-  ti->set_e(track->GetTotalEnergy() / GeV);
-
-  // Add new vertex and let the track know about it
-  ConstVtxIterator vtxiter = AddVertex(track);
-  ti->set_vtx_id(vtxiter->first);
-
-  return particlemap.insert(std::make_pair(trackid, ti)).first;
-}
-
 PHG4Particle* PHG4TruthInfoContainer::GetParticle(const int trackid)
 {
   int key = trackid;
@@ -266,25 +188,6 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   cerr << "PHG4TruthInfoContainer::AddVertex"
        << " - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
-}
-
-PHG4TruthInfoContainer::ConstVtxIterator
-PHG4TruthInfoContainer::AddVertex(const G4Track* track)
-{
-  G4ThreeVector v = track->GetVertexPosition();
-  int vtxindex = track->GetParentID() ? minvtxindex() - 1 : maxvtxindex() + 1;
-  std::set<VtxPos>::iterator iter;
-  bool inserted;
-  std::tie(iter, inserted) = vtxset.insert({v[0]/cm, v[1]/cm, v[2]/cm, vtxindex});
-
-  if (!inserted)
-  {
-    return vtxmap.find(iter->vtxindex);
-  }
-
-  PHG4VtxPointv1 vtxpt(v[0]/cm, v[1]/cm, v[2]/cm, track->GetGlobalTime()/ns, vtxindex);
-
-  return vtxmap.insert(std::make_pair(vtxindex, new PHG4VtxPointv1(vtxpt))).first;
 }
 
 PHG4TruthInfoContainer::ConstShowerIterator

@@ -1,18 +1,25 @@
 #include "PHG4TruthTrackingAction.h"
 
 #include "PHG4Particle.h"  // for PHG4Particle
+#include "PHG4Particlev2.h"
+#include "PHG4Particlev3.h"
 #include "PHG4Shower.h"  // for PHG4Shower
 #include "PHG4Showerv1.h"
 #include "PHG4TrackUserInfoV1.h"
 #include "PHG4TruthEventAction.h"
 #include "PHG4TruthInfoContainer.h"
 #include "PHG4UserPrimaryParticleInformation.h"
+#include "PHG4VtxPointv1.h"
 
 #include <phool/getClass.h>
 
 #include <Geant4/G4DynamicParticle.hh>     // for G4DynamicParticle
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PrimaryParticle.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4TrackVector.hh>  // for G4TrackVector
 #include <Geant4/G4TrackingManager.hh>
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
@@ -35,7 +42,7 @@ PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventActi
 void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
 {
   // insert particle into the output
-  PHG4Particle* ti = (*m_TruthInfoList->AddParticle(const_cast<G4Track*>(track))).second;
+  PHG4Particle* ti = AddParticle(*m_TruthInfoList, *const_cast<G4Track*>(track));
 
   // Negative G4 track id values indicate unwanted tracks to be deleted
   // Initially all tracks except primary ones flagged as unwanted
@@ -201,6 +208,8 @@ void PHG4TruthTrackingAction::SetInterfacePointers(PHCompositeNode* topNode)
 
 int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
 {
+  m_VertexMap.clear();
+
   while (!m_G4ParticleStack.empty())
   {
     if ( m_G4ParticleStack.back().g4track_id < 0)
@@ -211,4 +220,75 @@ int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
   }
 
   return 0;
+}
+
+PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth, G4Track& track)
+{
+  int trackid = 0;
+  if (track.GetParentID())
+  {
+    // secondaries get negative user ids and increment downward between geant subevents
+    trackid = truth.mintrkindex() - 1;
+  }
+  else
+  {
+    // primaries get positive user ids and increment upward between geant subevents
+    trackid = truth.maxtrkindex() + 1;
+  }
+
+  // determine the momentum vector
+  G4ParticleDefinition* def = track.GetDefinition();
+  int pdgid = def->GetPDGEncoding();
+  double m = def->GetPDGMass();
+  double ke = track.GetVertexKineticEnergy();
+  double ptot = sqrt(ke * ke + 2.0 * m * ke);
+  G4ThreeVector pdir = track.GetVertexMomentumDirection();
+  pdir *= ptot;
+  PHG4Particle* ti = nullptr;
+  // create a new particle -----------------------------------------------------
+  if (def->IsGeneralIon())  // for ions save a and z in v3 of phg4particle
+  {
+    ti = new PHG4Particlev3();
+    ti->set_A(def->GetAtomicMass());
+    ti->set_Z(def->GetAtomicNumber());
+  }
+  else
+  {
+    ti = new PHG4Particlev2;
+  }
+  ti->set_px(pdir[0] / GeV);
+  ti->set_py(pdir[1] / GeV);
+  ti->set_pz(pdir[2] / GeV);
+  ti->set_track_id(trackid);
+
+  ti->set_parent_id(track.GetParentID());
+  ti->set_primary_id(trackid);
+
+  ti->set_pid(pdgid);
+  ti->set_name(def->GetParticleName());
+  ti->set_e(track.GetTotalEnergy() / GeV);
+
+  // Add new or reuse a vertex and let the track know about it
+  PHG4VtxPoint* vtx = AddVertex(truth, track);
+  ti->set_vtx_id(vtx->get_id());
+
+  return truth.AddParticle(trackid, ti)->second;
+}
+
+PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, const G4Track& track)
+{
+  G4ThreeVector v = track.GetVertexPosition();
+  int vtxindex = (track.GetParentID() == 0 ? truth.maxvtxindex() + 1 : truth.minvtxindex() - 1);
+
+  auto [iter, inserted] = m_VertexMap.insert(std::make_pair(v, vtxindex));
+
+  // If could not add a unique vertex => return the existing one
+  if (!inserted)
+  {
+    return truth.GetVtxMap().find(iter->second)->second;
+  }
+  // otherwise, create and add a new one
+  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0]/cm, v[1]/cm, v[2]/cm, track.GetGlobalTime()/ns, vtxindex);
+
+  return truth.AddVertex(vtxindex, vtxpt)->second;
 }

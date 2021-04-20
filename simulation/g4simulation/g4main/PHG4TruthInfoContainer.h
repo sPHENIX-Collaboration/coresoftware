@@ -13,7 +13,6 @@
 class PHG4Shower;
 class PHG4Particle;
 class PHG4VtxPoint;
-class G4Track;
 
 class PHG4TruthInfoContainer : public PHObject
 {
@@ -46,7 +45,6 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
-  ConstIterator AddParticle(G4Track* track);
   void delete_particle(Iterator piter);
   void delete_particle(int trackid);
 
@@ -108,7 +106,6 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a vertex and return an iterator to the user
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
-  ConstVtxIterator AddVertex(const G4Track* track);
   void delete_vtx(VtxIterator viter);
   void delete_vtx(int vtxid);
 
