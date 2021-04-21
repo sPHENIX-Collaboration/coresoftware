@@ -17,6 +17,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -359,6 +360,16 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey,
 
   auto trkrid = TrkrDefs::getTrkrId(cluskey);
   auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  /// We need to generate the hitsetkey the same way we do in the 
+  /// geometry building for proper look up
+  if(trkrid == TrkrDefs::TrkrId::micromegasId)
+    {
+      const unsigned int layer = TrkrDefs::getLayer(cluskey);
+      unsigned int tile = 0;
+      const auto segtype = MicromegasDefs::getSegmentationType(cluskey);
+      hitsetkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+    }
 
   if(trkrid == TrkrDefs::TrkrId::mvtxId or
      trkrid == TrkrDefs::TrkrId::inttId)
