@@ -59,7 +59,19 @@ pkginclude_HEADERS = \
   SvtxVertexEval.h \
   TrackingEvaluator_hp.h
 
+ROOTDICTS = \
+  MicromegasEvaluator_hp_Dict.cc \
+  SimEvaluator_hp_Dict.cc \
+  TrackingEvaluator_hp_Dict.cc
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  MicromegasEvaluator_hp_Dict_rdict.pcm \
+  SimEvaluator_hp_Dict_rdict.pcm \
+  TrackingEvaluator_hp_Dict_rdict.pcm
+
 libg4eval_la_SOURCES = \
+  $(ROOTDICTS) \
   BaseTruthEval.cc \
   CaloEvalStack.cc \
   CaloTruthEval.cc \
@@ -72,11 +84,9 @@ libg4eval_la_SOURCES = \
   JetTruthEval.cc \
   JetRecoEval.cc \
   JetEvaluator.cc \
-  MicromegasEvaluator_hp_Dict.cc \
   MicromegasEvaluator_hp.cc \
   PHG4DSTReader.cc \
   SimEvaluator_hp.cc \
-  SimEvaluator_hp_Dict.cc \
   SvtxEvalStack.cc \
   SvtxTruthEval.cc \
   SvtxHitEval.cc \
@@ -85,9 +95,15 @@ libg4eval_la_SOURCES = \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
   TrackingEvaluator_hp.cc \
-  TrackingEvaluator_hp_Dict.cc \
   MomentumEvaluator.cc \
   PHG4DstCompressReco.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -110,11 +126,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -noIncludePaths  -inlineInputHeader -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
 clean-local:
-	rm -f $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
