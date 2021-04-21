@@ -132,10 +132,6 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
-  //! true if given layer is in mask
-  bool has_layer( int64_t mask, int layer )
-  { return mask & (1LL<<layer); }
-
   //! create track struct from struct from svx track
   TrackEvaluationContainer::TrackStruct create_track( SvtxTrack* track )
   {
