@@ -40,7 +40,6 @@ libg4tpc_la_SOURCES = \
   PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcDistortion.cc \
   PHG4TpcElectronDrift.cc \
-  PHG4TpcElectronDrift_Dict.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSteppingAction.cc \
@@ -65,12 +64,6 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ -noIncludePaths  -inlineInputHeader -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
