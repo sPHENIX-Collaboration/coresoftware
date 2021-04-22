@@ -11,8 +11,6 @@
 
 #include "TrackEvaluationContainer.h"
 
-#include <phool/PHObject.h>
-
 #include <vector>
 
 //! track evaluation container
