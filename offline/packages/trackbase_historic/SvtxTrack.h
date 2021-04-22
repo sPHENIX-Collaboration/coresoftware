@@ -37,7 +37,7 @@ class SvtxTrack : public PHObject
     HCALOUT = 3
   };
 
-  virtual ~SvtxTrack() {}
+  virtual ~SvtxTrack() = default;
 
   // The "standard PHObject response" functions...
   virtual void identify(std::ostream& os = std::cout) const
@@ -47,6 +47,10 @@ class SvtxTrack : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
   virtual PHObject* CloneMe() const { return nullptr; }
+
+  // copy content from base class
+  virtual void CopyFrom( const SvtxTrack& ) {}
+  virtual void CopyFrom( SvtxTrack* ) {}
 
   //
   // basic track information ---------------------------------------------------
