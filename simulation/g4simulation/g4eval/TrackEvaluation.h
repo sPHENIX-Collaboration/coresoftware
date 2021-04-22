@@ -20,7 +20,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-class TrackEvaluationContainer;
+class TrackEvaluationContainerv1;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -82,7 +82,7 @@ class TrackEvaluation : public SubsysReco
   int get_embed(PHG4Particle*) const;
 
   //! evaluation node
-  TrackEvaluationContainer* m_container = nullptr;
+  TrackEvaluationContainerv1* m_container = nullptr;
 
   //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks;

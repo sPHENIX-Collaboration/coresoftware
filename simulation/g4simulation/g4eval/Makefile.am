@@ -59,18 +59,21 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxVertexEval.h \
   TrackEvaluation.h \
-  TrackEvaluationContainer.h
+  TrackEvaluationContainer.h \
+  TrackEvaluationContainerv1.h
 
 ROOTDICTS = \
-	TrackEvaluationContainer_Dict.cc
+  TrackEvaluationContainer_Dict.cc \
+  TrackEvaluationContainerv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  TrackEvaluationContainer_Dict_rdict.pcm
+  TrackEvaluationContainer_Dict_rdict.pcm \
+  TrackEvaluationContainerv1_Dict_rdict.pcm
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS) \
-	TrackEvaluationContainer.cc
+  TrackEvaluationContainerv1.cc
 
 libg4eval_la_SOURCES = \
   BaseTruthEval.cc \
