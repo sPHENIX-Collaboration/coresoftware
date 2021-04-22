@@ -398,7 +398,8 @@ Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 Surface PHActsTrkFitter::getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
 					 TrkrDefs::subsurfkey surfkey)
 {
-  auto surfMap = m_surfMaps->tpcSurfaceMap;
+  const bool is_mm = TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::TrkrId::micromegasId;
+  const auto surfMap = is_mm ? m_surfMaps->mmSurfaceMap:m_surfMaps->tpcSurfaceMap;
   auto iter = surfMap.find(hitsetkey);
   if(iter != surfMap.end())
     {

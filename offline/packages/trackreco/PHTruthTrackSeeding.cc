@@ -92,8 +92,8 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       exit(1);
     }
 
-    float gtrackID = g4particle->get_track_id();
-
+    const float gtrackID = g4particle->get_track_id();
+    const int vertexID = g4particle->get_vtx_id();
     // monentum cut-off
     if (_min_momentum>0){
       const double monentum2 =
@@ -121,7 +121,9 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
     svtx_track->set_id(_track_map->size());
     svtx_track->set_truth_track_id(gtrackID);
-
+    ///g4 vertex id starts at 1, svtx vertex map starts at 0
+    svtx_track->set_vertex_id(vertexID-1);
+    
     // set track charge
     /*
      * having the proper track charge is necessary for the ACTS fit to work properly
