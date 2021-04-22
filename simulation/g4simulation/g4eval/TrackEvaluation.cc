@@ -411,7 +411,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode )
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainerv1, "TrackEvaluationContainerv1","PHObject");
+  auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainerv1, "TrackEvaluationContainer","PHObject");
   evalNode->addNode(newNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -461,7 +461,7 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
   m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
 
   // local container
-  m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainerv1");
+  m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainer");
 
   // hitset container
   m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
