@@ -52,16 +52,17 @@ pkginclude_HEADERS = \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
   SvtxTruthEval.h \
-  SvtxVertexEval.h \
-  TrackEvaluation.h \
-  TrackEvaluationContainer.h
+  SvtxVertexEval.h
+  
+#TrackEvaluation.h \
+#TrackEvaluationContainer.h
 
-ROOTDICTS = \
-  TrackEvaluationContainer_Dict.cc
+#ROOTDICTS = \
+#  TrackEvaluationContainer_Dict.cc
 
-pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  TrackEvaluationContainer_Dict_rdict.pcm
+#pcmdir = $(libdir)
+#nobase_dist_pcm_DATA = \
+#  TrackEvaluationContainer_Dict_rdict.pcm
 
 libg4eval_la_SOURCES = \
   $(ROOTDICTS) \
@@ -85,9 +86,10 @@ libg4eval_la_SOURCES = \
   SvtxClusterEval.cc \
   SvtxTrackEval.cc \
   SvtxVertexEval.cc \
-  SvtxEvaluator.cc \
-  TrackEvaluation.cc \
-  TrackEvaluationContainer.cc
+  SvtxEvaluator.cc
+
+#  TrackEvaluation.cc \
+#  TrackEvaluationContainer.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
