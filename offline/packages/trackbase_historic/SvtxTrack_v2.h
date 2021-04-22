@@ -18,8 +18,17 @@ class SvtxTrack_v2 : public SvtxTrack
 {
  public:
   SvtxTrack_v2();
-  SvtxTrack_v2(const SvtxTrack_v2& track);
+  
+  //* base class copy constructor
+  SvtxTrack_v2( const SvtxTrack& );
+  
+  //* copy constructor
+  SvtxTrack_v2(const SvtxTrack_v2& );
+  
+  //* assignment operator
   SvtxTrack_v2& operator=(const SvtxTrack_v2& track);
+
+  //* destructor
   virtual ~SvtxTrack_v2(); 
 
   // The "standard PHObject response" functions...
@@ -27,6 +36,11 @@ class SvtxTrack_v2 : public SvtxTrack
   void Reset() { *this = SvtxTrack_v2(); }
   int isValid() const;
   PHObject* CloneMe() const { return new SvtxTrack_v2(*this); }
+
+  // copy content from base class
+  virtual void CopyFrom( const SvtxTrack& );
+  virtual void CopyFrom( SvtxTrack* source )
+  { CopyFrom( *source ); }
 
   //
   // basic track information ---------------------------------------------------
@@ -191,21 +205,21 @@ class SvtxTrack_v2 : public SvtxTrack
 
   float _acts_trajectory_covariance[6][6];
   // track information
-  unsigned int _track_id;
-  unsigned int _vertex_id;
-  bool _is_positive_charge;
-  float _chisq;
-  unsigned int _ndf;
+  unsigned int _track_id = UINT_MAX;
+  unsigned int _vertex_id = UINT_MAX;
+  bool _is_positive_charge = false;
+  float _chisq = NAN;
+  unsigned int _ndf = 0;
 
   // extended track information (non-primary tracks only)
-  float _dca;
-  float _dca_error;
-  float _dca2d;
-  float _dca2d_error;
-  float _dca3d_xy;
-  float _dca3d_xy_error;
-  float _dca3d_z;
-  float _dca3d_z_error;
+  float _dca = NAN;
+  float _dca_error = NAN;
+  float _dca2d = NAN;
+  float _dca2d_error = NAN;
+  float _dca3d_xy = NAN;
+  float _dca3d_xy_error = NAN;
+  float _dca3d_z = NAN;
+  float _dca3d_z_error = NAN;
 
   // extended track information (primary tracks only)
 
