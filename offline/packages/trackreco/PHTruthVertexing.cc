@@ -154,13 +154,9 @@ void PHTruthVertexing::assignStubsVertices(PHCompositeNode *topNode)
 
       if(Verbosity() > 3)
 	track->identify();
-      
-      const double trackX = track->get_x();
-      const double trackY = track->get_y();
+    
       const double trackZ = track->get_z();
       
-      double dx = 9999.;
-      double dy = 9999.;
       double dz = 9999.;
       int trackVertexId = 9999;
       
@@ -173,16 +169,10 @@ void PHTruthVertexing::assignStubsVertices(PHCompositeNode *topNode)
 	  if(Verbosity() > 3)
 	    vertex->identify();
 	  
-	  const double vertexX = vertex->get_x();
-	  const double vertexY = vertex->get_y();
 	  const double vertexZ = vertex->get_z();
 	  
-	  if( fabs(trackX - vertexX) < dx &&
-	       fabs(trackY - vertexY) < dy &&
-	       fabs(trackZ - vertexZ) < dz )
+	  if( fabs(trackZ - vertexZ) < dz )
 	    {
-	      dx = fabs(trackX - vertexX);
-	      dy = fabs(trackY - vertexY);
 	      dz = fabs(trackZ - vertexZ);
 	      trackVertexId = vertexKey;
 	    }
