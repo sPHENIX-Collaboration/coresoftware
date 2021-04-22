@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
@@ -57,17 +60,21 @@ pkginclude_HEADERS = \
   SvtxTrackEval.h \
   SvtxTruthEval.h \
   SvtxVertexEval.h \
+	TrackEvaluation.h \
+  TrackEvaluationContainer.h \
   TrackingEvaluator_hp.h
 
 ROOTDICTS = \
   MicromegasEvaluator_hp_Dict.cc \
   SimEvaluator_hp_Dict.cc \
+  TrackEvaluationContainer_Dict.cc \
   TrackingEvaluator_hp_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   MicromegasEvaluator_hp_Dict_rdict.pcm \
   SimEvaluator_hp_Dict_rdict.pcm \
+  TrackEvaluationContainer_Dict_rdict.pcm \
   TrackingEvaluator_hp_Dict_rdict.pcm
 
 libg4eval_la_SOURCES = \
@@ -85,7 +92,9 @@ libg4eval_la_SOURCES = \
   JetRecoEval.cc \
   JetEvaluator.cc \
   MicromegasEvaluator_hp.cc \
+  MomentumEvaluator.cc \
   PHG4DSTReader.cc \
+  PHG4DstCompressReco.cc \
   SimEvaluator_hp.cc \
   SvtxEvalStack.cc \
   SvtxTruthEval.cc \
@@ -94,9 +103,9 @@ libg4eval_la_SOURCES = \
   SvtxTrackEval.cc \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
-  TrackingEvaluator_hp.cc \
-  MomentumEvaluator.cc \
-  PHG4DstCompressReco.cc
+  TrackEvaluation.cc \
+  TrackEvaluationContainer.cc \
+  TrackingEvaluator_hp.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

@@ -7,6 +7,7 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerv2.h>
 
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -184,7 +185,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
       // for no digitization just copy existing towers
       if (sim_tower)
       {
-        digi_tower = new RawTowerv1(*sim_tower);
+        digi_tower = new RawTowerv2(*sim_tower);
       }
     }
     else if (m_DigiAlgorithm == kSimple_photon_digitization)
@@ -253,11 +254,11 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
     // create new digitalizaed tower
     if (sim_tower)
     {
-      digi_tower = new RawTowerv1(*sim_tower);
+      digi_tower = new RawTowerv2(*sim_tower);
     }
     else
     {
-      digi_tower = new RawTowerv1();
+      digi_tower = new RawTowerv2();
     }
     digi_tower->set_energy((double) sum_ADC);
   }
@@ -322,11 +323,11 @@ RawTowerDigitizer::sipm_photon_digitization(RawTower *sim_tower)
     // create new digitalizaed tower
     if (sim_tower)
     {
-      digi_tower = new RawTowerv1(*sim_tower);
+      digi_tower = new RawTowerv2(*sim_tower);
     }
     else
     {
-      digi_tower = new RawTowerv1();
+      digi_tower = new RawTowerv2();
     }
     digi_tower->set_energy((double) sum_ADC);
   }
