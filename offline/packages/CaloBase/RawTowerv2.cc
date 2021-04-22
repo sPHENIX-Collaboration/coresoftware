@@ -54,7 +54,8 @@ int RawTowerv2::isValid() const
 
 void RawTowerv2::identify(std::ostream& os) const
 {
-  RawTowerv1::identify();
+  os << "RawTowerv2: etabin: " << get_bineta() << ", phibin: " << get_binphi()
+     << " energy=" << get_energy() << std::endl;
 
   for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
   {
