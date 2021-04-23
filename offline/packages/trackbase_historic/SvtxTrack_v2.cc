@@ -28,7 +28,7 @@ SvtxTrack_v2::SvtxTrack_v2(const SvtxTrack_v2& source)
 { if( this != &source ) CopyFrom( source ); }
 
 SvtxTrack_v2& SvtxTrack_v2::operator=(const SvtxTrack_v2& source)
-{ CopyFrom( source ); return *this; }
+{ if( this != &source ) CopyFrom( source ); return *this; }
 
 SvtxTrack_v2::~SvtxTrack_v2()
 { clear_states(); }
