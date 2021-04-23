@@ -14,7 +14,7 @@
 
 class PHObject;
 
-class SvtxTrack_v2 : public SvtxTrack
+class SvtxTrack_v2 final : public SvtxTrack
 {
  public:
   SvtxTrack_v2();
