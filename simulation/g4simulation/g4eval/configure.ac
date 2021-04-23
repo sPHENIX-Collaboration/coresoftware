@@ -11,7 +11,7 @@ case $CXX in
   CXXFLAGS="$CXXFLAGS -Wall"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 
