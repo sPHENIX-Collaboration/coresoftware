@@ -14,7 +14,7 @@ SvtxTrack_v2::SvtxTrack_v2()
 {
   for(int i = 0; i < 6; i++)
     for(int j = 0; j < 6; j++)
-      _acts_trajectory_covariance[i][j] = NAN;
+  { _acts_trajectory_covariance[i][j] = NAN; }
 
   // always include the pca point
   _states.insert( std::make_pair(0, new SvtxTrackState_v1(0)));
@@ -36,6 +36,9 @@ SvtxTrack_v2::~SvtxTrack_v2()
 void SvtxTrack_v2::CopyFrom( const SvtxTrack& source )
 {
 
+  // parent class method
+  SvtxTrack::CopyFrom( source );
+  
   // copy acts covariance 
   for( int i = 0; i<6; ++i )
     for( int j = 0; j<6; ++j )
