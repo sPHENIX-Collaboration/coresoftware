@@ -12,7 +12,7 @@ case $CXX in
  clang++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
- g++)
+ *g++)
   if test `g++ -dumpversion | gawk '{print $1>=8.0?"1":"0"}'` = 1; then
    CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror"
   else
