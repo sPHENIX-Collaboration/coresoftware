@@ -47,7 +47,7 @@ namespace
     inline const typename T::first_type& begin() {return m_range.first;}
     inline const typename T::second_type& end() {return m_range.second;}
     private:
-    const T& m_range;
+    T m_range;
   };
 
   //! square
