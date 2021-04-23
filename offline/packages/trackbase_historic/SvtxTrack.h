@@ -48,8 +48,13 @@ class SvtxTrack : public PHObject
   virtual int isValid() const { return 0; }
   virtual PHObject* CloneMe() const { return nullptr; }
 
-  // copy content from base class
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
+  
+  //! copy content from base class
   virtual void CopyFrom( const SvtxTrack& ) {}
+
+  //! copy content from base class
   virtual void CopyFrom( SvtxTrack* ) {}
 
   //
