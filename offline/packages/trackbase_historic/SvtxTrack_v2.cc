@@ -22,10 +22,10 @@ SvtxTrack_v2::SvtxTrack_v2()
 }
 
 SvtxTrack_v2::SvtxTrack_v2(const SvtxTrack& source)
-{ if( this != &source ) CopyFrom( source ); }
+{ SvtxTrack_v2::CopyFrom( source ); }
 
 SvtxTrack_v2::SvtxTrack_v2(const SvtxTrack_v2& source)
-{ if( this != &source ) CopyFrom( source ); }
+{ SvtxTrack_v2::CopyFrom( source ); }
 
 SvtxTrack_v2& SvtxTrack_v2::operator=(const SvtxTrack_v2& source)
 { if( this != &source ) CopyFrom( source ); return *this; }
