@@ -41,9 +41,9 @@ namespace
     const typename T::first_type& begin() {return m_range.first;}
     const typename T::second_type& end() {return m_range.second;}
     private:
-    const T& m_range;
+    T m_range;
   };
-
+  
   //! square
   template<class T> inline constexpr T square( T x ) { return x*x; }
 
@@ -67,6 +67,7 @@ namespace
   template< float (PHG4Hit::*accessor)(int) const>
   float interpolate( std::set<PHG4Hit*> hits, float rextrap )
   {
+    
     // calculate all terms needed for the interpolation
     // need to use double everywhere here due to numerical divergences
     double sw = 0;
@@ -128,7 +129,7 @@ namespace
 
 
   //! true if given layer is in mask
-  bool has_layer( int64_t mask, int layer )
+  [[maybe_unused]] bool has_layer( int64_t mask, int layer )
   { return mask & (1LL<<layer); }
 
   //! create track struct from struct from svx track
@@ -405,7 +406,7 @@ namespace
   }
 
   // print to stream
-  std::ostream& operator << (std::ostream& out, const TrackingEvaluator_hp::ClusterStruct& cluster )
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TrackingEvaluator_hp::ClusterStruct& cluster )
   {
     out << "ClusterStruct" << std::endl;
     out << "  cluster: (" << cluster._x << "," << cluster._y << "," << cluster._z << ")" << std::endl;

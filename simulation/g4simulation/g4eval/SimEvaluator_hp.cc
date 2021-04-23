@@ -38,7 +38,7 @@ namespace
     for( const auto& value:values )
     {
       std::cout << value;
-      if( total < values.size()-1 ) std::cout << ", ";
+      if( total < int( values.size()-1 ) ) std::cout << ", ";
       ++current;
       ++total;
       if( current == 10 ) { std::cout << std::endl << "    "; current = 0; }
