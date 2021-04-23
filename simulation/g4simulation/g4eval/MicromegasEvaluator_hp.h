@@ -163,7 +163,7 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     //! find tile matching given layer and tile id
     /* create and store new one if not found */
-    TileStruct& findTile( const int layer, const int tile );
+    TileStruct& findTile( uint layer, uint tile );
 
     void addG4Hit( const G4HitStruct& hit )
     { _g4hits.push_back( hit ); }

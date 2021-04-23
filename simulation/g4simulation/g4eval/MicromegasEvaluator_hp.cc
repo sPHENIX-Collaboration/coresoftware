@@ -75,7 +75,7 @@ void MicromegasEvaluator_hp::Container::Reset()
 }
 
 //_____________________________________________________________________
-MicromegasEvaluator_hp::TileStruct& MicromegasEvaluator_hp::Container::findTile( const int layer, const int tile )
+MicromegasEvaluator_hp::TileStruct& MicromegasEvaluator_hp::Container::findTile( uint layer, uint tile )
 {
   auto iter = std::find_if( _tiles.begin(), _tiles.end(),
     [layer, tile]( const TileStruct& tilestruct )
@@ -244,7 +244,7 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       m_container->addG4Hit( g4hitstruct );
 
       // also fill tile information
-      if( !( current_tile && current_tile->_layer == layer && current_tile->_tile == tileid ) )
+      if( !( current_tile && current_tile->_layer == layer && int( current_tile->_tile ) == tileid ) )
       { current_tile = &m_container->findTile( layer, tileid ); }
 
       // fill
