@@ -52,10 +52,12 @@ class SvtxTrack : public PHObject
   using PHObject::CopyFrom;
   
   //! copy content from base class
-  virtual void CopyFrom( const SvtxTrack& ) {}
+  virtual void CopyFrom( const SvtxTrack& ) 
+  {}
 
   //! copy content from base class
-  virtual void CopyFrom( SvtxTrack* ) {}
+  virtual void CopyFrom( SvtxTrack* ) 
+  {}
 
   //
   // basic track information ---------------------------------------------------
@@ -238,7 +240,7 @@ class SvtxTrack : public PHObject
   virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
   virtual void set_truth_track_id(unsigned int truthTrackId) {}
   virtual void set_num_measurements(int nmeas) {}
-  virtual unsigned int get_num_measurements() { return 0; }
+  virtual unsigned int get_num_measurements() const { return 0; }
 
   //SvtxTrack_FastSim_v1
   typedef std::map<int, std::set<PHG4HitDefs::keytype> > HitIdMap;
