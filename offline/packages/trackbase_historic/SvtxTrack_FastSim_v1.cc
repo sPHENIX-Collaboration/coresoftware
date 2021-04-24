@@ -13,31 +13,29 @@
 #include <map>      // for _Rb_tree_const_iterator
 #include <ostream>  // for operator<<, basic_ostream, basic_ostream<>::_...
 
-using namespace std;
+SvtxTrack_FastSim_v1::SvtxTrack_FastSim_v1(const SvtxTrack& source)
+{ SvtxTrack_FastSim_v1::CopyFrom( source ); }
 
-SvtxTrack_FastSim_v1::SvtxTrack_FastSim_v1()
+void SvtxTrack_FastSim_v1::CopyFrom( const SvtxTrack& source )
 {
-}
-
-SvtxTrack_FastSim_v1::~SvtxTrack_FastSim_v1()
-{
+  // parent class method
+  SvtxTrack_FastSim::CopyFrom( source );
+  
+  // additional members
+  _g4hit_ids = source.g4hit_ids();
 }
 
 void SvtxTrack_FastSim_v1::identify(std::ostream& os) const
 {
   SvtxTrack_FastSim::identify(os);
 
-  os << "G4Hit IDs:" << endl;
-  for (std::map<int, std::set<PHG4HitDefs::keytype> >::const_iterator iter =
-           _g4hit_ids.begin();
-       iter != _g4hit_ids.end(); ++iter)
+  os << "G4Hit IDs:" << std::endl;
+  for( const auto& pair:_g4hit_ids )
   {
-    os << "\thit container ID" << iter->first << " with hits: ";
-    for (std::set<PHG4HitDefs::keytype>::const_iterator jter = iter->second.begin(); jter != iter->second.end(); ++jter)
-    {
-      os << *jter << " ";
-    }
-    os << endl;
+    os << "\thit container ID" << pair.first << " with hits: ";
+    for( const auto& hitid:pair.second )
+    { os << hitid << " "; }
+    os << std::endl;
   }
   return;
 }
