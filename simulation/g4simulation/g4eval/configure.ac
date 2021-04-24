@@ -8,10 +8,10 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-maybe-uninitialized"
  ;;
 esac
 
