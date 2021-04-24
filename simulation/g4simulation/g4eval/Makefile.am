@@ -10,14 +10,19 @@ AM_CPPFLAGS = \
   -I${G4_MAIN}/include \
   -I`root-config --incdir`
 
-lib_LTLIBRARIES = \
-   libg4eval.la
-
-libg4eval_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
+lib_LTLIBRARIES = \
+   libg4eval_io.la \
+   libg4eval.la
+
+libg4eval_io_la_LIBADD = \
+  -lphool
+
 libg4eval_la_LIBADD = \
+  libg4eval_io.la \
   -lcalo_io \
   -lCLHEP \
   -lfun4all \
@@ -62,12 +67,16 @@ pkginclude_HEADERS = \
   SvtxVertexEval.h \
 	TrackEvaluation.h \
   TrackEvaluationContainer.h \
+  TrackEvaluationContainerv1.h \
   TrackingEvaluator_hp.h
+
+ROOTDICTS_io = \
+  TrackEvaluationContainer_Dict.cc \
+  TrackEvaluationContainerv1_Dict.cc
 
 ROOTDICTS = \
   MicromegasEvaluator_hp_Dict.cc \
   SimEvaluator_hp_Dict.cc \
-  TrackEvaluationContainer_Dict.cc \
   TrackingEvaluator_hp_Dict.cc
 
 pcmdir = $(libdir)
@@ -75,7 +84,12 @@ nobase_dist_pcm_DATA = \
   MicromegasEvaluator_hp_Dict_rdict.pcm \
   SimEvaluator_hp_Dict_rdict.pcm \
   TrackEvaluationContainer_Dict_rdict.pcm \
+  TrackEvaluationContainerv1_Dict_rdict.pcm \
   TrackingEvaluator_hp_Dict_rdict.pcm
+
+libg4eval_io_la_SOURCES = \
+  $(ROOTDICTS_io) \
+  TrackEvaluationContainerv1.cc
 
 libg4eval_la_SOURCES = \
   $(ROOTDICTS) \
@@ -104,7 +118,6 @@ libg4eval_la_SOURCES = \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
   TrackEvaluation.cc \
-  TrackEvaluationContainer.cc \
   TrackingEvaluator_hp.cc
 
 # Rule for generating table CINT dictionaries.
@@ -117,16 +130,17 @@ libg4eval_la_SOURCES = \
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+BUILT_SOURCES = testexternals.cc
 
-BUILT_SOURCES = \
-  testexternals.cc
+noinst_PROGRAMS = \
+  testexternals_g4eval_io \
+  testexternals_g4eval
 
-testexternals_SOURCES = \
-  testexternals.cc
+testexternals_g4eval_io_SOURCES = testexternals.cc
+testexternals_g4eval_io_LDADD = libg4eval_io.la
 
-testexternals_LDADD = \
-  libg4eval.la
+testexternals_g4eval_SOURCES = testexternals.cc
+testexternals_g4eval_LDADD = libg4eval.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

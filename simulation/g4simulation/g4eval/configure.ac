@@ -10,7 +10,7 @@ case $CXX in
  clang++)
   CXXFLAGS="$CXXFLAGS -Wall"
  ;;
- g++)
+ *g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
