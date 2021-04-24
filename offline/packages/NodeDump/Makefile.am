@@ -41,6 +41,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTrkrClusterContainer.cc \
+  DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
