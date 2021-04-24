@@ -203,7 +203,9 @@ class SvtxTrack_v2 final : public SvtxTrack
 
  private:
 
-  float _acts_trajectory_covariance[6][6];
+  //! acts covariance matrix
+  float _acts_trajectory_covariance[6][6] = {};
+
   // track information
   unsigned int _track_id = UINT_MAX;
   unsigned int _vertex_id = UINT_MAX;
