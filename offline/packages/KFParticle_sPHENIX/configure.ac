@@ -11,7 +11,7 @@ case $CXX in
   clang++)
    CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-macro-redefined"
   ;;
-  g++)
+  *g++)
    CXXFLAGS="$CXXFLAGS -Wall -Werror"
   ;;
 esac

@@ -11,7 +11,7 @@ dnl case $CXX in
 dnl  clang++)
 dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 dnl  ;;
-dnl  g++)
+dnl  *g++)
 dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 dnl  ;;
 dnl esac
