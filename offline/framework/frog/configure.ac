@@ -14,7 +14,7 @@ case $CXX in
 dnl odbc++ uses auto_ptr
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
  ;;
- g++)
+ *g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wno-deprecated-declarations"
  ;;
 esac
