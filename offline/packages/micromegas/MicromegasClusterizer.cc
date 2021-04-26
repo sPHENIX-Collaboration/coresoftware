@@ -238,7 +238,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const double weight = double(hit->getAdc()) - pedestal;
 
         // get strip world coordinate and update relevant sums
-        const auto strip_world_coordinate = layergeom->get_world_coordinate( tileid, strip );
+        const auto strip_world_coordinate = layergeom->get_world_coordinates( tileid, strip );
         world_coordinates += strip_world_coordinate*weight;
         switch( segmentation_type )
         {

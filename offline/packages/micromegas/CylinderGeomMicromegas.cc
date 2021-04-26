@@ -142,11 +142,11 @@ int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates 
     // store tile struct locally
     const auto& tile = m_tiles.at(itile);
 
-    // check azimuth
-    if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) continue;
-
     // check against thickness
     if( std::abs( local_coordinates.y() ) > m_thickness/2 ) continue;
+
+    // check azimuth
+    if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) continue;
 
     // check z extend
     if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) continue;
@@ -192,28 +192,30 @@ void CylinderGeomMicromegas::convert_to_planar( uint tileid, PHG4Hit* hit ) cons
 //________________________________________________________________________________
 int CylinderGeomMicromegas::find_strip( uint tileid, const TVector3& world_coordinates ) const
 {
-  // check radius
-  if( !check_radius(world_coordinates) ) return -1;
-
-  // convert to polar coordinates
-  const auto phi = std::atan2( world_coordinates.y(), world_coordinates.x() );
-  const auto z = world_coordinates.z();
+  // convert to local coordinates
+  const auto local_coordinates = get_local_from_world_coords( tileid, world_coordinates );
+  
+  // check against thickness
+  if( std::abs( local_coordinates.y() ) > m_thickness/2 ) return -1;
 
   // get tile
   const auto& tile = m_tiles.at(tileid);
 
-  if( std::abs( z - tile.m_centerZ ) > tile.m_sizeZ/2 ) return -1;
-  if( std::abs( bind_angle( phi - tile.m_centerPhi ) ) > tile.m_sizePhi/2 ) return -1;
+  // check azimuth
+  if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) return -1;
+  
+  // check z extend
+  if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) return -1;
 
   // we found a tile to which the hit belong
   // calculate strip index, depending on cylinder direction
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return (int) std::floor( (bind_angle( phi - tile.m_centerPhi ) + tile.m_sizePhi/2)*m_radius/m_pitch );
+    return (int) std::floor( (local_coordinates.x() + tile.m_sizePhi*reference_radius/2)/m_pitch );
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return (int) std::floor( (z - tile.m_centerZ + tile.m_sizeZ/2)/m_pitch );
+    return (int) std::floor( (local_coordinates.z() + tile.m_sizeZ/2)/m_pitch );
   }
 
   // unreachable
@@ -230,7 +232,7 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
     return m_tiles[tileid].m_sizeZ;
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return m_tiles[tileid].m_sizePhi*m_radius;
+    return m_tiles[tileid].m_sizePhi*reference_radius;
   }
 
   // unreachable
@@ -255,35 +257,33 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid ) const
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_world_coordinate( uint tileid, uint stripnum ) const
+TVector3 CylinderGeomMicromegas::get_local_coordinates( uint tileid, uint stripnum ) const
 {
-    assert( tileid < m_tiles.size() );
-
-    // get tile
-    const auto& tile = m_tiles[tileid];
-
-    switch( m_segmentation_type )
-    {
-      case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-      {
-        const double z = tile.m_centerZ;
-        const double phi = tile.m_centerPhi - tile.m_sizePhi/2 + (0.5+stripnum)*m_pitch/m_radius;
-        return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
-      }
-
-      case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-      {
-        const double z = tile.m_centerZ - tile.m_sizeZ/2 + (0.5+stripnum)*m_pitch;
-        const double phi = tile.m_centerPhi;
-        return TVector3( m_radius*std::cos(phi), m_radius*std::sin(phi), z );
-      }
-
-    }
-
-    // unreachable
-    return TVector3();
+  assert( tileid < m_tiles.size() );
+  
+  // get tile
+  const auto& tile = m_tiles[tileid];
+  
+  switch( m_segmentation_type )
+  {
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    return TVector3( (0.5+stripnum)*m_pitch - m_radius*tile.m_sizePhi/2, 0, 0 );
+    
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    return TVector3( 0, 0, (0.5+stripnum)*m_pitch - m_radius*tile.m_sizeZ/2 );
+  }
+  
+  // unreachable
+  return TVector3();
 }
 
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_world_coordinates( uint tileid, uint stripnum ) const
+{
+  assert( tileid < m_tiles.size() );
+  return get_world_from_local_coords( tileid, get_local_coordinates( tileid, stripnum ) );
+}
+ 
 //________________________________________________________________________________
 void CylinderGeomMicromegas::identify( std::ostream& out ) const
 {

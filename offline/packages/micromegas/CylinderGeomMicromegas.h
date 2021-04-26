@@ -101,8 +101,11 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! get number of strips
   uint get_strip_count( uint tileid ) const;
 
-  //! get world location for a given tile and strip
-  TVector3 get_world_coordinate( uint tileid, uint stripnum ) const;
+  //! get local coordinates for a given tile and strip
+  TVector3 get_local_coordinates( uint tileid, uint stripnum ) const;
+
+  //! get world coordinates for a given tile and strip
+  TVector3 get_world_coordinates( uint tileid, uint stripnum ) const;
 
   //! print information about this layer
   virtual void identify(std::ostream&) const;

@@ -67,11 +67,6 @@ namespace
     else return angle;
   }
 
-  // local version of std::clamp, which is only available for c++17
-  template<class T>
-    constexpr const T& clamp( const T& v, const T& lo, const T& hi )
-  { return (v < lo) ? lo : (hi < v) ? hi : v; }
-
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
   template<class T>
     inline T get_rectangular_fraction( const T& xloc, const T& sigma, const T& pitch )
@@ -94,13 +89,13 @@ namespace
       + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
-  
+
   inline std::ostream& operator << (std::ostream& out, const TVector3& position)
   {
     out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
     return out;
   }
-  
+
 }
 
 //___________________________________________________________________________
@@ -478,9 +473,9 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
     
-    if( Verbosity() )
+    // if( Verbosity() )
     { cylinder->identify( std::cout ); }
-    
+
   }
 }
 
@@ -519,8 +514,9 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
 
   // find relevant strip indices
   const auto strip_count = layergeom->get_strip_count( tileid );
-  const auto stripnum_min = clamp<int>( stripnum - 5.*sigma/pitch - 1, 0, strip_count );
-  const auto stripnum_max = clamp<int>( stripnum + 5*sigma/pitch + 1, 0, strip_count );
+  const int nstrips = 5.*sigma/pitch + 1;
+  const auto stripnum_min = std::clamp<int>( stripnum - nstrips, 0, strip_count );
+  const auto stripnum_max = std::clamp<int>( stripnum + nstrips, 0, strip_count );
 
   // prepare charge list
   charge_list_t charge_list;
@@ -532,7 +528,7 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
   for( int strip = stripnum_min; strip <= stripnum_max; ++strip )
   {
     // get strip center
-    const TVector3 strip_location = layergeom->get_world_coordinate( tileid, strip );
+    const TVector3 strip_location = layergeom->get_world_coordinates( tileid, strip );
     const auto phi_strip = std::atan2( strip_location.y(), strip_location.x() );
 
     // find relevant strip coordinate with respect to location
