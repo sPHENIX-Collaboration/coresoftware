@@ -5,6 +5,8 @@
 
 #include "CylinderGeomMicromegas.h"
 
+#include <g4main/PHG4Hit.h>
+
 #include <TVector3.h>
 
 #include <cassert>
@@ -14,6 +16,10 @@ namespace
   // convenient square function
   template<class T>
     inline constexpr T square( const T& x ) { return x*x; }
+  
+  //! radius
+  template<class T> 
+    inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
 
   // bind angle to [-M_PI,+M_PI[. This is useful to avoid edge effects when making the difference between two angles
   template<class T>
@@ -50,13 +56,13 @@ TVector3 CylinderGeomMicromegas::get_local_from_world_coords( uint tileid, const
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, const TVector3& local_location ) const
+TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, const TVector3& local_coordinates ) const
 {
   assert( tileid < m_tiles.size() );
  
   // store world coordinates in array
   std::array<double,3> local;
-  local_location.GetXYZ( &local[0] );
+  local_coordinates.GetXYZ( &local[0] );
     
   // convert to local coordinate
   std::array<double,3> master;
@@ -66,6 +72,39 @@ TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, const
   
 }
 
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_local_from_world_vect( uint tileid, const TVector3& world_vect ) const
+{
+  assert( tileid < m_tiles.size() );
+ 
+  // store world vect in array
+  std::array<double,3> master;
+  world_vect.GetXYZ( &master[0] );
+    
+  // convert to local coordinate
+  std::array<double,3> local;
+  transformation_matrix(tileid).MasterToLocalVect( &master[0], &local[0] );
+   
+  return TVector3( &local[0] );
+  
+}
+
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, const TVector3& local_vect ) const
+{
+  assert( tileid < m_tiles.size() );
+ 
+  // store world vect in array
+  std::array<double,3> local;
+  local_vect.GetXYZ( &local[0] );
+    
+  // convert to local coordinate
+  std::array<double,3> master;
+  transformation_matrix(tileid).LocalToMasterVect( &local[0], &master[0] );
+   
+  return TVector3( &master[0] );
+  
+}
 //________________________________________________________________________________
 int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordinates ) const
 {
@@ -115,6 +154,29 @@ int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates 
   }
 
   return -1;
+}
+
+//________________________________________________________________________________
+void CylinderGeomMicromegas::convert_to_planar( uint tileid, PHG4Hit* hit ) const
+{
+//   // same treatment is applied to both coordinates of the G4Hit
+//   for( int i = 0; i < 2; ++i )
+//   {
+//     
+//     const TVector3 world_coordinate( hit->get_x(i), hit->get_y(i), hit->get_z(i) );
+//     const TVector3 world_direction( hit->get_px(i), hi->get_py(i), hit->get_pz(i) );
+//     
+//     // get coordinate radius, and compare to reference radius. This will be use to offset local position along y in local space
+//     const delta_radius = get_r( world_coordinates.x(), world_coordinates.y() ) - m_radius;
+//     
+//     // convert position and direction to local coordinates
+//     
+//     
+//   }
+//   
+//   
+//   
+//   
 }
 
 //________________________________________________________________________________
@@ -230,7 +292,7 @@ void CylinderGeomMicromegas::identify( std::ostream& out ) const
 //________________________________________________________________________________
 bool  CylinderGeomMicromegas::check_radius( const TVector3& world_coordinates ) const
 {
-  const auto radius = std::sqrt( square( world_coordinates.x() ) + square( world_coordinates.y() ) );
+  const auto radius = get_r( world_coordinates.x(), world_coordinates.y() );
   return std::abs( radius - m_radius ) <= m_thickness/2;
 }
 
