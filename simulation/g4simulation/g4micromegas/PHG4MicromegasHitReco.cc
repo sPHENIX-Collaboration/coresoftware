@@ -94,6 +94,13 @@ namespace
       + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
+  
+  inline std::ostream& operator << (std::ostream& out, const TVector3& position)
+  {
+    out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
+    return out;
+  }
+  
 }
 
 //___________________________________________________________________________
@@ -258,7 +265,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
        * This will be done when actually distributing electrons along the G4Hit track segment
        */
       const auto world_mid = (world_in+world_out)*0.5;
-      const int tileid = layergeom->find_tile( world_mid );
+      const int tileid = layergeom->find_tile_cylindrical( world_mid );
+      // const int tileid = layergeom->find_tile( world_mid );
       if( tileid < 0 ) continue;
 
       // number of primary elections
@@ -443,7 +451,6 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
   PHG4CylinderGeomContainer::ConstRange range = geonode_full->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   {
-    std::cout << "PHG4MicromegasHitReco::setup_tiles - processing layer " << iter->first << std::endl;
     auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
 
     // assign tiles
@@ -470,7 +477,10 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
-    cylinder->identify( std::cout );
+    
+    if( Verbosity() )
+    { cylinder->identify( std::cout ); }
+    
   }
 }
 

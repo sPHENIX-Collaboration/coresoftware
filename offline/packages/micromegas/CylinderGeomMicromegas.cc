@@ -33,14 +33,48 @@ namespace
 }
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_tile( const TVector3& world_location ) const
+TVector3 CylinderGeomMicromegas::get_local_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
+{
+  assert( tileid < m_tiles.size() );
+ 
+  // store world coordinates in array
+  std::array<double,3> master;
+  world_coordinates.GetXYZ( &master[0] );
+    
+  // convert to local coordinate
+  std::array<double,3> local;
+  transformation_matrix(tileid).MasterToLocal( &master[0], &local[0] );
+   
+  return TVector3( &local[0] );
+  
+}
+
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, const TVector3& local_location ) const
+{
+  assert( tileid < m_tiles.size() );
+ 
+  // store world coordinates in array
+  std::array<double,3> local;
+  local_location.GetXYZ( &local[0] );
+    
+  // convert to local coordinate
+  std::array<double,3> master;
+  transformation_matrix(tileid).LocalToMaster( &local[0], &master[0] );
+   
+  return TVector3( &master[0] );
+  
+}
+
+//________________________________________________________________________________
+int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordinates ) const
 {
   // check radius
-  if( !check_radius(world_location) ) return -1;
+  if( !check_radius(world_coordinates) ) return -1;
 
   // convert to polar coordinates
-  const auto phi = std::atan2( world_location.y(), world_location.x() );
-  const auto z = world_location.z();
+  const auto phi = std::atan2( world_coordinates.y(), world_coordinates.x() );
+  const auto z = world_coordinates.z();
 
   for( size_t itile = 0; itile < m_tiles.size(); ++itile )
   {
@@ -55,16 +89,43 @@ int CylinderGeomMicromegas::find_tile( const TVector3& world_location ) const
   return -1;
 }
 
+//________________________________________________________________________________
+int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates ) const
+{
+
+  for( size_t itile = 0; itile < m_tiles.size(); ++itile )
+  {
+    
+    // get local coordinates
+    const auto local_coordinates = get_local_from_world_coords( itile, world_coordinates );
+    
+    // store tile struct locally
+    const auto& tile = m_tiles.at(itile);
+    
+    // check azimuth
+    if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) continue;
+    
+    // check against thickness
+    if( std::abs( local_coordinates.y() ) > m_thickness/2 ) continue;
+    
+    // check z extend
+    if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) continue;
+    
+    return itile;
+  }
+
+  return -1;
+}
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_strip( uint tileid, const TVector3& world_location ) const
+int CylinderGeomMicromegas::find_strip( uint tileid, const TVector3& world_coordinates ) const
 {
   // check radius
-  if( !check_radius(world_location) ) return -1;
+  if( !check_radius(world_coordinates) ) return -1;
 
   // convert to polar coordinates
-  const auto phi = std::atan2( world_location.y(), world_location.x() );
-  const auto z = world_location.z();
+  const auto phi = std::atan2( world_coordinates.y(), world_coordinates.x() );
+  const auto z = world_coordinates.z();
 
   // get tile
   const auto& tile = m_tiles.at(tileid);
@@ -167,9 +228,9 @@ void CylinderGeomMicromegas::identify( std::ostream& out ) const
 }
 
 //________________________________________________________________________________
-bool  CylinderGeomMicromegas::check_radius( const TVector3& world_location ) const
+bool  CylinderGeomMicromegas::check_radius( const TVector3& world_coordinates ) const
 {
-  const auto radius = std::sqrt( square( world_location.x() ) + square( world_location.y() ) );
+  const auto radius = std::sqrt( square( world_coordinates.x() ) + square( world_coordinates.y() ) );
   return std::abs( radius - m_radius ) <= m_thickness/2;
 }
 

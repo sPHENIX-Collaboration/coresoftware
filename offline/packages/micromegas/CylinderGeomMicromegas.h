@@ -49,8 +49,29 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! drift direction
   MicromegasDefs::DriftDirection get_drift_direction() const {return m_drift_direction;}
 
-  //! get tile for a given world location
-  int find_tile( const TVector3& ) const;
+  //! convert position to coordinate in local (planar) tile reference
+  /** 
+   * each (planar) tile has a local ref system defined as:
+   * - z axis same as phenix, 
+   * - y axis perpendicular to the surface, outward, 
+   * - x axis perpendicular to y and z to have a direct ref. system
+   **/
+  TVector3 get_local_from_world_coords( uint tileid, const TVector3& ) const;
+  
+  //! convert position in local (planar) tile reference to world coordinate
+  /** 
+   * each (planar) tile has a local ref system defined as:
+   * - z axis same as phenix, 
+   * - y axis perpendicular to the surface, outward, 
+   * - x axis perpendicular to y and z to have a direct ref. system
+   **/
+  TVector3 get_world_from_local_coords( uint tileid, const TVector3& ) const;
+
+  //! get tile for a given world location assuming tiles are portion of cylinder centered around tile center
+  int find_tile_cylindrical( const TVector3& ) const;
+
+  //! get tile for a given world location assuming tiles are planes centered on tile center and tengent to local cylinder
+  int find_tile_planar( const TVector3& ) const;
 
   //! get number of tiles
   size_t get_tiles_count() const { return m_tiles.size(); }
