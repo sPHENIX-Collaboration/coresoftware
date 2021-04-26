@@ -51,28 +51,28 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   MicromegasDefs::DriftDirection get_drift_direction() const {return m_drift_direction;}
 
   //! convert world to local position coordinates in (planar) tile reference frame
-  /** 
+  /**
    * each (planar) tile has a local ref system defined as:
    * - origin at center of the tile
-   * - z axis same as phenix, 
-   * - y axis perpendicular to the surface, outward, 
+   * - z axis same as phenix,
+   * - y axis perpendicular to the surface, outward,
    * - x axis perpendicular to y and z to have a direct ref. frame
    **/
   TVector3 get_local_from_world_coords( uint tileid, const TVector3& ) const;
-  
+
+  //! convert world to local direction coordinates in (planar) tile reference frame
+  TVector3 get_local_from_world_vect( uint tileid, const TVector3& ) const;
+
   //! convert local to world position coordinates in (planar) tile reference frame
-  /** 
+  /**
    * each (planar) tile has a local ref system defined as:
    * - origin at center of the tile
-   * - z axis same as phenix, 
-   * - y axis perpendicular to the surface, outward, 
+   * - z axis same as phenix,
+   * - y axis perpendicular to the surface, outward,
    * - x axis perpendicular to y and z to have a direct ref. system
    **/
   TVector3 get_world_from_local_coords( uint tileid, const TVector3& ) const;
 
-  //! convert world to local direction coordinates in (planar) tile reference frame
-  TVector3 get_local_from_world_vect( uint tileid, const TVector3& ) const;
-  
   //! convert local to world direction coordinates in (planar) tile reference frame
   TVector3 get_world_from_local_vect( uint tileid, const TVector3& ) const;
 
@@ -86,12 +86,12 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   size_t get_tiles_count() const { return m_tiles.size(); }
 
   //! convert g4hit coordinates from cylinder Micromegas to planar
-  /** 
+  /**
     * this assumes that Micromegas Geant4 implementation are cylinders, while actual tiles are planes
     * one must then 'drift' the g4hit along its momentum from its radius to the releval "y" in local coordinates
     */
   void convert_to_planar( uint tileid, PHG4Hit* ) const;
-  
+
   //! get strip for a give world location and tile
   int find_strip( uint tileid, const TVector3& ) const;
 
@@ -123,7 +123,7 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //! tiles
   void set_tiles( const MicromegasTile::List& tiles ) {m_tiles = tiles;}
-  
+
   //! segmentation
   void set_segmentation_type( MicromegasDefs::SegmentationType value ) {m_segmentation_type = value;}
 
@@ -138,7 +138,7 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   // get local to master transformation matrix for a given tile
   TGeoHMatrix transformation_matrix( uint tileid ) const;
-  
+
   //! layer id
   int m_layer = 0;
 
