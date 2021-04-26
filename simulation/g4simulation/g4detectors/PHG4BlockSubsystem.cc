@@ -34,6 +34,7 @@ PHG4BlockSubsystem::PHG4BlockSubsystem(const std::string &name, const int lyr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
 {
+  m_ColorArray.fill(NAN);
   InitializeParameters();
 }
 
