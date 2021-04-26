@@ -246,7 +246,7 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid ) const
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return std::floor( m_tiles[tileid].m_sizePhi*m_radius/m_pitch );
+    return std::floor( m_tiles[tileid].m_sizePhi*reference_radius/m_pitch );
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
     return std::floor( m_tiles[tileid].m_sizeZ/m_pitch );
@@ -267,10 +267,10 @@ TVector3 CylinderGeomMicromegas::get_local_coordinates( uint tileid, uint stripn
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return TVector3( (0.5+stripnum)*m_pitch - m_radius*tile.m_sizePhi/2, 0, 0 );
+    return TVector3( (0.5+stripnum)*m_pitch - tile.m_sizePhi*reference_radius/2, 0, 0 );
     
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return TVector3( 0, 0, (0.5+stripnum)*m_pitch - m_radius*tile.m_sizeZ/2 );
+    return TVector3( 0, 0, (0.5+stripnum)*m_pitch - tile.m_sizeZ/2 );
   }
   
   // unreachable
