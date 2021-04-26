@@ -118,7 +118,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     if(ClusterKeyList.size()< _min_clusters_per_track)
       continue;
 
-    std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
+    auto svtx_track = std::make_unique<SvtxTrack_FastSim>();
     svtx_track->set_id(_track_map->size());
     svtx_track->set_truth_track_id(gtrackID);
     ///g4 vertex id starts at 1, svtx vertex map starts at 0
