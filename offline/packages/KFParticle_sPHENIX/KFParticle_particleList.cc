@@ -63,6 +63,11 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   KFParticleDatabase kfpDatabase;
   std::map<std::string, particle_pair> particleMasses;
 
+  //Dummp particle for parser
+  particleMasses["X"] = std::make_pair(0, 0);
+  particleMasses["mother"] = std::make_pair(0, 0);
+  particleMasses["track"] = std::make_pair(0, 0);
+
   //Leptons
   //particleMasses["electron"] = std::make_pair(11, kfpDatabase.GetMass(11));
   particleMasses["electron"] = std::make_pair(11, 0.000511);
@@ -74,6 +79,12 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   particleMasses["mu-"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["mu"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["tau"] = std::make_pair(15, 1.77686);
+
+  particleMasses["neutrino"] = std::make_pair(12, 0);
+  particleMasses["nu"] = std::make_pair(12, 0);
+  particleMasses["nu_e"] = std::make_pair(12, 0);
+  particleMasses["nu_mu"] = std::make_pair(14, 0);
+  particleMasses["nu_tau"] = std::make_pair(16, 0);
 
   //Gauge bosons and Higgs
   particleMasses["W+"] = std::make_pair(24, 80.379);

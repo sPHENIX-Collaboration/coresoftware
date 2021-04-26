@@ -47,6 +47,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
   , m_save_output(1)
   , m_outfile_name("outputData.root")
   , m_outfile(nullptr)
+  , m_use_decay_descriptor(false)
 {
 }
 
@@ -59,6 +60,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   , m_save_output(1)
   , m_outfile_name("outputData.root")
   , m_outfile(nullptr)
+  , m_use_decay_descriptor(false)
 {
 }
 
@@ -83,7 +85,10 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
       exit(0);
     }
 
-  return 0;
+  int returnCode = 0;
+  if (!m_decayDescriptor.empty()) returnCode = parseDecayDescriptor();
+
+  return returnCode;
 }
 
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
@@ -194,4 +199,200 @@ void KFParticle_sPHENIX::printParticles(KFParticle motherParticle,
 
   std::cout << "------------------------------------------------------------\n"
        << std::endl;
+}
+
+int KFParticle_sPHENIX::parseDecayDescriptor()
+{
+  bool ddCanBeParsed = true;
+
+  size_t daughterLocator;
+
+  std::string mother;
+  std::string intermediate;
+  std::string daughter;
+
+  std::pair<std::string, int> intermediate_list[max_particles];
+  std::vector<std::string> intermediates_name;
+  std::vector<int> intermediates_charge;
+  
+  std::pair<std::string, int> daughter_list[max_particles];
+  std::vector<std::string> daughters_name;
+  std::vector<int> daughters_charge;
+
+  int nTracks = 0;
+  int nTracksFromIntermediates[max_particles];
+  std::vector<int> m_nTracksFromIntermediates;
+
+  std::string decayArrow = "->";
+  std::string chargeIndicator = "^";
+  std::string startIntermediate = "{";
+  std::string endIntermediate = "}";
+
+  std::string manipulateDecayDescriptor = m_decayDescriptor;
+
+  //Remove all white space before we begin
+  size_t pos;
+  while ((pos = manipulateDecayDescriptor.find(" ")) != std::string::npos) manipulateDecayDescriptor.replace(pos, 1, "");
+
+  //Check for charge conjugate requirement
+  std::string checkForCC = manipulateDecayDescriptor.substr(0, 1) + manipulateDecayDescriptor.substr(manipulateDecayDescriptor.size()-3, 3);
+  std::for_each(checkForCC.begin(), checkForCC.end(), [](char & c) {c = ::toupper(c);});
+
+  //Remove the CC check if needed
+  if (checkForCC == "[]CC")
+  {
+    manipulateDecayDescriptor = manipulateDecayDescriptor.substr(1, manipulateDecayDescriptor.size()-4);
+    getChargeConjugate(true);
+  }
+
+  //Try and find the initial particle
+  size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
+  mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
+  if (!findParticle(mother)) ddCanBeParsed = false;
+  manipulateDecayDescriptor.erase(0, findMotherEndPoint + decayArrow.length());
+
+  //Try and find the intermediates
+  while ((pos = manipulateDecayDescriptor.find(startIntermediate)) != std::string::npos)
+  {
+    size_t findIntermediateStartPoint = manipulateDecayDescriptor.find(startIntermediate, pos);
+    size_t findIntermediateEndPoint = manipulateDecayDescriptor.find(endIntermediate, pos);
+    std::string intermediateDecay = manipulateDecayDescriptor.substr(pos + 1, findIntermediateEndPoint - (pos + 1));
+
+    intermediate = intermediateDecay.substr(0, intermediateDecay.find(decayArrow));
+    if (findParticle(intermediate)) intermediates_name.push_back(intermediate.c_str());
+    else ddCanBeParsed = false;
+
+    //Now find the daughters associated to this intermediate
+    int nDaughters = 0;
+    intermediateDecay.erase(0, intermediateDecay.find(decayArrow) + decayArrow.length());
+    while ((daughterLocator = intermediateDecay.find(chargeIndicator)) != std::string::npos)
+    {
+      daughter = intermediateDecay.substr(0, daughterLocator);
+      if (findParticle(daughter))
+      {
+        daughters_name.push_back(daughter.c_str());
+
+        std::string daughterChargeString = intermediateDecay.substr(daughterLocator + 1, 1);
+        if (daughterChargeString == "+")
+        {
+          daughters_charge.push_back(+1);
+        }
+        else if (daughterChargeString == "-")
+        {
+          daughters_charge.push_back(-1);
+        }
+        else if (daughterChargeString == "0")
+        {
+          daughters_charge.push_back(0);
+        }
+        else
+        {
+          if (Verbosity() >= VERBOSITY_MORE) std::cout << "The charge of " << daughterChargeString << " was not known" << std::endl;
+          ddCanBeParsed = false;
+        }
+      }
+      else ddCanBeParsed = false;
+      intermediateDecay.erase(0, daughterLocator + 2);
+      ++nDaughters;
+    }
+    manipulateDecayDescriptor.erase(findIntermediateStartPoint, findIntermediateEndPoint + 1 - findIntermediateStartPoint);
+    m_nTracksFromIntermediates.push_back(nDaughters);
+    nTracks += nDaughters;
+  }
+
+  //Now find any remaining reconstructable tracks from the mother
+  while ((daughterLocator = manipulateDecayDescriptor.find(chargeIndicator)) != std::string::npos)
+  {
+    daughter = manipulateDecayDescriptor.substr(0, daughterLocator);
+    if (findParticle(daughter))
+    {
+      daughters_name.push_back(daughter.c_str());
+      std::string daughterChargeString = manipulateDecayDescriptor.substr(daughterLocator + 1, 1);
+      if (daughterChargeString == "+")
+      {
+        daughters_charge.push_back(+1);
+      }
+      else if (daughterChargeString == "-")
+      {
+        daughters_charge.push_back(-1);
+      }
+      else if (daughterChargeString == "0")
+      {
+        daughters_charge.push_back(0);
+      }
+      else
+      {
+        if (Verbosity() >= VERBOSITY_MORE) std::cout << "The charge of " << daughterChargeString << " was not known" << std::endl;
+        ddCanBeParsed = false;
+      }
+    }
+    else ddCanBeParsed = false;
+    manipulateDecayDescriptor.erase(0, daughterLocator + 2);
+    nTracks += 1;
+  }
+
+  int trackStart = 0;
+  int trackEnd = 0;
+  for (unsigned int i = 0; i < intermediates_name.size(); ++i)
+  {
+    trackStart = trackEnd;
+    trackEnd = m_nTracksFromIntermediates[i] + trackStart;
+
+    int vtxCharge = 0;
+
+    for (unsigned int j = trackStart; j < trackEnd; ++j)
+    {
+      vtxCharge += daughters_charge[j];
+    }
+
+    intermediates_charge.push_back(vtxCharge);
+
+    intermediate_list[i] = std::make_pair(intermediates_name[i], intermediates_charge[i]);
+    nTracksFromIntermediates[i] = m_nTracksFromIntermediates[i];
+  }
+ 
+  for (int i = 0; i < nTracks; ++i)
+  {
+    daughter_list[i] = std::make_pair(daughters_name[i], daughters_charge[i]);
+  }
+
+  setMotherName(mother);
+
+  setNumberOfTracks(nTracks);
+  setDaughters(daughter_list);
+
+  if (intermediates_name.size() > 0)
+  {
+    hasIntermediateStates(true);
+    setIntermediateStates(intermediate_list);
+    setNumberOfIntermediateStates(intermediates_name.size());
+    setNumberTracksFromIntermeditateState(nTracksFromIntermediates);
+  }
+  
+  if (ddCanBeParsed)
+  {
+    if (Verbosity() >= VERBOSITY_MORE) std::cout << "Your decay descriptor can be parsed" << std::endl;
+    return 0;
+  }
+  else
+  {
+    if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Your decay descriptor, " << Name() << " cannot be parsed" << "\nExiting!" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+}
+
+bool KFParticle_sPHENIX::findParticle(std::string particle)
+{
+  bool particleFound = true;
+  if (!particleList.count(particle))
+  {
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      std::cout << "The particle, " << particle << " is not recognized" << std::endl;
+      std::cout << "Check KFParticle_particleList.cc for a list of available particles" << std::endl;
+    }
+    particleFound = false;
+  }
+
+  return particleFound;
 }

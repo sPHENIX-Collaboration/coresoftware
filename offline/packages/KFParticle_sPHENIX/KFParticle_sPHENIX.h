@@ -63,7 +63,14 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
                       std::vector<KFParticle> intermediateParticles,
                       int numPVs, int numTracks);
 
+  int parseDecayDescriptor();
+
+  bool findParticle(std::string particle);
+
   ///Parameters for the user to vary
+
+  void setDecayDescriptor(std::string decayDescriptor) { m_decayDescriptor = decayDescriptor; } 
+
   static const int max_particles = 99;
 
   void setMotherName(const std::string& mother_name)
@@ -276,6 +283,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_save_output;
   std::string m_outfile_name;
   TFile *m_outfile;
+  bool m_use_decay_descriptor;
+  std::string m_decayDescriptor;
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

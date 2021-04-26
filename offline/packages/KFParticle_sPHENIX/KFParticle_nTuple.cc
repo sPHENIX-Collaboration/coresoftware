@@ -55,21 +55,20 @@ void KFParticle_nTuple::initializeBranches()
   else
     mother_name = m_mother_name;
 
-  std::string fwd_slsh = "/"; 
-  std::string open_bracket = "("; 
-  std::string close_bracket = ")"; 
-  std::string plus_symb = "+";
-  std::string plus_word = "plus";
-  std::string minus_symb = "-";
-  std::string minus_word = "minus"; 
-  std::string undrscr = "_"; 
-  std::string nothing = ""; 
-  size_t pos; 
-  while ((pos = mother_name.find(fwd_slsh)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
-  while ((pos = mother_name.find(open_bracket)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
-  while ((pos = mother_name.find(close_bracket)) != std::string::npos) mother_name.replace(pos, 1, nothing);
-  while ((pos = mother_name.find(plus_symb)) != std::string::npos) mother_name.replace(pos, 1, plus_word);
-  while ((pos = mother_name.find(minus_symb)) != std::string::npos) mother_name.replace(pos, 1, minus_word);
+  size_t pos;
+  std::string undrscr = "_";
+  std::string nothing = "";
+  std::map<std::string, std::string> forbiddenStrings;
+  forbiddenStrings["/"] = undrscr;
+  forbiddenStrings["("] = undrscr;
+  forbiddenStrings[")"] = nothing;
+  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["-"] = "minus";
+  forbiddenStrings["*"] = "star";
+  for (auto const& [badString, goodString] : forbiddenStrings)
+  {
+    while ((pos = mother_name.find(badString)) != std::string::npos) mother_name.replace(pos, 1, goodString); 
+  } 
 
   m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
   m_tree->Branch(TString(mother_name) + "_massErr", &m_calculated_mother_mass_err, TString(mother_name) + "_massErr/F");
@@ -125,12 +124,11 @@ void KFParticle_nTuple::initializeBranches()
         intermediate_name = m_intermediate_name_ntuple[i];
 
       //Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      while ((pos = intermediate_name.find(fwd_slsh)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
-      while ((pos = intermediate_name.find(open_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
-      while ((pos = intermediate_name.find(close_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, nothing);
-      while ((pos = intermediate_name.find(plus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, plus_word);
-      while ((pos = intermediate_name.find(minus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, minus_word);
-
+      for (auto const& [badString, goodString] : forbiddenStrings)
+      {
+        while ((pos = intermediate_name.find(badString)) != std::string::npos) intermediate_name.replace(pos, 1, goodString); 
+      }
+ 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");
       m_tree->Branch(TString(intermediate_name) + "_massErr", &m_calculated_intermediate_mass_err[i], TString(intermediate_name) + "_massErr/F");
       m_tree->Branch(TString(intermediate_name) + "_decayTime", &m_calculated_intermediate_decaytime[i], TString(intermediate_name) + "_decayTime/F");
@@ -272,7 +270,7 @@ void KFParticle_nTuple::initializeBranches()
   m_tree->Branch("nPrimaryVertices", &m_nPVs, "nPrimaryVertices/I");
   m_tree->Branch("nEventTracks", &m_multiplicity, "nEventTracks/I");
 
-  //initializeMultiplicityBranches(m_tree);
+  initializeMultiplicityBranches(m_tree);
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
@@ -557,7 +555,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = m_evtNumber = -1;
   }
 
-  //calculateMultiplicity(topNode, INTT_meanHits, INTT_asymmHits);
+  calculateMultiplicity(topNode, INTT_meanHits, INTT_asymmHits);
 
   m_tree->Fill();
 
