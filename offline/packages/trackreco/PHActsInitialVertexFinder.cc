@@ -46,6 +46,7 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 
 #include <memory>
+#include <random>
 
 PHActsInitialVertexFinder::PHActsInitialVertexFinder(const std::string& name)
   : PHInitVertexing(name)
@@ -135,8 +136,10 @@ void PHActsInitialVertexFinder::checkTrackVertexAssociation()
 	    }
 
 	}
+      
+      auto vertex = m_vertexMap->get(vertId);
+      vertex->insert_track(trackKey);
       track->set_vertex_id(vertId);	
-
     }
 
 }
@@ -397,17 +400,23 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       /// Only vertex with stubs that have five clusters
       if(m_svtxTrackMapName.find("TrackMap") != std::string::npos)
 	{
-	  if(track->size_cluster_keys() < 5 and
-	     (fabs(track->get_x()) > 0.01 or fabs(track->get_y()) > 0.01))
+	  if(track->size_cluster_keys() < 5 //and
+	    //(fabs(track->get_x()) > 0.005 or fabs(track->get_y()) > 0.005)
+	     )
 	    {
 	      continue;
 	    }
 	}
 
+      std::random_device rd;
+      std::mt19937 gen(rd());
+ 
+      /// Generate a 5 micron normal distribution
+      std::normal_distribution<double> d(0,0.005);
+      auto x = d(gen);
+      auto y = d(gen);
       
-      const Acts::Vector4D stubVec(
-                  track->get_x() * Acts::UnitConstants::cm,
-		  track->get_y() * Acts::UnitConstants::cm,
+      const Acts::Vector4D stubVec(x, y,
 		  track->get_z() * Acts::UnitConstants::cm,
 		  10 * Acts::UnitConstants::ns);
      
