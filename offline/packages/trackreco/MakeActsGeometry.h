@@ -11,8 +11,8 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "ActsTrackingGeometry.h"
-#include "ActsSurfaceMaps.h"
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
@@ -111,7 +111,10 @@ class MakeActsGeometry : public SubsysReco
   /// Function that mimics ActsFW::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
-  
+
+  void setMaterialResponseFile(std::string& responseFile,
+			       std::string& materialFile);
+
   /// Get hitsetkey from TGeoNode for each detector geometry
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);

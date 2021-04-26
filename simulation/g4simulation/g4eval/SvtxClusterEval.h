@@ -20,6 +20,7 @@ class PHG4TruthInfoContainer;
 
 class TrkrCluster;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxTruthEval;
@@ -96,6 +97,7 @@ class SvtxClusterEval
   SvtxHitEval _hiteval;
   TrkrClusterContainer* _clustermap;
   TrkrClusterHitAssoc* _cluster_hit_map;
+  TrkrHitSetContainer  *_hitsets;
   TrkrHitTruthAssoc* _hit_truth_map;
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer * _g4hits_tpc;

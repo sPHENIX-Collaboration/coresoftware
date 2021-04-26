@@ -9,9 +9,11 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -47,7 +49,11 @@ using namespace std;
 
 PHSiliconTruthTrackSeeding::PHSiliconTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
-{}
+{
+  // we use a separate track map node for the silicon track stubs
+  //  std::string track_map_node_name = {"SvtxSiliconTrackMap"};
+  // set_track_map_name(track_map_node_name);
+}
 
 int PHSiliconTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
@@ -59,10 +65,10 @@ int PHSiliconTruthTrackSeeding::Setup(PHCompositeNode* topNode)
   set_track_map_name(track_map_node_name);
 
   int ret = PHTrackSeeding::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  //  ret = GetNodes(topNode);
+  // if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -82,11 +88,14 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
   TrkClustersMap m_trackID_clusters;
 
   // loop over all clusters
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for (TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
-  {
-    TrkrCluster* cluster = clusiter->second;
-    TrkrDefs::cluskey cluskey = clusiter->first;
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+    TrkrCluster* cluster = clusIter->second;
+    TrkrDefs::cluskey cluskey = clusIter->first;
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
 
     if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
@@ -102,12 +111,15 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
     }
 
     // get the hits for this cluster
-    TrkrClusterHitAssoc::ConstRange hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
-    for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-    {
-      TrkrDefs::hitkey hitkey = clushititer->second;
-      // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
-      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
+      hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
+    //for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+    for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
+	   clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+      {
+	TrkrDefs::hitkey hitkey = clushititer->second;
+	// TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
+	TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
       if (Verbosity() >= 3)
 	{
@@ -212,7 +224,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
       }  // loop over g4hits associated with hit
     }    // loop over hits associated with cluster
   }      // loop over clusters
-
+  } // loop over hitsets
   //==================================
   // make the tracks
 

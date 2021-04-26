@@ -15,7 +15,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
@@ -391,17 +391,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
         if (_trackmap_refit)
-    {
-          _trackmap_refit->insert(rf_track.get());
-          //					delete rf_track;
-        }
+      { _trackmap_refit->insert(rf_track.get()); }
 
       if (_over_write_svtxtrackmap || _output_mode == DebugMode)
-      {
-        *(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
-            *(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
-//				delete rf_track;
-      }
+      { iter->second->CopyFrom( rf_track.get() ); }
     }
     else
     {
@@ -547,44 +540,39 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* topNode)
     new ((*_tca_vtxmap)[i++])(PHG4VtxPointv1)(
         *dynamic_cast<PHG4VtxPointv1*>(itr->second));
 
-  i = 0;
-  for (SvtxTrackMap::ConstIter itr = _trackmap->begin();
-       itr != _trackmap->end(); ++itr)
-    new ((*_tca_trackmap)[i++])(SvtxTrack_v1)(
-        *dynamic_cast<SvtxTrack_v1*>(itr->second));
-
-  i = 0;
+  if( _trackmap )
+  {
+    i = 0;
+    for ( const auto& pair:*_trackmap )
+    { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
+  }
+  
   if (_vertexmap)
-    for (SvtxVertexMap::ConstIter itr = _vertexmap->begin();
-         itr != _vertexmap->end(); ++itr)
-      new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)(
-          *dynamic_cast<SvtxVertex_v1*>(itr->second));
-
+  {
+    i = 0;
+    for ( const auto& pair:*_vertexmap )
+    { new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second) ); }
+  }
+  
   if (_trackmap_refit)
   {
     i = 0;
-    for (SvtxTrackMap::ConstIter itr = _trackmap_refit->begin();
-         itr != _trackmap_refit->end(); ++itr)
-      new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v1)(
-          *dynamic_cast<SvtxTrack_v1*>(itr->second));
+    for (const auto& pair:*_trackmap_refit )
+    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_fit_primary_tracks)
   {
     i = 0;
-    for (SvtxTrackMap::ConstIter itr = _primary_trackmap->begin();
-         itr != _primary_trackmap->end(); ++itr)
-      new ((*_tca_primtrackmap)[i++])(SvtxTrack_v1)(
-          *dynamic_cast<SvtxTrack_v1*>(itr->second));
+    for ( const auto& pair:*_primary_trackmap )
+    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_vertexmap_refit)
   {
     i = 0;
-    for (SvtxVertexMap::ConstIter itr = _vertexmap_refit->begin();
-         itr != _vertexmap_refit->end(); ++itr)
-      new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)(
-          *dynamic_cast<SvtxVertex_v1*>(itr->second));
+    for( const auto& pair:*_vertexmap_refit )
+    { new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second)); }
   }
 
   _eval_tree->Fill();
@@ -603,14 +591,14 @@ void PHGenFitTrkFitter::init_eval_tree()
     _tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
 
   if (!_tca_trackmap)
-    _tca_trackmap = new TClonesArray("SvtxTrack_v1");
+    _tca_trackmap = new TClonesArray("SvtxTrack_v2");
   if (!_tca_vertexmap)
     _tca_vertexmap = new TClonesArray("SvtxVertex_v1");
   if (!_tca_trackmap_refit)
-    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v1");
+    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v2");
   if (_fit_primary_tracks)
     if (!_tca_primtrackmap)
-      _tca_primtrackmap = new TClonesArray("SvtxTrack_v1");
+      _tca_primtrackmap = new TClonesArray("SvtxTrack_v2");
   if (!_tca_vertexmap_refit)
     _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
@@ -1249,17 +1237,13 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //delete gf_state_beam_line_ca;
 
   // create new track
-  std::shared_ptr<SvtxTrack_v1> out_track( new SvtxTrack_v1() );
-
-  // assign all members from old
-  /* we need asignment operator instead of copy constructor, because the former makes a deep copy of the track state, as opposed to the latter */
-  *out_track = *static_cast<const SvtxTrack_v1*>(svtx_track);
+  auto out_track = std::make_shared<SvtxTrack_v2>(*svtx_track);
 
   // clear states and insert empty one for vertex position
   out_track->clear_states();
   {
     /*
-    insert first, dummy state, as done in SvtxTrack_v1 constructor,
+    insert first, dummy state, as done in constructor,
     so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
     does not take ownership of the state
     */

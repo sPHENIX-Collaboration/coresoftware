@@ -7,10 +7,10 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <cmath>
-#include <cstddef>              // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
-#include <utility>               // for pair
+#include <utility>  // for pair
 
 class PHObject;
 
@@ -18,8 +18,16 @@ class SvtxTrack_v1 : public SvtxTrack
 {
  public:
   SvtxTrack_v1();
+  
+  //* base class copy constructor
+  SvtxTrack_v1( const SvtxTrack& );
+  
+  //* copy constructor
   SvtxTrack_v1(const SvtxTrack_v1& track);
+
+  //* assignment operator
   SvtxTrack_v1& operator=(const SvtxTrack_v1& track);
+  
   virtual ~SvtxTrack_v1();
 
   // The "standard PHObject response" functions...
@@ -27,6 +35,11 @@ class SvtxTrack_v1 : public SvtxTrack
   void Reset() { *this = SvtxTrack_v1(); }
   int isValid() const;
   PHObject* CloneMe() const { return new SvtxTrack_v1(*this); }
+  
+  // copy content from base class
+  virtual void CopyFrom( const SvtxTrack& );
+  virtual void CopyFrom( SvtxTrack* source )
+  { CopyFrom( *source ); }
 
   //
   // basic track information ---------------------------------------------------
@@ -155,9 +168,9 @@ class SvtxTrack_v1 : public SvtxTrack
   ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return _cluster_keys.find(clusterid); }
   ConstClusterKeyIter begin_cluster_keys() const { return _cluster_keys.begin(); }
   ConstClusterKeyIter end_cluster_keys() const { return _cluster_keys.end(); }
-  ClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keys.find(clusterid); }
+  ClusterKeyIter find_cluster_keys(unsigned int clusterid) { return _cluster_keys.find(clusterid); }
   ClusterKeyIter begin_cluster_keys() { return _cluster_keys.begin(); }
-  ClusterKeyIter end_cluster_keys()  { return _cluster_keys.end(); }
+  ClusterKeyIter end_cluster_keys() { return _cluster_keys.end(); }
 
   //
   // calo projection methods ---------------------------------------------------
@@ -185,24 +198,23 @@ class SvtxTrack_v1 : public SvtxTrack
 
  private:
   // track information
-  unsigned int _track_id;
-  unsigned int _vertex_id;
-  bool _is_positive_charge;
-  float _chisq;
-  unsigned int _ndf;
+  unsigned int _track_id = UINT_MAX;
+  unsigned int _vertex_id = UINT_MAX;
+  bool _is_positive_charge = false;
+  float _chisq = NAN;
+  unsigned int _ndf = 0;
 
   // extended track information (non-primary tracks only)
-  float _dca;
-  float _dca_error;
-  float _dca2d;
-  float _dca2d_error;
-  float _dca3d_xy;
-  float _dca3d_xy_error;
-  float _dca3d_z;
-  float _dca3d_z_error;
+  float _dca = NAN;
+  float _dca_error = NAN;
+  float _dca2d = NAN;
+  float _dca2d_error = NAN;
+  float _dca3d_xy = NAN;
+  float _dca3d_xy_error = NAN;
+  float _dca3d_z = NAN;
+  float _dca3d_z_error = NAN;
 
   // extended track information (primary tracks only)
-
 
   // track state information
   StateMap _states;  //< path length => state object

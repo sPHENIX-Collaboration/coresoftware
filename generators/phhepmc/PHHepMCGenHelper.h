@@ -77,7 +77,7 @@ class PHHepMCGenHelper
   virtual int create_node_tree(PHCompositeNode *topNode);
 
   //! choice of reference version of the PHHepMCGenEvent
-  const PHHepMCGenEvent * get_PHHepMCGenEvent_template() const;
+  const PHHepMCGenEvent *get_PHHepMCGenEvent_template() const;
 
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
@@ -136,19 +136,34 @@ class PHHepMCGenHelper
     m_beam_angular_divergence_hv = {{beamA_divergence_h, beamA_divergence_v}, {beamB_divergence_h, beamB_divergence_v}};
   }
 
+  //! Central beam angle shift as linear function of longitudinal vertex position, d_shift/dz,
+  //! which is used to represent leading order effect of crab cavity momentum kick on the beam bunch
+  //! @param[in] beamA_h beamA, horizontal angle dh/dz. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamA_v beamA, vertical angle dv/dz. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_h beamB, horizontal angle dh/dz. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  //! @param[in] beamB_v beamB, vertical angle dv/dz. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  void set_beam_angular_z_coefficient_hv(
+      const double beamA_h,
+      const double beamA_v,
+      const double beamB_h,
+      const double beamB_v)
+  {
+    m_beam_angular_z_coefficient_hv = {{beamA_h, beamA_v}, {beamB_h, beamB_v}};
+  }
+
   void CopySettings(PHHepMCGenHelper &helper);
 
   //! copy setting to helper_dest
-  void CopySettings(PHHepMCGenHelper * helper_dest) ;
+  void CopySettings(PHHepMCGenHelper *helper_dest);
 
   //! copy setting from helper_src
-  void CopyHelperSettings(PHHepMCGenHelper * helper_src) ;
+  void CopyHelperSettings(PHHepMCGenHelper *helper_src);
 
   void Print(const std::string &what = "ALL") const;
 
-  void PHHepMCGenHelper_Verbosity(int v) {m_verbosity = v;}
+  void PHHepMCGenHelper_Verbosity(int v) { m_verbosity = v; }
 
-  int PHHepMCGenHelper_Verbosity() {return m_verbosity;}
+  int PHHepMCGenHelper_Verbosity() { return m_verbosity; }
 
  private:
   gsl_rng *RandomGenerator;
@@ -182,6 +197,15 @@ class PHHepMCGenHelper
   //! First element is beamA, in pair of Gaussian Sigma_H Sigma_V. BeamA is aimed to +z direction in the HepMC event generator's coordinate
   //! Second element is beamB, in pair of Gaussian Sigma_H Sigma_V. BeamA is aimed to -z direction in the HepMC event generator's coordinate
   std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_angular_divergence_hv = {
+      {0, 0},  //+z beam
+      {0, 0}   //-z beam
+  };
+
+  //! Central beam angle shift as linear function of longitudinal vertex position, d_shift/dz,
+  //! which is used to represent leading order effect of crab cavity momentum kick on the beam bunch
+  //! First element is beamA, in pair of dh/dz, dv/dz. BeamA is aimed to +z direction in the HepMC event generator's coordinate
+  //! Second element is beamB, in pair of dh/dz, dv/dz. BeamA is aimed to -z direction in the HepMC event generator's coordinate
+  std::pair<std::pair<double, double>, std::pair<double, double>> m_beam_angular_z_coefficient_hv = {
       {0, 0},  //+z beam
       {0, 0}   //-z beam
   };

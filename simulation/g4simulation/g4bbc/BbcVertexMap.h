@@ -24,18 +24,18 @@ class BbcVertexMap : public PHObject
   virtual size_t count(unsigned int idkey) const { return 0; }
   virtual void clear() {}
 
-  virtual const BbcVertex* get(unsigned int idkey) const { return NULL; }
-  virtual BbcVertex* get(unsigned int idkey) { return NULL; }
-  virtual BbcVertex* insert(BbcVertex* vertex) { return NULL; }
+  virtual const BbcVertex* get(unsigned int idkey) const { return nullptr; }
+  virtual BbcVertex* get(unsigned int idkey) { return nullptr; }
+  virtual BbcVertex* insert(BbcVertex* vertex) { return nullptr; }
   virtual size_t erase(unsigned int idkey) { return 0; }
 
-  virtual ConstIter begin() const { return std::map<unsigned int, BbcVertex*>().end(); }
-  virtual ConstIter find(unsigned int idkey) const { return std::map<unsigned int, BbcVertex*>().end(); }
-  virtual ConstIter end() const { return std::map<unsigned int, BbcVertex*>().end(); }
+  virtual ConstIter begin() const;
+  virtual ConstIter find(unsigned int idkey) const;
+  virtual ConstIter end() const;
 
-  virtual Iter begin() { return std::map<unsigned int, BbcVertex*>().end(); }
-  virtual Iter find(unsigned int idkey) { return std::map<unsigned int, BbcVertex*>().end(); }
-  virtual Iter end() { return std::map<unsigned int, BbcVertex*>().end(); }
+  virtual Iter begin();
+  virtual Iter find(unsigned int idkey);
+  virtual Iter end();
 
  protected:
   BbcVertexMap() {}

@@ -18,7 +18,7 @@
 class PHCompositeNode;
 
 //class SvtxClusterMap;
-class TrkrClusterContainer;
+//class TrkrClusterContainer;
 
 class SvtxVertexMap;
 class SvtxTrackMap;
@@ -51,7 +51,7 @@ class PH3DVertexing : public SubsysReco
   virtual int Process() = 0;
 
   //SvtxClusterMap *_cluster_map;
-  TrkrClusterContainer *_cluster_map;
+  // TrkrClusterContainer *_cluster_map;
 
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;

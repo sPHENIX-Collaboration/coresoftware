@@ -338,11 +338,11 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
         // get hit from hitset
         TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
-        TrkrHit* hit = hitset_it->second->getHit(hitkey);
+        auto hit = hitset_it->second->getHit(hitkey);
         if( !hit )
         {
           // create hit and insert in hitset
-          hit = new TrkrHit;
+          hit = new TrkrHitv2;
           hitset_it->second->addHitSpecificKey(hitkey, hit);
         }
 

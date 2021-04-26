@@ -259,15 +259,17 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         }
         if (isfinal(*p))
         {
-          if (Verbosity() > 1)
-            cout << "partile passed " << endl;
+	  if(Verbosity()>1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    cout<<"\tparticle passed "<<endl;
+	  }
           finalstateparticles.push_back(*p);
-        }
-        else
-        {
-          if (Verbosity() > 1)
-            cout << "partivle failed" << endl;
-        }
+        }else{
+	  if(Verbosity()>1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    cout<<"\tparticle failed "<<endl;
+	  }
+	}
       }
 
       if (!finalstateparticles.empty())
@@ -287,6 +289,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
         if (Verbosity() > 1)
         {
+	  cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
           cout << "Vertex : " << endl;
           (*v)->print();
           cout << "id: " << (*v)->barcode() << endl;
@@ -334,7 +337,10 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
              fiter != finalstateparticles.end();
              ++fiter)
         {
-          if (Verbosity() > 1) (*fiter)->print();
+          if (Verbosity() > 1){
+	    cout<<__PRETTY_FUNCTION__<<" "<<__LINE__<<endl;
+	    (*fiter)->print();
+	  }
 
           CLHEP::HepLorentzVector lv_momentum((*fiter)->momentum().px(),
                                               (*fiter)->momentum().py(),

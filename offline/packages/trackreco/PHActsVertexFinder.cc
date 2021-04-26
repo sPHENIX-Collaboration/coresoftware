@@ -51,7 +51,6 @@
 
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
-  , m_actsFitResults(nullptr)
   , m_actsVertexMap(nullptr)
 {
 }
@@ -128,21 +127,37 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
-  for(const auto &[key, traj] : *m_actsFitResults)
+  for(const auto &[key, track] : *m_svtxTrackMap)
   {
-    const auto &[trackTips, mj] = traj.trajectory();
+    Acts::Vector3D momentum(track->get_px(), 
+			    track->get_py(), 
+			    track->get_pz());
+    Acts::Vector4D position(track->get_x() * Acts::UnitConstants::cm,
+			    track->get_y() * Acts::UnitConstants::cm,
+			    track->get_z() * Acts::UnitConstants::cm,
+			    10. * Acts::UnitConstants::ns);
     
-    for(const size_t &trackTip : trackTips)
-      {
-	if(traj.hasTrackParameters(trackTip))
-	  {
-	    const auto param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	    keyMap.insert(std::make_pair(param, key));
-	    trackPtrs.push_back(param);
-	  }
-      }
+    auto vertexId = track->get_vertex_id();
+    const SvtxVertex* svtxVertex = m_svtxVertexMap->get(vertexId);
+    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			  svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+    Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+    for(int i = 0; i <6; i++)
+      for(int j=0; j<6; j++)
+	cov(i,j) = track->get_acts_covariance(i,j);
+    
+    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
+   
+    const auto param = new Acts::BoundTrackParameters(
+			   pSurface, m_tGeometry->geoContext,
+			   position, momentum, track->get_p(),
+			   track->get_charge(), cov);
+
+    keyMap.insert(std::make_pair(param, key));
+    trackPtrs.push_back(param);
   }
-  
+
   if(Verbosity() > 3)
     {
       std::cout << "Finding vertices for the following number of tracks "
@@ -273,7 +288,7 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
   if(vertices.size() > 0)
     m_svtxVertexMap->clear();
 
-  for(auto vertex : vertices)
+  for(auto& vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
       const auto numTracks = vertex.tracks().size();
@@ -287,9 +302,6 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 		    << " with chi2/ndf " << chi2 / ndf << std::endl;
 	}
 
-      /// Make some basic QA cuts on the vertices 
-      if(numTracks < 3)
-	continue;
 
       /// Fill Acts vertex map
       auto pair = std::make_pair(key, vertex);
@@ -468,17 +480,7 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-    (topNode, "ActsFitResults");
-  if(!m_actsFitResults)
-    {
-      std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-
-    }
-  
+    
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, 
 							 "ActsTrackingGeometry");
   if(!m_tGeometry)

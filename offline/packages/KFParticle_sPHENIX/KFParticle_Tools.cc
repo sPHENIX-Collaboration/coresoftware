@@ -158,6 +158,8 @@ KFParticle KFParticle_Tools::makeParticle(PHCompositeNode *topNode)  ///Return a
   kfp_particle.Chi2() = m_dst_track->get_chisq();
   kfp_particle.SetId(m_dst_track->get_id());
 
+  //std::cout << "m_dst_track->get_cal_energy_3x3(PRES): " << m_dst_track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(0)) << std::endl;
+
   return kfp_particle;
 }
 

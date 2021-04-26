@@ -22,6 +22,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -728,16 +730,19 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
       cout << " _layer_ilayer_map has " << _layer_ilayer_map.size() << " entries" << endl;
     }
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-    {
-      TrkrCluster *cluster = iter->second;
-      TrkrDefs::cluskey cluskey = iter->first;
+  auto hitsetrange = _hitsets->getHitSets();
+  for (auto hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr){
+    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey cluskey = clusIter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
 
       if(layer < 3) 
 	_nclus_mvtx++;
-
+      
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
       if(it != _layer_ilayer_map.end())
 	{
@@ -771,6 +776,7 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
 	  clusid += 1;	
 	}
     }
+  }
 
   // estimate the minimum number of tracks per vertex requirement from the number of clusters in the MVTX layers
   if(!_override_min_zvtx_tracks)

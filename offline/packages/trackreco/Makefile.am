@@ -24,8 +24,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsTransformations.h \
   ActsTrack.h \
-  ActsTrackingGeometry.h \
-  ActsSurfaceMaps.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
@@ -42,7 +40,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
-  PHActsTrkProp.h \
+  PHActsToSvtxTracks.h \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
@@ -76,7 +74,10 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp
+  ../PHTpcTracker/externals/kdfinder.hpp \
+  ALICEKF.h \
+  nanoflann.hpp \
+  PHSimpleKFProp.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -101,6 +102,7 @@ libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
@@ -116,7 +118,7 @@ ACTS_SOURCES = \
   PHActsSiliconSeeding.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
-  PHActsTrkProp.cc \
+  PHActsToSvtxTracks.cc \
   PHActsTrkFitter.cc \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
@@ -171,7 +173,9 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
   PHRaveVertexing.cc \
-  PHTpcTrackSeedVertexAssoc.cc
+  PHTpcTrackSeedVertexAssoc.cc \
+  ALICEKF.cc \
+  PHSimpleKFProp.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \

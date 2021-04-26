@@ -4,7 +4,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -50,8 +50,7 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
 {
   // put these in the output file
-  cout << PHWHERE << " p0 " << _par0 << " p1 " << _par1 << " p2 " 
-       << _par2 << " Search windows: phi " << _phi_search_win << " eta " 
+  cout << PHWHERE "_is_ca_seeder " << _is_ca_seeder << " Search windows: phi " << _phi_search_win << " eta " 
        << _eta_search_win << endl;
 
   // corrects the PHTpcTracker phi bias
@@ -358,9 +357,9 @@ int PHSiliconTpcTrackMatching::Process()
 	      // more than one si stub matches
 	      // make a copy of the TPC track, update it and add it to the end of the node tree 
 	      #if __cplusplus < 201402L
-	      auto newTrack = boost::make_unique<SvtxTrack_v1>();
+	      auto newTrack = boost::make_unique<SvtxTrack_v2>();
 	      #else
-	      auto newTrack = std::make_unique<SvtxTrack_v1>();
+	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 	      #endif
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
 	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
@@ -433,7 +432,7 @@ int PHSiliconTpcTrackMatching::Process()
 		  newTrack->identify();
 		}
 
-	      _track_map->insert(newTrack.release());
+	      _track_map->insert(newTrack.get());
 	 
 	    }
 	  
