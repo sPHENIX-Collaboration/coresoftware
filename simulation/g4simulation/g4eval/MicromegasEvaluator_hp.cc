@@ -4,6 +4,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 #include <phool/getClass.h>
@@ -213,16 +214,23 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
-      auto location = (world_in + world_out)*0.5;
+      
+      // get tile
+      const int tileid = layergeom->find_tile_cylindrical( (world_in + world_out)*0.5 );
+      if( tileid < 0 ) continue;
 
-      // get tile and strip, skip if invalid
-      const auto [tileid, stripnum] = layergeom->find_strip( location );
+      // convert to planar coordinates
+      PHG4Hitv1 g4hit_copy( g4hit );
 
-      // check tile and strip
-      if( tileid < 0 || stripnum < 0 ) continue;
+      layergeom->convert_to_planar( tileid, &g4hit_copy );
+      world_in.SetXYZ( g4hit_copy.get_x(0), g4hit_copy.get_y(0), g4hit_copy.get_z(0) );
+      world_out.SetXYZ( g4hit_copy.get_x(1), g4hit_copy.get_y(1), g4hit_copy.get_z(1) );
+
+      const int stripnum = layergeom->find_strip_from_world_coords( tileid, (world_in + world_out)*0.5  );
+      if( stripnum < 0 ) continue;
 
       // create G4Hit struct
-      auto g4hitstruct = create_g4hit( g4hit );
+      auto g4hitstruct = create_g4hit( &g4hit_copy );
       g4hitstruct._layer = layer;
       g4hitstruct._tile = tileid;
 
