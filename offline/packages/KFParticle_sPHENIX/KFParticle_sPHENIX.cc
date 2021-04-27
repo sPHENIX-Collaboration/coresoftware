@@ -47,7 +47,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX()
   , m_save_output(1)
   , m_outfile_name("outputData.root")
   , m_outfile(nullptr)
-  , m_use_decay_descriptor(false)
 {
 }
 
@@ -60,7 +59,6 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
   , m_save_output(1)
   , m_outfile_name("outputData.root")
   , m_outfile(nullptr)
-  , m_use_decay_descriptor(false)
 {
 }
 
@@ -340,7 +338,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
 
     int vtxCharge = 0;
 
-    for (unsigned int j = trackStart; j < trackEnd; ++j)
+    for (int j = trackStart; j < trackEnd; ++j)
     {
       vtxCharge += daughters_charge[j];
     }

@@ -95,7 +95,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_num_tracks_nTuple = num_tracks;
   }
 
-  void setNumberTracksFromIntermeditateState(int num_tracks[max_particles])
+  void setNumberTracksFromIntermeditateState(int num_tracks[max_particles] = {0})
   {
     for (int i = 0; i < max_particles; ++i) 
    {
@@ -283,7 +283,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_save_output;
   std::string m_outfile_name;
   TFile *m_outfile;
-  bool m_use_decay_descriptor;
   std::string m_decayDescriptor;
 };
 

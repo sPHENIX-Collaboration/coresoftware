@@ -457,7 +457,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
 }
 
-
+/*
 void KFParticle_truthAndDetTools::initializeMultiplicityBranches(TTree *m_tree)
 {
   m_tree->Branch("INTT_meanHits", &INTT_meanHits, "INTT_meanHits/F");
@@ -487,7 +487,7 @@ void KFParticle_truthAndDetTools::calculateMultiplicity(PHCompositeNode *topNode
   meanMultiplicity = (inttHits[0] + inttHits[1])/2;
   asymmetryMultiplicity = (inttHits[0] - inttHits[1])/(inttHits[0] + inttHits[1]);
 }
-
+*/
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             TTree *m_tree, 
                                             KFParticle motherParticle,

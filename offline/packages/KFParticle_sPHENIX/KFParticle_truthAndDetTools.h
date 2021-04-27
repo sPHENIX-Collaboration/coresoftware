@@ -82,8 +82,8 @@ class KFParticle_truthAndDetTools
   void initializeSubDetectorBranches(TTree *m_tree, std::string detectorName, int daughter_id, std::string daughter_number);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
 
-  void initializeMultiplicityBranches(TTree *m_tree);
-  void calculateMultiplicity(PHCompositeNode *topNode, float& meanMultiplicity, float& asymmetryMultiplicity);
+  //void initializeMultiplicityBranches(TTree *m_tree);
+  //void calculateMultiplicity(PHCompositeNode *topNode, float& meanMultiplicity, float& asymmetryMultiplicity);
 
   void allPVInfo(PHCompositeNode *topNode, TTree *m_tree, 
                  KFParticle motherParticle, 
@@ -169,8 +169,8 @@ class KFParticle_truthAndDetTools
   std::vector<int> tpc_sectorID[max_tracks];
   std::vector<int> tpc_side[max_tracks];
 
-  float INTT_meanHits = 0;
-  float INTT_asymmHits = 0;
+  //float INTT_meanHits = 0;
+  //float INTT_asymmHits = 0;
 
   std::vector<float> allPV_x;
   std::vector<float> allPV_y;
