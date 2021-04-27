@@ -28,6 +28,7 @@
 #include "DumpSyncObject.h"
 #include "DumpTowerBackground.h"
 #include "DumpTrkrClusterContainer.h"
+#include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpVariableArray.h"
 
@@ -275,6 +276,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrClusterContainer"))
       {
         newdump = new DumpTrkrClusterContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("TrkrClusterHitAssoc"))
+      {
+        newdump = new DumpTrkrClusterHitAssoc(NodeName);
       }
       else if (tmp->InheritsFrom("TrkrHitSetContainer"))
       {

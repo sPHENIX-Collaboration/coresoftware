@@ -11,9 +11,21 @@
 class SvtxTrack_FastSim_v1 : public SvtxTrack_FastSim
 {
  public:
-  SvtxTrack_FastSim_v1();
-  virtual ~SvtxTrack_FastSim_v1();
+  
+  //* constructor
+  SvtxTrack_FastSim_v1() {}
+  
+  //* base class copy constructor
+  SvtxTrack_FastSim_v1( const SvtxTrack& );
+  
+  //* destructor
+  virtual ~SvtxTrack_FastSim_v1() = default;
 
+  // copy content from base class
+  virtual void CopyFrom( const SvtxTrack& );
+  virtual void CopyFrom( SvtxTrack* source )
+  { CopyFrom( *source ); }
+  
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = SvtxTrack_FastSim_v1(); }

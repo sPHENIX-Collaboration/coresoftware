@@ -4,7 +4,7 @@
  */
 
 #include "TrackEvaluation.h"
-#include "TrackEvaluationContainer.h"
+#include "TrackEvaluationContainerv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4Hit.h>
@@ -47,7 +47,7 @@ namespace
     inline const typename T::first_type& begin() {return m_range.first;}
     inline const typename T::second_type& end() {return m_range.second;}
     private:
-    const T& m_range;
+    T m_range;
   };
 
   //! square
@@ -133,9 +133,9 @@ namespace
   }
 
   //! create track struct from struct from svx track
-  TrackEvaluationContainer::TrackStruct create_track( SvtxTrack* track )
+  TrackEvaluationContainerv1::TrackStruct create_track( SvtxTrack* track )
   {
-    TrackEvaluationContainer::TrackStruct trackStruct;
+    TrackEvaluationContainerv1::TrackStruct trackStruct;
 
     trackStruct.charge = track->get_charge();
     trackStruct.nclusters = track->size_cluster_keys();
@@ -165,9 +165,9 @@ namespace
   }
 
   //! create cluster struct from svx cluster
-  TrackEvaluationContainer::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
+  TrackEvaluationContainerv1::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
   {
-    TrackEvaluationContainer::ClusterStruct cluster_struct;
+    TrackEvaluationContainerv1::ClusterStruct cluster_struct;
     cluster_struct.layer = TrkrDefs::getLayer(key);
     cluster_struct.x = cluster->getX();
     cluster_struct.y = cluster->getY();
@@ -181,7 +181,7 @@ namespace
   }
 
   //! add track information
-  void add_trk_information( TrackEvaluationContainer::ClusterStruct& cluster, SvtxTrackState* state )
+  void add_trk_information( TrackEvaluationContainerv1::ClusterStruct& cluster, SvtxTrackState* state )
   {
     // need to extrapolate the track state to the right cluster radius to get proper residuals  
     const auto trk_r = get_r( state->get_x(), state->get_y() );
@@ -220,7 +220,7 @@ namespace
   }
 
   //! number of hits associated to cluster
-  void add_cluster_size( TrackEvaluationContainer::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
+  void add_cluster_size( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   {
     if( !cluster_hit_map ) return;
     const auto range = cluster_hit_map->getHits(clus_key);
@@ -274,7 +274,7 @@ namespace
 
 
   //! hit energy for a given cluster
-  void add_cluster_energy( TrackEvaluationContainer::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
+  void add_cluster_energy( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
     TrkrClusterHitAssoc* cluster_hit_map,
     TrkrHitSetContainer* hitsetcontainer )
   {
@@ -308,7 +308,7 @@ namespace
   }
 
   // add truth information
-  void add_truth_information( TrackEvaluationContainer::ClusterStruct& cluster, std::set<PHG4Hit*> hits )
+  void add_truth_information( TrackEvaluationContainerv1::ClusterStruct& cluster, std::set<PHG4Hit*> hits )
   {
     // need to extrapolate g4hits position to the cluster r
     /* this is done by using a linear extrapolation, with a straight line going through all provided G4Hits in and out positions */
@@ -366,7 +366,7 @@ namespace
   }
 
   // ad}d truth information
-  void add_truth_information( TrackEvaluationContainer::TrackStruct& track, PHG4Particle* particle )
+  void add_truth_information( TrackEvaluationContainerv1::TrackStruct& track, PHG4Particle* particle )
   {
     if( particle )
     {
@@ -411,7 +411,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode )
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainer, "TrackEvaluationContainer","PHObject");
+  auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainerv1, "TrackEvaluationContainer","PHObject");
   evalNode->addNode(newNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -461,7 +461,7 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
   m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
 
   // local container
-  m_container = findNode::getClass<TrackEvaluationContainer>(topNode, "TrackEvaluationContainer");
+  m_container = findNode::getClass<TrackEvaluationContainerv1>(topNode, "TrackEvaluationContainer");
 
   // hitset container
   m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -485,7 +485,7 @@ void TrackEvaluation::evaluate_event()
   if(!m_container) return;
 
   // create event struct
-  TrackEvaluationContainer::EventStruct event;
+  TrackEvaluationContainerv1::EventStruct event;
   if( m_hitsetcontainer )
   {
     // loop over hitsets
@@ -493,7 +493,7 @@ void TrackEvaluation::evaluate_event()
     {
       const auto trkrId = TrkrDefs::getTrkrId(hitsetkey);
       const auto layer = TrkrDefs::getLayer(hitsetkey);
-      assert(layer<TrackEvaluationContainer::EventStruct::max_layer);
+      assert(layer<TrackEvaluationContainerv1::EventStruct::max_layer);
 
       if(m_cluster_map)
       {
@@ -546,6 +546,9 @@ void TrackEvaluation::evaluate_clusters()
       m_container->addCluster( cluster_struct );
     }
   }
+  
+  std::cout << "TrackEvaluation::evaluate_clusters - clusters: " << m_container->clusters().size() << std::endl;
+  
 }
 
 //_____________________________________________________________________
@@ -617,6 +620,10 @@ void TrackEvaluation::evaluate_tracks()
     }
     m_container->addTrack( track_struct );
   }
+  
+  std::cout << "TrackEvaluation::evaluate_tracks - tracks: " << m_container->tracks().size() << std::endl;
+
+  
 }
 
 //_____________________________________________________________________

@@ -1,12 +1,12 @@
 /*!
- * \file PHG4MicromegasDigitizer.cc
+ * \file TrackEvaluationContainerv1.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include "TrackEvaluationContainer.h"
+#include "TrackEvaluationContainerv1.h"
 
 //_____________________________________________________________________
-void TrackEvaluationContainer::Reset()
+void TrackEvaluationContainerv1::Reset()
 {
   m_events.clear();
   m_clusters.clear();

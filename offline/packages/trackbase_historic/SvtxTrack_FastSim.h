@@ -12,12 +12,25 @@
 
 #include <iostream>        // for cout, ostream
 
-class SvtxTrack_FastSim : public SvtxTrack_v1
+class SvtxTrack_FastSim: public SvtxTrack_v1
 {
  public:
-  SvtxTrack_FastSim();
-  virtual ~SvtxTrack_FastSim();
+  
+  //* constructor
+  SvtxTrack_FastSim()
+  {}
+  
+  //* destructor
+  virtual ~SvtxTrack_FastSim() = default;
 
+  //* base class copy constructor
+  SvtxTrack_FastSim( const SvtxTrack& );
+
+  // copy content from base class
+  virtual void CopyFrom( const SvtxTrack& );
+  virtual void CopyFrom( SvtxTrack* source )
+  { CopyFrom( *source ); }
+  
   unsigned int get_truth_track_id() const
   {
     return _truth_track_id;
@@ -34,12 +47,15 @@ class SvtxTrack_FastSim : public SvtxTrack_v1
   int isValid() const;
   PHObject* CloneMe() const { return new SvtxTrack_FastSim(*this); }
 
-  void set_num_measurements(int nmeas) { _nmeas = nmeas; }
-  unsigned int get_num_measurements() { return _nmeas; }
+  void set_num_measurements(int nmeas) 
+  { _nmeas = nmeas; }
+  
+  unsigned int get_num_measurements() const 
+  { return _nmeas; }
 
  private:
-  unsigned int _truth_track_id;
-  unsigned int _nmeas;
+  unsigned int _truth_track_id = UINT_MAX;
+  unsigned int _nmeas = 0;
 
   ClassDef(SvtxTrack_FastSim, 1)
 };
