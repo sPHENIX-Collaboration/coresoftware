@@ -95,13 +95,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_num_tracks_nTuple = num_tracks;
   }
 
-  void setNumberTracksFromIntermeditateState(int num_tracks[max_particles] = {0})
+  void setNumberTracksFromIntermeditateState(int num_tracks[max_particles] = 0)
   {
     for (int i = 0; i < max_particles; ++i) 
-   {
-     m_num_tracks_from_intermediate[i] = num_tracks[i];
-     m_num_tracks_from_intermediate_nTuple[i] = num_tracks[i];
-   }
+    {
+      m_num_tracks_from_intermediate[i] = num_tracks[i];
+      m_num_tracks_from_intermediate_nTuple[i] = num_tracks[i];
+    }
   }
 
   void setNumberOfIntermediateStates(int n_intermediates)
