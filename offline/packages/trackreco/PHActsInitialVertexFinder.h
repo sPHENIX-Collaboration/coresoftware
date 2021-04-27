@@ -61,6 +61,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
   void createDummyVertex();
   void checkTrackVertexAssociation();
+  SvtxTrackMap* sortTracks();
   
   int m_maxVertices = 5;
   int m_event = 0;
