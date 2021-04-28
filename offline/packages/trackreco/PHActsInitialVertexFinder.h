@@ -46,6 +46,11 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   void resetTrackCovariance(const bool initial)
   { m_resetTrackCovariance = initial; }
 
+  void setCentroids(const int centroids)
+  { m_nCentroids = centroids;}
+  void setIterations(const int iterations)
+  {m_nIterations = iterations;}
+
  protected:
   int Setup(PHCompositeNode *topNode) override;
   int Process(PHCompositeNode *topNode) override;
@@ -61,8 +66,10 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
   void createDummyVertex();
   void checkTrackVertexAssociation();
-  SvtxTrackMap* sortTracks();
+  std::vector<SvtxTrack*> sortTracks();
   
+  int m_nCentroids = 1;
+  int m_nIterations = 5;
   int m_maxVertices = 5;
   int m_event = 0;
   unsigned int m_totVertexFits = 0;
