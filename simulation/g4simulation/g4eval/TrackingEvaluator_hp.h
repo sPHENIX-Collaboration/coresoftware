@@ -176,6 +176,8 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_pz = 0;
     //@}
 
+    int _tileid = 0;
+
   };
 
   // track information to be stored in tree

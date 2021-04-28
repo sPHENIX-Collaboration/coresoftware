@@ -203,6 +203,9 @@ namespace
     cluster_struct._phi_error = cluster->getPhiError();
     cluster_struct._z_error = cluster->getZError();
 
+    if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
+    { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
+    
     return cluster_struct;
   }
 
