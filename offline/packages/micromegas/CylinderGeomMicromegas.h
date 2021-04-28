@@ -67,6 +67,8 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! print information about this layer
   virtual void identify(std::ostream&) const;
 
+  static constexpr double reference_radius = 82;
+
   //@}
 
   //!@name modifiers
