@@ -28,7 +28,7 @@ void PHParameterInterface::set_default_double_param(const std::string &name, con
   else
   {
     std::cout << "trying to overwrite default double " << name << " "
-         << m_DefaultDoubleParMap[name] << " with " << dval << std::endl;
+              << m_DefaultDoubleParMap[name] << " with " << dval << std::endl;
     gSystem->Exit(1);
   }
   return;
@@ -43,7 +43,7 @@ void PHParameterInterface::set_default_int_param(const std::string &name, const 
   else
   {
     std::cout << "trying to overwrite default int " << name << " "
-         << m_DefaultIntParMap[name] << " with " << ival << std::endl;
+              << m_DefaultIntParMap[name] << " with " << ival << std::endl;
     gSystem->Exit(1);
   }
   return;
@@ -58,7 +58,7 @@ void PHParameterInterface::set_default_string_param(const std::string &name, con
   else
   {
     std::cout << "trying to overwrite default string " << name << " "
-         << m_DefaultStringParMap[name] << " with " << sval << std::endl;
+              << m_DefaultStringParMap[name] << " with " << sval << std::endl;
     gSystem->Exit(1);
   }
   return;
