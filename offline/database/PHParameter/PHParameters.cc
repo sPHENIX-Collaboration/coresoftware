@@ -23,7 +23,6 @@
 #include <boost/stacktrace.hpp>
 #include <boost/tokenizer.hpp>
 
-
 #include <unistd.h>
 #include <algorithm>
 #include <cassert>
@@ -35,7 +34,8 @@
 #include <iterator>  // for reverse_iterator
 #include <sstream>
 
-PHParameters::PHParameters(const PHParameters &params, const std::string &name):   m_Detector(name)
+PHParameters::PHParameters(const PHParameters &params, const std::string &name)
+  : m_Detector(name)
 {
   FillFrom(&params);
 }
@@ -59,11 +59,11 @@ int PHParameters::get_int_param(const std::string &name) const
     return m_IntParMap.find(name)->second;
   }
   std::cout << PHWHERE << " integer parameter " << name
-       << " does not exist (forgot to set?)" << std::endl;
+            << " does not exist (forgot to set?)" << std::endl;
   std::cout << "Here is the stacktrace: " << std::endl;
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl
-       << "DO NOT PANIC - this is not a segfault" << std::endl;
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
   std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
   gSystem->Exit(1);
   exit(1);
@@ -102,11 +102,11 @@ PHParameters::get_double_param(const std::string &name) const
     return m_DoubleParMap.find(name)->second;
   }
   std::cout << PHWHERE << " double parameter " << name
-       << " does not exist (forgot to set?)" << std::endl;
+            << " does not exist (forgot to set?)" << std::endl;
   std::cout << "Here is the stacktrace: " << std::endl;
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl
-       << "DO NOT PANIC - this is not a segfault" << std::endl;
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
   std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
 
   gSystem->Exit(1);
@@ -190,11 +190,11 @@ PHParameters::get_string_param(const std::string &name) const
     return m_StringParMap.find(name)->second;
   }
   std::cout << PHWHERE << " string parameter " << name
-       << " does not exist (forgot to set?)" << std::endl;
+            << " does not exist (forgot to set?)" << std::endl;
   std::cout << "Here is the stacktrace: " << std::endl;
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl
-       << "DO NOT PANIC - this is not a segfault" << std::endl;
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
   std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
   gSystem->Exit(1);
   exit(1);
@@ -226,7 +226,7 @@ void PHParameters::FillFrom(const PdbParameterMap *saveparams)
 
   std::pair<std::map<const std::string, double>::const_iterator,
             std::map<const std::string, double>::const_iterator>
-         begin_end_d = saveparams->get_dparam_iters();
+      begin_end_d = saveparams->get_dparam_iters();
   for (std::map<const std::string, double>::const_iterator iter = begin_end_d.first;
        iter != begin_end_d.second; ++iter)
   {
@@ -337,7 +337,7 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &n
   if (!nodeparams)
   {
     std::cout << PHWHERE << " could not find PdbParameterMap " << nodename
-         << " which must exist" << std::endl;
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
@@ -375,14 +375,14 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &n
   if (!nodeparamcontainer)
   {
     std::cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
-         << " which must exist" << std::endl;
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(detid);
   if (!nodeparams)
   {
     std::cout << PHWHERE << " could not find PdbParameterMap for detector " << detid
-         << " which must exist" << std::endl;
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
@@ -407,7 +407,7 @@ int PHParameters::WriteToDB()
   PHTimeStamp TStop(0xffffffff);
 
   std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(),::tolower);
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
   PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank", bankID,
                                                 "Geometry Parameters", TStart, TStop, tablename);
   if (NewBank)
@@ -556,7 +556,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
       // the string.compare(0...) checks if the filename starts with fileprefix
       // if not coninue
       std::string basename = i.filename().string();
-      if (basename.compare(0,fileprefix.size(),fileprefix) != 0)
+      if (basename.compare(0, fileprefix.size(), fileprefix) != 0)
       {
         continue;
       }
