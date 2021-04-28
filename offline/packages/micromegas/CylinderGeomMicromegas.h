@@ -49,6 +49,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! get tile for a given world location
   int find_tile( const TVector3& ) const;
 
+  //! get number of tiles
+  size_t get_tiles_count() const { return m_tiles.size(); }
+  
   //! get tile and strip for a give world location
   std::pair<int,int> find_strip( const TVector3& ) const;
 
