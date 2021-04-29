@@ -47,8 +47,6 @@ namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 }
-// query replace vector<unsigned short> vector<double>
-using namespace std;
 
 typedef std::pair<unsigned short, unsigned short> iphiz;
 typedef std::pair<unsigned short, iphiz> ihit;
@@ -76,8 +74,8 @@ pthread_mutex_t mythreadlock;
 
 void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
 {
-  typedef multimap<unsigned short, ihit>::iterator hit_iterator;
-  pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
+  typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
+  std::pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
   hit_iterator it = iterpair.first;
   for (; it != iterpair.second; ++it) {
     if (it->second.second.first == phibin && it->second.second.second == zbin) { 
@@ -210,7 +208,7 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
     int phidown = 0;
     find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
     for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
-      iphiz iCoord(make_pair(iphi,iz));
+      iphiz iCoord(std::make_pair(iphi,iz));
       ihit  thisHit(adcval[iphi][iz],iCoord);
       ihit_list.push_back(thisHit);
     }
@@ -422,7 +420,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   clus->setSize(2, 0, COVAR_DIM[2][0]);
   clus->setSize(2, 1, COVAR_DIM[2][1]);
   clus->setSize(2, 2, COVAR_DIM[2][2]);
-  //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
+  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
   
   TMatrixF COVAR_ERR(3, 3);
   COVAR_ERR = ROT * ERR * ROT_T;
@@ -557,10 +555,10 @@ void *ProcessSector(void *threadarg) {
      if(zbin   >= zbins) continue;
 
      if(adc>0){
-       iphiz iCoord(make_pair(phibin,zbin));
+       iphiz iCoord(std::make_pair(phibin,zbin));
        ihit  thisHit(adc,iCoord);
        if(adc>5){
-	 all_hit_map.insert(make_pair(adc, thisHit));
+	 all_hit_map.insert(std::make_pair(adc, thisHit));
        }
        //adcval[phibin][zbin] = (unsigned short) adc;
        adcval[phibin][zbin] = (unsigned short) adc;
@@ -595,7 +593,7 @@ void *ProcessSector(void *threadarg) {
    pthread_exit(NULL);
 }
 
-TpcClusterizer::TpcClusterizer(const string &name)
+TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
@@ -633,9 +631,9 @@ bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderC
       reject_it = true;
       /*
       int layer = layergeom->get_layer();
-      cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
+      std::cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
       << " PhiBins " << PhiBins << " sector_fiducial_bins " << sector_fiducial_bins
-      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << endl;  
+      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << std::endl;  
       */
     }
 
@@ -650,7 +648,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -704,7 +702,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -712,7 +710,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -720,7 +718,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -728,7 +726,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_clusterhitassoc)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -839,7 +837,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
     int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
     if (rc) {
-      cout << "Error:unable to create thread," << rc << endl;
+      std::cout << "Error:unable to create thread," << rc << std::endl;
     }
   }
   
@@ -850,11 +848,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   { 
     int rc2 = pthread_join(thread_pair.thread, nullptr);
     if (rc2) 
-    { cout << "Error:unable to join," << rc2 << endl; }
+    { std::cout << "Error:unable to join," << rc2 << std::endl; }
   }
   
   if (Verbosity() > 0)
-    cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
+    std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
