@@ -23,6 +23,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for keytype
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -112,7 +113,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
     for(unsigned int layer = _min_layer;layer < _max_layer;layer++){
       TrkrDefs::cluskey cluskey = _clustereval->best_cluster_by_nhit(gtrackID, layer);
-      if(cluskey!=0)
+      if(cluskey!=0) 
 	ClusterKeyList.push_back(cluskey);
     }
     if(ClusterKeyList.size()< _min_clusters_per_track)
@@ -122,6 +123,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     svtx_track->set_id(_track_map->size());
     svtx_track->set_truth_track_id(gtrackID);
     ///g4 vertex id starts at 1, svtx vertex map starts at 0
+    // This is te truth particle vertex, and does not necessarily give the ID in the vertex map
     svtx_track->set_vertex_id(vertexID-1);
     
     // set track charge
@@ -146,6 +148,12 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     svtx_track->set_px(g4particle->get_px() * (1 + random));
     svtx_track->set_py(g4particle->get_py() * (1 + random));
     svtx_track->set_pz(g4particle->get_pz() * (1 + random));
+
+    // assign the track position using the truth vertex for this track
+    auto g4vertex = _g4truth_container->GetVtx(vertexID);
+    svtx_track->set_x(g4vertex->get_x() * (1 + random));
+    svtx_track->set_y(g4vertex->get_y() * (1 + random));
+    svtx_track->set_z(g4vertex->get_z() * (1 + random));
       
     for (TrkrDefs::cluskey cluskey : ClusterKeyList){
       svtx_track->insert_cluster_key(cluskey);
@@ -158,7 +166,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
   
   if (Verbosity() >= 5)
   {
-    cout << "Loop over SvtxTrackMap entries " << endl;
+    cout << "Loop over TrackMap " << _track_map_name << " entries " << endl;
     for (SvtxTrackMap::Iter iter = _track_map->begin();
          iter != _track_map->end(); ++iter)
     {
@@ -169,7 +177,9 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
       cout << "Track ID: " << svtx_track->get_id() << ", Dummy Track pT: "
            << svtx_track->get_pt() << ", Truth Track/Particle ID: "
-           << svtx_track->get_truth_track_id() << endl;
+           << svtx_track->get_truth_track_id() 
+	   << " (X,Y,Z) " << svtx_track->get_x() << ", " << svtx_track->get_y() << ", " << svtx_track->get_z()  
+	   << endl;
       cout << " nhits: " << svtx_track->size_cluster_keys()<< endl;
       //Print associated clusters;
       for (SvtxTrack::ConstClusterKeyIter iter_clus =

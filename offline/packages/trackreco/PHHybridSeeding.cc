@@ -323,6 +323,14 @@ int PHHybridSeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "Called Setup" << endl;
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
+
+  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_vertex_map)
+    {
+      cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   InitializeGeometry(topNode);
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_fit_track_size,_max_sin_phi,Verbosity()); 
   return Fun4AllReturnCodes::EVENT_OK;

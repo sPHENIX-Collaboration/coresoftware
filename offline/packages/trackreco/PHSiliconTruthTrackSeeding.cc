@@ -7,7 +7,7 @@
 #include <trackbase_historic/SvtxTrack_FastSim.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>
