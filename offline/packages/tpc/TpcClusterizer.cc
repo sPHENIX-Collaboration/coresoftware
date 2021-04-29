@@ -590,7 +590,7 @@ void *ProcessSector(void *threadarg) {
      calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, zz_shaping_correction, clusterlist, clusterhitassoc, do_assoc,tGeometry, surfMaps);
      remove_hits(ihit_list,all_hit_map, adcval);
    }
-   pthread_exit(NULL);
+   pthread_exit(nullptr);
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
