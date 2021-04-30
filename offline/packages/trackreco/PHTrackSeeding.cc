@@ -131,13 +131,6 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
   }
 
-  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_vertex_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
- 
  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
