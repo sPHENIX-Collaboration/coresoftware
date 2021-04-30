@@ -428,7 +428,8 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   return sortedTracks;
 }
 
-std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(std::map<unsigned int, std::vector<SvtxTrack*>>& clusters, std::vector<float>& centroids)
+std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
+CentroidMap& clusters, std::vector<float>& centroids)
 {
   
   std::vector<SvtxTrack*> sortedTracks;
@@ -496,9 +497,9 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(std::map<unsigne
 
 }
 
-std::map<unsigned int, std::vector<SvtxTrack*>> PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& centroids)
+CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& centroids)
 {
-  std::map<unsigned int, std::vector<SvtxTrack*>> clusters;
+  CentroidMap clusters;
   
   for(int niter = 0; niter < m_nIterations; niter++)
     {

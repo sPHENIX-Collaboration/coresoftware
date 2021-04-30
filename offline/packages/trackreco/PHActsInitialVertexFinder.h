@@ -25,6 +25,8 @@ using TrackParamVec = std::vector<const Acts::BoundTrackParameters*>;
 
 using InitKeyMap = std::map<const Acts::BoundTrackParameters*, const unsigned int>;
 
+using CentroidMap = std::map<unsigned int, std::vector<SvtxTrack*>>;
+
 class PHActsInitialVertexFinder: public PHInitVertexing
 {
  public: 
@@ -80,16 +82,15 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   /// to remove from Acts initial vertexing
   std::vector<SvtxTrack*> sortTracks();
   
-  std::map<unsigned int, std::vector<SvtxTrack*>> 
-    createCentroidMap(std::vector<float>& centroids);
-  std::vector<SvtxTrack*> getIVFTracks(
-       std::map<unsigned int, std::vector<SvtxTrack*>>& clusters,
-       std::vector<float>& centroids);
+  /// Helper functions for the k-means cluster algorithm
+  CentroidMap createCentroidMap(std::vector<float>& centroids);
+  std::vector<SvtxTrack*> getIVFTracks(CentroidMap& clusters, 
+				       std::vector<float>& centroids);
   
   /// Number of centroids for k-means clustering algorithm
   int m_nCentroids = 5;
   /// Number of times to iterate for clusters to converge
-  int m_nIterations = 12;
+  int m_nIterations = 15;
   /// Max number of vertices allowed by the Acts IVF
   int m_maxVertices = 5;
   /// Event num
