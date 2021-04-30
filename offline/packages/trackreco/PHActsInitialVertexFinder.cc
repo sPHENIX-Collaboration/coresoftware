@@ -603,7 +603,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	}
       
       /// Only vertex with stubs that have five clusters
-      if(m_svtxTrackMapName.find("TrackMap") != std::string::npos)
+      if(m_svtxTrackMapName.find("SiliconTrackMap") != std::string::npos)
 	{
 	  if(track->size_cluster_keys() < 5)
 	    {
