@@ -496,25 +496,43 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
       
     }
 
+  /// Note the centroid that has the most tracks
+  int maxTrackCentroid = 0;
   std::vector<float> stddev(numCentroids);
-
   for(const auto& [centroidIndex, trackVec] : clusters)
     {
       float sum = 0;
-      for(const auto& track : trackVec)
+      if(trackVec.size() > maxTrackCentroid)
 	{
-	  const double z = track->get_z();
-	  sum += pow(z - centroids.at(centroidIndex), 2);
+	  maxTrackCentroid = trackVec.size();
 	}
 
-      stddev.at(centroidIndex) = sqrt(sum / trackVec.size());
-      std::cout << "stddev is " << stddev.at(centroidIndex) << std::endl;
+      for(const auto& track : trackVec)
+	{
+	  std::cout << "Checking track key " << track->get_id()
+		    << " with z " << track->get_z() << " and centroid " 
+		    << centroids.at(centroidIndex) << std::endl;
+	  sum += pow(track->get_z() - centroids.at(centroidIndex), 2);
+	}
+
+      float stddevVal = sqrt(sum / trackVec.size());
+      std::cout << "stddev is " << stddevVal << std::endl;
+      stddev.at(centroidIndex) = stddevVal;
+    }
+  
+  for(const auto& [centroidIndex, trackVec] : clusters)
+    {
+      /// skip centroids that have a very small number of tracks
+      /// compared to the largest centroid, as these are most likely
+      /// composed of only a few (bad) stubs
+      if(trackVec.size() < 0.2 * maxTrackCentroid)
+	continue;
 
       for(const auto& track : trackVec)
 	{
-	  const double z = track->get_z();
-
-	  if(fabs(z - centroids.at(centroidIndex)) / stddev.at(centroidIndex) < 3)
+	  float z = track->get_z();
+	  std::cout << "z is " << z << " with Pull : " << fabs(z-centroids.at(centroidIndex)) / stddev.at(centroidIndex) << std::endl;
+	  if(fabs(z - centroids.at(centroidIndex)) / stddev.at(centroidIndex) < 2)
 	    {
 	      sortedTracks.push_back(track);
 	    }
