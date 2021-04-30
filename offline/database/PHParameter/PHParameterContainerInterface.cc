@@ -12,13 +12,10 @@
 #include <sstream>
 #include <utility>
 
-using namespace std;
-
 PHParameterContainerInterface::PHParameterContainerInterface(const std::string &name)
   : paramscontainer(new PHParametersContainer(name))
-  , defaultparams(nullptr)
 {
-  string pname(name);
+  std::string pname(name);
   pname += "_default";
   defaultparams = new PHParameters(pname);
 }
@@ -35,7 +32,7 @@ PHParameterContainerInterface::~PHParameterContainerInterface()
   return;
 }
 
-void PHParameterContainerInterface::set_name(const string &name)
+void PHParameterContainerInterface::set_name(const std::string &name)
 {
   paramscontainer->set_name(name);
 }
@@ -44,8 +41,8 @@ void PHParameterContainerInterface::set_default_double_param(const std::string &
 {
   if (defaultparams->exist_double_param(name))
   {
-    cout << "trying to overwrite default double " << name << " "
-         << defaultparams->get_double_param(name) << " with " << dval << endl;
+    std::cout << "trying to overwrite default double " << name << " "
+              << defaultparams->get_double_param(name) << " with " << dval << std::endl;
     gSystem->Exit(1);
   }
   defaultparams->set_double_param(name, dval);
@@ -56,20 +53,20 @@ void PHParameterContainerInterface::set_default_int_param(const std::string &nam
 {
   if (defaultparams->exist_int_param(name))
   {
-    cout << "trying to overwrite default double " << name << " "
-         << defaultparams->get_int_param(name) << " with " << ival << endl;
+    std::cout << "trying to overwrite default double " << name << " "
+              << defaultparams->get_int_param(name) << " with " << ival << std::endl;
     gSystem->Exit(1);
   }
   defaultparams->set_int_param(name, ival);
   return;
 }
 
-void PHParameterContainerInterface::set_default_string_param(const std::string &name, const string &sval)
+void PHParameterContainerInterface::set_default_string_param(const std::string &name, const std::string &sval)
 {
   if (defaultparams->exist_string_param(name))
   {
-    cout << "trying to overwrite default double " << name << " "
-         << defaultparams->get_string_param(name) << " with " << sval << endl;
+    std::cout << "trying to overwrite default double " << name << " "
+              << defaultparams->get_string_param(name) << " with " << sval << std::endl;
     gSystem->Exit(1);
   }
   defaultparams->set_string_param(name, sval);
@@ -80,13 +77,13 @@ void PHParameterContainerInterface::set_double_param(const int detid, const std:
 {
   if (!defaultparams->exist_double_param(name))
   {
-    cout << "double parameter " << name << " not implemented" << endl;
-    cout << "implemented double parameters are:" << endl;
+    std::cout << "double parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented double parameters are:" << std::endl;
     defaultparams->printdouble();
     gSystem->Exit(1);
     return;
   }
-  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  std::map<int, PHParameters *>::iterator iter = macroparams.find(detid);
   PHParameters *params = nullptr;
   if (iter != macroparams.end())
   {
@@ -94,7 +91,7 @@ void PHParameterContainerInterface::set_double_param(const int detid, const std:
   }
   else
   {
-    ostringstream paramname;
+    std::ostringstream paramname;
     paramname << paramscontainer->Name() << "_" << detid;
     params = new PHParameters(paramname.str());
     macroparams[detid] = params;
@@ -110,8 +107,8 @@ PHParameterContainerInterface::get_double_param(const int detid, const std::stri
   {
     return params->get_double_param(name);
   }
-  cout << "no parameters for detid " << detid << " in "
-       << paramscontainer->Name() << " found" << endl;
+  std::cout << "no parameters for detid " << detid << " in "
+            << paramscontainer->Name() << " found" << std::endl;
   return NAN;
 }
 
@@ -119,13 +116,13 @@ void PHParameterContainerInterface::set_int_param(const int detid, const std::st
 {
   if (!defaultparams->exist_int_param(name))
   {
-    cout << "integer parameter " << name << " not implemented" << endl;
-    cout << "implemented integer parameters are:" << endl;
+    std::cout << "integer parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented integer parameters are:" << std::endl;
     defaultparams->printint();
     gSystem->Exit(1);
     return;
   }
-  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  std::map<int, PHParameters *>::iterator iter = macroparams.find(detid);
   PHParameters *params = nullptr;
   if (iter != macroparams.end())
   {
@@ -133,7 +130,7 @@ void PHParameterContainerInterface::set_int_param(const int detid, const std::st
   }
   else
   {
-    ostringstream paramname;
+    std::ostringstream paramname;
     paramname << paramscontainer->Name() << "_" << detid;
     params = new PHParameters(paramname.str());
     paramscontainer->AddPHParameters(detid, params);
@@ -148,23 +145,23 @@ int PHParameterContainerInterface::get_int_param(const int detid, const std::str
   {
     return params->get_int_param(name);
   }
-  cout << "no parameters for detid " << detid << " in "
-       << paramscontainer->Name() << " found" << endl;
+  std::cout << "no parameters for detid " << detid << " in "
+            << paramscontainer->Name() << " found" << std::endl;
   return (~0x0);
 }
 
-void PHParameterContainerInterface::set_string_param(const int detid, const std::string &name, const string &sval)
+void PHParameterContainerInterface::set_string_param(const int detid, const std::string &name, const std::string &sval)
 {
   if (!defaultparams->exist_string_param(name))
   {
-    cout << "string parameter " << name << " not implemented" << endl;
-    cout << "implemented string parameters are:" << endl;
+    std::cout << "string parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented string parameters are:" << std::endl;
     defaultparams->printstring();
     gSystem->Exit(1);
     return;
   }
 
-  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  std::map<int, PHParameters *>::iterator iter = macroparams.find(detid);
   PHParameters *params = nullptr;
   if (iter != macroparams.end())
   {
@@ -172,7 +169,7 @@ void PHParameterContainerInterface::set_string_param(const int detid, const std:
   }
   else
   {
-    ostringstream paramname;
+    std::ostringstream paramname;
     paramname << paramscontainer->Name() << "_" << detid;
     params = new PHParameters(paramname.str());
     paramscontainer->AddPHParameters(detid, params);
@@ -180,7 +177,7 @@ void PHParameterContainerInterface::set_string_param(const int detid, const std:
   params->set_string_param(name, sval);
 }
 
-string
+std::string
 PHParameterContainerInterface::get_string_param(const int detid, const std::string &name) const
 {
   const PHParameters *params = paramscontainer->GetParameters(detid);
@@ -188,14 +185,14 @@ PHParameterContainerInterface::get_string_param(const int detid, const std::stri
   {
     return params->get_string_param(name);
   }
-  cout << "no parameters for detid " << detid << " in "
-       << paramscontainer->Name() << " found" << endl;
+  std::cout << "no parameters for detid " << detid << " in "
+            << paramscontainer->Name() << " found" << std::endl;
   return "";
 }
 
 void PHParameterContainerInterface::UpdateParametersWithMacro()
 {
-  map<int, PHParameters *>::const_iterator iter;
+  std::map<int, PHParameters *>::const_iterator iter;
   for (iter = macroparams.begin(); iter != macroparams.end(); ++iter)
   {
     CreateInitialize(iter->first);
@@ -222,13 +219,13 @@ void PHParameterContainerInterface::UpdateParametersWithMacro()
   return;
 }
 
-void PHParameterContainerInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
+void PHParameterContainerInterface::SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename)
 {
   paramscontainer->SaveToNodeTree(runNode, nodename);
   return;
 }
 
-void PHParameterContainerInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
+void PHParameterContainerInterface::PutOnParNode(PHCompositeNode *parNode, const std::string &nodename)
 {
   parNode->addNode(new PHDataNode<PHParametersContainer>(paramscontainer, nodename));
 }
@@ -243,7 +240,7 @@ void PHParameterContainerInterface::CreateInitialize(const int detid)
   PHParameters *params = paramscontainer->GetParametersToModify(detid);
   if (!params)
   {
-    ostringstream paramname;
+    std::ostringstream paramname;
     paramname << paramscontainer->Name() << "_" << detid;
     params = new PHParameters(*defaultparams, paramname.str());
     paramscontainer->AddPHParameters(detid, params);

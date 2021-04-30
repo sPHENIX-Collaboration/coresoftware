@@ -15,11 +15,10 @@
 class SvtxTrack_FastSim: public SvtxTrack_v1
 {
  public:
-  
+
   //* constructor
-  SvtxTrack_FastSim()
-  {}
-  
+  SvtxTrack_FastSim() = default;
+
   //* destructor
   virtual ~SvtxTrack_FastSim() = default;
 
@@ -30,16 +29,6 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   virtual void CopyFrom( const SvtxTrack& );
   virtual void CopyFrom( SvtxTrack* source )
   { CopyFrom( *source ); }
-  
-  unsigned int get_truth_track_id() const
-  {
-    return _truth_track_id;
-  }
-
-  void set_truth_track_id(unsigned int truthTrackId)
-  {
-    _truth_track_id = truthTrackId;
-  }
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const;
@@ -47,13 +36,29 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   int isValid() const;
   PHObject* CloneMe() const { return new SvtxTrack_FastSim(*this); }
 
-  void set_num_measurements(int nmeas) 
-  { _nmeas = nmeas; }
-  
-  unsigned int get_num_measurements() const 
+  //!@name accessors
+  //@{
+
+  unsigned int get_truth_track_id() const
+  { return _truth_track_id; }
+
+  unsigned int get_num_measurements() const
   { return _nmeas; }
 
- private:
+  //@}
+
+  //!@name modifiers
+  //@{
+
+  void set_truth_track_id(unsigned int truthTrackId)
+  { _truth_track_id = truthTrackId; }
+
+  void set_num_measurements(int nmeas)
+  { _nmeas = nmeas; }
+
+  //@}
+
+  private:
   unsigned int _truth_track_id = UINT_MAX;
   unsigned int _nmeas = 0;
 
