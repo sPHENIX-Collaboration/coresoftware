@@ -47,8 +47,6 @@ namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 }
-// query replace vector<unsigned short> vector<double>
-using namespace std;
 
 typedef std::pair<unsigned short, unsigned short> iphiz;
 typedef std::pair<unsigned short, iphiz> ihit;
@@ -76,8 +74,8 @@ pthread_mutex_t mythreadlock;
 
 void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
 {
-  typedef multimap<unsigned short, ihit>::iterator hit_iterator;
-  pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
+  typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
+  std::pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
   hit_iterator it = iterpair.first;
   for (; it != iterpair.second; ++it) {
     if (it->second.second.first == phibin && it->second.second.second == zbin) { 
@@ -210,7 +208,7 @@ void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vect
     int phidown = 0;
     find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
     for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
-      iphiz iCoord(make_pair(iphi,iz));
+      iphiz iCoord(std::make_pair(iphi,iz));
       ihit  thisHit(adcval[iphi][iz],iCoord);
       ihit_list.push_back(thisHit);
     }
@@ -422,7 +420,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   clus->setSize(2, 0, COVAR_DIM[2][0]);
   clus->setSize(2, 1, COVAR_DIM[2][1]);
   clus->setSize(2, 2, COVAR_DIM[2][2]);
-  //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
+  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
   
   TMatrixF COVAR_ERR(3, 3);
   COVAR_ERR = ROT * ERR * ROT_T;
@@ -557,10 +555,10 @@ void *ProcessSector(void *threadarg) {
      if(zbin   >= zbins) continue;
 
      if(adc>0){
-       iphiz iCoord(make_pair(phibin,zbin));
+       iphiz iCoord(std::make_pair(phibin,zbin));
        ihit  thisHit(adc,iCoord);
        if(adc>5){
-	 all_hit_map.insert(make_pair(adc, thisHit));
+	 all_hit_map.insert(std::make_pair(adc, thisHit));
        }
        //adcval[phibin][zbin] = (unsigned short) adc;
        adcval[phibin][zbin] = (unsigned short) adc;
@@ -592,10 +590,10 @@ void *ProcessSector(void *threadarg) {
      calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, zz_shaping_correction, clusterlist, clusterhitassoc, do_assoc,tGeometry, surfMaps);
      remove_hits(ihit_list,all_hit_map, adcval);
    }
-   pthread_exit(NULL);
+   pthread_exit(nullptr);
 }
 
-TpcClusterizer::TpcClusterizer(const string &name)
+TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
@@ -633,9 +631,9 @@ bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderC
       reject_it = true;
       /*
       int layer = layergeom->get_layer();
-      cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
+      std::cout << " local maximum is in sector fiducial boundary: layer " << layer << " radius " << radius << " sector " << sector 
       << " PhiBins " << PhiBins << " sector_fiducial_bins " << sector_fiducial_bins
-      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << endl;  
+      << " PhiBinSize " << PhiBinSize << " phibin " << phibin << " sector_lo " << sector_lo << " sector_hi " << sector_hi << std::endl;  
       */
     }
 
@@ -650,7 +648,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -704,7 +702,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -712,7 +710,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -720,7 +718,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -728,7 +726,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_clusterhitassoc)
   {
-    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -764,25 +762,25 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
   // loop over the TPC HitSet objects
-  long i = 0;
-
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  const static size_t MAX_HITSET (2000);
-  array<pthread_t,MAX_HITSET> threads;
-  array<struct thread_data,MAX_HITSET> td;
-  //  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>
-  // TrkrClusterHitAssoc *set_clusterhitassoc[num_hitsets];
-  //std::map<long unsigned int, TrkrCluster*> *set_clusterlist[num_hitsets];
+  // create structure to store given thread and associated data
+  struct thread_pair_t
+  {
+    pthread_t thread;
+    thread_data data;
+  };
+  
+  // create vector of thread pairs and reserve the right size upfront to avoid reallocation
+  std::vector<thread_pair_t> threads;
+  threads.reserve( num_hitsets );
+    
   pthread_attr_t attr;
-  // void *status;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
-  //  int err;
-
-  if (pthread_mutex_init(&mythreadlock, NULL) != 0)
+  if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
     {
       printf("\n mutex init failed\n");
       return 1;
@@ -792,40 +790,33 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
-    //    cout << "launching thread:" << std::distance(hitsetrange.first,hitsetitr)<< endl;
-    //    if(i>=1)break;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
     PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
-    //set_clusterhitassoc[i] = m_clusterhitassoc->getClusterSet(layer,sector,side);
-    //set_clusterlist[i] = m_clusterlist->getClusterSet(layer,sector,side);
-
-    //    cout << "main() : creating thread, " << i << endl;
-    //    td[i].thread_id = i;
-    //   td[i].message = "This is message";
-    td[i].layergeom = layergeom;
-    td[i].hitset = hitset;
-    td[i].layer = layer;
-    td[i].pedestal = pedestal;
-    td[i].sector = sector;
-    td[i].side = side;
-    td[i].do_assoc = do_hit_assoc;
-    td[i].zz_shaping_correction =  zz_shaping_correction;
-    td[i].clusterlist = m_clusterlist->getClusterSet(layer,sector,side);// set_clusterlist[i];
-    td[i].clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);//set_clusterhitassoc[i];
-    td[i].tGeometry = m_tGeometry;
-    td[i].surfmaps = m_surfMaps;
+    
+    // instanciate new thread pair, at the end of thread vector
+    thread_pair_t& thread_pair = threads.emplace_back();
+    
+    thread_pair.data.layergeom = layergeom;
+    thread_pair.data.hitset = hitset;
+    thread_pair.data.layer = layer;
+    thread_pair.data.pedestal = pedestal;
+    thread_pair.data.sector = sector;
+    thread_pair.data.side = side;
+    thread_pair.data.do_assoc = do_hit_assoc;
+    thread_pair.data.zz_shaping_correction =  zz_shaping_correction;
+    thread_pair.data.clusterlist = m_clusterlist->getClusterSet(layer,sector,side);
+    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);
+    thread_pair.data.tGeometry = m_tGeometry;
+    thread_pair.data.surfmaps = m_surfMaps;
 
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NZBins = (unsigned short)layergeom->get_zbins();
     unsigned short NZBinsSide = NZBins/2;
-    //    unsigned short NPhiBinsMin = 0;
-    // unsigned short NPhiBinsMax = NPhiBins;
     unsigned short NZBinsMin = 0;
-    // unsigned short NZBinsMax = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
 
     if (side == 0){
@@ -839,31 +830,29 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
     unsigned short ZOffset = NZBinsMin;
 
-    td[i].phibins   = NPhiBinsSector;
-    td[i].phioffset = PhiOffset;
-    td[i].zbins     = NZBinsSide;
-    td[i].zoffset   = ZOffset ;
+    thread_pair.data.phibins   = NPhiBinsSector;
+    thread_pair.data.phioffset = PhiOffset;
+    thread_pair.data.zbins     = NZBinsSide;
+    thread_pair.data.zoffset   = ZOffset ;
 
-    int rc = pthread_create(&threads[i], &attr, ProcessSector, (void *)&td[i]);
+    int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
     if (rc) {
-      cout << "Error:unable to create thread," << rc << endl;
-      //      exit(-1);
+      std::cout << "Error:unable to create thread," << rc << std::endl;
     }
-    i++;
   }
   
   pthread_attr_destroy(&attr);
-  //  num_hitsets = 1;
-  for( int j = 0; j < num_hitsets; j++ ) {
-    //    cout << "collecting thread :" << j ;
-    int rc2 = pthread_join(threads[j], NULL);
-    if (rc2) {
-      cout << "Error:unable to join," << rc2 << endl;
-      //      exit(-1);
-    }
+
+  // wait for completion of all threads
+  for( const auto& thread_pair:threads )
+  { 
+    int rc2 = pthread_join(thread_pair.thread, nullptr);
+    if (rc2) 
+    { std::cout << "Error:unable to join," << rc2 << std::endl; }
   }
+  
   if (Verbosity() > 0)
-    cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << endl;
+    std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
