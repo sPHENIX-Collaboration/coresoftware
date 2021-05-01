@@ -1,8 +1,9 @@
 #include "BeamLineMagnetSteppingAction.h"
 #include "BeamLineMagnetDetector.h"
 
-#include <phparameter/PHParameters.h>
 #include <g4detectors/PHG4StepStatusDecode.h>
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -116,15 +117,15 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
     {
       std::cout << GetName() << ": New Hit for  " << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
       std::cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
       std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+                << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
   case fGeomBoundary:
   case fUndefined:
@@ -181,15 +182,15 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   {
     std::cout << GetName() << ": hit was not created" << std::endl;
     std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-         << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-         << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-         << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+              << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
     std::cout << "last track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+              << ", current trackid: " << aTrack->GetTrackID() << std::endl;
     std::cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+              << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
     std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-         << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+              << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
@@ -197,10 +198,10 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   {
     std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
     std::cout << "saved track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID()
-         << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << m_SavePostStepStatus
-         << std::endl;
+              << ", current trackid: " << aTrack->GetTrackID()
+              << ", prestep status: " << prePoint->GetStepStatus()
+              << ", previous post step status: " << m_SavePostStepStatus
+              << std::endl;
 
     gSystem->Exit(1);
   }
