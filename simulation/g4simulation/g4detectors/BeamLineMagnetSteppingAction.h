@@ -30,23 +30,23 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  BeamLineMagnetDetector* m_Detector;
-  const PHParameters *m_Params;
+  BeamLineMagnetDetector* m_Detector = nullptr;
+  const PHParameters *m_Params = nullptr;
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer;
-  PHG4HitContainer* m_AbsorberHitContainer;
-  PHG4Hit* m_Hit;
-  PHG4HitContainer* m_SaveHitContainer;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
 
-  G4VPhysicalVolume* m_SaveVolPre;
-  G4VPhysicalVolume* m_SaveVolPost;
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
-  double m_EdepSum;
-  double m_EionSum;
-  int m_ActiveFlag;
-  int m_BlackHoleFlag;
+  G4VPhysicalVolume* m_SaveVolPre = nullptr;
+  G4VPhysicalVolume* m_SaveVolPost = nullptr;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
+  double m_EdepSum = 0.;
+  double m_EionSum = 0.;
+  int m_ActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
 
 };
 
