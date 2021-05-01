@@ -30,6 +30,8 @@ void SvtxTrack_FastSim::CopyFrom( const SvtxTrack& source )
 
 void SvtxTrack_FastSim::identify(std::ostream& os) const
 {
+  SvtxTrack_v1::identify( os );
+
   os << "SvtxTrack_FastSim Object ";
   os << "truth_track_id:" << get_truth_track_id();
   os << "id: " << get_id() << " ";

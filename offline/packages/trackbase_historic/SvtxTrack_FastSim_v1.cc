@@ -29,6 +29,7 @@ void SvtxTrack_FastSim_v1::identify(std::ostream& os) const
 {
   SvtxTrack_FastSim::identify(os);
 
+  os << "SvtxTrack_FastSim_v1 Object ";
   os << "G4Hit IDs:" << std::endl;
   for( const auto& pair:_g4hit_ids )
   {

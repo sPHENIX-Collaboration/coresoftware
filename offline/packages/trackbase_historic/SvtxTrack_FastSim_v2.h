@@ -1,25 +1,25 @@
 /*
- * SvtxTrack_FastSim_v1.h
+ * SvtxTrack_FastSim_v2.h
  */
 
-#ifndef TRACKBASEHISTORIC_SVTXTRACKFASTSIMV1_H
-#define TRACKBASEHISTORIC_SVTXTRACKFASTSIMV1_H
+#ifndef TRACKBASEHISTORIC_SVTXTRACKFASTSIMV2_H
+#define TRACKBASEHISTORIC_SVTXTRACKFASTSIMV2_H
 
-#include "SvtxTrack_FastSim.h"
+#include "SvtxTrack_v2.h"
 
 // SvtxTrack_FastSim with recording of associated G4hits
-class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
+class SvtxTrack_FastSim_v2 final: public SvtxTrack_v2
 {
  public:
 
   //* constructor
-  SvtxTrack_FastSim_v1() = default;
+  SvtxTrack_FastSim_v2() = default;
 
   //* base class copy constructor
-  SvtxTrack_FastSim_v1( const SvtxTrack& );
+  SvtxTrack_FastSim_v2( const SvtxTrack& );
 
   //* destructor
-  virtual ~SvtxTrack_FastSim_v1() = default;
+  virtual ~SvtxTrack_FastSim_v2() = default;
 
   // copy content from base class
   virtual void CopyFrom( const SvtxTrack& );
@@ -28,17 +28,20 @@ class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const;
-  void Reset() 
-  { *this = SvtxTrack_FastSim_v1(); }
-  
+  void Reset() { *this = SvtxTrack_FastSim_v2(); }
   int isValid() const;
-  
-  PHObject* CloneMe() const 
-  { return new SvtxTrack_FastSim_v1(*this); }
 
+  PHObject* CloneMe() const
+  { return new SvtxTrack_FastSim_v2(*this); }
 
   //!@name accessors
   //@{
+
+  unsigned int get_truth_track_id() const
+  { return _truth_track_id; }
+
+  unsigned int get_num_measurements() const
+  { return _nmeas; }
 
   const HitIdMap& g4hit_ids() const
   { return _g4hit_ids; }
@@ -63,6 +66,12 @@ class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
 
   //!@name modifiers
   //@{
+
+  void set_truth_track_id(unsigned int truthTrackId)
+  { _truth_track_id = truthTrackId; }
+
+  void set_num_measurements(int nmeas)
+  { _nmeas = nmeas; }
 
   void add_g4hit_id(int volume, PHG4HitDefs::keytype id)
   { _g4hit_ids[volume].insert(id); }
@@ -89,9 +98,12 @@ class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
 
  private:
 
+  unsigned int _truth_track_id = UINT_MAX;
+  unsigned int _nmeas = 0;
+
   HitIdMap _g4hit_ids;
 
-  ClassDef(SvtxTrack_FastSim_v1, 1)
+  ClassDef(SvtxTrack_FastSim_v2, 1)
 };
 
 #endif /* __SVTXTRACK_FAST_SIMV1_H__ */
