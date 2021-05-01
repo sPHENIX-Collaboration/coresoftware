@@ -82,6 +82,7 @@ class QAG4SimulationTracking : public SubsysReco
   PHG4HitContainer *m_g4hits_tpc = nullptr;
   PHG4HitContainer *m_g4hits_intt = nullptr;
   PHG4HitContainer *m_g4hits_mvtx = nullptr;
+  PHG4HitContainer *m_g4hits_micromegas = nullptr;
 };
 
 #endif  // QA_QAG4SimulationTracking_H
