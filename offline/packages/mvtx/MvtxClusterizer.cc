@@ -11,7 +11,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <trackbase/TrkrClusterContainerv1.h>
+#include <trackbase/TrkrClusterContainerv2.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
@@ -132,7 +132,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	dstNode->addNode(DetNode);
       }
 
-    trkrclusters = new TrkrClusterContainerv1;
+    trkrclusters = new TrkrClusterContainerv2;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
