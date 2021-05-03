@@ -4,17 +4,27 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include "ActsTrack.h"
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 
+#include <ActsExamples/EventData/Track.hpp>
+
 class PHCompositeNode;
 class TrkrClusterContainer;
+class SvtxTrack;
+class SvtxVertexMap;
+class TrkrCluster;
+class SvtxTrackMap;
 
-#include <boost/bimap.hpp>
+namespace ActsExamples
+{
+  class TrkrClusterSourceLink;
+}
+
 #include <memory>
 #include <map>
 #include <TH1.h>
@@ -22,11 +32,10 @@ class TrkrClusterContainer;
 #include <TH3.h>
 #include <TTree.h>
 
+using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using BoundTrackParamPtr = 
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
-
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 
@@ -75,8 +84,8 @@ class PHTpcResiduals : public SubsysReco
 
   int processTracks(PHCompositeNode *topNode);
 
-  bool checkTrack(ActsTrack& track);
-  void processTrack(ActsTrack& track);
+  bool checkTrack(SvtxTrack* track);
+  void processTrack(SvtxTrack* track);
 
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
@@ -99,13 +108,23 @@ class PHTpcResiduals : public SubsysReco
   
   void makeHistograms();
   TH3* createHistogram(TH3* hin, const TString& name);
-  
+  template<int type> int getClusters(SvtxTrack *track);
+  SourceLink makeSourceLink(TrkrCluster* cluster);
+  ActsExamples::TrackParameters makeTrackParams(SvtxTrack* track);
+  Surface getSurface(TrkrDefs::cluskey cluskey,
+		     TrkrDefs::subsurfkey);
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
+  Surface getTpcMMSurface(TrkrDefs::hitsetkey,
+			  TrkrDefs::subsurfkey surfkey);
+  Acts::Vector3D getVertex(SvtxTrack *track);
+
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
-  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
+SvtxVertexMap *m_vertexMap = nullptr;
+  SvtxTrackMap *m_trackMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
-  CluskeyBimap *m_hitIdClusKey = nullptr;
-  TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrClusterContainer *m_clusterContainer = nullptr;
+ActsSurfaceMaps *m_surfMaps = nullptr;
 
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm

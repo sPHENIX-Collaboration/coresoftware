@@ -12,6 +12,10 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
@@ -21,6 +25,8 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+
 
 #include <cmath>
 #include <TFile.h>
@@ -44,7 +50,6 @@ namespace
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
   : SubsysReco(name)
-  , m_actsProtoTracks(nullptr)
 {}
 
 PHTpcResiduals::~PHTpcResiduals()
@@ -111,10 +116,10 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
 
-  std::cout << "proto track size " << m_actsProtoTracks->size()
+  std::cout << "proto track size " << m_trackMap->size()
 	    <<std::endl;
 
-  for(auto &[trackKey, track] : *m_actsProtoTracks)
+  for(auto &[trackKey, track] : *m_trackMap)
     {
       if(Verbosity() > 1)
 	std::cout << "Processing track key " << trackKey
@@ -126,33 +131,18 @@ int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool PHTpcResiduals::checkTrack(ActsTrack& track)
+bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 {
  
-  if(track.getTrackParams().transverseMomentum() < 0.5)
+  if(track->get_pt() < 0.5)
     return false;
 
   if(Verbosity() > 2)
-    std::cout << "Track has pt " << track.getTrackParams().transverseMomentum() << std::endl;
+    std::cout << "Track has pt " << track->get_pt() << std::endl;
 
-  int nMvtxHits = 0;
-  int nInttHits = 0;
-  int nMMHits   = 0;
-  
-  for(const auto sl : track.getSourceLinks())
-    {
-      const auto vol = 
-	sl.referenceSurface().geometryId().volume();
-
-      /// Volume IDs are fixed for geometry configuration of
-      /// silicon+TPC+MMs
-      if(vol == 10) 
-	nMvtxHits++;
-      if(vol == 12) 
-	nInttHits++;
-      if(vol == 16) 
-	nMMHits++;
-    }
+  int nMvtxHits = getClusters<TrkrDefs::mvtxId>(track);
+  int nInttHits = getClusters<TrkrDefs::inttId>(track);
+  int nMMHits   = getClusters<TrkrDefs::micromegasId>(track);
 
   if(Verbosity() > 2)
     std::cout << "Number of mvtx/intt/MM hits "
@@ -167,23 +157,164 @@ bool PHTpcResiduals::checkTrack(ActsTrack& track)
 
 }
 
-void PHTpcResiduals::processTrack(ActsTrack& track)
+SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+{
+  auto key = cluster->getClusKey();
+  auto subsurfkey = cluster->getSubSurfKey();
+      
+  /// Make a safety check for clusters that couldn't be attached
+  /// to a surface
+  auto surf = getSurface(key, subsurfkey);
+  if(!surf)
+    return SourceLink();
+  
+  Acts::BoundVector loc = Acts::BoundVector::Zero();
+  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
+  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+  
+  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+  
+  SourceLink sl(key, surf, loc, cov);
+  
+  return sl;
+}
+
+Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, 
+				   TrkrDefs::subsurfkey surfkey)
 {
 
-  const auto trackParams = track.getTrackParams();
+  auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  /// We need to generate the hitsetkey the same way we do in the 
+  /// geometry building for proper look up
+  if(trkrid == TrkrDefs::TrkrId::micromegasId)
+    {
+      const unsigned int layer = TrkrDefs::getLayer(cluskey);
+      unsigned int tile = 0;
+      const auto segtype = MicromegasDefs::getSegmentationType(cluskey);
+      hitsetkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
+    }
+
+  if(trkrid == TrkrDefs::TrkrId::mvtxId or
+     trkrid == TrkrDefs::TrkrId::inttId)
+    {
+      return getSiliconSurface(hitsetkey);
+    }
+  else
+    {
+      return getTpcMMSurface(hitsetkey, surfkey);
+    }
+
+}
+
+Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
   
+  /// If it can't be found, return nullptr
+  return nullptr;
+
+}
+Surface PHTpcResiduals::getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
+					 TrkrDefs::subsurfkey surfkey)
+{
+  const bool is_mm = TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::TrkrId::micromegasId;
+  const auto surfMap = is_mm ? m_surfMaps->mmSurfaceMap:m_surfMaps->tpcSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      auto surfvec = iter->second;
+      return surfvec.at(surfkey);
+    }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+
+}
+Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
+{
+  auto vertexId = track->get_vertex_id();
+  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
+  if(!svtxVertex)
+    {
+      if(Verbosity() > 0)
+	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
+		  << std::endl;
+      return Acts::Vector3D(0,0,0);
+    }
+
+  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			svtxVertex->get_z() * Acts::UnitConstants::cm);
+  return vertex;
+}
+ActsExamples::TrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
+{
+  Acts::Vector3D momentum(track->get_px(), 
+			  track->get_py(), 
+			  track->get_pz());
+  auto actsVertex = getVertex(track);
+  auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
+				    actsVertex(2),
+				    10 * Acts::UnitConstants::ns);
+  Acts::BoundSymMatrix cov;
+  for(int i =0; i<6; i++)
+    {
+      for(int j =0; j<6; j++)
+	{
+	  cov(i,j) = track->get_acts_covariance(i, j);
+	}
+    }
+
+  ActsExamples::TrackParameters seed(actsFourPos,
+				     momentum,
+				     track->get_p(),
+				     track->get_charge(),
+				     cov);
+
+  return seed;
+
+}
+
+void PHTpcResiduals::processTrack(SvtxTrack* track)
+{
+
   if(Verbosity() > 1)
     std::cout << "Propagating silicon+MM fit params momentum: " 
-	      << trackParams.momentum() << " and position " 
-	      << trackParams.position(m_tGeometry->geoContext)
+	      << track->get_p() << " and position " 
+	      << track->get_x() << ", " << track->get_y() 
+	      << ", " << track->get_z() << " cm "
 	      << std::endl;
 
+  auto trackParams = makeTrackParams(track);
+
   int initNBadProps = m_nBadProps;
-  for(const auto sl : track.getSourceLinks())
+  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
     {
-      /// Only propagate to TPC surfaces
-      if(sl.referenceSurface().geometryId().volume() != 14)
-	continue;
+      auto cluskey = *clusIter;
+      
+      /// only propagate to tpc surfaces
+      if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
+	continue;;
+      auto cluster = m_clusterContainer->findCluster(cluskey);
+
+      auto sl = makeSourceLink(cluster);
       
       auto result = propagateTrackState(trackParams, sl);
 
@@ -565,10 +696,29 @@ int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
-  m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if(!m_clusterMap)
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
+						  "SvtxVertexMap");
+  if(!m_vertexMap)
     {
-      std::cout << PHWHERE << "Svtx cluster map not on node tree. Bailing." 
+      std::cout << PHWHERE << "No vertex map, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						   "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "No Acts surface maps, exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+ 
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,
+								"TRKR_CLUSTER");
+  if(!m_clusterContainer)
+    {
+      std::cout << PHWHERE << "No TRKR_CLUSTER node on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -582,19 +732,11 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
-  if(!m_hitIdClusKey)
-    {
-      std::cout << PHWHERE << "Not hit id cluskey map on node tree. Bailing"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   
-  if (!m_actsProtoTracks)
+  if (!m_trackMap)
     {
-      std::cout << "Acts proto tracks not on node tree. Exiting."
+      std::cout << PHWHERE << "SvtxTrackMap not on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -741,3 +883,11 @@ TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
 
 
 
+/// return number of clusters of a given type that belong to a tracks
+template<int type> int PHTpcResiduals::getClusters( SvtxTrack* track )
+  {
+    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
+      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
+  }
+
+}
