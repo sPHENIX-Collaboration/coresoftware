@@ -499,9 +499,9 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
-
-  clusterlist->insert(std::make_pair(ckey, clus));
-  if(do_assoc){
+  
+  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus));
+  if(do_assoc && clusterhitassoc){
     for (unsigned int i = 0; i < hitkeyvec.size(); i++){
       clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
     }
