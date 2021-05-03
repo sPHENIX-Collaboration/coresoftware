@@ -790,6 +790,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
+    const auto hitsetid = hitsetitr->first;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
@@ -807,8 +808,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
     thread_pair.data.zz_shaping_correction =  zz_shaping_correction;
-    thread_pair.data.clusterlist = m_clusterlist->getClusterSet(layer,sector,side);
-    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);
+    thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
+    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
 

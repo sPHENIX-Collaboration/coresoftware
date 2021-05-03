@@ -59,7 +59,7 @@ class TrkrClusterContainer : public PHObject
   virtual Iterator findOrAddCluster(TrkrDefs::cluskey);
 
   //! get all clusters matching hitset
-  virtual ConstRange getClusters(TrkrDefs::hitsetkey hitsetkey) const;
+  virtual ConstRange getClusters(TrkrDefs::hitsetkey) const;
 
   //! get pointer to map containing clusters mathching hitset
   virtual Map* getClusterMap(TrkrDefs::hitsetkey) { return nullptr; }
