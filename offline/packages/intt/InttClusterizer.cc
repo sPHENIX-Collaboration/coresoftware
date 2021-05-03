@@ -2,7 +2,7 @@
 #include "CylinderGeomIntt.h"
 #include "InttDefs.h"
 
-#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv1.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -114,7 +114,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
   PHNodeIterator iter_dst(dstNode);
 
   // Create the Cluster and association nodes if required
-  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -126,7 +126,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	dstNode->addNode(DetNode);
       }
     
-    trkrclusters = new TrkrClusterContainer();
+    trkrclusters = new TrkrClusterContainerv1;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
