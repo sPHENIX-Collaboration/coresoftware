@@ -3,7 +3,7 @@
 
 /**
  * @file trackbase/TrkrClusterContainer.h
- * @author D. McGlinchey, Hugo PEREIRA DA COSTA
+ * @author D. McGlinchey, Hugo Pereira Da Costa
  * @date June 2018
  * @brief Cluster container base class
  */
@@ -20,8 +20,6 @@ class TrkrCluster;
 
 /**
  * @brief Cluster container object
- *
- * Container for TrkrCluster objects
  */
 class TrkrClusterContainer : public PHObject
 {
@@ -31,7 +29,7 @@ class TrkrClusterContainer : public PHObject
   //@{
   using Map = std::map<TrkrDefs::cluskey, TrkrCluster *>;
   using Iterator = Map::iterator;
-  using ConstIterator = typedef Map::const_iterator;
+  using ConstIterator = Map::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
   //@}
