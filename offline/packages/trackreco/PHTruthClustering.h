@@ -20,7 +20,7 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-
+class TrkrHitSetContainer;
 
 #include <string>             // for string
 #include <vector>
@@ -63,7 +63,7 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   int iclus = 0;
 
   TrkrClusterContainer *_reco_cluster_map{nullptr};
-
+  TrkrHitSetContainer  *_hitsets = {nullptr};
   PHG4TruthInfoContainer *_g4truth_container{nullptr};
 
   PHG4HitContainer* _g4hits_svtx{nullptr};

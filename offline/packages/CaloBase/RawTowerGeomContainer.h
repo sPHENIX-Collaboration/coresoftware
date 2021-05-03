@@ -10,11 +10,9 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
+#include <type_traits>
 #include <utility>
 
-#if defined(__CLING__)
-#include <type_traits>
-#endif
 
 class RawTowerGeom;
 
@@ -44,11 +42,7 @@ class RawTowerGeomContainer : public PHObject
   }
 
   //! go through all towers
-  virtual ConstIterator add_tower_geometry(RawTowerGeom *geo)
-  {
-    PHOOL_VIRTUAL_WARN("add_tower_geometry()");
-    return Map().begin();
-  }
+  virtual ConstIterator add_tower_geometry(RawTowerGeom *geo);
   virtual RawTowerGeom *get_tower_geometry(RawTowerDefs::keytype key)
   {
     PHOOL_VIRTUAL_WARN("get_tower_geometry()");
@@ -56,16 +50,8 @@ class RawTowerGeomContainer : public PHObject
   }
 
   //! return all tower geometries
-  virtual ConstRange get_tower_geometries(void) const
-  {
-    PHOOL_VIRTUAL_WARN("get_tower_geometries()");
-    return ConstRange(Map().begin(), Map().end());
-  };
-  virtual Range get_tower_geometries(void)
-  {
-    PHOOL_VIRTUAL_WARN("get_tower_geometries()");
-    return Range(Map().begin(), Map().end());
-  };
+  virtual ConstRange get_tower_geometries(void) const;
+  virtual Range get_tower_geometries(void);
 
   virtual unsigned int size() const
   {

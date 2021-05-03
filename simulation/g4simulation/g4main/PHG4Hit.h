@@ -106,6 +106,8 @@ class PHG4Hit: public PHObject
 
     //! for scintillation detectors, the amount of light produced
     prop_light_yield = 2,
+    scint_gammas = 3,
+    cerenkov_gammas = 4,
 
     //-- track properties: 10 - 20  --
 

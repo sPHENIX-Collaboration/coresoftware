@@ -6,17 +6,19 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
+#include <phparameter/PHParameterInterface.h>
+
+#include <TString.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <TFile.h>
-#include <TTree.h>
+
 #include <vector>
 
 // forward declaration
 class SvtxTrack;
 class SvtxTrackMap;
+class TH3;
 class TrkrCluster;
 class TrkrClusterContainer;
 
@@ -34,7 +36,7 @@ class TrkrClusterContainer;
  The inversion is performed in TpcSpaceChargeReconstruction::calculate_distortions
  */
 
-class TpcSpaceChargeReconstruction: public SubsysReco
+class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
 {
   public:
 
@@ -65,17 +67,20 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   //@}
 
   /// global initialization
-  virtual int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   /// run initialization
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   /// event processing
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   /// end of processing
-  virtual int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
+  /// parameters
+  void SetDefaultParameters() override;
+  
   private:
 
   /// load nodes
@@ -117,12 +122,12 @@ class TpcSpaceChargeReconstruction: public SubsysReco
 
   // TODO: could try to get the r and z range from TPC geometry
   // r range
-  float m_rmin = 20;
-  float m_rmax = 78;
+  static constexpr float m_rmin = 20;
+  static constexpr float m_rmax = 78;
 
   // z range
-  float m_zmin = -105.5;
-  float m_zmax = 105.5;
+  static constexpr float m_zmin = -105.5;
+  static constexpr float m_zmax = 105.5;
 
   //@}
 
@@ -132,6 +137,17 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   int m_rbins = 16;
   int m_zbins = 80;
   int m_totalbins = m_phibins*m_rbins*m_zbins;
+  //@}
+
+  ///@name selection parameters
+  //@{
+  // residual cuts in r, phi plane
+  float m_max_talpha = 0.6;
+  float m_max_drphi = 0.5;
+
+  // residual cuts in r, z plane
+  float m_max_tbeta = 1.5;
+  float m_max_dz = 0.5;
   //@}
 
   // shortcut for relevant eigen matrices
@@ -148,20 +164,20 @@ class TpcSpaceChargeReconstruction: public SubsysReco
   /// keep track of how many clusters are used per cell
   std::vector<int> m_cluster_count;
 
-  int event = 0;
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
 
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
+  
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
   //@}
-
-  TFile *outfile;
-  TTree *tree;
-  double tanAlpha, tanBeta, drphi, dZ, clusR, clusPhi, clusZ, statePhi, stateZ, stateR, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr;
-  int cell, ir, iz, iphi;
-  unsigned int cluskey;
-  int layer;
 
 };
 

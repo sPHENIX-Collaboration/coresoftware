@@ -24,8 +24,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsTransformations.h \
   ActsTrack.h \
-  ActsTrackingGeometry.h \
-  ActsSurfaceMaps.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   CellularAutomaton.h \
@@ -42,7 +40,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
-  PHActsTrkProp.h \
+  PHActsToSvtxTracks.h \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
@@ -53,6 +51,7 @@ pkginclude_HEADERS = \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
+  PHHybridSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHSiliconTpcTrackMatching.h \
@@ -60,6 +59,7 @@ pkginclude_HEADERS = \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
   PHTpcResiduals.h \
+  PHTpcTrackSeedVertexAssoc.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -72,7 +72,12 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   GPUTPCBaseTrackParam.h \
   GPUTPCTrackLinearisation.h \
-  GPUTPCTrackParam.h
+  GPUTPCTrackParam.h \
+  ../PHTpcTracker/PHTpcTrackerUtil.h \
+  ../PHTpcTracker/externals/kdfinder.hpp \
+  ALICEKF.h \
+  nanoflann.hpp \
+  PHSimpleKFProp.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -97,12 +102,13 @@ libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
   VertexFitter.cc \
-  GPUTPCTrackParam.cxx
+  GPUTPCTrackParam.cxx 
 
 if MAKE_ACTS
 ACTS_SOURCES = \
@@ -112,7 +118,7 @@ ACTS_SOURCES = \
   PHActsSiliconSeeding.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
-  PHActsTrkProp.cc \
+  PHActsToSvtxTracks.cc \
   PHActsTrkFitter.cc \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
@@ -128,7 +134,6 @@ dist_data_DATA = \
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
-  -lg4eval \
   -lActsCore \
   -lActsFatras \
   -lActsPluginTGeo \
@@ -161,20 +166,26 @@ libtrack_reco_la_SOURCES = \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
+  ../PHTpcTracker/PHTpcTrackerUtil.cc \
+  PHHybridSeeding.cc \
   PHCASeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
-  PHRaveVertexing.cc 
+  PHRaveVertexing.cc \
+  PHTpcTrackSeedVertexAssoc.cc \
+  ALICEKF.cc \
+  PHSimpleKFProp.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
-  -lHelixHough
+  -lHelixHough 
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
   $(ACTS_LIBS) \
   -lSubsysReco \
+  -lg4eval \
   -lg4testbench \
   -lg4detectors \
   -lgsl \
@@ -193,7 +204,8 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -llog4cpp
 
 
 # Rule for generating table CINT dictionaries.

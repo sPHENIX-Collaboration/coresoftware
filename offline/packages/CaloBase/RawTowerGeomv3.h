@@ -11,7 +11,7 @@
 class RawTowerGeomv3 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv3(){}
+  RawTowerGeomv3() {}
   RawTowerGeomv3(RawTowerDefs::keytype id);
   virtual ~RawTowerGeomv3() {}
 
@@ -71,15 +71,15 @@ class RawTowerGeomv3 : public RawTowerGeom
   double get_phi() const;
   double get_theta() const;
 
-  void set_tower_type(int tt) {_tower_type = tt;}
+  void set_tower_type(int tt) { _tower_type = tt; }
   int get_tower_type() const { return _tower_type; }
 
  protected:
-  RawTowerDefs::keytype _towerid = ~0; // complement = 0xFFFFF... independent of integer type (32/64/... bits)
+  RawTowerDefs::keytype _towerid = ~0;  // complement = 0xFFFFF... independent of integer type (32/64/... bits)
 
   double _center_x = NAN;
   double _center_y = NAN;
-  double _center_z =NAN;
+  double _center_z = NAN;
 
   double _size_x = NAN;
   double _size_y = NAN;

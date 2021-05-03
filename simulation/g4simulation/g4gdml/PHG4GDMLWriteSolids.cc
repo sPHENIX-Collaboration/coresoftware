@@ -1018,7 +1018,7 @@ OpticalSurfaceWrite(xercesc::DOMElement* solElement,
 
 void PHG4GDMLWriteSolids::SolidsWrite(xercesc::DOMElement* gdmlElement)
 {
-   G4cout << "PHG4GDML: Writing solids..." << G4endl;
+  std::cout << "PHG4GDML: Writing solids..." << std::endl;
 
    solidsElement = NewElement("solids");
    gdmlElement->appendChild(solidsElement);

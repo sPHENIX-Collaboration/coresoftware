@@ -49,6 +49,7 @@ class SvtxTruthEval
   bool is_primary(PHG4Particle* particle);
   PHG4Particle* get_primary_particle(PHG4Hit* g4hit);
   PHG4Particle* get_primary_particle(PHG4Particle* particle);
+  PHG4Particle* get_particle(const int trackid); 
 
   std::map<unsigned int, std::shared_ptr<TrkrCluster> > all_truth_clusters(PHG4Particle* particle);
 

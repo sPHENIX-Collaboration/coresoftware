@@ -114,3 +114,30 @@ TrkrDefs::genHitSetKey(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
   key |= (tmp << kBitShiftLayer);  // layer
   return key;
 }
+
+
+uint8_t TrkrDefs::getPhiElement(TrkrDefs::hitsetkey key)
+{
+  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftPhiElement);
+  return tmp;
+}
+
+
+
+uint8_t TrkrDefs::getZElement(TrkrDefs::hitsetkey key)
+{
+  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftZElement);
+  return tmp;
+}
+
+uint8_t TrkrDefs::getPhiElement(TrkrDefs::cluskey key)
+{
+  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  return getPhiElement(tmp);
+}
+
+uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)//side
+{
+  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  return getZElement(tmp);
+}

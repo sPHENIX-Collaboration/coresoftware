@@ -68,6 +68,7 @@ class ActsTransformations
   /// vertex
   void calculateDCA(const Acts::BoundTrackParameters param,
 		    Acts::Vector3D vertex,
+		    Acts::BoundSymMatrix cov,
 		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,
 		    float &dca3Dz,
@@ -77,8 +78,7 @@ class ActsTransformations
   void fillSvtxTrackStates(const Trajectory traj, 
 			   const size_t &trackTip,
 			   SvtxTrack *svtxTrack,
-			   Acts::GeometryContext geoContext,
-			   CluskeyBimap *hitIDCluskeyMap);
+			   Acts::GeometryContext geoContext);
 
  private:
   int m_verbosity;

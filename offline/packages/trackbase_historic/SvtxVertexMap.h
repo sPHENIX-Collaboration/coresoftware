@@ -1,5 +1,5 @@
-#ifndef __SVTXVERTEXMAP_H__
-#define __SVTXVERTEXMAP_H__
+#ifndef TRACKBASEHISTORIC_SVTXVERTEXMAP_H
+#define TRACKBASEHISTORIC_SVTXVERTEXMAP_H
 
 #include "SvtxVertex.h"
 
@@ -39,13 +39,13 @@ class SvtxVertexMap : public PHObject
 
   virtual size_t erase(unsigned int idkey) { return 0; }
 
-  virtual ConstIter begin() const { return VertexMap().end(); }
-  virtual ConstIter find(unsigned int idkey) const { return VertexMap().end(); }
-  virtual ConstIter end() const { return VertexMap().end(); }
+  virtual ConstIter begin() const;
+  virtual ConstIter find(unsigned int idkey) const;
+  virtual ConstIter end() const;
 
-  virtual Iter begin() { return VertexMap().end(); }
-  virtual Iter find(unsigned int idkey) { return VertexMap().end(); }
-  virtual Iter end() { return VertexMap().end(); }
+  virtual Iter begin();
+  virtual Iter find(unsigned int idkey);
+  virtual Iter end();
 
  protected:
   SvtxVertexMap() {}

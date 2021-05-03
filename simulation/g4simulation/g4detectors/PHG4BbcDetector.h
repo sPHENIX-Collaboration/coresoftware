@@ -5,12 +5,14 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <cmath>
 #include <set>
 #include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 class PHParameters;
 
 class PHG4BbcDetector : public PHG4Detector
@@ -39,7 +41,7 @@ protected:
   int IsAbsorberActive = 0;
   PHParameters *m_Params = nullptr;
 
-  G4float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
+  float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
 
   std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 

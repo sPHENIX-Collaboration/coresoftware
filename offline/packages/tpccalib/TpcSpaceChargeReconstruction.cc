@@ -1,4 +1,5 @@
 #include "TpcSpaceChargeReconstruction.h"
+#include "TpcSpaceChargeReconstructionHelper.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -13,6 +14,7 @@
 
 #include <TFile.h>
 #include <TH3.h>
+
 #include <memory>
 
 namespace
@@ -41,104 +43,13 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
-  /**
-   * copy input histogram into output, with new name, while adding two "guarding bins" on
-   * each axis, with identical content and error as the first and last bin of the original histogram
-   * this is necessary for being able to call TH3->Interpolate() when using these histograms
-   * to correct for the space charge distortions.
-   * TODO: is this really necessary ? Possibly one could just use the bin content for the correction rather than using TH3->Interpolate,
-   * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
-   */
-  TH3* create_histogram( TH3* hin, const TString& name ) __attribute__((unused));
-  TH3* create_histogram( TH3* hin, const TString& name )
-  {
-    std::array<int, 3> bins;
-    std::array<double, 3> x_min;
-    std::array<double, 3> x_max;
-
-    int index = 0;
-    for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
-    {
-      // calculate bin width
-      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
-
-      // increase the number of bins by two
-      bins[index] = axis->GetNbins()+2;
-
-      // update axis limits accordingly
-      x_min[index] = axis->GetXmin()-bin_width;
-      x_max[index] = axis->GetXmax()+bin_width;
-      ++index;
-    }
-
-    // create new histogram
-    auto hout = new TH3F( name, name,
-      bins[0], x_min[0], x_max[0],
-      bins[1], x_min[1], x_max[1],
-      bins[2], x_min[2], x_max[2] );
-
-    // update axis legend
-    hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
-    hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
-    hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
-
-    // copy content
-    const auto phibins = hin->GetXaxis()->GetNbins();
-    const auto rbins = hin->GetYaxis()->GetNbins();
-    const auto zbins = hin->GetZaxis()->GetNbins();
-
-    // fill center
-    for( int iphi = 0; iphi < phibins; ++iphi )
-      for( int ir = 0; ir < rbins; ++ir )
-      for( int iz = 0; iz < zbins; ++iz )
-    {
-      hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
-      hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
-    }
-
-    // fill guarding phi bins
-    for( int ir = 0; ir < rbins+2; ++ir )
-      for( int iz = 0; iz < zbins+2; ++iz )
-    {
-      hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
-      hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
-
-      hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
-      hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
-    }
-
-    // fill guarding r bins
-    for( int iphi = 0; iphi < phibins+2; ++iphi )
-      for( int iz = 0; iz < zbins+2; ++iz )
-    {
-      hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
-      hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
-
-      hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
-      hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
-    }
-
-    // fill guarding z bins
-    for( int iphi = 0; iphi < phibins+2; ++iphi )
-      for( int ir = 0; ir < rbins+2; ++ir )
-    {
-      hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
-      hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
-
-      hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
-      hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
-    }
-
-    return hout;
-
-  }
-
 }
 
 //_____________________________________________________________________
 TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& name ):
   SubsysReco( name)
-{}
+  , PHParameterInterface(name)
+{ InitializeParameters(); }
 
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, int zbins )
@@ -161,36 +72,28 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
   m_rhs = std::vector<column_t>( m_totalbins, column_t::Zero() );
   m_cluster_count = std::vector<int>( m_totalbins, 0 );
 
-  outfile = new TFile("tpcSpaceChargeReco.root","recreate");
-  tree = new TTree("residTree","tpc residual info");
-  tree->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
-  tree->Branch("tanBeta",&tanBeta,"tanBeta/D");
-  tree->Branch("drphi",&drphi,"drphi/D");
-  tree->Branch("dz",&dZ,"dz/D");
-  tree->Branch("cell",&cell,"cell/I");
-  tree->Branch("clusR",&clusR,"clusR/D");
-  tree->Branch("clusPhi",&clusPhi,"clusPhi/D");
-  tree->Branch("clusZ",&clusZ,"clusZ/D");
-  tree->Branch("statePhi",&statePhi,"statePhi/D");
-  tree->Branch("stateZ",&stateZ,"stateZ/D");
-  tree->Branch("stateR",&stateR,"stateR/D");
-  tree->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
-  tree->Branch("stateZErr",&stateZErr,"stateZErr/D");
-  tree->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
-  tree->Branch("clusZErr",&clusZErr,"clusZErr/D");
-  tree->Branch("ir",&ir,"ir/I");
-  tree->Branch("iz",&iz,"iz/I");
-  tree->Branch("iphi",&iphi,"iphi/I");
-  tree->Branch("cluskey",&cluskey,"cluskey/I");
-  tree->Branch("event", &event, "event/I");
-  tree->Branch("layer", &layer, "layer/I");
-  
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 {
+
+  // load parameters
+  UpdateParametersWithMacro();
+  m_max_talpha = get_double_param( "spacecharge_max_talpha" );
+  m_max_drphi = get_double_param( "spacecharge_max_drphi" );
+  m_max_tbeta = get_double_param( "spacecharge_max_tbeta" );
+  m_max_dz = get_double_param( "spacecharge_max_dz" );
+
+  // print
   std::cout
     << "TpcSpaceChargeReconstruction::InitRun\n"
     << " m_outputfile: " << m_outputfile << "\n"
@@ -199,7 +102,12 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
     << " m_rbins: " << m_rbins << "\n"
     << " m_zbins: " << m_zbins << "\n"
     << " m_totalbins: " << m_totalbins << "\n"
+    << " m_max_talpha: " << m_max_talpha << "\n"
+    << " m_max_drphi: " << m_max_drphi << "\n"
+    << " m_max_tbeta: " << m_max_tbeta << "\n"
+    << " m_max_dz: " << m_max_dz << "\n"
     << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -217,12 +125,34 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
-  outfile->cd();
-  tree->Write();
-  outfile->Write();
-  outfile->Close();
   calculate_distortions( topNode );
+
+  // print counters
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " track statistics total: " << m_total_tracks
+    << " accepted: " << m_accepted_tracks
+    << " fraction: " << 100.*m_accepted_tracks/m_total_tracks << "%"
+    << std::endl;
+
+  std::cout
+    << "TpcSpaceChargeReconstruction::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//___________________________________________________________________________
+void TpcSpaceChargeReconstruction::SetDefaultParameters()
+{
+  // residual cuts
+  set_default_double_param( "spacecharge_max_talpha", 0.6 );
+  set_default_double_param( "spacecharge_max_drphi", 0.5 );
+  set_default_double_param( "spacecharge_max_tbeta", 1.5 );
+  set_default_double_param( "spacecharge_max_dz", 0.5 );
 }
 
 //_____________________________________________________________________
@@ -240,20 +170,16 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::process_tracks()
 {
-  if(Verbosity() > -1)
-    std::cout << "Process_tracks begin event " << event << std::endl;
   if( !( m_track_map && m_cluster_map ) ) return;
-  if(Verbosity() > 1)
-    std::cout << "Iterating track map " << std::endl;
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { 
-    if(Verbosity() > 1)
-    std::cout << "Processing track with key " << iter->first << std::endl;
-    if( accept_track( iter->second ) ) 
-      process_track( iter->second ); 
+  {
+    ++m_total_tracks;
+    if( accept_track( iter->second ) )
+    {
+      ++m_accepted_tracks;
+      process_track( iter->second );
+    }
   }
-
-  event++;
 }
 
 //_____________________________________________________________________
@@ -261,23 +187,12 @@ bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
 {
   // ignore tracks whose transverse momentum is too small
   const auto pt = std::sqrt( square( track->get_px() ) + square( track->get_py() ) );
-  if(Verbosity() > 1)
-  std::cout << "Track has pt " << pt<< std::endl;
   if( pt < 0.5 ) return false;
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   if( get_clusters<TrkrDefs::mvtxId>(track) < 2 ) return false;
   if( get_clusters<TrkrDefs::inttId>(track) < 2 ) return false;
   if( m_use_micromegas && get_clusters<TrkrDefs::micromegasId>(track) < 2 ) return false;
-
-  if(Verbosity() > -1)
-    std::cout << "Track has good number of clusters" << std::endl;
-  if(Verbosity() > 2)
-    std::cout << "SvtxTrack to process has position (" 
-	      << track->get_x() << ", " << track->get_y()
-	      << ", " << track->get_z() << ") and momentum ("
-	      << track->get_px() << ", " << track->get_py()
-	      << ", " << track->get_pz() << ") " << std::endl;
 
   // all tests passed
   return true;
@@ -295,11 +210,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
   {
 
     const auto& cluster_key = *key_iter;
-    if(Verbosity() > 1)
-    std::cout << "Calculating residual for key " << cluster_key << std::endl;
-    cluskey = cluster_key;
-    layer = TrkrDefs::getLayer(cluster_key);
-
     auto cluster = m_cluster_map->findCluster( cluster_key );
     if( !cluster )
     {
@@ -307,10 +217,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       continue;
     }
 
+    ++m_total_clusters;
+
     // make sure
     const auto detId = TrkrDefs::getTrkrId(cluster_key);
-    if(Verbosity() > 1)
-    std::cout << "Detector is " << detId << std::endl;
     if(detId != TrkrDefs::tpcId) continue;
 
     // cluster r, phi and z
@@ -318,21 +228,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
     const auto cluster_z = cluster->getZ();
 
-    clusR = cluster_r;
-    clusPhi = cluster_phi;
-    clusZ = cluster_z;
-
     // cluster errors
     const auto cluster_rphi_error = cluster->getRPhiError();
     const auto cluster_z_error = cluster->getZError();
-    clusRPhiErr = cluster_rphi_error;
-    clusZErr = cluster_z_error;
 
-    if(Verbosity() > 1){
-      std::cout << "Cluster position : (" << cluster_r << ", " << cluster_phi << ", " << cluster_z << ")" << std::endl;
-      std::cout << "Cluster error : " << cluster_rphi_error 
-		<< ", " << cluster_z_error<<std::endl;
-    }
     /*
     remove clusters with too small errors since they are likely pathological
     and have a large contribution to the chisquare
@@ -354,34 +253,11 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       } else break;
     }
 
-    if(Verbosity() > 1)
-      std::cout << "Closests state is at " << dr_min << std::endl;
     // get relevant track state
     const auto state = state_iter->second;
-    
-    if(Verbosity() > 1)
-      std::cout << "Track state raw position is : (" 
-		<< state->get_x() << ", " << state->get_y()
-		<< ", " << state->get_z() << ") " << std::endl;
-    // track errors
-    const auto track_rphi_error = state->get_rphi_error();
-    const auto track_z_error = state->get_z_error();
-    #if 0
-  
-    if(Verbosity() > 1)
-      std::cout << "Track state errors " << track_rphi_error
-		<< ", " << track_z_error<<std::endl;
-
-    // also cut on track errors
-    // warning: smaller errors are probably needed when including outer tracker
-    if( track_rphi_error < 0.015 ) continue;
-    if( track_z_error < 0.1 ) continue;
-    #endif
 
     // extrapolate track parameters to the cluster r
     const auto track_r = get_r( state->get_x(), state->get_y() );
-    stateR = track_r;
-    stateZ = state->get_z();
     const auto dr = cluster_r - track_r;
     const auto track_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/track_r;
     const auto track_dxdr = state->get_px()/track_drdt;
@@ -394,22 +270,60 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_z = state->get_z() + dr*track_dzdr;
     const auto track_phi = std::atan2( track_y, track_x );
 
-    statePhi = track_phi;
-    stateZ = track_z;
-    stateRPhiErr = track_rphi_error;
-    stateZErr = track_z_error;
+    // get track angles
+    const auto cosphi( std::cos( track_phi ) );
+    const auto sinphi( std::sin( track_phi ) );
+    const auto track_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
+    const auto track_pr = state->get_px()*cosphi + state->get_py()*sinphi;
+    const auto track_pz = state->get_pz();
+    const auto talpha = -track_pphi/track_pr;
+    const auto tbeta = -track_pz/track_pr;
 
-    if(Verbosity() > 1)
-      std::cout <<"Extrapolated track state " << track_r << ", " << dr << ", " << track_drdt << ", " << track_dxdr << ", " << track_dydr << ", " << track_dzdr << ", " << track_x 
-		<< ", " << track_y << "," << track_z << ", "
-		<< track_phi << std::endl;
+    // sanity check
+    if( std::isnan(talpha) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
+      continue;
+    }
 
-    // get residual errors squared
-    // for now we only consider the error on the cluster. Not on the track
-    //     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
-    //     const auto ez = square(track_z_error) + square(cluster_z_error);
-    const auto erp = square(cluster_rphi_error);
-    const auto ez = square(cluster_z_error);
+    if( std::isnan(tbeta) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - tbeta nan" << std::endl;
+      continue;
+    }
+
+    // check against limits
+    if( std::abs( talpha ) > m_max_talpha ) continue;
+    if( std::abs( tbeta ) > m_max_tbeta ) continue;
+
+    // track errors
+    const auto track_rphi_error = state->get_rphi_error();
+    const auto track_z_error = state->get_z_error();
+
+    // residuals
+    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
+    const auto dz = cluster_z - track_z;
+
+    // sanity checks
+    if( std::isnan(drp) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
+      continue;
+    }
+
+    if( std::isnan(dz) )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
+      continue;
+    }
+
+    // check against limits
+    if( std::abs( drp ) > m_max_drphi ) continue;
+    if( std::abs( dz ) > m_max_dz ) continue;
+
+    // residual errors squared
+    const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
+    const auto ez = square(track_z_error) + square(cluster_z_error);
 
     // sanity check
     // TODO: check whether this happens and fix upstream
@@ -425,83 +339,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       continue;
     }
 
-    // get residuals
-    const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
-    const auto dz = cluster_z - track_z;
-
-    dZ = dz;
-    drphi = drp;
-
-    if(Verbosity() > 1)
-      std::cout << "Residuals are " <<drp << ", " << dz << std::endl;
-
-    // sanity checks
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan(drp) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - drp nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan(dz) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - dz nan" << std::endl;
-      continue;
-    }
-
-    // get track angles
-    const auto cosphi( std::cos( track_phi ) );
-    const auto sinphi( std::sin( track_phi ) );
-    const auto track_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
-    const auto track_pr = state->get_px()*cosphi + state->get_py()*sinphi;
-    const auto track_pz = state->get_pz();
-    const auto talpha = -track_pphi/track_pr;
-    const auto tbeta = -track_pz/track_pr;
-    if(Verbosity() > 1)
-      std::cout << "Track angles are " << track_pphi << ", " << track_pr << ", " << track_pz << ", " << talpha << ", " << tbeta
-		<< std::endl;
-    
-    tanAlpha = talpha;
-    tanBeta = tbeta;
-
-    // sanity check
-    // TODO: check whether this happens and fix upstream
-    if( std::isnan(talpha) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - talpha nan" << std::endl;
-      continue;
-    }
-
-    if( std::isnan(tbeta) )
-    {
-      std::cout << "TpcSpaceChargeReconstruction::process_track - tbeta nan" << std::endl;
-      continue;
-    }
-
-    // check against limits
-    static constexpr float max_talpha = 0.6;
-    static constexpr float max_residual_drphi = 0.5;
-    if( std::abs( talpha ) > max_talpha ) continue;
-    if( std::abs( drp ) > max_residual_drphi ) continue;
-
-    static constexpr float max_tbeta = 1.5;
-    static constexpr float max_residual_dz = 0.5;
-    if( std::abs( tbeta ) > max_tbeta ) continue;
-    if( std::abs( dz ) > max_residual_dz ) continue;
-
     // get cell
     const auto i = get_cell( cluster );
 
-    if(Verbosity() > 1)
-      std::cout << "Cell is " << i << std::endl;
-    cell = i;
-    ir = m_rbins * (clusR - m_rmin) / (m_rmax - m_rmin);
-    iphi = m_phibins * (clusPhi - m_phimin) / (m_phimax - m_phimin);
-    iz = m_zbins * (clusZ - m_zmin) / (m_zmax - m_zmin);
-  
     if( i < 0 || i >= m_totalbins ) continue;
-
-    tree->Fill();
 
     m_lhs[i](0,0) += 1./erp;
     m_lhs[i](0,1) += 0;
@@ -519,6 +360,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     m_rhs[i](1,0) += dz/ez;
     m_rhs[i](2,0) += talpha*drp/erp + tbeta*dz/ez;
 
+    ++m_accepted_clusters;
     ++m_cluster_count[i];
 
   }
@@ -530,13 +372,13 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 {
 
   // create output histograms
-  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
-  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax );
+  auto hentries( new TH3F( "hentries_rec", "hentries_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hphi( new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hz( new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
+  auto hr( new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phibins, m_phimin, m_phimax, m_rbins, m_rmin, m_rmax, m_zbins, m_zmin, m_zmax ) );
 
   // set axis labels
-  for( auto h:{ hentries, hphi, hz, hr } )
+  for( const auto& h:{ hentries, hphi, hz, hr } )
   {
     h->GetXaxis()->SetTitle( "#phi (rad)" );
     h->GetYaxis()->SetTitle( "r (cm)" );
@@ -593,14 +435,41 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
   std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
   outputfile->cd();
 
-  // save histograms
-  for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
+  // when using migromegas, one needs to extrapolate to the rest of the acceptance
+  if( m_use_micromegas )
+  {
+    for( const auto& h: {hentries, hphi, hr, hz} )
+    {
+      if( !h ) continue;
+      TpcSpaceChargeReconstructionHelper::extrapolate_z(h);
+      TpcSpaceChargeReconstructionHelper::extrapolate_phi1(h);
+      TpcSpaceChargeReconstructionHelper::extrapolate_phi2(h);
+    }
+  }
 
-  // also create and write histograms suitable for space charge correction
-  create_histogram( hentries, "hentries" )->Write();
-  create_histogram( hphi, "hIntDistortionP" )->Write();
-  create_histogram( hr, "hIntDistortionR" )->Write();
-  create_histogram( hz, "hIntDistortionZ" )->Write();
+  // write source histograms
+  for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
+  
+  // split histograms in two along z axis and write
+  // also write histograms suitable for space charge reconstruction
+  auto process_histogram = []( TH3* h, const TString& name )
+  {
+    TH3* hneg;
+    TH3* hpos;
+    std::tie( hneg, hpos ) = TpcSpaceChargeReconstructionHelper::split( h );
+    hneg->Write();
+    hpos->Write();
+    TpcSpaceChargeReconstructionHelper::copy_histogram( h, name )->Write();
+    TpcSpaceChargeReconstructionHelper::copy_histogram( hneg, Form( "%s_negz", name.Data() ) )->Write();
+    TpcSpaceChargeReconstructionHelper::copy_histogram( hpos, Form( "%s_posz", name.Data() ) )->Write();
+  };
+  
+  process_histogram( hentries, "hentries" );
+  process_histogram( hphi, "hIntDistortionP" );
+  process_histogram( hr, "hIntDistortionR" );
+  process_histogram( hz, "hIntDistortionZ" );
+
+  // close output file
   outputfile->Close();
 
 }

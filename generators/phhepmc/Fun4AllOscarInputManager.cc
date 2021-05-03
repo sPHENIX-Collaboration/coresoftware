@@ -1,27 +1,27 @@
 #include "Fun4AllOscarInputManager.h"
 
-#include "PHHepMCGenEvent.h"                              // for PHHepMCGenE...
+#include "PHHepMCGenEvent.h"  // for PHHepMCGenE...
 #include "PHHepMCGenEventMap.h"
 
 #include <frog/FROG.h>
 
-#include <fun4all/Fun4AllInputManager.h>                  // for Fun4AllInpu...
+#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInpu...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                           // for PHIODataNode
-#include <phool/PHNodeIterator.h>                         // for PHNodeIterator
-#include <phool/PHObject.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>                            // for GenParticle
-#include <HepMC/GenVertex.h>                              // for GenVertex
-#include <HepMC/SimpleVector.h>                           // for FourVector
-#include <HepMC/Units.h>                                  // for GEV, MM
+#include <HepMC/GenParticle.h>   // for GenParticle
+#include <HepMC/GenVertex.h>     // for GenVertex
+#include <HepMC/SimpleVector.h>  // for FourVector
+#include <HepMC/Units.h>         // for GEV, MM
 
 #include <TPRegexp.h>
 #include <TString.h>
@@ -33,11 +33,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <map>                                            // for _Rb_tree_it...
+#include <map>  // for _Rb_tree_it...
 #include <sstream>
-#include <utility>                                        // for swap, pair
-#include <vector>                                         // for vector
-
+#include <utility>  // for swap, pair
+#include <vector>   // for vector
 
 using namespace std;
 
@@ -70,7 +69,7 @@ Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const str
     dstNode->addNode(newmapnode);
   }
 
-  hepmc_helper.set_geneventmap(geneventmap);
+  PHHepMCGenHelper::set_geneventmap(geneventmap);
 }
 
 Fun4AllOscarInputManager::~Fun4AllOscarInputManager()
@@ -248,7 +247,7 @@ int Fun4AllOscarInputManager::PushBackEvents(const int i)
     std::string theLine;
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.compare(0,1,"#") == 0) continue;
+      if (theLine.compare(0, 1, "#") == 0) continue;
       vector<double> theInfo;
       double number = NAN;
       for (istringstream numbers_iss(theLine); numbers_iss >> number;)
@@ -290,7 +289,7 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   //Grab New Event From Oscar
   string theLine;
   vector<vector<double> > theEventVec;
-//  vector<HepMC::FourVector> theVtxVec;
+  //  vector<HepMC::FourVector> theVtxVec;
   if (isCompressed)
   {
     // while(getline(unzipstream, theLine))
@@ -324,7 +323,7 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   {
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.compare(0,1,"#") == 0) continue;
+      if (theLine.compare(0, 1, "#") == 0) continue;
       vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
       double number = NAN;
       for (istringstream numbers_iss(theLine); numbers_iss >> number;)
@@ -416,13 +415,13 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   if (Verbosity() > 3) cout << "Adding Event to phhepmcgenevt" << endl;
 
   PHHepMCGenEventMap::Iter ievt =
-      hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
-  if (ievt != hepmc_helper.get_geneventmap()->end())
+      PHHepMCGenHelper::get_geneventmap()->find(PHHepMCGenHelper::get_embedding_id());
+  if (ievt != PHHepMCGenHelper::get_geneventmap()->end())
   {
     // override existing event
     ievt->second->addEvent(evt);
   }
   else
-    hepmc_helper.insert_event(evt);
+    PHHepMCGenHelper::insert_event(evt);
   return 0;
 }

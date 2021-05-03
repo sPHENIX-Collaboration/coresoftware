@@ -54,7 +54,9 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex);
 
-  const bool isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices);
+
+  int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float& minimumIP, float& minimumIPchi2);
 
   std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
 
@@ -94,21 +96,36 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   int m_num_tracks_from_intermediate[max_tracks] = {0};
   std::string m_daughter_name[max_tracks];
   int m_daughter_charge[max_tracks] = {0};
+  int m_num_tracks = -1;
+
+  bool m_has_intermediates;
   std::string m_intermediate_name[max_tracks];
+
+  std::pair<float, float> m_intermediate_mass_range[max_tracks];
+  float m_intermediate_min_pt[max_tracks] = {0};
+
+  float m_intermediate_min_dira[max_tracks] = {-1.};
+
+  float m_intermediate_min_fdchi2[max_tracks] = {-1.};
+
   float m_min_mass = -1;
 
   float m_max_mass = -1;
 
-  std::pair<float, float> m_intermediate_mass_range[max_tracks];
-  float m_intermediate_min_pt[max_tracks] = {0};
-  float m_min_lifetime = -1;
+  float m_min_decayTime = -1;
 
-  float m_max_lifetime = -1;
+  float m_max_decayTime = -1;
+
+  float m_min_decayLength = -1;
+
+  float m_max_decayLength = -1;
 
   float m_track_pt = -1;
 
   float m_track_ptchi2 = -1;
 
+  float m_track_ip = -1;
+  
   float m_track_ipchi2 = -1;
 
   float m_track_chi2ndof = -1;
@@ -143,6 +160,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
+
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H

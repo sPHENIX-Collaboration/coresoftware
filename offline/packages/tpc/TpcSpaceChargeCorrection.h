@@ -8,6 +8,7 @@
 
 class TrkrCluster;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class TFile;
 class TH3;
 
@@ -52,6 +53,9 @@ class TpcSpaceChargeCorrection : public SubsysReco
 
   //! cluster container
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! hitset container
+  TrkrHitSetContainer  *m_hitsets = nullptr;
 
   //! space charge correction file name
   std::string m_distortion_filename;

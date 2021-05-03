@@ -75,7 +75,7 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   double _collision_rate = 50e3;  // input rate for phi correction
   double _reference_collision_rate = 50e3;  // reference rate for phi correction
 
-  bool _is_ca_seeder = false;
+  bool _is_ca_seeder = true;
   bool _sc_calib_flag = false;
   bool _test_windows = false;
 

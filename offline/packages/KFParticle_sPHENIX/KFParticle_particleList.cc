@@ -66,7 +66,11 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
   //Leptons
   //particleMasses["electron"] = std::make_pair(11, kfpDatabase.GetMass(11));
   particleMasses["electron"] = std::make_pair(11, 0.000511);
+  particleMasses["e+"] = std::make_pair(11, 0.000511);
+  particleMasses["e-"] = std::make_pair(11, 0.000511);
   particleMasses["muon"] = std::make_pair(13, kfpDatabase.GetMass(13));
+  particleMasses["mu+"] = std::make_pair(13, kfpDatabase.GetMass(13));
+  particleMasses["mu-"] = std::make_pair(13, kfpDatabase.GetMass(13));
   particleMasses["tau"] = std::make_pair(15, 1.77686);
 
   //Gauge bosons and Higgs
@@ -131,7 +135,11 @@ std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()
 
   //B-hadrons
   particleMasses["B+"] = std::make_pair(521, 5.279);
+  particleMasses["Bp"] = std::make_pair(521, 5.279);
+  particleMasses["Bplus"] = std::make_pair(521, 5.279);
   particleMasses["B-"] = std::make_pair(521, 5.279);
+  particleMasses["Bm"] = std::make_pair(521, 5.279);
+  particleMasses["Bminus"] = std::make_pair(521, 5.279);
   particleMasses["B0"] = std::make_pair(511, 5.279);
   particleMasses["Bs0"] = std::make_pair(531, 5.366);
   particleMasses["Bc+"] = std::make_pair(541, 6.2749);

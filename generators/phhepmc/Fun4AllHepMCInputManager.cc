@@ -5,31 +5,31 @@
 
 #include <frog/FROG.h>
 
-#include <fun4all/Fun4AllInputManager.h>                  // for Fun4AllInpu...
+#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInpu...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                           // for PHIODataNode
-#include <phool/PHNodeIterator.h>                         // for PHNodeIterator
-#include <phool/PHObject.h>                               // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                                  // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>                            // for GenParticle
-#include <HepMC/GenVertex.h>                              // for GenVertex
+#include <HepMC/GenParticle.h>  // for GenParticle
+#include <HepMC/GenVertex.h>    // for GenVertex
 #include <HepMC/IO_GenEvent.h>
-#include <HepMC/SimpleVector.h>                           // for FourVector
-#include <HepMC/Units.h>                                  // for CM, GEV
+#include <HepMC/SimpleVector.h>  // for FourVector
+#include <HepMC/Units.h>         // for CM, GEV
 
+#include <TDirectory.h>
 #include <TPRegexp.h>
+#include <TROOT.h>
 #include <TString.h>
 #include <TSystem.h>
-#include <TDirectory.h>
-#include <TROOT.h>
 
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -38,9 +38,9 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <map>                                            // for _Rb_tree_it...
+#include <map>  // for _Rb_tree_it...
 #include <sstream>
-#include <vector>                                         // for vector
+#include <vector>  // for vector
 
 static const double toMM = 1.e-12;
 
@@ -63,7 +63,7 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const std::string &name, cons
     dstNode->addNode(newmapnode);
   }
 
-  hepmc_helper.set_geneventmap(geneventmap);
+  PHHepMCGenHelper::set_geneventmap(geneventmap);
 
   return;
 }
@@ -91,8 +91,8 @@ int Fun4AllHepMCInputManager::fileopen(const std::string &filenam)
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
-         << filename
-         << " and opening " << filenam << std::endl;
+              << filename
+              << " and opening " << filenam << std::endl;
     fileclose();
   }
   filename = filenam;
@@ -182,7 +182,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
     if (m_EventPushedBackFlag)  // if an event was pushed back, reuse save copy
     {
       HepMC::IO_GenEvent ascii_tmp_in(m_HepMCTmpFile, std::ios::in);
-      ascii_tmp_in>> evt;
+      ascii_tmp_in >> evt;
       m_EventPushedBackFlag = 0;
       remove(m_HepMCTmpFile.c_str());
     }
@@ -203,8 +203,8 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       if (Verbosity() > 1)
       {
         std::cout << "Fun4AllHepMCInputManager::run::" << Name()
-             << ": error type: " << ascii_in->error_type()
-             << ", rdstate: " << ascii_in->rdstate() << std::endl;
+                  << ": error type: " << ascii_in->error_type()
+                  << ", rdstate: " << ascii_in->rdstate() << std::endl;
       }
       fileclose();
     }
@@ -214,18 +214,18 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       if (Verbosity() > 0)
       {
         std::cout << "Fun4AllHepMCInputManager::run::" << Name()
-             << ": hepmc evt no: " << evt->event_number() << std::endl;
+                  << ": hepmc evt no: " << evt->event_number() << std::endl;
       }
       m_MyEvent.push_back(evt->event_number());
-      PHHepMCGenEventMap::Iter ievt = hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
-      if (ievt != hepmc_helper.get_geneventmap()->end())
+      PHHepMCGenEventMap::Iter ievt = PHHepMCGenHelper::get_geneventmap()->find(PHHepMCGenHelper::get_embedding_id());
+      if (ievt != PHHepMCGenHelper::get_geneventmap()->end())
       {
         // override existing event
         ievt->second->addEvent(evt);
       }
       else
       {
-        hepmc_helper.insert_event(evt);
+        PHHepMCGenHelper::insert_event(evt);
       }
 
       events_total++;
@@ -236,7 +236,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       {
         // if this event is discarded we only need to remove the event from the list of event numbers
         // the new event will overwrite the event on the node tree without issues
-	m_MyEvent.pop_back();
+        m_MyEvent.pop_back();
       }
       else
       {
@@ -274,7 +274,7 @@ void Fun4AllHepMCInputManager::Print(const std::string &what) const
 {
   Fun4AllInputManager::Print(what);
   std::cout << Name() << " Vertex Settings: " << std::endl;
-  hepmc_helper.Print(what);
+  PHHepMCGenHelper::Print(what);
   return;
 }
 
@@ -289,15 +289,15 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
   {
     if (i == 1 && evt)  // check on evt pointer makes sure it is not done from the cmd line
     {
-// root barfs when writing the node to the output. 
-// Saving the pointer - even using a deep copy and reusing it did not work
-// The hackaround which works is to write this event into a temporary file and read it back
+      // root barfs when writing the node to the output.
+      // Saving the pointer - even using a deep copy and reusing it did not work
+      // The hackaround which works is to write this event into a temporary file and read it back
       if (m_HepMCTmpFile.empty())
       {
         // we need to create this filename just once, we reuse it. Do it only if we need it
-	m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + Name() + "-" + std::to_string(getpid()) + ".hepmc";
+        m_HepMCTmpFile = "/tmp/HepMCTmpEvent-" + Name() + "-" + std::to_string(getpid()) + ".hepmc";
       }
-      HepMC::IO_GenEvent ascii_io (m_HepMCTmpFile, std::ios::out);
+      HepMC::IO_GenEvent ascii_io(m_HepMCTmpFile, std::ios::out);
       ascii_io << evt;
       m_EventPushedBackFlag = 1;
       m_MyEvent.pop_back();
@@ -309,14 +309,14 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
       return 0;
     }
     std::cout << PHWHERE << Name()
-         << " Fun4AllHepMCInputManager cannot pop back more than 1 event"
-         << std::endl;
+              << " Fun4AllHepMCInputManager cannot pop back more than 1 event"
+              << std::endl;
     return -1;
   }
   if (!IsOpen())
   {
     std::cout << PHWHERE << Name()
-         << " no file opened yet" << std::endl;
+              << " no file opened yet" << std::endl;
     return -1;
   }
   // Skipping events is implemented as
@@ -331,7 +331,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
     {
       std::cout << "Error after skipping " << i - nevents << std::endl;
       std::cout << "error type: " << ascii_in->error_type()
-           << ", rdstate: " << ascii_in->rdstate() << std::endl;
+                << ", rdstate: " << ascii_in->rdstate() << std::endl;
       errorflag = -1;
       fileclose();
     }
@@ -368,7 +368,7 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
   std::vector<HepMC::FourVector> theVtxVec;
   while (getline(theOscarFile, theLine))
   {
-    if (theLine.compare(0,1,"#") == 0) continue;
+    if (theLine.compare(0, 1, "#") == 0) continue;
     std::vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
     double number = NAN;
     for (std::istringstream numbers_iss(theLine); numbers_iss >> number;)
@@ -438,7 +438,3 @@ int Fun4AllHepMCInputManager::MyCurrentEvent(const unsigned int index) const
   return m_MyEvent.at(index);
 }
 
-void Fun4AllHepMCInputManager::CopyHelperSettings(Fun4AllHepMCInputManager *source)
-{
-  (source->get_helper()).CopySettings(hepmc_helper);
-}

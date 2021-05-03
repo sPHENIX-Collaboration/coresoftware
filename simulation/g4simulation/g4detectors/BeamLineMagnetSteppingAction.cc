@@ -3,6 +3,8 @@
 
 #include <g4detectors/PHG4StepStatusDecode.h>
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -36,22 +38,13 @@
 
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 BeamLineMagnetSteppingAction::BeamLineMagnetSteppingAction(BeamLineMagnetDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_HitContainer(nullptr)
-  , m_AbsorberHitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
-  , m_EdepSum(0)
-  , m_EionSum(0)
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
 {
 }
 
@@ -86,21 +79,32 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
+  // if this block stops everything, just put all kinetic energy into edep
+  if (m_BlackHoleFlag)
+  {
+    edep = aTrack->GetKineticEnergy() / GeV;
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
+    killtrack->SetTrackStatus(fStopAndKill);
+  }
+
+  if (!m_ActiveFlag)
+    return false;
+
   int magnet_id = volume->GetCopyNo();  // magnet id is stored in copy number
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
   if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-      aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+      aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
   {
     geantino = true;
   }
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
-  //       cout << "track id " << aTrack->GetTrackID() << endl;
-  //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-  //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+  //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+  //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+  //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
   switch (prePoint->GetStepStatus())
   {
@@ -111,17 +115,17 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
     }
     else
     {
-      cout << GetName() << ": New Hit for  " << endl;
-      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+      std::cout << GetName() << ": New Hit for  " << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
   case fGeomBoundary:
   case fUndefined:
@@ -174,30 +178,30 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
 
   // some sanity checks for inconsistencies
   // check if this hit was created, if not print out last post step status
-  if (!m_Hit || !isfinite(m_Hit->get_x(0)))
+  if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
   {
-    cout << GetName() << ": hit was not created" << endl;
-    cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-         << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-         << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-         << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-    cout << "last track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID() << endl;
-    cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-    cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-         << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+    std::cout << GetName() << ": hit was not created" << std::endl;
+    std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+              << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+    std::cout << "last track: " << m_SaveTrackId
+              << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+    std::cout << "phys pre vol: " << volume->GetName()
+              << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+    std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+              << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
   if (aTrack->GetTrackID() != m_SaveTrackId)
   {
-    cout << GetName() << ": hits do not belong to the same track" << endl;
-    cout << "saved track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID()
-         << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << m_SavePostStepStatus
-         << endl;
+    std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+    std::cout << "saved track: " << m_SaveTrackId
+              << ", current trackid: " << aTrack->GetTrackID()
+              << ", prestep status: " << prePoint->GetStepStatus()
+              << ", previous post step status: " << m_SavePostStepStatus
+              << std::endl;
 
     gSystem->Exit(1);
   }
@@ -281,8 +285,8 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
 //____________________________________________________________________________..
 void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
   if (m_Detector->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + m_Detector->SuperDetector();
@@ -298,16 +302,20 @@ void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
-  // if we do not find the node we need to make it.
+  // If this is a black hole but otherwise not an active detector there is
+  // no hitnode, otherwise this will crash in the user stepping action
   if (!m_HitContainer)
   {
-    std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    if (!m_BlackHoleFlag)
+    {
+      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    }
   }
   if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 1)
     {
-      cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
 }

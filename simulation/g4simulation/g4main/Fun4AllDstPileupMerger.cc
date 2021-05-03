@@ -18,13 +18,21 @@
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
 #include <phool/PHNodeOperation.h>
+#include <phool/PHObject.h>              // for PHObject
 #include <phool/getClass.h>
+
+#include <TObject.h>
 
 #include <HepMC/GenEvent.h>
 
+#include <climits>
 #include <iostream>
-
+#include <iterator>
+#include <utility>
 
 // convenient aliases for deep copying nodes
 namespace

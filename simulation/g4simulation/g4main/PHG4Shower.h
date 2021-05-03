@@ -82,10 +82,10 @@ class PHG4Shower : public PHObject
   virtual bool empty_g4particle_id() const { return true; }
   virtual size_t size_g4particle_id() const { return 0; }
   virtual void add_g4particle_id(int id) {}
-  virtual ParticleIdIter begin_g4particle_id() { return ParticleIdSet().end(); }
-  virtual ParticleIdConstIter begin_g4particle_id() const { return ParticleIdSet().end(); }
-  virtual ParticleIdIter end_g4particle_id() { return ParticleIdSet().end(); }
-  virtual ParticleIdConstIter end_g4particle_id() const { return ParticleIdSet().end(); }
+  virtual ParticleIdIter begin_g4particle_id();
+  virtual ParticleIdConstIter begin_g4particle_id() const;
+  virtual ParticleIdIter end_g4particle_id();
+  virtual ParticleIdConstIter end_g4particle_id() const;
   virtual size_t remove_g4particle_id(int id) { return 0; }
   virtual void clear_g4particle_id() {}
   virtual const ParticleIdSet& g4particle_ids() const = 0;
@@ -93,10 +93,10 @@ class PHG4Shower : public PHObject
   virtual bool empty_g4vertex_id() const { return true; }
   virtual size_t size_g4vertex_id() const { return 0; }
   virtual void add_g4vertex_id(int id) {}
-  virtual VertexIdIter begin_g4vertex_id() { return VertexIdSet().end(); }
-  virtual VertexIdConstIter begin_g4vertex_id() const { return VertexIdSet().end(); }
-  virtual VertexIdIter end_g4vertex_id() { return VertexIdSet().end(); }
-  virtual VertexIdConstIter end_g4vertex_id() const { return VertexIdSet().end(); }
+  virtual VertexIdIter begin_g4vertex_id();
+  virtual VertexIdConstIter begin_g4vertex_id() const;
+  virtual VertexIdIter end_g4vertex_id();
+  virtual VertexIdConstIter end_g4vertex_id() const;
   virtual size_t remove_g4vertex_id(int id) { return 0; }
   virtual void clear_g4vertex_id() {}
   virtual const VertexIdSet& g4vertex_ids() const = 0;
@@ -104,12 +104,12 @@ class PHG4Shower : public PHObject
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
   virtual void add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
-  virtual HitIdIter begin_g4hit_id() { return HitIdMap().end(); }
-  virtual HitIdConstIter begin_g4hit_id() const { return HitIdMap().end(); }
-  virtual HitIdIter find_g4hit_id(int volume) { return HitIdMap().end(); }
-  virtual HitIdConstIter find_g4hit_id(int volume) const { return HitIdMap().end(); }
-  virtual HitIdIter end_g4hit_id() { return HitIdMap().end(); }
-  virtual HitIdConstIter end_g4hit_id() const { return HitIdMap().end(); }
+  virtual HitIdIter begin_g4hit_id();
+  virtual HitIdConstIter begin_g4hit_id() const;
+  virtual HitIdIter find_g4hit_id(int volume);
+  virtual HitIdConstIter find_g4hit_id(int volume) const;
+  virtual HitIdIter end_g4hit_id();
+  virtual HitIdConstIter end_g4hit_id() const;
   virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
   virtual size_t remove_g4hit_volume(int volume) { return 0; }
   virtual void clear_g4hit_id() {}

@@ -5,9 +5,10 @@
 
 #include <phool/phool.h>
 
+#include <CLHEP/Vector/LorentzRotation.h>
 #include <HepMC/SimpleVector.h>
 
-#include <iostream>                // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 namespace HepMC
 {
@@ -27,12 +28,12 @@ class PHHepMCGenEvent : public PHObject
   virtual void Reset();
   virtual int isValid() const
   {
-    PHOOL_VIRTUAL_WARNING;
-    return 0;
+    return (getEvent() != nullptr) ? 1 : 0;
   }
-  PHObject* CloneMe() const { return new PHHepMCGenEvent(*this); }
-  virtual HepMC::GenEvent* getEvent();
-  virtual const HepMC::GenEvent* getEvent() const;
+  virtual PHObject* CloneMe() const { return new PHHepMCGenEvent(*this); }
+
+  HepMC::GenEvent* getEvent();
+  const HepMC::GenEvent* getEvent() const;
 
   //! embedding ID for the event
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
@@ -58,6 +59,44 @@ class PHHepMCGenEvent : public PHObject
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
   void set_collision_vertex(const HepMC::FourVector& v) { _collisionVertex = v; }
 
+  //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual const HepMC::ThreeVector& get_boost_beta_vector() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    static HepMC::ThreeVector dummy_vec(0, 0, 0);
+    return dummy_vec;
+  }
+
+  //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual void set_boost_beta_vector(const HepMC::ThreeVector& v) { PHOOL_VIRTUAL_WARNING; }
+
+  //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual const HepMC::ThreeVector& get_rotation_vector() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    static HepMC::ThreeVector dummy_vec(0, 0, 1);
+    return dummy_vec;
+  }
+
+  //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual void set_rotation_vector(const HepMC::ThreeVector& v) { PHOOL_VIRTUAL_WARNING; }
+
+  //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual double get_rotation_angle() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return 0;
+  }
+
+  //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
+  virtual void set_rotation_angle(const double a) { PHOOL_VIRTUAL_WARNING; }
+
+  //!LorentzRotation to translate from hepmc event frame to lab frame
+  virtual CLHEP::HepLorentzRotation get_LorentzRotation_EvtGen2Lab() const { return CLHEP::HepLorentzRotation::IDENTITY; }
+
+  //!LorentzRotation to translate from lab frame to hepmc event frame
+  virtual CLHEP::HepLorentzRotation get_LorentzRotation_Lab2EvtGen() const { return CLHEP::HepLorentzRotation::IDENTITY; }
+
   //! host an HepMC event
   bool addEvent(HepMC::GenEvent* evt);
   bool addEvent(HepMC::GenEvent& evt);
@@ -71,7 +110,7 @@ class PHHepMCGenEvent : public PHObject
   virtual int size(void) const;
   virtual int vertexSize(void) const;
 
-  virtual void print(std::ostream& os = std::cout) const;
+  void print(std::ostream& os = std::cout) const;
 
   void PrintEvent();
 

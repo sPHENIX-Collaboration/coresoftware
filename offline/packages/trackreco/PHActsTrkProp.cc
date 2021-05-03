@@ -400,21 +400,24 @@ void PHActsTrkProp::updateSvtxTrack(Trajectory traj,
       float qOp = fittedParameters.parameters()[Acts::eBoundQOverP];
       
       Acts::BoundSymMatrix rotatedCov = Acts::BoundSymMatrix::Zero();
+      float DCA3Dxy = NAN;
+      float DCA3Dz = NAN;
+      float DCA3DxyCov = NAN;
+      float DCA3DzCov = NAN;
+      
       if(fittedParameters.covariance())
 	{
 	  rotater->setVerbosity(0);
 	  rotatedCov = rotater->rotateActsCovToSvtxTrack(fittedParameters, 
 							 m_tGeometry->geoContext);
+	
+      
+
+	  rotater->calculateDCA(fittedParameters, vertex, 
+				rotatedCov,
+				m_tGeometry->geoContext,
+				DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
 	}
-      
-      float DCA3Dxy = -9999;
-      float DCA3Dz = -9999;
-      float DCA3DxyCov = -9999;
-      float DCA3DzCov = -9999;
-      
-      rotater->calculateDCA(fittedParameters, vertex, m_tGeometry->geoContext,
-			    DCA3Dxy, DCA3Dz, DCA3DxyCov, DCA3DzCov);
-      
       /// If it is the first track, just update the original track seed
       if(iTrack == 0)
 	{

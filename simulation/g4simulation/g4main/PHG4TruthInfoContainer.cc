@@ -272,11 +272,25 @@ void PHG4TruthInfoContainer::delete_particle(Iterator piter)
   return;
 }
 
+void PHG4TruthInfoContainer::delete_particle(int trackid)
+{
+  Iterator it = particlemap.find(trackid);
+  if (it != particlemap.end())
+    delete_particle(it);
+}
+
 void PHG4TruthInfoContainer::delete_vtx(VtxIterator viter)
 {
   delete viter->second;
   vtxmap.erase(viter);
   return;
+}
+
+void PHG4TruthInfoContainer::delete_vtx(int vtxid)
+{
+  VtxIterator it = vtxmap.find(vtxid);
+  if (it != vtxmap.end())
+    delete_vtx(it);
 }
 
 void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter)

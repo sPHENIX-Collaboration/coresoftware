@@ -107,27 +107,27 @@ int QAG4SimulationVertex::Init(PHCompositeNode *topNode)
 
   // ntracks distribution histogram
   h = new TH1F(TString(get_histo_prefix()) + "ntracks",
-               "ntracks Distribution;Number of Tracks;Count", 100, 0.5, 100.5);
+               "ntracks Distribution;Number of Tracks;Count", 200, 0.5, 200.5);
   hm->registerHisto(h);
 
   // ntracks distribution histogram with mvtx cuts
   h = new TH1F(TString(get_histo_prefix()) + "ntracks_cuts",
-               "ntracks Distribution (#geq 2 MVTX);Number of Tracks;Count", 100, 0.5, 100.5);
+               "ntracks Distribution (#geq 2 MVTX);Number of Tracks;Count", 200, 0.5, 200.5);
   hm->registerHisto(h);
 
   // gntracks distribution histogram
   h = new TH1F(TString(get_histo_prefix()) + "gntracks",
-               "gntracks Distribution;Number of gTracks;Count", 50, 0.5, 100.5);
+               "gntracks Distribution;Number of gTracks;Count", 200, 0.5, 200.5);
   hm->registerHisto(h);
 
   // gntracksmaps distibution histogram
   h = new TH1F(TString(get_histo_prefix()) + "gntracksmaps",
-               "gntracksmaps Distribution;Number of gTracksMaps;Count", 50, 0.5, 100.5);
+               "gntracksmaps Distribution;Number of gTracksMaps;Count", 200, 0.5, 200.5);
   hm->registerHisto(h);
 
   // gvz distribution histogram
   h = new TH1F(TString(get_histo_prefix()) + "gvz",
-               "gvz Distribution;gvz Position [cm]", 100, -10., 10.);
+               "gvz Distribution;gvz Position [cm]", 300, -15., 15.);
   hm->registerHisto(h);
 
   // Reco SvtxVertex count per event histogram

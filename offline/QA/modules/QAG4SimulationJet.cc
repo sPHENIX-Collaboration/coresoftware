@@ -1,11 +1,11 @@
 #include "QAG4SimulationJet.h"
 #include "QAHistManagerDef.h"
 
-#include <g4jets/Jet.h>
 #include <g4eval/JetEvalStack.h>
-#include <g4jets/JetMap.h>
 #include <g4eval/JetRecoEval.h>
 #include <g4eval/JetTruthEval.h>
+#include <g4jets/Jet.h>
+#include <g4jets/JetMap.h>
 
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Shower.h>
@@ -13,7 +13,7 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>           // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -21,7 +21,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
-#include <TString.h>                      // for operator+, TString, Form
+#include <TString.h>  // for operator+, TString, Form
 
 #include <cassert>
 #include <cmath>

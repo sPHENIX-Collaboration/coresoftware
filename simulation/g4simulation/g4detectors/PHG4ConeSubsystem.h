@@ -11,6 +11,7 @@
 class PHCompositeNode;
 class PHG4ConeDetector;
 class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4SteppingAction;
 
 class PHG4ConeSubsystem : public PHG4DetectorSubsystem

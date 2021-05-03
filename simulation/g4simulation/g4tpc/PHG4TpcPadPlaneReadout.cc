@@ -13,12 +13,11 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>                         // for hitkey, hitse...
-#include <trackbase/TrkrHit.h>                          // for TrkrHit
+#include <trackbase/TrkrHitv2.h>                          // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <TF1.h>
 #include <TNtuple.h>
@@ -273,12 +272,14 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
+  /*
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
   {
     assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
   }
+  */
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -289,8 +290,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+      /*
       assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
+      */
     }
 
   hit++;
@@ -453,7 +456,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       phi_integral += phicenter * neffelectrons;
       z_integral += zcenter * neffelectrons;
       weight += neffelectrons;
-      if (Verbosity() > 1000 && layernum == print_layer)
+      if (Verbosity() > 1 && layernum == print_layer)
         cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
              << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
 
@@ -482,10 +485,11 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       if (!hit)
       {
         // create a new one
-        hit = new TpcHit();
+	hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
       // Either way, add the energy to it  -- adc values will be added at digitization
+      //std::cout << " PadPlaneReadout: adding energy " << neffelectrons << " for layer " << layernum << " pad_num " << pad_num << "  zbin_num " << zbin_num << " hitkey " << hitkey << std::endl;
       hit->addEnergy(neffelectrons);
 
       // repeat for the single_hitsetcontainer
@@ -495,27 +499,31 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       if (!single_hit)
       {
         // create a new one
-        single_hit = new TpcHit();
+	single_hit = new TrkrHitv2();
         single_hitsetit->second->addHitSpecificKey(hitkey, single_hit);
       }
       // Either way, add the energy to it  -- adc values will be added at digitization
       single_hit->addEnergy(neffelectrons);
 
+      /*
       if (Verbosity() > 0)
       {
         assert(nthit);
         nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
       }
+      */
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
+  /*
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
   {
     assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
   }
+  */
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -527,8 +535,11 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
 
+      /*
       assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
+      */
+
     }
 
   hit++;

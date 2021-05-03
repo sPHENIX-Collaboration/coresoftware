@@ -15,7 +15,7 @@
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 #include "ActsTrack.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <boost/bimap.hpp>
 
@@ -58,6 +58,9 @@ class PHActsTracks : public SubsysReco
   void setTruthTrackSeeding(bool truthTrackSeeding)
   { m_truthTrackSeeding = truthTrackSeeding;}
 
+  void setSecondFit(bool secondFit)
+  { m_secondFit = secondFit;}
+
  private:
   /** 
    * Member functions
@@ -97,6 +100,9 @@ class PHActsTracks : public SubsysReco
   ActsTrackingGeometry *m_tGeometry;
 
   bool m_truthTrackSeeding = false;
+  
+  /// Boolean for running the second fit pass
+  bool m_secondFit = false;
 };
 
 #endif

@@ -10,8 +10,9 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -150,7 +151,6 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
                "Sigmalized DCA (#geq 2 MVTX, #geq 1 INTT, #geq 20 TPC);Truth p_{T} [GeV/c];Sigmalized DCA(Z) [cm]", 200, 0.1, 50.5, 500, -5., 5.);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
-
 
   // reco pT histogram
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
@@ -319,26 +319,31 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   {
     // loop over clusters
-    const auto range = m_cluster_map->getClusters();
-    for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
-    {
-      // store cluster key
-      const auto &key = clusterIter->first;
-
-      // loop over associated g4hits
-      for (const auto &g4hit : find_g4hits(key))
-      {
-        const int trkid = g4hit->get_trkid();
-        auto iter = g4particle_map.lower_bound(trkid);
-        if (iter != g4particle_map.end() && iter->first == trkid)
-        {
-          iter->second.insert(key);
-        }
-        else
-        {
-          g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
-        }
-      }
+    auto hitsetrange = m_hitsets->getHitSets();
+    for (auto hitsetitr = hitsetrange.first;
+	 hitsetitr != hitsetrange.second;
+	 ++hitsetitr){
+      auto range = m_cluster_map->getClusters(hitsetitr->first);
+      for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
+	{
+	  // store cluster key
+	  const auto &key = clusterIter->first;
+	  
+	  // loop over associated g4hits
+	  for (const auto &g4hit : find_g4hits(key))
+	    {
+	      const int trkid = g4hit->get_trkid();
+	      auto iter = g4particle_map.lower_bound(trkid);
+	      if (iter != g4particle_map.end() && iter->first == trkid)
+		{
+		  iter->second.insert(key);
+		}
+	      else
+		{
+		  g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
+		}
+	    }
+	}
     }
   }
 
@@ -381,7 +386,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
       if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
       {
-        h_nReco_pTReco_cuts->Fill(pt); // normalization histogram fill with cuts
+        h_nReco_pTReco_cuts->Fill(pt);  // normalization histogram fill with cuts
       }
       PHG4Particle *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
       if (g4particle_match)
@@ -402,11 +407,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
             const double pt_ratio = (pt != 0) ? gpt / pt : 0;
             h_pTRecoTruthMatchedRatio_pTReco->Fill(pt, pt_ratio);
 
-	    if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
-	    {
-	      h_nGen_pTReco_cuts->Fill(pt);
-	      h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
-	    }
+            if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+            {
+              h_nGen_pTReco_cuts->Fill(pt);
+              h_pTRecoTruthMatchedRatio_pTReco_cuts->Fill(pt, pt_ratio);
+            }
           }
         }
       }
@@ -417,7 +422,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }  // reco track loop
-
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
@@ -512,7 +516,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
     }
 
-
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
     if (track)
@@ -573,11 +576,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         h_DCAZ_pT->Fill(pt, dca3dz);
         h_norm->Fill("Reco Track", 1);
 
-	int MVTX_hits = 0;
-	int INTT_hits = 0;
-	int TPC_hits = 0;
-	for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
-	{
+        int MVTX_hits = 0;
+        int INTT_hits = 0;
+        int TPC_hits = 0;
+        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+        {
           const auto &cluster_key = *cluster_iter;
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
@@ -593,12 +596,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
               cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
           }
         }
-	if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
-	{
+        if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
+        {
           h_DCArPhi_pT_cuts->Fill(pt, dca3dxy);
-	  h_DCAZ_pT_cuts->Fill(pt, dca3dz);
-	  h_SigmalizedDCArPhi_pT->Fill(pt, dca3dxy/dca3dxysigma);
-	  h_SigmalizedDCAZ_pT->Fill(pt, dca3dz/dca3dzsigma);
+          h_DCAZ_pT_cuts->Fill(pt, dca3dz);
+          h_SigmalizedDCArPhi_pT->Fill(pt, dca3dxy / dca3dxysigma);
+          h_SigmalizedDCAZ_pT->Fill(pt, dca3dz / dca3dzsigma);
         }
 
         // tracker cluster stat.
@@ -638,6 +641,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
 int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
 {
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hitsets)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {
@@ -663,6 +673,7 @@ int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -708,6 +719,10 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
 
       case TrkrDefs::tpcId:
         if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
+        break;
+
+      case TrkrDefs::micromegasId:
+        if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
         break;
 
       default:

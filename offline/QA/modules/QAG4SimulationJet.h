@@ -12,7 +12,6 @@
 #include <string>
 #include <utility>  // std::pair, std::make_pair
 
-
 class JetEvalStack;
 class JetTruthEval;
 class Jet;
@@ -39,7 +38,7 @@ class QAG4SimulationJet : public SubsysReco
 
   QAG4SimulationJet(const std::string &truth_jet, enu_flags flags =
                                                       kDefaultFlag);
-  virtual ~QAG4SimulationJet(){}
+  virtual ~QAG4SimulationJet() {}
 
   //! add reco jet to the process list
   //! @return number of reco jet on list

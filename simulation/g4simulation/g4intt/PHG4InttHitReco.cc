@@ -6,7 +6,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>  // for TrkrHit
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -14,7 +14,6 @@
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <intt/InttDefs.h>
-#include <intt/InttHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -398,20 +397,21 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (!hit)
       {
         // Otherwise, create a new one
-        hit = new InttHit();
+        //hit = new InttHit();
+	hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
       // Either way, add the energy to it
       if (Verbosity() > 2)
         cout << "add energy " << venergy[i1].first << " to intthit " << endl;
-      hit->addEnergy(venergy[i1].first);
+      hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
       if (Verbosity() > 2)
-        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;
+        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << endl;
     }
 
   }  // end loop over g4hits

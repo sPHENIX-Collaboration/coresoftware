@@ -82,6 +82,9 @@ class BaseTruthEval
   /// which primary particle resulted in this truth hit?
   PHG4Particle* get_primary_particle(PHG4Hit* g4hit);
 
+  /// which is the particle associated with this track ID?
+  PHG4Particle* get_particle(const int trackid); 
+
   /// is this truth hit inside this shower?
   bool is_g4hit_from_primary_shower(PHG4Hit* g4hit, PHG4Shower* shower);
 

@@ -44,12 +44,12 @@ public:
   virtual void clear_clusters() {}
   virtual bool empty_clusters() {return true;}
   virtual size_t           erase_cluster(unsigned int cluster_id)       {return 0;}
-  virtual ConstClusterIter begin_clusters() const                       {return ClusterSet().end();}
-  virtual ConstClusterIter find_cluster(unsigned int cluster_id) const  {return ClusterSet().end();}
-  virtual ConstClusterIter end_clusters() const                         {return ClusterSet().end();}
-  virtual ClusterIter      begin_clusters()                             {return ClusterSet().end();}
-  virtual ClusterIter      find_cluster(unsigned int cluster_id)        {return ClusterSet().end();}
-  virtual ClusterIter      end_clusters()                               {return ClusterSet().end();}
+  virtual ConstClusterIter begin_clusters() const;
+  virtual ConstClusterIter find_cluster(unsigned int cluster_id) const;
+  virtual ConstClusterIter end_clusters() const;
+  virtual ClusterIter      begin_clusters();
+  virtual ClusterIter      find_cluster(unsigned int cluster_id);
+  virtual ClusterIter      end_clusters();
 
   virtual unsigned int get_bin(unsigned int zoomlevel) const    {return UINT_MAX;}
   virtual void set_bin(unsigned int zoomlevel, unsigned int bin){}

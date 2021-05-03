@@ -14,10 +14,9 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
-#include <string>                        // for string
+#include <string>  // for string
 #include <type_traits>
 #include <utility>
-
 
 class RawCluster : public PHObject
 {
@@ -31,7 +30,7 @@ class RawCluster : public PHObject
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
 
-  virtual PHObject *CloneMe() const {return nullptr;}
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   virtual int isValid() const
   {

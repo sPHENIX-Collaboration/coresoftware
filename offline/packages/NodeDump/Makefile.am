@@ -41,6 +41,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTrkrClusterContainer.cc \
+  DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
@@ -60,6 +61,7 @@ libphnodedump_la_LIBADD = \
   -lSubsysReco \
   -ltrackbase_historic_io \
   -ltrack_io \
+  -lphhepmc_io\
   -lvararray
 
 

@@ -51,8 +51,8 @@ class RawTowerGeomv1 : public RawTowerGeom
   double get_theta() const;
 
  protected:
-  RawTowerDefs::keytype _towerid = ~0; // 0xFFFFFF.. independant of type
- 
+  RawTowerDefs::keytype _towerid = ~0;  // 0xFFFFFF.. independant of type
+
   double _center_x = NAN;
   double _center_y = NAN;
   double _center_z = NAN;

@@ -12,7 +12,7 @@ class PHCompositeNode;
 class SvtxTrack;
 class TrkrCluster;
 class TF1;
-
+class TrkrHitSetContainer;
 
 class PHMicromegasTpcTrackMatching : public PHTrackPropagating
 {
@@ -77,6 +77,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   TF1 *fdrphi{nullptr};
   double _par0 = -0.36619;
   double _par1 = 0.00375714;
+  TrkrHitSetContainer  *_mm_hitsets = nullptr;
 };
 
 #endif // PHMICROMEGASTPCTRACKMATCHING_H
