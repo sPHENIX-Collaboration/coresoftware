@@ -1,11 +1,12 @@
-/**
- * @file trackbase/TrkrClusterContainer.h
- * @author D. McGlinchey
- * @date June 2018
- * @brief Cluster container object
- */
 #ifndef TRACKBASE_TRKRCLUSTERCONTAINER_H
 #define TRACKBASE_TRKRCLUSTERCONTAINER_H
+
+/**
+ * @file trackbase/TrkrClusterContainer.h
+ * @author D. McGlinchey, Hugo PEREIRA DA COSTA
+ * @date June 2018
+ * @brief Cluster container base class
+ */
 
 #include "TrkrDefs.h"
 
@@ -25,69 +26,56 @@ class TrkrCluster;
 class TrkrClusterContainer : public PHObject
 {
  public:
-  typedef std::map<TrkrDefs::cluskey, TrkrCluster *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  TrkrClusterContainer(){}
+  //!@name convenient shortuts
+  //@{
+  using Map = std::map<TrkrDefs::cluskey, TrkrCluster *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = typedef Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
+  //@}
 
-  virtual ~TrkrClusterContainer() {}
-  void Reset();
+  //! constructor
+  TrkrClusterContainer() = default;
 
-  void identify(std::ostream &os = std::cout) const;
-  void print() const;
+  //! reset method
+  virtual void Reset() {}
 
-  ConstIterator addCluster(TrkrCluster *newClus);
-  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
+  //! identify object
+  virtual void identify(std::ostream &os = std::cout) const {}
 
-  //! preferred removal method, key is currently the clus id
-  void removeCluster(TrkrDefs::cluskey key);
+  //! add a cluster
+  virtual ConstIterator addCluster(TrkrCluster*);
 
-  //! inefficent, use key where possible instead
-  void removeCluster(TrkrCluster *clus);
+  //! add a cluster with specific key
+  virtual ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster* );
 
-  Iterator findOrAddCluster(TrkrDefs::cluskey key);
+  //! remove cluster
+  virtual void removeCluster(TrkrDefs::cluskey) {}
 
-  ConstRange getClusters() const;
+  //! remove cluster
+  virtual void removeCluster(TrkrCluster* ) {}
 
-  ConstRange getClusters(TrkrDefs::hitsetkey hitsetkey) const;
+  //! find cluster matching key if any, add a new one otherwise and return cluster
+  virtual Iterator findOrAddCluster(TrkrDefs::cluskey);
 
-  ConstRange getClusters(unsigned int layer, unsigned int phi_segment, unsigned int z_segment) const;
+  //! get all clusters matching hitset
+  virtual ConstRange getClusters(TrkrDefs::hitsetkey hitsetkey) const;
 
-  //! return all clusters
-  std::map<TrkrDefs::cluskey, TrkrCluster *> *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment){
-    //   std::cout << "get_set lphiz: " << layer << "|" << phi_segment << "|" << z_segment << "nclu:" << m_clusmap[layer][phi_segment][z_segment].size() <<std::endl;
+  //! get pointer to map containing clusters mathching hitset
+  virtual Map* getClusterMap(TrkrDefs::hitsetkey) { return nullptr; }
 
-    if(phi_segment<max_phisegment&&z_segment<max_zsegment)
-      return &m_clusmap[layer][phi_segment][z_segment];
-    else
-      return &m_clusmap[8][0][6];//guaranteed to be empty
+  //! find cluster matching given key
+  virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
 
-  }
+  //! total number of clusters
+  virtual unsigned int size(void) const { return 0; }
 
-  TrkrCluster *findCluster(TrkrDefs::cluskey key);
+  private:
 
-  unsigned int size(void) const
-  {
-    unsigned int size = 0;
-    for(unsigned layer = 0;layer < max_layer; layer++){
-      for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++){
-	for(unsigned z_segment = 0; z_segment < max_zsegment; z_segment++){
-	  size += m_clusmap[layer][phi_segment][z_segment].size(); 
-	}
-      }
-    }
-    return size;
-  }
-
- protected:
-  unsigned int max_layer = 57;
-  unsigned int max_phisegment = 20;
-  unsigned int max_zsegment = 15;
-  Map m_clusmap[57][20][15];
   ClassDef(TrkrClusterContainer, 1)
+
 };
 
 #endif //TRACKBASE_TRKRCLUSTERCONTAINER_H
