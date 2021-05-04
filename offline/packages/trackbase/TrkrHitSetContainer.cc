@@ -7,7 +7,7 @@
 #include "TrkrHitSetContainer.h"
 
 #include "TrkrDefs.h"
-#include "TrkrHitSet.h"
+#include "TrkrHitSetv1.h"
 
 #include <cstdlib>
 
@@ -115,7 +115,7 @@ TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
   auto it = m_hitmap.lower_bound( key );
   if( it == m_hitmap.cend() || (key < it->first ) )
   {
-    it = m_hitmap.insert(it, std::make_pair(key, new TrkrHitSet()));
+    it = m_hitmap.insert(it, std::make_pair(key, new TrkrHitSetv1));
     it->second->setHitSetKey( key );
   }
   return it;
