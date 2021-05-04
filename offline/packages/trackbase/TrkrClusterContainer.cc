@@ -23,5 +23,9 @@ TrkrClusterContainer::Iterator TrkrClusterContainer::findOrAddCluster(TrkrDefs::
 { return dummy_map.begin(); }
 
 //__________________________________________________________
+TrkrClusterContainer::ConstRange TrkrClusterContainer::getClusters() const
+{ return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }
+
+//__________________________________________________________
 TrkrClusterContainer::ConstRange TrkrClusterContainer::getClusters(TrkrDefs::hitsetkey hitsetkey) const
 { return std::make_pair( dummy_map.cbegin(), dummy_map.cend() ); }

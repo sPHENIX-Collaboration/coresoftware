@@ -47,8 +47,10 @@ class TrkrClusterContainerv1 : public TrkrClusterContainer
   virtual void removeCluster(TrkrCluster*);
 
   virtual Iterator findOrAddCluster(TrkrDefs::cluskey key);
+  
+  virtual ConstRange getClusters(void) const;
 
-  virtual TrkrCluster *findCluster(TrkrDefs::cluskey key);
+  virtual TrkrCluster *findCluster(TrkrDefs::cluskey key) const;
 
   virtual unsigned int size(void) const;
 

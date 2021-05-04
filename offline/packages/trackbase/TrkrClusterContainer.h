@@ -57,6 +57,9 @@ class TrkrClusterContainer : public PHObject
 
   //! find cluster matching key if any, add a new one otherwise and return cluster
   virtual Iterator findOrAddCluster(TrkrDefs::cluskey);
+  
+  //! return all clusters
+  virtual ConstRange getClusters(void) const;
 
   //! get all clusters matching hitset
   virtual ConstRange getClusters(TrkrDefs::hitsetkey) const;
