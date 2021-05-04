@@ -17,7 +17,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
