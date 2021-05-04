@@ -38,9 +38,7 @@ pkginclude_HEADERS = \
   TrkrHitv2.h \
   TrkrHitTruthAssoc.h \
   TrkrHitSet.h \
-  TrkrHitSetContainer.h \
-  TrkrTrack.h \
-  TrkrTrackContainer.h
+  TrkrHitSetContainer.h
 
 ROOTDICTS = \
   TrkrCluster_Dict.cc \
@@ -59,9 +57,7 @@ ROOTDICTS = \
   TrkrHitv2_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitSet_Dict.cc \
-  TrkrHitSetContainer_Dict.cc \
-  TrkrTrack_Dict.cc \
-  TrkrTrackContainer_Dict.cc
+  TrkrHitSetContainer_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -81,9 +77,7 @@ nobase_dist_pcm_DATA = \
   TrkrHitv2_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitSet_Dict_rdict.pcm \
-  TrkrHitSetContainer_Dict_rdict.pcm \
-  TrkrTrack_Dict_rdict.pcm \
-  TrkrTrackContainer_Dict_rdict.pcm
+  TrkrHitSetContainer_Dict_rdict.pcm
 
 # sources for io library
 libtrack_io_la_SOURCES = \
