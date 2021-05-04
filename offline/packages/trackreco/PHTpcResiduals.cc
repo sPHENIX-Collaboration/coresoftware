@@ -17,6 +17,7 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <micromegas/MicromegasDefs.h>
 
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -140,9 +141,23 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
   if(Verbosity() > 2)
     std::cout << "Track has pt " << track->get_pt() << std::endl;
 
-  int nMvtxHits = getClusters<TrkrDefs::mvtxId>(track);
-  int nInttHits = getClusters<TrkrDefs::inttId>(track);
-  int nMMHits   = getClusters<TrkrDefs::micromegasId>(track);
+  int nMvtxHits = 0;
+  int nInttHits = 0;
+  int nMMHits = 0;
+
+  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+    {
+      auto key = *clusIter;
+      auto trkrId = TrkrDefs::getTrkrId(key);
+      if(trkrId == TrkrDefs::TrkrId::mvtxId)
+	nMvtxHits++;
+      else if(trkrId == TrkrDefs::TrkrId::inttId)
+	nInttHits++;
+      else if(trkrId == TrkrDefs::TrkrId::micromegasId)
+	nMMHits++;
+    }
 
   if(Verbosity() > 2)
     std::cout << "Number of mvtx/intt/MM hits "
@@ -262,15 +277,17 @@ Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
 			svtxVertex->get_z() * Acts::UnitConstants::cm);
   return vertex;
 }
-ActsExamples::TrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
+Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 {
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(), 
 			  track->get_pz());
-  auto actsVertex = getVertex(track);
-  auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
-				    actsVertex(2),
-				    10 * Acts::UnitConstants::ns);
+  auto vertex = getVertex(track);
+  Acts::Vector4D actsFourPos(vertex(0), vertex(1), vertex(2),
+			     10 * Acts::UnitConstants::ns);
+  double trackQ = track->get_charge() * Acts::UnitConstants::e;
+  double p = track->get_p();
+  
   Acts::BoundSymMatrix cov;
   for(int i =0; i<6; i++)
     {
@@ -280,12 +297,15 @@ ActsExamples::TrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 	}
     }
 
-  ActsExamples::TrackParameters seed(actsFourPos,
-				     momentum,
-				     track->get_p(),
-				     track->get_charge(),
-				     cov);
+  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+				        Acts::Vector3D(vertex(0), 
+						       vertex(1), 
+						       vertex(2)));
 
+  Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
+				  actsFourPos, momentum,
+				  p, trackQ, cov);
+ 
   return seed;
 
 }
@@ -312,6 +332,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       /// only propagate to tpc surfaces
       if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
 	continue;;
+
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
       auto sl = makeSourceLink(cluster);
@@ -330,7 +351,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 		      << std::endl;
 	  
 
-	  calculateTpcResiduals(trackStateParams, sl);
+	  calculateTpcResiduals(trackStateParams, cluster);
 	}
       else
 	{
@@ -356,7 +377,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 }
 
 BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
-			   const ActsExamples::TrackParameters& params,
+			   const Acts::BoundTrackParameters& params,
 			   const SourceLink& sl)
 {
   /*
@@ -399,12 +420,10 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 }
 void PHTpcResiduals::calculateTpcResiduals(
 		          const Acts::BoundTrackParameters &params,
-			  const SourceLink& sl)
+			  const TrkrCluster* cluster)
 {
-  /// Get the TrkrCluster
-  const auto clusKey = m_hitIdClusKey->right.find(sl.hitID())->second;
-  const auto cluster = m_clusterMap->findCluster(clusKey);
-  cluskey = clusKey;
+  
+  cluskey = cluster->getClusKey();
   /// Get all the relevant information for residual calculation
   clusR = sqrt(pow(cluster->getX(), 2) +
 	       pow(cluster->getY(), 2));
@@ -416,7 +435,7 @@ void PHTpcResiduals::calculateTpcResiduals(
  
   if(Verbosity() > 3)
     {
-      std::cout << "cluster key is " << clusKey <<std::endl;
+      std::cout << "cluster key is " << cluskey <<std::endl;
       std::cout << "Cluster r phi and z " << clusR << "  " 
 		<< clusPhi << "+/-" << clusRPhiErr
 		<<" and " << clusZ << "+/-" << clusZErr << std::endl;
@@ -883,11 +902,5 @@ TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
 
 
 
-/// return number of clusters of a given type that belong to a tracks
-template<int type> int PHTpcResiduals::getClusters( SvtxTrack* track )
-  {
-    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
-      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
-  }
 
-}
+
