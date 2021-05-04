@@ -2,7 +2,7 @@
 
 #include "TpcDefs.h"
 
-#include <trackbase/TrkrClusterContainerv2.h>
+#include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
@@ -665,7 +665,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv2;
+    trkrclusters = new TrkrClusterContainerv3;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
