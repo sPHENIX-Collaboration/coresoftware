@@ -33,7 +33,7 @@ class TrkrHitSetv1 : public TrkrHitSet
   virtual void setHitSetKey(const TrkrDefs::hitsetkey key) 
   { m_hitSetKey = key; }
 
-  TrkrDefs::hitsetkey getHitSetKey() const 
+  virtual TrkrDefs::hitsetkey getHitSetKey() const 
   { return m_hitSetKey; }
 
   virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*);
