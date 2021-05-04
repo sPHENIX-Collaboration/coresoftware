@@ -2,7 +2,7 @@
 
 #include "TpcDefs.h"
 
-#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv2.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
@@ -499,9 +499,9 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
-
-  clusterlist->insert(std::make_pair(ckey, clus));
-  if(do_assoc){
+  
+  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus));
+  if(do_assoc && clusterhitassoc){
     for (unsigned int i = 0; i < hitkeyvec.size(); i++){
       clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
     }
@@ -653,7 +653,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -665,7 +665,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainer();
+    trkrclusters = new TrkrClusterContainerv2;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
@@ -790,6 +790,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
+    const auto hitsetid = hitsetitr->first;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
@@ -807,8 +808,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
     thread_pair.data.zz_shaping_correction =  zz_shaping_correction;
-    thread_pair.data.clusterlist = m_clusterlist->getClusterSet(layer,sector,side);
-    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterSet(layer,sector,side);
+    thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
+    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
 

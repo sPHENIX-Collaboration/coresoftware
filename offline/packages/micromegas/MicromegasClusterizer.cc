@@ -10,7 +10,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainer.h>        // for TrkrCluster
+#include <trackbase/TrkrClusterContainerv2.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -78,7 +78,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterContainer = new TrkrClusterContainer();
+    trkrClusterContainer = new TrkrClusterContainerv2;
     auto TrkrClusterContainerNode = new PHIODataNode<PHObject>(trkrClusterContainer, "TRKR_CLUSTER", "PHObject");
     trkrNode->addNode(TrkrClusterContainerNode);
   }
