@@ -108,7 +108,7 @@ class PHTpcResiduals : public SubsysReco
   void makeHistograms();
   TH3* createHistogram(TH3* hin, const TString& name);
   SourceLink makeSourceLink(TrkrCluster* cluster);
-Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   Surface getSurface(TrkrDefs::cluskey cluskey,
 		     TrkrDefs::subsurfkey);
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
@@ -118,11 +118,11 @@ Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
-SvtxVertexMap *m_vertexMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
-ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
 
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm
@@ -174,9 +174,12 @@ ActsSurfaceMaps *m_surfMaps = nullptr;
   TTree *residTup = nullptr;
   TFile *m_outputFile = nullptr;
 
-  double tanAlpha, tanBeta, drphi, dz, clusR, clusPhi, clusZ, statePhi,stateZ, stateRPhiErr, stateZErr, clusRPhiErr, clusZErr, stateR;
-  int cell, ir, iz, iphi;
-  unsigned int cluskey;
+  /// For diagnostics
+  double tanAlpha = 0, tanBeta = 0, drphi = 0, dz = 0, clusR = 0, clusPhi = 0, 
+    clusZ = 0, statePhi = 0, stateZ = 0, stateRPhiErr = 0, stateZErr = 0, 
+    clusRPhiErr = 0, clusZErr = 0, stateR = 0;
+  int cell = 0, ir = 0, iz = 0, iphi = 0;
+  unsigned int cluskey = 0;
 };
 
 #endif
