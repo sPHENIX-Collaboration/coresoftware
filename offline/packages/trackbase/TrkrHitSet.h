@@ -1,21 +1,22 @@
-/**
- * @file trackbase/TrkrHitSet.h
- * @author D. McGlinchey
- * @date 4 June 2018
- * @brief Container for storing TrkrHit's
- */
 #ifndef TRACKBASE_TRKRHITSET_H
 #define TRACKBASE_TRKRHITSET_H
+/**
+ * @file trackbase/TrkrHitSet.h
+ * @author D. McGlinchey, H. PEREIRA DA COSTA
+ * @date 4 June 2018
+ * @brief Base Class Container for storing TrkrHit's
+ */
 
 #include "TrkrDefs.h"
-#include "TrkrHitv1.h"
-#include "TrkrHitv2.h"
 
 #include <phool/PHObject.h>
 
 #include <iostream>
 #include <map>
 #include <utility>           // for pair
+
+//! forward declaration
+class TrkrHit;
 
 /**
  * @brief Container for storing TrkrHit's
@@ -27,32 +28,36 @@
  */
 class TrkrHitSet : public PHObject
 {
- public:
+  
+  public:
   // iterator typedef
-  typedef std::map<TrkrDefs::hitkey, TrkrHit*> Map;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  using Map = std::map<TrkrDefs::hitkey, TrkrHit*>;
+  using ConstIterator = Map::const_iterator;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
   
   //! ctor
-  TrkrHitSet();
-  //! dtor
-  virtual ~TrkrHitSet();
+  TrkrHitSet() = default;
+  
   //! TObject functions
-  void identify(std::ostream& os = std::cout) const;
-  void Reset();
-  void print() const;
-
+  virtual void identify(std::ostream& os = std::cout) const 
+  {}
+  
+  virtual void Reset()
+  {}
+  
   /**
    * @brief Set the key for this object
    * @param key
    */
-  void setHitSetKey(const TrkrDefs::hitsetkey key) { m_hitSetKey = key; }
+  virtual void setHitSetKey(const TrkrDefs::hitsetkey) 
+  {}
 
   /**
    * @brief Get the key for this object
    * @param[out] object key
    */
-  TrkrDefs::hitsetkey getHitSetKey() const { return m_hitSetKey; }
+  virtual TrkrDefs::hitsetkey getHitSetKey() const 
+  { return TrkrDefs::HITSETKEYMAX; }
 
   /**
    * @brief Add a hit to this container using a specific key.
@@ -62,13 +67,14 @@ class TrkrHitSet : public PHObject
    * NOTE: This TrkrHitSet takes ownership of the passed TrkrHit pointer
    * and will delete it in the Reset() method.
    */
-  ConstIterator addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit);
-
+  virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*);
+    
   /**
    * @brief Remove a hit using its key
    * @param[in] key to be removed
    */
-  void removeHit(TrkrDefs::hitkey key);
+  virtual void removeHit(TrkrDefs::hitkey)
+  {}
 
   /**
    * @brief Get a specific hit based on its index.
@@ -77,25 +83,25 @@ class TrkrHitSet : public PHObject
    *
    * Get a desired hit based on its key.
    */
-  TrkrHit* getHit(const TrkrDefs::hitkey key);
+  virtual TrkrHit* getHit(const TrkrDefs::hitkey) const
+  { return nullptr; }
   
   /**
    * @brief Get all hits
    * @param[out] Pair of iterator to vector begin and end
    */
-  ConstRange getHits();
+  virtual ConstRange getHits() const;
 
   /**
    * @brief Get the number of hits stored
    * @param[out] number of hits
    */
   // Get number of hits
-  unsigned int size() { return m_hits.size(); }
+  virtual unsigned int size() const 
+  { return 0; }
    
- private:
-  TrkrDefs::hitsetkey m_hitSetKey; /// unique key for this object
-  Map m_hits; /// storage for TrkrHit objects
   ClassDef(TrkrHitSet, 1);
+
 };
 
 #endif //TRACKBASE_TRKRHITSET_H
