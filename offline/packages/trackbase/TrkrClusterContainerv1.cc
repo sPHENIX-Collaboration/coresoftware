@@ -6,7 +6,7 @@
  */
 #include "TrkrClusterContainerv1.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv1.h"
+#include "TrkrClusterv2.h"
 
 #include <cstdlib>
 
@@ -69,7 +69,7 @@ TrkrClusterContainerv1::findOrAddCluster(TrkrDefs::cluskey key)
   if (it == m_clusmap.end()|| (key < it->first ))
   {
     // add new cluster and set its key
-    it = m_clusmap.insert(it, std::make_pair(key, new TrkrClusterv1()));
+    it = m_clusmap.insert(it, std::make_pair(key, new TrkrClusterv2()));
     it->second->setClusKey(key);
   }
   return it;
