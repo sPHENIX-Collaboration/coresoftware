@@ -42,13 +42,13 @@ void TrkrClusterHitAssocv3::identify(std::ostream &os) const
 
 //_________________________________________________________________________
 void TrkrClusterHitAssocv3::addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx)
-{ 
+{
   // get hitset key from cluster
   const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( ckey );
-  
+
   // find relevant association map, create one if not found
   Map& clusterMap = m_map[hitsetkey];
-  
+
   // insert association
   clusterMap.insert(std::make_pair(ckey, hidx));
 }
@@ -67,15 +67,18 @@ TrkrClusterHitAssocv3::ConstRange TrkrClusterHitAssocv3::getHits(TrkrDefs::clusk
   const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( ckey );
 
   // find relevant association map, create one if not found
-  const Map& clusterMap = m_map[hitsetkey];
-  
-  // return range matching cluster key
-  return std::make_pair( clusterMap.lower_bound(ckey), clusterMap.upper_bound(ckey) );
+  const auto iter = m_map.find(hitsetkey);
+  if( iter != m_map.end() )
+  {
+    return std::make_pair( iter->second.lower_bound(ckey), iter->second.upper_bound(ckey) );
+  } else {
+    return std::make_pair( dummy_map.cbegin(), dummy_map.cend() );
+  }
 }
 
 //_________________________________________________________________________
 unsigned int TrkrClusterHitAssocv3::size(void) const
-{  
+{
   unsigned int size = 0;
   for( const auto& map_pair:m_map )
   { size += map_pair.second.size(); }
