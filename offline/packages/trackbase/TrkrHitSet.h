@@ -30,6 +30,7 @@ class TrkrHitSet : public PHObject
 {
   
   public:
+  
   // iterator typedef
   using Map = std::map<TrkrDefs::hitkey, TrkrHit*>;
   using ConstIterator = Map::const_iterator;

@@ -1,5 +1,11 @@
 #ifndef TRACKBASE_TRKRHITSETCONTAINER_H
 #define TRACKBASE_TRKRHITSETCONTAINER_H
+/**
+ * @file trackbase/TrkrHitSetContainerv1.h
+ * @author D. McGlinchey, H. PEREIRA DA COSTA
+ * @date June 2018
+ * base class for hitset container
+ */
 
 #include "TrkrDefs.h"        // for hitsetkey, TrkrId
 
@@ -17,71 +23,60 @@ class TrkrHitSet;
 class TrkrHitSetContainer : public PHObject
 {
  public:
-  typedef std::map<TrkrDefs::hitsetkey, TrkrHitSet *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  
+  using Map = std::map<TrkrDefs::hitsetkey, TrkrHitSet *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   //! ctor
-  TrkrHitSetContainer();
+  TrkrHitSetContainer() = default;
+  
+  //! dtir
+  virtual ~TrkrHitSetContainer() = default;
 
-  //! dtor
-  virtual ~TrkrHitSetContainer();
   //! PHObject functions
-  void Reset();
-  void identify(std::ostream &os = std::cout) const;
+  virtual void Reset() 
+  {}
+  
+  virtual void identify(std::ostream & = std::cout) const
+  {}
 
   //! Add a TrkrHitSet to the container
-  ConstIterator addHitSet(TrkrHitSet *newHit);
-  ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
+  virtual ConstIterator addHitSet(TrkrHitSet*);
+
+  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*);
 
   //! preferred removal method, key is currently the hit id
-  void removeHitSet(TrkrDefs::hitsetkey key)
-  {
-    m_hitmap.erase(key);
-  }
+  virtual void removeHitSet(TrkrDefs::hitsetkey key)
+  {}
 
   //! inefficent, use key where possible instead
-  void removeHitSet(TrkrHitSet *hit)
-  {
-    Iterator its = m_hitmap.begin();
-    Iterator last = m_hitmap.end();
-    for (; its != last;)
-    {
-      if (its->second == hit)
-      {
-        m_hitmap.erase(its++);
-      }
-      else
-      {
-        ++its;
-      }
-    }
-  }
+  virtual void removeHitSet(TrkrHitSet*)
+  {}
 
   //! find or add HitSet
-  Iterator findOrAddHitSet(TrkrDefs::hitsetkey key);
+  virtual Iterator findOrAddHitSet(TrkrDefs::hitsetkey);
 
   //! return all HitSets matching a given detid
-  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid) const;
+  virtual ConstRange getHitSets(const TrkrDefs::TrkrId) const;
 
   //! return all HitSets matching a given detid, layer
-  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const char layer) const;
+  virtual ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const uint8_t layer) const;
 
   //! return all HitSets
-  ConstRange getHitSets() const;
+  virtual ConstRange getHitSets() const;
 
   //! return a given HitSet based on its key
-  TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key);
+  virtual TrkrHitSet *findHitSet(TrkrDefs::hitsetkey)
+  { return nullptr; }
 
   unsigned int size() const
-  {
-    return m_hitmap.size();
-  }
+  { return 0; }
 
- protected:
-  Map m_hitmap;
+  private:
+
   ClassDef(TrkrHitSetContainer, 1)
 };
 
