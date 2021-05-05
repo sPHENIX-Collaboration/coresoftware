@@ -12,7 +12,7 @@
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -184,7 +184,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrnode);
     }
 
-    hittruthassoc = new TrkrHitTruthAssoc();
+    hittruthassoc = new TrkrHitTruthAssocv1;
     auto newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     trkrnode->addNode(newNode);
   }
