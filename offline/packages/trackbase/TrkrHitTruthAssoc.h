@@ -40,7 +40,7 @@ class TrkrHitTruthAssoc : public PHObject
   virtual void Reset() 
   {}
 
-  virtual void identify(std::ostream &os = std::cout) 
+  virtual void identify(std::ostream &os = std::cout) const
   {}
 
   /**
