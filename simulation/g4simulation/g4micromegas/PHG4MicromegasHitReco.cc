@@ -11,7 +11,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -164,7 +164,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
     }
 
     // create container and add to the tree
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     trkrnode->addNode(newNode);
   }

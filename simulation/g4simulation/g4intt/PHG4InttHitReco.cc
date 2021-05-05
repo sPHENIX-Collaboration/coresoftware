@@ -8,7 +8,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
@@ -114,7 +114,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
@@ -126,7 +126,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -187,7 +187,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     cout << "Could not locate TRKR_HITSET node, quit! " << endl;

@@ -11,7 +11,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <tpc/TpcDefs.h>
@@ -68,8 +68,8 @@ namespace
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , temp_hitsetcontainer(new TrkrHitSetContainer)
-  , single_hitsetcontainer(new TrkrHitSetContainer)
+  , temp_hitsetcontainer(new TrkrHitSetContainerv1)
+  , single_hitsetcontainer(new TrkrHitSetContainerv1)
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -124,7 +124,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
