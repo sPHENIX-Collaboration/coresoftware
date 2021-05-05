@@ -9,7 +9,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
