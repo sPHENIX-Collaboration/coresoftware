@@ -10,13 +10,13 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainerv2.h>        // for TrkrCluster
+#include <trackbase/TrkrClusterContainerv3.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 
 #include <Acts/Utilities/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -78,7 +78,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterContainer = new TrkrClusterContainerv2;
+    trkrClusterContainer = new TrkrClusterContainerv3;
     auto TrkrClusterContainerNode = new PHIODataNode<PHObject>(trkrClusterContainer, "TRKR_CLUSTER", "PHObject");
     trkrNode->addNode(TrkrClusterContainerNode);
   }
@@ -95,7 +95,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterHitAssoc = new TrkrClusterHitAssocv2();
+    trkrClusterHitAssoc = new TrkrClusterHitAssocv3;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(trkrClusterHitAssoc, "TRKR_CLUSTERHITASSOC", "PHObject");
     trkrNode->addNode(newNode);
   }

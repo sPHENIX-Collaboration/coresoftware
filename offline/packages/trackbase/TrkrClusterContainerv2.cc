@@ -6,7 +6,7 @@
  */
 #include "TrkrClusterContainerv2.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv1.h"
+#include "TrkrClusterv2.h"
 #include "TrkrDefs.h"
 
 #include <cstdlib>
@@ -192,10 +192,10 @@ TrkrClusterContainerv2::findOrAddCluster(TrkrDefs::cluskey key)
   if( layer < max_layer && sector < max_phisegment && side < max_zsegment )
   {
     auto it = m_clusmap[layer][sector][side].lower_bound(key);
-    if( it == m_clusmap[layer][sector][side].end() || (it->first < key) )
+    if( it == m_clusmap[layer][sector][side].end() || (key < it->first) )
     {
       // add new cluster and set its key
-      it = m_clusmap[layer][sector][side].insert(it, std::make_pair(key, new TrkrClusterv1()));
+      it = m_clusmap[layer][sector][side].insert(it, std::make_pair(key, new TrkrClusterv2()));
       it->second->setClusKey( key );
     }
     return it;
