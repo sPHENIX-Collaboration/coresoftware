@@ -28,7 +28,13 @@ void TrkrHitSetv1::identify(std::ostream& os) const
 {
   const unsigned int layer = TrkrDefs::getLayer(m_hitSetKey);
   const unsigned int trkrid =  TrkrDefs::getTrkrId(m_hitSetKey);    
-  os << "TrkrHitSetv1: "   << "       hitsetkey " << getHitSetKey() << " TrkrId " << trkrid << " layer " << layer << " nhits: " << m_hits.size() << std::endl;
+  os 
+    << "TrkrHitSetv1: "   
+    << "       hitsetkey " << getHitSetKey()
+    << " TrkrId " << trkrid 
+    << " layer " << layer
+    << " nhits: " << m_hits.size() 
+    << std::endl;
 
   for( const auto& entry : m_hits )
   {
