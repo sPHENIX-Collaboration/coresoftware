@@ -243,7 +243,7 @@ TrkrCluster* TrkrClusterContainerv2::findCluster(TrkrDefs::cluskey key) const
 }
 
 //_________________________________________________________________
-unsigned int TrkrClusterContainerv2::size(void) const
+unsigned int TrkrClusterContainerv2::size() const
 {
   unsigned int size = 0;
   for(unsigned layer = 0;layer < max_layer; layer++)

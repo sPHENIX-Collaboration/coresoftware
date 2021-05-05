@@ -76,7 +76,7 @@ TrkrClusterContainerv1::findOrAddCluster(TrkrDefs::cluskey key)
 }
 
 TrkrClusterContainer::ConstRange
-TrkrClusterContainerv1::getClusters(void) const
+TrkrClusterContainerv1::getClusters() const
 { return std::make_pair(m_clusmap.cbegin(), m_clusmap.cend()); }
 
 TrkrCluster*
@@ -86,7 +86,7 @@ TrkrClusterContainerv1::findCluster(TrkrDefs::cluskey key) const
   return it == m_clusmap.end() ? nullptr:it->second;
 }
 
-unsigned int TrkrClusterContainerv1::size(void) const
+unsigned int TrkrClusterContainerv1::size() const
 {
   return m_clusmap.size();
 }

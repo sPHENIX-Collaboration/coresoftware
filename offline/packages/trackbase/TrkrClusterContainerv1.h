@@ -48,11 +48,11 @@ class TrkrClusterContainerv1 : public TrkrClusterContainer
 
   virtual Iterator findOrAddCluster(TrkrDefs::cluskey key);
   
-  virtual ConstRange getClusters(void) const;
+  virtual ConstRange getClusters() const;
 
   virtual TrkrCluster *findCluster(TrkrDefs::cluskey key) const;
 
-  virtual unsigned int size(void) const;
+  virtual unsigned int size() const;
 
   private:
   Map m_clusmap;

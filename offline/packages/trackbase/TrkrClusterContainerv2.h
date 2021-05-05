@@ -43,7 +43,7 @@ class TrkrClusterContainerv2 : public TrkrClusterContainer
 
   virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const;
 
-  virtual unsigned int size(void) const;
+  virtual unsigned int size() const;
 
   private:
   

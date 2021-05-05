@@ -37,7 +37,7 @@ class TrkrClusterHitAssocv2 : public TrkrClusterHitAssoc
 
   virtual ConstRange getHits(TrkrDefs::cluskey);
 
-  virtual unsigned int size(void) const;
+  virtual unsigned int size() const;
 
 private:
   unsigned int max_layer = 57;

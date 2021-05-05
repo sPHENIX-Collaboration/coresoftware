@@ -53,7 +53,7 @@ public:
 
   virtual ConstRange getHits(TrkrDefs::cluskey) = 0;
 
-  virtual unsigned int size(void) const {return 0;}
+  virtual unsigned int size() const {return 0;}
 
 private:
 
