@@ -17,8 +17,8 @@
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 

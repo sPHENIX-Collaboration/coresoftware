@@ -11,13 +11,13 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <trackbase/TrkrClusterContainerv2.h>
+#include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                     // for SubsysReco
@@ -132,13 +132,13 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	dstNode->addNode(DetNode);
       }
 
-    trkrclusters = new TrkrClusterContainerv2;
+    trkrclusters = new TrkrClusterContainerv3;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  TrkrClusterHitAssoc *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode,"TRKR_CLUSTERHITASSOC");
+  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode,"TRKR_CLUSTERHITASSOC");
   if(!clusterhitassoc)
     {
       PHNodeIterator dstiter(dstNode);
@@ -150,7 +150,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssocv2();
+      clusterhitassoc = new TrkrClusterHitAssocv3;
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
