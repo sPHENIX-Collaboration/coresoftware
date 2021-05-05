@@ -1,11 +1,13 @@
 #include "TrackingEvaluator_hp.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <intt/InttDefs.h>
+#include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <phool/getClass.h>
@@ -22,6 +24,8 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+
+#include <TVector3.h>
 
 #include <algorithm>
 #include <bitset>
@@ -63,9 +67,9 @@ namespace
   float get_r( PHG4Hit* hit, int i )
   {  return get_r( hit->get_x(i), hit->get_y(i) ); }
 
-  //! calculate the average of member function called on all members in collection
+  //! calculate the interpolation of member function called on all members in collection to the provided r_extrap
   template< float (PHG4Hit::*accessor)(int) const>
-  float interpolate( std::set<PHG4Hit*> hits, float rextrap )
+  float interpolate( const std::set<PHG4Hit*>& hits, float rextrap )
   {
     
     // calculate all terms needed for the interpolation
@@ -107,6 +111,63 @@ namespace
     return ( alpha*rextrap + beta )/denom;
   }
 
+  //! needed for weighted linear interpolation
+  struct interpolation_data_t 
+  {
+    using list = std::vector<interpolation_data_t>;
+    double x() const { return position.x(); }
+    double y() const { return position.y(); }
+    double z() const { return position.z(); }
+    
+    double px() const { return momentum.x(); }
+    double py() const { return momentum.y(); }
+    double pz() const { return momentum.z(); }
+    
+    TVector3 position;
+    TVector3 momentum;
+    double weight = 1;
+  };
+  
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate( const interpolation_data_t::list& hits, double y_extrap )
+  {
+    
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swy = 0;
+    double swy2 = 0;
+    double swx = 0;
+    double swyx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double y = hit.y();
+        
+      sw += w;
+      swy += w*y;
+      swy2 += w*square(y);
+      swx += w*x;
+      swyx += w*x*y;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swyx - swy*swx);
+    const auto beta = (swy2*swx - swy*swyx);
+    const auto denom = (sw*swy2 - square(swy));
+
+    return ( alpha*y_extrap + beta )/denom;
+  }
+  
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
@@ -209,45 +270,6 @@ namespace
     return cluster_struct;
   }
 
-  //! add track information
-  void add_trk_information( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state )
-  {
-    // need to extrapolate to the right r
-    const auto trk_r = get_r( state->get_x(), state->get_y() );
-    const auto dr = cluster._r - trk_r;
-    const auto trk_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/trk_r;
-    const auto trk_dxdr = state->get_px()/trk_drdt;
-    const auto trk_dydr = state->get_py()/trk_drdt;
-    const auto trk_dzdr = state->get_pz()/trk_drdt;
-
-    // store state position
-    cluster._trk_x = state->get_x() + dr*trk_dxdr;
-    cluster._trk_y = state->get_y() + dr*trk_dydr;
-    cluster._trk_z = state->get_z() + dr*trk_dzdr;
-    cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
-    cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
-
-    /* store local momentum information */
-    cluster._trk_px = state->get_px();
-    cluster._trk_py = state->get_py();
-    cluster._trk_pz = state->get_pz();
-
-    /*
-    store state angles in (r,phi) and (r,z) plans
-    they are needed to study space charge distortions
-    */
-    const auto cosphi( std::cos( cluster._trk_phi ) );
-    const auto sinphi( std::sin( cluster._trk_phi ) );
-    const auto trk_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
-    const auto trk_pr = state->get_px()*cosphi + state->get_py()*sinphi;
-    const auto trk_pz = state->get_pz();
-    cluster._trk_alpha = std::atan2( trk_pphi, trk_pr );
-    cluster._trk_beta = std::atan2( trk_pz, trk_pr );
-    cluster._trk_phi_error = state->get_phi_error();
-    cluster._trk_z_error = state->get_z_error();
-
-  }
-
   //! number of hits associated to cluster
   void add_cluster_size( TrackingEvaluator_hp::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   {
@@ -337,62 +359,6 @@ namespace
   }
 
   // add truth information
-  void add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits )
-  {
-    const auto rextrap = cluster._r;
-    cluster._truth_size = hits.size();
-    cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
-    cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
-    cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
-    cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
-    cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
-
-    /* add truth momentum information */
-    cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
-    cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
-    cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
-
-    /*
-    store state angles in (r,phi) and (r,z) plans
-    they are needed to study space charge distortions
-    */
-    const auto cosphi( std::cos( cluster._truth_phi ) );
-    const auto sinphi( std::sin( cluster._truth_phi ) );
-    const auto truth_pphi = -cluster._truth_px*sinphi + cluster._truth_py*cosphi;
-    const auto truth_pr = cluster._truth_px*cosphi + cluster._truth_py*sinphi;
-
-    cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
-    cluster._truth_beta = std::atan2( cluster._truth_pz, truth_pr );
-    if(std::isnan(cluster._truth_alpha) || std::isnan(cluster._truth_beta))
-    {
-      // recalculate
-      double truth_alpha = 0;
-      double truth_beta = 0;
-      double sum_w = 0;
-      for( const auto& hit:hits )
-      {
-        const auto px = hit->get_x(1) - hit->get_x(0);
-        const auto py = hit->get_y(1) - hit->get_y(0);
-        const auto pz = hit->get_z(1) - hit->get_z(0);
-        const auto pphi = -px*sinphi + py*cosphi;
-        const auto pr = px*cosphi + py*sinphi;
-
-        const auto w =  hit->get_edep();
-        if( w < 0 ) continue;
-
-        sum_w += w;
-        truth_alpha += w*std::atan2( pphi, pr );
-        truth_beta += w*std::atan2( pz, pr );
-      }
-      truth_alpha /= sum_w;
-      truth_beta /= sum_w;
-      cluster._truth_alpha = truth_alpha;
-      cluster._truth_beta = truth_beta;
-    }
-
-  }
-
-  // ad}d truth information
   void add_truth_information( TrackingEvaluator_hp::TrackStruct& track, PHG4Particle* particle )
   {
     if( particle )
@@ -418,6 +384,12 @@ namespace
     return out;
   }
 
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TVector3& position)
+  {
+    out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
+    return out;
+  }
+  
 }
 
 //_____________________________________________________________________
@@ -525,6 +497,10 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   // g4 truth info
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
+  // micromegas geometry
+  m_micromegas_geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
+  assert( m_micromegas_geonode );
+  
   return Fun4AllReturnCodes::EVENT_OK;
 
 }
@@ -644,7 +620,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
 
     auto particle = m_g4truthinfo->GetParticle(id);
     track_struct._embed = get_embed(particle);
-    add_truth_information(track_struct, particle);
+    ::add_truth_information(track_struct, particle);
 
     // loop over clusters
     auto state_iter = track->begin_states();
@@ -666,7 +642,10 @@ void TrackingEvaluator_hp::evaluate_tracks()
 
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
-      add_truth_information( cluster_struct, g4hits );
+
+      const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
+      if( is_micromegas ) add_truth_information_micromegas( cluster_struct, g4hits );
+      else add_truth_information( cluster_struct, g4hits );
 
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
@@ -683,7 +662,8 @@ void TrackingEvaluator_hp::evaluate_tracks()
       }
 
       // store track state in cluster struct
-      add_trk_information( cluster_struct, state_iter->second );
+      if( is_micromegas ) add_trk_information_micromegas( cluster_struct, state_iter->second );
+      else add_trk_information( cluster_struct, state_iter->second );
 
       // add to track
       track_struct._clusters.push_back( cluster_struct );
@@ -976,3 +956,208 @@ std::pair<int,int> TrackingEvaluator_hp::get_max_contributor( SvtxTrack* track )
 //_____________________________________________________________________
 int TrackingEvaluator_hp::get_embed( PHG4Particle* particle ) const
 { return (m_g4truthinfo && particle) ? m_g4truthinfo->isEmbeded( particle->get_primary_id() ):0; }
+
+//_____________________________________________________________________
+void TrackingEvaluator_hp::add_trk_information( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state ) const
+{
+  // need to extrapolate to the right r
+  const auto trk_r = get_r( state->get_x(), state->get_y() );
+  const auto dr = cluster._r - trk_r;
+  const auto trk_drdt = (state->get_x()*state->get_px() + state->get_y()*state->get_py())/trk_r;
+  const auto trk_dxdr = state->get_px()/trk_drdt;
+  const auto trk_dydr = state->get_py()/trk_drdt;
+  const auto trk_dzdr = state->get_pz()/trk_drdt;
+  
+  // store state position
+  cluster._trk_x = state->get_x() + dr*trk_dxdr;
+  cluster._trk_y = state->get_y() + dr*trk_dydr;
+  cluster._trk_z = state->get_z() + dr*trk_dzdr;
+  cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
+  cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
+  
+  /* store local momentum information */
+  cluster._trk_px = state->get_px();
+  cluster._trk_py = state->get_py();
+  cluster._trk_pz = state->get_pz();
+  
+  /*
+  store state angles in (r,phi) and (r,z) plans
+  they are needed to study space charge distortions
+  */
+  const auto cosphi( std::cos( cluster._trk_phi ) );
+  const auto sinphi( std::sin( cluster._trk_phi ) );
+  const auto trk_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
+  const auto trk_pr = state->get_px()*cosphi + state->get_py()*sinphi;
+  const auto trk_pz = state->get_pz();
+  cluster._trk_alpha = std::atan2( trk_pphi, trk_pr );
+  cluster._trk_beta = std::atan2( trk_pz, trk_pr );
+  cluster._trk_phi_error = state->get_phi_error();
+  cluster._trk_z_error = state->get_z_error();
+  
+}
+
+//_____________________________________________________________________
+void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state ) const
+{
+
+  // get geometry cylinder from layer
+  const auto layer = cluster._layer;
+  const auto tile = cluster._tileid;
+  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+  assert( layergeom );
+  
+  // convert cluster position to local tile coordinates
+  const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
+  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tile, cluster_world );
+
+  // convert track position to local tile coordinates
+  TVector3 track_world( state->get_x(), state->get_y(), state->get_z() );
+  TVector3 track_local = layergeom->get_local_from_world_coords( tile, track_world );
+
+  // convert direction to local tile coordinates
+  const TVector3 direction_world( state->get_px(), state->get_py(), state->get_pz() );
+  const TVector3 direction_local = layergeom->get_local_from_world_vect( tile, direction_world );
+  
+  // extrapolate to same local y (should be zero) as cluster
+  const auto delta_y = cluster_local.y() - track_local.y();
+  track_local += TVector3( 
+    delta_y*direction_local.x()/direction_local.y(),
+    delta_y, 
+    delta_y*direction_local.z()/direction_local.y() );
+
+  // convert back to global coordinates
+  track_world = layergeom->get_world_from_local_coords( tile, track_local );
+  
+  // store state position
+  cluster._trk_x = track_world.x();
+  cluster._trk_y = track_world.y();
+  cluster._trk_z = track_world.z();
+  cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
+  cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
+  
+  /* store local momentum information */
+  cluster._trk_px = state->get_px();
+  cluster._trk_py = state->get_py();
+  cluster._trk_pz = state->get_pz();
+  
+  /*
+  store state angles in (r,phi) and (r,z) plans
+  they are needed to study space charge distortions
+  */
+  const auto cosphi( std::cos( cluster._trk_phi ) );
+  const auto sinphi( std::sin( cluster._trk_phi ) );
+  const auto trk_pphi = -state->get_px()*sinphi + state->get_py()*cosphi;
+  const auto trk_pr = state->get_px()*cosphi + state->get_py()*sinphi;
+  const auto trk_pz = state->get_pz();
+  cluster._trk_alpha = std::atan2( trk_pphi, trk_pr );
+  cluster._trk_beta = std::atan2( trk_pz, trk_pr );
+  cluster._trk_phi_error = state->get_phi_error();
+  cluster._trk_z_error = state->get_z_error();
+  
+}
+
+//_____________________________________________________________________
+void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits ) const
+{
+  const auto rextrap = cluster._r;
+  cluster._truth_size = hits.size();
+  cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
+  cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
+  cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
+  cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
+  cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
+  
+  /* add truth momentum information */
+  cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
+  cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
+  cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+  
+  /*
+  store state angles in (r,phi) and (r,z) plans
+  they are needed to study space charge distortions
+  */
+  const auto cosphi( std::cos( cluster._truth_phi ) );
+  const auto sinphi( std::sin( cluster._truth_phi ) );
+  const auto truth_pphi = -cluster._truth_px*sinphi + cluster._truth_py*cosphi;
+  const auto truth_pr = cluster._truth_px*cosphi + cluster._truth_py*sinphi;
+  
+  cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
+  cluster._truth_beta = std::atan2( cluster._truth_pz, truth_pr );
+  
+}
+
+//_____________________________________________________________________
+void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> g4hits ) const
+{
+  const auto layer = cluster._layer;
+  const auto tile = cluster._tileid;
+  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+  assert( layergeom );
+
+  // convert cluster position to local tile coordinates
+  const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
+  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tile, cluster_world );
+  
+  // convert hits to list of interpolation_data_t
+  interpolation_data_t::list hits;
+  for( const auto& g4hit:g4hits )
+  {
+    const auto weight = g4hit->get_edep();
+    for( int i = 0; i < 2; ++i )
+    {
+      
+      // convert position to local
+      TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
+      TVector3 g4hit_local = layergeom->get_local_from_world_coords( tile, g4hit_world );
+      
+      // convert momentum to local
+      TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
+      TVector3 momentum_local = layergeom->get_local_from_world_vect( tile, momentum_world );
+      
+      hits.push_back( {.position = g4hit_local, .momentum = momentum_local, .weight = weight } );
+    }
+  }
+  
+  // do position interpolation
+  const auto y_extrap = cluster_local.y();
+  const TVector3 interpolation_local( 
+    interpolate<&interpolation_data_t::x>( hits, y_extrap ),
+    interpolate<&interpolation_data_t::y>( hits, y_extrap ),
+    interpolate<&interpolation_data_t::z>( hits, y_extrap ) );
+    
+  const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tile, interpolation_local );
+
+  // do momentum interpolation
+  const TVector3 momentum_local( 
+    interpolate<&interpolation_data_t::px>( hits, y_extrap ),
+    interpolate<&interpolation_data_t::py>( hits, y_extrap ),
+    interpolate<&interpolation_data_t::pz>( hits, y_extrap ) );
+  
+  const TVector3 momentum_world = layergeom->get_world_from_local_vect( tile, momentum_local );
+
+  // update cluster structure
+  cluster._truth_size = hits.size();
+  cluster._truth_x = interpolation_world.x();
+  cluster._truth_y = interpolation_world.y();
+  cluster._truth_z = interpolation_world.z();
+  cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
+  cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
+  
+  /* add truth momentum information */
+  cluster._truth_px = momentum_world.x();
+  cluster._truth_py = momentum_world.y();
+  cluster._truth_pz = momentum_world.z();
+  
+  /*
+  store state angles in (r,phi) and (r,z) plans
+  they are needed to study space charge distortions
+  */
+  const auto cosphi( std::cos( cluster._truth_phi ) );
+  const auto sinphi( std::sin( cluster._truth_phi ) );
+  const auto truth_pphi = -cluster._truth_px*sinphi + cluster._truth_py*cosphi;
+  const auto truth_pr = cluster._truth_px*cosphi + cluster._truth_py*sinphi;
+  
+  cluster._truth_alpha = std::atan2( truth_pphi, truth_pr );
+  cluster._truth_beta = std::atan2( cluster._truth_pz, truth_pr );
+  
+}

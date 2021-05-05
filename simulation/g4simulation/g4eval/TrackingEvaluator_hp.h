@@ -10,12 +10,14 @@
 #include <string>
 #include <vector>
 
+class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxTrackState;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -176,6 +178,7 @@ class TrackingEvaluator_hp : public SubsysReco
     float _truth_pz = 0;
     //@}
 
+    //! micromegas tile id
     int _tileid = 0;
 
   };
@@ -408,6 +411,26 @@ class TrackingEvaluator_hp : public SubsysReco
   //! get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
+  //! add track information to a cluster
+  void add_trk_information( ClusterStruct&, SvtxTrackState* ) const;
+
+  //! add track information to a cluster for the micromegas case
+  /*!
+   * the difference between this and the generic method is that the track state to 
+   * the tiles detector plane, and not to the same radius as the cluster
+   */
+  void add_trk_information_micromegas( ClusterStruct&, SvtxTrackState* ) const;
+
+  // add truth information
+  void add_truth_information( ClusterStruct&, std::set<PHG4Hit*> ) const;
+  
+  // add truth information
+  /*!
+   * the difference between this and the generic method is that the track state to 
+   * the tiles detector plane, and not to the same radius as the cluster
+   */
+  void add_truth_information_micromegas( ClusterStruct&, std::set<PHG4Hit*> ) const;
+  
   //! evaluation node
   Container* m_container = nullptr;
 
@@ -440,6 +463,9 @@ class TrackingEvaluator_hp : public SubsysReco
   //! truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
+  //! micromegas geometry
+  PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
+  
   // map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
