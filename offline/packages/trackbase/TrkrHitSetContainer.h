@@ -70,12 +70,12 @@ class TrkrHitSetContainer : public PHObject
   ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const char layer) const;
 
   //! return all HitSets
-  ConstRange getHitSets(void) const;
+  ConstRange getHitSets() const;
 
   //! return a given HitSet based on its key
   TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return m_hitmap.size();
   }

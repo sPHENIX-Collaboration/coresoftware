@@ -104,7 +104,7 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid,
 }
 
 TrkrHitSetContainer::ConstRange
-TrkrHitSetContainer::getHitSets(void) const
+TrkrHitSetContainer::getHitSets() const
 {
   return std::make_pair(m_hitmap.begin(), m_hitmap.end());
 }
