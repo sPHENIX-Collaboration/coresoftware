@@ -489,6 +489,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
         }
     }
+
   auto trajectory = std::make_unique<Trajectory>(fitOutput.fittedStates,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
@@ -628,9 +629,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
     }
 
   // The number of associated clusters may have changed - start over
-  track->clear_states();
-  track->clear_cluster_keys();
-
+  if(!m_fitSiliconMMs)
+    {
+      track->clear_states();
+      track->clear_cluster_keys();
+    }
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
