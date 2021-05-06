@@ -26,7 +26,7 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
   TrkrHitSetContainerv1() = default;
 
   virtual ~TrkrHitSetContainerv1()
-  { Reset(); }
+  { TrkrHitSetContainerv1::Reset(); }
 
   virtual void Reset();
 

@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 //! forward declaration
 class TrkrHit;
@@ -28,37 +28,40 @@ class TrkrHit;
  */
 class TrkrHitSet : public PHObject
 {
-  
-  public:
-  
+ public:
   // iterator typedef
   using Map = std::map<TrkrDefs::hitkey, TrkrHit*>;
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
-  
+
   //! ctor
   TrkrHitSet() = default;
-  
+
   //! TObject functions
-  virtual void identify(std::ostream& os = std::cout) const 
-  {}
-  
+  virtual void identify(std::ostream& os = std::cout) const
+  {
+  }
+
   virtual void Reset()
-  {}
-  
+  {
+  }
+
   /**
    * @brief Set the key for this object
    * @param key
    */
-  virtual void setHitSetKey(const TrkrDefs::hitsetkey) 
-  {}
+  virtual void setHitSetKey(const TrkrDefs::hitsetkey)
+  {
+  }
 
   /**
    * @brief Get the key for this object
    * @param[out] object key
    */
-  virtual TrkrDefs::hitsetkey getHitSetKey() const 
-  { return TrkrDefs::HITSETKEYMAX; }
+  virtual TrkrDefs::hitsetkey getHitSetKey() const
+  {
+    return TrkrDefs::HITSETKEYMAX;
+  }
 
   /**
    * @brief Add a hit to this container using a specific key.
@@ -69,13 +72,14 @@ class TrkrHitSet : public PHObject
    * and will delete it in the Reset() method.
    */
   virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*);
-    
+
   /**
    * @brief Remove a hit using its key
    * @param[in] key to be removed
    */
   virtual void removeHit(TrkrDefs::hitkey)
-  {}
+  {
+  }
 
   /**
    * @brief Get a specific hit based on its index.
@@ -85,8 +89,10 @@ class TrkrHitSet : public PHObject
    * Get a desired hit based on its key.
    */
   virtual TrkrHit* getHit(const TrkrDefs::hitkey) const
-  { return nullptr; }
-  
+  {
+    return nullptr;
+  }
+
   /**
    * @brief Get all hits
    * @param[out] Pair of iterator to vector begin and end
@@ -98,11 +104,12 @@ class TrkrHitSet : public PHObject
    * @param[out] number of hits
    */
   // Get number of hits
-  virtual unsigned int size() const 
-  { return 0; }
-   
-  ClassDef(TrkrHitSet, 1);
+  virtual unsigned int size() const
+  {
+    return 0;
+  }
 
+  ClassDef(TrkrHitSet, 1);
 };
 
-#endif //TRACKBASE_TRKRHITSET_H
+#endif  //TRACKBASE_TRKRHITSET_H
