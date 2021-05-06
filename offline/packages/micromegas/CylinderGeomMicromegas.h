@@ -110,6 +110,13 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! get world coordinates for a given tile and strip
   TVector3 get_world_coordinates( uint tileid, uint stripnum ) const;
 
+  //! get phi angle at center of tile
+  double get_center_phi( uint tileid ) const
+  {
+    assert( tileid < m_tiles.size() );
+    return m_tiles[tileid].m_centerPhi;
+  }
+
   //! print information about this layer
   virtual void identify(std::ostream&) const;
 
