@@ -24,7 +24,8 @@ class TrkrHitSetv1 : public TrkrHitSet
   
   TrkrHitSetv1() = default;
   
-  virtual ~TrkrHitSetv1();
+  virtual ~TrkrHitSetv1()
+  { TrkrHitSetv1::Reset(); }
 
   virtual void identify(std::ostream& os = std::cout) const;
   

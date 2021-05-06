@@ -11,9 +11,6 @@
 #include <iostream>
 #include <type_traits>  // for __decay_and_strip<>::__type
 
-TrkrHitSetv1::~TrkrHitSetv1()
-{ Reset(); }
-
 void TrkrHitSetv1::Reset()
 {
   m_hitSetKey = TrkrDefs::HITSETKEYMAX;
