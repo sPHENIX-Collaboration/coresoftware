@@ -59,7 +59,7 @@ class TrkrClusterContainer : public PHObject
   virtual Iterator findOrAddCluster(TrkrDefs::cluskey);
   
   //! return all clusters
-  virtual ConstRange getClusters(void) const;
+  virtual ConstRange getClusters() const;
 
   //! get all clusters matching hitset
   virtual ConstRange getClusters(TrkrDefs::hitsetkey) const;
@@ -71,7 +71,7 @@ class TrkrClusterContainer : public PHObject
   virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
 
   //! total number of clusters
-  virtual unsigned int size(void) const { return 0; }
+  virtual unsigned int size() const { return 0; }
 
   private:
 

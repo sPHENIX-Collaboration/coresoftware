@@ -114,7 +114,7 @@ TrkrClusterHitAssocv2::ConstRange TrkrClusterHitAssocv2::getHits(TrkrDefs::clusk
 }
 
 //_________________________________________________________________________
-unsigned int TrkrClusterHitAssocv2::size(void) const
+unsigned int TrkrClusterHitAssocv2::size() const
 {
   unsigned int size = 0;
   for(unsigned layer = 0;layer < max_layer; layer++)
