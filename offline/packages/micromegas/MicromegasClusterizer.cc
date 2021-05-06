@@ -329,14 +329,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       Acts::Vector3D center = surface->center(m_tGeometry->geoContext) / Acts::UnitConstants::cm;
       Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
 
-      double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
-      double surfPhiCenter = atan2(center[1], center[0]);
+      double surfRadius = std::sqrt( square(center[0]) + square(center[1]) );
+      double surfPhiCenter = std::atan2(center[1], center[0]);
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
 
-      double clusRadius = sqrt(cluster->getX() * cluster->getX()
-			       + cluster->getY() * cluster->getY());
-      double clusphi = atan2(cluster->getY(), cluster->getX());
+      double clusRadius = std::sqrt( square(cluster->getX()) + square(cluster->getY()) );
+      double clusphi = std::atan2(cluster->getY(), cluster->getX());
       double rClusPhi = clusRadius * clusphi;
       double zMm = globalPos(2);
       auto vecResult = surface->globalToLocal(m_tGeometry->geoContext,
@@ -363,7 +362,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // rotate and save
       matrix_t rotation = matrix_t::Identity();
-      const double phi = std::atan2(world_coordinates.y(), world_coordinates.x());
+      const double phi = layergeom->get_center_phi( tileid );
       const double cosphi = std::cos(phi);
       const double sinphi = std::sin(phi);
       rotation(0,0) = cosphi;
