@@ -12,51 +12,56 @@
 
 #include <iostream>
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 // forward declaration
 class TrkrHit;
 
 class TrkrHitSetv1 : public TrkrHitSet
 {
-  
-  public:
-  
+ public:
   TrkrHitSetv1() = default;
-  
+
   virtual ~TrkrHitSetv1()
-  { TrkrHitSetv1::Reset(); }
+  {
+    TrkrHitSetv1::Reset();
+  }
 
   virtual void identify(std::ostream& os = std::cout) const;
-  
+
   virtual void Reset();
 
-  virtual void setHitSetKey(const TrkrDefs::hitsetkey key) 
-  { m_hitSetKey = key; }
+  virtual void setHitSetKey(const TrkrDefs::hitsetkey key)
+  {
+    m_hitSetKey = key;
+  }
 
-  virtual TrkrDefs::hitsetkey getHitSetKey() const 
-  { return m_hitSetKey; }
+  virtual TrkrDefs::hitsetkey getHitSetKey() const
+  {
+    return m_hitSetKey;
+  }
 
   virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*);
 
   virtual void removeHit(TrkrDefs::hitkey);
 
   virtual TrkrHit* getHit(const TrkrDefs::hitkey) const;
-  
+
   virtual ConstRange getHits() const;
 
   virtual unsigned int size() const
-  { return m_hits.size(); }
-   
-  private:
-  
+  {
+    return m_hits.size();
+  }
+
+ private:
   /// unique key for this object
   TrkrDefs::hitsetkey m_hitSetKey = TrkrDefs::HITSETKEYMAX;
 
   /// storage for TrkrHit objects
   Map m_hits;
-  
+
   ClassDef(TrkrHitSetv1, 1);
 };
 
-#endif //TRACKBASE_TrkrHitSetv1_H
+#endif  //TRACKBASE_TrkrHitSetv1_H
