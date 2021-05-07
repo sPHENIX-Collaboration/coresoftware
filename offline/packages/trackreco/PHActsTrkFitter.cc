@@ -297,7 +297,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  getTrackFitResult(fitOutput, track);
 
 	}
-      else
+      else if (!m_fitSiliconMMs)
 	{
 	  /// Track fit failed, get rid of the track from the map
 	  badTracks.push_back(trackKey);
