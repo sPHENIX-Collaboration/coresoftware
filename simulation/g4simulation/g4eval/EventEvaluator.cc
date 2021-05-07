@@ -709,6 +709,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               int mcSteps = 0;
               while(g4particleMother->get_parent_id()!=0){
                 g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
+                if (g4particleMother == NULL) break;
                 mcSteps+=1;
               }
               if(mcSteps<=_depth_MCstack){
@@ -718,6 +719,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 int mcSteps2 = 0;
                 while(g4particleMother2->get_parent_id()!=0 && (mcSteps2<(mcSteps-_depth_MCstack+1))){
                   g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
+                  if (g4particleMother2 == NULL) break;
                   mcSteps2+=1;
                 }
                 _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
@@ -1676,6 +1678,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if(g4particle->get_parent_id()!=0){
           while(g4particleMother->get_parent_id()!=0){
             g4particleMother = truthinfocontainer->GetParticle(g4particleMother->get_parent_id());
+            if (g4particleMother == NULL) break;
             mcSteps+=1;
           }
         }
