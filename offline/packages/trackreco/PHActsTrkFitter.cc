@@ -15,6 +15,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <micromegas/MicromegasDefs.h>
@@ -73,11 +74,11 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
   if(Verbosity() > 1)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
-  
-  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;
 
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;
+  
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
@@ -797,6 +798,25 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
   }
+
+  if(m_fitSiliconMMs)
+    {
+      m_directedTrackMap = findNode::getClass<SvtxTrackMap>(topNode,
+							    "SvtxSiliconMMTrackMap");
+      if(!m_directedTrackMap)
+	{
+	  /// Copy this trackmap, then use it for the rest of processing
+	  m_directedTrackMap = (SvtxTrackMap*)(m_trackMap->CloneMe());
+	  PHIODataNode<PHObject> *trackNode = 
+	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
+	  svtxNode->addNode(trackNode);
+	}
+      
+      /// Run the rest of the module with this track map
+      m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,
+						    "SvtxSiliconMMTrackMap");
+      
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

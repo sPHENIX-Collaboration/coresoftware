@@ -136,7 +136,7 @@ class PHActsTrkFitter : public PHTrackFitting
   ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  SvtxTrackMap *m_trackMap;
+  SvtxTrackMap *m_trackMap, *m_directedTrackMap;
   SvtxVertexMap *m_vertexMap;
   TrkrClusterContainer *m_clusterContainer;
   ActsSurfaceMaps *m_surfMaps;
