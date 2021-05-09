@@ -439,6 +439,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
     set_default_int_param(iter, "absorberactive", 0);
     set_default_int_param(iter, "absorbertruth", 0);
     set_default_int_param(iter, "blackhole", 0);
+    set_default_int_param(iter, "supportactive", 0);
   }
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class

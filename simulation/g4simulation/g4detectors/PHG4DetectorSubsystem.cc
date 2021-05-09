@@ -23,15 +23,7 @@ using namespace std;
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr)
   : PHG4Subsystem(name)
   , params(new PHParameters(Name()))
-  , paramscontainer(nullptr)
-  , savetopNode(nullptr)
-  , overlapcheck(false)
   , layer(lyr)
-  , usedb(0)
-  , beginrunexecuted(0)
-  , filetype(PHG4DetectorSubsystem::none)
-  , superdetector("NONE")
-  , calibfiledir("./")
 {
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -276,6 +268,7 @@ void PHG4DetectorSubsystem::InitializeParameters()
   set_default_int_param("absorbertruth", 0);
   set_default_int_param("active", 0);
   set_default_int_param("blackhole", 0);
+  set_default_int_param("supportactive", 0);
 
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
@@ -391,6 +384,11 @@ void PHG4DetectorSubsystem::SetActive(const int i)
 void PHG4DetectorSubsystem::SetAbsorberActive(const int i)
 {
   iparams["absorberactive"] = i;
+}
+
+void PHG4DetectorSubsystem::SetSupportActive(const int i)
+{
+  iparams["supportactive"] = i;
 }
 
 void PHG4DetectorSubsystem::BlackHole(const int i)
