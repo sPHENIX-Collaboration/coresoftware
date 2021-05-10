@@ -330,23 +330,14 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4CylinderSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-  }
-
+  // Node Name is passed down from PHG4CylinderSubsystem
   //now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
 
   // if we do not find the node we need to scream.
   if (!m_HitContainer && !m_BlackHoleFlag)
   {
-    std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4CylinderSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
   }
 }
 

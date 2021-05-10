@@ -84,8 +84,8 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
     PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
-    ostringstream nodename;
-    ostringstream geonode;
+    string nodename;
+    string geonode;
     if (SuperDetector() != "NONE")
     {
       // create super detector subnodes
@@ -106,31 +106,33 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
       runNode = superSubNode;
 
-      nodename << "G4HIT_" << SuperDetector();
-      geonode << "CYLINDERGEOM_" << SuperDetector();
+      nodename = "G4HIT_" + SuperDetector();
+      geonode = "CYLINDERGEOM_" + SuperDetector();
     }
 
     else
     {
-      nodename << "G4HIT_" << Name();
-      geonode << "CYLINDERGEOM_" << Name();
+      nodename = "G4HIT_" + Name();
+      geonode = "CYLINDERGEOM_" + Name();
     }
-    PHG4HitContainer *cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+    PHG4HitContainer *cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!cylinder_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     cylinder_hits->AddLayer(GetLayer());
-    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode.str());
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode);
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str(), "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode, "PHObject");
       runNode->addNode(newNode);
     }
     PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv1(GetParams()->get_double_param("radius"), GetParams()->get_double_param("place_z") - detlength / 2., GetParams()->get_double_param("place_z") + detlength / 2., GetParams()->get_double_param("thickness"));
     geo->AddLayerGeom(GetLayer(), mygeom);
-    m_SteppingAction = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
+    auto *tmp = new PHG4CylinderSteppingAction(this, m_Detector, GetParams());
+    tmp->HitNodeName(nodename);
+    m_SteppingAction = tmp;
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
