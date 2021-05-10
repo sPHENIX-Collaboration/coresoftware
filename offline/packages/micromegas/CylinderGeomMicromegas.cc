@@ -160,12 +160,15 @@ int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates 
 //________________________________________________________________________________
 void CylinderGeomMicromegas::convert_to_planar( uint tileid, PHG4Hit* hit ) const
 {
-  // same treatment is applied to both coordinates of the G4Hit
+  
+  // get extrapolation direction based on in and out G4Hit positions
+  const TVector3 world_direction( hit->get_x(1)-hit->get_x(0), hit->get_y(1)-hit->get_y(0), hit->get_z(1)-hit->get_z(0) );
+
+  // same treatment is applied to both coordinates of the G4Hit 
   for( int i = 0; i < 2; ++i )
   {
 
     const TVector3 world_coordinates( hit->get_x(i), hit->get_y(i), hit->get_z(i) );
-    const TVector3 world_direction( hit->get_px(i), hit->get_py(i), hit->get_pz(i) );
 
     // get coordinate radius, and compare to reference radius. This will be use to offset local position along y in local space
     const double delta_radius = get_r( world_coordinates.x(), world_coordinates.y() ) - m_radius;
@@ -190,11 +193,17 @@ void CylinderGeomMicromegas::convert_to_planar( uint tileid, PHG4Hit* hit ) cons
 }
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_strip( uint tileid, const TVector3& world_coordinates ) const
+int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
 {
   // convert to local coordinates
   const auto local_coordinates = get_local_from_world_coords( tileid, world_coordinates );
-  
+  return find_strip_from_local_coords( tileid, local_coordinates );
+}
+
+//________________________________________________________________________________
+int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, const TVector3& local_coordinates ) const
+{
+
   // check against thickness
   if( std::abs( local_coordinates.y() ) > m_thickness/2 ) return -1;
 

@@ -93,7 +93,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   void convert_to_planar( uint tileid, PHG4Hit* ) const;
 
   //! get strip for a give world location and tile
-  int find_strip( uint tileid, const TVector3& ) const;
+  int find_strip_from_world_coords( uint tileid, const TVector3& ) const;
+
+  //! get strip for a give world location and tile
+  int find_strip_from_local_coords( uint tileid, const TVector3& ) const;
 
   //! get strip length for a given tile
   double get_strip_length( uint tileid ) const;
