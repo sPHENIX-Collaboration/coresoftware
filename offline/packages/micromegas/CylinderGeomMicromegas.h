@@ -50,6 +50,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! drift direction
   MicromegasDefs::DriftDirection get_drift_direction() const {return m_drift_direction;}
 
+  // check if hit radius matches this cylinder
+  bool check_radius( const TVector3& ) const;
+
   //! convert world to local position coordinates in (planar) tile reference frame
   /**
    * each (planar) tile has a local ref system defined as:
@@ -84,6 +87,13 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //! get number of tiles
   size_t get_tiles_count() const { return m_tiles.size(); }
+
+  //! get tile for given tileid
+  const MicromegasTile& get_tile( uint tileid ) const
+  {
+    assert( tileid < m_tiles.size() );
+    return m_tiles[tileid];
+  }
 
   //! convert g4hit coordinates from cylinder Micromegas to planar
   /**
@@ -145,9 +155,6 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //@}
 
   private:
-
-  // check if hit radius matches this cylinder
-  bool check_radius( const TVector3& ) const;
 
   // get local to master transformation matrix for a given tile
   TGeoHMatrix transformation_matrix( uint tileid ) const;
