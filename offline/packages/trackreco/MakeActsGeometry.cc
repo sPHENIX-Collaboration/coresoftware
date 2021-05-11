@@ -749,8 +749,8 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
     const auto surfaceVector = surfaceArray->surfaces();
     for( unsigned int j = 0; j < surfaceVector.size(); j++)
     {
-      auto surf = surfaceVector.at(j)->getSharedPtr();
-      auto vec3d = surf->center(m_geoCtxt);
+      auto surface = surfaceVector.at(j)->getSharedPtr();
+      auto vec3d = surface->center(m_geoCtxt);
       
       /// convert to cm
       TVector3 world_center( 
@@ -791,13 +791,10 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       // get segmentation type
       const auto segmentation_type = layergeom->get_segmentation_type();
       
-      // create hitset key
+      // create hitset key and insert surface in map
       const auto hitsetkey = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
-      
-      // find corresponding entry in surface map, or insert
-      auto map_iter = m_clusterSurfaceMapMmEdit.lower_bound(hitsetkey);
-      if(map_iter != m_clusterSurfaceMapMmEdit.end() && hitsetkey == map_iter->first) map_iter->second.push_back(surf);
-      else m_clusterSurfaceMapMmEdit.insert( map_iter, std::make_pair(hitsetkey,std::vector<Surface>({surf})) );      
+      const auto [iter, inserted] = m_clusterSurfaceMapMmEdit.insert( std::make_pair( hitsetkey, surface ) );
+      assert( inserted );
     }
   }
   
