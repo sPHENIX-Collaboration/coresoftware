@@ -95,12 +95,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_num_tracks_nTuple = num_tracks;
   }
 
-  void setNumberTracksFromIntermeditateState(int num_tracks[max_particles] = 0)
+  void setNumberTracksFromIntermeditateState(const std::vector<int> & num_tracks)
   {
-    for (int i = 0; i < max_particles; ++i) 
+    for (unsigned int i = 0; i < num_tracks.size(); ++i) 
     {
-      m_num_tracks_from_intermediate[i] = num_tracks[i];
-      m_num_tracks_from_intermediate_nTuple[i] = num_tracks[i];
+      m_num_tracks_from_intermediate.push_back(num_tracks[i]);
+      m_num_tracks_from_intermediate_nTuple.push_back(num_tracks[i]);
     }
   }
 
@@ -116,24 +116,22 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
-  void setDaughters(std::pair<std::string, int> daughter_list[max_particles])
+  void setDaughters(std::vector<std::pair<std::string, int>> daughter_list)
   {
-    for (int i = 0; i < max_particles; ++i)
+    for (unsigned int i = 0; i < daughter_list.size(); ++i)
     {
-      m_daughter_name_evt[i] = daughter_list[i].first;
-      m_daughter_charge_evt[i] = daughter_list[i].second;
-      m_daughter_name[i] = daughter_list[i].first;
-      m_daughter_charge[i] = daughter_list[i].second;
+      m_daughter_name.push_back(daughter_list[i].first);
+      m_daughter_charge.push_back(daughter_list[i].second);
     }
   }
 
-  void setIntermediateStates(std::pair<std::string, int> intermediate_list[max_particles])
+  void setIntermediateStates(std::vector<std::pair<std::string, int>> intermediate_list)
   {
-    for (int i = 0; i < max_particles; ++i)
+    for (unsigned int i = 0; i < intermediate_list.size(); ++i)
     {
-      m_intermediate_name_ntuple[i] = intermediate_list[i].first;
-      m_intermediate_name[i] = intermediate_list[i].first;
-      m_intermediate_charge[i] = intermediate_list[i].second;
+      m_intermediate_name_ntuple.push_back(intermediate_list[i].first);
+      m_intermediate_name.push_back(intermediate_list[i].first);
+      m_intermediate_charge.push_back(intermediate_list[i].second);
     }
   }
 
@@ -186,61 +184,61 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
-  void setIntermediateMassRange(std::pair<float, float> intermediate_mass_range[max_particles])
+  void setIntermediateMassRange(std::vector<std::pair<float, float>> intermediate_mass_range)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_mass_range[i] = intermediate_mass_range[i];
+    for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
   }
 
-  void setIntermediateMinPT(float intermediate_min_pt[max_particles])
+  void setIntermediateMinPT(std::vector<float> intermediate_min_pt)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_min_pt[i] = intermediate_min_pt[i];
+    m_intermediate_min_pt = intermediate_min_pt;
   }
 
-  void setIntermediateMinIP(float intermediate_min_IP[max_particles])
+  void setIntermediateMinIP(std::vector<float> intermediate_min_IP)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_min_ip[i] = intermediate_min_IP[i];
+    for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
   }
 
-  void setIntermediateIPRange(std::pair<float, float> intermediate_IP_range[max_particles])
+  void setIntermediateIPRange(std::vector<std::pair<float, float>> intermediate_IP_range)
   {
-    for (int i = 0; i < max_particles; ++i)
+    for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
     {
-       m_intermediate_min_ip[i] = intermediate_IP_range[i].first;
-       m_intermediate_max_ip[i] = intermediate_IP_range[i].second;
+       m_intermediate_min_ip.push_back(intermediate_IP_range[i].first);
+       m_intermediate_max_ip.push_back(intermediate_IP_range[i].second);
     }
   }
 
-  void setIntermediateMinIPchi2(float intermediate_min_IPchi2[max_particles])
+  void setIntermediateMinIPchi2(std::vector<float> intermediate_min_IPchi2)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_min_ipchi2[i] = intermediate_min_IPchi2[i];
+    for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2.push_back(intermediate_min_IPchi2[i]);
   }
 
-  void setIntermediateIPchi2Range(std::pair<float, float> intermediate_IPchi2_range[max_particles])
+  void setIntermediateIPchi2Range(std::vector<std::pair<float, float>> intermediate_IPchi2_range)
   {
-    for (int i = 0; i < max_particles; ++i)
+    for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
     {
-       m_intermediate_min_ipchi2[i] = intermediate_IPchi2_range[i].first;
-       m_intermediate_max_ipchi2[i] = intermediate_IPchi2_range[i].second;
+       m_intermediate_min_ipchi2.push_back(intermediate_IPchi2_range[i].first);
+       m_intermediate_max_ipchi2.push_back(intermediate_IPchi2_range[i].second);
     }
   }
 
-  void setIntermediateMinDIRA(float intermediate_min_DIRA[max_particles])
+  void setIntermediateMinDIRA(std::vector<float> intermediate_min_DIRA)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_min_dira[i] = intermediate_min_DIRA[i];
+    for (unsigned int i = 0; i < intermediate_min_DIRA.size(); ++i) m_intermediate_min_dira.push_back(intermediate_min_DIRA[i]);
   }
 
-  void setIntermediateMinFDchi2(float intermediate_min_FDchi2[max_particles])
+  void setIntermediateMinFDchi2(std::vector<float> intermediate_min_FDchi2)
   {
-    for (int i = 0; i < max_particles; ++i) m_intermediate_min_fdchi2[i] = intermediate_min_FDchi2[i];
+    for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
   }
 
   void useMVA(bool require_mva) { m_require_mva = require_mva; }
 
   void setNumMVAPars(unsigned int nPars) { m_nPars = nPars; }
 
-  void setMVAVarList(std::string mva_variable_list[max_particles])
+  void setMVAVarList(std::vector<std::string> mva_variable_list)
   {
-    for (int i = 0; i < max_particles; ++i) m_mva_variable_list[i] = mva_variable_list[i];
+    for (unsigned int i = 0; i < mva_variable_list.size(); ++i) m_mva_variable_list.push_back(mva_variable_list[i]);
   }
 
   void setMVAType(const std::string& mva_type) { m_mva_type = mva_type; }

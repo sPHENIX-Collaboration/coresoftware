@@ -39,7 +39,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   bool m_constrain_to_vertex_nTuple;
   bool m_get_all_PVs;
   //int m_num_intermediate_states_nTuple;
-  int m_num_tracks_from_intermediate_nTuple[99];
+  //int m_num_tracks_from_intermediate_nTuple[99];
+  std::vector<int> m_num_tracks_from_intermediate_nTuple;
   bool m_truth_matching;
   bool m_detector_info;
   bool m_calo_info;
@@ -47,7 +48,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   //std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
-  std::string m_intermediate_name_ntuple[99];
+  std::vector<std::string> m_intermediate_name_ntuple;
 
  private:
   TTree *m_tree;

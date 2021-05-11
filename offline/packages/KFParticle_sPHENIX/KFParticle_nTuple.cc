@@ -27,7 +27,7 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_constrain_to_vertex_nTuple(false)
   , m_get_all_PVs(false)
   //, m_num_intermediate_states_nTuple(0)
-  , m_num_tracks_from_intermediate_nTuple{0}
+  //, m_num_tracks_from_intermediate_nTuple{0}
   , m_truth_matching(false)
   , m_detector_info(false)
   , m_calo_info(true)
@@ -269,8 +269,6 @@ void KFParticle_nTuple::initializeBranches()
 
   m_tree->Branch("nPrimaryVertices", &m_nPVs, "nPrimaryVertices/I");
   m_tree->Branch("nEventTracks", &m_multiplicity, "nEventTracks/I");
-
-  //initializeMultiplicityBranches(m_tree);
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
@@ -554,8 +552,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   {
     m_runNumber = m_evtNumber = -1;
   }
-
-  //calculateMultiplicity(topNode, INTT_meanHits, INTT_asymmHits);
 
   m_tree->Fill();
 

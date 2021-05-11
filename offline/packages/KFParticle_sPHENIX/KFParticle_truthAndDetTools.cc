@@ -61,21 +61,9 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
 
   m_svtx_evalstack->next_event(topNode);
 
-  //thisTrack->identify();
-
-  //std::cout << "Trying max_truth_particle_by_cluster_energy" << std::endl;
   TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
   PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
-  //if (particle == nullptr) printf("max_truth_particle_by_cluster_energy returned nullptr\n");
-/*
-  if (particle == nullptr) {std::cout << "Trying max_truth_particle_by_energy" << std::endl; particle = clustereval->max_truth_particle_by_energy(clusKey);}
-  if (particle == nullptr) printf("max_truth_particle_by_energy returned nullptr\n");
-  if (particle == nullptr) {std::cout << "Trying max_truth_particle_by_nclusters" << std::endl; particle = trackeval->max_truth_particle_by_nclusters(thisTrack);}
-  if (particle == nullptr) printf("max_truth_particle_by_nclusters returned nullptr\n");
-  if (particle == nullptr) {std::cout << "Trying get_particle" << std::endl; particle = trutheval->get_particle(thisTrack->get_id());}
-  if (particle == nullptr) printf("get_particle returned nullptr\n");
-  if (particle != nullptr) particle->identify();
-*/
+
   return particle;
 }
 
@@ -457,37 +445,6 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
 }
 
-/*
-void KFParticle_truthAndDetTools::initializeMultiplicityBranches(TTree *m_tree)
-{
-  m_tree->Branch("INTT_meanHits", &INTT_meanHits, "INTT_meanHits/F");
-  m_tree->Branch("INTT_asymmHits", &INTT_asymmHits, "INTT_asymmHits/F");
-}
-
-void KFParticle_truthAndDetTools::calculateMultiplicity(PHCompositeNode *topNode, float& meanMultiplicity, float& asymmetryMultiplicity)
-{
-  TrkrHitSetContainer* hitContainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-
-  TrkrHitSetContainer::ConstRange inttHitSetRange[2];
-  for (int i = 0; i < 2; i++) inttHitSetRange[i] = hitContainer->getHitSets(TrkrDefs::TrkrId::inttId, i + 4);
-
-  int inttHits[2] = {0};
-
-  for (int i = 0; i < 2; i++) 
-  {
-    for (TrkrHitSetContainer::ConstIterator hitsetitr = inttHitSetRange[i].first;
-         hitsetitr != inttHitSetRange[i].second;
-         ++hitsetitr)
-    {
-      TrkrHitSet *hitset = hitsetitr->second;
-      inttHits[i] += hitset->size();
-    }
-  }
-
-  meanMultiplicity = (inttHits[0] + inttHits[1])/2;
-  asymmetryMultiplicity = (inttHits[0] - inttHits[1])/(inttHits[0] + inttHits[1]);
-}
-*/
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             TTree *m_tree, 
                                             KFParticle motherParticle,

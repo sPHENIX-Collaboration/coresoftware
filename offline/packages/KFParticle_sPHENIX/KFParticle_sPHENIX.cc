@@ -209,16 +209,16 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::string intermediate;
   std::string daughter;
 
-  std::pair<std::string, int> intermediate_list[max_particles];
+  std::vector<std::pair<std::string, int>> intermediate_list;
   std::vector<std::string> intermediates_name;
   std::vector<int> intermediates_charge;
   
-  std::pair<std::string, int> daughter_list[max_particles];
+  std::vector<std::pair<std::string, int>> daughter_list;
   std::vector<std::string> daughters_name;
   std::vector<int> daughters_charge;
 
   int nTracks = 0;
-  int nTracksFromIntermediates[max_particles];
+  //int nTracksFromIntermediates[max_particles];
   std::vector<int> m_nTracksFromIntermediates;
 
   std::string decayArrow = "->";
@@ -345,13 +345,12 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
 
     intermediates_charge.push_back(vtxCharge);
 
-    intermediate_list[i] = std::make_pair(intermediates_name[i], intermediates_charge[i]);
-    nTracksFromIntermediates[i] = m_nTracksFromIntermediates[i];
+    intermediate_list.push_back(std::make_pair(intermediates_name[i], intermediates_charge[i]));
   }
  
   for (int i = 0; i < nTracks; ++i)
   {
-    daughter_list[i] = std::make_pair(daughters_name[i], daughters_charge[i]);
+    daughter_list.push_back(std::make_pair(daughters_name[i], daughters_charge[i]));
   }
 
   setMotherName(mother);
@@ -364,7 +363,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     hasIntermediateStates(true);
     setIntermediateStates(intermediate_list);
     setNumberOfIntermediateStates(intermediates_name.size());
-    setNumberTracksFromIntermeditateState(nTracksFromIntermediates);
+    setNumberTracksFromIntermeditateState(m_nTracksFromIntermediates);
   }
   
   if (ddCanBeParsed)

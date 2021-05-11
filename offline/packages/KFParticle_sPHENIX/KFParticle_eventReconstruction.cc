@@ -46,12 +46,12 @@ std::map<std::string, particle_pair> particleMasses_evtReco = kfp_particleList_e
 
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
-  : m_daughter_name_evt{"pion", "pion", "pion", "pion"}
-  , m_daughter_charge_evt{1, -1, 1, -1}
-  , m_intermediate_charge{1, -1, 1, -1}
-  , m_intermediate_min_ip{-1, -1, -1, -1}
-  , m_intermediate_min_ipchi2{-1, -1, -1, -1}
-  , m_constrain_to_vertex(true)
+  //: m_intermediate_charge{1, -1, 1, -1}
+  //, m_intermediate_min_ip{-1, -1, -1, -1}
+  //, m_intermediate_max_ip{FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}
+  //, m_intermediate_min_ipchi2{-1, -1, -1, -1}
+  //, m_intermediate_max_ipchi2{FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}
+  : m_constrain_to_vertex(true)
   , m_constrain_int_mass(false)
 {
 }
@@ -191,7 +191,6 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             required_unique_vertexID += m_intermediate_charge[n] * particleMasses_evtReco.find(m_intermediate_name[n].c_str())->second.second;
 
           std::vector<std::vector<std::string>> uniqueCombinations;
-          std::vector<std::string> v_intermediate_name(m_intermediate_name, m_intermediate_name + m_num_intermediate_states);
           std::vector<std::vector<int>> listOfTracksToAppend;
 
           if (num_remaining_tracks != 0)
@@ -207,12 +206,12 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             for (unsigned int n_names = 0; n_names < uniqueCombinations.size(); ++n_names)
             {
-              uniqueCombinations[n_names].insert(begin(uniqueCombinations[n_names]), begin(v_intermediate_name), end(v_intermediate_name));
+              uniqueCombinations[n_names].insert(begin(uniqueCombinations[n_names]), begin(m_intermediate_name), end(m_intermediate_name));
             }
           }
           else
           {
-            uniqueCombinations.push_back(v_intermediate_name);
+            uniqueCombinations.push_back(m_intermediate_name);
             listOfTracksToAppend.push_back({0});
           }
 
@@ -321,7 +320,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         {
           calcMinIP(candidate, primaryVerticesCand, min_ip, min_ipchi2);
           if (!isInRange(m_intermediate_min_ip[intermediateNumber], min_ip, m_intermediate_max_ip[intermediateNumber])
-              || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber]))
+           || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber]))
               isGood = false;
         }
 
