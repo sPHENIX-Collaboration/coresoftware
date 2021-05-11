@@ -19,7 +19,7 @@ struct ActsSurfaceMaps
   ActsSurfaceMaps(){};
   std::map<TrkrDefs::hitsetkey, Surface> siliconSurfaceMap;
   std::map<TrkrDefs::hitsetkey, SurfaceVec> tpcSurfaceMap;
-  std::map<TrkrDefs::hitsetkey, SurfaceVec> mmSurfaceMap;
+  std::map<TrkrDefs::hitsetkey, Surface> mmSurfaceMap;
   std::map<TrkrDefs::hitsetkey, TGeoNode*> tGeoNodeMap;
  
 };

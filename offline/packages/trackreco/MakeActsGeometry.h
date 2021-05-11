@@ -163,9 +163,7 @@ class MakeActsGeometry : public SubsysReco
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;
-
-  // TODO: move to a single surface per hitsetkey
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapMmEdit;
+  std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapMmEdit;
   
   /// These don't change, we are building the tpc this way!
   const static unsigned int m_nTpcLayers = 48;
