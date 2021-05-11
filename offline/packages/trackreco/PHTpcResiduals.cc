@@ -202,35 +202,29 @@ SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
   return sl;
 }
 
-Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, 
-				   TrkrDefs::subsurfkey surfkey)
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
 {
+  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
-  auto trkrid = TrkrDefs::getTrkrId(cluskey);
-  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-
-  /// We need to generate the hitsetkey the same way we do in the 
-  /// geometry building for proper look up
-  if(trkrid == TrkrDefs::TrkrId::micromegasId)
-    {
-      const unsigned int layer = TrkrDefs::getLayer(cluskey);
-      unsigned int tile = 0;
-      const auto segtype = MicromegasDefs::getSegmentationType(cluskey);
-      hitsetkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-    }
-
-  if(trkrid == TrkrDefs::TrkrId::mvtxId or
-     trkrid == TrkrDefs::TrkrId::inttId)
+  switch( trkrid )
+  {
+    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
+    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
+    case TrkrDefs::TrkrId::mvtxId:
+    case TrkrDefs::TrkrId::inttId:
     {
       return getSiliconSurface(hitsetkey);
     }
-  else
-    {
-      return getTpcMMSurface(hitsetkey, surfkey);
-    }
-
+  }
+  
+  // unreachable
+  return nullptr;
+  
 }
 
+//___________________________________________________________________________________
 Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 {
   auto surfMap = m_surfMaps->siliconSurfaceMap;
@@ -244,22 +238,29 @@ Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
   return nullptr;
 
 }
-Surface PHTpcResiduals::getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
-					 TrkrDefs::subsurfkey surfkey)
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
 {
-  const bool is_mm = TrkrDefs::getTrkrId(hitsetkey) == TrkrDefs::TrkrId::micromegasId;
-  const auto surfMap = is_mm ? m_surfMaps->mmSurfaceMap:m_surfMaps->tpcSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
-  if(iter != surfMap.end())
-    {
-      auto surfvec = iter->second;
-      return surfvec.at(surfkey);
-    }
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  {
+    auto surfvec = iter->second;
+    return surfvec.at(surfkey);
+  }
   
   /// If it can't be found, return nullptr to skip this cluster
   return nullptr;
-
 }
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+}
+
+//___________________________________________________________________________________
 Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
 {
   auto vertexId = track->get_vertex_id();
