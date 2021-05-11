@@ -40,13 +40,6 @@ class MicromegasClusterizer : public SubsysReco
   //! detector name
   std::string m_detector;
 
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  Surface getMmSurfaceFromCoords(PHCompositeNode *topNode, 
-				 TrkrDefs::hitsetkey hitsetkey, 
-				 TrkrDefs::subsurfkey &subsurfkey,
-				 Acts::Vector3D world);
-
 };
 
 #endif
