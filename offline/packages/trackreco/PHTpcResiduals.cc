@@ -463,9 +463,6 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
   const auto globStateZ = stateZ;
 
-  std::cout << "Track param raw position is : (" << globStateX 
-	    << ", " << globStateY << ", " << globStateZ << std::endl;
-
   stateR = sqrt(pow(globStateX, 2) +
 		pow(globStateY, 2) );
   

@@ -8,7 +8,8 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
-#include "PHTrackFitting.h"
+#include <fun4all/SubsysReco.h>
+
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsSurfaceMaps.h>
@@ -55,7 +56,7 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
 
-class PHActsTrkFitter : public PHTrackFitting
+class PHActsTrkFitter : public SubsysReco
 {
  public:
   /// Default constructor
@@ -68,10 +69,10 @@ class PHActsTrkFitter : public PHTrackFitting
   int End(PHCompositeNode *topNode);
 
   /// Get and create nodes
-  int Setup(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode);
 
   /// Process each event by calling the fitter
-  int Process();
+  int process_event(PHCompositeNode *topNode);
 
   int ResetEvent(PHCompositeNode *topNode);
 
