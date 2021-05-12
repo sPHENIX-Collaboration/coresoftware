@@ -286,7 +286,7 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       {
         newdump = new DumpTrkrHitSetContainer(NodeName);
       }
-      else if (tmp->InheritsFrom("DumpTrkrHitTruthAssoc"))
+      else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
       }
