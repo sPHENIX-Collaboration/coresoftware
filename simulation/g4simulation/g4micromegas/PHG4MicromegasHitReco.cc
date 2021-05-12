@@ -90,13 +90,6 @@ namespace
       + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
-
-  inline std::ostream& operator << (std::ostream& out, const TVector3& position)
-  {
-    out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
-    return out;
-  }
-
 }
 
 //___________________________________________________________________________
