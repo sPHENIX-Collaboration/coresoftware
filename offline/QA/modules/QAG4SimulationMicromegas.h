@@ -9,6 +9,7 @@
 #include <string>
 
 class PHCompositeNode;
+class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class TrkrClusterContainer;
@@ -42,6 +43,9 @@ class QAG4SimulationMicromegas : public SubsysReco
 
   /// true if histograms are initialized
   bool m_initialized = false;
+
+  //! micromegas geometry
+  PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;

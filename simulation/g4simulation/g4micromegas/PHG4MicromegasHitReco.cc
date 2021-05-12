@@ -18,6 +18,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
@@ -66,11 +67,6 @@ namespace
     else if( angle < -M_PI ) return angle + 2*M_PI;
     else return angle;
   }
-
-  // local version of std::clamp, which is only available for c++17
-  template<class T>
-    constexpr const T& clamp( const T& v, const T& lo, const T& hi )
-  { return (v < lo) ? lo : (hi < v) ? hi : v; }
 
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
   template<class T>
@@ -226,15 +222,26 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
     assert( layergeom );
 
     /*
-     * get the radius of the detector mesh. It depends on the drift direction
+     * get the position of the detector mesh in local coordinates
+     * in local coordinate the mesh is a plane perpendicular to the y axis
+     * Its position along z depends on the drift direction
      * it is used to calculate the drift distance of the primary electrons, and the
      * corresponding transverse diffusion
      */
-    const auto mesh_radius = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
-      (layergeom->get_radius() + layergeom->get_thickness()/2):
-      (layergeom->get_radius() - layergeom->get_thickness()/2);
+    const auto mesh_local_y = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ? 
+      layergeom->get_thickness()/2:
+      -layergeom->get_thickness()/2;
+    
+//     /*
+//      * get the radius of the detector mesh. It depends on the drift direction
+//      * it is used to calculate the drift distance of the primary electrons, and the
+//      * corresponding transverse diffusion
+//      */
+//       const auto mesh_radius = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
+//       (layergeom->get_radius() + layergeom->get_thickness()/2):
+//       (layergeom->get_radius() - layergeom->get_thickness()/2);
 
-    // get corresponding hits
+    // get hits
     const PHG4HitContainer::ConstRange g4hit_range = g4hitcontainer->getHits(layer);
 
     // loop over hits
@@ -257,12 +264,33 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
        * at this point we do not check the strip validity.
        * This will be done when actually distributing electrons along the G4Hit track segment
        */
-      const auto world_mid = (world_in+world_out)*0.5;
-      const int tileid = layergeom->find_tile( world_mid );
+      const int tileid = layergeom->find_tile_cylindrical( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
 
+      /*
+       * in geant4 hits are generated on a cylinder located at layergeom->get_radius()
+       * the actual micromegas tiles however are plane surfaces, tengent to said cylinder
+       * one must convert the g4hit in and out positions from the cylinder back to the actual 
+       * micromegas surface
+       */ 
+      
+      // make a local copy of the g4hit
+      PHG4Hitv1 g4hit_copy( g4hit );
+      
+      /*
+       * move hit coordinates to plane, 
+       * update world coordinates
+       * get corresponding local coordinates
+       */
+      layergeom->convert_to_planar( tileid, &g4hit_copy );
+      world_in.SetXYZ( g4hit_copy.get_x(0), g4hit_copy.get_y(0), g4hit_copy.get_z(0) );
+      world_out.SetXYZ( g4hit_copy.get_x(1), g4hit_copy.get_y(1), g4hit_copy.get_z(1) );
+
+      const auto local_in = layergeom->get_local_from_world_coords( tileid, world_in );
+      const auto local_out = layergeom->get_local_from_world_coords( tileid, world_out );
+      
       // number of primary elections
-      const auto nprimary = get_primary_electrons( g4hit );
+      const auto nprimary = get_primary_electrons( &g4hit_copy );
       if( !nprimary ) continue;
 
       // create hitset
@@ -277,33 +305,25 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       for( uint ie = 0; ie < nprimary; ++ie )
       {
         // put the electron at a random position along the g4hit path
+        // in local reference frame, drift occurs along the y axis, from local y to mesh_local_y
         const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
-        auto world =  world_in*t + world_out*(1.0-t);
-
+        auto local = local_in*t + local_out*(1.0-t);
+        
         if( m_diffusion_trans > 0 )
         {
           // add transeverse diffusion
           // first convert to polar coordinates
-          const double radius = std::sqrt(square(world.x())+square(world.y()));
-          const double phi = std::atan2(world.y(),world.x());
-          const double drift_distance = std::abs(radius - mesh_radius);
+          const double y = local.y();
+          const double drift_distance = std::abs(y - mesh_local_y);
           const double diffusion = gsl_ran_gaussian(m_rng.get(), m_diffusion_trans*std::sqrt(drift_distance));
           const double diffusion_angle = gsl_ran_flat(m_rng.get(), -M_PI, M_PI);
 
-          /*
-           * diffusion happens in the phi,z plane (plane perpendicular to the radius direction)
-           * with a magnitude 'diffusion' and an angle 'diffusion angle'
-           * rotate back to cartesian coordinates
-           */
-          const auto sphi = std::sin(phi);
-          const auto cphi = std::cos(phi);
-          const auto salpha = std::sin(diffusion_angle);
-          const auto calpha = std::cos(diffusion_angle);
-          world += TVector3(-sphi*calpha*diffusion, cphi*calpha*diffusion, salpha*diffusion);
+          // diffusion occurs in x,z plane with a magnitude 'diffusion' and an angle 'diffusion angle'
+          local += TVector3( diffusion*std::cos(diffusion_angle), 0, diffusion*std::sin(diffusion_angle) );
         }
 
         // distribute charge among adjacent strips
-        const auto fractions = distribute_charge( layergeom, tileid, world, m_cloud_sigma );
+        const auto fractions = distribute_charge( layergeom, tileid, local, m_cloud_sigma );
 
         // make sure fractions adds up to unity
         if( Verbosity() > 0 )
@@ -354,6 +374,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       }
 
     }
+    
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -443,7 +464,6 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
   PHG4CylinderGeomContainer::ConstRange range = geonode_full->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   {
-    std::cout << "PHG4MicromegasHitReco::setup_tiles - processing layer " << iter->first << std::endl;
     auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
 
     // assign tiles
@@ -470,7 +490,10 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
-    cylinder->identify( std::cout );
+    
+    // if( Verbosity() )
+    { cylinder->identify( std::cout ); }
+
   }
 }
 
@@ -493,43 +516,42 @@ uint PHG4MicromegasHitReco::get_single_electron_amplification() const
 PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
   CylinderGeomMicromegas* layergeom,
   uint tileid,
-  const TVector3& location,
+  const TVector3& local_coords,
   double sigma ) const
 {
 
   // find tile and strip matching center position
-  auto stripnum = layergeom->find_strip( tileid, location );
+  auto stripnum = layergeom->find_strip_from_local_coords( tileid, local_coords );
 
   // check tile and strip
   if( stripnum < 0 ) return charge_list_t();
 
   // store pitch and radius
   const auto pitch = layergeom->get_pitch();
-  const auto radius = layergeom->get_radius();
 
   // find relevant strip indices
   const auto strip_count = layergeom->get_strip_count( tileid );
   const int nstrips = 5.*sigma/pitch + 1;
-  const auto stripnum_min = clamp<int>( stripnum - nstrips, 0, strip_count );
-  const auto stripnum_max = clamp<int>( stripnum + nstrips, 0, strip_count );
+  const auto stripnum_min = std::clamp<int>( stripnum - nstrips, 0, strip_count );
+  const auto stripnum_max = std::clamp<int>( stripnum + nstrips, 0, strip_count );
 
   // prepare charge list
   charge_list_t charge_list;
-
-  // store azimuthal angle
-  const auto phi = std::atan2( location.y(), location.x() );
 
   // loop over strips
   for( int strip = stripnum_min; strip <= stripnum_max; ++strip )
   {
     // get strip center
-    const TVector3 strip_location = layergeom->get_world_coordinate( tileid, strip );
-    const auto phi_strip = std::atan2( strip_location.y(), strip_location.x() );
+    const TVector3 strip_location = layergeom->get_local_coordinates( tileid, strip );
 
-    // find relevant strip coordinate with respect to location
+    /* 
+     * find relevant strip coordinate with respect to location
+     * in local coordinate, phi segmented view has strips along z and measures along x
+     * in local coordinate, z segmented view has strips along phi and measures along z
+     */
     const auto xloc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
-      radius * bind_angle( phi_strip - phi ):
-      strip_location.z() - location.z();
+      strip_location.x() - local_coords.x():
+      strip_location.z() - local_coords.z();
 
     // calculate charge fraction
     const auto fraction = m_zigzag_strips ?

@@ -147,7 +147,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
      */
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
-    const double radius = layergeom->get_radius();
     const double pitch = layergeom->get_pitch();
     const double strip_length = layergeom->get_strip_length( tileid );
 
@@ -211,7 +210,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       auto cluster = std::make_unique<TrkrClusterv2>();
       cluster->setClusKey(cluster_key);
 
-      TVector3 world_coordinates;
+      TVector3 local_coordinates;
       double weight_sum = 0;
 
       // needed for proper error calculation
@@ -237,25 +236,23 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         static constexpr double pedestal = 74.6;
         const double weight = double(hit->getAdc()) - pedestal;
 
-        // get strip world coordinate and update relevant sums
-        const auto strip_world_coordinate = layergeom->get_world_coordinate( tileid, strip );
-        world_coordinates += strip_world_coordinate*weight;
+        // get strip local coordinate and update relevant sums
+        const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, strip );
+        local_coordinates += strip_local_coordinate*weight;
         switch( segmentation_type )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
 
-            const auto rphi = radius*std::atan2( strip_world_coordinate.y(), strip_world_coordinate.x() );
-            coord_sum += rphi*weight;
-            coordsquare_sum += square(rphi)*weight;
+            coord_sum += strip_local_coordinate.x()*weight;
+            coordsquare_sum += square(strip_local_coordinate.x())*weight;
             break;
           }
 
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            const auto z = strip_world_coordinate.z();
-            coord_sum += z*weight;
-            coordsquare_sum += square(z)*weight;
+            coord_sum += strip_local_coordinate.z()*weight;
+            coordsquare_sum += square(strip_local_coordinate.z())*weight;
             break;
           }
         }
@@ -265,12 +262,18 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       // cluster position
-      cluster->setPosition( 0, world_coordinates.x()/weight_sum );
-      cluster->setPosition( 1, world_coordinates.y()/weight_sum );
-      cluster->setPosition( 2, world_coordinates.z()/weight_sum );
+      const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates*(1./weight_sum) );
+      cluster->setX( world_coordinates.x() );
+      cluster->setY( world_coordinates.y() );
+      cluster->setZ( world_coordinates.z() );
       cluster->setGlobal();
 
       // dimension and error in r, rphi and z coordinates
+      /*
+       * NOTE: this is not quite correct. One should calculate them in the tile reference frame (easy)
+       * then convert them back to global frame using tile proper rotation matrix.
+       * probably it is enough to use the phi angle of the tile, not that of the cluster
+       */
       static const float invsqrt12 = 1./std::sqrt(12);
       static constexpr float error_scale_phi = 1.6;
       static constexpr float error_scale_z = 0.8;
@@ -326,14 +329,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       Acts::Vector3D center = surface->center(m_tGeometry->geoContext) / Acts::UnitConstants::cm;
       Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
 
-      double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
-      double surfPhiCenter = atan2(center[1], center[0]);
+      double surfRadius = std::sqrt( square(center[0]) + square(center[1]) );
+      double surfPhiCenter = std::atan2(center[1], center[0]);
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
 
-      double clusRadius = sqrt(cluster->getX() * cluster->getX()
-			       + cluster->getY() * cluster->getY());
-      double clusphi = atan2(cluster->getY(), cluster->getX());
+      double clusRadius = std::sqrt( square(cluster->getX()) + square(cluster->getY()) );
+      double clusphi = std::atan2(cluster->getY(), cluster->getX());
       double rClusPhi = clusRadius * clusphi;
       double zMm = globalPos(2);
       auto vecResult = surface->globalToLocal(m_tGeometry->geoContext,
@@ -360,7 +362,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // rotate and save
       matrix_t rotation = matrix_t::Identity();
-      const double phi = std::atan2(world_coordinates.y(), world_coordinates.x());
+      const double phi = layergeom->get_center_phi( tileid );
       const double cosphi = std::cos(phi);
       const double sinphi = std::sin(phi);
       rotation(0,0) = cosphi;
