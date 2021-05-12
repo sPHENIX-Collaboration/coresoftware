@@ -751,11 +751,11 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
   
   if (!m_trackMap)
     {
-      std::cout << PHWHERE << "SvtxTrackMap not on node tree. Exiting."
+      std::cout << PHWHERE << "SvtxSiliconMMTrackMap not on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

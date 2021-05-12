@@ -805,8 +805,15 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 							    "SvtxSiliconMMTrackMap");
       if(!m_directedTrackMap)
 	{
+	  std::cout <<"In here"<<std::endl;
+	  for(const auto& [key, track] : *m_trackMap)
+	    track->identify();
 	  /// Copy this trackmap, then use it for the rest of processing
 	  m_directedTrackMap = (SvtxTrackMap*)(m_trackMap->CloneMe());
+
+	  std::cout << "Directed map"<<std::endl;
+	  for(const auto& [key, track] : *m_directedTrackMap)
+	    track->identify();
 	  PHIODataNode<PHObject> *trackNode = 
 	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
 	  svtxNode->addNode(trackNode);
@@ -815,7 +822,12 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       /// Run the rest of the module with this track map
       m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,
 						    "SvtxSiliconMMTrackMap");
-      
+      std::cout << "Reg map 2"<<std::endl;
+      for(const auto& [key, track] : *m_trackMap)
+	track->identify();
+      std::cout << "Directed map 2"<<std::endl;
+      for(const auto& [key, track] : *m_directedTrackMap)
+	track->identify();
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
