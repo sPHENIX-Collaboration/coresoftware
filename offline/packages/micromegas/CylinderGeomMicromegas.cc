@@ -30,12 +30,6 @@ namespace
     else return angle;
   }
 
-  inline std::ostream& operator << (std::ostream& out, std::array<double,3> position)
-  {
-    out << "(" << position[0] << ", " << position[1] << ", " << position[2] << ")";
-    return out;
-  }
-
 }
 
 //________________________________________________________________________________
