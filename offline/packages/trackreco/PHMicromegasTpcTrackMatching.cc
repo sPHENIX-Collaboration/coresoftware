@@ -24,7 +24,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TFile.h>
 #include <TF1.h>
+#include <TH1.h>
 #include <TVector3.h>
 
 #include <array>
@@ -43,8 +45,7 @@ namespace
   //! get radius from x and y
   template<class T>
     inline constexpr T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
-    
-  static constexpr unsigned int _n_mm_layers = 2;
+
 }
 
 //____________________________________________________________________________..
@@ -89,6 +90,22 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
   fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
   fdrphi->SetParameter(1, _par1);
 
+  // evaluation
+  _test_windows = true;
+  if( _test_windows )
+  {
+    for( int i = 0; i < _n_mm_layers; ++i )
+    { 
+      _rphi_residuals[i] = new TH1F( Form( "rphi_%i", i ), Form( "r#Delta#phi layer %i", i ), 100, -1, 1 );
+      _rphi_residuals[i]->GetXaxis()->SetTitle( "r#Delta#phi (cm)" );
+
+      _z_residuals[i] = new TH1F( Form( "z_%i", i ), Form( "#Deltaz layer %i", i ), 100, -1, 1 );
+      _z_residuals[i]->GetXaxis()->SetTitle( "r#Delta#phi (cm)" );
+    }
+  }
+    
+  
+  // base class setup
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -275,6 +292,13 @@ int PHMicromegasTpcTrackMatching::Process()
             << " _z_search_win " << _z_search_win[imm] 
             << std::endl;
         }
+
+        // fill histogram
+        if( _test_windows )
+        {
+          _rphi_residuals[imm]->Fill( rphi_proj - mm_clus_rphi );
+          _z_residuals[imm]->Fill( z_proj - mm_clus_z );
+        }
         
         // compare to search windows
         if(std::abs( rphi_proj - mm_clus_rphi) < _rphi_search_win[imm] && std::abs(z_proj - mm_clus_z) < _z_search_win[imm] )
@@ -333,7 +357,20 @@ int PHMicromegasTpcTrackMatching::Process()
 
 //_________________________________________________________________________________________________
 int PHMicromegasTpcTrackMatching::End()
-{ return Fun4AllReturnCodes::EVENT_OK; }
+{ 
+
+  if( _test_windows )
+  {
+    std::unique_ptr<TFile> tfile( TFile::Open( _evaluation_rootfile.c_str(), "RECREATE" ) );
+    for( int i = 0; i < _n_mm_layers; ++i )
+    { 
+      _rphi_residuals[i]->Write();
+      _z_residuals[i]->Write();
+    }
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK; 
+}
 
 //_________________________________________________________________________________________________
 int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
