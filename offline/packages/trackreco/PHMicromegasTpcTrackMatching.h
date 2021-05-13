@@ -48,10 +48,6 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
   std::array<double,_n_mm_layers> _z_search_win = {26.0, 0.25};
 
-  /// micromegas layer radii
-  /** these are reset in ::Setup using actual micromegas geometry */
-  std::array<double,_n_mm_layers> _mm_layer_radius = { 82.2565, 82.6998};
-
   // range of TPC layers to use in projection to micromegas
   unsigned int _min_tpc_layer = 38;
   
@@ -84,8 +80,6 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   std::array<TH1*,_n_mm_layers> _z_residuals = {{nullptr, nullptr}};
   //@}
   
-  //! hitset container
-  TrkrHitSetContainer  *_mm_hitsets = nullptr;
 };
 
 #endif // PHMICROMEGASTPCTRACKMATCHING_H
