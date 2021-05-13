@@ -6,7 +6,6 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsTrack.h"
 #include "ActsTransformations.h"
 
 /// Tracking includes
@@ -263,13 +262,15 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Call KF now. Have a vector of sourceLinks corresponding to clusters
       /// associated to this track and the corresponding track seed which
       /// corresponds to the PHGenFitTrkProp track seeds
+      Acts::PropagatorPlainOptions ppPlainOptions;
+      ppPlainOptions.absPdgCode = 11;
       Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
 			        m_tGeometry->geoContext,
 				m_tGeometry->magFieldContext,
 				m_tGeometry->calibContext,
 				Acts::VoidOutlierFinder(),
 				Acts::LoggerWrapper(*logger),
-				Acts::PropagatorPlainOptions(),
+			        ppPlainOptions,
 				&(*pSurface));
  
       auto fitTimer = std::make_unique<PHTimer>("FitTimer");
@@ -802,7 +803,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   if (!dstNode)
   {
     std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+    throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
   }
   
   PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));

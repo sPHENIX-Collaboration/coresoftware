@@ -39,7 +39,6 @@ namespace ActsExamples
   class TrkrClusterSourceLink;
 }
 
-class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;

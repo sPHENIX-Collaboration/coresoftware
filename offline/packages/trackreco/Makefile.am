@@ -23,8 +23,6 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
-  ActsTrack.h \
-  ActsEvaluator.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
   CellularAutomaton.h \
@@ -39,9 +37,6 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHActsSourceLinks.h \
-  PHActsTracks.h \
-  PHActsToSvtxTracks.h \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
@@ -117,12 +112,8 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   ActsTransformations.cc \
-  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
-  PHActsSourceLinks.cc \
-  PHActsTracks.cc \
-  PHActsToSvtxTracks.cc \
   PHActsTrkFitter.cc \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
