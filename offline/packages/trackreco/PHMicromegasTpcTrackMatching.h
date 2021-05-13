@@ -41,11 +41,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   private:
 
   int GetNodes(PHCompositeNode* topNode);
-
-  void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0);
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
-  void line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b);
-  
+    
   // default values, can be replaced from the macro, all in cm
   // rhese correspond to the "baseline" configuration tiles
   static constexpr unsigned int _n_mm_layers = 2;
