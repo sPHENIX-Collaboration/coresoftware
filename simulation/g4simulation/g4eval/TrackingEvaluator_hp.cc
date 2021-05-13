@@ -591,7 +591,9 @@ void TrackingEvaluator_hp::evaluate_clusters()
 
       // truth information
       const auto g4hits = find_g4hits( key );
-      add_truth_information( cluster_struct, g4hits );
+      const bool is_micromegas( TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId );
+      if( is_micromegas ) add_truth_information_micromegas( cluster_struct, g4hits );
+      else add_truth_information( cluster_struct, g4hits );
 
       // add in array
       m_container->addCluster( cluster_struct );
@@ -1097,6 +1099,8 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
   const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
+  
+  // std::cout << "TrackingEvaluator_hp::add_truth_information_micromegas - cluster_local: " << cluster_local << std::endl;
   
   // convert hits to list of interpolation_data_t
   interpolation_data_t::list hits;
