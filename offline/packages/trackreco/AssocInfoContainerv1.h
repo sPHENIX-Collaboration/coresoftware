@@ -5,10 +5,10 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>               // for pair
-#include <vector>                // for vector
+#include <utility>  // for pair
+#include <vector>   // for vector
 
 class AssocInfoContainerv1 : public AssocInfoContainer
 {
