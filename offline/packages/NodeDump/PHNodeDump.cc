@@ -30,6 +30,7 @@
 #include "DumpTrkrClusterContainer.h"
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
+#include "DumpTrkrHitTruthAssoc.h"
 #include "DumpVariableArray.h"
 
 #include <phool/PHIODataNode.h>
@@ -284,6 +285,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrHitSetContainer"))
       {
         newdump = new DumpTrkrHitSetContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
+      {
+        newdump = new DumpTrkrHitTruthAssoc(NodeName);
       }
       else if (tmp->InheritsFrom("VariableArray"))
       {
