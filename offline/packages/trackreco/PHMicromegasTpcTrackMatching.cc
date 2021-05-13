@@ -182,36 +182,77 @@ namespace
    * iy = - (2*x2*x - D) / 2*y2, 
    * then substitute for y in equation of circle 1
    */
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus)
+  bool circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus)
   {
     
-    double D = r1*r1 - r2*r2 + x2*x2 + y2*y2;
-    double a = 1.0 + (x2*x2) / (y2*y2);
-    double b = - D * x2/( y2*y2);
-    double c = D*D / (4.0*y2*y2) - r1*r1;
+    const double D = square(r1) - square(r2) + square(x2) + square(y2);
+    const double a = 1.0 + square(x2/y2);
+    const double b = - D * x2/square(y2);
+    const double c = square(D/(2.*y2)) - square(r1);
+    const double delta = square(b)-4.*a*c;
+    if( delta < 0 ) return false;
     
-    xplus = (-b + sqrt(b*b - 4.* a * c) ) / (2. * a);
-    xminus = (-b - sqrt(b*b - 4.* a * c) ) / (2. * a);
+    const double sqdelta = std::sqrt( delta );
+    
+    xplus = (-b + sqdelta ) / (2. * a);
+    xminus = (-b - sqdelta ) / (2. * a);
     
     // both values of x are valid
     // but for each of those values, there are two possible y values on circle 1
     // but only one of those falls on the radical line:
     
-    yplus = - (2*x2*xplus - D) / (2.*y2); 
+    yplus  = -(2*x2*xplus - D) / (2.*y2); 
     yminus = -(2*x2*xminus - D) / (2.*y2);
+    return true;
     
   }
   
   /// calculate intersection from circle to line, in 2d. return true on success
   /**
-   * circle is defined as (x-x1)**2 + (y-y1)**2 = r1**2
-   * line is defined as nx(x-x2) + ny(y-y2) = 0
+   * circle is defined as (x-xc)**2 + (y-yc)**2 = r**2
+   * line is defined as nx(x-x0) + ny(y-y0) = 0
+   * to solve we substitute y by y0 - nx/ny*(x-x0) in the circle equation and solve the 2nd order polynom
+   * there is the extra complication that ny can be 0 (vertical line) to prevent this, we multiply all terms of the polynom by ny**2
+   * and account for this special case when calculating x from y
    */
   bool circle_line_intersection( 
-    double r1, double x1, double y1, 
-    double x2, double y2, double sx, double sy,
+    double r, double xc, double yc, 
+    double x0, double y0, double nx, double ny,
     double &xplus, double &yplus, double &xminus, double &yminus)
-  { return false; }
+  {
+    if( ny == 0 )
+    {
+      // vertical lines are defined by ny=0 and x = x0
+      xplus = xminus = x0;
+      
+      // calculate y accordingly
+      const double delta = square(r) - square(x0-xc);
+      if( delta < 0 ) return false;
+      
+      const double sqdelta = std::sqrt( delta );
+      yplus = yc + sqdelta;
+      yminus = yc - sqdelta;
+
+    } else {      
+    
+      const double a = square(nx) + square(ny);
+      const double b = -2.*( square(ny)*xc + square(nx)*x0 + nx*ny*(y0-yc) );
+      const double c = square(ny)*(square(xc)-square(r)) + square(ny*(y0-yc)+nx*x0);
+      const double delta = square(b) - 4.*a*c;
+      if( delta < 0 ) return false;
+      
+      const double sqdelta = std::sqrt( delta );
+      xplus = (-b + sqdelta)/(2.*a);
+      xminus = (-b - sqdelta)/(2.*a);
+      
+      yplus = y0 -(nx/ny)*(xplus-x0);
+      yminus = y0 - (nx/ny)*(xminus-x0);
+
+    }
+    
+    return true;
+    
+  }
 
 }
 
@@ -380,10 +421,7 @@ int PHMicromegasTpcTrackMatching::Process()
       double yminus = 0;
       
       // finds the intersection of the fitted circle with the micromegas layer
-      circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus);
-      
-      // We only need to check xplus for failure, skip this TPC track in that case
-      if(std::isnan(xplus)) 
+      if( !circle_circle_intersection(	_mm_layer_radius[imm], R, X0, Y0, xplus, yplus, xminus, yminus) )
       {
         if(Verbosity() > 10)
         {
