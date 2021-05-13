@@ -5,6 +5,7 @@
 
 #include <trackreco/PHTrackPropagating.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,7 @@ class PHG4CylinderGeomContainer;
 class SvtxTrack;
 class TrkrCluster;
 class TF1;
+class TH1;
 class TrkrHitSetContainer;
 
 class PHMicromegasTpcTrackMatching : public PHTrackPropagating
@@ -36,7 +38,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   int Process() override;
   int End() override;
   
- private:
+  private:
 
   int GetNodes(PHCompositeNode* topNode);
 
@@ -46,12 +48,13 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   
   // default values, can be replaced from the macro, all in cm
   // rhese correspond to the "baseline" configuration tiles
-  double _rphi_search_win[2] = {0.25, 13.0}; 
-  double _z_search_win[2] = {26.0, 0.25};
+  static constexpr unsigned int _n_mm_layers = 2;
+  std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
+  std::array<double,_n_mm_layers> _z_search_win = {26.0, 0.25};
 
   /// micromegas layer radii
   /** these are reset in ::Setup using actual micromegas geometry */
-  double _mm_layer_radius[2] = { 82.2565, 82.6998};
+  std::array<double,_n_mm_layers> _mm_layer_radius = { 82.2565, 82.6998};
 
   // range of TPC layers to use in projection to micromegas
   unsigned int _min_tpc_layer = 38;
@@ -60,7 +63,6 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   /** it is reset in ::Setup using actual micromegas geometry */
   unsigned int _min_mm_layer = 55;
 
-  bool _test_windows = false;   // true for testing only
   bool _sc_calib_mode = false;  // true for initioal pass with distorted tracks
 
   double _collision_rate = 50e3;  // input rate for phi correction
@@ -77,6 +79,14 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   TF1 *fdrphi{nullptr};
   double _par0 = -0.36619;
   double _par1 = 0.00375714;
+
+  //!@name evaluation
+  //@{
+  bool _test_windows = false;   
+  std::string _evaluation_rootfile = "PHMicromegasTpcTrackMatching.root";
+  std::array<TH1*,_n_mm_layers> _rphi_residuals = {{nullptr, nullptr}};
+  std::array<TH1*,_n_mm_layers> _z_residuals = {{nullptr, nullptr}};
+  //@}
   
   //! hitset container
   TrkrHitSetContainer  *_mm_hitsets = nullptr;
