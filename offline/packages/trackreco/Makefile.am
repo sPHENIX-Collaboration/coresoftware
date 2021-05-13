@@ -26,6 +26,7 @@ pkginclude_HEADERS = \
   ActsTrack.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
+  AssocInfoContainerv1.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
   HelixHoughBin.h \
@@ -81,6 +82,7 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
+  AssocInfoContainerv1_Dict.cc \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
@@ -91,6 +93,7 @@ ROOTDICTS = \
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
+  AssocInfoContainerv1_Dict_rdict.pcm \
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
@@ -100,6 +103,7 @@ ROOTDICTS = \
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
+  AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
   HelixHoughBin.cc \
