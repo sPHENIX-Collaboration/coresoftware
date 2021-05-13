@@ -28,12 +28,79 @@
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 #include <TString.h>  // for Form
+#include <TVector3.h>
 
 #include <cassert>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
 #include <utility>   // for pair, make_pair
+
+//_____________________________________________________________________
+namespace 
+{
+ 
+  //! square
+  template<class T> inline constexpr T square( T x ) { return x*x; }
+  
+  //! needed for weighted linear interpolation
+  struct interpolation_data_t 
+  {
+    using list = std::vector<interpolation_data_t>;
+    double x() const { return position.x(); }
+    double y() const { return position.y(); }
+    double z() const { return position.z(); }
+    
+    double px() const { return momentum.x(); }
+    double py() const { return momentum.y(); }
+    double pz() const { return momentum.z(); }
+    
+    TVector3 position;
+    TVector3 momentum;
+    double weight = 1;
+  };
+  
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate( const interpolation_data_t::list& hits, double y_extrap )
+  {
+    
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swy = 0;
+    double swy2 = 0;
+    double swx = 0;
+    double swyx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double y = hit.y();
+        
+      sw += w;
+      swy += w*y;
+      swy2 += w*square(y);
+      swx += w*x;
+      swyx += w*x*y;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swyx - swy*swx);
+    const auto beta = (swy2*swx - swy*swyx);
+    const auto denom = (sw*swy2 - square(swy));
+
+    return ( alpha*y_extrap + beta )/denom;
+  }
+  
+}
 
 //________________________________________________________________________
 QAG4SimulationMicromegas::QAG4SimulationMicromegas(const std::string& name)
@@ -141,6 +208,13 @@ std::string QAG4SimulationMicromegas::get_histo_prefix() const
 int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 {
 
+  m_micromegas_geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
+  if (!m_micromegas_geonode)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find CYLINDERGEOM_MICROMEGAS_FULL." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hitsets)
   {
@@ -212,12 +286,28 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
   // loop over hitsets
   const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
+  for (auto hitsetiter = hitsetrange.first; hitsetiter != hitsetrange.second; ++hitsetiter)
+  {
 
+    // get hitsetkey, layer and tileid
+    const auto hitsetkey = hitsetiter->first;
+    
+    // get layer
+    const auto layer = TrkrDefs::getLayer(hitsetkey);
+
+    // get tileid
+    const auto tileid = MicromegasDefs::getTileId(hitsetkey);
+    
+    // load geometry
+    const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+    if( !layergeom ) continue;
+    
+    // get relevant histograms
+    const auto hiter = histograms.find(layer);
+    if (hiter == histograms.end()) continue;
+    
     // get associated clusters
-    const auto range = m_cluster_map->getClusters(hitsetitr->first);
+    const auto range = m_cluster_map->getClusters(hitsetkey);
     for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter ){
 
       // get cluster key
@@ -231,45 +321,66 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
-      const auto z_cluster = cluster->getZ();
-      const auto phi_cluster = std::atan2(cluster->getY(), cluster->getX());
       const auto phi_error = cluster->getPhiError();
       const auto z_error = cluster->getZError();
 
+      // convert cluster position to local tile coordinates
+      const TVector3 cluster_world( cluster->getX(), cluster->getY(), cluster->getZ() );
+      const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
+
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
+ 
+      // convert hits to list of interpolation_data_t
+      interpolation_data_t::list hits;
+      for( const auto& g4hit:g4hits )
+      {
+        const auto weight = g4hit->get_edep();
+        for( int i = 0; i < 2; ++i )
+        {
+          
+          // convert position to local
+          TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
+          TVector3 g4hit_local = layergeom->get_local_from_world_coords( tileid, g4hit_world );
+          
+          // convert momentum to local
+          TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
+          TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, momentum_world );
+          
+          hits.push_back( {.position = g4hit_local, .momentum = momentum_local, .weight = weight } );
+        }
+      }
 
-      // get relevant truth information
-      const auto x_truth = QAG4Util::interpolate<&PHG4Hit::get_x>(g4hits, r_cluster);
-      const auto y_truth = QAG4Util::interpolate<&PHG4Hit::get_y>(g4hits, r_cluster);
-      const auto z_truth = QAG4Util::interpolate<&PHG4Hit::get_z>(g4hits, r_cluster);
-      const auto phi_truth = std::atan2(y_truth, x_truth);
-
-      const auto dphi = QAG4Util::delta_phi(phi_cluster, phi_truth);
-      const auto dz = z_cluster - z_truth;
-
-      // get layer, get histograms
-      const auto layer = TrkrDefs::getLayer(key);
-      const auto hiter = histograms.find(layer);
-      if (hiter == histograms.end()) continue;
+      // do position interpolation
+      const auto y_extrap = cluster_local.y();
+      const TVector3 interpolation_local( 
+        interpolate<&interpolation_data_t::x>( hits, y_extrap ),
+        interpolate<&interpolation_data_t::y>( hits, y_extrap ),
+        interpolate<&interpolation_data_t::z>( hits, y_extrap ) );
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
       switch( segmentation_type )
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-        fill(hiter->second.residual, r_cluster * dphi);
-        fill(hiter->second.residual_error, r_cluster * phi_error);
-        fill(hiter->second.pulls, dphi / phi_error);
-        break;
-
+        {
+          const auto drphi = cluster_local.x() - interpolation_local.x();
+          fill(hiter->second.residual, drphi );
+          fill(hiter->second.residual_error, r_cluster * phi_error);
+          fill(hiter->second.pulls, drphi / (r_cluster * phi_error) );
+          break;
+        }
+        
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-        fill(hiter->second.residual, dz);
-        fill(hiter->second.residual_error, z_error);
-        fill(hiter->second.pulls, dz / z_error);
-        break;
+        {
+          const auto dz = cluster_local.z() - interpolation_local.z();
+          fill(hiter->second.residual, dz);
+          fill(hiter->second.residual_error, z_error);
+          fill(hiter->second.pulls, dz / z_error);
+          break;
+        }
       }
-
+      
       // cluster size
       // get associated hits
       const auto hit_range = m_cluster_hit_map->getHits(key);

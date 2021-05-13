@@ -13,8 +13,10 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <micromegas/MicromegasDefs.h>
@@ -44,10 +46,11 @@
 #include <vector>
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
-  : PHTrackFitting(name)
+  : SubsysReco(name)
   , m_event(0)
   , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
+  , m_directedTrackMap(nullptr)
   , m_vertexMap(nullptr)
   , m_clusterContainer(nullptr)
   , m_surfMaps(nullptr)
@@ -69,17 +72,17 @@ PHActsTrkFitter::~PHActsTrkFitter()
 {
 }
 
-int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
+int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 {
   if(Verbosity() > 1)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
-  
-  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+
+   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-
+  
   m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField);
@@ -110,7 +113,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::Process()
+int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
 {
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
@@ -200,7 +203,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
   for(auto& [trackKey, track] : *m_trackMap)
     {
-  
       if(!track)
 	{
 	  continue;
@@ -293,11 +295,19 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			      .transverseMomentum(), 
 			      fitTime);
 	    }
-
-	  getTrackFitResult(fitOutput, track);
-
+	  
+	  if(m_fitSiliconMMs)
+	    {
+	      auto newTrack = (SvtxTrack_v2*)(track->CloneMe());
+	      getTrackFitResult(fitOutput, newTrack);
+	      m_directedTrackMap->insert(newTrack);
+	    }
+	  else
+	    {
+	      getTrackFitResult(fitOutput, track);
+	    }
 	}
-      else
+      else if (!m_fitSiliconMMs)
 	{
 	  /// Track fit failed, get rid of the track from the map
 	  badTracks.push_back(trackKey);
@@ -634,6 +644,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       track->clear_states();
       track->clear_cluster_keys();
     }
+
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
@@ -671,7 +682,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   float dca3Dz = NAN;
   float dca3DxyCov = NAN;
   float dca3DzCov = NAN;
-      
+ 
   if(params.covariance())
     {
      
@@ -689,17 +700,20 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	}
     
       unsigned int vertexId = track->get_vertex_id();
+
       const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+   
       Acts::Vector3D vertex(
 		  svtxVertex->get_x() * Acts::UnitConstants::cm, 
 		  svtxVertex->get_y() * Acts::UnitConstants::cm, 
 		  svtxVertex->get_z() * Acts::UnitConstants::cm);
+   
       rotater->calculateDCA(params, vertex, rotatedCov,
 			    m_tGeometry->geoContext, 
 			    dca3Dxy, dca3Dz, 
 			    dca3DxyCov, dca3DzCov);
     }
- 
+
   /// Set the DCA here. The DCA will be updated after the final
   /// vertex fitting in PHActsVertexFinder
   track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
@@ -716,7 +730,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   auto trackStateTimer = std::make_unique<PHTimer>("TrackStateTimer");
   trackStateTimer->stop();
   trackStateTimer->restart();
-  
+
+
   if(m_fillSvtxTrackStates)
     rotater->fillSvtxTrackStates(traj, trackTip, track,
 				 m_tGeometry->geoContext);  
@@ -798,6 +813,21 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
+  if(m_fitSiliconMMs)
+    {
+      m_directedTrackMap = findNode::getClass<SvtxTrackMap>(topNode,
+							    "SvtxSiliconMMTrackMap");
+      if(!m_directedTrackMap)
+	{
+	  /// Copy this trackmap, then use it for the rest of processing
+	  m_directedTrackMap = new SvtxTrackMap_v1;
+
+	  PHIODataNode<PHObject> *trackNode = 
+	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
+	  svtxNode->addNode(trackNode);
+	} 
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -844,6 +874,9 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+  std::cout << "Grabbing map"<<std::endl;
+  for(const auto& [key,track] : *m_trackMap)
+    track->identify();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
