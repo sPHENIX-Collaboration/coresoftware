@@ -122,15 +122,18 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   m_zigzag_strips = get_int_param("micromegas_zigzag_strips");
 
   // printout
-  std::cout
-    << "PHG4MicromegasHitReco::InitRun\n"
-    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
-    << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
-    << " m_gain: " << m_gain << "\n"
-    << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
-    << " m_diffusion_trans: " << m_diffusion_trans << "cm/sqrt(cm)\n"
-    << " m_zigzag_strips: " << std::boolalpha << m_zigzag_strips << "\n"
-    << std::endl;
+  if( Verbosity() )
+  {
+    std::cout
+      << "PHG4MicromegasHitReco::InitRun\n"
+      << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
+      << " m_electrons_per_gev: " << m_electrons_per_gev << "\n"
+      << " m_gain: " << m_gain << "\n"
+      << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
+      << " m_diffusion_trans: " << m_diffusion_trans << "cm/sqrt(cm)\n"
+      << " m_zigzag_strips: " << std::boolalpha << m_zigzag_strips << "\n"
+      << std::endl;
+  }
 
   // setup tiles
   setup_tiles( topNode );
@@ -228,10 +231,10 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
      * it is used to calculate the drift distance of the primary electrons, and the
      * corresponding transverse diffusion
      */
-    const auto mesh_local_y = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ? 
+    const auto mesh_local_y = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
       layergeom->get_thickness()/2:
       -layergeom->get_thickness()/2;
-    
+
 //     /*
 //      * get the radius of the detector mesh. It depends on the drift direction
 //      * it is used to calculate the drift distance of the primary electrons, and the
@@ -270,15 +273,15 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       /*
        * in geant4 hits are generated on a cylinder located at layergeom->get_radius()
        * the actual micromegas tiles however are plane surfaces, tengent to said cylinder
-       * one must convert the g4hit in and out positions from the cylinder back to the actual 
+       * one must convert the g4hit in and out positions from the cylinder back to the actual
        * micromegas surface
-       */ 
-      
+       */
+
       // make a local copy of the g4hit
       PHG4Hitv1 g4hit_copy( g4hit );
-      
+
       /*
-       * move hit coordinates to plane, 
+       * move hit coordinates to plane,
        * update world coordinates
        * get corresponding local coordinates
        */
@@ -288,7 +291,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
       const auto local_in = layergeom->get_local_from_world_coords( tileid, world_in );
       const auto local_out = layergeom->get_local_from_world_coords( tileid, world_out );
-      
+
       // number of primary elections
       const auto nprimary = get_primary_electrons( &g4hit_copy );
       if( !nprimary ) continue;
@@ -308,7 +311,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         // in local reference frame, drift occurs along the y axis, from local y to mesh_local_y
         const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
         auto local = local_in*t + local_out*(1.0-t);
-        
+
         if( m_diffusion_trans > 0 )
         {
           // add transeverse diffusion
@@ -374,7 +377,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       }
 
     }
-    
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -490,8 +493,8 @@ void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
-    
-    // if( Verbosity() )
+
+    if( Verbosity() )
     { cylinder->identify( std::cout ); }
 
   }
@@ -544,7 +547,7 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
     // get strip center
     const TVector3 strip_location = layergeom->get_local_coordinates( tileid, strip );
 
-    /* 
+    /*
      * find relevant strip coordinate with respect to location
      * in local coordinate, phi segmented view has strips along z and measures along x
      * in local coordinate, z segmented view has strips along phi and measures along z
