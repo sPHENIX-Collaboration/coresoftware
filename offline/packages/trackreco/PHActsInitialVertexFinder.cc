@@ -7,6 +7,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHRandomSeed.h>
 
 #if __cplusplus < 201402L
 #include <boost/make_unique.hpp>
@@ -60,6 +61,8 @@ int PHActsInitialVertexFinder::Setup(PHCompositeNode *topNode)
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  m_seed = PHRandomSeed();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -69,20 +72,31 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
     std::cout << "PHActsInitialVertexFinder processing event " 
 	      << m_event << std::endl;
 
-  InitKeyMap keyMap;
-  auto trackPointers = getTrackPointers(keyMap);
 
-  auto vertices = findVertices(trackPointers);
-
-  fillVertexMap(vertices, keyMap);
-
-  /// Need to check that silicon stubs which may have been
-  /// skipped over still have a vertex association
-  checkTrackVertexAssociation();
-
-  for(auto track : trackPointers)
+  if(m_trackMap->size() == 0)
     {
-      delete track;
+      std::cout << PHWHERE 
+		<< "No silicon track seeds found. Can't run initial vertexing, setting dummy vertex of (0,0,0)" 
+		<< std::endl;
+      createDummyVertex();
+    }
+  else
+    {
+      InitKeyMap keyMap;
+      auto trackPointers = getTrackPointers(keyMap);
+      
+      auto vertices = findVertices(trackPointers);
+      
+      fillVertexMap(vertices, keyMap);
+      
+      /// Need to check that silicon stubs which may have been
+      /// skipped over still have a vertex association
+      checkTrackVertexAssociation();
+      
+      for(auto track : trackPointers)
+	{
+	  delete track;
+	}
     }
 
   if(Verbosity() > 0)
@@ -393,9 +407,11 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   /// a centroid based on which they are closest to, and then iterate
   /// to update clusters and centroids
   
-  std::vector<float> centroids(m_nCentroids);
   std::random_device seed;
-  std::mt19937 random_number_generator(seed());
+  std::mt19937 random_number_generator;  
+  random_number_generator.seed(m_seed);
+
+  std::vector<float> centroids(m_nCentroids);
   std::uniform_int_distribution<int> indices(0,m_trackMap->size() - 1);
   std::vector<int> usedIndices;
 
@@ -591,6 +607,14 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 {
   TrackParamVec tracks;
 
+  /// If there are fewer tracks than centroids, just one with 1 centroid
+  /// Otherwise algorithm does not converge. nCentroids should only be
+  /// a handful, so this only affects small nTrack events.
+  if(m_trackMap->size() < m_nCentroids) 
+    {
+      m_nCentroids = 1;
+    }
+  
   auto sortedTracks = sortTracks();
 
   for(const auto& track : sortedTracks)

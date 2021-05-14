@@ -99,6 +99,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   unsigned int m_totVertexFits = 0;
   unsigned int m_successFits = 0;
 
+  unsigned int m_seed = 0;
+
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";
 
