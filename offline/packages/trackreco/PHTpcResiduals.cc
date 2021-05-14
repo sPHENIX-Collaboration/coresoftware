@@ -463,9 +463,6 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
   const auto globStateZ = stateZ;
 
-  std::cout << "Track param raw position is : (" << globStateX 
-	    << ", " << globStateY << ", " << globStateZ << std::endl;
-
   stateR = sqrt(pow(globStateX, 2) +
 		pow(globStateY, 2) );
   
@@ -751,11 +748,11 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
   
   if (!m_trackMap)
     {
-      std::cout << PHWHERE << "SvtxTrackMap not on node tree. Exiting."
+      std::cout << PHWHERE << "SvtxSiliconMMTrackMap not on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
