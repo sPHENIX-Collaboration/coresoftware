@@ -1701,7 +1701,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         // if(g4particle->get_track_id()<0 && g4particle->get_e()<0.5) continue;
         // primary (g4particle->get_parent_id() == 0) selection via:
         // if(gtrackID < 0) continue;
-
         _mcpart_ID[_nMCPart] = g4particle->get_track_id();
         _mcpart_ID_parent[_nMCPart] = g4particle->get_parent_id();
         _mcpart_PDG[_nMCPart] = g4particle->get_pid();
@@ -1770,9 +1769,9 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
     return 3;
   else if (projname.find("ETTL_1") != std::string::npos)
     return 4;
-  else if (projname.find("FHCAL_0") != std::string::npos)
+  else if (projname.find("FHCAL") != std::string::npos)
     return 5;
-  else if (projname.find("FEMC_0") != std::string::npos)
+  else if (projname.find("FEMC") != std::string::npos)
     return 6;
   else if (projname.find("CTTL_0") != std::string::npos)
     return 7;
