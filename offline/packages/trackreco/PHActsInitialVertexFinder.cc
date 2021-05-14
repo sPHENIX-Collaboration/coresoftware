@@ -7,7 +7,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <phool/recoConsts.h>
+#include <phool/PHRandomSeed.h>
 
 #if __cplusplus < 201402L
 #include <boost/make_unique.hpp>
@@ -61,6 +61,8 @@ int PHActsInitialVertexFinder::Setup(PHCompositeNode *topNode)
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  m_seed = PHRandomSeed();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -405,15 +407,9 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   /// a centroid based on which they are closest to, and then iterate
   /// to update clusters and centroids
   
-  recoConsts *rc = recoConsts::instance();
-
   std::random_device seed;
-  std::mt19937 random_number_generator(seed());  
-  if(rc->FlagExist("RANDOMSEED"))
-    {
-      auto sphenixSeed = rc->get_IntFlag("RANDOMSEED");
-      random_number_generator.seed(sphenixSeed);
-    }
+  std::mt19937 random_number_generator;  
+  random_number_generator.seed(m_seed);
 
   std::vector<float> centroids(m_nCentroids);
   std::uniform_int_distribution<int> indices(0,m_trackMap->size() - 1);
