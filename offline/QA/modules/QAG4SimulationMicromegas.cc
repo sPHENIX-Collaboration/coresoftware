@@ -60,6 +60,20 @@ namespace
     double weight = 1;
   };
   
+ //! rotate size or covariant matrix to polar coordinates and return component along provided phi angle
+ /** this is copied from TrkrClusterv2.cc, with the difference that one must use the tile azimuthal angle instead of that of the cluster */
+ template<float (TrkrCluster::*accessor)(unsigned int, unsigned int) const>
+    float rotate( const double phi, const TrkrCluster* cluster )
+  {
+    const auto cosphi = std::cos(phi);
+    const auto sinphi = std::sin(phi);
+
+    return
+      square(sinphi)*(cluster->*accessor)(0,0) +
+      square(cosphi)*(cluster->*accessor)(1,1) +
+      2.*cosphi*sinphi*(cluster->*accessor)(0,1);
+  }
+  
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template<double (interpolation_data_t::*accessor)() const>
   double interpolate( const interpolation_data_t::list& hits, double y_extrap )
@@ -320,8 +334,8 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       const auto segmentation_type = MicromegasDefs::getSegmentationType( key );
 
       // get relevant cluster information
-      const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
-      const auto phi_error = cluster->getPhiError();
+      const auto phi = -layergeom->get_center_phi( tileid );
+      const auto rphi_error = std::sqrt(rotate<&TrkrCluster::getError>(phi, cluster) );        
       const auto z_error = cluster->getZError();
 
       // convert cluster position to local tile coordinates
@@ -366,8 +380,8 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         {
           const auto drphi = cluster_local.x() - interpolation_local.x();
           fill(hiter->second.residual, drphi );
-          fill(hiter->second.residual_error, r_cluster * phi_error);
-          fill(hiter->second.pulls, drphi / (r_cluster * phi_error) );
+          fill(hiter->second.residual_error, rphi_error);
+          fill(hiter->second.pulls, drphi / rphi_error );
           break;
         }
         
