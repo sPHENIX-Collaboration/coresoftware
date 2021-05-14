@@ -47,7 +47,6 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 
 #include <memory>
-#include <random>
 
 PHActsInitialVertexFinder::PHActsInitialVertexFinder(const std::string& name)
   : PHInitVertexing(name)
@@ -62,6 +61,7 @@ int PHActsInitialVertexFinder::Setup(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   
   m_seed = PHRandomSeed();
+  m_random_number_generator.seed(m_seed);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -406,10 +406,6 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   /// m_nCentroid track z PCAs (centroids), assign all tracks to 
   /// a centroid based on which they are closest to, and then iterate
   /// to update clusters and centroids
-  
-  std::random_device seed;
-  std::mt19937 random_number_generator;  
-  random_number_generator.seed(m_seed);
 
   std::vector<float> centroids(m_nCentroids);
   std::uniform_int_distribution<int> indices(0,m_trackMap->size() - 1);
@@ -418,10 +414,10 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   /// Get the original centroids
   for(auto& centroid : centroids) 
     {
-      auto index = indices(random_number_generator);
+      auto index = indices(m_random_number_generator);
       for(const auto used : usedIndices)
 	if(index == used)
-	  index = indices(random_number_generator);
+	  index = indices(m_random_number_generator);
 
       usedIndices.push_back(index);
 

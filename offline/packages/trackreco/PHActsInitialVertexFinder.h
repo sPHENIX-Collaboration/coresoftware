@@ -9,9 +9,10 @@
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Vertexing/Vertex.hpp>
 
-
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+
+#include <random>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -100,6 +101,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   unsigned int m_successFits = 0;
 
   unsigned int m_seed = 0;
+  std::mt19937 m_random_number_generator;
 
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";
