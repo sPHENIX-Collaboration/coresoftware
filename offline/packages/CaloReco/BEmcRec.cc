@@ -145,6 +145,10 @@ bool BEmcRec::CompleteTowerGeometry()
     return false;
   }
 
+  const int nb = 8;
+  int idx[nb] = { 0, 1, 0,-1,-1, 1, 1,-1};
+  int idy[nb] = {-1, 0, 1, 0,-1,-1, 1, 1};
+
   std::map<int, TowerGeom>::iterator it;
 
   for (it = fTowerGeom.begin(); it != fTowerGeom.end(); ++it)
@@ -154,52 +158,34 @@ bool BEmcRec::CompleteTowerGeometry()
     int ix = ich % fNx;
     int iy = ich / fNx;
 
-    // Next tower in x
     TowerGeom geomx;
-    int idx = 0;
-    if (ix < fNx / 2)
-    {
-      idx += 1;
-      while (!GetTowerGeometry(ix + idx, iy, geomx) && idx < fNx / 2) idx += 1;
-    }
-    else
-    {
-      idx -= 1;
-      while (!GetTowerGeometry(ix + idx, iy, geomx) && idx > -fNx / 2) idx -= 1;
-    }
-    if (idx >= fNx / 2 || idx <= -fNx / 2)
+    int inx = 0;
+
+    while ( inx<nb && (idx[inx]==0 || !GetTowerGeometry(ix + idx[inx], iy+idy[inx], geomx)) ) inx++;
+    if (inx >= nb)
     {
       cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
            << ix << "," << iy << ")" << endl;
       return false;
     }
 
-    // Next tower in y
     TowerGeom geomy;
-    int idy = 0;
-    if (iy < fNy / 2)
-    {
-      idy += 1;
-      while (!GetTowerGeometry(ix, iy + idy, geomy) && idy < fNy / 2) idy += 1;
-    }
-    else
-    {
-      idy -= 1;
-      while (!GetTowerGeometry(ix, iy + idy, geomy) && idy > -fNy / 2) idy -= 1;
-    }
-    if (idy >= fNy / 2 || idy <= -fNy / 2)
+    int iny = 0;
+
+    while ( iny<nb && (idy[iny]==0 || !GetTowerGeometry(ix + idx[iny], iy+idy[iny], geomy)) ) iny++;
+    if (iny >= nb)
     {
       cout << "Error in BEmcRec::CompleteTowerGeometry(): Error when locating neighbour for (ix,iy)=("
            << ix << "," << iy << ")" << endl;
       return false;
     }
 
-    geom0.dX[0] = (geomx.Xcenter - geom0.Xcenter) / float(idx);
-    geom0.dY[0] = (geomx.Ycenter - geom0.Ycenter) / float(idx);
-    geom0.dZ[0] = (geomx.Zcenter - geom0.Zcenter) / float(idx);
-    geom0.dX[1] = (geomy.Xcenter - geom0.Xcenter) / float(idy);
-    geom0.dY[1] = (geomy.Ycenter - geom0.Ycenter) / float(idy);
-    geom0.dZ[1] = (geomy.Zcenter - geom0.Zcenter) / float(idy);
+    geom0.dX[0] = (geomx.Xcenter - geom0.Xcenter) / float(idx[inx]);
+    geom0.dY[0] = (geomx.Ycenter - geom0.Ycenter) / float(idx[inx]);
+    geom0.dZ[0] = (geomx.Zcenter - geom0.Zcenter) / float(idx[inx]);
+    geom0.dX[1] = (geomy.Xcenter - geom0.Xcenter) / float(idy[iny]);
+    geom0.dY[1] = (geomy.Ycenter - geom0.Ycenter) / float(idy[iny]);
+    geom0.dZ[1] = (geomy.Zcenter - geom0.Zcenter) / float(idy[iny]);
 
     it->second = geom0;
 

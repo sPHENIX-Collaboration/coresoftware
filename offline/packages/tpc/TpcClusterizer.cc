@@ -66,6 +66,10 @@ struct thread_data {
   unsigned short zbins;
   unsigned short zoffset;
   double zz_shaping_correction;
+  std::pair<double,double> par0_neg;
+  std::pair<double,double> par0_pos;
+  std::pair<double,double> par1_neg;
+  std::pair<double,double> par1_pos;
   std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist;
   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc;
 };
@@ -271,7 +275,7 @@ Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 
 }
 
-void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset, unsigned short phioffset, unsigned short zoffset, double zz_shaping_correction, std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc, bool do_assoc, ActsTrackingGeometry *tGeometry, ActsSurfaceMaps *surfMaps)
+void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset, unsigned short phioffset, unsigned short zoffset,  std::pair<double,double> par0_neg, std::pair<double,double> par0_pos, std::pair<double, double> par1_neg, std::pair<double, double> par1_pos, std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc, bool do_assoc, ActsTrackingGeometry *tGeometry, ActsSurfaceMaps *surfMaps)
 {
 
   // loop over the hits in this cluster
@@ -357,13 +361,29 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
   // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
   // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-  
-  if (clusz < 0)
-    clusz -= zz_shaping_correction;
-  else
-    clusz += zz_shaping_correction;
 
-  
+
+  // Add Acts relevant quantities
+  const unsigned int sectorId = TpcDefs::getSectorId(ckey);
+  const unsigned int layer = TrkrDefs::getLayer(ckey);  
+  const unsigned int side = TpcDefs::getSide(ckey);
+
+  // correct cluster z for shaping distortion
+  // get parameters of z dependence at this layer
+  double p0, p1;
+  if(clusz < 0)
+    {
+      p0 = par0_neg.first + (double) layer * par0_neg.second;
+      p1= par1_neg.first + (double) layer * par1_neg.second;
+    }
+  else
+    {
+      p0 = par0_pos.first + (double) layer * par0_pos.second;
+      p1=par1_pos.first + (double) layer *  par1_pos.second;
+    }
+  double z_correction = p0 + p1 * clusz;
+  clusz -= z_correction;
+
   // Fill in the cluster details
   //================
   clus->setAdc(adc_sum);
@@ -435,11 +455,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   clus->setError(2, 1, COVAR_ERR[2][1]);
   clus->setError(2, 2, COVAR_ERR[2][2]);
   
-  // Add Acts relevant quantities
-  const unsigned int layer = TrkrDefs::getLayer(ckey);
-  const unsigned int sectorId = TpcDefs::getSectorId(ckey);
-  const unsigned int side = TpcDefs::getSide(ckey);
- 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
 
@@ -524,7 +539,10 @@ void *ProcessSector(void *threadarg) {
    unsigned short phioffset = my_data->phioffset;
    unsigned short zbins     = my_data->zbins ;
    unsigned short zoffset   = my_data->zoffset ;
-   double zz_shaping_correction = my_data->zz_shaping_correction ;
+   std::pair<double, double> par0_neg = my_data->par0_neg;
+   std::pair<double, double> par0_pos = my_data->par0_pos;
+   std::pair<double, double> par1_neg = my_data->par1_neg;
+   std::pair<double, double> par1_pos = my_data->par1_pos;
    std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = my_data->clusterlist;
    std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc = my_data->clusterhitassoc;
 
@@ -587,7 +605,7 @@ void *ProcessSector(void *threadarg) {
      // -> add hits to truth association
      // remove hits from all_hit_map
      // repeat untill all_hit_map empty
-     calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, zz_shaping_correction, clusterlist, clusterhitassoc, do_assoc,tGeometry, surfMaps);
+     calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, par0_neg, par0_pos, par1_neg, par1_pos, clusterlist, clusterhitassoc, do_assoc,tGeometry, surfMaps);
      remove_hits(ihit_list,all_hit_map, adcval);
    }
    pthread_exit(nullptr);
@@ -601,7 +619,6 @@ TpcClusterizer::TpcClusterizer(const std::string &name)
   , m_surfMaps(nullptr)
   , m_tGeometry(nullptr)
   , do_hit_assoc(true)
-  , zz_shaping_correction(0.0754)
   , pedestal(74.4)
   , SectorFiducialCut(0.5)
   , NSearch(2)
@@ -639,6 +656,7 @@ bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderC
 
   return reject_it;
 }
+
 
 int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 {
@@ -807,7 +825,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.zz_shaping_correction =  zz_shaping_correction;
+    thread_pair.data.par0_neg = par0_neg;
+    thread_pair.data.par1_neg = par1_neg;
+    thread_pair.data.par0_pos = par0_pos;
+    thread_pair.data.par1_pos = par1_pos;
     thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
     thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     thread_pair.data.tGeometry = m_tGeometry;
