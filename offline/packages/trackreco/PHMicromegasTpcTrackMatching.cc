@@ -24,9 +24,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TFile.h>
 #include <TF1.h>
-#include <TH1.h>
 #include <TVector3.h>
 
 #include <array>
@@ -301,21 +299,6 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
   fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
   fdrphi->SetParameter(1, _par1);
 
-  // evaluation
-  _test_windows = true;
-  if( _test_windows )
-  {
-    for( int i = 0; i < _n_mm_layers; ++i )
-    {
-      _rphi_residuals[i] = new TH1F( Form( "rphi_%i", i ), Form( "r#Delta#phi layer %i", i ), 100, -1, 1 );
-      _rphi_residuals[i]->GetXaxis()->SetTitle( "r#Delta#phi (cm)" );
-
-      _z_residuals[i] = new TH1F( Form( "z_%i", i ), Form( "#Deltaz layer %i", i ), 100, -1, 1 );
-      _z_residuals[i]->GetXaxis()->SetTitle( "r#Delta#phi (cm)" );
-    }
-  }
-
-
   // base class setup
   int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -348,16 +331,16 @@ int PHMicromegasTpcTrackMatching::Process()
     // we may add tracks to the map, so we stop at the last original track
     if(phtrk_iter->first >= original_track_map_lastkey)  break;
 
-    _tracklet_tpc = phtrk_iter->second;
+    auto tracklet_tpc = phtrk_iter->second;
 
     if (Verbosity() >= 1)
     {
       std::cout << std::endl
         << __LINE__
         << ": Processing seed itrack: " << phtrk_iter->first
-        << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
+        << ": nhits: " << tracklet_tpc-> size_cluster_keys()
         << ": Total tracks: " << _track_map->size()
-        << ": phi: " << _tracklet_tpc->get_phi()
+        << ": phi: " << tracklet_tpc->get_phi()
         << std::endl;
     }
 
@@ -365,7 +348,7 @@ int PHMicromegasTpcTrackMatching::Process()
     std::map<unsigned int, TrkrCluster*> outer_clusters;
     std::vector<TrkrCluster*> clusters;
 
-    for (SvtxTrack::ConstClusterKeyIter key_iter = _tracklet_tpc->begin_cluster_keys(); key_iter != _tracklet_tpc->end_cluster_keys(); ++key_iter)
+    for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
       TrkrDefs::cluskey cluster_key = *key_iter;
       unsigned int layer = TrkrDefs::getLayer(cluster_key);
@@ -429,8 +412,8 @@ int PHMicromegasTpcTrackMatching::Process()
       {
         if(Verbosity() > 10)
         {
-          std::cout << " circle/circle intersection calculation failed, skip this case" << std::endl;
-          std::cout << " mm_radius " << layer_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+          std::cout << PHWHERE << " circle/circle intersection calculation failed, skip this case" << std::endl;
+          std::cout << PHWHERE << " mm_radius " << layer_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
         }
 
         continue;
@@ -468,7 +451,8 @@ int PHMicromegasTpcTrackMatching::Process()
       // calculate intersection to tile
       if( !circle_line_intersection( R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus) )
       {
-        std::cout << "circle_line_intersection - failed" << std::endl;
+        if(Verbosity() > 10)
+        { std::cout << PHWHERE << "circle_line_intersection - failed" << std::endl; }
         continue;
       }
 
@@ -523,18 +507,36 @@ int PHMicromegasTpcTrackMatching::Process()
         const double drphi = local_intersection_planar.x() - local_cluster.x();
         const double dz = local_intersection_planar.z() - local_cluster.z();
 
-        // fill histogram
-        if( _test_windows )
-        {
-          _rphi_residuals[imm]->Fill( drphi );
-          _z_residuals[imm]->Fill( dz );
-        }
-
         // compare to cuts and add to track if matching
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
         {
-          _tracklet_tpc->insert_cluster_key(key);
-          _assoc_container->SetClusterTrackAssoc(key, _tracklet_tpc->get_id());
+          tracklet_tpc->insert_cluster_key(key);
+          _assoc_container->SetClusterTrackAssoc(key, tracklet_tpc->get_id());
+
+          // prints out a line that can be grep-ed from the output file to feed to a display macro
+          if( _test_windows )
+          {
+            // cluster rphi and z
+            const double mm_clus_rphi = get_r( cluster->getX(), cluster->getY() ) * std::atan2( cluster->getY(),  cluster->getX() );
+            const double mm_clus_z = cluster->getZ();
+
+            // projection phi and z, without correction
+            const double rphi_proj = get_r( world_intersection_planar.x(), world_intersection_planar.y() ) * std::atan2( world_intersection_planar.y(), world_intersection_planar.x() );
+            const double z_proj = world_intersection_planar.z();
+
+            /*
+             * Note: drphi and dz might not match the difference of the rphi and z quoted values. This is because
+             * 1/ drphi and dz are actually calculated in Tile's local reference frame, not in world coordinates
+             * 2/ drphi also includes SC distortion correction, which the world coordinates don't
+             */
+            std::cout
+              << "  Try_mms: " << (int) layer
+              << " drphi " << drphi
+              << " dz " << dz
+              << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
+              << " rphi_proj " <<  rphi_proj << " z_proj " << z_proj
+              << std::endl;
+          }
         }
 
       } // end loop over clusters
@@ -542,7 +544,7 @@ int PHMicromegasTpcTrackMatching::Process()
     } // end loop over Micromegas layers
 
     if(Verbosity() > 3)
-    { _tracklet_tpc->identify(); }
+    { tracklet_tpc->identify(); }
 
   }
 
@@ -554,20 +556,7 @@ int PHMicromegasTpcTrackMatching::Process()
 
 //_________________________________________________________________________________________________
 int PHMicromegasTpcTrackMatching::End()
-{
-
-  if( _test_windows )
-  {
-    std::unique_ptr<TFile> tfile( TFile::Open( _evaluation_rootfile.c_str(), "RECREATE" ) );
-    for( int i = 0; i < _n_mm_layers; ++i )
-    {
-      _rphi_residuals[i]->Write();
-      _z_residuals[i]->Write();
-    }
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+{ return Fun4AllReturnCodes::EVENT_OK; }
 
 //_________________________________________________________________________________________________
 int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
