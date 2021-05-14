@@ -40,12 +40,16 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   
   private:
 
+  //! load nodes relevant for the analysis
   int GetNodes(PHCompositeNode* topNode);
     
-  // default values, can be replaced from the macro, all in cm
-  // rhese correspond to the "baseline" configuration tiles
+  //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
+  
+  //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
+
+  //! default z search window for each layer
   std::array<double,_n_mm_layers> _z_search_win = {26.0, 0.25};
 
   // range of TPC layers to use in projection to micromegas
@@ -55,30 +59,28 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   /** it is reset in ::Setup using actual micromegas geometry */
   unsigned int _min_mm_layer = 55;
 
-  bool _sc_calib_mode = false;  // true for initioal pass with distorted tracks
+  //! true for initial pass with distorted tracks
+  bool _sc_calib_mode = false; 
 
-  double _collision_rate = 50e3;  // input rate for phi correction
-  double _reference_collision_rate = 50e3;  // reference rate for phi correction
+  //! input rate for phi correction
+  double _collision_rate = 50e3;  
+  
+  //! reference rate for phi correction
+  double _reference_collision_rate = 50e3;  
 
+  //! internal event number
   int _event = -1;
   
   //! micomegas geometry
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
 
-  //! current track
-  SvtxTrack *_tracklet_tpc{nullptr};
-
+  //! coarse SC correction function
   TF1 *fdrphi{nullptr};
   double _par0 = -0.36619;
   double _par1 = 0.00375714;
 
-  //!@name evaluation
-  //@{
+  //! true to printout actual residuals for testing
   bool _test_windows = false;   
-  std::string _evaluation_rootfile = "PHMicromegasTpcTrackMatching.root";
-  std::array<TH1*,_n_mm_layers> _rphi_residuals = {{nullptr, nullptr}};
-  std::array<TH1*,_n_mm_layers> _z_residuals = {{nullptr, nullptr}};
-  //@}
   
 };
 
