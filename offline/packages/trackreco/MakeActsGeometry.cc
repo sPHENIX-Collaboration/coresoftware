@@ -264,7 +264,6 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // layer: 56 volume: MICROMEGAS_55_Gas2_outer_phys
 
   TGeoNode *micromegas_envelope_node = nullptr;
-
   for (int i = 0; i < World_vol->GetNdaughters(); i++)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
@@ -279,15 +278,14 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     }
   }
 
-  if(micromegas_envelope_node)
-  {
+  /*
+  need to load micromegas geometry already now because it is needed for
+  defining the volumes relevant for acts
+  */
+  m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
 
-    /*
-    need to load micromegas geometry already now because it is needed for
-    defining the volumes relevant for acts
-    */
-    m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
-    assert( m_geomContainerMicromegas );
+  if(micromegas_envelope_node && m_geomContainerMicromegas)
+  {
 
     /// If the node was found, we're building the MMs
     m_buildMMs = true;
@@ -1533,7 +1531,6 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << " CYLINDERGEOM_MICROMEGAS_FULL  node not found on node tree"
 	      << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
