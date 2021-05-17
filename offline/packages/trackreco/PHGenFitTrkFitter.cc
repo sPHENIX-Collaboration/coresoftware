@@ -837,8 +837,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   auto geom_container_mvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   assert( geom_container_mvtx );
 
+  /* no need to check for the container validity here. The check is done if micromegas clusters are actually found in the track */
   auto geom_container_micromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
-  assert( geom_container_micromegas );
 
   // prepare seed
   TVector3 seed_mom(100, 0, 0);
@@ -1031,6 +1031,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       case TrkrDefs::micromegasId:
       {
         // get geometry
+        /* a situation where micromegas clusters are found, but not the geometry, should not happen */
+        assert( geom_container_micromegas );
         auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
         const auto tileid = MicromegasDefs::getTileId( cluster_key );
         
