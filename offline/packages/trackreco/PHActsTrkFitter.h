@@ -120,11 +120,10 @@ class PHActsTrkFitter : public SubsysReco
   void getTrackFitResult(const FitResult& fitOutput, 
 			 SvtxTrack* track);
 
-  Surface getSurface(TrkrDefs::cluskey cluskey, 
-		     TrkrDefs::subsurfkey surfkey);
+  Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey);
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcMMSurface(TrkrDefs::hitsetkey hitsetkey,
-			  TrkrDefs::subsurfkey surfkey);
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
 
   Acts::BoundSymMatrix setDefaultCovariance();
   void printTrackSeed(ActsExamples::TrackParameters seed);

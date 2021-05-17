@@ -111,9 +111,10 @@ class PHTpcResiduals : public SubsysReco
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   Surface getSurface(TrkrDefs::cluskey cluskey,
 		     TrkrDefs::subsurfkey);
+      
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcMMSurface(TrkrDefs::hitsetkey,
-			  TrkrDefs::subsurfkey surfkey);
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
   Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Node information for Acts tracking geometry and silicon+MM

@@ -14,11 +14,11 @@ class PHG4CylinderGeom;
 class PHG4CylinderGeomContainer: public PHObject
 {
  public:
-  typedef std::map<int,PHG4CylinderGeom *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  using Map = std::map<int,PHG4CylinderGeom *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   PHG4CylinderGeomContainer();
   virtual ~PHG4CylinderGeomContainer();
@@ -30,10 +30,10 @@ class PHG4CylinderGeomContainer: public PHObject
   PHG4CylinderGeom *GetLayerGeom(const int i);
   PHG4CylinderGeom *GetFirstLayerGeom();
   int get_NLayers() const {return layergeoms.size();}
-  std::pair<std::map<int,PHG4CylinderGeom *>::const_iterator, std::map<int,PHG4CylinderGeom *>::const_iterator> get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
+  ConstRange get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
 
  protected:
-  std::map<int,PHG4CylinderGeom *> layergeoms ;
+  Map layergeoms;
   float magfield;
   ClassDef(PHG4CylinderGeomContainer,1)
 };
