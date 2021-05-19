@@ -34,9 +34,6 @@ class TrkrHitSet : public PHObject
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  //! ctor
-  TrkrHitSet() = default;
-
   //! TObject functions
   virtual void identify(std::ostream& os = std::cout) const
   {
@@ -109,6 +106,12 @@ class TrkrHitSet : public PHObject
     return 0;
   }
 
+  protected:
+
+  //! ctor, not to be called
+  TrkrHitSet() = default;
+
+private:
   ClassDef(TrkrHitSet, 1);
 };
 

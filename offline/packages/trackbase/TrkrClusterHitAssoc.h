@@ -29,8 +29,6 @@ public:
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
   
-  TrkrClusterHitAssoc() = default;
-
   virtual void Reset() = 0;
 
   virtual void identify(std::ostream &os = std::cout) const = 0;
@@ -54,6 +52,9 @@ public:
   virtual ConstRange getHits(TrkrDefs::cluskey) = 0;
 
   virtual unsigned int size() const {return 0;}
+
+protected:
+  TrkrClusterHitAssoc() = default;
 
 private:
 

@@ -34,9 +34,6 @@ class TrkrClusterContainer : public PHObject
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
   //@}
 
-  //! constructor
-  TrkrClusterContainer() = default;
-
   //! reset method
   virtual void Reset() {}
 
@@ -72,6 +69,10 @@ class TrkrClusterContainer : public PHObject
 
   //! total number of clusters
   virtual unsigned int size() const { return 0; }
+
+  protected:
+  //! constructor
+  TrkrClusterContainer() = default;
 
   private:
 
