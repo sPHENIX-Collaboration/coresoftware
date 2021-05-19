@@ -95,12 +95,8 @@ using namespace std;
 LiteCaloEval::LiteCaloEval(const string &name, const string& caloname, const string& filename):
  SubsysReco(name)
  , user_choice(0)
-  , _tfile(NULL)
-  , _ievent(0)
-  , _ntp_tower(0)
  , _caloname(caloname)
  , _filename(filename)
- , cal_output(0)
 {
 
 //_caloname = caloname;
