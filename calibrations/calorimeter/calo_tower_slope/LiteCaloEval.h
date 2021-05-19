@@ -62,34 +62,28 @@ class LiteCaloEval : public SubsysReco
   
 
  private:
-  TFile * _tfile;
-  int _ievent;
-  TNtuple * _ntp_tower;
+  TFile * _tfile = nullptr;
+  int _ievent = 0;
+  TNtuple * _ntp_tower = nullptr;
   std::string _caloname;
   std::string _filename;
   
-  TFile *cal_output;
+  TFile *cal_output = nullptr;
 
-  TH1F *hcal_out_eta_phi[24][64];// = {0};  
-  TH1F *hcalout_eta[24];// = {0};
-  TH2F *hcalout_energy_eta; // = new TH2F("hcalout_energy_eta", "hcalout energy eta", 10,0,10,24000,-1.1,1.1);
-  TH3F *hcalout_e_eta_phi;// = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi",50,0,10,24,-1.1,1.1,64,-3.14159,3.14159);
+  TH1F *hcal_out_eta_phi[24][64] = {};
+  TH1F *hcalout_eta[24] = {};
+  TH2F *hcalout_energy_eta = nullptr; // = new TH2F("hcalout_energy_eta", "hcalout energy eta", 10,0,10,24000,-1.1,1.1);
+  TH3F *hcalout_e_eta_phi = {};// = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi",50,0,10,24,-1.1,1.1,64,-3.14159,3.14159);
   
-  TH1F *hcal_in_eta_phi[24][64];// = {0};
-  TH1F *hcalin_eta[24];// = {0};  
-  TH2F *hcalin_energy_eta;// = new TH2F("hcalin_energy_eta", "hcalin energy eta", 1000,0,10,240,-1.1,1.1);
-  TH3F *hcalin_e_eta_phi;// = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi",50,0,10,24,-1.1,1.1,64,-3.14159,3.14159);
+  TH1F *hcal_in_eta_phi[24][64] = {};
+  TH1F *hcalin_eta[24] = {};
+  TH2F *hcalin_energy_eta = nullptr;// = new TH2F("hcalin_energy_eta", "hcalin energy eta", 1000,0,10,240,-1.1,1.1);
+  TH3F *hcalin_e_eta_phi = nullptr;// = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi",50,0,10,24,-1.1,1.1,64,-3.14159,3.14159);
 
-  TH1F *cemc_hist_eta_phi[96][258];// = {0};
-  TH1F *eta_hist[96];// = {0};
-  TH2F *energy_eta_hist;// = Null;
-  TH3F *e_eta_phi;// = Null;
-  
-
-
-
-
-
+  TH1F *cemc_hist_eta_phi[96][258] = {};// = {0};
+  TH1F *eta_hist[96] = {};// = {0};
+  TH2F *energy_eta_hist = nullptr;// = Null;
+  TH3F *e_eta_phi = nullptr;// = Null;
 };
 
 #endif // LITECALOEVAL_H
