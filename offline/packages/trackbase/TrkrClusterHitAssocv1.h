@@ -26,10 +26,7 @@ class TrkrClusterHitAssocv1 : public TrkrClusterHitAssoc
 public:
 
   //! ctor
-  TrkrClusterHitAssocv1();
-
-  //! dtor
-  virtual ~TrkrClusterHitAssocv1();
+  TrkrClusterHitAssocv1() = default;
 
   virtual void Reset();
 
@@ -47,12 +44,11 @@ public:
    * @param[in] ckey Cluster key
    * @param[out] Range over hits associated with @c ckey
    */
-  virtual std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>  
-    getHits(TrkrDefs::cluskey ckey);
-
+  virtual ConstRange getHits(TrkrDefs::cluskey);
+  
 private:
 
-  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> m_map;
+  Map m_map;
 
   ClassDef(TrkrClusterHitAssocv1, 1);
 };

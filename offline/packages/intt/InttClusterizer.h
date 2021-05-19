@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <climits>
 #include <map>
@@ -73,14 +74,12 @@ class InttClusterizer : public SubsysReco
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
-
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
-
 
   // settings
   float _fraction_of_mip;

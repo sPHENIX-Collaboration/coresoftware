@@ -15,6 +15,8 @@
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
 
+#include <micromegas/CylinderGeomMicromegas.h>
+
 #include <tpc/TpcDefs.h>
 
 #include <micromegas/MicromegasDefs.h>
@@ -71,20 +73,35 @@
 #include <utility>
 #include <vector>
 
-MakeActsGeometry::MakeActsGeometry(const std::string &name)
-: SubsysReco(name)
+namespace
 {
-  setPlanarSurfaceDivisions();
-  nprint_tpc = 0;
+  /// navigate Acts volumes to find one matching a given name (recursive)
+  TrackingVolumePtr find_volume_by_name( const Acts::TrackingVolume* master, const std::string& name )
+  {
+    // skip if name is not composite
+    if( master->volumeName().empty() || master->volumeName()[0] != '{' ) return nullptr;
+
+    // loop over children
+    for( const auto& child:master->confinedVolumes()->arrayObjects() )
+    {
+      if( child->volumeName() == name ) return child;
+      else if( auto found = find_volume_by_name( child.get(), name ) ) return found;
+    }
+
+    // not found
+    return nullptr;
+  }
 }
 
-MakeActsGeometry::~MakeActsGeometry()
-{}
+MakeActsGeometry::MakeActsGeometry(const std::string &name)
+: SubsysReco(name)
+{ setPlanarSurfaceDivisions(); }
 
 int MakeActsGeometry::Init(PHCompositeNode *topNode)
 {  
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
 
@@ -97,6 +114,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->calibContext = m_calibContext;
   m_actsGeometry->magFieldContext = m_magFieldContext;
   m_actsGeometry->geoContext = m_geoCtxt;
+  m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
+  m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
+  m_actsGeometry->mmSurfStepPhi = m_surfStepPhi;
+  m_actsGeometry->mmSurfStepZ = m_surfStepZ;
 
   /// Same for the surface maps
   m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
@@ -105,7 +126,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_surfMaps->mmSurfaceMap = m_clusterSurfaceMapMmEdit;
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 int MakeActsGeometry::process_event(PHCompositeNode *topNode)
@@ -125,9 +145,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // Do this before anything else, so that the geometry is finalized
   editTPCGeometry(topNode);
 
+  // need to get nodes first, in order to be able to build the proper micromegas geometry
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;  
-  
+
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -243,7 +264,6 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // layer: 56 volume: MICROMEGAS_55_Gas2_outer_phys
 
   TGeoNode *micromegas_envelope_node = nullptr;
-
   for (int i = 0; i < World_vol->GetNdaughters(); i++)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
@@ -258,41 +278,42 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     }
   }
 
-  if(micromegas_envelope_node)
-    {
-      /// If the node was found, we're building the MMs
-      m_buildMMs = true;
+  /*
+  need to load micromegas geometry already now because it is needed for
+  defining the volumes relevant for acts
+  */
+  m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
 
-      TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
-      assert(micromegas_envelope_vol);
-      
-      // Get inner and outer volume and edit them
-      for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
-	{
-	  TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
-	  
-	  // this gets both inner and outer
-	  if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
-	    {
-	      if (Verbosity())
-		std::cout << "EditTPCGeometry - found Micromegas node " << node_name << std::endl;
-	      
-	      TGeoNode *micromegas_node = nullptr;
-	      micromegas_node = micromegas_envelope_vol->GetNode(i);
-	      
-	      int mm_layer;
-	      if( node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") )
-		mm_layer = 0;
-	      else
-		mm_layer = 1;
-	      
-	      TGeoVolume *micromegas_vol = micromegas_node->GetVolume();
-	      assert(micromegas_vol);
-	      
-	      addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
-	    }
-	}
+  if(micromegas_envelope_node && m_geomContainerMicromegas)
+  {
+
+    /// If the node was found, we're building the MMs
+    m_buildMMs = true;
+
+    TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
+    assert(micromegas_envelope_vol);
+
+    // Get inner and outer volume and edit them
+    for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
+    {
+      TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
+
+      // this gets both inner and outer
+      if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
+      {
+        if (Verbosity())
+        { std::cout << "EditTPCGeometry - found Micromegas node " << node_name << std::endl; }
+
+        auto micromegas_node = micromegas_envelope_vol->GetNode(i);
+        const int mm_layer = node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") ? 0:1;
+
+        auto micromegas_vol = micromegas_node->GetVolume();
+        assert(micromegas_vol);
+
+        addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
+      }
     }
+  }
   
   // done
   geoManager->CloseGeometry();
@@ -302,107 +323,59 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
 }
 
-void MakeActsGeometry::addActsMicromegasSurfaces(int mm_layer, 
-						 TGeoVolume *micromegas_vol, 
-						 TGeoManager *geoManager)
+//________________________________________________________________________________
+void MakeActsGeometry::addActsMicromegasSurfaces( int mm_layer, TGeoVolume *micromegas_vol, TGeoManager *geoManager)
 {
   // The input micromegas_vol is either the inner (mm_layer 0) or outer (mm_layer 1) drift volume
 
-  // The surfaces for both inner (phi segmented) and outer (z segmented) Micromegas detectors are long in z and small in phi
-  // ---- We cannot approximate a cylinder with surfaces that are long in phi.
-
+  // load medium
   TGeoMedium *micromegas_medium = micromegas_vol->GetMedium();
   assert(micromegas_medium);
 
-  TGeoVolume *micromegas_measurement_vol;
+  // get first layer
+  int first_layer_mm =  static_cast<CylinderGeomMicromegas*>(m_geomContainerMicromegas->GetFirstLayerGeom())->get_layer();
+    
+  // load relevant geometry
+  const auto layergeom = static_cast<CylinderGeomMicromegas*>(m_geomContainerMicromegas->GetLayerGeom(first_layer_mm + mm_layer));
 
-  // we use the same phi steps as for the TPC, for the same reasons
-  // There are 12*12 phi locations for the surfaces, just as for the TPC
-  double tan_half_phi = tan(m_surfStepPhi / 2.0);
-  double box_z_length = 110.0 * 2 - 0.01;
+  // loop over micromegas tiles
+  // there will be one volume defined per tile
+  for( size_t tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
+  {
+  
+    // get relevant tile
+    const auto& tile = layergeom->get_tile(tileid);
 
+    // volume name
+    const auto volume_name = Form( "micromegas_measurement_%i_%zu", mm_layer, tileid );
+        
+    // create volume 
+    /*
+     * in acts local coordinates, x axis is the normal to the surface
+     * y and z are the measurement directions
+     */
+    auto micromegas_measurement_vol = geoManager->MakeBox(
+      volume_name,
+      micromegas_medium, 
+      (layergeom->get_thickness() - 0.1)/2,
+      CylinderGeomMicromegas::reference_radius*tile.m_sizePhi/2,
+      tile.m_sizeZ/2 );
 
-  // make a box for this layer
-  char bname[500];
-  sprintf(bname,"micromegas_measurement_%i",mm_layer);
+    micromegas_measurement_vol->SetLineColor(kBlack);
+    micromegas_measurement_vol->SetFillColor(kYellow);
+    micromegas_measurement_vol->SetVisibility(kTRUE);
   
-  // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
-  // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
-  double box_r_phi = 2.0 * tan_half_phi * (m_mmLayerRadius[mm_layer] - m_mmLayerThickness[mm_layer] / 2.0 ) - 0.0001;
-  
-  
-  double box_thickness =  m_mmLayerThickness[mm_layer] -  0.1;  // makes it 2 mm thick inside 3 mm thick cylinder
-  
-  micromegas_measurement_vol = geoManager->MakeBox(bname, micromegas_medium, 
-							   box_thickness / 2.0, 
-							   box_r_phi / 2.0, 
-							   box_z_length / 2.0);
-  
-  micromegas_measurement_vol->SetLineColor(kBlack);
-  micromegas_measurement_vol->SetFillColor(kYellow);
-  micromegas_measurement_vol->SetVisibility(kTRUE);
-  
-  if(Verbosity() > 1)
-    {
-      std::cout << Verbosity() << " Made box for Micromegas layer " 
-		<< mm_layer << " with dx " << box_thickness << " dy " 
-		<< box_r_phi << " ref arc " 
-		<< m_surfStepPhi * m_mmLayerRadius[mm_layer] << " dz " 
-		<< box_z_length << std::endl;
-      micromegas_measurement_vol->Print();
-    }      
-  
-  
-  // place the boxes inside the micromegas drift volume cylinders
+    // get position of the center in global frame
+    const TVector3 global_center = layergeom->get_world_from_local_coords( tileid, { 0, 0, 0 });
 
-  int copy = 0;	      
-  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
-    {
-      // The (half) micromegas volume is 2 * 110 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
-      double z_center = 0.0;
-
-      for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
-	{
-      	  for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
-	    {	  
-	      double min_phi = m_modulePhiStart + 
-		(double) imod * m_moduleStepPhi + 
-		(double) iphi * m_surfStepPhi;
-	      
-	      double phi_center = min_phi + m_surfStepPhi / 2.0;
-	      double phi_center_degrees = phi_center * 180.0 / M_PI;
-	      
-	      copy++;
-		  
-	      // place copies of the gas volume to fill up the layer
-	      double x_center = m_mmLayerRadius[mm_layer] * cos(phi_center);
-	      double y_center = m_mmLayerRadius[mm_layer] * sin(phi_center);
-	      
-	      char rot_name[500];
-	      sprintf(rot_name,"micromegas_rotation_%i", copy);
-	      TGeoCombiTrans *micromegas_measurement_location = 
-		new TGeoCombiTrans(x_center, y_center, z_center,
-				   new TGeoRotation(rot_name,
-						    phi_center_degrees, 
-						    0, 0));
-	      
-	      micromegas_vol->AddNode(micromegas_measurement_vol, copy, 
-				      micromegas_measurement_location);
-	      
-	      if(Verbosity() > 10) 
-		{
-		  std::cout << " Made copy " << copy << mm_layer << " iphi " 
-			    << iphi << std::endl;
-		  std::cout << "    x_center " << x_center 
-			    << " y_center " << y_center << " z_center " 
-			    << z_center << " phi_center_degrees " 
-			    << phi_center_degrees << std::endl;
-		}
-	    }
-	}
-    }
+    // create relevant rotation
+    const auto rotation_name = Form( "micromegas_rotation_%i_%zu", mm_layer, tileid );
+    auto rotation = new TGeoRotation(rotation_name);
+    rotation->RotateZ( tile.m_centerPhi*180./M_PI );
+    auto micromegas_measurement_location = new TGeoCombiTrans( global_center.x(), global_center.y(), global_center.z(), rotation );
+    micromegas_vol->AddNode(micromegas_measurement_vol, 1, micromegas_measurement_location);    
+  } 
 }
-
 
 void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 					  TGeoManager *geoManager)
@@ -503,30 +476,77 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
  */
 void MakeActsGeometry::buildActsSurfaces()
 {
+
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 14;
+  const int argc = 20;
   char* arg[argc];
  
   if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
+
+  std::string responseFile, materialFile;
+  setMaterialResponseFile(responseFile, materialFile);
+
+  // Response file contains arguments necessary for geometry building
+  std::string argstr[argc]{
+    "-n1", "-l0", 
+      "--response-file", responseFile,
+      "--mat-input-type","file",
+      "--mat-input-file", materialFile,
+      "--bf-values","0","0", m_magField,
+      "--bf-bscalor"};
   
-  /// If the 2d fieldmap is provided, for now we just assume a 1.4T
-  /// field (which will be properly scaled by 1.4/1.5) from magFieldRescale
+  argstr[13] = std::to_string(m_magFieldRescale);
+     
+
+  /// Alter args if using field map
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magField = "1.5";
+      m_magField = "/cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/fieldmaps/sphenix3dbigmapxyz.root";
+      /// The acts field and field map are backwards in convention
+      m_magFieldRescale = 1;
+
+      argstr[8] = "--bf-map";
+      argstr[9] = m_magField;
+      argstr[10]= "--bf-name";
+      argstr[11] = "fieldmap";
+      argstr[12] = "--bf-lscalor";
+      argstr[13] = "10";
+      argstr[14] = "--bf-bscalor";
+      argstr[15] = std::to_string(m_magFieldRescale);  
+
     }
-  
-  /// The acts constant field and geant field are backwards in convention
-  m_magFieldRescale *= -1;
 
   if(Verbosity() > 0)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
 
-  std::string responseFile = "tgeo-sphenix.response";
-  std::string materialFile = "sphenix-material.json";
+  // Set vector of chars to arguments needed
+  for (int i = 0; i < argc; ++i)
+    {
+      if(Verbosity() > 0)
+	std::cout << argstr[i] << ", ";
+      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
+      arg[i] = strdup(argstr[i].c_str());
+    }
+  
+  // We replicate the relevant functionality of  
+  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
+  // so we get access to the results. The layer builder magically gets the TGeoManager
+
+  makeGeometry(argc, arg, m_detector);
+
+  for(int i=0; i<argc; i++)
+    free(arg[i]);
+
+}
+void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
+					       std::string& materialFile)
+{
+  
+  responseFile = "tgeo-sphenix.response";
+  materialFile = "sphenix-material.json";
   if(m_buildMMs)
     materialFile = "sphenix-mm-material.json";
 
@@ -547,9 +567,16 @@ void MakeActsGeometry::buildActsSurfaces()
   file.open(materialFile);
   if(!file)
     {
-      std::cout << materialFile << " not found locally, use repo version" << std::endl;
-      materialFile = std::string(getenv("CALIBRATIONROOT")) +
-	std::string("/ACTS/sphenix-material.json");
+      std::cout << materialFile 
+		<< " not found locally, use repo version" 
+		<< std::endl;
+      
+      if(m_buildMMs)
+	materialFile = std::string(getenv("CALIBRATIONROOT")) + 
+	  std::string("/ACTS/sphenix-mm-material.json");
+      else
+	materialFile = std::string(getenv("CALIBRATIONROOT")) +
+	  std::string("/ACTS/sphenix-material.json");
     }
   
   if(Verbosity() > -1)
@@ -560,39 +587,10 @@ void MakeActsGeometry::buildActsSurfaces()
 		<< std::endl;
     }
   
-
-  // Response file contains arguments necessary for geometry building
-  const std::string argstr[argc]{
-    "-n1", "-l0", 
-      "--response-file",
-      responseFile,
-      "--bf-values","0","0",m_magField,
-      "--bf-bscalor", std::to_string(m_magFieldRescale),
-      "--mat-input-type","file",
-      "--mat-input-file",
-      materialFile
-      };
-
-  // Set vector of chars to arguments needed
-  for (int i = 0; i < argc; ++i)
-    {
-      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-      arg[i] = strdup(argstr[i].c_str());
-    }
-  
-  // We replicate the relevant functionality of  
-  //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
-  // so we get access to the results. The layer builder magically gets the TGeoManager
-
-  makeGeometry(argc, arg, m_detector);
-
-  for(int i=0; i<argc; i++)
-    free(arg[i]);
+  return;
 
 }
-
-void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
-				    ActsExamples::IBaseDetector &detector)
+void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseDetector &detector)
 {
   
   /// setup and parse options
@@ -642,95 +640,44 @@ void MakeActsGeometry::unpackVolumes()
   auto vol = m_tGeometry->highestTrackingVolume();
 
   if(Verbosity() > 10 )
-    std::cout << "Highest Tracking Volume is "
-	      << vol->volumeName() << std::endl;
-
-  /// volumeVector is a std::vector<TrackingVolumePtrs>
-  auto volumeVector = vol->confinedVolumes()->arrayObjects();
+  { std::cout << "MakeActsGeometry::unpackVolumes - top volume: " << vol->volumeName() << std::endl; }
 
   if(m_buildMMs)
-    {
-      auto mmBarrel = volumeVector.at(1);
-      makeMmMapPairs(mmBarrel);
-    }
-
-  /// We have several volumes to walk through with the tpc and silicon
-  auto firstVolumes = volumeVector.at(0)->confinedVolumes();
-  auto topVolumesVector = firstVolumes->arrayObjects();
+  {
+    // micromegas
+    auto mmBarrel = find_volume_by_name( vol, "MICROMEGAS::Barrel" );
+    assert( mmBarrel );
+    makeMmMapPairs(mmBarrel);
+  }
   
-  if(Verbosity() > 10 )
-    {
-      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
-	{
-	  std::cout<< "TopVolume name: " 
-		   << topVolumesVector.at(i)->volumeName() 
-		   << std::endl;
-	}
-    }
+  {
+    // MVTX
+    auto mvtxBarrel = find_volume_by_name( vol, "MVTX::Barrel" );
+    assert( mvtxBarrel );
+    makeMvtxMapPairs(mvtxBarrel);
+  }
 
-  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
-  auto siliconVolumesVector = siliconVolumes->arrayObjects();
-  if(Verbosity() > 10 )
-    {
-      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
-	std::cout << "SiliconVolumeName: " 
-		  << siliconVolumes->arrayObjects().at(i)->volumeName()
-		  << std::endl;
-      }
-    }
+  {
+    // INTT
+    auto inttBarrel = find_volume_by_name( vol, "Silicon::Barrel" );
+    assert( inttBarrel );
+    makeInttMapPairs(inttBarrel);
+  }
 
-  /// Depending on whether or not the MMs are being built, the 
-  /// Silicon and TPC volumes are packed differently
-  /// This actually contains the silicon volumes
-  if(!m_buildMMs)
-    {
-      auto mvtxVolumes = siliconVolumesVector.at(0);
-      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
-      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-
-      makeMvtxMapPairs(mvtxBarrel);
-
-      /// INTT only has one volume, so there is not an added volume extraction
-      /// like for the MVTX
-      auto inttVolume =  siliconVolumesVector.at(1);
-
-      makeInttMapPairs(inttVolume);
-
-      /// Same for the TPC - only one volume
-      auto tpcVolume = volumeVector.at(1);
-  
-      makeTpcMapPairs(tpcVolume);
-    }
-  else
-    {
-      /// Additional layer unpacking if MMs were built
-      auto nextSiliconVolumes = siliconVolumesVector.at(0)->confinedVolumes();
-      auto siliconVolume = nextSiliconVolumes->arrayObjects().at(1)->confinedVolumes();
-      
-      auto mvtxVolumes = siliconVolume->arrayObjects().at(0);
-      auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
-      auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
-      makeMvtxMapPairs(mvtxBarrel);
-      
-      /// INTT only has one volume, so there is not an added volume extraction
-      /// like for the MVTX
-      auto inttVolume =  siliconVolume->arrayObjects().at(1);
-      makeInttMapPairs(inttVolume);
-      
-      /// Same for the TPC - only one volume. Buried under silicon
-      /// volume array
-      auto tpcVolume = siliconVolumes->arrayObjects().at(1);
-
-      makeTpcMapPairs(tpcVolume);
-    }
+  {
+    // TPC
+    auto tpcBarrel = find_volume_by_name( vol, "TPC::Barrel" );
+    assert( tpcBarrel );
+    makeTpcMapPairs(tpcBarrel);
+  }
 
   return;
 }
 
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 {
-  if(Verbosity() > 1)
-    std::cout << "Building TPC with " << tpcVolume->volumeName() << std::endl;
+  if(Verbosity() > 10)
+  { std::cout << "MakeActsGeometry::makeTpcMapPairs - tpcVolume: " << tpcVolume->volumeName() << std::endl; }
    
   auto tpcLayerArray = tpcVolume->confinedLayers();
   auto tpcLayerVector = tpcLayerArray->arrayObjects();
@@ -781,69 +728,83 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 
 }
 
+//____________________________________________________________________________________________
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
-
-  if(Verbosity() > 1)
-    std::cout << "Building MMs with " << mmVolume->volumeName() << std::endl;
-    
-
-  auto mmLayerArray = mmVolume->confinedLayers();
-  auto mmLayerVector = mmLayerArray->arrayObjects();
+  if(Verbosity() > 10)
+  { std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl; }
+  const auto mmLayerArray = mmVolume->confinedLayers();
+  const auto mmLayerVector = mmLayerArray->arrayObjects();
 
   /// Need to unfold each layer that Acts builds
   for(unsigned int i = 0; i < mmLayerVector.size(); i++)
+  {
+    auto surfaceArray = mmLayerVector.at(i)->surfaceArray();
+    if(!surfaceArray) continue;
+    
+    /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
+    /// that acts builds
+    const auto surfaceVector = surfaceArray->surfaces();
+    for( unsigned int j = 0; j < surfaceVector.size(); j++)
     {
-      auto surfaceArray = mmLayerVector.at(i)->surfaceArray();
-      if(surfaceArray == NULL){
-	continue;
+      auto surface = surfaceVector.at(j)->getSharedPtr();
+      auto vec3d = surface->center(m_geoCtxt);
+      
+      /// convert to cm
+      TVector3 world_center( 
+        vec3d(0)/Acts::UnitConstants::cm, 
+        vec3d(1)/Acts::UnitConstants::cm,
+        vec3d(2)/Acts::UnitConstants::cm
+      );
+      
+      // get relevant layer
+      int layer = -1;
+      CylinderGeomMicromegas* layergeom = nullptr;
+      const auto range = m_geomContainerMicromegas->get_begin_end();
+      for( auto iter = range.first; iter != range.second; ++iter )
+      {
+        auto this_layergeom =  static_cast<CylinderGeomMicromegas*>( iter->second );
+        if(this_layergeom->check_radius(world_center))
+        { 
+          layer = iter->first;
+          layergeom = this_layergeom;
+          break;
+        }
       }
-      /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
-      /// that acts builds
-      auto surfaceVector = surfaceArray->surfaces();
-      for( unsigned int j = 0; j < surfaceVector.size(); j++)
-	{
-	  auto surf = surfaceVector.at(j)->getSharedPtr();
-	  auto vec3d = surf->center(m_geoCtxt);
-        
-	  /// convert to cm
-	  std::vector<double> world_center = {vec3d(0) / 10.0, 
-					      vec3d(1) / 10.0,
-					      vec3d(2) / 10.0};
+      
+      if( !layergeom ) 
+      {
+        std::cout << "MakeActsGeometry::makeMmMapPairs - could not file CylinderGeomMicromegas matching ACTS surface" << std::endl;
+        continue;
+      }
 
-	  TrkrDefs::hitsetkey hitsetkey = getMmHitSetKeyFromCoords(world_center);
-
-	  /// If there is already an entry for this hitsetkey, add the surface
-	  /// to its corresponding vector
-	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-	  mapIter = m_clusterSurfaceMapMmEdit.find(hitsetkey);
-	  
-	  if(mapIter != m_clusterSurfaceMapMmEdit.end())
-	    {
-	      mapIter->second.push_back(surf);
-	    }
-	  else
-	    {
-	      /// Otherwise make a new map entry
-	      std::vector<Surface> dumvec;
-	      dumvec.push_back(surf);
-	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
-		std::make_pair(hitsetkey, dumvec);
-	      m_clusterSurfaceMapMmEdit.insert(tmp);
-	    }
-	  
-	}
+      // get matching tile
+      int tileid = layergeom->find_tile_planar( world_center );
+      if( tileid < 0 ) 
+      {
+        std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
+        continue;
+      } 
+            
+      // get segmentation type
+      const auto segmentation_type = layergeom->get_segmentation_type();
+      
+      // create hitset key and insert surface in map
+      const auto hitsetkey = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
+      const auto [iter, inserted] = m_clusterSurfaceMapMmEdit.insert( std::make_pair( hitsetkey, surface ) );
+      assert( inserted );
     }
+  }
+  
+  std::cout << "MakeActsGeometry::makeMmMapPairs - done." << std::endl;
+  
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 {
   
   if(Verbosity() > 10)
-    {
-      std::cout << "intt volume name: "  << inttVolume->volumeName()
-		<< std::endl;
-    }
+  { std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; }
 
   auto inttLayerArray = inttVolume->confinedLayers();
 
@@ -921,10 +882,8 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 {
   
   if(Verbosity() > 10)
-    {
-      std::cout << "MVTX Barrel name to step surfaces through is " 
-	      << mvtxVolume->volumeName() << std::endl;
-    }
+  { std::cout << "MakeActsGeometry::makeMvtxMapPairs - mvtxVolume: " << mvtxVolume->volumeName() << std::endl; }
+
   // Now get the LayerArrays corresponding to each volume
   auto mvtxBarrelLayerArray = mvtxVolume->confinedLayers();  // the barrel is all we care about
 
@@ -1070,53 +1029,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
   return hitset_key;
 }
 
-TrkrDefs::hitsetkey MakeActsGeometry::getMmHitSetKeyFromCoords(std::vector<double> &world)
-{
-  // Look up micromegas surface index values from world position of surface center
-
-  // layer
-  unsigned int layer = 999;
-  double layer_rad = sqrt(pow(world[0],2) + pow(world[1],2));
-  for(unsigned int ilayer=0;ilayer<m_nMmLayers;++ilayer)
-    {
-      double ref_radius_low = 
-	m_mmLayerRadius[ilayer] - m_mmLayerThickness[ilayer] / 2.0;
-      double ref_radius_high = 
-	m_mmLayerRadius[ilayer] + m_mmLayerThickness[ilayer] / 2.0;
-      
-      if(layer_rad >= ref_radius_low && layer_rad < ref_radius_high)
-	{
-	  layer =  m_mmLayerNumber[ilayer];
-	  break;
-	}
-    }
-  if(layer != m_mmLayerNumber[0] && layer != m_mmLayerNumber[1]) 
-    {
-      std::cout << PHWHERE 
-		<< "Error: undefined layer, do nothing world =  " 
-		<< world[0] << "  " << world[1] << "  " << world[2] 
-		<< " layer " << layer << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  // we have lumped all surfacrs into one layer, so we use a fake hitsetkey with the real layer number and segmentation type, but with a dummy value for the tile
-  int tile = 0;   // assign all surfaces to tile 0
-  MicromegasDefs::SegmentationType segtype;
-  if(layer == m_mmLayerNumber[0])
-    segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
-  else
-    segtype = MicromegasDefs::SegmentationType::SEGMENTATION_Z;
-
-  /// Get the surface key to find the surface from the map
-  TrkrDefs::hitsetkey hitset_key = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-
-  if(Verbosity() > 3)
-    std::cout << PHWHERE << "    micromegas layer " << layer 
-	      << " hitsetkey " << hitset_key<< std::endl;
-  
-  return hitset_key;
-}
-
 TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the MVTX sensor index values from the world position of the surface center
@@ -1126,6 +1038,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   {
     std::cout << PHWHERE << "Did not get layergeom for layer " 
 	      << layer << std::endl;
+    return 0;
   }
 
   unsigned int stave = 0;
@@ -1608,6 +1521,16 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
 	      << " CYLINDERGEOM_INTT  node not found on node tree"
 	      << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // load micromegas geometry
+  // do not abort if not found
+  m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  if (!m_geomContainerMicromegas)
+  {
+    std::cout << PHWHERE 
+	      << " CYLINDERGEOM_MICROMEGAS_FULL  node not found on node tree"
+	      << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

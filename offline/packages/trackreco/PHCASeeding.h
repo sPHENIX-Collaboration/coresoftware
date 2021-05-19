@@ -18,7 +18,7 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -139,10 +139,10 @@ class PHCASeeding : public PHTrackSeeding
   std::vector<pointKey> toPointKey(std::vector<coordKey> v);
   coordKey fromPointKey(pointKey p);
   std::vector<coordKey> fromPointKey(std::vector<pointKey> p);
-  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v1 &track);
+  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v2 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
   pointKey makepointKey(TrkrDefs::cluskey k);
-  void publishSeeds(std::vector<SvtxTrack_v1> seeds);
+  void publishSeeds(std::vector<SvtxTrack_v2> seeds);
 
  private:
   std::map<int, unsigned int> _layer_ilayer_map_all;

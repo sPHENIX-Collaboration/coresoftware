@@ -5,8 +5,10 @@
 #include <trackbase_historic/SvtxVertex_v1.h>
 
 
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterv2.h>
+
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -122,7 +124,7 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
     cout << "Filling truth cluster node " << endl;
 
   // get node for writing truth clusters
-  TrkrClusterContainer *m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  auto m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   if (!m_clusterlist)
   {
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER_TRUTH" << endl;
@@ -314,7 +316,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	  continue;
 	}
       
-      TrkrClusterv1 *clus(new TrkrClusterv1());
+      TrkrClusterv2 *clus(new TrkrClusterv2());
       clus->setClusKey(ckey);
       iclus++;
 
@@ -1090,7 +1092,7 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER_TRUTH");
+  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER_TRUTH");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -1102,7 +1104,7 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainer();
+    trkrclusters = new TrkrClusterContainerv3;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER_TRUTH", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);

@@ -11,18 +11,22 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(OPT_SPHENIX)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   SvtxTrack.h \
   SvtxTrack_v1.h \
+  SvtxTrack_v2.h \
   SvtxTrack_FastSim.h \
   SvtxTrack_FastSim_v1.h \
+  SvtxTrack_FastSim_v2.h \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxTrackState.h \
@@ -37,8 +41,10 @@ ROOTDICTS = \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
   SvtxTrack_v1_Dict.cc \
+  SvtxTrack_v2_Dict.cc \
   SvtxTrack_FastSim_Dict.cc \
   SvtxTrack_FastSim_v1_Dict.cc \
+  SvtxTrack_FastSim_v2_Dict.cc \
   SvtxTrackMap_Dict.cc \
   SvtxTrackMap_v1_Dict.cc \
   SvtxVertex_Dict.cc \
@@ -52,8 +58,10 @@ nobase_dist_pcm_DATA = \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
   SvtxTrack_v1_Dict_rdict.pcm \
+  SvtxTrack_v2_Dict_rdict.pcm \
   SvtxTrack_FastSim_Dict_rdict.pcm \
   SvtxTrack_FastSim_v1_Dict_rdict.pcm \
+  SvtxTrack_FastSim_v2_Dict_rdict.pcm \
   SvtxTrackMap_Dict_rdict.pcm \
   SvtxTrackMap_v1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
@@ -67,8 +75,10 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackState_v1.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
+  SvtxTrack_v2.cc \
   SvtxTrack_FastSim.cc \
   SvtxTrack_FastSim_v1.cc \
+  SvtxTrack_FastSim_v2.cc \
   SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
   SvtxVertex.cc \
@@ -78,10 +88,14 @@ libtrackbase_historic_io_la_SOURCES = \
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libtrackbase_historic_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lActsCore \
+  -lActsFatras \
+  -lActsExamplesFramework
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

@@ -11,14 +11,14 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -558,7 +558,7 @@ if(Verbosity()>1)  cout << "keylistvector size: " << trackSeedKeyLists.size() <<
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
 //  mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
-  vector<SvtxTrack_v1> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
+  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -997,7 +997,7 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
   return merged;
 }
 
-void PHCASeeding::publishSeeds(vector<SvtxTrack_v1> seeds)
+void PHCASeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
   if(Verbosity()>1) cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)
@@ -1011,6 +1011,14 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "Called Setup" << endl;
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
+
+  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_vertex_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   InitializeGeometry(topNode);
  #if __cplusplus < 201402L
   t_fill = boost::make_unique<PHTimer>("t_fill");

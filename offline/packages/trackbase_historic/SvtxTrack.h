@@ -37,7 +37,7 @@ class SvtxTrack : public PHObject
     HCALOUT = 3
   };
 
-  virtual ~SvtxTrack() {}
+  virtual ~SvtxTrack() = default;
 
   // The "standard PHObject response" functions...
   virtual void identify(std::ostream& os = std::cout) const
@@ -47,6 +47,17 @@ class SvtxTrack : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
   virtual PHObject* CloneMe() const { return nullptr; }
+
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
+  
+  //! copy content from base class
+  virtual void CopyFrom( const SvtxTrack& ) 
+  {}
+
+  //! copy content from base class
+  virtual void CopyFrom( SvtxTrack* ) 
+  {}
 
   //
   // basic track information ---------------------------------------------------
@@ -215,6 +226,12 @@ class SvtxTrack : public PHObject
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
 
+  // Acts methods for use by Acts modules only
+  virtual float get_acts_covariance(unsigned int i, unsigned int j) const { return NAN;}
+  virtual void set_acts_covariance(unsigned int i, unsigned int j, float value) {}
+ 
+  
+
   //
   // truth track interface ---------------------------------------------------
   //
@@ -223,7 +240,7 @@ class SvtxTrack : public PHObject
   virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
   virtual void set_truth_track_id(unsigned int truthTrackId) {}
   virtual void set_num_measurements(int nmeas) {}
-  virtual unsigned int get_num_measurements() { return 0; }
+  virtual unsigned int get_num_measurements() const { return 0; }
 
   //SvtxTrack_FastSim_v1
   typedef std::map<int, std::set<PHG4HitDefs::keytype> > HitIdMap;
