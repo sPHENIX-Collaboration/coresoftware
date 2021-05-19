@@ -1,7 +1,5 @@
 #include "AssocInfoContainerv1.h"
 
-using namespace std;
-
 AssocInfoContainerv1::AssocInfoContainerv1()
   : _map_cluster_id_track_id()
 {
@@ -16,15 +14,15 @@ void AssocInfoContainerv1::Reset()
 
 void AssocInfoContainerv1::identify(std::ostream& os) const
 {
-  cout << "---ClusterTrackMap--------------------------" << endl;
+  os << "---ClusterTrackMap--------------------------" << std::endl;
   for (auto iter = _map_cluster_id_track_id.begin();
        iter != _map_cluster_id_track_id.end();
        ++iter)
   {
-    cout
+    os
         << "{" << iter->first
         << " -> " << iter->second
         << "}"
-        << endl;
+        << std::endl;
   }
 }
