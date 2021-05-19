@@ -83,7 +83,7 @@ class TrkrCluster : public PHObject
   virtual void setSubSurfKey(TrkrDefs::subsurfkey id) {}
 
  protected:
-  TrkrCluster() {}
+  TrkrCluster() = default;
   ClassDef(TrkrCluster, 1)
 };
 

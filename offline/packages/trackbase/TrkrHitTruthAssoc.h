@@ -34,9 +34,6 @@ class TrkrHitTruthAssoc : public PHObject
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  //! ctor                                                                                                                                                                                                  
-  TrkrHitTruthAssoc() = default;  
-  
   virtual void Reset() 
   {}
 
@@ -72,8 +69,12 @@ class TrkrHitTruthAssoc : public PHObject
   virtual void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const
   {}
 
+  protected:
+  //! ctor
+  TrkrHitTruthAssoc() = default;
+
   private:
-  
+
   ClassDef(TrkrHitTruthAssoc, 1);
 
 };
