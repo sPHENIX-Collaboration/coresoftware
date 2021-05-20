@@ -186,7 +186,7 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   //! tiles
   MicromegasTile::List m_tiles;
 
-  ClassDef(CylinderGeomMicromegas, 1)
+  ClassDefOverride(CylinderGeomMicromegas, 1)
 };
 
 #endif

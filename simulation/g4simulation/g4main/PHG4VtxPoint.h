@@ -34,7 +34,7 @@ class PHG4VtxPoint: public PHObject
 
  protected:
   PHG4VtxPoint(){}
-  ClassDef(PHG4VtxPoint,1)
+  ClassDefOverride(PHG4VtxPoint,1)
 
 };
 

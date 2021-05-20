@@ -76,7 +76,7 @@ class PHG4ScintillatorSlatContainer: public PHObject
  protected:
   Map slatmap;
 
-  ClassDef(PHG4ScintillatorSlatContainer,1)
+  ClassDefOverride(PHG4ScintillatorSlatContainer,1)
 };
 
 #endif

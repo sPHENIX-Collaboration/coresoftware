@@ -32,7 +32,7 @@ class PHG4CylinderCellv2 : public PHG4CylinderCellv1
   int ladder_z_index; 
   std::string sensor_index;
   
-  ClassDef(PHG4CylinderCellv2,1)
+  ClassDefOverride(PHG4CylinderCellv2,1)
 };
 
 #endif

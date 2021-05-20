@@ -47,7 +47,7 @@ class SvtxTrackMap : public PHObject
   SvtxTrackMap() {}
 
  private:
-  ClassDef(SvtxTrackMap, 1);
+  ClassDefOverride(SvtxTrackMap, 1);
 };
 
 #endif

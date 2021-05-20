@@ -34,7 +34,7 @@ class PdbParameterMapContainer : public PdbCalChan
  protected:
   std::map<int, PdbParameterMap *> parametermap;
 
-  ClassDef(PdbParameterMapContainer, 1)
+  ClassDefOverride(PdbParameterMapContainer, 1)
 };
 
 #endif

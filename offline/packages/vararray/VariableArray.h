@@ -26,7 +26,7 @@ class VariableArray : public PHObject
   unsigned int nVal;
   short *sval;  //[nVal]
 
-  ClassDef(VariableArray, 1)
+  ClassDefOverride(VariableArray, 1)
 };
 
 #endif /* VARIABLEARRAY */

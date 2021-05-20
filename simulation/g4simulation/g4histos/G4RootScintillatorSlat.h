@@ -32,7 +32,7 @@ class G4RootScintillatorSlat : public PHObject
   double eion;
   double light_yield;
 
-  ClassDef(G4RootScintillatorSlat, 1)
+  ClassDefOverride(G4RootScintillatorSlat, 1)
 };
 
 #endif /* G4HISTOS_G4ROOTSCINTILLATORSLAT_H */

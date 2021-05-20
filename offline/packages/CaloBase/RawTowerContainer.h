@@ -55,7 +55,7 @@ class RawTowerContainer : public PHObject
   RawTowerDefs::CalorimeterId _caloid;
   Map _towers;
 
-  ClassDef(RawTowerContainer, 1)
+  ClassDefOverride(RawTowerContainer, 1)
 };
 
 #endif

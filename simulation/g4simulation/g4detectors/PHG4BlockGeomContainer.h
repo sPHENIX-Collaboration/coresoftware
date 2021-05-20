@@ -35,7 +35,7 @@ class PHG4BlockGeomContainer: public PHObject
   std::map<int,PHG4BlockGeom *> _layergeoms;
   float _magfield;
 
-  ClassDef(PHG4BlockGeomContainer,1)
+  ClassDefOverride(PHG4BlockGeomContainer,1)
 };
 
 #endif

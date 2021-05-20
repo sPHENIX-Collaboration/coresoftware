@@ -46,7 +46,7 @@ class TrkrHit : public PHObject
 
  protected:
 
-  ClassDef(TrkrHit, 1);
+  ClassDefOverride(TrkrHit, 1);
 };
 
 #endif //TRACKBASE_TRKRHIT_H

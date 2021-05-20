@@ -30,7 +30,7 @@ class G4RootRawTowerContainer : public PHObject
   int event;
   TClonesArray* SnglG4RootRawTowers;
 
-  ClassDef(G4RootRawTowerContainer, 1)
+  ClassDefOverride(G4RootRawTowerContainer, 1)
 };
 
 #endif

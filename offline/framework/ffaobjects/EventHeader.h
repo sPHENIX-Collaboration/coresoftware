@@ -75,8 +75,8 @@ class EventHeader : public PHObject
   void set_TimeStamp(const time_t tval) { set_intval("time", tval); }
   time_t get_TimeStamp() const { return get_intval("time"); }
 
- private:  // prevent doc++ from showing ClassDef
-  ClassDef(EventHeader, 1)
+ private:  // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(EventHeader, 1)
 };
 
 #endif

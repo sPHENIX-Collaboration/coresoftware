@@ -57,7 +57,7 @@ class PHG4BlockGeomv1: public PHG4BlockGeom
   void _build_rot_matrix();
   double _rot_matrix[3][3];  // global -> local coordinates rotation matrix
 
-  ClassDef(PHG4BlockGeomv1,1)
+  ClassDefOverride(PHG4BlockGeomv1,1)
 };
 
 #endif

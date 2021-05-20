@@ -71,7 +71,7 @@ class PHG4HitContainer: public PHObject
   Map hitmap;
   std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
 
-  ClassDef(PHG4HitContainer,1)
+  ClassDefOverride(PHG4HitContainer,1)
 };
 
 #endif

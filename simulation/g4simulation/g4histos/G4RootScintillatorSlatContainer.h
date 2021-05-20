@@ -44,7 +44,7 @@ class G4RootScintillatorSlatContainer : public PHObject
   int event;
   TClonesArray* SnglSlats;
 
-  ClassDef(G4RootScintillatorSlatContainer, 1)
+  ClassDefOverride(G4RootScintillatorSlatContainer, 1)
 };
 
 #endif

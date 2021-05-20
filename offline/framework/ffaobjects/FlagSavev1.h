@@ -56,14 +56,14 @@ class FlagSavev1 : public FlagSave
   std::map<std::string, float> floatflag;
   std::map<std::string, std::string> stringflag;
 
-// rootcling and clang complain about inconsistent overrides in the ClassDef
+// rootcling and clang complain about inconsistent overrides in the ClassDefOverride
 // this can be supressed with ignoring -Winconsistent-missing-override
 // this pragma is not known to gcc, so we need an #ifdef __clang__ here
 #pragma GCC diagnostic push
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 #endif
-  ClassDef(FlagSavev1, 1)
+  ClassDefOverride(FlagSavev1, 1)
 #pragma GCC diagnostic pop
 };
 

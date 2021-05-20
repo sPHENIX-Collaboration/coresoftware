@@ -45,7 +45,7 @@ private:
   unsigned int max_zsegment = 8;
   Map m_map[57][12][8];
 
-  ClassDef(TrkrClusterHitAssocv2, 1);
+  ClassDefOverride(TrkrClusterHitAssocv2, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOC_H

@@ -117,7 +117,7 @@ class Jetv1 : public Jet
   /// map that contains extra properties
   typ_property_map _property_map;
 
-  ClassDef(Jetv1, 1);
+  ClassDefOverride(Jetv1, 1);
 };
 
 #endif  // G4JET_JETV1_H

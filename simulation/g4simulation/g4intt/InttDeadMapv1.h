@@ -30,7 +30,7 @@ class InttDeadMapv1 : public InttDeadMap
  private:
   Map m_DeadChannels;
 
-  ClassDef(InttDeadMapv1, 1)
+  ClassDefOverride(InttDeadMapv1, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAPV1_H */

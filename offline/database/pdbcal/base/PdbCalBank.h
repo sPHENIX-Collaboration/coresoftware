@@ -51,7 +51,7 @@ public:
    using PHObject::isValid;   
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-  ClassDef(PdbCalBank,1);
+  ClassDefOverride(PdbCalBank,1);
 };
 
 #endif /* PDBCAL_BASE_PDBCALBANK_H */

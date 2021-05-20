@@ -89,7 +89,7 @@ protected:
   double thickness;
   double strip_tilt;
   
-  ClassDef(PHG4CylinderGeomv4,1)
+  ClassDefOverride(PHG4CylinderGeomv4,1)
 };
 
 #endif

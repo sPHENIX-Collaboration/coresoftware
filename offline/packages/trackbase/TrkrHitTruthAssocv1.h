@@ -43,7 +43,7 @@ class TrkrHitTruthAssocv1 : public TrkrHitTruthAssoc
   
   MMap m_map;
   
-  ClassDef(TrkrHitTruthAssocv1, 1);
+  ClassDefOverride(TrkrHitTruthAssocv1, 1);
 
 };
 

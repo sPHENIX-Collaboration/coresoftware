@@ -58,7 +58,7 @@ protected:
 
 private:
 
-  ClassDef(TrkrClusterHitAssoc, 1);
+  ClassDefOverride(TrkrClusterHitAssoc, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOC_H

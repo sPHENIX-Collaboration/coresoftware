@@ -38,7 +38,7 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
   RawTowerDefs::CalorimeterId _caloid;
   Map _geoms;
 
-  ClassDef(RawTowerGeomContainerv1, 1)
+  ClassDefOverride(RawTowerGeomContainerv1, 1)
 };
 
 #endif

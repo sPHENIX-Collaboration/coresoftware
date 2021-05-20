@@ -111,7 +111,7 @@ protected:
   //! map tower_z_ID -> eta_bin number for blocks
   tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
 
-ClassDef(PHG4CylinderCellGeom_Spacalv1,2)
+ClassDefOverride(PHG4CylinderCellGeom_Spacalv1,2)
 
 };
 

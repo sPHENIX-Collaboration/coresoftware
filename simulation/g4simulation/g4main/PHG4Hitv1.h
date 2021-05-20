@@ -143,7 +143,7 @@ class PHG4Hitv1 : public PHG4Hit
   //! container for additional property
   prop_map_t prop_map;
 
-  ClassDef(PHG4Hitv1, 2)
+  ClassDefOverride(PHG4Hitv1, 2)
 };
 
 #endif

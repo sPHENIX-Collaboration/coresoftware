@@ -97,7 +97,7 @@ public:
 protected:
   HelixHoughBin() {}
 
-  ClassDef(HelixHoughBin,1);
+  ClassDefOverride(HelixHoughBin,1);
 };
 
 #endif

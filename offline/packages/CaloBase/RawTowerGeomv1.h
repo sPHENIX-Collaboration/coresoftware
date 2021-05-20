@@ -56,7 +56,7 @@ class RawTowerGeomv1 : public RawTowerGeom
   double _center_x = NAN;
   double _center_y = NAN;
   double _center_z = NAN;
-  ClassDef(RawTowerGeomv1, 4)
+  ClassDefOverride(RawTowerGeomv1, 4)
 };
 
 #endif

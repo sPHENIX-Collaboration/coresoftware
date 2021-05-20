@@ -290,7 +290,7 @@ class RawCluster : public PHObject
 
  protected:
   RawCluster() {}  // make sure nobody calls ctor of base class
-  ClassDef(RawCluster, 1)
+  ClassDefOverride(RawCluster, 1)
 };
 
 #endif

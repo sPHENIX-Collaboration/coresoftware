@@ -31,7 +31,7 @@ protected:
   double thePar;
   std::string  theName;
 
-  ClassDef(PdbParameter,1);
+  ClassDefOverride(PdbParameter,1);
 };
 
 #endif /* PDBCAL_BASE_PDBPARAMETER_H */

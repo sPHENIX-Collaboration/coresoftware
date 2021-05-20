@@ -119,7 +119,7 @@ class PHG4Shower : public PHObject
   PHG4Shower() {}
 
  private:
-  ClassDef(PHG4Shower, 1);
+  ClassDefOverride(PHG4Shower, 1);
 };
 
 

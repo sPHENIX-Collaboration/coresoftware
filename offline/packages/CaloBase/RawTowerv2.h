@@ -41,7 +41,7 @@ class RawTowerv2 : public RawTowerv1
   //! container for additional property
   prop_map_t prop_map;
 
-  ClassDef(RawTowerv2, 1)
+  ClassDefOverride(RawTowerv2, 1)
 };
 
 #endif

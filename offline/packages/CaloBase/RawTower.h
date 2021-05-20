@@ -182,7 +182,7 @@ class RawTower : public PHObject
   virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const { return UINT_MAX; }
   virtual void set_property_nocheck(const PROPERTY prop_id, const unsigned int) { return; }
 
-  ClassDef(RawTower, 1)
+  ClassDefOverride(RawTower, 1)
 };
 
 #endif

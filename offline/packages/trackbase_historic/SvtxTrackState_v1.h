@@ -70,7 +70,7 @@ class SvtxTrackState_v1 : public SvtxTrackState
 
   std::string state_name;
 
-  ClassDef(SvtxTrackState_v1, 1)
+  ClassDefOverride(SvtxTrackState_v1, 1)
 };
 
 #endif

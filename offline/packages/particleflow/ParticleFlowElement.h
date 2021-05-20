@@ -59,7 +59,7 @@ class ParticleFlowElement : public PHObject
   virtual float get_phi() const { return NAN; }
   virtual float get_mass() const { return NAN; }
 
-  ClassDef(ParticleFlowElement, 1);
+  ClassDefOverride(ParticleFlowElement, 1);
 };
 
 #endif

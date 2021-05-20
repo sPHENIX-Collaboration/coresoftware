@@ -46,7 +46,7 @@ class RunHeader : public PHObject
  private:
   void warning(const std::string &func) const;
 
-  ClassDef(RunHeader, 1)
+  ClassDefOverride(RunHeader, 1)
 };
 
 #endif

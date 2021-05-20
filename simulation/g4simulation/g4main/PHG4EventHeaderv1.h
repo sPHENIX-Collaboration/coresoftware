@@ -44,8 +44,8 @@ class PHG4EventHeaderv1: public PHG4EventHeader
   float bimp;
   float rplane;
 
- private: // prevent doc++ from showing ClassDef
-  ClassDef(PHG4EventHeaderv1,1)
+ private: // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(PHG4EventHeaderv1,1)
 
 };
 

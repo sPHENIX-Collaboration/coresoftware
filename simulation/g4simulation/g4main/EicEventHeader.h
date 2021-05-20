@@ -79,7 +79,7 @@ class EicEventHeader : public PHObject
 
   std::map<std::string, double> evInfo;
 
-  ClassDef(EicEventHeader, 1)
+  ClassDefOverride(EicEventHeader, 1)
 };
 
 #endif

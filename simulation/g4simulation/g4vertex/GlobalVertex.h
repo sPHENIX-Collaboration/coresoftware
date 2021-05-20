@@ -91,7 +91,7 @@ class GlobalVertex : public PHObject
   GlobalVertex() {}
 
  private:
-  ClassDef(GlobalVertex, 1);
+  ClassDefOverride(GlobalVertex, 1);
 };
 
 #endif

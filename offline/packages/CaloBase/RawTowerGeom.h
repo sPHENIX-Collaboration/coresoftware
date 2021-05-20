@@ -164,7 +164,7 @@ class RawTowerGeom : public PHObject
  protected:
   RawTowerGeom() {}
 
-  ClassDef(RawTowerGeom, 2)
+  ClassDefOverride(RawTowerGeom, 2)
 };
 
 #endif

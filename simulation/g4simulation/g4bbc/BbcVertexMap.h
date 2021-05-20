@@ -41,7 +41,7 @@ class BbcVertexMap : public PHObject
   BbcVertexMap() {}
 
  private:
-  ClassDef(BbcVertexMap, 1);
+  ClassDefOverride(BbcVertexMap, 1);
 };
 
 #endif  // G4BBC_BBCVERTEXMAP_H

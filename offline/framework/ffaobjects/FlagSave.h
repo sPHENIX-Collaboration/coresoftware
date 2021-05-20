@@ -42,7 +42,7 @@ class FlagSave : public PHObject
   virtual int PutFlagsBack(PHFlag* /*flags*/) { return -1; }
 
  private:
-  ClassDef(FlagSave, 1)
+  ClassDefOverride(FlagSave, 1)
 };
 
 #endif

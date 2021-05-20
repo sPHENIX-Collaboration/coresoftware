@@ -97,7 +97,7 @@ private:
 
   HelixHoughSpace* _hough_space;
 
-  ClassDef(HelixHoughBin_v1,1);
+  ClassDefOverride(HelixHoughBin_v1,1);
 };
 
 #endif

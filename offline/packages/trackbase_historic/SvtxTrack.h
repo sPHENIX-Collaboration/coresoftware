@@ -264,7 +264,7 @@ class SvtxTrack : public PHObject
  protected:
   SvtxTrack() {}
 
-  ClassDef(SvtxTrack, 1);
+  ClassDefOverride(SvtxTrack, 1);
 };
 
 #endif

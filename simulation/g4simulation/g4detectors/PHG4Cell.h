@@ -154,7 +154,7 @@ class PHG4Cell: public PHObject
   PHG4Cell() {}
   virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
   virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
-  ClassDef(PHG4Cell,2)
+  ClassDefOverride(PHG4Cell,2)
 };
 
 

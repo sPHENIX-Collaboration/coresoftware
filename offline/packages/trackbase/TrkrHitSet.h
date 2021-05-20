@@ -112,7 +112,7 @@ class TrkrHitSet : public PHObject
   TrkrHitSet() = default;
 
 private:
-  ClassDef(TrkrHitSet, 1);
+  ClassDefOverride(TrkrHitSet, 1);
 };
 
 #endif  //TRACKBASE_TRKRHITSET_H

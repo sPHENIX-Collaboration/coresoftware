@@ -75,7 +75,7 @@ class PHG4CellContainer: public PHObject
 
  protected:
   Map cellmap;
-  ClassDef(PHG4CellContainer,1)
+  ClassDefOverride(PHG4CellContainer,1)
 };
 
 #endif

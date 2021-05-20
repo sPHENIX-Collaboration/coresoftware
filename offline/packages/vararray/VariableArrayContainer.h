@@ -22,7 +22,7 @@ class VariableArrayContainer : public PHObject
  protected:
   TObjArray *arraycontainer;
 
-  ClassDef(VariableArrayContainer, 1)
+  ClassDefOverride(VariableArrayContainer, 1)
 };
 
 #endif

@@ -56,7 +56,7 @@ class TrkrClusterContainerv1 : public TrkrClusterContainer
 
   private:
   Map m_clusmap;
-  ClassDef(TrkrClusterContainerv1, 1)
+  ClassDefOverride(TrkrClusterContainerv1, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTERCONTAINER_H

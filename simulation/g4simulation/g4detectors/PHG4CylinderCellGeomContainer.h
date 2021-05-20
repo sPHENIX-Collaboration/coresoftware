@@ -34,7 +34,7 @@ class PHG4CylinderCellGeomContainer: public PHObject
 
  protected:
   std::map<int,PHG4CylinderCellGeom *> layergeoms ;
-  ClassDef(PHG4CylinderCellGeomContainer,1)
+  ClassDefOverride(PHG4CylinderCellGeomContainer,1)
 };
 
 #endif

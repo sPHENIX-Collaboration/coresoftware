@@ -29,7 +29,7 @@ class AssocInfoContainer : public PHObject
 
  private:
 
-  ClassDef(AssocInfoContainer, 1)
+  ClassDefOverride(AssocInfoContainer, 1)
 };
 
 #endif

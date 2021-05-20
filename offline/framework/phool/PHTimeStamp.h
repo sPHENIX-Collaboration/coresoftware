@@ -63,7 +63,7 @@ class PHTimeStamp : public PHObject
 
  protected:
   phtime_t binaryTime;
-  ClassDef(PHTimeStamp, 1)
+  ClassDefOverride(PHTimeStamp, 1)
 };
 
 PHTimeStamp operator+(const PHTimeStamp &, time_t);

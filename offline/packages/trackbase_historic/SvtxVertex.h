@@ -75,7 +75,7 @@ class SvtxVertex : public PHObject
  protected:
   SvtxVertex() {}
 
-  ClassDef(SvtxVertex, 1);
+  ClassDefOverride(SvtxVertex, 1);
 };
 
 #endif

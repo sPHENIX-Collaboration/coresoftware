@@ -72,7 +72,7 @@ class PHG4CylinderCellGeom: public PHObject
   double phistep;
   double thickness;
 
-  ClassDef(PHG4CylinderCellGeom,1)
+  ClassDefOverride(PHG4CylinderCellGeom,1)
 };
 
 #endif

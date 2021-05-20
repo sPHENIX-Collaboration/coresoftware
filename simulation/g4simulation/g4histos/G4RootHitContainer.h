@@ -38,7 +38,7 @@ class G4RootHitContainer : public PHObject
   int event;
   TClonesArray* SnglHits;
 
-  ClassDef(G4RootHitContainer, 1)
+  ClassDefOverride(G4RootHitContainer, 1)
 };
 
 #endif

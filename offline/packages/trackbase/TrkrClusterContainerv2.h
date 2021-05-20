@@ -55,7 +55,7 @@ class TrkrClusterContainerv2 : public TrkrClusterContainer
 
   Map m_clusmap[57][20][15];
 
-  ClassDef(TrkrClusterContainerv2, 1)
+  ClassDefOverride(TrkrClusterContainerv2, 1)
 
 };
 

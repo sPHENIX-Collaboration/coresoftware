@@ -74,7 +74,7 @@ class JetMap : public PHObject
   virtual Iter end();
 
  private:
-  ClassDef(JetMap, 1);
+  ClassDefOverride(JetMap, 1);
 };
 
 #endif

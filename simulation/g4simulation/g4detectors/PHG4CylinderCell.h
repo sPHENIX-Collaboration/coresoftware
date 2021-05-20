@@ -73,7 +73,7 @@ class PHG4CylinderCell : public PHG4Cell
    protected:
 
   PHG4CylinderCell() {}
-  ClassDef(PHG4CylinderCell,2)
+  ClassDefOverride(PHG4CylinderCell,2)
 };
 
 #endif

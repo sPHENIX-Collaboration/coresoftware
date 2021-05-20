@@ -89,7 +89,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   bound_map_t eta_bound_map;
   bound_map_t phi_bound_map;
 
-  ClassDef(RawTowerGeomContainer_Cylinderv1, 1)
+  ClassDefOverride(RawTowerGeomContainer_Cylinderv1, 1)
 };
 
 #endif

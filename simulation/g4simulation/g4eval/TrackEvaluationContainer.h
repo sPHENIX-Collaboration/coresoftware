@@ -32,7 +32,7 @@ class TrackEvaluationContainer: public PHObject
   virtual void Reset()
   {}
       
-  ClassDef(TrackEvaluationContainer,1)
+  ClassDefOverride(TrackEvaluationContainer,1)
     
 };
 

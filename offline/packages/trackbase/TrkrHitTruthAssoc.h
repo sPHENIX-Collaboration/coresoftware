@@ -75,7 +75,7 @@ class TrkrHitTruthAssoc : public PHObject
 
   private:
 
-  ClassDef(TrkrHitTruthAssoc, 1);
+  ClassDefOverride(TrkrHitTruthAssoc, 1);
 
 };
 

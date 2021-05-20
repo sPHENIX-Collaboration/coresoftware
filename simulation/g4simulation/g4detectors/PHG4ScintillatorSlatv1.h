@@ -45,7 +45,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   std::set<PHG4HitDefs::keytype> hit_id;
 
    
-  ClassDef(PHG4ScintillatorSlatv1,1)
+  ClassDefOverride(PHG4ScintillatorSlatv1,1)
 };
 
 #endif

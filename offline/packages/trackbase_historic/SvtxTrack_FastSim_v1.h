@@ -91,7 +91,7 @@ class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
 
   HitIdMap _g4hit_ids;
 
-  ClassDef(SvtxTrack_FastSim_v1, 1)
+  ClassDefOverride(SvtxTrack_FastSim_v1, 1)
 };
 
 #endif /* __SVTXTRACK_FAST_SIMV1_H__ */

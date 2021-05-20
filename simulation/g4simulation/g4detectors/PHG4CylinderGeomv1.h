@@ -47,7 +47,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   double zmax;
   double thickness;
 
-  ClassDef(PHG4CylinderGeomv1, 1)
+  ClassDefOverride(PHG4CylinderGeomv1, 1)
 };
 
 #endif

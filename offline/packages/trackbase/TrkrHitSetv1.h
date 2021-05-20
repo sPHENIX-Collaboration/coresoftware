@@ -61,7 +61,7 @@ class TrkrHitSetv1 : public TrkrHitSet
   /// storage for TrkrHit objects
   Map m_hits;
 
-  ClassDef(TrkrHitSetv1, 1);
+  ClassDefOverride(TrkrHitSetv1, 1);
 };
 
 #endif  //TRACKBASE_TrkrHitSetv1_H

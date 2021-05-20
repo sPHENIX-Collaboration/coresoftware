@@ -142,7 +142,7 @@ protected:
   double polar_taper_ratio;
   double assembly_spacing;
 
-  ClassDef(PHG4CylinderGeom_Spacalv2,2)
+  ClassDefOverride(PHG4CylinderGeom_Spacalv2,2)
 
 
 };

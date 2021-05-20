@@ -44,7 +44,7 @@ class G4RootScintillatorTowerContainer : public PHObject
   int event;
   TClonesArray* SnglTowers;
 
-  ClassDef(G4RootScintillatorTowerContainer, 1)
+  ClassDefOverride(G4RootScintillatorTowerContainer, 1)
 };
 
 #endif

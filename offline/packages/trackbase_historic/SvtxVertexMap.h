@@ -51,7 +51,7 @@ class SvtxVertexMap : public PHObject
   SvtxVertexMap() {}
 
  private:
-  ClassDef(SvtxVertexMap, 1);
+  ClassDefOverride(SvtxVertexMap, 1);
 };
 
 #endif

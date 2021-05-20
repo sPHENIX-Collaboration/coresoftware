@@ -82,7 +82,7 @@ class PHHepMCGenEventMap : public PHObject
  private:
   HepMCGenEventMap _map;
 
-  ClassDef(PHHepMCGenEventMap, 4);
+  ClassDefOverride(PHHepMCGenEventMap, 4);
 };
 
 #endif

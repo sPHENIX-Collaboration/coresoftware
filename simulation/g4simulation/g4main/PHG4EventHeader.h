@@ -52,8 +52,8 @@ class PHG4EventHeader: public PHObject
   virtual void set_EventPlaneAngle(const float) {return;}
 
 
- private: // prevent doc++ from showing ClassDef
-  ClassDef(PHG4EventHeader,1)
+ private: // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(PHG4EventHeader,1)
 
 };
 

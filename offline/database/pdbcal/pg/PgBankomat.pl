@@ -99,7 +99,7 @@ print BANKHEADER "   \n";
 print BANKHEADER "  virtual PHObject* CloneMe() const;\n";
 print BANKHEADER " private:\n";
 print BANKHEADER "  std::vector<$pdbname> entries;\n\n";
-print BANKHEADER "  ClassDef($bankName,1); \n";
+print BANKHEADER "  ClassDefOverride($bankName,1); \n";
 print BANKHEADER "};\n";
 print BANKHEADER "\n";
 print BANKHEADER "#endif /* $bankIfDef */\n";

@@ -174,7 +174,7 @@ class RawClusterv1 : public RawCluster
   float _phi;
   float _z;
 
-  ClassDef(RawClusterv1, 3)
+  ClassDefOverride(RawClusterv1, 3)
 };
 
 #endif

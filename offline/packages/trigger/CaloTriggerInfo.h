@@ -88,7 +88,7 @@ class CaloTriggerInfo : public PHObject
   CaloTriggerInfo() {}
 
  private:
-  ClassDef(CaloTriggerInfo, 1);
+  ClassDefOverride(CaloTriggerInfo, 1);
 };
 
 #endif  // TRIGGER_CALOTRIGGERINFO_H

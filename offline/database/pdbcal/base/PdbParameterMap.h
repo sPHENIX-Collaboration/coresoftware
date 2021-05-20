@@ -51,7 +51,7 @@ class PdbParameterMap: public PdbCalChan
   strMap cparams;
 
 
-  ClassDef(PdbParameterMap,1)
+  ClassDefOverride(PdbParameterMap,1)
 
 }; 
 

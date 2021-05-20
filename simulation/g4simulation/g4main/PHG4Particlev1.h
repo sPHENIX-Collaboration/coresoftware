@@ -41,7 +41,7 @@ class PHG4Particlev1 : public PHG4Particle
   double fpx, fpy, fpz;
   int barcode;
 
-  ClassDef(PHG4Particlev1, 1)
+  ClassDefOverride(PHG4Particlev1, 1)
 };
 
 #endif

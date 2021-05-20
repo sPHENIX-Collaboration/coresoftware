@@ -25,7 +25,7 @@ class G4RootRawTower : public PHObject
   float phi;
   float energy;
 
-  ClassDef(G4RootRawTower, 1)
+  ClassDefOverride(G4RootRawTower, 1)
 };
 
 #endif /* G4HISTOS_RAWTOWERV1_H */

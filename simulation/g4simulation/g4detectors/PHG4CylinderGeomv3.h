@@ -31,7 +31,7 @@ class PHG4CylinderGeomv3: public PHG4CylinderGeomv2
   double tiltangle;
   double phi_slat_zero;
 
-  ClassDef(PHG4CylinderGeomv3,1)
+  ClassDefOverride(PHG4CylinderGeomv3,1)
 };
 
 #endif

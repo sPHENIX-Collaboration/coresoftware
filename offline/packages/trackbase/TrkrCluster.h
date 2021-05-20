@@ -84,7 +84,7 @@ class TrkrCluster : public PHObject
 
  protected:
   TrkrCluster() = default;
-  ClassDef(TrkrCluster, 1)
+  ClassDefOverride(TrkrCluster, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTER_H

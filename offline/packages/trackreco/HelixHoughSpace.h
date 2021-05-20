@@ -82,7 +82,7 @@ public :
 
 protected:
   HelixHoughSpace(){};
-  ClassDef(HelixHoughSpace,1);
+  ClassDefOverride(HelixHoughSpace,1);
 };
 
 #endif

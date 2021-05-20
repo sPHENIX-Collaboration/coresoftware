@@ -44,7 +44,7 @@ class BbcVertexMapv1 : public BbcVertexMap
  private:
   std::map<unsigned int, BbcVertex*> _map;
 
-  ClassDef(BbcVertexMapv1, 1);
+  ClassDefOverride(BbcVertexMapv1, 1);
 };
 
 #endif  // G4BBC_BBCVERTEXMAPV1_H

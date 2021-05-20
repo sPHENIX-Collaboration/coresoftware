@@ -51,14 +51,14 @@ class SyncObject : public PHObject
   /// get Segment Number
   virtual int SegmentNumber() const { return -9999; }
 
- private:  // prevent doc++ from showing ClassDef
+ private:  // prevent doc++ from showing ClassDefOverride
   friend class SyncObjectv1;
   friend class Fun4AllDstInputManager;
   friend class Fun4AllDstPileupInputManager;
   friend class DumpSyncObject;
   friend class SegmentSelect;
 
-  ClassDef(SyncObject, 1)
+  ClassDefOverride(SyncObject, 1)
 };
 
 #endif

@@ -99,7 +99,7 @@ class PHFieldConfigv2 : public PHFieldConfig
   double field_mag_y_;
   double field_mag_z_;
 
-  ClassDef(PHFieldConfigv2, 1)
+  ClassDefOverride(PHFieldConfigv2, 1)
 };
 
 #endif

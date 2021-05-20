@@ -83,7 +83,7 @@ class PHFieldConfig : public PHObject
 
   static const std::string kInvalid_FileName;
 
-  ClassDef(PHFieldConfig, 1)
+  ClassDefOverride(PHFieldConfig, 1)
 };
 
 #endif

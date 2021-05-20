@@ -48,7 +48,7 @@ class TrkrHitv2 : public TrkrHit
  protected:
 
   unsigned short m_adc = 0;
-  ClassDef(TrkrHitv2, 1);
+  ClassDefOverride(TrkrHitv2, 1);
 };
 
 #endif //TRACKBASE_TRKRHITV2_H

@@ -286,7 +286,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
   //! tracks array
   TrackStruct::List m_tracks;
     
-  ClassDef(TrackEvaluationContainerv1,1)
+  ClassDefOverride(TrackEvaluationContainerv1,1)
     
 };
 

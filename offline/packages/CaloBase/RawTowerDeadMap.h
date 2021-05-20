@@ -38,7 +38,7 @@ class RawTowerDeadMap : public PHObject
   }
 
  private:
-  ClassDef(RawTowerDeadMap, 1)
+  ClassDefOverride(RawTowerDeadMap, 1)
 };
 
 #endif

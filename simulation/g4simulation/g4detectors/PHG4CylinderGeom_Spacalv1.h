@@ -325,7 +325,7 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   //! sector map sector_ID -> azimuthal rotation.
   sector_map_t sector_map;
 
-  ClassDef(PHG4CylinderGeom_Spacalv1, 2)
+  ClassDefOverride(PHG4CylinderGeom_Spacalv1, 2)
 };
 
 #endif

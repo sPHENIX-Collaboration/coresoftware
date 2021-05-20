@@ -66,7 +66,7 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   /// pflow energy
   float _e;
   
-  ClassDef(ParticleFlowElementv1, 1);
+  ClassDefOverride(ParticleFlowElementv1, 1);
 };
 
 #endif

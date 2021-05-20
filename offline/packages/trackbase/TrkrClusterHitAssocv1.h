@@ -50,7 +50,7 @@ private:
 
   Map m_map;
 
-  ClassDef(TrkrClusterHitAssocv1, 1);
+  ClassDefOverride(TrkrClusterHitAssocv1, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOCV1_H

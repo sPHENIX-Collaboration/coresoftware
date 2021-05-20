@@ -58,7 +58,7 @@ class PHG4Particle : public PHObject
   bool operator==(const PHG4Particle &p) const;
 
  protected:
-  ClassDef(PHG4Particle, 1)
+  ClassDefOverride(PHG4Particle, 1)
 };
 
 #endif  // G4MAIN_PHG4PARTICLE_H

@@ -86,7 +86,7 @@ class PHG4CylinderCellContainer: public PHObject
   Map cellmap;
   std::set<int> layers; // layers is not reset since layers must not change event by event
 
-  ClassDef(PHG4CylinderCellContainer,1)
+  ClassDefOverride(PHG4CylinderCellContainer,1)
 };
 
 #endif

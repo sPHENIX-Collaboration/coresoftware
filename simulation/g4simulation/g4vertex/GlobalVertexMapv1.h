@@ -46,7 +46,7 @@ class GlobalVertexMapv1 : public GlobalVertexMap
  private:
   std::map<unsigned int, GlobalVertex*> _map;
 
-  ClassDef(GlobalVertexMapv1, 1);
+  ClassDefOverride(GlobalVertexMapv1, 1);
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXMAPv1_H

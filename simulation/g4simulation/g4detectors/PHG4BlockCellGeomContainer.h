@@ -33,7 +33,7 @@ class PHG4BlockCellGeomContainer: public PHObject
 
  protected:
   std::map<int,PHG4BlockCellGeom *> layergeoms ;
-  ClassDef(PHG4BlockCellGeomContainer,1)
+  ClassDefOverride(PHG4BlockCellGeomContainer,1)
 };
 
 #endif

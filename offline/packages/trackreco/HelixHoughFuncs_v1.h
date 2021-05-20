@@ -49,7 +49,7 @@ private:
   HelixHoughSpace* _hough_space;
   unsigned int _cur_zoom;
 
-  ClassDef(HelixHoughFuncs_v1,1)
+  ClassDefOverride(HelixHoughFuncs_v1,1)
 };
 
 #endif

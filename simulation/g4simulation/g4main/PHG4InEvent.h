@@ -46,7 +46,7 @@ class PHG4InEvent: public PHObject
   std::multimap<int,PHG4Particle *> particlelist;
   std::map<PHG4Particle *,int> embedded_particlelist;
 
-  ClassDef(PHG4InEvent,1)
+  ClassDefOverride(PHG4InEvent,1)
 };
 
 #endif

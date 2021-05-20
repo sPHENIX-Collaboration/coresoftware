@@ -76,7 +76,7 @@ class PHG4BlockCellGeom: public PHObject
   double _xmin;
   double _xstep;
 
-  ClassDef(PHG4BlockCellGeom,1)
+  ClassDefOverride(PHG4BlockCellGeom,1)
 };
 
 #endif

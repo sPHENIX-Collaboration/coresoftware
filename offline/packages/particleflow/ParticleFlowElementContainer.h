@@ -47,7 +47,7 @@ class ParticleFlowElementContainer : public PHObject
  protected:
   Map _pflowElementMap;
 
-  ClassDef(ParticleFlowElementContainer, 1)
+  ClassDefOverride(ParticleFlowElementContainer, 1)
 };
 
 #endif

@@ -57,7 +57,7 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
   
   Map m_hitmap;
   
-  ClassDef(TrkrHitSetContainerv1, 1)
+  ClassDefOverride(TrkrHitSetContainerv1, 1)
 };
 
 #endif //TRACKBASE_TrkrHitSetContainerv1_H

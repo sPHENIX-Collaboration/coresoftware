@@ -58,7 +58,7 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
   ShowerEdepMap showeredeps;
   float light_yield;
    
-  ClassDef(PHG4CylinderCellv1,2)
+  ClassDefOverride(PHG4CylinderCellv1,2)
 };
 
 #endif

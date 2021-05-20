@@ -83,7 +83,7 @@ private:
   unsigned int _zoom_profile[ZOOMLEVEL_MAX][5];
   unsigned int _max_zoom;
 
-  ClassDef(HelixHoughSpace_v1,1)
+  ClassDefOverride(HelixHoughSpace_v1,1)
 };
 
 #endif

@@ -44,7 +44,7 @@ private:
 
   std::map<TrkrDefs::hitsetkey, Map> m_map;
 
-  ClassDef(TrkrClusterHitAssocv3, 1);
+  ClassDefOverride(TrkrClusterHitAssocv3, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOC_H

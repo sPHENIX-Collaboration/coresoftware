@@ -36,7 +36,7 @@ class RawTowerDeadMapv1 : public RawTowerDeadMap
   RawTowerDefs::CalorimeterId _caloid;
   Map m_DeadTowers;
 
-  ClassDef(RawTowerDeadMapv1, 1)
+  ClassDefOverride(RawTowerDeadMapv1, 1)
 };
 
 #endif

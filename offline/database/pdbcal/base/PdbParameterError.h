@@ -26,7 +26,7 @@ class PdbParameterError : public PdbParameter
 
   double theParError;
 
-  ClassDef(PdbParameterError,1);
+  ClassDefOverride(PdbParameterError,1);
 };
 
 #endif /* PDBCAL_BASE_PDBPARAMETERERROR_H */

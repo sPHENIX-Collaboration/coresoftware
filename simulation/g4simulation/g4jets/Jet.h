@@ -148,7 +148,7 @@ class Jet : public PHObject
   virtual Iter find(Jet::SRC source);
   virtual Iter end_comp();
 
-  ClassDef(Jet, 1);
+  ClassDefOverride(Jet, 1);
 };
 
 #endif

@@ -50,7 +50,7 @@ class PHG4BlockGeom: public PHObject
  protected:
   PHG4BlockGeom() {}
 
-  ClassDef(PHG4BlockGeom,1)
+  ClassDefOverride(PHG4BlockGeom,1)
 };
 
 #endif

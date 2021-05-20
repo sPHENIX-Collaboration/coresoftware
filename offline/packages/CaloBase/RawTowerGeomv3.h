@@ -87,7 +87,7 @@ class RawTowerGeomv3 : public RawTowerGeom
 
   int _tower_type = -1;
 
-  ClassDef(RawTowerGeomv3, 4)
+  ClassDefOverride(RawTowerGeomv3, 4)
 };
 
 #endif /* CALOBASE_RAWTOWERGEOMV3_H */

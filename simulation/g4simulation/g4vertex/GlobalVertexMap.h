@@ -44,7 +44,7 @@ class GlobalVertexMap : public PHObject
   GlobalVertexMap() {}
 
  private:
-  ClassDef(GlobalVertexMap, 1);
+  ClassDefOverride(GlobalVertexMap, 1);
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXMAP_H

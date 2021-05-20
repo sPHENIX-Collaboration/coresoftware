@@ -30,7 +30,7 @@ class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
  protected:
   int nscint;
 
-  ClassDef(PHG4CylinderGeomv2,1)
+  ClassDefOverride(PHG4CylinderGeomv2,1)
 };
 
 #endif

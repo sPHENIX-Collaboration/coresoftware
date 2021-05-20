@@ -120,7 +120,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! description on the source
   std::string m_Description;
 
-  ClassDef(PHGenIntegralv1, 1)
+  ClassDefOverride(PHGenIntegralv1, 1)
 };
 
 #endif /* PHHEPMC_PHGENINTEGRALV1_H */

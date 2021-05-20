@@ -39,7 +39,7 @@ class BbcVertex : public PHObject
   BbcVertex() {}
 
  private:
-  ClassDef(BbcVertex, 1);
+  ClassDefOverride(BbcVertex, 1);
 };
 
 #endif

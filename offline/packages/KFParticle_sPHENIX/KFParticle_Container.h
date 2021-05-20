@@ -61,7 +61,7 @@ class KFParticle_Container : public PHObject
  private:
   Map m_kfpmap;
 
-  ClassDef(KFParticle_Container, 1)
+  ClassDefOverride(KFParticle_Container, 1)
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLECONTAINER_H

@@ -77,7 +77,7 @@ class SvtxVertex_v1 : public SvtxVertex
   float _err[6];                      //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids;  //< list of track ids
 
-  ClassDef(SvtxVertex_v1, 1);
+  ClassDefOverride(SvtxVertex_v1, 1);
 };
 
 #endif

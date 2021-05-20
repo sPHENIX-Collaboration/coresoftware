@@ -91,7 +91,7 @@ class GlobalVertexv1 : public GlobalVertex
   float _err[6];                                           //< error covariance matrix (+/- cm^2)
   std::map<GlobalVertex::VTXTYPE, unsigned int> _vtx_ids;  //< list of vtx ids
 
-  ClassDef(GlobalVertexv1, 1);
+  ClassDefOverride(GlobalVertexv1, 1);
 };
 
 #endif

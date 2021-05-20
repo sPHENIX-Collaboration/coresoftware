@@ -31,7 +31,7 @@ class PHG4CylinderCellv3 : public PHG4CylinderCellv1
   int k_index; 
   int l_index; 
   
-  ClassDef(PHG4CylinderCellv3,1)
+  ClassDefOverride(PHG4CylinderCellv3,1)
 };
 
 #endif

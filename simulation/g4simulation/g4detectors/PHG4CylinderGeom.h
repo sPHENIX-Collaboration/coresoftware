@@ -60,7 +60,7 @@ class PHG4CylinderGeom: public PHObject
  protected:
   PHG4CylinderGeom() {}
 
-  ClassDef(PHG4CylinderGeom,1)
+  ClassDefOverride(PHG4CylinderGeom,1)
 };
 
 #endif

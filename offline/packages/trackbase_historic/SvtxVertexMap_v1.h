@@ -52,7 +52,7 @@ class SvtxVertexMap_v1 : public SvtxVertexMap
  private:
   std::map<unsigned int, SvtxVertex*> _map;
 
-  ClassDef(SvtxVertexMap_v1, 1);
+  ClassDefOverride(SvtxVertexMap_v1, 1);
 };
 
 #endif  // __SVTXVERTEXMAP_V1_H__

@@ -40,7 +40,7 @@ public :
 */
 protected:
   HelixHoughFuncs(){};
-  ClassDef(HelixHoughFuncs,1);
+  ClassDefOverride(HelixHoughFuncs,1);
 };
 
 #endif

@@ -49,7 +49,7 @@ class TrkrClusterContainerv3 : public TrkrClusterContainer
   
   std::map<TrkrDefs::hitsetkey, Map> m_clusmap;
 
-  ClassDef(TrkrClusterContainerv3, 1)
+  ClassDefOverride(TrkrClusterContainerv3, 1)
 
 };
 

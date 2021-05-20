@@ -232,7 +232,7 @@ class SvtxTrack_v1 : public SvtxTrack
   std::map<CAL_LAYER, TrkrDefs::cluskey> _cal_cluster_key;
   std::map<CAL_LAYER, float> _cal_cluster_e;
 
-  ClassDef(SvtxTrack_v1, 1)
+  ClassDefOverride(SvtxTrack_v1, 1)
 };
 
 #endif

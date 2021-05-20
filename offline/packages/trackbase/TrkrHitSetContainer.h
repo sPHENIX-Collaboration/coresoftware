@@ -78,7 +78,7 @@ class TrkrHitSetContainer : public PHObject
 
   private:
 
-  ClassDef(TrkrHitSetContainer, 1)
+  ClassDefOverride(TrkrHitSetContainer, 1)
 };
 
 #endif //TRACKBASE_TRKRHITSETCONTAINER_H

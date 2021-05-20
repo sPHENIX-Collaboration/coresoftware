@@ -74,7 +74,7 @@ class RawTowerv1 : public RawTower
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes
 
-  ClassDef(RawTowerv1, 5)
+  ClassDefOverride(RawTowerv1, 5)
 };
 
 #endif

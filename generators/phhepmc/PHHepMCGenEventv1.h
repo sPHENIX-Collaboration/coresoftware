@@ -55,7 +55,7 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
   //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   double m_rotation_angle;
 
-  ClassDef(PHHepMCGenEventv1, 1)
+  ClassDefOverride(PHHepMCGenEventv1, 1)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENTv1_H

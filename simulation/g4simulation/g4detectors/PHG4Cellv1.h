@@ -124,7 +124,7 @@ class PHG4Cellv1: public PHG4Cell
   prop_map_t prop_map;
 
 
-  ClassDef(PHG4Cellv1,3)
+  ClassDefOverride(PHG4Cellv1,3)
 };
 
 #endif

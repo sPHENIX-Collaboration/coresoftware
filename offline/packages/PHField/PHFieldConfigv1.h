@@ -87,7 +87,7 @@ class PHFieldConfigv1 : public PHFieldConfig
   std::string filename_;
   double magfield_rescale_;
 
-  ClassDef(PHFieldConfigv1, 3)
+  ClassDefOverride(PHFieldConfigv1, 3)
 };
 
 #endif

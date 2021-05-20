@@ -42,7 +42,7 @@ class BbcVertexv1 : public BbcVertex
   float _z;          //< collision position z
   float _z_err;      //< collision position z uncertainty
 
-  ClassDef(BbcVertexv1, 1);
+  ClassDefOverride(BbcVertexv1, 1);
 };
 
 #endif

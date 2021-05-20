@@ -35,7 +35,7 @@ class PHG4Particlev3 : public PHG4Particlev2
   double ioncharge;
   double excitEnergy;
 
-  ClassDef(PHG4Particlev3, 1)
+  ClassDefOverride(PHG4Particlev3, 1)
 };
 
 #endif

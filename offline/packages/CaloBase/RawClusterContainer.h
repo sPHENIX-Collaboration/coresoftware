@@ -43,7 +43,7 @@ class RawClusterContainer : public PHObject
  protected:
   Map _clusters;
 
-  ClassDef(RawClusterContainer, 1)
+  ClassDefOverride(RawClusterContainer, 1)
 };
 
 #endif

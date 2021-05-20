@@ -62,7 +62,7 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   unsigned int _truth_track_id = UINT_MAX;
   unsigned int _nmeas = 0;
 
-  ClassDef(SvtxTrack_FastSim, 1)
+  ClassDefOverride(SvtxTrack_FastSim, 1)
 };
 
 #endif /* __SVTXTRACK_FAST_SIM_H__ */

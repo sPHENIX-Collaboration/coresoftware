@@ -106,7 +106,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double pixel_z;
   double pixel_thickness;
 
-  ClassDef(CylinderGeom_Mvtx, 2)
+  ClassDefOverride(CylinderGeom_Mvtx, 2)
 };
 
 #endif

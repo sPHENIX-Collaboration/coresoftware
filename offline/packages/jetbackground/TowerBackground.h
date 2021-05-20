@@ -30,7 +30,7 @@ class TowerBackground : public PHObject
   TowerBackground() {}
 
  private:
-  ClassDef(TowerBackground, 1);
+  ClassDefOverride(TowerBackground, 1);
 };
 
 #endif

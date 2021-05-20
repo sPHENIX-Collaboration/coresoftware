@@ -28,7 +28,7 @@ class G4RootScintillatorTower : public PHObject
   short column;
   double energy;
 
-  ClassDef(G4RootScintillatorTower, 1)
+  ClassDefOverride(G4RootScintillatorTower, 1)
 };
 
 #endif  // G4HISTOS_G4ROOTSCINTILLATORTOWER_H

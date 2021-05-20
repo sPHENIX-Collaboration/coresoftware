@@ -80,7 +80,7 @@ class RawTowerGeomv2 : public RawTowerGeom
   double _size_y;
   double _size_z;
 
-  ClassDef(RawTowerGeomv2, 3)
+  ClassDefOverride(RawTowerGeomv2, 3)
 };
 
 #endif

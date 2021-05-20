@@ -76,7 +76,7 @@ class TrkrClusterContainer : public PHObject
 
   private:
 
-  ClassDef(TrkrClusterContainer, 1)
+  ClassDefOverride(TrkrClusterContainer, 1)
 
 };
 

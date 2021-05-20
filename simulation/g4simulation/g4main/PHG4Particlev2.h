@@ -40,7 +40,7 @@ class PHG4Particlev2 : public PHG4Particlev1
   int primaryid;
   double fe;
 
-  ClassDef(PHG4Particlev2, 2)
+  ClassDefOverride(PHG4Particlev2, 2)
 };
 
 #endif

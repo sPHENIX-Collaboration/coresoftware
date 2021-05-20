@@ -62,7 +62,7 @@ class PHG4VtxPointv1: public PHG4VtxPoint
   //! id tag for this vertex
   int id;
 
-  ClassDef(PHG4VtxPointv1,2)
+  ClassDefOverride(PHG4VtxPointv1,2)
 };
 
 

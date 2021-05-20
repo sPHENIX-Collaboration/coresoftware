@@ -73,7 +73,7 @@ class JetMapv1 : public JetMap
   std::set<Jet::SRC> _src;  //< list of sources (clusters, towers, etc)
   typ_JetMap _map;          //< jet algorithm output storage
 
-  ClassDef(JetMapv1, 1);
+  ClassDefOverride(JetMapv1, 1);
 };
 
 #endif

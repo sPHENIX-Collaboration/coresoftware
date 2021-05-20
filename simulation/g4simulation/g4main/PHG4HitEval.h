@@ -89,7 +89,7 @@ class PHG4HitEval : public PHG4Hitv1
   //! path length of the track to the hit
   float path_length;
 
-  ClassDef(PHG4HitEval, 1)
+  ClassDefOverride(PHG4HitEval, 1)
 };
 
 #endif /* PHG4HITEVAL_H_ */

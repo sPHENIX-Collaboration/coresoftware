@@ -228,7 +228,7 @@ class PHG4TruthInfoContainer : public PHObject
   std::map<int, int> particle_embed_flags;  //< trackid => embed flag
   std::map<int, int> vertex_embed_flags;    //< vtxid => embed flag
 
-  ClassDef(PHG4TruthInfoContainer, 1)
+  ClassDefOverride(PHG4TruthInfoContainer, 1)
 };
 
 

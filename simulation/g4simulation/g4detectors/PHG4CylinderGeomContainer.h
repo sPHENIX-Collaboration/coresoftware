@@ -35,7 +35,7 @@ class PHG4CylinderGeomContainer: public PHObject
  protected:
   Map layergeoms;
   float magfield;
-  ClassDef(PHG4CylinderGeomContainer,1)
+  ClassDefOverride(PHG4CylinderGeomContainer,1)
 };
 
 #endif

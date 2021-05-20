@@ -77,7 +77,7 @@ class EicEventHeaderv1 : public EicEventHeader
   //! container for  properties
   prop_map_t prop_map;
 
-  ClassDef(EicEventHeaderv1, 1)
+  ClassDefOverride(EicEventHeaderv1, 1)
 };
 
 #endif

@@ -35,7 +35,7 @@ class TowerBackgroundv1 : public TowerBackground
   int _nStrips;
   int _nTowers;
 
-  ClassDef(TowerBackgroundv1, 1);
+  ClassDefOverride(TowerBackgroundv1, 1);
 };
 
 #endif

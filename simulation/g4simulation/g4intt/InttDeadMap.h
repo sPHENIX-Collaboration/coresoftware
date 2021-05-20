@@ -49,7 +49,7 @@ class InttDeadMap : public PHObject
  private:
   static int s_wildCardID;
 
-  ClassDef(InttDeadMap, 1)
+  ClassDefOverride(InttDeadMap, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAP_H */

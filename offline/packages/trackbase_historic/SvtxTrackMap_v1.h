@@ -47,7 +47,7 @@ class SvtxTrackMap_v1 : public SvtxTrackMap
  private:
   TrackMap _map;
 
-  ClassDef(SvtxTrackMap_v1, 1);
+  ClassDefOverride(SvtxTrackMap_v1, 1);
 };
 
 #endif

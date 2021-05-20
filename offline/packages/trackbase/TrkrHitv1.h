@@ -40,7 +40,7 @@ class TrkrHitv1 : public TrkrHit
  protected:
   double m_edep = 0;
   unsigned int m_adc = 0;
-  ClassDef(TrkrHitv1, 1);
+  ClassDefOverride(TrkrHitv1, 1);
 };
 
 #endif //TRACKBASE_TRKRHITV1_H

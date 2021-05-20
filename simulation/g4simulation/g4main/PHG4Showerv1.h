@@ -124,7 +124,7 @@ class PHG4Showerv1 : public PHG4Shower
   VertexIdSet _g4vertex_ids;           //< contained secondary vertex ids
   HitIdMap _g4hit_ids;                 //< contained hit ids
 
-  ClassDef(PHG4Showerv1, 1);
+  ClassDefOverride(PHG4Showerv1, 1);
 };
 
 #endif

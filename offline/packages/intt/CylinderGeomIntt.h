@@ -115,7 +115,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   double m_StripZ[2];
   double m_LadderZ[2];
 
-  ClassDef(CylinderGeomIntt, 1)
+  ClassDefOverride(CylinderGeomIntt, 1)
 };
 
 #endif

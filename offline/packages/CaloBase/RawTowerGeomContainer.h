@@ -140,7 +140,7 @@ class RawTowerGeomContainer : public PHObject
   //! this class is not for use. Base class only
   RawTowerGeomContainer() {}
 
-  ClassDef(RawTowerGeomContainer, 2)
+  ClassDefOverride(RawTowerGeomContainer, 2)
 };
 
 #endif

@@ -40,7 +40,7 @@ class AssocInfoContainerv1 : public AssocInfoContainer
  private:
   ClusterTrackMap _map_cluster_id_track_id;
 
-  ClassDef(AssocInfoContainerv1, 1)
+  ClassDefOverride(AssocInfoContainerv1, 1)
 };
 
 #endif

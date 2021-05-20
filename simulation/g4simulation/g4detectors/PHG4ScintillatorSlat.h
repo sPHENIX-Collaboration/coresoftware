@@ -39,7 +39,7 @@ class PHG4ScintillatorSlat : public PHObject
  protected:
 
   PHG4ScintillatorSlat() {}
-  ClassDef(PHG4ScintillatorSlat,1)
+  ClassDefOverride(PHG4ScintillatorSlat,1)
 };
 
 #endif
