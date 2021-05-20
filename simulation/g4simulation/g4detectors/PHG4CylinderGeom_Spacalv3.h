@@ -177,7 +177,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
     ImportParameters(const PHParameters& param,
                      const std::string& param_prefix);
 
-    ClassDefOverride(PHG4CylinderGeom_Spacalv3::geom_tower, 3)
+    ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower, 3)
   };
   typedef std::map<int, geom_tower> tower_map_t;
 
@@ -246,7 +246,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
     static const int ktower_bit = 11;  // max 2048 towers per sector
     static const int ksector_bit = 8;  // max 256 sectors
 
-    ClassDefOverride(PHG4CylinderGeom_Spacalv3::scint_id_coder, 1)
+    ClassDef(PHG4CylinderGeom_Spacalv3::scint_id_coder, 1)
   };
 
   //! convert tower_ID + sector ID to eta and z bins as in other cylindrical calorimeters
