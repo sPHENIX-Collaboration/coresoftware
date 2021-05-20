@@ -265,7 +265,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree *m
   HepMC::GenEvent* theEvent = m_genevt->getEvent();
   HepMC::GenParticle* prevParticle = nullptr;
 
-  int forbiddenPDGIDs[] = {1,2,3,4,5,6,21,22}; //Stop tracing history when we reach quarks, gluons and photons
+  int forbiddenPDGIDs[] = {21,22}; //Stop tracing history when we reach quarks, gluons and photons
 
   for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
   {
