@@ -53,13 +53,7 @@ std::map<std::string, particle_pair> particleMasses = kfp_particleList.getPartic
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
-  //: m_daughter_name{"pion", "pion", "pion", "pion"}
-  //, m_daughter_charge{1, -1, 1, -1}
-  //, m_num_tracks(2)
-  //, m_has_intermediates(false)
   : m_has_intermediates(false)
-  //, m_intermediate_min_dira{-1, -1, -1, -1}
-  //, m_intermediate_min_fdchi2{-1, -1, -1, -1}
   , m_min_mass(0)
   , m_max_mass(0)
   , m_min_decayTime(-1*FLT_MAX)
@@ -208,7 +202,10 @@ const bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
 
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof) goodTrack = true;
+  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 
+      && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 
+      && trackchi2ndof <= m_track_chi2ndof) 
+        goodTrack = true;
 
   return goodTrack;
 }
@@ -489,13 +486,11 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     { 
       daughterMass = particleMasses.find(daughterOrder[i].c_str())->second.second;
     }
-//std::cout << "Track mass: " << daughterMass << std::endl;
     inputTracks[i].Create(vDaughters[i].Parameters(),
                           vDaughters[i].CovarianceMatrix(),
                           (Int_t) vDaughters[i].GetQ(),
                           daughterMass);
     mother.AddDaughter(inputTracks[i]);
-    if (inputTracks[i].GetMass() == 0) daughterMassCheck = false;
     unique_vertexID += vDaughters[i].GetQ() * particleMasses.find(daughterOrder[i].c_str())->second.second;
   }
 
@@ -508,7 +503,14 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   else
     chargeCheck = unique_vertexID == required_vertexID ? 1 : 0;
 
-  for (int j = 0; j < nTracks; ++j) inputTracks[j].SetProductionVertex(mother);
+  for (int j = 0; j < nTracks; ++j) 
+  {
+    inputTracks[j].SetProductionVertex(mother);
+    if (!m_allowZeroMassTracks)
+    {
+      if (inputTracks[j].GetMass() == 0) daughterMassCheck = false;
+    }
+  }
 
   float calculated_mass, calculated_mass_err;
   mother.GetMass(calculated_mass, calculated_mass_err);
@@ -523,11 +525,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       calculated_pt >= min_pt && daughterMassCheck && chargeCheck)
     goodCandidate = true;
 
-//std::cout << "min_mass: " << min_mass << ", calculated_mass: " << calculated_mass << ", max_mass: " << max_mass << std::endl;
-//std::cout << "min_pT: " << min_pt << ", calculated_pt: " << calculated_pt << std::endl;
-//std::cout << "daughterMassCheck: " << daughterMassCheck << std::endl;
-//std::cout << "chargeCheck: " << chargeCheck << std::endl;
-
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
   if (goodCandidate && m_has_intermediates && !isIntermediate) //The decay has intermediate states and we are now looking at the mother
   {
@@ -535,30 +532,12 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     {
       float intermediate_DIRA = eventDIRA(vDaughters[k], mother);
       float intermediate_FDchi2 = flightDistanceChi2(vDaughters[k], mother);
-//std::cout << "intermediate_DIRA: " << intermediate_DIRA << ", m_intermediate_min_dira[" << k << "]: " << m_intermediate_min_dira[k] << std::endl;
-//std::cout << "intermediate_FDchi2: " << intermediate_FDchi2 << ", m_intermediate_min_fdchi2[" << k << "]: " << m_intermediate_min_fdchi2[k] << std::endl;
       if (intermediate_DIRA < m_intermediate_min_dira[k] || 
           intermediate_FDchi2 < m_intermediate_min_fdchi2[k])
           goodCandidate = false;
     }
   }
-/*
-if (goodCandidate)
-{
-std::cout << "===== New mother =====" << std::endl;
-identify(mother);
-for (int j = 0; j < nTracks; ++j) 
-{
-  std::cout << "Track name: " << daughterOrder[j] << std::endl;
-  std::cout << "Track mass: " << particleMasses.find(daughterOrder[j].c_str())->second.second << std::endl;
-  identify(inputTracks[j]);
-}
-std::cout << "======================" << std::endl;
-}
-*/
-//identify(mother);
-//if (goodCandidate) std::cout << "Candidate is good" << std::endl;
-//else std::cout << "Candidate is bad" << std::endl;
+
   return std::make_tuple(mother, goodCandidate);
 }
 
@@ -590,13 +569,6 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime)
   && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))
       goodCandidate = true;
-
-//std::cout << "m_fdchi2: " << m_fdchi2 << ", calculated_fdchi2: " << calculated_fdchi2 << std::endl;
-//std::cout << "m_mother_ipchi2: " << m_mother_ipchi2 << ", calculated_ipchi2: " << calculated_ipchi2 << std::endl;
-//std::cout << "m_min_decayTime: " << m_min_decayTime << ", calculated_decayTime: " << calculated_decayTime << ", m_max_decayTime: " << m_max_decayTime << std::endl;
-//std::cout << "m_min_decayLength: " << m_min_decayLength << ", calculated_decayLength: " << calculated_decayLength << ", m_max_decayLength: " << m_max_decayLength << std::endl;
-//if (goodCandidate) std::cout << "Candidate is good" << std::endl;
-//else std::cout << "Candidate is bad" << std::endl;
 }
 
 std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
@@ -679,10 +651,6 @@ float KFParticle_Tools::calculateJT(KFParticle mother, KFParticle daughter)
 
 bool KFParticle_Tools::isInRange(float min, float value, float max)
 {
-//std::cout << "min: " << min << std::endl;
-//std::cout << "value: " << value << std::endl;
-//std::cout << "max: " << max << std::endl;
-
   return min <= value && value <= max;
 }
 

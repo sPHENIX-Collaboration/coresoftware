@@ -153,6 +153,8 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   bool m_get_charge_conjugate = true;
 
+  bool m_allowZeroMassTracks = false;
+
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
   SvtxVertexMap *m_dst_vertexmap = nullptr;

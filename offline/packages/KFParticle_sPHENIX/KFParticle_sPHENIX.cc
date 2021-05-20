@@ -95,11 +95,14 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
-  SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-  if (check_vertexmap->size() == 0)
+  if (!m_use_fake_pv)
   {
-    if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
+    if (check_vertexmap->size() == 0)
+    {
+      if (Verbosity() >= VERBOSITY_SOME) std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
@@ -218,7 +221,6 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::vector<int> daughters_charge;
 
   int nTracks = 0;
-  //int nTracksFromIntermediates[max_particles];
   std::vector<int> m_nTracksFromIntermediates;
 
   std::string decayArrow = "->";
@@ -243,7 +245,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     getChargeConjugate(true);
   }
 
-  //Try and find the initial particle
+  //Find the initial particle
   size_t findMotherEndPoint = manipulateDecayDescriptor.find(decayArrow);
   mother = manipulateDecayDescriptor.substr(0, findMotherEndPoint);
   if (!findParticle(mother)) ddCanBeParsed = false;
@@ -354,7 +356,6 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   }
 
   setMotherName(mother);
-
   setNumberOfTracks(nTracks);
   setDaughters(daughter_list);
 

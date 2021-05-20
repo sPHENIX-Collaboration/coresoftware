@@ -182,6 +182,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
   }
 
+  void useFakePrimaryVertex(bool use_fake) { m_use_fake_pv = use_fake; }
+
+  void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
+
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
   void setIntermediateMassRange(std::vector<std::pair<float, float>> intermediate_mass_range)

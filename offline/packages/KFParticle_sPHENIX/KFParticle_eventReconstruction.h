@@ -82,9 +82,12 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                              std::vector<KFParticle> possibleCandidates, 
                              std::vector<KFParticle> possibleVertex);
 
+  KFParticle createFakePV(); 
+
  protected:
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
+  bool m_use_fake_pv;
 
  //private:
 

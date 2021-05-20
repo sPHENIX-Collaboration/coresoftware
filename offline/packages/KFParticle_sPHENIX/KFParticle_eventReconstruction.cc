@@ -46,13 +46,9 @@ std::map<std::string, particle_pair> particleMasses_evtReco = kfp_particleList_e
 
 /// KFParticle constructor
 KFParticle_eventReconstruction::KFParticle_eventReconstruction()
-  //: m_intermediate_charge{1, -1, 1, -1}
-  //, m_intermediate_min_ip{-1, -1, -1, -1}
-  //, m_intermediate_max_ip{FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}
-  //, m_intermediate_min_ipchi2{-1, -1, -1, -1}
-  //, m_intermediate_max_ipchi2{FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}
   : m_constrain_to_vertex(true)
   , m_constrain_int_mass(false)
+  , m_use_fake_pv(false)
 {
 }
 
@@ -63,7 +59,11 @@ void KFParticle_eventReconstruction::createDecay(PHCompositeNode* topNode, std::
 {
   //ALICE field is 0.5T but they set it to -5 in KFParticle? Checked momentum sums and -1.4 is more accurate
   KFParticle::SetField(-1.4e0);
-  std::vector<KFParticle> primaryVertices = makeAllPrimaryVertices(topNode, m_vtx_map_node_name);
+
+  std::vector<KFParticle> primaryVertices;
+  if (m_use_fake_pv) primaryVertices.push_back(createFakePV());
+  else primaryVertices = makeAllPrimaryVertices(topNode, m_vtx_map_node_name);
+
   std::vector<KFParticle> daughterParticles = makeAllDaughterParticles(topNode);
 
   nPVs = primaryVertices.size();
@@ -390,4 +390,19 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
   }
 
   return bestCombinationIndex;
+}
+
+KFParticle KFParticle_eventReconstruction::createFakePV()
+{
+  float f_vertexParameters[6] = {0};
+
+  float f_vertexCovariance[21] = {0};
+
+  KFParticle kfp_vertex;
+  kfp_vertex.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
+  kfp_vertex.NDF() = 0; 
+  kfp_vertex.Chi2() = 0;
+  kfp_vertex.SetId(0);
+
+  return kfp_vertex;
 }
