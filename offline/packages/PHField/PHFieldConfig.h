@@ -25,7 +25,7 @@ class PHFieldConfig : public PHObject
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
   enum FieldConfigTypes
   {
