@@ -878,9 +878,6 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  std::cout << "Grabbing map"<<std::endl;
-  for(const auto& [key,track] : *m_trackMap)
-    track->identify();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
