@@ -76,13 +76,13 @@ void SvtxTrack_v1::CopyFrom( const SvtxTrack& source )
 
   for( const auto& type: { SvtxTrack::PRES, SvtxTrack::CEMC, SvtxTrack::HCALIN, SvtxTrack::HCALOUT } )
   {
-    if(!isnan(source.get_cal_dphi(type))) set_cal_dphi(type, source.get_cal_dphi(type));
-    if(!isnan(source.get_cal_deta(type))) set_cal_deta(type, source.get_cal_deta(type));
-    if(!isnan(source.get_cal_energy_3x3(type))) set_cal_energy_3x3(type, source.get_cal_energy_3x3(type));
-    if(!isnan(source.get_cal_energy_5x5(type))) set_cal_energy_5x5(type, source.get_cal_energy_5x5(type));
+    if(!std::isnan(source.get_cal_dphi(type))) set_cal_dphi(type, source.get_cal_dphi(type));
+    if(!std::isnan(source.get_cal_deta(type))) set_cal_deta(type, source.get_cal_deta(type));
+    if(!std::isnan(source.get_cal_energy_3x3(type))) set_cal_energy_3x3(type, source.get_cal_energy_3x3(type));
+    if(!std::isnan(source.get_cal_energy_5x5(type))) set_cal_energy_5x5(type, source.get_cal_energy_5x5(type));
     if(source.get_cal_cluster_id(type) != UINT_MAX) set_cal_cluster_id(type, source.get_cal_cluster_id(type));
     if(source.get_cal_cluster_key(type) != UINT_MAX) set_cal_cluster_key(type, source.get_cal_cluster_key(type));
-    if(!isnan(source.get_cal_cluster_e(type))) set_cal_cluster_e(type, source.get_cal_cluster_e(type));
+    if(!std::isnan(source.get_cal_cluster_e(type))) set_cal_cluster_e(type, source.get_cal_cluster_e(type));
   }
 
 }
