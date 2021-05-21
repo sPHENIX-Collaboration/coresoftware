@@ -22,7 +22,7 @@ class PdbCalBank : public  PHObject
 public:
   PdbCalBank() {}
   virtual ~PdbCalBank() {}
-   virtual PHObject* CloneMe() const = 0;
+   virtual PHObject* CloneMe() const override;
 
    virtual void printHeader() const = 0;
    virtual void print() = 0;

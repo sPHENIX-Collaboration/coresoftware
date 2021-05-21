@@ -24,8 +24,8 @@ class PdbParameterMap: public PdbCalChan
   PdbParameterMap() {}
   virtual ~PdbParameterMap() {}
 
-  void print() const;
-  void Reset(); // from PHObject - clear content
+  void print() const override;
+  void Reset() override; // from PHObject - clear content
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;

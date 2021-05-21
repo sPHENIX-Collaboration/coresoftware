@@ -20,7 +20,7 @@ class PdbParameterError : public PdbParameter
 
   void  setParameterError(const double val) { theParError = val; }
 
-  virtual void print() const;
+  virtual void print() const override;
 
  protected:
 

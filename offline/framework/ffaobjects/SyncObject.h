@@ -15,17 +15,17 @@ class SyncObject : public PHObject
   virtual ~SyncObject() {}
 
   /// Clear Sync
-  virtual void Reset();
+  virtual void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const;
+  virtual int isValid() const override;
 
-  virtual PHObject* CloneMe() const;
+  virtual PHObject* CloneMe() const override;
   virtual SyncObject& operator=(const SyncObject& source);
   virtual int Different(const SyncObject* other) const;
 

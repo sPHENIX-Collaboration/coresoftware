@@ -16,7 +16,7 @@ class FlagSave : public PHObject
   virtual ~FlagSave() {}
 
   /// Clear Flag
-  virtual void Reset()
+  virtual void Reset() override
   {
     std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
     return;
@@ -25,14 +25,14 @@ class FlagSave : public PHObject
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "identify yourself: virtual FlagSave Object" << std::endl;
     return;
   }
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const
+  virtual int isValid() const override
   {
     std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
     return 0;

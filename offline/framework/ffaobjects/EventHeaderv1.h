@@ -56,17 +56,8 @@ class EventHeaderv1 : public EventHeader
   std::map<std::string, int64_t> m_IntEventProperties;
   std::map<std::string, float> m_FloatEventProperties;
 
-// rootcling and clang complain about inconsistent overrides in the ClassDefOverride
-// this can be supressed with ignoring -Winconsistent-missing-override
-// this pragma is not known to gcc, so we need an #ifdef __clang__ here
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
   ClassDefOverride(EventHeaderv1, 2)
 
-#pragma GCC diagnostic pop
 };
 
 #endif

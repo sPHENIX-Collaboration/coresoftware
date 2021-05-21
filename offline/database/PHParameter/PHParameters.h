@@ -35,7 +35,7 @@ class PHParameters : public PHObject
 
   virtual ~PHParameters();
 
-  void Print(Option_t *option = "") const;
+  void Print(Option_t *option = "") const override;
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;
