@@ -27,11 +27,7 @@ class TrackEvaluationContainer: public PHObject
   
   //! assignment operator
   TrackEvaluationContainer& operator = ( const TrackEvaluationContainer& ) = delete;
-  
-  //! reset
-  virtual void Reset()
-  {}
-      
+
   ClassDefOverride(TrackEvaluationContainer,1)
     
 };
