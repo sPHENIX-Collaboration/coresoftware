@@ -16,13 +16,12 @@ class SvtxVertexMap : public PHObject
 
   virtual ~SvtxVertexMap() {}
 
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxVertexMap base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

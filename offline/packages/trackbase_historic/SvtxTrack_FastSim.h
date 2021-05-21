@@ -26,23 +26,23 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   SvtxTrack_FastSim( const SvtxTrack& );
 
   // copy content from base class
-  virtual void CopyFrom( const SvtxTrack& );
-  virtual void CopyFrom( SvtxTrack* source )
+  virtual void CopyFrom( const SvtxTrack& ) override;
+  virtual void CopyFrom( SvtxTrack* source ) override
   { CopyFrom( *source ); }
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream& os = std::cout) const;
-  void Reset() { *this = SvtxTrack_FastSim(); }
-  int isValid() const;
-  PHObject* CloneMe() const { return new SvtxTrack_FastSim(*this); }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override { *this = SvtxTrack_FastSim(); }
+  int isValid() const override;
+  PHObject* CloneMe() const override { return new SvtxTrack_FastSim(*this); }
 
   //!@name accessors
   //@{
 
-  unsigned int get_truth_track_id() const
+  unsigned int get_truth_track_id() const override
   { return _truth_track_id; }
 
-  unsigned int get_num_measurements() const
+  unsigned int get_num_measurements() const override
   { return _nmeas; }
 
   //@}
@@ -50,10 +50,10 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   //!@name modifiers
   //@{
 
-  void set_truth_track_id(unsigned int truthTrackId)
+  void set_truth_track_id(unsigned int truthTrackId) override
   { _truth_track_id = truthTrackId; }
 
-  void set_num_measurements(int nmeas)
+  void set_num_measurements(int nmeas) override
   { _nmeas = nmeas; }
 
   //@}
