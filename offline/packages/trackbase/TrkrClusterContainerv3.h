@@ -23,27 +23,27 @@ class TrkrClusterContainerv3 : public TrkrClusterContainer
 
   TrkrClusterContainerv3() = default;
 
-  virtual void Reset();
+  virtual void Reset() override;
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  virtual void identify(std::ostream &os = std::cout) const override;
 
-  virtual ConstIterator addCluster(TrkrCluster*);
+  virtual ConstIterator addCluster(TrkrCluster*) override;
 
-  virtual ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*);
+  virtual ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*) override;
 
-  virtual void removeCluster(TrkrDefs::cluskey);
+  virtual void removeCluster(TrkrDefs::cluskey) override;
 
-  virtual void removeCluster(TrkrCluster*);
+  virtual void removeCluster(TrkrCluster*) override;
 
-  virtual Iterator findOrAddCluster(TrkrDefs::cluskey);
+  virtual Iterator findOrAddCluster(TrkrDefs::cluskey) override;
 
-  virtual ConstRange getClusters(TrkrDefs::hitsetkey) const;
+  virtual ConstRange getClusters(TrkrDefs::hitsetkey) const override;
 
-  virtual Map* getClusterMap(TrkrDefs::hitsetkey);
+  virtual Map* getClusterMap(TrkrDefs::hitsetkey) override;
 
-  virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const;
+  virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
-  virtual unsigned int size(void) const;
+  virtual unsigned int size(void) const override;
 
   private:
   

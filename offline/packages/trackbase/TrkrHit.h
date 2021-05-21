@@ -29,12 +29,12 @@ class TrkrHit : public PHObject
   //! dtor
   virtual ~TrkrHit() {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrHit base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void Reset() override {}
+  virtual int isValid() const override { return 0; }
 
   // these set and get the energy before digitization
   virtual void addEnergy(const double edep){}

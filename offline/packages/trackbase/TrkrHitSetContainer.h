@@ -34,12 +34,8 @@ class TrkrHitSetContainer : public PHObject
   virtual ~TrkrHitSetContainer() = default;
 
   //! PHObject functions
-  virtual void Reset() 
-  {}
+  virtual void Reset()  override;
   
-  virtual void identify(std::ostream & = std::cout) const
-  {}
-
   //! Add a TrkrHitSet to the container
   virtual ConstIterator addHitSet(TrkrHitSet*);
 

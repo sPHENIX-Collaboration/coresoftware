@@ -10,8 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -97,6 +96,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \
+  TrkrClusterHitAssoc.cc \
   TrkrClusterHitAssocv1.cc \
   TrkrClusterHitAssocv2.cc \
   TrkrClusterHitAssocv3.cc \
