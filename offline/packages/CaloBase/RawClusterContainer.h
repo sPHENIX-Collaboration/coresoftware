@@ -23,9 +23,10 @@ class RawClusterContainer : public PHObject
   RawClusterContainer() {}
   virtual ~RawClusterContainer() {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
+
   ConstIterator AddCluster(RawCluster *clus);
 
   RawCluster *getCluster(const RawClusterDefs::keytype id);

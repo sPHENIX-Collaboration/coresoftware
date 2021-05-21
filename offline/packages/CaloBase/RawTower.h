@@ -34,13 +34,13 @@ class RawTower : public PHObject
 
   virtual ~RawTower() {}
 
-  virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
-  virtual int isValid() const
+  virtual void Reset() override { PHOOL_VIRTUAL_WARNING; }
+  virtual int isValid() const override
   {
     PHOOL_VIRTUAL_WARN("isValid()");
     return 0;
   }
-  virtual void identify(std::ostream& os = std::cout) const { PHOOL_VIRTUAL_WARN("identify()"); }
+  virtual void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARN("identify()"); }
 
   virtual void set_id(RawTowerDefs::keytype id) { PHOOL_VIRTUAL_WARN("set_id()"); }
   virtual RawTowerDefs::keytype get_id() const
