@@ -15,9 +15,10 @@ class G4RootScintillatorTower : public PHObject
   G4RootScintillatorTower();
   G4RootScintillatorTower(const RawTower& tower);
   virtual ~G4RootScintillatorTower() {}
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os = std::cout) const;
+
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   int get_row() const { return row; }
   int get_column() const { return column; }

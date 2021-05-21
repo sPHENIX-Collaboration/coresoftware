@@ -15,7 +15,8 @@ class G4RootScintillatorTowerContainer : public PHObject
   G4RootScintillatorTowerContainer();
   virtual ~G4RootScintillatorTowerContainer();
 
-  void Reset();
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   G4RootScintillatorTower* AddTower(const RawTower& tower);
 
@@ -34,7 +35,6 @@ class G4RootScintillatorTowerContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-  void identify(std::ostream& os = std::cout) const;
 
  protected:
   int idet;

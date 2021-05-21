@@ -20,7 +20,7 @@ esac
 ROOTLIBS=`root-config --libs`
 AC_SUBST(ROOTLIBS)
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

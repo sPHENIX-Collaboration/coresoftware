@@ -14,7 +14,9 @@ class G4RootRawTowerContainer : public PHObject
   G4RootRawTowerContainer();
   virtual ~G4RootRawTowerContainer();
 
-  void Reset();
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   G4RootRawTower* AddG4RootRawTower(const G4RootRawTower& g4tower);
   void set_etotal(const float e) { etotal = e; }
@@ -23,7 +25,6 @@ class G4RootRawTowerContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-  void identify(std::ostream& os = std::cout) const;
 
  protected:
   float etotal;
