@@ -14,10 +14,9 @@ class InttDeadMap : public PHObject
   typedef std::set<PHG4CellDefs::keytype> Map;
 
   virtual ~InttDeadMap() {}
-  virtual void Reset() {}
-  virtual int isValid() const;
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  virtual int isValid() const override;
+  virtual void identify(std::ostream &os = std::cout) const override;
 
   void addDeadChannelIntt(const int layer,
                           const int ladder_phi, const int ladder_z,
