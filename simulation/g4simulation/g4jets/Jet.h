@@ -77,10 +77,9 @@ class Jet : public PHObject
   Jet() {}
   virtual ~Jet() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() { return; }
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   // jet info ------------------------------------------------------------------
 
