@@ -33,10 +33,12 @@ class PHG4Cell: public PHObject
 
   virtual ~PHG4Cell() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject *phobj);
+// from PHObject
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void CopyFrom(const PHObject *phobj) override;
+  virtual void Reset() override;
+
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
-  virtual void Reset();
 
   // all methods connected to the cell id (encoding/decoding
   virtual void set_cellid(const PHG4CellDefs::keytype i) {return;}

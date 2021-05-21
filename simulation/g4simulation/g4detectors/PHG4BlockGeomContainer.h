@@ -23,7 +23,8 @@ class PHG4BlockGeomContainer: public PHObject
   PHG4BlockGeomContainer();
   virtual ~PHG4BlockGeomContainer();
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   int AddLayerGeom(const int i, PHG4BlockGeom *mygeom);
   int AddLayerGeom(PHG4BlockGeom *mygeom);

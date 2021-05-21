@@ -30,9 +30,9 @@ class PHG4CylinderCellContainer: public PHObject
 
   virtual ~PHG4CylinderCellContainer() {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcylinderCell);
   ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcylinderCell);

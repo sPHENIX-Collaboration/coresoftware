@@ -16,7 +16,9 @@ class PHG4BlockCellGeom: public PHObject
 
   virtual ~PHG4BlockCellGeom() {}
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
   int get_layer() const {return _layer;}
   int get_binning() const {return _binning;}
 

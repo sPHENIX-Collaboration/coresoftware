@@ -17,28 +17,22 @@
 class PHG4CylinderCell : public PHG4Cell
 {
  public:
-/*
-  typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
-  typedef EdepMap::iterator EdepIterator;
-  typedef EdepMap::const_iterator EdepConstIterator;
-  typedef std::pair<EdepIterator, EdepIterator> EdepRange;
-  typedef std::pair<EdepConstIterator, EdepConstIterator> EdepConstRange;
-
-  typedef std::map<int, float> ShowerEdepMap;
-  typedef ShowerEdepMap::iterator ShowerEdepIterator;
-  typedef ShowerEdepMap::const_iterator ShowerEdepConstIterator;
-  typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
-  typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
-*/
   
   virtual ~PHG4CylinderCell(){}
 
-  virtual void identify(std::ostream& os = std::cout) const {
+// from PHObject
+  virtual void identify(std::ostream& os = std::cout) const override 
+  {
     os << "PHG4CylinderCell base class" << std::endl;
   }
   
-  
-  
+    virtual void set_ladder_phi_index(const int i) override {return;}
+  virtual int get_ladder_phi_index() const override {return -9999;}
+
+  virtual void set_ladder_z_index(const int i) override {return;}
+  virtual int get_ladder_z_index() const override {return -9999;}
+
+// our own - not inherited  
   virtual void set_cell_id(const PHG4CylinderCellDefs::keytype id) {return;}
   virtual void set_layer(const unsigned int i) {return;}
 
@@ -56,12 +50,6 @@ class PHG4CylinderCell : public PHG4Cell
 
   virtual void set_sensor_index(const std::string &si) {return;}
   virtual std::string get_sensor_index() const {return "";}
-
-  virtual void set_ladder_phi_index(const int i) {return;}
-  virtual int get_ladder_phi_index() const {return -9999;}
-
-  virtual void set_ladder_z_index(const int i) {return;}
-  virtual int get_ladder_z_index() const {return -9999;}
 
   virtual int get_j_index() const {return -9999;}
   virtual void set_j_index(const int i) {return;}

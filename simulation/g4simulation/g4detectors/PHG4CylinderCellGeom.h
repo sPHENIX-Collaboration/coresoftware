@@ -16,7 +16,9 @@ class PHG4CylinderCellGeom: public PHObject
 
   virtual ~PHG4CylinderCellGeom() {}
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
   int get_layer() const {return layer;}
   double get_radius() const {return radius;}
   double get_thickness() const {return thickness;}

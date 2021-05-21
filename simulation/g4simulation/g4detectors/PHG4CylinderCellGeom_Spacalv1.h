@@ -26,25 +26,24 @@ class PHG4CylinderCellGeom_Spacalv1 : public PHG4CylinderCellGeom
 {
 public:
   PHG4CylinderCellGeom_Spacalv1();
-  virtual
-  ~PHG4CylinderCellGeom_Spacalv1();
-  void
-  identify(std::ostream& os = std::cout) const;
+  virtual ~PHG4CylinderCellGeom_Spacalv1();
+
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual std::pair<double, double>
-  get_zbounds(const int ibin) const;
+  get_zbounds(const int ibin) const override;
   virtual std::pair<double, double>
-  get_etabounds(const int ibin) const;
+  get_etabounds(const int ibin) const override;
 
   virtual double
-  get_etacenter(const int ibin) const;
+  get_etacenter(const int ibin) const override;
   virtual double
-  get_zcenter(const int ibin) const;
+  get_zcenter(const int ibin) const override;
 
   virtual int
-  get_etabin(const double eta) const;
+  get_etabin(const double eta) const override;
   virtual int
-  get_zbin(const double z) const;
+  get_zbin(const double z) const override;
 
   void
   set_zbounds(const int ibin, const std::pair<double, double> & bounds);

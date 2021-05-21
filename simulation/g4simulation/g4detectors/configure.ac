@@ -7,14 +7,14 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-tautological-overlap-compare -Wno-inconsistent-missing-override"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-tautological-overlap-compare"
  ;;
  *g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

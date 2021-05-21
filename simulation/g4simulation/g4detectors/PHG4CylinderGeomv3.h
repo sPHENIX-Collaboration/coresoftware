@@ -20,12 +20,14 @@ class PHG4CylinderGeomv3: public PHG4CylinderGeomv2
 
   virtual ~PHG4CylinderGeomv3() {}
 
-  void identify(std::ostream& os = std::cout) const;
-  void set_tiltangle (const double phi) {tiltangle=phi;}
-  void set_phi_slat_zero (const double phi) {phi_slat_zero=phi;}
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
-  double get_phi_slat_zero() const {return phi_slat_zero;}
-  double get_tiltangle() const {return tiltangle;}
+  void set_tiltangle (const double phi) override {tiltangle=phi;}
+  void set_phi_slat_zero (const double phi) override {phi_slat_zero=phi;}
+
+  double get_phi_slat_zero() const override {return phi_slat_zero;}
+  double get_tiltangle() const override {return tiltangle;}
 
  protected:
   double tiltangle;

@@ -33,17 +33,16 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
     sector_map.clear();
   }
 
-  virtual void
-  identify(std::ostream &os = std::cout) const;
+// from PHObject
+  virtual void identify(std::ostream &os = std::cout) const override;
 
-  virtual void
-  Print(Option_t *option = "") const;
+// from TObject
+  virtual void Print(Option_t *option = "") const override;
 
-  virtual void
-  SetDefault();
+  virtual void SetDefault();
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters &param);
+  virtual void ImportParameters(const PHParameters &param) override;
 
   ///@}
 
