@@ -78,7 +78,7 @@ PHG4EtaPhiParameterization::PHG4EtaPhiParameterization(
   //
   for (unsigned int i = 0; i < _neta * _nphi; i++)
   {
-    div_t q = div(i, _nphi);
+    div_t q = div((int)i, (int)_nphi);
     int ieta = q.quot;
     int iphi = q.rem;
     _ieta.push_back(ieta);
