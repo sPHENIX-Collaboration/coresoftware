@@ -21,7 +21,7 @@ dnl odbc++ has issues
 esac
 
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])
