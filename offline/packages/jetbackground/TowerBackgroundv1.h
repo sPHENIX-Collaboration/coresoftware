@@ -12,20 +12,22 @@ class TowerBackgroundv1 : public TowerBackground
   TowerBackgroundv1();
   virtual ~TowerBackgroundv1() {}
 
-  void identify(std::ostream &os = std::cout) const;
-  void Reset() {}
-  int isValid() const { return 1; }
+  void identify(std::ostream &os = std::cout) const override;
+  void Reset() override {}
+  int isValid() const override { return 1; }
 
-  virtual void set_UE(int layer, const std::vector<float> &UE) { _UE[layer] = UE; }
-  virtual void set_v2(float v2) { _v2 = v2; }
-  virtual void set_Psi2(float Psi2) { _Psi2 = Psi2; }
-  virtual void set_nStripsUsedForFlow(int nStrips) { _nStrips = nStrips; }
-  virtual void set_nTowersUsedForBkg(int nTowers) { _nTowers = nTowers; }
+  virtual void set_UE(int layer, const std::vector<float> &UE) override { _UE[layer] = UE; }
+  virtual void set_v2(float v2) override { _v2 = v2; }
+  virtual void set_Psi2(float Psi2) override { _Psi2 = Psi2; }
+  virtual void set_nStripsUsedForFlow(int nStrips) override { _nStrips = nStrips; }
+  virtual void set_nTowersUsedForBkg(int nTowers) override { _nTowers = nTowers; }
 
-  virtual std::vector<float> get_UE(int layer) { return _UE[layer]; }
-  virtual float get_v2() { return _v2; }
-  virtual float get_Psi2() { return _Psi2; }
-  virtual int get_nStripsUsedForFlow() { return _nStrips; }
+  virtual std::vector<float> get_UE(int layer) override { return _UE[layer]; }
+  virtual float get_v2() override { return _v2; }
+  virtual float get_Psi2() override { return _Psi2; }
+  virtual int get_nStripsUsedForFlow() override { return _nStrips; }
+
+// our own - not from parent class
   virtual int get_nTowersUsedForFlow() { return _nTowers; }
 
  private:
