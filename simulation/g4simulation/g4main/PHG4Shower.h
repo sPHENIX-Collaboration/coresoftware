@@ -31,10 +31,10 @@ class PHG4Shower : public PHObject
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const { os << "PHG4Shower base class" << std::endl; }
-  virtual PHG4Shower* CloneMe() const { return nullptr; }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void identify(std::ostream& os = std::cout) const override { os << "PHG4Shower base class" << std::endl; }
+  virtual PHG4Shower* CloneMe() const override { return nullptr; }
+  virtual void Reset() override {}
+  virtual int isValid() const override { return 0; }
 
   // shower info
 

@@ -30,21 +30,21 @@ class PHGeomIOTGeo : public PHObject
   PHGeomIOTGeo();
   virtual ~PHGeomIOTGeo();
 
-  virtual PHObject* CloneMe() const {return new PHGeomIOTGeo(*this);}
+  virtual PHObject* CloneMe() const override {return new PHGeomIOTGeo(*this);}
 
   /** identify Function from PHObject
    @param os Output Stream
    */
   virtual void
-  identify(std::ostream& os = std::cout) const;
+  identify(std::ostream& os = std::cout) const override;
 
   /// Clear Event
   virtual void
-  Reset();
+  Reset() override;
 
   /// isValid returns non zero if object contains vailid data
   virtual int
-  isValid() const;
+  isValid() const override;
 
   //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
   void

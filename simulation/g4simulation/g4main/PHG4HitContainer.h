@@ -31,9 +31,9 @@ class PHG4HitContainer: public PHObject
 
   virtual ~PHG4HitContainer() {}
 
-  void Reset();
+  void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   //! container ID should follow definition of PHG4HitDefs::get_volume_id(DST nodename)
   void SetID(int i) {id = i;}

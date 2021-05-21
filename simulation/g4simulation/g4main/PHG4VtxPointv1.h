@@ -38,19 +38,21 @@ class PHG4VtxPointv1: public PHG4VtxPoint
 
   virtual ~PHG4VtxPointv1() {}
 
-  void set_x(const double r) {vx = r;}
-  void set_y(const double r) {vy = r;}
-  void set_z(const double r) {vz = r;}
-  void set_t(const double r) {t0 = r;}
-  void set_id(const int i) {id = i;}
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
-  double get_x() const {return vx;}
-  double get_y() const {return vy;}
-  double get_z() const {return vz;}
-  double get_t() const {return t0;}
-  int get_id() const {return id;}
+  void set_x(const double r) override {vx = r;}
+  void set_y(const double r) override {vy = r;}
+  void set_z(const double r) override {vz = r;}
+  void set_t(const double r) override {t0 = r;}
+  void set_id(const int i) override {id = i;}
 
-  void identify(std::ostream& os = std::cout) const;
+  double get_x() const override {return vx;}
+  double get_y() const override {return vy;}
+  double get_z() const override {return vz;}
+  double get_t() const override {return t0;}
+  int get_id() const override {return id;}
+
 
  protected:
 

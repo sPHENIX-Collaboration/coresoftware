@@ -19,10 +19,10 @@ class PHG4Hit: public PHObject
   PHG4Hit() {}
   virtual ~PHG4Hit() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject *phobj);
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void CopyFrom(const PHObject *phobj) override;
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
-  virtual void Reset();
+  virtual void Reset() override;
 
   // The indices here represent the entry and exit points of the particle
   virtual float get_x(const int i) const {return NAN;}

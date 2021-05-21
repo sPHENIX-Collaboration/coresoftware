@@ -18,7 +18,6 @@ AM_CPPFLAGS = \
   -isystem $(OFFLINE_MAIN)/include \
   -isystem $(ROOTSYS)/include \
   -isystem ${G4_MAIN}/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OPT_SPHENIX)/include
 
 # rootcint barfs on isystem

@@ -30,50 +30,50 @@ class PHG4HitEval : public PHG4Hitv1
 
   virtual ~PHG4HitEval() {}
 
-  virtual void CopyFrom(const PHObject *phobj);
+  virtual void CopyFrom(const PHObject *phobj) override;
 
   float
-  get_eion() const
+  get_eion() const override
   {
     return eion;
   }
   void
-  set_eion(const float f)
+  set_eion(const float f) override
   {
     eion = f;
   }
 
-  int get_scint_id() const
+  int get_scint_id() const override
   {
     return scint_id;
   }
 
   void
-  set_scint_id(const int i)
+  set_scint_id(const int i) override
   {
     scint_id = i;
   }
 
   float
-  get_light_yield() const
+  get_light_yield() const override
   {
     return light_yield;
   }
 
   void
-  set_light_yield(float lightYield)
+  set_light_yield(float lightYield) override
   {
     light_yield = lightYield;
   }
 
   float
-  get_path_length() const
+  get_path_length() const override
   {
     return path_length;
   }
 
   void
-  set_path_length(float pathLength)
+  set_path_length(float pathLength) override
   {
     path_length = pathLength;
   }

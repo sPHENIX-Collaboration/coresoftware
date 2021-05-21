@@ -38,8 +38,9 @@ class PHG4TruthInfoContainer : public PHObject
   PHG4TruthInfoContainer();
   virtual ~PHG4TruthInfoContainer();
 
-  void Reset();
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   // --- particle storage ------------------------------------------------------
 
