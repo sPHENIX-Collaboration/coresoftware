@@ -13,10 +13,9 @@ class BbcVertex : public PHObject
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const { os << "BbcVertex base class" << std::endl; }
-  virtual PHObject* CloneMe() const { return nullptr; }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void identify(std::ostream& os = std::cout) const override { os << "BbcVertex base class" << std::endl; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
+  virtual int isValid() const  override{ return 0; }
 
   // vertex info
 

@@ -15,9 +15,8 @@ class BbcVertexMap : public PHObject
 
   virtual ~BbcVertexMap() {}
 
-  virtual void identify(std::ostream& os = std::cout) const { os << "BbcVertexMap base class" << std::endl; }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void identify(std::ostream& os = std::cout) const override { os << "BbcVertexMap base class" << std::endl; }
+  virtual int isValid() const override { return 0; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
