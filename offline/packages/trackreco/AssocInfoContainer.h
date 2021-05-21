@@ -17,8 +17,7 @@ class AssocInfoContainer : public PHObject
 
   virtual ~AssocInfoContainer(){}
 
-  virtual void Reset() {return;}
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
   virtual void SetClusterTrackAssoc(const TrkrDefs::cluskey& cluster_id, const unsigned int& track_id) {return;}
 
