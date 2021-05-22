@@ -28,10 +28,10 @@ class KFParticle_Container : public PHObject
   KFParticle_Container& operator=(const KFParticle_Container& kfparticlemap);
   virtual ~KFParticle_Container();
 
-  void identify(std::ostream& os = std::cout) const;
-  void Reset();
-  int isValid() const { return 1; }
-  PHObject* CloneMe() const { return new KFParticle_Container(*this); }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override { return 1; }
+  PHObject* CloneMe() const override { return new KFParticle_Container(*this); }
 
   bool empty() const { return m_kfpmap.empty(); }
   size_t size() const { return m_kfpmap.size(); }
@@ -61,7 +61,7 @@ class KFParticle_Container : public PHObject
  private:
   Map m_kfpmap;
 
-  ClassDef(KFParticle_Container, 1)
+  ClassDefOverride(KFParticle_Container, 1)
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLECONTAINER_H

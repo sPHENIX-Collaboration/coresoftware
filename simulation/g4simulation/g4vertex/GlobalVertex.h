@@ -26,13 +26,12 @@ class GlobalVertex : public PHObject
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "GlobalVertex base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   // vertex info
 
@@ -91,7 +90,7 @@ class GlobalVertex : public PHObject
   GlobalVertex() {}
 
  private:
-  ClassDef(GlobalVertex, 1);
+  ClassDefOverride(GlobalVertex, 1);
 };
 
 #endif

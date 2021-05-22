@@ -29,23 +29,21 @@ public:
   {
   }
 
-  virtual void
-  identify(std::ostream& os = std::cout) const;
-  virtual void
-  Print(Option_t* option = "") const;
-  virtual void
-  SetDefault();
+
+// from PHObject
+  virtual void identify(std::ostream& os = std::cout) const override;
+
+// from TObject
+  virtual void Print(Option_t* option = "") const override;
+
+  virtual void SetDefault() override;
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param);
+  virtual void ImportParameters(const PHParameters & param) override;
 
-  virtual
-  int
-  get_azimuthal_n_sec() const;
+  virtual int get_azimuthal_n_sec() const override;
 
-  virtual
-  void
-  set_azimuthal_n_sec(int azimuthalNSec);
+  virtual void set_azimuthal_n_sec(int azimuthalNSec);
 
   //! azimuthal tilt in rad
   double
@@ -62,7 +60,7 @@ public:
   }
 
   virtual
-  bool is_azimuthal_seg_visible() const;
+  bool is_azimuthal_seg_visible() const override;
 
   virtual
   void set_azimuthal_seg_visible(bool b = true);
@@ -142,7 +140,7 @@ protected:
   double polar_taper_ratio;
   double assembly_spacing;
 
-  ClassDef(PHG4CylinderGeom_Spacalv2,2)
+  ClassDefOverride(PHG4CylinderGeom_Spacalv2,2)
 
 
 };

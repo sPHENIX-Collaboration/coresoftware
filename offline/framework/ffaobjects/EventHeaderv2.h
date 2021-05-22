@@ -55,15 +55,9 @@ class EventHeaderv2 : public EventHeaderv1
  private:
   //! bunch crossing id
   int64_t m_bunchCrossing = 0;
-// rootcling and clang complain about inconsistent overrides in the ClassDef
-// this can be supressed with ignoring -Winconsistent-missing-override
-// this pragma is not known to gcc, so we need an #ifdef __clang__ here
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
-#endif
-  ClassDef(EventHeaderv2, 2)
-#pragma GCC diagnostic pop
+
+  ClassDefOverride(EventHeaderv2, 2)
+
 };
 
 #endif

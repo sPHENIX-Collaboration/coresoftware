@@ -22,18 +22,18 @@ class RawTowerv2 : public RawTowerv1
              const unsigned int iphi);
   virtual ~RawTowerv2() {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream& os = std::cout) const override;
 
-  double get_scint_gammas() const { return get_property(prop_scint_gammas); }
-  void set_scint_gammas(const double e) { set_property(prop_scint_gammas, e); }
-  double get_cerenkov_gammas() const { return get_property(prop_cerenkov_gammas); }
-  void set_cerenkov_gammas(const double e) { set_property(prop_cerenkov_gammas, e); }
+  double get_scint_gammas() const override { return get_property(prop_scint_gammas); }
+  void set_scint_gammas(const double e) override { set_property(prop_scint_gammas, e); }
+  double get_cerenkov_gammas() const override { return get_property(prop_cerenkov_gammas); }
+  void set_cerenkov_gammas(const double e) override { set_property(prop_cerenkov_gammas, e); }
 
-  bool has_property(const PROPERTY prop_id) const;
-  double get_property(const PROPERTY prop_id) const;
-  void set_property(const PROPERTY prop_id, const double value);
+  bool has_property(const PROPERTY prop_id) const override;
+  double get_property(const PROPERTY prop_id) const override;
+  void set_property(const PROPERTY prop_id, const double value) override;
 
  protected:
   typedef uint8_t prop_id_t;
@@ -41,7 +41,7 @@ class RawTowerv2 : public RawTowerv1
   //! container for additional property
   prop_map_t prop_map;
 
-  ClassDef(RawTowerv2, 1)
+  ClassDefOverride(RawTowerv2, 1)
 };
 
 #endif

@@ -18,9 +18,8 @@ class GlobalVertexMap : public PHObject
 
   virtual ~GlobalVertexMap() {}
 
-  virtual void identify(std::ostream& os = std::cout) const { os << "GlobalVertexMap base class" << std::endl; }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
+  virtual int isValid() const override { return 0; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
@@ -44,7 +43,7 @@ class GlobalVertexMap : public PHObject
   GlobalVertexMap() {}
 
  private:
-  ClassDef(GlobalVertexMap, 1);
+  ClassDefOverride(GlobalVertexMap, 1);
 };
 
 #endif  // G4VERTEX_GLOBALVERTEXMAP_H

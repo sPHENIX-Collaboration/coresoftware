@@ -50,7 +50,7 @@ class PHObject : public TObject
   virtual void CopyFrom(const PHObject *obj);
 
  private:
-  ClassDef(PHObject, 0)  // no I/O
+  ClassDefOverride(PHObject, 0)  // no I/O
 };
 
 #endif /* PHOOL_PHOBJECT_H */

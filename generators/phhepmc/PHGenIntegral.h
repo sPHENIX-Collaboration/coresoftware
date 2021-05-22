@@ -86,7 +86,7 @@ class PHGenIntegral : public PHObject
   {
   }
 
-  ClassDef(PHGenIntegral, 1)
+  ClassDefOverride(PHGenIntegral, 1)
 };
 
 #endif /* PHHEPMC_PHGENINTEGRAL_H */

@@ -30,9 +30,9 @@ class PHG4ScintillatorSlatContainer: public PHObject
 
   virtual ~PHG4ScintillatorSlatContainer() {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   ConstIterator AddScintillatorSlat(const PHG4ScintillatorSlatDefs::keytype key, PHG4ScintillatorSlat *newscintillatorSlat);
   
@@ -76,7 +76,7 @@ class PHG4ScintillatorSlatContainer: public PHObject
  protected:
   Map slatmap;
 
-  ClassDef(PHG4ScintillatorSlatContainer,1)
+  ClassDefOverride(PHG4ScintillatorSlatContainer,1)
 };
 
 #endif

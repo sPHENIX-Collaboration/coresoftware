@@ -20,13 +20,13 @@ class PdbParameterError : public PdbParameter
 
   void  setParameterError(const double val) { theParError = val; }
 
-  virtual void print() const;
+  virtual void print() const override;
 
  protected:
 
   double theParError;
 
-  ClassDef(PdbParameterError,1);
+  ClassDefOverride(PdbParameterError,1);
 };
 
 #endif /* PDBCAL_BASE_PDBPARAMETERERROR_H */

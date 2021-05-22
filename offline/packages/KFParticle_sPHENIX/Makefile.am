@@ -14,7 +14,6 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -DHomogeneousField
 
 

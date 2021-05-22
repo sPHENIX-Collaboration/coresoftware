@@ -20,13 +20,13 @@ class SvtxVertex : public PHObject
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxVertex base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   // vertex info
 
@@ -75,7 +75,7 @@ class SvtxVertex : public PHObject
  protected:
   SvtxVertex() {}
 
-  ClassDef(SvtxVertex, 1);
+  ClassDefOverride(SvtxVertex, 1);
 };
 
 #endif

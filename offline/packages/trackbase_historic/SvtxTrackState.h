@@ -9,13 +9,13 @@ class SvtxTrackState : public PHObject
  public:
   virtual ~SvtxTrackState() {}
     
-  virtual void identify(std::ostream &os = std::cout) const
+  virtual void identify(std::ostream &os = std::cout) const override
   {
     os << "SvtxTrackState base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject *CloneMe() const { return nullptr; }
+
+  virtual int isValid() const override { return 0; }
+  virtual PHObject *CloneMe() const override { return nullptr; }
 
   virtual float get_pathlength() const { return NAN; }
 
@@ -78,7 +78,7 @@ class SvtxTrackState : public PHObject
  protected:
   SvtxTrackState(float pathlength = 0.0) {}
 
-  ClassDef(SvtxTrackState, 1);
+  ClassDefOverride(SvtxTrackState, 1);
 };
 
 #endif

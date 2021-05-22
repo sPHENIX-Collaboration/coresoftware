@@ -187,7 +187,7 @@ class PgPostBankBackupStorage : public TNamed
     std::string tableName;
     int rid;
 
-    ClassDef(PgPostBankBackupStorage::BankHeader, 1)
+    ClassDefOverride(PgPostBankBackupStorage::BankHeader, 1)
   };
 
   void
@@ -282,7 +282,7 @@ class PgPostBankBackupStorage : public TNamed
   //! storage of the original calibration bank (vector of PdbCalChan)
   PdbCalBank *bank;
 
-  ClassDef(PgPostBankBackupStorage, 1)
+  ClassDefOverride(PgPostBankBackupStorage, 1)
 };
 
 #endif /* PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H */

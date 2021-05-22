@@ -40,13 +40,13 @@ class SvtxTrack : public PHObject
   virtual ~SvtxTrack() = default;
 
   // The "standard PHObject response" functions...
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxTrack base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
@@ -264,7 +264,7 @@ class SvtxTrack : public PHObject
  protected:
   SvtxTrack() {}
 
-  ClassDef(SvtxTrack, 1);
+  ClassDefOverride(SvtxTrack, 1);
 };
 
 #endif

@@ -14,7 +14,7 @@ class RawTowerGeom : public PHObject
  public:
   virtual ~RawTowerGeom() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
   virtual void set_id(RawTowerDefs::keytype key) { PHOOL_VIRTUAL_WARN("set_id()"); }
 
@@ -164,7 +164,7 @@ class RawTowerGeom : public PHObject
  protected:
   RawTowerGeom() {}
 
-  ClassDef(RawTowerGeom, 2)
+  ClassDefOverride(RawTowerGeom, 2)
 };
 
 #endif
