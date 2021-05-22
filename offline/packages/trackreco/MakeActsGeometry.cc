@@ -143,11 +143,23 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   /// Add the TPC surfaces to the copy of the TGeoManager. 
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
-  editTPCGeometry(topNode);
+  
+  // This should be done only on the first tracking pass, to avoid adding surfaces twice
+  if(fake_surfaces)
+    editTPCGeometry(topNode);
+  else
+    std::cout << " NOT adding TPC and MMs surfaces" << std::endl;
 
   // need to get nodes first, in order to be able to build the proper micromegas geometry
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;  
+
+  // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
+  if(m_geomContainerMicromegas)
+    {
+      m_buildMMs = true;
+      std::cout << " WILL  add MMs surfaces to ActsSurfaceMap " << std::endl;  
+    }
 
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -156,7 +168,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   buildActsSurfaces();
 
   /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
-  makeTGeoNodeMap(topNode);
+  //makeTGeoNodeMap(topNode);
 
   /// Export the new geometry to a root file for examination
   if(Verbosity() > 3)
@@ -645,30 +657,38 @@ void MakeActsGeometry::unpackVolumes()
   if(m_buildMMs)
   {
     // micromegas
+    //std::cout << "Before: m_clusterSurfaceMapMm size    " << m_clusterSurfaceMapMmEdit.size() << std::endl;
     auto mmBarrel = find_volume_by_name( vol, "MICROMEGAS::Barrel" );
     assert( mmBarrel );
     makeMmMapPairs(mmBarrel);
+    //std::cout << "After: m_clusterSurfaceMapMm size    " << m_clusterSurfaceMapMmEdit.size() << std::endl;
   }
   
   {
     // MVTX
+    //std::cout << "Before: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
     auto mvtxBarrel = find_volume_by_name( vol, "MVTX::Barrel" );
     assert( mvtxBarrel );
     makeMvtxMapPairs(mvtxBarrel);
+    //std::cout << "After: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
   }
 
   {
     // INTT
+    //std::cout << "Before: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
     auto inttBarrel = find_volume_by_name( vol, "Silicon::Barrel" );
     assert( inttBarrel );
     makeInttMapPairs(inttBarrel);
+    //std::cout << "After: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
   }
 
   {
     // TPC
+    //std::cout << "Before: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl;
     auto tpcBarrel = find_volume_by_name( vol, "TPC::Barrel" );
     assert( tpcBarrel );
     makeTpcMapPairs(tpcBarrel);
+    //std::cout << "After: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl;
   }
 
   return;
@@ -795,9 +815,6 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       assert( inserted );
     }
   }
-  
-  std::cout << "MakeActsGeometry::makeMmMapPairs - done." << std::endl;
-  
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
