@@ -12,7 +12,7 @@ class G4RootScintillatorSlat : public PHObject
  public:
   G4RootScintillatorSlat();
   G4RootScintillatorSlat(const PHG4ScintillatorSlat& slat);
-  virtual ~G4RootScintillatorSlat() {}
+  ~G4RootScintillatorSlat() override {}
 
   void Reset() override;
   int isValid() const override;

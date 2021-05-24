@@ -12,7 +12,7 @@ class G4RootHitContainer : public PHObject
 {
  public:
   G4RootHitContainer();
-  virtual ~G4RootHitContainer();
+  ~G4RootHitContainer() override;
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

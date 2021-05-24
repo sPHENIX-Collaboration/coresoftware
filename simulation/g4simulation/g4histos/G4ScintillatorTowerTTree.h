@@ -13,15 +13,15 @@ class G4ScintillatorTowerTTree : public SubsysReco
 {
  public:
   G4ScintillatorTowerTTree(const std::string &name = "SCINTILLATORTOWERTTREE");
-  virtual ~G4ScintillatorTowerTTree() {}
+  ~G4ScintillatorTowerTTree() override {}
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   void Detector(const std::string &det);
 
