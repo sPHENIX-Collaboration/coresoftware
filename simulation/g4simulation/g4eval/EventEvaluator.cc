@@ -219,8 +219,9 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _mcpart_BCID(0)
 
   , _nHepmcp(0)
-    //  , _hepmcp_x1(0)
-    //  , _hepmcp_procid(0)
+  , _hepmcp_procid(0)
+  , _hepmcp_x1(NAN)
+  , _hepmcp_x2(NAN)
 
     //  , _hepmcp_ID_parent(0)
   , _hepmcp_status(0)  
