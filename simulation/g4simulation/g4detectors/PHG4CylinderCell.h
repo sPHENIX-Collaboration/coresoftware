@@ -18,19 +18,19 @@ class PHG4CylinderCell : public PHG4Cell
 {
  public:
   
-  virtual ~PHG4CylinderCell(){}
+  ~PHG4CylinderCell() override{}
 
 // from PHObject
-  virtual void identify(std::ostream& os = std::cout) const override 
+  void identify(std::ostream& os = std::cout) const override 
   {
     os << "PHG4CylinderCell base class" << std::endl;
   }
   
-    virtual void set_ladder_phi_index(const int i) override {return;}
-  virtual int get_ladder_phi_index() const override {return -9999;}
+    void set_ladder_phi_index(const int i) override {return;}
+  int get_ladder_phi_index() const override {return -9999;}
 
-  virtual void set_ladder_z_index(const int i) override {return;}
-  virtual int get_ladder_z_index() const override {return -9999;}
+  void set_ladder_z_index(const int i) override {return;}
+  int get_ladder_z_index() const override {return -9999;}
 
 // our own - not inherited  
   virtual void set_cell_id(const PHG4CylinderCellDefs::keytype id) {return;}

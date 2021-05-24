@@ -22,12 +22,12 @@ class PHG4CEmcTestBeamDetector : public PHG4Detector
   PHG4CEmcTestBeamDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr = 0);
 
   //! destructor
-  virtual ~PHG4CEmcTestBeamDetector(void)
+  ~PHG4CEmcTestBeamDetector(void) override
   {
   }
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   //@{

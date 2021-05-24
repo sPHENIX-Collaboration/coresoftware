@@ -12,7 +12,7 @@ class PHG4CylinderCellv3 : public PHG4CylinderCellv1
  public:
 
   PHG4CylinderCellv3();
-  virtual ~PHG4CylinderCellv3(){}
+  ~PHG4CylinderCellv3() override{}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

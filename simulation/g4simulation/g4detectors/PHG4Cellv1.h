@@ -20,10 +20,10 @@ class PHG4Cellv1: public PHG4Cell
  public:
   PHG4Cellv1();
   PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
-  virtual ~PHG4Cellv1();
+  ~PHG4Cellv1() override;
 
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   void set_cellid(const PHG4CellDefs::keytype i) override {cellid = i;}
 

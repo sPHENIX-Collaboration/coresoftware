@@ -37,13 +37,13 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
                                    PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
-  virtual ~PHG4FullProjTiltedSpacalDetector(void) {}
+  ~PHG4FullProjTiltedSpacalDetector(void) override {}
 
-  virtual void
-  ConstructMe(G4LogicalVolume* world);
+  void
+  ConstructMe(G4LogicalVolume* world) override;
 
-  virtual std::pair<G4LogicalVolume*, G4Transform3D>
-  Construct_AzimuthalSeg();
+  std::pair<G4LogicalVolume*, G4Transform3D>
+  Construct_AzimuthalSeg() override;
 
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual G4LogicalVolume*
@@ -60,10 +60,10 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   virtual int
   Construct_Fibers_SameLengthFiberPerTower(const SpacalGeom_t::geom_tower& tower, G4LogicalVolume* LV_tower);
 
-  virtual void
-  Print(const std::string& what = "ALL") const;
+  void
+  Print(const std::string& what = "ALL") const override;
 
-  virtual PHG4CylinderGeom* clone_geom() const
+  PHG4CylinderGeom* clone_geom() const override
   {
     return new SpacalGeom_t(*get_geom_v3());
   }

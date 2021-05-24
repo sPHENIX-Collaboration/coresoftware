@@ -28,7 +28,7 @@ class PHG4CylinderCellContainer: public PHObject
 
   PHG4CylinderCellContainer(){}
 
-  virtual ~PHG4CylinderCellContainer() {}
+  ~PHG4CylinderCellContainer() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

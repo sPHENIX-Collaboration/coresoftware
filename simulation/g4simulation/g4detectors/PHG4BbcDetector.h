@@ -22,7 +22,7 @@ class PHG4BbcDetector : public PHG4Detector
   PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "BBC");
 
   //! destructor
-  virtual ~PHG4BbcDetector()
+  ~PHG4BbcDetector() override
   {
   }
 

@@ -19,7 +19,7 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
  public:
 
   PHG4CylinderCellv1();
-  virtual ~PHG4CylinderCellv1(){}
+  ~PHG4CylinderCellv1() override{}
 
   void identify(std::ostream& os = std::cout) const override;
 

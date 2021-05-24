@@ -18,7 +18,7 @@ class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
     nscint(n_scint)
       {}
 
-  virtual ~PHG4CylinderGeomv2() {}
+  ~PHG4CylinderGeomv2() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -27,7 +27,7 @@ class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
   int get_nscint() const override {return nscint;}
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param) override;
+  void ImportParameters(const PHParameters & param) override;
 
  protected:
   int nscint;

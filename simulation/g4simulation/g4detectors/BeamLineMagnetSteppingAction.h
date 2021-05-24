@@ -20,13 +20,13 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   BeamLineMagnetSteppingAction(BeamLineMagnetDetector*, const PHParameters* parameters);
 
   //! destructor
-  virtual ~BeamLineMagnetSteppingAction();
+  ~BeamLineMagnetSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
   //! pointer to the detector

@@ -21,7 +21,7 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
   PHG4ConeSubsystem(const std::string& name = "CONE", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4ConeSubsystem(void);
+  ~PHG4ConeSubsystem(void) override;
 
   //! init runwise stuff
   /*!
@@ -75,7 +75,7 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
   // this method is used to check if it can be used as mothervolume
   // Subsystems which can be mothervolume need to implement this
   // and return true
-  virtual bool CanBeMotherSubsystem() const override { return true; }
+  bool CanBeMotherSubsystem() const override { return true; }
 
  private:
   void SetDefaultParameters() override;

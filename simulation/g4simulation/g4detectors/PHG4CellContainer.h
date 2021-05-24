@@ -25,7 +25,7 @@ class PHG4CellContainer: public PHObject
 
   PHG4CellContainer();
 
-  virtual ~PHG4CellContainer() {}
+  ~PHG4CellContainer() override {}
 
 // from PHObject
   void Reset() override;
