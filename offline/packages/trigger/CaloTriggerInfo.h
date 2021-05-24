@@ -6,10 +6,10 @@
 class CaloTriggerInfo : public PHObject
 {
  public:
-  virtual ~CaloTriggerInfo(){};
+  ~CaloTriggerInfo() override{};
 
-  virtual void identify(std::ostream &os = std::cout) const override { os << "CaloTriggerInfo base class" << std::endl; };
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream &os = std::cout) const override { os << "CaloTriggerInfo base class" << std::endl; };
+  int isValid() const override { return 0; }
 
   // EMCal 2x2
   virtual void set_best_EMCal_2x2_E(const float E) {}
