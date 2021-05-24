@@ -15,8 +15,8 @@ class PHG4InttFPHXParameterisation : public G4VPVParameterisation
 {
  public:
   PHG4InttFPHXParameterisation(const double offsetx, const double offsety, const double offsetz, const double dz, const int ncopy);
-  virtual ~PHG4InttFPHXParameterisation() {}
-  virtual void ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const;
+  ~PHG4InttFPHXParameterisation() override {}
+  void ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const override;
 
  private:
   G4double fXFPHX[20];

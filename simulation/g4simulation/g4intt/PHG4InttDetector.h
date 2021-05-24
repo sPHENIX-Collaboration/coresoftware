@@ -26,9 +26,9 @@ class PHG4InttDetector : public PHG4Detector
   PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
-  virtual ~PHG4InttDetector() {}
+  ~PHG4InttDetector() override {}
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   //@{
