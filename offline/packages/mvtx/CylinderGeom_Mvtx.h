@@ -31,7 +31,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   {
   }
 
-  virtual ~CylinderGeom_Mvtx() {}
+  ~CylinderGeom_Mvtx() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;
