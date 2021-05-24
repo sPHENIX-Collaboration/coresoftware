@@ -23,7 +23,7 @@ class EventHeaderv2 : public EventHeaderv1
   EventHeaderv2() = default;
 
   //! dtor
-  virtual ~EventHeaderv2() = default;
+  ~EventHeaderv2() override = default;
 
   //! clone
   PHObject* CloneMe() const override
@@ -38,7 +38,7 @@ class EventHeaderv2 : public EventHeaderv1
    * identify Function from PHObject
    * @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   //! bunch crossing
   void set_BunchCrossing(int64_t value) override

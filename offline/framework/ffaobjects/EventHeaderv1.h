@@ -19,7 +19,7 @@ class EventHeaderv1 : public EventHeader
   /// ctor
   EventHeaderv1() = default;
   /// dtor
-  virtual ~EventHeaderv1() = default;
+  ~EventHeaderv1() override = default;
 
   PHObject *CloneMe() const override { return new EventHeaderv1(*this); }
 

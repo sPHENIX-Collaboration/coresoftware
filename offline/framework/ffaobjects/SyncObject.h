@@ -12,20 +12,20 @@ class SyncObject : public PHObject
 {
  public:
   /// dtor
-  virtual ~SyncObject() {}
+  ~SyncObject() override {}
 
   /// Clear Sync
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
-  virtual PHObject* CloneMe() const override;
+  PHObject* CloneMe() const override;
   virtual SyncObject& operator=(const SyncObject& source);
   virtual int Different(const SyncObject* other) const;
 
