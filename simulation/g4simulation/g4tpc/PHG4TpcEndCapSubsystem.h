@@ -28,7 +28,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   PHG4TpcEndCapSubsystem(const std::string& name = "PHG4TpcEndCap");
 
   //! destructor
-  virtual ~PHG4TpcEndCapSubsystem() ;
+  ~PHG4TpcEndCapSubsystem() override ;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
