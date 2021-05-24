@@ -33,7 +33,7 @@ class PHParameters : public PHObject
   }
   PHParameters(const PHParameters &params, const std::string &name);
 
-  virtual ~PHParameters();
+  ~PHParameters() override;
 
   void Print(Option_t *option = "") const override;
 
