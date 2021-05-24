@@ -67,7 +67,7 @@ class EventEvaluator : public SubsysReco
     _reco_e_threshold = thresh;
   }
 
-private:
+ private:
   bool _do_FHCAL;
   bool _do_HCALIN;
   bool _do_HCALOUT;
@@ -120,7 +120,7 @@ private:
   int* _tower_EHCAL_iEta;
   int* _tower_EHCAL_iPhi;
   int* _tower_EHCAL_trueID;
-  
+
   int _nTowers_DRCALO;
   float* _tower_DRCALO_E;
   int* _tower_DRCALO_NScint;
@@ -146,7 +146,7 @@ private:
   int* _tower_CEMC_iEta;
   int* _tower_CEMC_iPhi;
   int* _tower_CEMC_trueID;
-  
+
   // clusters
   int _nclusters_FHCAL;
   float* _cluster_FHCAL_E;
@@ -175,7 +175,7 @@ private:
   float* _cluster_EHCAL_Phi;
   int* _cluster_EHCAL_NTower;
   int* _cluster_EHCAL_trueID;
-  
+
   int _nclusters_FEMC;
   float* _cluster_FEMC_E;
   float* _cluster_FEMC_Eta;
@@ -196,7 +196,7 @@ private:
   float* _cluster_EEMC_Phi;
   int* _cluster_EEMC_NTower;
   int* _cluster_EEMC_trueID;
-  
+
   // vertex
   float _vertex_x;
   float _vertex_y;
@@ -235,7 +235,7 @@ private:
   float* _mcpart_px;
   float* _mcpart_py;
   float* _mcpart_pz;
-  int*   _mcpart_BCID;
+  int* _mcpart_BCID;
 
   // MC particles
   int _nHepmcp;
@@ -252,18 +252,18 @@ private:
   int* _hepmcp_m1;
   int* _hepmcp_m2;
   int* _hepmcp_BCID;
-  
+
   float _reco_e_threshold;
   int _depth_MCstack;
 
-  CaloEvalStack *_caloevalstackFHCAL;
-  CaloEvalStack *_caloevalstackHCALIN;
-  CaloEvalStack *_caloevalstackHCALOUT;
-  CaloEvalStack *_caloevalstackEHCAL;
-  CaloEvalStack *_caloevalstackDRCALO;
-  CaloEvalStack *_caloevalstackFEMC;
-  CaloEvalStack *_caloevalstackCEMC;
-  CaloEvalStack *_caloevalstackEEMC;
+  CaloEvalStack* _caloevalstackFHCAL;
+  CaloEvalStack* _caloevalstackHCALIN;
+  CaloEvalStack* _caloevalstackHCALOUT;
+  CaloEvalStack* _caloevalstackEHCAL;
+  CaloEvalStack* _caloevalstackDRCALO;
+  CaloEvalStack* _caloevalstackFEMC;
+  CaloEvalStack* _caloevalstackCEMC;
+  CaloEvalStack* _caloevalstackEEMC;
 
   //----------------------------------
   // evaluator output ntuples
