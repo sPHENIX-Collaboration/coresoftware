@@ -25,9 +25,9 @@ class RawTowerDeadMapLoader : public SubsysReco
  public:
   RawTowerDeadMapLoader(const std::string& detector);
 
-  virtual ~RawTowerDeadMapLoader() {}
+  ~RawTowerDeadMapLoader() override {}
 
-  virtual int InitRun(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode) override;
 
   const std::string& deadMapPath() const
   {
