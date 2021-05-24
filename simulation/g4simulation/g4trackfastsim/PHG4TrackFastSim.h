@@ -64,16 +64,16 @@ class PHG4TrackFastSim : public SubsysReco
   explicit PHG4TrackFastSim(const std::string& name = "PHG4TrackFastSim");
 
   //! dtor
-  virtual ~PHG4TrackFastSim();
+  ~PHG4TrackFastSim() override;
 
   //!Initialization Run, called for initialization of a run
-  int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //!Process Event, called for each event
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //!End, write and close files
-  int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   bool is_do_evt_display() const
   {
