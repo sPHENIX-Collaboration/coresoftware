@@ -27,7 +27,7 @@ class MicromegasTile: public PHObject
   MicromegasTile() = default;
 
   //! destructor
-  virtual ~MicromegasTile() = default;
+  ~MicromegasTile() override = default;
 
   //! constructor
   MicromegasTile( std::array<double, 4> values )
