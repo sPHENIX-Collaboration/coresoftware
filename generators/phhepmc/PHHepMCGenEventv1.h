@@ -10,11 +10,11 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
 
   PHHepMCGenEventv1(const PHHepMCGenEventv1& event);
   PHHepMCGenEventv1& operator=(const PHHepMCGenEventv1& event);
-  virtual ~PHHepMCGenEventv1();
+  ~PHHepMCGenEventv1() override;
 
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual void Reset() override;
-  virtual int isValid() const override
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override
   {
     PHOOL_VIRTUAL_WARNING;
     return 0;

@@ -17,7 +17,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   Fun4AllHepMCPileupInputManager(const std::string &name = "DUMMY",
                                  const std::string &nodename = "DST",
                                  const std::string &topnodename = "TOP");
-  virtual ~Fun4AllHepMCPileupInputManager();
+  ~Fun4AllHepMCPileupInputManager() override;
 
   int run(const int nevents = 0) override { return run(nevents, false); }
 

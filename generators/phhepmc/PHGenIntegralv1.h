@@ -26,17 +26,17 @@ class PHGenIntegralv1 : public PHGenIntegral
  public:
   PHGenIntegralv1();
   explicit PHGenIntegralv1(const std::string& description);
-  virtual ~PHGenIntegralv1(){}
+  ~PHGenIntegralv1() override{}
 
-  virtual PHObject* CloneMe() const override {return new PHGenIntegralv1(*this);}
-  virtual int isValid() const override { return 1; }
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual void Reset() override;
+  PHObject* CloneMe() const override {return new PHGenIntegralv1(*this);}
+  int isValid() const override { return 1; }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
-  virtual int Integrate() const override { return 1; }
+  int Integrate() const override { return 1; }
   /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
-  virtual int Integrate(PHObject*) override;
-  virtual void CopyFrom(const PHObject* obj) override;
+  int Integrate(PHObject*) override;
+  void CopyFrom(const PHObject* obj) override;
 
   //! Integrated luminosity in pb^-1
   Double_t get_Integrated_Lumi() const override
