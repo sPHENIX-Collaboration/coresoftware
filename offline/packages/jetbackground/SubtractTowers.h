@@ -26,10 +26,10 @@ class SubtractTowers : public SubsysReco
 {
  public:
   SubtractTowers(const std::string &name = "SubtractTowers");
-  virtual ~SubtractTowers() {}
+  ~SubtractTowers() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
 

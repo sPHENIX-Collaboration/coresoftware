@@ -27,11 +27,11 @@ class CopyAndSubtractJets : public SubsysReco
 {
  public:
   CopyAndSubtractJets(const std::string &name = "CopyAndSubtractJets");
-  virtual ~CopyAndSubtractJets() {}
+  ~CopyAndSubtractJets() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
 
