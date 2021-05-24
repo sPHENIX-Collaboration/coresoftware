@@ -25,15 +25,12 @@ class TrkrClusterHitAssoc : public PHObject
 {
 public:
 
-  TrkrClusterHitAssoc() {}
-
-  //! dtor
-  virtual ~TrkrClusterHitAssoc() {}
-
-  virtual void Reset() = 0;
-
-  virtual void identify(std::ostream &os = std::cout) const = 0;
+  using Map = std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>;
+  using ConstIterator = Map::const_iterator;
+  using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
   
+  virtual void Reset() override;
+
   /**
    * @brief Add association between cluster and hit
    * @param[in] ckey Cluster key
@@ -41,8 +38,8 @@ public:
    */
   virtual void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx) = 0;
 
-  virtual std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> 
-    *getClusterSet(unsigned int layer, unsigned int phi_segment, unsigned int z_segment) = 0;
+  //! get pointer to cluster-to-hit map corresponding to a given hitset id
+  virtual Map* getClusterMap(TrkrDefs::hitsetkey) {return nullptr;}
 
   /**
    * @brief Get all the hits associated with a cluster by key
@@ -50,14 +47,16 @@ public:
    * @param[out] Range over hits associated with @c ckey
    */
 
-  virtual std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
-    getHits(TrkrDefs::cluskey ckey) = 0;
+  virtual ConstRange getHits(TrkrDefs::cluskey) = 0;
 
-  virtual unsigned int size(void) const = 0;
+  virtual unsigned int size() const {return 0;}
+
+protected:
+  TrkrClusterHitAssoc() = default;
 
 private:
 
-  ClassDef(TrkrClusterHitAssoc, 1);
+  ClassDefOverride(TrkrClusterHitAssoc, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOC_H

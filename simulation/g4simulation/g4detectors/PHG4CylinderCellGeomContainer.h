@@ -23,7 +23,8 @@ class PHG4CylinderCellGeomContainer: public PHObject
   PHG4CylinderCellGeomContainer(){}
   virtual ~PHG4CylinderCellGeomContainer();
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   int AddLayerCellGeom(const int i, PHG4CylinderCellGeom *mygeom);
   int AddLayerCellGeom(PHG4CylinderCellGeom *mygeom);
@@ -34,7 +35,7 @@ class PHG4CylinderCellGeomContainer: public PHObject
 
  protected:
   std::map<int,PHG4CylinderCellGeom *> layergeoms ;
-  ClassDef(PHG4CylinderCellGeomContainer,1)
+  ClassDefOverride(PHG4CylinderCellGeomContainer,1)
 };
 
 #endif

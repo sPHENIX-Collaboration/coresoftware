@@ -26,13 +26,15 @@ namespace RawTowerDefs
    */
   enum CalorimeterId
   {
-    NONE,
-    CEMC,
-    HCALOUT,
-    HCALIN,
-    EEMC,
-    FEMC,
-    FHCAL
+    NONE = 0,
+    CEMC = 1,
+    HCALOUT = 2,
+    HCALIN = 3,
+    EEMC = 4,
+    FEMC = 5,
+    FHCAL = 6,
+    DRCALO = 7,
+    EHCAL = 8
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
@@ -123,6 +125,10 @@ namespace RawTowerDefs
       return "NONE";
       break;
 
+    case DRCALO:
+      return "DRCALO";
+      break;
+
     case CEMC:
       return "CEMC";
       break;
@@ -137,6 +143,10 @@ namespace RawTowerDefs
 
     case EEMC:
       return "EEMC";
+      break;
+
+    case EHCAL:
+      return "EHCAL";
       break;
 
     case FEMC:
@@ -166,6 +176,9 @@ namespace RawTowerDefs
     else if (caloname == "CEMC")
       return CEMC;
 
+    else if (caloname == "DRCALO")
+      return DRCALO;
+
     else if (caloname == "HCALIN")
       return HCALIN;
 
@@ -174,6 +187,9 @@ namespace RawTowerDefs
 
     else if (caloname == "EEMC")
       return EEMC;
+
+    else if (caloname == "EHCAL")
+      return EHCAL;
 
     else if (caloname == "FEMC")
       return FEMC;

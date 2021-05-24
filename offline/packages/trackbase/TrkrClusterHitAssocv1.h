@@ -26,35 +26,31 @@ class TrkrClusterHitAssocv1 : public TrkrClusterHitAssoc
 public:
 
   //! ctor
-  TrkrClusterHitAssocv1();
+  TrkrClusterHitAssocv1() = default;
 
-  //! dtor
-  virtual ~TrkrClusterHitAssocv1();
+  virtual void Reset() override;
 
-  virtual void Reset();
-
-  virtual void identify(std::ostream &os = std::cout) const;
+  virtual void identify(std::ostream &os = std::cout) const override;
 
   /**
    * @brief Add association between cluster and hit
    * @param[in] ckey Cluster key
    * @param[in] hidx Index of the hit in TrkrHitSet
    */
-  virtual void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx);
+  virtual void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx) override;
 
   /**
    * @brief Get all the hits associated with a cluster by key
    * @param[in] ckey Cluster key
    * @param[out] Range over hits associated with @c ckey
    */
-  virtual std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>  
-    getHits(TrkrDefs::cluskey ckey);
-
+  virtual ConstRange getHits(TrkrDefs::cluskey) override;
+  
 private:
 
-  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> m_map;
+  Map m_map;
 
-  ClassDef(TrkrClusterHitAssocv1, 1);
+  ClassDefOverride(TrkrClusterHitAssocv1, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOCV1_H

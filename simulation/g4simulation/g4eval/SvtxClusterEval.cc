@@ -6,7 +6,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>

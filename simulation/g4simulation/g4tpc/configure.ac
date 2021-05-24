@@ -9,12 +9,12 @@ case $CXX in
  clang++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-misleading-indentation"
  ;;
- g++)
+ *g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

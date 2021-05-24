@@ -19,10 +19,10 @@ class PHG4Hit: public PHObject
   PHG4Hit() {}
   virtual ~PHG4Hit() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject *phobj);
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void CopyFrom(const PHObject *phobj) override;
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
-  virtual void Reset();
+  virtual void Reset() override;
 
   // The indices here represent the entry and exit points of the particle
   virtual float get_x(const int i) const {return NAN;}
@@ -106,6 +106,8 @@ class PHG4Hit: public PHObject
 
     //! for scintillation detectors, the amount of light produced
     prop_light_yield = 2,
+    scint_gammas = 3,
+    cerenkov_gammas = 4,
 
     //-- track properties: 10 - 20  --
 
@@ -192,7 +194,7 @@ class PHG4Hit: public PHObject
  protected:
   virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
   virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
-  ClassDef(PHG4Hit,1)
+  ClassDefOverride(PHG4Hit,1)
 };
 
 

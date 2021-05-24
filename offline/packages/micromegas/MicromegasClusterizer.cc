@@ -10,13 +10,13 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainer.h>        // for TrkrCluster
+#include <trackbase/TrkrClusterContainerv3.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 
 #include <Acts/Utilities/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -49,6 +49,28 @@ namespace
   //! convenience square method
   template<class T>
     inline constexpr T square( const T& x ) { return x*x; }
+
+  // streamers
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3D& vector )
+  {
+    out << "( " << vector[0] << "," << vector[1] << "," << vector[2] << ")";
+    return out;
+  }
+
+  // streamers
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2D& vector )
+  {
+    out << "( " << vector[0] << "," << vector[1] << ")";
+    return out;
+  }
+
+  // streamers
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
+  {
+    out << "( " << vector.x() << "," << vector.y() << "," << vector.z() << ")";
+    return out;
+  }
+
 }
 
 //_______________________________________________________________________________
@@ -78,7 +100,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterContainer = new TrkrClusterContainer();
+    trkrClusterContainer = new TrkrClusterContainerv3;
     auto TrkrClusterContainerNode = new PHIODataNode<PHObject>(trkrClusterContainer, "TRKR_CLUSTER", "PHObject");
     trkrNode->addNode(TrkrClusterContainerNode);
   }
@@ -95,7 +117,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterHitAssoc = new TrkrClusterHitAssocv2();
+    trkrClusterHitAssoc = new TrkrClusterHitAssocv3;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(trkrClusterHitAssoc, "TRKR_CLUSTERHITASSOC", "PHObject");
     trkrNode->addNode(newNode);
   }
@@ -124,8 +146,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
-  assert( m_tGeometry );
+  // geometry
+  auto acts_geometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  assert( acts_geometry );
+
+  // surface map
+  auto acts_surface_map = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  assert( acts_surface_map );
 
   // loop over micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
@@ -137,9 +164,36 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     const auto layer = TrkrDefs::getLayer(hitsetkey);
     const auto tileid = MicromegasDefs::getTileId(hitsetkey);
 
-    // get geometry object
+    // get micromegas geometry object
     const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
     assert(layergeom);
+
+    // get micromegas acts surface
+    const auto acts_surface_iter = acts_surface_map->mmSurfaceMap.find( hitsetkey );
+    if( acts_surface_iter == acts_surface_map->mmSurfaceMap.end() )
+    {
+      std::cout
+        << "MicromegasClusterizer::process_event -"
+        << " could not find surface for layer " << (int) layer << " tile: " << (int) tileid
+        << " skipping hitset"
+        << std::endl;
+      continue;
+    }
+
+    // surface, surface center and normal director
+    const auto acts_surface( acts_surface_iter->second );
+    Acts::Vector3D normal = acts_surface->normal(acts_geometry->geoContext);
+
+    if( Verbosity() )
+    {
+      const auto geo_normal = layergeom->get_world_from_local_vect( tileid, {0, 1, 0} );
+      std::cout << "MicromegasClusterizer::process_event -"
+        << " layer: " << (int) layer
+        << " tile: " << (int) tileid
+        << " normal (acts): " << normal
+        << " geo: " << geo_normal
+        << std::endl;
+    }
 
     /*
      * get segmentation type, layer thickness, strip length and pitch.
@@ -147,7 +201,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
      */
     const auto segmentation_type = layergeom->get_segmentation_type();
     const double thickness = layergeom->get_thickness();
-    const double radius = layergeom->get_radius();
     const double pitch = layergeom->get_pitch();
     const double strip_length = layergeom->get_strip_length( tileid );
 
@@ -211,7 +264,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       auto cluster = std::make_unique<TrkrClusterv2>();
       cluster->setClusKey(cluster_key);
 
-      TVector3 world_coordinates;
+      TVector3 local_coordinates;
       double weight_sum = 0;
 
       // needed for proper error calculation
@@ -237,25 +290,23 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         static constexpr double pedestal = 74.6;
         const double weight = double(hit->getAdc()) - pedestal;
 
-        // get strip world coordinate and update relevant sums
-        const auto strip_world_coordinate = layergeom->get_world_coordinate( tileid, strip );
-        world_coordinates += strip_world_coordinate*weight;
+        // get strip local coordinate and update relevant sums
+        const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, strip );
+        local_coordinates += strip_local_coordinate*weight;
         switch( segmentation_type )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
 
-            const auto rphi = radius*std::atan2( strip_world_coordinate.y(), strip_world_coordinate.x() );
-            coord_sum += rphi*weight;
-            coordsquare_sum += square(rphi)*weight;
+            coord_sum += strip_local_coordinate.x()*weight;
+            coordsquare_sum += square(strip_local_coordinate.x())*weight;
             break;
           }
 
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            const auto z = strip_world_coordinate.z();
-            coord_sum += z*weight;
-            coordsquare_sum += square(z)*weight;
+            coord_sum += strip_local_coordinate.z()*weight;
+            coordsquare_sum += square(strip_local_coordinate.z())*weight;
             break;
           }
         }
@@ -265,9 +316,10 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       // cluster position
-      cluster->setPosition( 0, world_coordinates.x()/weight_sum );
-      cluster->setPosition( 1, world_coordinates.y()/weight_sum );
-      cluster->setPosition( 2, world_coordinates.z()/weight_sum );
+      const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates*(1./weight_sum) );
+      cluster->setX( world_coordinates.x() );
+      cluster->setY( world_coordinates.y() );
+      cluster->setZ( world_coordinates.z() );
       cluster->setGlobal();
 
       // dimension and error in r, rphi and z coordinates
@@ -309,58 +361,48 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
       }
 
-      /// Add Acts and local information
-      Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
-
-      /// Get the surface key to find the surface from the map
-      TrkrDefs::hitsetkey mmHitSetKey = MicromegasDefs::genHitSetKey(layer, segmentation_type, 0);
-      TrkrDefs::subsurfkey subsurfkey;
-      auto surface = getMmSurfaceFromCoords(topNode, mmHitSetKey, subsurfkey, globalPos);
-      if(!surface)
       {
-        /// If the surface can't be found, we can't track with it
-        /// Move to the next one
-        continue;
+        /// Add Acts local information
+        Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
+        auto result = acts_surface->globalToLocal(
+          acts_geometry->geoContext,
+          globalPos * Acts::UnitConstants::cm,
+          normal);
+
+        if( !result.ok() )
+        {
+          // if this happens, should use CylinderGeomMicromegas instead
+          std::cout
+            << "MicromegasClusterizer::process_event -"
+            << " could not convert global cluster position to local coordinates"
+            << std::endl;
+        }
+
+        Acts::Vector2D local2D = result.value()/Acts::UnitConstants::cm;
+
+        if( Verbosity() )
+        {
+          const auto local = layergeom->get_local_from_world_coords( tileid, world_coordinates );
+          std::cout << "MicromegasClusterizer::process_event -"
+            << " layer: " << (int) layer
+            << " tile: " << (int) tileid
+            << " local: " << local
+            << " acts: " << local2D
+            << std::endl;
+        }
+
+        cluster->setLocalX(local2D(0));
+        cluster->setLocalY(local2D(1));
+
+        cluster->setActsLocalError(0,0, error(1,1));
+        cluster->setActsLocalError(0,1, error(1,2));
+        cluster->setActsLocalError(1,0, error(2,1));
+        cluster->setActsLocalError(1,1,error(2,2));
       }
 
-      Acts::Vector3D center = surface->center(m_tGeometry->geoContext) / Acts::UnitConstants::cm;
-      Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
-
-      double surfRadius = sqrt(center[0]*center[0] + center[1]*center[1]);
-      double surfPhiCenter = atan2(center[1], center[0]);
-      double surfRphiCenter = surfPhiCenter * surfRadius;
-      double surfZCenter = center[2];
-
-      double clusRadius = sqrt(cluster->getX() * cluster->getX()
-			       + cluster->getY() * cluster->getY());
-      double clusphi = atan2(cluster->getY(), cluster->getX());
-      double rClusPhi = clusRadius * clusphi;
-      double zMm = globalPos(2);
-      auto vecResult = surface->globalToLocal(m_tGeometry->geoContext,
-					      globalPos * Acts::UnitConstants::cm,
-					      normal);
-      Acts::Vector2D local2D;
-      if(vecResult.ok())
-      {
-        local2D = vecResult.value() / Acts::UnitConstants::cm;
-      } else {
-
-        /// Otherwise use manual calculation, which is the same as Acts
-        local2D(0) = rClusPhi - surfRphiCenter;
-        local2D(1) = zMm - surfZCenter;
-      }
-
-      cluster->setLocalX(local2D(0));
-      cluster->setLocalY(local2D(1));
-      cluster->setSubSurfKey(subsurfkey);
-      cluster->setActsLocalError(0,0, error(1,1));
-      cluster->setActsLocalError(0,1, error(1,2));
-      cluster->setActsLocalError(1,0, error(2,1));
-      cluster->setActsLocalError(1,1,error(2,2));
-
-      // rotate and save
+      // rotate size and error to global frame, and assign to cluster
       matrix_t rotation = matrix_t::Identity();
-      const double phi = std::atan2(world_coordinates.y(), world_coordinates.x());
+      const double phi = layergeom->get_center_phi( tileid );
       const double cosphi = std::cos(phi);
       const double sinphi = std::sin(phi);
       rotation(0,0) = cosphi;
@@ -380,6 +422,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         cluster->setError( i, j, error(i,j) );
       }
 
+      // add to container
       trkrClusterContainer->addCluster( cluster.release() );
 
     }
@@ -387,75 +430,4 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   }
   // done
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-Surface MicromegasClusterizer::getMmSurfaceFromCoords(PHCompositeNode *topNode,
-						      TrkrDefs::hitsetkey hitsetkey,
-						      TrkrDefs::subsurfkey& subsurfkey,
-						      Acts::Vector3D world)
-{
-
-  auto surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!surfMaps)
-    {
-      std::cout << PHWHERE << "ActsSurfaceMaps not found on node tree!No TPOT clusters will be created."
-		<< std::endl;
-      return nullptr;
-    }
-
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->mmSurfaceMap.find(hitsetkey);
-
-  if(mapIter == surfMaps->mmSurfaceMap.end())
-    {
-      std::cout << PHWHERE
-		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
-		<< hitsetkey << std::endl;
-      return nullptr;
-    }
-
-  double world_phi = atan2(world[1], world[0]);
-  double world_z = world[2];
-
-  std::vector<Surface> surf_vec = mapIter->second;
-  unsigned int surf_index = 999;
-
-  /// Get some geometry values from the geom builder for parsing surfaces
-  double surfStepPhi = m_tGeometry->mmSurfStepPhi;
-  double surfStepZ = m_tGeometry->mmSurfStepZ;
-
-  for(unsigned int i=0;i<surf_vec.size(); ++i)
-  {
-    Surface this_surf = surf_vec[i];
-
-    auto vec3d = this_surf->center(m_tGeometry->geoContext);
-    std::vector<double> surf_center = {vec3d(0)/Acts::UnitConstants::cm, vec3d(1)/Acts::UnitConstants::cm, vec3d(2)/Acts::UnitConstants::cm};
-    double surf_phi = atan2(surf_center[1], surf_center[0]);
-    double surf_z = surf_center[2];
-
-    /// Check if the cluster is geometrically within the surface boundaries
-    /// The MMs surfaces span the entire length in z, so we don't divide
-    /// by 2 in the z direction since the center of the surface is z=0
-    bool withinPhi = world_phi >= surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0;
-    bool withinZ = world_z > surf_z - surfStepZ && world_z < surf_z + surfStepZ;
-    if( withinPhi && withinZ )
-    {
-      surf_index = i;
-      break;
-    }
-  }
-
-  subsurfkey = surf_index;
-
-  if(surf_index == 999)
-  {
-    std::cout << PHWHERE
-      << "Error: Micromegas surface index not defined, skipping cluster!"
-      << std::endl;
-
-    return nullptr;
-  }
-
-  return surf_vec[surf_index];
-
 }

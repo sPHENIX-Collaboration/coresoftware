@@ -8,8 +8,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -83,7 +83,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     geo->identify();
   }
 
-  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
@@ -95,12 +95,12 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
 
-  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -112,7 +112,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hittruthassoc = new TrkrHitTruthAssoc();
+    hittruthassoc = new TrkrHitTruthAssocv1;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -139,7 +139,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkrhitsetcontainer)
   {
     cout << "Could not locate TRKR_HITSET node, quit! " << endl;
@@ -147,7 +147,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitTruthAssoc node
-  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;

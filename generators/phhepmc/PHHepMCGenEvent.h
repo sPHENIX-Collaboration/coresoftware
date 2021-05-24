@@ -5,8 +5,9 @@
 
 #include <phool/phool.h>
 
-#include <CLHEP/Vector/LorentzRotation.h>
 #include <HepMC/SimpleVector.h>
+
+#include <CLHEP/Vector/LorentzRotation.h>
 
 #include <iostream>  // for cout, ostream
 
@@ -24,13 +25,13 @@ class PHHepMCGenEvent : public PHObject
   PHHepMCGenEvent& operator=(const PHHepMCGenEvent& event);
   virtual ~PHHepMCGenEvent();
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset();
-  virtual int isValid() const
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void Reset() override;
+  virtual int isValid() const override
   {
     return (getEvent() != nullptr) ? 1 : 0;
   }
-  virtual PHObject* CloneMe() const { return new PHHepMCGenEvent(*this); }
+  virtual PHObject* CloneMe() const override { return new PHHepMCGenEvent(*this); }
 
   HepMC::GenEvent* getEvent();
   const HepMC::GenEvent* getEvent() const;
@@ -130,7 +131,7 @@ class PHHepMCGenEvent : public PHObject
   //! The HEP MC record from event generator. Note the units are recorded in GenEvent
   HepMC::GenEvent* _theEvt;
 
-  ClassDef(PHHepMCGenEvent, 5)
+  ClassDefOverride(PHHepMCGenEvent, 5)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENT_H

@@ -12,7 +12,7 @@
 
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -673,6 +673,7 @@ int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -718,6 +719,10 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
 
       case TrkrDefs::tpcId:
         if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
+        break;
+
+      case TrkrDefs::micromegasId:
+        if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
         break;
 
       default:

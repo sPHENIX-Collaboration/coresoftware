@@ -17,8 +17,8 @@
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -1011,6 +1011,14 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "Called Setup" << endl;
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
+
+  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_vertex_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   InitializeGeometry(topNode);
  #if __cplusplus < 201402L
   t_fill = boost::make_unique<PHTimer>("t_fill");

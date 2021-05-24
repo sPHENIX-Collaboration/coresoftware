@@ -14,15 +14,15 @@ class VariableArrayContainer : public PHObject
   VariableArrayContainer();
   virtual ~VariableArrayContainer();
 
-  void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
   void AddVarArray(VariableArray *var);
   // Here are the very explicit set routines...
-  void Reset();
+  void Reset() override;
 
  protected:
   TObjArray *arraycontainer;
 
-  ClassDef(VariableArrayContainer, 1)
+  ClassDefOverride(VariableArrayContainer, 1)
 };
 
 #endif

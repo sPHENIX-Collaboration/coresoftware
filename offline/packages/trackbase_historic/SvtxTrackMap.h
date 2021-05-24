@@ -17,13 +17,12 @@ class SvtxTrackMap : public PHObject
 
   virtual ~SvtxTrackMap() {}
 
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxTrackMap base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
@@ -47,7 +46,7 @@ class SvtxTrackMap : public PHObject
   SvtxTrackMap() {}
 
  private:
-  ClassDef(SvtxTrackMap, 1);
+  ClassDefOverride(SvtxTrackMap, 1);
 };
 
 #endif

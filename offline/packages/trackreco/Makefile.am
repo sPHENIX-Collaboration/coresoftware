@@ -13,8 +13,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -23,9 +22,8 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
-  ActsTrack.h \
-  ActsEvaluator.h \
   AssocInfoContainer.h \
+  AssocInfoContainerv1.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
   HelixHoughBin.h \
@@ -38,9 +36,6 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHActsSourceLinks.h \
-  PHActsTracks.h \
-  PHActsToSvtxTracks.h \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
@@ -81,6 +76,7 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
+  AssocInfoContainerv1_Dict.cc \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
@@ -91,6 +87,7 @@ ROOTDICTS = \
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
+  AssocInfoContainerv1_Dict_rdict.pcm \
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
@@ -100,6 +97,7 @@ ROOTDICTS = \
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
+  AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
   HelixHoughBin.cc \
@@ -113,12 +111,8 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   ActsTransformations.cc \
-  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
-  PHActsSourceLinks.cc \
-  PHActsTracks.cc \
-  PHActsToSvtxTracks.cc \
   PHActsTrkFitter.cc \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \

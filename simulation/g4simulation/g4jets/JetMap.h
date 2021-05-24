@@ -26,10 +26,9 @@ class JetMap : public PHObject
   JetMap(){}
   virtual ~JetMap() {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual int isValid() const override { return 0; }
+  virtual PHObject* CloneMe() const override { return nullptr; }
 
   // map content info ----------------------------------------------------------
 
@@ -74,7 +73,7 @@ class JetMap : public PHObject
   virtual Iter end();
 
  private:
-  ClassDef(JetMap, 1);
+  ClassDefOverride(JetMap, 1);
 };
 
 #endif

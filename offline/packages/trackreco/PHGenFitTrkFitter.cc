@@ -15,25 +15,24 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 
-#include <micromegas/MicromegasDefs.h>
-#include <mvtx/MvtxDefs.h>
-
 #include <intt/InttDefs.h>
+#include <intt/CylinderGeomIntt.h>
+
+#include <micromegas/MicromegasDefs.h>
+#include <micromegas/CylinderGeomMicromegas.h>
+
+#include <mvtx/MvtxDefs.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-
-//
-#include <intt/CylinderGeomIntt.h>
-
-#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
@@ -391,17 +390,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
         if (_trackmap_refit)
-    {
-          _trackmap_refit->insert(rf_track.get());
-          //					delete rf_track;
-        }
+      { _trackmap_refit->insert(rf_track.get()); }
 
       if (_over_write_svtxtrackmap || _output_mode == DebugMode)
-      {
-        *(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
-            *(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
-//				delete rf_track;
-      }
+      { iter->second->CopyFrom( rf_track.get() ); }
     }
     else
     {
@@ -547,44 +539,39 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* topNode)
     new ((*_tca_vtxmap)[i++])(PHG4VtxPointv1)(
         *dynamic_cast<PHG4VtxPointv1*>(itr->second));
 
-  i = 0;
-  for (SvtxTrackMap::ConstIter itr = _trackmap->begin();
-       itr != _trackmap->end(); ++itr)
-    new ((*_tca_trackmap)[i++])(SvtxTrack_v1)(
-        *dynamic_cast<SvtxTrack_v1*>(itr->second));
-
-  i = 0;
+  if( _trackmap )
+  {
+    i = 0;
+    for ( const auto& pair:*_trackmap )
+    { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
+  }
+  
   if (_vertexmap)
-    for (SvtxVertexMap::ConstIter itr = _vertexmap->begin();
-         itr != _vertexmap->end(); ++itr)
-      new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)(
-          *dynamic_cast<SvtxVertex_v1*>(itr->second));
-
+  {
+    i = 0;
+    for ( const auto& pair:*_vertexmap )
+    { new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second) ); }
+  }
+  
   if (_trackmap_refit)
   {
     i = 0;
-    for (SvtxTrackMap::ConstIter itr = _trackmap_refit->begin();
-         itr != _trackmap_refit->end(); ++itr)
-      new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v1)(
-          *dynamic_cast<SvtxTrack_v1*>(itr->second));
+    for (const auto& pair:*_trackmap_refit )
+    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_fit_primary_tracks)
   {
     i = 0;
-    for (SvtxTrackMap::ConstIter itr = _primary_trackmap->begin();
-         itr != _primary_trackmap->end(); ++itr)
-      new ((*_tca_primtrackmap)[i++])(SvtxTrack_v1)(
-          *dynamic_cast<SvtxTrack_v1*>(itr->second));
+    for ( const auto& pair:*_primary_trackmap )
+    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_vertexmap_refit)
   {
     i = 0;
-    for (SvtxVertexMap::ConstIter itr = _vertexmap_refit->begin();
-         itr != _vertexmap_refit->end(); ++itr)
-      new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)(
-          *dynamic_cast<SvtxVertex_v1*>(itr->second));
+    for( const auto& pair:*_vertexmap_refit )
+    { new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second)); }
   }
 
   _eval_tree->Fill();
@@ -603,14 +590,14 @@ void PHGenFitTrkFitter::init_eval_tree()
     _tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
 
   if (!_tca_trackmap)
-    _tca_trackmap = new TClonesArray("SvtxTrack_v1");
+    _tca_trackmap = new TClonesArray("SvtxTrack_v2");
   if (!_tca_vertexmap)
     _tca_vertexmap = new TClonesArray("SvtxVertex_v1");
   if (!_tca_trackmap_refit)
-    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v1");
+    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v2");
   if (_fit_primary_tracks)
     if (!_tca_primtrackmap)
-      _tca_primtrackmap = new TClonesArray("SvtxTrack_v1");
+      _tca_primtrackmap = new TClonesArray("SvtxTrack_v2");
   if (!_tca_vertexmap_refit)
     _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
@@ -844,11 +831,14 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     return nullptr;
   }
 
-  PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  auto geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  assert( geom_container_intt );
+  
+  auto geom_container_mvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  assert( geom_container_mvtx );
 
-  PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  /* no need to check for the container validity here. The check is done if micromegas clusters are actually found in the track */
+  auto geom_container_micromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
 
   // prepare seed
   TVector3 seed_mom(100, 0, 0);
@@ -967,13 +957,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
-  /* 
-  need to store micromegas separately before adding them to the track. 
-  this is because they only measure one coordinate. One needs to add the other coordinate for each cluster
-  in order to facilitate the fit, event if the uncertainty on that quantity remains large
-  */
-  std::map<TrkrDefs::cluskey, TrkrCluster*> clusters_mm;
-  
   for (auto iter = m_r_cluster_id.begin();
        iter != m_r_cluster_id.end();
        ++iter)
@@ -1006,52 +989,64 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     seed_mom.SetPhi(pos.Phi());
     seed_mom.SetTheta(pos.Theta());
 
-    //TODO use u, v explicitly?
+    // by default assume normal to local surface is along cluster azimuthal position
     TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
 
-    //------------------------------
-    // new
-
-    // Replace n for the silicon subsystems
-
-    // get the trkrid
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-
-    if(trkrid == TrkrDefs::mvtxId)
+    // replace normal by proper vector for specified subsystems
+    switch( TrkrDefs::getTrkrId(cluster_key) )
+    {
+      
+      case TrkrDefs::mvtxId:
       {
-  int stave_index = MvtxDefs::getStaveId(cluster_key);
-  int chip_index = MvtxDefs::getChipId(cluster_key);
+        int stave_index = MvtxDefs::getStaveId(cluster_key);
+        int chip_index = MvtxDefs::getChipId(cluster_key);
+        
+        double ladder_location[3] = {0.0, 0.0, 0.0};
+        auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+        // returns the center of the sensor in world coordinates - used to get the ladder phi location
+        geom->find_sensor_center(stave_index, 0,
+          0, chip_index, ladder_location);
 
-  double ladder_location[3] = {0.0, 0.0, 0.0};
-  auto geom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
-  // returns the center of the sensor in world coordinates - used to get the ladder phi location
-  geom->find_sensor_center(stave_index, 0,
-         0, chip_index, ladder_location);
-
-  //cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
-  //   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
-  n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-  n.RotateZ(geom->get_stave_phi_tilt());
+        //cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
+        //   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
+        n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+        n.RotateZ(geom->get_stave_phi_tilt());
+        break;
       }
-    else if(trkrid == TrkrDefs::inttId)
+      
+      case TrkrDefs::inttId:
       {
-  auto geom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
-  double hit_location[3] = {0.0, 0.0, 0.0};
-  geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
+        auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+        double hit_location[3] = {0.0, 0.0, 0.0};
+        geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
           InttDefs::getLadderPhiId(cluster_key), hit_location);
-
-  //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
-  //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
-  n.SetXYZ(hit_location[0], hit_location[1], 0);
-  n.RotateZ(geom->get_strip_phi_tilt());
-      } else if( trkrid == TrkrDefs::micromegasId ) {
-  clusters_mm.insert( std::make_pair( cluster_key, cluster ) );
-  continue;
+        
+        //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
+        //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
+        n.SetXYZ(hit_location[0], hit_location[1], 0);
+        n.RotateZ(geom->get_strip_phi_tilt());
+        break;
       }
 
-    auto meas = new PHGenFit::PlanarMeasurement(pos, n,
-                  cluster->getRPhiError(), cluster->getZError());
+      case TrkrDefs::micromegasId:
+      {
+        // get geometry
+        /* a situation where micromegas clusters are found, but not the geometry, should not happen */
+        assert( geom_container_micromegas );
+        auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
+        const auto tileid = MicromegasDefs::getTileId( cluster_key );
+        
+        // in local coordinate, n is along y axis
+        // convert to global coordinates
+        n = geom->get_world_from_local_vect( tileid, TVector3( 0, 1, 0 ) );
+      }
+      
+      default: break;
+    }
     
+    // create measurement
+    auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+
     if(Verbosity() > 10)
     {
       cout << "Add meas layer " << layer << " cluskey " << cluster_key
@@ -1065,76 +1060,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     measurements.push_back(meas);
   }
 
-  // special handling of the micromegas clusters
-  {
-    bool has_phi = false;
-    bool has_z = false;
-    float phi = 0;
-    float z = 0;
-    
-    // first loop to store precise z and rphi coordinates
-    for( const auto& pair:clusters_mm )
-    {
-      const auto& cluster = pair.second;
-      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
-      switch( segmentationType )
-      {
-        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
-        if( !has_phi )
-        { 
-          has_phi = true; 
-          phi = std::atan2( cluster->getY(), cluster->getX() );
-        }
-        break;
-        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
-        if( !has_z )
-        { 
-          has_z = true; 
-          z = cluster->getZ();
-        }
-        break;
-      }
-      
-      if( has_phi && has_z ) break;
-    }
-        
-    // second loop to update the coordinate that is not measured and add measurement to track
-    for( const auto& pair:clusters_mm )
-    {
-      
-      // keep cluster
-      const auto& cluster = pair.second;
-      
-      // update the coordinate that is not measured
-      const auto segmentationType(MicromegasDefs::getSegmentationType(pair.first));
-      switch( segmentationType )
-      {
-        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI: 
-        if( has_z ) cluster->setZ(z);
-        break;
-        case MicromegasDefs::SegmentationType::SEGMENTATION_Z: 
-        if( has_phi )
-        { 
-          const auto radius = std::sqrt( square(cluster->getX()) + square(cluster->getY()) );
-          cluster->setX(radius*std::cos(phi));
-          cluster->setY(radius*std::sin(phi));
-        }
-        break;
-      }
-        
-      // create measurement
-      TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
-      seed_mom.SetPhi(pos.Phi());
-      seed_mom.SetTheta(pos.Theta());
-      
-      TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
-      auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
-      measurements.push_back(meas);
-      
-    }
-  
-  }
-  
+
   /*!
    * mu+:	-13
    * mu-:	13
@@ -1249,17 +1175,13 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //delete gf_state_beam_line_ca;
 
   // create new track
-  std::shared_ptr<SvtxTrack_v1> out_track( new SvtxTrack_v1() );
-
-  // assign all members from old
-  /* we need asignment operator instead of copy constructor, because the former makes a deep copy of the track state, as opposed to the latter */
-  *out_track = *static_cast<const SvtxTrack_v1*>(svtx_track);
+  auto out_track = std::make_shared<SvtxTrack_v2>(*svtx_track);
 
   // clear states and insert empty one for vertex position
   out_track->clear_states();
   {
     /*
-    insert first, dummy state, as done in SvtxTrack_v1 constructor,
+    insert first, dummy state, as done in constructor,
     so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
     does not take ownership of the state
     */

@@ -16,18 +16,18 @@ class RunHeader : public PHObject
   /// dtor
   virtual ~RunHeader() {}
 
-  virtual PHObject *CloneMe() const;
+  virtual PHObject *CloneMe() const override;
 
   /// Clear Event
-  virtual void Reset();
+  virtual void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream &os = std::cout) const;
+  virtual void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const;
+  virtual int isValid() const override;
 
   /// get Run Number
   virtual int get_RunNumber() const;
@@ -46,7 +46,7 @@ class RunHeader : public PHObject
  private:
   void warning(const std::string &func) const;
 
-  ClassDef(RunHeader, 1)
+  ClassDefOverride(RunHeader, 1)
 };
 
 #endif

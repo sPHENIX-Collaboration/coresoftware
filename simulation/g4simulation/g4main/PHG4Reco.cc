@@ -46,6 +46,7 @@
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
+#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4Element.hh>       // for G4Element
 #include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
@@ -457,7 +458,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
   // cout << "End of bogus warning message" << endl << endl;
-  // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
+  G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
     if (Verbosity() > 0)
@@ -466,12 +467,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     theCerenkovProcess->DumpPhysicsTable();
     }
   */
-  theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
+  theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
-  // theScintillationProcess->SetScintillationYieldFactor(1.);
-  // theScintillationProcess->SetTrackSecondariesFirst(true);
+  theScintillationProcess->SetScintillationYieldFactor(1.0);
+  theScintillationProcess->SetTrackSecondariesFirst(false);
+  // theScintillationProcess->SetScintillationExcitationRatio(1.0);
 
   // Use Birks Correction in the Scintillation process
 
@@ -492,12 +494,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess, idxPostStep);
     }
-    // if (theScintillationProcess->IsApplicable(*particle))
-    // {
-    //   pmanager->AddProcess(theScintillationProcess);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
-    // }
+    if (theScintillationProcess->IsApplicable(*particle))
+    {
+      pmanager->AddProcess(theScintillationProcess);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
+    }
   }
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
   // std::cout << " AddDiscreteProcess to OpticalPhoton " << std::endl;

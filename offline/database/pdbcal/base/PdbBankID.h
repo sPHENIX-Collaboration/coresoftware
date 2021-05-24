@@ -31,7 +31,7 @@ public:
 private:
   int bankID;
 
-  ClassDef(PdbBankID, 1)
+  ClassDefOverride(PdbBankID, 1)
 
 };
 

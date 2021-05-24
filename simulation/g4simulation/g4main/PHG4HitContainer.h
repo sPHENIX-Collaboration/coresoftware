@@ -31,9 +31,9 @@ class PHG4HitContainer: public PHObject
 
   virtual ~PHG4HitContainer() {}
 
-  void Reset();
+  void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   //! container ID should follow definition of PHG4HitDefs::get_volume_id(DST nodename)
   void SetID(int i) {id = i;}
@@ -71,7 +71,7 @@ class PHG4HitContainer: public PHObject
   Map hitmap;
   std::set<unsigned int> layers; // layers is not reset since layers must not change event by event
 
-  ClassDef(PHG4HitContainer,1)
+  ClassDefOverride(PHG4HitContainer,1)
 };
 
 #endif

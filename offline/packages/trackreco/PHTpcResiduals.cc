@@ -10,9 +10,14 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <micromegas/MicromegasDefs.h>
 
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -21,9 +26,15 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+
 
 #include <cmath>
-#include <TGraphErrors.h>
+#include <TFile.h>
+#include <TTree.h>
+
+#include <iostream>
+#include <sstream>
 
 namespace 
 {
@@ -40,7 +51,6 @@ namespace
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
   : SubsysReco(name)
-  , m_actsProtoTracks(nullptr)
 {}
 
 PHTpcResiduals::~PHTpcResiduals()
@@ -77,6 +87,10 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
     std::cout <<"Starting PHTpcResiduals event " 
 	      << m_event << std::endl;
 
+  if(m_event % 1000 == 0)
+    std::cout << "PHTpcResiduals processed " << m_event 
+	      << " events" << std::endl;
+
   int returnVal = processTracks(topNode);
 
   if(Verbosity() > 1)
@@ -96,17 +110,6 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 
   calculateDistortions(topNode);
 
-  if(m_outputRoot)
-    {
-      outfile->cd();
-      h_rphiResid->Write();
-      h_etaResid->Write();
-      h_zResidLayer->Write();
-      h_etaResidLayer->Write();
-      h_zResid->Write();
-      outfile->Write();
-      outfile->Close();
-    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -114,67 +117,242 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
 {
 
+  std::cout << "proto track size " << m_trackMap->size()
+	    <<std::endl;
 
-  std::map<unsigned int, ActsTrack>::iterator trackIter;
-  for(trackIter = m_actsProtoTracks->begin();
-      trackIter != m_actsProtoTracks->end();
-      ++trackIter)
+  for(auto &[trackKey, track] : *m_trackMap)
     {
-      auto track = trackIter->second;
-      processTrack(track);
-      
+      if(Verbosity() > 1)
+	std::cout << "Processing track key " << trackKey
+		  << std::endl;
+      if(checkTrack(track))
+	processTrack(track);
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTpcResiduals::processTrack(ActsTrack& track)
+bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 {
  
-  auto sourceLinks = track.getSourceLinks();
+  if(track->get_pt() < 0.5)
+    return false;
 
-  /// Check that there are silicon+MM sourcelinks in this
-  /// particular track
-  bool MM = false;
-  bool silicon = false;
-  for(auto sl : sourceLinks)
+  if(Verbosity() > 2)
+    std::cout << "Track has pt " << track->get_pt() << std::endl;
+
+  int nMvtxHits = 0;
+  int nInttHits = 0;
+  int nMMHits = 0;
+
+  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
     {
-      auto volume = sl.referenceSurface().geometryId().volume();
-      if(volume == 10 or volume == 12)
-	silicon = true;
-      if(volume == 16)
-	MM = true;
+      auto key = *clusIter;
+      auto trkrId = TrkrDefs::getTrkrId(key);
+      if(trkrId == TrkrDefs::TrkrId::mvtxId)
+	nMvtxHits++;
+      else if(trkrId == TrkrDefs::TrkrId::inttId)
+	nInttHits++;
+      else if(trkrId == TrkrDefs::TrkrId::micromegasId)
+	nMMHits++;
     }
 
-  if(!MM or !silicon)
-    return;
+  if(Verbosity() > 2)
+    std::cout << "Number of mvtx/intt/MM hits "
+	      << nMvtxHits << "/" << nInttHits << "/" 
+	      << nMMHits << std::endl;
 
-  const auto trackParams = track.getTrackParams();
-  
-  int initNBadProps = m_nBadProps;
-  for(auto sl : sourceLinks)
-    {
-      /// Only analyze TPC 
-      if(sl.referenceSurface().geometryId().volume() != 14)
-	continue;
+  /// Require at least 2 hits in each detector
+  if(nMvtxHits < 2 or nInttHits < 2 or nMMHits < 2)
+    return false;
+
+  return true;
+
+}
+
+SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+{
+  auto key = cluster->getClusKey();
+  auto subsurfkey = cluster->getSubSurfKey();
       
-      //std::cout << "Propagating track state" << std::endl;
+  /// Make a safety check for clusters that couldn't be attached
+  /// to a surface
+  auto surf = getSurface(key, subsurfkey);
+  if(!surf)
+    return SourceLink();
+  
+  Acts::BoundVector loc = Acts::BoundVector::Zero();
+  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
+  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+  
+  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+  
+  SourceLink sl(key, surf, loc, cov);
+  
+  return sl;
+}
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
+{
+  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  switch( trkrid )
+  {
+    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
+    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
+    case TrkrDefs::TrkrId::mvtxId:
+    case TrkrDefs::TrkrId::inttId:
+    {
+      return getSiliconSurface(hitsetkey);
+    }
+  }
+  
+  // unreachable
+  return nullptr;
+  
+}
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  return nullptr;
+
+}
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
+{
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  {
+    auto surfvec = iter->second;
+    return surfvec.at(surfkey);
+  }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+}
+
+//___________________________________________________________________________________
+Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+}
+
+//___________________________________________________________________________________
+Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
+{
+  auto vertexId = track->get_vertex_id();
+  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
+  if(!svtxVertex)
+    {
+      if(Verbosity() > 0)
+	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
+		  << std::endl;
+      return Acts::Vector3D(0,0,0);
+    }
+
+  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			svtxVertex->get_z() * Acts::UnitConstants::cm);
+  return vertex;
+}
+Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
+{
+  Acts::Vector3D momentum(track->get_px(), 
+			  track->get_py(), 
+			  track->get_pz());
+  auto vertex = getVertex(track);
+  Acts::Vector4D actsFourPos(vertex(0), vertex(1), vertex(2),
+			     10 * Acts::UnitConstants::ns);
+  double trackQ = track->get_charge() * Acts::UnitConstants::e;
+  double p = track->get_p();
+  
+  Acts::BoundSymMatrix cov;
+  for(int i =0; i<6; i++)
+    {
+      for(int j =0; j<6; j++)
+	{
+	  cov(i,j) = track->get_acts_covariance(i, j);
+	}
+    }
+
+  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+				        Acts::Vector3D(vertex(0), 
+						       vertex(1), 
+						       vertex(2)));
+
+  Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
+				  actsFourPos, momentum,
+				  p, trackQ, cov);
+ 
+  return seed;
+
+}
+
+void PHTpcResiduals::processTrack(SvtxTrack* track)
+{
+
+  if(Verbosity() > 1)
+    std::cout << "Propagating silicon+MM fit params momentum: " 
+	      << track->get_p() << " and position " 
+	      << track->get_x() << ", " << track->get_y() 
+	      << ", " << track->get_z() << " cm "
+	      << std::endl;
+
+  auto trackParams = makeTrackParams(track);
+
+  int initNBadProps = m_nBadProps;
+  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+    {
+      auto cluskey = *clusIter;
+      
+      /// only propagate to tpc surfaces
+      if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
+	continue;;
+
+      auto cluster = m_clusterContainer->findCluster(cluskey);
+
+      auto sl = makeSourceLink(cluster);
+      
       auto result = propagateTrackState(trackParams, sl);
-      //std::cout << "finished propagating"<<std::endl;
+
       if(result.ok())
 	{	  
 	  auto trackStateParams = std::move(**result);
 	  if(Verbosity() > 1)
-	    {
-	      std::cout << "Silicon+MM momentum : " 
-			<< trackParams.momentum()
-			<< std::endl
-			<< "Propagator momentum : " 
-			<< trackStateParams.momentum()
-			<< std::endl;
-	    }
+	    std::cout << "Silicon+MM momentum : " 
+		      << trackParams.momentum()
+		      << std::endl
+		      << "Propagator momentum : " 
+		      << trackStateParams.momentum()
+		      << std::endl;
+	  
 
-	  calculateTpcResiduals(trackStateParams, sl);
+	  calculateTpcResiduals(trackStateParams, cluster);
 	}
       else
 	{
@@ -185,34 +363,29 @@ void PHTpcResiduals::processTrack(ActsTrack& track)
     } 
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
-    {
-      std::cout << "Starting track params position/momentum: "
-		<< trackParams.position(m_tGeometry->geoContext).transpose()
-		<< std::endl << trackParams.momentum().transpose() 
-		<< std::endl
-		<< "Track params phi/eta " 
-		<< std::atan2(trackParams.momentum().y(), 
-			      trackParams.momentum().x())
-		<< " and " 
-		<< std::atanh(trackParams.momentum().z() / 
-			      trackParams.momentum().norm())
-		<< std::endl;
-      
-    }
-  
+    std::cout << "Starting track params position/momentum: "
+	      << trackParams.position(m_tGeometry->geoContext).transpose()
+	      << std::endl << trackParams.momentum().transpose() 
+	      << std::endl
+	      << "Track params phi/eta " 
+	      << std::atan2(trackParams.momentum().y(), 
+			    trackParams.momentum().x())
+	      << " and " 
+	      << std::atanh(trackParams.momentum().z() / 
+			    trackParams.momentum().norm())
+	      << std::endl;
+        
 }
 
 BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
-			   const ActsExamples::TrackParameters& params,
+			   const Acts::BoundTrackParameters& params,
 			   const SourceLink& sl)
 {
-  
-  if(Verbosity() > 1)
-    std::cout << "Propagating silicon+MM fit params momentum: " 
-	      << params.momentum() << " and position " 
-	      << params.position(m_tGeometry->geoContext)
-	      << std::endl;
-
+  /*
+  std::cout << "Propagating to geo id " << sl.referenceSurface().geometryId() << std::endl;
+  if(sl.referenceSurface().associatedDetectorElement() != nullptr)
+    std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
+  */
   return std::visit([params, sl, this]
 		    (auto && inputField) -> BoundTrackParamPtrResult {
       using InputMagneticField = 
@@ -226,7 +399,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       Propagator propagator(stepper);
 
       Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-      if(Verbosity() > 3)
+      if(Verbosity() > 10)
 	logLevel = Acts::Logging::VERBOSE;
 
       auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
@@ -248,75 +421,150 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 }
 void PHTpcResiduals::calculateTpcResiduals(
 		          const Acts::BoundTrackParameters &params,
-			  const SourceLink& sl)
+			  const TrkrCluster* cluster)
 {
-  Acts::Vector2D local(sl.location()(0), sl.location()(1));
   
-  auto globalSL = sl.referenceSurface().localToGlobal(
-				         m_tGeometry->geoContext,
-					 local,
-					 Acts::Vector3D(1,1,1));
-
+  cluskey = cluster->getClusKey();
   /// Get all the relevant information for residual calculation
-  const auto clusR = sqrt(pow(globalSL.x(), 2) +
-			  pow(globalSL.y(), 2));
-  const auto clusPhi = std::atan2(globalSL.y(), globalSL.x());
-  const auto clusZ = globalSL.z();
-  const auto clusRPhiErr = sqrt(sl.covariance()(Acts::eBoundLoc0,
-						Acts::eBoundLoc0));
-  const auto clusZErr = sqrt(sl.covariance()(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1));
+  clusR = sqrt(pow(cluster->getX(), 2) +
+	       pow(cluster->getY(), 2));
+  clusPhi = std::atan2(cluster->getY(), cluster->getX());
+  clusZ = cluster->getZ();
+
+  clusRPhiErr = cluster->getRPhiError();
+  clusZErr = cluster->getZError();
+ 
+  if(Verbosity() > 3)
+    {
+      std::cout << "cluster key is " << cluskey <<std::endl;
+      std::cout << "Cluster r phi and z " << clusR << "  " 
+		<< clusPhi << "+/-" << clusRPhiErr
+		<<" and " << clusZ << "+/-" << clusZErr << std::endl;
+    }
   
+  if(clusRPhiErr < 0.015)
+    return;
+  if(clusZErr < 0.05)
+    return;
 
   const auto globalStatePos = params.position(m_tGeometry->geoContext);
+  const auto globalStateMom = params.momentum();
   const auto globalStateCov = *params.covariance();
-  const auto stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
-						Acts::eBoundLoc0));
-  const auto stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
-					     Acts::eBoundLoc1));
+
+  stateRPhiErr = sqrt(globalStateCov(Acts::eBoundLoc0,
+				     Acts::eBoundLoc0))
+    / Acts::UnitConstants::cm;
+  stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1,
+				  Acts::eBoundLoc1))
+    / Acts::UnitConstants::cm;
  
-  const auto statePhi = std::atan2(globalStatePos.y(),
-				   globalStatePos.x());
-  const auto stateZ = globalStatePos.z();
+  stateZ = globalStatePos.z() / Acts::UnitConstants::cm;
+
+  const auto globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
+  const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
+  const auto globStateZ = stateZ;
+
+  stateR = sqrt(pow(globStateX, 2) +
+		pow(globStateY, 2) );
   
-  const auto erp = pow(stateRPhiErr, 2) + pow(clusRPhiErr, 2);
-  const auto ez = pow(stateZErr, 2) + pow(clusZErr, 2);
+  const auto dr = clusR - stateR;
+  const auto trackDrDt = (globStateX * globalStateMom(0) +
+			  globStateY * globalStateMom(1)) / stateR;
+  const auto trackDxDr = globalStateMom(0) / trackDrDt;
+  const auto trackDyDr = globalStateMom(1) / trackDrDt;
+  const auto trackDzDr = globalStateMom(2) / trackDrDt;
+  
+  const auto trackX = globStateX + dr * trackDxDr;
+  const auto trackY = globStateY + dr * trackDyDr;
+  const auto trackZ = globStateZ + dr * trackDzDr;
+  
+  if(Verbosity() > 2)
+    std::cout << "State Calculations: " << stateR << ", " 
+	      << dr << ", " << trackDrDt << ", " << trackDxDr
+	      << ", " << trackDyDr << ", " << trackDzDr
+	      <<" , " << trackX << ", " << trackY << ", "
+	      << trackZ << std::endl;
+
+  statePhi = std::atan2(trackY, trackX);
+  stateZ = trackZ;
+
+  if(Verbosity() > 3)
+    std::cout << "State r phi and z " 
+	      << stateR
+	      << "   " << statePhi << "+/-" << stateRPhiErr
+	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
+
+  const auto erp = pow(clusRPhiErr, 2);
+  const auto ez = pow(clusZErr, 2);
 
   const auto dPhi = clusPhi - statePhi;
 
   /// Calculate residuals
-  const auto drphi = clusR * deltaPhi(dPhi);
-  const auto dz  = clusZ - stateZ;
+  drphi = clusR * deltaPhi(dPhi);
+  dz  = clusZ - stateZ;
 
+  if(Verbosity() > 3)
+    std::cout << "TPC residuals " << drphi << "   " << dz << std::endl;
+  
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
-  const auto clusEta = std::atanh(clusZ / globalSL.norm());
-
-  h_rphiResid->Fill(clusR / Acts::UnitConstants::cm, drphi);
-  h_zResid->Fill(stateZ / Acts::UnitConstants::cm, dz);
-  h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR / Acts::UnitConstants::cm, dz);
-  h_etaResidLayer->Fill(clusR / Acts::UnitConstants::cm, 
-			clusEta - trackEta);
+  const auto clusEta = std::atanh(clusZ / sqrt(pow(cluster->getX(), 2) +
+					       pow(cluster->getY(), 2) +
+					       pow(cluster->getZ(), 2)));
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
   const auto trackPR = params.momentum()(0) * std::cos(statePhi) +
     params.momentum()(1) * std::sin(statePhi);
-  
-  const auto trackPZ    = params.momentum()(1);
+  const auto trackPZ    = params.momentum()(2);
   const auto trackAlpha = -trackPPhi / trackPR;
   const auto trackBeta  = -trackPZ / trackPR;
 
+  if(Verbosity() > 3)
+    std::cout << "Track angles " << trackPPhi << ", " << trackPR
+	      << ", " << trackPZ << ", " << trackAlpha << ", " << trackBeta
+	      << std::endl;
+
   if(std::abs(trackAlpha) > m_maxTAlpha
-     || std::abs(drphi) > m_maxResidual)
+     or std::abs(drphi) > m_maxResidualDrphi)
     return;
 
-  const auto index = getCell(sl.referenceSurface().geometryId().layer(),
-			     globalSL);
+  if(std::abs(trackBeta) > m_maxTBeta
+     or std::abs(dz) > m_maxResidualDz)
+    return;
+  
+  ir = m_rBins * (clusR - m_rMin) / (m_rMax - m_rMin);
+  iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
+  iz = m_zBins * (clusZ - m_zMin) / (m_zMax - m_zMin);
+  
+  tanBeta = trackBeta;
+  tanAlpha = trackAlpha;
+  
+  Acts::Vector3D globClus(cluster->getX(), 
+			  cluster->getY(), 
+			  cluster->getZ());
+  const auto index = getCell(globClus);
+  cell = index;
+  
+  if(Verbosity() > 3)
+    std::cout << "Bin index found is " << index << std::endl;
 
   if(index < 0 || index > m_totalBins)
     return;
+
+  if(index == 0)
+    std::cout << "Values are : " <<iphi<<","<<ir<<","<<iz<<std::endl;
+
+  h_index->Fill(cell);
+  h_alpha->Fill(tanAlpha, drphi);
+  h_beta->Fill(tanBeta, dz);
+  h_rphiResid->Fill(clusR , drphi);
+  h_zResid->Fill(stateZ , dz);
+  h_etaResid->Fill(trackEta, clusEta - trackEta);
+  h_zResidLayer->Fill(clusR , dz);
+  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
+
+  residTup->Fill();
 
   /// Fill distortion matrices
   m_lhs[index](0,0) += 1. / erp;
@@ -343,124 +591,107 @@ void PHTpcResiduals::calculateTpcResiduals(
 
 void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
 {
-  auto *geomContainer = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if(!geomContainer)
+  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phiBins, 
+			    m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
+			    m_zBins, m_zMin, m_zMax );
+  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phiBins, 
+			m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
+			m_zBins, m_zMin, m_zMax );
+  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phiBins, 
+		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
+		      m_zMin, m_zMax );
+  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phiBins, 
+		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
+		      m_zMin, m_zMax );
+
+  for( auto h : { hentries, hphi, hz, hr } )
     {
-      std::cout << PHWHERE << "No CYLINDERCELLGEOM_SVTX node, exiting."
-		<< std::endl;
+      h->GetXaxis()->SetTitle( "#phi [rad]" );
+      h->GetYaxis()->SetTitle( "r [cm]" );
+      h->GetZaxis()->SetTitle( "z [cm]" );
     }
+  
+  for(int iphi = 0; iphi < m_phiBins; ++iphi) {
+    for(int ir = 0; ir < m_rBins; ++ir) {
+      for(int iz = 0; iz < m_zBins; ++iz) {
 
-  std::vector<Acts::Vector3D> delta(m_totalBins);
-  std::vector<Acts::SymMatrix3D> cov(m_totalBins);
+	const auto cell = getCell(iz, ir, iphi);	
 
-  for(int i = 0; i < m_totalBins; ++i)
-    {
-      if(m_clusterCount[i] < 10)
-	continue;
-      cov[i] = m_lhs[i].inverse();
-      delta[i] = m_lhs[i].partialPivLu().solve(m_rhs[i]);
-    }
-    
-  /// Three dimensions for the matrices
-  std::vector<std::unique_ptr<TGraphErrors>> 
-    graphs(m_zBins * m_phiBins * m_nCoord);
+	if(m_clusterCount.at(cell) < m_minClusCount) {
+	  if(Verbosity() > 10)
+	    std::cout << "Num clusters in bin " << cell 
+		      << " is " << m_clusterCount.at(cell) 
+		      << std::endl;
+	  continue;
+	}
+	  
+	const auto cov = m_lhs.at(cell).inverse();
+	auto partialLu = m_lhs.at(cell).partialPivLu();
+	const auto result = partialLu.solve(m_rhs.at(cell));
 
-  DistortionMap *distCorr = new DistortionMap;
-  DistortionMap *distCorrErr = new DistortionMap;
-
-  for(int iz = 0; iz < m_zBins; ++iz) {
-    for(int iphi = 0; iphi < m_phiBins; ++iphi) {
-      for(int ir = 0; ir < m_rBins; ++ir) {
-	const int index = getCell(iz, ir, iphi);
-
-	/// Get TPC layers in sPHENIX, not Acts, coordinates, hence
-	/// add 7 to the value
-	const int innerLayer = 7 + m_nLayersTpc * 
-	                       ir / m_rBins;
-	const int outerLayer = 7 + m_nLayersTpc * (ir+1) 
-	                       / m_rBins - 1;
+	// fill histograms
+	hentries->SetBinContent( iphi+1, ir+1, iz+1, 
+				 m_clusterCount.at(cell) );
 	
-	const auto innerRadius = geomContainer->
-	  GetLayerCellGeom(innerLayer)->get_radius();
-	const auto outerRadius = geomContainer->
-	  GetLayerCellGeom(outerLayer)->get_radius();
-	const float r = (innerRadius + outerRadius) / 2.;
+	hphi->SetBinContent( iphi+1, ir+1, iz+1, result(0) );
+	hphi->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(0,0) ) );
 	
-	for(unsigned int icoord = 0; 
-	    icoord < m_nCoord; ++icoord) {
-	  const int tgrIndex = iz + m_zBins * 
-	                       ( iphi + m_phiBins * icoord);
-	  graphs[tgrIndex].reset(new TGraphErrors());
-	  graphs[tgrIndex]->SetName(Form("tg_%i_%i_%i", iz, iphi, icoord));
-	  
-	  /// Cut on number of clusters to avoid low 
-	  /// statistics bins
-	  if(m_clusterCount[index]<10)
-	    {
-	      /// Insert correction of 0
-	      distCorr->insert({index, 
-		    std::pair<unsigned int, const double>(0,0)});
-	      distCorrErr->insert({index,
-		    std::pair<unsigned int, const double>(0,0)});
-	      continue;
-	    }
-	  
-	  const double corrVal = delta[index](icoord,0);
-	  const double corrValErr = 
-	    std::sqrt(cov[index](icoord, icoord));
+	hz->SetBinContent( iphi+1, ir+1, iz+1, result(1) );
+	hz->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(1,1) ) );
+	
+	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
+	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
 
-	  auto corr = std::pair<unsigned int,
-				const double>
-	    (icoord, corrVal);
-	  auto corrErr = std::pair<unsigned int,
-				   const double>
-	    (icoord, corrValErr);
-	  distCorr->insert({index, corr});
-	  distCorrErr->insert({index, corrErr});
-	  
-	  graphs[tgrIndex]->SetPoint(ir, r, 
-				     delta[index](icoord,0));
-	  graphs[tgrIndex]->SetPointError(
-		 ir, 0, std::sqrt(cov[index](icoord,icoord)));
-        
-	}	
+	if(Verbosity() > 10)
+	  std::cout << "Bin setting for index " << cell << " with counts "
+		    << m_clusterCount.at(cell) << " has settings : "
+		    << " drphi:  "<<result(0) << "+/-" << std::sqrt(cov(0,0))
+		    << " dz: "<<result(1) << "+/-" << std::sqrt(cov(1,1))
+		    << " dr: "<<result(2) << "+/-" << std::sqrt(cov(2,2))
+		    << std::endl;
+
       }
     }
   }
-
-  /// Set the DistortionCorrections pointer to be put 
-  /// on the node tree
-  m_distortionCorrections->m_distortionMap = distCorr;
-  m_distortionCorrections->m_distortionMapErr = distCorrErr;
-  m_distortionCorrections->m_zBins = m_zBins;
-  m_distortionCorrections->m_phiBins = m_phiBins;
-  m_distortionCorrections->m_rBins = m_rBins;
-  m_distortionCorrections->m_nCoord = m_nCoord;
   
+  /// Create output TH3s
+    
 
-  /// Create output tgraphs
-  TFile *outputFile = 
-    new TFile((Name() + "_distortions.root").c_str(), "RECREATE");
-  outputFile->cd();
-  for(auto&& gr : graphs)
-    gr->Write();
-  outputFile->Close();
+  m_outputFile->cd();
+  residTup->Write();
+
+  h_rphiResid->Write();
+  h_etaResid->Write();
+  h_zResidLayer->Write();
+  h_etaResidLayer->Write();
+  h_zResid->Write();
+  h_index->Write();
+  h_alpha->Write();
+  h_beta->Write();
+
+  for(const auto& h : {hentries, hphi, hr, hz})
+    h->Write();
+
+
+  createHistogram(hentries, "hentries")->Write();
+  createHistogram(hphi, "hIntDistortionP")->Write();
+  createHistogram(hr, "hIntDistortionR")->Write();
+  createHistogram(hz, "hIntDistortionZ")->Write();
+
+  m_outputFile->Close();
 
 }
 
-int PHTpcResiduals::getCell(const int actsLayer, 
-			    const Acts::Vector3D& loc)
+int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
-  /// Divide by two because ACTS definition is twice ours, subtract
-  /// 1 to get layer number from 0-47 instead of 1-48
-  const auto layer = (actsLayer / 2.) -1;
-  const int ir = m_rBins * layer / m_nLayersTpc;
-
-  auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
-  const int iphi = m_phiBins * (clusPhi * M_PI) / (2. * M_PI);
-
-  const int iz = m_zBins * (loc(2) - m_zMin) / (m_zMax - m_zMin);
- 
+  const float r = sqrt(loc(0) * loc(0) + loc(1) * loc(1));
+  const auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
+  const float z = loc(2);
+  
+  const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
+  const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
+  const int iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
+  
   return getCell(iz, ir, iphi);
 }
 
@@ -470,51 +701,45 @@ int PHTpcResiduals::getCell(const int iz, const int ir,
   if( ir < 0 || ir >= m_rBins ) return -1;
   if( iphi < 0 || iphi >= m_phiBins ) return -1;
   if( iz < 0 || iz >= m_zBins ) return -1;
-  return iz + m_zBins*( ir + m_rBins*iphi );
+
+  return iz + m_zBins * ( ir + m_rBins * iphi );
 }
 
 int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
 {
-
-  PHNodeIterator iter(topNode);
-  
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-
-  if (!dstNode)
-  {
-    std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error(
-      "Failed to find DST node in PHActsTracks::createNodes");
-  }
-  
-  PHCompositeNode *svtxNode = 
-    dynamic_cast<PHCompositeNode *>(
-                 iter.findFirst("PHCompositeNode", "SVTX"));
-
-  if (!svtxNode)
-  {
-    svtxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svtxNode);
-  }
-
-  m_distortionCorrections = 
-    findNode::getClass<DistortionCorrections>(
-              topNode, "DistortionCorrections");
-  
-  if(!m_distortionCorrections)
-    {
-      m_distortionCorrections = new DistortionCorrections();
-      PHDataNode<DistortionCorrections> *distortionNode =
-	new PHDataNode<DistortionCorrections>(
-        m_distortionCorrections, "DistortionCorrections");
-      svtxNode->addNode(distortionNode);
-    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
+						  "SvtxVertexMap");
+  if(!m_vertexMap)
+    {
+      std::cout << PHWHERE << "No vertex map, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
+						   "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "No Acts surface maps, exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+ 
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,
+								"TRKR_CLUSTER");
+  if(!m_clusterContainer)
+    {
+      std::cout << PHWHERE << "No TRKR_CLUSTER node on node tree. Exiting."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
     {
@@ -524,11 +749,11 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
   
-  if (!m_actsProtoTracks)
+  if (!m_trackMap)
     {
-      std::cout << "Acts proto tracks not on node tree. Exiting."
+      std::cout << PHWHERE << "SvtxSiliconMMTrackMap not on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -539,19 +764,141 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 
 void PHTpcResiduals::makeHistograms()
 {
-  if(m_outputRoot)
-    outfile = new TFile(std::string(Name() + ".root").c_str(), 
-			"recreate");
-  
-  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [mm]",
-			 60, 20, 80, 50, -10, 10);
-  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [mm]",
-		      200, -100, 100, 100, -10, 10);
+ 
+  m_outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
+  m_outputFile->cd();
+
+  h_beta = new TH2F("betadz",";tan#beta; #Deltaz [cm]",100,-0.5,0.5,100,-0.5,0.5);
+  h_alpha = new TH2F("alphardphi",";tan#alpha; r#Delta#phi [cm]", 100,-0.5,0.5,100,-0.5,0.5);
+  h_index = new TH1F("index",";index",m_totalBins, 0, m_totalBins);
+  h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]",
+			 60, 20, 80, 500, -2, 2);
+  h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]",
+		      200, -100, 100, 1000, -2, 2);
   h_etaResid = new TH2F("etaResid", ";#eta;#Delta#eta",
-			20, -1, 1, 50, -0.2, 0.2);
+			20, -1, 1, 500, -0.2, 0.2);
   h_etaResidLayer = new TH2F("etaResidLayer", ";r [cm]; #Delta#eta",
-			     60, 20, 80, 50, -0.2, 0.2);
-  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [mm]",
-			   60, 20, 80, 100, -10, 10);
+			     60, 20, 80, 500, -0.2, 0.2);
+  h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
+			   60, 20, 80, 1000, -2, 2);
+  residTup = new TTree("residTree","tpc residual info");
+  residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
+  residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
+  residTup->Branch("drphi",&drphi,"drphi/D");
+  residTup->Branch("dz",&dz,"dz/D");
+  residTup->Branch("cell",&cell,"cell/I");
+  residTup->Branch("clusR",&clusR,"clusR/D");
+  residTup->Branch("clusPhi",&clusPhi,"clusPhi/D");
+  residTup->Branch("clusZ",&clusZ,"clusZ/D");
+  residTup->Branch("statePhi",&statePhi,"statePhi/D");
+  residTup->Branch("stateZ",&stateZ,"stateZ/D");
+  residTup->Branch("stateR",&stateR,"stateR/D");
+  residTup->Branch("stateRPhiErr",&stateRPhiErr,"stateRPhiErr/D");
+  residTup->Branch("stateZErr",&stateZErr,"stateZErr/D");
+  residTup->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
+  residTup->Branch("clusZErr",&clusZErr,"clusZErr/D");
+  residTup->Branch("ir",&ir,"ir/I");
+  residTup->Branch("iz",&iz,"iz/I");
+  residTup->Branch("iphi",&iphi,"iphi/I");
+  residTup->Branch("cluskey",&cluskey,"cluskey/I");
+  residTup->Branch("event",&m_event,"event/I");
 
 }
+
+void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
+				       const int zBins)
+{
+  m_zBins = zBins;
+  m_phiBins = phiBins;
+  m_rBins = rBins;
+  m_totalBins = m_zBins * m_phiBins * m_rBins;
+}
+
+
+TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
+{
+
+  std::array<int, 3> bins;
+  std::array<double, 3> x_min;
+  std::array<double, 3> x_max;
+  
+  int index = 0;
+  for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
+    {
+      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
+      
+      // increase the number of bins by two
+      bins[index] = axis->GetNbins()+2;
+      
+      // update axis limits accordingly
+      x_min[index] = axis->GetXmin()-bin_width;
+      x_max[index] = axis->GetXmax()+bin_width;
+      ++index;
+    }
+
+  // create new histogram
+  auto hout = new TH3F( name, name,
+			bins[0], x_min[0], x_max[0],
+			bins[1], x_min[1], x_max[1],
+			bins[2], x_min[2], x_max[2] );
+  
+  // update axis legend
+  hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
+  hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
+  hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
+  
+  // copy content
+  const auto phibins = hin->GetXaxis()->GetNbins();
+  const auto rbins = hin->GetYaxis()->GetNbins();
+  const auto zbins = hin->GetZaxis()->GetNbins();
+  
+  // fill center
+  for( int iphi = 0; iphi < phibins; ++iphi )
+    for( int ir = 0; ir < rbins; ++ir )
+      for( int iz = 0; iz < zbins; ++iz )
+	{
+	  hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
+	  hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
+	}
+  
+  // fill guarding phi bins
+  for( int ir = 0; ir < rbins+2; ++ir )
+    for( int iz = 0; iz < zbins+2; ++iz )
+      {
+	hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
+	hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
+	
+	hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
+	hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
+      }
+  
+  // fill guarding r bins
+  for( int iphi = 0; iphi < phibins+2; ++iphi )
+    for( int iz = 0; iz < zbins+2; ++iz )
+      {
+	hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
+	hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
+	
+	hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
+	hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
+      }
+  
+  // fill guarding z bins
+  for( int iphi = 0; iphi < phibins+2; ++iphi )
+    for( int ir = 0; ir < rbins+2; ++ir )
+      {
+	hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
+	hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
+	
+	hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
+	hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
+      }
+  
+  return hout;
+  
+}
+
+
+
+
+

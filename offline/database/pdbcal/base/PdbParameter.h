@@ -24,14 +24,14 @@ public:
   void  setParameter(const double val) { thePar = val; }
   void  setName(const std::string &name) {theName = name;}
 
-  virtual void print() const;
+  virtual void print() const override;
 
 protected:
 
   double thePar;
   std::string  theName;
 
-  ClassDef(PdbParameter,1);
+  ClassDefOverride(PdbParameter,1);
 };
 
 #endif /* PDBCAL_BASE_PDBPARAMETER_H */

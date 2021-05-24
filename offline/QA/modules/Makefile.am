@@ -27,6 +27,7 @@ pkginclude_HEADERS = \
   QAG4SimulationCalorimeterSum.h \
   QAG4SimulationIntt.h \
   QAG4SimulationJet.h \
+  QAG4SimulationMicromegas.h \
   QAG4SimulationMvtx.h \
   QAG4SimulationTpc.h \
   QAG4SimulationTracking.h \
@@ -39,6 +40,7 @@ libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeterSum.cc \
   QAG4SimulationIntt.cc \
   QAG4SimulationJet.cc \
+  QAG4SimulationMicromegas.cc \
   QAG4SimulationMvtx.cc \
   QAG4SimulationTpc.cc \
   QAG4SimulationTracking.cc \

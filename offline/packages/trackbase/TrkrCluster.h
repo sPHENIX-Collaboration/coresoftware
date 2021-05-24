@@ -28,12 +28,12 @@ class TrkrCluster : public PHObject
   //! dtor
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const
+  virtual void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrCluster base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  virtual void Reset() override {}
+  virtual int isValid() const override { return 0; }
   //
   // cluster id
   //
@@ -83,8 +83,8 @@ class TrkrCluster : public PHObject
   virtual void setSubSurfKey(TrkrDefs::subsurfkey id) {}
 
  protected:
-  TrkrCluster() {}
-  ClassDef(TrkrCluster, 1)
+  TrkrCluster() = default;
+  ClassDefOverride(TrkrCluster, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTER_H

@@ -12,7 +12,7 @@ if test $ac_cv_prog_gxx = yes; then
   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
 fi
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])
