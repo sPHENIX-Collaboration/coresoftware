@@ -27,14 +27,14 @@ class PHG4Shower : public PHObject
   typedef HitIdMap::iterator HitIdIter;
   typedef HitIdMap::const_iterator HitIdConstIter;
 
-  virtual ~PHG4Shower() {}
+  ~PHG4Shower() override {}
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const override { os << "PHG4Shower base class" << std::endl; }
-  virtual PHG4Shower* CloneMe() const override { return nullptr; }
-  virtual void Reset() override {}
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream& os = std::cout) const override { os << "PHG4Shower base class" << std::endl; }
+  PHG4Shower* CloneMe() const override { return nullptr; }
+  void Reset() override {}
+  int isValid() const override { return 0; }
 
   // shower info
 

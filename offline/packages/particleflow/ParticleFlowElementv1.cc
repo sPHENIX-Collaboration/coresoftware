@@ -33,9 +33,9 @@ int ParticleFlowElementv1::isValid() const
 {
   for (int i = 0; i < 3; ++i)
     {
-      if (isnan(_mom[i])) return 0;
+      if (std::isnan(_mom[i])) return 0;
     }
-  if (isnan(_e)) return 0;
+  if (std::isnan(_e)) return 0;
   
   return 1;
 }

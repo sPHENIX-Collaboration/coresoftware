@@ -22,7 +22,7 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   
   public:
   PHMicromegasTpcTrackMatching(const std::string &name = "PHMicromegasTpcTrackMatching");
-  virtual ~PHMicromegasTpcTrackMatching() = default;
+  ~PHMicromegasTpcTrackMatching() override = default;
 
   void set_rphi_search_window_lyr1(const double win){_rphi_search_win[0] = win;}
   void set_z_search_window_lyr1(const double win){_z_search_win[0] = win;}

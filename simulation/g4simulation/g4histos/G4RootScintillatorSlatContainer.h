@@ -13,7 +13,7 @@ class G4RootScintillatorSlatContainer : public PHObject
 {
  public:
   G4RootScintillatorSlatContainer();
-  virtual ~G4RootScintillatorSlatContainer();
+  ~G4RootScintillatorSlatContainer() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;

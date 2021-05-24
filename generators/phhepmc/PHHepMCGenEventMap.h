@@ -31,7 +31,7 @@ class PHHepMCGenEventMap : public PHObject
   PHHepMCGenEventMap(const PHHepMCGenEventMap& eventmap);
   PHHepMCGenEventMap& operator=(const PHHepMCGenEventMap& eventmap);
 
-  virtual ~PHHepMCGenEventMap();
+  ~PHHepMCGenEventMap() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;

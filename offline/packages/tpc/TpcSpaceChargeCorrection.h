@@ -20,10 +20,10 @@ class TpcSpaceChargeCorrection : public SubsysReco
   TpcSpaceChargeCorrection(  const std::string& = "TpcSpaceChargeCorrection" );
 
   //! global initialization
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! distortion filename
   void set_distortion_filename( const std::string& value )

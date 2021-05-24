@@ -14,7 +14,7 @@ class PHG4BlockCellGeom: public PHObject
  public:
   PHG4BlockCellGeom();
 
-  virtual ~PHG4BlockCellGeom() {}
+  ~PHG4BlockCellGeom() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

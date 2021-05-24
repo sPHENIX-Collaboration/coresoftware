@@ -15,7 +15,7 @@ class PHNodeDump : public PHNodeOperation
 {
  public:
   PHNodeDump();
-  virtual ~PHNodeDump();
+  ~PHNodeDump() override;
   int CloseOutputFiles();
   int GetGlobalVars(PHCompositeNode *topNode);
 
@@ -28,7 +28,7 @@ class PHNodeDump : public PHNodeOperation
   void SetPrecision(const int digits) { fp_precision = digits; }
 
  protected:
-  virtual void perform(PHNode *);
+  void perform(PHNode *) override;
   int AddDumpObject(const std::string &NodeName, PHNode *node);
   std::map<std::string, DumpObject *> dumpthis;
   std::set<std::string> ignore;

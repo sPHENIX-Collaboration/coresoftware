@@ -16,17 +16,17 @@ class SvtxVertex : public PHObject
   typedef std::set<unsigned int>::const_iterator ConstTrackIter;
   typedef std::set<unsigned int>::iterator TrackIter;
 
-  virtual ~SvtxVertex() {}
+  ~SvtxVertex() override {}
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxVertex base class" << std::endl;
   }
 
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // vertex info
 

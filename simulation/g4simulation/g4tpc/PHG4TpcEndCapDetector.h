@@ -25,7 +25,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   PHG4TpcEndCapDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4TpcEndCapDetector();
+  ~PHG4TpcEndCapDetector() override;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;

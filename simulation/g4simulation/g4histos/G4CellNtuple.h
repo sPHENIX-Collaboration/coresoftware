@@ -22,16 +22,16 @@ class G4CellNtuple : public SubsysReco
   G4CellNtuple(const std::string &name = "G4CellNtuple", const std::string &filename = "G4CellNtuple.root");
 
   //! destructor
-  virtual ~G4CellNtuple();
+  ~G4CellNtuple() override;
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   void AddNode(const std::string &name, const int detid = 0);
 

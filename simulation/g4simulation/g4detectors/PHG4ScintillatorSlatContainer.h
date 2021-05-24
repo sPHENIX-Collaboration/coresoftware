@@ -28,7 +28,7 @@ class PHG4ScintillatorSlatContainer: public PHObject
 
   PHG4ScintillatorSlatContainer();
 
-  virtual ~PHG4ScintillatorSlatContainer() {}
+  ~PHG4ScintillatorSlatContainer() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

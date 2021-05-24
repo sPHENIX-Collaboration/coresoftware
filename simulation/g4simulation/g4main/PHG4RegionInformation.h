@@ -44,8 +44,8 @@ class PHG4RegionInformation : public G4VUserRegionInformation
 {
   public:
     PHG4RegionInformation(); 
-    ~PHG4RegionInformation(){}
-    void Print() const;
+    ~PHG4RegionInformation() override{}
+    void Print() const override;
 
   private:
     G4bool isWorld;

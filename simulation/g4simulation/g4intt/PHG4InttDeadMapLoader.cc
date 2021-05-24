@@ -91,7 +91,7 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   assert(deadmap);
 
-  for (const auto pathiter : m_deadMapPathMap)
+  for (const auto& pathiter : m_deadMapPathMap)
   {
     const unsigned int ilayer = pathiter.first;
     const string &deadMapPath = pathiter.second;

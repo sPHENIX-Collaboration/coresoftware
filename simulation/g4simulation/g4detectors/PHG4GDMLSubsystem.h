@@ -30,7 +30,7 @@ class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
  public:
 
   PHG4GDMLSubsystem(const std::string &name);
-  virtual ~PHG4GDMLSubsystem();
+  ~PHG4GDMLSubsystem() override;
 
 
   /*!
@@ -38,24 +38,24 @@ class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! Print info (from SubsysReco)
-  void Print(const std::string& what = "ALL") const;
+  void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const { return nullptr; }
+  PHG4Detector* GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override { return nullptr; }
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! derives from PHG4Detector */

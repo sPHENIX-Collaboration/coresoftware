@@ -29,7 +29,7 @@ class PHTruthVertexing : public PHInitVertexing
 {
  public:
   PHTruthVertexing(const std::string &name = "PHTruthVertexing");
-  virtual ~PHTruthVertexing();
+  ~PHTruthVertexing() override;
 
   void set_vertex_error(const float &x_err, const float &y_err, const float &z_err)
   {
@@ -54,11 +54,11 @@ class PHTruthVertexing : public PHInitVertexing
 
  protected:
 
-  int Setup(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
 
-  int Process(PHCompositeNode *topNode);
+  int Process(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode * /*topNode*/);
+  int End(PHCompositeNode * /*topNode*/) override;
 
  private:
   /// fetch node pointers

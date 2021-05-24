@@ -12,9 +12,9 @@ class PHGeomFileImport : public SubsysReco
 {
  public:
   explicit PHGeomFileImport(const std::string &geometry_file);
-  virtual ~PHGeomFileImport() {}
+  ~PHGeomFileImport() override {}
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
  protected:
   std::string m_GeometryFile;

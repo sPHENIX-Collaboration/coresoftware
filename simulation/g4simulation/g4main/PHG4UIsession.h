@@ -11,14 +11,14 @@ class PHG4UIsession : public G4UIsession {
 
 public:
   PHG4UIsession();
-  virtual ~PHG4UIsession() {}
+  ~PHG4UIsession() override {}
 
   void Verbosity(int verb) {verbosity = verb;}
   
-  G4UIsession * SessionStart();
-  void PauseSessionStart(const G4String& Prompt);
-  G4int ReceiveG4cout(const G4String& coutString);
-  G4int ReceiveG4cerr(const G4String& cerrString);
+  G4UIsession * SessionStart() override;
+  void PauseSessionStart(const G4String& Prompt) override;
+  G4int ReceiveG4cout(const G4String& coutString) override;
+  G4int ReceiveG4cerr(const G4String& cerrString) override;
 
 private:
   int verbosity;

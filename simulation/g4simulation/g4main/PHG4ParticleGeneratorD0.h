@@ -14,10 +14,10 @@ class PHG4ParticleGeneratorD0 : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGeneratorD0(const std::string &name = "D0GEN");
-  virtual ~PHG4ParticleGeneratorD0() {}
+  ~PHG4ParticleGeneratorD0() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   void set_eta_range(const double eta_min, const double eta_max);
   void set_rapidity_range(const double y_min, const double y_max);

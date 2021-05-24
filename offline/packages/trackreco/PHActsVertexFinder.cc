@@ -330,7 +330,7 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 	    }
 	}
 
-      for(const auto track : vertex.tracks())
+      for(const auto& track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
 	  const auto trackKey = keyMap.find(originalParams)->second;

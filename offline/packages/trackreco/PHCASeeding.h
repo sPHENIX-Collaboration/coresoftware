@@ -89,7 +89,7 @@ class PHCASeeding : public PHTrackSeeding
       float Bz = 14*0.000299792458f,
       float cosTheta_limit = -0.8);
 
-  virtual ~PHCASeeding()
+  ~PHCASeeding() override
   {
   }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up) {_start_layer = layer_low; _end_layer = layer_up;}
@@ -106,11 +106,11 @@ class PHCASeeding : public PHTrackSeeding
   }
 
  protected:
-  virtual int Setup(PHCompositeNode *topNode);
-  virtual int Process(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
+  int Process(PHCompositeNode *topNode) override;
   int InitializeGeometry(PHCompositeNode *topNode);
   int FindSeedsLayerSkip(double cosTheta_limit);
-  virtual int End();
+  int End() override;
 
  private:
   /// fetch node pointers

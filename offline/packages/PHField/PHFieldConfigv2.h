@@ -34,22 +34,22 @@ class PHFieldConfigv2 : public PHFieldConfig
   {
   }
 
-  virtual ~PHFieldConfigv2() {}
+  ~PHFieldConfigv2() override {}
 
   /// Virtual copy constructor.
-  virtual PHObject* CloneMe() const override { return new PHFieldConfigv2(*this); }
+  PHObject* CloneMe() const override { return new PHFieldConfigv2(*this); }
 
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void
+  void
   identify(std::ostream& os = std::cout) const override;
 
   /// Clear Content
-  virtual void Reset() override {}
+  void Reset() override {}
 
   /// isValid returns non zero if object contains vailid data
-  virtual int
+  int
   isValid() const override { return 3; }
 
   FieldConfigTypes get_field_config() const override

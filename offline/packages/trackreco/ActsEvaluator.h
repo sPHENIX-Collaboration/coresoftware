@@ -57,12 +57,12 @@ class ActsEvaluator : public SubsysReco
  public:
   ActsEvaluator(const std::string &name = "ActsEvaluator.root",
                      SvtxEvaluator *svtxEvaluator = nullptr);
-  ~ActsEvaluator();
+  ~ActsEvaluator() override;
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 
  private:

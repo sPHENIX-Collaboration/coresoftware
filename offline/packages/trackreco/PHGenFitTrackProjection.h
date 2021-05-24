@@ -32,12 +32,12 @@ class PHGenFitTrackProjection : public SubsysReco
  public:
  
   PHGenFitTrackProjection(const std::string &name = "PHGenFitTrackProjection", const int pid_guess = 211);
-  virtual ~PHGenFitTrackProjection() {}
+  ~PHGenFitTrackProjection() override {}
 		
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   int get_pid_guess() const {
     return _pid_guess;

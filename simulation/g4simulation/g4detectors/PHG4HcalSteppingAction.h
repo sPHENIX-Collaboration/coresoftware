@@ -21,13 +21,13 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   PHG4HcalSteppingAction(PHG4HcalDetector*);
 
   //! destroctor
-  virtual ~PHG4HcalSteppingAction();
+  ~PHG4HcalSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
   void set_zmin(const float z) { zmin = z; }
   void set_zmax(const float z) { zmax = z; }

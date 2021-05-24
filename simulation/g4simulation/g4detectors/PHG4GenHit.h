@@ -13,9 +13,9 @@ class PHG4GenHit: public SubsysReco
 {
  public:
   PHG4GenHit(const std::string &name = "PHG4GenHit");
-  virtual ~PHG4GenHit() {}
+  ~PHG4GenHit() override {}
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   void set_phi(const double d) {phi = d;}
   void set_theta(const double d) {theta = d;}

@@ -34,16 +34,16 @@ class PHG4TrackFastSimEval : public SubsysReco
                        const std::string& trackmapname = "SvtxTrackMap");
 
   //Initialization, called for initialization
-  int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //Initialization, called for initialization
-  int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //Process Event, called for each event
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //End, write and close files
-  int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   //Change output filename
   void set_filename(const std::string& file)

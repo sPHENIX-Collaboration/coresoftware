@@ -15,7 +15,7 @@ class PHG4Particlev1 : public PHG4Particle
   PHG4Particlev1(const std::string &name, const int pid, const double px, const double py, const double pz);
   PHG4Particlev1(const PHG4Particle *in);
 
-  virtual ~PHG4Particlev1() {}
+  ~PHG4Particlev1() override {}
 
   void identify(std::ostream &os = std::cout) const override;
 

@@ -19,7 +19,7 @@ class RawTowerv1 : public RawTower
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
   RawTowerv1(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
-  virtual ~RawTowerv1() {}
+  ~RawTowerv1() override {}
 
   void Reset() override;
   int isValid() const override;

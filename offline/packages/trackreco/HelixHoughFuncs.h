@@ -13,15 +13,15 @@ class HelixHoughSpace;
 class HelixHoughFuncs : public PHObject
 {
  public:
-  virtual ~HelixHoughFuncs() {}
+  ~HelixHoughFuncs() override {}
 
   // The "standard PHObject response" functions...
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "HelixHoughFuncs base class" << std::endl;
   }
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // Define Hough space for helical tracks
   virtual void set_current_zoom(unsigned int cur_zoom) {}

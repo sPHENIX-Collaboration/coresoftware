@@ -13,7 +13,7 @@ class RawTowerGeomv1 : public RawTowerGeom
  public:
   RawTowerGeomv1() {}
   RawTowerGeomv1(RawTowerDefs::keytype id);
-  virtual ~RawTowerGeomv1() {}
+  ~RawTowerGeomv1() override {}
 
   void identify(std::ostream& os = std::cout) const override;
 

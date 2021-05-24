@@ -36,7 +36,7 @@ class PHG4TruthInfoContainer : public PHObject
   typedef std::pair<ConstShowerIterator, ConstShowerIterator> ConstShowerRange;
 
   PHG4TruthInfoContainer();
-  virtual ~PHG4TruthInfoContainer();
+  ~PHG4TruthInfoContainer() override;
 
 // from PHObject
   void Reset() override;

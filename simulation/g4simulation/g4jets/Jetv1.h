@@ -25,7 +25,7 @@ class Jetv1 : public Jet
 {
  public:
   Jetv1();
-  virtual ~Jetv1() {}
+  ~Jetv1() override {}
 
   // PHObject virtual overloads
 

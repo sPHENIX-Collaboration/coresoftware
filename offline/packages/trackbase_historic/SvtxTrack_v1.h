@@ -28,7 +28,7 @@ class SvtxTrack_v1 : public SvtxTrack
   //* assignment operator
   SvtxTrack_v1& operator=(const SvtxTrack_v1& track);
   
-  virtual ~SvtxTrack_v1();
+  ~SvtxTrack_v1() override;
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const override;
@@ -37,8 +37,8 @@ class SvtxTrack_v1 : public SvtxTrack
   PHObject* CloneMe() const override { return new SvtxTrack_v1(*this); }
   
   // copy content from base class
-  virtual void CopyFrom( const SvtxTrack& ) override;
-  virtual void CopyFrom( SvtxTrack* source ) override
+  void CopyFrom( const SvtxTrack& ) override;
+  void CopyFrom( SvtxTrack* source ) override
   { CopyFrom( *source ); }
 
   //

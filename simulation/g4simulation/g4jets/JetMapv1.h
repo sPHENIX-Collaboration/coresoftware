@@ -17,7 +17,7 @@ class JetMapv1 : public JetMap
   JetMapv1();
   JetMapv1(const JetMap *jets);
   JetMapv1& operator=(const JetMapv1& jets);
-  virtual ~JetMapv1();
+  ~JetMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;

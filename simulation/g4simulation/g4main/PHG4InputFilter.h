@@ -13,9 +13,9 @@ class PHG4InputFilter : public SubsysReco
 {
  public:
   PHG4InputFilter(const std::string &name = "G4INPUTFILTER");
-  virtual ~PHG4InputFilter() {}
+  ~PHG4InputFilter() override {}
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   void set_eta_range(const double min, const double max) {etamin = min; etamax = max;}
   void set_etamin(const double min) {etamin = min;}

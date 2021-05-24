@@ -9,7 +9,7 @@ class PdbBankList : public PHPointerList<PdbCalBank>
 {
 public:
   PdbBankList() {}
-  virtual ~PdbBankList() {}
+  ~PdbBankList() override {}
 };
 
 #endif /* PDBCAL_BASE_PDBBANKLIST_H */

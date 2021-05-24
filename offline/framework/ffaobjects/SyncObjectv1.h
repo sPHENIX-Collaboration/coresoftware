@@ -18,7 +18,7 @@ class SyncObjectv1 : public SyncObject
 
   PHObject* CloneMe() const override { return new SyncObjectv1(*this); }
   /// dtor
-  virtual ~SyncObjectv1() = default;
+  ~SyncObjectv1() override = default;
 
   ///  Clear Event
   void Reset() override;

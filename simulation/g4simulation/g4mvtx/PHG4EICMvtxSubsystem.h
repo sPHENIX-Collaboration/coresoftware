@@ -21,7 +21,7 @@ class PHG4EICMvtxSubsystem : public PHG4DetectorGroupSubsystem
   PHG4EICMvtxSubsystem(const std::string& name = "PHG4EICMvtxSubsystem", const int _n_layers = 3);
 
   //! destructor
-  virtual ~PHG4EICMvtxSubsystem();
+  ~PHG4EICMvtxSubsystem() override;
 
   //! InitRunSubsystem
   /*!
@@ -30,23 +30,23 @@ class PHG4EICMvtxSubsystem : public PHG4DetectorGroupSubsystem
   creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector(void) const;
-  virtual PHG4SteppingAction* GetSteppingAction(void) const;
+  PHG4Detector* GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override;
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
   static double radii2Turbo(double rMin, double rMid, double rMax, double sensW)
   {
     // compute turbo angle from radii and sensor width

@@ -27,10 +27,10 @@ class PHG4MvtxDetector : public PHG4Detector
   PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4MvtxDetector() {}
+  ~PHG4MvtxDetector() override {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world) override;
 
   //!@name volume accessors
   //@{

@@ -16,7 +16,7 @@ class PHG4PhenixSteppingAction : public G4UserSteppingAction
   PHG4PhenixSteppingAction( void )
   {}
 
-  virtual ~PHG4PhenixSteppingAction();
+  ~PHG4PhenixSteppingAction() override;
   
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
@@ -28,7 +28,7 @@ class PHG4PhenixSteppingAction : public G4UserSteppingAction
       }
   }
 
-  virtual void UserSteppingAction(const G4Step*);
+  void UserSteppingAction(const G4Step*) override;
 
   private:
 

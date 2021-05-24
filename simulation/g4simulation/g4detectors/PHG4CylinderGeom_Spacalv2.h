@@ -24,24 +24,24 @@ class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
 public:
   PHG4CylinderGeom_Spacalv2();
 
-  virtual
-  ~PHG4CylinderGeom_Spacalv2()
+  
+  ~PHG4CylinderGeom_Spacalv2() override
   {
   }
 
 
 // from PHObject
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
 // from TObject
-  virtual void Print(Option_t* option = "") const override;
+  void Print(Option_t* option = "") const override;
 
-  virtual void SetDefault() override;
+  void SetDefault() override;
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param) override;
+  void ImportParameters(const PHParameters & param) override;
 
-  virtual int get_azimuthal_n_sec() const override;
+  int get_azimuthal_n_sec() const override;
 
   virtual void set_azimuthal_n_sec(int azimuthalNSec);
 
@@ -59,7 +59,7 @@ public:
     azimuthal_tilt = azimuthalTilt;
   }
 
-  virtual
+  
   bool is_azimuthal_seg_visible() const override;
 
   virtual

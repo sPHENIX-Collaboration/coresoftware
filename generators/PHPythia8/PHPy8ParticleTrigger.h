@@ -15,9 +15,9 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger
 {
  public:
   PHPy8ParticleTrigger(const std::string &name = "PHPy8ParticleTrigger");
-  virtual ~PHPy8ParticleTrigger();
+  ~PHPy8ParticleTrigger() override;
 
-  bool Apply(Pythia8::Pythia *pythia);
+  bool Apply(Pythia8::Pythia *pythia) override;
 
   void AddParticles(const std::string &particles);
   void AddParticles(int particle);

@@ -15,10 +15,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
  public:
   HcalRawTowerBuilder(const std::string &name = "HcalRawTowerBuilder");
-  virtual ~HcalRawTowerBuilder() {}
+  ~HcalRawTowerBuilder() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { m_Detector = d; }
   void EminCut(const double e) { m_Emin = e; }
   void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
@@ -56,7 +56,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   short get_tower_row(const short cellrow) const;
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
  private:
   void CreateNodes(PHCompositeNode *topNode);

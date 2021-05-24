@@ -13,21 +13,21 @@ class InttDeadMapv1 : public InttDeadMap
   InttDeadMapv1()
   {
   }
-  virtual ~InttDeadMapv1() {}
+  ~InttDeadMapv1() override {}
 
-  virtual void Reset() override;
-  virtual int isValid() const override;
+  void Reset() override;
+  int isValid() const override;
 
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void addDeadChannel(PHG4CellDefs::keytype key) override;
 
   bool isDeadChannel(PHG4CellDefs::keytype key) const override;
   //! return all towers
-  virtual const Map &getDeadChannels(void) const override;
-  virtual Map &getDeadChannels(void) override;
+  const Map &getDeadChannels(void) const override;
+  Map &getDeadChannels(void) override;
 
-  virtual unsigned int size() const override { return m_DeadChannels.size(); }
+  unsigned int size() const override { return m_DeadChannels.size(); }
 
  private:
   Map m_DeadChannels;

@@ -22,7 +22,7 @@ class PdbParameterMap: public PdbCalChan
   typedef std::pair<strIter, strIter> strConstRange;
 
   PdbParameterMap() {}
-  virtual ~PdbParameterMap() {}
+  ~PdbParameterMap() override {}
 
   void print() const override;
   void Reset() override; // from PHObject - clear content

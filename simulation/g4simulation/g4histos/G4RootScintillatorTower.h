@@ -14,7 +14,7 @@ class G4RootScintillatorTower : public PHObject
  public:
   G4RootScintillatorTower();
   G4RootScintillatorTower(const RawTower& tower);
-  virtual ~G4RootScintillatorTower() {}
+  ~G4RootScintillatorTower() override {}
 
   void Reset() override;
   int isValid() const override;

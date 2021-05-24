@@ -28,22 +28,22 @@ class TrkrHitv2 : public TrkrHit
   TrkrHitv2(); 
 
   //! dtor
-  virtual ~TrkrHitv2() {}
+  ~TrkrHitv2() override {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrHitv2 class with adc = " << m_adc << std::endl;
   }
-  virtual void Reset() override {}
-  virtual int isValid() const override { return 0; }
+  void Reset() override {}
+  int isValid() const override { return 0; }
 
   // these set and get the energy before digitization
-  virtual void addEnergy(const double edep) override;
-  virtual double getEnergy() override;
+  void addEnergy(const double edep) override;
+  double getEnergy() override;
 
   // after digitization, these are the adc values
-  virtual void setAdc(const unsigned int adc) override;
-  virtual unsigned int getAdc() override ;
+  void setAdc(const unsigned int adc) override;
+  unsigned int getAdc() override ;
 
  protected:
 

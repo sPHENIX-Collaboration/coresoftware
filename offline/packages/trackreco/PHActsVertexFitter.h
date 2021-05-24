@@ -36,12 +36,12 @@ class PHActsVertexFitter : public SubsysReco
 {
  public:
   PHActsVertexFitter(const std::string &name = "PHActsVertexFitter");
-  virtual ~PHActsVertexFitter() {}
-  int process_event(PHCompositeNode *topNode);
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  ~PHActsVertexFitter() override {}
+  int process_event(PHCompositeNode *topNode) override;
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void updateSvtxVertexMap(bool updateSvtxVertexMap)
   {
