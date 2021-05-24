@@ -26,13 +26,13 @@ class Field : public AbsBField
  public:
   Field(const PHField* field);
 
-  virtual ~Field() {}
+  ~Field() override {}
 
   //  void plot(std::string option = "");
 
   //! return value at position
-  TVector3 get(const TVector3& pos) const;
-  void get(const double& posX, const double& posY, const double& posZ, double& Bx, double& By, double& Bz) const;
+  TVector3 get(const TVector3& pos) const override;
+  void get(const double& posX, const double& posY, const double& posZ, double& Bx, double& By, double& Bz) const override;
 
   const PHField* get_field() const
   {
