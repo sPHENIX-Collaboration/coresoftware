@@ -13,7 +13,7 @@ class BbcVertexMapv1 : public BbcVertexMap
 {
  public:
   BbcVertexMapv1();
-  virtual ~BbcVertexMapv1();
+  ~BbcVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { clear(); }

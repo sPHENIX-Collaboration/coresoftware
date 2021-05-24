@@ -9,7 +9,7 @@ class BbcVertexv1 : public BbcVertex
 {
  public:
   BbcVertexv1();
-  virtual ~BbcVertexv1();
+  ~BbcVertexv1() override;
 
   // PHObject virtual overloads
 

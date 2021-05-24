@@ -13,10 +13,10 @@ class BbcVertexMap : public PHObject
   typedef std::map<unsigned int, BbcVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, BbcVertex*>::iterator Iter;
 
-  virtual ~BbcVertexMap() {}
+  ~BbcVertexMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override { os << "BbcVertexMap base class" << std::endl; }
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream& os = std::cout) const override { os << "BbcVertexMap base class" << std::endl; }
+  int isValid() const override { return 0; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
