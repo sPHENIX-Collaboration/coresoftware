@@ -20,16 +20,16 @@ class PHG4TruthEventAction : public PHG4EventAction
   PHG4TruthEventAction();
 
   //! destuctor
-  virtual ~PHG4TruthEventAction() {}
+  ~PHG4TruthEventAction() override {}
 
-  void BeginOfEventAction(const G4Event*);
+  void BeginOfEventAction(const G4Event*) override;
 
-  void EndOfEventAction(const G4Event*);
+  void EndOfEventAction(const G4Event*) override;
 
-  int ResetEvent(PHCompositeNode*);
+  int ResetEvent(PHCompositeNode*) override;
 
   //! get relevant nodes from top node passed as argument
-  void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
   //! add id into track list
   void AddTrackidToWritelist(const int trackid);

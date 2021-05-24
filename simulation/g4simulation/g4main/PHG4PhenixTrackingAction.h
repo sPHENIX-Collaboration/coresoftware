@@ -17,14 +17,14 @@ class PHG4PhenixTrackingAction : public G4UserTrackingAction
 public:
   PHG4PhenixTrackingAction( void ) : verbosity_(0) {}
 
-  virtual ~PHG4PhenixTrackingAction();
+  ~PHG4PhenixTrackingAction() override;
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4TrackingAction* action ) { actions_.push_back( action ); }
 
-  virtual void PreUserTrackingAction(const G4Track*);
+  void PreUserTrackingAction(const G4Track*) override;
 
-  virtual void PostUserTrackingAction(const G4Track*);
+  void PostUserTrackingAction(const G4Track*) override;
 
   //! Get/Set verbosity level
   void Verbosity(int val) { verbosity_ = val; }

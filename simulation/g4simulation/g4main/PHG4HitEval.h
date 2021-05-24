@@ -28,9 +28,9 @@ class PHG4HitEval : public PHG4Hitv1
 
   PHG4HitEval(const PHG4Hit *g4hit);
 
-  virtual ~PHG4HitEval() {}
+  ~PHG4HitEval() override {}
 
-  virtual void CopyFrom(const PHObject *phobj) override;
+  void CopyFrom(const PHObject *phobj) override;
 
   float
   get_eion() const override

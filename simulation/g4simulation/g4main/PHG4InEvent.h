@@ -16,9 +16,9 @@ class PHG4InEvent: public PHObject
 {
  public:
   PHG4InEvent() {}
-  virtual ~PHG4InEvent();
+  ~PHG4InEvent() override;
 
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
   // this one is for HepMC records where we want to keep the HepMC vertex numbering
   int AddVtxHepMC(const int id, const double x, const double y, const double z, const double t);

@@ -21,10 +21,10 @@ class ReadEICFiles : public SubsysReco, public PHHepMCGenHelper
 {
  public:
   ReadEICFiles(const std::string &name = "EICReader");
-  virtual ~ReadEICFiles();
+  ~ReadEICFiles() override;
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   /** Specify name of input file to open */
   bool OpenInputFile(const std::string &name);

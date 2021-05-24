@@ -13,7 +13,7 @@ class PHG4Particle : public PHObject
 {
  public:
   PHG4Particle() {}
-  virtual ~PHG4Particle() {}
+  ~PHG4Particle() override {}
 
   void identify(std::ostream &os = std::cout) const override;
 

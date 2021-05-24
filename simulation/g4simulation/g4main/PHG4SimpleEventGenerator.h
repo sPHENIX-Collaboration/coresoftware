@@ -25,10 +25,10 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   };
 
   PHG4SimpleEventGenerator(const std::string &name = "EVTGENERATOR");
-  virtual ~PHG4SimpleEventGenerator() {}
+  ~PHG4SimpleEventGenerator() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   //! interface for adding particles by name
   void add_particles(const std::string &name, const unsigned int count);
