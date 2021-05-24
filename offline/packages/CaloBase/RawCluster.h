@@ -27,17 +27,17 @@ class RawCluster : public PHObject
   typedef std::pair<TowerIterator, TowerIterator> TowerRange;
   typedef std::pair<TowerConstIterator, TowerConstIterator> TowerConstRange;
 
-  virtual ~RawCluster() {}
-  virtual void Reset() override { PHOOL_VIRTUAL_WARNING; }
+  ~RawCluster() override {}
+  void Reset() override { PHOOL_VIRTUAL_WARNING; }
 
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  PHObject* CloneMe() const override { return nullptr; }
 
-  virtual int isValid() const override
+  int isValid() const override
   {
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  virtual void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARNING; }
+  void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARNING; }
   /** @defgroup getters
    *  @{
    */

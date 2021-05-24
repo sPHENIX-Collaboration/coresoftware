@@ -18,12 +18,12 @@ class RawClusterv1 : public RawCluster
 {
  public:
   RawClusterv1();
-  virtual ~RawClusterv1() {}
+  ~RawClusterv1() override {}
 
-  virtual void Reset() override;
-  virtual PHObject* CloneMe() const override { return new RawClusterv1(*this); }
-  virtual int isValid() const override { return towermap.size() > 0; }
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  PHObject* CloneMe() const override { return new RawClusterv1(*this); }
+  int isValid() const override { return towermap.size() > 0; }
+  void identify(std::ostream& os = std::cout) const override;
 
   /** @defgroup getters
    *  @{
@@ -39,7 +39,7 @@ class RawClusterv1 : public RawCluster
   const TowerMap& get_towermap() const override { return towermap; }
   //
   //! cluster position in 3D
-  virtual CLHEP::Hep3Vector get_position() const override
+  CLHEP::Hep3Vector get_position() const override
   {
     return CLHEP::Hep3Vector(get_x(), get_y(), get_z());
   }
@@ -54,20 +54,20 @@ class RawClusterv1 : public RawCluster
   //  virtual float get_et(const float z) const;
   //
   //! access Cartesian coordinate system
-  virtual float get_x() const override { return get_r() * std::cos(get_phi()); }
-  virtual float get_y() const override { return get_r() * std::sin(get_phi()); }
+  float get_x() const override { return get_r() * std::cos(get_phi()); }
+  float get_y() const override { return get_r() * std::sin(get_phi()); }
   //
   //! access additional optional properties
   //! cluster core energy for EM shower
-  virtual float get_ecore() const override { return get_property_float(prop_ecore); }
+  float get_ecore() const override { return get_property_float(prop_ecore); }
   //! reduced chi2 for EM shower
-  virtual float get_chi2() const override { return get_property_float(prop_chi2); }
+  float get_chi2() const override { return get_property_float(prop_chi2); }
   //! cluster template probability for EM shower
-  virtual float get_prob() const override { return get_property_float(prop_prob); }
+  float get_prob() const override { return get_property_float(prop_prob); }
   //! isolation ET default
-  virtual float get_et_iso() const override { return get_property_float(prop_et_iso_calotower_R03); }
+  float get_et_iso() const override { return get_property_float(prop_et_iso_calotower_R03); }
   //! isolation ET the radius and hueristic can be specified
-  virtual float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const override;
+  float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const override;
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const override { return get_property_int(prop_truth_track_ID); }
   //  //! truth cluster's PHG4Particle flavor
@@ -91,15 +91,15 @@ class RawClusterv1 : public RawCluster
   //
   //! access additional optional properties
   //! cluster core energy for EM shower
-  virtual void set_ecore(const float ecore) override { set_property(prop_ecore, ecore); }
+  void set_ecore(const float ecore) override { set_property(prop_ecore, ecore); }
   //! reduced chi2 for EM shower
-  virtual void set_chi2(const float chi2) override { set_property(prop_chi2, chi2); }
+  void set_chi2(const float chi2) override { set_property(prop_chi2, chi2); }
   //! cluster template probability for EM shower
-  virtual void set_prob(const float prob) override { set_property(prop_prob, prob); }
+  void set_prob(const float prob) override { set_property(prop_prob, prob); }
   //! isolation ET default
-  virtual void set_et_iso(const float e) override { set_property(prop_et_iso_calotower_R03, e); }
+  void set_et_iso(const float e) override { set_property(prop_et_iso_calotower_R03, e); }
   //! isolation ET the radius and hueristic can be specified
-  virtual void set_et_iso(const float et_iso, const int radiusx10, bool subtracted, bool clusterTower) override;
+  void set_et_iso(const float et_iso, const int radiusx10, bool subtracted, bool clusterTower) override;
   //  //! truth cluster's PHG4Particle ID
   //  virtual void set_truth_track_ID(const int i) override { set_property(prop_truth_track_ID, i); }
   //  //! truth cluster's PHG4Particle flavor

@@ -16,11 +16,11 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
 {
  public:
   RawTowerGeomContainerv1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE);
-  virtual ~RawTowerGeomContainerv1();
+  ~RawTowerGeomContainerv1() override;
 
-  virtual void Reset() override;
-  virtual int isValid() const override;
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void set_calorimeter_id(RawTowerDefs::CalorimeterId caloid) override { _caloid = caloid; }
   RawTowerDefs::CalorimeterId get_calorimeter_id() const override { return _caloid; }

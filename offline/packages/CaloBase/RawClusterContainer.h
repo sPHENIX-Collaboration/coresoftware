@@ -21,7 +21,7 @@ class RawClusterContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   RawClusterContainer() {}
-  virtual ~RawClusterContainer() {}
+  ~RawClusterContainer() override {}
 
   void Reset() override;
   int isValid() const override;
