@@ -24,11 +24,11 @@ class JetMap : public PHObject
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
   JetMap(){}
-  virtual ~JetMap() {}
+  ~JetMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // map content info ----------------------------------------------------------
 
