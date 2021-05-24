@@ -14,6 +14,8 @@
 
 class CaloEvalStack;
 class PHCompositeNode;
+class PHHepMCGenEventMap;
+class PHHepMCGenEvent;
 class TFile;
 class TNtuple;
 class TTree;  //Added by Barak
@@ -29,11 +31,6 @@ class TTree;  //Added by Barak
 class EventEvaluator : public SubsysReco
 {
  public:
-  enum class TrackSource_t: unsigned short {
-      all = 0,
-      inner = 1
-  };
-
   EventEvaluator(const std::string& name = "EventEvaluator",
                  const std::string& filename = "g4eval_cemc.root");
   virtual ~EventEvaluator(){};
@@ -58,6 +55,7 @@ class EventEvaluator : public SubsysReco
   void set_do_VERTEX(bool b) { _do_VERTEX = b; }
   void set_do_PROJECTIONS(bool b) { _do_PROJECTIONS = b; }
   void set_do_MCPARTICLES(bool b) { _do_MCPARTICLES = b; }
+  void set_do_HEPMC(bool b) { _do_HEPMC = b; }
   // funtions to limit the tracing to only part of the event ---------
   // and speed up the evaluation
 
@@ -84,6 +82,7 @@ private:
   bool _do_VERTEX;
   bool _do_PROJECTIONS;
   bool _do_MCPARTICLES;
+  bool _do_HEPMC;
   unsigned int _ievent;
 
   // track hits
@@ -214,7 +213,6 @@ private:
   float* _track_py;
   float* _track_pz;
   float* _track_trueID;
-  unsigned short* _track_source;
 
   int _nProjections;
   float* _track_ProjTrackID;
@@ -237,7 +235,24 @@ private:
   float* _mcpart_px;
   float* _mcpart_py;
   float* _mcpart_pz;
+  int*   _mcpart_BCID;
 
+  // MC particles
+  int _nHepmcp;
+  int _hepmcp_procid;
+  float _hepmcp_x1;
+  float _hepmcp_x2;
+  //  float* _hepmcp_ID_parent;
+  float* _hepmcp_status;
+  float* _hepmcp_PDG;
+  float* _hepmcp_E;
+  float* _hepmcp_px;
+  float* _hepmcp_py;
+  float* _hepmcp_pz;
+  int* _hepmcp_m1;
+  int* _hepmcp_m2;
+  int* _hepmcp_BCID;
+  
   float _reco_e_threshold;
   int _depth_MCstack;
 
@@ -274,6 +289,7 @@ private:
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
   const int _maxNMCPart = 100000;
+  const int _maxNHepmcp = 1000;
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H

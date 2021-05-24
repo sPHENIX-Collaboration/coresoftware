@@ -1,3 +1,5 @@
+
+      
 #include "EventEvaluator.h"
 
 #include "CaloEvalStack.h"
@@ -29,6 +31,11 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -66,6 +73,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _do_VERTEX(false)
   , _do_PROJECTIONS(false)
   , _do_MCPARTICLES(false)
+  , _do_HEPMC(false)
   , _ievent(0)
   , _nHitsLayers(0)
   , _hits_layerID(0)
@@ -188,7 +196,6 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _track_py(0)
   , _track_pz(0)
   , _track_trueID(0)
-  , _track_source(0)
   , _nProjections(0)
   , _track_ProjTrackID(0)
   , _track_ProjLayer(0)
@@ -209,7 +216,23 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _mcpart_px(0)
   , _mcpart_py(0)
   , _mcpart_pz(0)
+  , _mcpart_BCID(0)
 
+  , _nHepmcp(0)
+    //  , _hepmcp_x1(0)
+    //  , _hepmcp_procid(0)
+
+    //  , _hepmcp_ID_parent(0)
+  , _hepmcp_status(0)  
+  , _hepmcp_PDG(0)
+  , _hepmcp_E(0)
+  , _hepmcp_px(0)
+  , _hepmcp_py(0)
+  , _hepmcp_pz(0)
+  , _hepmcp_m1(0)
+  , _hepmcp_m2(0)
+  , _hepmcp_BCID(0)
+    
   , _reco_e_threshold(0.0)
   , _depth_MCstack(2)
   , _caloevalstackFHCAL(nullptr)
@@ -314,7 +337,6 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _track_px = new float[_maxNTracks];
   _track_py= new float[_maxNTracks];
   _track_pz = new float[_maxNTracks];
-  _track_source = new unsigned short[_maxNTracks];
   _track_ProjTrackID = new float[_maxNProjections];
   _track_ProjLayer = new int[_maxNProjections];
   _track_TLP_x = new float[_maxNProjections];
@@ -333,6 +355,18 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _mcpart_px = new float[_maxNMCPart];
   _mcpart_py = new float[_maxNMCPart];
   _mcpart_pz = new float[_maxNMCPart];
+  _mcpart_BCID = new int[_maxNMCPart];
+
+  _hepmcp_BCID = new int[_maxNHepmcp];
+  //  _hepmcp_ID_parent = new float[_maxNHepmcp];
+  _hepmcp_status = new float[_maxNHepmcp];
+  _hepmcp_PDG = new float[_maxNHepmcp];
+  _hepmcp_E = new float[_maxNHepmcp];
+  _hepmcp_px = new float[_maxNHepmcp];
+  _hepmcp_py = new float[_maxNHepmcp];
+  _hepmcp_pz = new float[_maxNHepmcp];
+  _hepmcp_m1 = new int[_maxNHepmcp];
+  _hepmcp_m2 = new int[_maxNHepmcp];
 }
 
 int EventEvaluator::Init(PHCompositeNode* topNode)
@@ -359,7 +393,6 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("tracks_py", _track_py, "tracks_py[nTracks]/F");
     _event_tree->Branch("tracks_pz", _track_pz, "tracks_pz[nTracks]/F");
     _event_tree->Branch("tracks_trueID", _track_trueID, "tracks_trueID[nTracks]/F");
-    _event_tree->Branch("tracks_source", _track_source, "tracks_source[nTracks]/s");
   }
   if(_do_PROJECTIONS){
     _event_tree->Branch("nProjections", &_nProjections, "nProjections/I");
@@ -524,15 +557,34 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("mcpart_px", _mcpart_px, "mcpart_px[nMCPart]/F");
     _event_tree->Branch("mcpart_py", _mcpart_py, "mcpart_py[nMCPart]/F");
     _event_tree->Branch("mcpart_pz", _mcpart_pz, "mcpart_pz[nMCPart]/F");
+    _event_tree->Branch("mcpart_BCID", _mcpart_BCID, "mcpart_BCID[nMCPart]/I");
+  }
+  if(_do_HEPMC){
+    // MC particles
+    _event_tree->Branch("nHepmcp", &_nHepmcp, "nHepmcp/I");
+    _event_tree->Branch("hepmcp_procid", &_hepmcp_procid, "hepmcp_procid/I");
+    _event_tree->Branch("hepmcp_x1", &_hepmcp_x1, "hepmcp_x1/F");
+    _event_tree->Branch("hepmcp_x2", &_hepmcp_x2, "hepmcp_x2/F");    
+
+    //    _event_tree->Branch("hepmcp_ID_parent", _hepmcp_ID_parent, "hepmcp_ID_parent[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_status", _hepmcp_status, "hepmcp_status[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_PDG", _hepmcp_PDG, "hepmcp_PDG[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_E", _hepmcp_E, "hepmcp_E[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_px", _hepmcp_px, "hepmcp_px[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_py", _hepmcp_py, "hepmcp_py[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_pz", _hepmcp_pz, "hepmcp_pz[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_BCID", _hepmcp_BCID, "hepmcp_BCID[nHepmcp]/I");
+    _event_tree->Branch("hepmcp_m1", _hepmcp_m1, "hepmcp_m1[nHepmcp]/I");
+    _event_tree->Branch("hepmcp_m2", _hepmcp_m2, "hepmcp_m2[nHepmcp]/I");
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int EventEvaluator::process_event(PHCompositeNode* topNode)
 {
-  // if(Verbosity() > 0){
+  if(Verbosity() > 0){
     cout << "entered process_event" << endl;
-    // }
+  }
   if(_do_FHCAL){
     if (!_caloevalstackFHCAL)
     {
@@ -629,6 +681,8 @@ int EventEvaluator::process_event(PHCompositeNode* topNode)
       _caloevalstackEEMC->next_event(topNode);
     }
   }
+
+    
   if (Verbosity() > 0) {cout << "loaded evalstack" << endl;}
 
 
@@ -1578,97 +1632,85 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(_do_TRACKS){
     _nTracks = 0;
     _nProjections = 0;
-    // Loop over track maps, identifiy each source.
-    // Although this configuration is fixed here, it doesn't require multiple sources.
-    // It will only store them if they're available.
-    std::vector<std::pair<std::string, TrackSource_t>> trackMapInfo = {
-        {"TrackMap", TrackSource_t::all},
-        {"TrackMapInner", TrackSource_t::inner}
-    };
-    for (const auto & trackMapInfo : trackMapInfo) {
-      SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackMapInfo.first);
-      if (trackmap)
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
+    if (trackmap)
+    {
+      if (Verbosity() > 0){ cout << "saving tracks" << endl;}
+      for (SvtxTrackMap::ConstIter track_itr = trackmap->begin(); track_itr != trackmap->end(); track_itr++)
       {
-        int nTracksInASource = 0;
-        if (Verbosity() > 0){ cout << "saving tracks for track map: " << trackMapInfo.first << endl;}
-        for (SvtxTrackMap::ConstIter track_itr = trackmap->begin(); track_itr != trackmap->end(); track_itr++)
+        SvtxTrack_FastSim* track = dynamic_cast<SvtxTrack_FastSim*>(track_itr->second);
+        if (track)
         {
-          SvtxTrack_FastSim* track = dynamic_cast<SvtxTrack_FastSim*>(track_itr->second);
-          if (track)
-          {
-            _track_ID[_nTracks] = track->get_id();
-            _track_px[_nTracks] = track->get_px();
-            _track_py[_nTracks] = track->get_py();
-            _track_pz[_nTracks] = track->get_pz();
-            _track_trueID[_nTracks] = track->get_truth_track_id();
-            _track_source[_nTracks] = static_cast<unsigned short>(trackMapInfo.second);
-            if(_do_PROJECTIONS){
-              // find projections
-              for (SvtxTrack::ConstStateIter trkstates = track->begin_states(); trkstates != track->end_states(); ++trkstates)
+          _track_ID[_nTracks] = track->get_id();
+          _track_px[_nTracks] = track->get_px();
+          _track_py[_nTracks] = track->get_py();
+          _track_pz[_nTracks] = track->get_pz();
+          _track_trueID[_nTracks] = track->get_truth_track_id();
+          if(_do_PROJECTIONS){
+            // find projections
+            for (SvtxTrack::ConstStateIter trkstates = track->begin_states(); trkstates != track->end_states(); ++trkstates)
+            {
+              if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;}
+              string trackStateName = trkstates->second->get_name();
+              if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;}
+              int trackStateIndex = GetProjectionIndex(trackStateName);
+              if (trackStateIndex > -1)
               {
-                if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;}
-                string trackStateName = trkstates->second->get_name();
-                if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;}
-                int trackStateIndex = GetProjectionIndex(trackStateName);
-                if (trackStateIndex > -1)
-                {
-                  // save true projection info to given branch
-                  _track_TLP_true_x[_nProjections] = trkstates->second->get_pos(0);
-                  _track_TLP_true_y[_nProjections] = trkstates->second->get_pos(1);
-                  _track_TLP_true_z[_nProjections] = trkstates->second->get_pos(2);
-                  _track_TLP_true_t[_nProjections] = trkstates->first;
-                  _track_ProjLayer[_nProjections] = trackStateIndex;
-                  _track_ProjTrackID[_nProjections] = _nTracks;
+                // save true projection info to given branch
+                _track_TLP_true_x[_nProjections] = trkstates->second->get_pos(0);
+                _track_TLP_true_y[_nProjections] = trkstates->second->get_pos(1);
+                _track_TLP_true_z[_nProjections] = trkstates->second->get_pos(2);
+                _track_TLP_true_t[_nProjections] = trkstates->first;
+                _track_ProjLayer[_nProjections] = trackStateIndex;
+                _track_ProjTrackID[_nProjections] = _nTracks;
 
-                  string nodename = "G4HIT_" + trkstates->second->get_name();
-                  PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-                  if (hits)
+                string nodename = "G4HIT_" + trkstates->second->get_name();
+                PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+                if (hits)
+                {
+                  if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;}
+                  PHG4HitContainer::ConstRange hit_range = hits->getHits();
+                  for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
                   {
-                    if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;}
-                    PHG4HitContainer::ConstRange hit_range = hits->getHits();
-                    for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
+                    if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;}
+                    if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
                     {
-                      if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;}
-                      if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
-                      {
-                        if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;}
-                        // save reco projection info to given branch
-                        _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
-                        _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
-                        _track_TLP_z[_nProjections] = hit_iter->second->get_z(0);
-                        _track_TLP_t[_nProjections] = hit_iter->second->get_t(0);
-                      }
+                      if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;}
+                      // save reco projection info to given branch
+                      _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
+                      _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
+                      _track_TLP_z[_nProjections] = hit_iter->second->get_z(0);
+                      _track_TLP_t[_nProjections] = hit_iter->second->get_t(0);
                     }
                   }
-                  else
-                  {
-                    if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;}
-                    continue;
-                  }
-                  _nProjections++;
                 }
+                else
+                {
+                  if (Verbosity() > 1){ cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;}
+                  continue;
+                }
+                _nProjections++;
               }
             }
-            _nTracks++;
-            nTracksInASource++;
           }
-          else
-          {
-            if (Verbosity() > 0)  //Verbosity()
-            {
-              cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
-              track_itr->second->identify();
-            }
-            continue;
-          }
+          _nTracks++;
         }
-        if (Verbosity() > 0){ cout << "saved\t" << nTracksInASource << "\ttracks from track map " << trackMapInfo.first << ". Total saved tracks: " << _nTracks << endl;}
+        else
+        {
+          if (Verbosity() > 0)  //Verbosity()
+          {
+            cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
+            track_itr->second->identify();
+          }
+          continue;
+        }
       }
-      else
-      {
-        if (Verbosity() > 0){ cout << PHWHERE << "SvtxTrackMap node with name '" << trackMapInfo.first << "' not found on node tree" << endl;}
-        return;
-      }
+      if (Verbosity() > 0){ cout << "saved\t" << _nTracks << "\ttracks" << endl;}
+    }
+    else
+    {
+      if (Verbosity() > 0){ cout << PHWHERE << "SvtxTrackMap node with name TrackMap not found on node tree" << endl;}
+      return;
     }
   }
   //------------------------
@@ -1717,6 +1759,9 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         // primary (g4particle->get_parent_id() == 0) selection via:
         // if(gtrackID < 0) continue;
 
+	//using the e threshold also for the truth particles gets rid of all the low energy secondary particles 
+        if (g4particle->get_e() < _reco_e_threshold) continue;	
+
         _mcpart_ID[_nMCPart] = g4particle->get_track_id();
         _mcpart_ID_parent[_nMCPart] = g4particle->get_parent_id();
         _mcpart_PDG[_nMCPart] = g4particle->get_pid();
@@ -1724,6 +1769,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _mcpart_px[_nMCPart] = g4particle->get_px();
         _mcpart_py[_nMCPart] = g4particle->get_py();
         _mcpart_pz[_nMCPart] = g4particle->get_pz();
+	//BCID added for G4Particle --  HEPMC particle matching
+	_mcpart_BCID[_nMCPart] = g4particle->get_barcode();
             // TVector3 projvec(_mcpart_px[0],_mcpart_py[0],_mcpart_pz[0]);
             // float projeta = projvec.Eta();
         _nMCPart++;
@@ -1736,6 +1783,88 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       return;
     }
   }
+
+  //------------------------
+  // HEPMC
+  //------------------------
+  _nHepmcp = 0;
+  if(_do_HEPMC){
+
+ PHHepMCGenEventMap* hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+    if (hepmceventmap)
+    {
+      if (Verbosity() > 0){ cout << "saving HepMC output" << endl;}
+      if (Verbosity() > 0){ hepmceventmap->Print();}
+
+      for (PHHepMCGenEventMap::ConstIter eventIter = hepmceventmap->begin();
+	   eventIter != hepmceventmap->end();
+	   ++eventIter)
+	{
+	  PHHepMCGenEvent *hepmcevent = eventIter->second;
+ 
+	  if (hepmcevent)
+	    {
+	      HepMC::GenEvent *truthevent = hepmcevent->getEvent();
+	      if (!truthevent)
+		{
+		  cout << PHWHERE
+		       << "no evt pointer under phhepmvgeneventmap found "
+		       << endl;
+		  return;
+		}
+ 
+	      HepMC::PdfInfo *pdfinfo = truthevent->pdf_info();
+	      
+	      //     m_partid1 = pdfinfo->id1();
+	      // m_partid2 = pdfinfo->id2();
+	      _hepmcp_x1 = pdfinfo->x1();
+	      _hepmcp_x2 = pdfinfo->x2();
+	      
+	      // m_mpi = truthevent->mpi();
+	      
+	      _hepmcp_procid = truthevent->signal_process_id();
+	      
+	      if (Verbosity() > 2)
+		{
+		  cout << " Iterating over an event" << endl;
+		}
+	      for (HepMC::GenEvent::particle_const_iterator iter = truthevent->particles_begin();
+		   iter != truthevent->particles_end();
+		   ++iter)
+		{
+		  _hepmcp_E[_nHepmcp] = (*iter)->momentum().e();
+		  _hepmcp_PDG[_nHepmcp] = (*iter)->pdg_id();
+		  _hepmcp_px[_nHepmcp] = (*iter)->momentum().px();
+		  _hepmcp_py[_nHepmcp] = (*iter)->momentum().py();
+		  _hepmcp_pz[_nHepmcp] = (*iter)->momentum().pz();
+		  _hepmcp_status[_nHepmcp] = (*iter)->status();
+		  _hepmcp_BCID[_nHepmcp] = (*iter)->barcode();
+		  _hepmcp_m2[_nHepmcp] = 0;
+		  _hepmcp_m1[_nHepmcp] = 0;		 
+		  if ( (*iter)->production_vertex() ) {
+		    for ( HepMC::GenVertex::particle_iterator mother 
+			    = (*iter)->production_vertex()->
+			    particles_begin(HepMC::parents);
+			  mother != (*iter)->production_vertex()->
+                               particles_end(HepMC::parents); 
+			  ++mother ) {
+		      _hepmcp_m2[_nHepmcp] = (*mother)->barcode();
+		      if( _hepmcp_m1[_nHepmcp] ==0)
+			_hepmcp_m1[_nHepmcp] = (*mother)->barcode();
+		    }
+		  }
+		  _nHepmcp++;
+		}
+	    }
+	}    
+    }
+    else
+    {
+      if (Verbosity() > 0){ cout << PHWHERE << " PHHepMCGenEventMap node not found on node tree" << endl;}
+      return;
+    }
+  }//hepmc
+  
   _event_tree->Fill();
   resetBuffer();
   if (Verbosity() > 0){ cout << "EventEvaluator buffer reset" << endl;}
@@ -2058,7 +2187,6 @@ void EventEvaluator::resetBuffer()
       _track_px[itrk] = 0;
       _track_py[itrk] = 0;
       _track_pz[itrk] = 0;
-      _track_source[itrk] = 0;
     }
     if(_do_PROJECTIONS){
       _nProjections = 0;
@@ -2088,6 +2216,25 @@ void EventEvaluator::resetBuffer()
       _mcpart_px[imcpart] = 0;
       _mcpart_py[imcpart] = 0;
       _mcpart_pz[imcpart] = 0;
+      _mcpart_BCID[imcpart] = 0;
     }
   }
+
+  if(_do_HEPMC){
+      _nHepmcp = 0;
+    for (Int_t iHepmcp = 0; iHepmcp < _maxNHepmcp; iHepmcp++)
+    {
+
+      _hepmcp_E[iHepmcp] = 0;
+      _hepmcp_PDG[iHepmcp] = 0;
+      _hepmcp_px[iHepmcp] = 0;
+      _hepmcp_py[iHepmcp] =0;
+      _hepmcp_pz[iHepmcp] =0;
+      _hepmcp_status[iHepmcp] =0;
+      _hepmcp_BCID[iHepmcp] = 0;
+      _hepmcp_m2[iHepmcp] = 0;
+      _hepmcp_m1[iHepmcp] = 0;
+    }
+  }
+      
 }

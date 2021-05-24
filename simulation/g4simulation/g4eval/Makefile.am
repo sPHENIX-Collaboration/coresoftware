@@ -34,6 +34,7 @@ libg4eval_la_LIBADD = \
   -lmvtx_io \
   -lintt_io \
   -lmicromegas_io \
+  -lg4dst \
   -lphg4hit
 
 pkginclude_HEADERS = \
