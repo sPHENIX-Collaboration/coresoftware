@@ -14,14 +14,14 @@ class SvtxVertexMap : public PHObject
   typedef std::map<unsigned int, SvtxVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, SvtxVertex*>::iterator Iter;
 
-  virtual ~SvtxVertexMap() {}
+  ~SvtxVertexMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxVertexMap base class" << std::endl;
   }
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

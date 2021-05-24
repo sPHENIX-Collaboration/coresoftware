@@ -15,14 +15,14 @@ class SvtxTrackMap : public PHObject
   typedef std::map<unsigned int, SvtxTrack*>::const_iterator ConstIter;
   typedef std::map<unsigned int, SvtxTrack*>::iterator Iter;
 
-  virtual ~SvtxTrackMap() {}
+  ~SvtxTrackMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxTrackMap base class" << std::endl;
   }
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

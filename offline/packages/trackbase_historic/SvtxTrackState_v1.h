@@ -13,7 +13,7 @@ class SvtxTrackState_v1 : public SvtxTrackState
 {
  public:
   SvtxTrackState_v1(float pathlength = 0.0);
-  virtual ~SvtxTrackState_v1() {}
+  ~SvtxTrackState_v1() override {}
 
   // The "standard PHObject response" functions...
   void identify(std::ostream &os = std::cout) const override;
@@ -56,9 +56,9 @@ class SvtxTrackState_v1 : public SvtxTrackState
   std::string get_name() const override { return state_name; }
   void set_name(const std::string &name) override { state_name = name; }
 
-  virtual float get_rphi_error() const override;
-  virtual float get_phi_error() const override;
-  virtual float get_z_error() const override;
+  float get_rphi_error() const override;
+  float get_phi_error() const override;
+  float get_z_error() const override;
 
   //@}
 
