@@ -10,8 +10,8 @@ class DumpTowerBackground : public DumpObject
 {
  public:
   DumpTowerBackground(const std::string &NodeName);
-  virtual ~DumpTowerBackground() {}
+  ~DumpTowerBackground() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };

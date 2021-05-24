@@ -11,10 +11,10 @@ class DumpSyncObject : public DumpObject
 {
  public:
   DumpSyncObject(const std::string &NodeName);
-  virtual ~DumpSyncObject() {}
+  ~DumpSyncObject() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif
