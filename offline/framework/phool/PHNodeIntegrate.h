@@ -18,7 +18,7 @@ class PHNodeIntegrate : public PHNodeOperation
     , runsumnode(nullptr)
   {
   }
-  virtual ~PHNodeIntegrate() {}
+  ~PHNodeIntegrate() override {}
   void RunNode(PHCompositeNode *node)
   {
     runnode = node;
@@ -29,7 +29,7 @@ class PHNodeIntegrate : public PHNodeOperation
   }
 
  protected:
-  virtual void perform(PHNode *);
+  void perform(PHNode *) override;
 
  private:
   PHCompositeNode *runnode;
