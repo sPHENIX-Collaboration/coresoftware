@@ -16,7 +16,7 @@ public:
                   // default ctor when reading from file
 
   PdbParameter(const double, const std::string &name); 
-  virtual ~PdbParameter() {}
+  ~PdbParameter() override {}
 
   double getParameter() const  { return thePar;  }
   const std::string getName() const { return theName; }
@@ -24,7 +24,7 @@ public:
   void  setParameter(const double val) { thePar = val; }
   void  setName(const std::string &name) {theName = name;}
 
-  virtual void print() const override;
+  void print() const override;
 
 protected:
 

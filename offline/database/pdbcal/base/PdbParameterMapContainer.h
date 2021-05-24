@@ -17,7 +17,7 @@ class PdbParameterMapContainer : public PdbCalChan
   typedef std::pair<parIter, parIter> parConstRange;
 
   PdbParameterMapContainer() {}
-  virtual ~PdbParameterMapContainer();
+  ~PdbParameterMapContainer() override;
 
   void print() const override;
 
