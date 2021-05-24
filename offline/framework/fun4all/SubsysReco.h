@@ -26,7 +26,7 @@ class SubsysReco : public Fun4AllBase
   /** dtor. 
       Does nothing as this is a base class only.
   */
-  virtual ~SubsysReco() {}
+  ~SubsysReco() override {}
 
   /// Called at the end of all processing.
   virtual int End(PHCompositeNode * /*topNode*/) { return 0; }
@@ -58,7 +58,7 @@ class SubsysReco : public Fun4AllBase
   /// Clean up after each event.
   virtual int ResetEvent(PHCompositeNode * /*topNode*/) { return 0; }
 
-  virtual void Print(const std::string &what = "ALL") const {}
+  void Print(const std::string &what = "ALL") const override {}
 
  protected:
   /** ctor.
