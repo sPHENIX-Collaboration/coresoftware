@@ -21,7 +21,7 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   PHTpcTrackSeedVertexAssoc(const std::string &name = "PHTpcTrackSeedVertexAssoc");
 
-  virtual ~PHTpcTrackSeedVertexAssoc();
+  ~PHTpcTrackSeedVertexAssoc() override;
 
   void reject_xy_outliers(const bool reject){_reject_xy_outliers = reject;}  
   void reject_z_outliers(const bool reject){_reject_z_outliers = reject;}

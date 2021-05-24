@@ -19,7 +19,7 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
 
   PHSiliconTpcTrackMatching(const std::string &name = "PHSiliconTpcTrackMatching");
 
-  virtual ~PHSiliconTpcTrackMatching();
+  ~PHSiliconTpcTrackMatching() override;
 
   void set_track_map_name_silicon(const std::string &map_name) { _track_map_name_silicon = map_name; }
   void set_phi_search_window(const double win){_phi_search_win = win;}

@@ -14,7 +14,7 @@ public:
 
   HelixHoughSpace_v1();
   HelixHoughSpace_v1(const HelixHoughSpace_v1& hough_space);
-  virtual ~HelixHoughSpace_v1() {};
+  ~HelixHoughSpace_v1() override {};
 
 
   // The "standard PHObject response" functions...

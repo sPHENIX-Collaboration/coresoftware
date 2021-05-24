@@ -14,7 +14,7 @@ class HelixHoughFuncs_v1 : public HelixHoughFuncs
  public:
   HelixHoughFuncs_v1();
   HelixHoughFuncs_v1(const HelixHoughFuncs_v1& hough_funcs);
-  virtual ~HelixHoughFuncs_v1(){};
+  ~HelixHoughFuncs_v1() override{};
 
   // The "standard PHObject response" functions...
   void identify(std::ostream& os = std::cout) const override{};
