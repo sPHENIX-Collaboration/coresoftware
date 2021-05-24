@@ -31,11 +31,11 @@ class JetEvaluator : public SubsysReco
                const std::string &recojetname = "AntiKt_Tower_r0.3",
                const std::string &truthjetname = "AntiKt_Truth_r0.3",
                const std::string &filename = "g4eval_jets.root");
-  virtual ~JetEvaluator(){};
+  ~JetEvaluator() override{};
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_strict(bool b) { _strict = b; }
 
