@@ -28,23 +28,23 @@ public:
   //! ctor
   TrkrClusterHitAssocv1() = default;
 
-  virtual void Reset() override;
+  void Reset() override;
 
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   /**
    * @brief Add association between cluster and hit
    * @param[in] ckey Cluster key
    * @param[in] hidx Index of the hit in TrkrHitSet
    */
-  virtual void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx) override;
+  void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx) override;
 
   /**
    * @brief Get all the hits associated with a cluster by key
    * @param[in] ckey Cluster key
    * @param[out] Range over hits associated with @c ckey
    */
-  virtual ConstRange getHits(TrkrDefs::cluskey) override;
+  ConstRange getHits(TrkrDefs::cluskey) override;
   
 private:
 

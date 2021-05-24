@@ -26,14 +26,14 @@ class TrkrCluster : public PHObject
 {
  public:
   //! dtor
-  virtual ~TrkrCluster() {}
+  ~TrkrCluster() override {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrCluster base class" << std::endl;
   }
-  virtual void Reset() override {}
-  virtual int isValid() const override { return 0; }
+  void Reset() override {}
+  int isValid() const override { return 0; }
   //
   // cluster id
   //

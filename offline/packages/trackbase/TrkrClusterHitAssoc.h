@@ -29,7 +29,7 @@ public:
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
   
-  virtual void Reset() override;
+  void Reset() override;
 
   /**
    * @brief Add association between cluster and hit
