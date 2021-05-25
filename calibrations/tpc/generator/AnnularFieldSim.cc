@@ -1170,7 +1170,7 @@ void AnnularFieldSim::load_spacecharge(TH3F *hist, float zoffset, float chargesc
   printf("AnnularFieldSim::load_spacecharge:  Total charge Q=%E Coulombs\n",totalcharge/C);
 
   sprintf(chargestring,"SC from file: %s. Qtot=%E Coulombs.  native dims: (%d,%d,%d)(%2.1fcm,%2.1f,%2.1fcm)-(%2.1fcm,%2.1f,%2.1fcm)",
-	  chargefilename,totalcharge/C,hrn,hphin,hzn,hrmin,hphimin,hzmin,hrmax,hphimax,hzmax);
+	  chargefilename.c_str(),totalcharge/C,hrn,hphin,hzn,hrmin,hphimin,hzmin,hrmax,hphimax,hzmax);
 
   if (lookupCase==HybridRes){
     //go through the q array and build q_lowres.  

@@ -53,13 +53,13 @@ class AnnularFieldSim{
   int debug_printCounter;
   TVector3 debug_distortionScale;
   
-  AnalyticFieldModel *aliceModel;
+  AnalyticFieldModel *aliceModel = nullptr;
 
 
 
   //the other half of the detector:
-  AnnularFieldSim *twin;
-  bool hasTwin;
+  AnnularFieldSim *twin = nullptr;
+  bool hasTwin = false;
   
   //constants of motion, dimensions, etc:
   //
@@ -68,16 +68,21 @@ class AnnularFieldSim{
   //static constexpr float k_perm=8.987e11;//=1/(4*pi*eps0) in (V*cm)/C in a vacuum. so that we supply space charge in Coulombs, distance in cm, and fields in V/cm
 
   //gas constants:
-  double vdrift; //gas drift speed in cm/s
-  double langevin_T1,langevin_T2; //gas tensor drift terms.
-  double omegatau_nominal; //nominal omegatau value, derived from vdrift and field strengths.  
+  double vdrift = NAN; //gas drift speed in cm/s
+  double langevin_T1 = NAN;
+double langevin_T2 = NAN; //gas tensor drift terms.
+  double omegatau_nominal = NAN; //nominal omegatau value, derived from vdrift and field strengths.
   //double vprime; //first derivative of drift velocity at specific E
   //double vprime2; //second derivative of drift velocity at specific E
 
   //field constants:
-  char fieldstring[300],Bfieldname[100],Efieldname[100];
-  char chargestring[300], chargefilename[100];
-  float Enominal;//magnitude of the nominal field on which drift speed is based, in V/cm.
+  std::string fieldstring;
+  std::string Bfieldname;
+  std::string Efieldname;
+//  char fieldstring[300],Bfieldname[100],Efieldname[100];
+  std::string chargefilename;
+  char chargestring[300] = {0}; //, chargefilename[100];
+  float Enominal = NAN;//magnitude of the nominal field on which drift speed is based, in V/cm.
   float Bnominal;//magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
 
   
@@ -108,16 +113,28 @@ class AnnularFieldSim{
   
   //variables related to the high-res behavior:
   //
-  int nr_high, nphi_high, nz_high; //dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
+  int nr_high = -1;
+  int nphi_high = -1;
+  int nz_high = -1; //dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
 
   
   //variables related to the low-res behavior:
   //
-  int r_spacing, phi_spacing, z_spacing; //number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
-  int nr_low, nphi_low, nz_low; //dimensions, in l-bins, of the entire volume
-  int rmin_roi_low, phimin_roi_low, zmin_roi_low; //lowest l-bin that is at least partly in our region of interest
-  int rmax_roi_low, phimax_roi_low, zmax_roi_low; //excluded upper edge l-bin of our region of interest
-  int nr_roi_low,nphi_roi_low, nz_roi_low; //dimensions of our roi in l-bins
+  int r_spacing = -1;
+  int phi_spacing = -1;
+  int z_spacing = -1; //number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
+  int nr_low = -1;
+  int nphi_low = -1;
+  int nz_low = -1; //dimensions, in l-bins, of the entire volume
+  int rmin_roi_low = -1;
+  int phimin_roi_low = -1;
+  int zmin_roi_low = -1; //lowest l-bin that is at least partly in our region of interest
+  int rmax_roi_low = -1;
+  int phimax_roi_low = -1;
+  int zmax_roi_low = -1; //excluded upper edge l-bin of our region of interest
+  int nr_roi_low = -1;
+  int nphi_roi_low =-1;
+  int nz_roi_low = -1; //dimensions of our roi in l-bins
 
   
   //3- and 6-dimensional arrays to handle bin and bin-to-bin data
