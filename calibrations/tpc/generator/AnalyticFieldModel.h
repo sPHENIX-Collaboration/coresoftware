@@ -1,14 +1,16 @@
 //#pragma once
 #ifndef ANALYTICFIELDMODEL_H
 #define ANALYTICFIELDMODEL_H
-#include "TVector3.h"
-#include "TFormula.h"
+#include <TVector3.h>
+#include <TFormula.h>
+
+#include <cmath>
 
 class AnalyticFieldModel{
 public:
-  double ifc_radius;
-  double ofc_radius;
-  double tpc_halfz;
+  double ifc_radius = NAN;
+  double ofc_radius = NAN;
+  double tpc_halfz = NAN;
 
   
 
@@ -23,16 +25,16 @@ public:
 
  private:
   
-  TFormula *vTestFunction1;
-  TFormula *rhoTestFunction1;
-  TFormula *erTestFunction1;
-  TFormula *ePhiTestFunction1;
-  TFormula *ezTestFunction1;
-  TFormula *intErDzTestFunction1;
+  TFormula *vTestFunction1 = nullptr;
+  TFormula *rhoTestFunction1 = nullptr;
+  TFormula *erTestFunction1 = nullptr;
+  TFormula *ePhiTestFunction1 = nullptr;
+  TFormula *ezTestFunction1 = nullptr;
+  TFormula *intErDzTestFunction1 = nullptr;
 			
-  TFormula *intEPhiDzTestFunction1;
+  TFormula *intEPhiDzTestFunction1 = nullptr;
 			
-  TFormula *intEzDzTestFunction1;
+  TFormula *intEzDzTestFunction1 = nullptr;
 			
 
 };
