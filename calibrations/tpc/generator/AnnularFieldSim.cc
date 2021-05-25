@@ -12,6 +12,12 @@
 #include <TROOT.h>
 #include <TStyle.h>
 
+#include <boost/format.hpp>
+
+#include <iostream>
+
+using namespace std;
+
 #define ALMOST_ZERO 0.00001
 
 AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, float in_outerZ,
@@ -793,12 +799,13 @@ void AnnularFieldSim::load_analytic_spacecharge(float scalefactor=1){
   return;
 }
 
-void AnnularFieldSim::loadEfield(const char *filename, const char *treename, int zsign){
+void AnnularFieldSim::loadEfield(const std::string &filename, const std::string &treename, int zsign){
     //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores fields as V/cm.
-  TFile fieldFile(filename,"READ");
-  TTree *fTree=(TTree*)(fieldFile.Get(treename));
-  sprintf(Efieldname,"E:%s:%s",filename,treename);
+  TFile fieldFile(filename.c_str(),"READ");
+  TTree *fTree=(TTree*)(fieldFile.Get(treename.c_str()));
+  Efieldname = "E:" + filename + ":" + treename;
+//  sprintf(Efieldname,"E:%s:%s",filename,treename);
   float r,z,phi; //coordinates
   float fr,fz,fphi; //field components at that coordinate
   fTree->SetBranchAddress("r",&r);
@@ -813,12 +820,12 @@ void AnnularFieldSim::loadEfield(const char *filename, const char *treename, int
   return;
   
 }
-void AnnularFieldSim::loadBfield(const char *filename, const char *treename){
+void AnnularFieldSim::loadBfield(const std::string &filename, const std::string &treename){
   //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores field as Tesla.
-  TFile fieldFile(filename,"READ");
-  TTree *fTree=(TTree*)(fieldFile.Get(treename));
-  sprintf(Bfieldname,"B:%s:%s",filename,treename);
+  TFile fieldFile(filename.c_str(),"READ");
+  TTree *fTree=(TTree*)(fieldFile.Get(treename.c_str()));
+  Bfieldname = "B:" + filename + ":" + treename;
   float r,z,phi; //coordinates
   float fr,fz,fphi; //field components at that coordinate
   fTree->SetBranchAddress("r",&r);
@@ -835,12 +842,13 @@ void AnnularFieldSim::loadBfield(const char *filename, const char *treename){
   
 }
 
-void AnnularFieldSim::load3dBfield(const char *filename, const char *treename, int zsign, float scale){
+void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale){
   //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores field as Tesla.
-  TFile fieldFile(filename,"READ");
-  TTree *fTree=(TTree*)(fieldFile.Get(treename));
-  sprintf(Bfieldname,"B(3D):%s:%s Scale=%2.2f",filename,treename,scale);
+  TFile fieldFile(filename.c_str(),"READ");
+  TTree *fTree=(TTree*)(fieldFile.Get(treename.c_str()));
+  Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + boost::str(boost::format("%2.2f") % scale);
+//  sprintf(Bfieldname,"B(3D):%s:%s Scale=%2.2f",filename,treename,scale);
   float r,z,phi; //coordinates
   float fr,fz,fphi; //field components at that coordinate
   fTree->SetBranchAddress("rho",&r);
@@ -947,21 +955,24 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
 }
 
 
-void AnnularFieldSim::load_spacecharge(const char *filename, const char *histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
-  TFile *f=TFile::Open(filename);
-  TH3F* scmap=(TH3F*)f->Get(histname);
-  printf("Loading spacecharge from '%s'.  Seeking histname '%s'\n",filename,histname);
-  sprintf(chargefilename,"%s:%s",filename,histname);
+void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
+  TFile *f=TFile::Open(filename.c_str());
+  TH3F* scmap=(TH3F*)f->Get(histname.c_str());
+  cout << "Loading spacecharge from '" << filename
+       << "'.  Seeking histname '" << histname << "'" << endl;
+  chargefilename = filename + ":" + histname;
+//  sprintf(chargefilename,"%s:%s",filename,histname);
   load_spacecharge(scmap,zoffset,chargescale, cmscale, isChargeDensity);
   f->Close();
   return;
 }
 
-void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz,const char *filename, const char *histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
-   TFile *f=TFile::Open(filename);
-  TH3F* scmap=(TH3F*)f->Get(histname);
-  printf("Resampling spacecharge from '%s'.  Seeking histname '%s'\n",filename,histname);
-  sprintf(chargefilename,"%s:%s",filename,histname);
+void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz,const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
+  TFile *f=TFile::Open(filename.c_str());
+  TH3F* scmap=(TH3F*)f->Get(histname.c_str());
+  cout << "Resampling spacecharge from '" << filename
+       << "'.  Seeking histname '" << histname << "'" << endl;
+  chargefilename = filename + ":" + histname;
   load_and_resample_spacecharge(new_nphi,new_nr,new_nz,scmap,zoffset,chargescale, cmscale, isChargeDensity);
   f->Close();
   return;
@@ -1765,8 +1776,11 @@ void AnnularFieldSim::setFlatFields(float B, float E){
   //these only cover the roi, but since we address them flat, we don't need to know that here.
   printf("AnnularFieldSim::setFlatFields(B=%f Tesla,E=%f V/cm)\n",B,E);
   printf("lengths:  Eext=%d, Bfie=%d\n",Eexternal->Length(),Bfield->Length());
-  sprintf(Efieldname,"E:Flat:%f",E);
-  sprintf(Bfieldname,"B:Flat:%f",B);
+  char fieldstr[100];
+  sprintf(fieldstr,"%f",E);
+  Efieldname = "E:Flat:" + string(fieldstr);
+  sprintf(fieldstr,"%f",B);
+  Bfieldname = "B:Flat:" + string(fieldstr);
 
   Enominal=E*(V/cm);
   Bnominal=B*Tesla;
@@ -2317,7 +2331,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest,TVector3 start,int step
   return accumulated_distortion;
 }
 
-void AnnularFieldSim::PlotFieldSlices(const char *filebase,TVector3 pos, char which){
+void AnnularFieldSim::PlotFieldSlices(const std::string &filebase,TVector3 pos, char which){
 
   bool mapEfield=true;
   if (which=='B'){
@@ -2332,8 +2346,8 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase,TVector3 pos, char wh
   }
  
   printf("plotting field slices for %c field...\n", which);
-  printf("file=%s\n",filebase);
-  TString plotfilename=TString::Format("%s.%cfield_slices.pdf",filebase,which);
+  cout << "file=" << filebase << endl;;
+  TString plotfilename=TString::Format("%s.%cfield_slices.pdf",filebase.c_str(),which);
   TVector3 inner=GetInnerEdge();
   TVector3 outer=GetOuterEdge();
   TVector3 step=GetFieldStep();
@@ -2445,7 +2459,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase,TVector3 pos, char wh
   }
   c->SaveAs(plotfilename);
   printf("after plotting field slices...\n");
-  printf("file=%s\n",filebase);
+  cout << "file=" << filebase << endl;
   
 return;
 }
@@ -3611,7 +3625,7 @@ const char* AnnularFieldSim::GetGasString(){
 }
 
 const char* AnnularFieldSim::GetFieldString(){
-  return Form("%s, %s",Efieldname,Bfieldname);
+  return Form("%s, %s",Efieldname.c_str(),Bfieldname.c_str());
 }
 
 
