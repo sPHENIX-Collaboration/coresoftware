@@ -203,15 +203,15 @@ debug_printActionEveryN=0; return;};
   //file-writing functions for complex mapping questions:
   void GenerateDistortionMaps(const char* filebase, int r_subsamples=1, int p_subsamples=1, int z_subsamples=1, int z_substeps=1, bool andCartesian=false);
   void GenerateSeparateDistortionMaps(const char* filebase, int r_subsamples=1, int p_subsamples=1, int z_subsamples=1, int z_substeps=1, bool andCartesian=false);
-  void PlotFieldSlices(const char *filebase,TVector3 pos, char which='E');
+  void PlotFieldSlices(const std::string &filebase,TVector3 pos, char which='E');
 
   
  
   
-  void load_spacecharge(const char *filename, const char *histname, float zoffset=0, float chargescale=1, float cmscale=1, bool isChargeDensity=true);
+  void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset=0, float chargescale=1, float cmscale=1, bool isChargeDensity=true);
    void load_spacecharge(TH3F *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
  
-  void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz,const char *filename, const char *histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
+  void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz,const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
   
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, TH3F *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
@@ -221,9 +221,9 @@ debug_printActionEveryN=0; return;};
   void setNominalB(float x){Bnominal=x;  UpdateOmegaTau();return;};
   void setNominalE(float x){Enominal=x;  UpdateOmegaTau();return;};
   void setFlatFields(float B, float E);
-  void loadEfield(const char *filename, const char *treename, int zsign=1);
-  void loadBfield(const char *filename, const char *treename);
-  void load3dBfield(const char *filename, const char *treename, int zsign=1,float scale=1.0);
+  void loadEfield(const std::string &filename, const std::string &treename, int zsign=1);
+  void loadBfield(const std::string &filename, const std::string &treename);
+  void load3dBfield(const std::string &filename, const std::string &treename, int zsign=1,float scale=1.0);
 
   void loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr,  float *fphiptr,  float *fzptr, float fieldunit, int zsign);
   

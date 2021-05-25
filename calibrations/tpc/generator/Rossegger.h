@@ -18,6 +18,8 @@
 //
 
 #define NumberOfOrders 15  // Convergence problems after 15; Rossegger used 30
+
+#include <cmath>
 #include <string>
 #include <map>
 
