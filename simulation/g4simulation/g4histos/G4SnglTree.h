@@ -22,19 +22,19 @@ class G4SnglTree : public SubsysReco
   G4SnglTree(const std::string &name = "G4SnglTree", const std::string &filename = "G4SnglTree.root");
 
   //! destructor
-  virtual ~G4SnglTree() {}
+  ~G4SnglTree() override {}
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! hit processing method
   int process_hit(PHG4HitContainer *hits, const std::string &dName, int detid, int &nhits);
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   void AddNode(const std::string &name, const int detid = 0);
 

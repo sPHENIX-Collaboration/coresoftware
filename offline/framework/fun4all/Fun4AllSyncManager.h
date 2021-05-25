@@ -19,7 +19,7 @@ class Fun4AllSyncManager : public Fun4AllBase
 {
  public:
   Fun4AllSyncManager(const std::string &name = "SYNCMANAGERNONAME");
-  virtual ~Fun4AllSyncManager();
+  ~Fun4AllSyncManager() override;
   int registerInputManager(Fun4AllInputManager *InManager);
   Fun4AllInputManager *getInputManager(const std::string &name);
 
@@ -37,7 +37,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   int CurrentRun() { return m_CurrentRun; }
   void CurrentRun(const int ival) { m_CurrentRun = ival; }
   void CurrentEvent(const int evt);
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
   void SegmentNumber(const int iseg) { m_PrdfSegment = iseg; }
   int SegmentNumber() const { return m_PrdfSegment; }
   int BranchSelect(const std::string &managername, const std::string &branch, int iflag);

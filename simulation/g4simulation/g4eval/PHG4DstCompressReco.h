@@ -18,13 +18,13 @@ class PHG4DstCompressReco : public SubsysReco
 {
  public:
   PHG4DstCompressReco(const std::string &name = "PHG4DstCompressReco");
-  virtual ~PHG4DstCompressReco() {}
+  ~PHG4DstCompressReco() override {}
 
   //! run initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   void AddHitContainer(const std::string &name) { _compress_g4hit_names.insert(name); }
   void AddCellContainer(const std::string &name) { _compress_g4cell_names.insert(name); }

@@ -53,16 +53,16 @@ class PHHoughSeeding : public PHTrackSeeding
       unsigned int min_seeding_nlayer = 4
 );
 
-  virtual ~PHHoughSeeding()
+  ~PHHoughSeeding() override
   {
   }
 
  protected:
-  int Setup(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
 
-  int Process(PHCompositeNode *topNode);
+  int Process(PHCompositeNode *topNode) override;
 
-  int End();
+  int End() override;
 
  private:
   /// fetch node pointers

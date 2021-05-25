@@ -46,7 +46,7 @@ class PgPostCalBank : public PdbCalBank
 
   virtual int isValid(const PHTimeStamp&) const { return 0; }
 
-  ClassDef(PgPostCalBank, 2);
+  ClassDefOverride(PgPostCalBank, 2);
 };
 
 #endif

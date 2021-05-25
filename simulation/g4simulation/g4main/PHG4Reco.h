@@ -40,21 +40,21 @@ class PHG4Reco : public SubsysReco
   PHG4Reco(const std::string &name = "PHG4RECO");
 
   //! destructor
-  virtual ~PHG4Reco();
+  ~PHG4Reco() override;
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! Clean up after each event.
-  int ResetEvent(PHCompositeNode *);
+  int ResetEvent(PHCompositeNode *) override;
 
   //! print info
-  void Print(const std::string &what = std::string()) const;
+  void Print(const std::string &what = std::string()) const override;
 
   //! register subsystem
   void registerSubsystem(PHG4Subsystem *subsystem)

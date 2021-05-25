@@ -13,7 +13,7 @@ class RunHeaderv1 : public RunHeader
 {
  public:
   RunHeaderv1() = default;
-  virtual ~RunHeaderv1() = default;
+  ~RunHeaderv1() override = default;
 
   void Reset() override {return;}
   void identify(std::ostream &os = std::cout) const override;
@@ -37,15 +37,8 @@ class RunHeaderv1 : public RunHeader
   std::map<std::string, int> m_IntRunProperties;
   std::map<std::string, float> m_FloatRunProperties;
 
-// rootcling and clang complain about inconsistent overrides in the ClassDef
-// this can be supressed with ignoring -Winconsistent-missing-override
-// this pragma is not known to gcc, so we need an #ifdef __clang__ here
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
-#endif
-  ClassDef(RunHeaderv1, 1)
-#pragma GCC diagnostic pop
+  ClassDefOverride(RunHeaderv1, 1)
+
 };
 
 #endif /* FFAOBJECTS_RUNHEADERV1_H */

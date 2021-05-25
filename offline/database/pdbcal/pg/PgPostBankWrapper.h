@@ -63,7 +63,7 @@ class PgPostBankWrapper : public PgPostCalBank
 
   PdbCalBank *bank;
 
-  ClassDef(PgPostBankWrapper, 1);
+  ClassDefOverride(PgPostBankWrapper, 1);
 };
 
 #endif /* PDBCAL_PG_PGPOSTBANKWRAPPER_H */

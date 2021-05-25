@@ -21,13 +21,13 @@ class PHG4TpcEndCapSteppingAction : public PHG4SteppingAction
   PHG4TpcEndCapSteppingAction(PHG4TpcEndCapDetector*, const PHParameters* parameters);
 
   //! destructor
-  virtual ~PHG4TpcEndCapSteppingAction();
+  ~PHG4TpcEndCapSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
   //! pointer to the detector

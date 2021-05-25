@@ -36,7 +36,7 @@ libg4eval_la_LIBADD = \
   -lintt_io \
   -lmicromegas_io \
   -lphg4hit \
-  -lphhepmc \
+  -lphhepmc_io \
   -lgsl \
   -lgslcblas
 

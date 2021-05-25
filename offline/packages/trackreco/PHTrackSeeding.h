@@ -32,11 +32,11 @@ class PHTrackSeeding : public SubsysReco
 {
  public:
   PHTrackSeeding(const std::string &name = "PHTrackSeeding");
-  virtual ~PHTrackSeeding() {}
+  ~PHTrackSeeding() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
 

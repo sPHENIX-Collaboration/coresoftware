@@ -14,9 +14,9 @@ class Fun4AllHistoManager : public Fun4AllBase
 {
  public:
   Fun4AllHistoManager(const std::string &name);
-  virtual ~Fun4AllHistoManager();
+  ~Fun4AllHistoManager() override;
 
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //! Register histogram or TTree object
   //! For histograms, enforce error calculation and propagation

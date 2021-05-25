@@ -84,7 +84,7 @@ class TPCFEETestRecov1 : public SubsysReco
     {
     }
 
-    ClassDef(TPCFEETestRecov1::EventHeader, 1)
+    ClassDefOverride(TPCFEETestRecov1::EventHeader, 1)
   };
 
   //! buffer for full event data
@@ -181,7 +181,7 @@ class TPCFEETestRecov1 : public SubsysReco
     int size_pad_x;
     int size_pad_y;
 
-    ClassDef(ClusterData, 1);
+    ClassDefOverride(ClusterData, 1);
   };
 
   //! simple channel header class for ROOT file IO
@@ -221,7 +221,7 @@ class TPCFEETestRecov1 : public SubsysReco
     {
     }
 
-    ClassDef(TPCFEETestRecov1::ChannelHeader, 1)
+    ClassDefOverride(TPCFEETestRecov1::ChannelHeader, 1)
   };
 
  private:

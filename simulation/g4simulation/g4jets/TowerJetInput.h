@@ -15,13 +15,13 @@ class TowerJetInput : public JetInput
 {
  public:
   TowerJetInput(Jet::SRC input);
-  virtual ~TowerJetInput() {}
+  ~TowerJetInput() override {}
 
-  void identify(std::ostream& os = std::cout);
+  void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() { return _input; }
+  Jet::SRC get_src() override { return _input; }
 
-  std::vector<Jet*> get_input(PHCompositeNode* topNode);
+  std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
  private:
   Jet::SRC _input;

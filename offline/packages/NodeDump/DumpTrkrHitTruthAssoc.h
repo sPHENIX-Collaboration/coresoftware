@@ -11,10 +11,10 @@ class DumpTrkrHitTruthAssoc : public DumpObject
 {
  public:
   DumpTrkrHitTruthAssoc(const std::string &NodeName);
-  virtual ~DumpTrkrHitTruthAssoc() {}
+  ~DumpTrkrHitTruthAssoc() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

@@ -68,12 +68,12 @@ class MakeActsGeometry : public SubsysReco
   MakeActsGeometry(const std::string& name = "MakeActsGeometry");
 
   //! Destructor
-  ~MakeActsGeometry() = default;
+  ~MakeActsGeometry() override = default;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
@@ -85,6 +85,8 @@ class MakeActsGeometry : public SubsysReco
 
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
+
+  void add_fake_surfaces(bool add){fake_surfaces = add;}
 
  private:
   /// Main function to build all acts geometry for use in the fitting modules
@@ -218,7 +220,7 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
-
+  bool fake_surfaces = true;
 };
 
 #endif

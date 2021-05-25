@@ -12,11 +12,11 @@ class G4RootScintillatorSlat : public PHObject
  public:
   G4RootScintillatorSlat();
   G4RootScintillatorSlat(const PHG4ScintillatorSlat& slat);
-  virtual ~G4RootScintillatorSlat() {}
+  ~G4RootScintillatorSlat() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   int get_row() const { return row; }
   int get_column() const { return column; }
@@ -32,7 +32,7 @@ class G4RootScintillatorSlat : public PHObject
   double eion;
   double light_yield;
 
-  ClassDef(G4RootScintillatorSlat, 1)
+  ClassDefOverride(G4RootScintillatorSlat, 1)
 };
 
 #endif /* G4HISTOS_G4ROOTSCINTILLATORSLAT_H */

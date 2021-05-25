@@ -14,10 +14,10 @@ class PHG4InEventCompress: public SubsysReco
 {
  public:
   PHG4InEventCompress(const std::string &name = "PHG4InEventCompress");
-  virtual ~PHG4InEventCompress() {}
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  ~PHG4InEventCompress() override {}
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
  protected:
   VariableArray *vtxarray;

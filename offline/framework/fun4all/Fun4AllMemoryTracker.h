@@ -18,7 +18,7 @@ class Fun4AllMemoryTracker : public Fun4AllBase
     mInstance = new Fun4AllMemoryTracker();
     return mInstance;
   }
-  ~Fun4AllMemoryTracker();
+  ~Fun4AllMemoryTracker() override;
   void Snapshot(const std::string &trackername, const std::string &group = "");
   void Start(const std::string &trackername, const std::string &group = "");
   void Stop(const std::string &trackername, const std::string &group = "");

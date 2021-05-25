@@ -14,9 +14,9 @@ class PHPy8JetTrigger : public PHPy8GenTrigger
 {
  public:
   PHPy8JetTrigger(const std::string &name = "PHPy8JetTrigger");
-  virtual ~PHPy8JetTrigger();
+  ~PHPy8JetTrigger() override;
 
-  bool Apply(Pythia8::Pythia *pythia);
+  bool Apply(Pythia8::Pythia *pythia) override;
 
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt);

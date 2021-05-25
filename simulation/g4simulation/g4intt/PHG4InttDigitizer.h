@@ -18,18 +18,18 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4InttDigitizer(const std::string &name = "PHG4InttDigitizer");
-  virtual ~PHG4InttDigitizer();
+  ~PHG4InttDigitizer() override;
 
   //! run initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { detector = d; }
 

@@ -22,34 +22,34 @@ class TrkrHitSetv1 : public TrkrHitSet
  public:
   TrkrHitSetv1() = default;
 
-  virtual ~TrkrHitSetv1()
+  ~TrkrHitSetv1() override
   {
     TrkrHitSetv1::Reset();
   }
 
-  virtual void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  virtual void Reset();
+  void Reset() override;
 
-  virtual void setHitSetKey(const TrkrDefs::hitsetkey key)
+  void setHitSetKey(const TrkrDefs::hitsetkey key) override
   {
     m_hitSetKey = key;
   }
 
-  virtual TrkrDefs::hitsetkey getHitSetKey() const
+  TrkrDefs::hitsetkey getHitSetKey() const override
   {
     return m_hitSetKey;
   }
 
-  virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*);
+  ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*) override;
 
-  virtual void removeHit(TrkrDefs::hitkey);
+  void removeHit(TrkrDefs::hitkey) override;
 
-  virtual TrkrHit* getHit(const TrkrDefs::hitkey) const;
+  TrkrHit* getHit(const TrkrDefs::hitkey) const override;
 
-  virtual ConstRange getHits() const;
+  ConstRange getHits() const override;
 
-  virtual unsigned int size() const
+  unsigned int size() const override
   {
     return m_hits.size();
   }
@@ -61,7 +61,7 @@ class TrkrHitSetv1 : public TrkrHitSet
   /// storage for TrkrHit objects
   Map m_hits;
 
-  ClassDef(TrkrHitSetv1, 1);
+  ClassDefOverride(TrkrHitSetv1, 1);
 };
 
 #endif  //TRACKBASE_TrkrHitSetv1_H

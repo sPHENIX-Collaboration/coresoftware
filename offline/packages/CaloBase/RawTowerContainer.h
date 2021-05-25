@@ -25,11 +25,11 @@ class RawTowerContainer : public PHObject
   {
   }
 
-  virtual ~RawTowerContainer() {}
+  ~RawTowerContainer() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId getCalorimeterID() { return _caloid; }
@@ -55,7 +55,7 @@ class RawTowerContainer : public PHObject
   RawTowerDefs::CalorimeterId _caloid;
   Map _towers;
 
-  ClassDef(RawTowerContainer, 1)
+  ClassDefOverride(RawTowerContainer, 1)
 };
 
 #endif

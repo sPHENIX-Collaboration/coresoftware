@@ -24,12 +24,12 @@ class GlobalVertexReco : public SubsysReco
 {
  public:
   GlobalVertexReco(const std::string &name = "GlobalVertexReco");
-  virtual ~GlobalVertexReco();
+  ~GlobalVertexReco() override;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_x_defaults(float xdefault, float xerr)
   {

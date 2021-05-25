@@ -18,23 +18,23 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
  public:
 
   PHG4ScintillatorSlatv1();
-  virtual ~PHG4ScintillatorSlatv1(){}
+  ~PHG4ScintillatorSlatv1() override{}
 
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  void add_edep(const double f, const double e, const double ly) {edep+=f; eion+= e; light_yield+=ly;}
-  void add_hit_key(PHG4HitDefs::keytype key) {hit_id.insert(key);}
+  void add_edep(const double f, const double e, const double ly) override {edep+=f; eion+= e; light_yield+=ly;}
+  void add_hit_key(PHG4HitDefs::keytype key) override {hit_id.insert(key);}
   
-  void set_key(PHG4ScintillatorSlatDefs::keytype i) {key = i;}
+  void set_key(PHG4ScintillatorSlatDefs::keytype i) override {key = i;}
   void set_light_yield(const double lightYield)  {light_yield = lightYield;}
 
-  short get_row() const;
-  short get_column() const;
-  PHG4ScintillatorSlatDefs::keytype get_key() const {return key;}
-  double get_edep() const {return edep;}
-  double get_eion() const {return eion;}
-  double get_light_yield() const {return light_yield;}
-  std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const {return std::make_pair(hit_id.begin(),hit_id.end());}
+  short get_row() const override;
+  short get_column() const override;
+  PHG4ScintillatorSlatDefs::keytype get_key() const override {return key;}
+  double get_edep() const override {return edep;}
+  double get_eion() const override {return eion;}
+  double get_light_yield() const override {return light_yield;}
+  std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const override {return std::make_pair(hit_id.begin(),hit_id.end());}
 
 
  protected:
@@ -45,7 +45,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   std::set<PHG4HitDefs::keytype> hit_id;
 
    
-  ClassDef(PHG4ScintillatorSlatv1,1)
+  ClassDefOverride(PHG4ScintillatorSlatv1,1)
 };
 
 #endif

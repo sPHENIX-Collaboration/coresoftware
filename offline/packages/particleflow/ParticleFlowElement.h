@@ -28,11 +28,10 @@ class ParticleFlowElement : public PHObject
   };
 
   ParticleFlowElement() {}
-  virtual ~ParticleFlowElement() {}
+  ~ParticleFlowElement() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() { return; }
-  virtual int isValid() const { return 0; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int id) { return; }
@@ -59,7 +58,7 @@ class ParticleFlowElement : public PHObject
   virtual float get_phi() const { return NAN; }
   virtual float get_mass() const { return NAN; }
 
-  ClassDef(ParticleFlowElement, 1);
+  ClassDefOverride(ParticleFlowElement, 1);
 };
 
 #endif

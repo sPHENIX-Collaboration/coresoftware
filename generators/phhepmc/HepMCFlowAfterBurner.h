@@ -14,12 +14,12 @@ class HepMCFlowAfterBurner : public SubsysReco
 {
  public:
   HepMCFlowAfterBurner(const std::string &name = "HEPMCFLOWAFTERBURNER");
-  virtual ~HepMCFlowAfterBurner() {}
+  ~HepMCFlowAfterBurner() override {}
 
-  int Init(PHCompositeNode *);
-  int process_event(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
+  int process_event(PHCompositeNode *) override;
 
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   void setAlgorithmName(const std::string &name);
 

@@ -19,13 +19,13 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
   PHG4TpcSteppingAction(PHG4TpcDetector *, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4TpcSteppingAction();
+  ~PHG4TpcSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
  private:
   //! pointer to the detector

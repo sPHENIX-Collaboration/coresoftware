@@ -11,10 +11,10 @@ class DumpRawTowerGeom : public DumpObject
 {
  public:
   DumpRawTowerGeom(const std::string &NodeName);
-  virtual ~DumpRawTowerGeom() {}
+  ~DumpRawTowerGeom() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

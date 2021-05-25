@@ -23,7 +23,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   PHG4HcalSubsystem(const std::string &name = "HCALCYLINDER", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4HcalSubsystem(void)
+  ~PHG4HcalSubsystem(void) override
   {
   }
 
@@ -33,18 +33,18 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRun(PHCompositeNode *);
+  int InitRun(PHCompositeNode *) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector *GetDetector(void) const;
-  virtual PHG4SteppingAction *GetSteppingAction(void) const;
+  PHG4Detector *GetDetector(void) const override;
+  PHG4SteppingAction *GetSteppingAction(void) const override;
 
   void SetRadius(const G4double dbl) { radius = dbl; }
   void SetLength(const G4double dbl) { length = dbl; }
@@ -81,7 +81,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
     light_scint_model_ = b;
   }
 
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
  private:
   //! detector geometry

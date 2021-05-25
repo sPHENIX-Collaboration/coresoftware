@@ -35,12 +35,12 @@ class PHG4OuterHcalDetector : public PHG4Detector
   PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4OuterHcalDetector();
+  ~PHG4OuterHcalDetector() override;
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //!@name volume accessors
   //@{

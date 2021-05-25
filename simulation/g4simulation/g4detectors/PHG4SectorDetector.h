@@ -22,12 +22,12 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4SectorDetector(void)
+  ~PHG4SectorDetector(void) override
   {
   }
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   //@{
@@ -37,7 +37,7 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
 
-  virtual void OverlapCheck(const bool chk = true)
+  void OverlapCheck(const bool chk = true) override
   {
     PHG4Detector::OverlapCheck(chk);
     PHG4SectorConstructor::OverlapCheck(chk);

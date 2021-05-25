@@ -13,11 +13,10 @@ class InttDeadMap : public PHObject
  public:
   typedef std::set<PHG4CellDefs::keytype> Map;
 
-  virtual ~InttDeadMap() {}
-  virtual void Reset() {}
-  virtual int isValid() const;
+  ~InttDeadMap() override {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void addDeadChannelIntt(const int layer,
                           const int ladder_phi, const int ladder_z,
@@ -49,7 +48,7 @@ class InttDeadMap : public PHObject
  private:
   static int s_wildCardID;
 
-  ClassDef(InttDeadMap, 1)
+  ClassDefOverride(InttDeadMap, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAP_H */

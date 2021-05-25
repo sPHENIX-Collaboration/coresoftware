@@ -27,18 +27,18 @@ class PHGeomTGeo : public PHObject
 {
  public:
   PHGeomTGeo();
-  virtual ~PHGeomTGeo();
+  ~PHGeomTGeo() override;
 
   /** identify Function from PHObject
       @param os Output Stream
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// Clear Event
-  virtual void Reset();
+  void Reset() override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int isValid() const;
+  int isValid() const override;
 
   //! Assign TGeoManager object.
   //! Once assigned, the TGeoManager will be locked to avoid a second TGeoManager override gGeoManager and lead to an invalid PHGeomTGeo

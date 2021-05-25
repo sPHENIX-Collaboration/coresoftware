@@ -15,14 +15,14 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4IonGun(const std::string &name = "PHG4IONGUN");
-  virtual ~PHG4IonGun() {}
-  int process_event(PHCompositeNode *topNode);
+  ~PHG4IonGun() override {}
+  int process_event(PHCompositeNode *topNode) override;
   void SetA(const int a) { A = a; }
   void SetZ(const int z) { Z = z; }
   void SetCharge(const int c);
   void ExcitEnergy(const double e) { excitEnergy = e; }
   void SetMom(const double px, const double py, const double pz);
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
  private:
   void UpdateParticle();

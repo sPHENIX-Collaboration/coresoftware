@@ -14,9 +14,11 @@ class PHG4BlockCellGeom: public PHObject
  public:
   PHG4BlockCellGeom();
 
-  virtual ~PHG4BlockCellGeom() {}
+  ~PHG4BlockCellGeom() override {}
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
   int get_layer() const {return _layer;}
   int get_binning() const {return _binning;}
 
@@ -76,7 +78,7 @@ class PHG4BlockCellGeom: public PHObject
   double _xmin;
   double _xstep;
 
-  ClassDef(PHG4BlockCellGeom,1)
+  ClassDefOverride(PHG4BlockCellGeom,1)
 };
 
 #endif

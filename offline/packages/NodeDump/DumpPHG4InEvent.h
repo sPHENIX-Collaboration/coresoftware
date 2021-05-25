@@ -11,10 +11,10 @@ class DumpPHG4InEvent : public DumpObject
 {
  public:
   DumpPHG4InEvent(const std::string &NodeName);
-  virtual ~DumpPHG4InEvent() {}
+  ~DumpPHG4InEvent() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

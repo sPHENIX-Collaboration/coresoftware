@@ -22,10 +22,10 @@ class PdbParameterMap: public PdbCalChan
   typedef std::pair<strIter, strIter> strConstRange;
 
   PdbParameterMap() {}
-  virtual ~PdbParameterMap() {}
+  ~PdbParameterMap() override {}
 
-  void print() const;
-  void Reset(); // from PHObject - clear content
+  void print() const override;
+  void Reset() override; // from PHObject - clear content
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;
@@ -51,7 +51,7 @@ class PdbParameterMap: public PdbCalChan
   strMap cparams;
 
 
-  ClassDef(PdbParameterMap,1)
+  ClassDefOverride(PdbParameterMap,1)
 
 }; 
 

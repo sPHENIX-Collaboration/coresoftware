@@ -13,9 +13,10 @@ class G4RootScintillatorTowerContainer : public PHObject
 {
  public:
   G4RootScintillatorTowerContainer();
-  virtual ~G4RootScintillatorTowerContainer();
+  ~G4RootScintillatorTowerContainer() override;
 
-  void Reset();
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   G4RootScintillatorTower* AddTower(const RawTower& tower);
 
@@ -34,7 +35,6 @@ class G4RootScintillatorTowerContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-  void identify(std::ostream& os = std::cout) const;
 
  protected:
   int idet;
@@ -44,7 +44,7 @@ class G4RootScintillatorTowerContainer : public PHObject
   int event;
   TClonesArray* SnglTowers;
 
-  ClassDef(G4RootScintillatorTowerContainer, 1)
+  ClassDefOverride(G4RootScintillatorTowerContainer, 1)
 };
 
 #endif

@@ -21,13 +21,13 @@ class RawTowerBuilderDRCALO : public SubsysReco
 {
  public:
   RawTowerBuilderDRCALO(const std::string &name = "RawTowerBuilderDRCALO");
-  virtual ~RawTowerBuilderDRCALO() {}
+  ~RawTowerBuilderDRCALO() override {}
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /** Name of the detector node the G4Hits should be taken from.
    */
