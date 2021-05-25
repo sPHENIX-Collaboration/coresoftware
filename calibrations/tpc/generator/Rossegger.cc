@@ -51,8 +51,7 @@ Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, doubl
 
 
   verbosity =0;
-  pi = 2.0 * asin(1.0);
-  cout << pi << endl;
+  pi = M_PI;
 
   PrecalcFreeConstants();
 
@@ -77,8 +76,11 @@ Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, doubl
   cout << "  Outer Radius = " << b << " cm." << endl;
   cout << "  Half  Length = " << L << " cm." << endl;
 
-  assert(CheckZeroes(0.01));
-  // assert(1==2);
+  if (!CheckZeroes(0.01))
+  {
+    cout << "CheckZeroes(0.01) returned false, exiting" << endl;
+    exit(1);
+  }
   return ;
 }
 

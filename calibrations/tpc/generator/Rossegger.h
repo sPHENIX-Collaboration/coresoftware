@@ -65,15 +65,19 @@ class Rossegger
   
 
  protected:
-  bool fByFile;
-  double a,b,L;  //  InnerRadius, OuterRadius, Length of 1/2 the TPC.
-  int verbosity;
-  double pi;
-  double epsilon; //precision.
+  bool fByFile = false;
+  double a = NAN;
+  double b = NAN;
+  double L = NAN;  //  InnerRadius, OuterRadius, Length of 1/2 the TPC.
+  int verbosity = 0;
+  double pi = M_PI;
+  double epsilon = NAN; //precision.
 
-  bool tweak;
+  bool tweak = false;
 
-  double MinimumDR, MinimumDPHI, MinimumDZ;
+  double MinimumDR = NAN;
+  double MinimumDPHI = NAN;
+  double MinimumDZ = NAN;
 
   double FindNextZero(double xstart, double epsilon, int order, double (Rossegger::*func)(int, double));  // Routine to find zeroes of func.
   void FindBetamn(double epsilon);  // Routine used to fill the Betamn array with resolution epsilon...
@@ -108,7 +112,7 @@ class Rossegger
   double sinh_Betamn_L[NumberOfOrders][NumberOfOrders]; //sinh(Betamn[m][n]*L)  as in Rossegger 5.64
   double sinh_pi_Munk[NumberOfOrders][NumberOfOrders]; //sinh(pi*Munk[n][k]) as in Rossegger 5.66
 
-  TH2 *Tags;
+  TH2 *Tags = nullptr;
   std::map<std::string, TH3*> Grid;
 
 };
