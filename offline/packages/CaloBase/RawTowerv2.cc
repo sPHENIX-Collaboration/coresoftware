@@ -1,6 +1,6 @@
 #include "RawTowerv2.h"
 
-#include <climits.h>  // for UCHAR_MAX
+#include <climits>  // for UCHAR_MAX
 #include <cmath>
 #include <iostream>
 #include <string>   // for operator<<, string
