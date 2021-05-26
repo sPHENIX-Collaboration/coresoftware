@@ -5,10 +5,9 @@
 
 #include "RawTowerDefs.h"
 
-#include <cstddef>
+#include <cstdint>  // for uint8_t
 #include <iostream>
 #include <map>
-#include <utility>
 
 //! RawTowerv1 but allow flexible tags
 class RawTowerv2 : public RawTowerv1
