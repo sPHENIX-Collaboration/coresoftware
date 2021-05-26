@@ -21,9 +21,10 @@ class PHG4CylinderGeomContainer: public PHObject
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   PHG4CylinderGeomContainer();
-  virtual ~PHG4CylinderGeomContainer();
+  ~PHG4CylinderGeomContainer() override;
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   int AddLayerGeom(const int i, PHG4CylinderGeom *mygeom);
   int AddLayerGeom(PHG4CylinderGeom *mygeom);
@@ -35,7 +36,7 @@ class PHG4CylinderGeomContainer: public PHObject
  protected:
   Map layergeoms;
   float magfield;
-  ClassDef(PHG4CylinderGeomContainer,1)
+  ClassDefOverride(PHG4CylinderGeomContainer,1)
 };
 
 #endif

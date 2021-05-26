@@ -13,16 +13,15 @@
 class HelixHoughSpace : public PHObject {
 
 public :
-  virtual ~HelixHoughSpace() {}
+  ~HelixHoughSpace() override {}
 
 
   // The "standard PHObject response" functions...
-  virtual void identify(std::ostream &os=std::cout) const {
+  void identify(std::ostream &os=std::cout) const override {
     os << "HelixHough base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int  isValid() const 			{return 0;}
-  virtual PHObject* CloneMe() const 	{return nullptr;}
+  int  isValid() const override {return 0;}
+  PHObject* CloneMe() const  override {return nullptr;}
 
   // Define Hough space for helical tracks 
   virtual void add_one_zoom(std::vector<unsigned int>& one_zoom) {};
@@ -81,8 +80,8 @@ public :
   virtual unsigned int get_bin(unsigned int zoomlevel, unsigned int* bins) const {return UINT_MAX;}
 
 protected:
-  HelixHoughSpace(){};
-  ClassDef(HelixHoughSpace,1);
+  HelixHoughSpace() = default;
+  ClassDefOverride(HelixHoughSpace,1);
 };
 
 #endif

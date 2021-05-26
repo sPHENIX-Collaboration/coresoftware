@@ -26,18 +26,18 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
  public:
   PHG4CylinderGeom_Spacalv3();
 
-  virtual ~PHG4CylinderGeom_Spacalv3();
+  ~PHG4CylinderGeom_Spacalv3() override;
 
-  virtual void
-  identify(std::ostream& os = std::cout) const;
-  virtual void
-  Print(Option_t* option = "") const;
-  virtual void
-  SetDefault();
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
+// from TObject
+  void Print(Option_t* option = "") const override;
+
+  void SetDefault() override;
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void
-  ImportParameters(const PHParameters& param);
+  void ImportParameters(const PHParameters& param) override;
 
   double
   get_sidewall_outer_torr() const
@@ -267,7 +267,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   //! material for divider
   std::string divider_mat;
 
-  ClassDef(PHG4CylinderGeom_Spacalv3, 4)
+  ClassDefOverride(PHG4CylinderGeom_Spacalv3, 4)
 };
 
 #endif

@@ -28,11 +28,11 @@ class PHPythia8 : public SubsysReco, public PHHepMCGenHelper
 {
  public:
   PHPythia8(const std::string &name = "PHPythia8");
-  virtual ~PHPythia8();
+  ~PHPythia8() override;
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_config_file(const std::string &cfg_file)
   {

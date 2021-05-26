@@ -21,12 +21,12 @@ class PHG4PSTOFDetector : public PHG4Detector
   PHG4PSTOFDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4PSTOFDetector() {}
+  ~PHG4PSTOFDetector() override {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //!@name volume accessors
   //@{

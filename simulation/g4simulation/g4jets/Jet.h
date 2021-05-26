@@ -75,12 +75,11 @@ class Jet : public PHObject
   };
 
   Jet() {}
-  virtual ~Jet() {}
+  ~Jet() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() { return; }
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // jet info ------------------------------------------------------------------
 
@@ -148,7 +147,7 @@ class Jet : public PHObject
   virtual Iter find(Jet::SRC source);
   virtual Iter end_comp();
 
-  ClassDef(Jet, 1);
+  ClassDefOverride(Jet, 1);
 };
 
 #endif

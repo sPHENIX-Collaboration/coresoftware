@@ -26,25 +26,24 @@ class PHG4CylinderCellGeom_Spacalv1 : public PHG4CylinderCellGeom
 {
 public:
   PHG4CylinderCellGeom_Spacalv1();
-  virtual
-  ~PHG4CylinderCellGeom_Spacalv1();
-  void
-  identify(std::ostream& os = std::cout) const;
+  ~PHG4CylinderCellGeom_Spacalv1() override;
 
-  virtual std::pair<double, double>
-  get_zbounds(const int ibin) const;
-  virtual std::pair<double, double>
-  get_etabounds(const int ibin) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  virtual double
-  get_etacenter(const int ibin) const;
-  virtual double
-  get_zcenter(const int ibin) const;
+  std::pair<double, double>
+  get_zbounds(const int ibin) const override;
+  std::pair<double, double>
+  get_etabounds(const int ibin) const override;
 
-  virtual int
-  get_etabin(const double eta) const;
-  virtual int
-  get_zbin(const double z) const;
+  double
+  get_etacenter(const int ibin) const override;
+  double
+  get_zcenter(const int ibin) const override;
+
+  int
+  get_etabin(const double eta) const override;
+  int
+  get_zbin(const double z) const override;
 
   void
   set_zbounds(const int ibin, const std::pair<double, double> & bounds);
@@ -111,7 +110,7 @@ protected:
   //! map tower_z_ID -> eta_bin number for blocks
   tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
 
-ClassDef(PHG4CylinderCellGeom_Spacalv1,2)
+ClassDefOverride(PHG4CylinderCellGeom_Spacalv1,2)
 
 };
 

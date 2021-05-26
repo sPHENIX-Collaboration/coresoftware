@@ -14,10 +14,10 @@ class HepMCCompress : public SubsysReco
 {
  public:
   HepMCCompress(const std::string &name = "HEPMCREADER");
-  virtual ~HepMCCompress() {}
+  ~HepMCCompress() override {}
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
  protected:
   short int FloatToInt(const float rval) const;
   std::set<int> exclude_pid;

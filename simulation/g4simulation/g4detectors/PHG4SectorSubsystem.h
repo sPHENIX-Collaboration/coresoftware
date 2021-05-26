@@ -22,7 +22,7 @@ class PHG4SectorSubsystem : public PHG4Subsystem
   PHG4SectorSubsystem(const std::string& name = "Sector");
 
   //! destructor
-  virtual ~PHG4SectorSubsystem();
+  ~PHG4SectorSubsystem() override;
 
   //! init
   /*!
@@ -30,21 +30,21 @@ class PHG4SectorSubsystem : public PHG4Subsystem
    reates the stepping action and place it on the node tree, under "ACTIONS" node
    creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
-  int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //! event processing
   /*!
    get all relevant nodes from top nodes (namely hit list)
    and pass that to the stepping action
    */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector*
-  GetDetector(void) const;
-  virtual PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
+  PHG4Detector*
+  GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   void
   SuperDetector(const std::string& name)

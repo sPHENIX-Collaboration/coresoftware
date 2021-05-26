@@ -19,13 +19,13 @@ class Fun4AllHepMCOutputManager : public Fun4AllOutputManager
   Fun4AllHepMCOutputManager(const std::string &myname = "HEPMCOUT",
                             const std::string &filename = "hepmcout.txt");
 
-  virtual ~Fun4AllHepMCOutputManager();
+  ~Fun4AllHepMCOutputManager() override;
 
-  int outfileopen(const std::string & /*fname*/) { return 0; }
+  int outfileopen(const std::string & /*fname*/) override { return 0; }
 
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
-  int Write(PHCompositeNode *startNode);
+  int Write(PHCompositeNode *startNode) override;
 
   int AddComment(const std::string &text);
 

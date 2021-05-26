@@ -28,10 +28,10 @@ class PHInitVertexing : public SubsysReco
 {
  public:
   PHInitVertexing(const std::string &name = "PHInitVertexing");
-  virtual ~PHInitVertexing() {}
+  ~PHInitVertexing() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  protected:
 

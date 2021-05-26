@@ -36,11 +36,11 @@ class PHTruthClustering  : public SubsysReco
 {
 public:
   PHTruthClustering(const std::string &name = "PHTruthClustering");
-  virtual ~PHTruthClustering();
+  ~PHTruthClustering() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void UsePrimaryTrackClustersOnly(bool flag) {_primary_clusters_only = flag;}
 

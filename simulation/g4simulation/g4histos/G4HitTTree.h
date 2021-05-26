@@ -14,15 +14,15 @@ class G4HitTTree : public SubsysReco
 {
  public:
   G4HitTTree(const std::string &name = "HITTTREE");
-  virtual ~G4HitTTree() {}
+  ~G4HitTTree() override {}
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   void Detector(const std::string &det);
   void BlackHoleName(const std::string &bh);

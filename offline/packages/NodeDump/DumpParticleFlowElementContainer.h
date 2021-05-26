@@ -11,10 +11,10 @@ class DumpParticleFlowElementContainer : public DumpObject
 {
  public:
   DumpParticleFlowElementContainer(const std::string &NodeName);
-  virtual ~DumpParticleFlowElementContainer() {}
+  ~DumpParticleFlowElementContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

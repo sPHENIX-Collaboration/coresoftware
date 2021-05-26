@@ -21,15 +21,15 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector *, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4OuterHcalSteppingAction();
+  ~PHG4OuterHcalSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
-  virtual int Init();
+  int Init() override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }

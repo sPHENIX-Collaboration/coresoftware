@@ -6,7 +6,7 @@ AC_PROG_CXX
 AC_PROG_F77(gfortran)
 LT_INIT([disable-static])
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

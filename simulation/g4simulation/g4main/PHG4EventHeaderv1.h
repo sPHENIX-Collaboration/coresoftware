@@ -15,37 +15,37 @@ class PHG4EventHeaderv1: public PHG4EventHeader
   PHG4EventHeaderv1();
 
   /// dtor
-  virtual ~PHG4EventHeaderv1() {}
+  ~PHG4EventHeaderv1() override {}
 
   /// Clear Event
-  virtual void Reset();
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  int isValid() const;
+  int isValid() const override;
 
   /// get Event Number
-  int get_EvtSequence() const {return evtseq;}
+  int get_EvtSequence() const override {return evtseq;}
   /// set Event Number
-  void set_EvtSequence(const int ival) {evtseq = ival;}
+  void set_EvtSequence(const int ival) override {evtseq = ival;}
 
-  float get_ImpactParameter() const {return bimp;}
-  void set_ImpactParameter(const float b) {bimp = b;}
+  float get_ImpactParameter() const override {return bimp;}
+  void set_ImpactParameter(const float b) override {bimp = b;}
 
-  float get_EventPlaneAngle() const {return rplane;}
-  void set_EventPlaneAngle(const float r) {rplane = r;}
+  float get_EventPlaneAngle() const override {return rplane;}
+  void set_EventPlaneAngle(const float r) override {rplane = r;}
 
  protected:
   int evtseq;
   float bimp;
   float rplane;
 
- private: // prevent doc++ from showing ClassDef
-  ClassDef(PHG4EventHeaderv1,1)
+ private: // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(PHG4EventHeaderv1,1)
 
 };
 

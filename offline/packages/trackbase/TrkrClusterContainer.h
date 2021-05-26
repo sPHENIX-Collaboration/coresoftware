@@ -35,10 +35,10 @@ class TrkrClusterContainer : public PHObject
   //@}
 
   //! reset method
-  virtual void Reset() {}
+  void Reset() override {}
 
   //! identify object
-  virtual void identify(std::ostream &os = std::cout) const {}
+  void identify(std::ostream &os = std::cout) const override {}
 
   //! add a cluster
   virtual ConstIterator addCluster(TrkrCluster*);
@@ -76,7 +76,7 @@ class TrkrClusterContainer : public PHObject
 
   private:
 
-  ClassDef(TrkrClusterContainer, 1)
+  ClassDefOverride(TrkrClusterContainer, 1)
 
 };
 

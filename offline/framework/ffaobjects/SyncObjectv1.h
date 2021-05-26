@@ -18,7 +18,7 @@ class SyncObjectv1 : public SyncObject
 
   PHObject* CloneMe() const override { return new SyncObjectv1(*this); }
   /// dtor
-  virtual ~SyncObjectv1() = default;
+  ~SyncObjectv1() override = default;
 
   ///  Clear Event
   void Reset() override;
@@ -57,15 +57,8 @@ class SyncObjectv1 : public SyncObject
   int runnumber = 0;            // Run number
   int segmentnumber = -999999;  // segment number
 
-// rootcling and clang complain about inconsistent overrides in the ClassDef
-// this can be supressed with ignoring -Winconsistent-missing-override
-// this pragma is not known to gcc, so we need an #ifdef __clang__ here
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
-#endif
-  ClassDef(SyncObjectv1, 1)
-#pragma GCC diagnostic pop
+  ClassDefOverride(SyncObjectv1, 1)
+
 };
 
 #endif

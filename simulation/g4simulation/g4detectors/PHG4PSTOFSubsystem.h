@@ -40,7 +40,7 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   PHG4PSTOFSubsystem(const std::string& name = "PSTOF");
 
   //! destructor
-  virtual ~PHG4PSTOFSubsystem(void)
+  ~PHG4PSTOFSubsystem(void) override
   {
   }
 
@@ -49,23 +49,23 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  virtual int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector(void) const;
-  virtual PHG4SteppingAction* GetSteppingAction(void) const;
+  PHG4Detector* GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override;
   //! Print info (from SubsysReco)
-  virtual void Print(const std::string& what = "ALL") const;
+  void Print(const std::string& what = "ALL") const override;
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! defives from PHG4Detector */

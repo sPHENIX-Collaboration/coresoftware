@@ -10,11 +10,11 @@ class G4RootRawTower : public PHObject
  public:
   G4RootRawTower();
   G4RootRawTower(const float ieta, const float iphi, const float e);
-  virtual ~G4RootRawTower() {}
+  ~G4RootRawTower() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   float get_eta() const { return eta; }
   float get_phi() const { return phi; }
@@ -25,7 +25,7 @@ class G4RootRawTower : public PHObject
   float phi;
   float energy;
 
-  ClassDef(G4RootRawTower, 1)
+  ClassDefOverride(G4RootRawTower, 1)
 };
 
 #endif /* G4HISTOS_RAWTOWERV1_H */

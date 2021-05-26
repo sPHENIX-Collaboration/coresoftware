@@ -28,23 +28,23 @@ class PHGeomIOTGeo : public PHObject
 {
  public:
   PHGeomIOTGeo();
-  virtual ~PHGeomIOTGeo();
+  ~PHGeomIOTGeo() override;
 
-  virtual PHObject* CloneMe() const {return new PHGeomIOTGeo(*this);}
+  PHObject* CloneMe() const override {return new PHGeomIOTGeo(*this);}
 
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void
-  identify(std::ostream& os = std::cout) const;
+  void
+  identify(std::ostream& os = std::cout) const override;
 
   /// Clear Event
-  virtual void
-  Reset();
+  void
+  Reset() override;
 
   /// isValid returns non zero if object contains vailid data
-  virtual int
-  isValid() const;
+  int
+  isValid() const override;
 
   //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
   void
@@ -76,7 +76,7 @@ class PHGeomIOTGeo : public PHObject
   //! store the streamed geometry and its streamer via a binary stream
   std::vector<char> Data;
 
-  ClassDef(PHGeomIOTGeo, 3)
+  ClassDefOverride(PHGeomIOTGeo, 3)
 };
 
 #endif

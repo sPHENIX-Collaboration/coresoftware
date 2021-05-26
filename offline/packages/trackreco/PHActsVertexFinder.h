@@ -40,7 +40,7 @@ class PHActsVertexFinder: public PHInitVertexing
  public:
   PHActsVertexFinder(const std::string &name = "PHActsVertexFinder");
 
-  virtual ~PHActsVertexFinder() {}
+  ~PHActsVertexFinder() override {}
 
   void setMaxVertices(int maxVertices)
     { m_maxVertices = maxVertices; }

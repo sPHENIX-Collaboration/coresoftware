@@ -53,7 +53,7 @@ class PHHybridSeeding : public PHTrackSeeding
       size_t nthreads = 1
       );
 
-  virtual ~PHHybridSeeding()
+  ~PHHybridSeeding() override
   {
   }
   
@@ -76,10 +76,10 @@ class PHHybridSeeding : public PHTrackSeeding
   void setMinFitTrackSize(size_t s) {_min_fit_track_size = s;}
 
  protected:
-  virtual int Setup(PHCompositeNode *topNode);
-  virtual int Process(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
+  int Process(PHCompositeNode *topNode) override;
   int InitializeGeometry(PHCompositeNode *topNode);
-  virtual int End();
+  int End() override;
 
  private:
   /// fetch node pointers

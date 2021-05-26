@@ -10,16 +10,16 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
 
   PHHepMCGenEventv1(const PHHepMCGenEventv1& event);
   PHHepMCGenEventv1& operator=(const PHHepMCGenEventv1& event);
-  virtual ~PHHepMCGenEventv1();
+  ~PHHepMCGenEventv1() override;
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset();
-  virtual int isValid() const
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override
   {
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  PHObject* CloneMe() const { return new PHHepMCGenEventv1(*this); }
+  PHObject* CloneMe() const override { return new PHHepMCGenEventv1(*this); }
 
   //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   const HepMC::ThreeVector& get_boost_beta_vector() const final { return m_boost_beta_vector; }
@@ -55,7 +55,7 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
   //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   double m_rotation_angle;
 
-  ClassDef(PHHepMCGenEventv1, 1)
+  ClassDefOverride(PHHepMCGenEventv1, 1)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENTv1_H

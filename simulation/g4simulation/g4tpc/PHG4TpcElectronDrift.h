@@ -30,13 +30,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  virtual ~PHG4TpcElectronDrift() = default;
-  virtual int Init(PHCompositeNode *);
-  virtual int InitRun(PHCompositeNode *);
-  virtual int process_event(PHCompositeNode *);
-  virtual int End(PHCompositeNode *);
+  ~PHG4TpcElectronDrift() override = default;
+  int Init(PHCompositeNode *) override;
+  int InitRun(PHCompositeNode *) override;
+  int process_event(PHCompositeNode *) override;
+  int End(PHCompositeNode *) override;
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector name
   void Detector(const std::string &d)

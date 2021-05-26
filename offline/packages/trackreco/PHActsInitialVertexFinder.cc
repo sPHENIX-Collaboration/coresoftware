@@ -210,7 +210,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(vertexId);
           
-      for(const auto track : vertex.tracks())
+      for(const auto& track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
 

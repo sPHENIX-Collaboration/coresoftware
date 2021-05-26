@@ -36,10 +36,11 @@ class PHG4TruthInfoContainer : public PHObject
   typedef std::pair<ConstShowerIterator, ConstShowerIterator> ConstShowerRange;
 
   PHG4TruthInfoContainer();
-  virtual ~PHG4TruthInfoContainer();
+  ~PHG4TruthInfoContainer() override;
 
-  void Reset();
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   // --- particle storage ------------------------------------------------------
 
@@ -228,7 +229,7 @@ class PHG4TruthInfoContainer : public PHObject
   std::map<int, int> particle_embed_flags;  //< trackid => embed flag
   std::map<int, int> vertex_embed_flags;    //< vtxid => embed flag
 
-  ClassDef(PHG4TruthInfoContainer, 1)
+  ClassDefOverride(PHG4TruthInfoContainer, 1)
 };
 
 

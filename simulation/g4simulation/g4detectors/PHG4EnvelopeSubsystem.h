@@ -22,7 +22,7 @@ class PHG4EnvelopeSubsystem: public PHG4Subsystem
 		PHG4EnvelopeSubsystem ( const std::string &name = "ENVELOPE_DEFAULT", const int layer = 0 );
 		
 		//Destructor
-		virtual ~PHG4EnvelopeSubsystem ( void )
+		~PHG4EnvelopeSubsystem ( void ) override
 		{}
 			
 		/*
@@ -31,14 +31,14 @@ class PHG4EnvelopeSubsystem: public PHG4Subsystem
 			Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
 		*/
 	
-		int Init(PHCompositeNode *);
+		int Init(PHCompositeNode *) override;
 	
 		//Event Processing
-		int process_event(PHCompositeNode *);
+		int process_event(PHCompositeNode *) override;
 	
 		//Accessors (reimplemented)
-		virtual PHG4Detector* GetDetector( void ) const;
-		virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+		PHG4Detector* GetDetector( void ) const override;
+		PHG4SteppingAction* GetSteppingAction( void ) const override;
 	
 	private:
 		//Pointer to Geant4 implementation of detector

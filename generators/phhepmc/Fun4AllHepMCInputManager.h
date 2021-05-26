@@ -27,24 +27,24 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager, public PHHepMCGenHe
 {
  public:
   Fun4AllHepMCInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
-  virtual ~Fun4AllHepMCInputManager();
-  virtual int fileopen(const std::string &filenam);
-  int fileclose();
-  virtual int run(const int nevents = 0);
-  virtual int ResetEvent();
+  ~Fun4AllHepMCInputManager() override;
+  int fileopen(const std::string &filenam) override;
+  int fileclose() override;
+  int run(const int nevents = 0) override;
+  int ResetEvent() override;
   void ReadOscar(const int i) { m_ReadOscarFlag = i; }
   int ReadOscar() const { return m_ReadOscarFlag; }
-  virtual void Print(const std::string &what = "ALL") const;
-  virtual int PushBackEvents(const int i);
+  void Print(const std::string &what = "ALL") const override;
+  int PushBackEvents(const int i) override;
 
   // Effectivly turn off the synchronization checking
   //
-  int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_OK; }
-  int GetSyncObject(SyncObject ** /*mastersync*/) { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
-  int NoSyncPushBackEvents(const int nevt) { return PushBackEvents(nevt); }
+  int SyncIt(const SyncObject * /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject ** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int NoSyncPushBackEvents(const int nevt) override { return PushBackEvents(nevt); }
   HepMC::GenEvent *ConvertFromOscar();
 
-  virtual int SkipForThisManager(const int nevents) { return PushBackEvents(-nevents); }
+  int SkipForThisManager(const int nevents) override { return PushBackEvents(-nevents); }
   int MyCurrentEvent(const unsigned int index = 0) const;
 
  protected:

@@ -19,13 +19,13 @@ class RawTowerCalibration : public SubsysReco
 {
  public:
   RawTowerCalibration(const std::string &name = "RawTowerCalibration");
-  virtual ~RawTowerCalibration()
+  ~RawTowerCalibration() override
   {
   }
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void
   Detector(const std::string &d)
   {

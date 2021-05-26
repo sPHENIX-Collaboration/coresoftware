@@ -15,10 +15,9 @@ class AssocInfoContainer : public PHObject
  public:
   typedef std::multimap<TrkrDefs::cluskey, unsigned int> ClusterTrackMap;
 
-  virtual ~AssocInfoContainer(){}
+  ~AssocInfoContainer() override{}
 
-  virtual void Reset() {return;}
-  virtual void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual void SetClusterTrackAssoc(const TrkrDefs::cluskey& cluster_id, const unsigned int& track_id) {return;}
 
@@ -29,7 +28,7 @@ class AssocInfoContainer : public PHObject
 
  private:
 
-  ClassDef(AssocInfoContainer, 1)
+  ClassDefOverride(AssocInfoContainer, 1)
 };
 
 #endif
