@@ -121,7 +121,7 @@ int PHSiliconTpcTrackMatching::Process()
       
       _tracklet_tpc = phtrk_iter->second;
       
-      if (Verbosity() >= 1)
+      if (Verbosity() > 1)
 	{
 	  std::cout
 	    << __LINE__
@@ -226,7 +226,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(eta_match && phi_match)
 	    {
 	      // got a match, add to the list
-	      if(Verbosity() >= 1)  
+	      if(Verbosity() > 1)  
 		{
 		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
@@ -253,7 +253,7 @@ int PHSiliconTpcTrackMatching::Process()
       // we did not get a match, sound the alarm
       if(si_matches.size() == 0)
 	{
-	  if(Verbosity() >= 1)
+	  if(Verbosity() > 1)
 	    {
 	      cout << PHWHERE << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
 	    }
@@ -296,7 +296,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  // get the si tracklet for this id
 	  _tracklet_si = _track_map_silicon->get(*si_it);
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    cout << "   isi = " << isi << " si tracklet " << _tracklet_si->get_id() << " was matched to TPC tracklet " << _tracklet_tpc->get_id() << endl;
 
 	  // get the silicon clusters
@@ -306,7 +306,7 @@ int PHSiliconTpcTrackMatching::Process()
 	       ++key_iter)
 	    {
 	      TrkrDefs::cluskey cluster_key = *key_iter;
-	      if(Verbosity() >=1) cout << "   inserting cluster key " << cluster_key << " into list " << " for si tracklet " << _tracklet_si->get_id() << endl;
+	      if(Verbosity() >1) cout << "   inserting cluster key " << cluster_key << " into list " << " for si tracklet " << _tracklet_si->get_id() << endl;
 	      si_clusters.insert(cluster_key);
 	    }
 
@@ -344,7 +344,7 @@ int PHSiliconTpcTrackMatching::Process()
 		}
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
-		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into exisiting TPC track " << _tracklet_tpc->get_id() << endl;
+		  if(Verbosity() > 1) cout << "   inserting si cluster key " << *clus_iter << " into exisiting TPC track " << _tracklet_tpc->get_id() << endl;
 		  _tracklet_tpc->insert_cluster_key(*clus_iter);
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, _tracklet_tpc->get_id());
 		}
@@ -362,7 +362,7 @@ int PHSiliconTpcTrackMatching::Process()
 	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 	      #endif
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
-	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
+	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
 	      newTrack->set_id(lastTrackKey);
 
@@ -421,7 +421,7 @@ int PHSiliconTpcTrackMatching::Process()
 	      // now add the new si clusters
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
-		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
+		  if(Verbosity() > 1) cout << "   inserting si cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
 		  newTrack->insert_cluster_key(*clus_iter);
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
