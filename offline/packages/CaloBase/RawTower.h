@@ -3,15 +3,15 @@
 
 #include "RawTowerDefs.h"
 
-#include <g4detectors/PHG4CellDefs.h>
-
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
 #include <climits>
 #include <cmath>
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
+#include <string>  // for string
 #include <utility>
 
 class RawTower : public PHObject

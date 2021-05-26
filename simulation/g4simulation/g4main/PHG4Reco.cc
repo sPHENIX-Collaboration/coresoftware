@@ -252,6 +252,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
     gSystem->Exit(1);
+    exit(1);
   }
 
   if (m_ActiveDecayerFlag)
