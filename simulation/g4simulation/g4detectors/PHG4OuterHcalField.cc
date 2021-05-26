@@ -10,6 +10,8 @@
 
 #include "PHG4OuterHcalField.h"
 
+#include <TSystem.h>
+
 #include <Geant4/G4Vector3D.hh>
 #include <Geant4/G4Field.hh>                   // for G4Field
 #include <Geant4/G4FieldManager.hh>
@@ -18,6 +20,7 @@
 #include <Geant4/G4Types.hh>                  // for G4double, G4int
 
 #include <cassert>                            // for assert
+#include <cstdlib>       // for exit
 #include <cmath>                              // for atan2, cos, sin, sqrt
 #include <iostream>
 
@@ -48,15 +51,11 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
 
   if (!field_manager)
     {
-      static bool once = true;
-
-      if (once)
-        {
-          once = false;
           cout << "PHG4OuterHcalField::GetFieldValue"
               << " - Error! can not find field manager in G4TransportationManager"
               << endl;
-        }
+      gSystem->Exit(1);
+      exit(1);
     }
 
   const G4Field* default_field = field_manager->GetDetectorField();
