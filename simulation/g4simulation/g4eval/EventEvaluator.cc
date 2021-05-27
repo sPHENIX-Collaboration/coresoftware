@@ -2211,9 +2211,9 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
     return 3;
   else if (projname.find("ETTL_1") != std::string::npos)
     return 4;
-  else if (projname.find("FHCAL_0") != std::string::npos)
+  else if (projname.find("FHCAL") != std::string::npos)
     return 5;
-  else if (projname.find("FEMC_0") != std::string::npos)
+  else if (projname.find("FEMC") != std::string::npos)
     return 6;
   else if (projname.find("CTTL_0") != std::string::npos)
     return 7;
