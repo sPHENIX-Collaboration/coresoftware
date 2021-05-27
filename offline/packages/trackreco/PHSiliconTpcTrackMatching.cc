@@ -94,9 +94,9 @@ int PHSiliconTpcTrackMatching::Process()
 
 
   std::cout << " Seed track map size: " << std::endl;
-  std::cout << "    size = " << _seed_track_map.size()  << std::endl;
+  std::cout << "    size = " << _seed_track_map_class->SeedTrackMap.size()  << std::endl;
 
-  _seed_track_map.clear();
+  _seed_track_map_class->SeedTrackMap.clear();
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
@@ -146,7 +146,7 @@ int PHSiliconTpcTrackMatching::Process()
       if(Verbosity() > 1) 
 	std::cout << " TPC seed ID " << _tracklet_tpc->get_id() << " original nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
       std::pair<unsigned int, unsigned int> pair = std::make_pair(_tracklet_tpc->get_id(), _tracklet_tpc->get_id()); 
-      _seed_track_map.insert(pair);
+      _seed_track_map_class->SeedTrackMap.insert(pair);
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
@@ -464,7 +464,7 @@ int PHSiliconTpcTrackMatching::Process()
 	      if(Verbosity() > 1)
 		std::cout << " TPC seed track ID " << _tracklet_tpc->get_id() 
 			  << " new track ID " << newTrack->get_id() << " new nclus " << newTrack->size_cluster_keys() << std::endl;
-	      _seed_track_map.insert(std::make_pair(_tracklet_tpc->get_id(), newTrack->get_id() ) ) ;	 
+	      _seed_track_map_class->SeedTrackMap.insert(std::make_pair(_tracklet_tpc->get_id(), newTrack->get_id() ) ) ;	 
 	    }
 	  
 	  isi++;
@@ -472,7 +472,8 @@ int PHSiliconTpcTrackMatching::Process()
     }
 
   if(Verbosity() > 0)  
-    cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map.size() << endl;
+    //cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map.size() << endl;
+    cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map_class->SeedTrackMap.size() << endl;
   
   if (Verbosity() >= 1)
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
@@ -498,9 +499,9 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  TpcSeedTrackMap *seed_track_map_class  = findNode::getClass<TpcSeedTrackMap>(topNode,
+   _seed_track_map_class  = findNode::getClass<TpcSeedTrackMap>(topNode,
 							 "TpcSeedTrackMap");
-  if(!seed_track_map_class)
+  if(!_seed_track_map_class)
     {
       std::cout << "Creating node TpcSeedTrackMap" << std::endl;
 
@@ -525,19 +526,20 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 	  dstNode->addNode(svtxNode);
 	}
       
-      seed_track_map_class = new TpcSeedTrackMap();
+      _seed_track_map_class = new TpcSeedTrackMap();
       PHDataNode<TpcSeedTrackMap> *node
-	= new PHDataNode<TpcSeedTrackMap>(seed_track_map_class, "TpcSeedTrackMap");
+	= new PHDataNode<TpcSeedTrackMap>(_seed_track_map_class, "TpcSeedTrackMap");
       svtxNode->addNode(node);
     }
 
-  if(seed_track_map_class)
+/*
+  if(_seed_track_map_class)
     {
-      _seed_track_map = seed_track_map_class->SeedTrackMap;
+      _seed_track_map = _seed_track_map_class->SeedTrackMap;
     }
   else
     std::cout << "Failed to find node TpcSeedTrackMap, quit" << std::endl;
-    
+*/    
 
 
   return Fun4AllReturnCodes::EVENT_OK;
