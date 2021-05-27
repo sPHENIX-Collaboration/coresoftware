@@ -57,11 +57,12 @@ class TpcClusterizer : public SubsysReco
 //   std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
 //   std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
   
-  std::pair<double,double> par0_neg = std::make_pair(0.0593322, 0.000274415);
-  // std::pair<double,double> par0_pos = std::make_pair(-0.0593322, 0.000274415);
-  std::pair<double,double> par0_pos = std::make_pair(-0.0593322, -0.000274415);
-  std::pair<double,double> par1_neg = std::make_pair(-0.0002018965, 2.092585e-06);
-  std::pair<double,double> par1_pos = std::make_pair(-0.0002018965, 2.092585e-06);
+  // revisited by Hugo May 28, 2021
+  // should check with Tony, in particular the inversion of the par0_pos layer slope
+  std::pair<double,double> par0_neg = std::make_pair(0.05465077, 0.000252096);
+  std::pair<double,double> par0_pos = std::make_pair(-0.05392444, -0.000296734);
+  std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
+  std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
 
   int NSearch;
   int NZBinsMax;
