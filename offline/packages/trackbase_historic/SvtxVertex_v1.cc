@@ -65,19 +65,19 @@ void SvtxVertex_v1::identify(ostream& os) const
 int SvtxVertex_v1::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
-  if (isnan(_t0)) return 0;
-  if (isnan(_chisq)) return 0;
+  if (std::isnan(_t0)) return 0;
+  if (std::isnan(_chisq)) return 0;
   if (_ndof == 0xFFFFFFFF) return 0;
 
   for (int i = 0; i < 3; ++i)
   {
-    if (isnan(_pos[i])) return 0;
+    if (std::isnan(_pos[i])) return 0;
   }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (isnan(get_error(i, j))) return 0;
+      if (std::isnan(get_error(i, j))) return 0;
     }
   }
   if (_track_ids.empty()) return 0;

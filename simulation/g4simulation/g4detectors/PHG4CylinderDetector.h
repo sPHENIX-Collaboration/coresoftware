@@ -21,12 +21,12 @@ class PHG4CylinderDetector : public PHG4Detector
   PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderDetector()
+  ~PHG4CylinderDetector() override
   {
   }
 
   //! construct
-  void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   bool IsInCylinder(const G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }

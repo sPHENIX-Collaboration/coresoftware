@@ -17,10 +17,10 @@ class PHG4Particle;
 class PHG4ParticleGeneratorBase : public SubsysReco
 {
  public:
-  virtual ~PHG4ParticleGeneratorBase();
+  ~PHG4ParticleGeneratorBase() override;
 
-  virtual int InitRun(PHCompositeNode *topNode);
-  virtual int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   virtual void set_name(const std::string &particle = "proton");
   virtual void set_pid(const int pid);
@@ -34,7 +34,7 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   virtual double get_vtx_z() const { return m_Vtx_z; }
   virtual double get_t0() const { return m_TZero; }
 
-  virtual void Print(const std::string &what = "ALL") const { PrintParticles(what); }
+  void Print(const std::string &what = "ALL") const override { PrintParticles(what); }
   virtual void PrintParticles(const std::string &what = "ALL") const;
   virtual void AddParticle(const std::string &particle, const double x, const double y, const double z);
   virtual void AddParticle(const int pid, const double x, const double y, const double z);

@@ -34,15 +34,12 @@ class TrkrHitSet : public PHObject
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  //! ctor
-  TrkrHitSet() = default;
-
   //! TObject functions
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
   }
 
-  virtual void Reset()
+  void Reset() override
   {
   }
 
@@ -109,7 +106,13 @@ class TrkrHitSet : public PHObject
     return 0;
   }
 
-  ClassDef(TrkrHitSet, 1);
+  protected:
+
+  //! ctor, not to be called
+  TrkrHitSet() = default;
+
+private:
+  ClassDefOverride(TrkrHitSet, 1);
 };
 
 #endif  //TRACKBASE_TRKRHITSET_H

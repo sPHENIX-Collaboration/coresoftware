@@ -27,11 +27,11 @@ class PHTpcClusterMover : public SubsysReco
 
   PHTpcClusterMover(const std::string &name = "PHTpcClusterMover");
 
-  virtual ~PHTpcClusterMover();
+  ~PHTpcClusterMover() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
 
  private:

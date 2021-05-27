@@ -33,16 +33,16 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  virtual ~PHG4ScoringManager() {}
+  ~PHG4ScoringManager() override {}
 
   //! full initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   //! Output result to a ROOT file with this name
   void setOutputFileName(const std::string &outputfilename) { m_outputFileName = outputfilename; };

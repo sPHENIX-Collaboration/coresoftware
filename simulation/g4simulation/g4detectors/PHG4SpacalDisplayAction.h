@@ -19,9 +19,9 @@ class PHG4SpacalDisplayAction : public PHG4DisplayAction
  public:
   PHG4SpacalDisplayAction(const std::string &name);
 
-  virtual ~PHG4SpacalDisplayAction();
+  ~PHG4SpacalDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
   void SetGeom(const PHG4CylinderGeom_Spacalv1 *geo) { m_Geom = geo; }
   void AddMaterial(const std::string &name, const std::string &mat) { m_MaterialMap[name] = mat; }

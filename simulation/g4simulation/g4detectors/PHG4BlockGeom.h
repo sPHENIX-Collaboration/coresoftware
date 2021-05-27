@@ -14,9 +14,10 @@ class PHG4BlockGeom: public PHObject
 {
  public:
 
-  virtual ~PHG4BlockGeom() {}
+  ~PHG4BlockGeom() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual int get_layer() const {PHOOL_VIRTUAL_WARN("get_layer()"); return -99999;}
   virtual double get_size_x() const {PHOOL_VIRTUAL_WARN("get_size_x()");return NAN;}
@@ -50,7 +51,7 @@ class PHG4BlockGeom: public PHObject
  protected:
   PHG4BlockGeom() {}
 
-  ClassDef(PHG4BlockGeom,1)
+  ClassDefOverride(PHG4BlockGeom,1)
 };
 
 #endif

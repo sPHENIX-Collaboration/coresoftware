@@ -9,9 +9,10 @@
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Vertexing/Vertex.hpp>
 
-
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+
+#include <random>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -31,7 +32,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 {
  public: 
   PHActsInitialVertexFinder(const std::string& name="PHActsInitialVertexFinder");
-  virtual ~PHActsInitialVertexFinder() {}
+  ~PHActsInitialVertexFinder() override {}
 
   void setMaxVertices(const int maxVertices)
   { m_maxVertices = maxVertices;}
@@ -98,6 +99,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   /// Diagnostic vertex numbers
   unsigned int m_totVertexFits = 0;
   unsigned int m_successFits = 0;
+
+  unsigned int m_seed = 0;
+  std::mt19937 m_random_number_generator;
 
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";

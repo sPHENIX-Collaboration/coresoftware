@@ -19,13 +19,13 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
   PHG4ConeSteppingAction(PHG4ConeDetector*);
 
   //! destructor
-  virtual ~PHG4ConeSteppingAction();
+  ~PHG4ConeSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
   //! pointer to the detector

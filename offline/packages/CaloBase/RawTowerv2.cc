@@ -1,7 +1,10 @@
 #include "RawTowerv2.h"
 
+#include <climits>  // for UCHAR_MAX
 #include <cmath>
 #include <iostream>
+#include <string>   // for operator<<, string
+#include <utility>  // for pair
 
 using namespace std;
 

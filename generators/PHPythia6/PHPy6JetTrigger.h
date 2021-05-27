@@ -14,9 +14,9 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
 {
  public:
   PHPy6JetTrigger(const std::string& name = "PHPy6JetTrigger");
-  virtual ~PHPy6JetTrigger();
+  ~PHPy6JetTrigger() override;
 
-  bool Apply(const HepMC::GenEvent* evt);
+  bool Apply(const HepMC::GenEvent* evt) override;
 
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt) { m_minPt = minPt; }

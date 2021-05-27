@@ -27,10 +27,10 @@ class CaloTriggerSim : public SubsysReco
 {
  public:
   CaloTriggerSim(const std::string &name = "CaloTriggerSim");
-  virtual ~CaloTriggerSim() {}
+  ~CaloTriggerSim() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   void set_truncation(const int emulate_truncation) { m_EmulateTruncationFlag = emulate_truncation; }
   double truncate_8bit(const double raw_E) const;

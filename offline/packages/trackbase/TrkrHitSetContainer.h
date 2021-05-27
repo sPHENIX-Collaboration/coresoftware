@@ -30,19 +30,12 @@ class TrkrHitSetContainer : public PHObject
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  //! ctor
-  TrkrHitSetContainer() = default;
-  
   //! dtir
-  virtual ~TrkrHitSetContainer() = default;
+  ~TrkrHitSetContainer() override = default;
 
   //! PHObject functions
-  virtual void Reset() 
-  {}
+  void Reset()  override;
   
-  virtual void identify(std::ostream & = std::cout) const
-  {}
-
   //! Add a TrkrHitSet to the container
   virtual ConstIterator addHitSet(TrkrHitSet*);
 
@@ -72,12 +65,16 @@ class TrkrHitSetContainer : public PHObject
   virtual TrkrHitSet *findHitSet(TrkrDefs::hitsetkey)
   { return nullptr; }
 
-  unsigned int size() const
+  virtual unsigned int size() const
   { return 0; }
+
+  protected:
+  //! ctor
+  TrkrHitSetContainer() = default;
 
   private:
 
-  ClassDef(TrkrHitSetContainer, 1)
+  ClassDefOverride(TrkrHitSetContainer, 1)
 };
 
 #endif //TRACKBASE_TRKRHITSETCONTAINER_H

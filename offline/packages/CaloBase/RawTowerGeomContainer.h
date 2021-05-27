@@ -29,9 +29,9 @@ class RawTowerGeomContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   //! default constructor for ROOT IO
-  virtual ~RawTowerGeomContainer() {}
+  ~RawTowerGeomContainer() override {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
 
   //! 8-bit calorimeter ID
   virtual void set_calorimeter_id(RawTowerDefs::CalorimeterId) { PHOOL_VIRTUAL_WARN("set_calorimeter_id()"); }
@@ -140,7 +140,7 @@ class RawTowerGeomContainer : public PHObject
   //! this class is not for use. Base class only
   RawTowerGeomContainer() {}
 
-  ClassDef(RawTowerGeomContainer, 2)
+  ClassDefOverride(RawTowerGeomContainer, 2)
 };
 
 #endif

@@ -16,19 +16,19 @@ class EventHeader : public PHObject
 {
  public:
   /// dtor
-  virtual ~EventHeader() = default;
+  ~EventHeader() override = default;
 
   /// Clear Event
-  virtual void Reset();
+  void Reset() override;
 
   /*
    * identify Function from PHObject
    * @param os Output Stream 
    */
-  virtual void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const;
+  int isValid() const override;
 
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }
@@ -75,8 +75,8 @@ class EventHeader : public PHObject
   void set_TimeStamp(const time_t tval) { set_intval("time", tval); }
   time_t get_TimeStamp() const { return get_intval("time"); }
 
- private:  // prevent doc++ from showing ClassDef
-  ClassDef(EventHeader, 1)
+ private:  // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(EventHeader, 1)
 };
 
 #endif

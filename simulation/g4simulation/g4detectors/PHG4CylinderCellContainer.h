@@ -28,11 +28,11 @@ class PHG4CylinderCellContainer: public PHObject
 
   PHG4CylinderCellContainer(){}
 
-  virtual ~PHG4CylinderCellContainer() {}
+  ~PHG4CylinderCellContainer() override {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcylinderCell);
   ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcylinderCell);
@@ -86,7 +86,7 @@ class PHG4CylinderCellContainer: public PHObject
   Map cellmap;
   std::set<int> layers; // layers is not reset since layers must not change event by event
 
-  ClassDef(PHG4CylinderCellContainer,1)
+  ClassDefOverride(PHG4CylinderCellContainer,1)
 };
 
 #endif

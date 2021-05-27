@@ -21,12 +21,12 @@ class PHG4ConeDetector : public PHG4Detector
   PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr = 0);
 
   //! destructor
-  virtual ~PHG4ConeDetector(void)
+  ~PHG4ConeDetector(void) override
   {
   }
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world) override;
 
   //!@name volume accessors
   //@{

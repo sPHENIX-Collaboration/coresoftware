@@ -67,13 +67,13 @@ class RawTowerCombiner : public SubsysReco
  public:
   RawTowerCombiner(const std::string &name = "RawTowerCombiner");
 
-  virtual ~RawTowerCombiner()
+  ~RawTowerCombiner() override
   {
   }
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void
   Detector(const std::string &d)

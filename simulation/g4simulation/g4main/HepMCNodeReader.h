@@ -18,10 +18,10 @@ class HepMCNodeReader : public SubsysReco
 {
  public:
   HepMCNodeReader(const std::string &name = "HEPMCREADER");
-  virtual ~HepMCNodeReader();
+  ~HepMCNodeReader() override;
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   //! this function is depreciated.
   //! Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.

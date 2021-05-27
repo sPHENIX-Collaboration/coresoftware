@@ -27,15 +27,15 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction
   explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *);
 
   //! destroctor
-  virtual ~PHG4SpacalSteppingAction();
+  ~PHG4SpacalSteppingAction() override;
 
   //! stepping action
-  virtual bool
-  UserSteppingAction(const G4Step *, bool);
+  bool
+  UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  virtual void
-  SetInterfacePointers(PHCompositeNode *);
+  void
+  SetInterfacePointers(PHCompositeNode *) override;
 
   double
   get_zmin();

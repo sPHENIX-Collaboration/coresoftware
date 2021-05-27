@@ -110,15 +110,15 @@ int TrkrClusterv1::isValid() const
   if (m_cluskey == TrkrDefs::CLUSKEYMAX) return 0;
   for (int i = 0; i < 3; ++i)
   {
-    if (isnan(getPosition(i))) return 0;
+    if (std::isnan(getPosition(i))) return 0;
   }
   if (m_adc == 0xFFFFFFFF) return 0;
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (isnan(getSize(i, j))) return 0;
-      if (isnan(getError(i, j))) return 0;
+      if (std::isnan(getSize(i, j))) return 0;
+      if (std::isnan(getError(i, j))) return 0;
     }
   }
 

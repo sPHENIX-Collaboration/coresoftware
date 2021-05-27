@@ -22,11 +22,11 @@ class PHG4InttSteppingAction : public PHG4SteppingAction
  public:
   PHG4InttSteppingAction(PHG4InttDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
 
-  virtual ~PHG4InttSteppingAction();
+  ~PHG4InttSteppingAction() override;
 
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
  private:
   //! pointer to the detector

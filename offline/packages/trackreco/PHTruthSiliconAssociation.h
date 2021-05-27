@@ -30,7 +30,7 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   PHTruthSiliconAssociation(const std::string &name = "PHTruthSiliconAssociation");
 
-  virtual ~PHTruthSiliconAssociation();
+  ~PHTruthSiliconAssociation() override;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.

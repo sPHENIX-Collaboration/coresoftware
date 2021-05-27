@@ -18,7 +18,6 @@
 typedef std::pair<int, float> particle_pair_nTuple;
 KFParticle_particleList kfp_particleList_nTuple;
 KFParticle_Tools kfpTupleTools;
-KFParticle_truthAndDetTools kfpTruthAndDetTools;
 
 //Particle masses are in GeV
 std::map<std::string, particle_pair_nTuple> particleMasses_nTuple = kfp_particleList_nTuple.getParticleList();
@@ -26,11 +25,10 @@ std::map<std::string, particle_pair_nTuple> particleMasses_nTuple = kfp_particle
 KFParticle_nTuple::KFParticle_nTuple()
   : m_has_intermediates_nTuple(false)
   , m_constrain_to_vertex_nTuple(false)
-  , m_num_tracks_nTuple(2)
-  , m_num_intermediate_states_nTuple(0)
-  , m_num_tracks_from_intermediate_nTuple{0}
+  , m_get_all_PVs(false)
   , m_truth_matching(false)
   , m_detector_info(false)
+  , m_calo_info(true)
   , m_use_intermediate_name(true)
   , m_get_charge_conjugate_nTuple(true)
   , m_tree(nullptr)
@@ -55,21 +53,20 @@ void KFParticle_nTuple::initializeBranches()
   else
     mother_name = m_mother_name;
 
-  std::string fwd_slsh = "/"; 
-  std::string open_bracket = "("; 
-  std::string close_bracket = ")"; 
-  std::string plus_symb = "+";
-  std::string plus_word = "plus";
-  std::string minus_symb = "-";
-  std::string minus_word = "minus"; 
-  std::string undrscr = "_"; 
-  std::string nothing = ""; 
-  size_t pos; 
-  while ((pos = mother_name.find(fwd_slsh)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
-  while ((pos = mother_name.find(open_bracket)) != std::string::npos) mother_name.replace(pos, 1, undrscr); 
-  while ((pos = mother_name.find(close_bracket)) != std::string::npos) mother_name.replace(pos, 1, nothing);
-  while ((pos = mother_name.find(plus_symb)) != std::string::npos) mother_name.replace(pos, 1, plus_word);
-  while ((pos = mother_name.find(minus_symb)) != std::string::npos) mother_name.replace(pos, 1, minus_word);
+  size_t pos;
+  std::string undrscr = "_";
+  std::string nothing = "";
+  std::map<std::string, std::string> forbiddenStrings;
+  forbiddenStrings["/"] = undrscr;
+  forbiddenStrings["("] = undrscr;
+  forbiddenStrings[")"] = nothing;
+  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["-"] = "minus";
+  forbiddenStrings["*"] = "star";
+  for (auto const& [badString, goodString] : forbiddenStrings)
+  {
+    while ((pos = mother_name.find(badString)) != std::string::npos) mother_name.replace(pos, 1, goodString); 
+  } 
 
   m_tree->Branch(TString(mother_name) + "_mass", &m_calculated_mother_mass, TString(mother_name) + "_mass/F");
   m_tree->Branch(TString(mother_name) + "_massErr", &m_calculated_mother_mass_err, TString(mother_name) + "_massErr/F");
@@ -85,6 +82,11 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(mother_name) + "_IPchi2", &m_calculated_mother_ipchi2, TString(mother_name) + "_IPchi2/F");
     m_tree->Branch(TString(mother_name) + "_IPErr", &m_calculated_mother_ip_err, TString(mother_name) + "_IPErr/F");
     m_tree->Branch(TString(mother_name) + "_IP_xy", &m_calculated_mother_ip_xy, TString(mother_name) + "_IP_xy/F");
+  }
+  if (m_get_all_PVs)
+  {
+    m_tree->Branch(TString(mother_name) + "_IP_allPV", &allPV_mother_IP);
+    m_tree->Branch(TString(mother_name) + "_IPchi2_allPV", &allPV_mother_IPchi2);
   }
   m_tree->Branch(TString(mother_name) + "_x", &m_calculated_mother_x, TString(mother_name) + "_x/F");
   m_tree->Branch(TString(mother_name) + "_y", &m_calculated_mother_y, TString(mother_name) + "_y/F");
@@ -120,12 +122,11 @@ void KFParticle_nTuple::initializeBranches()
         intermediate_name = m_intermediate_name_ntuple[i];
 
       //Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
-      while ((pos = intermediate_name.find(fwd_slsh)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
-      while ((pos = intermediate_name.find(open_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, undrscr);
-      while ((pos = intermediate_name.find(close_bracket)) != std::string::npos) intermediate_name.replace(pos, 1, nothing);
-      while ((pos = intermediate_name.find(plus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, plus_word);
-      while ((pos = intermediate_name.find(minus_symb)) != std::string::npos) intermediate_name.replace(pos, 1, minus_word);
-
+      for (auto const& [badString, goodString] : forbiddenStrings)
+      {
+        while ((pos = intermediate_name.find(badString)) != std::string::npos) intermediate_name.replace(pos, 1, goodString); 
+      }
+ 
       m_tree->Branch(TString(intermediate_name) + "_mass", &m_calculated_intermediate_mass[i], TString(intermediate_name) + "_mass/F");
       m_tree->Branch(TString(intermediate_name) + "_massErr", &m_calculated_intermediate_mass_err[i], TString(intermediate_name) + "_massErr/F");
       m_tree->Branch(TString(intermediate_name) + "_decayTime", &m_calculated_intermediate_decaytime[i], TString(intermediate_name) + "_decayTime/F");
@@ -141,6 +142,11 @@ void KFParticle_nTuple::initializeBranches()
         m_tree->Branch(TString(intermediate_name) + "_IPErr", &m_calculated_intermediate_ip_err[i], TString(intermediate_name) + "_IPErr/F");
         m_tree->Branch(TString(intermediate_name) + "_IP_xy", &m_calculated_intermediate_ip_xy[i], TString(intermediate_name) + "_IP_xy/F");
       }  
+      if (m_get_all_PVs)
+      {
+        m_tree->Branch(TString(intermediate_name) + "_IP_allPV", &allPV_intermediates_IP[i]);
+        m_tree->Branch(TString(intermediate_name) + "_IPchi2_allPV", &allPV_intermediates_IPchi2[i]);
+      }
       m_tree->Branch(TString(intermediate_name) + "_x", &m_calculated_intermediate_x[i], TString(intermediate_name) + "_x/F");
       m_tree->Branch(TString(intermediate_name) + "_y", &m_calculated_intermediate_y[i], TString(intermediate_name) + "_y/F");
       m_tree->Branch(TString(intermediate_name) + "_z", &m_calculated_intermediate_z[i], TString(intermediate_name) + "_z/F");
@@ -190,6 +196,11 @@ void KFParticle_nTuple::initializeBranches()
       m_tree->Branch(TString(daughter_number) + "_IPErr", &m_calculated_daughter_ip_err[i], TString(daughter_number) + "_IPErr/F");
       m_tree->Branch(TString(daughter_number) + "_IP_xy", &m_calculated_daughter_ip_xy[i], TString(daughter_number) + "_IP_xy/F");
     }
+    if (m_get_all_PVs)
+    {
+      m_tree->Branch(TString(daughter_number) + "_IP_allPV", &allPV_daughter_IP[i]);
+      m_tree->Branch(TString(daughter_number) + "_IPchi2_allPV", &allPV_daughter_IPchi2[i]);
+    }
     m_tree->Branch(TString(daughter_number) + "_x", &m_calculated_daughter_x[i], TString(daughter_number) + "_x/F");
     m_tree->Branch(TString(daughter_number) + "_y", &m_calculated_daughter_y[i], TString(daughter_number) + "_y/F");
     m_tree->Branch(TString(daughter_number) + "_z", &m_calculated_daughter_z[i], TString(daughter_number) + "_z/F");
@@ -201,6 +212,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_pErr", &m_calculated_daughter_p_err[i], TString(daughter_number) + "_pErr/F");
     m_tree->Branch(TString(daughter_number) + "_pT", &m_calculated_daughter_pt[i], TString(daughter_number) + "_pT/F");
     m_tree->Branch(TString(daughter_number) + "_pTErr", &m_calculated_daughter_pt_err[i], TString(daughter_number) + "_pTErr/F");
+    m_tree->Branch(TString(daughter_number) + "_jT", &m_calculated_daughter_jt[i], TString(daughter_number) + "_jT/F");
     m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/I");
     m_tree->Branch(TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i], TString(daughter_number) + "_pseudorapidity/F");
     m_tree->Branch(TString(daughter_number) + "_rapidity", &m_calculated_daughter_rapidity[i], TString(daughter_number) + "_rapidity/F");
@@ -212,8 +224,9 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
 
-    if (m_truth_matching) kfpTruthAndDetTools.initializeTruthBranches(m_tree, i, daughter_number, m_constrain_to_vertex_nTuple);
-    if (m_detector_info) kfpTruthAndDetTools.initializeDetectorBranches(m_tree, i, daughter_number);
+    if (m_calo_info) initializeCaloBranches(m_tree, i, daughter_number);
+    if (m_truth_matching) initializeTruthBranches(m_tree, i, daughter_number, m_constrain_to_vertex_nTuple);
+    if (m_detector_info) initializeDetectorBranches(m_tree, i, daughter_number);
   }
 
   int iter = 0;
@@ -243,6 +256,12 @@ void KFParticle_nTuple::initializeBranches()
     //m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
+  if (m_get_all_PVs)
+  {
+    m_tree->Branch("all_primary_vertex_x", &allPV_x);
+    m_tree->Branch("all_primary_vertex_y", &allPV_y);
+    m_tree->Branch("all_primary_vertex_z", &allPV_z);
+  }
 
   m_tree->Branch("secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F");
 
@@ -261,6 +280,82 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    int nPVs, int multiplicity)
 {
   const float speedOfLight = 2.99792458e-1;
+
+  KFParticle temp;
+  KFParticle* daughterArray = &daughters[0];
+
+  bool switchTrackPosition;
+
+  int num_tracks_used_by_intermediates = 0;
+  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k) //Rearrange tracks from intermediate states
+  {
+    for (int i = 0; i < m_num_tracks_from_intermediate_nTuple[k]; ++i)
+    {
+      for (int j = i + 1; j < m_num_tracks_from_intermediate_nTuple[k]; ++j)
+      {
+        int particleAElement = i + num_tracks_used_by_intermediates; 
+        int particleBElement = j + num_tracks_used_by_intermediates;
+        int particleAPID = daughterArray[particleAElement].GetPDG();
+        int particleBPID = daughterArray[particleBElement].GetPDG();
+
+        if (m_get_charge_conjugate_nTuple)
+        {
+          float daughterA_mass = 0, daughterB_mass = 0;
+          for (const auto& key : particleMasses_nTuple)
+          {
+            if (key.second.first == abs(particleAPID))
+              daughterA_mass = key.second.second;
+            if (key.second.first == abs(particleBPID))
+              daughterB_mass = key.second.second;
+          }
+          switchTrackPosition = daughterA_mass > daughterB_mass;
+        }
+        else
+          switchTrackPosition = particleAPID > particleBPID;
+        if (switchTrackPosition)
+        {
+          temp = daughterArray[particleAElement];
+          daughterArray[particleAElement] = daughterArray[particleBElement];
+          daughterArray[particleBElement] = temp;
+        }
+      } 
+    }
+    num_tracks_used_by_intermediates += m_num_tracks_from_intermediate_nTuple[k];
+  }
+
+  int num_remaining_tracks = m_num_tracks_nTuple - num_tracks_used_by_intermediates;
+ 
+  for (int i = 0; i < num_remaining_tracks; i++) 
+  {
+    for (int j = i + 1; j < num_remaining_tracks; j++)
+    {
+      int particleAElement = i + num_tracks_used_by_intermediates; 
+      int particleBElement = j + num_tracks_used_by_intermediates;
+      int particleAPID = daughterArray[particleAElement].GetPDG();
+      int particleBPID = daughterArray[particleBElement].GetPDG();
+ 
+      if (m_get_charge_conjugate_nTuple)
+      {
+        float daughterA_mass = 0, daughterB_mass = 0;
+        for (const auto& key : particleMasses_nTuple)
+        {
+          if (key.second.first == abs(particleAPID))
+            daughterA_mass = key.second.second;
+          if (key.second.first == abs(particleBPID))
+            daughterB_mass = key.second.second;
+        }
+        switchTrackPosition = daughterA_mass > daughterB_mass;
+      }
+      else
+        switchTrackPosition = particleAPID > particleBPID;
+      if (switchTrackPosition)
+      {
+        temp = daughterArray[particleAElement];
+        daughterArray[particleAElement] = daughterArray[particleBElement];
+        daughterArray[particleBElement] = temp;
+      }
+    }
+  }
 
   if (m_constrain_to_vertex_nTuple)
   {
@@ -296,9 +391,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   motherParticle.GetMass(m_calculated_mother_mass, m_calculated_mother_mass_err);
 
+  KFParticle* intermediateArray = &intermediates[0];
   if (m_has_intermediates_nTuple)
   {
-    KFParticle* intermediateArray = &intermediates[0];
 
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
@@ -344,81 +439,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
   }
 
-  KFParticle temp;
-  KFParticle* daughterArray = &daughters[0];
-
-  bool switchTrackPosition;
-
-  int num_tracks_used_by_intermediates = 0;
-  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k) //Rearrange tracks from intermediate states
-  {
-    for (int i = 0; i < m_num_tracks_from_intermediate_nTuple[k]; ++i)
-    {
-      for (int j = i + 1; j < m_num_tracks_from_intermediate_nTuple[k]; ++j)
-      {
-        int particleAElement = i + num_tracks_used_by_intermediates; 
-        int particleBElement = j + num_tracks_used_by_intermediates;
-        int particleAPID = daughterArray[particleAElement].GetPDG();
-        int particleBPID = daughterArray[particleBElement].GetPDG();
-
-        if (m_get_charge_conjugate_nTuple)
-        {
-          float daughterA_mass = 0, daughterB_mass = 0;
-          for (const auto& key : particleMasses_nTuple)
-          {
-            if (key.second.first == abs(particleAPID))
-              daughterA_mass = key.second.second;
-            if (key.second.first == abs(particleBPID))
-              daughterB_mass = key.second.second;
-          }
-          switchTrackPosition = daughterA_mass > daughterB_mass;
-        }
-        else
-          switchTrackPosition = particleAPID > particleBPID;
-        if (switchTrackPosition)
-        {
-          temp = daughterArray[particleAElement];
-          daughterArray[particleAElement] = daughterArray[particleBElement];
-          daughterArray[particleBElement] = temp;
-        }
-      } 
-    }
-    num_tracks_used_by_intermediates += m_num_tracks_from_intermediate_nTuple[k];
-  }
-
-  int num_remaining_tracks = m_num_tracks_nTuple - num_tracks_used_by_intermediates;
-  for (int i = 0; i < num_remaining_tracks; i++) 
-  {
-    for (int j = i + 1; j < num_remaining_tracks; j++)
-    {
-      int particleAElement = i + num_tracks_used_by_intermediates; 
-      int particleBElement = j + num_tracks_used_by_intermediates;
-      int particleAPID = daughterArray[particleAElement].GetPDG();
-      int particleBPID = daughterArray[particleBElement].GetPDG();
- 
-      if (m_get_charge_conjugate_nTuple)
-      {
-        float daughterA_mass = 0, daughterB_mass = 0;
-        for (const auto& key : particleMasses_nTuple)
-        {
-          if (key.second.first == abs(particleAPID))
-            daughterA_mass = key.second.second;
-          if (key.second.first == abs(particleBPID))
-            daughterB_mass = key.second.second;
-        }
-        switchTrackPosition = daughterA_mass > daughterB_mass;
-      }
-      else
-        switchTrackPosition = particleAPID > particleBPID;
-      if (switchTrackPosition)
-      {
-        temp = daughterArray[particleAElement];
-        daughterArray[particleAElement] = daughterArray[particleBElement];
-        daughterArray[particleBElement] = temp;
-      }
-    }
-  }
-
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
@@ -452,11 +472,29 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     //m_calculated_daughter_cov[i]          = &daughterArray[i].CovarianceMatrix()[0];
     for (int j = 0; j < 21; ++j) m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
 
-    if (m_truth_matching) kfpTruthAndDetTools.fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex, m_constrain_to_vertex_nTuple);
-    if (m_detector_info) kfpTruthAndDetTools.fillDetectorBranch(topNode, m_tree, daughterArray[i], i);
+    if (m_calo_info) fillCaloBranch(topNode, m_tree, daughterArray[i], i);
+    if (m_truth_matching) fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex, m_constrain_to_vertex_nTuple);
+    if (m_truth_matching) getHepMCInfo(topNode, m_tree, daughterArray[i], i);
+    if (m_detector_info) fillDetectorBranch(topNode, m_tree, daughterArray[i], i);
   }
 
   int iter = 0;
+  //Calcualte jT wrt their own mother, not grandmother
+  for (int k = 0; k < m_num_intermediate_states_nTuple; ++k) 
+  {
+    for (int j = 0; j < m_num_tracks_from_intermediate_nTuple[k]; ++j)
+    {
+      m_calculated_daughter_jt[iter] = kfpTupleTools.calculateJT(intermediateArray[k], daughterArray[iter]);
+      ++iter;
+    }
+  }
+  for (int k = 0; k < num_remaining_tracks; k++)
+  {
+   m_calculated_daughter_jt[iter] = kfpTupleTools.calculateJT(motherParticle, daughterArray[iter]);
+   ++iter;
+  } 
+
+  iter = 0;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
     for (int j = 0; j < m_num_tracks_nTuple; ++j)
       if (i < j)
@@ -464,6 +502,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
         m_daughter_dca[iter] = daughterArray[i].GetDistanceFromParticle(daughterArray[j]);
         ++iter;
       }
+
+  if (m_get_all_PVs)
+  {
+    std::vector<KFParticle> sortedDaughterVector;
+    for (int i = 0; i < m_num_tracks_nTuple; ++i) sortedDaughterVector.push_back(daughterArray[i]); 
+    allPVInfo(topNode, m_tree, motherParticle, sortedDaughterVector, intermediates);
+  }
 
   if (m_constrain_to_vertex_nTuple)
   {
@@ -482,8 +527,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_vertex_ndof = vertex.GetNDF();
     //m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j) m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
-    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex);
+    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex, m_vtx_map_node_name_nTuple);
   }
+
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
@@ -506,6 +552,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   m_tree->Fill();
+
+  if (m_truth_matching || m_detector_info) clearVectors();
 }
 
 float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters)
@@ -525,3 +573,4 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
 
   return mother_noPID.GetMass();
 }
+

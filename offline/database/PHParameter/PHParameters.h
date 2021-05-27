@@ -33,9 +33,9 @@ class PHParameters : public PHObject
   }
   PHParameters(const PHParameters &params, const std::string &name);
 
-  virtual ~PHParameters();
+  ~PHParameters() override;
 
-  void Print(Option_t *option = "") const;
+  void Print(Option_t *option = "") const override;
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;

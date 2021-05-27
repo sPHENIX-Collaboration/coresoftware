@@ -39,7 +39,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
   }
    
   //! reset
-  virtual void Reset();
+  void Reset() override;
 
   //! event information
   /*! do not modify and commit: this will break reading past DSTs */
@@ -286,7 +286,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
   //! tracks array
   TrackStruct::List m_tracks;
     
-  ClassDef(TrackEvaluationContainerv1,1)
+  ClassDefOverride(TrackEvaluationContainerv1,1)
     
 };
 

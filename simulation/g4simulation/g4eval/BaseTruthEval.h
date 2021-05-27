@@ -13,7 +13,7 @@ class PHG4VtxPoint;
 class BaseTruthEval
 {
  public:
-  BaseTruthEval(PHCompositeNode* topNode);
+  explicit BaseTruthEval(PHCompositeNode* topNode);
   virtual ~BaseTruthEval();
 
   /// reinitialize the eval for a new event

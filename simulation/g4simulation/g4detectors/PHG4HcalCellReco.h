@@ -17,18 +17,18 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 
   PHG4HcalCellReco(const std::string &name = "HcalCellReco");
 
-  virtual ~PHG4HcalCellReco(){}
+  ~PHG4HcalCellReco() override{}
   
   //! module initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
   
     //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
   
   //! end of process
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
   
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   void Detector(const std::string &d) {detector = d;}
   void checkenergy(const int i=1) {chkenergyconservation = i;}

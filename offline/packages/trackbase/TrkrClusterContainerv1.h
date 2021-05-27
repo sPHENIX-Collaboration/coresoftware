@@ -34,29 +34,29 @@ class TrkrClusterContainerv1 : public TrkrClusterContainer
 
   TrkrClusterContainerv1() = default;
   
-  virtual void Reset();
+  void Reset() override;
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
 
-  virtual ConstIterator addCluster(TrkrCluster *newClus);
+  ConstIterator addCluster(TrkrCluster *newClus) override;
 
-  virtual ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
+  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus) override;
 
-  virtual void removeCluster(TrkrDefs::cluskey);
+  void removeCluster(TrkrDefs::cluskey) override;
 
-  virtual void removeCluster(TrkrCluster*);
+  void removeCluster(TrkrCluster*) override;
 
-  virtual Iterator findOrAddCluster(TrkrDefs::cluskey key);
+  Iterator findOrAddCluster(TrkrDefs::cluskey key) override;
   
-  virtual ConstRange getClusters() const;
+  ConstRange getClusters() const override;
 
-  virtual TrkrCluster *findCluster(TrkrDefs::cluskey key) const;
+  TrkrCluster *findCluster(TrkrDefs::cluskey key) const override;
 
-  virtual unsigned int size() const;
+  unsigned int size() const override;
 
   private:
   Map m_clusmap;
-  ClassDef(TrkrClusterContainerv1, 1)
+  ClassDefOverride(TrkrClusterContainerv1, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTERCONTAINER_H

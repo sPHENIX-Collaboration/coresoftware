@@ -33,16 +33,16 @@ class PHG4DSTReader : public SubsysReco
 {
  public:
   PHG4DSTReader(const std::string &filename);
-  virtual ~PHG4DSTReader();
+  ~PHG4DSTReader() override;
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   void
   AddNode(const std::string &name)

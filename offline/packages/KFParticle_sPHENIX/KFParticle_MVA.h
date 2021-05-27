@@ -31,7 +31,7 @@ virtual ~KFParticle_MVA() {}
 
  protected:
   unsigned int m_nPars = 1;
-  std::string m_mva_variable_list[99];
+  std::vector<std::string> m_mva_variable_list;
   std::string m_mva_type;
   std::string m_mva_path;
 

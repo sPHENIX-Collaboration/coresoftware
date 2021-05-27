@@ -8,6 +8,7 @@
 #include <TObject.h>
 #include <TROOT.h>
 
+#include <algorithm>  // for max
 #include <cassert>
 #include <cstddef>  // for size_t
 #include <iostream>
