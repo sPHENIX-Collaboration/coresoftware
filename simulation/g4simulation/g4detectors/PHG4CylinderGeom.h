@@ -16,10 +16,10 @@ class PHG4CylinderGeom: public PHObject
 {
  public:
 
-  virtual ~PHG4CylinderGeom() {}
+  ~PHG4CylinderGeom() override {}
 
 // from PHObject
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual int get_layer() const {PHOOL_VIRTUAL_WARN("get_layer()"); return -99999;}
   virtual double get_radius() const {PHOOL_VIRTUAL_WARN("get_radius()");return NAN;}

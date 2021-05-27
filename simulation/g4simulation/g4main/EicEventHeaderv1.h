@@ -14,7 +14,7 @@ class EicEventHeaderv1 : public EicEventHeader
  public:
   EicEventHeaderv1() {}
   explicit EicEventHeaderv1(const EicEventHeader *eicevt);
-  virtual ~EicEventHeaderv1() {}
+  ~EicEventHeaderv1() override {}
 
   //  void identify(std::ostream& os  = std::cout) const;
   void Reset() override;

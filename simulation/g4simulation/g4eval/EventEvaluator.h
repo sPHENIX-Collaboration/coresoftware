@@ -33,11 +33,11 @@ class EventEvaluator : public SubsysReco
  public:
   EventEvaluator(const std::string& name = "EventEvaluator",
                  const std::string& filename = "g4eval_cemc.root");
-  virtual ~EventEvaluator(){};
+  ~EventEvaluator() override{};
 
-  int Init(PHCompositeNode* topNode);
-  int process_event(PHCompositeNode* topNode);
-  int End(PHCompositeNode* topNode);
+  int Init(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
+  int End(PHCompositeNode* topNode) override;
 
   void set_strict(bool b) { _strict = b; }
 

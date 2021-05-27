@@ -12,7 +12,7 @@ class G4RootRawTowerContainer : public PHObject
 {
  public:
   G4RootRawTowerContainer();
-  virtual ~G4RootRawTowerContainer();
+  ~G4RootRawTowerContainer() override;
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

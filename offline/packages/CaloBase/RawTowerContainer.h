@@ -25,7 +25,7 @@ class RawTowerContainer : public PHObject
   {
   }
 
-  virtual ~RawTowerContainer() {}
+  ~RawTowerContainer() override {}
 
   void Reset() override;
   int isValid() const override;

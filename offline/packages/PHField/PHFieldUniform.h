@@ -11,12 +11,12 @@ class PHFieldUniform : public PHField
       double field_mag_x,
       double field_mag_y,
       double field_mag_z);
-  virtual ~PHFieldUniform() {}
+  ~PHFieldUniform() override {}
   //! access field value
   //! Follow the convention of G4ElectroMagneticField
   //! @param[in]  Point   space time coordinate. x, y, z, t in Geant4/CLHEP units
   //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in in Geant4/CLHEP units
-  void GetFieldValue(const double Point[4], double *Bfield) const;
+  void GetFieldValue(const double Point[4], double *Bfield) const override;
 
   double get_field_mag_x() const
   {

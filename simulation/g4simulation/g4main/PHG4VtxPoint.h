@@ -12,9 +12,9 @@
 class PHG4VtxPoint: public PHObject
 {
  public:
-  virtual ~PHG4VtxPoint() {}
+  ~PHG4VtxPoint() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual void set_x(const double r) {}
   virtual void set_y(const double r) {}

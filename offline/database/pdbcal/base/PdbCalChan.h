@@ -19,7 +19,7 @@ class PdbCalChan : public PHObject{
 
 public:
   PdbCalChan() {}
-  virtual ~PdbCalChan() {}
+  ~PdbCalChan() override {}
   
   virtual void print() const = 0;
 

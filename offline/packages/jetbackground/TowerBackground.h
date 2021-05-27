@@ -8,10 +8,10 @@
 class TowerBackground : public PHObject
 {
  public:
-  virtual ~TowerBackground(){};
+  ~TowerBackground() override{};
 
-  virtual void identify(std::ostream &os = std::cout) const override { os << "TowerBackground base class" << std::endl; };
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream &os = std::cout) const override { os << "TowerBackground base class" << std::endl; };
+  int isValid() const override { return 0; }
 
   virtual void set_UE(int layer, const std::vector<float> &UE) {}
   virtual void set_v2(float v2) {}

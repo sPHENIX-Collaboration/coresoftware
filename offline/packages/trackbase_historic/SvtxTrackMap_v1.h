@@ -15,7 +15,7 @@ class SvtxTrackMap_v1 : public SvtxTrackMap
   SvtxTrackMap_v1();
   SvtxTrackMap_v1(const SvtxTrackMap_v1& trackmap);
   SvtxTrackMap_v1& operator=(const SvtxTrackMap_v1& trackmap);
-  virtual ~SvtxTrackMap_v1();
+  ~SvtxTrackMap_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;

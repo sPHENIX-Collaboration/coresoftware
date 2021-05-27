@@ -756,11 +756,11 @@ int PHPatternReco::translate_input(PHCompositeNode* topNode) {
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
 
-  auto hitsetrange = m_hitsets->getHitSets();
+  auto hitsetrange = _hitsets->getHitSets();
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr){
-    auto range = m_clusterMap->getClusters(hitsetitr->first);
+    auto range = _clustermap->getClusters(hitsetitr->first);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;

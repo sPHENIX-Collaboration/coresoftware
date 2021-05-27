@@ -28,10 +28,10 @@ class ParticleFlowElement : public PHObject
   };
 
   ParticleFlowElement() {}
-  virtual ~ParticleFlowElement() {}
+  ~ParticleFlowElement() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int id) { return; }

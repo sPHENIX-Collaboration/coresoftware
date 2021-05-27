@@ -10,7 +10,7 @@ class G4RootRawTower : public PHObject
  public:
   G4RootRawTower();
   G4RootRawTower(const float ieta, const float iphi, const float e);
-  virtual ~G4RootRawTower() {}
+  ~G4RootRawTower() override {}
 
   void Reset() override;
   int isValid() const override;

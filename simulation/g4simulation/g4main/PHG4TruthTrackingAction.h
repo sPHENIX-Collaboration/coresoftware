@@ -24,17 +24,17 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   PHG4TruthTrackingAction(PHG4TruthEventAction*);
 
   //! destructor
-  virtual ~PHG4TruthTrackingAction() {}
+  ~PHG4TruthTrackingAction() override {}
 
   //! tracking action
-  virtual void PreUserTrackingAction(const G4Track*);
+  void PreUserTrackingAction(const G4Track*) override;
 
-  virtual void PostUserTrackingAction(const G4Track*);
+  void PostUserTrackingAction(const G4Track*) override;
 
   //! Set pointers to the i/o nodes
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
-  int ResetEvent(PHCompositeNode*);
+  int ResetEvent(PHCompositeNode*) override;
 
  private:
   std::map<G4ThreeVector, int> m_VertexMap;

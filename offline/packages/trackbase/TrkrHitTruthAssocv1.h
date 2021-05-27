@@ -27,17 +27,17 @@ class TrkrHitTruthAssocv1 : public TrkrHitTruthAssoc
 
   TrkrHitTruthAssocv1() = default;
  
-  virtual void Reset() override;
+  void Reset() override;
 
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
-  virtual void addAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) override;
+  void addAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) override;
 
-  virtual void findOrAddAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) override;
+  void findOrAddAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) override;
 
-  virtual void removeAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey) override;
+  void removeAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey) override;
   
-  virtual void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const override;
+  void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const override;
 
   private:
   

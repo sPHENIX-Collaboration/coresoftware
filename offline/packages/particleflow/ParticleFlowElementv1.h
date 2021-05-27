@@ -18,7 +18,7 @@ class ParticleFlowElementv1 : public ParticleFlowElement
 {
  public:
   ParticleFlowElementv1();
-  virtual ~ParticleFlowElementv1() {}
+  ~ParticleFlowElementv1() override {}
   
   // PHObject virtual overloads
   

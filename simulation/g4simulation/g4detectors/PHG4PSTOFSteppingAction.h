@@ -20,13 +20,13 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   PHG4PSTOFSteppingAction(PHG4PSTOFDetector*, const PHParametersContainer*);
 
   //! destructor
-  virtual ~PHG4PSTOFSteppingAction();
+  ~PHG4PSTOFSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
   //! pointer to the detector

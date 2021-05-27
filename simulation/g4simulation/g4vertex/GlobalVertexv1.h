@@ -16,7 +16,7 @@ class GlobalVertexv1 : public GlobalVertex
 {
  public:
   GlobalVertexv1();
-  virtual ~GlobalVertexv1();
+  ~GlobalVertexv1() override;
 
   // PHObject virtual overloads
 

@@ -22,13 +22,13 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4CylinderSteppingAction(PHG4CylinderSubsystem *subsys, PHG4CylinderDetector *detector, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4CylinderSteppingAction();
+  ~PHG4CylinderSteppingAction() override;
 
   //! stepping action
-  bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
   void SaveLightYield(const int i = 1) { m_SaveLightYieldFlag = i; }
 

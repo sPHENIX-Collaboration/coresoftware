@@ -44,7 +44,7 @@ class PHG4CylinderGeomv4: public PHG4CylinderGeom
     strip_tilt(st)
   {}
 
-  virtual ~PHG4CylinderGeomv4() {}
+  ~PHG4CylinderGeomv4() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

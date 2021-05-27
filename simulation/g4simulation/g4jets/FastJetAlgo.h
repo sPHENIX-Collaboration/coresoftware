@@ -11,11 +11,11 @@ class FastJetAlgo : public JetAlgo
 {
  public:
   FastJetAlgo(Jet::ALGO algo, float par, int verbosity = 0);
-  virtual ~FastJetAlgo() {}
+  ~FastJetAlgo() override {}
 
-  void identify(std::ostream& os = std::cout);
-  Jet::ALGO get_algo() { return _algo; }
-  float get_par() { return _par; }
+  void identify(std::ostream& os = std::cout) override;
+  Jet::ALGO get_algo() override { return _algo; }
+  float get_par() override { return _par; }
 
   void set_do_SoftDrop( bool do_SD ) {
     _do_SD = do_SD;
@@ -29,7 +29,7 @@ class FastJetAlgo : public JetAlgo
     _SD_zcut = zcut;
   }
 
-  std::vector<Jet*> get_jets(std::vector<Jet*> particles);
+  std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
 
  private:
   int _verbosity;

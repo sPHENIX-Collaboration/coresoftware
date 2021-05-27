@@ -17,21 +17,21 @@ class Fun4AllNoSyncDstInputManager : public Fun4AllDstInputManager
  public:
   Fun4AllNoSyncDstInputManager(const std::string& name = "DUMMY", const std::string& nodename = "DST", const std::string& topnodename = "TOP");
 
-  virtual ~Fun4AllNoSyncDstInputManager() {}
+  ~Fun4AllNoSyncDstInputManager() override {}
 
   // Effectivly turn off the synchronization checking
   //
-  int SyncIt(const SyncObject* /*mastersync*/) { return Fun4AllReturnCodes::SYNC_OK; }
-  int GetSyncObject(SyncObject** /*mastersync*/) { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
-  int NoSyncPushBackEvents(const int nevt) { return PushBackEvents(nevt); }
+  int SyncIt(const SyncObject* /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int NoSyncPushBackEvents(const int nevt) override { return PushBackEvents(nevt); }
   // no sync object we don't need to enable the sync variables
-  int setSyncBranches(PHNodeIOManager* /*IManager*/) { return 0; }
+  int setSyncBranches(PHNodeIOManager* /*IManager*/) override { return 0; }
 
   // turn off reading of the runwise TTree to make run mixing for embedding possible
   int NoRunTTree();
 
-  int SkipForThisManager(const int nevents) { return PushBackEvents(nevents); }
-  int HasSyncObject() const { return 0; }
+  int SkipForThisManager(const int nevents) override { return PushBackEvents(nevents); }
+  int HasSyncObject() const override { return 0; }
 };
 
 #endif  // FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H

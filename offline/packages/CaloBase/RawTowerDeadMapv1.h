@@ -13,24 +13,24 @@ class RawTowerDeadMapv1 : public RawTowerDeadMap
     : _caloid(caloid)
   {
   }
-  virtual ~RawTowerDeadMapv1() {}
+  ~RawTowerDeadMapv1() override {}
 
-  virtual void Reset() override;
-  virtual int isValid() const override;
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
-  virtual void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) override { _caloid = caloid; }
-  virtual RawTowerDefs::CalorimeterId getCalorimeterID() override { return _caloid; }
-  virtual void addDeadTower(const unsigned int ieta, const unsigned int iphi) override;
-  virtual void addDeadTower(RawTowerDefs::keytype key) override;
+  void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) override { _caloid = caloid; }
+  RawTowerDefs::CalorimeterId getCalorimeterID() override { return _caloid; }
+  void addDeadTower(const unsigned int ieta, const unsigned int iphi) override;
+  void addDeadTower(RawTowerDefs::keytype key) override;
 
-  virtual bool isDeadTower(RawTowerDefs::keytype key) override;
-  virtual bool isDeadTower(const unsigned int ieta, const unsigned int iphi) override;
+  bool isDeadTower(RawTowerDefs::keytype key) override;
+  bool isDeadTower(const unsigned int ieta, const unsigned int iphi) override;
   //! return all towers
-  virtual const Map &getDeadTowers(void) const override;
-  virtual Map &getDeadTowers(void) override;
+  const Map &getDeadTowers(void) const override;
+  Map &getDeadTowers(void) override;
 
-  virtual unsigned int size() const override { return m_DeadTowers.size(); }
+  unsigned int size() const override { return m_DeadTowers.size(); }
 
  private:
   RawTowerDefs::CalorimeterId _caloid;

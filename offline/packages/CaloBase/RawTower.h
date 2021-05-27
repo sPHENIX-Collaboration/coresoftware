@@ -3,15 +3,15 @@
 
 #include "RawTowerDefs.h"
 
-#include <g4detectors/PHG4CellDefs.h>
-
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
 #include <climits>
 #include <cmath>
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
+#include <string>  // for string
 #include <utility>
 
 class RawTower : public PHObject
@@ -32,15 +32,15 @@ class RawTower : public PHObject
   typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
   typedef std::pair<ShowerConstIterator, ShowerConstIterator> ShowerConstRange;
 
-  virtual ~RawTower() {}
+  ~RawTower() override {}
 
-  virtual void Reset() override { PHOOL_VIRTUAL_WARNING; }
-  virtual int isValid() const override
+  void Reset() override { PHOOL_VIRTUAL_WARNING; }
+  int isValid() const override
   {
     PHOOL_VIRTUAL_WARN("isValid()");
     return 0;
   }
-  virtual void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARN("identify()"); }
+  void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARN("identify()"); }
 
   virtual void set_id(RawTowerDefs::keytype id) { PHOOL_VIRTUAL_WARN("set_id()"); }
   virtual RawTowerDefs::keytype get_id() const

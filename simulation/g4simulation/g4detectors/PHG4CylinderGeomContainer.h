@@ -21,7 +21,7 @@ class PHG4CylinderGeomContainer: public PHObject
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   PHG4CylinderGeomContainer();
-  virtual ~PHG4CylinderGeomContainer();
+  ~PHG4CylinderGeomContainer() override;
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

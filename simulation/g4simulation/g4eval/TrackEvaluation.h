@@ -35,16 +35,16 @@ class TrackEvaluation : public SubsysReco
   TrackEvaluation( const std::string& = "TrackEvaluation" );
 
   //! global initialization
-  virtual int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //! run initialization
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! end of processing
-  virtual int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   enum Flags
   {

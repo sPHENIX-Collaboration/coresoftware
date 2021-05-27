@@ -5,10 +5,9 @@
 
 #include "RawTowerDefs.h"
 
-#include <cstddef>
+#include <cstdint>  // for uint8_t
 #include <iostream>
 #include <map>
-#include <utility>
 
 //! RawTowerv1 but allow flexible tags
 class RawTowerv2 : public RawTowerv1
@@ -20,7 +19,7 @@ class RawTowerv2 : public RawTowerv1
   RawTowerv2(const unsigned int ieta, const unsigned int iphi);
   RawTowerv2(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
-  virtual ~RawTowerv2() {}
+  ~RawTowerv2() override {}
 
   void Reset() override;
   int isValid() const override;

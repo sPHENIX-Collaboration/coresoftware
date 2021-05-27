@@ -77,10 +77,10 @@ class PHActsSiliconSeeding : public SubsysReco
 {
  public:
   PHActsSiliconSeeding(const std::string& name = "PHActsSiliconSeeding");
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   /// Set seeding with truth clusters
   void useTruthClusters(bool useTruthClusters)

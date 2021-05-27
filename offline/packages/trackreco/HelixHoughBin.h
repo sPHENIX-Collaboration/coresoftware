@@ -23,15 +23,15 @@ class HelixHoughBin : public PHObject
   typedef std::set<unsigned int>::const_iterator ConstClusterIter;
   typedef std::set<unsigned int>::iterator ClusterIter;
 
-  virtual ~HelixHoughBin() {}
+  ~HelixHoughBin() override {}
 
   // The "standard PHObject response" functions...
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "HelixHoughBin base class" << std::endl;
   }
-  virtual int isValid() const override { return 0; }
-  virtual PHObject* CloneMe() const override { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   virtual void init() {}
 

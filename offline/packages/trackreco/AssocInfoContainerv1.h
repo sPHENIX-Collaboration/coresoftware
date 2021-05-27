@@ -16,7 +16,7 @@ class AssocInfoContainerv1 : public AssocInfoContainer
   typedef std::multimap<TrkrDefs::cluskey, unsigned int> ClusterTrackMap;
 
   AssocInfoContainerv1();
-  virtual ~AssocInfoContainerv1();
+  ~AssocInfoContainerv1() override;
 
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;

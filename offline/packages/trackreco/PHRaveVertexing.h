@@ -43,19 +43,19 @@ class PHRaveVertexing : public SubsysReco
   PHRaveVertexing(const std::string& name = "PHRaveVertexing");
 
   //! dtor
-  ~PHRaveVertexing();
+  ~PHRaveVertexing() override;
 
   //!Initialization, called for initialization
-  int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //!Initialization Run, called for initialization of a run
-  int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //!Process Event, called for each event
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //!End, write and close files
-  int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   const std::string& get_vertexing_method() const
   {

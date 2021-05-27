@@ -32,12 +32,12 @@ class JetReco : public SubsysReco
 {
  public:
   JetReco(const std::string &name = "JetReco");
-  virtual ~JetReco();
+  ~JetReco() override;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void add_input(JetInput *input) { _inputs.push_back(input); }
   void add_algo(JetAlgo *algo, std::string output)

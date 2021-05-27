@@ -15,10 +15,10 @@ class PHG4EventHeaderv1: public PHG4EventHeader
   PHG4EventHeaderv1();
 
   /// dtor
-  virtual ~PHG4EventHeaderv1() {}
+  ~PHG4EventHeaderv1() override {}
 
   /// Clear Event
-  virtual void Reset() override;
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 

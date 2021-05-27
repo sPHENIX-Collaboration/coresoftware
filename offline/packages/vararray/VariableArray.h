@@ -10,7 +10,7 @@ class VariableArray : public PHObject
 {
  public:
   VariableArray(const unsigned int idval = 0);
-  virtual ~VariableArray();
+  ~VariableArray() override;
 
   void identify(std::ostream &os = std::cout) const override;
 

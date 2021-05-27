@@ -29,7 +29,7 @@ class PHG4HitContainer: public PHObject
   PHG4HitContainer(); //< used only by ROOT for DST readback
   PHG4HitContainer(const std::string &nodename);
 
-  virtual ~PHG4HitContainer() {}
+  ~PHG4HitContainer() override {}
 
   void Reset() override;
 

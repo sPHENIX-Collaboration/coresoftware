@@ -18,15 +18,15 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
  public:
   PHG4InttHitReco(const std::string &name = "PHG4InttHitReco");
 
-  virtual ~PHG4InttHitReco();
+  ~PHG4InttHitReco() override;
   //! module initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! set default parameter values
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { m_Detector = d; }
 

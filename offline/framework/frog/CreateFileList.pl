@@ -96,6 +96,7 @@ if (defined $prodtype)
 	print "no file substring for production type $prodtype\n";
 	exit(1);
     }
+    &fill_other_types();
 }
 
 if ($#ARGV < 0)
@@ -317,7 +318,7 @@ foreach my $seg (sort @segarray)
     }
 
 }
-print "wrote the following list files containing $nSelectedEvents events:\n";
+print "wrote the following list files containing >= $nSelectedEvents events:\n";
 foreach my $tp (sort keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
@@ -382,4 +383,19 @@ sub fill_nocombine_files
     $nocombine{"JET_EVAL_DST_HF_BOTTOM"} = 1;
     $nocombine{"QA_DST_HF_CHARM"} = 1;
     $nocombine{"QA_DST_HF_BOTTOM"} = 1;
+}
+
+sub fill_other_types
+{
+    my $sqlstring = sprintf("select distinct(dsttype) from datasets where filename like '%%%s%%'",$filenamestring);
+    my $getalltypes = $dbh->prepare($sqlstring);
+    $getalltypes->execute();
+    while (my @res = $getalltypes->fetchrow_array())
+    {
+	if (! exists $filetypes{$res[0]})
+	{
+	    $filetypes{$res[0]} = "No Description";
+	}
+    }
+    $getalltypes->finish();
 }

@@ -21,13 +21,13 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
   PHG4BlockSteppingAction(PHG4BlockDetector *, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4BlockSteppingAction();
+  ~PHG4BlockSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
  private:
   //! pointer to the detector

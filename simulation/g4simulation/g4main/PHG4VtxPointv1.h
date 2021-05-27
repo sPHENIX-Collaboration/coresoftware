@@ -36,7 +36,7 @@ class PHG4VtxPointv1: public PHG4VtxPoint
     id(id_value)
       {}
 
-  virtual ~PHG4VtxPointv1() {}
+  ~PHG4VtxPointv1() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

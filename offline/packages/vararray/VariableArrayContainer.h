@@ -12,7 +12,7 @@ class VariableArrayContainer : public PHObject
 {
  public:
   VariableArrayContainer();
-  virtual ~VariableArrayContainer();
+  ~VariableArrayContainer() override;
 
   void identify(std::ostream &os = std::cout) const override;
   void AddVarArray(VariableArray *var);

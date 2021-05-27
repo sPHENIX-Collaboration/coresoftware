@@ -36,15 +36,15 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   {}
 
   //! print information about this layer
-  virtual void identify(std::ostream&) const override;
+  void identify(std::ostream&) const override;
 
   //!@name accessors
   //@{
-  virtual int get_layer() const override {return m_layer;}
-  virtual double get_radius() const override {return m_radius;}
-  virtual double get_thickness() const override { return m_thickness;}
-  virtual double get_zmin() const override {return m_zmin;}
-  virtual double get_zmax() const override {return m_zmax;}
+  int get_layer() const override {return m_layer;}
+  double get_radius() const override {return m_radius;}
+  double get_thickness() const override { return m_thickness;}
+  double get_zmin() const override {return m_zmin;}
+  double get_zmax() const override {return m_zmax;}
   double get_pitch() const { return m_pitch; }
 
   //! segmentation type
@@ -137,11 +137,11 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   //!@name modifiers
   //@{
-  virtual void set_layer(const int i) override {m_layer = i;}
-  virtual void set_radius(const double value) override {m_radius = value;}
-  virtual void set_thickness(const double value) override {m_thickness = value;}
-  virtual void set_zmin(const double value) override {m_zmin = value;}
-  virtual void set_zmax(const double value) override {m_zmax = value;}
+  void set_layer(const int i) override {m_layer = i;}
+  void set_radius(const double value) override {m_radius = value;}
+  void set_thickness(const double value) override {m_thickness = value;}
+  void set_zmin(const double value) override {m_zmin = value;}
+  void set_zmax(const double value) override {m_zmax = value;}
   void set_pitch( double value ) { m_pitch = value; }
 
   //! tiles

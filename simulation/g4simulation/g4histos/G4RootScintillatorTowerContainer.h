@@ -13,7 +13,7 @@ class G4RootScintillatorTowerContainer : public PHObject
 {
  public:
   G4RootScintillatorTowerContainer();
-  virtual ~G4RootScintillatorTowerContainer();
+  ~G4RootScintillatorTowerContainer() override;
 
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
