@@ -44,6 +44,8 @@ SvtxTrack *_track{nullptr};
 
  TpcSeedTrackMap *_seed_track_map_class;
 
+ unsigned int min_clusters = 20;
+
 };
 
 #endif // PHTRACKCLEANER_H
