@@ -1875,11 +1875,13 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     std::vector<std::pair<std::string, TrackSource_t>> trackMapInfo = {
         {"TrackMap", TrackSource_t::all},
         {"TrackMapInner", TrackSource_t::inner}};
+    bool foundAtLeastOneTrackSource = false;
     for (const auto& trackMapInfo : trackMapInfo)
     {
       SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackMapInfo.first);
       if (trackmap)
       {
+        foundAtLeastOneTrackSource = true;
         int nTracksInASource = 0;
         if (Verbosity() > 0)
         {
@@ -1986,8 +1988,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         {
           cout << PHWHERE << "SvtxTrackMap node with name '" << trackMapInfo.first << "' not found on node tree" << endl;
         }
-        return;
       }
+    }
+    if (foundAtLeastOneTrackSource == false) {
+      cout << PHWHERE << "Requested tracks, but found no sources on node tree. Returning" << endl;
+      return;
     }
   }
   //------------------------
