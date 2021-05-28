@@ -116,7 +116,7 @@ Float_t approx(std::vector<UShort_t>* order, std::vector<Float_t>* dict, std::ve
       (*order)[index] = dict->size();
 	  
 	  t->GetEntry(index);
-	  Double_t delta = abs(*gen_ - estimate);
+	  Double_t delta = std::fabs(*gen_ - estimate);
 	  squaredSum += (delta * delta);
 	  sum += delta;
 	}
