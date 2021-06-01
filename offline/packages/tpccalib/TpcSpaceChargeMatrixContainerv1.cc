@@ -33,6 +33,10 @@ void TpcSpaceChargeMatrixContainerv1::get_grid_dimensions( int& phibins, int& rb
 }
 
 //___________________________________________________________
+int TpcSpaceChargeMatrixContainerv1::get_grid_size() const
+{ return m_phibins*m_rbins*m_zbins; }
+
+//___________________________________________________________
 int TpcSpaceChargeMatrixContainerv1::get_cell_index( int iphi, int ir, int iz ) const
 {
   if( iphi < 0 || iphi >= m_phibins ) return -1;

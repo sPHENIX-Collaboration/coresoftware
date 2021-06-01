@@ -34,6 +34,9 @@ class TpcSpaceChargeMatrixContainerv1 : public TpcSpaceChargeMatrixContainer
   /// get grid dimensions
   void get_grid_dimensions( int& phibins, int& rbins, int& zbins ) const override;
   
+  /// get grid size
+  int get_grid_size() const override;
+  
   /// get grid index for given sub-indexes
   int get_cell_index( int iphibin, int irbin, int izbin ) const override;
 

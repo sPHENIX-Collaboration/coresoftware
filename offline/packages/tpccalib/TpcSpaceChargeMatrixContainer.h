@@ -37,6 +37,10 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   virtual void get_grid_dimensions( int& phibins, int& rbins, int& zbins ) const
   {}
   
+  /// get total grid size
+  virtual int get_grid_size() const
+  { return 0; }
+  
   /// get grid index for given sub-indexes
   virtual int get_cell_index( int iphibin, int irbin, int izbin ) const
   { return -1; }
