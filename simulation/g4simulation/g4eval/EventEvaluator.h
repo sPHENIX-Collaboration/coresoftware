@@ -31,6 +31,12 @@ class TTree;  //Added by Barak
 class EventEvaluator : public SubsysReco
 {
  public:
+  enum class TrackSource_t : unsigned short
+  {
+    all = 0,
+    inner = 1
+  };
+
   EventEvaluator(const std::string& name = "EventEvaluator",
                  const std::string& filename = "g4eval_cemc.root");
   ~EventEvaluator() override{};
@@ -65,6 +71,12 @@ class EventEvaluator : public SubsysReco
   void set_reco_tracing_energy_threshold(float thresh)
   {
     _reco_e_threshold = thresh;
+  }
+
+  //! max depth/generation of the MC_particle/PHG4Particle that would be saved.
+  void set_depth_MCstack(int d)
+  {
+    _depth_MCstack = d;
   }
 
  private:
@@ -213,6 +225,7 @@ class EventEvaluator : public SubsysReco
   float* _track_py;
   float* _track_pz;
   float* _track_trueID;
+  unsigned short* _track_source;
 
   int _nProjections;
   float* _track_ProjTrackID;

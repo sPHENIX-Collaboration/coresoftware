@@ -1,0 +1,6 @@
+This is the initial attempt to port the distortion generator code to run on racf.
+
+Some important notes:
+- AnnularFieldSim will look for a lookup table in the current directory containing the constants to the Rossegger decomposition of the TPC interior with a certain cell size.  If this file is not present, it will regenerate it.  At the default resolution settings, this single-threaded task takes about a day.  For the time being, Ross maintains this 1gb file, along with external E- and B- field maps in /sphenix/user/rcorliss/rossegger/.  If you wish to change this, it is currently hardcoded in the macro for each of the three.
+- The macro that runs AnnularFieldSim has very specific expectations of the charge maps that feed into it.  Evgeny's current file format works, but if the size of the TH3s in there changes dramatically, things may break in funny ways.
+- This does not currently compile.  Some dependencies that resolve when compiled on a home machine do not link correctly here.
