@@ -10,15 +10,14 @@
 
 #include <TString.h>
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-
+#include <memory>
 #include <vector>
 
 // forward declaration
 class SvtxTrack;
 class SvtxTrackMap;
 class TH3;
+class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 
@@ -98,14 +97,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// calculate distortions
   void calculate_distortions( PHCompositeNode* );
 
-  /// get cell from phi, r and z index
-  int get_cell( int iphi, int ir, int iz ) const;
-
-  /// get cell from phi, r and z values
-  int get_cell( float phi, float r, float z ) const;
-
   /// get relevant cell for a given cluster
-  int get_cell( TrkrCluster* ) const;
+  int get_cell_index( TrkrCluster* ) const;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeReconstruction.root";
@@ -131,14 +124,6 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   //@}
 
-  ///@name grid size
-  //@{
-  int m_phibins = 36;
-  int m_rbins = 16;
-  int m_zbins = 80;
-  int m_totalbins = m_phibins*m_rbins*m_zbins;
-  //@}
-
   ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
@@ -150,20 +135,9 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   float m_max_dz = 0.5;
   //@}
 
-  // shortcut for relevant eigen matrices
-  static constexpr int m_ncoord = 3;
-  using matrix_t = Eigen::Matrix<float, m_ncoord, m_ncoord >;
-  using column_t = Eigen::Matrix<float, m_ncoord, 1 >;
-
-  /// left hand side matrices for distortion inversions
-  std::vector<matrix_t> m_lhs;
-
-  /// right hand side matrices for distortion inversions
-  std::vector<column_t> m_rhs;
-
-  /// keep track of how many clusters are used per cell
-  std::vector<int> m_cluster_count;
-
+  /// matrix container
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
+  
   ///@name counters
   //@{
   int m_total_tracks = 0;
