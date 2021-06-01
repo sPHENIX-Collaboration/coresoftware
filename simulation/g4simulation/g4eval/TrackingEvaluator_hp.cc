@@ -48,8 +48,8 @@ namespace
     T m_range;
   };
   
-  //! square
-  template<class T> inline constexpr T square( T x ) { return x*x; }
+  /// square
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
 
   //! radius
   template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
