@@ -31,7 +31,7 @@ namespace
 {
 
   /// square
-  template<class T> T square( T x ) { return x*x; }
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
 
   /// calculate delta_phi between -pi and pi
   template< class T>
@@ -43,7 +43,7 @@ namespace
   }
 
   /// radius
-  template<class T> T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
+  template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
   /// return number of clusters of a given type that belong to a tracks
   template<int type>
@@ -384,7 +384,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
 {
 
-  // get grid dimentions from matrix container
+  // get grid dimensions from matrix container
   int phibins = 0;
   int rbins = 0;
   int zbins = 0;
@@ -515,7 +515,7 @@ void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::get_cell_index( TrkrCluster* cluster ) const
 {
-  // get grid dimentions from matrix container
+  // get grid dimensions from matrix container
   int phibins = 0;
   int rbins = 0;
   int zbins = 0;
