@@ -34,7 +34,8 @@ pkginclude_HEADERS = \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
   TpcSpaceChargeReconstruction.h \
-  TpcSpaceChargeReconstructionHelper.h
+  TpcSpaceChargeReconstructionHelper.h \
+  PHTpcResiduals.h
 
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
@@ -51,7 +52,8 @@ libtpccalib_io_la_SOURCES = \
 
 libtpccalib_la_SOURCES = \
   TpcSpaceChargeReconstruction.cc \
-  TpcSpaceChargeReconstructionHelper.cc
+  TpcSpaceChargeReconstructionHelper.cc \
+  PHTpcResiduals.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
