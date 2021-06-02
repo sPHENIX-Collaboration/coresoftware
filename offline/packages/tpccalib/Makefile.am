@@ -33,6 +33,7 @@ libtpccalib_la_LIBADD = \
 pkginclude_HEADERS = \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
+  TpcSpaceChargeMatrixInversion.h \
   TpcSpaceChargeReconstruction.h \
   TpcSpaceChargeReconstructionHelper.h \
   PHTpcResiduals.h
@@ -51,6 +52,7 @@ libtpccalib_io_la_SOURCES = \
   TpcSpaceChargeMatrixContainerv1.cc 
 
 libtpccalib_la_SOURCES = \
+  TpcSpaceChargeMatrixInversion.cc \
   TpcSpaceChargeReconstruction.cc \
   TpcSpaceChargeReconstructionHelper.cc \
   PHTpcResiduals.cc
