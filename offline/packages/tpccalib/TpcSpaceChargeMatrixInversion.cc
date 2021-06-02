@@ -38,6 +38,10 @@ TpcSpaceChargeMatrixInversion::TpcSpaceChargeMatrixInversion( const std::string&
 {}
 
 //_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::set_outputfile( const std::string& filename )
+{ m_outputfile = filename; }
+
+//_____________________________________________________________________
 void TpcSpaceChargeMatrixInversion::add( const TpcSpaceChargeMatrixContainer& source )
 {
   // check internal container, create if necessary
