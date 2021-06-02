@@ -53,6 +53,19 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
+  // phi range
+  static constexpr float m_phimin = 0;
+  static constexpr float m_phimax = 2.*M_PI;
+
+  // TODO: could try to get the r and z range from TPC geometry
+  // r range
+  static constexpr float m_rmin = 20;
+  static constexpr float m_rmax = 78;
+
+  // z range
+  static constexpr float m_zmin = -105.5;
+  static constexpr float m_zmax = 105.5;
+
 }
 
 //_____________________________________________________________________
@@ -381,7 +394,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
+void TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* )
 {
 
   // get grid dimensions from matrix container

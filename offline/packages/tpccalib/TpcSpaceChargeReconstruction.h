@@ -32,7 +32,7 @@ class TrkrClusterContainer;
  The chisquare being quadratic in dr0, drphi0 and dz0, it can be minimized analytically.
  This results in a linear equation lhs[i].[corrections] = rhs[i], and thus [corrections] = lhs[i]**(-1).rhs[i]
  The lhs and rhs matrices are filled in TpcSpaceChargeReconstruction::process_track
- The inversion is performed in TpcSpaceChargeReconstruction::calculate_distortions
+ The inversion is performed in TpcSpaceChargeMatrixInversion::calculate_distortions
  */
 
 class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
@@ -58,9 +58,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// output file
   /**
-  for now only TGraphs of space charge corrections vs r are stored
-  ultimately one wants to save the data in a format that is suitable for use in the reconstruction
-  */
+   * this is the file where space charge matrix container is stored 
+   */
   void set_outputfile( const std::string& filename );
 
   //@}
@@ -105,24 +104,6 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
-
-  ///@name grid dimensions
-  //@{
-
-  // phi range
-  static constexpr float m_phimin = 0;
-  static constexpr float m_phimax = 2.*M_PI;
-
-  // TODO: could try to get the r and z range from TPC geometry
-  // r range
-  static constexpr float m_rmin = 20;
-  static constexpr float m_rmax = 78;
-
-  // z range
-  static constexpr float m_zmin = -105.5;
-  static constexpr float m_zmax = 105.5;
-
-  //@}
 
   ///@name selection parameters
   //@{
