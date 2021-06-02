@@ -47,7 +47,7 @@ int TpcSpaceChargeMatrixContainerv1::get_cell_index( int iphi, int ir, int iz ) 
 
 //___________________________________________________________
 int TpcSpaceChargeMatrixContainerv1::get_entries( int cell_index ) const
-{ 
+{
   // bound check
   if( !bound_check( cell_index ) ) return 0;
   return m_entries[cell_index];
@@ -71,10 +71,10 @@ float TpcSpaceChargeMatrixContainerv1::get_rhs( int cell_index, int i ) const
 
 //___________________________________________________________
 void TpcSpaceChargeMatrixContainerv1::Reset()
-{  
+{
   // reset total number of bins
   const int totalbins = m_phibins*m_rbins*m_zbins;
-  
+
   // reset arrays
   m_entries = std::vector<int>( totalbins, 0 );
   m_lhs = std::vector<matrix_t>( totalbins, {{}} );
@@ -91,23 +91,23 @@ void TpcSpaceChargeMatrixContainerv1::set_grid_dimensions( int phibins, int rbin
 }
 
 //___________________________________________________________
-void TpcSpaceChargeMatrixContainerv1::add_to_entries( int cell_index )
+void TpcSpaceChargeMatrixContainerv1::add_to_entries( int cell_index, int value )
 {
-  if( bound_check( cell_index ) ) 
-  { ++m_entries[cell_index]; }
+  if( bound_check( cell_index ) )
+  { m_entries[cell_index] += value; }
 }
 
 //___________________________________________________________
 void TpcSpaceChargeMatrixContainerv1::add_to_lhs( int cell_index, int i, int j, float value )
 {
-  if( bound_check( cell_index, i, j ) ) 
+  if( bound_check( cell_index, i, j ) )
   { m_lhs[cell_index][get_flat_index(i, j)] += value; }
 }
 
 //___________________________________________________________
 void TpcSpaceChargeMatrixContainerv1::add_to_rhs( int cell_index, int i, float value )
 {
-  if( bound_check( cell_index, i ) ) 
+  if( bound_check( cell_index, i ) )
   { m_rhs[cell_index][i] += value; }
 }
 
@@ -120,21 +120,24 @@ void TpcSpaceChargeMatrixContainerv1::add( const TpcSpaceChargeMatrixContainer& 
   int zbins = 0;
   other.get_grid_dimensions( phibins, rbins, zbins );
   if( (m_phibins != phibins) || (m_rbins != rbins) || (m_zbins != zbins) )
-  { 
+  {
     std::cout << "TpcSpaceChargeMatrixContainerv1::add - inconsistent grid sizes" << std::endl;
     return;
   }
-  
+
   // increment all matrices
   for( size_t cell_index = 0; cell_index < m_lhs.size(); ++cell_index )
+  { add_to_entries( cell_index, other.get_entries( cell_index ) ); }
+
+  for( size_t cell_index = 0; cell_index < m_lhs.size(); ++cell_index )
     for( int i = 0; i < m_ncoord; ++i )
-    for( int j = 0; j < m_ncoord; ++j ) 
+    for( int j = 0; j < m_ncoord; ++j )
   { add_to_lhs( cell_index, i, j, other.get_lhs( cell_index, i, j ) ); }
-  
+
   for( size_t cell_index = 0; cell_index < m_lhs.size(); ++cell_index )
     for( int i = 0; i < m_ncoord; ++i )
   { add_to_rhs( cell_index, i, other.get_rhs( cell_index, i ) ); }
-  
+
 }
 
 //___________________________________________________________
