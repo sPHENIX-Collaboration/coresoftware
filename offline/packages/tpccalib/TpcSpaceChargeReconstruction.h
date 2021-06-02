@@ -16,7 +16,6 @@
 // forward declaration
 class SvtxTrack;
 class SvtxTrackMap;
-class TH3;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
@@ -32,7 +31,7 @@ class TrkrClusterContainer;
  The chisquare being quadratic in dr0, drphi0 and dz0, it can be minimized analytically.
  This results in a linear equation lhs[i].[corrections] = rhs[i], and thus [corrections] = lhs[i]**(-1).rhs[i]
  The lhs and rhs matrices are filled in TpcSpaceChargeReconstruction::process_track
- The inversion is performed in TpcSpaceChargeMatrixInversion::calculate_distortions
+ The actual inversion is performed in TpcSpaceChargeMatrixInversion::calculate_distortions
  */
 
 class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
@@ -92,9 +91,6 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// process track
   void process_track( SvtxTrack* );
-
-  /// calculate distortions
-  void calculate_distortions( PHCompositeNode* );
 
   /// get relevant cell for a given cluster
   int get_cell_index( TrkrCluster* ) const;
