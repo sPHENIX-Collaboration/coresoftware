@@ -1,5 +1,6 @@
 #include "PHTpcResiduals.h"
 #include "TpcSpaceChargeMatrixContainerv1.h"
+#include "TpcSpaceChargeMatrixInversion.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -106,7 +107,12 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
     std::cout << "Number of bad SL propagations " 
 	      << m_nBadProps << std::endl;
 
-  calculateDistortions(topNode);
+  // create matrix inversion object
+  TpcSpaceChargeMatrixInversion inverter;
+  inverter.Verbosity( Verbosity() );
+  inverter.set_outputfile( m_outputfile );
+  inverter.add( *m_matrix_container.get() );
+  inverter.calculate_distortions();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -578,131 +584,6 @@ void PHTpcResiduals::calculateTpcResiduals(
   return;
 }
 
-void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
-{
-  
-  // get grid dimensions from matrix container
-  int phiBins = 0;
-  int rBins = 0;
-  int zBins = 0;
-  m_matrix_container->get_grid_dimensions( phiBins, rBins, zBins );
-  
-  // Create output TH3s
-  auto hentries = new TH3F( "hentries_rec", "hentries_rec", 
-    phiBins, m_phiMin, m_phiMax, 
-    rBins, m_rMin, m_rMax, 
-    zBins, m_zMin, m_zMax );
-  
-  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec",
-    phiBins, m_phiMin, m_phiMax, 
-    rBins, m_rMin, m_rMax, 
-    zBins, m_zMin, m_zMax );
-
-  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", 
-    phiBins, m_phiMin, m_phiMax, 
-    rBins, m_rMin, m_rMax, 
-    zBins, m_zMin, m_zMax );
-
-  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec",  
-    phiBins, m_phiMin, m_phiMax, 
-    rBins, m_rMin, m_rMax, 
-    zBins, m_zMin, m_zMax );
-
-  for( auto h : { hentries, hphi, hz, hr } )
-    {
-      h->GetXaxis()->SetTitle( "#phi [rad]" );
-      h->GetYaxis()->SetTitle( "r [cm]" );
-      h->GetZaxis()->SetTitle( "z [cm]" );
-    }
-
-  // matrix convenience definition
-  /* number of coordinates must match that of the matrix container */
-  static constexpr int ncoord = 3;
-  using matrix_t = Eigen::Matrix<float, ncoord, ncoord >;
-  using column_t = Eigen::Matrix<float, ncoord, 1 >;
-  
-  for(int iphi = 0; iphi < phiBins; ++iphi) {
-    for(int ir = 0; ir < rBins; ++ir) {
-      for(int iz = 0; iz < zBins; ++iz) {
-
-  // get cell index
-  const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
-
-  // minimum number of entries per cell
-  const auto cell_entries = m_matrix_container->get_entries(icell);
-	if(cell_entries < m_minClusCount) {
-	  if(Verbosity() > 10)
-	    std::cout << "Num clusters in bin " << icell 
-		      << " is " << cell_entries
-		      << std::endl;
-	  continue;
-	}
-	  
-
-  // build eigen matrices from container
-  matrix_t lhs;
-  for( int i = 0; i < ncoord; ++i )
-    for( int j = 0; j < ncoord; ++j )
-  { lhs(i,j) = m_matrix_container->get_lhs( icell, i, j ); }
-  
-  column_t rhs;
-  for( int i = 0; i < ncoord; ++i )
-  { rhs(i) = m_matrix_container->get_rhs( icell, i ); }
-  
-  // calculate result using linear solving
-  const auto cov = lhs.inverse();
-	auto partialLu = lhs.partialPivLu();
-	const auto result = partialLu.solve(rhs);
-
-	// fill histograms
-	hentries->SetBinContent( iphi+1, ir+1, iz+1, cell_entries );
-	
-	hphi->SetBinContent( iphi+1, ir+1, iz+1, result(0) );
-	hphi->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(0,0) ) );
-	
-	hz->SetBinContent( iphi+1, ir+1, iz+1, result(1) );
-	hz->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(1,1) ) );
-	
-	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
-	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
-
-	if(Verbosity() > 10)
-	  std::cout << "Bin setting for index " << icell << " with counts "
-		    << cell_entries << " has settings : "
-		    << " drphi:  "<<result(0) << "+/-" << std::sqrt(cov(0,0))
-		    << " dz: "<<result(1) << "+/-" << std::sqrt(cov(1,1))
-		    << " dr: "<<result(2) << "+/-" << std::sqrt(cov(2,2))
-		    << std::endl;
-
-      }
-    }
-  }    
-
-  m_outputFile->cd();
-  residTup->Write();
-
-  h_rphiResid->Write();
-  h_etaResid->Write();
-  h_zResidLayer->Write();
-  h_etaResidLayer->Write();
-  h_zResid->Write();
-  h_index->Write();
-  h_alpha->Write();
-  h_beta->Write();
-
-  for(const auto& h : {hentries, hphi, hr, hz})
-    h->Write();
-
-
-  createHistogram(hentries, "hentries")->Write();
-  createHistogram(hphi, "hIntDistortionP")->Write();
-  createHistogram(hr, "hIntDistortionR")->Write();
-  createHistogram(hz, "hIntDistortionZ")->Write();
-
-  m_outputFile->Close();
-
-}
-
 int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
 
@@ -836,91 +717,3 @@ void PHTpcResiduals::makeHistograms()
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 { m_matrix_container->set_grid_dimensions( phiBins, rBins, zBins ); }
-
-TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
-{
-
-  std::array<int, 3> bins;
-  std::array<double, 3> x_min;
-  std::array<double, 3> x_max;
-  
-  int index = 0;
-  for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
-    {
-      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
-      
-      // increase the number of bins by two
-      bins[index] = axis->GetNbins()+2;
-      
-      // update axis limits accordingly
-      x_min[index] = axis->GetXmin()-bin_width;
-      x_max[index] = axis->GetXmax()+bin_width;
-      ++index;
-    }
-
-  // create new histogram
-  auto hout = new TH3F( name, name,
-			bins[0], x_min[0], x_max[0],
-			bins[1], x_min[1], x_max[1],
-			bins[2], x_min[2], x_max[2] );
-  
-  // update axis legend
-  hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
-  hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
-  hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
-  
-  // copy content
-  const auto phibins = hin->GetXaxis()->GetNbins();
-  const auto rbins = hin->GetYaxis()->GetNbins();
-  const auto zbins = hin->GetZaxis()->GetNbins();
-  
-  // fill center
-  for( int iphi = 0; iphi < phibins; ++iphi )
-    for( int ir = 0; ir < rbins; ++ir )
-      for( int iz = 0; iz < zbins; ++iz )
-	{
-	  hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
-	  hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
-	}
-  
-  // fill guarding phi bins
-  for( int ir = 0; ir < rbins+2; ++ir )
-    for( int iz = 0; iz < zbins+2; ++iz )
-      {
-	hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
-	hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
-	
-	hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
-	hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
-      }
-  
-  // fill guarding r bins
-  for( int iphi = 0; iphi < phibins+2; ++iphi )
-    for( int iz = 0; iz < zbins+2; ++iz )
-      {
-	hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
-	hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
-	
-	hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
-	hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
-      }
-  
-  // fill guarding z bins
-  for( int iphi = 0; iphi < phibins+2; ++iphi )
-    for( int ir = 0; ir < rbins+2; ++ir )
-      {
-	hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
-	hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
-	
-	hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
-	hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
-      }
-  
-  return hout;
-  
-}
-
-
-
-
-

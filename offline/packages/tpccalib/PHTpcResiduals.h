@@ -28,10 +28,8 @@ namespace ActsExamples
 }
 
 #include <memory>
-#include <map>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
 #include <TTree.h>
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
@@ -101,12 +99,8 @@ class PHTpcResiduals : public SubsysReco
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3D& loc);
-
-  /// Calculates distortion matrices and updates pointer to node
-  void calculateDistortions(PHCompositeNode *topNode);
   
   void makeHistograms();
-  TH3* createHistogram(TH3* hin, const TString& name);
   SourceLink makeSourceLink(TrkrCluster* cluster);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   Surface getSurface(TrkrDefs::cluskey cluskey,
