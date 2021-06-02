@@ -7,18 +7,10 @@
  */
 #include <fun4all/Fun4AllBase.h>
 
-#include <TString.h>
-
 #include <memory>
-#include <vector>
 
 // forward declaration
-class SvtxTrack;
-class SvtxTrackMap;
-class TH3;
 class TpcSpaceChargeMatrixContainer;
-class TrkrCluster;
-class TrkrClusterContainer;
 
 /**
  * \class TpcSpaceChargeMatrixInversion
