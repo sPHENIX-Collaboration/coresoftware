@@ -22,13 +22,13 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   /// constructor
   TpcSpaceChargeMatrixContainer()
   {}
-  
+
   /// destructor
   ~TpcSpaceChargeMatrixContainer() override = default;
-  
+
   ///@name accessors
   //@{
-  
+
   /// identify object
   void identify(std::ostream &os = std::cout) const override
   {}
@@ -36,32 +36,32 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   /// get grid dimensions
   virtual void get_grid_dimensions( int& phibins, int& rbins, int& zbins ) const
   {}
-  
+
   /// get total grid size
   virtual int get_grid_size() const
   { return 0; }
-  
+
   /// get grid index for given sub-indexes
   virtual int get_cell_index( int iphibin, int irbin, int izbin ) const
   { return -1; }
-  
+
   /// get entries for a given cell
   virtual int get_entries( int cell_index ) const
   { return 0; }
-  
+
   /// get left hand side
   virtual float get_lhs( int cell_index, int i, int j ) const
   { return 0; }
-   
+
   /// get right hand side
   virtual float get_rhs( int cell_index, int i ) const
   { return 0; }
-  
+
   //@}
-  
+
   ///@name modifiers
   //@{
-  
+
   /// reset method
   void Reset() override
   {}
@@ -77,25 +77,29 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   /// increment cell entries
   virtual void add_to_entries( int cell_index )
   {}
-  
-  /// increment left hand side matrix 
+
+  /// increment cell entries
+  virtual void add_to_entries( int cell_index, int value )
+  {}
+
+  /// increment left hand side matrix
   virtual void add_to_lhs( int cell_index, int i, int j, float value )
   {}
 
-  /// increment right hand side column 
+  /// increment right hand side column
   virtual void add_to_rhs( int cell_index, int i, float value )
   {}
-  
+
   /// add content from other container
   virtual void add( const TpcSpaceChargeMatrixContainer& other )
   {}
 
   //@}
-  
+
   private:
-  
-  ClassDefOverride(TpcSpaceChargeMatrixContainer, 1) 
-  
+
+  ClassDefOverride(TpcSpaceChargeMatrixContainer, 1)
+
 };
 
 #endif
