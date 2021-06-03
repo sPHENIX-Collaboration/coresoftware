@@ -53,6 +53,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   { m_nCentroids = centroids;}
   void setIterations(const int iterations)
   {m_nIterations = iterations;}
+  void removeSiliconSeeds(const bool removeSeeds)
+  {m_removeSeeds = removeSeeds;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -108,6 +110,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   bool m_resetTrackCovariance = true;
   bool m_disableWeights = true;
+  bool m_removeSeeds = false;
 
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
