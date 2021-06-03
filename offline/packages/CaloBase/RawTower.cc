@@ -1,5 +1,9 @@
 #include "RawTower.h"
 
+#include <phool/phool.h>  // for PHOOL_VIRTUAL_WARN
+
+#include <cstdlib>  // for exit
+
 RawTower::CellMap DummyCellMap;
 RawTower::ShowerMap DummyShowerMap;
 

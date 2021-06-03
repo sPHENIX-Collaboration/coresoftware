@@ -1,5 +1,3 @@
-
-
 #include "EventEvaluator.h"
 
 #include "CaloEvalStack.h"
@@ -196,6 +194,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _track_py(0)
   , _track_pz(0)
   , _track_trueID(0)
+  , _track_source(0)
   , _nProjections(0)
   , _track_ProjTrackID(0)
   , _track_ProjLayer(0)
@@ -338,6 +337,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _track_px = new float[_maxNTracks];
   _track_py = new float[_maxNTracks];
   _track_pz = new float[_maxNTracks];
+  _track_source = new unsigned short[_maxNTracks];
   _track_ProjTrackID = new float[_maxNProjections];
   _track_ProjLayer = new int[_maxNProjections];
   _track_TLP_x = new float[_maxNProjections];
@@ -396,6 +396,7 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("tracks_py", _track_py, "tracks_py[nTracks]/F");
     _event_tree->Branch("tracks_pz", _track_pz, "tracks_pz[nTracks]/F");
     _event_tree->Branch("tracks_trueID", _track_trueID, "tracks_trueID[nTracks]/F");
+    _event_tree->Branch("tracks_source", _track_source, "tracks_source[nTracks]/s");
   }
   if (_do_PROJECTIONS)
   {
@@ -1868,112 +1869,129 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   {
     _nTracks = 0;
     _nProjections = 0;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
-    if (trackmap)
+    // Loop over track maps, identifiy each source.
+    // Although this configuration is fixed here, it doesn't require multiple sources.
+    // It will only store them if they're available.
+    std::vector<std::pair<std::string, TrackSource_t>> trackMapInfo = {
+        {"TrackMap", TrackSource_t::all},
+        {"TrackMapInner", TrackSource_t::inner}};
+    bool foundAtLeastOneTrackSource = false;
+    for (const auto& trackMapInfo : trackMapInfo)
     {
-      if (Verbosity() > 0)
+      SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackMapInfo.first);
+      if (trackmap)
       {
-        cout << "saving tracks" << endl;
-      }
-      for (SvtxTrackMap::ConstIter track_itr = trackmap->begin(); track_itr != trackmap->end(); track_itr++)
-      {
-        SvtxTrack_FastSim* track = dynamic_cast<SvtxTrack_FastSim*>(track_itr->second);
-        if (track)
+        foundAtLeastOneTrackSource = true;
+        int nTracksInASource = 0;
+        if (Verbosity() > 0)
         {
-          _track_ID[_nTracks] = track->get_id();
-          _track_px[_nTracks] = track->get_px();
-          _track_py[_nTracks] = track->get_py();
-          _track_pz[_nTracks] = track->get_pz();
-          _track_trueID[_nTracks] = track->get_truth_track_id();
-          if (_do_PROJECTIONS)
+          cout << "saving tracks for track map: " << trackMapInfo.first << endl;
+        }
+        for (SvtxTrackMap::ConstIter track_itr = trackmap->begin(); track_itr != trackmap->end(); track_itr++)
+        {
+          SvtxTrack_FastSim* track = dynamic_cast<SvtxTrack_FastSim*>(track_itr->second);
+          if (track)
           {
-            // find projections
-            for (SvtxTrack::ConstStateIter trkstates = track->begin_states(); trkstates != track->end_states(); ++trkstates)
+            _track_ID[_nTracks] = track->get_id();
+            _track_px[_nTracks] = track->get_px();
+            _track_py[_nTracks] = track->get_py();
+            _track_pz[_nTracks] = track->get_pz();
+            _track_trueID[_nTracks] = track->get_truth_track_id();
+            _track_source[_nTracks] = static_cast<unsigned short>(trackMapInfo.second);
+            if (_do_PROJECTIONS)
             {
-              if (Verbosity() > 1)
+              // find projections
+              for (SvtxTrack::ConstStateIter trkstates = track->begin_states(); trkstates != track->end_states(); ++trkstates)
               {
-                cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;
-              }
-              string trackStateName = trkstates->second->get_name();
-              if (Verbosity() > 1)
-              {
-                cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;
-              }
-              int trackStateIndex = GetProjectionIndex(trackStateName);
-              if (trackStateIndex > -1)
-              {
-                // save true projection info to given branch
-                _track_TLP_true_x[_nProjections] = trkstates->second->get_pos(0);
-                _track_TLP_true_y[_nProjections] = trkstates->second->get_pos(1);
-                _track_TLP_true_z[_nProjections] = trkstates->second->get_pos(2);
-                _track_TLP_true_t[_nProjections] = trkstates->first;
-                _track_ProjLayer[_nProjections] = trackStateIndex;
-                _track_ProjTrackID[_nProjections] = _nTracks;
-
-                string nodename = "G4HIT_" + trkstates->second->get_name();
-                PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-                if (hits)
+                if (Verbosity() > 1)
                 {
-                  if (Verbosity() > 1)
-                  {
-                    cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
-                  }
-                  PHG4HitContainer::ConstRange hit_range = hits->getHits();
-                  for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
+                  cout << __PRETTY_FUNCTION__ << " processing " << trkstates->second->get_name() << endl;
+                }
+                string trackStateName = trkstates->second->get_name();
+                if (Verbosity() > 1)
+                {
+                  cout << __PRETTY_FUNCTION__ << " found " << trkstates->second->get_name() << endl;
+                }
+                int trackStateIndex = GetProjectionIndex(trackStateName);
+                if (trackStateIndex > -1)
+                {
+                  // save true projection info to given branch
+                  _track_TLP_true_x[_nProjections] = trkstates->second->get_pos(0);
+                  _track_TLP_true_y[_nProjections] = trkstates->second->get_pos(1);
+                  _track_TLP_true_z[_nProjections] = trkstates->second->get_pos(2);
+                  _track_TLP_true_t[_nProjections] = trkstates->first;
+                  _track_ProjLayer[_nProjections] = trackStateIndex;
+                  _track_ProjTrackID[_nProjections] = _nTracks;
+
+                  string nodename = "G4HIT_" + trkstates->second->get_name();
+                  PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+                  if (hits)
                   {
                     if (Verbosity() > 1)
                     {
-                      cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
+                      cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
                     }
-                    if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
+                    PHG4HitContainer::ConstRange hit_range = hits->getHits();
+                    for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
                     {
                       if (Verbosity() > 1)
                       {
-                        cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+                        cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
                       }
-                      // save reco projection info to given branch
-                      _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
-                      _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
-                      _track_TLP_z[_nProjections] = hit_iter->second->get_z(0);
-                      _track_TLP_t[_nProjections] = hit_iter->second->get_t(0);
+                      if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
+                      {
+                        if (Verbosity() > 1)
+                        {
+                          cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+                        }
+                        // save reco projection info to given branch
+                        _track_TLP_x[_nProjections] = hit_iter->second->get_x(0);
+                        _track_TLP_y[_nProjections] = hit_iter->second->get_y(0);
+                        _track_TLP_z[_nProjections] = hit_iter->second->get_z(0);
+                        _track_TLP_t[_nProjections] = hit_iter->second->get_t(0);
+                      }
                     }
                   }
-                }
-                else
-                {
-                  if (Verbosity() > 1)
+                  else
                   {
-                    cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+                    if (Verbosity() > 1)
+                    {
+                      cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+                    }
+                    continue;
                   }
-                  continue;
+                  _nProjections++;
                 }
-                _nProjections++;
               }
             }
+            _nTracks++;
+            nTracksInASource++;
           }
-          _nTracks++;
-        }
-        else
-        {
-          if (Verbosity() > 0)  //Verbosity()
+          else
           {
-            cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
-            track_itr->second->identify();
+            if (Verbosity() > 0)  //Verbosity()
+            {
+              cout << "PHG4TrackFastSimEval::fill_track_tree - ignore track that is not a SvtxTrack_FastSim:";
+              track_itr->second->identify();
+            }
+            continue;
           }
-          continue;
+        }
+        if (Verbosity() > 0)
+        {
+          cout << "saved\t" << nTracksInASource << "\ttracks from track map " << trackMapInfo.first << ". Total saved tracks: " << _nTracks << endl;
         }
       }
-      if (Verbosity() > 0)
+      else
       {
-        cout << "saved\t" << _nTracks << "\ttracks" << endl;
+        if (Verbosity() > 0)
+        {
+          cout << PHWHERE << "SvtxTrackMap node with name '" << trackMapInfo.first << "' not found on node tree" << endl;
+        }
       }
     }
-    else
-    {
-      if (Verbosity() > 0)
-      {
-        cout << PHWHERE << "SvtxTrackMap node with name TrackMap not found on node tree" << endl;
-      }
+    if (foundAtLeastOneTrackSource == false) {
+      cout << PHWHERE << "Requested tracks, but found no sources on node tree. Returning" << endl;
       return;
     }
   }
@@ -2198,9 +2216,9 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
     return 3;
   else if (projname.find("ETTL_1") != std::string::npos)
     return 4;
-  else if (projname.find("FHCAL_0") != std::string::npos)
+  else if (projname.find("FHCAL") != std::string::npos)
     return 5;
-  else if (projname.find("FEMC_0") != std::string::npos)
+  else if (projname.find("FEMC") != std::string::npos)
     return 6;
   else if (projname.find("CTTL_0") != std::string::npos)
     return 7;
@@ -2478,6 +2496,7 @@ void EventEvaluator::resetBuffer()
       _track_px[itrk] = 0;
       _track_py[itrk] = 0;
       _track_pz[itrk] = 0;
+      _track_source[itrk] = 0;
     }
     if (_do_PROJECTIONS)
     {

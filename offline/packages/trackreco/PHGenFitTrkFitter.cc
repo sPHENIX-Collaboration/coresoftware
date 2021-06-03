@@ -525,51 +525,52 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* topNode)
   //! Make sure to reset all the TTree variables before trying to set them.
   reset_eval_variables();
 
-  int i = 0;
-  for (PHG4TruthInfoContainer::ConstIterator itr =
-           _truth_container->GetPrimaryParticleRange().first;
-       itr != _truth_container->GetPrimaryParticleRange().second; ++itr)
-    new ((*_tca_particlemap)[i++])(PHG4Particlev2)(
-        *dynamic_cast<PHG4Particlev2*>(itr->second));
+  if( _truth_container )
+  {
+    int i = 0;
+    for (auto itr = _truth_container->GetPrimaryParticleRange().first; itr != _truth_container->GetPrimaryParticleRange().second; ++itr, ++i)
+    { new ((*_tca_particlemap)[i])(PHG4Particlev2)( *dynamic_cast<PHG4Particlev2*>(itr->second)); }
+  }
 
-  i = 0;
-  for (PHG4TruthInfoContainer::ConstVtxIterator itr =
-           _truth_container->GetPrimaryVtxRange().first;
-       itr != _truth_container->GetPrimaryVtxRange().second; ++itr)
-    new ((*_tca_vtxmap)[i++])(PHG4VtxPointv1)(
-        *dynamic_cast<PHG4VtxPointv1*>(itr->second));
+
+  if( _truth_container )
+  {
+    int i = 0;
+    for (auto itr = _truth_container->GetPrimaryVtxRange().first; itr != _truth_container->GetPrimaryVtxRange().second; ++itr, ++i)
+    { new ((*_tca_vtxmap)[i])(PHG4VtxPointv1)(*dynamic_cast<PHG4VtxPointv1*>(itr->second)); }
+  }
 
   if( _trackmap )
   {
-    i = 0;
+    int i = 0;
     for ( const auto& pair:*_trackmap )
     { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
   }
   
   if (_vertexmap)
   {
-    i = 0;
+    int i = 0;
     for ( const auto& pair:*_vertexmap )
     { new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second) ); }
   }
   
   if (_trackmap_refit)
   {
-    i = 0;
+    int i = 0;
     for (const auto& pair:*_trackmap_refit )
     { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_fit_primary_tracks)
   {
-    i = 0;
+    int i = 0;
     for ( const auto& pair:*_primary_trackmap )
     { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v2)(*pair.second); }
   }
 
   if (_vertexmap_refit)
   {
-    i = 0;
+    int i = 0;
     for( const auto& pair:*_vertexmap_refit )
     { new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second)); }
   }
@@ -732,14 +733,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
   //DST objects
   //Truth container
-  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                                "G4TruthInfo");
-  if (!_truth_container && _event < 2)
-  {
-    cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // Input Svtx Clusters
   //_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
@@ -1125,13 +1119,18 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   double dvr2 = 0;
   double dvz2 = 0;
 
-  if (_use_truth_vertex)
+  if (_use_truth_vertex )
   {
-    PHG4VtxPoint* first_point = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
-    vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
-    if (Verbosity() > 1)
+    if( _truth_container )
     {
-      cout << PHWHERE << "Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " << endl;
+      PHG4VtxPoint* first_point = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+      vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
+      if (Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " << std::endl;
+      }
+    } else {
+      std::cout << PHWHERE << "PHG4TruthInfoContainer not found. Cannot use truth vertex." << std::endl;
     }
   }
   else if (vertex)
