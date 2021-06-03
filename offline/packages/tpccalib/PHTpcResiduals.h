@@ -147,7 +147,7 @@ class PHTpcResiduals : public SubsysReco
   int m_nBadProps = 0;
 
   /// Output root histograms
-  std::string m_outputfile = "PHTpcResidualsDistortionCorrections.root";
+  std::string m_outputfile = "TpcSpaceChargeMatrices.root";
   TH2 *h_rphiResid = nullptr;
   TH2 *h_zResid = nullptr;
   TH2 *h_etaResidLayer = nullptr;

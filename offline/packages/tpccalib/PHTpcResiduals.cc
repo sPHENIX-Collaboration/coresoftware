@@ -1,6 +1,5 @@
 #include "PHTpcResiduals.h"
 #include "TpcSpaceChargeMatrixContainerv1.h"
-#include "TpcSpaceChargeMatrixInversion.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -107,12 +106,13 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
     std::cout << "Number of bad SL propagations " 
 	      << m_nBadProps << std::endl;
 
-  // create matrix inversion object
-  TpcSpaceChargeMatrixInversion inverter;
-  inverter.Verbosity( Verbosity() );
-  inverter.set_outputfile( m_outputfile );
-  inverter.add( *m_matrix_container.get() );
-  inverter.calculate_distortions();
+  // save matrix container in output file
+  if( m_matrix_container )
+  {
+    std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
+    outputfile->cd();
+    m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
