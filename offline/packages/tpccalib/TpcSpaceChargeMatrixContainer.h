@@ -90,9 +90,9 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   virtual void add_to_rhs( int cell_index, int i, float value )
   {}
 
-  /// add content from other container
-  virtual void add( const TpcSpaceChargeMatrixContainer& other )
-  {}
+  /// add content from other container, returns true on success
+  virtual bool add( const TpcSpaceChargeMatrixContainer& other )
+  { return false; }
 
   //@}
 

@@ -78,7 +78,7 @@ class TpcSpaceChargeMatrixContainerv1 : public TpcSpaceChargeMatrixContainer
   void add_to_rhs( int cell_index, int i, float value ) override;
 
   /// add content from other container
-  void add( const TpcSpaceChargeMatrixContainer& other ) override;
+  bool add( const TpcSpaceChargeMatrixContainer& other ) override;
 
   //@}
 
