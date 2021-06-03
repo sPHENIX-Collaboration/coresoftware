@@ -32,11 +32,11 @@ class CaloEvaluator : public SubsysReco
   CaloEvaluator(const std::string &name = "CALOEVALUATOR",
                 const std::string &caloname = "CEMC",
                 const std::string &filename = "g4eval_cemc.root");
-  virtual ~CaloEvaluator(){};
+  ~CaloEvaluator() override{};
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_strict(bool b) { _strict = b; }
   // funtions to limit the tracing to only part of the event ---------

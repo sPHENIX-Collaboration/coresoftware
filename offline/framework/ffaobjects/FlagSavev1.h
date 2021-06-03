@@ -19,7 +19,7 @@ class FlagSavev1 : public FlagSave
   /// ctor
   FlagSavev1() = default;
   /// dtor
-  virtual ~FlagSavev1() = default;
+  ~FlagSavev1() override = default;
 
   PHObject *CloneMe() const override;
 

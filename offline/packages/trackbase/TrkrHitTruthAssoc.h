@@ -34,10 +34,10 @@ class TrkrHitTruthAssoc : public PHObject
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  virtual void Reset() override
+  void Reset() override
   {}
 
-  virtual void identify(std::ostream &os = std::cout) const override
+  void identify(std::ostream &os = std::cout) const override
   {}
 
   /**

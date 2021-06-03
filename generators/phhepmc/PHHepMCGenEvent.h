@@ -23,15 +23,15 @@ class PHHepMCGenEvent : public PHObject
 
   PHHepMCGenEvent(const PHHepMCGenEvent& event);
   PHHepMCGenEvent& operator=(const PHHepMCGenEvent& event);
-  virtual ~PHHepMCGenEvent();
+  ~PHHepMCGenEvent() override;
 
-  virtual void identify(std::ostream& os = std::cout) const override;
-  virtual void Reset() override;
-  virtual int isValid() const override
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override
   {
     return (getEvent() != nullptr) ? 1 : 0;
   }
-  virtual PHObject* CloneMe() const override { return new PHHepMCGenEvent(*this); }
+  PHObject* CloneMe() const override { return new PHHepMCGenEvent(*this); }
 
   HepMC::GenEvent* getEvent();
   const HepMC::GenEvent* getEvent() const;

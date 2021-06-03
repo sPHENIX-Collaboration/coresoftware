@@ -22,34 +22,34 @@ class TrkrHitSetv1 : public TrkrHitSet
  public:
   TrkrHitSetv1() = default;
 
-  virtual ~TrkrHitSetv1()
+  ~TrkrHitSetv1() override
   {
     TrkrHitSetv1::Reset();
   }
 
-  virtual void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
-  virtual void Reset() override;
+  void Reset() override;
 
-  virtual void setHitSetKey(const TrkrDefs::hitsetkey key) override
+  void setHitSetKey(const TrkrDefs::hitsetkey key) override
   {
     m_hitSetKey = key;
   }
 
-  virtual TrkrDefs::hitsetkey getHitSetKey() const override
+  TrkrDefs::hitsetkey getHitSetKey() const override
   {
     return m_hitSetKey;
   }
 
-  virtual ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*) override;
+  ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*) override;
 
-  virtual void removeHit(TrkrDefs::hitkey) override;
+  void removeHit(TrkrDefs::hitkey) override;
 
-  virtual TrkrHit* getHit(const TrkrDefs::hitkey) const override;
+  TrkrHit* getHit(const TrkrDefs::hitkey) const override;
 
-  virtual ConstRange getHits() const override;
+  ConstRange getHits() const override;
 
-  virtual unsigned int size() const override
+  unsigned int size() const override
   {
     return m_hits.size();
   }

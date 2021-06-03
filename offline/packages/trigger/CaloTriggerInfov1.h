@@ -9,7 +9,7 @@ class CaloTriggerInfov1 : public CaloTriggerInfo
 {
  public:
   CaloTriggerInfov1();
-  virtual ~CaloTriggerInfov1() {}
+  ~CaloTriggerInfov1() override {}
 
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override {}

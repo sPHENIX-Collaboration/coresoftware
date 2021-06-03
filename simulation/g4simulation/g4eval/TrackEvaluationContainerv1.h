@@ -39,7 +39,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
   }
    
   //! reset
-  virtual void Reset() override;
+  void Reset() override;
 
   //! event information
   /*! do not modify and commit: this will break reading past DSTs */

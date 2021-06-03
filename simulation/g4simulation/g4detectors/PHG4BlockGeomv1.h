@@ -16,7 +16,7 @@ class PHG4BlockGeomv1: public PHG4BlockGeom
                    const double centerx, const double centery, const double centerz,
                    const double zrot );
 
-  virtual ~PHG4BlockGeomv1() {}
+  ~PHG4BlockGeomv1() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

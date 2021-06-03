@@ -16,19 +16,19 @@ class EventHeader : public PHObject
 {
  public:
   /// dtor
-  virtual ~EventHeader() = default;
+  ~EventHeader() override = default;
 
   /// Clear Event
-  virtual void Reset() override;
+  void Reset() override;
 
   /*
    * identify Function from PHObject
    * @param os Output Stream 
    */
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const override;
+  int isValid() const override;
 
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }

@@ -12,9 +12,9 @@ class Dumper : public SubsysReco
 {
  public:
   Dumper(const std::string &name = "DUMPER");
-  virtual ~Dumper();
-  int End(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  ~Dumper() override;
+  int End(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
   void SetOutDir(const std::string &outdir);
   void SetPrecision(const int digits);
   int AddIgnore(const std::string &name);

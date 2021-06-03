@@ -62,18 +62,18 @@ class PHActsTrkFitter : public SubsysReco
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
   /// Destructor
-  ~PHActsTrkFitter();
+  ~PHActsTrkFitter() override;
 
   /// End, write and close files
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /// Get and create nodes
-  int InitRun(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode) override;
 
   /// Process each event by calling the fitter
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode) override;
 
   /// Do some internal time benchmarking analysis
   void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}

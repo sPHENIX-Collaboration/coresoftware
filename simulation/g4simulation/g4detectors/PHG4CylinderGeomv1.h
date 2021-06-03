@@ -22,7 +22,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   {
   }
 
-  virtual ~PHG4CylinderGeomv1() {}
+  ~PHG4CylinderGeomv1() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -40,7 +40,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   void set_zmax(const double z) override { zmax = z; }
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters& param) override;
+  void ImportParameters(const PHParameters& param) override;
 
  protected:
   int layer;

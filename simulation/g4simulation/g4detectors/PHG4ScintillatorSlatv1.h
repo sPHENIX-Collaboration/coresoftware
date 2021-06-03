@@ -18,7 +18,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
  public:
 
   PHG4ScintillatorSlatv1();
-  virtual ~PHG4ScintillatorSlatv1(){}
+  ~PHG4ScintillatorSlatv1() override{}
 
   void identify(std::ostream& os = std::cout) const override;
 

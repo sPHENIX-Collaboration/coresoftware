@@ -19,11 +19,11 @@ class SvtxTrack_FastSim_v1 final: public SvtxTrack_FastSim
   SvtxTrack_FastSim_v1( const SvtxTrack& );
 
   //* destructor
-  virtual ~SvtxTrack_FastSim_v1() = default;
+  ~SvtxTrack_FastSim_v1() override = default;
 
   // copy content from base class
-  virtual void CopyFrom( const SvtxTrack& ) override;
-  virtual void CopyFrom( SvtxTrack* source ) override
+  void CopyFrom( const SvtxTrack& ) override;
+  void CopyFrom( SvtxTrack* source ) override
   { CopyFrom( *source ); }
 
   // The "standard PHObject response" functions...

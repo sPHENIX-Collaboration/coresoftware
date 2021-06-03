@@ -38,7 +38,7 @@ class PHSimpleKFProp : public PHTrackPropagating
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  virtual ~PHSimpleKFProp() {}
+  ~PHSimpleKFProp() override {}
 
   //int InitRun(PHCompositeNode *topNode) override;
   //int process_event(PHCompositeNode *topNode) override;

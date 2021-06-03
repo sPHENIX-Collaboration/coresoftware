@@ -13,7 +13,7 @@ class SvtxVertex_v1 : public SvtxVertex
 {
  public:
   SvtxVertex_v1();
-  virtual ~SvtxVertex_v1() {}
+  ~SvtxVertex_v1() override {}
 
   // PHObject virtual overloads
 

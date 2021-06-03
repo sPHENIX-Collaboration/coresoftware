@@ -64,7 +64,7 @@ class EmcCluster : public TObject
   }
 
   ///
-  virtual ~EmcCluster()
+  ~EmcCluster() override
   {
   }
 

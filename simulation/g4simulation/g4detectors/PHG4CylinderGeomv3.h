@@ -18,7 +18,7 @@ class PHG4CylinderGeomv3: public PHG4CylinderGeomv2
     phi_slat_zero(phi_slat_null)
       {}
 
-  virtual ~PHG4CylinderGeomv3() {}
+  ~PHG4CylinderGeomv3() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

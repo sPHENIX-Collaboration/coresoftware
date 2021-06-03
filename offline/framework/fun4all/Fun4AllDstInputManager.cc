@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
+#include <vector>    // for vector
 
 class TBranch;
 

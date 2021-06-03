@@ -30,9 +30,9 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
     , shower(nullptr)
   {
   }
-  virtual ~PHG4TrackUserInfoV1() {}
+  ~PHG4TrackUserInfoV1() override {}
 
-  void Print() const
+  void Print() const override
   {
     std::cout << "PHG4TrackUserInfoV1: " << std::endl;
     std::cout << "   UserTrackId = " << usertrackid << std::endl;

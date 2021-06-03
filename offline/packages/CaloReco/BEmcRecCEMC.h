@@ -13,7 +13,7 @@ class BEmcRecCEMC : public BEmcRec
 {
  public:
   BEmcRecCEMC();
-  virtual ~BEmcRecCEMC();
+  ~BEmcRecCEMC() override;
   void CorrectEnergy(float energy, float x, float y, float &ecorr) override;
   void CorrectECore(float ecore, float x, float y, float &ecorecorr) override;
   void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr) override;

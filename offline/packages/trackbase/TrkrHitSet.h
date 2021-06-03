@@ -35,11 +35,11 @@ class TrkrHitSet : public PHObject
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   //! TObject functions
-  virtual void identify(std::ostream& os = std::cout) const override
+  void identify(std::ostream& os = std::cout) const override
   {
   }
 
-  virtual void Reset() override
+  void Reset() override
   {
   }
 

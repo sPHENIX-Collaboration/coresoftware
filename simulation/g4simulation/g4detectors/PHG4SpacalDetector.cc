@@ -41,6 +41,7 @@
 #include <boost/foreach.hpp>
 
 #include <cassert>
+#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
 
@@ -74,6 +75,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
     {
       cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << endl;
       gSystem->Exit(1);
+      exit(1);
     }
     assert(parameters);
     _geom->ImportParameters(*parameters);

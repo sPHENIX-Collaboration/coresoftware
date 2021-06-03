@@ -14,7 +14,7 @@ class PHG4CylinderCellGeom: public PHObject
  public:
   PHG4CylinderCellGeom();
 
-  virtual ~PHG4CylinderCellGeom() {}
+  ~PHG4CylinderCellGeom() override {}
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

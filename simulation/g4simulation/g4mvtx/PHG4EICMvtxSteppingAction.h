@@ -19,13 +19,13 @@ class PHG4EICMvtxSteppingAction : public PHG4SteppingAction
   PHG4EICMvtxSteppingAction(PHG4EICMvtxDetector *);
 
   //! destroctor
-  virtual ~PHG4EICMvtxSteppingAction();
+  ~PHG4EICMvtxSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
  private:
   //! pointer to the detector

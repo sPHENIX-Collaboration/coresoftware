@@ -31,15 +31,15 @@ public:
 			  double centerZ  // overall Z of center of rings
 			  );
   
-  virtual ~PHG4EtaPhiParameterization();
+  ~PHG4EtaPhiParameterization() override;
   
   virtual void Print(std::ostream& os = std::cout) const;
 
   void ComputeTransformation(const G4int copyNo,
-			     G4VPhysicalVolume* physVol) const;
+			     G4VPhysicalVolume* physVol) const override;
   
   void ComputeDimensions(G4Tubs& ring, const G4int copyNo,
-			 const G4VPhysicalVolume* physVol) const;
+			 const G4VPhysicalVolume* physVol) const override;
 
   int GetIEta(int copyNo) const { return _ieta.at(copyNo); }
   int GetIPhi(int copyNo) const { return _iphi.at(copyNo); }

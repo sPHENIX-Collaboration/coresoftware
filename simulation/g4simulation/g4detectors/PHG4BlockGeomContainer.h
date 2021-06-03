@@ -21,7 +21,7 @@ class PHG4BlockGeomContainer: public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   PHG4BlockGeomContainer();
-  virtual ~PHG4BlockGeomContainer();
+  ~PHG4BlockGeomContainer() override;
 
 // from PHObject
   void identify(std::ostream& os = std::cout) const override;

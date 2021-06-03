@@ -22,34 +22,34 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   PHG4OuterHcalSubsystem( const std::string &name = "HCALOUT", const int layer = 0 );
 
   //! destructor
-  virtual ~PHG4OuterHcalSubsystem();
+  ~PHG4OuterHcalSubsystem() override;
 
   /*!
   creates the Detector object. Creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! Print info (from SubsysReco)
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( ) const { return m_SteppingAction; }
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4Detector* GetDetector( void ) const override;
+  PHG4SteppingAction* GetSteppingAction( ) const override { return m_SteppingAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
   private:
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! defives from PHG4Detector */

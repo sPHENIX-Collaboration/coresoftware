@@ -16,10 +16,10 @@ class GlobalVertexMap : public PHObject
   typedef std::map<unsigned int, GlobalVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, GlobalVertex*>::iterator Iter;
 
-  virtual ~GlobalVertexMap() {}
+  ~GlobalVertexMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
-  virtual int isValid() const override { return 0; }
+  void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
+  int isValid() const override { return 0; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

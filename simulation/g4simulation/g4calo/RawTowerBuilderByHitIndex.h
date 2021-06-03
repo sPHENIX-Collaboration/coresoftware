@@ -21,13 +21,13 @@ class RawTowerBuilderByHitIndex : public SubsysReco
 {
  public:
   RawTowerBuilderByHitIndex(const std::string &name = "RawTowerBuilderByHitIndex");
-  virtual ~RawTowerBuilderByHitIndex() {}
+  ~RawTowerBuilderByHitIndex() override {}
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /** Name of the detector node the G4Hits should be taken from.
    */

@@ -17,13 +17,13 @@ class PHObject : public TObject
   PHObject() {}
 
   /// dtor
-  virtual ~PHObject() {}
+  ~PHObject() override {}
   /// Virtual copy constructor.
   virtual PHObject* CloneMe() const;
 
   virtual PHObject* clone() const final;
-  virtual PHObject *Clone(const char *newname = "") const final;
-  virtual void 	Copy(TObject &object) const final;
+  PHObject *Clone(const char *newname = "") const final;
+  void 	Copy(TObject &object) const final;
 
   /** identify Function from PHObject
       @param os Output Stream 

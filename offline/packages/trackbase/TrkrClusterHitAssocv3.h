@@ -28,17 +28,17 @@ class TrkrClusterHitAssocv3 : public TrkrClusterHitAssoc
 
   TrkrClusterHitAssocv3() = default;
 
-  virtual void Reset() override;
+  void Reset() override;
 
-  virtual void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &os = std::cout) const override;
 
-  virtual void addAssoc(TrkrDefs::cluskey, unsigned int) override;
+  void addAssoc(TrkrDefs::cluskey, unsigned int) override;
 
-  virtual Map* getClusterMap(TrkrDefs::hitsetkey) override;
+  Map* getClusterMap(TrkrDefs::hitsetkey) override;
 
-  virtual ConstRange getHits(TrkrDefs::cluskey) override;
+  ConstRange getHits(TrkrDefs::cluskey) override;
 
-  virtual unsigned int size(void) const override;
+  unsigned int size(void) const override;
 
 private:
 

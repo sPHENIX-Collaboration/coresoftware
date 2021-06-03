@@ -16,7 +16,7 @@ class SvtxVertexMap_v1 : public SvtxVertexMap
   SvtxVertexMap_v1();
   SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap);
   SvtxVertexMap_v1& operator=(const SvtxVertexMap_v1& vertexmap);
-  virtual ~SvtxVertexMap_v1();
+  ~SvtxVertexMap_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;

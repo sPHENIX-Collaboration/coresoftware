@@ -15,10 +15,10 @@ class PHG4ScintillatorSlat : public PHObject
 {
  public:
   
-  virtual ~PHG4ScintillatorSlat(){}
+  ~PHG4ScintillatorSlat() override{}
 
 // from PHObject
-  virtual void identify(std::ostream& os = std::cout) const override {
+  void identify(std::ostream& os = std::cout) const override {
     os << "PHG4ScintillatorSlat base class" << std::endl;
   }
   

@@ -13,8 +13,8 @@ class PHG4ParticleGun : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGun(const std::string &name = "PGUN");
-  virtual ~PHG4ParticleGun() {}
-  int process_event(PHCompositeNode *topNode);
+  ~PHG4ParticleGun() override {}
+  int process_event(PHCompositeNode *topNode) override;
 };
 
 #endif

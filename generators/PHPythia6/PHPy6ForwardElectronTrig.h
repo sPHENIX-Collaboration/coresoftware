@@ -17,9 +17,9 @@ class PHPy6ForwardElectronTrig : public PHPy6GenTrigger
   PHPy6ForwardElectronTrig(const std::string& name = "PHPy6ForwardElectronTrigger");
 
   //! destructor
-  ~PHPy6ForwardElectronTrig(void) {}
+  ~PHPy6ForwardElectronTrig(void) override {}
 
-  bool Apply(const HepMC::GenEvent* evt);
+  bool Apply(const HepMC::GenEvent* evt) override;
 
   void set_electrons_required(int n)
   {
