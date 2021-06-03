@@ -96,7 +96,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int get_cell_index( TrkrCluster* ) const;
 
   /// output file
-  std::string m_outputfile = "TpcSpaceChargeReconstruction.root";
+  std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;

@@ -7,7 +7,6 @@
 #include "TpcSpaceChargeReconstruction.h"
 #include "TpcSpaceChargeReconstructionHelper.h"
 #include "TpcSpaceChargeMatrixContainerv1.h"
-#include "TpcSpaceChargeMatrixInversion.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -19,6 +18,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+
+#include <TFile.h>
 
 #include <cassert>
 #include <memory>
@@ -140,12 +141,13 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
 
-  // create matrix inversion object
-  TpcSpaceChargeMatrixInversion inverter;
-  inverter.Verbosity( Verbosity() );
-  inverter.set_outputfile( m_outputfile );
-  inverter.add( *m_matrix_container.get() );
-  inverter.calculate_distortions();
+  // save matrix container in output file
+  if( m_matrix_container )
+  {
+    std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
+    outputfile->cd();
+    m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
+  }
   
   // print counters
   std::cout
