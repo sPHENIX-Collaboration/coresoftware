@@ -112,7 +112,7 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         // expected momentum unit is GeV
         if ((*particle_iter->second).isIon())
         {
-          G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_Z(), (*particle_iter->second).get_A(), (*particle_iter->second).get_ExcitEnergy());
+          G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_Z(), (*particle_iter->second).get_A(), (*particle_iter->second).get_ExcitEnergy()* GeV);
           g4part = new G4PrimaryParticle(ion);
           g4part->SetCharge((*particle_iter->second).get_IonCharge());
           g4part->SetMomentum((*particle_iter->second).get_px() * GeV,
