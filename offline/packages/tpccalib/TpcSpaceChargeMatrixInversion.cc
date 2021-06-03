@@ -176,6 +176,7 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   }
 
   // save everything to root file
+  std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - writing histograms to " << m_outputfile << std::endl;
   std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
   outputfile->cd();
 
