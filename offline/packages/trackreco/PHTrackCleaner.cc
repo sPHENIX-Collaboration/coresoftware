@@ -75,7 +75,7 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
     {
       unsigned int tpc_id = *seed_iter;
 
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout << " TPC ID " << tpc_id << std::endl;
 
       auto tpc_range =   _seed_track_map_class->SeedTrackMap.equal_range(tpc_id);
