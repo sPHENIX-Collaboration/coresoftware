@@ -37,10 +37,13 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
    * they are suitable for being read by TpcClusterizer
    */
   void set_outputfile( const std::string& filename );
+  
+  /// add space charge correction matrix to current. Returns true on success
+  bool add( const TpcSpaceChargeMatrixContainer& );
 
-  /// add space charge correction matrix to current
-  void add( const TpcSpaceChargeMatrixContainer& );
-
+  /// add space charge correction matrix, loaded from file, to current. Returns true on success
+  bool add_from_file( const std::string& filename, const std::string& objectname = "TpcSpaceChargeMatrixContainer" );
+  
   /// calculate distortions by inverting stored matrices, and save relevant histograms
   void calculate_distortions();
 

@@ -42,7 +42,30 @@ void TpcSpaceChargeMatrixInversion::set_outputfile( const std::string& filename 
 { m_outputfile = filename; }
 
 //_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::add( const TpcSpaceChargeMatrixContainer& source )
+bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& filename, const std::string& objectname )
+{
+  // save everything to root file
+  std::unique_ptr<TFile> inputfile( TFile::Open( filename.c_str() ) );
+  if( !inputfile )
+  { 
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl; 
+    return false;
+  }
+  
+  // load object from input file
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> source( dynamic_cast<TpcSpaceChargeMatrixContainer*>( inputfile->Get( objectname.c_str() ) ) );
+  if( !source )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl; 
+    return false;
+  }
+  
+  // add object 
+  return add( *source.get() );
+}
+
+//_____________________________________________________________________
+bool TpcSpaceChargeMatrixInversion::add( const TpcSpaceChargeMatrixContainer& source )
 {
   // check internal container, create if necessary
   if( !m_matrix_container )
@@ -60,8 +83,7 @@ void TpcSpaceChargeMatrixInversion::add( const TpcSpaceChargeMatrixContainer& so
   }
 
   // add content
-  m_matrix_container->add( source );
-
+  return m_matrix_container->add( source );
 }
 
 //_____________________________________________________________________
