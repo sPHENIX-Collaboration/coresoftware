@@ -125,6 +125,9 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           if (ion)
           {
             g4part = new G4PrimaryParticle(ion);
+            // explicit set the ion to be fully ionized.
+            // if partically ionized atom is used in the future, here is the entry point to update it.
+            g4part->SetCharge(ion->GetPDGCharge());
             g4part->SetMomentum((*particle_iter->second).get_px() * GeV,
                                 (*particle_iter->second).get_py() * GeV,
                                 (*particle_iter->second).get_pz() * GeV);
