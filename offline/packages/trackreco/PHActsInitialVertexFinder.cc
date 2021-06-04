@@ -72,7 +72,6 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
     std::cout << "PHActsInitialVertexFinder processing event " 
 	      << m_event << std::endl;
 
-
   if(m_trackMap->size() == 0)
     {
       std::cout << PHWHERE 
@@ -98,8 +97,7 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 	  delete track;
 	}
     }
-
-  if(Verbosity() > 0)
+ if(Verbosity() > 0)
     std::cout << "PHActsInitialVertexFinder processed event "
 	      << m_event << std::endl;
 
@@ -496,12 +494,21 @@ CentroidMap& clusters, std::vector<float>& centroids)
 	      sortedTracks.push_back(track);
 	    }
 	  else
-	    if(Verbosity() > 3)
-	      std::cout << "Not adding track with z " << z 
-			<< " as it is incompatible with centroid " 
-			<< centroids.at(centroidIndex) 
-			<< " with std dev " 
-			<< stddev.at(centroidIndex) << std::endl;
+	    {
+	      if(m_removeSeeds)
+		{
+		  m_trackMap->erase(track->get_id());
+		}
+
+	      if(Verbosity() > 3)
+		{
+		  std::cout << "Not adding track with z " << z 
+			    << " as it is incompatible with centroid " 
+			    << centroids.at(centroidIndex) 
+			    << " with std dev " 
+			    << stddev.at(centroidIndex) << std::endl;
+		}
+	    }
 	}
     }
 
