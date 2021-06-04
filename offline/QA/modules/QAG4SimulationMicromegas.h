@@ -34,6 +34,9 @@ class QAG4SimulationMicromegas : public SubsysReco
   /// load nodes
   int load_nodes(PHCompositeNode*);
 
+  /// evaluate hits
+  void evaluate_hits();
+  
   /// evaluate clusters
   void evaluate_clusters();
 
