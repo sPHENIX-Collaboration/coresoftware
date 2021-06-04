@@ -40,7 +40,7 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
   PHG4BbcSubsystem(const std::string& name = "BBC");
 
   //! destructor
-  virtual ~PHG4BbcSubsystem(void)
+  ~PHG4BbcSubsystem(void) override
   {
   }
 

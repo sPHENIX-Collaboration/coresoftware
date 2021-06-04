@@ -15,15 +15,15 @@ class PHPythia6 : public SubsysReco, public PHHepMCGenHelper
 {
  public:
   PHPythia6(const std::string &name = "PHPythia6");
-  virtual ~PHPythia6() {}
+  ~PHPythia6() override {}
 
-  int Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   void set_config_file(const std::string &cfg_file) { _configFile = cfg_file; }
 

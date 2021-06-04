@@ -29,12 +29,8 @@ public:
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
   
-  TrkrClusterHitAssoc() = default;
+  void Reset() override;
 
-  virtual void Reset() = 0;
-
-  virtual void identify(std::ostream &os = std::cout) const = 0;
-  
   /**
    * @brief Add association between cluster and hit
    * @param[in] ckey Cluster key
@@ -55,9 +51,12 @@ public:
 
   virtual unsigned int size() const {return 0;}
 
+protected:
+  TrkrClusterHitAssoc() = default;
+
 private:
 
-  ClassDef(TrkrClusterHitAssoc, 1);
+  ClassDefOverride(TrkrClusterHitAssoc, 1);
 };
 
 #endif // TRACKBASE_TRKRCLUSTERHITASSOC_H

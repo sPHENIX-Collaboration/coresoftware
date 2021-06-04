@@ -14,10 +14,10 @@ class RawClusterBuilderTemplate : public SubsysReco
 {
  public:
   RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderTemplate");
-  virtual ~RawClusterBuilderTemplate();
+  ~RawClusterBuilderTemplate() override;
 
-  int InitRun(PHCompositeNode* topNode);
-  int process_event(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
   void Detector(const std::string& d);
 
   void SetCylindricalGeometry();

@@ -26,11 +26,11 @@ class PHNodeIOManager : public PHIOManager
   PHNodeIOManager(const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const PHAccessType, const PHTreeType);
-  virtual ~PHNodeIOManager();
+  ~PHNodeIOManager() override;
 
-  virtual void closeFile();
-  virtual bool write(PHCompositeNode *);
-  virtual void print() const;
+  void closeFile() override;
+  bool write(PHCompositeNode *) override;
+  void print() const override;
 
   bool setFile(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHCompositeNode *read(PHCompositeNode * = nullptr, size_t = 0);

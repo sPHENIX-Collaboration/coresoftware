@@ -20,7 +20,7 @@ class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
   PHG4BeamlineMagnetSubsystem( const std::string &name = "CYLINDER", const int layer = 0 );
 
   //! destructor
-  virtual ~PHG4BeamlineMagnetSubsystem( void )
+  ~PHG4BeamlineMagnetSubsystem( void ) override
   {}
 
   //! init runwise stuff
@@ -29,23 +29,23 @@ class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! Print info (from SubsysReco)
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const;
+  PHG4Detector* GetDetector( void ) const override;
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! defives from PHG4Detector */

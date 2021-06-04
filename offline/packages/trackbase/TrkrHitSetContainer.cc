@@ -6,12 +6,21 @@
  */
 #include "TrkrHitSetContainer.h"
 
+#include <TSystem.h>
+
 #include <cstdlib>
+#include <iostream>
 
 
 namespace
 {
   TrkrHitSetContainer::Map dummy_map;
+}
+
+void TrkrHitSetContainer::Reset()
+{
+  std::cout << "TrkrHitSetContainer: Reset() not implemented by daughter class" << std::endl;
+  gSystem->Exit(1);
 }
 
 TrkrHitSetContainer::ConstIterator

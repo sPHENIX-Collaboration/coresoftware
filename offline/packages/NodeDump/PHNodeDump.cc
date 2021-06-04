@@ -1,11 +1,13 @@
 #include "PHNodeDump.h"
 #include "DumpObject.h"
 
+#include "DumpAssocInfoContainer.h"
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpEventHeader.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpJetMap.h"
+#include "DumpParticleFlowElementContainer.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
 #include "DumpPHG4CellContainer.h"
@@ -170,7 +172,11 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
       // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
       TObject *tmp = (TObject *) (static_cast<PHIODataNode<TObject> *>(node))->getData();
-      if (tmp->InheritsFrom("BbcVertexMap"))
+      if (tmp->InheritsFrom("AssocInfoContainer"))
+      {
+        newdump = new DumpAssocInfoContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
       }
@@ -189,6 +195,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("JetMap"))
       {
         newdump = new DumpJetMap(NodeName);
+      }
+      else if (tmp->InheritsFrom("ParticleFlowElementContainer"))
+      {
+        newdump = new DumpParticleFlowElementContainer(NodeName);
       }
       else if (tmp->InheritsFrom("PdbParameterMap"))
       {

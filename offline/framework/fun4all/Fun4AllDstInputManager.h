@@ -16,18 +16,18 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
 {
  public:
   Fun4AllDstInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
-  virtual ~Fun4AllDstInputManager();
-  int fileopen(const std::string &filenam);
-  int fileclose();
-  int run(const int nevents = 0);
-  int GetSyncObject(SyncObject **mastersync);
-  int SyncIt(const SyncObject *mastersync);
-  int BranchSelect(const std::string &branch, const int iflag);
-  int setBranches();
+  ~Fun4AllDstInputManager() override;
+  int fileopen(const std::string &filenam) override;
+  int fileclose() override;
+  int run(const int nevents = 0) override;
+  int GetSyncObject(SyncObject **mastersync) override;
+  int SyncIt(const SyncObject *mastersync) override;
+  int BranchSelect(const std::string &branch, const int iflag) override;
+  int setBranches() override;
   virtual int setSyncBranches(PHNodeIOManager *IManager);
-  void Print(const std::string &what = "ALL") const;
-  int PushBackEvents(const int i);
-  virtual int HasSyncObject() const;
+  void Print(const std::string &what = "ALL") const override;
+  int PushBackEvents(const int i) override;
+  int HasSyncObject() const override;
 
  protected:
   int ReadNextEventSyncObject();

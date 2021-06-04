@@ -11,10 +11,10 @@ class DumpRawTowerContainer : public DumpObject
 {
  public:
   DumpRawTowerContainer(const std::string &NodeName);
-  virtual ~DumpRawTowerContainer() {}
+  ~DumpRawTowerContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

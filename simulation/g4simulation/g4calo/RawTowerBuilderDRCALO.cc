@@ -323,8 +323,17 @@ bool RawTowerBuilderDRCALO::ReadGeometryFromTable()
     size_z = parit->second;
 
   pos_z = m_GlobalPlaceInZ;
-  float twrsize = 1.2;
+  float twrsize = 1.0;//1.2
   float drsize = 220;
+  parit = m_GlobalParameterMap.find("Gtower_dx");
+  if (parit != m_GlobalParameterMap.end()){
+    twrsize = parit->second;
+  }
+  parit = m_GlobalParameterMap.find("Gr1_outer");
+  if (parit != m_GlobalParameterMap.end()){
+    drsize = parit->second;
+  }
+
   float scaling = 1.;
   for (int idxj = 0; idxj < drsize * 2 / twrsize; idxj++)
   {

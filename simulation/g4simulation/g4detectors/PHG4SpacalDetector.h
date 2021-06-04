@@ -42,10 +42,10 @@ class PHG4SpacalDetector : public PHG4Detector
   PHG4SpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                      PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
-  virtual ~PHG4SpacalDetector(void);
+  ~PHG4SpacalDetector(void) override;
 
-  virtual void
-  ConstructMe(G4LogicalVolume* world);
+  void
+  ConstructMe(G4LogicalVolume* world) override;
 
   virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();
@@ -90,8 +90,8 @@ class PHG4SpacalDetector : public PHG4Detector
     return layer;
   }
 
-  virtual void
-  Print(const std::string& what = "ALL") const;
+  void
+  Print(const std::string& what = "ALL") const override;
 
   const SpacalGeom_t*
   get_geom() const

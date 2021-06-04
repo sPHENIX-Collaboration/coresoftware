@@ -16,12 +16,12 @@ class EicEventHeader : public PHObject
 {
  public:
   EicEventHeader() {}
-  virtual ~EicEventHeader();
+  ~EicEventHeader() override;
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject* phobj);
+  void identify(std::ostream& os = std::cout) const override;
+  void CopyFrom(const PHObject* phobj) override;
 
-  virtual void Reset();
+  void Reset() override;
 
   virtual void set_eventgenerator_type(const int i) { return; }
   virtual int get_eventgenerator_type() const { return -99999; }
@@ -79,7 +79,7 @@ class EicEventHeader : public PHObject
 
   std::map<std::string, double> evInfo;
 
-  ClassDef(EicEventHeader, 1)
+  ClassDefOverride(EicEventHeader, 1)
 };
 
 #endif

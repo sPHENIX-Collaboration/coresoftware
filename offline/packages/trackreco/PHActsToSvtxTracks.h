@@ -37,14 +37,14 @@ class PHActsToSvtxTracks : public SubsysReco
  public:
   /// Default constructor and destructor
   PHActsToSvtxTracks(const std::string &name = "PHActsToSvtxTracks");
-  virtual ~PHActsToSvtxTracks() {}
+  ~PHActsToSvtxTracks() override {}
 
   /// Inherited SubsysReco functions
-  int End(PHCompositeNode *topNode);
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
   
   void setSvtxTrackMapName(std::string &name)
   { m_svtxMapName = name;}

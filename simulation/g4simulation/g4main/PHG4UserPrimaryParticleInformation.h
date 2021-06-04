@@ -15,7 +15,7 @@ public:
     uservtxid(0),
     barcode(-1)   {}
 
-  void Print() const 
+  void Print() const override 
   {
     std::cout << "Embedding = " << embed << std::endl;
     std::cout << "User Track ID = " << usertrackid << std::endl;

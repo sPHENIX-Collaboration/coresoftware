@@ -11,10 +11,10 @@ class DumpPHG4CylinderCellGeomContainer : public DumpObject
 {
  public:
   DumpPHG4CylinderCellGeomContainer(const std::string &NodeName);
-  virtual ~DumpPHG4CylinderCellGeomContainer() {}
+  ~DumpPHG4CylinderCellGeomContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

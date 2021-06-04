@@ -17,55 +17,55 @@ class JetMapv1 : public JetMap
   JetMapv1();
   JetMapv1(const JetMap *jets);
   JetMapv1& operator=(const JetMapv1& jets);
-  virtual ~JetMapv1();
+  ~JetMapv1() override;
 
-  void identify(std::ostream& os = std::cout) const;
-  void Reset();
-  int isValid() const { return 1; }
-  PHObject* CloneMe() const;
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override { return 1; }
+  PHObject* CloneMe() const override;
 
   // map content info ----------------------------------------------------------
 
-  void set_algo(Jet::ALGO algo) { _algo = algo; }
-  Jet::ALGO get_algo() const { return _algo; }
+  void set_algo(Jet::ALGO algo) override { _algo = algo; }
+  Jet::ALGO get_algo() const override { return _algo; }
 
-  void set_par(float par) { _par = par; }
-  float get_par() const { return _par; }
+  void set_par(float par) override { _par = par; }
+  float get_par() const override { return _par; }
 
   // set access to source identifiers ------------------------------------------
 
-  bool empty_src() const { return _src.empty(); }
-  void insert_src(Jet::SRC src) { _src.insert(src); }
+  bool empty_src() const override { return _src.empty(); }
+  void insert_src(Jet::SRC src) override { _src.insert(src); }
 
-  ConstSrcIter begin_src() const { return _src.begin(); }
-  ConstSrcIter find_src(Jet::SRC src) const { return _src.find(src); }
-  ConstSrcIter end_src() const { return _src.end(); }
+  ConstSrcIter begin_src() const override { return _src.begin(); }
+  ConstSrcIter find_src(Jet::SRC src) const override { return _src.find(src); }
+  ConstSrcIter end_src() const override { return _src.end(); }
 
-  SrcIter begin_src() { return _src.begin(); }
-  SrcIter find_src(Jet::SRC src) { return _src.find(src); }
-  SrcIter end_src() { return _src.end(); }
+  SrcIter begin_src() override { return _src.begin(); }
+  SrcIter find_src(Jet::SRC src) override { return _src.find(src); }
+  SrcIter end_src() override { return _src.end(); }
 
   // map access to jets --------------------------------------------------------
 
-  bool empty() const { return _map.empty(); }
-  size_t size() const { return _map.size(); }
-  size_t count(unsigned int idkey) const { return _map.count(idkey); }
-  void clear() { Reset(); }
+  bool empty() const override { return _map.empty(); }
+  size_t size() const override { return _map.size(); }
+  size_t count(unsigned int idkey) const override { return _map.count(idkey); }
+  void clear() override { Reset(); }
 
-  const Jet* get(unsigned int idkey) const;
-  Jet* get(unsigned int idkey);
+  const Jet* get(unsigned int idkey) const override;
+  Jet* get(unsigned int idkey) override;
 
   /// insert Jet to the map. Once inserted, the JetMap owns the Jet memory
-  Jet* insert(Jet* jet);
-  size_t erase(unsigned int idkey) { return _map.erase(idkey); }
+  Jet* insert(Jet* jet) override;
+  size_t erase(unsigned int idkey) override { return _map.erase(idkey); }
 
-  ConstIter begin() const { return _map.begin(); }
-  ConstIter find(unsigned int idkey) const { return _map.find(idkey); }
-  ConstIter end() const { return _map.end(); }
+  ConstIter begin() const override { return _map.begin(); }
+  ConstIter find(unsigned int idkey) const override { return _map.find(idkey); }
+  ConstIter end() const override { return _map.end(); }
 
-  Iter begin() { return _map.begin(); }
-  Iter find(unsigned int idkey) { return _map.find(idkey); }
-  Iter end() { return _map.end(); }
+  Iter begin() override { return _map.begin(); }
+  Iter find(unsigned int idkey) override { return _map.find(idkey); }
+  Iter end() override { return _map.end(); }
 
  private:
   Jet::ALGO _algo;          //< algorithm used to reconstruct jets
@@ -73,7 +73,7 @@ class JetMapv1 : public JetMap
   std::set<Jet::SRC> _src;  //< list of sources (clusters, towers, etc)
   typ_JetMap _map;          //< jet algorithm output storage
 
-  ClassDef(JetMapv1, 1);
+  ClassDefOverride(JetMapv1, 1);
 };
 
 #endif

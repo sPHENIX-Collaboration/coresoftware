@@ -23,7 +23,7 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
   PHG4PhenixDetector(PHG4Reco* subsys);
 
   //! destructor
-  virtual ~PHG4PhenixDetector();
+  ~PHG4PhenixDetector() override;
 
   void Verbosity(const int verb) { m_Verbosity = verb; }
   int Verbosity() const { return m_Verbosity; }
@@ -35,7 +35,7 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
   }
 
   //! this is called by geant to actually construct all detectors
-  virtual G4VPhysicalVolume* Construct();
+  G4VPhysicalVolume* Construct() override;
 
   G4double GetWorldSizeX() const { return WorldSizeX; }
 

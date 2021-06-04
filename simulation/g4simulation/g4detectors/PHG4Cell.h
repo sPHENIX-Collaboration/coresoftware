@@ -31,12 +31,14 @@ class PHG4Cell: public PHObject
   typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
   typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
 
-  virtual ~PHG4Cell() {}
+  ~PHG4Cell() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject *phobj);
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void CopyFrom(const PHObject *phobj) override;
+  void Reset() override;
+
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
-  virtual void Reset();
 
   // all methods connected to the cell id (encoding/decoding
   virtual void set_cellid(const PHG4CellDefs::keytype i) {return;}
@@ -154,7 +156,7 @@ class PHG4Cell: public PHObject
   PHG4Cell() {}
   virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
   virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
-  ClassDef(PHG4Cell,2)
+  ClassDefOverride(PHG4Cell,2)
 };
 
 

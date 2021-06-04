@@ -22,17 +22,16 @@ class GlobalVertex : public PHObject
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::const_iterator ConstVtxIter;
   typedef std::map<GlobalVertex::VTXTYPE, unsigned int>::iterator VtxIter;
 
-  virtual ~GlobalVertex() {}
+  ~GlobalVertex() override {}
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "GlobalVertex base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // vertex info
 
@@ -91,7 +90,7 @@ class GlobalVertex : public PHObject
   GlobalVertex() {}
 
  private:
-  ClassDef(GlobalVertex, 1);
+  ClassDefOverride(GlobalVertex, 1);
 };
 
 #endif

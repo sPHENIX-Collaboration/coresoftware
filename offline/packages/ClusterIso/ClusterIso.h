@@ -28,9 +28,9 @@ class ClusterIso : public SubsysReco
    */
   ClusterIso(const std::string&, float eTCut, int coneSize, bool do_subtracted, bool do_unsubtracted);
 
-  virtual int Init(PHCompositeNode*);
-  virtual int process_event(PHCompositeNode*);
-  virtual int End(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
 
   void seteTCut(float x);
   void setConeSize(int x);

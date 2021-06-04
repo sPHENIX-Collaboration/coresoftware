@@ -34,8 +34,8 @@ class PHField3DCylindrical : public PHField
 
  public:
   PHField3DCylindrical(const std::string& filename, int verb = 0, const float magfield_rescale = 1.0);
-  virtual ~PHField3DCylindrical() {}
-  void GetFieldValue(const double Point[4], double* Bfield) const;
+  ~PHField3DCylindrical() override {}
+  void GetFieldValue(const double Point[4], double* Bfield) const override;
   void GetFieldCyl(const double CylPoint[4], double* Bfield) const;
 
  protected:

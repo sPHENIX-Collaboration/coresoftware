@@ -21,18 +21,18 @@ class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHParameterInterfa
 
   PHG4FullProjSpacalCellReco(const std::string &name = "HCALCELLRECO");
 
-  virtual ~PHG4FullProjSpacalCellReco(){}
+  ~PHG4FullProjSpacalCellReco() override{}
   
   //! module initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
   
     //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! reset after event processing  
-  int ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode) override;
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   void Detector(const std::string &d) {detector = d;}
 

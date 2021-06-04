@@ -20,12 +20,12 @@
 class PHFieldConfig : public PHObject
 {
  public:
-  virtual ~PHFieldConfig() {}
+  ~PHFieldConfig() override {}
 
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
   enum FieldConfigTypes
   {
@@ -83,7 +83,7 @@ class PHFieldConfig : public PHObject
 
   static const std::string kInvalid_FileName;
 
-  ClassDef(PHFieldConfig, 1)
+  ClassDefOverride(PHFieldConfig, 1)
 };
 
 #endif

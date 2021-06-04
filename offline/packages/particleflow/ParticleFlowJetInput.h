@@ -20,10 +20,10 @@ class ParticleFlowJetInput : public JetInput
 {
  public:
   ParticleFlowJetInput();
-  virtual ~ParticleFlowJetInput() {}
+  ~ParticleFlowJetInput() override {}
 
-  std::vector<Jet*> get_input(PHCompositeNode* topNode);
-  void identify(std::ostream& os = std::cout);
+  std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
+  void identify(std::ostream& os = std::cout) override;
 
  private:
   int _verbosity;

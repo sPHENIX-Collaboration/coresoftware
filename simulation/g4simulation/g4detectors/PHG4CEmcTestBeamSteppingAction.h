@@ -20,14 +20,14 @@ class PHG4CEmcTestBeamSteppingAction : public PHG4SteppingAction
   PHG4CEmcTestBeamSteppingAction( PHG4CEmcTestBeamDetector* );
 
   //! destroctor
-  virtual ~PHG4CEmcTestBeamSteppingAction()
+  ~PHG4CEmcTestBeamSteppingAction() override
   {}
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  void SetInterfacePointers( PHCompositeNode* ) override;
 
   private:
 

@@ -11,8 +11,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3
+  -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \

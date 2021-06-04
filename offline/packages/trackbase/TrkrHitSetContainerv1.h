@@ -25,39 +25,39 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
 
   TrkrHitSetContainerv1() = default;
 
-  virtual ~TrkrHitSetContainerv1()
+  ~TrkrHitSetContainerv1() override
   { TrkrHitSetContainerv1::Reset(); }
 
-  virtual void Reset();
+  void Reset() override;
 
-  virtual void identify(std::ostream& = std::cout) const;
+  void identify(std::ostream& = std::cout) const override;
 
-  virtual ConstIterator addHitSet(TrkrHitSet*);
+  ConstIterator addHitSet(TrkrHitSet*) override;
 
-  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*);
+  ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*) override;
 
-  virtual void removeHitSet(TrkrDefs::hitsetkey );
+  void removeHitSet(TrkrDefs::hitsetkey ) override;
 
-  virtual void removeHitSet(TrkrHitSet* );
+  void removeHitSet(TrkrHitSet* ) override;
 
-  virtual Iterator findOrAddHitSet(TrkrDefs::hitsetkey key);
+  Iterator findOrAddHitSet(TrkrDefs::hitsetkey key) override;
 
-  virtual ConstRange getHitSets(const TrkrDefs::TrkrId trackerid) const;
+  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid) const override;
 
-  virtual ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const uint8_t layer) const;
+  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const uint8_t layer) const override;
 
-  virtual ConstRange getHitSets() const;
+  ConstRange getHitSets() const override;
 
-  virtual TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key);
+  TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key) override;
 
-  virtual unsigned int size() const
+  unsigned int size() const override
   { return m_hitmap.size(); }
 
   private: 
   
   Map m_hitmap;
   
-  ClassDef(TrkrHitSetContainerv1, 1)
+  ClassDefOverride(TrkrHitSetContainerv1, 1)
 };
 
 #endif //TRACKBASE_TrkrHitSetContainerv1_H
