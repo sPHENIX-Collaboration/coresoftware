@@ -94,7 +94,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
       _tracklet_tpc = phtrk_iter->second;
       
-      if (Verbosity() >= 1)
+      if (Verbosity() > 1)
 	{
 	  std::cout
 	    << __LINE__
@@ -452,7 +452,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << endl;
   
-  if (Verbosity() >= 1)
+  if (Verbosity() > 0)
     cout << "PHTpcTrackSeedVertexAssoc::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
   
   return Fun4AllReturnCodes::EVENT_OK;

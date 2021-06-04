@@ -4,6 +4,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
+#include <trackbase/TpcSeedTrackMap.h>     
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
@@ -15,8 +16,10 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
 
 #if __cplusplus < 201402L
 #include <boost/make_unique.hpp>
@@ -30,6 +33,7 @@
 #include <set>                                 // for _Rb_tree_const_iterator
 #include <utility>                             // for pair
 #include <memory>
+
 using namespace std;
 
 //____________________________________________________________________________..
@@ -88,6 +92,12 @@ int PHSiliconTpcTrackMatching::Process()
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
+
+  std::cout << " Seed track map size: " << std::endl;
+  std::cout << "    size = " << _seed_track_map_class->SeedTrackMap.size()  << std::endl;
+
+  _seed_track_map_class->SeedTrackMap.clear();
+
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
 
@@ -121,7 +131,7 @@ int PHSiliconTpcTrackMatching::Process()
       
       _tracklet_tpc = phtrk_iter->second;
       
-      if (Verbosity() >= 1)
+      if (Verbosity() > 1)
 	{
 	  std::cout
 	    << __LINE__
@@ -131,6 +141,12 @@ int PHSiliconTpcTrackMatching::Process()
 	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << endl;
 	}
+
+      // This will always end up as a final track, no matter what - add it to the seed-track-map
+      if(Verbosity() > 1) 
+	std::cout << " TPC seed ID " << _tracklet_tpc->get_id() << " original nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
+      std::pair<unsigned int, unsigned int> pair = std::make_pair(_tracklet_tpc->get_id(), _tracklet_tpc->get_id()); 
+      _seed_track_map_class->SeedTrackMap.insert(pair);
 
       double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
       double tpc_eta = _tracklet_tpc->get_eta();
@@ -226,7 +242,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(eta_match && phi_match)
 	    {
 	      // got a match, add to the list
-	      if(Verbosity() >= 1)  
+	      if(Verbosity() > 1)  
 		{
 		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
@@ -253,7 +269,7 @@ int PHSiliconTpcTrackMatching::Process()
       // we did not get a match, sound the alarm
       if(si_matches.size() == 0)
 	{
-	  if(Verbosity() >= 1)
+	  if(Verbosity() > 1)
 	    {
 	      cout << PHWHERE << " Did NOT find a match for TPC track " << _tracklet_tpc->get_id()  << "  tpc_phi " << tpc_phi << " tpc_eta " << tpc_eta  << endl;
 	    }
@@ -270,6 +286,10 @@ int PHSiliconTpcTrackMatching::Process()
 	      _tracklet_tpc->set_x(svtxVertex->get_x());
 	      _tracklet_tpc->set_y(svtxVertex->get_y());
 	      _tracklet_tpc->set_z(svtxVertex->get_z());
+
+	      if(Verbosity() > 1)
+		std::cout << " TPC seed track ID " << _tracklet_tpc->get_id() << " nclus " << _tracklet_tpc->size_cluster_keys() 
+			  << " no silicon match found " << std::endl;
 	    }
 	  else
 	    {
@@ -296,7 +316,7 @@ int PHSiliconTpcTrackMatching::Process()
 	  // get the si tracklet for this id
 	  _tracklet_si = _track_map_silicon->get(*si_it);
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    cout << "   isi = " << isi << " si tracklet " << _tracklet_si->get_id() << " was matched to TPC tracklet " << _tracklet_tpc->get_id() << endl;
 
 	  // get the silicon clusters
@@ -306,7 +326,7 @@ int PHSiliconTpcTrackMatching::Process()
 	       ++key_iter)
 	    {
 	      TrkrDefs::cluskey cluster_key = *key_iter;
-	      if(Verbosity() >=1) cout << "   inserting cluster key " << cluster_key << " into list " << " for si tracklet " << _tracklet_si->get_id() << endl;
+	      if(Verbosity() >1) cout << "   inserting cluster key " << cluster_key << " into list " << " for si tracklet " << _tracklet_si->get_id() << endl;
 	      si_clusters.insert(cluster_key);
 	    }
 
@@ -344,10 +364,16 @@ int PHSiliconTpcTrackMatching::Process()
 		}
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
-		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into exisiting TPC track " << _tracklet_tpc->get_id() << endl;
+		  if(Verbosity() > 1) 
+		    cout << "   inserting si cluster key " << *clus_iter << " into existing TPC track " << _tracklet_tpc->get_id() << endl;
+
 		  _tracklet_tpc->insert_cluster_key(*clus_iter);
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, _tracklet_tpc->get_id());
 		}
+
+	      if(Verbosity() > 1)
+		std::cout << " TPC seed track ID " << _tracklet_tpc->get_id() 
+			  << " new nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
 
 	      if(Verbosity() > 3)
 		_tracklet_tpc->identify();
@@ -362,7 +388,7 @@ int PHSiliconTpcTrackMatching::Process()
 	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 	      #endif
 	      const unsigned int lastTrackKey = _track_map->end()->first; 
-	      if(Verbosity() >= 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
+	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
 	      
 	      newTrack->set_id(lastTrackKey);
 
@@ -421,7 +447,8 @@ int PHSiliconTpcTrackMatching::Process()
 	      // now add the new si clusters
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
-		  if(Verbosity() >= 1) cout << "   inserting si cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
+		  if(Verbosity() > 1) 
+		    cout << "   inserting si cluster key " << *clus_iter << " into new track " << newTrack->get_id() << endl;
 		  newTrack->insert_cluster_key(*clus_iter);
 		  _assoc_container->SetClusterTrackAssoc(*clus_iter, newTrack->get_id());
 		}
@@ -433,7 +460,11 @@ int PHSiliconTpcTrackMatching::Process()
 		}
 
 	      _track_map->insert(newTrack.get());
-	 
+
+	      if(Verbosity() > 1)
+		std::cout << " TPC seed track ID " << _tracklet_tpc->get_id() 
+			  << " new track ID " << newTrack->get_id() << " new nclus " << newTrack->size_cluster_keys() << std::endl;
+	      _seed_track_map_class->SeedTrackMap.insert(std::make_pair(_tracklet_tpc->get_id(), newTrack->get_id() ) ) ;	 
 	    }
 	  
 	  isi++;
@@ -441,7 +472,8 @@ int PHSiliconTpcTrackMatching::Process()
     }
 
   if(Verbosity() > 0)  
-    cout << " Final track map size " << _track_map->size() << endl;
+    //cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map.size() << endl;
+    cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map_class->SeedTrackMap.size() << endl;
   
   if (Verbosity() >= 1)
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
@@ -466,7 +498,50 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+   _seed_track_map_class  = findNode::getClass<TpcSeedTrackMap>(topNode,
+							 "TpcSeedTrackMap");
+  if(!_seed_track_map_class)
+    {
+      std::cout << "Creating node TpcSeedTrackMap" << std::endl;
+
+      /// Get the DST Node
+      PHNodeIterator iter(topNode);
+      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   
+      /// Check that it is there
+      if (!dstNode)
+	{
+	  std::cerr << "DST Node missing, quitting" << std::endl;
+	  throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+	}
+
+      /// Get the tracking subnode
+      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+      
+      /// Check that it is there
+      if (!svtxNode)
+	{
+	  svtxNode = new PHCompositeNode("SVTX");
+	  dstNode->addNode(svtxNode);
+	}
+      
+      _seed_track_map_class = new TpcSeedTrackMap();
+      PHDataNode<TpcSeedTrackMap> *node
+	= new PHDataNode<TpcSeedTrackMap>(_seed_track_map_class, "TpcSeedTrackMap");
+      svtxNode->addNode(node);
+    }
+
+/*
+  if(_seed_track_map_class)
+    {
+      _seed_track_map = _seed_track_map_class->SeedTrackMap;
+    }
+  else
+    std::cout << "Failed to find node TpcSeedTrackMap, quit" << std::endl;
+*/    
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
