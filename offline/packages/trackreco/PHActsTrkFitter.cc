@@ -216,26 +216,15 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
    
       SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
-	{	
+	{
 	  sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-	  /// Check to see if there is a track to fit, if not skip it
-	  if(surfaces.size() == 0)
-	    continue;
-	  bool MMsurface = false;
-	  for(auto surf : surfaces)
-	    {
-	      if(surf->geometryId().volume() == 16)
-		{
-		  MMsurface = true;
-		  break;
-		}
-	    }
-	  /// If there's not a MM surface, we don't want to fit only
-	  /// the silicon
-	  if(!MMsurface)
-	    continue;
+    const bool MMsurface = std::any_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
+    { return m_mmVolumeIds.find( surface->geometryId().volume() ) != m_mmVolumeIds.end(); } );
+
+    // skip track if no MM surface is found
+	  if(!MMsurface) continue;
 	}
-  
+
       Acts::Vector3D momentum(track->get_px(), 
 			      track->get_py(), 
 			      track->get_pz());
@@ -844,6 +833,10 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+    // dump micromegas surfaces
+    for( const auto& [hitsetid, surface]:m_surfMaps->mmSurfaceMap )
+    { m_mmVolumeIds.insert( surface->geometryId().volume() ); }
 
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
