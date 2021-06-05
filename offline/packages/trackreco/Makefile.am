@@ -53,7 +53,6 @@ pkginclude_HEADERS = \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
-  PHTpcResiduals.h \
   PHTpcTrackSeedVertexAssoc.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
@@ -117,8 +116,7 @@ ACTS_SOURCES = \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
   PHActsVertexFitter.cc \
-  PHActsTrackProjection.cc \
-  PHTpcResiduals.cc
+  PHActsTrackProjection.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
