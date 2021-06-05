@@ -44,6 +44,7 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
+  PHTrackCleaner.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
   PHHybridSeeding.h \
@@ -157,6 +158,7 @@ libtrack_reco_la_SOURCES = \
   PHSiliconTruthTrackSeeding.cc \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
+  PHTrackCleaner.cc \
   PHRTreeSeeding.cc \
   ../PHTpcTracker/PHTpcTrackerUtil.cc \
   PHHybridSeeding.cc \

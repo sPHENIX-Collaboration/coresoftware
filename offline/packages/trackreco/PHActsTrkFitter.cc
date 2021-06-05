@@ -135,7 +135,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
   eventTimer->stop();
   auto eventTime = eventTimer->get_accumulated_time();
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter total event time " 
 	      << eventTime << std::endl;
 
@@ -270,7 +270,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       fitTimer->stop();
       auto fitTime = fitTimer->get_accumulated_time();
       
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout << "PHActsTrkFitter Acts fit time "
 		  << fitTime << std::endl;
 
@@ -308,7 +308,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer->stop();
       auto trackTime = trackTimer->get_accumulated_time();
       
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	std::cout << "PHActsTrkFitter total single track time "
 		  << trackTime << std::endl;
     
@@ -508,7 +508,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   updateTrackTimer->stop();
   auto updateTime = updateTrackTimer->get_accumulated_time();
   
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrack time "
 	      << updateTime << std::endl;
 
@@ -732,7 +732,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   trackStateTimer->stop();
   auto stateTime = trackStateTimer->get_accumulated_time();
   
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
 	      << stateTime << std::endl;
 
