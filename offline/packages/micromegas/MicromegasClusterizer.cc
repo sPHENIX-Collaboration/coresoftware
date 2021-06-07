@@ -272,6 +272,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       double coord_sum = 0;
       double coordsquare_sum = 0;
 
+      // also store adc value
+      unsigned int adc_sum = 0;
+
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
@@ -289,6 +292,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         /* pedestal should be the same as the one used in PHG4MicromegasDigitizer */
         static constexpr double pedestal = 74.6;
         const double weight = double(hit->getAdc()) - pedestal;
+
+        // increment cluster adc
+        adc_sum += hit->getAdc();
 
         // get strip local coordinate and update relevant sums
         const auto strip_local_coordinate = layergeom->get_local_coordinates( tileid, strip );
@@ -321,6 +327,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setY( world_coordinates.y() );
       cluster->setZ( world_coordinates.z() );
       cluster->setGlobal();
+
+      cluster->setAdc( adc_sum );
 
       // dimension and error in r, rphi and z coordinates
       static const float invsqrt12 = 1./std::sqrt(12);

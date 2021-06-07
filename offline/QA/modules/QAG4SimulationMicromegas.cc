@@ -14,6 +14,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -160,6 +161,16 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
     // get segmentation type
     const auto segmentation_type = layergeom->get_segmentation_type();
     const bool is_segmentation_phi = (segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI);
+
+    {
+      // ADC distributions
+      auto h = new TH1F(Form("%sadc_%i", get_histo_prefix().c_str(), layer),
+        Form("micromegas ADC distribution layer_%i", layer),
+        1024, 0, 1024 );
+      h->GetXaxis()->SetTitle( "ADC" );
+      hm->registerHisto(h);
+    }
+      
     {
       // residuals (cluster - truth)
       const double max_residual = is_segmentation_phi ? 0.04:0.08;
@@ -207,7 +218,9 @@ int QAG4SimulationMicromegas::process_event(PHCompositeNode* topNode)
   // load nodes
   auto res = load_nodes(topNode);
   if (res != Fun4AllReturnCodes::EVENT_OK) return res;
+  
   // run evaluation
+  evaluate_hits();
   evaluate_clusters();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -265,6 +278,56 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//________________________________________________________________________
+void QAG4SimulationMicromegas::evaluate_hits()
+{
+  // histogram manager
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // load relevant histograms
+  struct HistogramList
+  {
+    TH1* adc = nullptr;
+  };
+
+  using HistogramMap = std::map<int, HistogramList>;
+  HistogramMap histograms;
+
+  for (const auto& layer : m_layers)
+  {
+    HistogramList h;
+    h.adc = dynamic_cast<TH1*>(hm->getHisto(Form("%sadc_%i", get_histo_prefix().c_str(), layer)));
+    histograms.insert(std::make_pair(layer, h));
+  }
+  
+  // loop over hitsets
+  const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
+  for (auto hitsetiter = hitsetrange.first; hitsetiter != hitsetrange.second; ++hitsetiter)
+  {
+
+    // get hitsetkey and layer
+    const auto hitsetkey = hitsetiter->first;
+    const auto layer = TrkrDefs::getLayer(hitsetkey);
+        
+    // get relevant histograms
+    const auto hiter = histograms.find(layer);
+    if (hiter == histograms.end()) continue;
+
+    // get all of the hits from this hitset
+    TrkrHitSet* hitset = hitsetiter->second;
+    TrkrHitSet::ConstRange hitrange = hitset->getHits();
+    
+    // loop over hits
+    for( auto hit_it = hitrange.first; hit_it != hitrange.second; ++hit_it )
+    {
+      // store ADC
+      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      fill( hiter->second.adc, hit_it->second->getAdc() );
+    }
+  }
 }
 
 //________________________________________________________________________
