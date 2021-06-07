@@ -69,6 +69,8 @@ class PHActsVertexFinder: public PHInitVertexing
   void updateTrackDCA(const unsigned int trackKey,
 		      const Acts::Vector3D vertex);
 
+  void checkTrackVertexAssociation();
+
   /// An Acts vertex object map
   VertexMap *m_actsVertexMap;
 
