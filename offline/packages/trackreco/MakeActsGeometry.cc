@@ -1543,7 +1543,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
   // load micromegas geometry
   // do not abort if not found
   m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
-  if (!m_geomContainerMicromegas)
+  if (!m_geomContainerMicromegas && Verbosity() > 0)
   {
     std::cout << PHWHERE 
 	      << " CYLINDERGEOM_MICROMEGAS_FULL  node not found on node tree"
