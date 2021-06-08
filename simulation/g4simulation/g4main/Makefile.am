@@ -158,6 +158,7 @@ libg4testbench_la_SOURCES = \
   PHG4PhenixDetector.cc \
   PHG4PhenixDisplayAction.cc \
   PHG4PhenixEventAction.cc \
+  PHG4PhenixStackingAction.cc \
   PHG4PhenixSteppingAction.cc \
   PHG4PhenixTrackingAction.cc \
   PHG4PileupGenerator.cc \
@@ -166,6 +167,7 @@ libg4testbench_la_SOURCES = \
   PHG4RegionInformation.cc \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
+  PHG4StackingAction.cc \
   PHG4SteppingAction.cc \
   PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
