@@ -72,6 +72,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _do_PROJECTIONS(false)
   , _do_MCPARTICLES(false)
   , _do_HEPMC(false)
+  , _do_GEOMETRY(false)
   , _ievent(0)
   , _nHitsLayers(0)
   , _hits_layerID(0)
@@ -233,6 +234,16 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _hepmcp_m2(0)
   , _hepmcp_BCID(0)
 
+  , _calo_ID(0)
+  , _calo_towers_N(0)
+  , _calo_towers_iEta(0)
+  , _calo_towers_iPhi(0)
+  , _calo_towers_Eta(0)
+  , _calo_towers_Phi(0)
+  , _calo_towers_x(0)
+  , _calo_towers_y(0)
+  , _calo_towers_z(0)
+
   , _reco_e_threshold(0.0)
   , _depth_MCstack(2)
   , _caloevalstackFHCAL(nullptr)
@@ -245,8 +256,10 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _caloevalstackEEMC(nullptr)
   , _strict(false)
   , _event_tree(nullptr)
+  , _geometry_tree(nullptr)
   , _filename(filename)
   , _tfile(nullptr)
+  , _tfile_geometry(nullptr)
 {
   _hits_layerID = new int[_maxNHits];
   _hits_trueID = new int[_maxNHits];
@@ -265,20 +278,20 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _cluster_FHCAL_NTower = new int[_maxNclusters];
   _cluster_FHCAL_trueID = new int[_maxNclusters];
 
-  _tower_HCALIN_E = new float[_maxNTowers];
-  _tower_HCALIN_iEta = new int[_maxNTowers];
-  _tower_HCALIN_iPhi = new int[_maxNTowers];
-  _tower_HCALIN_trueID = new int[_maxNTowers];
+  _tower_HCALIN_E = new float[_maxNTowersCentral];
+  _tower_HCALIN_iEta  = new int[_maxNTowersCentral];
+  _tower_HCALIN_iPhi = new int[_maxNTowersCentral];
+  _tower_HCALIN_trueID = new int[_maxNTowersCentral];
   _cluster_HCALIN_E = new float[_maxNclusters];
   _cluster_HCALIN_Eta = new float[_maxNclusters];
   _cluster_HCALIN_Phi = new float[_maxNclusters];
   _cluster_HCALIN_NTower = new int[_maxNclusters];
   _cluster_HCALIN_trueID = new int[_maxNclusters];
 
-  _tower_HCALOUT_E = new float[_maxNTowers];
-  _tower_HCALOUT_iEta = new int[_maxNTowers];
-  _tower_HCALOUT_iPhi = new int[_maxNTowers];
-  _tower_HCALOUT_trueID = new int[_maxNTowers];
+  _tower_HCALOUT_E = new float[_maxNTowersCentral];
+  _tower_HCALOUT_iEta  = new int[_maxNTowersCentral];
+  _tower_HCALOUT_iPhi = new int[_maxNTowersCentral];
+  _tower_HCALOUT_trueID = new int[_maxNTowersCentral];
   _cluster_HCALOUT_E = new float[_maxNclusters];
   _cluster_HCALOUT_Eta = new float[_maxNclusters];
   _cluster_HCALOUT_Phi = new float[_maxNclusters];
@@ -312,15 +325,15 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _cluster_FEMC_NTower = new int[_maxNclusters];
   _cluster_FEMC_trueID = new int[_maxNclusters];
 
-  _tower_CEMC_E = new float[_maxNTowers];
-  _tower_CEMC_iEta = new int[_maxNTowers];
-  _tower_CEMC_iPhi = new int[_maxNTowers];
-  _tower_CEMC_trueID = new int[_maxNTowers];
-  _cluster_CEMC_E = new float[_maxNclusters];
-  _cluster_CEMC_Eta = new float[_maxNclusters];
-  _cluster_CEMC_Phi = new float[_maxNclusters];
-  _cluster_CEMC_NTower = new int[_maxNclusters];
-  _cluster_CEMC_trueID = new int[_maxNclusters];
+  _tower_CEMC_E = new float[_maxNTowersCentral];
+  _tower_CEMC_iEta = new int[_maxNTowersCentral];
+  _tower_CEMC_iPhi = new int[_maxNTowersCentral];
+  _tower_CEMC_trueID = new int[_maxNTowersCentral];
+  _cluster_CEMC_E = new float[_maxNclustersCentral];
+  _cluster_CEMC_Eta = new float[_maxNclustersCentral];
+  _cluster_CEMC_Phi = new float[_maxNclustersCentral];
+  _cluster_CEMC_NTower = new int[_maxNclustersCentral];
+  _cluster_CEMC_trueID = new int[_maxNclustersCentral];
 
   _tower_EEMC_E = new float[_maxNTowers];
   _tower_EEMC_iEta = new int[_maxNTowers];
@@ -368,6 +381,16 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _hepmcp_pz = new float[_maxNHepmcp];
   _hepmcp_m1 = new int[_maxNHepmcp];
   _hepmcp_m2 = new int[_maxNHepmcp];
+
+  _calo_towers_iEta = new int[_maxNTowersCalo];
+  _calo_towers_iPhi = new int[_maxNTowersCalo];
+  _calo_towers_Eta = new float[_maxNTowersCalo];
+  _calo_towers_Phi = new float[_maxNTowersCalo];
+  _calo_towers_x = new float[_maxNTowersCalo];
+  _calo_towers_y = new float[_maxNTowersCalo];
+  _calo_towers_z = new float[_maxNTowersCalo];
+
+
 }
 
 int EventEvaluator::Init(PHCompositeNode* topNode)
@@ -599,6 +622,24 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("hepmcp_m1", _hepmcp_m1, "hepmcp_m1[nHepmcp]/I");
     _event_tree->Branch("hepmcp_m2", _hepmcp_m2, "hepmcp_m2[nHepmcp]/I");
   }
+
+
+  if(_do_GEOMETRY){
+    _tfile_geometry = new TFile("geometry.root", "RECREATE");
+
+    _geometry_tree = new TTree("geometry_tree", "geometry_tree");
+    // tracks and hits
+    _geometry_tree->Branch("calo", &_calo_ID, "nHits/I");
+    _geometry_tree->Branch("calo_towers_N",  &_calo_towers_N,"calo_towers_N/I");
+    _geometry_tree->Branch("calo_towers_iEta", _calo_towers_iEta, "calo_towers_iEta[calo_towers_N]/I");
+    _geometry_tree->Branch("calo_towers_iPhi", _calo_towers_iPhi, "calo_towers_iPhi[calo_towers_N]/I");
+    _geometry_tree->Branch("calo_towers_Eta", _calo_towers_Eta, "calo_towers_Eta[calo_towers_N]/F");
+    _geometry_tree->Branch("calo_towers_Phi", _calo_towers_Phi, "calo_towers_Phi[calo_towers_N]/F");
+    _geometry_tree->Branch("calo_towers_x", _calo_towers_x, "calo_towers_x[calo_towers_N]/F");
+    _geometry_tree->Branch("calo_towers_y", _calo_towers_y, "calo_towers_y[calo_towers_N]/F");
+    _geometry_tree->Branch("calo_towers_z", _calo_towers_z, "calo_towers_z[calo_towers_N]/F");
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -890,6 +931,21 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _tower_FHCAL_iEta[_nTowers_FHCAL] = tower->get_bineta();
             _tower_FHCAL_iPhi[_nTowers_FHCAL] = tower->get_binphi();
             _tower_FHCAL_E[_nTowers_FHCAL] = tower->get_energy();
+
+            if(_do_GEOMETRY){
+            // _calo_ID = kFHCAL;
+            // _calo_ID = kFHCAL;
+            }
+
+  // , _calo_ID(0)
+  // , _calo_towers_N(0)
+  // , _calo_towers_iEta(0)
+  // , _calo_towers_iPhi(0)
+  // , _calo_towers_Eta(0)
+  // , _calo_towers_Phi(0)
+  // , _calo_towers_x(0)
+  // , _calo_towers_y(0)
+  // , _calo_towers_z(0)
 
             PHG4Particle* primary = towerevalFHCAL->max_truth_primary_particle_by_energy(tower);
             if (primary)
@@ -1437,8 +1493,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //------------------------
   // CLUSTERS FHCAL
   //------------------------
-  if (_do_FHCAL && _do_CLUSTERS)
-  {
+  if (Verbosity() > 0){ cout << "saving clusters" << endl;}
+  if(_do_FHCAL && _do_CLUSTERS){
     CaloRawClusterEval* clusterevalFHCAL = _caloevalstackFHCAL->get_rawcluster_eval();
     _nclusters_FHCAL = 0;
     if (Verbosity() > 1)
@@ -1494,6 +1550,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeFHCAL << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_FHCAL << "\tFHCAL clusters" << endl;}
   }
   //------------------------
   // CLUSTERS HCALIN
@@ -1555,6 +1612,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeHCALIN << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_HCALIN << "\tHCALIN clusters" << endl;}
   }
   //------------------------
   // CLUSTERS HCALOUT
@@ -1616,6 +1674,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeHCALOUT << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_HCALOUT << "\tHCALOUT clusters" << endl;}
   }
   //------------------------
   // CLUSTERS EHCAL
@@ -1677,6 +1736,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeEHCAL << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EHCAL << "\tFHCAL clusters" << endl;}
   }
 
   //------------------------
@@ -1739,6 +1799,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeFEMC << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_FEMC << "\tFEMC clusters" << endl;}
   }
   //------------------------
   // CLUSTERS CEMC
@@ -1800,6 +1861,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeCEMC << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_CEMC << "\tCEMC clusters" << endl;}
   }
   //------------------------
   // CLUSTERS EEMC
@@ -1861,6 +1923,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeEEMC << endl;
       // return;
     }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EEMC << "\tEEMC clusters" << endl;}
   }
   //------------------------
   // TRACKS
@@ -2167,6 +2230,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   }  //hepmc
 
   _event_tree->Fill();
+  if (Verbosity() > 0){ cout << "Resetting buffer ..." << endl;}
   resetBuffer();
   if (Verbosity() > 0)
   {
@@ -2185,6 +2249,15 @@ int EventEvaluator::End(PHCompositeNode* topNode)
 
   delete _tfile;
 
+  if(_do_GEOMETRY){
+    _tfile_geometry->cd();
+
+    _geometry_tree->Write();
+
+    _tfile_geometry->Close();
+
+    delete _tfile_geometry;
+  }
   if (Verbosity() > 0)
   {
     cout << "========================= " << Name() << "::End() ============================" << endl;
@@ -2413,6 +2486,7 @@ void EventEvaluator::resetBuffer()
     _vertex_true_x = 0;
     _vertex_true_y = 0;
     _vertex_true_z = 0;
+    if (Verbosity() > 0){ cout << "\t... vertex variables reset" << endl;}
   }
   if (_do_HITS)
   {
@@ -2426,6 +2500,7 @@ void EventEvaluator::resetBuffer()
       _hits_z[ihit] = 0;
       _hits_t[ihit] = 0;
     }
+    if (Verbosity() > 0){ cout << "\t... hit variables reset" << endl;}
   }
   if (_do_FHCAL)
   {
@@ -2449,6 +2524,7 @@ void EventEvaluator::resetBuffer()
         _cluster_FHCAL_trueID[itow] = 0;
       }
     }
+    if (Verbosity() > 0){ cout << "\t... FHCAL variables reset" << endl;}
   }
   if (_do_FEMC)
   {
@@ -2472,11 +2548,103 @@ void EventEvaluator::resetBuffer()
         _cluster_FEMC_trueID[itow] = 0;
       }
     }
+    if (Verbosity() > 0){ cout << "\t... FEMC variables reset" << endl;}
+  }
+  if(_do_CEMC){
+    _nTowers_CEMC = 0;
+    for (Int_t itow = 0; itow < _maxNTowersCentral; itow++)
+    {
+      _tower_CEMC_E[itow] = 0;
+      _tower_CEMC_iEta[itow] = 0;
+      _tower_CEMC_iPhi[itow] = 0;
+      _tower_CEMC_trueID[itow] = 0;
+    }
+    if(_do_CLUSTERS){
+      _nclusters_CEMC = 0;
+      for (Int_t itow = 0; itow < _maxNclustersCentral; itow++)
+      {
+        _cluster_CEMC_E[itow] = 0;
+        _cluster_CEMC_Eta[itow] = 0;
+        _cluster_CEMC_Phi[itow] = 0;
+        _cluster_CEMC_NTower[itow] = 0;
+        _cluster_CEMC_trueID[itow] = 0;
+      }
+    }
+    if (Verbosity() > 0){ cout << "\t... CEMC variables reset" << endl;}
+  }
+  if(_do_HCALIN){
+    _nTowers_HCALIN = 0;
+    for (Int_t itow = 0; itow < _maxNTowersCentral; itow++)
+    {
+      _tower_HCALIN_E[itow] = 0;
+      _tower_HCALIN_iEta[itow] = 0;
+      _tower_HCALIN_iPhi[itow] = 0;
+      _tower_HCALIN_trueID[itow] = 0;
+    }
+    if(_do_CLUSTERS){
+      _nclusters_HCALIN = 0;
+      for (Int_t itow = 0; itow < _maxNclusters; itow++)
+      {
+        _cluster_HCALIN_E[itow] = 0;
+        _cluster_HCALIN_Eta[itow] = 0;
+        _cluster_HCALIN_Phi[itow] = 0;
+        _cluster_HCALIN_NTower[itow] = 0;
+        _cluster_HCALIN_trueID[itow] = 0;
+      }
+    }
+    if (Verbosity() > 0){ cout << "\t... HCALIN variables reset" << endl;}
+  }
+  if(_do_HCALOUT){
+    if (Verbosity() > 0){ cout << "\t... resetting HCALOUT variables" << endl;}
+    _nTowers_HCALOUT = 0;
+    for (Int_t itow = 0; itow < _maxNTowersCentral; itow++)
+    {
+      _tower_HCALOUT_E[itow] = 0;
+      _tower_HCALOUT_iEta[itow] = 0;
+      _tower_HCALOUT_iPhi[itow] = 0;
+      _tower_HCALOUT_trueID[itow] = 0;
+    }
+    if(_do_CLUSTERS){
+      _nclusters_HCALOUT = 0;
+      for (Int_t itow = 0; itow < _maxNclusters; itow++)
+      {
+        _cluster_HCALOUT_E[itow] = 0;
+        _cluster_HCALOUT_Eta[itow] = 0;
+        _cluster_HCALOUT_Phi[itow] = 0;
+        _cluster_HCALOUT_NTower[itow] = 0;
+        _cluster_HCALOUT_trueID[itow] = 0;
+      }
+    }
+    if (Verbosity() > 0){ cout << "\t... HCALOUT variables reset" << endl;}
+  }
+  if(_do_EEMC){
+    if (Verbosity() > 0){ cout << "\t... resetting EEMC variables" << endl;}
+    _nTowers_EEMC = 0;
+    for (Int_t itow = 0; itow < _maxNTowers; itow++)
+    {
+      _tower_EEMC_E[itow] = 0;
+      _tower_EEMC_iEta[itow] = 0;
+      _tower_EEMC_iPhi[itow] = 0;
+      _tower_EEMC_trueID[itow] = 0;
+    }
+    if(_do_CLUSTERS){
+      _nclusters_EEMC = 0;
+      for (Int_t itow = 0; itow < _maxNclusters; itow++)
+      {
+        _cluster_EEMC_E[itow] = 0;
+        _cluster_EEMC_Eta[itow] = 0;
+        _cluster_EEMC_Phi[itow] = 0;
+        _cluster_EEMC_NTower[itow] = 0;
+        _cluster_EEMC_trueID[itow] = 0;
+      }
+    }
+    if (Verbosity() > 0){ cout << "\t... EEMC variables reset" << endl;}
   }
   if (_do_DRCALO)
   {
+    if (Verbosity() > 0){ cout << "\t... resetting DRCALO variables" << endl;}
     _nTowers_DRCALO = 0;
-    for (Int_t itow = 0; itow < _maxNTowers; itow++)
+    for (Int_t itow = 0; itow < _maxNTowersDR; itow++)
     {
       _tower_DRCALO_E[itow] = 0;
       _tower_DRCALO_NScint[itow] = 0;
@@ -2485,9 +2653,11 @@ void EventEvaluator::resetBuffer()
       _tower_DRCALO_iPhi[itow] = 0;
       _tower_DRCALO_trueID[itow] = 0;
     }
+    if (Verbosity() > 0){ cout << "\t... DRCALO variables reset" << endl;}
   }
   if (_do_TRACKS)
   {
+    if (Verbosity() > 0){ cout << "\t... resetting Track variables" << endl;}
     _nTracks = 0;
     for (Int_t itrk = 0; itrk < _maxNTracks; itrk++)
     {
@@ -2515,6 +2685,7 @@ void EventEvaluator::resetBuffer()
         _track_TLP_true_t[iproj] = 0;
       }
     }
+    if (Verbosity() > 0){ cout << "\t... track variables reset" << endl;}
   }
   if (_do_MCPARTICLES)
   {
@@ -2547,5 +2718,6 @@ void EventEvaluator::resetBuffer()
       _hepmcp_m2[iHepmcp] = 0;
       _hepmcp_m1[iHepmcp] = 0;
     }
+    if (Verbosity() > 0){ cout << "\t... MC variables reset" << endl;}
   }
 }
