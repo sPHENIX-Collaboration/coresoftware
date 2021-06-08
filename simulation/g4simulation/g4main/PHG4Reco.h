@@ -22,6 +22,7 @@ class PHCompositeNode;
 class PHG4DisplayAction;
 class PHG4PhenixDetector;
 class PHG4PhenixEventAction;
+class PHG4PhenixStackingAction;
 class PHG4PhenixSteppingAction;
 class PHG4PhenixTrackingAction;
 class PHG4PrimaryGeneratorAction;
@@ -129,7 +130,7 @@ class PHG4Reco : public SubsysReco
   void DefineMaterials();
   void DefineRegions();
 
-  float m_MagneticField;
+  float m_MagneticField = 0.;
   float m_MagneticFieldRescale;
   double m_WorldSize[3];
 
@@ -147,6 +148,9 @@ class PHG4Reco : public SubsysReco
 
   //! pointer to main event action
   PHG4PhenixEventAction *m_EventAction;
+
+  //! pointer to main stacking action
+  PHG4PhenixStackingAction *m_StackingAction = nullptr;
 
   //! pointer to main stepping action
   PHG4PhenixSteppingAction *m_SteppingAction;
