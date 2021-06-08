@@ -220,6 +220,7 @@ pkginclude_HEADERS = \
   PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
+  PHG4StackingAction.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
   PHG4TrackingAction.h \
