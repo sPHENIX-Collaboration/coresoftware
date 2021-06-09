@@ -153,7 +153,10 @@ class PHActsTrkFitter : public SubsysReco
    * it is set in InitRun, by looping over registered micromegas surfaces 
    */
   std::set<int> m_mmVolumeIds;
-  
+
+  /// tpc volume ids
+  std::set<int> m_tpcVolumeIds;
+
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates;
 

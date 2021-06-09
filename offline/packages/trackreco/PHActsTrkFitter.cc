@@ -547,11 +547,11 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
 	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
     
       /// If volume is not the TPC add the SL to the list
-      if(volume != 14)
-	{
-	  siliconMMSls.push_back(sl);	
-	  surfaces.push_back(&sl.referenceSurface());
-	}
+      if( m_tpcVolumeIds.find( volume ) == m_tpcVolumeIds.end() )
+      {
+        siliconMMSls.push_back(sl);
+        surfaces.push_back(&sl.referenceSurface());
+      }
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
@@ -834,9 +834,24 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-    // dump micromegas surfaces
+    // save micromegas surface volume ids
     for( const auto& [hitsetid, surface]:m_surfMaps->mmSurfaceMap )
     { m_mmVolumeIds.insert( surface->geometryId().volume() ); }
+
+    // save tpc surface volume ids
+    for( const auto& [hitsetid, surfacevect]:m_surfMaps->tpcSurfaceMap )
+      for( const auto& surface:surfacevect )
+    { m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
+
+    // and dump
+    if( Verbosity() )
+    {
+      for( const auto& id:m_mmVolumeIds )
+      { std::cout << "PHActsTrkFitter::getNodes - found Micromegas volume id: " << id << std::endl; }
+
+      for( const auto& id:m_tpcVolumeIds )
+      { std::cout << "PHActsTrkFitter::getNodes - found TPC volume id: " << id << std::endl; }
+    }
 
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
