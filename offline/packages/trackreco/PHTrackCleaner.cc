@@ -50,7 +50,7 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
 
   if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size() 
-	      << " _seed_track_map size " << _seed_track_map_class->SeedTrackMap.size() << std::endl;
+	      << " _seed_track_map size " << _seed_track_map->size() << std::endl;
 
   std::set<unsigned int> track_keep_list;
   std::set<unsigned int> track_delete_list;
@@ -60,8 +60,8 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
 
   // loop over the TPC seed - track map and make a set containing all TPC seed ID's
   std::set<unsigned int> seed_id_list;
-  std::multimap<unsigned int, unsigned int>::iterator it;
-  for(it = _seed_track_map_class->SeedTrackMap.begin(); it != _seed_track_map_class->SeedTrackMap.end(); ++it)
+  auto map_range =  _seed_track_map->getAll();
+  for(auto it = map_range.first; it != map_range.second; ++it)
     {
       seed_id_list.insert( (*it).first );
     }
@@ -78,7 +78,7 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
       if(Verbosity() > 1)
 	std::cout << " TPC ID " << tpc_id << std::endl;
 
-      auto tpc_range =   _seed_track_map_class->SeedTrackMap.equal_range(tpc_id);
+      auto tpc_range =   _seed_track_map->getAssocTracks(tpc_id);
 
       unsigned int best_id = 99999;
       double min_chisq = 99999.0;
@@ -175,8 +175,8 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _seed_track_map_class = findNode::getClass<TpcSeedTrackMap>(topNode, "TpcSeedTrackMap");
-  if (!_seed_track_map_class)
+  _seed_track_map = findNode::getClass<TpcSeedTrackMap>(topNode, "TpcSeedTrackMap");
+  if (!_seed_track_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find node TpcSeedTrackMap: " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
