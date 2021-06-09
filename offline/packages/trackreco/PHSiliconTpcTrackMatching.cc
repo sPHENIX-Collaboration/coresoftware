@@ -92,10 +92,6 @@ int PHSiliconTpcTrackMatching::Process()
   // We will add the silicon clusters to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
-
-  std::cout << " Seed track map size: " << std::endl;
-  std::cout << "    size = " << _seed_track_map->size()  << std::endl;
-
   _seed_track_map->Reset();
 
   if(Verbosity() > 0)
