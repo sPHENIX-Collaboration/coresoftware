@@ -20,6 +20,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   TpcSeedTrackMap.h \
+  TpcSeedTrackMapv1.h \
   ActsTrackingGeometry.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
@@ -63,7 +64,10 @@ ROOTDICTS = \
   TrkrHitSet_Dict.cc \
   TrkrHitSetv1_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
-  TrkrHitSetContainerv1_Dict.cc
+  TrkrHitSetContainerv1_Dict.cc \
+  TpcSeedTrackMap_Dict.cc \
+  TpcSeedTrackMapv1_Dict.cc
+
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -86,7 +90,9 @@ nobase_dist_pcm_DATA = \
   TrkrHitSet_Dict_rdict.pcm \
   TrkrHitSetv1_Dict_rdict.pcm \
   TrkrHitSetContainer_Dict_rdict.pcm \
-  TrkrHitSetContainerv1_Dict_rdict.pcm
+  TrkrHitSetContainerv1_Dict_rdict.pcm \
+  TpcSeedTrackMap_Dict_rdict.pcm \
+  TpcSeedTrackMapv1_Dict_rdict.pcm
 
 # sources for io library
 libtrack_io_la_SOURCES = \
@@ -108,7 +114,9 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainerv1.cc \
   TrkrHitv1.cc \
-  TrkrHitv2.cc
+  TrkrHitv2.cc \
+  TpcSeedTrackMap.cc \
+  TpcSeedTrackMapv1.cc
 
 libtrack_io_la_LIBADD = \
   -lphool \
