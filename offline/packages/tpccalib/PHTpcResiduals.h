@@ -70,10 +70,11 @@ class PHTpcResiduals : public SubsysReco
   void setGridDimensions(const int phiBins, const int rBins,
 			 const int zBins);
 
-  /// Option for outputting some basic cluster-track 
-  /// distortion histograms
-  void setOutputfile(std::string outputfile) 
-    {m_outputfile = outputfile;}
+  /// set to true to store evaluation histograms and ntuples
+  void setSavehistograms( bool value ) { m_savehistograms = value; }
+    
+  /// output file name for storing the space charge reconstruction matrices
+  void setOutputfile(std::string outputfile) {m_outputfile = outputfile;}
   
  private:
 
@@ -146,8 +147,10 @@ class PHTpcResiduals : public SubsysReco
   /// Counter for number of bad propagations from propagateTrackState()
   int m_nBadProps = 0;
 
-  /// Output root histograms
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
+
+  /// Output root histograms
+  bool m_savehistograms = false;
   TH2 *h_rphiResid = nullptr;
   TH2 *h_zResid = nullptr;
   TH2 *h_etaResidLayer = nullptr;
@@ -157,7 +160,8 @@ class PHTpcResiduals : public SubsysReco
   TH2 *h_alpha = nullptr;
   TH2 *h_beta = nullptr;
   TTree *residTup = nullptr;
-  TFile *m_outputFile = nullptr;
+  std::string m_histogramfilename = "PHTpcResiduals.root";
+  std::unique_ptr<TFile> m_histogramfile = nullptr;
 
   /// For diagnostics
   double tanAlpha = 0, tanBeta = 0, drphi = 0, dz = 0, clusR = 0, clusPhi = 0, 

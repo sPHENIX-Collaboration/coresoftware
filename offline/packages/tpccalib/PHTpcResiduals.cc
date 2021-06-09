@@ -64,7 +64,7 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 
 int PHTpcResiduals::Init(PHCompositeNode *topNode)
 {
-  makeHistograms();
+  if( m_savehistograms ) makeHistograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -102,10 +102,12 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 
 int PHTpcResiduals::End(PHCompositeNode *topNode)
 {
+  std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
+
   if(Verbosity() > 0)
     std::cout << "Number of bad SL propagations " 
 	      << m_nBadProps << std::endl;
-
+      
   // save matrix container in output file
   if( m_matrix_container )
   {
@@ -550,17 +552,20 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   if(index < 0 ) return;
 
-  h_index->Fill(index);
-  h_alpha->Fill(tanAlpha, drphi);
-  h_beta->Fill(tanBeta, dz);
-  h_rphiResid->Fill(clusR , drphi);
-  h_zResid->Fill(stateZ , dz);
-  h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR , dz);
-  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
-
-  residTup->Fill();
-
+  if( m_savehistograms )
+  {
+    h_index->Fill(index);
+    h_alpha->Fill(tanAlpha, drphi);
+    h_beta->Fill(tanBeta, dz);
+    h_rphiResid->Fill(clusR , drphi);
+    h_zResid->Fill(stateZ , dz);
+    h_etaResid->Fill(trackEta, clusEta - trackEta);
+    h_zResidLayer->Fill(clusR , dz);
+    h_etaResidLayer->Fill(clusR , clusEta - trackEta);
+    
+    residTup->Fill();
+  }
+  
   // Fill distortion matrices
   m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
   m_matrix_container->add_to_lhs(index, 0, 1, 0 );
@@ -674,8 +679,8 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 void PHTpcResiduals::makeHistograms()
 {  
   
-  m_outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
-  m_outputFile->cd();
+  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
+  m_histogramfile->cd();
 
   const auto total_bins = m_matrix_container->get_grid_size();  
   h_beta = new TH2F("betadz",";tan#beta; #Deltaz [cm]",100,-0.5,0.5,100,-0.5,0.5);
