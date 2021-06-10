@@ -616,8 +616,9 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     {
       m_nCentroids = 1;
     }
+
   std::vector<SvtxTrack*> sortedTracks;
-  if(m_svtxTrackMapName.find("silicon") != std::string::npos)
+  if(m_svtxTrackMapName.find("Silicon") != std::string::npos)
     {
       sortedTracks = sortTracks();
     }
@@ -626,6 +627,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       for(const auto& [key, track] : *m_trackMap)
 	sortedTracks.push_back(track);
     }
+
   for(const auto& track : sortedTracks)
     {
       if(Verbosity() > 3)
