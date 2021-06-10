@@ -19,9 +19,9 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
+  ActsTrackingGeometry.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
-  ActsTrackingGeometry.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
@@ -97,6 +97,7 @@ nobase_dist_pcm_DATA = \
 # sources for io library
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
+  ActsSurfaceMaps.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterContainer.cc \

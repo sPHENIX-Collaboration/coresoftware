@@ -216,14 +216,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
    
       SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
-	{
-	  sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-    const bool MMsurface = std::any_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
-    { return m_mmVolumeIds.find( surface->geometryId().volume() ) != m_mmVolumeIds.end(); } );
-
-    // skip track if no MM surface is found
-	  if(!MMsurface) continue;
-	}
+      {
+        sourceLinks = getSurfaceVector(sourceLinks, surfaces);
+        if( std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
+          { return m_surfMaps->isMicromegasSurface( *surface ); } ) )
+        { continue; }
+      }
 
       Acts::Vector3D momentum(track->get_px(), 
 			      track->get_py(), 
@@ -541,17 +539,14 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   
   for(auto sl : sourceLinks)
     {
-      auto volume = sl.referenceSurface().geometryId().volume();
-
       if(Verbosity() > 1)
-	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
-    
-      /// If volume is not the TPC add the SL to the list
-      if(volume != 14)
-	{
-	  siliconMMSls.push_back(sl);	
-	  surfaces.push_back(&sl.referenceSurface());
-	}
+      { std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl; } 
+
+      if( !m_surfMaps->isTpcSurface( sl.referenceSurface() ) )
+      {
+        siliconMMSls.push_back(sl);
+        surfaces.push_back(&sl.referenceSurface());
+      }
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
@@ -833,10 +828,6 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
-    // dump micromegas surfaces
-    for( const auto& [hitsetid, surface]:m_surfMaps->mmSurfaceMap )
-    { m_mmVolumeIds.insert( surface->geometryId().volume() ); }
 
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
