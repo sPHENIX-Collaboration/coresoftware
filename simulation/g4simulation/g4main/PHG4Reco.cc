@@ -414,15 +414,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_StackingAction = new PHG4PhenixStackingAction();
   BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
-    cout << "checking stacking action for " << g4sub->Name() << endl;
     PHG4StackingAction *action = g4sub->GetStackingAction();
     if (action)
     {
-//      if (Verbosity() > 1)
+      if (Verbosity() > 1)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
-
       m_StackingAction->AddAction(g4sub->GetStackingAction());
     }
   }
