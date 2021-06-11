@@ -15,6 +15,8 @@
 
 #include <TGeoManager.h>
 
+#include <uuid/uuid.h>
+
 #include <unistd.h>  // for generate unique local file
 #include <cassert>
 #include <cstdio>
@@ -168,12 +170,20 @@ std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string &filename_extension)
 {
   ostringstream file;
+
+  uuid_t uu;
+  uuid_generate(uu);
+  char uuid[50];
+  uuid_unparse(uu, uuid);
+
   file << mg_GenerateGeometryFileNameBase << "/"
-       << "PHGeomUtility_geom_file_" << ::getpid() << "."
+       << "PHGeomUtility_geom_file_" << uuid << "."
        << filename_extension;
 
   return file.str();
 }
+
+std::string PHGeomUtility::mg_GenerateGeometryFileNameBase = "/tmp";
 
 //! delete the geometry file after use
 bool PHGeomUtility::RemoveGeometryFile(const std::string &file_name)

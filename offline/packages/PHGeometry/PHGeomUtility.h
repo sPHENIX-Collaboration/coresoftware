@@ -86,7 +86,7 @@ class PHGeomUtility
 
   //! Base path name for temp geometry GDML file used in GenerateGeometryFileName().
   //! User can overwrite it to e.g. local directory with  PHGeomUtility::SetGenerateGeometryFileNameBase('./');
-  static std::string mg_GenerateGeometryFileNameBase = "/tmp";
+  static std::string mg_GenerateGeometryFileNameBase;
 };
 
 #endif
