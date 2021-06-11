@@ -87,7 +87,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                              0, 0, 0);
 
   m_DisplayAction->AddVolume(magnet_mother_logic, "OFF");
-  magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm, origin),
+  new G4PVPlacement(G4Transform3D(*rotm, origin),
                                         magnet_mother_logic,
                                         G4String(GetName().append("_Mother").c_str()),
                                         logicMother, false, m_MagnetId, OverlapCheck());
