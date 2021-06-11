@@ -1,4 +1,5 @@
 #include "PHTpcResiduals.h"
+#include "TpcSpaceChargeMatrixContainerv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -38,6 +39,13 @@
 
 namespace 
 {
+  
+  // square
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+
+  // radius
+  template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
+
   template<class T> T deltaPhi(const T& phi)
   {
     if (phi > M_PI) 
@@ -51,23 +59,13 @@ namespace
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
   : SubsysReco(name)
-{}
-
-PHTpcResiduals::~PHTpcResiduals()
+  , m_matrix_container( new TpcSpaceChargeMatrixContainerv1 )
 {}
 
 int PHTpcResiduals::Init(PHCompositeNode *topNode)
 {
-  m_rhs = std::vector<Acts::Vector3D>(m_totalBins,
-  				      Acts::Vector3D::Zero());
-  m_lhs = std::vector<Acts::SymMatrix3D>(m_totalBins,
-					 Acts::SymMatrix3D::Zero());
-  m_clusterCount = std::vector<int>(m_totalBins, 0);
-
-  makeHistograms();
-
+  if( m_savehistograms ) makeHistograms();
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 int PHTpcResiduals::InitRun(PHCompositeNode *topNode)
@@ -104,11 +102,19 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 
 int PHTpcResiduals::End(PHCompositeNode *topNode)
 {
+  std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
+
   if(Verbosity() > 0)
     std::cout << "Number of bad SL propagations " 
 	      << m_nBadProps << std::endl;
-
-  calculateDistortions(topNode);
+      
+  // save matrix container in output file
+  if( m_matrix_container )
+  {
+    std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
+    outputfile->cd();
+    m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -164,7 +170,7 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 	      << nMvtxHits << "/" << nInttHits << "/" 
 	      << nMMHits << std::endl;
 
-  /// Require at least 2 hits in each detector
+  // Require at least 2 hits in each detector
   if(nMvtxHits < 2 or nInttHits < 2 or nMMHits < 2)
     return false;
 
@@ -177,8 +183,8 @@ SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
   auto key = cluster->getClusKey();
   auto subsurfkey = cluster->getSubSurfKey();
       
-  /// Make a safety check for clusters that couldn't be attached
-  /// to a surface
+  // Make a safety check for clusters that couldn't be attached
+  // to a surface
   auto surf = getSurface(key, subsurfkey);
   if(!surf)
     return SourceLink();
@@ -234,7 +240,7 @@ Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
       return iter->second;
     }
   
-  /// If it can't be found, return nullptr
+  // If it can't be found, return nullptr
   return nullptr;
 
 }
@@ -249,7 +255,7 @@ Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::s
     return surfvec.at(surfkey);
   }
   
-  /// If it can't be found, return nullptr to skip this cluster
+  // If it can't be found, return nullptr to skip this cluster
   return nullptr;
 }
 
@@ -330,7 +336,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     {
       auto cluskey = *clusIter;
       
-      /// only propagate to tpc surfaces
+      // only propagate to tpc surfaces
       if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
 	continue;;
 
@@ -425,7 +431,7 @@ void PHTpcResiduals::calculateTpcResiduals(
 {
   
   cluskey = cluster->getClusKey();
-  /// Get all the relevant information for residual calculation
+  // Get all the relevant information for residual calculation
   clusR = sqrt(pow(cluster->getX(), 2) +
 	       pow(cluster->getY(), 2));
   clusPhi = std::atan2(cluster->getY(), cluster->getX());
@@ -499,7 +505,7 @@ void PHTpcResiduals::calculateTpcResiduals(
 
   const auto dPhi = clusPhi - statePhi;
 
-  /// Calculate residuals
+  // Calculate residuals
   drphi = clusR * deltaPhi(dPhi);
   dz  = clusZ - stateZ;
 
@@ -532,11 +538,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(std::abs(trackBeta) > m_maxTBeta
      or std::abs(dz) > m_maxResidualDz)
     return;
-  
-  ir = m_rBins * (clusR - m_rMin) / (m_rMax - m_rMin);
-  iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
-  iz = m_zBins * (clusZ - m_zMin) / (m_zMax - m_zMin);
-  
+    
   tanBeta = trackBeta;
   tanAlpha = trackAlpha;
   
@@ -544,165 +546,77 @@ void PHTpcResiduals::calculateTpcResiduals(
 			  cluster->getY(), 
 			  cluster->getZ());
   const auto index = getCell(globClus);
-  cell = index;
   
   if(Verbosity() > 3)
     std::cout << "Bin index found is " << index << std::endl;
 
-  if(index < 0 || index > m_totalBins)
-    return;
+  if(index < 0 ) return;
 
-  if(index == 0)
-    std::cout << "Values are : " <<iphi<<","<<ir<<","<<iz<<std::endl;
-
-  h_index->Fill(cell);
-  h_alpha->Fill(tanAlpha, drphi);
-  h_beta->Fill(tanBeta, dz);
-  h_rphiResid->Fill(clusR , drphi);
-  h_zResid->Fill(stateZ , dz);
-  h_etaResid->Fill(trackEta, clusEta - trackEta);
-  h_zResidLayer->Fill(clusR , dz);
-  h_etaResidLayer->Fill(clusR , clusEta - trackEta);
-
-  residTup->Fill();
-
-  /// Fill distortion matrices
-  m_lhs[index](0,0) += 1. / erp;
-  m_lhs[index](0,1) += 0;
-  m_lhs[index](0,2) += trackAlpha / erp;
-  
-  m_lhs[index](1,0) += 0;
-  m_lhs[index](1,1) += 1. / ez;
-  m_lhs[index](1,2) += trackBeta / ez;
-  
-  m_lhs[index](2,0) += trackAlpha / erp;
-  m_lhs[index](2,1) += trackBeta / ez;
-  m_lhs[index](2,2) += pow(trackAlpha, 2) / erp 
-                     + pow(trackBeta, 2) / ez;
-  
-  m_rhs[index](0,0) += drphi / erp;
-  m_rhs[index](1,0) += dz / ez;
-  m_rhs[index](2,0) += trackAlpha * drphi / erp + trackBeta * dz / ez;
-
-  m_clusterCount[index]++;
-
-  return;
-}
-
-void PHTpcResiduals::calculateDistortions(PHCompositeNode *topNode)
-{
-  auto hentries = new TH3F( "hentries_rec", "hentries_rec", m_phiBins, 
-			    m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
-			    m_zBins, m_zMin, m_zMax );
-  auto hphi = new TH3F( "hDistortionP_rec", "hDistortionP_rec", m_phiBins, 
-			m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, 
-			m_zBins, m_zMin, m_zMax );
-  auto hz = new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", m_phiBins, 
-		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
-		      m_zMin, m_zMax );
-  auto hr = new TH3F( "hDistortionR_rec", "hDistortionR_rec", m_phiBins, 
-		      m_phiMin, m_phiMax, m_rBins, m_rMin, m_rMax, m_zBins,
-		      m_zMin, m_zMax );
-
-  for( auto h : { hentries, hphi, hz, hr } )
-    {
-      h->GetXaxis()->SetTitle( "#phi [rad]" );
-      h->GetYaxis()->SetTitle( "r [cm]" );
-      h->GetZaxis()->SetTitle( "z [cm]" );
-    }
-  
-  for(int iphi = 0; iphi < m_phiBins; ++iphi) {
-    for(int ir = 0; ir < m_rBins; ++ir) {
-      for(int iz = 0; iz < m_zBins; ++iz) {
-
-	const auto cell = getCell(iz, ir, iphi);	
-
-	if(m_clusterCount.at(cell) < m_minClusCount) {
-	  if(Verbosity() > 10)
-	    std::cout << "Num clusters in bin " << cell 
-		      << " is " << m_clusterCount.at(cell) 
-		      << std::endl;
-	  continue;
-	}
-	  
-	const auto cov = m_lhs.at(cell).inverse();
-	auto partialLu = m_lhs.at(cell).partialPivLu();
-	const auto result = partialLu.solve(m_rhs.at(cell));
-
-	// fill histograms
-	hentries->SetBinContent( iphi+1, ir+1, iz+1, 
-				 m_clusterCount.at(cell) );
-	
-	hphi->SetBinContent( iphi+1, ir+1, iz+1, result(0) );
-	hphi->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(0,0) ) );
-	
-	hz->SetBinContent( iphi+1, ir+1, iz+1, result(1) );
-	hz->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(1,1) ) );
-	
-	hr->SetBinContent( iphi+1, ir+1, iz+1, result(2) );
-	hr->SetBinError( iphi+1, ir+1, iz+1, std::sqrt( cov(2,2) ) );
-
-	if(Verbosity() > 10)
-	  std::cout << "Bin setting for index " << cell << " with counts "
-		    << m_clusterCount.at(cell) << " has settings : "
-		    << " drphi:  "<<result(0) << "+/-" << std::sqrt(cov(0,0))
-		    << " dz: "<<result(1) << "+/-" << std::sqrt(cov(1,1))
-		    << " dr: "<<result(2) << "+/-" << std::sqrt(cov(2,2))
-		    << std::endl;
-
-      }
-    }
+  if( m_savehistograms )
+  {
+    h_index->Fill(index);
+    h_alpha->Fill(tanAlpha, drphi);
+    h_beta->Fill(tanBeta, dz);
+    h_rphiResid->Fill(clusR , drphi);
+    h_zResid->Fill(stateZ , dz);
+    h_etaResid->Fill(trackEta, clusEta - trackEta);
+    h_zResidLayer->Fill(clusR , dz);
+    h_etaResidLayer->Fill(clusR , clusEta - trackEta);
+    
+    residTup->Fill();
   }
   
-  /// Create output TH3s
-    
-
-  m_outputFile->cd();
-  residTup->Write();
-
-  h_rphiResid->Write();
-  h_etaResid->Write();
-  h_zResidLayer->Write();
-  h_etaResidLayer->Write();
-  h_zResid->Write();
-  h_index->Write();
-  h_alpha->Write();
-  h_beta->Write();
-
-  for(const auto& h : {hentries, hphi, hr, hz})
-    h->Write();
-
-
-  createHistogram(hentries, "hentries")->Write();
-  createHistogram(hphi, "hIntDistortionP")->Write();
-  createHistogram(hr, "hIntDistortionR")->Write();
-  createHistogram(hz, "hIntDistortionZ")->Write();
-
-  m_outputFile->Close();
-
+  // Fill distortion matrices
+  m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
+  m_matrix_container->add_to_lhs(index, 0, 1, 0 );
+  m_matrix_container->add_to_lhs(index, 0, 2, trackAlpha/erp );
+  
+  m_matrix_container->add_to_lhs(index, 1, 0, 0 );
+  m_matrix_container->add_to_lhs(index, 1, 1, 1./ez );
+  m_matrix_container->add_to_lhs(index, 1, 2, trackBeta/ez );
+  
+  m_matrix_container->add_to_lhs(index, 2, 0, trackAlpha/erp );
+  m_matrix_container->add_to_lhs(index, 2, 1, trackBeta/ez );
+  m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha)/erp + square(trackBeta)/ez );
+  
+  m_matrix_container->add_to_rhs(index, 0, drphi/erp );
+  m_matrix_container->add_to_rhs(index, 1, dz/ez );
+  m_matrix_container->add_to_rhs(index, 2, trackAlpha*drphi/erp + trackBeta*dz/ez );
+  
+  // update entries in cell
+  m_matrix_container->add_to_entries(index);
+  
+  return;
 }
 
 int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 {
-  const float r = sqrt(loc(0) * loc(0) + loc(1) * loc(1));
-  const auto clusPhi = deltaPhi(std::atan2(loc(1), loc(0)));
-  const float z = loc(2);
-  
-  const int ir = m_rBins * (r - m_rMin) / (m_rMax - m_rMin);
-  const int iphi = m_phiBins * (clusPhi - m_phiMin) / (m_phiMax - m_phiMin);
-  const int iz = m_zBins * (z - m_zMin) / (m_zMax - m_zMin);
-  
-  return getCell(iz, ir, iphi);
-}
 
-int PHTpcResiduals::getCell(const int iz, const int ir, 
-			    const int iphi)
-{
-  if( ir < 0 || ir >= m_rBins ) return -1;
-  if( iphi < 0 || iphi >= m_phiBins ) return -1;
-  if( iz < 0 || iz >= m_zBins ) return -1;
+  // get grid dimensions from matrix container
+  int phibins = 0;
+  int rbins = 0;
+  int zbins = 0;
+  m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
+  
+  // phi
+  float phi = std::atan2(loc(1), loc(0));
+  while( phi < m_phiMin ) phi += 2.*M_PI;
+  while( phi >= m_phiMax ) phi -= 2.*M_PI;
+  const int iphi = phibins * (phi - m_phiMin) / (m_phiMax - m_phiMin);
+  
+  // r
+  const auto r = get_r( loc(0), loc(1) );
+  if( r < m_rMin || r >= m_rMax ) return -1;
+  const int ir = rbins * (r - m_rMin) / (m_rMax - m_rMin);
+  
+  // z
+  const auto z = loc(2);
+  if( z < m_zMin || z >= m_zMax ) return -1;
+  const int iz = zbins * (z - m_zMin) / (m_zMax - m_zMin);
 
-  return iz + m_zBins * ( ir + m_rBins * iphi );
+  // get index from matrix container
+  return m_matrix_container->get_cell_index( iphi, ir, iz );
+
 }
 
 int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
@@ -763,14 +677,15 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 }
 
 void PHTpcResiduals::makeHistograms()
-{
- 
-  m_outputFile = new TFile(m_outputfile.c_str(), "RECREATE");
-  m_outputFile->cd();
+{  
+  
+  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
+  m_histogramfile->cd();
 
+  const auto total_bins = m_matrix_container->get_grid_size();  
   h_beta = new TH2F("betadz",";tan#beta; #Deltaz [cm]",100,-0.5,0.5,100,-0.5,0.5);
   h_alpha = new TH2F("alphardphi",";tan#alpha; r#Delta#phi [cm]", 100,-0.5,0.5,100,-0.5,0.5);
-  h_index = new TH1F("index",";index",m_totalBins, 0, m_totalBins);
+  h_index = new TH1F("index",";index",total_bins, 0, total_bins);
   h_rphiResid = new TH2F("rphiResid", ";r [cm]; #Deltar#phi [cm]",
 			 60, 20, 80, 500, -2, 2);
   h_zResid = new TH2F("zResid", ";z [cm]; #Deltaz [cm]",
@@ -786,7 +701,7 @@ void PHTpcResiduals::makeHistograms()
   residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
   residTup->Branch("drphi",&drphi,"drphi/D");
   residTup->Branch("dz",&dz,"dz/D");
-  residTup->Branch("cell",&cell,"cell/I");
+//   residTup->Branch("cell",&cell,"cell/I");
   residTup->Branch("clusR",&clusR,"clusR/D");
   residTup->Branch("clusPhi",&clusPhi,"clusPhi/D");
   residTup->Branch("clusZ",&clusZ,"clusZ/D");
@@ -797,108 +712,13 @@ void PHTpcResiduals::makeHistograms()
   residTup->Branch("stateZErr",&stateZErr,"stateZErr/D");
   residTup->Branch("clusRPhiErr",&clusRPhiErr,"clusRPhiErr/D");
   residTup->Branch("clusZErr",&clusZErr,"clusZErr/D");
-  residTup->Branch("ir",&ir,"ir/I");
-  residTup->Branch("iz",&iz,"iz/I");
-  residTup->Branch("iphi",&iphi,"iphi/I");
+//   residTup->Branch("ir",&ir,"ir/I");
+//   residTup->Branch("iz",&iz,"iz/I");
+//   residTup->Branch("iphi",&iphi,"iphi/I");
   residTup->Branch("cluskey",&cluskey,"cluskey/I");
   residTup->Branch("event",&m_event,"event/I");
 
 }
 
-void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins,
-				       const int zBins)
-{
-  m_zBins = zBins;
-  m_phiBins = phiBins;
-  m_rBins = rBins;
-  m_totalBins = m_zBins * m_phiBins * m_rBins;
-}
-
-
-TH3* PHTpcResiduals::createHistogram(TH3* hin, const TString& name)
-{
-
-  std::array<int, 3> bins;
-  std::array<double, 3> x_min;
-  std::array<double, 3> x_max;
-  
-  int index = 0;
-  for( const auto axis:{ hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis() } )
-    {
-      const auto bin_width = (axis->GetXmax() - axis->GetXmin())/axis->GetNbins();
-      
-      // increase the number of bins by two
-      bins[index] = axis->GetNbins()+2;
-      
-      // update axis limits accordingly
-      x_min[index] = axis->GetXmin()-bin_width;
-      x_max[index] = axis->GetXmax()+bin_width;
-      ++index;
-    }
-
-  // create new histogram
-  auto hout = new TH3F( name, name,
-			bins[0], x_min[0], x_max[0],
-			bins[1], x_min[1], x_max[1],
-			bins[2], x_min[2], x_max[2] );
-  
-  // update axis legend
-  hout->GetXaxis()->SetTitle( hin->GetXaxis()->GetTitle() );
-  hout->GetYaxis()->SetTitle( hin->GetYaxis()->GetTitle() );
-  hout->GetZaxis()->SetTitle( hin->GetZaxis()->GetTitle() );
-  
-  // copy content
-  const auto phibins = hin->GetXaxis()->GetNbins();
-  const auto rbins = hin->GetYaxis()->GetNbins();
-  const auto zbins = hin->GetZaxis()->GetNbins();
-  
-  // fill center
-  for( int iphi = 0; iphi < phibins; ++iphi )
-    for( int ir = 0; ir < rbins; ++ir )
-      for( int iz = 0; iz < zbins; ++iz )
-	{
-	  hout->SetBinContent( iphi+2, ir+2, iz+2, hin->GetBinContent( iphi+1, ir+1, iz+1 ) );
-	  hout->SetBinError( iphi+2, ir+2, iz+2, hin->GetBinError( iphi+1, ir+1, iz+1 ) );
-	}
-  
-  // fill guarding phi bins
-  for( int ir = 0; ir < rbins+2; ++ir )
-    for( int iz = 0; iz < zbins+2; ++iz )
-      {
-	hout->SetBinContent( 1, ir+1, iz+1, hout->GetBinContent( 2, ir+1, iz+1 ) );
-	hout->SetBinError( 1, ir+1, iz+1, hout->GetBinError( 2, ir+1, iz+1 ) );
-	
-	hout->SetBinContent( phibins+2, ir+1, iz+1, hout->GetBinContent( phibins+1, ir+1, iz+1 ) );
-	hout->SetBinError( phibins+2, ir+1, iz+1, hout->GetBinError( phibins+1, ir+1, iz+1 ) );
-      }
-  
-  // fill guarding r bins
-  for( int iphi = 0; iphi < phibins+2; ++iphi )
-    for( int iz = 0; iz < zbins+2; ++iz )
-      {
-	hout->SetBinContent( iphi+1, 1, iz+1, hout->GetBinContent( iphi+1, 2, iz+1 ) );
-	hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
-	
-	hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
-	hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
-      }
-  
-  // fill guarding z bins
-  for( int iphi = 0; iphi < phibins+2; ++iphi )
-    for( int ir = 0; ir < rbins+2; ++ir )
-      {
-	hout->SetBinContent( iphi+1, ir+1, 1, hout->GetBinContent( iphi+1, ir+1, 2 ) );
-	hout->SetBinError( iphi+1, ir+1, 1, hout->GetBinError( iphi+1, ir+1, 2 ) );
-	
-	hout->SetBinContent( iphi+1, ir+1, zbins+2, hout->GetBinContent( iphi+1, ir+1, zbins+1 ) );
-	hout->SetBinError( iphi+1, ir+1, zbins+2, hout->GetBinError( iphi+1, ir+1, zbins+1 ) );
-      }
-  
-  return hout;
-  
-}
-
-
-
-
-
+void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
+{ m_matrix_container->set_grid_dimensions( phiBins, rBins, zBins ); }
