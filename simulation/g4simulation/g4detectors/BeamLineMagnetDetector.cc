@@ -85,6 +85,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                              G4Material::GetMaterial("G4_Galactic"),
                                                              G4String(GetName().c_str()),
                                                              0, 0, 0);
+
   m_DisplayAction->AddVolume(magnet_mother_logic, "OFF");
   magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm, origin),
                                         magnet_mother_logic,
@@ -159,6 +160,10 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                             G4String(GetName().c_str()),
                                                             0, 0, 0);
 
+  // allow installing new detector inside the magnet, magnet_field_logic
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(magnet_field_logic);
+
   /* Set field manager for logical volume */
   if (magField)
   {
@@ -181,4 +186,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                    magnet_field_logic,
                                    G4String(GetName().c_str()),
                                    magnet_mother_logic, false, m_MagnetId, OverlapCheck());
+
+
+
 }
