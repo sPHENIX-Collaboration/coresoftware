@@ -15,6 +15,7 @@
 
 #include <TGeoManager.h>
 
+#include <unistd.h>  // for generate unique local file
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -22,7 +23,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <unistd.h>  // for generate unique local file
 
 using namespace std;
 
@@ -168,7 +168,7 @@ std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string &filename_extension)
 {
   ostringstream file;
-  file << "/tmp/"
+  file << mg_GenerateGeometryFileNameBase << "/"
        << "PHGeomUtility_geom_file_" << ::getpid() << "."
        << filename_extension;
 
