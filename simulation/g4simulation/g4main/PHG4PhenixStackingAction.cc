@@ -29,3 +29,17 @@ G4ClassificationOfNewTrack PHG4PhenixStackingAction::ClassifyNewTrack( const G4T
   }
   return retcode;
 }
+
+//_________________________________________________________________
+void PHG4PhenixStackingAction::PrepareNewEvent()
+{
+  // loop over registered actions, and process
+  for( ActionList::const_iterator iter = actions_.begin(); iter != actions_.end(); ++iter )
+  {
+    if(*iter)
+    {
+      (*iter)->PrepareNewEvent();
+    }
+  }
+  return;
+}
