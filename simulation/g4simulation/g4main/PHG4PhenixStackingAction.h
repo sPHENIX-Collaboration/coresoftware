@@ -30,7 +30,7 @@ class PHG4PhenixStackingAction : public G4UserStackingAction
   }
 
   G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack) override;
-  void PrepareNewEvent() override {}
+  void PrepareNewEvent() override;
 
   private:
 
