@@ -1,10 +1,11 @@
-//#pragma once
 #ifndef ANALYTICFIELDMODEL_H
 #define ANALYTICFIELDMODEL_H
+
 #include <TVector3.h>
-#include <TFormula.h>
 
 #include <cmath>
+
+class TFormula;
 
 class AnalyticFieldModel{
 public:

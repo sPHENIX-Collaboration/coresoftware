@@ -52,6 +52,7 @@
 #include <iostream>
 #include <set>
 #include <utility>
+// #include <fstream>
 
 using namespace std;
 
@@ -243,6 +244,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _calo_towers_x(0)
   , _calo_towers_y(0)
   , _calo_towers_z(0)
+  , _geometry_done(0)
 
   , _reco_e_threshold(0.0)
   , _depth_MCstack(2)
@@ -389,7 +391,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _calo_towers_x = new float[_maxNTowersCalo];
   _calo_towers_y = new float[_maxNTowersCalo];
   _calo_towers_z = new float[_maxNTowersCalo];
-
+  _geometry_done = new int[20];
+  for(int igem=0;igem<20;igem++) _geometry_done[igem] = 0;
 
 }
 
@@ -919,6 +922,33 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomFHCAL = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeFHCAL.c_str());
       if (towergeomFHCAL)
       {
+        if(_do_GEOMETRY && !_geometry_done[kFHCAL]){
+          // std::ostream *fout= new ofstream("test.list");
+          RawTowerGeomContainer::ConstRange all_towers = towergeomFHCAL->get_tower_geometries();
+          // *fout << "Calorimeter ID: " << towergeomFHCAL->get_calorimeter_id() << endl;
+          // *fout << "size: " << towergeomFHCAL->size() << endl;
+          // towergeomFHCAL->identify(*fout);
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kFHCAL;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            // it->second->identify(*fout);
+            _calo_towers_N++;
+          }
+          _geometry_done[kFHCAL] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        // _calo_ID = kFHCAL;
+        // _calo_ID = kFHCAL;
+        }
+
         RawTowerContainer::ConstRange begin_end = towersFHCAL->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -931,21 +961,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _tower_FHCAL_iEta[_nTowers_FHCAL] = tower->get_bineta();
             _tower_FHCAL_iPhi[_nTowers_FHCAL] = tower->get_binphi();
             _tower_FHCAL_E[_nTowers_FHCAL] = tower->get_energy();
-
-            if(_do_GEOMETRY){
-            // _calo_ID = kFHCAL;
-            // _calo_ID = kFHCAL;
-            }
-
-  // , _calo_ID(0)
-  // , _calo_towers_N(0)
-  // , _calo_towers_iEta(0)
-  // , _calo_towers_iPhi(0)
-  // , _calo_towers_Eta(0)
-  // , _calo_towers_Phi(0)
-  // , _calo_towers_x(0)
-  // , _calo_towers_y(0)
-  // , _calo_towers_z(0)
 
             PHG4Particle* primary = towerevalFHCAL->max_truth_primary_particle_by_energy(tower);
             if (primary)
@@ -1003,6 +1018,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomHCALIN = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALIN.c_str());
       if (towergeomHCALIN)
       {
+        if(_do_GEOMETRY && !_geometry_done[kHCALIN]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeomHCALIN->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kHCALIN;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kHCALIN] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersHCALIN->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -1072,6 +1106,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomHCALOUT = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALOUT.c_str());
       if (towergeomHCALOUT)
       {
+        if(_do_GEOMETRY && !_geometry_done[kHCALOUT]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeomHCALOUT->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kHCALOUT;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kHCALOUT] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersHCALOUT->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -1141,6 +1194,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomEHCAL = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeEHCAL.c_str());
       if (towergeomEHCAL)
       {
+        if(_do_GEOMETRY && !_geometry_done[kEHCAL]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeomEHCAL->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kEHCAL;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kEHCAL] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersEHCAL->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -1210,6 +1282,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeomDRCALO = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeDRCALO.c_str());
       if (towergeomDRCALO)
       {
+        if(_do_GEOMETRY && !_geometry_done[kDRCALO]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeomDRCALO->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kDRCALO;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kDRCALO] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         if (Verbosity() > 0)
         {
           cout << "found DRCALO geom" << endl;
@@ -1299,6 +1390,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeFEMC.c_str());
       if (towergeom)
       {
+        if(_do_GEOMETRY && !_geometry_done[kFEMC]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeom->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kFEMC;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kFEMC] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersFEMC->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -1369,6 +1479,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeCEMC.c_str());
       if (towergeom)
       {
+        if(_do_GEOMETRY && !_geometry_done[kCEMC]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeom->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kCEMC;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kCEMC] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersCEMC->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -1439,6 +1568,25 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeEEMC.c_str());
       if (towergeom)
       {
+        if(_do_GEOMETRY && !_geometry_done[kEEMC]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeom->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kEEMC;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kEEMC] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
         RawTowerContainer::ConstRange begin_end = towersEEMC->getTowers();
         RawTowerContainer::ConstIterator rtiter;
         for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -2230,6 +2378,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   }  //hepmc
 
   _event_tree->Fill();
+
   if (Verbosity() > 0){ cout << "Resetting buffer ..." << endl;}
   resetBuffer();
   if (Verbosity() > 0)
@@ -2475,6 +2624,21 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
   }
 }
 
+void EventEvaluator::resetGeometryArrays()
+{
+  for (Int_t igeo = 0; igeo < _calo_towers_N; igeo++)
+    {
+      _calo_towers_iEta[_calo_towers_N] = -10000;
+      _calo_towers_iPhi[_calo_towers_N] = -10000;
+      _calo_towers_Eta[_calo_towers_N] = -10000;
+      _calo_towers_Phi[_calo_towers_N] = -10000;
+      _calo_towers_x[_calo_towers_N] = -10000;
+      _calo_towers_y[_calo_towers_N] = -10000;
+      _calo_towers_z[_calo_towers_N] = -10000;
+    }
+    _calo_ID = -1;
+    _calo_towers_N = 0;
+}
 void EventEvaluator::resetBuffer()
 {
   if (_do_VERTEX)

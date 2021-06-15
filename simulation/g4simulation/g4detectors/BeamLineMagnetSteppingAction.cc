@@ -79,8 +79,8 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
-  // if this block stops everything, just put all kinetic energy into edep
-  if (m_BlackHoleFlag)
+  // if this block stops everything ONLY if in the magnet iron, just put all kinetic energy into edep
+  if (m_BlackHoleFlag and whichactive == -1)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
