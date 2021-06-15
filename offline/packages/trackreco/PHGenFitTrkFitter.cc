@@ -201,9 +201,12 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   }
 
   // print disabled layers
-  for( const auto& layer:_disabled_layers )
-  { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
-
+  if( Verbosity() )
+  {
+    for( const auto& layer:_disabled_layers )
+    { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 /*
