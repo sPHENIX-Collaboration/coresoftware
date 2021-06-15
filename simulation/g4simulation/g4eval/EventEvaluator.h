@@ -278,6 +278,7 @@ class EventEvaluator : public SubsysReco
   float* _calo_towers_x;
   float* _calo_towers_y;
   float* _calo_towers_z;
+  int* _geometry_done;
 
   float _reco_e_threshold;
   int _depth_MCstack;
@@ -308,13 +309,14 @@ class EventEvaluator : public SubsysReco
   int GetProjectionIndex(std::string projname);           ///< return track projection index for given track projection layer
   std::string GetProjectionNameFromIndex(int projindex);  ///< return track projection layer name from projection index (see GetProjectionIndex)
   void fillOutputNtuples(PHCompositeNode* topNode);       ///< dump the evaluator information into ntuple for external analysis
+  void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
   void resetBuffer();                                     ///< reset the tree variables before filling for a new event
 
   const int _maxNHits = 5000;
   const int _maxNTowers = 50 * 50;
   const int _maxNTowersCentral = 2000;
   const int _maxNTowersDR = 3000 * 3000;
-  const int _maxNTowersCalo = 100000;
+  const int _maxNTowersCalo = 5000000;
   const int _maxNclusters = 100;
   const int _maxNclustersCentral = 2000;
   const int _maxNTracks = 200;
@@ -327,7 +329,10 @@ class EventEvaluator : public SubsysReco
       kFEMC         = 1,
       kDRCALO        = 2,
       kEEMC         = 3,
-      kCEMC         = 4
+      kCEMC         = 4,
+      kEHCAL         = 5,
+      kHCALIN       = 6,
+      kHCALOUT       = 7
   };
 
 };
