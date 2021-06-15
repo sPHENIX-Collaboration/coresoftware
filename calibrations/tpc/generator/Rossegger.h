@@ -17,15 +17,16 @@
 //                                                12-3-2015
 //
 
-#define NumberOfOrders 15  // Convergence problems after 15; Rossegger used 30
 
 #include <cmath>
+#include <cstdio>
 #include <string>
 #include <map>
 
 class TH2;
-class TH2D;
 class TH3;
+
+#define NumberOfOrders 15  // Convergence problems after 15; Rossegger used 30
 
 class Rossegger
 {

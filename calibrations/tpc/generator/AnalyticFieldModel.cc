@@ -3,6 +3,8 @@
 #include "TFormula.h"
 #include "AnalyticFieldModel.h"
 
+#include <cstdio>
+
 AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, float _z_max, float scalefactor){
  double ifc_radius=_ifc_radius;
   double ofc_radius=_ofc_radius;
