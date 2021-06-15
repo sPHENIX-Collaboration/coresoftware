@@ -1706,10 +1706,26 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    if (Verbosity() > 1){
+      if (clustermap != nullptr)
+	cout << "got clustermap" << endl;
+      else
+	cout << "no clustermap" << endl;
+      if (clusterhitmap != nullptr)
+	cout << "got clusterhitmap" << endl;
+      else
+	cout << "no clusterhitmap" << endl;
+      
+      if (hitsets != nullptr)
+	cout << "got hitsets" << endl;
+      else
+	cout << "no hitsets" << endl;
+    }
 
     if (clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
 
-      auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+      //      auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
+      auto hitsetrange = hitsets->getHitSets();
       for (auto hitsetitr = hitsetrange.first;
 	   hitsetitr != hitsetrange.second;
 	   ++hitsetitr){
@@ -1747,9 +1763,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey);
 	  if(hitsetlayer!=layer){
 	    cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
-	  }else{
+	  }
+	  /*else{
 	    cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;  
 	  }
+	  */
+	  float sumadc = 0;
 	  TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey);
 	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
 	    hitrange = clusterhitmap->getHits(cluster_key);  
@@ -1758,9 +1777,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      TrkrHit* hit = hitset->second->getHit(clushititer->second);
 	      ++size; 
-	      if(hit->getAdc()>maxadc)
-		maxadc = hit->getAdc();
+	      sumadc += (hit->getAdc() - 70);
+	      if((hit->getAdc()-70)>maxadc)
+		maxadc = (hit->getAdc()-70);
 	    }
+	  e = sumadc;
 	  float phisize = cluster->getPhiSize();
 	  float zsize = cluster->getZSize();
 	  
