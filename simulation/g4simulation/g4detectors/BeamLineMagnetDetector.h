@@ -32,7 +32,6 @@ class BeamLineMagnetDetector : public PHG4Detector
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   int get_MagnetId() const { return m_MagnetId; }
-
  private:
   PHParameters *params;
 

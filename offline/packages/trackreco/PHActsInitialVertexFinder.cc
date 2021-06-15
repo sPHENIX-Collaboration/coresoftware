@@ -418,7 +418,6 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
 	  index = indices(m_random_number_generator);
 
       usedIndices.push_back(index);
-
       centroid = m_trackMap->get(index)->get_z();
       
       if(Verbosity() > 3)
@@ -617,8 +616,17 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     {
       m_nCentroids = 1;
     }
-  
-  auto sortedTracks = sortTracks();
+
+  std::vector<SvtxTrack*> sortedTracks;
+  if(m_svtxTrackMapName.find("Silicon") != std::string::npos)
+    {
+      sortedTracks = sortTracks();
+    }
+  else
+    {
+      for(const auto& [key, track] : *m_trackMap)
+	sortedTracks.push_back(track);
+    }
 
   for(const auto& track : sortedTracks)
     {

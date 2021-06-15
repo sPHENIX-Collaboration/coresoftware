@@ -14,6 +14,7 @@ class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4EventAction;
+class PHG4StackingAction;
 class PHG4SteppingAction;
 class PHG4TrackingAction;
 
@@ -67,6 +68,8 @@ class PHG4Subsystem : public SubsysReco
   {
     return nullptr;
   }
+
+  virtual PHG4StackingAction *GetStackingAction() const {return nullptr;}
 
   void OverlapCheck(const bool chk = true) { overlapcheck = chk; }
 

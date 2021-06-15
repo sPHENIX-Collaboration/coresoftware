@@ -143,13 +143,13 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
   ConversionMap vtxid_map;
   ConversionMap trkid_map;
 
-  const auto container = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
-  if (container && m_g4truthinfo)
+  const auto container_truth = findNode::getClass<PHG4TruthInfoContainer>(dstNode, "G4TruthInfo");
+  if (container_truth && m_g4truthinfo)
   {
     {
       // primary vertices
       auto key = m_g4truthinfo->maxvtxindex();
-      const auto range = container->GetPrimaryVtxRange();
+      const auto range = container_truth->GetPrimaryVtxRange();
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         // clone vertex, insert in map, and add index conversion
@@ -164,7 +164,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
     {
       // secondary vertices
       auto key = m_g4truthinfo->minvtxindex();
-      const auto range = container->GetSecondaryVtxRange();
+      const auto range = container_truth->GetSecondaryVtxRange();
 
       // loop from last to first to preserve order with respect to the original event
       for (
@@ -184,7 +184,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
     {
       // primary particles
       auto key = m_g4truthinfo->maxtrkindex();
-      const auto range = container->GetPrimaryParticleRange();
+      const auto range = container_truth->GetPrimaryParticleRange();
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto &source = iter->second;
@@ -213,7 +213,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
     {
       // secondary particles
       auto key = m_g4truthinfo->mintrkindex();
-      const auto range = container->GetSecondaryParticleRange();
+      const auto range = container_truth->GetSecondaryParticleRange();
 
       /*
        * loop from last to first to preserve order with respect to the original event
@@ -282,8 +282,8 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
     }
 
     // find source node
-    auto container = findNode::getClass<PHG4HitContainer>(dstNode, pair.first);
-    if (!container)
+    auto container_hit = findNode::getClass<PHG4HitContainer>(dstNode, pair.first);
+    if (!container_hit)
     {
       std::cout << "Fun4AllDstPileupMerger::copy_background_event - invalid source container " << pair.first << std::endl;
       continue;
@@ -291,7 +291,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
 
     {
       // hits
-      const auto range = container->getHits();
+      const auto range = container_hit->getHits();
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         // clone hit
@@ -326,7 +326,7 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
 
     {
       // layers
-      const auto range = container->getLayers();
+      const auto range = container_hit->getLayers();
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         pair.second->AddLayer(*iter);

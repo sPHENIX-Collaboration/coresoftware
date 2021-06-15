@@ -3,10 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-# List of shared libraries to produce
-lib_LTLIBRARIES = \
-  libtpccalib.la
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -18,20 +14,55 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-pkginclude_HEADERS = \
-  TpcSpaceChargeReconstruction.h \
-  TpcSpaceChargeReconstructionHelper.h
+# List of shared libraries to produce
+lib_LTLIBRARIES = \
+  libtpccalib_io.la \
+  libtpccalib.la
 
-libtpccalib_la_SOURCES = \
-  TpcSpaceChargeReconstruction.cc \
-  TpcSpaceChargeReconstructionHelper.cc
+libtpccalib_io_la_LIBADD = \
+  -lphool
 
 libtpccalib_la_LIBADD = \
+  libtpccalib_io.la \
   -lphool \
   -lSubsysReco \
   -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io
+
+pkginclude_HEADERS = \
+  TpcSpaceChargeMatrixContainer.h \
+  TpcSpaceChargeMatrixContainerv1.h \
+  TpcSpaceChargeMatrixInversion.h \
+  TpcSpaceChargeReconstruction.h \
+  TpcSpaceChargeReconstructionHelper.h \
+  PHTpcResiduals.h
+
+ROOTDICTS = \
+  TpcSpaceChargeMatrixContainer_Dict.cc \
+	 TpcSpaceChargeMatrixContainerv1_Dict.cc
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  TpcSpaceChargeMatrixContainer_Dict_rdict.pcm \
+  TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm
+
+libtpccalib_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  TpcSpaceChargeMatrixContainerv1.cc 
+
+libtpccalib_la_SOURCES = \
+  TpcSpaceChargeMatrixInversion.cc \
+  TpcSpaceChargeReconstruction.cc \
+  TpcSpaceChargeReconstructionHelper.cc \
+  PHTpcResiduals.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests

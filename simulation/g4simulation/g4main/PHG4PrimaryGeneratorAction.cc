@@ -9,21 +9,21 @@
 
 #include <Geant4/G4Event.hh>
 #include <Geant4/G4IonTable.hh>
-#include <Geant4/G4ParticleDefinition.hh>        // for G4ParticleDefinition
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4PrimaryParticle.hh>
 #include <Geant4/G4PrimaryVertex.hh>
-#include <Geant4/G4String.hh>                    // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>                     // for G4double
 #include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Types.hh>  // for G4double
 
-#include <cmath>                                // for sqrt
+#include <cmath>  // for sqrt
 #include <cstdlib>
 #include <iostream>
 #include <map>
-#include <string>                                // for operator<<
-#include <utility>                               // for pair
+#include <string>   // for operator<<
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -112,12 +112,31 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         // expected momentum unit is GeV
         if ((*particle_iter->second).isIon())
         {
-          G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_Z(), (*particle_iter->second).get_A(), (*particle_iter->second).get_ExcitEnergy());
+          G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_Z(), (*particle_iter->second).get_A(), (*particle_iter->second).get_ExcitEnergy() * GeV);
           g4part = new G4PrimaryParticle(ion);
           g4part->SetCharge((*particle_iter->second).get_IonCharge());
           g4part->SetMomentum((*particle_iter->second).get_px() * GeV,
                               (*particle_iter->second).get_py() * GeV,
                               (*particle_iter->second).get_pz() * GeV);
+        }
+        else if ((*particle_iter->second).get_pid() > 1000000000)  // PDG encoding for ion, even without explicit ion tag in PHG4Particle
+        {
+          G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_pid());
+          if (ion)
+          {
+            g4part = new G4PrimaryParticle(ion);
+            // explicit set the ion to be fully ionized.
+            // if partically ionized atom is used in the future, here is the entry point to update it.
+            g4part->SetCharge(ion->GetPDGCharge());
+            g4part->SetMomentum((*particle_iter->second).get_px() * GeV,
+                                (*particle_iter->second).get_py() * GeV,
+                                (*particle_iter->second).get_pz() * GeV);
+          }
+          else
+          {
+            cout << __PRETTY_FUNCTION__ << ": WARNING : PDG ID of " << (*particle_iter->second).get_pid() << " is not a valid ion! Therefore, this particle is ignored in processing :";
+            (*particle_iter->second).identify();
+          }
         }
         else
         {
@@ -127,15 +146,18 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
                                          (*particle_iter->second).get_pz() * GeV);
         }
       }
+
       //if (inEvent->isEmbeded(particle_iter->second))
       // Do this for all primaries, not just the embedded particle, so that
       // we can carry the barcode information forward.
-      //  {
-      PHG4UserPrimaryParticleInformation* userdata = new PHG4UserPrimaryParticleInformation(inEvent->isEmbeded(particle_iter->second));
-      userdata->set_user_barcode((*particle_iter->second).get_barcode());
-      g4part->SetUserInformation(userdata);
-      //  }
-      vertex->SetPrimary(g4part);
+
+      if (g4part)
+      {
+        PHG4UserPrimaryParticleInformation* userdata = new PHG4UserPrimaryParticleInformation(inEvent->isEmbeded(particle_iter->second));
+        userdata->set_user_barcode((*particle_iter->second).get_barcode());
+        g4part->SetUserInformation(userdata);
+        vertex->SetPrimary(g4part);
+      }
     }
     //      vertex->Print();
     anEvent->AddPrimaryVertex(vertex);

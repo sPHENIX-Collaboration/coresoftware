@@ -1,5 +1,5 @@
 /*!
- *  \file		MakeActsGeometry.C
+ *  \file		MakeActsGeometry.cc
  *  \brief		Refit SvtxTracks with PHActs.
  *  \details	Refit SvtxTracks with PHActs.
  *  \author	        Tony Frawley <afrawley@fsu.edu>
@@ -119,12 +119,31 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->mmSurfStepPhi = m_surfStepPhi;
   m_actsGeometry->mmSurfStepZ = m_surfStepZ;
 
-  /// Same for the surface maps
+  // fill ActsSurfaceMap content
   m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
   m_surfMaps->tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
-  m_surfMaps->tGeoNodeMap = m_clusterNodeMap;
   m_surfMaps->mmSurfaceMap = m_clusterSurfaceMapMmEdit;
+  m_surfMaps->tGeoNodeMap = m_clusterNodeMap;
 
+  // fill TPC volume ids
+  for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
+    for( const auto& surface:surfaceVector )
+  { m_surfMaps->tpcVolumeIds.insert( surface->geometryId().volume() ); }
+  
+  // fill Micromegas volume ids
+  for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
+  { m_surfMaps->micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+
+  // print
+  if( Verbosity() )
+  {
+    for( const auto& id:m_surfMaps->tpcVolumeIds )
+    { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
+  
+    for( const auto& id:m_surfMaps->micromegasVolumeIds )
+    { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

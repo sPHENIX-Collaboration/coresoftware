@@ -71,7 +71,7 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       std::cout << "Starting event " << m_event << " in PHActsVertexFinder"
 		<< std::endl;
     }
-  
+
   int ret = getNodes(topNode);
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
@@ -86,6 +86,8 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
 
   fillVertexMap(vertices, keyMap);
   
+  checkTrackVertexAssociation();
+
   /// Clean up the track pointer vector memory
   for(auto track : trackPointers)
     {
@@ -123,6 +125,38 @@ int PHActsVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHActsVertexFinder::checkTrackVertexAssociation()
+{
+  for(auto& [key, track] : *m_svtxTrackMap)
+    {
+      auto vertId = track->get_vertex_id();
+      if(!m_svtxVertexMap->get(vertId)) 
+	{
+	  /// Secondary not used in Acts vertex fitting. Assign
+	  /// closest vertex based on z position
+
+	  const auto trackZ = track->get_z();
+	  double closestVertZ = 9999;
+	  vertId = UINT_MAX;
+
+	  for(auto& [vertexKey, vertex] : *m_svtxVertexMap)
+	    {
+	      double dz = fabs(trackZ - vertex->get_z());
+	      if(dz < closestVertZ)
+		{
+		  vertId = vertexKey;
+		  closestVertZ = dz;
+		}
+	    }
+	  
+	  auto vertex = m_svtxVertexMap->get(vertId);
+	  vertex->insert_track(key);
+	  track->set_vertex_id(vertId);
+	}
+    }
+
+}
+
 TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
@@ -143,8 +177,8 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 			  svtxVertex->get_y() * Acts::UnitConstants::cm, 
 			  svtxVertex->get_z() * Acts::UnitConstants::cm);
     Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-    for(int i = 0; i <6; i++)
-      for(int j=0; j<6; j++)
+    for(int i = 0; i < 6; i++)
+      for(int j = 0; j < 6; j++)
 	cov(i,j) = track->get_acts_covariance(i,j);
     
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
@@ -161,15 +195,12 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
   if(Verbosity() > 3)
     {
       std::cout << "Finding vertices for the following number of tracks "
-		<< trackPtrs.size()
-		<< std::endl;
+		<< trackPtrs.size() << std::endl;
      
-      for(const auto param : trackPtrs)
+      for(const auto& [param, key] : keyMap)
 	{
-	  std::cout << "Track position: (" 
-		    << param->position(m_tGeometry->geoContext)(0)
-		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "
-		    << param->position(m_tGeometry->geoContext)(2) << ")" 
+	  std::cout << "Track ID : " << key << " Track position: (" 
+		    << param->position(m_tGeometry->geoContext).transpose()
 		    << std::endl;
 	}
     }
@@ -352,8 +383,6 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 
       ++key;
     }
-      
-
 
   if(Verbosity() > 2)
     {

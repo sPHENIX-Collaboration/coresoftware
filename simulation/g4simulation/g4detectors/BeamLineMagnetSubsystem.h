@@ -45,6 +45,11 @@ class BeamLineMagnetSubsystem : public PHG4DetectorSubsystem
   PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
+  // this method is used to check if it can be used as mothervolume
+  // Subsystems which can be mothervolume need to implement this
+  // and return true
+  bool CanBeMotherSubsystem() const override { return true; }
+
  private:
   void SetDefaultParameters() override;
 

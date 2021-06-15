@@ -147,13 +147,6 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs;
 
-  /// micromegas volume id(s). 
-  /** 
-   * this is needed to check whether a given track has micromegas hits or not
-   * it is set in InitRun, by looping over registered micromegas surfaces 
-   */
-  std::set<int> m_mmVolumeIds;
-  
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates;
 

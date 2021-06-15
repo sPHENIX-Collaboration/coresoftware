@@ -62,6 +62,7 @@ class EventEvaluator : public SubsysReco
   void set_do_PROJECTIONS(bool b) { _do_PROJECTIONS = b; }
   void set_do_MCPARTICLES(bool b) { _do_MCPARTICLES = b; }
   void set_do_HEPMC(bool b) { _do_HEPMC = b; }
+  void set_do_GEOMETRY(bool b) { _do_GEOMETRY = b; }
   // funtions to limit the tracing to only part of the event ---------
   // and speed up the evaluation
 
@@ -95,6 +96,7 @@ class EventEvaluator : public SubsysReco
   bool _do_PROJECTIONS;
   bool _do_MCPARTICLES;
   bool _do_HEPMC;
+  bool _do_GEOMETRY;
   unsigned int _ievent;
 
   // track hits
@@ -266,6 +268,17 @@ class EventEvaluator : public SubsysReco
   int* _hepmcp_m2;
   int* _hepmcp_BCID;
 
+
+  int _calo_ID;
+  int _calo_towers_N;
+  int* _calo_towers_iEta;
+  int* _calo_towers_iPhi;
+  float* _calo_towers_Eta;
+  float* _calo_towers_Phi;
+  float* _calo_towers_x;
+  float* _calo_towers_y;
+  float* _calo_towers_z;
+
   float _reco_e_threshold;
   int _depth_MCstack;
 
@@ -284,10 +297,12 @@ class EventEvaluator : public SubsysReco
   bool _strict;
 
   TTree* _event_tree;  //Added by Barak
+  TTree* _geometry_tree;  //Added by Barak
 
   // evaluator output file
   std::string _filename;
   TFile* _tfile;
+  TFile* _tfile_geometry;
 
   // subroutines
   int GetProjectionIndex(std::string projname);           ///< return track projection index for given track projection layer
@@ -297,12 +312,24 @@ class EventEvaluator : public SubsysReco
 
   const int _maxNHits = 5000;
   const int _maxNTowers = 50 * 50;
+  const int _maxNTowersCentral = 2000;
   const int _maxNTowersDR = 3000 * 3000;
+  const int _maxNTowersCalo = 100000;
   const int _maxNclusters = 100;
+  const int _maxNclustersCentral = 2000;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
   const int _maxNMCPart = 100000;
   const int _maxNHepmcp = 1000;
+
+  enum calotype {
+      kFHCAL         = 0,
+      kFEMC         = 1,
+      kDRCALO        = 2,
+      kEEMC         = 3,
+      kCEMC         = 4
+  };
+
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H
