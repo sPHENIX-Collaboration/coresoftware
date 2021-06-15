@@ -8,6 +8,8 @@
 #include "TpcSpaceChargeReconstructionHelper.h"
 #include "TpcSpaceChargeMatrixContainerv1.h"
 
+#include <frog/FROG.h>
+
 #include <TFile.h>
 #include <TH3.h>
 
@@ -42,10 +44,14 @@ void TpcSpaceChargeMatrixInversion::set_outputfile( const std::string& filename 
 { m_outputfile = filename; }
 
 //_____________________________________________________________________
-bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& filename, const std::string& objectname )
+bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& shortfilename, const std::string& objectname )
 {
-  // save everything to root file
-  std::unique_ptr<TFile> inputfile( TFile::Open( filename.c_str() ) );
+  // get filename from frog
+  FROG frog;
+  const auto filename = frog.location( shortfilename );  
+  
+  // open TFile
+  std::unique_ptr<TFile> inputfile( TFile::Open( filename ) );
   if( !inputfile )
   { 
     std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl; 

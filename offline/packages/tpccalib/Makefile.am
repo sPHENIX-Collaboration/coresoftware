@@ -24,6 +24,7 @@ libtpccalib_io_la_LIBADD = \
 
 libtpccalib_la_LIBADD = \
   libtpccalib_io.la \
+  -lFROG \
   -lphool \
   -lSubsysReco \
   -lg4detectors_io \
