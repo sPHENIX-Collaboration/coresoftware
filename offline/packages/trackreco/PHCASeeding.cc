@@ -17,10 +17,9 @@
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrDefs.h>  // for getLayer, clu...
+#include <trackbase/TrkrClusterHitAssoc.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -350,18 +349,17 @@ void PHCASeeding::FillTree()
       TrkrDefs::cluskey ckey = clusIter->first;
       unsigned int layer = TrkrDefs::getLayer(ckey);
       if (layer < _start_layer || layer >= _end_layer){
-	cout << "layer: " << layer << endl;
+	if(Verbosity()>0) cout << "layer: " << layer << endl;
 	continue;
       }/*
       if(!_use_truth_clusters)
 	{
-	  std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>   
-	  hitrange = _cluster_hit_map->getHits(ckey);
+	  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
 	  unsigned int nhits = std::distance(hitrange.first,hitrange.second);
 	  if(nhits<_min_nhits_per_cluster) continue;
 	}
       */
-      TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
+      TVector3 vec(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
       double clus_phi = vec.Phi();
       if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
       //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
@@ -383,7 +381,7 @@ void PHCASeeding::FillTree()
       t_fill->stop();
     }
   }
-  if(Verbosity()>1)for (int j = 0; j < 60; ++j) cout << "nhits in layer " << j << ":  " << nlayer[j] << endl;
+  if(Verbosity()>1) for (int j = 0; j < 60; ++j) cout << "nhits in layer " << j << ":  " << nlayer[j] << endl;
   if(Verbosity()>0) std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   if(Verbosity()>0) std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
@@ -391,7 +389,7 @@ void PHCASeeding::FillTree()
 pointKey PHCASeeding::makepointKey(TrkrDefs::cluskey k)
 {
   TrkrCluster* cluster = _cluster_map->findCluster(k);
-  TVector3 vec(cluster->getPosition(0)-_vertex->get_x(), cluster->getPosition(1)-_vertex->get_y(), cluster->getPosition(2)-_vertex->get_z());
+  TVector3 vec(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
   double clus_phi = vec.Phi();
   if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
   if(clus_phi>2*M_PI) clus_phi = clus_phi - 2*M_PI;
@@ -414,15 +412,9 @@ void PHCASeeding::FillTree(vector<pointKey> clusters)
   {
     unsigned int layer = TrkrDefs::getLayer(iter->second);
     if(layer < _start_layer || layer >= _end_layer) continue;
-
-    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
-      hitrange = _cluster_hit_map->getHits(iter->second);
-
+    TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(iter->second);
     unsigned int nhits = std::distance(hitrange.first,hitrange.second);
-    if(nhits<_min_nhits_per_cluster){
-      cout << "min hits fail" << endl;
-      continue;
-    }
+    if(nhits<_min_nhits_per_cluster) continue;
     ++nlayer[layer];
     t_fill->restart();
     _rtree.insert(*iter);
@@ -467,7 +459,7 @@ vector<coordKey> PHCASeeding::fromPointKey(vector<pointKey> p)
 int PHCASeeding::Process(PHCompositeNode *topNode)
 {
 //  TFile fpara("CA_para.root", "RECREATE");
-  _vertex = _vertex_map->get(0);
+//  _vertex = _vertex_map->get(0);
 
   t_seed->restart();
 
@@ -479,8 +471,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger();
   t_seed->stop();
-  //  if(Verbosity()>0)   
-if(Verbosity()>1)  cout << "number of seeds " << numberofseeds << endl;
+  if(Verbosity()>0)   cout << "number of seeds " << numberofseeds << endl;
   if(Verbosity()>0) cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 //  fpara.cd();
 //  fpara.Close();
@@ -548,17 +539,15 @@ int PHCASeeding::FindSeedsWithMerger()
   t_seed->restart();
 
   pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters));
-if(Verbosity()>1)  cout << "links size: " << links.first.size() << "| " << links.second.size() << endl;
   vector<vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
-if(Verbosity()>1)  cout << "bilinks size: " << biLinks.size() << endl;
   vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks);
-if(Verbosity()>1)  cout << "keylistvector size: " << trackSeedKeyLists.size() << endl;
 //  if(Verbosity()>0)  std::cout << "seeds before merge: " << trackSeedKeyLists.size() << "\n";
 //  vector<keylist> mergedSeedKeyLists = MergeSeeds(trackSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 1: " << mergedSeedKeyLists.size() << "\n";
 //  mergedSeedKeyLists = MergeSeeds(mergedSeedKeyLists);
 //  if(Verbosity()>0) std::cout << "seeds after merge round 2: " << mergedSeedKeyLists.size() << "\n";
-  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(trackSeedKeyLists,true);
+  vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists);
+  vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -601,9 +590,9 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     if(StartLayer < _start_layer) continue;
     if(StartLayer > _end_layer) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
-    double StartX = StartCl->getPosition(0)-_vertex->get_x();
-    double StartY = StartCl->getPosition(1)-_vertex->get_y();
-    double StartZ = StartCl->getPosition(2)-_vertex->get_z();
+    double StartX = StartCl->getPosition(0);//-_vertex->get_x();
+    double StartY = StartCl->getPosition(1);//-_vertex->get_y();
+    double StartZ = StartCl->getPosition(2);//-_vertex->get_z();
     t_seed->stop();
     cluster_find_time += t_seed->elapsed();
     t_seed->restart();
@@ -646,16 +635,16 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     transform(ClustersBelow.begin(),ClustersBelow.end(),delta_below.begin(),
       [&](pointKey BelowCandidate){
         TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate.second);
-        return array<double,3>{(BelowCl->getPosition(0)-_vertex->get_x())-StartX,
-          (BelowCl->getPosition(1)-_vertex->get_y())-StartY,
-          (BelowCl->getPosition(2)-_vertex->get_z())-StartZ};});
+        return array<double,3>{BelowCl->getPosition(0)-StartX,
+          BelowCl->getPosition(1)-StartY,
+          BelowCl->getPosition(2)-StartZ};});
 
     transform(ClustersAbove.begin(),ClustersAbove.end(),delta_above.begin(),
       [&](pointKey AboveCandidate){
         TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
-        return array<double,3>{(AboveCl->getPosition(0)-_vertex->get_x())-StartX,
-          (AboveCl->getPosition(1)-_vertex->get_y())-StartY,
-          (AboveCl->getPosition(2)-_vertex->get_z())-StartZ};});
+        return array<double,3>{AboveCl->getPosition(0)-StartX,
+          AboveCl->getPosition(1)-StartY,
+          AboveCl->getPosition(2)-StartZ};});
     t_seed->stop();
     transform_time += t_seed->elapsed();
     t_seed->restart();
@@ -711,9 +700,9 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
         transform(clustersTwoLayersBelow.begin(),clustersTwoLayersBelow.end(),delta_2below.begin(),
           [&](pointKey BelowCandidate){
             TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate.second);
-            return array<double,3>{(BelowCl->getPosition(0)-_vertex->get_x())-StartX,
-              (BelowCl->getPosition(1)-_vertex->get_y())-StartY,
-              (BelowCl->getPosition(2)-_vertex->get_z())-StartZ};});
+            return array<double,3>{(BelowCl->getPosition(0))-StartX,
+              (BelowCl->getPosition(1))-StartY,
+              (BelowCl->getPosition(2))-StartZ};});
         for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
         {
           for(size_t iBelow = 0; iBelow<delta_2below.size(); ++iBelow)
@@ -748,9 +737,9 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
           transform(clustersTwoLayersAbove.begin(),clustersTwoLayersAbove.end(),delta_2above.begin(),
             [&](pointKey AboveCandidate){
               TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
-              return array<double,3>{(AboveCl->getPosition(0)-_vertex->get_x())-StartX,
-                (AboveCl->getPosition(1)-_vertex->get_y())-StartY,
-                (AboveCl->getPosition(2)-_vertex->get_z())-StartZ};});
+              return array<double,3>{(AboveCl->getPosition(0))-StartX,
+                (AboveCl->getPosition(1))-StartY,
+                (AboveCl->getPosition(2))-StartZ};});
           for(size_t iAbove = 0; iAbove<delta_2above.size(); ++iAbove)
           {
             for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
@@ -894,7 +883,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
     {
       TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
-      TVector3 vec(cl->getPosition(0)-_vertex->get_x(), cl->getPosition(1)-_vertex->get_y(), cl->getPosition(2)-_vertex->get_z());
+      TVector3 vec(cl->getPosition(0), cl->getPosition(1), cl->getPosition(2));
 
       double clus_phi = vec.Phi();
       if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
@@ -911,13 +900,13 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
            ++jumpcount;
         }
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
-        " (x,y,z) = (" << cl->getPosition(0)-_vertex->get_x() << "," << cl->getPosition(1)-_vertex->get_y() << "," << cl->getPosition(2)-_vertex->get_z() << ")" << endl);
+        " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
       
       if(Verbosity() > 0)
 	{
             unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
             std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
-             " (x,y,z) = (" << cl->getPosition(0)-_vertex->get_x() << "," << cl->getPosition(1)-_vertex->get_y() << "," << cl->getPosition(2)-_vertex->get_z() << ")" << std::endl;
+             " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << std::endl;
         }
       lasteta = clus_eta;
       lastphi = clus_phi;
@@ -928,6 +917,48 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
   if(Verbosity()>0) cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   t_seed->restart();
   return trackSeedKeyLists;
+}
+
+vector<keylist> PHCASeeding::RemoveBadClusters(vector<keylist> chains)
+{
+  if(Verbosity()>0) cout << "removing bad clusters" << endl;
+  vector<keylist> clean_chains;
+  for(keylist chain : chains)
+  {
+    if(chain.size()<3) continue;
+    keylist clean_chain;
+
+    vector<pair<double,double>> xy_pts;
+    vector<pair<double,double>> rz_pts;
+
+    for(TrkrDefs::cluskey ckey : chain)
+    {
+      TrkrCluster* c = _cluster_map->findCluster(ckey);
+      double x = c->getX();
+      double y = c->getY();
+      double z = c->getZ();
+      xy_pts.push_back(make_pair(x,y));
+      rz_pts.push_back(make_pair(sqrt(x*x+y*y),z));
+    }
+    if(Verbosity()>0) cout << "chain size: " << chain.size() << endl;
+    double A;
+    double B;
+    double R;
+    double X0;
+    double Y0;
+    fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
+    fitter->line_fit(rz_pts,A,B);
+    vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    for(size_t i=0;i<chain.size();i++)
+    {
+      if(xy_resid[i]>_xy_outlier_threshold) continue;
+      clean_chain.push_back(chain[i]);
+    }
+    clean_chains.push_back(clean_chain);
+    if(Verbosity()>0) cout << "pushed clean chain with " << clean_chain.size() << " clusters" << endl;
+  }
+  return clean_chains;
 }
 
 vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
@@ -999,7 +1030,6 @@ vector<keylist> PHCASeeding::MergeSeeds(vector<keylist> seeds)
 
 void PHCASeeding::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
-  if(Verbosity()>1) cout << "publishing " << seeds.size() << " seeds" << endl;
   for(size_t i=0;i<seeds.size();i++)
   {
     _track_map->insert(&(seeds[i]));
@@ -1011,14 +1041,6 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "Called Setup" << endl;
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
-
-  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_vertex_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   InitializeGeometry(topNode);
  #if __cplusplus < 201402L
   t_fill = boost::make_unique<PHTimer>("t_fill");
@@ -1030,6 +1052,11 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   t_fill->stop();
   t_seed->stop();
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter->useConstBField(_use_const_field);
+  fitter->useFixedClusterError(_use_fixed_clus_err);
+  fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
+  fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
+  fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

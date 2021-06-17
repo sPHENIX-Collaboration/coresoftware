@@ -158,6 +158,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     std::vector<double> zsize;
     for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
     {
+      LogDebug("-------------------------------------------------------------" << endl);
       LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
       LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl);
       LogDebug("layer " << (int)TrkrDefs::getLayer(*clusterkey) << endl);
@@ -165,11 +166,11 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
       // find ALICE x-coordinate
       double nextCluster_x = nextCluster->getPosition(0);
-      double nextCluster_xerr = sqrt(nextCluster->getError(0,0));
+      double nextCluster_xerr = sqrt(getClusterError(nextCluster,0,0));
       double nextCluster_y = nextCluster->getPosition(1);
-      double nextCluster_yerr = sqrt(nextCluster->getError(1,1));
+      double nextCluster_yerr = sqrt(getClusterError(nextCluster,1,1));
       double nextCluster_z = nextCluster->getPosition(2);
-      double nextCluster_zerr = sqrt(nextCluster->getError(2,2));
+      double nextCluster_zerr = sqrt(getClusterError(nextCluster,2,2));
       // rotate track coordinates to match orientation of next cluster
       double newPhi = atan2(nextCluster_y,nextCluster_x);
       LogDebug("new phi = " << newPhi << endl);
@@ -215,6 +216,10 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       trackCartesian_y = predicted_alice_x*sin_phi+predicted_alice_y*cos_phi;
       trackCartesian_z = predicted_z;
       LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl);
+      LogDebug("Track position ALICE Y error: " << sqrt(trackSeed.GetCov(0)) << endl);
+      LogDebug("Track position x error: " << sqrt(trackSeed.GetCov(0))*sin_phi << endl);
+      LogDebug("Track position y error: " << sqrt(trackSeed.GetCov(0))*cos_phi << endl);
+      LogDebug("Track position z error: " << sqrt(trackSeed.GetCov(5)) << endl);
       LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl);
       LogDebug("Cluster errors: (" << nextCluster_xerr << ", " << nextCluster_yerr << ", " << nextCluster_zerr << ")" << endl);
       LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
@@ -226,6 +231,9 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       double z2_error = getClusterError(nextCluster,2,2);
       LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << endl);
       LogDebug("track DzDs = " << trackSeed.GetDzDs() << endl);
+      LogDebug("chi2 = " << trackSeed.GetChi2() << endl);
+      LogDebug("NDF = " << trackSeed.GetNDF() << endl);
+      LogDebug("chi2 / NDF = " << trackSeed.GetChi2()/trackSeed.GetNDF() << endl);
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,_max_sin_phi))
       {
