@@ -1,16 +1,19 @@
-#include "TVector3.h"
-#include "TCanvas.h"
-#include "TLatex.h"
 #include "AnnularFieldSim.h"
-#include "TH3F.h"
-#include "TH2F.h"
-#include "TFormula.h"
-#include <TTree.h>
-#include "TFile.h"
+
 #include "AnalyticFieldModel.h"
 #include "Rossegger.h"
+
+#include <TCanvas.h>
+#include <TFormula.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TLatex.h>
 #include <TROOT.h>
 #include <TStyle.h>
+#include <TTree.h>
+#include <TVector3.h>
 
 #include <boost/format.hpp>
 

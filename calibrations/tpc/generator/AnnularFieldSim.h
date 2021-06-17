@@ -1,10 +1,17 @@
-#include "assert.h"
-#include "TVector3.h"
-#include "AnalyticFieldModel.h"
 #include "Rossegger.h"
 
+#include <TObject.h>    // for TObject
+#include <TVector3.h>
+
+#include <cmath>       // for NAN, abs
+#include <cstdio>      // for printf
+#include <cstdlib>     // for malloc
+#include <string>       // for string
+
+#include <cassert>
 
 template <class T> class MultiArray;
+class AnalyticFieldModel;
 class TH3F;
 class TTree;
 
