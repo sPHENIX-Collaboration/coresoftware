@@ -21,7 +21,9 @@ typedef struct TowerGeom
   float dX[2];  // Tower i-th trans. dimension spread in global coord X
   float dY[2];
   float dZ[2];
-
+  int T_type;
+  float z_size;
+  
 } TowerGeom;
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -44,7 +46,7 @@ class BEmcRec
     fNy = ny;
   }
 
-  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
+  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz, int t_t, float z_s);
   bool GetTowerGeometry(int ix, int iy, TowerGeom &geom);
   bool CompleteTowerGeometry();
   void PrintTowerGeometry(const std::string &fname);
@@ -113,7 +115,8 @@ class BEmcRec
   static void ZeroVector(int *, int);
   static void ZeroVector(float *, int);
   static void ZeroVector(EmcModule *, int);
-
+  float Scin_size;
+  
  protected:
   // Geometry
   bool bCYL;  // Cylindrical?

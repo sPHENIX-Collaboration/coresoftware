@@ -34,7 +34,9 @@ namespace RawTowerDefs
     FEMC = 5,
     FHCAL = 6,
     DRCALO = 7,
-    EHCAL = 8
+    EHCAL = 8,
+    EEMC_crystal = 9,
+    EEMC_glass = 10
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
@@ -48,6 +50,13 @@ namespace RawTowerDefs
     if (tower_index_1 < 0xFFF && tower_index_2 < 0xFFF)
     {
       calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;
+      //      calo_tower_id = calo_id * 10000 + tower_index_1 * 100 + tower_index_2;
+      /*      std::cout << "Calo_tower_ID: " << calo_tower_id << " || "
+		<< "calo_id: " << calo_id << " || "
+		<< "tower_index_1: " << tower_index_1 << " || "
+		<< "tower_index_2: " << tower_index_2 << std::endl;
+      */
+      
     }
     else
     {
@@ -157,6 +166,14 @@ namespace RawTowerDefs
       return "FHCAL";
       break;
 
+    case EEMC_crystal:
+      return "EEMC_crystal";
+      break;
+      
+    case EEMC_glass:
+      return "EEMC_glass";
+      break;
+      
     default:
       std::cout
           << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
@@ -197,10 +214,17 @@ namespace RawTowerDefs
     else if (caloname == "FHCAL")
       return FHCAL;
 
+    else if (caloname == "EEMC_crystal")
+      return EEMC_crystal;
+    
+    else if (caloname == "EEMC_glass")
+      return EEMC_glass;
+    
     else
     {
       std::cout << "Invalid calorimeter name " << caloname
                 << " passed to RawTowerDefs::convert_name_to_caloid" << std::endl;
+      std::cout << "Is the recompile work??? " << std::endl;
       exit(1);
     }
   }
