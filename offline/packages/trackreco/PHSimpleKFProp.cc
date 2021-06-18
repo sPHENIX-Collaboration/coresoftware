@@ -45,6 +45,8 @@
 
 using namespace std;
 
+typedef std::vector<TrkrDefs::cluskey> keylist;
+
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : PHTrackPropagating(name)
   , _field_map(nullptr)
@@ -77,6 +79,7 @@ int PHSimpleKFProp::End()
 
 int PHSimpleKFProp::Setup(PHCompositeNode* topNode)
 {
+  PHTrackPropagating::Setup(topNode);
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
@@ -154,6 +157,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
 
 int PHSimpleKFProp::Process()
 {
+  if(Verbosity()>0) cout << "starting Process" << endl;
   // wipe previous vertex coordinates
   _vertex_x.clear();
   _vertex_y.clear();
@@ -175,7 +179,9 @@ int PHSimpleKFProp::Process()
     _vertex_ids.push_back(v->get_id());
   }
   MoveToFirstTPCCluster();
+  if(Verbosity()>0) cout << "moved tracks into TPC" << endl;
   PrepareKDTrees();
+  if(Verbosity()>0) cout << "prepared KD trees" << endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<SvtxTrack> unused_tracks;
   for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); )
@@ -203,7 +209,8 @@ int PHSimpleKFProp::Process()
     }
   }
   _track_map->Reset();
-  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(new_chains,true);
+  std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains); 
+  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(clean_chains,true);
   publishSeeds(ptracks);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -213,7 +220,7 @@ void PHSimpleKFProp::PrepareKDTrees()
 {
   //***** convert clusters to kdhits, and divide by layer
   std::vector<std::vector<std::vector<double> > > kdhits;
-  kdhits.resize(56);
+  kdhits.resize(58);
   if (!_cluster_map)
   {
     std::cout << "WARNING: (tracking.PHTpcTrackerUtil.convert_clusters_to_hits) cluster map is not provided" << endl;
@@ -222,13 +229,14 @@ void PHSimpleKFProp::PrepareKDTrees()
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
-       ++hitsetitr)
-  {
+       ++hitsetitr){
     auto range = _cluster_map->getClusters(hitsetitr->first);
-    for( auto it = range.first; it != range.second; ++it )
+    for (TrkrClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
     {
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
+      if(!cluster) continue;
+    
       int layer = TrkrDefs::getLayer(cluskey);
       std::vector<double> kdhit(4);
       kdhit[0] = cluster->getPosition(0);
@@ -257,8 +265,7 @@ void PHSimpleKFProp::PrepareKDTrees()
     {
       _ptclouds[l]->pts[i] = kdhits[l][i];
     }
-    _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>,
-                                        KDPointCloud<double>, 3>>(3,*_ptclouds[l],nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>(3,*(_ptclouds[l]),nanoflann::KDTreeSingleIndexAdaptorParams(10));
     _kdtrees[l]->buildIndex();
   }
 }
@@ -267,7 +274,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
-  //ckeys.resize(track->size_cluster_keys());
   std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
   if(ckeys.size()>1 && ((int)TrkrDefs::getLayer(ckeys.front()))>((int)TrkrDefs::getLayer(ckeys.back())))
   {
@@ -278,9 +284,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   kftrack.InitParam();
   float track_phi = atan2(track->get_py(),track->get_px());
   kftrack.SetQPt(track->get_charge()/track->get_pt());
+  float track_pX = track->get_px()*cos(track_phi)+track->get_py()*sin(track_phi);
   float track_pY = -track->get_px()*sin(track_phi)+track->get_py()*cos(track_phi);
+  kftrack.SetSignCosPhi(track_pX/track->get_pt());
   kftrack.SetSinPhi(track_pY/track->get_pt());
-  kftrack.SetDzDs(track->get_pz()/track->get_pt());
+  kftrack.SetDzDs(-track->get_pz()/track->get_pt());
   Eigen::Matrix<double,6,6> xyzCov;
   for(int i=0;i<6;i++)
   {
@@ -353,20 +361,19 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   std::vector<TrkrDefs::cluskey> propagated_track;
 
   // setup ALICE track model on first cluster
-  TrkrCluster* firstclus = _cluster_map->findCluster(ckeys[0]);
+//  TrkrCluster* firstclus = _cluster_map->findCluster(ckeys[0]);
 //  TrkrCluster* lastclus = _cluster_map->findCluster(ckeys.back());
-  double fx = firstclus->getX();
-  double fy = firstclus->getY();
+//  double fx = firstclus->getX();
+//  double fy = firstclus->getY();
 //  double fz = firstclus->getZ();
-  double fphi = atan2(fy,fx);
+//  double fphi = atan2(fy,fx);
 //  double lx = lastclus->getX();
 //  double ly = lastclus->getY();
 //  double lz = lastclus->getZ();
 //  double lphi = atan2(ly,lx);
-  GPUTPCTrackLinearisation kfline(kftrack);
-//  kftrack.Rotate(fphi-lphi,kfline,10.);
-  kftrack.SetX(track->get_x()*cos(fphi)+track->get_y()*sin(fphi));
-  kftrack.SetY(-track->get_x()*sin(fphi)+track->get_y()*cos(fphi));
+//  kftrack.Rotate(fphi,kfline,10.);
+  kftrack.SetX(track->get_x()*cos(track_phi)+track->get_y()*sin(track_phi));
+  kftrack.SetY(-track->get_x()*sin(track_phi)+track->get_y()*cos(track_phi));
   kftrack.SetZ(track->get_z());
   if(Verbosity()>0)
   {
@@ -389,11 +396,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 //  kftrack.SetX(fx*cos(fphi)+fy*sin(fphi));
 //  kftrack.SetY(-fx*sin(fphi)+fy*cos(fphi));
 //  kftrack.SetZ(fz);
-
-  // copy ALICE track model for later
-  GPUTPCTrackParam kftrack_up(kftrack);
-  GPUTPCTrackLinearisation kfline_up(kftrack_up);
-
+  GPUTPCTrackLinearisation kfline(kftrack);
 
   // get layer for each cluster
   std::vector<unsigned int> layers;
@@ -404,7 +407,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     if(Verbosity()>0) cout << layers[i] << endl;
   }
 
-  double old_phi = fphi;
+  double old_phi = track_phi;
   unsigned int old_layer = TrkrDefs::getLayer(ckeys[0]);
   if(Verbosity()>0) cout << "first layer: " << old_layer << endl;
 
@@ -412,7 +415,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   // first, propagate downward
   for(unsigned int l=old_layer+1;l<=54;l++)
   {
-    if(Verbosity()>0) cout << "layer " << l << ":" << endl;
+    if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
+    if(fabs(kftrack.GetZ())>105.) continue;
+    if(Verbosity()>0) cout << "\nlayer " << l << ":" << endl;
     // check to see whether layer is already occupied by at least one cluster
     // choosing the last one first (clusters organized from inside out)
     bool layer_filled = false;
@@ -434,6 +441,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       double cx = nc->getX();
       double cy = nc->getY();
       double cz = nc->getZ();
+      double cxerr = sqrt(fitter->getClusterError(nc,0,0));
+      double cyerr = sqrt(fitter->getClusterError(nc,1,1));
+      double czerr = sqrt(fitter->getClusterError(nc,2,2));
       double cphi = atan2(cy,cx);
       double alpha = cphi-old_phi;
       double tX = kftrack.GetX();
@@ -441,34 +451,87 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       double tx = tX*cos(old_phi)-tY*sin(old_phi);
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
       double tz = kftrack.GetZ();
-      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
-      kftrack.CalculateFitParameters(fp);
+//      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+//      kftrack.CalculateFitParameters(fp);
+      if(Verbosity()>0) cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << endl;
       kftrack.Rotate(alpha,kfline,10.);
       kftrack.TransportToX(cx*cos(cphi)+cy*sin(cphi),kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
-      if(Verbosity()>0) cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << endl;
+      if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
+      tX = kftrack.GetX();
+      tY = kftrack.GetY();
+      tx = tX*cos(cphi)-tY*sin(cphi);
+      ty = tX*sin(cphi)+tY*cos(cphi);
+      tz = kftrack.GetZ();
+      double tYerr = sqrt(kftrack.GetCov(0));
+      double tzerr = sqrt(kftrack.GetCov(5));
+      double txerr = fabs(tYerr*sin(cphi));
+      double tyerr = fabs(tYerr*cos(cphi));
       if(Verbosity()>0) cout << "cluster position: (" << cx << ", " << cy << ", " << cz << ")" << endl;
+      if(Verbosity()>0) cout << "cluster position errors: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << endl;
       if(Verbosity()>0) cout << "new track position: (" << kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi) << ", " << kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi) << ", " << kftrack.GetZ() << ")" << endl;
-      kftrack.SetX(cx*cos(cphi)+cy*sin(cphi));
-      kftrack.SetY(-cx*sin(cphi)+cy*cos(cphi));
-      kftrack.SetZ(cz);
-      propagated_track.push_back(next_ckey);
+      if(Verbosity()>0) cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << endl;
+      if(Verbosity()>0) cout << "distance: " << sqrt(pow(kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi)-cx,2)+pow(kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi)-cy,2)+pow(kftrack.GetZ()-cz,2)) << endl;
+//      kftrack.SetX(cx*cos(cphi)+cy*sin(cphi));
+//      kftrack.SetY(-cx*sin(cphi)+cy*cos(cphi));
+//      kftrack.SetZ(cz);
+      if(fabs(tx-cx)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
+         fabs(ty-cy)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
+         fabs(tz-cz)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
+      {
+        if(Verbosity()>0) cout << "Kept cluster" << endl;
+        propagated_track.push_back(next_ckey);
+      }
+      else
+      {
+        if(Verbosity()>0)
+        {
+          cout << "Rejected cluster" << endl;
+          cout << "x: " << fabs(tx-cx) << " vs. " << _max_dist*sqrt(txerr*txerr+cxerr*cxerr) << endl;
+          cout << "y: " << fabs(ty-cy) << " vs. " << _max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) << endl;
+          cout << "z: " << fabs(tz-cz) << " vs. " << _max_dist*sqrt(tzerr*tzerr+czerr*czerr) << endl;
+        }
+        kftrack.SetNDF(kftrack.GetNDF()-2);
+        ckeys.erase(std::remove(ckeys.begin(),ckeys.end(),next_ckey),ckeys.end());
+      }
       old_phi = cphi;
     }
     // if layer is not occupied, search for the nearest available cluster to projected track position
     else
     {
       if(Verbosity()>0) cout << "layer not filled" << endl;
+      // get current track coordinates to extract B field from map
       double tX = kftrack.GetX();
       double tY = kftrack.GetY();
       double tx = tX*cos(old_phi)-tY*sin(old_phi);
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
       double tz = kftrack.GetZ();
-      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
-      kftrack.CalculateFitParameters(fp);
+//      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+//      kftrack.CalculateFitParameters(fp);
       kftrack.TransportToX(radii[l-7],kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
+      if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
+      // update track coordinates after transport
+      tX = kftrack.GetX();
+      tY = kftrack.GetY();
+      tx = tX*cos(old_phi)-tY*sin(old_phi);
+      ty = tX*sin(old_phi)+tY*cos(old_phi);
+      tz = kftrack.GetZ();
+      double tYerr = sqrt(kftrack.GetCov(0));
+      double tzerr = sqrt(kftrack.GetCov(5));
+      double txerr = fabs(tYerr*sin(old_phi));
+      double tyerr = fabs(tYerr*cos(old_phi));
       if(Verbosity()>0) cout << "transported to " << radii[l-7] << "\n";
       if(Verbosity()>0) cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << endl;
+      if(Verbosity()>0) cout << "track position error: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << endl;
       double query_pt[3] = {tx, ty, tz};
+//      size_t ret_index;
+//      double out_dist_sqr;
+//      nanoflann::KNNResultSet<double> resultSet(1);
+//      resultSet.init(&ret_index,&out_dist_sqr);
+//      _kdtrees[l]->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
       _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
@@ -480,10 +543,17 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);                         
       double ccX = cc->getX();
       double ccY = cc->getY();
+      double ccZ = cc->getZ();
+      double cxerr = sqrt(fitter->getClusterError(cc,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,2,2));
       double ccphi = atan2(ccY,ccX);
       if(Verbosity()>0) cout << "cluster position: (" << ccX << ", " << ccY << ", " << cc->getZ() << ")" << endl;
+      if(Verbosity()>0) cout << "cluster position error: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << endl;
       if(Verbosity()>0) cout << "cluster X: " << ccX*cos(ccphi)+ccY*sin(ccphi) << endl;
-      if(atan2(sqrt(distance_out[0]),radii[l-7])<_max_dist)
+      if(fabs(tx-ccX)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
+         fabs(ty-ccY)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
+         fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
@@ -497,12 +567,12 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
         
         double alpha = ccphi-old_phi;
         kftrack.Rotate(alpha,kfline,10.);
-        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
-        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
-        kftrack.SetZ(cc->getZ());
+//        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
+//        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
+//        kftrack.SetZ(cc->getZ());
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = cc->getError(0,0)*sin(ccphi)*sin(ccphi)+cc->getError(0,1)*sin(ccphi)*cos(ccphi)+cc->getError(1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = cc->getError(2,2);
+        double ccerrY = fitter->getClusterError(cc,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,2,2);
         kftrack.Filter(ccaY,cc->getZ(),ccerrY,ccerrZ,_max_sin_phi);
         if(Verbosity()>0) cout << "added cluster" << endl;
         old_phi = ccphi;
@@ -510,24 +580,33 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     }
     old_layer = l;
   }
-  // reverse propagated track so we push_back onto the correct end
-  std::reverse(propagated_track.begin(),propagated_track.end());
-  old_layer = TrkrDefs::getLayer(ckeys[0]);
+//  old_layer = TrkrDefs::getLayer(ckeys[0]);
+//  std::reverse(ckeys.begin(),ckeys.end());
+  layers.clear();
+  if(Verbosity()>0) cout << "\nlayers after outward propagation:" << endl;
+  for(int i=0;i<propagated_track.size();i++)
+  {
+    layers.push_back(TrkrDefs::getLayer(propagated_track[i]));
+    if(Verbosity()>0) cout << layers[i] << endl;
+  }
   // then, propagate upward
   for(unsigned int l=old_layer-1;l>=7;l--)
   {
-    if(Verbosity()>0) cout << "layer " << l << ":" << endl;
+    if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
+    if(Verbosity()>0) cout << "\nlayer " << l << ":" << endl;
     // check to see whether layer is already occupied by at least one cluster
     // choosing the first one first (clusters organized from outside in)
     bool layer_filled = false;
     TrkrDefs::cluskey next_ckey = 0;
-    for(size_t k=0; k<ckeys.size(); k++)
+    for(size_t k=0; k<propagated_track.size(); k++)
     {
       if(layer_filled) continue;
       if(layers[k]==l)
       {
         layer_filled = true;
-        next_ckey = ckeys[k];
+        next_ckey = propagated_track[k];
       }
     }
     // if layer is already occupied, reset track parameters to last cluster in layer
@@ -540,38 +619,54 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       double cz = nc->getZ();
       double cphi = atan2(cy,cx);
       double alpha = cphi-old_phi;
-      double tX = kftrack_up.GetX();
-      double tY = kftrack_up.GetY();
+      double tX = kftrack.GetX();
+      double tY = kftrack.GetY();
       double tx = tX*cos(old_phi)-tY*sin(old_phi);
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
-      double tz = kftrack_up.GetZ();
-      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
-      kftrack_up.CalculateFitParameters(fp);
-      kftrack_up.Rotate(alpha,kfline_up,10.);
-      kftrack_up.TransportToX(cx*cos(cphi)+cy*sin(cphi),kfline_up,_Bzconst*get_Bz(tx,ty,tz),10.);
+      double tz = kftrack.GetZ();
+//      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+//      kftrack_up.CalculateFitParameters(fp);
+      kftrack.Rotate(alpha,kfline,10.);
+      kftrack.TransportToX(cx*cos(cphi)+cy*sin(cphi),kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
+      if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
       if(Verbosity()>0) cout << "transported to " << radii[l-7] << "\n";
-      if(Verbosity()>0) cout << "track position: (" << kftrack_up.GetX()*cos(cphi)-kftrack_up.GetY()*sin(cphi) << ", " << kftrack_up.GetX()*sin(cphi)+kftrack_up.GetY()*cos(cphi) << ", " << kftrack_up.GetZ() << ")" << endl;
+      if(Verbosity()>0) cout << "track position: (" << kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi) << ", " << kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi) << ", " << kftrack.GetZ() << ")" << endl;
       if(Verbosity()>0) cout << "cluster position: (" << cx << ", " << cy << ", " << cz << ")" << endl;
-      kftrack_up.SetX(cx*cos(cphi)+cy*sin(cphi));
-      kftrack_up.SetY(-cx*sin(cphi)+cy*cos(cphi));
-      kftrack_up.SetZ(cz);
-      propagated_track.push_back(next_ckey);
+//      kftrack_up.SetX(cx*cos(cphi)+cy*sin(cphi));
+//      kftrack_up.SetY(-cx*sin(cphi)+cy*cos(cphi));
+//      kftrack_up.SetZ(cz);
+//      propagated_track.push_back(next_ckey);
       old_phi = cphi;
     }
     // if layer is not occupied, search for the nearest available cluster to projected track position
     else
     {
       if(Verbosity()>0) cout << "layer not filled" << endl;
-      double tX = kftrack_up.GetX();
-      double tY = kftrack_up.GetY();
+      double tX = kftrack.GetX();
+      double tY = kftrack.GetY();
       double tx = tX*cos(old_phi)-tY*sin(old_phi);
       double ty = tX*sin(old_phi)+tY*cos(old_phi);
-      double tz = kftrack_up.GetZ();
+      double tz = kftrack.GetZ();
 //      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
 //      kftrack_up.CalculateFitParameters(fp);
-      kftrack_up.TransportToX(radii[l-7],kfline_up,_Bzconst*get_Bz(tx,ty,tz),10.);
+      kftrack.TransportToX(radii[l-7],kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
+      if(std::isnan(kftrack.GetX()) ||
+       std::isnan(kftrack.GetY()) ||
+       std::isnan(kftrack.GetZ())) continue;
+      tX = kftrack.GetX();
+      tY = kftrack.GetY();
+      double tYerr = sqrt(kftrack.GetCov(0));
+      double tzerr = sqrt(kftrack.GetCov(5));
+      tx = tX*cos(old_phi)-tY*sin(old_phi);
+      ty = tX*sin(old_phi)+tY*cos(old_phi);
+      tz = kftrack.GetZ();
+      double txerr = fabs(tYerr*sin(old_phi));
+      double tyerr = fabs(tYerr*cos(old_phi));
       if(Verbosity()>0) cout << "transported to " << radii[l-7] << "\n";
-      if(Verbosity()>0) cout << "track position: (" << kftrack_up.GetX()*cos(old_phi)-kftrack_up.GetY()*sin(old_phi) << ", " << kftrack_up.GetX()*sin(old_phi)+kftrack_up.GetY()*cos(old_phi) << ", " << kftrack_up.GetZ() << ")" << endl;
+      if(Verbosity()>0) cout << "track position: (" << kftrack.GetX()*cos(old_phi)-kftrack.GetY()*sin(old_phi) << ", " << kftrack.GetX()*sin(old_phi)+kftrack.GetY()*cos(old_phi) << ", " << kftrack.GetZ() << ")" << endl;
+      if(Verbosity()>0) cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << endl;
       double query_pt[3] = {tx, ty, tz};
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
@@ -584,11 +679,18 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
       double ccX = cc->getX();
       double ccY = cc->getY();
+      double ccZ = cc->getZ();
+      double cxerr = sqrt(fitter->getClusterError(cc,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,2,2));
       if(Verbosity()>0) cout << "cluster position: (" << ccX << ", " << ccY << ", " << cc->getZ() << ")" << endl;
       double ccphi = atan2(ccY,ccX);
+      if(Verbosity()>0) cout << "cluster position errors: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << endl;
       if(Verbosity()>0) cout << "cluster X: " << ccX*cos(ccphi)+ccY*sin(ccphi) << endl;
       double alpha = ccphi-old_phi;
-      if(atan2(sqrt(distance_out[0]),radii[l-7])<_max_dist)
+      if(fabs(tx-ccX)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
+         fabs(ty-ccY)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
+         fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
@@ -601,22 +703,69 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
         double ccphi = atan2(ccy,ccx);
         double alpha = ccphi-old_phi;
 */
-        kftrack_up.Rotate(alpha,kfline_up,10.);
+        kftrack.Rotate(alpha,kfline,10.);
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = cc->getError(0,0)*sin(ccphi)*sin(ccphi)+cc->getError(0,1)*sin(ccphi)*cos(ccphi)+cc->getError(1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = cc->getError(2,2);
-        kftrack_up.Filter(ccaY,cc->getZ(),ccerrY,ccerrZ,_max_sin_phi);
-        kftrack_up.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
-        kftrack_up.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
-        kftrack_up.SetZ(cc->getZ());
+        double ccerrY = fitter->getClusterError(cc,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,2,2);
+        kftrack.Filter(ccaY,cc->getZ(),ccerrY,ccerrZ,_max_sin_phi);
+//        kftrack_up.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
+//        kftrack_up.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
+//        kftrack_up.SetZ(cc->getZ());
         if(Verbosity()>0) cout << "added cluster" << endl;
         old_phi = ccphi;
       }
     }
     old_layer = l;
   }
+  std::sort(propagated_track.begin(),propagated_track.end(),
+            [](TrkrDefs::cluskey a, TrkrDefs::cluskey b)
+            {return (TrkrDefs::getLayer(a)<TrkrDefs::getLayer(b));});
   return propagated_track;
 }
+
+vector<keylist> PHSimpleKFProp::RemoveBadClusters(vector<keylist> chains)
+{
+  if(Verbosity()>0) cout << "removing bad clusters" << endl;
+  vector<keylist> clean_chains;
+  for(keylist chain : chains)
+  {
+    if(chain.size()<3) continue;
+    keylist clean_chain;
+
+    vector<pair<double,double>> xy_pts;
+    vector<pair<double,double>> rz_pts;
+
+    for(TrkrDefs::cluskey ckey : chain)
+    {
+      TrkrCluster* c = _cluster_map->findCluster(ckey);
+      double x = c->getX();
+      double y = c->getY();
+      double z = c->getZ();
+      xy_pts.push_back(make_pair(x,y));
+      rz_pts.push_back(make_pair(sqrt(x*x+y*y),z));
+    }
+    if(Verbosity()>0) cout << "chain size: " << chain.size() << endl;
+    double A;
+    double B;
+    double R;
+    double X0;
+    double Y0;
+    fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
+    fitter->line_fit(rz_pts,A,B);
+    vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    for(size_t i=0;i<chain.size();i++)
+    {
+      if(xy_resid[i]>_xy_outlier_threshold) continue;
+      clean_chain.push_back(chain[i]);
+    }
+    clean_chains.push_back(clean_chain);
+    if(Verbosity()>0) cout << "pushed clean chain with " << clean_chain.size() << " clusters" << endl;
+  }
+  return clean_chains;
+}
+
+
 
 void PHSimpleKFProp::publishSeeds(vector<SvtxTrack_v2> seeds)
 {
@@ -870,7 +1019,7 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
     double track_y = track->get_y();
     if(sqrt(track_x*track_x+track_y*track_y)>10.)
     {
-      std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
+      if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
       continue;
     }
     // get cluster keys
@@ -975,9 +1124,10 @@ void  PHSimpleKFProp::line_fit_clusters(std::vector<TrkrCluster*> clusters, doub
   
    for (unsigned int i=0; i<clusters.size(); ++i)
      {
+       double x = clusters[i]->getX();
+       double y = clusters[i]->getY();
+       double r = sqrt(x*x+y*y);
        double z = clusters[i]->getZ();
-       double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-
        points.push_back(make_pair(r,z));
      }
 

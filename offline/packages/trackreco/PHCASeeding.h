@@ -89,9 +89,7 @@ class PHCASeeding : public PHTrackSeeding
       float Bz = 14*0.000299792458f,
       float cosTheta_limit = -0.8);
 
-  ~PHCASeeding() override
-  {
-  }
+  ~PHCASeeding() override {}
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up) {_start_layer = layer_low; _end_layer = layer_up;}
   void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
   void SetMinHitsPerCluster(unsigned int minHits) {_min_nhits_per_cluster = minHits;}
@@ -104,6 +102,10 @@ class PHCASeeding : public PHTrackSeeding
     if(rescale > 0)
       _fieldDir = -1;     
   }
+
+  void useConstBField(bool opt){_use_const_field = opt;}
+  void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
+  void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -142,9 +144,9 @@ class PHCASeeding : public PHTrackSeeding
   Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v2 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
   pointKey makepointKey(TrkrDefs::cluskey k);
+  std::vector<keylist> RemoveBadClusters(std::vector<keylist> seeds);
   void publishSeeds(std::vector<SvtxTrack_v2> seeds);
 
- private:
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
 
@@ -167,8 +169,13 @@ class PHCASeeding : public PHTrackSeeding
   float _max_sin_phi;
   float _Bz;
   float _cosTheta_limit;
+  double _rz_outlier_threshold = 0.1;
+  double _xy_outlier_threshold = 0.1;
   //std::vector<float> _radii_all;
   double _fieldDir = -1;
+  bool _use_const_field = false;
+  bool _use_fixed_clus_err = false;
+  std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
   std::shared_ptr<ALICEKF> fitter;
 
