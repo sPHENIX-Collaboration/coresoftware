@@ -493,7 +493,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
           cout << "z: " << fabs(tz-cz) << " vs. " << _max_dist*sqrt(tzerr*tzerr+czerr*czerr) << endl;
         }
         kftrack.SetNDF(kftrack.GetNDF()-2);
-        std::remove(ckeys.begin(),ckeys.end(),next_ckey);
+        ckeys.erase(std::remove(ckeys.begin(),ckeys.end(),next_ckey),ckeys.end());
       }
       old_phi = cphi;
     }
