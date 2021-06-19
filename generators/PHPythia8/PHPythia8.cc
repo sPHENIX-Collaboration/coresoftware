@@ -45,7 +45,7 @@ PHPythia8::PHPythia8(const std::string &name)
   , m_Pythia8(nullptr)
   , m_ConfigFileName("phpythia8.cfg")
   , m_Pythia8ToHepMC(nullptr)
-  , m_SaveEventWeightFlag(false)
+  , m_SaveEventWeightFlag(true)
   , m_SaveIntegratedLuminosityFlag(true)
   , m_IntegralNode(nullptr)
 {
