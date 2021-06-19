@@ -47,6 +47,7 @@ class EventEvaluator : public SubsysReco
 
   void set_strict(bool b) { _strict = b; }
 
+  void set_do_store_event_level_info(bool b) { _do_store_event_info = b; }
   void set_do_FHCAL(bool b) { _do_FHCAL = b; }
   void set_do_HCALIN(bool b) { _do_HCALIN = b; }
   void set_do_HCALOUT(bool b) { _do_HCALOUT = b; }
@@ -81,6 +82,7 @@ class EventEvaluator : public SubsysReco
   }
 
  private:
+  bool _do_store_event_info;
   bool _do_FHCAL;
   bool _do_HCALIN;
   bool _do_HCALOUT;
@@ -98,6 +100,11 @@ class EventEvaluator : public SubsysReco
   bool _do_HEPMC;
   bool _do_GEOMETRY;
   unsigned int _ievent;
+
+  // Event level info
+  float _cross_section;
+  float _event_weight;
+  int _n_generator_accepted;
 
   // track hits
   int _nHitsLayers;
@@ -226,6 +233,8 @@ class EventEvaluator : public SubsysReco
   float* _track_px;
   float* _track_py;
   float* _track_pz;
+  float* _track_dca;
+  float* _track_dca_2d;
   float* _track_trueID;
   unsigned short* _track_source;
 

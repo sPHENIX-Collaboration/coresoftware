@@ -34,12 +34,15 @@
 #include <HepMC/GenVertex.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
+#include <phhepmc/PHGenIntegral.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHCompositeNode.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -58,6 +61,7 @@ using namespace std;
 
 EventEvaluator::EventEvaluator(const string& name, const string& filename)
   : SubsysReco(name)
+  , _do_store_event_info(false)
   , _do_FHCAL(false)
   , _do_HCALIN(false)
   , _do_HCALOUT(false)
@@ -75,6 +79,9 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _do_HEPMC(false)
   , _do_GEOMETRY(false)
   , _ievent(0)
+  , _cross_section(0)
+  , _event_weight(0)
+  , _n_generator_accepted(0)
   , _nHitsLayers(0)
   , _hits_layerID(0)
   , _hits_trueID(0)
@@ -195,6 +202,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _track_px(0)
   , _track_py(0)
   , _track_pz(0)
+  , _track_dca(0)
+  , _track_dca_2d(0)
   , _track_trueID(0)
   , _track_source(0)
   , _nProjections(0)
@@ -352,6 +361,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _track_px = new float[_maxNTracks];
   _track_py = new float[_maxNTracks];
   _track_pz = new float[_maxNTracks];
+  _track_dca = new float[_maxNTracks];
+  _track_dca_2d = new float[_maxNTracks];
   _track_source = new unsigned short[_maxNTracks];
   _track_ProjTrackID = new float[_maxNProjections];
   _track_ProjLayer = new int[_maxNProjections];
@@ -403,6 +414,14 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   _event_tree = new TTree("event_tree", "event_tree");
+  if (_do_store_event_info)
+  {
+    // Event level info. This isn't the most efficient way to store this info, but it's straightforward
+    // within the structure of the class, so the size is small compared to the rest of the output.
+    _event_tree->Branch("cross_section", &_cross_section, "cross_section/F");
+    _event_tree->Branch("event_weight", &_event_weight, "event_weight/F");
+    _event_tree->Branch("n_generator_accepted", &_n_generator_accepted, "n_generator_accepted/I");
+  }
   // tracks and hits
   if (_do_HITS)
   {
@@ -421,6 +440,8 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("tracks_px", _track_px, "tracks_px[nTracks]/F");
     _event_tree->Branch("tracks_py", _track_py, "tracks_py[nTracks]/F");
     _event_tree->Branch("tracks_pz", _track_pz, "tracks_pz[nTracks]/F");
+    _event_tree->Branch("tracks_dca", _track_dca, "tracks_dca[nTracks]/F");
+    _event_tree->Branch("tracks_dca_2d", _track_dca_2d, "tracks_dca_2d[nTracks]/F");
     _event_tree->Branch("tracks_trueID", _track_trueID, "tracks_trueID[nTracks]/F");
     _event_tree->Branch("tracks_source", _track_source, "tracks_source[nTracks]/s");
   }
@@ -781,6 +802,78 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   // fill the Event Tree
   //----------------------
 
+  //----------------------
+  // Event level info
+  //---------------------
+  // Extract weight info from the stored HepMC event.
+  if (_do_store_event_info) {
+    PHHepMCGenEventMap* hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+    if (hepmceventmap)
+    {
+      if (Verbosity() > 0)
+      {
+        cout << "saving event level info" << endl;
+      }
+
+      for (PHHepMCGenEventMap::ConstIter eventIter = hepmceventmap->begin();
+           eventIter != hepmceventmap->end();
+           ++eventIter)
+      {
+        PHHepMCGenEvent* hepmcevent = eventIter->second;
+
+        if (hepmcevent)
+        {
+          HepMC::GenEvent* truthevent = hepmcevent->getEvent();
+          if (!truthevent)
+          {
+            cout << PHWHERE
+                 << "no evt pointer under phhepmvgeneventmap found "
+                 << endl;
+            return;
+          }
+
+          auto xsec = truthevent->cross_section();
+          _cross_section = xsec->cross_section();
+          // Only fill the event weight if available.
+          // The overall event weight will be stored in the last entry in the vector.
+          auto weights = truthevent->weights();
+          if (weights.size() > 0) {
+              _event_weight = weights[weights.size() - 1];
+          }
+        }
+      }
+    }
+    else
+    {
+      if (Verbosity() > 0)
+      {
+        cout << PHWHERE << " PHHepMCGenEventMap node (for event level info) not found on node tree" << endl;
+      }
+      return;
+    }
+
+    // Retrieve the number of generator accepted events
+    // Following how this was implemented in PHPythia8
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *sumNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    if (!sumNode)
+    {
+      cout << PHWHERE << "RUN Node missing doing nothing" << endl;
+      return;
+    }
+    auto * integralNode = findNode::getClass<PHGenIntegral>(sumNode, "PHGenIntegral");
+    if (integralNode)
+    {
+      _n_generator_accepted = integralNode->get_N_Generator_Accepted_Event();
+    }
+    else
+    {
+      if (Verbosity() > 0)
+      {
+        cout << PHWHERE << " PHGenIntegral node (for n generator accepted) not found on node tree. Continuing" << endl;
+      }
+    }
+  }
   //----------------------
   //    VERTEX
   //----------------------
@@ -2107,6 +2200,12 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _track_px[_nTracks] = track->get_px();
             _track_py[_nTracks] = track->get_py();
             _track_pz[_nTracks] = track->get_pz();
+            // Ideally, would be dca3d_xy and dca3d_z, but these don't seem to be calculated properly in the
+            // current (June 2021) simulations (they return NaN). So we take dca (seems to be ~ the 3d distance)
+            // and dca_2d (seems to be ~ the distance in the transverse plane).
+            // The names of the branches are based on the method names.
+            _track_dca[_nTracks] = static_cast<float>(track->get_dca());
+            _track_dca_2d[_nTracks] = static_cast<float>(track->get_dca2d());
             _track_trueID[_nTracks] = track->get_truth_track_id();
             _track_source[_nTracks] = static_cast<unsigned short>(trackMapInfo.second);
             if (_do_PROJECTIONS)
@@ -2641,6 +2740,13 @@ void EventEvaluator::resetGeometryArrays()
 }
 void EventEvaluator::resetBuffer()
 {
+  if (_do_store_event_info)
+  {
+    _cross_section = 0;
+    _event_weight = 0;
+    _n_generator_accepted = 0;
+    if (Verbosity() > 0){ cout << "\t... event info variables reset" << endl;}
+  }
   if (_do_VERTEX)
   {
     _vertex_x = 0;
@@ -2830,6 +2936,8 @@ void EventEvaluator::resetBuffer()
       _track_px[itrk] = 0;
       _track_py[itrk] = 0;
       _track_pz[itrk] = 0;
+      _track_dca[itrk] = 0;
+      _track_dca_2d[itrk] = 0;
       _track_source[itrk] = 0;
     }
     if (_do_PROJECTIONS)
