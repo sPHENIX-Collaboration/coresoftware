@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
+  ActsEvaluator.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
   CellularAutomaton.h \
@@ -111,6 +112,7 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   ActsTransformations.cc \
+  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \

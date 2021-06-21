@@ -56,6 +56,9 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_nBadFits(0)
   , m_fitSiliconMMs(false)
   , m_fillSvtxTrackStates(true)
+  , m_actsEvaluator(false)
+  , m_trajectories(nullptr)
+  , m_seedTracks(nullptr)
   , m_timeAnalysis(false)
   , m_timeFile(nullptr)
   , h_eventTime(nullptr)
@@ -495,6 +498,8 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
 
+  m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
+
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
   auto updateTrackTimer = std::make_unique<PHTimer>("UpdateTrackTimer");
@@ -816,6 +821,25 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	} 
     }
 
+  if(m_actsEvaluator)
+    {
+      m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode,
+										    "ActsTrajectories");
+      if(!m_trajectories)
+	{
+	  m_trajectories = new std::map<const unsigned int, Trajectory>;
+	  PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
+	    new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories,"ActsTrajectories","PHObject");
+	  svtxNode->addNode(node);
+	  
+	}
+
+      m_seedTracks = (SvtxTrackMap*)(findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")->CloneMe());
+      PHIODataNode<PHObject> *seedNode = 
+	new PHIODataNode<PHObject>(m_seedTracks,"SeedTracks","PHObject");
+      svtxNode->addNode(seedNode);
+
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -861,6 +885,34 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "SvtxTrackMap not found on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  if(m_actsEvaluator)
+    {
+      m_seedTracks =(SvtxTrackMap*) (m_trackMap->CloneMe());
+      
+      PHNodeIterator iter(topNode);
+      
+      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+      
+      if (!dstNode)
+	{
+	  std::cerr << "DST node is missing, quitting" << std::endl;
+	  throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
+	}
+      
+      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+      
+      if (!svtxNode)
+	{
+	  svtxNode = new PHCompositeNode("SVTX");
+	  dstNode->addNode(svtxNode);
+	}
+      
+      
+      PHIODataNode<PHObject> *seedNode = 
+	new PHIODataNode<PHObject>(m_directedTrackMap,"SeedTracks","PHObject");
+      svtxNode->addNode(seedNode);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
