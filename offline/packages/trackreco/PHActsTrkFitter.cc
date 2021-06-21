@@ -498,7 +498,10 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
 
-  m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
+  if(m_actsEvaluator)
+    {
+      m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
+    }
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
@@ -833,13 +836,19 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	  svtxNode->addNode(node);
 	  
 	}
-
-      m_seedTracks = (SvtxTrackMap*)(findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap")->CloneMe());
-      PHIODataNode<PHObject> *seedNode = 
-	new PHIODataNode<PHObject>(m_seedTracks,"SeedTracks","PHObject");
-      svtxNode->addNode(seedNode);
+      
+      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,"SeedTrackMap");
+      if(!m_seedTracks)
+	{
+	  m_seedTracks = new SvtxTrackMap_v1;
+	  
+	  PHIODataNode<PHObject> *seedNode = 
+	    new PHIODataNode<PHObject>(m_seedTracks,"SeedTrackMap","PHObject");
+	  svtxNode->addNode(seedNode);
+	}
 
     }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -890,29 +899,6 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   if(m_actsEvaluator)
     {
       m_seedTracks =(SvtxTrackMap*) (m_trackMap->CloneMe());
-      
-      PHNodeIterator iter(topNode);
-      
-      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-      
-      if (!dstNode)
-	{
-	  std::cerr << "DST node is missing, quitting" << std::endl;
-	  throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
-	}
-      
-      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-      
-      if (!svtxNode)
-	{
-	  svtxNode = new PHCompositeNode("SVTX");
-	  dstNode->addNode(svtxNode);
-	}
-      
-      
-      PHIODataNode<PHObject> *seedNode = 
-	new PHIODataNode<PHObject>(m_directedTrackMap,"SeedTracks","PHObject");
-      svtxNode->addNode(seedNode);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

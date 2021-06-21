@@ -1171,7 +1171,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     }
 
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-                     (topNode, "ActsFitResults");
+                     (topNode, "ActsTrajectories");
 
   if (!m_actsFitResults)
   {
@@ -1190,7 +1190,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsProtoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SeedTracks");
+  m_actsProtoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SeedTrackMap");
   if (!m_actsProtoTrackMap)
     {
       std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
