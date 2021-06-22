@@ -556,6 +556,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
          fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
+        layers.push_back(TrkrDefs::getLayer(closest_ckey));
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
         double ccX = cc->getX();
         cout << "cluster X: " << ccX << endl;
@@ -693,6 +694,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
          fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
+        layers.push_back(TrkrDefs::getLayer(closest_ckey));
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
         double ccX = cc->getX();
         cout << "cluster X: " << ccX << endl;
