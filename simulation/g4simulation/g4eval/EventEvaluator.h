@@ -55,6 +55,7 @@ class EventEvaluator : public SubsysReco
   void set_do_FEMC(bool b) { _do_FEMC = b; }
   void set_do_CEMC(bool b) { _do_CEMC = b; }
   void set_do_EEMC(bool b) { _do_EEMC = b; }
+  void set_do_EEMCG(bool b) { _do_EEMCG = b; }
   void set_do_DRCALO(bool b) { _do_DRCALO = b; }
   void set_do_HITS(bool b) { _do_HITS = b; }
   void set_do_TRACKS(bool b) { _do_TRACKS = b; }
@@ -90,6 +91,7 @@ class EventEvaluator : public SubsysReco
   bool _do_FEMC;
   bool _do_CEMC;
   bool _do_EEMC;
+  bool _do_EEMCG;
   bool _do_DRCALO;
   bool _do_HITS;
   bool _do_TRACKS;
@@ -162,6 +164,12 @@ class EventEvaluator : public SubsysReco
   int* _tower_EEMC_iPhi;
   int* _tower_EEMC_trueID;
 
+  int _nTowers_EEMCG;
+  float* _tower_EEMCG_E;
+  int* _tower_EEMCG_iEta;
+  int* _tower_EEMCG_iPhi;
+  int* _tower_EEMCG_trueID;
+  
   int _nTowers_CEMC;
   float* _tower_CEMC_E;
   int* _tower_CEMC_iEta;
@@ -218,6 +226,13 @@ class EventEvaluator : public SubsysReco
   int* _cluster_EEMC_NTower;
   int* _cluster_EEMC_trueID;
 
+  int _nclusters_EEMCG;
+  float* _cluster_EEMCG_E;
+  float* _cluster_EEMCG_Eta;
+  float* _cluster_EEMCG_Phi;
+  int* _cluster_EEMCG_NTower;
+  int* _cluster_EEMCG_trueID;
+  
   // vertex
   float _vertex_x;
   float _vertex_y;
@@ -300,7 +315,8 @@ class EventEvaluator : public SubsysReco
   CaloEvalStack* _caloevalstackFEMC;
   CaloEvalStack* _caloevalstackCEMC;
   CaloEvalStack* _caloevalstackEEMC;
-
+  CaloEvalStack* _caloevalstackEEMCG;
+  
   //----------------------------------
   // evaluator output ntuples
 
@@ -341,7 +357,8 @@ class EventEvaluator : public SubsysReco
       kCEMC         = 4,
       kEHCAL         = 5,
       kHCALIN       = 6,
-      kHCALOUT       = 7
+      kHCALOUT       = 7,
+      kEEMCG         = 9,
   };
 
 };
