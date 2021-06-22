@@ -177,11 +177,12 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     if (iymax < iy) iymax = iy;
     ngeom++;
   }
-  cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
+  if (Verbosity() > 1){
+    cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
        << detector << ": N of geom towers: " << ngeom << "; ix = "
        << ixmin << "-" << ixmax << ", iy = "
        << iymin << "-" << iymax << endl;
-
+  }
   if (ixmax < ixmin || iymax < iymin)
   {
     cout << "Error in RawClusterBuilderTemplate::InitRun(): wrong geometry data for detector "
