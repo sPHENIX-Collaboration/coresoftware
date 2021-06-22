@@ -49,14 +49,7 @@ namespace RawTowerDefs
 
     if (tower_index_1 < 0xFFF && tower_index_2 < 0xFFF)
     {
-      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;
-      //      calo_tower_id = calo_id * 10000 + tower_index_1 * 100 + tower_index_2;
-      /*      std::cout << "Calo_tower_ID: " << calo_tower_id << " || "
-		<< "calo_id: " << calo_id << " || "
-		<< "tower_index_1: " << tower_index_1 << " || "
-		<< "tower_index_2: " << tower_index_2 << std::endl;
-      */
-      
+      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;      
     }
     else
     {
@@ -224,7 +217,6 @@ namespace RawTowerDefs
     {
       std::cout << "Invalid calorimeter name " << caloname
                 << " passed to RawTowerDefs::convert_name_to_caloid" << std::endl;
-      std::cout << "Is the recompile work??? " << std::endl;
       exit(1);
     }
   }

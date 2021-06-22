@@ -102,7 +102,8 @@ void BEmcRec::PrintTowerGeometry(const string& fname)
                 << geom.Ycenter << " " << geom.Zcenter << " " << geom.dX[0] << " "
                 << geom.dY[0] << " " << geom.dZ[0] << " " << geom.dX[1] << " "
                 << geom.dY[1] << " " << geom.dZ[1] << endl;
-	//	cout << "Z0: " << geom.dZ[0] << " || Z1: " << geom.dZ[1] << endl;
+        if (Verbosity() > 1)
+          cout << "Z0: " << geom.dZ[0] << " || Z1: " << geom.dZ[1] << endl;
       }
     }
   }
@@ -252,12 +253,14 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
 
   Scin_size = geom0.z_size;
 
-  // cout << "X center: " << geom0.Xcenter << " || X0: " << geom0.dX[0] << " || X1: " << geom0.dX[1] << endl;
-  // cout << "Y center: " << geom0.Ycenter << " || Y0: " << geom0.dY[0] << " || Y1: " << geom0.dY[1] << endl;
-  // cout << "Z center: " << geom0.Zcenter << " || Z0: " << geom0.dZ[0] << " || Z1: " << geom0.dZ[1] << endl;
-  // cout << "Tower Type: " << geom0.T_type << endl;
-  // cout << "Tower length: " << geom0.z_size << endl << endl;
-
+  if (Verbosity() > 2)
+  {
+    cout << "X center: " << geom0.Xcenter << " || X0: " << geom0.dX[0] << " || X1: " << geom0.dX[1] << endl;
+    cout << "Y center: " << geom0.Ycenter << " || Y0: " << geom0.dY[0] << " || Y1: " << geom0.dY[1] << endl;
+    cout << "Z center: " << geom0.Zcenter << " || Z0: " << geom0.dZ[0] << " || Z1: " << geom0.dZ[1] << endl;
+    cout << "Tower Type: " << geom0.T_type << endl;
+    cout << "Tower length: " << geom0.z_size << endl << endl;
+  }
   CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
 
   //  rA = sqrt(xA*xA+yA*yA);
