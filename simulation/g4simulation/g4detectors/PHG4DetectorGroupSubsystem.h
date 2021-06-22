@@ -23,7 +23,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
     root = 2
   };
 
-  virtual ~PHG4DetectorGroupSubsystem() {}
+  ~PHG4DetectorGroupSubsystem() override {}
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
 

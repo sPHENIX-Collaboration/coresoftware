@@ -13,10 +13,10 @@ class PHNodeReset : public PHNodeOperation
 {
  public:
   PHNodeReset() {}
-  virtual ~PHNodeReset() {}
+  ~PHNodeReset() override {}
 
  protected:
-  virtual void perform(PHNode*);
+  void perform(PHNode*) override;
 };
 
 #endif

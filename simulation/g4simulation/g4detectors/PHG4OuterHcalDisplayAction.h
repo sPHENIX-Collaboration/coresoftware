@@ -18,9 +18,9 @@ class PHG4OuterHcalDisplayAction : public PHG4DisplayAction
  public:
   PHG4OuterHcalDisplayAction(const std::string &name);
 
-  virtual ~PHG4OuterHcalDisplayAction();
+  ~PHG4OuterHcalDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void SetMyTopVolume(G4VPhysicalVolume *vol) { m_MyTopVolume = vol; }
   void AddScintiVolume(G4LogicalVolume *vol) { m_ScintiLogVolSet.insert(vol);}
   void AddSteelVolume(G4LogicalVolume *vol) {m_SteelVol = vol;}

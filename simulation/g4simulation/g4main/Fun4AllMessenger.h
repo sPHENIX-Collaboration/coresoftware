@@ -14,9 +14,9 @@ class Fun4AllMessenger: public G4UImessenger
 {
 public:
   Fun4AllMessenger(Fun4AllServer *ffa);
-  virtual ~Fun4AllMessenger();
+  ~Fun4AllMessenger() override;
 
-void SetNewValue(G4UIcommand*, G4String);
+void SetNewValue(G4UIcommand*, G4String) override;
 
 private:
 

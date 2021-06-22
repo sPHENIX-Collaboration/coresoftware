@@ -1,5 +1,5 @@
-#ifndef __SVTXVERTEX_H__
-#define __SVTXVERTEX_H__
+#ifndef TRACKBASEHISTORIC_SVTXVERTEX_H
+#define TRACKBASEHISTORIC_SVTXVERTEX_H
 
 #include <phool/PHObject.h>
 
@@ -16,17 +16,17 @@ class SvtxVertex : public PHObject
   typedef std::set<unsigned int>::const_iterator ConstTrackIter;
   typedef std::set<unsigned int>::iterator TrackIter;
 
-  virtual ~SvtxVertex() {}
+  ~SvtxVertex() override {}
 
   // PHObject virtual overloads
 
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "SvtxVertex base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // vertex info
 
@@ -65,17 +65,17 @@ class SvtxVertex : public PHObject
   virtual size_t size_tracks() const { return 0; }
   virtual void insert_track(unsigned int trackid) {}
   virtual size_t erase_track(unsigned int trackid) { return 0; }
-  virtual ConstTrackIter begin_tracks() const { return TrackSet().end(); }
-  virtual ConstTrackIter find_track(unsigned int trackid) const { return TrackSet().end(); }
-  virtual ConstTrackIter end_tracks() const { return TrackSet().end(); }
-  virtual TrackIter begin_tracks() { return TrackSet().end(); }
-  virtual TrackIter find_track(unsigned int trackid) { return TrackSet().end(); }
-  virtual TrackIter end_tracks() { return TrackSet().end(); }
+  virtual ConstTrackIter begin_tracks() const;
+  virtual ConstTrackIter find_track(unsigned int trackid) const;
+  virtual ConstTrackIter end_tracks() const;
+  virtual TrackIter begin_tracks();
+  virtual TrackIter find_track(unsigned int trackid);
+  virtual TrackIter end_tracks();
 
  protected:
   SvtxVertex() {}
 
-  ClassDef(SvtxVertex, 1);
+  ClassDefOverride(SvtxVertex, 1);
 };
 
 #endif

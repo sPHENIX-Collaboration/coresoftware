@@ -1,4 +1,5 @@
 #include "PHActsInitialVertexFinder.h"
+#include "ActsTransformations.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -6,6 +7,7 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHRandomSeed.h>
 
 #if __cplusplus < 201402L
 #include <boost/make_unique.hpp>
@@ -58,6 +60,9 @@ int PHActsInitialVertexFinder::Setup(PHCompositeNode *topNode)
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  m_seed = PHRandomSeed();
+  m_random_number_generator.seed(m_seed);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -67,19 +72,32 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
     std::cout << "PHActsInitialVertexFinder processing event " 
 	      << m_event << std::endl;
 
-  InitKeyMap keyMap;
-  auto trackPointers = getTrackPointers(keyMap);
-
-  auto vertices = findVertices(trackPointers);
-
-  fillVertexMap(vertices, keyMap);
-
-  for(auto track : trackPointers)
+  if(m_trackMap->size() == 0)
     {
-      delete track;
+      std::cout << PHWHERE 
+		<< "No silicon track seeds found. Can't run initial vertexing, setting dummy vertex of (0,0,0)" 
+		<< std::endl;
+      createDummyVertex();
     }
-
-  if(Verbosity() > 0)
+  else
+    {
+      InitKeyMap keyMap;
+      auto trackPointers = getTrackPointers(keyMap);
+      
+      auto vertices = findVertices(trackPointers);
+      
+      fillVertexMap(vertices, keyMap);
+      
+      /// Need to check that silicon stubs which may have been
+      /// skipped over still have a vertex association
+      checkTrackVertexAssociation();
+      
+      for(auto track : trackPointers)
+	{
+	  delete track;
+	}
+    }
+ if(Verbosity() > 0)
     std::cout << "PHActsInitialVertexFinder processed event "
 	      << m_event << std::endl;
 
@@ -103,16 +121,55 @@ int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHActsInitialVertexFinder::checkTrackVertexAssociation()
+{
+  
+  for(auto& [trackKey, track] : *m_trackMap)
+    {
+      /// If the track wasn't already given a vertex ID, it wasn't 
+      /// included in the initial vertex finding due to Acts not liking
+      /// tracks with large transverse position. So find the closest
+      /// z vertex to it and assign it
+      if(track->get_vertex_id() != UINT_MAX)
+	continue;
+
+      const auto trackZ = track->get_z();
+      
+      double closestVertZ = 9999;
+      int vertId = -1;
+      for(auto& [vertexKey, vertex] : *m_vertexMap)
+	{
+	  double dz = fabs(trackZ - vertex->get_z());
+
+	  if(dz < closestVertZ) 
+	    {
+	      vertId = vertexKey;
+	      closestVertZ = dz;
+	    }
+
+	}
+      
+      auto vertex = m_vertexMap->get(vertId);
+      vertex->insert_track(trackKey);
+      track->set_vertex_id(vertId);	
+    }
+
+}
 void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 					      InitKeyMap& keyMap)
 {
   unsigned int vertexId = 0;
+  if(vertices.size() != 0)
+    m_vertexMap->clear();
 
   /// Create a fail safe for (e.g.) single particle events which 
   /// don't return a vertex
   if(vertices.size() == 0)
     {
       createDummyVertex();
+      if(Verbosity() > 1)
+	std::cout << "No vertices found. Adding a dummy vertex"
+		  << std::endl;
       return;
     }
     
@@ -151,7 +208,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
       svtxVertex->set_t0(vertex.time());
       svtxVertex->set_id(vertexId);
           
-      for(const auto track : vertex.tracks())
+      for(const auto& track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
 
@@ -161,7 +218,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
 	  /// Give the track the appropriate vertex id
 	  const auto svtxTrack = m_trackMap->find(trackKey)->second;
 	  
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 3)
 	    {   
 	      svtxTrack->identify();
 	      std::cout << "Updating track key " << trackKey << " with vertex "
@@ -233,7 +290,6 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       using Stepper = Acts::EigenStepper<MagneticField>;
       using Propagator = Acts::Propagator<Stepper>;
-      using PropagatorOptions = Acts::PropagatorOptions<>;
       using TrackParameters = Acts::BoundTrackParameters;
       using Linearizer = Acts::HelicalTrackLinearizer<Propagator>;
       using VertexFitter = 
@@ -261,6 +317,14 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       
       /// Setup vertex finder now
       typename VertexFitter::Config vertexFitterConfig;
+
+      /// Vertex fitter seems to have no performance difference when
+      /// iterating once vs. default of 5 times. Additionally, iterating
+      /// more than once causes vertices with low numbers of tracks to
+      /// fail fitting, causing an error to be thrown and 0 vertices 
+      /// returned
+      vertexFitterConfig.maxIterations = 1;
+
       VertexFitter vertexFitter(std::move(vertexFitterConfig));
       
       typename Linearizer::Config linearizerConfig(bField, propagator);
@@ -273,7 +337,8 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 
       /// Don't weight track contribution by pT, since the momentum
       /// resolution of the silicon seeds is poor
-      seederConfig.disableAllWeights = true;
+      if(m_disableWeights)
+	seederConfig.disableAllWeights = true;
       VertexSeeder seeder(std::move(seederConfig));
       
       typename VertexFinder::Config finderConfig(std::move(vertexFitter), 
@@ -331,19 +396,256 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
     ); /// end std::visit call
 
 }
+
+std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
+{
+
+  /// Implement a simple k-means clustering algorithm. Randomly select
+  /// m_nCentroid track z PCAs (centroids), assign all tracks to 
+  /// a centroid based on which they are closest to, and then iterate
+  /// to update clusters and centroids
+
+  std::vector<float> centroids(m_nCentroids);
+  std::uniform_int_distribution<int> indices(0,m_trackMap->size() - 1);
+  std::vector<int> usedIndices;
+
+  /// Get the original centroids
+  for(auto& centroid : centroids) 
+    {
+      auto index = indices(m_random_number_generator);
+      for(const auto used : usedIndices)
+	if(index == used)
+	  index = indices(m_random_number_generator);
+
+      usedIndices.push_back(index);
+      centroid = m_trackMap->get(index)->get_z();
+      
+      if(Verbosity() > 3)
+	{
+	  std::cout << "Centroid is " << centroid << std::endl;
+	}
+    }
+  
+  /// This map holds the centroid index as the key and a
+  /// vector of SvtxTracks that correspond to that centroid
+  auto clusters = createCentroidMap(centroids);
+
+  /// Take the map and identified centroids and remove tracks
+  /// that aren't compatible
+  auto sortedTracks = getIVFTracks(clusters, centroids);
+
+  return sortedTracks;
+}
+
+std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
+CentroidMap& clusters, std::vector<float>& centroids)
+{
+  
+  std::vector<SvtxTrack*> sortedTracks;
+
+  /// Note the centroid that has the most tracks
+  int maxTrackCentroid = 0;
+  std::vector<float> stddev(m_nCentroids);
+
+  for(const auto& [centroidIndex, trackVec] : clusters)
+    {
+      float sum = 0;
+      if(trackVec.size() > maxTrackCentroid)
+	{
+	  maxTrackCentroid = trackVec.size();
+	}
+
+      for(const auto& track : trackVec)
+	{
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "Checking track key " << track->get_id()
+			<< " with z " << track->get_z() << " and centroid " 
+			<< centroids.at(centroidIndex) << std::endl;
+	    }
+	  sum += pow(track->get_z() - centroids.at(centroidIndex), 2);
+	}
+
+      float stddevVal = sqrt(sum / trackVec.size());
+      stddev.at(centroidIndex) = stddevVal;
+    }
+  
+  for(const auto& [centroidIndex, trackVec] : clusters)
+    {
+      /// skip centroids that have a very small number of tracks
+      /// compared to the largest centroid, as these are most likely
+      /// composed of only a few (bad) stubs
+      if(trackVec.size() < 0.2 * maxTrackCentroid)
+	continue;
+
+      for(const auto& track : trackVec)
+	{
+	  float z = track->get_z();
+	  float pull = fabs(z-centroids.at(centroidIndex)) / stddev.at(centroidIndex);
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "z is " << z << " with Pull : " 
+			<< pull
+			<< std::endl;
+	    }
+	  if(pull < 2)
+	    {
+	      sortedTracks.push_back(track);
+	    }
+	  else
+	    {
+	      if(m_removeSeeds)
+		{
+		  m_trackMap->erase(track->get_id());
+		}
+
+	      if(Verbosity() > 3)
+		{
+		  std::cout << "Not adding track with z " << z 
+			    << " as it is incompatible with centroid " 
+			    << centroids.at(centroidIndex) 
+			    << " with std dev " 
+			    << stddev.at(centroidIndex) << std::endl;
+		}
+	    }
+	}
+    }
+
+  return sortedTracks;
+
+}
+
+CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& centroids)
+{
+  CentroidMap clusters;
+  
+  for(int niter = 0; niter < m_nIterations; niter++)
+    {
+      /// reset the centroid-track map
+      clusters.clear();
+      for(unsigned int i =0; i<m_nCentroids; i++)
+	{
+	  std::vector<SvtxTrack*> vec;
+	  clusters.insert(std::make_pair(i, vec));
+	}  
+      
+      if(Verbosity() > 3)
+	{
+	  for(int i =0; i< m_nCentroids; i++)
+	    std::cout << "Starting centroid is : " 
+		      << centroids.at(i) << std::endl;
+	}
+      for(const auto& [key, track] : *m_trackMap)
+	{
+	  double minDist = 9999.;
+	  unsigned int centKey = 9999.;
+	  for(int i = 0; i < centroids.size(); i++)
+	    {
+	      double dist = fabs(track->get_z() - centroids.at(i));
+	      if(dist < minDist)
+		{
+		  minDist = dist;
+		  centKey = i;
+		  if(Verbosity() > 3)
+		    {
+		      std::cout << "mindist and centkey are " 
+				<< minDist << ", " << centKey 
+				<< std::endl;
+		    }
+		}
+	    }
+	  
+	  /// Add this track to the map that associates centroids with tracks
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "adding track with " << track->get_z() 
+			<< " to centroid " 
+			<< centroids.at(centKey) << std::endl;
+	    }
+	  clusters.find(centKey)->second.push_back(track);
+	  
+	}
+      
+      /// Update z pos centroids
+      std::vector<float> newCentroids(m_nCentroids);
+      for(const auto& [centroidVal, trackVec] : clusters)
+	{
+	  for(const auto& track : trackVec)
+	    {
+	      newCentroids.at(centroidVal) += track->get_z();
+	    }
+
+	  /// Sets the centroid as the average z value
+	  centroids.at(centroidVal) = 
+	    newCentroids.at(centroidVal) / trackVec.size();
+	}
+      
+      if(Verbosity() > 3)
+	{
+	  for(int i=0; i< m_nCentroids; i++)
+	    std::cout << "new centroids " << centroids.at(i) 
+		      << std::endl;
+   
+	  for(const auto& [centKey, trackVec] : clusters)
+	    {
+	      std::cout << "cent key : " << centKey << "has tracks"
+			<< std::endl;
+	      for(const auto track : trackVec) 
+		{
+		  std::cout << "track id : " << track->get_id() 
+			    << " with z pos " << track->get_z()
+			    << std::endl;
+		  
+		}
+	    }
+	}
+    }
+
+  return clusters;
+
+}
+
 TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 {
   TrackParamVec tracks;
 
-  for(auto& [key,track] : *m_trackMap)
+  /// If there are fewer tracks than centroids, just one with 1 centroid
+  /// Otherwise algorithm does not converge. nCentroids should only be
+  /// a handful, so this only affects small nTrack events.
+  if(m_trackMap->size() < m_nCentroids) 
     {
-      if(Verbosity() > 1)
+      m_nCentroids = 1;
+    }
+
+  std::vector<SvtxTrack*> sortedTracks;
+  if(m_svtxTrackMapName.find("Silicon") != std::string::npos)
+    {
+      sortedTracks = sortTracks();
+    }
+  else
+    {
+      for(const auto& [key, track] : *m_trackMap)
+	sortedTracks.push_back(track);
+    }
+
+  for(const auto& track : sortedTracks)
+    {
+      if(Verbosity() > 3)
 	{
 	  std::cout << "Adding track seed to vertex finder " 
 		    << std::endl;
 	  track->identify();
 	}
-
+      
+      /// Only vertex with stubs that have five clusters
+      if(m_svtxTrackMapName.find("SiliconTrackMap") != std::string::npos)
+	{
+	  if(track->size_cluster_keys() < 5)
+	    {
+	      continue;
+	    }
+	}
+    
       const Acts::Vector4D stubVec(
                   track->get_x() * Acts::UnitConstants::cm,
 		  track->get_y() * Acts::UnitConstants::cm,
@@ -354,23 +656,33 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 				   track->get_py(),
 				   track->get_pz());
       const int trackQ = track->get_charge() * Acts::UnitConstants::e;
+      
       const double p = track->get_p();
       
-      /// Make a dummy loose covariance matrix for Acts
+      /// Make a dummy covariance matrix for Acts that corresponds
+      /// to the resolutions of the silicon seeds
       Acts::BoundSymMatrix cov;
+      if(m_resetTrackCovariance)
+	cov << 5000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	       0., 900 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	       0., 0., 0.005, 0., 0., 0.,
+	       0., 0., 0., 0.001, 0., 0.,
+	       0., 0., 0., 0., 0.3 , 0.,
+	       0., 0., 0., 0., 0., 1.;
       
-      cov << 100 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.1 , 0.,
-           0., 0., 0., 0., 0., 1.;
+      else 
+	{
+	  ActsTransformations transform;
+	  transform.setVerbosity(Verbosity());
+	  cov = transform.rotateSvtxTrackCovToActs(track,
+						   m_tGeometry->geoContext);
+	}
 
-      /// Make a dummy perigeee surface to bound the track to
+      /// Make a dummy perigee surface to bound the track to
       auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-		 Acts::Vector3D(track->get_x() * Acts::UnitConstants::cm,
-				track->get_y() * Acts::UnitConstants::cm,
-				track->get_z() * Acts::UnitConstants::cm));
+				    Acts::Vector3D(stubVec(0),
+						   stubVec(1),
+						   stubVec(2)));
 								     
 
       const auto param = new Acts::BoundTrackParameters(
@@ -380,7 +692,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 				   p, trackQ, cov);
 
       tracks.push_back(param);
-      keyMap.insert(std::make_pair(param, key));
+      keyMap.insert(std::make_pair(param, track->get_id()));
     }
 
   return tracks;
@@ -389,10 +701,11 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 int PHActsInitialVertexFinder::getNodes(PHCompositeNode *topNode)
 {
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_svtxTrackMapName.c_str());
   if(!m_trackMap)
     {
-      std::cout << PHWHERE << "No SvtxTrackMap on node tree, bailing."
+      std::cout << PHWHERE << "No " << m_svtxTrackMapName.c_str() 
+		<< " on node tree, bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -434,13 +747,13 @@ int PHActsInitialVertexFinder::createNodes(PHCompositeNode *topNode)
   }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
+						  m_svtxVertexMapName.c_str());
   
   if(!m_vertexMap)
     {
       m_vertexMap = new SvtxVertexMap_v1;
       PHIODataNode<PHObject>* vertexNode = new PHIODataNode<PHObject>( 
-              m_vertexMap, "SvtxVertexMap","PHObject");
+		   m_vertexMap, m_svtxVertexMapName.c_str(),"PHObject");
 
       svtxNode->addNode(vertexNode);
 

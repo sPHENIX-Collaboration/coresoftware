@@ -13,7 +13,11 @@ class PHG4Particle : public PHObject
 {
  public:
   PHG4Particle() {}
-  virtual ~PHG4Particle() {}
+  ~PHG4Particle() override {}
+
+  void identify(std::ostream &os = std::cout) const override;
+
+
   virtual bool isIon() const { return false; }
   virtual int get_pid() const { return 0; }
   virtual std::string get_name() const { return "NONE"; }
@@ -53,12 +57,10 @@ class PHG4Particle : public PHObject
   virtual void set_IonCharge(const double e) { return; }
   virtual void set_ExcitEnergy(const double e) { return; }
 
-  void identify(std::ostream &os = std::cout) const;
-
   bool operator==(const PHG4Particle &p) const;
 
  protected:
-  ClassDef(PHG4Particle, 1)
+  ClassDefOverride(PHG4Particle, 1)
 };
 
 #endif  // G4MAIN_PHG4PARTICLE_H

@@ -20,7 +20,7 @@ class Fun4AllSyncManager;
 class Fun4AllInputManager : public Fun4AllBase
 {
  public:
-  virtual ~Fun4AllInputManager();
+  ~Fun4AllInputManager() override;
   virtual int fileopen(const std::string & /*filename*/) { return -1; }
   virtual int fileclose() { return -1; }
   virtual int run(const int /*nevents=0*/) { return -1; }
@@ -31,7 +31,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
   virtual int setBranches() { return -1; }  // publich bc needed by the sync manager
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents
   // with negative arg

@@ -265,23 +265,23 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   {
   }
 
-  virtual ~RecursiveMomentumContainerEnd()
+  ~RecursiveMomentumContainerEnd() override
   {
   }
 
-  virtual bool insert(TrivialTrack& track)
+  bool insert(TrivialTrack& track) override
   {
     tracks.push_back(track);
     return true;
   }
 
-  virtual TrivialTrack* begin()
+  TrivialTrack* begin() override
   {
     x_pos = 0;
     return (&(tracks.at(0)));
   }
 
-  virtual TrivialTrack* next()
+  TrivialTrack* next() override
   {
     if (x_pos >= (tracks.size() - 1))
     {
@@ -294,7 +294,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
     }
   }
 
-  virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
+  void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
     for (unsigned int i = 0; i < tracks.size(); ++i)
     {

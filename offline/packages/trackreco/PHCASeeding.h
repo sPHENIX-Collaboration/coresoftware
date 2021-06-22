@@ -11,11 +11,14 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+
+#include "ALICEKF.h"
+
 #include <phool/PHTimer.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -75,22 +78,18 @@ class PHCASeeding : public PHTrackSeeding
       const std::string &name = "PHCASeeding",
       unsigned int start_layer = 7,
       unsigned int end_layer = 55,
-      unsigned int min_nhits_per_cluster = 2,
-      unsigned int min_clusters_per_track = 20,
+      unsigned int min_nhits_per_cluster = 0,
+      unsigned int min_clusters_per_track = 5,
       const unsigned int nlayers_maps = 3,
       const unsigned int nlayers_intt = 4,
       const unsigned int nlayers_tpc = 48,
-      float cluster_z_error = 0.015,
-      float cluster_alice_y_error = 0.015,
       float neighbor_phi_width = .02,
       float neighbor_eta_width = .01,
       float maxSinPhi = 0.999,
       float Bz = 14*0.000299792458f,
       float cosTheta_limit = -0.8);
 
-  virtual ~PHCASeeding()
-  {
-  }
+  ~PHCASeeding() override {}
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up) {_start_layer = layer_low; _end_layer = layer_up;}
   void SetSearchWindow(float eta_width, float phi_width) {_neighbor_eta_width = eta_width; _neighbor_phi_width = phi_width;}
   void SetMinHitsPerCluster(unsigned int minHits) {_min_nhits_per_cluster = minHits;}
@@ -98,17 +97,22 @@ class PHCASeeding : public PHTrackSeeding
 
   void set_field_dir(const double rescale)
   {
-    _fieldDir = -1;
+    std::cout << "rescale: " << rescale << std::endl;
+    _fieldDir = 1;
     if(rescale > 0)
-      _fieldDir = 1;     
+      _fieldDir = -1;     
   }
 
+  void useConstBField(bool opt){_use_const_field = opt;}
+  void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
+  void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
+
  protected:
-  virtual int Setup(PHCompositeNode *topNode);
-  virtual int Process(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
+  int Process(PHCompositeNode *topNode) override;
   int InitializeGeometry(PHCompositeNode *topNode);
   int FindSeedsLayerSkip(double cosTheta_limit);
-  virtual int End();
+  int End() override;
 
  private:
   /// fetch node pointers
@@ -132,20 +136,17 @@ class PHCASeeding : public PHTrackSeeding
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(std::vector<coordKey> clusters, int mode = skip_layers::off);
   std::vector<std::vector<keylink>> FindBiLinks(std::vector<std::unordered_set<keylink>> belowLinks, std::vector<std::unordered_set<keylink>> aboveLinks);
   std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> bidirectionalLinks);
-  int ALICEKalmanFilter(std::vector<keylist> trackSeedKeyLists);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
   pointKey toPointKey(coordKey v);
   std::vector<pointKey> toPointKey(std::vector<coordKey> v);
   coordKey fromPointKey(pointKey p);
   std::vector<coordKey> fromPointKey(std::vector<pointKey> p);
-  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v1 &track);
-  bool covIsPosDef(SvtxTrack_v1 &track);
-  void repairCovariance(SvtxTrack_v1 &track);
+  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v2 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
   pointKey makepointKey(TrkrDefs::cluskey k);
-  bool checknan(float val, std::string name, int num);
+  std::vector<keylist> RemoveBadClusters(std::vector<keylist> seeds);
+  void publishSeeds(std::vector<SvtxTrack_v2> seeds);
 
- private:
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
 
@@ -161,15 +162,22 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _end_layer;
   unsigned int _min_nhits_per_cluster;
   unsigned int _min_clusters_per_track;
-  float _cluster_z_error;
-  float _cluster_alice_y_error;
+//  float _cluster_z_error;
+//  float _cluster_alice_y_error;
   float _neighbor_phi_width;
   float _neighbor_eta_width;
   float _max_sin_phi;
   float _Bz;
   float _cosTheta_limit;
+  double _rz_outlier_threshold = 0.1;
+  double _xy_outlier_threshold = 0.1;
   //std::vector<float> _radii_all;
-  double _fieldDir = 1;
+  double _fieldDir = -1;
+  bool _use_const_field = false;
+  bool _use_fixed_clus_err = false;
+  std::array<double,3> _fixed_clus_err = {.1,.1,.1};
+
+  std::shared_ptr<ALICEKF> fitter;
 
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;

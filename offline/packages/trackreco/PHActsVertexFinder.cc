@@ -51,7 +51,6 @@
 
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
-  , m_actsFitResults(nullptr)
   , m_actsVertexMap(nullptr)
 {
 }
@@ -72,7 +71,7 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
       std::cout << "Starting event " << m_event << " in PHActsVertexFinder"
 		<< std::endl;
     }
-  
+
   int ret = getNodes(topNode);
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
@@ -87,10 +86,17 @@ int PHActsVertexFinder::Process(PHCompositeNode *topNode)
 
   fillVertexMap(vertices, keyMap);
   
+  checkTrackVertexAssociation();
+
   /// Clean up the track pointer vector memory
   for(auto track : trackPointers)
     {
       delete track;
+    }
+
+  for(auto [key, svtxVertex] : *m_svtxVertexMap)
+    { 
+      m_svtxVertexMapActs->insert(dynamic_cast<SvtxVertex*>(svtxVertex->CloneMe()));
     }
 
   if(Verbosity() > 0)
@@ -112,40 +118,89 @@ int PHActsVertexFinder::ResetEvent(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::End(PHCompositeNode *topNode)
 {
+  std::cout << "Acts Final vertex finder succeeeded " << m_goodFits
+	    << " out of " << m_totalFits << " events processed"
+	    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsVertexFinder::checkTrackVertexAssociation()
+{
+  for(auto& [key, track] : *m_svtxTrackMap)
+    {
+      auto vertId = track->get_vertex_id();
+      if(!m_svtxVertexMap->get(vertId)) 
+	{
+	  /// Secondary not used in Acts vertex fitting. Assign
+	  /// closest vertex based on z position
+
+	  const auto trackZ = track->get_z();
+	  double closestVertZ = 9999;
+	  vertId = UINT_MAX;
+
+	  for(auto& [vertexKey, vertex] : *m_svtxVertexMap)
+	    {
+	      double dz = fabs(trackZ - vertex->get_z());
+	      if(dz < closestVertZ)
+		{
+		  vertId = vertexKey;
+		  closestVertZ = dz;
+		}
+	    }
+	  
+	  auto vertex = m_svtxVertexMap->get(vertId);
+	  vertex->insert_track(key);
+	  track->set_vertex_id(vertId);
+	}
+    }
+
 }
 
 TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
 
-  for(const auto &[key, traj] : *m_actsFitResults)
+  for(const auto &[key, track] : *m_svtxTrackMap)
   {
-    const auto &[trackTips, mj] = traj.trajectory();
+    Acts::Vector3D momentum(track->get_px(), 
+			    track->get_py(), 
+			    track->get_pz());
+    Acts::Vector4D position(track->get_x() * Acts::UnitConstants::cm,
+			    track->get_y() * Acts::UnitConstants::cm,
+			    track->get_z() * Acts::UnitConstants::cm,
+			    10. * Acts::UnitConstants::ns);
     
-    for(const size_t &trackTip : trackTips)
-      {
-	if(traj.hasTrackParameters(trackTip))
-	  {
-	    const auto param = new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
-	    keyMap.insert(std::make_pair(param, key));
-	    trackPtrs.push_back(param);
-	  }
-      }
+    auto vertexId = track->get_vertex_id();
+    const SvtxVertex* svtxVertex = m_svtxVertexMap->get(vertexId);
+    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			  svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+    Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
+    for(int i = 0; i < 6; i++)
+      for(int j = 0; j < 6; j++)
+	cov(i,j) = track->get_acts_covariance(i,j);
+    
+    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
+   
+    const auto param = new Acts::BoundTrackParameters(
+			   pSurface, m_tGeometry->geoContext,
+			   position, momentum, track->get_p(),
+			   track->get_charge(), cov);
+
+    keyMap.insert(std::make_pair(param, key));
+    trackPtrs.push_back(param);
   }
-  
+
   if(Verbosity() > 3)
     {
       std::cout << "Finding vertices for the following number of tracks "
-		<< trackPtrs.size()
-		<< std::endl;
+		<< trackPtrs.size() << std::endl;
      
-      for(const auto param : trackPtrs)
+      for(const auto& [param, key] : keyMap)
 	{
-	  std::cout << "Track position: (" 
-		    << param->position(m_tGeometry->geoContext)(0)
-		    <<", " << param->position(m_tGeometry->geoContext)(1) << ", "
-		    << param->position(m_tGeometry->geoContext)(2) << ")" 
+	  std::cout << "Track ID : " << key << " Track position: (" 
+		    << param->position(m_tGeometry->geoContext).transpose()
 		    << std::endl;
 	}
     }
@@ -156,9 +211,10 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 
 VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 {
+  m_totalFits++;
+  
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
-
   return std::visit([tracks, this](auto &inputField) {
       /// Setup aliases
       using InputMagneticField = 
@@ -223,6 +279,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       if(result.ok())
 	{
 	  auto vertexCollection = *result;
+	  m_goodFits++;
 	  
 	  if(Verbosity() > 1)
 	    {
@@ -258,7 +315,11 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 				       KeyMap& keyMap)
 {
   unsigned int key = 0;
-  for(auto vertex : vertices)
+
+  if(vertices.size() > 0)
+    m_svtxVertexMap->clear();
+
+  for(auto& vertex : vertices)
     {
       const auto &[chi2, ndf] = vertex.fitQuality();
       const auto numTracks = vertex.tracks().size();
@@ -272,9 +333,6 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 		    << " with chi2/ndf " << chi2 / ndf << std::endl;
 	}
 
-      /// Make some basic QA cuts on the vertices 
-      if(numTracks < 3)
-	continue;
 
       /// Fill Acts vertex map
       auto pair = std::make_pair(key, vertex);
@@ -303,12 +361,14 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 	    }
 	}
 
-      for(const auto track : vertex.tracks())
+      for(const auto& track : vertex.tracks())
 	{
 	  const auto originalParams = track.originalParams;
 	  const auto trackKey = keyMap.find(originalParams)->second;
 	  svtxVertex->insert_track(trackKey);
 
+	  const auto svtxTrack = m_svtxTrackMap->find(trackKey)->second;
+	  svtxTrack->set_vertex_id(key);
 	  updateTrackDCA(trackKey, Acts::Vector3D(vertexX,
 						  vertexY,
 						  vertexZ));
@@ -323,7 +383,16 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 
       ++key;
     }
-      
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "Identify vertices in vertex map" << std::endl;
+      for(auto& [key, vert] : *m_svtxVertexMap)
+	{
+	  vert->identify();
+	}
+    }
+
   return;
 }
 
@@ -417,13 +486,13 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       svtxNode->addNode(node);
     }
 
-  m_svtxVertexMap = 
+  m_svtxVertexMapActs = 
     findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");
-  if(!m_svtxVertexMap)
+  if(!m_svtxVertexMapActs)
     {
-      m_svtxVertexMap = new SvtxVertexMap_v1;
+      m_svtxVertexMapActs = new SvtxVertexMap_v1;
       PHIODataNode<PHObject> *node = 
-	new PHIODataNode<PHObject>(m_svtxVertexMap,
+	new PHIODataNode<PHObject>(m_svtxVertexMapActs,
 				   "SvtxVertexMapActs", "PHObject");
       svtxNode->addNode(node);
     }
@@ -433,17 +502,14 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
 
 int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 {
-  
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-    (topNode, "ActsFitResults");
-  if(!m_actsFitResults)
+  m_svtxVertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_svtxVertexMap)
     {
-      std::cout << PHWHERE << "Acts Trajectories not found on node tree, exiting."
+      std::cout << PHWHERE << "No SvtxVertexMap on node tree, bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
-
     }
-  
+    
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, 
 							 "ActsTrackingGeometry");
   if(!m_tGeometry)
@@ -459,6 +525,7 @@ int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting."
 		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

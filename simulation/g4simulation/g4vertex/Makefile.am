@@ -37,6 +37,7 @@ ROOTDICTS = \
   GlobalVertexv1_Dict.cc \
   GlobalVertexMap_Dict.cc \
   GlobalVertexMapv1_Dict.cc
+
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   GlobalVertex_Dict_rdict.pcm \
@@ -46,7 +47,9 @@ nobase_dist_pcm_DATA = \
 
 libg4vertex_io_la_SOURCES = \
   $(ROOTDICTS) \
+  GlobalVertex.cc \
   GlobalVertexv1.cc \
+  GlobalVertexMap.cc \
   GlobalVertexMapv1.cc
 
 libg4vertex_la_SOURCES = \

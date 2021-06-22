@@ -38,7 +38,8 @@ AM_LDFLAGS = \
 
 libphgeom_la_LIBADD = \
   libphgeom_io.la \
-  -lSubsysReco
+  -lSubsysReco \
+  -luuid
 
 libphgeom_io_la_LIBADD = \
   -lphool \

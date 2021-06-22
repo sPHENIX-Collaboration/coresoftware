@@ -31,9 +31,22 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   {
   }
 
-  virtual ~CylinderGeom_Mvtx() {}
+  ~CylinderGeom_Mvtx() override {}
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
+
+// from base class
+  void set_layer(const int i) override { layer = i; }
+  int get_layer() const override { return layer; }
+  double get_radius() const override { return layer_radius; }
+
+  double get_pixel_x() const override { return pixel_x; }  // pitch
+  double get_pixel_z() const override { return pixel_z; }  // length
+  double get_pixel_thickness() const override { return pixel_thickness; }
+
+// our own - no override
   TVector3 get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location);
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
 
@@ -62,13 +75,6 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
 
   int get_pixel_number_from_xbin_zbin(int xbin, int zbin); // obsolete
 
-  double get_pixel_x() const { return pixel_x; }  // pitch
-  double get_pixel_z() const { return pixel_z; }  // length
-  double get_pixel_thickness() const { return pixel_thickness; }
-
-  void set_layer(const int i) { layer = i; }
-  int get_layer() const { return layer; }
-  double get_radius() const { return layer_radius; }
   double get_stave_phi_tilt() const { return stave_phi_tilt; }
   double get_stave_phi_0() const { return stave_phi_0; }
 
@@ -106,7 +112,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double pixel_z;
   double pixel_thickness;
 
-  ClassDef(CylinderGeom_Mvtx, 2)
+  ClassDefOverride(CylinderGeom_Mvtx, 2)
 };
 
 #endif

@@ -27,16 +27,16 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
  public:
   PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
 
-  virtual ~PHG4TpcPadPlaneReadout();
+  ~PHG4TpcPadPlaneReadout() override;
 
-  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
+  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) override;
 
-  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
 
-  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
 
-  void SetDefaultParameters();
-  void UpdateInternalParameters();
+  void SetDefaultParameters() override;
+  void UpdateInternalParameters() override;
 
   private:
 

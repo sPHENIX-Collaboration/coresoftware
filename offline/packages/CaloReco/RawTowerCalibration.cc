@@ -6,6 +6,7 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerv2.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -119,14 +120,14 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
 
     if (_calib_algorithm == kNo_calibration)
     {
-      _calib_towers->AddTower(key, new RawTowerv1(*raw_tower));
+      _calib_towers->AddTower(key, new RawTowerv2(*raw_tower));
     }
     else if (_calib_algorithm == kSimple_linear_calibration)
     {
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC;
 
-      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      RawTower *calib_tower = new RawTowerv2(*raw_tower);
       calib_tower->set_energy(calib_energy);
       _calib_towers->AddTower(key, calib_tower);
     }
@@ -156,7 +157,7 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
 
-      RawTower *calib_tower = new RawTowerv1(*raw_tower);
+      RawTower *calib_tower = new RawTowerv2(*raw_tower);
       calib_tower->set_energy(calib_energy);
       _calib_towers->AddTower(key, calib_tower);
     }

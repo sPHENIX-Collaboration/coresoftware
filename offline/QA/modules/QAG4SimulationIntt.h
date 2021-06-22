@@ -13,6 +13,7 @@ class PHG4Hit;
 class PHG4HitContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
 /// \class QAG4SimulationIntt
@@ -47,6 +48,9 @@ class QAG4SimulationIntt : public SubsysReco
 
   /// clusters to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+
+  /// hitsets
+  TrkrHitSetContainer  *m_hitsets = nullptr;
 
   /// hit to g4hit association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;

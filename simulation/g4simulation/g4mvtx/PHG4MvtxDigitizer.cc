@@ -4,7 +4,7 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHitv2.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -72,7 +72,7 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
+    for (std::map<int, unsigned short>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
     {
@@ -181,14 +181,16 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       TrkrHit *hit = hit_iter->second;
 
       // Convert the signal value to an ADC value and write that to the hit
-      unsigned int adc = hit->getEnergy() / _energy_scale[layer];
-      if (adc > _max_adc[layer]) adc = _max_adc[layer];
-      hit->setAdc(adc);
-
+      //unsigned int adc = hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]);
+      if (Verbosity() > 0) 
+	cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
       // Remove the hits with energy under threshold
       bool rm_hit = false;
-      if (hit->getEnergy() < _energy_threshold) rm_hit = true;
-      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << " on layer " << layer << ", to remove hit " << rm_hit << endl;
+      if ( (hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold) rm_hit = true;
+
+      unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup *_energy_scale[layer]));
+      if (adc > _max_adc[layer]) adc = _max_adc[layer];
+      hit->setAdc(adc);
 
       if (rm_hit) hits_rm.insert(hit_iter->first);
     }

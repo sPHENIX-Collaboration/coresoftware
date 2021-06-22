@@ -17,11 +17,11 @@ class PHG4PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
   {
   }
 
-  virtual ~PHG4PrimaryGeneratorAction()
+  ~PHG4PrimaryGeneratorAction() override
   {
   }
 
-  virtual void GeneratePrimaries(G4Event* anEvent);
+  void GeneratePrimaries(G4Event* anEvent) override;
 
   //! set top node (from where particle list is retrieved for passing to geant
   void SetInEvent(PHG4InEvent* const inevt)

@@ -364,7 +364,7 @@ PHG4GDMLWriteStructure::GetBorderSurface(const G4VPhysicalVolume* const pvol)
 
 void PHG4GDMLWriteStructure::SurfacesWrite()
 {
-   G4cout << "PHG4GDML: Writing surfaces..." << G4endl;
+   std::cout << "PHG4GDML: Writing surfaces..." << std::endl;
 
    std::vector<xercesc::DOMElement*>::const_iterator pos;
    for (pos = skinElementVec.begin(); pos != skinElementVec.end(); ++pos)
@@ -379,7 +379,7 @@ void PHG4GDMLWriteStructure::SurfacesWrite()
 
 void PHG4GDMLWriteStructure::StructureWrite(xercesc::DOMElement* gdmlElement)
 {
-   G4cout << "PHG4GDML: Writing structure..." << G4endl;
+  std::cout << "PHG4GDML: Writing structure..." << std::endl;
 
    structureElement = NewElement("structure");
    gdmlElement->appendChild(structureElement);

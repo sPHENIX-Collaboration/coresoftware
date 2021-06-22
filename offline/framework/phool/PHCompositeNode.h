@@ -17,7 +17,7 @@ class PHCompositeNode : public PHNode
 
  public:
   explicit PHCompositeNode(const std::string &);
-  virtual ~PHCompositeNode();
+  ~PHCompositeNode() override;
 
   //
   // The user is only allowed to add new nodes, not to delete existing ones.
@@ -29,16 +29,16 @@ class PHCompositeNode : public PHNode
   // If a subnode is found to be marked as transient (non persistent)
   // the entire sub-tree is deleted.
   //
-  virtual void prune();
+  void prune() override;
 
   //
   // I/O functions
   //
-  void print(const std::string & = "");
-  virtual bool write(PHIOManager *, const std::string & = "");
+  void print(const std::string & = "") override;
+  bool write(PHIOManager *, const std::string & = "") override;
 
  protected:
-  virtual void forgetMe(PHNode *);
+  void forgetMe(PHNode *) override;
   PHPointerList<PHNode> subNodes;
   int deleteMe;
 

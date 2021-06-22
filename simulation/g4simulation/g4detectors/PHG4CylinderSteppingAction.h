@@ -22,13 +22,13 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   PHG4CylinderSteppingAction(PHG4CylinderSubsystem *subsys, PHG4CylinderDetector *detector, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4CylinderSteppingAction();
+  ~PHG4CylinderSteppingAction() override;
 
   //! stepping action
-  bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
 
   //! reimplemented from base class
-  void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
   void SaveLightYield(const int i = 1) { m_SaveLightYieldFlag = i; }
 
@@ -42,6 +42,8 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   // this is the only detector using this - there is no need to add
   // this to our parameters
   void SaveAllHits(bool i = true) { m_SaveAllHitsFlag = i; }
+
+  void HitNodeName(const std::string &name) {m_HitNodeName = name;}
 
  private:
   //! pointer to the Subsystem
@@ -68,6 +70,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   double m_Zmax;
   double m_Tmin;
   double m_Tmax;
+  std::string m_HitNodeName;
 };
 
 #endif

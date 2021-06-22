@@ -8,9 +8,11 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
-#include "PHTrackFitting.h"
-#include "ActsTrackingGeometry.h"
+#include <fun4all/SubsysReco.h>
+
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -37,10 +39,11 @@ namespace ActsExamples
   class TrkrClusterSourceLink;
 }
 
-class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxVertexMap;
+class TrkrClusterContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
@@ -52,28 +55,25 @@ using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<SourceLink>;
 
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
-
-
-class PHActsTrkFitter : public PHTrackFitting
+class PHActsTrkFitter : public SubsysReco
 {
  public:
   /// Default constructor
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
   /// Destructor
-  ~PHActsTrkFitter();
+  ~PHActsTrkFitter() override;
 
   /// End, write and close files
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /// Get and create nodes
-  int Setup(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode) override;
 
   /// Process each event by calling the fitter
-  int Process();
+  int process_event(PHCompositeNode *topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode) override;
 
   /// Do some internal time benchmarking analysis
   void doTimeAnalysis(bool timeAnalysis){m_timeAnalysis = timeAnalysis;}
@@ -97,10 +97,11 @@ class PHActsTrkFitter : public PHTrackFitting
   int createNodes(PHCompositeNode *topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
+  SourceLinkVec getSourceLinks(SvtxTrack *track);
+  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, const unsigned int trackKey,
-		       Acts::Vector3D vertex);
+  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -117,19 +118,15 @@ class PHActsTrkFitter : public PHTrackFitting
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
   void getTrackFitResult(const FitResult& fitOutput, 
-			 const unsigned int trackKey,
-			 const Acts::Vector3D vertex);
-  void updateActsProtoTrack(const FitResult& fitOutput,
-		       std::map<unsigned int, ActsTrack>::iterator iter);
+			 SvtxTrack* track);
+
+  Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey);
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
 
   Acts::BoundSymMatrix setDefaultCovariance();
-
-  /// Map of Acts fit results and track key to be placed on node tree
-  std::map<const unsigned int, Trajectory> 
-    *m_actsFitResults;
-
-  /// Map of acts tracks and track key created by PHActsTracks
-  std::map<unsigned int, ActsTrack> *m_actsProtoTracks;
+  void printTrackSeed(ActsExamples::TrackParameters seed);
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
@@ -138,10 +135,10 @@ class PHActsTrkFitter : public PHTrackFitting
   ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  SvtxTrackMap *m_trackMap;
-
-  // map relating acts hitid's to clusterkeys
-  CluskeyBimap *m_hitIdClusKey;
+  SvtxTrackMap *m_trackMap, *m_directedTrackMap;
+  SvtxVertexMap *m_vertexMap;
+  TrkrClusterContainer *m_clusterContainer;
+  ActsSurfaceMaps *m_surfMaps;
 
   /// Number of acts fits that returned an error
   int m_nBadFits;

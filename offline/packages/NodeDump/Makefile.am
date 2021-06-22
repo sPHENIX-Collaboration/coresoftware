@@ -14,11 +14,13 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
+  DumpAssocInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
   DumpEventHeader.cc \
   DumpGlobalVertexMap.cc \
   DumpJetMap.cc \
+  DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
   DumpPHG4BlockGeomContainer.cc \
@@ -41,7 +43,9 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTrkrClusterContainer.cc \
+  DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
+  DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
   PHNodeDump.cc
@@ -56,10 +60,12 @@ libphnodedump_la_LIBADD = \
   -lg4detectors_io \
   -lg4jets_io \
   -lHepMC \
+  -lparticleflow_io \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io \
   -ltrack_io \
+  -lphhepmc_io\
   -lvararray
 
 

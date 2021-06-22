@@ -7,8 +7,12 @@
 #ifndef TRACKBASE_TRKRHIT_H
 #define TRACKBASE_TRKRHIT_H
 
+#include "TrkrDefs.h"
+
 #include <phool/PHObject.h>
 
+#include <climits>
+#include <cmath>
 #include <iostream>
 
 /**
@@ -21,28 +25,28 @@
 class TrkrHit : public PHObject
 {
  public:
-  //! ctor
-  TrkrHit(); 
 
   //! dtor
-  virtual ~TrkrHit() {}
+  ~TrkrHit() override {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrHit base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  void Reset() override {}
+  int isValid() const override { return 0; }
 
-  void addEnergy(const double edep) {m_edep += edep;}
-  double getEnergy() {return m_edep;}
-  void setAdc(const unsigned int adc) {m_adc = adc;}
-  unsigned int getAdc() { return m_adc;}
+  // these set and get the energy before digitization
+  virtual void addEnergy(const double edep){}
+  virtual double getEnergy() {return 0;}
+
+  // after digitization, these are the adc values
+  virtual void setAdc(const unsigned int adc) {}
+  virtual unsigned int getAdc() { return 0;}
 
  protected:
-  double m_edep;
-  unsigned int m_adc;
-  ClassDef(TrkrHit, 1);
+
+  ClassDefOverride(TrkrHit, 1);
 };
 
 #endif //TRACKBASE_TRKRHIT_H

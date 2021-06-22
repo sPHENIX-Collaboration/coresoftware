@@ -7,6 +7,7 @@
 #include "PHG4PhenixDetector.h"
 #include "PHG4PhenixDisplayAction.h"
 #include "PHG4PhenixEventAction.h"
+#include "PHG4PhenixStackingAction.h"
 #include "PHG4PhenixSteppingAction.h"
 #include "PHG4PhenixTrackingAction.h"
 #include "PHG4PrimaryGeneratorAction.h"
@@ -46,6 +47,7 @@
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
+#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4Element.hh>       // for G4Element
 #include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
@@ -108,6 +110,7 @@ class G4TrackingManager;
 class G4VPhysicalVolume;
 class PHField;
 class PHG4EventAction;
+class PHG4StackingAction;
 class PHG4SteppingAction;
 
 using namespace std;
@@ -115,7 +118,6 @@ using namespace std;
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , m_MagneticField(0.)
   , m_MagneticFieldRescale(1.0)
   , m_Field(nullptr)
   , m_RunManager(nullptr)
@@ -251,6 +253,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
     gSystem->Exit(1);
+    exit(1);
   }
 
   if (m_ActiveDecayerFlag)
@@ -373,7 +376,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-
   BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
     if (g4sub->GetDetector())
@@ -406,6 +408,26 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   if (not m_disableUserActions)
   {
     m_RunManager->SetUserAction(m_EventAction);
+  }
+
+  // create main stepping action, add subsystems and register to GEANT
+  m_StackingAction = new PHG4PhenixStackingAction();
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  {
+    PHG4StackingAction *action = g4sub->GetStackingAction();
+    if (action)
+    {
+      if (Verbosity() > 1)
+      {
+        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+      }
+      m_StackingAction->AddAction(g4sub->GetStackingAction());
+    }
+  }
+
+  if (not m_disableUserActions)
+  {
+    m_RunManager->SetUserAction(m_StackingAction);
   }
 
   // create main stepping action, add subsystems and register to GEANT
@@ -458,7 +480,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
   // cout << "End of bogus warning message" << endl << endl;
-  // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
+  G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
     if (Verbosity() > 0)
@@ -467,12 +489,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     theCerenkovProcess->DumpPhysicsTable();
     }
   */
-  theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
+  theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
-  // theScintillationProcess->SetScintillationYieldFactor(1.);
-  // theScintillationProcess->SetTrackSecondariesFirst(true);
+  theScintillationProcess->SetScintillationYieldFactor(1.0);
+  theScintillationProcess->SetTrackSecondariesFirst(false);
+  // theScintillationProcess->SetScintillationExcitationRatio(1.0);
 
   // Use Birks Correction in the Scintillation process
 
@@ -493,15 +516,15 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess, idxPostStep);
     }
-    // if (theScintillationProcess->IsApplicable(*particle))
-    // {
-    //   pmanager->AddProcess(theScintillationProcess);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
-    // }
+    if (theScintillationProcess->IsApplicable(*particle))
+    {
+      pmanager->AddProcess(theScintillationProcess);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
+    }
   }
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-  // G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
+  // std::cout << " AddDiscreteProcess to OpticalPhoton " << std::endl;
   pmanager->AddDiscreteProcess(new G4OpAbsorption());
   pmanager->AddDiscreteProcess(new G4OpRayleigh());
   pmanager->AddDiscreteProcess(new G4OpMieHG());
@@ -1374,18 +1397,20 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
 void PHG4Reco::DefineRegions()
 {
-  const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
-  G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4Region *tpcregion = new G4Region("REGION_TPCGAS");
-  tpcregion->SetProductionCuts(gcuts);
-#if G4VERSION_NUMBER >= 1033
-  // Use this from the new G4 version 10.03 on
-  // add the PAI model to the TPCGAS region
-  // undocumented, painfully digged out with debugger by tracing what
-  // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-//  G4EmParameters *g4emparams = G4EmParameters::Instance();
-//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
-#endif
+  // the PAI model does not work anymore in G4 10.06
+  //   const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
+  //   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
+  //   G4Region *tpcregion = new G4Region("REGION_TPCGAS");
+  //   tpcregion->SetProductionCuts(gcuts);
+  // #if G4VERSION_NUMBER >= 1033
+  //   // Use this from the new G4 version 10.03 on
+  //   // was commented out, crashes in 10.06 I think
+  //   // add the PAI model to the TPCGAS region
+  //   // undocumented, painfully digged out with debugger by tracing what
+  //   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
+  // //  G4EmParameters *g4emparams = G4EmParameters::Instance();
+  // //  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+  // #endif
   return;
 }
 

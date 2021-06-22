@@ -46,15 +46,17 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   KFParticle makeVertex(PHCompositeNode *topNode);
 
-  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode);
+  std::vector<KFParticle> makeAllPrimaryVertices(PHCompositeNode *topNode, std::string vertexMapName);
 
   KFParticle makeParticle(PHCompositeNode *topNode);
 
   std::vector<KFParticle> makeAllDaughterParticles(PHCompositeNode *topNode);
 
-  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex);
+  int getTracksFromVertex(PHCompositeNode *topNode, KFParticle vertex, std::string vertexMapName);
 
-  const bool isGoodTrack(KFParticle particle, std::vector<KFParticle> primaryVertices);
+  const bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices);
+
+  int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float& minimumIP, float& minimumIPchi2);
 
   std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
 
@@ -85,51 +87,73 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   float calculateEllipsoidVolume(KFParticle particle);
 
+  float calculateJT(KFParticle mother, KFParticle daughter);
+
+  bool isInRange(float min, float value, float max);
+
   void identify(KFParticle particle);
 
  protected:
-  static const int max_tracks = 99;
   std::string m_mother_name_Tools;
   int m_num_intermediate_states = -1;
-  int m_num_tracks_from_intermediate[max_tracks] = {0};
-  std::string m_daughter_name[max_tracks];
-  int m_daughter_charge[max_tracks] = {0};
-  std::string m_intermediate_name[max_tracks];
+  std::vector<int> m_num_tracks_from_intermediate;
+  std::vector<std::string> m_daughter_name;
+  std::vector<int> m_daughter_charge;
+  int m_num_tracks = -1;
+
+  bool m_has_intermediates;
+  std::vector<std::string> m_intermediate_name;
+  std::vector<int> m_intermediate_charge;
+  std::vector<std::pair<float, float>> m_intermediate_mass_range;
+  std::vector<float> m_intermediate_min_pt;
+  std::vector<float> m_intermediate_min_dira;
+  std::vector<float> m_intermediate_min_fdchi2;
+  std::vector<float> m_intermediate_min_ip;
+  std::vector<float> m_intermediate_max_ip;
+  std::vector<float> m_intermediate_min_ipchi2;
+  std::vector<float> m_intermediate_max_ipchi2;
+
   float m_min_mass = -1;
 
   float m_max_mass = -1;
 
-  std::pair<float, float> m_intermediate_mass_range[max_tracks];
-  float m_intermediate_min_pt[max_tracks] = {0};
-  float m_min_lifetime = -1;
+  float m_min_decayTime = -1;
 
-  float m_max_lifetime = -1;
+  float m_max_decayTime = FLT_MAX;
+
+  float m_min_decayLength = -1;
+
+  float m_max_decayLength = FLT_MAX;
 
   float m_track_pt = -1;
 
-  float m_track_ptchi2 = -1;
+  float m_track_ptchi2 = FLT_MAX;
 
+  float m_track_ip = -1;
+  
   float m_track_ipchi2 = -1;
 
-  float m_track_chi2ndof = -1;
+  float m_track_chi2ndof = FLT_MAX;
 
-  float m_comb_DCA = -1;
+  float m_comb_DCA = FLT_MAX;
 
-  float m_vertex_chi2ndof = -1;
+  float m_vertex_chi2ndof = FLT_MAX;
 
   float m_fdchi2 = -1;
 
   float m_dira_min = -1;
 
-  float m_dira_max = -1;
+  float m_dira_max = 1;
 
   float m_mother_pt = -1;
 
-  float m_mother_ipchi2 = -1;
+  float m_mother_ipchi2 = FLT_MAX;
 
   float m_mva_cut_value = -1;
 
-  bool m_get_charge_conjugate = -1;
+  bool m_get_charge_conjugate = true;
+
+  bool m_allowZeroMassTracks = false;
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
@@ -143,6 +167,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
+
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H

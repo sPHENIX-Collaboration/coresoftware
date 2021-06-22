@@ -15,12 +15,12 @@ class Fun4AllOutputManager : public Fun4AllBase
 {
  public:
   //! destructor
-  virtual ~Fun4AllOutputManager()
+  ~Fun4AllOutputManager() override
   {
   }
 
   //! print method (dump event selector)
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //! add a node in outputmanager
   virtual int AddNode(const std::string & /*nodename*/)

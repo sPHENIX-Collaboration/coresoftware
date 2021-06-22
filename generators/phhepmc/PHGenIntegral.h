@@ -22,7 +22,7 @@ class PHGenIntegral : public PHObject
 {
  public:
   PHGenIntegral(){}
-  virtual ~PHGenIntegral(){}
+  ~PHGenIntegral() override{}
 
   //! Integrated luminosity in pb^-1
   virtual Double_t get_Integrated_Lumi() const
@@ -86,7 +86,7 @@ class PHGenIntegral : public PHObject
   {
   }
 
-  ClassDef(PHGenIntegral, 1)
+  ClassDefOverride(PHGenIntegral, 1)
 };
 
 #endif /* PHHEPMC_PHGENINTEGRAL_H */

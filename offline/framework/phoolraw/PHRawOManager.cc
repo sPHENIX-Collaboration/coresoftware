@@ -16,7 +16,7 @@
 
 #include <Event/EventTypes.h>
 #include <Event/oBuffer.h>
-#include <Event/ogzBuffer.h>
+#include <Event/ospBuffer.h>
 #include <Event/phenixTypes.h>
 
 #include <fcntl.h>
@@ -109,30 +109,7 @@ bool PHRawOManager::setFile(const string& setFile, const int setRun, const int s
     return false;
   }
   memBuffer = new PHDWORD[bufferSize];
-  if (compressionLevel == 0)
-  {
-    int status = 0;
-    fileBuffer = new oBuffer(filedesc, memBuffer, bufferSize, status, runNumber);
-    if (status > 0)
-    {
-      PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-      return false;
-    }
-  }
-  else if (1 <= compressionLevel && compressionLevel <= 9)
-  {
-    int status = 0;
-    fileBuffer = new ogzBuffer(filedesc, memBuffer, bufferSize, status, runNumber, compressionLevel);
-    if (status > 0)
-    {
-      PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-      return false;
-    }
-  }
-  else
-  {
-    PHMessage("PHRawOManager::setFile", PHWarning, "illegal compression level, no compression done");
-  }
+  fileBuffer = new ospBuffer(filedesc, memBuffer, bufferSize, runNumber);
 
   return true;
 }

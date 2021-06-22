@@ -13,11 +13,12 @@ class RawTowerDeadMap : public PHObject
  public:
   typedef std::set<RawTowerDefs::keytype> Map;
 
-  virtual ~RawTowerDeadMap() {}
-  virtual void Reset();
-  virtual int isValid() const;
+  ~RawTowerDeadMap() override {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+
+  void identify(std::ostream &os = std::cout) const override;
 
   virtual void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) {}
   virtual RawTowerDefs::CalorimeterId getCalorimeterID() { return RawTowerDefs::NONE; }
@@ -38,7 +39,7 @@ class RawTowerDeadMap : public PHObject
   }
 
  private:
-  ClassDef(RawTowerDeadMap, 1)
+  ClassDefOverride(RawTowerDeadMap, 1)
 };
 
 #endif

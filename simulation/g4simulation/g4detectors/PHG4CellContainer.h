@@ -25,11 +25,11 @@ class PHG4CellContainer: public PHObject
 
   PHG4CellContainer();
 
-  virtual ~PHG4CellContainer() {}
+  ~PHG4CellContainer() override {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   ConstIterator AddCell(PHG4Cell *newCell);
   ConstIterator AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell *newCell);
@@ -75,7 +75,7 @@ class PHG4CellContainer: public PHObject
 
  protected:
   Map cellmap;
-  ClassDef(PHG4CellContainer,1)
+  ClassDefOverride(PHG4CellContainer,1)
 };
 
 #endif

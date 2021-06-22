@@ -75,12 +75,11 @@ class Jet : public PHObject
   };
 
   Jet() {}
-  virtual ~Jet() {}
+  ~Jet() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() { return; }
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // jet info ------------------------------------------------------------------
 
@@ -136,19 +135,19 @@ class Jet : public PHObject
   virtual void erase_comp(Iter iter) { return; }
   virtual void erase_comp(Iter first, Iter last) { return; }
 
-  virtual ConstIter begin_comp() const { return typ_comp_ids().end(); }
-  virtual ConstIter lower_bound_comp(Jet::SRC source) const { return typ_comp_ids().end(); }
-  virtual ConstIter upper_bound_comp(Jet::SRC source) const { return typ_comp_ids().end(); }
-  virtual ConstIter find(Jet::SRC source) const { return typ_comp_ids().end(); }
-  virtual ConstIter end_comp() const { return typ_comp_ids().end(); }
+  virtual ConstIter begin_comp() const;
+  virtual ConstIter lower_bound_comp(Jet::SRC source) const;
+  virtual ConstIter upper_bound_comp(Jet::SRC source) const;
+  virtual ConstIter find(Jet::SRC source) const;
+  virtual ConstIter end_comp() const;
 
-  virtual Iter begin_comp() { return typ_comp_ids().end(); }
-  virtual Iter lower_bound_comp(Jet::SRC source) { return typ_comp_ids().end(); }
-  virtual Iter upper_bound_comp(Jet::SRC source) { return typ_comp_ids().end(); }
-  virtual Iter find(Jet::SRC source) { return typ_comp_ids().end(); }
-  virtual Iter end_comp() { return typ_comp_ids().end(); }
+  virtual Iter begin_comp();
+  virtual Iter lower_bound_comp(Jet::SRC source);
+  virtual Iter upper_bound_comp(Jet::SRC source);
+  virtual Iter find(Jet::SRC source);
+  virtual Iter end_comp();
 
-  ClassDef(Jet, 1);
+  ClassDefOverride(Jet, 1);
 };
 
 #endif

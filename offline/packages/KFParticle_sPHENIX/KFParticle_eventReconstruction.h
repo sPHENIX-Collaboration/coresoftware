@@ -77,15 +77,20 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                          int n_track_start, int n_track_stop,
                          bool isIntermediate, int intermediateNumber, bool constrainMass);
 
+  ///Method to chose best candidate from a selection of common SV's
+  int selectBestCombination(bool PVconstraint, bool isAnInterMother,
+                             std::vector<KFParticle> possibleCandidates, 
+                             std::vector<KFParticle> possibleVertex);
+
+  KFParticle createFakePV(); 
+
  protected:
-  //static const int max_tracks = 99;
-  bool m_has_intermediates;
-  int m_num_tracks = -1;
-  std::string m_daughter_name_evt[max_tracks];
-  int m_daughter_charge_evt[max_tracks] = {0};
-  int m_intermediate_charge[max_tracks] = {0};
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
+  bool m_use_fake_pv;
+
+ //private:
+
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H

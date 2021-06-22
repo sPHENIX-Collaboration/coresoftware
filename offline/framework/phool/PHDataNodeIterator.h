@@ -23,7 +23,7 @@ class PHDataNodeIterator : public PHNodeIterator
   PHDataNodeIterator(PHCompositeNode* node);
 
   /// Destructor
-  virtual ~PHDataNodeIterator() {}
+  ~PHDataNodeIterator() override {}
   /**
    * Finds an IODataNode of name "name" containing data of type "T".
    * A null pointer will be returned if the node is not found, or if
@@ -77,7 +77,7 @@ PHDataNodeIterator::AddIODataNode(T* data, const char* name)
   // TODO:  also check that "name" is not a null string!
   if (!name)
   {
-    return False;
+    return false;
   }
   // For IODataNode, ought to check (if possible) that T derives
   // from TObject.  Will typeid() give us this info?
@@ -85,7 +85,7 @@ PHDataNodeIterator::AddIODataNode(T* data, const char* name)
   PHIODataNode<T>* n = new PHIODataNode<T>(data, name);
   if (!n)
   {
-    return False;  // problem creating node?
+    return false;  // problem creating node?
   }
   return addNode(n);
 }

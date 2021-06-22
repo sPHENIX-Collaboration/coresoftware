@@ -19,17 +19,17 @@ class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterfac
  public:
   PHG4BlockCellReco(const std::string &name = "BLOCKRECO");
 
-  virtual ~PHG4BlockCellReco() {}
+  ~PHG4BlockCellReco() override {}
 
   //! module initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode) override;
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { detector = d; }
   void etaxsize(const int i, const double deltaeta, const double deltax);

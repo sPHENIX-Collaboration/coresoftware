@@ -12,9 +12,11 @@ class G4RootHitContainer : public PHObject
 {
  public:
   G4RootHitContainer();
-  virtual ~G4RootHitContainer();
+  ~G4RootHitContainer() override;
 
-  void Reset();
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   PHG4Hit* AddHit(const PHG4Hit *g4hit);
   void set_etotal(const float e) { etotal = e; }
@@ -29,7 +31,6 @@ class G4RootHitContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-  void identify(std::ostream& os = std::cout) const;
 
  protected:
   float etotal;
@@ -38,7 +39,7 @@ class G4RootHitContainer : public PHObject
   int event;
   TClonesArray* SnglHits;
 
-  ClassDef(G4RootHitContainer, 1)
+  ClassDefOverride(G4RootHitContainer, 1)
 };
 
 #endif

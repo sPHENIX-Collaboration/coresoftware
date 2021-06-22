@@ -13,10 +13,10 @@ class PHG4InEventReadBack: public SubsysReco
 {
  public:
   PHG4InEventReadBack(const std::string &name = "PHG4InEventReadBack");
-  virtual ~PHG4InEventReadBack() {}
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  ~PHG4InEventReadBack() override {}
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
  protected:
   

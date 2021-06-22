@@ -14,6 +14,10 @@ class PHParameterContainerInterface
 {
  public:
   PHParameterContainerInterface(const std::string &name);
+  // PHParameterContainerInterface contains pointer to memory
+  // copy ctor needs explicit implementation, do just delete it here
+  PHParameterContainerInterface(const PHParameterContainerInterface &) = delete;
+
   virtual ~PHParameterContainerInterface();
 
   void set_name(const std::string &name);
@@ -43,8 +47,8 @@ class PHParameterContainerInterface
   const PHParameters *GetDefaultParameters() { return defaultparams; }
 
  private:
-  PHParametersContainer *paramscontainer;
-  PHParameters *defaultparams;
+  PHParametersContainer *paramscontainer = nullptr;
+  PHParameters *defaultparams = nullptr;
   std::map<int, PHParameters *> macroparams;
 };
 

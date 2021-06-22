@@ -10,6 +10,9 @@
  */
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <string>                // for string
 

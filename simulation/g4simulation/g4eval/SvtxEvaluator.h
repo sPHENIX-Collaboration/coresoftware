@@ -36,12 +36,12 @@ class SvtxEvaluator : public SubsysReco
                 unsigned int nlayers_intt = 8,
                 unsigned int nlayers_tpc = 48,
                 unsigned int nlayers_mms = 2);
-  virtual ~SvtxEvaluator();
+  ~SvtxEvaluator() override;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_strict(bool b) { _strict = b; }
   void set_use_initial_vertex(bool use_init_vtx) {_use_initial_vertex = use_init_vtx;}
@@ -74,7 +74,7 @@ class SvtxEvaluator : public SubsysReco
   // evaluator output ntuples
 
   bool _strict;
-  bool _use_initial_vertex = false;
+  bool _use_initial_vertex = true;
   bool _use_genfit_vertex = false;
   unsigned int _errors;
 

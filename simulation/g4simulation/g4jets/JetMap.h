@@ -23,13 +23,12 @@ class JetMap : public PHObject
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
-  JetMap();
-  virtual ~JetMap() {}
+  JetMap(){}
+  ~JetMap() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
-  virtual PHObject* CloneMe() const { return nullptr; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
   // map content info ----------------------------------------------------------
 
@@ -44,13 +43,13 @@ class JetMap : public PHObject
   virtual bool empty_src() const { return true; }
   virtual void insert_src(Jet::SRC src) { return; }
 
-  virtual ConstSrcIter begin_src() const { return std::set<Jet::SRC>().end(); }
-  virtual ConstSrcIter find_src(Jet::SRC src) const { return std::set<Jet::SRC>().end(); }
-  virtual ConstSrcIter end_src() const { return std::set<Jet::SRC>().end(); }
+  virtual ConstSrcIter begin_src() const;
+  virtual ConstSrcIter find_src(Jet::SRC src) const;
+  virtual ConstSrcIter end_src() const;
 
-  virtual SrcIter begin_src() { return std::set<Jet::SRC>().end(); }
-  virtual SrcIter find_src(Jet::SRC src) { return std::set<Jet::SRC>().end(); }
-  virtual SrcIter end_src() { return std::set<Jet::SRC>().end(); }
+  virtual SrcIter begin_src();
+  virtual SrcIter find_src(Jet::SRC src);
+  virtual SrcIter end_src();
 
   // map access to jets --------------------------------------------------------
 
@@ -65,16 +64,16 @@ class JetMap : public PHObject
   virtual Jet* insert(Jet* jet) { return nullptr; }
   virtual size_t erase(unsigned int idkey) { return 0; }
 
-  virtual ConstIter begin() const { return typ_JetMap().end(); }
-  virtual ConstIter find(unsigned int idkey) const { return typ_JetMap().end(); }
-  virtual ConstIter end() const { return typ_JetMap().end(); }
+  virtual ConstIter begin() const;
+  virtual ConstIter find(unsigned int idkey) const;
+  virtual ConstIter end() const;
 
-  virtual Iter begin() { return typ_JetMap().end(); }
-  virtual Iter find(unsigned int idkey) { return typ_JetMap().end(); }
-  virtual Iter end() { return typ_JetMap().end(); }
+  virtual Iter begin();
+  virtual Iter find(unsigned int idkey);
+  virtual Iter end();
 
  private:
-  ClassDef(JetMap, 1);
+  ClassDefOverride(JetMap, 1);
 };
 
 #endif

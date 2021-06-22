@@ -18,6 +18,7 @@
 class PHCompositeNode;
 class TrkrCluster;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 
 class TpcClusterCleaner : public SubsysReco
 {
@@ -25,11 +26,11 @@ class TpcClusterCleaner : public SubsysReco
 
   TpcClusterCleaner(const std::string &name = "TpcClusterCleaner");
 
-  virtual ~TpcClusterCleaner();
+  ~TpcClusterCleaner() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_rphi_error_low_cut(double cut){_rphi_error_low_cut = cut;}
   void set_rphi_error_high_cut(double cut){_rphi_error_high_cut = cut;}
@@ -42,7 +43,7 @@ class TpcClusterCleaner : public SubsysReco
   void rotate_error(double erphi, double ez, double phi, double error[][3]);
 
   int GetNodes(PHCompositeNode* topNode);
-
+  TrkrHitSetContainer  *_hitsets = nullptr;
   TrkrClusterContainer *_cluster_map = nullptr;
 
   double _rphi_error_low_cut = 0.01;

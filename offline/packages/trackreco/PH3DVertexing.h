@@ -18,7 +18,7 @@
 class PHCompositeNode;
 
 //class SvtxClusterMap;
-class TrkrClusterContainer;
+//class TrkrClusterContainer;
 
 class SvtxVertexMap;
 class SvtxTrackMap;
@@ -32,10 +32,10 @@ class PH3DVertexing : public SubsysReco
 {
  public:
   PH3DVertexing(const std::string &name = "PH3DVertexing");
-  virtual ~PH3DVertexing() {}
+  ~PH3DVertexing() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   virtual const std::set<unsigned int> &get_seeding_layers() const = 0;
 
@@ -51,7 +51,7 @@ class PH3DVertexing : public SubsysReco
   virtual int Process() = 0;
 
   //SvtxClusterMap *_cluster_map;
-  TrkrClusterContainer *_cluster_map;
+  // TrkrClusterContainer *_cluster_map;
 
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;

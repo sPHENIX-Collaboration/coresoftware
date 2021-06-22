@@ -10,9 +10,9 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-final-dtor-non-final-class"
  ;;
- g++)
+ *g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
@@ -22,7 +22,7 @@ dnl   AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1"
 
 dnl test for root 6
 if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 fi
 

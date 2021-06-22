@@ -16,26 +16,12 @@
 #include <TBufferXML.h>
 #include <TFile.h>
 #include <TSystem.h>
-//#include <TBufferFile.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/stacktrace.hpp>
 #include <boost/tokenizer.hpp>
-
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
 
 #include <unistd.h>
 #include <algorithm>
@@ -43,15 +29,14 @@
 #include <cctype>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 #include <iterator>  // for reverse_iterator
 #include <sstream>
 
-using namespace std;
-
 PHParameters::PHParameters(const PHParameters &params, const std::string &name)
+  : m_Detector(name)
 {
-  set_name(name);
   FillFrom(&params);
 }
 
@@ -73,13 +58,13 @@ int PHParameters::get_int_param(const std::string &name) const
   {
     return m_IntParMap.find(name)->second;
   }
-  cout << PHWHERE << " integer parameter " << name
-       << " does not exist (forgot to set?)" << endl;
-  cout << "Here is the stacktrace: " << endl;
-  cout << boost::stacktrace::stacktrace();
-  cout << endl
-       << "DO NOT PANIC - this is not a segfault" << endl;
-  cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
+  std::cout << PHWHERE << " integer parameter " << name
+            << " does not exist (forgot to set?)" << std::endl;
+  std::cout << "Here is the stacktrace: " << std::endl;
+  std::cout << boost::stacktrace::stacktrace();
+  std::cout << std::endl
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
+  std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
   gSystem->Exit(1);
   exit(1);
 }
@@ -95,11 +80,11 @@ bool PHParameters::exist_int_param(const std::string &name) const
 
 void PHParameters::printint() const
 {
-  cout << "int parameters: " << endl;
-  for (map<const string, int>::const_iterator iter = m_IntParMap.begin();
+  std::cout << "int parameters: " << std::endl;
+  for (std::map<const std::string, int>::const_iterator iter = m_IntParMap.begin();
        iter != m_IntParMap.end(); ++iter)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    std::cout << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
@@ -116,13 +101,13 @@ PHParameters::get_double_param(const std::string &name) const
   {
     return m_DoubleParMap.find(name)->second;
   }
-  cout << PHWHERE << " double parameter " << name
-       << " does not exist (forgot to set?)" << endl;
-  cout << "Here is the stacktrace: " << endl;
-  cout << boost::stacktrace::stacktrace();
-  cout << endl
-       << "DO NOT PANIC - this is not a segfault" << endl;
-  cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
+  std::cout << PHWHERE << " double parameter " << name
+            << " does not exist (forgot to set?)" << std::endl;
+  std::cout << "Here is the stacktrace: " << std::endl;
+  std::cout << boost::stacktrace::stacktrace();
+  std::cout << std::endl
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
+  std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
 
   gSystem->Exit(1);
   exit(1);
@@ -139,7 +124,7 @@ bool PHParameters::exist_double_param(const std::string &name) const
 
 void PHParameters::Print(Option_t *option) const
 {
-  cout << "Parameters for " << m_Detector << endl;
+  std::cout << "Parameters for " << m_Detector << std::endl;
   printint();
   printdouble();
   printstring();
@@ -157,7 +142,7 @@ PHParameters::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, iter->first);
     boost::hash_combine(seed, iter->second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   for (iMap::const_iterator iter = m_IntParMap.begin();
@@ -166,7 +151,7 @@ PHParameters::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, iter->first);
     boost::hash_combine(seed, iter->second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   for (strMap::const_iterator iter = m_StringParMap.begin();
@@ -175,7 +160,7 @@ PHParameters::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, iter->first);
     boost::hash_combine(seed, iter->second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   return seed;
@@ -183,34 +168,34 @@ PHParameters::get_hash() const
 
 void PHParameters::printdouble() const
 {
-  cout << "double parameters: " << endl;
-  for (map<const string, double>::const_iterator iter = m_DoubleParMap.begin();
+  std::cout << "double parameters: " << std::endl;
+  for (std::map<const std::string, double>::const_iterator iter = m_DoubleParMap.begin();
        iter != m_DoubleParMap.end(); ++iter)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    std::cout << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
 
-void PHParameters::set_string_param(const std::string &name, const string &str)
+void PHParameters::set_string_param(const std::string &name, const std::string &str)
 {
   m_StringParMap[name] = str;
 }
 
-string
+std::string
 PHParameters::get_string_param(const std::string &name) const
 {
   if (m_StringParMap.find(name) != m_StringParMap.end())
   {
     return m_StringParMap.find(name)->second;
   }
-  cout << PHWHERE << " string parameter " << name
-       << " does not exist (forgot to set?)" << endl;
-  cout << "Here is the stacktrace: " << endl;
-  cout << boost::stacktrace::stacktrace();
-  cout << endl
-       << "DO NOT PANIC - this is not a segfault" << endl;
-  cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
+  std::cout << PHWHERE << " string parameter " << name
+            << " does not exist (forgot to set?)" << std::endl;
+  std::cout << "Here is the stacktrace: " << std::endl;
+  std::cout << boost::stacktrace::stacktrace();
+  std::cout << std::endl
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
+  std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
   gSystem->Exit(1);
   exit(1);
 }
@@ -226,11 +211,11 @@ bool PHParameters::exist_string_param(const std::string &name) const
 
 void PHParameters::printstring() const
 {
-  cout << "string parameters: " << endl;
-  for (map<const string, string>::const_iterator iter = m_StringParMap.begin();
+  std::cout << "string parameters: " << std::endl;
+  for (std::map<const std::string, std::string>::const_iterator iter = m_StringParMap.begin();
        iter != m_StringParMap.end(); ++iter)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    std::cout << iter->first << ": " << iter->second << std::endl;
   }
   return;
 }
@@ -239,29 +224,26 @@ void PHParameters::FillFrom(const PdbParameterMap *saveparams)
 {
   assert(saveparams);
 
-  pair<std::map<const std::string, double>::const_iterator,
-       std::map<const std::string, double>::const_iterator>
-      begin_end_d =
-          saveparams->get_dparam_iters();
-  for (map<const std::string, double>::const_iterator iter = begin_end_d.first;
+  std::pair<std::map<const std::string, double>::const_iterator,
+            std::map<const std::string, double>::const_iterator>
+      begin_end_d = saveparams->get_dparam_iters();
+  for (std::map<const std::string, double>::const_iterator iter = begin_end_d.first;
        iter != begin_end_d.second; ++iter)
   {
     m_DoubleParMap[iter->first] = iter->second;
   }
-  pair<std::map<const std::string, int>::const_iterator,
-       std::map<const std::string, int>::const_iterator>
-      begin_end_i =
-          saveparams->get_iparam_iters();
-  for (map<const std::string, int>::const_iterator iter = begin_end_i.first;
+  std::pair<std::map<const std::string, int>::const_iterator,
+            std::map<const std::string, int>::const_iterator>
+      begin_end_i = saveparams->get_iparam_iters();
+  for (std::map<const std::string, int>::const_iterator iter = begin_end_i.first;
        iter != begin_end_i.second; ++iter)
   {
     m_IntParMap[iter->first] = iter->second;
   }
-  pair<std::map<const std::string, string>::const_iterator,
-       std::map<const std::string, string>::const_iterator>
-      begin_end_s =
-          saveparams->get_cparam_iters();
-  for (map<const std::string, string>::const_iterator iter = begin_end_s.first;
+  std::pair<std::map<const std::string, std::string>::const_iterator,
+            std::map<const std::string, std::string>::const_iterator>
+      begin_end_s = saveparams->get_cparam_iters();
+  for (std::map<const std::string, std::string>::const_iterator iter = begin_end_s.first;
        iter != begin_end_s.second; ++iter)
   {
     m_StringParMap[iter->first] = iter->second;
@@ -279,29 +261,26 @@ void PHParameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, 
   {
     return;
   }
-  pair<std::map<const std::string, double>::const_iterator,
-       std::map<const std::string, double>::const_iterator>
-      begin_end_d =
-          saveparams->get_dparam_iters();
-  for (map<const std::string, double>::const_iterator iter = begin_end_d.first;
+  std::pair<std::map<const std::string, double>::const_iterator,
+            std::map<const std::string, double>::const_iterator>
+      begin_end_d = saveparams->get_dparam_iters();
+  for (std::map<const std::string, double>::const_iterator iter = begin_end_d.first;
        iter != begin_end_d.second; ++iter)
   {
     m_DoubleParMap[iter->first] = iter->second;
   }
-  pair<std::map<const std::string, int>::const_iterator,
-       std::map<const std::string, int>::const_iterator>
-      begin_end_i =
-          saveparams->get_iparam_iters();
-  for (map<const std::string, int>::const_iterator iter = begin_end_i.first;
+  std::pair<std::map<const std::string, int>::const_iterator,
+            std::map<const std::string, int>::const_iterator>
+      begin_end_i = saveparams->get_iparam_iters();
+  for (std::map<const std::string, int>::const_iterator iter = begin_end_i.first;
        iter != begin_end_i.second; ++iter)
   {
     m_IntParMap[iter->first] = iter->second;
   }
-  pair<std::map<const std::string, string>::const_iterator,
-       std::map<const std::string, string>::const_iterator>
-      begin_end_s =
-          saveparams->get_cparam_iters();
-  for (map<const std::string, string>::const_iterator iter = begin_end_s.first;
+  std::pair<std::map<const std::string, std::string>::const_iterator,
+            std::map<const std::string, std::string>::const_iterator>
+      begin_end_s = saveparams->get_cparam_iters();
+  for (std::map<const std::string, std::string>::const_iterator iter = begin_end_s.first;
        iter != begin_end_s.second; ++iter)
   {
     m_StringParMap[iter->first] = iter->second;
@@ -316,29 +295,32 @@ void PHParameters::FillFrom(const PHParameters *saveparams)
 
   for (dMap::const_iterator iter = saveparams->m_DoubleParMap.begin();
        iter != saveparams->m_DoubleParMap.end(); ++iter)
+  {
     m_DoubleParMap[iter->first] = iter->second;
+  }
 
   for (iMap::const_iterator iter = saveparams->m_IntParMap.begin();
        iter != saveparams->m_IntParMap.end(); ++iter)
+  {
     m_IntParMap[iter->first] = iter->second;
+  }
 
   for (strMap::const_iterator iter = saveparams->m_StringParMap.begin();
        iter != saveparams->m_StringParMap.end(); ++iter)
+  {
     m_StringParMap[iter->first] = iter->second;
-
+  }
   return;
 }
 
-void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename)
 {
   // write itself since this class is fine with saving by root
-  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
-                                                                    nodename);
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode, nodename);
   if (!nodeparams)
   {
     nodeparams = new PdbParameterMap();
-    PHIODataNode<PdbParameterMap> *newnode =
-        new PHIODataNode<PdbParameterMap>(nodeparams, nodename);
+    PHIODataNode<PdbParameterMap> *newnode = new PHIODataNode<PdbParameterMap>(nodeparams, nodename);
     topNode->addNode(newnode);
   }
   else
@@ -349,21 +331,20 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   return;
 }
 
-void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename)
+void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename)
 {
-  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
-                                                                    nodename);
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode, nodename);
   if (!nodeparams)
   {
-    cout << PHWHERE << " could not find PdbParameterMap " << nodename
-         << " which must exist" << endl;
+    std::cout << PHWHERE << " could not find PdbParameterMap " << nodename
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
   return;
 }
 
-void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
+void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int detid)
 {
   // write itself since this class is fine with saving by root
   PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
@@ -388,20 +369,20 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   return;
 }
 
-void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
+void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int detid)
 {
   PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
   if (!nodeparamcontainer)
   {
-    cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
-         << " which must exist" << endl;
+    std::cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(detid);
   if (!nodeparams)
   {
-    cout << PHWHERE << " could not find PdbParameterMap for detector " << detid
-         << " which must exist" << endl;
+    std::cout << PHWHERE << " could not find PdbParameterMap for detector " << detid
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
@@ -414,7 +395,7 @@ int PHParameters::WriteToDB()
   PdbApplication *application = bankManager->getApplication();
   if (!application->startUpdate())
   {
-    cout << PHWHERE << " Aborting, Database not writable" << endl;
+    std::cout << PHWHERE << " Aborting, Database not writable" << std::endl;
     application->abort();
     gSystem->Exit(1);
     exit(1);
@@ -425,9 +406,8 @@ int PHParameters::WriteToDB()
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
 
-  string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
-                 ::tolower);
+  std::string tablename = m_Detector + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
   PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank", bankID,
                                                 "Geometry Parameters", TStart, TStop, tablename);
   if (NewBank)
@@ -440,19 +420,19 @@ int PHParameters::WriteToDB()
   }
   else
   {
-    cout << PHWHERE " Committing to DB failed" << endl;
+    std::cout << PHWHERE " Committing to DB failed" << std::endl;
     return -1;
   }
   return 0;
 }
 
-int PHParameters::ReadFromDB(const string &name, const int detid)
+int PHParameters::ReadFromDB(const std::string &name, const int detid)
 {
   PdbBankManager *bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
   if (!application->startRead())
   {
-    cout << PHWHERE << " Aborting, Database not readable" << endl;
+    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
     application->abort();
     gSystem->Exit(1);
     exit(1);
@@ -462,11 +442,9 @@ int PHParameters::ReadFromDB(const string &name, const int detid)
   PdbBankID bankID(0);  // lets start at zero
   PHTimeStamp TSearch(10);
 
-  string tablename = name + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
-                 ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID,
-                                               tablename, TSearch);
+  std::string tablename = name + "_geoparams";
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
+  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID, tablename, TSearch);
   if (NewBank)
   {
     PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) &NewBank->getEntry(0);
@@ -475,7 +453,7 @@ int PHParameters::ReadFromDB(const string &name, const int detid)
   }
   else
   {
-    cout << PHWHERE " Reading from DB failed" << endl;
+    std::cout << PHWHERE " Reading from DB failed" << std::endl;
     return -1;
   }
   return 0;
@@ -487,7 +465,7 @@ int PHParameters::ReadFromDB()
   PdbApplication *application = bankManager->getApplication();
   if (!application->startRead())
   {
-    cout << PHWHERE << " Aborting, Database not readable" << endl;
+    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
     application->abort();
     gSystem->Exit(1);
     exit(1);
@@ -497,7 +475,7 @@ int PHParameters::ReadFromDB()
   PdbBankID bankID(0);  // lets start at zero
   PHTimeStamp TSearch(10);
 
-  string tablename = m_Detector + "_geoparams";
+  std::string tablename = m_Detector + "_geoparams";
   std::transform(tablename.begin(), tablename.end(), tablename.begin(),
                  ::tolower);
   PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
@@ -510,16 +488,16 @@ int PHParameters::ReadFromDB()
   }
   else
   {
-    cout << PHWHERE " Reading from DB failed" << endl;
+    std::cout << PHWHERE " Reading from DB failed" << std::endl;
     return -1;
   }
   return 0;
 }
 
-int PHParameters::WriteToFile(const string &extension, const string &dir)
+int PHParameters::WriteToFile(const std::string &extension, const std::string &dir)
 {
-  ostringstream fullpath;
-  ostringstream fnamestream;
+  std::ostringstream fullpath;
+  std::ostringstream fnamestream;
   PdbBankID bankID(0);  // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
@@ -533,59 +511,59 @@ int PHParameters::WriteToFile(const string &extension, const string &dir)
               << "-" << bankID.getInternalValue()
               << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
               << "." << extension;
-  string fname = fnamestream.str();
+  std::string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   fullpath << fname;
 
-  cout << "PHParameters::WriteToFile - save to " << fullpath.str() << endl;
+  std::cout << "PHParameters::WriteToFile - save to " << fullpath.str() << std::endl;
 
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
   TFile *f = TFile::Open(fullpath.str().c_str(), "recreate");
   // force xml file writing to use extended precision shown experimentally
   // to not modify input parameters (.17g)
-  string floatformat = TBufferXML::GetFloatFormat();
+  std::string floatformat = TBufferXML::GetFloatFormat();
   TBufferXML::SetFloatFormat("%.17g");  // for IEEE 754 double
   myparm->Write();
   delete f;
   // restore previous xml float format
   TBufferXML::SetFloatFormat(floatformat.c_str());
-  cout << "sleeping 1 second to prevent duplicate inserttimes" << endl;
+  std::cout << "sleeping 1 second to prevent duplicate inserttimes" << std::endl;
   sleep(1);
   return 0;
 }
 
-int PHParameters::ReadFromFile(const string &name, const string &extension, const int detid, const int issuper, const string &dir)
+int PHParameters::ReadFromFile(const std::string &name, const std::string &extension, const int detid, const int issuper, const std::string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
-  ostringstream fnamestream;
+  std::ostringstream fnamestream;
   fnamestream << name << "_geoparams"
               << "-" << bankID.getInternalValue();
-  string fileprefix = fnamestream.str();
+  std::string fileprefix = fnamestream.str();
   std::transform(fileprefix.begin(), fileprefix.end(), fileprefix.begin(),
                  ::tolower);
-  boost::filesystem::path targetDir(dir);
+  std::filesystem::path targetDir(dir);
 
-  boost::filesystem::recursive_directory_iterator diriter(targetDir), eod;
+  std::filesystem::recursive_directory_iterator diriter(targetDir), eod;
   boost::char_separator<char> sep("-.");
-  map<unsigned int, string> calibfiles;
-  BOOST_FOREACH (boost::filesystem::path const &i, make_pair(diriter, eod))
+  std::map<unsigned int, std::string> calibfiles;
+  BOOST_FOREACH (std::filesystem::path const &i, std::make_pair(diriter, eod))
   {
     if (is_regular_file(i))
     {
-      // boost leaf() gives the filename without path,
-      // this checks if the filename starts with fileprefix
-      // (start pos of substring=0), if not coninue
-      string basename = i.filename().string();
-      if (basename.find(fileprefix) != 0)
+      // leaf() gives the filename without path,
+      // the string.compare(0...) checks if the filename starts with fileprefix
+      // if not coninue
+      std::string basename = i.filename().string();
+      if (basename.compare(0, fileprefix.size(), fileprefix) != 0)
       {
         continue;
       }
       // extension() contains the . - like .xml, so we
       // just compare the extensions instead of !=
       // and check that the size makes sense
-      if (i.extension().string().find(extension) == string::npos || i.extension().string().size() != extension.size() + 1)
+      if (i.extension().string().find(extension) == std::string::npos || i.extension().string().size() != extension.size() + 1)
       {
         continue;
       }
@@ -611,11 +589,11 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
   }
   if (calibfiles.empty())
   {
-    cout << "No calibration file like " << dir << "/" << fileprefix << " found" << endl;
+    std::cout << "No calibration file like " << dir << "/" << fileprefix << " found" << std::endl;
     gSystem->Exit(1);
   }
-  cout << "PHParameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
-  string fname = (calibfiles.rbegin())->second;
+  std::cout << "PHParameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
+  std::string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
   {
@@ -623,10 +601,10 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
     assert(myparm);
 
     if (myparm->GetParameters(detid) == nullptr)
-      cout << "Missing PdbParameterMapContainer Detector Id " << detid << endl;
+      std::cout << "Missing PdbParameterMapContainer Detector Id " << detid << std::endl;
     assert(myparm->GetParameters(detid));
 
-    cout << "Received PdbParameterMapContainer Detector Id " << detid << " with (Hash = 0x" << std::hex << myparm->GetParameters(detid)->get_hash() << std::dec << ")" << endl;
+    std::cout << "Received PdbParameterMapContainer Detector Id " << detid << " with (Hash = 0x" << std::hex << myparm->GetParameters(detid)->get_hash() << std::dec << ")" << std::endl;
 
     FillFrom(myparm, detid);
     delete myparm;
@@ -635,7 +613,7 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
   {
     PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
     assert(myparm);
-    cout << "Received PdbParameterMap with (Hash = 0x" << std::hex << myparm->get_hash() << std::dec << ")" << endl;
+    std::cout << "Received PdbParameterMap with (Hash = 0x" << std::hex << myparm->get_hash() << std::dec << ")" << std::endl;
 
     FillFrom(myparm);
     delete myparm;
@@ -647,17 +625,17 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
 
 void PHParameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 {
-  for (map<const string, double>::const_iterator iter = m_DoubleParMap.begin();
+  for (std::map<const std::string, double>::const_iterator iter = m_DoubleParMap.begin();
        iter != m_DoubleParMap.end(); ++iter)
   {
     myparm->set_double_param(iter->first, iter->second);
   }
-  for (map<const string, int>::const_iterator iter = m_IntParMap.begin();
+  for (std::map<const std::string, int>::const_iterator iter = m_IntParMap.begin();
        iter != m_IntParMap.end(); ++iter)
   {
     myparm->set_int_param(iter->first, iter->second);
   }
-  for (map<const string, string>::const_iterator iter = m_StringParMap.begin();
+  for (std::map<const std::string, std::string>::const_iterator iter = m_StringParMap.begin();
        iter != m_StringParMap.end(); ++iter)
   {
     myparm->set_string_param(iter->first, iter->second);
@@ -674,7 +652,7 @@ PHParameters::ConvertStringToUint(const std::string &str) const
   }
   catch (boost::bad_lexical_cast const &)
   {
-    cout << "Cannot extract timestamp from " << str << endl;
+    std::cout << "Cannot extract timestamp from " << str << std::endl;
     gSystem->Exit(1);
     exit(1);
   }

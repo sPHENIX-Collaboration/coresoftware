@@ -31,11 +31,11 @@
 
 #include <gsl/gsl_histogram.h>
 
-#include <cmath>  // for cos
+#include <algorithm>  // for max
+#include <cmath>      // for cos
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <utility>  // for swap
 
 int main()
 {
