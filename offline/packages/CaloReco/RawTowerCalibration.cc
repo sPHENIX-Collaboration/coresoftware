@@ -102,6 +102,7 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
   {
     const RawTowerDefs::keytype key = rtiter->first;
+    
     const RawTower *raw_tower = rtiter->second;
     assert(raw_tower);
 
@@ -133,29 +134,56 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
     }
     else if (_calib_algorithm == kTower_by_tower_calibration)
     {
+      RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(key);
       const int eta = raw_tower->get_bineta();
       const int phi = raw_tower->get_binphi();
-      const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi));
 
-      const double tower_by_tower_calib =
-          _tower_calib_params.get_double_param(calib_const_name);
-
-      if (_pedestal_file == true)
+      double tower_by_tower_calib = 1.;
+      if (caloid == RawTowerDefs::LFHCAL) 
       {
-        const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi));
-        _pedstal_ADC =
-            _tower_calib_params.get_double_param(pedstal_name);
-      }
+        const int l   = raw_tower->get_binl();
+        const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l));
 
-      if (_GeV_ADC_file == true)
+        tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
+
+        if (_pedestal_file == true)
+        {
+          const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
+          _pedstal_ADC =
+              _tower_calib_params.get_double_param(pedstal_name);
+        }
+
+        if (_GeV_ADC_file == true)
+        {
+          const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
+          _calib_const_GeV_ADC =
+              _tower_calib_params.get_double_param(GeVperADCname);
+        }
+      } 
+      else 
       {
-        const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi));
-        _calib_const_GeV_ADC =
-            _tower_calib_params.get_double_param(GeVperADCname);
-      }
+        const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi));
 
+        tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
+
+        if (_pedestal_file == true)
+        {
+          const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+          _pedstal_ADC =
+              _tower_calib_params.get_double_param(pedstal_name);
+        }
+
+        if (_GeV_ADC_file == true)
+        {
+          const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+          _calib_const_GeV_ADC =
+              _tower_calib_params.get_double_param(GeVperADCname);
+        }
+        
+      }
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
+
 
       RawTower *calib_tower = new RawTowerv2(*raw_tower);
       calib_tower->set_energy(calib_energy);

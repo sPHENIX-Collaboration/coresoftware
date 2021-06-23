@@ -13,7 +13,7 @@
 class RawTowerv1 : public RawTower
 {
  public:
-  RawTowerv1();
+  RawTowerv1(){}
   RawTowerv1(const RawTower& tower);
   RawTowerv1(RawTowerDefs::keytype id);
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
@@ -27,8 +27,9 @@ class RawTowerv1 : public RawTower
 
   void set_id(RawTowerDefs::keytype id) override { towerid = id; }
   RawTowerDefs::keytype get_id() const override { return towerid; }
-  int get_bineta() const override { return RawTowerDefs::decode_index1(towerid); }
-  int get_binphi() const override { return RawTowerDefs::decode_index2(towerid); }
+  int get_bineta() const override;
+  int get_binphi() const override;
+  int get_binl() const  override { return RawTowerDefs::decode_index3v2(towerid);}
   double get_energy() const override { return energy; }
   void set_energy(const double e) override { energy = e; }
   float get_time() const override { return time; }
@@ -62,14 +63,14 @@ class RawTowerv1 : public RawTower
   void clear_g4showers() override { eshowers.clear(); }
 
  protected:
-  RawTowerDefs::keytype towerid;
+  RawTowerDefs::keytype towerid = ~0;
 
   //! energy assigned to the tower. Depending on stage of process and DST node
   //! name, it could be energy deposition, light yield or calibrated energies
-  double energy;
+  double energy = 0.;
   //! Time stamp assigned to the tower. Depending on the tower maker, it could
   //! be rise time or peak time.
-  float time;
+  float time = NAN;
 
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes

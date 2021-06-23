@@ -57,6 +57,7 @@ class EventEvaluator : public SubsysReco
   void set_do_EEMC(bool b) { _do_EEMC = b; }
   void set_do_EEMCG(bool b) { _do_EEMCG = b; }
   void set_do_DRCALO(bool b) { _do_DRCALO = b; }
+  void set_do_LFHCAL(bool b) { _do_LFHCAL = b; }
   void set_do_HITS(bool b) { _do_HITS = b; }
   void set_do_TRACKS(bool b) { _do_TRACKS = b; }
   void set_do_CLUSTERS(bool b) { _do_CLUSTERS = b; }
@@ -65,8 +66,6 @@ class EventEvaluator : public SubsysReco
   void set_do_MCPARTICLES(bool b) { _do_MCPARTICLES = b; }
   void set_do_HEPMC(bool b) { _do_HEPMC = b; }
   void set_do_GEOMETRY(bool b) { _do_GEOMETRY = b; }
-  // funtions to limit the tracing to only part of the event ---------
-  // and speed up the evaluation
 
   // limit the tracing of towers and clusters back to the truth particles
   // to only those reconstructed objects above a particular energy
@@ -93,6 +92,7 @@ class EventEvaluator : public SubsysReco
   bool _do_EEMC;
   bool _do_EEMCG;
   bool _do_DRCALO;
+  bool _do_LFHCAL;
   bool _do_HITS;
   bool _do_TRACKS;
   bool _do_CLUSTERS;
@@ -151,6 +151,13 @@ class EventEvaluator : public SubsysReco
   int* _tower_DRCALO_iEta;
   int* _tower_DRCALO_iPhi;
   int* _tower_DRCALO_trueID;
+
+  int _nTowers_LFHCAL;
+  float* _tower_LFHCAL_E;
+  int* _tower_LFHCAL_iEta;
+  int* _tower_LFHCAL_iPhi;
+  int* _tower_LFHCAL_iL;
+  int* _tower_LFHCAL_trueID;
 
   int _nTowers_FEMC;
   float* _tower_FEMC_E;
@@ -312,6 +319,7 @@ class EventEvaluator : public SubsysReco
   CaloEvalStack* _caloevalstackHCALOUT;
   CaloEvalStack* _caloevalstackEHCAL;
   CaloEvalStack* _caloevalstackDRCALO;
+  CaloEvalStack* _caloevalstackLFHCAL;
   CaloEvalStack* _caloevalstackFEMC;
   CaloEvalStack* _caloevalstackCEMC;
   CaloEvalStack* _caloevalstackEEMC;
@@ -358,7 +366,8 @@ class EventEvaluator : public SubsysReco
       kEHCAL         = 5,
       kHCALIN       = 6,
       kHCALOUT       = 7,
-      kEEMCG         = 9,
+      kLFHCAL        = 8,
+      kEEMCG         = 9
   };
 
 };

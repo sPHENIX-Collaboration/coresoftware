@@ -36,6 +36,12 @@ class RawTowerGeom : public PHObject
     return -1;
   }
 
+  virtual int get_binl() const
+  {
+    PHOOL_VIRTUAL_WARN("get_il()");
+    return -1;
+  }
+
   virtual int get_column() const
   {
     PHOOL_VIRTUAL_WARN("get_column()");
