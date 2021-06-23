@@ -52,20 +52,49 @@ float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
 void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // DZ, D and X0 should be negative for -Z direction
-  const float DZ = -9;     // in cm, tower half length
-  const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
-  const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)
+  // Crystal:[-10., -6.1, -0.91], Sci_glass:[-20., -16.76, -2.5]
+  // Original one:[-9, -6.1, -0.91] also for the lead tungsten
 
-  float logE = log(0.1);
-  if (E > 0.1) logE = log(E);
-  float zV = zA - fVz;
-  float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+  if( Scin_size < 25. )
+    {
+      const float DZ = -(Scin_size / 2.);     // in cm, tower half length
+      const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+      const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)      
 
-  zC = (zA - DZ) + (D + X0 * logE) * cosT;
-  //  zC = zA; // !!!!!
+      //      cout << "Scin size: " << Scin_size << " || " << DZ << " is crystal...." << endl << endl;
+      
+      float logE = log(0.1);
+      if (E > 0.1) logE = log(E);
+      float zV = zA - fVz;
+      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
 
-  xC = xA;
-  yC = yA;
+      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+      //  zC = zA; // !!!!!
+
+      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+      yC = yA;
+    }
+  //  else if( (zA > -265.) && (zA < -255.) )
+  else
+    {
+      const float DZ = -(Scin_size / 2.);     // in cm, tower half length
+      const float D = -15.25;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+      const float X0 = -2.275;  // in cm; obtained from GEANT (should be ~ rad length)            
+
+      //      cout << "Scin size: " << Scin_size << " || " << DZ << " is sci-glass...." << endl << endl;
+      
+      float logE = log(0.1);
+      if (E > 0.1) logE = log(E);
+      float zV = zA - fVz;
+      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+
+      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+      //  zC = zA; // !!!!!
+
+      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+      yC = yA;
+    }
+
 }
 
 void BEmcRecEEMC::CorrectEnergy(float Energy, float x, float y,
@@ -150,6 +179,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   x0 = x + xZero;
   ix0 = EmcCluster::lowint(x0 + 0.5);
 
+
+  
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
@@ -176,4 +207,5 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
     cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
          << y << ",  dy = " << y0 - iy0 << endl;
   }
+  
 }

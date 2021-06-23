@@ -69,6 +69,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _do_FEMC(false)
   , _do_CEMC(false)
   , _do_EEMC(false)
+  , _do_EEMCG(false)
   , _do_DRCALO(false)
   , _do_HITS(false)
   , _do_TRACKS(false)
@@ -134,6 +135,12 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _tower_EEMC_iPhi(0)
   , _tower_EEMC_trueID(0)
 
+  , _nTowers_EEMCG(0)
+  , _tower_EEMCG_E(0)
+  , _tower_EEMCG_iEta(0)
+  , _tower_EEMCG_iPhi(0)
+  , _tower_EEMCG_trueID(0)
+  
   , _nTowers_CEMC(0)
   , _tower_CEMC_E(0)
   , _tower_CEMC_iEta(0)
@@ -188,6 +195,13 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _cluster_EEMC_Phi(0)
   , _cluster_EEMC_NTower(0)
   , _cluster_EEMC_trueID(0)
+
+  , _nclusters_EEMCG(0)
+  , _cluster_EEMCG_E(0)
+  , _cluster_EEMCG_Eta(0)
+  , _cluster_EEMCG_Phi(0)
+  , _cluster_EEMCG_NTower(0)
+  , _cluster_EEMCG_trueID(0)
 
   , _vertex_x(0)
   , _vertex_y(0)
@@ -265,6 +279,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _caloevalstackFEMC(nullptr)
   , _caloevalstackCEMC(nullptr)
   , _caloevalstackEEMC(nullptr)
+  , _caloevalstackEEMCG(nullptr)
   , _strict(false)
   , _event_tree(nullptr)
   , _geometry_tree(nullptr)
@@ -356,6 +371,16 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _cluster_EEMC_NTower = new int[_maxNclusters];
   _cluster_EEMC_trueID = new int[_maxNclusters];
 
+  _tower_EEMCG_E = new float[_maxNTowers];
+  _tower_EEMCG_iEta = new int[_maxNTowers];
+  _tower_EEMCG_iPhi = new int[_maxNTowers];
+  _tower_EEMCG_trueID = new int[_maxNTowers];
+  _cluster_EEMCG_E = new float[_maxNclusters];
+  _cluster_EEMCG_Eta = new float[_maxNclusters];
+  _cluster_EEMCG_Phi = new float[_maxNclusters];
+  _cluster_EEMCG_NTower = new int[_maxNclusters];
+  _cluster_EEMCG_trueID = new int[_maxNclusters];
+  
   _track_ID = new float[_maxNTracks];
   _track_trueID = new float[_maxNTracks];
   _track_px = new float[_maxNTracks];
@@ -603,6 +628,25 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
       _event_tree->Branch("cluster_EEMC_trueID", _cluster_EEMC_trueID, "cluster_EEMC_trueID[cluster_EEMC_N]/I");
     }
   }
+  if (_do_EEMCG)
+  {
+    // towers EEMCG
+    _event_tree->Branch("tower_EEMCG_N", &_nTowers_EEMCG, "tower_EEMCG_N/I");
+    _event_tree->Branch("tower_EEMCG_E", _tower_EEMCG_E, "tower_EEMCG_E[tower_EEMCG_N]/F");
+    _event_tree->Branch("tower_EEMCG_iEta", _tower_EEMCG_iEta, "tower_EEMCG_iEta[tower_EEMCG_N]/I");
+    _event_tree->Branch("tower_EEMCG_iPhi", _tower_EEMCG_iPhi, "tower_EEMCG_iPhi[tower_EEMCG_N]/I");
+    _event_tree->Branch("tower_EEMCG_trueID", _tower_EEMCG_trueID, "tower_EEMCG_trueID[tower_EEMCG_N]/I");
+    if (_do_CLUSTERS)
+    {
+      // clusters EEMCG
+      _event_tree->Branch("cluster_EEMCG_N", &_nclusters_EEMCG, "cluster_EEMCG_N/I");
+      _event_tree->Branch("cluster_EEMCG_E", _cluster_EEMCG_E, "cluster_EEMCG_E[cluster_EEMCG_N]/F");
+      _event_tree->Branch("cluster_EEMCG_Eta", _cluster_EEMCG_Eta, "cluster_EEMCG_Eta[cluster_EEMCG_N]/F");
+      _event_tree->Branch("cluster_EEMCG_Phi", _cluster_EEMCG_Phi, "cluster_EEMCG_Phi[cluster_EEMCG_N]/F");
+      _event_tree->Branch("cluster_EEMCG_NTower", _cluster_EEMCG_NTower, "cluster_EEMCG_NTower[cluster_EEMCG_N]/I");
+      _event_tree->Branch("cluster_EEMCG_trueID", _cluster_EEMCG_trueID, "cluster_EEMCG_trueID[cluster_EEMCG_N]/I");
+    }
+  }
   if (_do_VERTEX)
   {
     // vertex
@@ -775,6 +819,20 @@ int EventEvaluator::process_event(PHCompositeNode* topNode)
     else
     {
       _caloevalstackEEMC->next_event(topNode);
+    }
+  }
+
+  if (_do_EEMCG)
+  {
+    if (!_caloevalstackEEMCG)
+    {
+      _caloevalstackEEMCG = new CaloEvalStack(topNode, "EEMC_glass");
+      _caloevalstackEEMCG->set_strict(_strict);
+      _caloevalstackEEMCG->set_verbosity(Verbosity() + 1);
+    }
+    else
+    {
+      _caloevalstackEEMCG->next_event(topNode);
     }
   }
 
@@ -1731,6 +1789,97 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       // return;
     }
   }
+
+  //----------------------
+  //    TOWERS EEMC
+  //----------------------
+  if (_do_EEMCG)
+  {
+    CaloRawTowerEval* towerevalEEMCG = _caloevalstackEEMCG->get_rawtower_eval();
+    _nTowers_EEMCG = 0;
+    string towernodeEEMCG = "TOWER_CALIB_EEMC_glass";
+    RawTowerContainer* towersEEMCG = findNode::getClass<RawTowerContainer>(topNode, towernodeEEMCG.c_str());
+    if (towersEEMCG)
+    {
+      if (Verbosity() > 0)
+      {
+        cout << "saving EMC towers" << endl;
+      }
+      string towergeomnodeEEMCG = "TOWERGEOM_EEMC_glass";
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeEEMCG.c_str());
+      if (towergeom)
+      {
+        if(_do_GEOMETRY && !_geometry_done[kEEMCG]){
+          RawTowerGeomContainer::ConstRange all_towers = towergeom->get_tower_geometries();
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kEEMCG;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            _calo_towers_N++;
+          }
+          _geometry_done[kEEMCG] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        }
+        RawTowerContainer::ConstRange begin_end = towersEEMCG->getTowers();
+        RawTowerContainer::ConstIterator rtiter;
+        for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+        {
+          RawTower* tower = rtiter->second;
+          if (tower)
+          {
+            // min energy cut
+            if (tower->get_energy() < _reco_e_threshold) continue;
+
+            _tower_EEMCG_iEta[_nTowers_EEMCG] = tower->get_bineta();
+            _tower_EEMCG_iPhi[_nTowers_EEMCG] = tower->get_binphi();
+            _tower_EEMCG_E[_nTowers_EEMCG] = tower->get_energy();
+
+            PHG4Particle* primary = towerevalEEMCG->max_truth_primary_particle_by_energy(tower);
+            if (primary)
+            {
+              _tower_EEMCG_trueID[_nTowers_EEMCG] = primary->get_track_id();
+              // gflavor = primary->get_pid();
+              // efromtruth = towerevalEEMCG->get_energy_contribution(tower, primary);
+            }
+            else
+            {
+              _tower_EEMCG_trueID[_nTowers_EEMCG] = -10;
+            }
+            _nTowers_EEMCG++;
+          }
+        }
+      }
+      else
+      {
+        if (Verbosity() > 0)
+        {
+          cout << PHWHERE << " ERROR: Can't find " << towergeomnodeEEMCG << endl;
+        }
+        // return;
+      }
+      if (Verbosity() > 0)
+      {
+        cout << "saved\t" << _nTowers_EEMCG << "\tEEMCG towers" << endl;
+      }
+    }
+    else
+    {
+      if (Verbosity() > 0)
+      {
+        cout << PHWHERE << " ERROR: Can't find " << towernodeEEMCG << endl;
+      }
+      // return;
+    }
+  }
+  
   //------------------------
   // CLUSTERS FHCAL
   //------------------------
@@ -2167,6 +2316,69 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EEMC << "\tEEMC clusters" << endl;}
   }
   //------------------------
+  // CLUSTERS EEMCG
+  //------------------------
+  if (_do_EEMCG && _do_CLUSTERS)
+  {
+    CaloRawClusterEval* clusterevalEEMCG = _caloevalstackEEMCG->get_rawcluster_eval();
+    _nclusters_EEMCG = 0;
+    if (Verbosity() > 1)
+    {
+      cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+    }
+
+    string clusternodeEEMCG = "CLUSTER_EEMC_glass";
+    RawClusterContainer* clustersEEMCG = findNode::getClass<RawClusterContainer>(topNode, clusternodeEEMCG.c_str());
+    if (clustersEEMCG)
+    {
+      // for every cluster
+      for (const auto& iterator : clustersEEMCG->getClustersMap())
+      {
+        RawCluster* cluster = iterator.second;
+
+        if (cluster->get_energy() < _reco_e_threshold) continue;
+
+        _cluster_EEMCG_E[_nclusters_EEMCG] = cluster->get_energy();
+        _cluster_EEMCG_NTower[_nclusters_EEMCG] = cluster->getNTowers();
+        _cluster_EEMCG_Phi[_nclusters_EEMCG] = cluster->get_phi();
+
+        // require vertex for cluster eta calculation
+        if (vertexmap)
+        {
+          if (!vertexmap->empty())
+          {
+            SvtxVertex* vertex = (vertexmap->begin()->second);
+            _cluster_EEMCG_Eta[_nclusters_EEMCG] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+          }
+          else
+            _cluster_EEMCG_Eta[_nclusters_EEMCG] = -10000;
+        }
+        else
+          _cluster_EEMCG_Eta[_nclusters_EEMCG] = -10000;
+
+        PHG4Particle* primary = clusterevalEEMCG->max_truth_primary_particle_by_energy(cluster);
+
+        if (primary)
+        {
+          _cluster_EEMCG_trueID[_nclusters_EEMCG] = primary->get_track_id();
+        }
+        else
+        {
+          _cluster_EEMCG_trueID[_nclusters_EEMCG] = -10;
+        }
+
+        _nclusters_EEMCG++;
+      }
+    }
+    else
+    {
+      cerr << PHWHERE << " ERROR: Can't find " << clusternodeEEMCG << endl;
+      // return;
+    }
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EEMCG << "\tEEMCG clusters" << endl;}
+  }
+
+  //------------------------
   // TRACKS
   //------------------------
   if (_do_TRACKS)
@@ -2521,6 +2733,7 @@ int EventEvaluator::End(PHCompositeNode* topNode)
   if (_caloevalstackFEMC) delete _caloevalstackFEMC;
   if (_caloevalstackCEMC) delete _caloevalstackCEMC;
   if (_caloevalstackEEMC) delete _caloevalstackEEMC;
+  if (_caloevalstackEEMCG) delete _caloevalstackEEMCG;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2717,6 +2930,8 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
     return "HCALOUT";
   case 64:
     return "CEMC";
+  case 65:
+    return "EEMC_glass";
 
   default:
     return "NOTHING";
@@ -2909,6 +3124,29 @@ void EventEvaluator::resetBuffer()
       }
     }
     if (Verbosity() > 0){ cout << "\t... EEMC variables reset" << endl;}
+  }
+  if(_do_EEMCG){
+    if (Verbosity() > 0){ cout << "\t... resetting EEMCG variables" << endl;}
+    _nTowers_EEMCG = 0;
+    for (Int_t itow = 0; itow < _maxNTowers; itow++)
+    {
+      _tower_EEMCG_E[itow] = 0;
+      _tower_EEMCG_iEta[itow] = 0;
+      _tower_EEMCG_iPhi[itow] = 0;
+      _tower_EEMCG_trueID[itow] = 0;
+    }
+    if(_do_CLUSTERS){
+      _nclusters_EEMCG = 0;
+      for (Int_t itow = 0; itow < _maxNclusters; itow++)
+      {
+        _cluster_EEMCG_E[itow] = 0;
+        _cluster_EEMCG_Eta[itow] = 0;
+        _cluster_EEMCG_Phi[itow] = 0;
+        _cluster_EEMCG_NTower[itow] = 0;
+        _cluster_EEMCG_trueID[itow] = 0;
+      }
+    }
+    if (Verbosity() > 0){ cout << "\t... EEMCG variables reset" << endl;}
   }
   if (_do_DRCALO)
   {

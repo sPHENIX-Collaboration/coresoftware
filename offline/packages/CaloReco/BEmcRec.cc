@@ -28,7 +28,8 @@ int const BEmcRec::fgMaxLen = 1000;
 // BEmcRec member functions
 
 BEmcRec::BEmcRec()
-  : bCYL(true)
+  : Scin_size(0.)
+  , bCYL(true)
   , bProfileProb(false)
   , fNx(-1)
   , fNy(-1)
@@ -104,6 +105,7 @@ void BEmcRec::PrintTowerGeometry(const string& fname)
       }
     }
   }
+
 }
 
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
@@ -118,7 +120,7 @@ bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
   return true;
 }
 
-bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
+bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz, int t_t, float z_s)
 {
   if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy) return false;
 
@@ -129,6 +131,8 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
   geom.dX[0] = geom.dX[1] = 0;  // These should be calculated by CompleteTowerGeometry()
   geom.dY[0] = geom.dY[1] = 0;
   geom.dZ[0] = geom.dZ[1] = 0;
+  geom.T_type = t_t;
+  geom.z_size = z_s;
 
   int ich = iy * fNx + ix;
   fTowerGeom[ich] = geom;
@@ -244,6 +248,8 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   float xt = geom0.Xcenter + (xC - ix) * geom0.dX[0] + (yC - iy) * geom0.dX[1];
   float yt = geom0.Ycenter + (xC - ix) * geom0.dY[0] + (yC - iy) * geom0.dY[1];
   float zt = geom0.Zcenter + (xC - ix) * geom0.dZ[0] + (yC - iy) * geom0.dZ[1];
+
+  Scin_size = geom0.z_size;
 
   CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
 
