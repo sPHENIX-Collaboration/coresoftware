@@ -991,6 +991,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _vertex_y = vertex->get_y();
         _vertex_z = vertex->get_z();
         _vertex_NCont = vertex->size_tracks();
+      } else {
+        _vertex_x = 0.;
+        _vertex_y = 0.;
+        _vertex_z = 0.;
+        _vertex_NCont = -1;
       }
     }
   }
@@ -1026,9 +1031,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         PHG4HitContainer::ConstRange hit_range = hits->getHits();
         for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
         {
-          // if(Verbosity() > 0) cout << __PRETTY_FUNCTION__ << " checking hit id " << hit_iter->second->get_trkid() << " against " << track->get_truth_track_id() << endl;
-          // if (hit_iter->second->get_trkid() - track->get_truth_track_id() == 0)
-          // {
           if (Verbosity() > 1)
           {
             cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
@@ -1076,7 +1078,6 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           _nHitsLayers++;
 
-          // }
         }
         if (Verbosity() > 0)
         {
@@ -1113,11 +1114,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (towergeomFHCAL)
       {
         if(_do_GEOMETRY && !_geometry_done[kFHCAL]){
-          // std::ostream *fout= new ofstream("test.list");
           RawTowerGeomContainer::ConstRange all_towers = towergeomFHCAL->get_tower_geometries();
-          // *fout << "Calorimeter ID: " << towergeomFHCAL->get_calorimeter_id() << endl;
-          // *fout << "size: " << towergeomFHCAL->size() << endl;
-          // towergeomFHCAL->identify(*fout);
           for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
               it != all_towers.second; ++it)
           {
@@ -1129,14 +1126,11 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
             _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
             _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
-            // it->second->identify(*fout);
             _calo_towers_N++;
           }
           _geometry_done[kFHCAL] = 1;
           _geometry_tree->Fill();
           resetGeometryArrays();
-        // _calo_ID = kFHCAL;
-        // _calo_ID = kFHCAL;
         }
 
         RawTowerContainer::ConstRange begin_end = towersFHCAL->getTowers();
@@ -1148,9 +1142,38 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           {
             // min energy cut
             if (tower->get_energy() < _reco_e_threshold) continue;
+            // cout << "\tnew FHCAL tower" << endl;
             _tower_FHCAL_iEta[_nTowers_FHCAL] = tower->get_bineta();
             _tower_FHCAL_iPhi[_nTowers_FHCAL] = tower->get_binphi();
             _tower_FHCAL_E[_nTowers_FHCAL] = tower->get_energy();
+
+            // PHG4TruthInfoContainer* truthinfocontainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+            // RawTower::ShowerConstRange shower_range = tower->get_g4showers();
+            // for (RawTower::ShowerConstIterator iter = shower_range.first;
+            //     iter != shower_range.second;
+            //     ++iter)
+            // {
+            //   PHG4Shower* shower = truthinfocontainer->GetShower(iter->first);
+            //   // PHG4Particle* particleParent = truthinfocontainer->GetParticle(shower->get_parent_particle_id());
+            //     // if (particleParent)
+            //     // {
+            //     //   cout << "\t\tcurr shower parent id: " << shower->get_parent_particle_id()<< "\tPDG " << particleParent->get_pid() << "\tedep: " << shower->get_edep() << endl;
+            //     // } else {
+            //     //   cout << "\t\tcurr shower parent id: " << shower->get_parent_particle_id() << endl;
+            //     // }
+            //   // for (PHG4Shower::ParticleIdIter jter = shower->begin_g4particle_id();jter != shower->end_g4particle_id(); ++jter)
+            //   // {
+            //   //   int g4particle_id = *jter;
+            //   //   PHG4Particle* particle = truthinfocontainer->GetParticle(g4particle_id);
+            //   //   if (particle)
+            //   //   {
+            //   //     if(particle->get_e()>0.01*shower->get_edep()){
+            //   //       // cout << "\t\t\tparticle ID in shower: " << particle->get_track_id() << "\tPDG " << particle->get_pid() << "\tenergy: " << particle->get_e()<< endl;
+            //   //     }
+            //   //   }
+            //   // }
+            // }
+
 
             PHG4Particle* primary = towerevalFHCAL->max_truth_primary_particle_by_energy(tower);
             if (primary)
@@ -1687,6 +1710,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _tower_FEMC_iPhi[_nTowers_FEMC] = tower->get_binphi();
             _tower_FEMC_E[_nTowers_FEMC] = tower->get_energy();
 
+            // cout << "\tnew FEMC tower " << tower->get_energy() << endl;
+            
             PHG4Particle* primary = towerevalFEMC->max_truth_primary_particle_by_energy(tower);
             if (primary)
             {
@@ -1698,6 +1723,33 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             {
               _tower_FEMC_trueID[_nTowers_FEMC] = -10;
             }
+
+            // PHG4TruthInfoContainer* truthinfocontainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+            // RawTower::ShowerConstRange shower_range = tower->get_g4showers();
+            // for (RawTower::ShowerConstIterator iter = shower_range.first;
+            //     iter != shower_range.second;
+            //     ++iter)
+            // {
+            //   PHG4Shower* shower = truthinfocontainer->GetShower(iter->first);
+            //   PHG4Particle* particleParent = truthinfocontainer->GetParticle(shower->get_parent_particle_id());
+            //     if (particleParent)
+            //     {
+            //       cout << "\t\tcurr shower parent id: " << shower->get_parent_particle_id() << " ("<< _tower_FEMC_trueID[_nTowers_FEMC] << ")\tPDG " << particleParent->get_pid() << "\tedep: " << shower->get_edep() << endl;
+            //     } else {
+            //       cout << "\t\tcurr shower parent id: " << shower->get_parent_particle_id() << endl;
+            //     }
+            //   for (PHG4Shower::ParticleIdIter jter = shower->begin_g4particle_id();jter != shower->end_g4particle_id(); ++jter)
+            //   {
+            //     int g4particle_id = *jter;
+            //     PHG4Particle* particle = truthinfocontainer->GetParticle(g4particle_id);
+            //     if (particle)
+            //     {
+            //       // if(particle->get_e()>0.1*shower->get_edep()){
+            //         // cout << "\t\t\tparticle ID in shower: " << particle->get_track_id() << "\tPDG " << particle->get_pid() << "\tenergy: " << particle->get_e()<< endl;
+            //       // }
+            //     }
+            //   }
+            // }
             _nTowers_FEMC++;
           }
         }
@@ -2029,10 +2081,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_FHCAL_Eta[_nclusters_FHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_FHCAL_Eta[_nclusters_FHCAL] = -10000;
+            _cluster_FHCAL_Eta[_nclusters_FHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));
         }
         else
-          _cluster_FHCAL_Eta[_nclusters_FHCAL] = -10000;
+          _cluster_FHCAL_Eta[_nclusters_FHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalFHCAL->max_truth_primary_particle_by_energy(cluster);
 
@@ -2091,10 +2143,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_HCALIN_Eta[_nclusters_HCALIN] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_HCALIN_Eta[_nclusters_HCALIN] = -10000;
+            _cluster_HCALIN_Eta[_nclusters_HCALIN] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_HCALIN_Eta[_nclusters_HCALIN] = -10000;
+          _cluster_HCALIN_Eta[_nclusters_HCALIN] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalHCALIN->max_truth_primary_particle_by_energy(cluster);
 
@@ -2153,10 +2205,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_HCALOUT_Eta[_nclusters_HCALOUT] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_HCALOUT_Eta[_nclusters_HCALOUT] = -10000;
+            _cluster_HCALOUT_Eta[_nclusters_HCALOUT] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_HCALOUT_Eta[_nclusters_HCALOUT] = -10000;
+          _cluster_HCALOUT_Eta[_nclusters_HCALOUT] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalHCALOUT->max_truth_primary_particle_by_energy(cluster);
 
@@ -2215,10 +2267,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_EHCAL_Eta[_nclusters_EHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_EHCAL_Eta[_nclusters_EHCAL] = -10000;
+            _cluster_EHCAL_Eta[_nclusters_EHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_EHCAL_Eta[_nclusters_EHCAL] = -10000;
+          _cluster_EHCAL_Eta[_nclusters_EHCAL] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalEHCAL->max_truth_primary_particle_by_energy(cluster);
 
@@ -2278,10 +2330,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_FEMC_Eta[_nclusters_FEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_FEMC_Eta[_nclusters_FEMC] = -10000;
+            _cluster_FEMC_Eta[_nclusters_FEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_FEMC_Eta[_nclusters_FEMC] = -10000;
+          _cluster_FEMC_Eta[_nclusters_FEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalFEMC->max_truth_primary_particle_by_energy(cluster);
 
@@ -2340,10 +2392,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_CEMC_Eta[_nclusters_CEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_CEMC_Eta[_nclusters_CEMC] = -10000;
+            _cluster_CEMC_Eta[_nclusters_CEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_CEMC_Eta[_nclusters_CEMC] = -10000;
+          _cluster_CEMC_Eta[_nclusters_CEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalCEMC->max_truth_primary_particle_by_energy(cluster);
 
@@ -2402,10 +2454,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             _cluster_EEMC_Eta[_nclusters_EEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
           }
           else
-            _cluster_EEMC_Eta[_nclusters_EEMC] = -10000;
+            _cluster_EEMC_Eta[_nclusters_EEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
         }
         else
-          _cluster_EEMC_Eta[_nclusters_EEMC] = -10000;
+          _cluster_EEMC_Eta[_nclusters_EEMC] = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0, 0, 0));;
 
         PHG4Particle* primary = clusterevalEEMC->max_truth_primary_particle_by_energy(cluster);
 
@@ -2786,6 +2838,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                   _hepmcp_m1[_nHepmcp] = (*mother)->barcode();
               }
             }
+            if (Verbosity() > 2)cout << "nHepmcp " << _nHepmcp << "\tPDG " << _hepmcp_PDG[_nHepmcp] << "\tbarcode " << _hepmcp_BCID[_nHepmcp] << "\tMother1 " << _hepmcp_m1[_nHepmcp]<< "\tMother2 " << _hepmcp_m2[_nHepmcp] << endl;
             _nHepmcp++;
           }
         }
@@ -3078,13 +3131,13 @@ void EventEvaluator::resetBuffer()
   }
   if (_do_VERTEX)
   {
-    _vertex_x = 0;
-    _vertex_y = 0;
-    _vertex_z = 0;
+    _vertex_x = -1000;
+    _vertex_y = -1000;
+    _vertex_z = -1000;
     _vertex_NCont = 0;
-    _vertex_true_x = 0;
-    _vertex_true_y = 0;
-    _vertex_true_z = 0;
+    _vertex_true_x = -1000;
+    _vertex_true_y = -1000;
+    _vertex_true_z = -1000;
     if (Verbosity() > 0){ cout << "\t... vertex variables reset" << endl;}
   }
   if (_do_HITS)
@@ -3337,7 +3390,7 @@ void EventEvaluator::resetBuffer()
       _mcpart_px[imcpart] = 0;
       _mcpart_py[imcpart] = 0;
       _mcpart_pz[imcpart] = 0;
-      _mcpart_BCID[imcpart] = 0;
+      _mcpart_BCID[imcpart] = -10;
     }
   }
 
@@ -3351,7 +3404,7 @@ void EventEvaluator::resetBuffer()
       _hepmcp_px[iHepmcp] = 0;
       _hepmcp_py[iHepmcp] = 0;
       _hepmcp_pz[iHepmcp] = 0;
-      _hepmcp_status[iHepmcp] = 0;
+      _hepmcp_status[iHepmcp] = -10;
       _hepmcp_BCID[iHepmcp] = 0;
       _hepmcp_m2[iHepmcp] = 0;
       _hepmcp_m1[iHepmcp] = 0;
