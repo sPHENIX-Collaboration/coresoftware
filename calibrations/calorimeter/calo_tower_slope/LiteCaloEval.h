@@ -7,18 +7,15 @@
 
 #include <string>
 
- 
 class PHCompositeNode;
 class TFile;
 class TH1;
 class TH2;
 class TH3;
-class TNtuple;
 
 class LiteCaloEval : public SubsysReco
 {
  public:
-
   enum Calo
   {
     NONE = 0,
@@ -27,9 +24,9 @@ class LiteCaloEval : public SubsysReco
     HCALOUT = 3
   };
 
-  LiteCaloEval(const std::string &name = "LiteCaloEval", const std::string & caloNm = "CEMC", const std::string & fnm = "outJF");
+  LiteCaloEval(const std::string &name = "LiteCaloEval", const std::string &caloNm = "CEMC", const std::string &fnm = "outJF");
 
-  virtual ~LiteCaloEval(){}
+  virtual ~LiteCaloEval() {}
 
   /** Called for first event when run number is known.
       Typically this is where you may want to fetch data from
@@ -46,19 +43,16 @@ class LiteCaloEval : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  void CaloType(const Calo i) {calotype = i;}
+  void CaloType(const Calo i) { calotype = i; }
 
  private:
-  TFile * _tfile = nullptr;
-  TNtuple * _ntp_tower = nullptr;
-  
   TFile *cal_output = nullptr;
 
   TH1 *hcal_out_eta_phi[24][64] = {};
   TH1 *hcalout_eta[24] = {};
   TH2 *hcalout_energy_eta = nullptr;
   TH3 *hcalout_e_eta_phi = {};
-  
+
   TH1 *hcal_in_eta_phi[24][64] = {};
   TH1 *hcalin_eta[24] = {};
   TH2 *hcalin_energy_eta = nullptr;
@@ -75,4 +69,4 @@ class LiteCaloEval : public SubsysReco
   std::string _filename;
 };
 
-#endif // LITECALOEVAL_H
+#endif  // LITECALOEVAL_H
