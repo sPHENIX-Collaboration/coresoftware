@@ -42,7 +42,6 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_actsTrackKeyMap(nullptr)
   , m_actsFitResults(nullptr)
   , m_tGeometry(nullptr)
-  , m_vertexMap(nullptr)
   , m_evalCKF(false)
 {
 }
@@ -103,13 +102,6 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
   std::map<const unsigned int, Trajectory>::iterator trajIter;
   int iTraj = 0;
   int iTrack = 0;
-
-  for(const auto& [key, track] : * m_actsProtoTrackMap)
-    {
-      std::cout << "am i in here "<<std::endl;
-      if(!track) continue;
-      track->identify();
-    }
 
   for (trajIter = m_actsFitResults->begin();
        trajIter != m_actsFitResults->end();
@@ -883,7 +875,6 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
 
   Acts::Vector3D position(track->get_x() * 10, track->get_y() * 10,
 			  track->get_z() * 10);
-  std::cout << "position"<<std::endl;
  
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(),

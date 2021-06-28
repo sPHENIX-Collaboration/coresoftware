@@ -112,8 +112,8 @@ class ActsEvaluator : public SubsysReco
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
 
   ActsTrackingGeometry *m_tGeometry{nullptr};
-  SvtxVertexMap *m_vertexMap;
-  TrkrClusterContainer *m_clusterContainer;
+  SvtxVertexMap *m_vertexMap{nullptr};
+  TrkrClusterContainer *m_clusterContainer{nullptr};
 
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting

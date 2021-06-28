@@ -170,12 +170,18 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
 
 int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
 {
-
+  
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
 
     }
+  
+  if(m_actsEvaluator)
+    {
+      m_trajectories->clear();
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
