@@ -103,6 +103,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                         params->get_double_param("field_z") * tesla);
     // magnets can be rotated in y
     field.rotateY(params->get_double_param("rot_y") * deg);
+//    field.transform(rotm);
     magField = new G4UniformMagField(field);
     if (Verbosity() > 0)
     {
@@ -127,6 +128,11 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
       cout << "at x, y, z = " << origin.x() << " , " << origin.y() << " , " << origin.z() << endl;
       cout << "with rotation around x, y, z axis  by: " << rotm->phiX() << ", " << rotm->phiY() << ", " << rotm->phiZ() << endl;
     }
+  }
+  else
+  {
+    cout <<__PRETTY_FUNCTION__<<" : Fatal error, magnet type of "<<magnettype<<" is not yet supported"<<endl;
+    exit(1);
   }
 
   if (!magField && Verbosity() > 0)
