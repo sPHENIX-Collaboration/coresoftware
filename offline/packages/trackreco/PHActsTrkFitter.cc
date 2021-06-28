@@ -133,6 +133,16 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
       logLevel = Acts::Logging::VERBOSE;
   }
 
+  /// Fill an additional track map if using the acts evaluator
+  /// for proto track comparison to fitted track
+  if(m_actsEvaluator)
+    {
+      for(const auto [key, track] : *m_trackMap)
+	{
+	  m_seedTracks->insert(track);
+	}
+    }
+
   loopTracks(logLevel);
 
   eventTimer->stop();
@@ -832,7 +842,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	{
 	  m_trajectories = new std::map<const unsigned int, Trajectory>;
 	  PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
-	    new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories,"ActsTrajectories","PHObject");
+	    new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
 	  svtxNode->addNode(node);
 	  
 	}
@@ -894,11 +904,6 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "SvtxTrackMap not found on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  if(m_actsEvaluator)
-    {
-      m_seedTracks =(SvtxTrackMap*) (m_trackMap->CloneMe());
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

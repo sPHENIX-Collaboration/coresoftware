@@ -104,6 +104,13 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
   int iTraj = 0;
   int iTrack = 0;
 
+  for(const auto& [key, track] : * m_actsProtoTrackMap)
+    {
+      std::cout << "am i in here "<<std::endl;
+      if(!track) continue;
+      track->identify();
+    }
+
   for (trajIter = m_actsFitResults->begin();
        trajIter != m_actsFitResults->end();
        ++trajIter)
@@ -132,8 +139,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
    
     /// Track seed always is related to the trajectory->trackkey
     /// mapping for KF (by definition) and CKF
-    SvtxTrack* actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     
+    SvtxTrack* actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     /// Get the map of track tips->trackKeys for this trajectory
     std::map<const size_t, const unsigned int> trackKeyMap;
     if(m_evalCKF)
@@ -873,9 +880,11 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
 
   if(Verbosity() > 2)
     std::cout << "Filling proto track seed quantities" << std::endl;
-  
+
   Acts::Vector3D position(track->get_x() * 10, track->get_y() * 10,
 			  track->get_z() * 10);
+  std::cout << "position"<<std::endl;
+ 
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(),
 			  track->get_pz());
@@ -902,7 +911,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       Acts::Vector3D globalPos(cluster->getX() * 10,
 			       cluster->getY() * 10,
 			       cluster->getZ() * 10);
-
+   
       m_SLx.push_back(globalPos(0));
       m_SLy.push_back(globalPos(1));
       m_SLz.push_back(globalPos(2));
@@ -911,7 +920,9 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       
       /// Get corresponding truth hit position
       float gt = -9999;
+  
       Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, key, gt);
+ 
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
       float gz = globalTruthPos(2);
@@ -923,8 +934,9 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       auto surf = getSurface(key, cluster->getSubSurfKey());
 
       auto truthLocal = (*surf).globalToLocal(m_tGeometry->geoContext,
-					   globalTruthPos,
-					   globalTruthUnitDir);
+					      globalTruthPos,
+					      globalTruthUnitDir);
+    
       if(truthLocal.ok())
 	{
 	  Acts::Vector2D truthLocalVec = truthLocal.value();
