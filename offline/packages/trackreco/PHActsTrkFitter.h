@@ -85,6 +85,9 @@ class PHActsTrkFitter : public SubsysReco
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
        { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
+  void useActsEvaluator(bool actsEvaluator)
+  { m_actsEvaluator = actsEvaluator; }
+
  private:
 
   /// Event counter
@@ -139,7 +142,7 @@ class PHActsTrkFitter : public SubsysReco
   SvtxVertexMap *m_vertexMap;
   TrkrClusterContainer *m_clusterContainer;
   ActsSurfaceMaps *m_surfMaps;
-
+  
   /// Number of acts fits that returned an error
   int m_nBadFits;
 
@@ -149,6 +152,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates;
+
+  bool m_actsEvaluator;
+  std::map<const unsigned int, Trajectory> *m_trajectories;
+  SvtxTrackMap *m_seedTracks;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis;
