@@ -88,12 +88,25 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 
   m_DisplayAction->AddVolume(magnet_mother_logic, "OFF");
   new G4PVPlacement(G4Transform3D(*rotm, origin),
-                                        magnet_mother_logic,
-                                        G4String(GetName().append("_Mother").c_str()),
-                                        logicMother, false, m_MagnetId, OverlapCheck());
+                    magnet_mother_logic,
+                    G4String(GetName().append("_Mother").c_str()),
+                    logicMother, false, m_MagnetId, OverlapCheck());
 
   /* Creating a magnetic field */
   G4MagneticField *magField = nullptr;
+
+  /* Define origin vector (center of magnet) */
+  // abs. position to world for field manager
+  G4ThreeVector field_origin(params->get_double_param("field_global_position_x") * cm,
+                             params->get_double_param("field_global_position_y") * cm,
+                             params->get_double_param("field_global_position_z") * cm);
+
+  /* Define magnet rotation matrix */
+  // abs. rotation to world for field manager
+  G4RotationMatrix *field_rotm = new G4RotationMatrix();
+  rotm->rotateX(params->get_double_param("field_global_rot_x") * deg);
+  rotm->rotateY(params->get_double_param("field_global_rot_y") * deg);
+  rotm->rotateZ(params->get_double_param("field_global_rot_z") * deg);
 
   string magnettype = params->get_string_param("magtype");
   if (magnettype == "DIPOLE")
@@ -102,9 +115,9 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                         params->get_double_param("field_y") * tesla,
                         params->get_double_param("field_z") * tesla);
     // magnets can be rotated in y
-//     field.rotateY(params->get_double_param("rot_y") * deg);
+    //     field.rotateY(params->get_double_param("rot_y") * deg);
     // apply consistent geometry ops to field and detectors
-    field.transform(*rotm);
+    field.transform(*field_rotm);
     magField = new G4UniformMagField(field);
     if (Verbosity() > 0)
     {
@@ -121,18 +134,18 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
        * Therefore, place magnetic field center at the correct location and angle for the
        * magnet AND do the same transformations for the logical volume (see below). */
-    magField = new G4QuadrupoleMagField(fieldGradient, origin, rotm);
+    magField = new G4QuadrupoleMagField(fieldGradient, field_origin, field_rotm);
 
     if (Verbosity() > 0)
     {
       cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
-      cout << "at x, y, z = " << origin.x() << " , " << origin.y() << " , " << origin.z() << endl;
-      cout << "with rotation around x, y, z axis  by: " << rotm->phiX() << ", " << rotm->phiY() << ", " << rotm->phiZ() << endl;
+      cout << "at x, y, z = " << field_origin.x() << " , " << field_origin.y() << " , " << field_origin.z() << endl;
+      cout << "with rotation around x, y, z axis  by: " << field_rotm->phiX() << ", " << field_rotm->phiY() << ", " << field_rotm->phiZ() << endl;
     }
   }
   else
   {
-    cout <<__PRETTY_FUNCTION__<<" : Fatal error, magnet type of "<<magnettype<<" is not yet supported"<<endl;
+    cout << __PRETTY_FUNCTION__ << " : Fatal error, magnet type of " << magnettype << " is not yet supported" << endl;
     exit(1);
   }
 
@@ -193,7 +206,4 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                    magnet_field_logic,
                                    G4String(GetName().c_str()),
                                    magnet_mother_logic, false, m_MagnetId, OverlapCheck());
-
-
-
 }
