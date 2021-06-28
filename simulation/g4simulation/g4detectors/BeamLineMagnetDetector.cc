@@ -102,8 +102,9 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                         params->get_double_param("field_y") * tesla,
                         params->get_double_param("field_z") * tesla);
     // magnets can be rotated in y
-    field.rotateY(params->get_double_param("rot_y") * deg);
-//    field.transform(rotm);
+//     field.rotateY(params->get_double_param("rot_y") * deg);
+    // apply consistent geometry ops to field and detectors
+    field.transform(*rotm);
     magField = new G4UniformMagField(field);
     if (Verbosity() > 0)
     {
