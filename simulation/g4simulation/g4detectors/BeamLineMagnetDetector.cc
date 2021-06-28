@@ -95,18 +95,25 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   /* Creating a magnetic field */
   G4MagneticField *magField = nullptr;
 
-  /* Define origin vector (center of magnet) */
-  // abs. position to world for field manager
-  G4ThreeVector field_origin(params->get_double_param("field_global_position_x") * cm,
-                             params->get_double_param("field_global_position_y") * cm,
-                             params->get_double_param("field_global_position_z") * cm);
+  G4ThreeVector field_origin(origin);
+  G4RotationMatrix *field_rotm = rotm;
 
-  /* Define magnet rotation matrix */
-  // abs. rotation to world for field manager
-  G4RotationMatrix *field_rotm = new G4RotationMatrix();
-  rotm->rotateX(params->get_double_param("field_global_rot_x") * deg);
-  rotm->rotateY(params->get_double_param("field_global_rot_y") * deg);
-  rotm->rotateZ(params->get_double_param("field_global_rot_z") * deg);
+  // mother subsys ! = the world and therefore need to explicitly assign global geometry for field mamnagers
+  if (GetMySubsystem()->GetMotherSubsystem())
+  {
+    /* Define origin vector (center of magnet) */
+    // abs. position to world for field manager
+    field_origin = G4ThreeVector(params->get_double_param("field_global_position_x") * cm,
+                                 params->get_double_param("field_global_position_y") * cm,
+                                 params->get_double_param("field_global_position_z") * cm);
+
+    /* Define magnet rotation matrix */
+    // abs. rotation to world for field manager
+    field_rotm = new G4RotationMatrix();
+    rotm->rotateX(params->get_double_param("field_global_rot_x") * deg);
+    rotm->rotateY(params->get_double_param("field_global_rot_y") * deg);
+    rotm->rotateZ(params->get_double_param("field_global_rot_z") * deg);
+  }
 
   string magnettype = params->get_string_param("magtype");
   if (magnettype == "DIPOLE")
