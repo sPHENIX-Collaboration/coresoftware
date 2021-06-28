@@ -101,6 +101,11 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   // mother subsys ! = the world and therefore need to explicitly assign global geometry for field mamnagers
   if (GetMySubsystem()->GetMotherSubsystem())
   {
+    if (Verbosity() > 0)
+    {
+      cout << __PRETTY_FUNCTION__ << ": set field using the global coordinate system, as the magnet is a daughter vol. of "
+           << GetMySubsystem()->GetMotherSubsystem()->Name() << endl;
+    }
     /* Define origin vector (center of magnet) */
     // abs. position to world for field manager
     field_origin = G4ThreeVector(params->get_double_param("field_global_position_x") * cm,
