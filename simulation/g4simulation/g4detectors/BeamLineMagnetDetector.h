@@ -28,6 +28,9 @@ class BeamLineMagnetDetector : public PHG4Detector
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
 
+  //! Optional PostConstruction call after all geometry is constructed
+  void PostConstruction() override;
+
   int IsInBeamLineMagnet(const G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }

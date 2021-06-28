@@ -219,3 +219,8 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                    G4String(GetName().c_str()),
                                    magnet_mother_logic, false, m_MagnetId, OverlapCheck());
 }
+
+//! Optional PostConstruction call after all geometry is constructed
+void BeamLineMagnetDetector::PostConstruction()
+{
+}
