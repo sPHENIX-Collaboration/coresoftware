@@ -13,6 +13,7 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4Subsystem;
 class PHParameters;
+class G4MagneticField;
 
 class BeamLineMagnetDetector : public PHG4Detector
 {
@@ -44,6 +45,9 @@ class BeamLineMagnetDetector : public PHG4Detector
 
   int m_MagnetId;
   std::string superdetector;
+
+  G4LogicalVolume *m_magnetFieldLogic = nullptr;
+  G4MagneticField *m_magField = nullptr;
 };
 
 #endif  //  G4DETECTORS_BEAMLINEMAGNETMAGNETDETECTOR_H
