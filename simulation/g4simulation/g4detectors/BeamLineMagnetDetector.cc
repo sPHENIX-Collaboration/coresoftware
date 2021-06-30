@@ -30,6 +30,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg, tesla, twopi, meter
 
+#include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
 
 class G4VSolid;
@@ -88,12 +89,34 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 
   m_DisplayAction->AddVolume(magnet_mother_logic, "OFF");
   new G4PVPlacement(G4Transform3D(*rotm, origin),
-                                        magnet_mother_logic,
-                                        G4String(GetName().append("_Mother").c_str()),
-                                        logicMother, false, m_MagnetId, OverlapCheck());
+                    magnet_mother_logic,
+                    G4String(GetName().append("_Mother").c_str()),
+                    logicMother, false, m_MagnetId, OverlapCheck());
 
-  /* Creating a magnetic field */
-  G4MagneticField *magField = nullptr;
+  G4ThreeVector field_origin(origin);
+  G4RotationMatrix *field_rotm = rotm;
+
+  // mother subsys ! = the world and therefore need to explicitly assign global geometry for field mamnagers
+  if (GetMySubsystem()->GetMotherSubsystem())
+  {
+    if (Verbosity() > 0)
+    {
+      cout << __PRETTY_FUNCTION__ << ": set field using the global coordinate system, as the magnet is a daughter vol. of "
+           << GetMySubsystem()->GetMotherSubsystem()->Name() << endl;
+    }
+    /* Define origin vector (center of magnet) */
+    // abs. position to world for field manager
+    field_origin = G4ThreeVector(params->get_double_param("field_global_position_x") * cm,
+                                 params->get_double_param("field_global_position_y") * cm,
+                                 params->get_double_param("field_global_position_z") * cm);
+
+    /* Define magnet rotation matrix */
+    // abs. rotation to world for field manager
+    field_rotm = new G4RotationMatrix();
+    rotm->rotateX(params->get_double_param("field_global_rot_x") * deg);
+    rotm->rotateY(params->get_double_param("field_global_rot_y") * deg);
+    rotm->rotateZ(params->get_double_param("field_global_rot_z") * deg);
+  }
 
   string magnettype = params->get_string_param("magtype");
   if (magnettype == "DIPOLE")
@@ -102,8 +125,10 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                         params->get_double_param("field_y") * tesla,
                         params->get_double_param("field_z") * tesla);
     // magnets can be rotated in y
-    field.rotateY(params->get_double_param("rot_y") * deg);
-    magField = new G4UniformMagField(field);
+    //     field.rotateY(params->get_double_param("rot_y") * deg);
+    // apply consistent geometry ops to field and detectors
+    field.transform(*field_rotm);
+    m_magField = new G4UniformMagField(field);
     if (Verbosity() > 0)
     {
       cout << "Creating DIPOLE with field x: " << field.x() / tesla
@@ -119,17 +144,22 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
        * Therefore, place magnetic field center at the correct location and angle for the
        * magnet AND do the same transformations for the logical volume (see below). */
-    magField = new G4QuadrupoleMagField(fieldGradient, origin, rotm);
+    m_magField = new G4QuadrupoleMagField(fieldGradient, field_origin, field_rotm);
 
     if (Verbosity() > 0)
     {
       cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
-      cout << "at x, y, z = " << origin.x() << " , " << origin.y() << " , " << origin.z() << endl;
-      cout << "with rotation around x, y, z axis  by: " << rotm->phiX() << ", " << rotm->phiY() << ", " << rotm->phiZ() << endl;
+      cout << "at x, y, z = " << field_origin.x() << " , " << field_origin.y() << " , " << field_origin.z() << endl;
+      cout << "with rotation around x, y, z axis  by: " << field_rotm->phiX() << ", " << field_rotm->phiY() << ", " << field_rotm->phiZ() << endl;
     }
   }
+  else
+  {
+    cout << __PRETTY_FUNCTION__ << " : Fatal error, magnet type of " << magnettype << " is not yet supported" << endl;
+    exit(1);
+  }
 
-  if (!magField && Verbosity() > 0)
+  if (!m_magField && Verbosity() > 0)
   {
     cout << PHWHERE << " No magnetic field specified for " << GetName()
          << " of type " << magnettype << endl;
@@ -155,38 +185,48 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                             params->get_double_param("inner_radius") * cm,
                                             params->get_double_param("length") * cm / 2., 0, twopi);
 
-  G4LogicalVolume *magnet_field_logic = new G4LogicalVolume(magnet_field_solid,
-                                                            G4Material::GetMaterial("G4_Galactic"),
-                                                            G4String(GetName().c_str()),
-                                                            0, 0, 0);
+  m_magnetFieldLogic = new G4LogicalVolume(magnet_field_solid,
+                                           G4Material::GetMaterial("G4_Galactic"),
+                                           G4String(GetName().c_str()),
+                                           0, 0, 0);
 
   // allow installing new detector inside the magnet, magnet_field_logic
   PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(magnet_field_logic);
+  mysys->SetLogicalVolume(m_magnetFieldLogic);
 
-  /* Set field manager for logical volume */
-  if (magField)
-  {
-    /* Set up Geant4 field manager */
-    G4Mag_UsualEqRhs *localEquation = new G4Mag_UsualEqRhs(magField);
-    G4ClassicalRK4 *localStepper = new G4ClassicalRK4(localEquation);
-    G4double minStep = 0.25 * mm;  // minimal step, 1 mm is default
-    G4ChordFinder *localChordFinder = new G4ChordFinder(magField, minStep, localStepper);
-
-    G4FieldManager *fieldMgr = new G4FieldManager();
-    fieldMgr->SetDetectorField(magField);
-    fieldMgr->SetChordFinder(localChordFinder);
-    magnet_field_logic->SetFieldManager(fieldMgr, true);
-  }
-  m_DisplayAction->AddVolume(magnet_field_logic, "FIELDVOLUME");
+  m_DisplayAction->AddVolume(m_magnetFieldLogic, "FIELDVOLUME");
 
   /* create magnet physical volume */
 
   magnet_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
-                                   magnet_field_logic,
+                                   m_magnetFieldLogic,
                                    G4String(GetName().c_str()),
                                    magnet_mother_logic, false, m_MagnetId, OverlapCheck());
+}
 
+//! Optional PostConstruction call after all geometry is constructed
+void BeamLineMagnetDetector::PostConstruction()
+{
+  /* Set field manager for logical volume */
+  // This has to be in PostConstruction() in order to apply to all daughter vol. including daughter subsystems
 
+  assert(m_magField);
+  assert(m_magnetFieldLogic);
 
+  if (Verbosity() > 0)
+  {
+    cout << __PRETTY_FUNCTION__ << ": set field to vol " << m_magnetFieldLogic->GetName() << " that include "
+         << m_magnetFieldLogic->GetNoDaughters() << " daughter vols." << endl;
+  }
+
+  /* Set up Geant4 field manager */
+  G4Mag_UsualEqRhs *localEquation = new G4Mag_UsualEqRhs(m_magField);
+  G4ClassicalRK4 *localStepper = new G4ClassicalRK4(localEquation);
+  G4double minStep = 0.25 * mm;  // minimal step, 1 mm is default
+  G4ChordFinder *localChordFinder = new G4ChordFinder(m_magField, minStep, localStepper);
+
+  G4FieldManager *fieldMgr = new G4FieldManager();
+  fieldMgr->SetDetectorField(m_magField);
+  fieldMgr->SetChordFinder(localChordFinder);
+  m_magnetFieldLogic->SetFieldManager(fieldMgr, true);
 }

@@ -81,6 +81,14 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   {
     bemc = new BEmcRecEEMC();
   }
+  else if (detector == "EEMC_crystal")
+  {
+    bemc = new BEmcRecEEMC();
+  }
+  else if (detector == "EEMC_glass")
+  {
+    bemc = new BEmcRecEEMC();
+  }
   else
   {
     cout << "Warning from RawClusterBuilderTemplate::Detector(): no detector specific class "
@@ -169,11 +177,12 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     if (iymax < iy) iymax = iy;
     ngeom++;
   }
-  cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
+  if (Verbosity() > 1){
+    cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
        << detector << ": N of geom towers: " << ngeom << "; ix = "
        << ixmin << "-" << ixmax << ", iy = "
        << iymin << "-" << iymax << endl;
-
+  }
   if (ixmax < ixmin || iymax < iymin)
   {
     cout << "Error in RawClusterBuilderTemplate::InitRun(): wrong geometry data for detector "
@@ -199,7 +208,7 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     int iy = RawTowerDefs::decode_index1(towerid);  // index1 is eta in CYL
     ix -= BINX0;
     iy -= BINY0;
-    bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
+    bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z(), towerg->get_tower_type(), towerg->get_size_z());
   }
 
   if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;

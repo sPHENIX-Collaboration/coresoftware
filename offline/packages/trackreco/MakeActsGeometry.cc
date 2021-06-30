@@ -534,7 +534,9 @@ void MakeActsGeometry::buildActsSurfaces()
   /// Alter args if using field map
   if(m_magField.find(".root") != std::string::npos)
     {
-      m_magField = "/cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/fieldmaps/sphenix3dbigmapxyz.root";
+      m_magField = std::string(getenv("CALIBRATIONROOT")) +
+	std::string("/Field/Map/sphenix3dbigmapxyz.root");
+
       /// The acts field and field map are backwards in convention
       m_magFieldRescale = 1;
 

@@ -23,7 +23,6 @@ AM_CPPFLAGS = \
   -I$(G4_MAIN)/include
 
 noinst_HEADERS = \
-  G4EvtTree.h \
   G4RootHitContainer.h \
   G4RootRawTower.h \
   G4RootRawTowerContainer.h
@@ -31,6 +30,7 @@ noinst_HEADERS = \
 pkginclude_HEADERS = \
   G4CellNtuple.h \
   G4EdepNtuple.h \
+  G4EvtTree.h \
   G4HitNtuple.h \
   G4HitTTree.h \
   G4RawTowerTTree.h \

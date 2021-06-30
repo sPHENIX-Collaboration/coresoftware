@@ -33,6 +33,34 @@ double RawTowerGeomv3::get_phi() const
   return atan2(_center_y, _center_x);
 }
 
+
+int RawTowerGeomv3::get_bineta() const
+{
+  RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(_towerid);
+  switch(caloid)
+  {
+  case RawTowerDefs::LFHCAL:
+    return RawTowerDefs::decode_index1v2(_towerid);
+  default:
+    return RawTowerDefs::decode_index1(_towerid);
+  }
+  return -1;
+}
+
+int RawTowerGeomv3::get_binphi() const
+{
+  RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(_towerid);
+  switch(caloid)
+  {
+  case RawTowerDefs::LFHCAL:
+    return RawTowerDefs::decode_index2v2(_towerid);
+  default:
+    return RawTowerDefs::decode_index2(_towerid);
+  }
+  return -1;
+}
+
+
 void RawTowerGeomv3::identify(std::ostream& os) const
 {
   os << "RawTowerGeomv3:  x: " << get_center_x() << "  y: " << get_center_y() << "  z: " << get_center_z()

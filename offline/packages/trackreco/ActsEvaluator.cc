@@ -9,6 +9,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <trackbase/TrkrClusterContainer.h>
 /// Tracking includes
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -40,10 +41,7 @@ ActsEvaluator::ActsEvaluator(const std::string &name,
   , m_svtxEvalStack(nullptr)
   , m_actsTrackKeyMap(nullptr)
   , m_actsFitResults(nullptr)
-  , m_hitIdClusKey(nullptr)
-  , m_actsProtoTrackMap(nullptr)
   , m_tGeometry(nullptr)
-  , m_vertexMap(nullptr)
   , m_evalCKF(false)
 {
 }
@@ -133,8 +131,8 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
    
     /// Track seed always is related to the trajectory->trackkey
     /// mapping for KF (by definition) and CKF
-    ActsTrack actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     
+    SvtxTrack* actsProtoTrack = m_actsProtoTrackMap->find(trackKey)->second;
     /// Get the map of track tips->trackKeys for this trajectory
     std::map<const size_t, const unsigned int> trackKeyMap;
     if(m_evalCKF)
@@ -323,9 +321,9 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// Get the truth hit corresponding to this trackState
     /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
     /// the map created in PHActsSourceLinks
-    const unsigned int hitId = state.uncalibrated().cluskey();
+    TrkrDefs::cluskey cluskey = state.uncalibrated().cluskey();
     float gt = -9999;
-    Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitId, gt);
+    Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, cluskey, gt);
     float gx = globalTruthPos(0);
     float gy = globalTruthPos(1);
     float gz = globalTruthPos(2);
@@ -777,15 +775,14 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 }
 
 
+
 Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode, 
-						const unsigned int hitID,
+						TrkrDefs::cluskey cluskey,
 						float &_gt)
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  TrkrDefs::cluskey clusKey = m_hitIdClusKey->right.find(hitID)->second;
-  
-  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(clusKey);
+  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluskey);
   
   float gx = -9999;
   float gy = -9999;
@@ -810,17 +807,79 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode,
   
 }
 
-void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
+
+//___________________________________________________________________________________
+Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
+{
+  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  switch( trkrid )
+  {
+    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
+    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
+    case TrkrDefs::TrkrId::mvtxId:
+    case TrkrDefs::TrkrId::inttId:
+    {
+      return getSiliconSurface(hitsetkey);
+    }
+  }
+  
+  // unreachable
+  return nullptr;
+  
+}
+
+//___________________________________________________________________________________
+Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  return nullptr;
+
+}
+
+//___________________________________________________________________________________
+Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
+{
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  {
+    auto surfvec = iter->second;
+    return surfvec.at(surfkey);
+  }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+}
+
+//___________________________________________________________________________________
+Surface ActsEvaluator::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
+{
+  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+}
+
+
+void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
 {
 
   if(Verbosity() > 2)
     std::cout << "Filling proto track seed quantities" << std::endl;
-  
-  ActsExamples::TrackParameters params = track.getTrackParams();
-  std::vector<SourceLink> sourceLinks = track.getSourceLinks();
-  
-  Acts::Vector3D position = params.position(m_tGeometry->geoContext);
-  Acts::Vector3D momentum = params.momentum();
+
+  Acts::Vector3D position(track->get_x() * 10, track->get_y() * 10,
+			  track->get_z() * 10);
+ 
+  Acts::Vector3D momentum(track->get_px(), 
+			  track->get_py(),
+			  track->get_pz());
+
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);
   m_protoTrackPz = momentum(2);
@@ -828,27 +887,22 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
   m_protoTrackY  = position(1);
   m_protoTrackZ  = position(2);
 
-  auto cov = params.covariance().value();
-  m_protoD0Cov = cov(0,0);
-  m_protoZ0Cov = cov(1,1);
-  m_protoPhiCov = cov(2,2);
-  m_protoThetaCov = cov(3,3);
-  m_protoQopCov = cov(4,4);
-  
-
-  for(int i = 0; i < sourceLinks.size(); ++i)
+  for(SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+      clusIter != track->end_cluster_keys();
+      ++clusIter)
     {
+      auto key = *clusIter;
+      auto cluster = m_clusterContainer->findCluster(key);
+      
       /// Get source link global position
-      Acts::Vector2D loc(sourceLinks.at(i).location()(0),
-			 sourceLinks.at(i).location()(1));
+      Acts::Vector2D loc(cluster->getLocalX() * 10,
+			 cluster->getLocalY() * 10);
    
       Acts::Vector3D mom(0,0,0);
-      
-      Acts::Vector3D globalPos = sourceLinks.at(i).referenceSurface().localToGlobal(
-                                            m_tGeometry->geoContext,
-					    loc,
-					    mom);
-
+      Acts::Vector3D globalPos(cluster->getX() * 10,
+			       cluster->getY() * 10,
+			       cluster->getZ() * 10);
+   
       m_SLx.push_back(globalPos(0));
       m_SLy.push_back(globalPos(1));
       m_SLz.push_back(globalPos(2));
@@ -856,9 +910,10 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       m_SL_ly.push_back(loc(1));
       
       /// Get corresponding truth hit position
-      const unsigned int hitID = sourceLinks.at(i).cluskey();
       float gt = -9999;
-      Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, hitID, gt);
+  
+      Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, key, gt);
+ 
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
       float gz = globalTruthPos(2);
@@ -867,10 +922,12 @@ void ActsEvaluator::fillProtoTrack(ActsTrack track, PHCompositeNode *topNode)
       const float r = sqrt(gx * gx + gy * gy + gz * gz);
       Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
       
-      auto truthLocal = sourceLinks.at(i).referenceSurface().globalToLocal(
-					    m_tGeometry->geoContext,
-					    globalTruthPos,
-					    globalTruthUnitDir);
+      auto surf = getSurface(key, cluster->getSubSurfKey());
+
+      auto truthLocal = (*surf).globalToLocal(m_tGeometry->geoContext,
+					      globalTruthPos,
+					      globalTruthUnitDir);
+    
       if(truthLocal.ok())
 	{
 	  Acts::Vector2D truthLocalVec = truthLocal.value();
@@ -1065,6 +1122,13 @@ void ActsEvaluator::fillG4Particle(PHG4Particle *part)
 
 int ActsEvaluator::getNodes(PHCompositeNode *topNode)
 {
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "Acts surface maps not on node tree."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
@@ -1079,16 +1143,6 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
   if (!m_truthInfo)
   {
     std::cout << PHWHERE << "PHG4TruthInfoContainer not found, cannot continue!"
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
-
-  if (!m_hitIdClusKey)
-  {
-    std::cout << PHWHERE << "No HitID:ClusKey map on node tree. Bailing."
               << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1120,7 +1174,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     }
 
   m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-                     (topNode, "ActsFitResults");
+                     (topNode, "ActsTrajectories");
 
   if (!m_actsFitResults)
   {
@@ -1139,7 +1193,7 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsProtoTrackMap = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  m_actsProtoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SeedTrackMap");
   if (!m_actsProtoTrackMap)
     {
       std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
@@ -1147,6 +1201,13 @@ int ActsEvaluator::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  if(!m_clusterContainer)
+    {
+      std::cout << PHWHERE << "No clusters, bailing"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

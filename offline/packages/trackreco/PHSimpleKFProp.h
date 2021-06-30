@@ -38,7 +38,7 @@ class PHSimpleKFProp : public PHTrackPropagating
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override {}
+  virtual ~PHSimpleKFProp() {}
 
   //int InitRun(PHCompositeNode *topNode) override;
   //int process_event(PHCompositeNode *topNode) override;
@@ -97,8 +97,11 @@ class PHSimpleKFProp : public PHTrackPropagating
   size_t _min_clusters_per_track = 20;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
+  double _rz_outlier_threshold = .1;
+  double _xy_outlier_threshold = .1;
   void PrepareKDTrees();
   std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track);
+  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds);
   template <typename T>
   struct KDPointCloud
   {
@@ -131,9 +134,7 @@ class PHSimpleKFProp : public PHTrackPropagating
     }
   };
   std::vector<std::shared_ptr<KDPointCloud<double>>> _ptclouds;
-  std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>,
-                                                KDPointCloud<double>,3>>> _kdtrees;
-  
+  std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::shared_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z);
   void publishSeeds(std::vector<SvtxTrack_v2>);
