@@ -23,6 +23,7 @@ libphfield_la_LIBADD = \
   -lbmf
 
 pkginclude_HEADERS = \
+  PHField3DCartesian.h \
   PHFieldConfig.h \
   PHFieldConfigv1.h \
   PHFieldConfigv2.h \
