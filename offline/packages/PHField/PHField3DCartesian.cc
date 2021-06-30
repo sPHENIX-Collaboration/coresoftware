@@ -43,8 +43,8 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   }
   std::cout << "\n================ Begin Construct Mag Field =====================" << std::endl;
   std::cout << "\n-----------------------------------------------------------"
-       << "\n      Magnetic field Module - Verbosity:"
-       << "\n-----------------------------------------------------------";
+            << "\n      Magnetic field Module - Verbosity:"
+            << "\n-----------------------------------------------------------";
 
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
@@ -54,8 +54,8 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
     exit(1);
   }
   std::cout << "\n ---> "
-          "Reading the field grid from "
-       << filename << " ... " << std::endl;
+               "Reading the field grid from "
+            << filename << " ... " << std::endl;
   rootinput->cd();
 
   //  get root NTuple objects
@@ -107,22 +107,21 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   rootinput->Close();
 
   std::cout << "\n================= End Construct Mag Field ======================\n"
-       << std::endl;
+            << std::endl;
 }
 
 PHField3DCartesian::~PHField3DCartesian()
 {
   if (Verbosity() > 0)
   {
-     std::cout << "PHField3DCartesian: cache hits: " << cache_hits
-          << " cache misses: " << cache_misses
-          << std::endl;
+    std::cout << "PHField3DCartesian: cache hits: " << cache_hits
+              << " cache misses: " << cache_misses
+              << std::endl;
   }
 }
 
 void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) const
 {
-
   static double xsav = -1000000.;
   static double ysav = -1000000.;
   static double zsav = -1000000.;
@@ -140,17 +139,17 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     if (ifirst < 10)
     {
       std::cout << "PHField3DCartesian::GetFieldValue: "
-           << "Invalid coordinates: "
-           << "x: " << x/cm
-           << ", y: " << y/cm
-           << ", z: " << z/cm
-           << " bailing out returning zero bfield"
-           << std::endl;
+                << "Invalid coordinates: "
+                << "x: " << x / cm
+                << ", y: " << y / cm
+                << ", z: " << z / cm
+                << " bailing out returning zero bfield"
+                << std::endl;
       std::cout << "previous point: "
-           << "x: " << xsav/cm
-           << ", y: " << ysav/cm
-           << ", z: " << zsav/cm
-           << std::endl;
+                << "x: " << xsav / cm
+                << ", y: " << ysav / cm
+                << ", z: " << zsav / cm
+                << std::endl;
       ifirst++;
     }
     return;
@@ -168,7 +167,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   std::set<double>::const_iterator it = xvals.lower_bound(x);
   if (it == xvals.begin())
   {
-    std::cout << "x too small - outside range: " << x/cm << std::endl;
+    std::cout << "x too small - outside range: " << x / cm << std::endl;
     return;
   }
   double xkey[2];
@@ -179,7 +178,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   it = yvals.lower_bound(y);
   if (it == yvals.begin())
   {
-    std::cout << "y too small - outside range: " << y/cm << std::endl;
+    std::cout << "y too small - outside range: " << y / cm << std::endl;
     return;
   }
   double ykey[2];
@@ -190,7 +189,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   it = zvals.lower_bound(z);
   if (it == zvals.begin())
   {
-    std::cout << "z too small - outside range: " << z/cm << std::endl;
+    std::cout << "z too small - outside range: " << z / cm << std::endl;
     return;
   }
   double zkey[2];
@@ -220,8 +219,8 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           if (magval == fieldmap.end())
           {
             std::cout << "could not locate key, x: " << xkey[i] / cm
-                 << ", y: " << ykey[j] / cm
-                 << ", z: " << zkey[k] / cm << std::endl;
+                      << ", y: " << ykey[j] / cm
+                      << ", z: " << zkey[k] / cm << std::endl;
             return;
           }
           xyz[i][j][k][0] = (magval->first).get<0>();
@@ -230,15 +229,15 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           bf[i][j][k][0] = (magval->second).get<0>();
           bf[i][j][k][1] = (magval->second).get<1>();
           bf[i][j][k][2] = (magval->second).get<2>();
-	  if (Verbosity() > 0)
-	  {
-          std::cout << "read x/y/z: " << xyz[i][j][k][0]/cm << "/"
-               << xyz[i][j][k][1]/cm << "/"
-               << xyz[i][j][k][2]/cm << " bx/by/bz: "
-               << bf[i][j][k][0]/tesla << "/"
-               << bf[i][j][k][1]/tesla << "/"
-               << bf[i][j][k][2]/tesla << std::endl;
-	  }
+          if (Verbosity() > 0)
+          {
+            std::cout << "read x/y/z: " << xyz[i][j][k][0] / cm << "/"
+                      << xyz[i][j][k][1] / cm << "/"
+                      << xyz[i][j][k][2] / cm << " bx/by/bz: "
+                      << bf[i][j][k][0] / tesla << "/"
+                      << bf[i][j][k][1] / tesla << "/"
+                      << bf[i][j][k][2] / tesla << std::endl;
+          }
         }
       }
     }
@@ -248,19 +247,19 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     cache_hits++;
   }
 
-// how far are we away from the reference point
+  // how far are we away from the reference point
   double xinblock = point[0] - xkey[1];
   double yinblock = point[1] - ykey[1];
   double zinblock = point[2] - zkey[1];
-// normalize distance to step size
-  double fractionx = xinblock/xstepsize;
-  double fractiony = yinblock/ystepsize;
-  double fractionz = zinblock/zstepsize;
+  // normalize distance to step size
+  double fractionx = xinblock / xstepsize;
+  double fractiony = yinblock / ystepsize;
+  double fractionz = zinblock / zstepsize;
   if (Verbosity() > 0)
   {
-  std::cout << "x/y/z stepsize: " << xstepsize/cm << "/" << ystepsize/cm << "/" << zstepsize/cm << std::endl;
-  std::cout << "x/y/z inblock: " << xinblock/cm << "/" << yinblock/cm << "/" << zinblock/cm << std::endl;
-   std::cout << "x/y/z fraction: " << fractionx << "/" << fractiony << "/" << fractionz << std::endl;
+    std::cout << "x/y/z stepsize: " << xstepsize / cm << "/" << ystepsize / cm << "/" << zstepsize / cm << std::endl;
+    std::cout << "x/y/z inblock: " << xinblock / cm << "/" << yinblock / cm << "/" << zinblock / cm << std::endl;
+    std::cout << "x/y/z fraction: " << fractionx << "/" << fractiony << "/" << fractionz << std::endl;
   }
 
   // linear extrapolation in cube:
