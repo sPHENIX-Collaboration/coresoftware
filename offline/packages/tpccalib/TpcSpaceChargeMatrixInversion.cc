@@ -186,9 +186,9 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
   outputfile->cd();
 
-  // when using migromegas, one needs to extrapolate to the rest of the acceptance
-  if( m_use_micromegas )
+  if( m_do_extrapolation )
   {
+    // extrapolate from micromegas to full acceptance
     for( const auto& h: {hentries, hphi, hr, hz} )
     {
       if( !h ) continue;

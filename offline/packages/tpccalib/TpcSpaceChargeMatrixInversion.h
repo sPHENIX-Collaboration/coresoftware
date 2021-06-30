@@ -27,9 +27,9 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   ///@name modifiers
   //@{
 
-  /// set whether to use only tracks with micromegas or not
-  void set_use_micromegas( bool value )
-  { m_use_micromegas = value; }
+  /// set whether to extrapolate corrections from Micromegas to full acceptance
+  void set_do_extrapolation( bool value )
+  { m_do_extrapolation = value; }
 
   /// output file
   /**
@@ -55,7 +55,7 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   std::string m_outputfile = "DistortionCorrections.root";
 
   /// true if only tracks with micromegas must be used
-  bool m_use_micromegas = true;
+  bool m_do_extrapolation = true;
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
