@@ -75,24 +75,24 @@ PHField3DCartesian::PHField3DCartesian(const string &fname, const float magfield
   rootinput->cd();
 
   //  get root NTuple objects
-  TNtuple *field_map = (TNtuple *) gDirectory->Get("ntuple");
+  TNtuple *field_map = (TNtuple *) gDirectory->Get("fieldmap");
   Float_t ROOT_X, ROOT_Y, ROOT_Z;
   Float_t ROOT_BX, ROOT_BY, ROOT_BZ;
   field_map->SetBranchAddress("x", &ROOT_X);
   field_map->SetBranchAddress("y", &ROOT_Y);
   field_map->SetBranchAddress("z", &ROOT_Z);
-  field_map->SetBranchAddress("Bx", &ROOT_BX);
-  field_map->SetBranchAddress("By", &ROOT_BY);
-  field_map->SetBranchAddress("Bz", &ROOT_BZ);
+  field_map->SetBranchAddress("bx", &ROOT_BX);
+  field_map->SetBranchAddress("by", &ROOT_BY);
+  field_map->SetBranchAddress("bz", &ROOT_BZ);
 
   for (int i = 0; i < field_map->GetEntries(); i++)
   {
     field_map->GetEntry(i);
-    trio coord_key(ROOT_X * m, ROOT_Y * m, ROOT_Z * m);
+    trio coord_key(ROOT_X * cm, ROOT_Y * cm, ROOT_Z * cm);
     trio field_val(ROOT_BX * tesla, ROOT_BY * tesla, ROOT_BZ * tesla);
-    xvals.insert(ROOT_X * m);
-    yvals.insert(ROOT_Y * m);
-    zvals.insert(ROOT_Z * m);
+    xvals.insert(ROOT_X * cm);
+    yvals.insert(ROOT_Y * cm);
+    zvals.insert(ROOT_Z * cm);
     fieldmap[coord_key] = field_val;
   }
   xmin = *(xvals.begin());
@@ -135,10 +135,6 @@ PHField3DCartesian::~PHField3DCartesian()
 
 void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) const
 {
-  cout << "untested code - I don't know if this is being used, drop me a line (with the field) and I test this"
-       << endl
-       << "   Chris P." << endl;
-  assert(0);
 
   static double xsav = -1000000.;
   static double ysav = -1000000.;
@@ -158,15 +154,15 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     {
       cout << "PHField3DCartesian::GetFieldValue: "
            << "Invalid coordinates: "
-           << "x: " << x
-           << ", y: " << y
-           << ", z: " << z
+           << "x: " << x/cm
+           << ", y: " << y/cm
+           << ", z: " << z/cm
            << " bailing out returning zero bfield"
            << endl;
       cout << "previous point: "
-           << "x: " << xsav
-           << ", y: " << ysav
-           << ", z: " << zsav
+           << "x: " << xsav/cm
+           << ", y: " << ysav/cm
+           << ", z: " << zsav/cm
            << endl;
       ifirst++;
     }
@@ -185,7 +181,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   set<double>::const_iterator it = xvals.lower_bound(x);
   if (it == xvals.begin())
   {
-    cout << "x too small - outside range: " << x << endl;
+    cout << "x too small - outside range: " << x/cm << endl;
     return;
   }
   double xkey[2];
@@ -196,7 +192,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   it = yvals.lower_bound(y);
   if (it == yvals.begin())
   {
-    cout << "y too small - outside range: " << y << endl;
+    cout << "y too small - outside range: " << y/cm << endl;
     return;
   }
   double ykey[2];
@@ -207,7 +203,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   it = zvals.lower_bound(z);
   if (it == zvals.begin())
   {
-    cout << "z too small - outside range: " << z << endl;
+    cout << "z too small - outside range: " << z/cm << endl;
     return;
   }
   double zkey[2];
@@ -236,9 +232,9 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           magval = fieldmap.find(key);
           if (magval == fieldmap.end())
           {
-            cout << "could not locate key, x: " << xkey[i] / m
-                 << ", y: " << ykey[j] / m
-                 << ", z: " << zkey[k] / m << endl;
+            cout << "could not locate key, x: " << xkey[i] / cm
+                 << ", y: " << ykey[j] / cm
+                 << ", z: " << zkey[k] / cm << endl;
             return;
           }
           xyz[i][j][k][0] = (magval->first).get<0>();
@@ -247,12 +243,12 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           bf[i][j][k][0] = (magval->second).get<0>();
           bf[i][j][k][1] = (magval->second).get<1>();
           bf[i][j][k][2] = (magval->second).get<2>();
-          cout << "read x/y/z: " << xyz[i][j][k][0] << "/"
-               << xyz[i][j][k][1] << "/"
-               << xyz[i][j][k][2] << " bx/by/bz: "
-               << bf[i][j][k][0] << "/"
-               << bf[i][j][k][1] << "/"
-               << bf[i][j][k][2] << endl;
+          cout << "read x/y/z: " << xyz[i][j][k][0]/cm << "/"
+               << xyz[i][j][k][1]/cm << "/"
+               << xyz[i][j][k][2]/cm << " bx/by/bz: "
+               << bf[i][j][k][0]/tesla << "/"
+               << bf[i][j][k][1]/tesla << "/"
+               << bf[i][j][k][2]/tesla << endl;
         }
       }
     }
@@ -261,31 +257,39 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   {
     cache_hits++;
   }
-  // linear extrapolation in cube:
-  //Vxyz = 	V000 (1 - x) (1 - y) (1 - z) +
-  //V100 x (1 - y) (1 - z) +
-  //V010 (1 - x) y (1 - z) +
-  //V001 (1 - x) (1 - y) z +
-  //V101 x (1 - y) z +
-  //V011 (1 - x) y z +
-  //V110 x y (1 - z) +
-  //V111 x y z
 
   double xinblock = point[0] - xkey[1];
   double yinblock = point[1] - ykey[1];
   double zinblock = point[2] - zkey[1];
-  //   cout << "x/y/z stepsize: " << xstepsize << "/" << ystepsize << "/" << zstepsize << endl;
-  //   cout << "x/y/z inblock: " << xinblock << "/" << yinblock << "/" << zinblock << endl;
+     cout << "x/y/z stepsize: " << xstepsize/cm << "/" << ystepsize/cm << "/" << zstepsize/cm << endl;
+     cout << "x/y/z inblock: " << xinblock/cm << "/" << yinblock/cm << "/" << zinblock/cm << endl;
+     double fractionx = xinblock/xstepsize;
+     double fractiony = yinblock/ystepsize;
+     double fractionz = zinblock/zstepsize;
+     cout << "x/y/z fraction: " << fractionx << "/" << fractiony << "/" << fractionz << endl;
+
+  // linear extrapolation in cube:
+
+  //Vxyz =
+  //V000 * x * y * z +
+  //V100 * (1 - x) * y * z +
+  //V010 * x * (1 - y) * z +
+  //V001 * x y * (1 - z) +
+  //V101 * (1 - x) * y * (1 - z) +
+  //V011 * x * (1 - y) * (1 - z) +
+  //V110 * (1 - x) * (1 - y) * z +
+  //V111 * (1 - x) * (1 - y) * (1 - z)
+
   for (int i = 0; i < 3; i++)
   {
-    Bfield[i] = bf[0][0][0][i] * (xstepsize - xinblock) * (ystepsize - yinblock) * (zstepsize - zinblock) +
-                bf[1][0][0][i] * xinblock * (ystepsize - yinblock) * (zstepsize - zinblock) +
-                bf[0][1][0][i] * (xstepsize - xinblock) * yinblock * (zstepsize - zinblock) +
-                bf[0][0][1][i] * (xstepsize - xinblock) * (ystepsize - yinblock) * zinblock +
-                bf[1][0][1][i] * xinblock * (ystepsize - yinblock) * zinblock +
-                bf[0][1][1][i] * (xstepsize - xinblock) * yinblock * zinblock +
-                bf[1][1][0][i] * xinblock * yinblock * (zstepsize - zinblock) +
-                bf[1][1][1][i] * xinblock * yinblock * zinblock;
+    Bfield[i] = bf[0][0][0][i] * fractionx * fractiony * fractionz +
+                bf[1][0][0][i] * (1. - fractionx) * fractiony * fractionz +
+                bf[0][1][0][i] * fractionx * (1. - fractiony) * fractionz +
+                bf[0][0][1][i] * fractionx * fractiony * (1. - fractionz) +
+                bf[1][0][1][i] * (1. - fractionx) * fractiony * (1. - fractionz) +
+                bf[0][1][1][i] * fractionx * (1. - fractiony) * (1. - fractionz) +
+                bf[1][1][0][i] * (1. - fractionx) * (1. - fractiony) * fractionz +
+                bf[1][1][1][i] * (1. - fractionx) * (1. - fractiony) * (1. - fractionz);
   }
 
   return;
