@@ -87,6 +87,8 @@ class PHG4InnerHcalDetector : public PHG4Detector
 
   int m_NumScintiPlates;
   int m_NumScintiTiles;
+  int m_NumScintiTilesPos;
+  int m_NumScintiTilesNeg;
 
   int m_Active;
   int m_AbsorberActive;

@@ -415,9 +415,15 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
   pars->FillFrom(saveparams, 0);
   set_int_param(PHG4HcalDefs::scipertwr, pars->get_int_param(PHG4HcalDefs::scipertwr));
   set_int_param(PHG4HcalDefs::n_towers, pars->get_int_param(PHG4HcalDefs::n_towers));
-  set_int_param("etabins", 2 * pars->get_int_param(PHG4HcalDefs::n_scinti_tiles));
   set_double_param(PHG4HcalDefs::innerrad, pars->get_double_param(PHG4HcalDefs::innerrad));
   set_double_param(PHG4HcalDefs::outerrad, pars->get_double_param(PHG4HcalDefs::outerrad));
+
+  int nTiles = 2 * pars->get_int_param(PHG4HcalDefs::n_scinti_tiles); 
+  if(nTiles <= 0){
+    nTiles = pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_pos) + pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_neg);    
+  }
+  set_int_param("etabins", nTiles);
+
   delete pars;
   return;
 }
