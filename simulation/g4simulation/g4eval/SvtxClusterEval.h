@@ -74,7 +74,7 @@ class SvtxClusterEval
   std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Hit* truthhit);
   TrkrDefs::cluskey best_cluster_from(PHG4Hit* truthhit);
   TrkrDefs::cluskey best_cluster_by_nhit(int gid, int layer);
-
+  void FillRecoClusterFromG4HitCache();
   // overlap calculations
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
