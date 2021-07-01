@@ -1034,6 +1034,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             {
               cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
             }
+            if(_nHitsLayers > _maxNHits){
+              cout << __PRETTY_FUNCTION__ << " exceededed maximum hit array size! Please check where these hits come from!" << endl;
+              break;
+            }
             _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
             _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
             _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
