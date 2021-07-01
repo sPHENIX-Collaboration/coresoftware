@@ -345,7 +345,7 @@ class EventEvaluator : public SubsysReco
   void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
   void resetBuffer();                                     ///< reset the tree variables before filling for a new event
 
-  const int _maxNHits = 5000;
+  const int _maxNHits = 10000;
   const int _maxNTowers = 50 * 50;
   const int _maxNTowersCentral = 2000;
   const int _maxNTowersDR = 3000 * 3000;
