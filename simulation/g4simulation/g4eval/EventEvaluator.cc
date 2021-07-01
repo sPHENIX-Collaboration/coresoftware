@@ -1012,85 +1012,88 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     PHG4TruthInfoContainer* truthinfocontainerHits = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     for (int iIndex = 0; iIndex < 60; ++iIndex)
     {
-      if (GetProjectionNameFromIndex(iIndex).find("NOTHING") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("FHCAL") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("EHCAL") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("FEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("CEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("EEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("HCALIN") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("HCALOUT") != std::string::npos) continue;
-      string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
-      PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-      if (hits)
-      {
-        if (Verbosity() > 1)
-        {
-          cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
-        }
-        PHG4HitContainer::ConstRange hit_range = hits->getHits();
-        for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
+      // you need to add your layer name here to be saved! This has to be done
+      // as we do not want to save thousands of calorimeter hits!
+      if ((GetProjectionNameFromIndex(iIndex).find("TTL") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("LBLVTX") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("BARREL") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("FST") != std::string::npos)
+      ){
+        string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
+        PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+        if (hits)
         {
           if (Verbosity() > 1)
           {
-            cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+            cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
           }
-          _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
-          _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
-          _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
-          _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
-          _hits_layerID[_nHitsLayers] = iIndex;
-          if (truthinfocontainerHits)
+          PHG4HitContainer::ConstRange hit_range = hits->getHits();
+          for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
           {
-            PHG4Particle* particle = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-
-            if (particle->get_parent_id() != 0)
+            if (Verbosity() > 1)
             {
-              PHG4Particle* g4particleMother = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-              int mcSteps = 0;
-              while (g4particleMother->get_parent_id() != 0)
+              cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+            }
+            _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
+            _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
+            _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
+            _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
+            _hits_layerID[_nHitsLayers] = iIndex;
+            if (truthinfocontainerHits)
+            {
+              PHG4Particle* particle = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+
+              if (particle->get_parent_id() != 0)
               {
-                g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
-                if (g4particleMother == NULL) break;
-                mcSteps += 1;
-              }
-              if (mcSteps <= _depth_MCstack)
-              {
-                _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+                PHG4Particle* g4particleMother = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+                int mcSteps = 0;
+                while (g4particleMother->get_parent_id() != 0)
+                {
+                  g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
+                  if (g4particleMother == NULL) break;
+                  mcSteps += 1;
+                }
+                if (mcSteps <= _depth_MCstack)
+                {
+                  _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+                }
+                else
+                {
+                  PHG4Particle* g4particleMother2 = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+                  int mcSteps2 = 0;
+                  while (g4particleMother2->get_parent_id() != 0 && (mcSteps2 < (mcSteps - _depth_MCstack + 1)))
+                  {
+                    g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
+                    if (g4particleMother2 == NULL){
+                      break;
+                    } else {
+                      _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+                      mcSteps2 += 1;
+                    }
+                  }
+                }
               }
               else
               {
-                PHG4Particle* g4particleMother2 = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-                int mcSteps2 = 0;
-                while (g4particleMother2->get_parent_id() != 0 && (mcSteps2 < (mcSteps - _depth_MCstack + 1)))
-                {
-                  g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
-                  if (g4particleMother2 == NULL) break;
-                  mcSteps2 += 1;
-                }
-                _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+                _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
               }
             }
-            else
-            {
-              _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
-            }
-          }
-          _nHitsLayers++;
+            _nHitsLayers++;
 
+          }
+          if (Verbosity() > 0)
+          {
+            cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;
+          }
         }
-        if (Verbosity() > 0)
+        else
         {
-          cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;
+          if (Verbosity() > 0)
+          {
+            cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+          }
+          continue;
         }
-      }
-      else
-      {
-        if (Verbosity() > 0)
-        {
-          cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
-        }
-        continue;
       }
     }
   }
@@ -2838,7 +2841,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                   _hepmcp_m1[_nHepmcp] = (*mother)->barcode();
               }
             }
-            if (Verbosity() > 2)cout << "nHepmcp " << _nHepmcp << "\tPDG " << _hepmcp_PDG[_nHepmcp] << "\tbarcode " << _hepmcp_BCID[_nHepmcp] << "\tMother1 " << _hepmcp_m1[_nHepmcp]<< "\tMother2 " << _hepmcp_m2[_nHepmcp] << endl;
+            if (Verbosity() > 2) cout << "nHepmcp " << _nHepmcp << "\tPDG " << _hepmcp_PDG[_nHepmcp] << "\tEnergy " << _hepmcp_E[_nHepmcp] << "\tbarcode " << _hepmcp_BCID[_nHepmcp] << "\tMother1 " << _hepmcp_m1[_nHepmcp]<< "\tMother2 " << _hepmcp_m2[_nHepmcp] << endl;
             _nHepmcp++;
           }
         }
