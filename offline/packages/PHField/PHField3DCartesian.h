@@ -3,9 +3,9 @@
 
 #include "PHField.h"
 
+#include <cmath>
 #include <string>
 
-//! untested code - I don't know if this is being used, drop me a line (with the field) and I test this - Chris P.
 class PHField3DCartesian : public PHField
 {
  public:
@@ -18,26 +18,26 @@ class PHField3DCartesian : public PHField
   //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in in Geant4/CLHEP units
   void GetFieldValue(const double Point[4], double *Bfield) const override;
 
- protected:
+ private:
   std::string filename;
-  double xmin;
-  double xmax;
-  double ymin;
-  double ymax;
-  double zmin;
-  double zmax;
-  double xstepsize;
-  double ystepsize;
-  double zstepsize;
+  double xmin = 1000000;
+  double xmax = -1000000;
+  double ymin = 1000000;
+  double ymax = -1000000;
+  double zmin = 1000000;
+  double zmax = -1000000;
+  double xstepsize = NAN;
+  double ystepsize = NAN;
+  double zstepsize = NAN;
   // these are updated in a const method
   // to cache previous values
   mutable double xyz[2][2][2][3];
   mutable double bf[2][2][2][3];
-  mutable double xkey_save;
-  mutable double ykey_save;
-  mutable double zkey_save;
-  mutable int cache_hits;
-  mutable int cache_misses;
+  mutable double xkey_save = NAN;
+  mutable double ykey_save = NAN;
+  mutable double zkey_save = NAN;
+  mutable int cache_hits = 0;
+  mutable int cache_misses = 0;
 };
 
 #endif
