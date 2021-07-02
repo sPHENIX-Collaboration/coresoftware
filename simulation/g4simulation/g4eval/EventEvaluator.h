@@ -49,6 +49,7 @@ class EventEvaluator : public SubsysReco
 
   void set_do_store_event_level_info(bool b) { _do_store_event_info = b; }
   void set_do_FHCAL(bool b) { _do_FHCAL = b; }
+  void set_do_BECAL(bool b) { _do_BECAL = b; }
   void set_do_HCALIN(bool b) { _do_HCALIN = b; }
   void set_do_HCALOUT(bool b) { _do_HCALOUT = b; }
   void set_do_EHCAL(bool b) { _do_EHCAL = b; }
@@ -74,6 +75,10 @@ class EventEvaluator : public SubsysReco
   {
     _reco_e_threshold = thresh;
   }
+  void set_reco_tracing_energy_threshold_BECAL(float thresh)
+  {
+    _reco_e_threshold_BECAL = thresh;
+  }
 
   //! max depth/generation of the MC_particle/PHG4Particle that would be saved.
   void set_depth_MCstack(int d)
@@ -84,6 +89,7 @@ class EventEvaluator : public SubsysReco
  private:
   bool _do_store_event_info;
   bool _do_FHCAL;
+  bool _do_BECAL;
   bool _do_HCALIN;
   bool _do_HCALOUT;
   bool _do_EHCAL;
@@ -123,6 +129,13 @@ class EventEvaluator : public SubsysReco
   int* _tower_FHCAL_iEta;
   int* _tower_FHCAL_iPhi;
   int* _tower_FHCAL_trueID;
+
+  // towers
+  int _nTowers_BECAL;
+  float* _tower_BECAL_E;
+  int* _tower_BECAL_iEta;
+  int* _tower_BECAL_iPhi;
+  int* _tower_BECAL_trueID;
 
   // towers
   int _nTowers_HCALIN;
@@ -312,9 +325,11 @@ class EventEvaluator : public SubsysReco
   int* _geometry_done;
 
   float _reco_e_threshold;
+  float _reco_e_threshold_BECAL;
   int _depth_MCstack;
 
   CaloEvalStack* _caloevalstackFHCAL;
+  CaloEvalStack* _caloevalstackBECAL;
   CaloEvalStack* _caloevalstackHCALIN;
   CaloEvalStack* _caloevalstackHCALOUT;
   CaloEvalStack* _caloevalstackEHCAL;
@@ -367,7 +382,8 @@ class EventEvaluator : public SubsysReco
       kHCALIN       = 6,
       kHCALOUT       = 7,
       kLFHCAL        = 8,
-      kEEMCG         = 9
+      kEEMCG         = 9,
+      kBECAL         = 10
   };
 
 };
