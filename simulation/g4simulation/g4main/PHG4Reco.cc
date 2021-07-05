@@ -944,12 +944,6 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   PMMA->AddElement(G4Element::GetElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
   PMMA->AddElement(G4Element::GetElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
 
-  G4Material *sciglass = new G4Material("sciglass", density = 4.22 * g / cm3, ncomponents = 4,  kStateSolid);
-  sciglass->AddElement(G4Element::GetElement("Ba"), 0.3875);
-  sciglass->AddElement(G4Element::GetElement("Gd"), 0.2146);
-  sciglass->AddElement(G4Element::GetElement("Si"), 0.1369);
-  sciglass->AddElement(G4Element::GetElement("O"),  0.2610);
-
   G4Material *G10 =
       new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
   G10->AddElement(G4Element::GetElement("Si"), natoms = 1);
