@@ -1,4 +1,4 @@
-#include "RawTowerBuilderByHitIndex.h"
+#include "RawTowerBuilderByHitIndexBECAL.h"
 
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerv1.h>
@@ -6,7 +6,7 @@
 #include <calobase/RawTower.h>                 // for RawTower
 #include <calobase/RawTowerDefs.h>             // for convert_name_to_caloid
 #include <calobase/RawTowerGeom.h>             // for RawTowerGeom
-#include <calobase/RawTowerGeomv3.h>
+#include <calobase/RawTowerGeomv4.h>
 #include <calobase/RawTowerGeomContainer.h>    // for RawTowerGeomContainer
 #include <calobase/RawTowerGeomContainerv1.h>
 
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-RawTowerBuilderByHitIndex::RawTowerBuilderByHitIndex(const std::string &name)
+RawTowerBuilderByHitIndexBECAL::RawTowerBuilderByHitIndexBECAL(const std::string &name)
   : SubsysReco(name)
   , m_Towers(nullptr)
   , m_Geoms(nullptr)
@@ -55,7 +55,7 @@ RawTowerBuilderByHitIndex::RawTowerBuilderByHitIndex(const std::string &name)
 {
 }
 
-int RawTowerBuilderByHitIndex::InitRun(PHCompositeNode *topNode)
+int RawTowerBuilderByHitIndexBECAL::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -91,7 +91,7 @@ int RawTowerBuilderByHitIndex::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
+int RawTowerBuilderByHitIndexBECAL::process_event(PHCompositeNode *topNode)
 {
   // get hits
   string NodeNameHits = "G4HIT_" + m_Detector;
@@ -113,7 +113,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
     // Don't include hits with zero energy
     if (g4hit_i->get_edep() <= 0 && g4hit_i->get_edep() != -1) continue;
 
-    /* encode CaloTowerID from j, k index of tower / hit and calorimeter ID */
+    /* encode CaloTowerID from j, k indexBECAL of tower / hit and calorimeter ID */
     RawTowerDefs::keytype calotowerid = RawTowerDefs::encode_towerid(m_CaloId,
                                                                      g4hit_i->get_index_j(),
                                                                      g4hit_i->get_index_k());
@@ -157,32 +157,32 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerBuilderByHitIndex::End(PHCompositeNode *topNode)
+int RawTowerBuilderByHitIndexBECAL::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawTowerBuilderByHitIndex::Detector(const std::string &d)
+void RawTowerBuilderByHitIndexBECAL::Detector(const std::string &d)
 {
   m_Detector = d;
   m_CaloId = RawTowerDefs::convert_name_to_caloid(m_Detector);
 }
 
-void RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
+void RawTowerBuilderByHitIndexBECAL::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cerr << PHWHERE << "Run Node missing, doing nothing." << std::endl;
-    throw std::runtime_error("Failed to find Run node in RawTowerBuilderByHitIndex::CreateNodes");
+    throw std::runtime_error("Failed to find Run node in RawTowerBuilderByHitIndexBECAL::CreateNodes");
   }
 
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    throw std::runtime_error("Failed to find DST node in RawTowerBuilderByHitIndex::CreateNodes");
+    throw std::runtime_error("Failed to find DST node in RawTowerBuilderByHitIndexBECAL::CreateNodes");
   }
 
   // Create the tower geometry node on the tree
@@ -221,7 +221,7 @@ void RawTowerBuilderByHitIndex::CreateNodes(PHCompositeNode *topNode)
   return;
 }
 
-bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
+bool RawTowerBuilderByHitIndexBECAL::ReadGeometryFromTable()
 {
   /* Stream to read table from file */
   ifstream istream_mapping;
@@ -246,116 +246,59 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
     {
       if (Verbosity() > 0)
       {
-        cout << "RawTowerBuilderByHitIndex: SKIPPING line in mapping file: " << line_mapping << endl;
+        cout << "RawTowerBuilderByHitIndexBECAL: SKIPPING line in mapping file: " << line_mapping << endl;
       }
       continue;
     }
 
+    unsigned idphi_j, ideta_k;
+    double cx, cy, cz;
+    double rot_y, rot_z;
+    std::string dummys;
     istringstream iss(line_mapping);
-
-     /* If line starts with keyword Tower, add to tower positions */
-    if (line_mapping.find("Tower ") != string::npos)
+ 
+    if (!(iss >> dummys >> idphi_j >> ideta_k >> cx >> cy >> cz >> rot_y >> rot_z))
     {
-      unsigned idx_j, idx_k, idx_l;
-      double pos_x, pos_y, pos_z;
-      double size_x, size_y, size_z;
-      double rot_x, rot_y, rot_z;
-      double type;
-      string dummys;
-
-      /* read string- break if error */
-      if (!(iss >> dummys >> type >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
-      {
-        cerr << "ERROR in RawTowerBuilderByHitIndex: Failed to read line in mapping file " << m_MappingTowerFile << endl;
-        exit(1);
-      }
-
-      /* Construct unique Tower ID */
-      unsigned int temp_id = RawTowerDefs::encode_towerid(m_CaloId, idx_j, idx_k);
-
-      /* Create tower geometry object */
-      RawTowerGeom *temp_geo = new RawTowerGeomv3(temp_id);
-      temp_geo->set_center_x(pos_x);
-      temp_geo->set_center_y(pos_y);
-      temp_geo->set_center_z(pos_z);
-      temp_geo->set_size_x(size_x);
-      temp_geo->set_size_y(size_y);
-      temp_geo->set_size_z(size_z);
-      temp_geo->set_tower_type((int) type);
-
-      /* Insert this tower into position map */
-      m_Geoms->add_tower_geometry(temp_geo);
+      std::cout << "ERROR in PHG4ForwardHcalDetector: Failed to read line in mapping file " <<  m_MappingTowerFile << std::endl;
+      exit(1);
     }
-    /* If line does not start with keyword Tower, read as parameter */
-    else
-    {
-      /* If this line is not a comment and not a tower, save parameter as string / value. */
-      string parname;
-      double parval;
 
-      /* read string- break if error */
-      if (!(iss >> parname >> parval))
-      {
-        cerr << "ERROR in RawTowerBuilderByHitIndex: Failed to read line in mapping file " << m_MappingTowerFile << endl;
-        exit(1);
-      }
+    /* Construct unique Tower ID */
+    unsigned int temp_id = RawTowerDefs::encode_towerid(m_CaloId, idphi_j, ideta_k);
 
-      m_GlobalParameterMap.insert(make_pair(parname, parval));
-    }
+    /* Create tower geometry object */
+    RawTowerGeom *temp_geo = new RawTowerGeomv4(temp_id);
+    temp_geo->set_center_x(cx);
+    temp_geo->set_center_y(cy);
+    temp_geo->set_center_z(cz);
+    temp_geo->set_roty(rot_y);
+    temp_geo->set_rotz(rot_z);
+    
+    m_Geoms->add_tower_geometry(temp_geo);
   }
     
-  /* Update member variables for global parameters based on parsed parameter file */
-  std::map<string, double>::iterator parit;
-
-  parit = m_GlobalParameterMap.find("Gx0");
-  if (parit != m_GlobalParameterMap.end())
-    m_GlobalPlaceInX = parit->second;
-
-  parit = m_GlobalParameterMap.find("Gy0");
-  if (parit != m_GlobalParameterMap.end())
-    m_GlobalPlaceInY = parit->second;
-
-  parit = m_GlobalParameterMap.find("Gz0");
-  if (parit != m_GlobalParameterMap.end())
-    m_GlobalPlaceInZ = parit->second;
-
-  parit = m_GlobalParameterMap.find("Grot_x");
-  if (parit != m_GlobalParameterMap.end())
-    m_RotInX = parit->second;
-
-  parit = m_GlobalParameterMap.find("Grot_y");
-  if (parit != m_GlobalParameterMap.end())
-    m_RotInY = parit->second;
-
-  parit = m_GlobalParameterMap.find("Grot_z");
-  if (parit != m_GlobalParameterMap.end())
-    m_RotInZ = parit->second;
-
-  /* Correct tower geometries for global calorimter translation / rotation 
-  * after reading parameters from file */
   RawTowerGeomContainer::ConstRange all_towers = m_Geoms->get_tower_geometries();
-
+   
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
-    it != all_towers.second; ++it)
+   it != all_towers.second; ++it)
   {
     double x_temp = it->second->get_center_x();
     double y_temp = it->second->get_center_y();
     double z_temp = it->second->get_center_z();
-
+        
+    TVector3 v_temp_r1(x_temp, y_temp, z_temp);
+        
     /* Rotation */
     TRotation rot;
-    rot.RotateX(m_RotInX);
-    rot.RotateY(m_RotInY);
-    rot.RotateZ(m_RotInZ);
+    rot.RotateY(it->second->get_roty());
+    rot.RotateZ(it->second->get_rotz());
+   
+    v_temp_r1.Transform(rot);
 
-    TVector3 v_temp_r(x_temp, y_temp, z_temp);
-    v_temp_r.Transform(rot);
-
-    /* Translation */
-    double x_temp_rt = v_temp_r.X() + m_GlobalPlaceInX;
-    double y_temp_rt = v_temp_r.Y() + m_GlobalPlaceInY;
-    double z_temp_rt = v_temp_r.Z() + m_GlobalPlaceInZ;
-
+    double x_temp_rt = v_temp_r1.X();
+    double y_temp_rt = v_temp_r1.Y();
+    double z_temp_rt = v_temp_r1.Z();
+   
     /* Update tower geometry object */
     it->second->set_center_x(x_temp_rt);
     it->second->set_center_y(y_temp_rt);
@@ -364,13 +307,14 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
     if (Verbosity() > 2)
     {
       cout << "* Local tower x y z : " << x_temp << " " << y_temp << " " << z_temp << endl;
-      cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << endl;
+      cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << endl;      
     }
   }
-  
   if (Verbosity())
   {
     cout << "size tower geom container:" << m_Geoms->size() << "\t" << m_Detector << endl;
   }
+
   return true;
+
 }

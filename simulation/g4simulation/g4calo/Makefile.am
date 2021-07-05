@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
   RawTowerBuilderByHitIndexLHCal.h \
+  RawTowerBuilderByHitIndexBECAL.h \
   RawTowerBuilderDRCALO.h \
   RawTowerDigitizer.h 
 libg4calo_la_SOURCES = \
@@ -25,6 +26,7 @@ libg4calo_la_SOURCES = \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
   RawTowerBuilderByHitIndexLHCal.cc \
+  RawTowerBuilderByHitIndexBECAL.cc \
   RawTowerBuilderDRCALO.cc \
   RawTowerDigitizer.cc 
   
