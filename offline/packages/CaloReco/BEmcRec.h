@@ -21,8 +21,6 @@ typedef struct TowerGeom
   float dX[2];  // Tower i-th trans. dimension spread in global coord X
   float dY[2];
   float dZ[2];
-  int T_type;
-  float z_size;
   
 } TowerGeom;
 
@@ -46,7 +44,7 @@ class BEmcRec
     fNy = ny;
   }
 
-  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz, int t_t, float z_s);
+  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
   bool GetTowerGeometry(int ix, int iy, TowerGeom &geom);
   bool CompleteTowerGeometry();
   void PrintTowerGeometry(const std::string &fname);
@@ -56,12 +54,16 @@ class BEmcRec
   bool isCylindrical() const { return bCYL; }
 
   void SetProfileProb(bool bprob) { bProfileProb = bprob; }
+  void SetCalotype(int caloid) { Calorimeter_ID = caloid; }
+  void SetScinSize(float S_S) { Scin_size = S_S; }
 
   int GetNx() const { return fNx; }
   int GetNy() const { return fNy; }
+  int GetCalotype() const { return Calorimeter_ID; }
+  float GetScinSize() const { return Scin_size; }
   float GetVx() const { return fVx; }
   float GetVy() const { return fVy; }
-  float GetVz() const { return fVz; }
+  float GetVz() const { return fVz; }  
   void SetPeakThreshold(float Thresh) { fgMinPeakEnergy = Thresh; }
   float GetPeakThreshold() { return fgMinPeakEnergy; }
   void SetTowerThreshold(float Thresh) { fgTowerThresh = Thresh; }
@@ -115,7 +117,7 @@ class BEmcRec
   static void ZeroVector(int *, int);
   static void ZeroVector(float *, int);
   static void ZeroVector(EmcModule *, int);
-  float Scin_size;
+
   
  protected:
   // Geometry
@@ -140,6 +142,8 @@ class BEmcRec
 
  private:
   std::string m_ThisName;
+  int Calorimeter_ID;
+  float Scin_size;
   // the default copy ctor will not work
   // we do not use a copy ctor, so just delete it
   BEmcRec(const BEmcRec &) = delete;

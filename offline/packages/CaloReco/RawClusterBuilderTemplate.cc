@@ -158,6 +158,9 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int Calo_ID = towergeom->get_calorimeter_id();
+  // cout << endl << endl << endl << "Calorimeter ID: " << Calo_ID << endl << endl << endl;
+  
   int ngeom = 0;
   int ixmin = 999999;
   int ixmax = -999999;
@@ -177,12 +180,11 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     if (iymax < iy) iymax = iy;
     ngeom++;
   }
-  if (Verbosity() > 1){
-    cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
+  cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
        << detector << ": N of geom towers: " << ngeom << "; ix = "
        << ixmin << "-" << ixmax << ", iy = "
        << iymin << "-" << iymax << endl;
-  }
+
   if (ixmax < ixmin || iymax < iymin)
   {
     cout << "Error in RawClusterBuilderTemplate::InitRun(): wrong geometry data for detector "
@@ -208,7 +210,16 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     int iy = RawTowerDefs::decode_index1(towerid);  // index1 is eta in CYL
     ix -= BINX0;
     iy -= BINY0;
-    bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z(), towerg->get_tower_type(), towerg->get_size_z());
+
+    float s_size = 0.;
+    if( !(towerg->get_size_z()) )
+      s_size = 0.;
+    else
+      s_size = towerg->get_size_z();
+    
+    bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
+    bemc->SetCalotype(Calo_ID);
+    bemc->SetScinSize(s_size);
   }
 
   if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;
