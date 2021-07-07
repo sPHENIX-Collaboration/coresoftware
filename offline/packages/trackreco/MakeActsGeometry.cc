@@ -534,9 +534,14 @@ void MakeActsGeometry::buildActsSurfaces()
   /// Alter args if using field map
   if(m_magField.find(".root") != std::string::npos)
     {
+      if(m_magField.find("2d") != std::string::npos)
+	{        
+	  m_magFieldRescale = 1;
+	}
+      
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/Field/Map/sphenix3dbigmapxyz.root");
-
+      
       argstr[8] = "--bf-map";
       argstr[9] = m_magField;
       argstr[10]= "--bf-name";
