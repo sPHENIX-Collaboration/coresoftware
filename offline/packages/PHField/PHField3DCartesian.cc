@@ -73,7 +73,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   {
     field_map->GetEntry(i);
     trio coord_key(ROOT_X * cm, ROOT_Y * cm, ROOT_Z * cm);
-    trio field_val(ROOT_BX * tesla, ROOT_BY * tesla, ROOT_BZ * tesla);
+    trio field_val(ROOT_BX * tesla * magfield_rescale, ROOT_BY * tesla * magfield_rescale, ROOT_BZ * tesla * magfield_rescale);
     xvals.insert(ROOT_X * cm);
     yvals.insert(ROOT_Y * cm);
     zvals.insert(ROOT_Z * cm);
@@ -88,12 +88,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   {
     std::cout << "PHField3DCartesian: Compiler bug!!!!!!!! Do not use inlining!!!!!!" << std::endl;
     std::cout << "exiting now - recompile with -fno-inline" << std::endl;
-    exit(1);
-  }
-
-  if (magfield_rescale != 1.0)
-  {
-    std::cout << "PHField3DCartesian: Rescale not implemented" << std::endl;
     exit(1);
   }
 
