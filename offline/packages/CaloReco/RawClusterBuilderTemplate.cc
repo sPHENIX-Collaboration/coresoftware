@@ -160,7 +160,7 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
 
   int Calo_ID = towergeom->get_calorimeter_id();
   // cout << endl << endl << endl << "Calorimeter ID: " << Calo_ID << endl << endl << endl;
-  
+
   int ngeom = 0;
   int ixmin = 999999;
   int ixmax = -999999;
@@ -180,11 +180,13 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     if (iymax < iy) iymax = iy;
     ngeom++;
   }
-  cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
-       << detector << ": N of geom towers: " << ngeom << "; ix = "
-       << ixmin << "-" << ixmax << ", iy = "
-       << iymin << "-" << iymax << endl;
-
+  if (Verbosity() > 1)
+  {
+    cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
+         << detector << ": N of geom towers: " << ngeom << "; ix = "
+         << ixmin << "-" << ixmax << ", iy = "
+         << iymin << "-" << iymax << endl;
+  }
   if (ixmax < ixmin || iymax < iymin)
   {
     cout << "Error in RawClusterBuilderTemplate::InitRun(): wrong geometry data for detector "
@@ -211,15 +213,14 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     ix -= BINX0;
     iy -= BINY0;
 
-    float s_size = 0.;
-    if( !(towerg->get_size_z()) )
-      s_size = 0.;
-    else
-      s_size = towerg->get_size_z();
-    
     bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
     bemc->SetCalotype(Calo_ID);
-    bemc->SetScinSize(s_size);
+    if (Calo_ID == 4 ||
+        Calo_ID == 9 ||
+        Calo_ID == 10)
+    {
+      bemc->SetScinSize(towerg->get_size_z());
+    }
   }
 
   if (!bemc->CompleteTowerGeometry()) return Fun4AllReturnCodes::ABORTEVENT;
@@ -290,12 +291,12 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   float vx = 0;
   float vy = 0;
   float vz = 0;
-  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");  
+  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (vertexmap)
   {
     if (!vertexmap->empty())
     {
-      GlobalVertex* vertex = (vertexmap->begin()->second);
+      GlobalVertex *vertex = (vertexmap->begin()->second);
       vx = vertex->get_x();
       vy = vertex->get_y();
       vz = vertex->get_z();
@@ -320,7 +321,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   EmcModule vhit;
   std::vector<EmcModule> HitList;
   HitList.erase(HitList.begin(), HitList.end());
-  int ich, ix, iy;
+  int ich;
 
   for (; itr != begin_end.second; ++itr)
   {
@@ -450,8 +451,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       while (ph != hlist.end())
       {
         ich = (*ph).ich;
-        iy = ich / NBINX;
-        ix = ich % NBINX;
+        int iy = ich / NBINX;
+        int ix = ich % NBINX;
         // that code needs a closer look - here are the towers
         // with their energy added to the cluster object where
         // the id is the tower id
