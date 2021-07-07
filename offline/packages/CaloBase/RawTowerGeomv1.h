@@ -41,9 +41,6 @@ class RawTowerGeomv1 : public RawTowerGeom
     return;
   }
 
-  double get_size_z() const override { return 0.; }
-
-    
   double get_center_x() const override { return _center_x; }
   double get_center_y() const override { return _center_y; }
   double get_center_z() const override { return _center_z; }
