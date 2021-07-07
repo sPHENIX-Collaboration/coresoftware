@@ -215,9 +215,9 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
 
     bemc->SetTowerGeometry(ix, iy, towerg->get_center_x(), towerg->get_center_y(), towerg->get_center_z());
     bemc->SetCalotype(Calo_ID);
-    if (Calo_ID == 4 ||
-        Calo_ID == 9 ||
-        Calo_ID == 10)
+    if (Calo_ID == RawTowerDefs::EEMC ||
+        Calo_ID == RawTowerDefs::EEMC_crystal ||
+        Calo_ID == RawTowerDefs::EEMC_glass)
     {
       bemc->SetScinSize(towerg->get_size_z());
     }

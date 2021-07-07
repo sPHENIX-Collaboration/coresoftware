@@ -3,27 +3,20 @@
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
+#include <calobase/RawTowerDefs.h>
+
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 BEmcRecEEMC::BEmcRecEEMC()
-//  : _emcprof(nullptr)
 {
   Name("BEmcRecEEMC");
   SetPlanarGeometry();
 }
 
-BEmcRecEEMC::~BEmcRecEEMC()
-{
-  // you can delete null pointers
-  //  delete _emcprof;
-}
-
 void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
-  //  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
+  //  std::cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << std::endl;
   _emcprof = new BEmcProfile(fname);
 }
 
@@ -56,16 +49,16 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   // Original one:[-9, -6.1, -0.91] also for the lead tungsten
 
   int C_ID = BEmcRec::GetCalotype();
-  //  cout << "Success pass data(ID): " << C_ID << endl;
+  //  std::cout << "Success pass data(ID): " << C_ID << std::endl;
 
   
-  if( (C_ID == 4) || (C_ID == 9) )
+  if( (C_ID == RawTowerDefs::EEMC) || (C_ID == RawTowerDefs::EEMC_crystal) )
     {
       const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
       const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
       const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)      
 
-      //      cout << "Success pass data(size): " << DZ << endl << endl;
+      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
       
       float logE = log(0.1);
       if (E > 0.1) logE = log(E);
@@ -78,13 +71,13 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
       xC = xA;  // Keep the x and y the same. The x and y correction is in another code
       yC = yA;
     }
-  else if( C_ID == 10 )
+  else if( C_ID == RawTowerDefs::EEMC_glass )
     {
       const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
       const float D = -15.25;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
       const float X0 = -2.275;  // in cm; obtained from GEANT (should be ~ rad length)            
 
-      //      cout << "Success pass data(size): " << DZ << endl << endl;
+      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
       
       float logE = log(0.1);
       if (E > 0.1) logE = log(E);
@@ -192,8 +185,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
-         << x << ", dx = " << x0 - ix0 << endl;
+    std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
+         << x << ", dx = " << x0 - ix0 << std::endl;
   }
 
   y0 = y + yZero;
@@ -207,8 +200,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
-         << y << ",  dy = " << y0 - iy0 << endl;
+    std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << std::endl;
   }
   
 }
