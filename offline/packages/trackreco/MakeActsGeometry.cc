@@ -537,9 +537,6 @@ void MakeActsGeometry::buildActsSurfaces()
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/Field/Map/sphenix3dbigmapxyz.root");
 
-      /// The acts field and field map are backwards in convention
-      m_magFieldRescale = 1;
-
       argstr[8] = "--bf-map";
       argstr[9] = m_magField;
       argstr[10]= "--bf-name";
