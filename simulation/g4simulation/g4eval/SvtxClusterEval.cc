@@ -890,7 +890,6 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
   //check if cache is filled, if not fill it.
   //  if(_cache_all_clusters_from_particle.count(truthparticle)==0){
   if(_cache_all_clusters_from_particle.empty()){
-    cout << "FillRecoclusterCache...." << endl;
     FillRecoClusterFromG4HitCache();
   }
 
@@ -949,7 +948,6 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
   }
 
   Mytimer->stop();
-  cout << "    RecoClusterFromg4HitCache:  " << Mytimer->get_accumulated_time() / 1000. << " sec" << endl;
 
 }
 

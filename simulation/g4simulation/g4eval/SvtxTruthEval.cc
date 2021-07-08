@@ -178,7 +178,6 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
   }
   //  if( _cache_all_truth_hits_g4particle.count(particle)==0){
   if( _cache_all_truth_hits_g4particle.empty()){
-    cout << "FillTruthHitPerParticleCache...." << endl;
     FillTruthHitsFromParticleCache();
   }
 
