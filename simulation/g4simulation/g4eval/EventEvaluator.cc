@@ -429,9 +429,9 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _track_TLP_true_z = new float[_maxNProjections];
   _track_TLP_true_t = new float[_maxNProjections];
 
-  _mcpart_ID = new float[_maxNMCPart];
-  _mcpart_ID_parent = new float[_maxNMCPart];
-  _mcpart_PDG = new float[_maxNMCPart];
+  _mcpart_ID = new int[_maxNMCPart];
+  _mcpart_ID_parent = new int[_maxNMCPart];
+  _mcpart_PDG = new int[_maxNMCPart];
   _mcpart_E = new float[_maxNMCPart];
   _mcpart_px = new float[_maxNMCPart];
   _mcpart_py = new float[_maxNMCPart];
@@ -440,8 +440,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
 
   _hepmcp_BCID = new int[_maxNHepmcp];
   //  _hepmcp_ID_parent = new float[_maxNHepmcp];
-  _hepmcp_status = new float[_maxNHepmcp];
-  _hepmcp_PDG = new float[_maxNHepmcp];
+  _hepmcp_status = new int[_maxNHepmcp];
+  _hepmcp_PDG = new int[_maxNHepmcp];
   _hepmcp_E = new float[_maxNHepmcp];
   _hepmcp_px = new float[_maxNHepmcp];
   _hepmcp_py = new float[_maxNHepmcp];
@@ -710,9 +710,9 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   {
     // MC particles
     _event_tree->Branch("nMCPart", &_nMCPart, "nMCPart/I");
-    _event_tree->Branch("mcpart_ID", _mcpart_ID, "mcpart_ID[nMCPart]/F");
-    _event_tree->Branch("mcpart_ID_parent", _mcpart_ID_parent, "mcpart_ID_parent[nMCPart]/F");
-    _event_tree->Branch("mcpart_PDG", _mcpart_PDG, "mcpart_PDG[nMCPart]/F");
+    _event_tree->Branch("mcpart_ID", _mcpart_ID, "mcpart_ID[nMCPart]/I");
+    _event_tree->Branch("mcpart_ID_parent", _mcpart_ID_parent, "mcpart_ID_parent[nMCPart]/I");
+    _event_tree->Branch("mcpart_PDG", _mcpart_PDG, "mcpart_PDG[nMCPart]/I");
     _event_tree->Branch("mcpart_E", _mcpart_E, "mcpart_E[nMCPart]/F");
     _event_tree->Branch("mcpart_px", _mcpart_px, "mcpart_px[nMCPart]/F");
     _event_tree->Branch("mcpart_py", _mcpart_py, "mcpart_py[nMCPart]/F");
@@ -728,8 +728,8 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("hepmcp_x2", &_hepmcp_x2, "hepmcp_x2/F");
 
     //    _event_tree->Branch("hepmcp_ID_parent", _hepmcp_ID_parent, "hepmcp_ID_parent[nHepmcp]/F");
-    _event_tree->Branch("hepmcp_status", _hepmcp_status, "hepmcp_status[nHepmcp]/F");
-    _event_tree->Branch("hepmcp_PDG", _hepmcp_PDG, "hepmcp_PDG[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_status", _hepmcp_status, "hepmcp_status[nHepmcp]/I");
+    _event_tree->Branch("hepmcp_PDG", _hepmcp_PDG, "hepmcp_PDG[nHepmcp]/I");
     _event_tree->Branch("hepmcp_E", _hepmcp_E, "hepmcp_E[nHepmcp]/F");
     _event_tree->Branch("hepmcp_px", _hepmcp_px, "hepmcp_px[nHepmcp]/F");
     _event_tree->Branch("hepmcp_py", _hepmcp_py, "hepmcp_py[nHepmcp]/F");

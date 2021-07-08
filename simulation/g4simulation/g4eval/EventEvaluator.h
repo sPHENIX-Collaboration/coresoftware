@@ -287,9 +287,9 @@ class EventEvaluator : public SubsysReco
 
   // MC particles
   int _nMCPart;
-  float* _mcpart_ID;
-  float* _mcpart_ID_parent;
-  float* _mcpart_PDG;
+  int* _mcpart_ID;
+  int* _mcpart_ID_parent;
+  int* _mcpart_PDG;
   float* _mcpart_E;
   float* _mcpart_px;
   float* _mcpart_py;
@@ -302,8 +302,8 @@ class EventEvaluator : public SubsysReco
   float _hepmcp_x1;
   float _hepmcp_x2;
   //  float* _hepmcp_ID_parent;
-  float* _hepmcp_status;
-  float* _hepmcp_PDG;
+  int* _hepmcp_status;
+  int* _hepmcp_PDG;
   float* _hepmcp_E;
   float* _hepmcp_px;
   float* _hepmcp_py;
