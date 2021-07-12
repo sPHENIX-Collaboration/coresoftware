@@ -46,33 +46,7 @@
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
-  , m_event(0)
-  , m_tGeometry(nullptr)
-  , m_trackMap(nullptr)
-  , m_directedTrackMap(nullptr)
-  , m_vertexMap(nullptr)
-  , m_clusterContainer(nullptr)
-  , m_surfMaps(nullptr)
-  , m_nBadFits(0)
-  , m_fitSiliconMMs(false)
-  , m_fillSvtxTrackStates(true)
-  , m_actsEvaluator(false)
-  , m_trajectories(nullptr)
-  , m_seedTracks(nullptr)
-  , m_timeAnalysis(false)
-  , m_timeFile(nullptr)
-  , h_eventTime(nullptr)
-  , h_fitTime(nullptr)
-  , h_updateTime(nullptr)
-  , h_stateTime(nullptr)
-  , h_rotTime(nullptr)
-{
-  Verbosity(0);
-}
-
-PHActsTrkFitter::~PHActsTrkFitter()
-{
-}
+{}
 
 int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 {
@@ -140,7 +114,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
       /// wipe at the beginning of every new fit pass, so that the seeds 
       /// are whatever is currently in SvtxTrackMap
       m_seedTracks->clear();
-      for(const auto [key, track] : *m_trackMap)
+      for(const auto& [key, track] : *m_trackMap)
 	{
 	  m_seedTracks->insert(track);
 	}
@@ -222,7 +196,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
   ActsTransformations transformer;
 
-  for(auto& [trackKey, track] : *m_trackMap)
+  for(const auto& [trackKey, track] : *m_trackMap)
     {
       if(!track)
 	{
@@ -335,26 +309,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     }
 
   /// Now erase bad tracks from the track map
-  for(auto key : badTracks)
+  for(const auto& key : badTracks)
     {
       m_trackMap->erase(key);
     }
 
   return;
 
-}
-void PHActsTrkFitter::printTrackSeed(ActsExamples::TrackParameters seed)
-{
-  std::cout << PHWHERE << " Processing proto track with position:" 
-	    << seed.position(m_tGeometry->geoContext) 
-	    << std::endl 
-	    << "momentum: " << seed.momentum() 
-	    << std::endl
-	    << "charge : " << seed.charge() 
-	    << std::endl;
-  std::cout << "proto track covariance " << std::endl
-	    << seed.covariance().value() << std::endl;
-  
 }
 
 Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
@@ -560,7 +521,7 @@ ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrac
     return m_fitCfg.fit(sourceLinks, seed, kfOptions);
 }
 
-SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
+SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
 						SurfacePtrVec& surfaces)
 {
    SourceLinkVec siliconMMSls;
@@ -568,7 +529,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
   if(Verbosity() > 1)
     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
   
-  for(auto sl : sourceLinks)
+  for(const auto& sl : sourceLinks)
     {
       if(Verbosity() > 1)
       { std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl; } 
@@ -588,7 +549,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
 
   if(Verbosity() > 1)
     {
-      for(auto surf : surfaces)
+      for(const auto& surf : surfaces)
 	{
 	  std::cout << "Surface vector : " << surf->geometryId() << std::endl;
 	}
@@ -809,8 +770,21 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance()
 
   return cov;
 }
-    
 
+void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) const
+{
+  std::cout << PHWHERE << " Processing proto track with position:" 
+    << seed.position(m_tGeometry->geoContext) 
+    << std::endl 
+    << "momentum: " << seed.momentum() 
+    << std::endl
+    << "charge : " << seed.charge() 
+    << std::endl;
+  std::cout << "proto track covariance " << std::endl
+    << seed.covariance().value() << std::endl;
+  
+}
+    
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
 

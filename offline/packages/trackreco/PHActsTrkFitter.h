@@ -62,7 +62,7 @@ class PHActsTrkFitter : public SubsysReco
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
   /// Destructor
-  ~PHActsTrkFitter() override;
+  ~PHActsTrkFitter() override = default;
 
   /// End, write and close files
   int End(PHCompositeNode *topNode) override;
@@ -90,9 +90,6 @@ class PHActsTrkFitter : public SubsysReco
 
  private:
 
-  /// Event counter
-  int m_event;
-
   /// Get all the nodes
   int getNodes(PHCompositeNode *topNode);
 
@@ -117,7 +114,7 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
-  SourceLinkVec getSurfaceVector(SourceLinkVec sourceLinks, 
+  SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks, 
 				 SurfacePtrVec& surfaces);
   void checkSurfaceVec(SurfacePtrVec& surfaces);
   void getTrackFitResult(const FitResult& fitOutput, 
@@ -129,42 +126,46 @@ class PHActsTrkFitter : public SubsysReco
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
 
   Acts::BoundSymMatrix setDefaultCovariance();
-  void printTrackSeed(ActsExamples::TrackParameters seed);
+  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
+
+  /// Event counter
+  int m_event = 0;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  ActsTrackingGeometry *m_tGeometry;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
   ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  SvtxTrackMap *m_trackMap, *m_directedTrackMap;
-  SvtxVertexMap *m_vertexMap;
-  TrkrClusterContainer *m_clusterContainer;
-  ActsSurfaceMaps *m_surfMaps;
+  SvtxTrackMap *m_trackMap = nullptr;
+  SvtxTrackMap *m_directedTrackMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
+  TrkrClusterContainer *m_clusterContainer = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
   
   /// Number of acts fits that returned an error
-  int m_nBadFits;
+  int m_nBadFits = 0;
 
   /// Boolean to use normal tracking geometry navigator or the
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
-  bool m_fitSiliconMMs;
+  bool m_fitSiliconMMs = false;
 
   /// A bool to update the SvtxTrackState information (or not)
-  bool m_fillSvtxTrackStates;
+  bool m_fillSvtxTrackStates = true;
 
-  bool m_actsEvaluator;
-  std::map<const unsigned int, Trajectory> *m_trajectories;
-  SvtxTrackMap *m_seedTracks;
+  bool m_actsEvaluator = false;
+  std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
+  SvtxTrackMap *m_seedTracks = nullptr;
 
   /// Variables for doing event time execution analysis
-  bool m_timeAnalysis;
-  TFile *m_timeFile;
-  TH1 *h_eventTime;
-  TH2 *h_fitTime;
-  TH1 *h_updateTime;
-  TH1 *h_stateTime;
-  TH1 *h_rotTime;
+  bool m_timeAnalysis = false;
+  TFile *m_timeFile = nullptr;
+  TH1 *h_eventTime = nullptr;
+  TH2 *h_fitTime = nullptr;
+  TH1 *h_updateTime = nullptr;
+  TH1 *h_stateTime = nullptr;
+  TH1 *h_rotTime = nullptr;
 };
 
 #endif
