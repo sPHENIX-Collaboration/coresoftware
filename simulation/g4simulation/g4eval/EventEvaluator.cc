@@ -3136,21 +3136,21 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
   else if (projname.find("FST_5") != std::string::npos)
     return 55;
 
-  else if (projname.find("EHCAL_0") != std::string::npos)
+  else if (projname.find("EHCAL") != std::string::npos)
     return 60;
-  else if (projname.find("EEMC_0") != std::string::npos)
+  else if (projname.find("EEMC") != std::string::npos)
     return 61;
-  else if (projname.find("HCALIN_0") != std::string::npos)
+  else if (projname.find("HCALIN") != std::string::npos)
     return 62;
-  else if (projname.find("HCALOUT_0") != std::string::npos)
+  else if (projname.find("HCALOUT") != std::string::npos)
     return 63;
-  else if (projname.find("CEMC_0") != std::string::npos)
+  else if (projname.find("CEMC") != std::string::npos)
     return 64;
   else if (projname.find("EEMC_glass_0") != std::string::npos)
     return 65;
-  else if (projname.find("BECAL_0") != std::string::npos)
+  else if (projname.find("BECAL") != std::string::npos)
     return 66;
-  else if (projname.find("LFHCAL_0") != std::string::npos)
+  else if (projname.find("LFHCAL") != std::string::npos)
     return 67;
 
   else
