@@ -337,7 +337,7 @@ Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
 }
 
 //___________________________________________________________________________________
-Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
+Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey) const
 {
   const auto trkrid = TrkrDefs::getTrkrId(cluskey);
   const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
@@ -359,7 +359,7 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurf
 }
 
 //___________________________________________________________________________________
-Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
+Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 {
   auto surfMap = m_surfMaps->siliconSurfaceMap;
   auto iter = surfMap.find(hitsetkey);
@@ -374,7 +374,7 @@ Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 }
 
 //___________________________________________________________________________________
-Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
+Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const
 {
   const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
   if(iter != m_surfMaps->tpcSurfaceMap.end())
@@ -388,7 +388,7 @@ Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::
 }
 
 //___________________________________________________________________________________
-Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
+Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey) const
 {
   const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
   return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
@@ -522,7 +522,7 @@ ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrac
 }
 
 SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
-						SurfacePtrVec& surfaces)
+						SurfacePtrVec& surfaces) const
 {
    SourceLinkVec siliconMMSls;
 
@@ -559,7 +559,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
 }
 
-void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
+void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
 {
   for(int i = 0; i < surfaces.size() - 1; i++)
     {
@@ -739,7 +739,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance()
+Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
 {
   Acts::BoundSymMatrix cov;
    

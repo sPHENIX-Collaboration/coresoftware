@@ -115,17 +115,17 @@ class PHActsTrkFitter : public SubsysReco
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
   SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks, 
-				 SurfacePtrVec& surfaces);
-  void checkSurfaceVec(SurfacePtrVec& surfaces);
+				 SurfacePtrVec& surfaces) const;
+  void checkSurfaceVec(SurfacePtrVec& surfaces) const;
   void getTrackFitResult(const FitResult& fitOutput, 
 			 SvtxTrack* track);
 
-  Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey);
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
+  Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const;
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
-  Acts::BoundSymMatrix setDefaultCovariance();
+  Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
 
   /// Event counter
