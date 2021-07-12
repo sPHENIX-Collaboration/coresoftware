@@ -46,6 +46,7 @@
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
+  , m_trajectories(nullptr)
 {}
 
 int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
@@ -193,8 +194,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   /// Store a vector of track fits that fail to erase, so that the
   /// track map iterator doesn't crash
   std::vector<unsigned int> badTracks;
-
-  ActsTransformations transformer;
 
   for(const auto& [trackKey, track] : *m_trackMap)
     {
