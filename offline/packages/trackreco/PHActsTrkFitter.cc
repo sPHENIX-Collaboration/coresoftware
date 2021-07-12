@@ -91,9 +91,9 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
 {
-  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
-  eventTimer->stop();
-  eventTimer->restart();
+  PHTimer eventTimer("eventTimer");
+  eventTimer.stop();
+  eventTimer.restart();
   
   m_event++;
 
@@ -122,8 +122,8 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
 
   loopTracks(logLevel);
 
-  eventTimer->stop();
-  auto eventTime = eventTimer->get_accumulated_time();
+  eventTimer.stop();
+  auto eventTime = eventTimer.get_accumulated_time();
 
   if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter total event time " 
@@ -203,9 +203,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  continue;
 	}
 
-      auto trackTimer = std::make_unique<PHTimer>("TrackTimer");
-      trackTimer->stop();
-      trackTimer->restart();
+      PHTimer trackTimer("TrackTimer");
+      trackTimer.stop();
+      trackTimer.restart();
 
       auto sourceLinks = getSourceLinks(track);
       /// If using directed navigation, collect surface list to navigate
@@ -256,13 +256,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			        ppPlainOptions,
 				&(*pSurface));
  
-      auto fitTimer = std::make_unique<PHTimer>("FitTimer");
-      fitTimer->stop();
-      fitTimer->restart();
+      PHTimer fitTimer("FitTimer");
+      fitTimer.stop();
+      fitTimer.restart();
       auto result = fitTrack(sourceLinks, seed, kfOptions,
 			     surfaces);
-      fitTimer->stop();
-      auto fitTime = fitTimer->get_accumulated_time();
+      fitTimer.stop();
+      auto fitTime = fitTimer.get_accumulated_time();
       
       if(Verbosity() > 1)
 	std::cout << "PHActsTrkFitter Acts fit time "
@@ -299,8 +299,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 	}
 
-      trackTimer->stop();
-      auto trackTime = trackTimer->get_accumulated_time();
+      trackTimer.stop();
+      auto trackTime = trackTimer.get_accumulated_time();
       
       if(Verbosity() > 1)
 	std::cout << "PHActsTrkFitter total single track time "
@@ -489,14 +489,14 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
-  auto updateTrackTimer = std::make_unique<PHTimer>("UpdateTrackTimer");
-  updateTrackTimer->stop();
-  updateTrackTimer->restart();
+  PHTimer updateTrackTimer("UpdateTrackTimer");
+  updateTrackTimer.stop();
+  updateTrackTimer.restart();
   if(fitOutput.fittedParameters)
     updateSvtxTrack(*trajectory, track);
   
-  updateTrackTimer->stop();
-  auto updateTime = updateTrackTimer->get_accumulated_time();
+  updateTrackTimer.stop();
+  auto updateTime = updateTrackTimer.get_accumulated_time();
   
   if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrack time "
@@ -707,17 +707,17 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
-  auto trackStateTimer = std::make_unique<PHTimer>("TrackStateTimer");
-  trackStateTimer->stop();
-  trackStateTimer->restart();
+  PHTimer trackStateTimer("TrackStateTimer");
+  trackStateTimer.stop();
+  trackStateTimer.restart();
 
 
   if(m_fillSvtxTrackStates)
     rotater.fillSvtxTrackStates(traj, trackTip, track,
 				 m_tGeometry->geoContext);  
 
-  trackStateTimer->stop();
-  auto stateTime = trackStateTimer->get_accumulated_time();
+  trackStateTimer.stop();
+  auto stateTime = trackStateTimer.get_accumulated_time();
   
   if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
