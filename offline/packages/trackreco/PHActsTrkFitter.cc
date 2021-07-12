@@ -655,8 +655,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
-  auto rotater = std::make_unique<ActsTransformations>();
-  rotater->setVerbosity(Verbosity());
+  ActsTransformations rotater;
+  rotater.setVerbosity(Verbosity());
   
   float dca3Dxy = NAN;
   float dca3Dz = NAN;
@@ -667,7 +667,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
     {
      
       Acts::BoundSymMatrix rotatedCov = 
-	rotater->rotateActsCovToSvtxTrack(params,
+	rotater.rotateActsCovToSvtxTrack(params,
 					  m_tGeometry->geoContext);
       
       for(int i = 0; i < 6; i++)
@@ -688,7 +688,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 		  svtxVertex->get_y() * Acts::UnitConstants::cm, 
 		  svtxVertex->get_z() * Acts::UnitConstants::cm);
    
-      rotater->calculateDCA(params, vertex, rotatedCov,
+      rotater.calculateDCA(params, vertex, rotatedCov,
 			    m_tGeometry->geoContext, 
 			    dca3Dxy, dca3Dz, 
 			    dca3DxyCov, dca3DzCov);
@@ -713,7 +713,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
 
   if(m_fillSvtxTrackStates)
-    rotater->fillSvtxTrackStates(traj, trackTip, track,
+    rotater.fillSvtxTrackStates(traj, trackTip, track,
 				 m_tGeometry->geoContext);  
 
   trackStateTimer->stop();
