@@ -61,7 +61,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
 
 SvtxTruthEval::~SvtxTruthEval()
 {
-  if (_verbosity > 0)
+  if (_verbosity > 1)
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
@@ -176,6 +176,10 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
     ++_errors;
     return std::set<PHG4Hit*>();
   }
+  //  if( _cache_all_truth_hits_g4particle.count(particle)==0){
+  if( _cache_all_truth_hits_g4particle.empty()){
+    FillTruthHitsFromParticleCache();
+  }
 
   if (_do_cache)
   {
@@ -186,19 +190,23 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
       return iter->second;
     }
   }
+  //return empty if we dont find anything int he cache
 
   std::set<PHG4Hit*> truth_hits;
+  return truth_hits;
+}
 
+void  SvtxTruthEval::FillTruthHitsFromParticleCache(){
+
+  std::multimap<const int, PHG4Hit*> temp_clusters_from_particles;
   // loop over all the g4hits in the cylinder layers
   if (_g4hits_svtx)
   {
     for (PHG4HitContainer::ConstIterator g4iter = _g4hits_svtx->getHits().first;
          g4iter != _g4hits_svtx->getHits().second;
-         ++g4iter)
-    {
+         ++g4iter){
       PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
+      temp_clusters_from_particles.insert(make_pair(g4hit->get_trkid(),g4hit));
     }
   }
 
@@ -210,8 +218,7 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
          ++g4iter)
     {
       PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
+      temp_clusters_from_particles.insert(make_pair(g4hit->get_trkid(),g4hit));
     }
   }
 
@@ -223,8 +230,7 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
          ++g4iter)
     {
       PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
+      temp_clusters_from_particles.insert(make_pair(g4hit->get_trkid(),g4hit));
     }
   }
 
@@ -236,14 +242,26 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
          ++g4iter)
     {
       PHG4Hit* g4hit = g4iter->second;
-      if (!is_g4hit_from_particle(g4hit, particle)) continue;
-      truth_hits.insert(g4hit);
+      temp_clusters_from_particles.insert(make_pair(g4hit->get_trkid(),g4hit));
     }
   }
 
-  if (_do_cache) _cache_all_truth_hits_g4particle.insert(make_pair(particle, truth_hits));
+  
+  PHG4TruthInfoContainer::ConstRange range = _truthinfo->GetParticleRange();
+  for(PHG4TruthInfoContainer::ConstIterator iter = range.first;
+      iter != range.second; ++iter){
+    PHG4Particle* g4particle = iter->second;
+    std::set<PHG4Hit*> truth_hits;
+    std::multimap<const int, PHG4Hit*>::const_iterator lower_bound = temp_clusters_from_particles.lower_bound(g4particle->get_track_id());
+    std::multimap<const int, PHG4Hit*>::const_iterator upper_bound = temp_clusters_from_particles.upper_bound(g4particle->get_track_id());
+    std::multimap<const int, PHG4Hit*>::const_iterator cfp_iter;
+    for(cfp_iter = lower_bound;cfp_iter != upper_bound;cfp_iter++){
+      PHG4Hit* g4hit = cfp_iter->second;
+      truth_hits.insert(g4hit);
+    }
+    _cache_all_truth_hits_g4particle.insert(make_pair(g4particle, truth_hits));
+  }
 
-  return truth_hits;
 }
 
 std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
@@ -274,7 +292,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
     }
   }
 
-  if(_verbosity > 0)
+  if(_verbosity > 1)
     cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << endl;;
 
   // get all g4hits for this particle
@@ -290,6 +308,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 
   // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
+
   unsigned int layer;
   for(layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc +_nlayers_mms; ++layer)
     {
@@ -416,7 +435,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
 
-      if(_verbosity > 0)
+      if(_verbosity > 1)
 	cout << " TruthEval::LayerCluster hits for layer  " << layer << " with rbin " << rbin << " rbout " << rbout << endl;
 
       // we do not assume that the truth hits know what layer they are in
@@ -463,7 +482,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	    continue;
 
 
-	  if(_verbosity > 0)
+	  if(_verbosity > 1)
 	    {
 	      cout << "     keep g4hit with rbegin " << rbegin << " rend " << rend
 		   << "         xbegin " <<  xl[0] << " xend " << xl[1]
@@ -518,7 +537,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	  gr += (rin + rout) * 0.5 * efrac;
 	  gwt += efrac;
 
-	  if(_verbosity > 0)
+	  if(_verbosity > 1)
 	    {
 	      cout << "      rin  " << rin << " rout " << rout
 		   << " xin " << xin << " xout " << xout << " yin " << yin << " yout " << yout << " zin " << zin << " zout " << zout
@@ -558,7 +577,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
       gr = (rbin + rbout) * 0.5;
       gt /= gwt;
 
-      if(_verbosity > 0)
+      if(_verbosity > 1)
 	{
 	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << " e " << gwt << endl;
 	}
@@ -617,7 +636,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
 	    }
 
 
-	  if(_verbosity > 0)
+	  if(_verbosity > 1)
 	    {
 	      cout << "      rentry  " << rentry << " rexit " << rexit
 		   << " xentry " << xentry << " xexit " << xexit << " yentry " << yentry << " yexit " << yexit << " zentry " << zentry << " zexit " << zexit << endl;

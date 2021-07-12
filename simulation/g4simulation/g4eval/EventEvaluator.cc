@@ -63,6 +63,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   : SubsysReco(name)
   , _do_store_event_info(false)
   , _do_FHCAL(false)
+  , _do_BECAL(false)
   , _do_HCALIN(false)
   , _do_HCALOUT(false)
   , _do_EHCAL(false)
@@ -97,6 +98,12 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _tower_FHCAL_iEta(0)
   , _tower_FHCAL_iPhi(0)
   , _tower_FHCAL_trueID(0)
+
+  , _nTowers_BECAL(0)
+  , _tower_BECAL_E(0)
+  , _tower_BECAL_iEta(0)
+  , _tower_BECAL_iPhi(0)
+  , _tower_BECAL_trueID(0)
 
   , _nTowers_HCALIN(0)
   , _tower_HCALIN_E(0)
@@ -278,8 +285,10 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   , _geometry_done(0)
 
   , _reco_e_threshold(0.0)
+  , _reco_e_threshold_BECAL(0.0)
   , _depth_MCstack(0)
   , _caloevalstackFHCAL(nullptr)
+  , _caloevalstackBECAL(nullptr)
   , _caloevalstackHCALIN(nullptr)
   , _caloevalstackHCALOUT(nullptr)
   , _caloevalstackEHCAL(nullptr)
@@ -312,6 +321,11 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _cluster_FHCAL_Phi = new float[_maxNclusters];
   _cluster_FHCAL_NTower = new int[_maxNclusters];
   _cluster_FHCAL_trueID = new int[_maxNclusters];
+
+  _tower_BECAL_E = new float[_maxNTowers];
+  _tower_BECAL_iEta = new int[_maxNTowers];
+  _tower_BECAL_iPhi = new int[_maxNTowers];
+  _tower_BECAL_trueID = new int[_maxNTowers];
 
   _tower_HCALIN_E = new float[_maxNTowersCentral];
   _tower_HCALIN_iEta  = new int[_maxNTowersCentral];
@@ -415,9 +429,9 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
   _track_TLP_true_z = new float[_maxNProjections];
   _track_TLP_true_t = new float[_maxNProjections];
 
-  _mcpart_ID = new float[_maxNMCPart];
-  _mcpart_ID_parent = new float[_maxNMCPart];
-  _mcpart_PDG = new float[_maxNMCPart];
+  _mcpart_ID = new int[_maxNMCPart];
+  _mcpart_ID_parent = new int[_maxNMCPart];
+  _mcpart_PDG = new int[_maxNMCPart];
   _mcpart_E = new float[_maxNMCPart];
   _mcpart_px = new float[_maxNMCPart];
   _mcpart_py = new float[_maxNMCPart];
@@ -426,8 +440,8 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
 
   _hepmcp_BCID = new int[_maxNHepmcp];
   //  _hepmcp_ID_parent = new float[_maxNHepmcp];
-  _hepmcp_status = new float[_maxNHepmcp];
-  _hepmcp_PDG = new float[_maxNHepmcp];
+  _hepmcp_status = new int[_maxNHepmcp];
+  _hepmcp_PDG = new int[_maxNHepmcp];
   _hepmcp_E = new float[_maxNHepmcp];
   _hepmcp_px = new float[_maxNHepmcp];
   _hepmcp_py = new float[_maxNHepmcp];
@@ -517,6 +531,15 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
       _event_tree->Branch("cluster_FHCAL_NTower", _cluster_FHCAL_NTower, "cluster_FHCAL_NTower[cluster_FHCAL_N]/I");
       _event_tree->Branch("cluster_FHCAL_trueID", _cluster_FHCAL_trueID, "cluster_FHCAL_trueID[cluster_FHCAL_N]/I");
     }
+  }
+  if (_do_BECAL)
+  {
+    // towers BECAL
+    _event_tree->Branch("tower_BECAL_N", &_nTowers_BECAL, "tower_BECAL_N/I");
+    _event_tree->Branch("tower_BECAL_E", _tower_BECAL_E, "tower_BECAL_E[tower_BECAL_N]/F");
+    _event_tree->Branch("tower_BECAL_iEta", _tower_BECAL_iEta, "tower_BECAL_iEta[tower_BECAL_N]/I");
+    _event_tree->Branch("tower_BECAL_iPhi", _tower_BECAL_iPhi, "tower_BECAL_iPhi[tower_BECAL_N]/I");
+    _event_tree->Branch("tower_BECAL_trueID", _tower_BECAL_trueID, "tower_BECAL_trueID[tower_BECAL_N]/I");
   }
   if (_do_HCALIN)
   {
@@ -687,9 +710,9 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
   {
     // MC particles
     _event_tree->Branch("nMCPart", &_nMCPart, "nMCPart/I");
-    _event_tree->Branch("mcpart_ID", _mcpart_ID, "mcpart_ID[nMCPart]/F");
-    _event_tree->Branch("mcpart_ID_parent", _mcpart_ID_parent, "mcpart_ID_parent[nMCPart]/F");
-    _event_tree->Branch("mcpart_PDG", _mcpart_PDG, "mcpart_PDG[nMCPart]/F");
+    _event_tree->Branch("mcpart_ID", _mcpart_ID, "mcpart_ID[nMCPart]/I");
+    _event_tree->Branch("mcpart_ID_parent", _mcpart_ID_parent, "mcpart_ID_parent[nMCPart]/I");
+    _event_tree->Branch("mcpart_PDG", _mcpart_PDG, "mcpart_PDG[nMCPart]/I");
     _event_tree->Branch("mcpart_E", _mcpart_E, "mcpart_E[nMCPart]/F");
     _event_tree->Branch("mcpart_px", _mcpart_px, "mcpart_px[nMCPart]/F");
     _event_tree->Branch("mcpart_py", _mcpart_py, "mcpart_py[nMCPart]/F");
@@ -705,8 +728,8 @@ int EventEvaluator::Init(PHCompositeNode* topNode)
     _event_tree->Branch("hepmcp_x2", &_hepmcp_x2, "hepmcp_x2/F");
 
     //    _event_tree->Branch("hepmcp_ID_parent", _hepmcp_ID_parent, "hepmcp_ID_parent[nHepmcp]/F");
-    _event_tree->Branch("hepmcp_status", _hepmcp_status, "hepmcp_status[nHepmcp]/F");
-    _event_tree->Branch("hepmcp_PDG", _hepmcp_PDG, "hepmcp_PDG[nHepmcp]/F");
+    _event_tree->Branch("hepmcp_status", _hepmcp_status, "hepmcp_status[nHepmcp]/I");
+    _event_tree->Branch("hepmcp_PDG", _hepmcp_PDG, "hepmcp_PDG[nHepmcp]/I");
     _event_tree->Branch("hepmcp_E", _hepmcp_E, "hepmcp_E[nHepmcp]/F");
     _event_tree->Branch("hepmcp_px", _hepmcp_px, "hepmcp_px[nHepmcp]/F");
     _event_tree->Branch("hepmcp_py", _hepmcp_py, "hepmcp_py[nHepmcp]/F");
@@ -755,6 +778,19 @@ int EventEvaluator::process_event(PHCompositeNode* topNode)
       _caloevalstackFHCAL->next_event(topNode);
     }
   }
+  if (_do_BECAL)
+  {
+    if (!_caloevalstackBECAL)
+    {
+      _caloevalstackBECAL = new CaloEvalStack(topNode, "BECAL");
+      _caloevalstackBECAL->set_strict(_strict);
+      _caloevalstackBECAL->set_verbosity(Verbosity() + 1);
+    }
+    else
+    {
+      _caloevalstackBECAL->next_event(topNode);
+    }
+  }  
   if (_do_HCALIN)
   {
     if (!_caloevalstackHCALIN)
@@ -1012,85 +1048,92 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     PHG4TruthInfoContainer* truthinfocontainerHits = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     for (int iIndex = 0; iIndex < 60; ++iIndex)
     {
-      if (GetProjectionNameFromIndex(iIndex).find("NOTHING") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("FHCAL") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("EHCAL") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("FEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("CEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("EEMC") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("HCALIN") != std::string::npos) continue;
-      if (GetProjectionNameFromIndex(iIndex).find("HCALOUT") != std::string::npos) continue;
-      string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
-      PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
-      if (hits)
-      {
-        if (Verbosity() > 1)
-        {
-          cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
-        }
-        PHG4HitContainer::ConstRange hit_range = hits->getHits();
-        for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
+      // you need to add your layer name here to be saved! This has to be done
+      // as we do not want to save thousands of calorimeter hits!
+      if ((GetProjectionNameFromIndex(iIndex).find("TTL") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("LBLVTX") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("BARREL") != std::string::npos) ||
+          (GetProjectionNameFromIndex(iIndex).find("FST") != std::string::npos)
+      ){
+        string nodename = "G4HIT_" + GetProjectionNameFromIndex(iIndex);
+        PHG4HitContainer* hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+        if (hits)
         {
           if (Verbosity() > 1)
           {
-            cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+            cout << __PRETTY_FUNCTION__ << " number of hits: " << hits->size() << endl;
           }
-          _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
-          _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
-          _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
-          _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
-          _hits_layerID[_nHitsLayers] = iIndex;
-          if (truthinfocontainerHits)
+          PHG4HitContainer::ConstRange hit_range = hits->getHits();
+          for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
           {
-            PHG4Particle* particle = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-
-            if (particle->get_parent_id() != 0)
+            if (Verbosity() > 1)
             {
-              PHG4Particle* g4particleMother = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-              int mcSteps = 0;
-              while (g4particleMother->get_parent_id() != 0)
+              cout << __PRETTY_FUNCTION__ << " found hit with id " << hit_iter->second->get_trkid() << endl;
+            }
+            if(_nHitsLayers > _maxNHits){
+              cout << __PRETTY_FUNCTION__ << " exceededed maximum hit array size! Please check where these hits come from!" << endl;
+              break;
+            }
+            _hits_x[_nHitsLayers] = hit_iter->second->get_x(0);
+            _hits_y[_nHitsLayers] = hit_iter->second->get_y(0);
+            _hits_z[_nHitsLayers] = hit_iter->second->get_z(0);
+            _hits_t[_nHitsLayers] = hit_iter->second->get_t(0);
+            _hits_layerID[_nHitsLayers] = iIndex;
+            if (truthinfocontainerHits)
+            {
+              PHG4Particle* particle = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+
+              if (particle->get_parent_id() != 0)
               {
-                g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
-                if (g4particleMother == NULL) break;
-                mcSteps += 1;
-              }
-              if (mcSteps <= _depth_MCstack)
-              {
-                _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+                PHG4Particle* g4particleMother = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+                int mcSteps = 0;
+                while (g4particleMother->get_parent_id() != 0)
+                {
+                  g4particleMother = truthinfocontainerHits->GetParticle(g4particleMother->get_parent_id());
+                  if (g4particleMother == NULL) break;
+                  mcSteps += 1;
+                }
+                if (mcSteps <= _depth_MCstack)
+                {
+                  _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
+                }
+                else
+                {
+                  PHG4Particle* g4particleMother2 = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
+                  int mcSteps2 = 0;
+                  while (g4particleMother2->get_parent_id() != 0 && (mcSteps2 < (mcSteps - _depth_MCstack + 1)))
+                  {
+                    g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
+                    if (g4particleMother2 == NULL){
+                      break;
+                    } else {
+                      _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+                      mcSteps2 += 1;
+                    }
+                  }
+                }
               }
               else
               {
-                PHG4Particle* g4particleMother2 = truthinfocontainerHits->GetParticle(hit_iter->second->get_trkid());
-                int mcSteps2 = 0;
-                while (g4particleMother2->get_parent_id() != 0 && (mcSteps2 < (mcSteps - _depth_MCstack + 1)))
-                {
-                  g4particleMother2 = truthinfocontainerHits->GetParticle(g4particleMother2->get_parent_id());
-                  if (g4particleMother2 == NULL) break;
-                  mcSteps2 += 1;
-                }
-                _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+                _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
               }
             }
-            else
-            {
-              _hits_trueID[_nHitsLayers] = hit_iter->second->get_trkid();
-            }
-          }
-          _nHitsLayers++;
+            _nHitsLayers++;
 
+          }
+          if (Verbosity() > 0)
+          {
+            cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;
+          }
         }
-        if (Verbosity() > 0)
+        else
         {
-          cout << "saved\t" << _nHitsLayers << "\thits for " << GetProjectionNameFromIndex(iIndex) << endl;
+          if (Verbosity() > 0)
+          {
+            cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
+          }
+          continue;
         }
-      }
-      else
-      {
-        if (Verbosity() > 0)
-        {
-          cout << __PRETTY_FUNCTION__ << " could not find " << nodename << endl;
-        }
-        continue;
       }
     }
   }
@@ -1208,6 +1251,111 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (Verbosity() > 0)
       {
         cout << PHWHERE << " ERROR: Can't find " << towernodeFHCAL << endl;
+      }
+      // return;
+    }
+  }
+  //----------------------
+  //    TOWERS BECAL
+  //----------------------
+  if (_do_BECAL)
+  {
+    CaloRawTowerEval* towerevalBECAL = _caloevalstackBECAL->get_rawtower_eval();
+    _nTowers_BECAL = 0;
+    string towernodeBECAL = "TOWER_CALIB_BECAL";
+    RawTowerContainer* towersBECAL = findNode::getClass<RawTowerContainer>(topNode, towernodeBECAL.c_str());
+    
+    if (Verbosity() > 0)
+    {
+      RawTowerContainer* towersBECAL1 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_RAW_BECAL");
+      RawTowerContainer* towersBECAL2 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_SIM_BECAL");
+      cout << "BECAL sim: " << towersBECAL2->size() << endl;
+      cout << "BECAL raw: " << towersBECAL1->size() << endl;
+      cout << "BECAL calib: " << towersBECAL->size() << endl;
+    }
+    if (towersBECAL)
+    {
+      if (Verbosity() > 0)
+      {
+        cout << "saving BECAL towers" << endl;
+      }
+      string towergeomnodeBECAL = "TOWERGEOM_BECAL";
+      RawTowerGeomContainer* towergeomBECAL = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeBECAL.c_str());
+      if (towergeomBECAL)
+      {
+        if(_do_GEOMETRY && !_geometry_done[kBECAL]){
+          // std::ostream *fout= new ofstream("test.list");
+          RawTowerGeomContainer::ConstRange all_towers = towergeomBECAL->get_tower_geometries();
+          // *fout << "Calorimeter ID: " << towergeomBECAL->get_calorimeter_id() << endl;
+          // *fout << "size: " << towergeomBECAL->size() << endl;
+          // towergeomBECAL->identify(*fout);
+          for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+              it != all_towers.second; ++it)
+          {
+            _calo_ID = kBECAL;
+            _calo_towers_iEta[_calo_towers_N] = it->second->get_bineta();
+            _calo_towers_iPhi[_calo_towers_N] = it->second->get_binphi();
+            _calo_towers_Eta[_calo_towers_N] = it->second->get_eta();
+            _calo_towers_Phi[_calo_towers_N] = it->second->get_phi();
+            _calo_towers_x[_calo_towers_N] = it->second->get_center_x();
+            _calo_towers_y[_calo_towers_N] = it->second->get_center_y();
+            _calo_towers_z[_calo_towers_N] = it->second->get_center_z();
+            // it->second->identify(*fout);
+            _calo_towers_N++;
+          }
+          _geometry_done[kBECAL] = 1;
+          _geometry_tree->Fill();
+          resetGeometryArrays();
+        // _calo_ID = kBECAL;
+        // _calo_ID = kBECAL;
+        }
+
+        RawTowerContainer::ConstRange begin_end = towersBECAL->getTowers();
+        RawTowerContainer::ConstIterator rtiter;
+        for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+        {
+          RawTower* tower = rtiter->second;
+          if (tower)
+          {
+            // min energy cut
+            if (tower->get_energy() < _reco_e_threshold_BECAL) continue;
+            _tower_BECAL_iEta[_nTowers_BECAL] = tower->get_bineta();
+            _tower_BECAL_iPhi[_nTowers_BECAL] = tower->get_binphi();
+            _tower_BECAL_E[_nTowers_BECAL] = tower->get_energy();
+
+            PHG4Particle* primary = towerevalBECAL->max_truth_primary_particle_by_energy(tower);
+            if (primary)
+            {
+              _tower_BECAL_trueID[_nTowers_BECAL] = primary->get_track_id();
+              // gflavor = primary->get_pid();
+              // efromtruth = towerevalBECAL->get_energy_contribution(tower, primary);
+            }
+            else
+            {
+              _tower_BECAL_trueID[_nTowers_BECAL] = -10;
+            }
+            _nTowers_BECAL++;
+          }
+        }
+      }
+      else
+      {
+        if (Verbosity() > 0)
+        {
+          cout << PHWHERE << " ERROR: Can't find " << towergeomnodeBECAL << endl;
+        }
+        // return;
+      }
+      if (Verbosity() > 0)
+      {
+        cout << "saved\t" << _nTowers_BECAL << "\tBECAL towers" << endl;
+      }
+    }
+    else
+    {
+      if (Verbosity() > 0)
+      {
+        cout << PHWHERE << " ERROR: Can't find " << towernodeBECAL << endl;
       }
       // return;
     }
@@ -2291,7 +2439,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cerr << PHWHERE << " ERROR: Can't find " << clusternodeEHCAL << endl;
       // return;
     }
-    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EHCAL << "\tFHCAL clusters" << endl;}
+    if (Verbosity() > 0){ cout << "saved\t" << _nclusters_EHCAL << "\tEHCAL clusters" << endl;}
   }
 
   //------------------------
@@ -2838,7 +2986,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                   _hepmcp_m1[_nHepmcp] = (*mother)->barcode();
               }
             }
-            if (Verbosity() > 2)cout << "nHepmcp " << _nHepmcp << "\tPDG " << _hepmcp_PDG[_nHepmcp] << "\tbarcode " << _hepmcp_BCID[_nHepmcp] << "\tMother1 " << _hepmcp_m1[_nHepmcp]<< "\tMother2 " << _hepmcp_m2[_nHepmcp] << endl;
+            if (Verbosity() > 2) cout << "nHepmcp " << _nHepmcp << "\tPDG " << _hepmcp_PDG[_nHepmcp] << "\tEnergy " << _hepmcp_E[_nHepmcp] << "\tbarcode " << _hepmcp_BCID[_nHepmcp] << "\tMother1 " << _hepmcp_m1[_nHepmcp]<< "\tMother2 " << _hepmcp_m2[_nHepmcp] << endl;
             _nHepmcp++;
           }
         }
@@ -2892,6 +3040,7 @@ int EventEvaluator::End(PHCompositeNode* topNode)
   }
 
   if (_caloevalstackFHCAL) delete _caloevalstackFHCAL;
+  if (_caloevalstackBECAL) delete _caloevalstackBECAL;
   if (_caloevalstackHCALIN) delete _caloevalstackHCALIN;
   if (_caloevalstackHCALOUT) delete _caloevalstackHCALOUT;
   if (_caloevalstackEHCAL) delete _caloevalstackEHCAL;
@@ -2997,6 +3146,12 @@ int EventEvaluator::GetProjectionIndex(std::string projname)
     return 63;
   else if (projname.find("CEMC_0") != std::string::npos)
     return 64;
+  else if (projname.find("EEMC_glass_0") != std::string::npos)
+    return 65;
+  else if (projname.find("BECAL_0") != std::string::npos)
+    return 66;
+  else if (projname.find("LFHCAL_0") != std::string::npos)
+    return 67;
 
   else
     return -1;
@@ -3099,6 +3254,10 @@ std::string EventEvaluator::GetProjectionNameFromIndex(int projindex)
     return "CEMC";
   case 65:
     return "EEMC_glass";
+  case 66:
+    return "BECAL";
+  case 67:
+    return "LFHCAL";
 
   default:
     return "NOTHING";
@@ -3177,6 +3336,18 @@ void EventEvaluator::resetBuffer()
       }
     }
     if (Verbosity() > 0){ cout << "\t... FHCAL variables reset" << endl;}
+  }
+  if (_do_BECAL)
+  {
+    _nTowers_BECAL = 0;
+    for (Int_t itow = 0; itow < _maxNTowers; itow++)
+    {
+      _tower_BECAL_E[itow] = 0;
+      _tower_BECAL_iEta[itow] = 0;
+      _tower_BECAL_iPhi[itow] = 0;
+      _tower_BECAL_trueID[itow] = 0;
+    }
+    if (Verbosity() > 0){ cout << "\t... BECAL variables reset" << endl;}
   }
   if (_do_FEMC)
   {

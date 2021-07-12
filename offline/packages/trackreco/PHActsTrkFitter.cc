@@ -137,6 +137,9 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
   /// for proto track comparison to fitted track
   if(m_actsEvaluator)
     {
+      /// wipe at the beginning of every new fit pass, so that the seeds 
+      /// are whatever is currently in SvtxTrackMap
+      m_seedTracks->clear();
       for(const auto [key, track] : *m_trackMap)
 	{
 	  m_seedTracks->insert(track);
@@ -466,15 +469,19 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
     
       SourceLink sl(key, surf, loc, cov);
-      
-     
-      if(Verbosity() > 4)
+      if(Verbosity() > 3)
 	{
-	  std::cout << "Adding SL to track: "<< std::endl;
-	  std::cout << "SL : " << sl.location().transpose() << std::endl
-		    << sl.covariance().transpose() << std::endl 
-		    << sl.geoId() << std::endl;
+	  std::cout << "source link " << sl.cluskey() << ", loc : " 
+		    << sl.location().transpose() << std::endl << ", cov : " << sl.covariance().transpose() << std::endl
+		    << " geo id " << sl.geoId() << std::endl;
+	  std::cout << "Surface : " << std::endl;
+	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  std::cout << std::endl;
+	  std::cout << "For key " << key << " with global pos " << std::endl
+		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
+		    << std::endl;
 	}
+    
       sourcelinks.push_back(sl);      
     }
  
@@ -854,6 +861,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	}
       
       m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,"SeedTrackMap");
+         
       if(!m_seedTracks)
 	{
 	  m_seedTracks = new SvtxTrackMap_v1;

@@ -17,15 +17,11 @@ pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
-  RawTowerBuilderByHitIndexLHCal.h \
-  RawTowerBuilderDRCALO.h \
   RawTowerDigitizer.h 
 libg4calo_la_SOURCES = \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
-  RawTowerBuilderByHitIndexLHCal.cc \
-  RawTowerBuilderDRCALO.cc \
   RawTowerDigitizer.cc 
   
 libg4calo_la_LDFLAGS = \

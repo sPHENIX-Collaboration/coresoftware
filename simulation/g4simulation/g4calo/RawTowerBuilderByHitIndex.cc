@@ -137,11 +137,12 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   if (Verbosity())
   {
     towerE = m_Towers->getTotalEdep();
+    std::cout << "towers before compression: "<< m_Towers->size() << "\t" << m_Detector << std::endl;
   }
-
   m_Towers->compress(m_Emin);
   if (Verbosity())
   {
+    std::cout << "storing towers: "<< m_Towers->size() << std::endl;
     cout << "Energy lost by dropping towers with less than " << m_Emin
          << " energy, lost energy: " << towerE - m_Towers->getTotalEdep() << endl;
     m_Towers->identify();
@@ -252,7 +253,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
 
     istringstream iss(line_mapping);
 
-    /* If line starts with keyword Tower, add to tower positions */
+     /* If line starts with keyword Tower, add to tower positions */
     if (line_mapping.find("Tower ") != string::npos)
     {
       unsigned idx_j, idx_k, idx_l;
@@ -285,7 +286,6 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
       /* Insert this tower into position map */
       m_Geoms->add_tower_geometry(temp_geo);
     }
-
     /* If line does not start with keyword Tower, read as parameter */
     else
     {
@@ -303,7 +303,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
       m_GlobalParameterMap.insert(make_pair(parname, parval));
     }
   }
-
+    
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<string, double>::iterator parit;
 
@@ -332,11 +332,11 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
     m_RotInZ = parit->second;
 
   /* Correct tower geometries for global calorimter translation / rotation 
-   * after reading parameters from file */
+  * after reading parameters from file */
   RawTowerGeomContainer::ConstRange all_towers = m_Geoms->get_tower_geometries();
 
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
-       it != all_towers.second; ++it)
+    it != all_towers.second; ++it)
   {
     double x_temp = it->second->get_center_x();
     double y_temp = it->second->get_center_y();
@@ -367,6 +367,10 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
       cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << endl;
     }
   }
-
+  
+  if (Verbosity())
+  {
+    cout << "size tower geom container:" << m_Geoms->size() << "\t" << m_Detector << endl;
+  }
   return true;
 }

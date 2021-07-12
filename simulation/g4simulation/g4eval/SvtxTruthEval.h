@@ -63,7 +63,7 @@ class SvtxTruthEval
   unsigned int get_errors() { return _errors + _basetrutheval.get_errors(); }
 
   std::set<PHG4Hit*> get_truth_hits_from_truth_cluster(TrkrDefs::cluskey ckey);
-
+  void  FillTruthHitsFromParticleCache();
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();

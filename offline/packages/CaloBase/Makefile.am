@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   RawTowerGeomv1.h \
   RawTowerGeomv2.h \
   RawTowerGeomv3.h \
+  RawTowerGeomv4.h \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
   RawTowerGeomContainer_Cylinderv1.h
@@ -54,6 +55,7 @@ ROOTDICTS = \
   RawTowerGeomv1_Dict.cc \
   RawTowerGeomv2_Dict.cc \
   RawTowerGeomv3_Dict.cc \
+  RawTowerGeomv4_Dict.cc \
   RawTowerGeomContainer_Dict.cc \
   RawTowerGeomContainerv1_Dict.cc \
   RawTowerGeomContainer_Cylinderv1_Dict.cc
@@ -73,6 +75,7 @@ nobase_dist_pcm_DATA = \
   RawTowerGeomv1_Dict_rdict.pcm \
   RawTowerGeomv2_Dict_rdict.pcm \
   RawTowerGeomv3_Dict_rdict.pcm \
+  RawTowerGeomv4_Dict_rdict.pcm \
   RawTowerGeomContainer_Dict_rdict.pcm \
   RawTowerGeomContainerv1_Dict_rdict.pcm \
   RawTowerGeomContainer_Cylinderv1_Dict_rdict.pcm
@@ -92,6 +95,7 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomv1.cc \
   RawTowerGeomv2.cc \
   RawTowerGeomv3.cc \
+  RawTowerGeomv4.cc \
   RawTowerGeomContainer.cc \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc
