@@ -426,14 +426,13 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 
 }
 void PHTpcResiduals::calculateTpcResiduals(
-		          const Acts::BoundTrackParameters &params,
-			  const TrkrCluster* cluster)
+  const Acts::BoundTrackParameters &params,
+  const TrkrCluster* cluster)
 {
   
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
-  clusR = sqrt(pow(cluster->getX(), 2) +
-	       pow(cluster->getY(), 2));
+  clusR = std::sqrt(square(cluster->getX()) + square(cluster->getY()));
   clusPhi = std::atan2(cluster->getY(), cluster->getX());
   clusZ = cluster->getZ();
 
@@ -470,8 +469,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
   const auto globStateZ = stateZ;
 
-  stateR = sqrt(pow(globStateX, 2) +
-		pow(globStateY, 2) );
+  stateR = std::sqrt(square(globStateX) + square(globStateY));
   
   const auto dr = clusR - stateR;
   const auto trackDrDt = (globStateX * globalStateMom(0) +
@@ -500,8 +498,8 @@ void PHTpcResiduals::calculateTpcResiduals(
 	      << "   " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
-  const auto erp = pow(clusRPhiErr, 2);
-  const auto ez = pow(clusZErr, 2);
+  const auto erp = square(clusRPhiErr);
+  const auto ez = square(clusZErr);
 
   const auto dPhi = clusPhi - statePhi;
 
@@ -514,9 +512,10 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
-  const auto clusEta = std::atanh(clusZ / sqrt(pow(cluster->getX(), 2) +
-					       pow(cluster->getY(), 2) +
-					       pow(cluster->getZ(), 2)));
+  const auto clusEta = std::atanh(clusZ / std::sqrt(
+    square(cluster->getX()) +
+    square(cluster->getY()) +
+    square(cluster->getZ())));
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);

@@ -6,7 +6,7 @@ using namespace std::chrono;
 
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
-				Acts::GeometryContext geoCtxt)
+				Acts::GeometryContext geoCtxt) const
 {
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
 
@@ -94,7 +94,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 			        const Acts::BoundTrackParameters params,
-				Acts::GeometryContext geoCtxt)
+				Acts::GeometryContext geoCtxt) const
 {
 
   auto covarianceMatrix = *params.covariance();
@@ -177,7 +177,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 
 
 void ActsTransformations::printMatrix(const std::string &message,
-					Acts::BoundSymMatrix matrix)
+					Acts::BoundSymMatrix matrix) const
 {
  
   if(m_verbosity > 10)
@@ -205,7 +205,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				       float &dca3Dxy,
 				       float &dca3Dz,
 				       float &dca3DxyCov,
-				       float &dca3DzCov)
+				       float &dca3DzCov) const
 {
   Acts::Vector3D pos = param.position(geoCtxt);
   Acts::Vector3D mom = param.momentum();
@@ -251,79 +251,70 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 
 
 
-void ActsTransformations::fillSvtxTrackStates(const Trajectory traj,
+void ActsTransformations::fillSvtxTrackStates(const Trajectory& traj,
 					      const size_t &trackTip,
 					      SvtxTrack *svtxTrack,
-					      Acts::GeometryContext geoContext)
+					      Acts::GeometryContext geoContext) const
 {
 
  const auto &[trackTips, mj] = traj.trajectory();
   
-  mj.visitBackwards(trackTip, [&](const auto &state) {
+  mj.visitBackwards(trackTip, [&](const auto &state) 
+  {
+    
       /// Only fill the track states with non-outlier measurement
-      auto typeFlags = state.typeFlags();
-      if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
-	{
-	  return true;
-	}
+      const auto typeFlags = state.typeFlags();
+      if( !typeFlags.test(Acts::TrackStateFlag::MeasurementFlag) )
+      { return true; }
       
-      auto meas = std::get<Measurement>(*state.uncalibrated());
+      // only fill for state vectors with proper smoothed parameters
+      if( !state.hasSmoothed()) return true;
 
-      /// Get local position
-      Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
-			   meas.parameters()[Acts::eBoundLoc1]);
-
-      /// This is an arbitrary vector. Doesn't matter in coordinate transformation
-      /// in Acts code
-      Acts::Vector3D mom(1., 1., 1.);
-      Acts::Vector3D global = meas.referenceObject().localToGlobal(
-					    geoContext,
-					    local, mom);
-      
-      float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
+      // create svtx state vector with relevant pathlength
+      const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
       SvtxTrackState_v1 out( pathlength );
+    
+      // get smoothed fitted parameters
+      const Acts::BoundTrackParameters params(state.referenceSurface().getSharedPtr(),
+        state.smoothed(),
+        state.smoothedCovariance());
+      
+      // position
+      const auto global = params.position(geoContext);
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
       out.set_z(global.z() / Acts::UnitConstants::cm);
-    
-      if (state.hasSmoothed())
-	{
-	  Acts::BoundTrackParameters parameter(state.referenceSurface().getSharedPtr(),
-					  state.smoothed(),
-					  state.smoothedCovariance());
-	  out.set_px(parameter.momentum().x());
-	  out.set_py(parameter.momentum().y());
-	  out.set_pz(parameter.momentum().z());
+      
+      // momentum
+      const auto momentum = params.momentum();
+      out.set_px(momentum.x());
+      out.set_py(momentum.y());
+      out.set_pz(momentum.z());
+      
+      /// covariance    
+      const auto globalCov = rotateActsCovToSvtxTrack(params, geoContext);
+      for (int i = 0; i < 6; ++i)
+        for (int j = 0; j < 6; ++j)
+      { out.set_error(i, j, globalCov(i,j)); }
 
-	  /// Get measurement covariance    
+      // add cluster key
+      const auto cluskey = state.uncalibrated().cluskey();
+      svtxTrack->insert_cluster_key(cluskey);
 
-	  Acts::BoundSymMatrix globalCov = rotateActsCovToSvtxTrack(parameter,
-								    geoContext);
-	  for (int i = 0; i < 6; i++)
-	    {
-	      for (int j = 0; j < 6; j++)
-		{ 
-		  out.set_error(i, j, globalCov(i,j)); 
-		}
-	    }
-
-	  auto cluskey = state.uncalibrated().cluskey();
+      // print
+      if(m_verbosity > 20)
+      {
+        std::cout << " inserting state with x,y,z ="
+          << " " << global.x() /  Acts::UnitConstants::cm 
+          << " " << global.y() /  Acts::UnitConstants::cm 
+          << " " << global.z() /  Acts::UnitConstants::cm 
+          << " pathlength " << pathlength
+          << " momentum px,py,pz = " <<  momentum.x() << "  " <<  momentum.y() << "  " << momentum.y()  
+          << " cluskey " << cluskey << std::endl
+          << "covariance " << globalCov << std::endl; 
+      }
 	  
-	  svtxTrack->insert_cluster_key(cluskey);
-
-	  if(m_verbosity > 20)
-	    {
-	      std::cout << " inserting state with x,y,z = " << global.x() /  Acts::UnitConstants::cm 
-			<< "  " << global.y() /  Acts::UnitConstants::cm << "  " 
-			<< global.z() /  Acts::UnitConstants::cm 
-			<< " pathlength " << pathlength
-			<< " momentum px,py,pz = " <<  parameter.momentum().x() << "  " <<  parameter.momentum().y() << "  " << parameter.momentum().y()  
-			<< " cluskey " << cluskey << std::endl
-			<< "covariance " << globalCov << std::endl; 
-	    }
-	  
-	  svtxTrack->insert_state(&out);      
-	}
+      svtxTrack->insert_state(&out);      
   
       return true;      
     }
