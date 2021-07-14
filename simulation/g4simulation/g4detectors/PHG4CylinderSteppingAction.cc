@@ -274,7 +274,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       double light_yield = GetVisibleEnergyDeposition(aStep);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
-    if (edep > 0)
+    if (edep > 0 || m_SaveAllHitsFlag)
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
