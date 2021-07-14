@@ -174,11 +174,11 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
   TVector3 cm_strike=GetCmStrike(pos,dir);
   TVector3 fc_strike=GetFieldcageStrike(pos,dir);
   TVector3 strike=cm_strike;
-  char strikeChar='c';
+  //char strikeChar='c';
   if( fc_strike.Z()!=999){
     if ((fc_strike.Z()-pos.Z())/dir.Z()<(cm_strike.Z()-pos.Z())/dir.Z()){
       strike=fc_strike;
-    strikeChar='f';
+      //strikeChar='f';
     }
   }
 
