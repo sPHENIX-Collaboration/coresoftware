@@ -13,7 +13,7 @@ class BEmcRecEEMC : public BEmcRec
 {
  public:
   BEmcRecEEMC();
-  ~BEmcRecEEMC() override;
+  ~BEmcRecEEMC() override {}
   void CorrectEnergy(float energy, float x, float y, float &ecorr) override;
   void CorrectECore(float ecore, float x, float y, float &ecorecorr) override;
   void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr) override;
@@ -26,6 +26,7 @@ class BEmcRecEEMC : public BEmcRec
 
  private:
   //  BEmcProfile *_emcprof;
+  //  float Scin_size;
 };
 
 #endif

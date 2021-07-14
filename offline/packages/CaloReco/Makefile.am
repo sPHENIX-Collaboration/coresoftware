@@ -32,8 +32,8 @@ pkginclude_HEADERS = \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
-  RawTowerCalibration.h
-
+  RawTowerCalibration.h 
+  
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \

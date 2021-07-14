@@ -20,11 +20,15 @@ class RawTowerGeomv3 : public RawTowerGeom
   void set_id(RawTowerDefs::keytype key) override { _towerid = key; }
   RawTowerDefs::keytype get_id() const override { return _towerid; }
 
-  int get_bineta() const override { return RawTowerDefs::decode_index1(_towerid); }
-  int get_binphi() const override { return RawTowerDefs::decode_index2(_towerid); }
-  int get_column() const override { return RawTowerDefs::decode_index1(_towerid); }
-  int get_row() const override { return RawTowerDefs::decode_index2(_towerid); }
+  int get_bineta() const override;
+  int get_binphi() const override;
 
+  int get_column() const override { return get_bineta(); }
+  int get_row() const override { return get_binphi(); }
+
+  int get_binl() const  override { return RawTowerDefs::decode_index3v2(_towerid);}
+
+  
   void set_center_x(double x) override
   {
     _center_x = x;

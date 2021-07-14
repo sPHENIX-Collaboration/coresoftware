@@ -43,26 +43,23 @@ typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 class ActsTransformations
 {
  public:
- ActsTransformations()
-   : m_verbosity(false)
-  {}
-  virtual ~ActsTransformations(){}
-  
+ ActsTransformations() = default;
+    
   /// Rotates an SvtxTrack covariance matrix from (x,y,z,px,py,pz) global
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
   Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track,
-						Acts::GeometryContext geoCtxt);
+						Acts::GeometryContext geoCtxt) const;
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
   Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
                        const Acts::BoundTrackParameters params,
-		       Acts::GeometryContext geoCtxt);
+		       Acts::GeometryContext geoCtxt) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
-  void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix);
+  void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix) const;
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
@@ -73,15 +70,15 @@ class ActsTransformations
 		    float &dca3Dxy,
 		    float &dca3Dz,
 		    float &dca3DxyCov,
-		    float &dca3DzCov);
+		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Trajectory traj, 
+  void fillSvtxTrackStates(const Trajectory& traj, 
 			   const size_t &trackTip,
 			   SvtxTrack *svtxTrack,
-			   Acts::GeometryContext geoContext);
+			   Acts::GeometryContext geoContext) const;
 
  private:
-  int m_verbosity;
+  int m_verbosity = 0;
 
 
 };

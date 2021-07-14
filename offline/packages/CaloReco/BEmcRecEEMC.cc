@@ -3,27 +3,20 @@
 #include "BEmcCluster.h"
 #include "BEmcProfile.h"
 
+#include <calobase/RawTowerDefs.h>
+
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 BEmcRecEEMC::BEmcRecEEMC()
-//  : _emcprof(nullptr)
 {
   Name("BEmcRecEEMC");
   SetPlanarGeometry();
 }
 
-BEmcRecEEMC::~BEmcRecEEMC()
-{
-  // you can delete null pointers
-  //  delete _emcprof;
-}
-
 void BEmcRecEEMC::LoadProfile(const std::string& fname)
 {
-  //  cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << endl;
+  //  std::cout << "Info from BEmcRecEEMC::LoadProfile(): no shower profile evaluation is defined yet for EEMC" << std::endl;
   _emcprof = new BEmcProfile(fname);
 }
 
@@ -52,20 +45,52 @@ float BEmcRecEEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
 void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   // DZ, D and X0 should be negative for -Z direction
-  const float DZ = -9;     // in cm, tower half length
-  const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
-  const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)
+  // Crystal:[-10., -6.1, -0.91], Sci_glass:[-20., -16.76, -2.5]
+  // Original one:[-9, -6.1, -0.91] also for the lead tungsten
 
-  float logE = log(0.1);
-  if (E > 0.1) logE = log(E);
-  float zV = zA - fVz;
-  float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+  int C_ID = BEmcRec::GetCalotype();
+  //  std::cout << "Success pass data(ID): " << C_ID << std::endl;
 
-  zC = (zA - DZ) + (D + X0 * logE) * cosT;
-  //  zC = zA; // !!!!!
+  
+  if( (C_ID == RawTowerDefs::EEMC) || (C_ID == RawTowerDefs::EEMC_crystal) )
+    {
+      const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
+      const float D = -6.1;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+      const float X0 = -0.91;  // in cm; obtained from GEANT (should be ~ rad length)      
 
-  xC = xA;
-  yC = yA;
+      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
+      
+      float logE = log(0.1);
+      if (E > 0.1) logE = log(E);
+      float zV = zA - fVz;
+      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+
+      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+      //  zC = zA; // !!!!!
+
+      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+      yC = yA;
+    }
+  else if( C_ID == RawTowerDefs::EEMC_glass )
+    {
+      const float DZ = -0.5 * BEmcRec::GetScinSize();     // in cm, tower half length
+      const float D = -15.25;    // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+      const float X0 = -2.275;  // in cm; obtained from GEANT (should be ~ rad length)            
+
+      //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
+      
+      float logE = log(0.1);
+      if (E > 0.1) logE = log(E);
+      float zV = zA - fVz;
+      float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+
+      zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
+      //  zC = zA; // !!!!!
+
+      xC = xA;  // Keep the x and y the same. The x and y correction is in another code
+      yC = yA;
+    }
+
 }
 
 void BEmcRecEEMC::CorrectEnergy(float Energy, float x, float y,
@@ -150,6 +175,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   x0 = x + xZero;
   ix0 = EmcCluster::lowint(x0 + 0.5);
 
+
+  
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
@@ -158,8 +185,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
-         << x << ", dx = " << x0 - ix0 << endl;
+    std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: x = "
+         << x << ", dx = " << x0 - ix0 << std::endl;
   }
 
   y0 = y + yZero;
@@ -173,7 +200,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
-         << y << ",  dy = " << y0 - iy0 << endl;
+    std::cout << "????? Something wrong in BEmcRecEEMC::CorrectPosition: y = "
+         << y << ",  dy = " << y0 - iy0 << std::endl;
   }
+  
 }

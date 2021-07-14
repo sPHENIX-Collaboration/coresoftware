@@ -19,6 +19,7 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/getClass.h>
+#include <phool/PHTimer.h>
 
 #include <cassert>
 #include <cfloat>
@@ -388,35 +389,38 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
   //_cluster_hit_map->identify();
   std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
     hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
+
   for(std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
 	clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
     {
       TrkrDefs::hitkey hitkey = clushititer->second;
       // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
-
+      
       // get all of the g4hits for this hitkey
       std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
-      _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+      _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  
+      // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+
       for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
 	{
-
+	  
 	  // extract the g4 hit key here and add the hits to the set
 	  PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	  PHG4Hit * g4hit = nullptr;
 	  unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
-   switch( trkrid )
-   {
-    case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
-    case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
-    case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
-    case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
-    default: break;
-   }
+	  switch( trkrid )
+	    {
+	    case TrkrDefs::tpcId: g4hit = _g4hits_tpc->findHit(g4hitkey); break;
+	    case TrkrDefs::inttId: g4hit = _g4hits_intt->findHit(g4hitkey); break;
+	    case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
+	    case TrkrDefs::micromegasId: g4hit = _g4hits_mms->findHit(g4hitkey); break;
+	    default: break;
+	    }
 	  if( g4hit ) truth_hits.insert(g4hit);	      
 	} // end loop over g4hits associated with hitsetkey and hitkey
     } // end loop over hits associated with cluskey  
-
+  
   if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster_key, truth_hits));
 
   return truth_hits;
@@ -883,7 +887,12 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
       ++_errors;
       return std::set<TrkrDefs::cluskey>();
     }
-  
+  //check if cache is filled, if not fill it.
+  //  if(_cache_all_clusters_from_particle.count(truthparticle)==0){
+  if(_cache_all_clusters_from_particle.empty()){
+    FillRecoClusterFromG4HitCache();
+  }
+
   if (_do_cache)
     {
       std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> >::iterator iter =
@@ -893,9 +902,16 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
 	  return iter->second;
 	}
     }
-  
   std::set<TrkrDefs::cluskey> clusters;
+  return clusters;
+}
 
+void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
+  PHTimer *Mytimer = new PHTimer("ReCl_timer");
+  Mytimer->stop();
+  Mytimer->restart();
+
+  std::multimap<PHG4Particle*, TrkrDefs::cluskey> temp_clusters_from_particles;
   // loop over all the clusters
   auto hitsetrange = _hitsets->getHitSets();
   for (auto hitsetitr = hitsetrange.first;
@@ -903,25 +919,36 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
        ++hitsetitr){
     auto range = _clustermap->getClusters(hitsetitr->first);
     for( auto iter = range.first; iter != range.second; ++iter ){
-    TrkrDefs::cluskey cluster_key = iter->first;
-    
-    // loop over all truth particles connected to this cluster
-    std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
-    for (std::set<PHG4Particle*>::iterator jter = particles.begin();
-         jter != particles.end();
-         ++jter)
-      {
+      TrkrDefs::cluskey cluster_key = iter->first;
+      
+      // loop over all truth particles connected to this cluster
+      std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
+      for (std::set<PHG4Particle*>::iterator jter = particles.begin();
+	   jter != particles.end();
+	   ++jter){
 	PHG4Particle* candidate = *jter;
-	if (get_truth_eval()->are_same_particle(candidate, truthparticle))
-	  {
-	    clusters.insert(cluster_key);
-	  }
+	temp_clusters_from_particles.insert(make_pair(candidate, cluster_key));
       }
     }
   }
-  if (_do_cache) _cache_all_clusters_from_particle.insert(make_pair(truthparticle, clusters));
+  //Loop over particles and fill cache
+  PHG4TruthInfoContainer::ConstRange range = _truthinfo->GetParticleRange();
+  for(PHG4TruthInfoContainer::ConstIterator iter = range.first;
+      iter != range.second; ++iter){
+    PHG4Particle* g4particle = iter->second;
+    std::set<TrkrDefs::cluskey> clusters;
+    std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator lower_bound = temp_clusters_from_particles.lower_bound(g4particle);
+    std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator upper_bound = temp_clusters_from_particles.upper_bound(g4particle);
+    std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator cfp_iter;
+    for(cfp_iter = lower_bound;cfp_iter != upper_bound;cfp_iter++){
+      TrkrDefs::cluskey cluster_key = cfp_iter->second;
+      clusters.insert(cluster_key);
+    }
+    _cache_all_clusters_from_particle.insert(make_pair(g4particle, clusters));
+  }
 
-  return clusters;
+  Mytimer->stop();
+
 }
 
 std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)

@@ -49,13 +49,16 @@ class EventEvaluator : public SubsysReco
 
   void set_do_store_event_level_info(bool b) { _do_store_event_info = b; }
   void set_do_FHCAL(bool b) { _do_FHCAL = b; }
+  void set_do_BECAL(bool b) { _do_BECAL = b; }
   void set_do_HCALIN(bool b) { _do_HCALIN = b; }
   void set_do_HCALOUT(bool b) { _do_HCALOUT = b; }
   void set_do_EHCAL(bool b) { _do_EHCAL = b; }
   void set_do_FEMC(bool b) { _do_FEMC = b; }
   void set_do_CEMC(bool b) { _do_CEMC = b; }
   void set_do_EEMC(bool b) { _do_EEMC = b; }
+  void set_do_EEMCG(bool b) { _do_EEMCG = b; }
   void set_do_DRCALO(bool b) { _do_DRCALO = b; }
+  void set_do_LFHCAL(bool b) { _do_LFHCAL = b; }
   void set_do_HITS(bool b) { _do_HITS = b; }
   void set_do_TRACKS(bool b) { _do_TRACKS = b; }
   void set_do_CLUSTERS(bool b) { _do_CLUSTERS = b; }
@@ -64,8 +67,6 @@ class EventEvaluator : public SubsysReco
   void set_do_MCPARTICLES(bool b) { _do_MCPARTICLES = b; }
   void set_do_HEPMC(bool b) { _do_HEPMC = b; }
   void set_do_GEOMETRY(bool b) { _do_GEOMETRY = b; }
-  // funtions to limit the tracing to only part of the event ---------
-  // and speed up the evaluation
 
   // limit the tracing of towers and clusters back to the truth particles
   // to only those reconstructed objects above a particular energy
@@ -73,6 +74,10 @@ class EventEvaluator : public SubsysReco
   void set_reco_tracing_energy_threshold(float thresh)
   {
     _reco_e_threshold = thresh;
+  }
+  void set_reco_tracing_energy_threshold_BECAL(float thresh)
+  {
+    _reco_e_threshold_BECAL = thresh;
   }
 
   //! max depth/generation of the MC_particle/PHG4Particle that would be saved.
@@ -84,13 +89,16 @@ class EventEvaluator : public SubsysReco
  private:
   bool _do_store_event_info;
   bool _do_FHCAL;
+  bool _do_BECAL;
   bool _do_HCALIN;
   bool _do_HCALOUT;
   bool _do_EHCAL;
   bool _do_FEMC;
   bool _do_CEMC;
   bool _do_EEMC;
+  bool _do_EEMCG;
   bool _do_DRCALO;
+  bool _do_LFHCAL;
   bool _do_HITS;
   bool _do_TRACKS;
   bool _do_CLUSTERS;
@@ -123,6 +131,13 @@ class EventEvaluator : public SubsysReco
   int* _tower_FHCAL_trueID;
 
   // towers
+  int _nTowers_BECAL;
+  float* _tower_BECAL_E;
+  int* _tower_BECAL_iEta;
+  int* _tower_BECAL_iPhi;
+  int* _tower_BECAL_trueID;
+
+  // towers
   int _nTowers_HCALIN;
   float* _tower_HCALIN_E;
   int* _tower_HCALIN_iEta;
@@ -150,6 +165,13 @@ class EventEvaluator : public SubsysReco
   int* _tower_DRCALO_iPhi;
   int* _tower_DRCALO_trueID;
 
+  int _nTowers_LFHCAL;
+  float* _tower_LFHCAL_E;
+  int* _tower_LFHCAL_iEta;
+  int* _tower_LFHCAL_iPhi;
+  int* _tower_LFHCAL_iL;
+  int* _tower_LFHCAL_trueID;
+
   int _nTowers_FEMC;
   float* _tower_FEMC_E;
   int* _tower_FEMC_iEta;
@@ -162,6 +184,12 @@ class EventEvaluator : public SubsysReco
   int* _tower_EEMC_iPhi;
   int* _tower_EEMC_trueID;
 
+  int _nTowers_EEMCG;
+  float* _tower_EEMCG_E;
+  int* _tower_EEMCG_iEta;
+  int* _tower_EEMCG_iPhi;
+  int* _tower_EEMCG_trueID;
+  
   int _nTowers_CEMC;
   float* _tower_CEMC_E;
   int* _tower_CEMC_iEta;
@@ -218,6 +246,13 @@ class EventEvaluator : public SubsysReco
   int* _cluster_EEMC_NTower;
   int* _cluster_EEMC_trueID;
 
+  int _nclusters_EEMCG;
+  float* _cluster_EEMCG_E;
+  float* _cluster_EEMCG_Eta;
+  float* _cluster_EEMCG_Phi;
+  int* _cluster_EEMCG_NTower;
+  int* _cluster_EEMCG_trueID;
+  
   // vertex
   float _vertex_x;
   float _vertex_y;
@@ -252,9 +287,9 @@ class EventEvaluator : public SubsysReco
 
   // MC particles
   int _nMCPart;
-  float* _mcpart_ID;
-  float* _mcpart_ID_parent;
-  float* _mcpart_PDG;
+  int* _mcpart_ID;
+  int* _mcpart_ID_parent;
+  int* _mcpart_PDG;
   float* _mcpart_E;
   float* _mcpart_px;
   float* _mcpart_py;
@@ -267,8 +302,8 @@ class EventEvaluator : public SubsysReco
   float _hepmcp_x1;
   float _hepmcp_x2;
   //  float* _hepmcp_ID_parent;
-  float* _hepmcp_status;
-  float* _hepmcp_PDG;
+  int* _hepmcp_status;
+  int* _hepmcp_PDG;
   float* _hepmcp_E;
   float* _hepmcp_px;
   float* _hepmcp_py;
@@ -290,17 +325,21 @@ class EventEvaluator : public SubsysReco
   int* _geometry_done;
 
   float _reco_e_threshold;
+  float _reco_e_threshold_BECAL;
   int _depth_MCstack;
 
   CaloEvalStack* _caloevalstackFHCAL;
+  CaloEvalStack* _caloevalstackBECAL;
   CaloEvalStack* _caloevalstackHCALIN;
   CaloEvalStack* _caloevalstackHCALOUT;
   CaloEvalStack* _caloevalstackEHCAL;
   CaloEvalStack* _caloevalstackDRCALO;
+  CaloEvalStack* _caloevalstackLFHCAL;
   CaloEvalStack* _caloevalstackFEMC;
   CaloEvalStack* _caloevalstackCEMC;
   CaloEvalStack* _caloevalstackEEMC;
-
+  CaloEvalStack* _caloevalstackEEMCG;
+  
   //----------------------------------
   // evaluator output ntuples
 
@@ -321,7 +360,7 @@ class EventEvaluator : public SubsysReco
   void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
   void resetBuffer();                                     ///< reset the tree variables before filling for a new event
 
-  const int _maxNHits = 5000;
+  const int _maxNHits = 10000;
   const int _maxNTowers = 50 * 50;
   const int _maxNTowersCentral = 2000;
   const int _maxNTowersDR = 3000 * 3000;
@@ -341,7 +380,10 @@ class EventEvaluator : public SubsysReco
       kCEMC         = 4,
       kEHCAL         = 5,
       kHCALIN       = 6,
-      kHCALOUT       = 7
+      kHCALOUT       = 7,
+      kLFHCAL        = 8,
+      kEEMCG         = 9,
+      kBECAL         = 10
   };
 
 };

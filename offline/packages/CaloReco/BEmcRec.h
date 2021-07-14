@@ -54,9 +54,13 @@ class BEmcRec
   bool isCylindrical() const { return bCYL; }
 
   void SetProfileProb(bool bprob) { bProfileProb = bprob; }
+  void SetCalotype(int caloid) { Calorimeter_ID = caloid; }
+  void SetScinSize(float S_S) { Scin_size = S_S; }
 
   int GetNx() const { return fNx; }
   int GetNy() const { return fNy; }
+  int GetCalotype() const { return Calorimeter_ID; }
+  float GetScinSize() const { return Scin_size; }
   float GetVx() const { return fVx; }
   float GetVy() const { return fVy; }
   float GetVz() const { return fVz; }
@@ -75,10 +79,10 @@ class BEmcRec
   int FindClusters();
 
   void Momenta(std::vector<EmcModule> *, float &, float &, float &, float &, float &,
-               float &, float thresh=0);
+               float &, float thresh = 0);
 
   void Tower2Global(float E, float xC, float yC, float &xA, float &yA, float &zA);
-  float GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist);
+  float GetTowerEnergy(int iy, int iz, std::vector<EmcModule> *plist);
 
   float PredictEnergy(float, float, float, int, int);
   float PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy);
@@ -99,7 +103,11 @@ class BEmcRec
     zc = z;
   }
   virtual void LoadProfile(const std::string &fname);
-  virtual void GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi) {theta=0; phi=0;}
+  virtual void GetImpactThetaPhi(float xg, float yg, float zg, float &theta, float &phi)
+  {
+    theta = 0;
+    phi = 0;
+  }
 
   float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
   virtual std::string Name() const { return m_ThisName; }
@@ -116,27 +124,28 @@ class BEmcRec
 
  protected:
   // Geometry
-  bool bCYL;  // Cylindrical?
-  bool bProfileProb;
-  int fNx;    // length in X direction
-  int fNy;    // length in Y direction
+  bool bCYL = true;  // Cylindrical?
+  bool bProfileProb = false;
+  int fNx = -1;  // length in X direction
+  int fNy = -1;  // length in Y direction
   std::map<int, TowerGeom> fTowerGeom;
-  float fVx;  // vertex position (cm)
-  float fVy;
-  float fVz;
+  float fVx = 0.;  // vertex position (cm)
+  float fVy = 0.;
+  float fVz = 0.;
 
   std::vector<EmcModule> *fModules;
   std::vector<EmcCluster> *fClusters;
 
-  float fgTowerThresh;
-  float fgMinPeakEnergy;
-  //  static float const fgMinShowerEnergy;
-  static int const fgMaxLen;
+  float fgTowerThresh = 0.01;
+  float fgMinPeakEnergy = 0.08;
+  static int const fgMaxLen = 1000;
 
-  BEmcProfile *_emcprof;
+  BEmcProfile *_emcprof = nullptr;
 
  private:
-  std::string m_ThisName;
+  std::string m_ThisName = "NOTSET";
+  int Calorimeter_ID = 0;
+  float Scin_size = NAN;
   // the default copy ctor will not work
   // we do not use a copy ctor, so just delete it
   BEmcRec(const BEmcRec &) = delete;

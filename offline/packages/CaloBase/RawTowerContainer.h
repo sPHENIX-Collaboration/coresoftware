@@ -43,6 +43,9 @@ class RawTowerContainer : public PHObject
   RawTower *getTower(const unsigned int ieta, const unsigned int iphi);
   const RawTower *getTower(const unsigned int ieta, const unsigned int iphi) const;
 
+  RawTower *getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il );
+  const RawTower *getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il) const;
+
   //! return all towers
   ConstRange getTowers(void) const;
   Range getTowers(void);

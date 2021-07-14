@@ -424,7 +424,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     // choosing the last one first (clusters organized from inside out)
     bool layer_filled = false;
     TrkrDefs::cluskey next_ckey = 0;
-    for(int k=ckeys.size()-1; k>=0; k--)
+    for(int k=layers.size()-1; k>=0; k--)
     {
       if(layer_filled) continue;
       if(layers[k]==l)
@@ -493,7 +493,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
           cout << "z: " << fabs(tz-cz) << " vs. " << _max_dist*sqrt(tzerr*tzerr+czerr*czerr) << endl;
         }
         kftrack.SetNDF(kftrack.GetNDF()-2);
-        ckeys.erase(std::remove(ckeys.begin(),ckeys.end(),next_ckey),ckeys.end());
+        //ckeys.erase(std::remove(ckeys.begin(),ckeys.end(),next_ckey),ckeys.end());
       }
       old_phi = cphi;
     }
@@ -556,6 +556,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
          fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
+        layers.push_back(TrkrDefs::getLayer(closest_ckey));
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
         double ccX = cc->getX();
         cout << "cluster X: " << ccX << endl;
@@ -600,7 +601,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     // choosing the first one first (clusters organized from outside in)
     bool layer_filled = false;
     TrkrDefs::cluskey next_ckey = 0;
-    for(size_t k=0; k<propagated_track.size(); k++)
+    for(size_t k=0; k<layers.size(); k++)
     {
       if(layer_filled) continue;
       if(layers[k]==l)
@@ -693,6 +694,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
          fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         propagated_track.push_back(closest_ckey);
+        layers.push_back(TrkrDefs::getLayer(closest_ckey));
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
         double ccX = cc->getX();
         cout << "cluster X: " << ccX << endl;

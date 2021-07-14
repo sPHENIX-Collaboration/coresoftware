@@ -577,6 +577,7 @@ void PHG4TrackFastSimEval::reset_variables()
   for (auto &elem : m_TTree_proj_p_vec) std::fill(elem.begin(), elem.end(), -9999);
   for (auto &elem : m_TTree_ref_vec) std::fill(elem.begin(), elem.end(), -9999);
   for (auto &elem : m_TTree_ref_p_vec) std::fill(elem.begin(), elem.end(), -9999);
+  for (auto &pair : m_TTree_HitContainerID_nHits_map) pair.second=0;
 }
 
 //----------------------------------------------------------------------------//
