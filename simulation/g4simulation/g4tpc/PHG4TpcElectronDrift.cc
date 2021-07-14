@@ -76,6 +76,12 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
+
+  membrane=new PHG4TpcCentralMembrane();//eventually make this an external PHG4TpcLaser module that we pass in?
+  directLaser=new PHG4TpcDirectLaser();//eventually make this an external PHG4TpcLaser module that we pass in?
+  laserHits=new PHG4HitContainer();
+  centralMembraneDelay=0;//ns, set nonzero for testing.  -15000<x<100 should fit okay.
+
   return;
 }
 
