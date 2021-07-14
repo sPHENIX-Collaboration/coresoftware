@@ -236,6 +236,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     deltarnodist = new TH2F("deltarnodist", "Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
   }
 
+
+ //add CM hits if requested
+  
+  if (do_addCmHits)
+    {//todo:  put in the real spacing.
+      for (int i=0;i<(int)(membrane->PHG4Hits.size());i++){
+	membrane->PHG4Hits[i]->set_eion(300./electrons_per_gev);//rcc hardcoded 300 electrons per stripe!
+	membrane->PHG4Hits[i]->set_hit_id(1e8+i); //dummy hit id
+	membrane->PHG4Hits[i]->set_t(0,1.*centralMembraneDelay);//real hit delay
+	membrane->PHG4Hits[i]->set_t(1,1.*centralMembraneDelay);//real hit delay.
+	membrane->PHG4Hits[i]->set_z(0,1.);
+	membrane->PHG4Hits[i]->set_z(1,1.);
+	laserHits->AddHit(membrane->PHG4Hits[i]);
+      }
+    }
+
+
+  
   if (Verbosity())
   {
     // eval tree only when verbosity is on
@@ -272,7 +290,47 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     gSystem->Exit(1);
   }
 
+  
   PHG4HitContainer::ConstIterator hiter;
+
+
+ if (do_addCmHits || do_addDirectLaserHits){//add in the laser hit set, if we have it.
+
+    int newkey=g4hit->getmaxkey(g4hit->GetID());
+    //printf("first Laser hitID is %d\n",newkey);
+    //add in the diffuse laser hits, which do not change event to event.
+    PHG4HitContainer::ConstRange laserHit_begin_end=laserHits->getHits();
+    for (hiter = laserHit_begin_end.first; hiter != laserHit_begin_end.second; ++hiter){
+      hiter->second->set_hit_id(newkey);
+      PHG4Hitv1* tempHit=new PHG4Hitv1(hiter->second);
+      g4hit->AddHit(tempHit);
+      newkey++;
+    }
+
+    //handle the directed laser hits, which can, if we are auto-advancing:
+    if ( do_addDirectLaserHits)
+      {
+	if (do_autoAdvanceDirectLaser){
+	  directLaser->AimToNextPatternStep();
+	}
+  	//we link the laser hits from the directLaser into the overall laserHits collection,
+	// note that these are COPIES,of the originals.
+	for (int i=0;i<(int)(directLaser->PHG4Hits.size());i++){
+	  directLaser->PHG4Hits[i]->set_hit_id(newkey); //dummy hit id
+	  PHG4Hitv1* tempHit=new PHG4Hitv1(directLaser->PHG4Hits[i]);
+	  g4hit->AddHit(tempHit);
+	  newkey++;
+	}
+      }
+
+    
+ //printf("last Laser hitID is %d\n",newkey);
+
+  }
+
+
+
+  
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;

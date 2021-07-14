@@ -59,6 +59,16 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
+  //!setup Central Membrane
+   void setCentralMembrane(bool addCMHits){do_addCmHits=addCMHits; return;};
+   void setCentralMembraneDelay(int ns){centralMembraneDelay=ns; return;};
+
+   //! setup Direct Lasers
+   void setDirectLaser(bool x){do_addDirectLaserHits=x; return;};
+   void setDirectLaserAuto(bool x){do_autoAdvanceDirectLaser=x; return;};//make it advance through its pattern automatically
+   PHG4TpcDirectLaser * directLaser=nullptr; //cheap way to expose the direct laser so we can adjust it
+  
+
  private:
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
@@ -73,6 +83,16 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
 
+
+
+  //laser booleans etc.
+  bool do_addCmHits=false;
+  bool do_addDirectLaserHits=false;
+  bool do_autoAdvanceDirectLaser=false;
+  PHG4TpcCentralMembrane * membrane=nullptr;
+  PHG4HitContainer *laserHits=nullptr; //holds the cm and direct laser hits
+  int centralMembraneDelay=0; //ns
+  
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
   TH2 *hitmapstart = nullptr;
