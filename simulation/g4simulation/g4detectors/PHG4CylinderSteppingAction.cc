@@ -21,7 +21,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>   // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fPostSt...
-#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
 #include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
@@ -42,7 +41,6 @@
 
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderSubsystem* subsys, PHG4CylinderDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -103,7 +101,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // if this cylinder stops everything, just put all kinetic energy into edep
   if (m_BlackHoleFlag)
   {
-    if ((!isfinite(m_Tmin) && !isfinite(m_Tmax)) ||
+    if ((!std::isfinite(m_Tmin) && !std::isfinite(m_Tmax)) ||
         aTrack->GetGlobalTime() < m_Tmin ||
         aTrack->GetGlobalTime() > m_Tmax)
     {
@@ -122,17 +120,17 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //        cout << "time prepoint: " << prePoint->GetGlobalTime()/ns << endl;
-    //        cout << "time postpoint: " << postPoint->GetGlobalTime()/ns << endl;
-    //        cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << endl;
+    //        std::cout << "time prepoint: " << prePoint->GetGlobalTime()/ns << std::endl;
+    //        std::cout << "time postpoint: " << postPoint->GetGlobalTime()/ns << std::endl;
+    //        std::cout << "kinetic energy: " <<  aTrack->GetKineticEnergy()/GeV << std::endl;
     //       G4ParticleDefinition* def = aTrack->GetDefinition();
-    //       cout << "Particle: " << def->GetParticleName() << endl;
+    //       std::cout << "Particle: " << def->GetParticleName() << std::endl;
     int prepointstatus = prePoint->GetStepStatus();
     if (prepointstatus == fGeomBoundary ||
         prepointstatus == fUndefined ||
@@ -141,17 +139,17 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       if (prepointstatus == fPostStepDoItProc && m_SavePostStepStatus == fGeomBoundary)
       {
-        cout << GetName() << ": New Hit for  " << endl;
-        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+        std::cout << GetName() << ": New Hit for  " << std::endl;
+        std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-        cout << "last track: " << m_SaveTrackId
-             << ", current trackid: " << aTrack->GetTrackID() << endl;
-        cout << "phys pre vol: " << volume->GetName()
-             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-        cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-             << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+        std::cout << "last track: " << m_SaveTrackId
+             << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+        std::cout << "phys pre vol: " << volume->GetName()
+             << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+        std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+             << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       }
 
       if (!m_Hit)
@@ -197,11 +195,11 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       if (!hasMotherSubsystem() && (m_Hit->get_z(0) * cm > m_Zmax || m_Hit->get_z(0) * cm < m_Zmin))
       {
-        boost::io::ios_precision_saver ips(cout);
-        cout << m_Detector->SuperDetector() << std::setprecision(9)
+        boost::io::ios_precision_saver ips(std::cout);
+        std::cout << m_Detector->SuperDetector() << std::setprecision(9)
              << " PHG4CylinderSteppingAction: Entry hit z " << m_Hit->get_z(0) * cm
              << " outside acceptance,  zmin " << m_Zmin
-             << ", zmax " << m_Zmax << ", layer: " << layer_id << endl;
+             << ", zmax " << m_Zmax << ", layer: " << layer_id << std::endl;
       }
     }
     // here we just update the exit values, it will be overwritten
@@ -209,29 +207,29 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // ceases to exist
     // some sanity checks for inconsistencies
     // check if this hit was created, if not print out last post step status
-    if (!m_Hit || !isfinite(m_Hit->get_x(0)))
+    if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
     {
-      cout << GetName() << ": hit was not created" << endl;
-      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+      std::cout << GetName() << ": hit was not created" << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
            << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
            << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+           << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       exit(1);
     }
     m_SavePostStepStatus = postPoint->GetStepStatus();
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != m_SaveTrackId)
     {
-      cout << "hits do not belong to the same track" << endl;
-      cout << "saved track: " << m_SaveTrackId
+      std::cout << "hits do not belong to the same track" << std::endl;
+      std::cout << "saved track: " << m_SaveTrackId
            << ", current trackid: " << aTrack->GetTrackID()
-           << endl;
+           << std::endl;
       exit(1);
     }
     m_SavePreStepStatus = prePoint->GetStepStatus();
@@ -252,10 +250,10 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (!hasMotherSubsystem() && (m_Hit->get_z(1) * cm > m_Zmax || m_Hit->get_z(1) * cm < m_Zmin))
     {
-      cout << m_Detector->SuperDetector() << std::setprecision(9)
+      std::cout << m_Detector->SuperDetector() << std::setprecision(9)
            << " PHG4CylinderSteppingAction: Exit hit z " << m_Hit->get_z(1) * cm
            << " outside acceptance zmin " << m_Zmin
-           << ", zmax " << m_Zmax << ", layer: " << layer_id << endl;
+           << ", zmax " << m_Zmax << ", layer: " << layer_id << std::endl;
     }
     if (geantino)
     {
@@ -274,7 +272,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       double light_yield = GetVisibleEnergyDeposition(aStep);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
-    if (edep > 0)
+    if (edep > 0 || m_SaveAllHitsFlag)
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {

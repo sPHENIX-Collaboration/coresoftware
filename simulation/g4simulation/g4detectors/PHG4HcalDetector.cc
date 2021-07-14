@@ -29,6 +29,7 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <algorithm> // for max
 #include <cmath>     // for sin, cos, sqrt, M_PI, asin
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream

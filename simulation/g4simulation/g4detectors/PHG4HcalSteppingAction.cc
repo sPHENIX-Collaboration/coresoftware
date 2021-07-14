@@ -25,7 +25,6 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cmath>  // for sqrt, NAN
 #include <iostream>
 #include <string>  // for char_traits, operator<<
 
