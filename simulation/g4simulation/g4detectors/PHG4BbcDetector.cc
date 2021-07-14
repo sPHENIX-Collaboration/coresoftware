@@ -9,7 +9,6 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4VPhysicalVolume.hh>          // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4String.hh>                   // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>              // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
@@ -19,8 +18,6 @@
 
 class PHCompositeNode;
 class PHG4Subsystem;
-
-using namespace std;
 
 PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -36,9 +33,9 @@ PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, P
 //_______________________________________________________________
 int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 {
-  //cout << PHWHERE << " volume " << volume->GetName() << endl;
+  //std::cout << PHWHERE << " volume " << volume->GetName() << std::endl;
 
-  set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);
+  std::set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);
   if (iter != m_PhysicalVolumesSet.end())
   {
     return 1;
@@ -49,17 +46,17 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
 void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  //cout << PHWHERE << " Constructing BBC" << endl;
+  //std::cout << PHWHERE << " Constructing BBC" << std::endl;
 
   // Logical Volume Info for a BBC PMT
   G4Material *Quartz = G4Material::GetMaterial("G4_SILICON_DIOXIDE");
 
-  const G4double z_bbcq[] = {-1.5, 1.5};
-  const G4double rInner_bbcq[] = {0.,0.};
-  const G4double rOuter_bbcq[] = {1.27*cm,1.27*cm};
+  const double z_bbcq[] = {-1.5, 1.5};
+  const double rInner_bbcq[] = {0.,0.};
+  const double rOuter_bbcq[] = {1.27*cm,1.27*cm};
   G4Polyhedra *bbcq = new G4Polyhedra("bbcq",0.,2.0*M_PI,6,2,z_bbcq,rInner_bbcq,rOuter_bbcq); // bbc quartz radiator
 
-  G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, G4String("Bbc_quartz"));
+  G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, "Bbc_quartz");
   G4VisAttributes *bbcqVisAtt = new G4VisAttributes();
   bbcqVisAtt->SetVisibility(true);
   bbcqVisAtt->SetForceSolid(true);
@@ -71,7 +68,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // Locations of the 64 PMT tubes in an arm.
   // Should probably move this to a geometry object...
-  G4float xpos[] = {
+  float xpos[] = {
     2.45951, -2.45951, 4.91902, 0, -4.91902, 7.37854, 2.45951, -2.45951, 
     -7.37854, 9.83805, 4.91902, 0, -4.91902, -9.83805, 7.37854, 2.45951, 
     -2.45951, -7.37854, 9.83805, 4.91902, -4.91902, -9.83805, 12.2976, 7.37854, 
@@ -82,7 +79,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     2.45951, -2.45951, -7.37854, 4.91902, 0, -4.91902, 2.45951, -2.45951, 
   };
 
-  G4float ypos[] = {
+  float ypos[] = {
     12.78, 12.78, 11.36, 11.36, 11.36, 9.94, 9.94, 9.94, 
     9.94, 8.52, 8.52, 8.52, 8.52, 8.52, 7.1, 7.1, 
     7.1, 7.1, 5.68, 5.68, 5.68, 5.68, 4.26, 4.26, 
@@ -96,7 +93,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   const int NPMT = 64;  // No. PMTs per arm
   for ( int iarm = 0; iarm<2; iarm ++ )
   {
-    G4float side = 1.0;
+    float side = 1.0;
     if ( iarm==0 ) side = -1.0;
 
     // Add BBC PMT's
@@ -118,7 +115,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // BBC Outer and Inner Cylindrical Shells
   G4Material *Alum = G4Material::GetMaterial("G4_Al");
   G4Tubs *bbc_shell = new G4Tubs("bbc_shell",14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_shell_lv = new G4LogicalVolume(bbc_shell, Alum, G4String("Bbc_Shell"));
+  G4LogicalVolume *bbc_shell_lv = new G4LogicalVolume(bbc_shell, Alum, "Bbc_Shell");
   G4VisAttributes *bbc_shell_VisAtt = new G4VisAttributes();
   bbc_shell_VisAtt->SetVisibility(true);
   bbc_shell_VisAtt->SetForceSolid(true);
@@ -137,7 +134,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // BBC Front Plate
   G4Tubs *bbc_fplate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_fplate_lv = new G4LogicalVolume(bbc_fplate, Alum, G4String("Bbc_Front_Plate"));
+  G4LogicalVolume *bbc_fplate_lv = new G4LogicalVolume(bbc_fplate, Alum, "Bbc_Front_Plate");
   G4VisAttributes *bbc_fplate_VisAtt = new G4VisAttributes();
   bbc_fplate_VisAtt->SetVisibility(true);
   bbc_fplate_VisAtt->SetForceSolid(true);
@@ -159,10 +156,10 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 void PHG4BbcDetector::Print(const std::string &what) const
 {
-  cout << "Bbc Detector:" << endl;
+  std::cout << "Bbc Detector:" << std::endl;
   if (what == "ALL" || what == "VOLUME")
   {
-    cout << "Version 0.1" << endl;
+    std::cout << "Version 0.1" << std::endl;
   }
   return;
 }

@@ -14,6 +14,7 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid
+#include <Geant4/G4Exception.hh>  // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException, JustWarning
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -27,7 +28,6 @@
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>              // for G4int
-#include <Geant4/globals.hh>  // for G4Exception
 
 #include <algorithm>  // for max
 #include <cassert>
