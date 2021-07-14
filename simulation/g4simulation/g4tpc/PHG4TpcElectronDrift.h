@@ -16,6 +16,8 @@
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
+class PHG4TpcCentralMembrane;
+class PHG4TpcDirectLaser;
 class PHCompositeNode;
 class TH1;
 class TH2;
