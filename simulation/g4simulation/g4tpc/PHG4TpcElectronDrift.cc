@@ -76,13 +76,6 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
-
-  membrane=new PHG4TpcCentralMembrane();//eventually make this an external PHG4TpcLaser module that we pass in?
-  directLaser=new PHG4TpcDirectLaser();//eventually make this an external PHG4TpcLaser module that we pass in?
-  laserHits=new PHG4HitContainer();
-  centralMembraneDelay=0;//ns, set nonzero for testing.  -15000<x<100 should fit okay.
-
-  return;
 }
 
 //_____________________________________________________________
@@ -245,22 +238,45 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
 
- //add CM hits if requested
-  
+  //add CM hits if requested
   if (do_addCmHits)
-    {//todo:  put in the real spacing.
-      for (int i=0;i<(int)(membrane->PHG4Hits.size());i++){
-	membrane->PHG4Hits[i]->set_eion(300./electrons_per_gev);//rcc hardcoded 300 electrons per stripe!
-	membrane->PHG4Hits[i]->set_hit_id(1e8+i); //dummy hit id
-	membrane->PHG4Hits[i]->set_t(0,1.*centralMembraneDelay);//real hit delay
-	membrane->PHG4Hits[i]->set_t(1,1.*centralMembraneDelay);//real hit delay.
-	membrane->PHG4Hits[i]->set_z(0,1.);
-	membrane->PHG4Hits[i]->set_z(1,1.);
-	laserHits->AddHit(membrane->PHG4Hits[i]);
+  {
+    
+    // create laser hits container if not already
+    if( !laserHits ) laserHits.reset( new PHG4HitContainer );
+
+    // create if not already
+    if( !membrane ) 
+    {
+      std::cout << "PHG4TpcElectronDrift::InitRun - creating PHG4TpcCentralMembrane" << std::endl;
+      membrane.reset( new PHG4TpcCentralMembrane );
+
+      // configure g4hits to be generated
+      /* todo:  
+       * - put in the real spacing.
+       * - check if copying from membrane to local container is really necessary
+       */
+      laserHits->Reset();
+      for (int i=0;i<(int)(membrane->PHG4Hits.size());i++)
+      {
+        membrane->PHG4Hits[i]->set_eion(300./electrons_per_gev);//rcc hardcoded 300 electrons per stripe!
+        membrane->PHG4Hits[i]->set_hit_id(1e8+i); //dummy hit id
+        membrane->PHG4Hits[i]->set_t(0,1.*centralMembraneDelay);//real hit delay
+        membrane->PHG4Hits[i]->set_t(1,1.*centralMembraneDelay);//real hit delay.
+        membrane->PHG4Hits[i]->set_z(0,1.);
+        membrane->PHG4Hits[i]->set_z(1,1.);
+        laserHits->AddHit(membrane->PHG4Hits[i]);
       }
     }
+  }
 
 
+  // create direct laser G4Hit generation if requested
+  if( do_addDirectLaserHits && !directLaser )
+  { 
+    std::cout << "PHG4TpcElectronDrift::InitRun - creating PHG4TpcDirectLaser" << std::endl;
+    directLaser.reset( new PHG4TpcDirectLaser ); 
+  }
   
   if (Verbosity())
   {
@@ -282,7 +298,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 18;
+  static constexpr unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -302,38 +318,40 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstIterator hiter;
 
 
- if (do_addCmHits || do_addDirectLaserHits){//add in the laser hit set, if we have it.
-
-    int newkey=g4hit->getmaxkey(g4hit->GetID());
+  if (do_addCmHits)
+  {
+    //add in the laser hit set, if we have it.
+    auto newkey=g4hit->getmaxkey(g4hit->GetID());
     //printf("first Laser hitID is %d\n",newkey);
     //add in the diffuse laser hits, which do not change event to event.
-    PHG4HitContainer::ConstRange laserHit_begin_end=laserHits->getHits();
-    for (hiter = laserHit_begin_end.first; hiter != laserHit_begin_end.second; ++hiter){
+    const auto laserHit_begin_end=laserHits->getHits();
+    for (hiter = laserHit_begin_end.first; hiter != laserHit_begin_end.second; ++hiter)
+    {
       hiter->second->set_hit_id(newkey);
       PHG4Hitv1* tempHit=new PHG4Hitv1(hiter->second);
       g4hit->AddHit(tempHit);
       newkey++;
     }
-
-    //handle the directed laser hits, which can, if we are auto-advancing:
-    if ( do_addDirectLaserHits)
-      {
-	if (do_autoAdvanceDirectLaser){
-	  directLaser->AimToNextPatternStep();
-	}
-  	//we link the laser hits from the directLaser into the overall laserHits collection,
-	// note that these are COPIES,of the originals.
-	for (int i=0;i<(int)(directLaser->PHG4Hits.size());i++){
-	  directLaser->PHG4Hits[i]->set_hit_id(newkey); //dummy hit id
-	  PHG4Hitv1* tempHit=new PHG4Hitv1(directLaser->PHG4Hits[i]);
-	  g4hit->AddHit(tempHit);
-	  newkey++;
-	}
-      }
-
+  }
+  
+  //handle the directed laser hits, which can, if we are auto-advancing:
+  if ( do_addDirectLaserHits)
+  {
+    auto newkey=g4hit->getmaxkey(g4hit->GetID());
+    if (do_autoAdvanceDirectLaser)
+    {
+      directLaser->AimToNextPatternStep();
+    }
     
- //printf("last Laser hitID is %d\n",newkey);
-
+    // copy laser hits to global hits
+    for( const auto& source:directLaser->PHG4Hits )
+    {
+      auto copy = new PHG4Hitv1( source );
+      copy->set_hit_id(newkey); 
+      g4hit->AddHit(copy);
+      newkey++;
+    }
+    
   }
 
 

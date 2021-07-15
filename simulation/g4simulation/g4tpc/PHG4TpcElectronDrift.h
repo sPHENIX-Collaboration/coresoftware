@@ -62,15 +62,13 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
   //!setup Central Membrane
-   void setCentralMembrane(bool addCMHits){do_addCmHits=addCMHits; return;};
-   void setCentralMembraneDelay(int ns){centralMembraneDelay=ns; return;};
+   void setCentralMembrane(bool addCMHits){do_addCmHits=addCMHits;};
+   void setCentralMembraneDelay(int ns){centralMembraneDelay=ns;};
 
    //! setup Direct Lasers
-   void setDirectLaser(bool x){do_addDirectLaserHits=x; return;};
-   void setDirectLaserAuto(bool x){do_autoAdvanceDirectLaser=x; return;};//make it advance through its pattern automatically
-   PHG4TpcDirectLaser * directLaser=nullptr; //cheap way to expose the direct laser so we can adjust it
+   void setDirectLaser(bool x){do_addDirectLaserHits=x;};
+   void setDirectLaserAuto(bool x){do_autoAdvanceDirectLaser=x;};//make it advance through its pattern automatically
   
-
  private:
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
@@ -85,16 +83,29 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
 
-
-
-  //laser booleans etc.
+  /// set to true to enable central membrane G4Hits  
   bool do_addCmHits=false;
-  bool do_addDirectLaserHits=false;
-  bool do_autoAdvanceDirectLaser=false;
-  PHG4TpcCentralMembrane * membrane=nullptr;
-  PHG4HitContainer *laserHits=nullptr; //holds the cm and direct laser hits
-  int centralMembraneDelay=0; //ns
   
+  /// set to true to enable direct laser hits
+  bool do_addDirectLaserHits=false;
+  
+  /// set to true to change direct laser tracks from one event to the other
+  bool do_autoAdvanceDirectLaser=false;
+  
+  /// time delay for central membrane
+  int centralMembraneDelay=0; //ns
+
+  /// central membrane g4hits generator
+  std::unique_ptr<PHG4TpcCentralMembrane> membrane;
+
+  /// direct laserr g4 hits generators
+  std::unique_ptr<PHG4TpcDirectLaser> directLaser;
+  
+  /// laser G4Hits containers
+  std::unique_ptr<PHG4HitContainer> laserHits;
+    
+  ///@name evaluation histograms
+  //@{
   TH1 *dlong = nullptr;
   TH1 *dtrans = nullptr;
   TH2 *hitmapstart = nullptr;
@@ -109,7 +120,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodiff = nullptr;
   TH2 *deltarnodist = nullptr;
   TH2 *deltaz = nullptr;
-
+  //@}
+  
   std::unique_ptr<TFile> m_outf;
   std::unique_ptr<TFile> EDrift_outf;
 
@@ -117,6 +129,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TNtuple *nthit = nullptr;
   TNtuple *ntfinalhit = nullptr;
   TNtuple *ntpad = nullptr;
+  
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
