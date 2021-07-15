@@ -3,10 +3,10 @@
 
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcDistortion.h"
-#include "PHG4TpcCentralMembrane.h"
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
@@ -231,39 +231,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     deltarnodiff = new TH2F("deltarnodiff", "Delta r (no diffusion, only SC distortion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
     deltarnodist = new TH2F("deltarnodist", "Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
   }
-
-
-  //add CM hits if requested
-  if (do_addCmHits)
-  {
-    
-    // create laser hits container if not already
-    if( !laserHits ) laserHits.reset( new PHG4HitContainer );
-
-    // create if not already
-    if( !membrane ) 
-    {
-      std::cout << "PHG4TpcElectronDrift::InitRun - creating PHG4TpcCentralMembrane" << std::endl;
-      membrane.reset( new PHG4TpcCentralMembrane );
-
-      // configure g4hits to be generated
-      /* todo:  
-       * - put in the real spacing.
-       * - check if copying from membrane to local container is really necessary
-       */
-      laserHits->Reset();
-      for (int i=0;i<(int)(membrane->PHG4Hits.size());i++)
-      {
-        membrane->PHG4Hits[i]->set_eion(300./electrons_per_gev);//rcc hardcoded 300 electrons per stripe!
-        membrane->PHG4Hits[i]->set_hit_id(1e8+i); //dummy hit id
-        membrane->PHG4Hits[i]->set_t(0,1.*centralMembraneDelay);//real hit delay
-        membrane->PHG4Hits[i]->set_t(1,1.*centralMembraneDelay);//real hit delay.
-        membrane->PHG4Hits[i]->set_z(0,1.);
-        membrane->PHG4Hits[i]->set_z(1,1.);
-        laserHits->AddHit(membrane->PHG4Hits[i]);
-      }
-    }
-  }
   
   if (Verbosity())
   {
@@ -300,26 +267,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
-
-  
-  PHG4HitContainer::ConstIterator hiter;
-
-
-  if (do_addCmHits)
-  {
-    //add in the laser hit set, if we have it.
-    auto newkey=g4hit->getmaxkey(g4hit->GetID());
-    //printf("first Laser hitID is %d\n",newkey);
-    //add in the diffuse laser hits, which do not change event to event.
-    const auto laserHit_begin_end=laserHits->getHits();
-    for (hiter = laserHit_begin_end.first; hiter != laserHit_begin_end.second; ++hiter)
-    {
-      hiter->second->set_hit_id(newkey);
-      PHG4Hitv1* tempHit=new PHG4Hitv1(hiter->second);
-      g4hit->AddHit(tempHit);
-      newkey++;
-    }
-  }
    
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
@@ -331,7 +278,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+  for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
     dump_counter++;

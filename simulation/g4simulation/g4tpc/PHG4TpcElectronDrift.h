@@ -16,7 +16,6 @@
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
-class PHG4TpcCentralMembrane;
 class PHCompositeNode;
 class TH1;
 class TH2;
@@ -59,10 +58,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
-
-  //!setup Central Membrane
-   void setCentralMembrane(bool addCMHits){do_addCmHits=addCMHits;};
-   void setCentralMembraneDelay(int ns){centralMembraneDelay=ns;};
   
  private:
   //! map a given x,y,z coordinates to plane hits
@@ -77,19 +72,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
-
-  /// set to true to enable central membrane G4Hits  
-  bool do_addCmHits=false;
   
-  /// time delay for central membrane
-  int centralMembraneDelay=0; //ns
-
-  /// central membrane g4hits generator
-  std::unique_ptr<PHG4TpcCentralMembrane> membrane;
-
-  /// laser G4Hits containers
-  std::unique_ptr<PHG4HitContainer> laserHits;
-    
   ///@name evaluation histograms
   //@{
   TH1 *dlong = nullptr;
