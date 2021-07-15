@@ -1,45 +1,90 @@
-#ifndef PHG4TPCDIRECTLASER_H
-#define PHG4TPCDIRECTLASER_H
+#ifndef G4TPC_PHG4TPCDIRECTLASER_H
+#define G4TPC_PHG4TPCDIRECTLASER_H
 
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
+#include <fun4all/SubsysReco.h>
 
-//from phg4tpcsteppingaction.cc
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv1.h>
-//R__LOAD_LIBRARY(libphg4hit.so)
+#include <TVector3.h>
 
+class PHG4HitContainer;
 
-// all distances in mm, all angles in rad
-// class that generates stripes and dummy hit coordinates
-// stripes have width of one mm, length of one pad width, and are centered in middle of sector gaps
-
-using namespace std;
-
-class PHG4TpcDirectLaser {
-public:
-  PHG4TpcDirectLaser(); //default constructor
-
-  double halfwidth_CM; //half the thickness of the CM;
-  double ifc,ofc;// inner and outer radii of field cages/TPC
+class PHG4TpcDirectLaser: public SubsysReco 
+{
+  public:
   
-  vector<PHG4Hitv1*> PHG4Hits;
+  /// constructor
+  PHG4TpcDirectLaser( const std::string& name = "PHG4TpcDirectLaser" ); 
+  ~PHG4TpcDirectLaser() override = default;
 
+  /// run initialization
+  int InitRun(PHCompositeNode *) override;
+
+  /// per event processing
+  int process_event(PHCompositeNode *) override;
+
+  /// detector name
+  void Detector(const std::string &d)
+  { detector = d; }
+  
+  /// define steps along phi
   void SetPhiStepping(int n, float min,float max);
-  void SetThetaStepping(int n, float min,float max);
-  int GetNpatternSteps(){return nPhiSteps*nThetaSteps;};
-  void AimToThetaPhi(float theta, float phi);
-  void AimToPatternStep(int n);
-  void AimToNextPatternStep(){if (nTotalSteps>1)AimToPatternStep(currentPatternStep+1);};
   
-private:
-  static const int nLasers = 4; //per side
-  const double cm = 1.0;
-  const float maxHitLength=1.0;//1cm.
+  /// define steps along theta
+  void SetThetaStepping(int n, float min,float max);
+  
+  /// get total number of steps
+  int GetNpatternSteps(){return nPhiSteps*nThetaSteps;};
 
+  /// advance automatically through patterns
+  void setDirectLaserAuto(bool x)
+  {m_autoAdvanceDirectLaser = x;};
+  
+  private:
+  
+  /// aim lasers to a given theta and phi angle
+  void AimToThetaPhi(float theta, float phi);
+  
+  /// aim lasers to a give step
+  void AimToPatternStep(int n);
+
+  /// aim to next step
+  void AimToNextPatternStep()
+  { if( nTotalSteps>=1 ) AimToPatternStep(currentPatternStep+1); };
+  
+  TVector3 GetCmStrike(TVector3 start, TVector3 direction) const;
+
+  TVector3 GetFieldcageStrike(TVector3 start, TVector3 direction) const;
+  
+  TVector3 GetCylinderStrike(TVector3 s, TVector3 v, float radius) const;
+   
+  void AppendLaserTrack(float theta, float phi, int laser);
+    
+  ///@name units
+  //@{
+  static constexpr double mm = 0.10;
+  static constexpr double cm = 1.0;
+  //@}
+    
+  /// length of generated G4Hits along laser track
+  static constexpr float maxHitLength=1.0;//1cm.
+
+  // inner and outer radii of field cages/TPC
+  static constexpr double begin_CM = 20.*cm ;
+  static constexpr double end_CM = 78.*cm;
+  
+  //half the thickness of the CM;
+  static constexpr double halfwidth_CM = 0.5*cm;
+  
+  /// detector name
+  std::string detector = "TPC";
+  
+  /// g4hitnode name
+  std::string hitnodename;
+
+  /// g4hit container
+  PHG4HitContainer* m_g4hitcontainer = nullptr;
+  
+  ///@name default phi and theta steps
+  //@{
   int nPhiSteps=1;
   int nThetaSteps=1;
   int nTotalSteps=1;
@@ -48,16 +93,11 @@ private:
   float maxPhi=0;
   float minTheta=0;
   float maxTheta=0;
+  //@}
 
-  TVector3 GetCmStrike(TVector3 start, TVector3 direction);
-  TVector3 GetFieldcageStrike(TVector3 start, TVector3 direction);
-  TVector3 GetCylinderStrike(TVector3 s, TVector3 v, float radius);
+  /// set to true to change direct laser tracks from one event to the other
+  bool m_autoAdvanceDirectLaser=false;
   
-  int electrons_per_cm;
-  float gev_per_electron;
- 
-  void AppendLaserTrack(float theta, float phi, int laser);
-  void ClearHits();
 };
 
 

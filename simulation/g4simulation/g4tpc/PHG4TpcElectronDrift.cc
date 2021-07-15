@@ -4,7 +4,6 @@
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcDistortion.h"
 #include "PHG4TpcCentralMembrane.h"
-#include "PHG4TpcDirectLaser.h"
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
@@ -60,11 +59,7 @@
 
 namespace
 {
-  template <class T>
-  inline constexpr T square(const T &x)
-  {
-    return x * x;
-  }
+  template <class T> inline constexpr T square(const T &x) { return x * x; }
 }  // namespace
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
@@ -269,14 +264,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       }
     }
   }
-
-
-  // create direct laser G4Hit generation if requested
-  if( do_addDirectLaserHits && !directLaser )
-  { 
-    std::cout << "PHG4TpcElectronDrift::InitRun - creating PHG4TpcDirectLaser" << std::endl;
-    directLaser.reset( new PHG4TpcDirectLaser ); 
-  }
   
   if (Verbosity())
   {
@@ -333,30 +320,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       newkey++;
     }
   }
-  
-  //handle the directed laser hits, which can, if we are auto-advancing:
-  if ( do_addDirectLaserHits)
-  {
-    auto newkey=g4hit->getmaxkey(g4hit->GetID());
-    if (do_autoAdvanceDirectLaser)
-    {
-      directLaser->AimToNextPatternStep();
-    }
-    
-    // copy laser hits to global hits
-    for( const auto& source:directLaser->PHG4Hits )
-    {
-      auto copy = new PHG4Hitv1( source );
-      copy->set_hit_id(newkey); 
-      g4hit->AddHit(copy);
-      newkey++;
-    }
-    
-  }
-
-
-
-  
+   
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;

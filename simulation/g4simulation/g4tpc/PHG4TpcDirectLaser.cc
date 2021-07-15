@@ -1,56 +1,91 @@
 #include "PHG4TpcDirectLaser.h"
 
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TH2F.h"
+#include <fun4all/Fun4AllReturnCodes.h>
 
-
-//from phg4tpcsteppingaction.cc
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-//R__LOAD_LIBRARY(libphg4hit.so)
+#include <g4main/PHG4HitContainer.h>
 
-// all distances in mm, all angles in rad
-// class that generates stripes and dummy hit coordinates
-// stripes have width of one mm, length of one pad width, and are centered in middle of sector gaps
+#include <phool/getClass.h>
 
-using namespace std;
-
-//PHG4TpcDirectLaser::
-
-PHG4TpcDirectLaser::PHG4TpcDirectLaser()
+namespace
 {
-  ifc = 20. *cm; // outer radius of IFC
-  ofc = 78. * cm; // inner radius of OFC
-  halfwidth_CM=0.5*cm; //thickness of CM
+  // utility
+  template <class T> inline constexpr T square(const T &x) { return x * x; }
 
-  electrons_per_cm=300;
-  //these should be synched to another source
-    double Ne_dEdx = 1.56;   // keV/cm
-  double CF4_dEdx = 7.00;  // keV/cm
-  double Ne_NTotal = 43;    // Number/cm
-  double CF4_NTotal = 100;  // Number/cm
-  double Tpc_NTot = 0.50 * Ne_NTotal + 0.50 * CF4_NTotal;
-  double Tpc_dEdx = 0.50 * Ne_dEdx + 0.50 * CF4_dEdx;
-  double electrons_per_gev = Tpc_dEdx*1e6 / Tpc_NTot; // GeV dep per electron
-  gev_per_electron=1./electrons_per_gev;
+  // unique detector id for all direct lasers
+  static const int detId = PHG4HitDefs::get_volume_id( "PHG4TpcDirectLaser" );
 
-  for (int i=0;i<4*2;i++){
-    //PHG4Hits.push_back(new PHG4Hitv1());//instantiate it
-    AppendLaserTrack(TMath::Pi()/180.*10.,TMath::Pi()/180.*90,i); //add random starting laser tracks...
-  }
-  
-  
- return;
+  // hard-coded number of electrons created per cm of laser
+  static constexpr double electrons_per_cm=300;
+
+  /*
+   * number of electrons deposited in gas per GeV for ionizing particle
+   * it is needed to convert the number of electrons deposited by the laser into some equivalent energy loss,
+   * which is what G4Hit expects
+   * copied from PHG4TpcElectronDrift::SetDefaultParameters
+   */
+  static constexpr double Ne_dEdx = 1.56;   // keV/cm
+  static constexpr double CF4_dEdx = 7.00;  // keV/cm
+  static constexpr double Ne_NTotal = 43;    // Number/cm
+  static constexpr double CF4_NTotal = 100;  // Number/cm
+  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
+  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
+  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
 }
 
+//_____________________________________________________________
+PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
+  : SubsysReco(name)
+{}
 
-void PHG4TpcDirectLaser::SetPhiStepping(int n, float min,float max){
-  if (n<0 || max<min){
-    printf("SetPhiStepping values weird.  not setting.\n");
+//_____________________________________________________________
+int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
+{
+  hitnodename = "G4HIT_" + detector;
+  auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  if (!g4hit)
+  {
+    std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________
+int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
+{
+  // load g4hit container
+  m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  if( !m_g4hitcontainer )
+  {
+    std::cout << PHWHERE << "Could not locate g4 hit node " << hitnodename << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if( m_autoAdvanceDirectLaser )
+  {
+
+    AimToNextPatternStep();
+
+  } else {
+
+    // use arbitrary direction
+    AimToThetaPhi( M_PI/180.*10., M_PI/180.*90 );
+
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________
+void PHG4TpcDirectLaser::SetPhiStepping(int n, float min,float max)
+{
+  if (n<0 || max<min)
+  {
+    std::cout << PHWHERE << " - invalid" << std::endl;
     return;
   }
   nPhiSteps=n;
@@ -59,9 +94,12 @@ void PHG4TpcDirectLaser::SetPhiStepping(int n, float min,float max){
   nTotalSteps=nThetaSteps*nPhiSteps;
   return;
 }
-void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max){
-  if (n<0 || max<min){
-    printf("SetThetaStepping values weird.  not setting.\n");
+//_____________________________________________________________
+void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max)
+{
+  if (n<0 || max<min)
+  {
+    std::cout << PHWHERE << " - invalid" << std::endl;
     return;
   }
   nThetaSteps=n;
@@ -71,15 +109,24 @@ void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max){
 
   return;
 }
-void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi){
-  ClearHits();
-  for (int i=0;i<4*2;i++){
+
+//_____________________________________________________________
+void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
+{
+  for (int i=0;i<4*2;i++)
+  {
     AppendLaserTrack(theta,phi,i);
   }
-return;
+  return;
 }
-void PHG4TpcDirectLaser::AimToPatternStep(int n){
+
+//_____________________________________________________________
+void PHG4TpcDirectLaser::AimToPatternStep(int n)
+{
+
   n=n%nTotalSteps;//trim against overflows
+
+  std::cout << "PHG4TpcDirectLaser::AimToPatternStep - step: " << n << std::endl;
   currentPatternStep=n;
   int phiStep=n%nThetaSteps;
   int thetaStep=n/nPhiSteps;
@@ -87,29 +134,24 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n){
   return;
 }
 
-void PHG4TpcDirectLaser::ClearHits(){
-  for (int i =0; i< (int)(PHG4Hits.size());i++)
-   {
-     delete (PHG4Hits[i]);
-   } 
-   PHG4Hits.clear();
-   return;
-}
-
-TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction){
+//_____________________________________________________________
+TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction) const
+{
   TVector3 ret;
   float end=halfwidth_CM;
   if (start.Z()<0) end=-halfwidth_CM;
   float dist=end-start.Z();
   float direction_scale=dist/direction.Z();
   ret=start+direction*direction_scale;
-  
-  
+
   return ret;
 }
-TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 direction){
-  TVector3 ofc_strike=GetCylinderStrike(start,direction,ofc);
-  TVector3 ifc_strike=GetCylinderStrike(start,direction,ifc);
+
+//_____________________________________________________________
+TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 direction) const
+{
+  TVector3 ofc_strike=GetCylinderStrike(start,direction,end_CM);
+  TVector3 ifc_strike=GetCylinderStrike(start,direction,begin_CM);
   TVector3 no_strike(999,999,999);
 
   //measure which one occurs 'first' along the track, by dividing by the trajectory z.
@@ -121,6 +163,7 @@ TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 directi
     if (ofc_dist>0) return ofc_strike;
     return no_strike;
   }
+
   //now ifc strike is guaranteed to be positive or zero
   if (ofc_dist<0){
     return ifc_strike;
@@ -129,21 +172,22 @@ TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 directi
   if (ifc_dist<ofc_dist){
     return ifc_strike;
   } else return ofc_strike;
-  
+
 }
 
-TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float radius){
+//_____________________________________________________________
+TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float radius) const
+{
 
+  const float R2=square(radius);
 
-  float R2=radius*radius;
-		
   //Generalized Parameters for collision with cylinder of radius R:
   //from quadratic formula solutions of when a vector intersects a circle:
-  float a = v.x()*v.x()+v.y()*v.y();
-  float b = 2*(v.x()*s.x()+v.y()*s.y());
-  float c = s.x()*s.x()+s.y()*s.y()-R2;
+  const float a = square(v.x())+ square(v.y());
+  const float b = 2*(v.x()*s.x()+v.y()*s.y());
+  const float c = square(s.x()) + square(s.y())-R2;
 
-  float rootterm=b*b-4*a*c;
+  float rootterm=square(b)-4*a*c;
 
   //if a==0 then we are parallel and will have no solutions.
   //if the rootterm is negative, we will have no real roots -- we are outside the cylinder and pointing skew to the cylinder such that we never cross.
@@ -161,25 +205,31 @@ TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float ra
   TVector3 ret=s+v*min_t;
   return ret;
 }
-  
 
+//_____________________________________________________________
 void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
-{ //this function generates a series of PHG4 hits from the specified laser, in the specified direction.
-  PHG4Hitv1 *hit;
+{
+
+  if( !m_g4hitcontainer )
+  {
+    std::cout << PHWHERE << "invalid g4hit container. aborting" << std::endl;
+    return;
+  }
+
+  //this function generates a series of PHG4 hits from the specified laser, in the specified direction.
   float direction=1;
-  if (laser>3) direction=-1;
+
+  if (laser>=3 ) direction=-1;
   TVector3 pos(60.*cm,0.*cm,105.5*cm*direction);
   TVector3 dir(0.,0.,-1.*direction);
-
-
 
   //adjust direction:
   dir.RotateY(theta*direction);
   dir.RotateZ(phi*direction);
 
   //rotate to the correct laser spot:
-  pos.RotateZ(TMath::TwoPi()/4.*laser);
-  dir.RotateZ(TMath::TwoPi()/4.*laser);
+  pos.RotateZ(2.*M_PI/4.*laser);
+  dir.RotateZ(2.*M_PI/4.*laser);
 
   //find collision point
   TVector3 cm_strike=GetCmStrike(pos,dir);
@@ -202,7 +252,8 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
   TVector3 end=start;
   TVector3 step=dir*(maxHitLength/(dir.Mag()));
   float stepLength=0;
-  for (int i=0;i<nHitSteps;i++){
+  for (int i=0;i<nHitSteps;i++)
+  {
     start=end;//new starting point is the previous ending point.
     if (i+1==nHitSteps){
       //last step is the remainder size
@@ -214,52 +265,42 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
       end=start+step;
       stepLength=step.Mag();
     }
-    
-  //now compute the laser hit:
-  //printf("PHG4TpcDirectLaser::Adding New Hit(%1.2f,%1.2f,%d): (%1.2f,%1.2f,%1.2f) to (%1.2f,%1.2f,%1.2f)\n",theta,phi,laser,start.X()/cm,start.Y()/cm,start.Z()/cm,end.X()/cm,end.Y()/cm,end.Z()/cm);
-      if (i+1==nHitSteps){
-	//printf("PHG4TpcDirectLaser::Strike %c\n",strikeChar);
-      }
 
-  //from phg4tpcsteppingaction.cc
-  hit = new PHG4Hitv1();
-  hit->set_layer(99); // dummy number
-  //here we set the entrance values in cm
-  hit->set_x(0, start.X() / cm);
-  hit->set_y(0, start.Y() / cm);
-  hit->set_z(0, start.Z() / cm);
-  //and the exist values
-  hit->set_x(1, end.X() / cm);
-  hit->set_y(1, end.Y() / cm);
-  hit->set_z(1, end.Z() / cm);
+    //from phg4tpcsteppingaction.cc
+    auto hit = new PHG4Hitv1();
+    hit->set_layer(99); // dummy number
 
+    //here we set the entrance values in cm
+    hit->set_x(0, start.X() / cm);
+    hit->set_y(0, start.Y() / cm);
+    hit->set_z(0, start.Z() / cm);
+    //and the exist values
+    hit->set_x(1, end.X() / cm);
+    hit->set_y(1, end.Y() / cm);
+    hit->set_z(1, end.Z() / cm);
 
-  // momentum
-  hit->set_px(0, 700.0); // GeV
-  hit->set_py(0, 700.0);
-  hit->set_pz(0, 700.0);
-  
-  // time in ns
-  hit->set_t(0, 0.0); // nanosecond
-  //set and save the track ID
-  hit->set_trkid(-1); // dummy number
+    // momentum
+    hit->set_px(0, dir.X()); // GeV
+    hit->set_py(0, dir.Y());
+    hit->set_pz(0, dir.Z());
 
-  
-  hit->set_px(1, 700.0); // dummy large number, in GeV
-  hit->set_py(1, 700.0);
-  hit->set_pz(1, 700.0);
-  
-  hit->set_t(1, 0.0); // dummy number, nanosecond
+    // time in ns
+    hit->set_t(0, 0.0); // nanosecond
+    hit->set_trkid(-1); // dummy number
 
-  //calculate the total energy deposited
+    hit->set_px(1, dir.X());
+    hit->set_py(1, dir.Y());
+    hit->set_pz(1, dir.Z());
 
-  float totalE=electrons_per_cm*stepLength*gev_per_electron;//rcc dummy hardcoded 300 electrons per cm!
+    hit->set_t(1, 0.0); // dummy number, nanosecond
 
-  hit->set_eion(totalE);
-  hit->set_edep(totalE);
+    const double totalE=electrons_per_cm*stepLength/Tpc_ElectronsPerGeV;
 
-  PHG4Hits.push_back(hit);
+    hit->set_eion(totalE);
+    hit->set_edep(totalE);
+    m_g4hitcontainer->AddHit( detId, hit );
+
   }
-  
+
   return;
 }

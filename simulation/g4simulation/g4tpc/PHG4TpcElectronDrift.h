@@ -17,7 +17,6 @@
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
 class PHG4TpcCentralMembrane;
-class PHG4TpcDirectLaser;
 class PHCompositeNode;
 class TH1;
 class TH2;
@@ -64,10 +63,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //!setup Central Membrane
    void setCentralMembrane(bool addCMHits){do_addCmHits=addCMHits;};
    void setCentralMembraneDelay(int ns){centralMembraneDelay=ns;};
-
-   //! setup Direct Lasers
-   void setDirectLaser(bool x){do_addDirectLaserHits=x;};
-   void setDirectLaserAuto(bool x){do_autoAdvanceDirectLaser=x;};//make it advance through its pattern automatically
   
  private:
   //! map a given x,y,z coordinates to plane hits
@@ -86,21 +81,12 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   /// set to true to enable central membrane G4Hits  
   bool do_addCmHits=false;
   
-  /// set to true to enable direct laser hits
-  bool do_addDirectLaserHits=false;
-  
-  /// set to true to change direct laser tracks from one event to the other
-  bool do_autoAdvanceDirectLaser=false;
-  
   /// time delay for central membrane
   int centralMembraneDelay=0; //ns
 
   /// central membrane g4hits generator
   std::unique_ptr<PHG4TpcCentralMembrane> membrane;
 
-  /// direct laserr g4 hits generators
-  std::unique_ptr<PHG4TpcDirectLaser> directLaser;
-  
   /// laser G4Hits containers
   std::unique_ptr<PHG4HitContainer> laserHits;
     
