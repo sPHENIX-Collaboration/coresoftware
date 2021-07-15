@@ -13,6 +13,7 @@
 #include <g4gdml/PHG4GDMLConfig.hh>
 
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Exception.hh>      // for G4Exception, G4ExceptionD
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -24,7 +25,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/globals.hh>  // for G4Exception, G4ExceptionDe...
 
 #include <TSystem.h>
 
