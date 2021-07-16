@@ -40,6 +40,10 @@ class PHG4TpcDirectLaser: public SubsysReco
   
   private:
   
+  /// define lasers
+  /* by default there are 4 lasers on each side of the TPC */
+  void setupLasers();
+  
   /// aim lasers to a given theta and phi angle
   void AimToThetaPhi(float theta, float phi);
   
@@ -55,8 +59,25 @@ class PHG4TpcDirectLaser: public SubsysReco
   TVector3 GetFieldcageStrike(TVector3 start, TVector3 direction) const;
   
   TVector3 GetCylinderStrike(TVector3 s, TVector3 v, float radius) const;
-   
-  void AppendLaserTrack(float theta, float phi, int laser);
+
+  /// stores laser position and direction along z
+  class Laser
+  {    
+    public: 
+    
+    /// laser position 
+    TVector3 m_position;
+
+    /// laser phi position
+    double m_phi = 0;
+    
+    /// laser direction along z
+    int m_direction = 1;
+
+  };
+  
+  /// append track in given angular direction and for a given laser
+  void AppendLaserTrack(float theta, float phi, const Laser&);
     
   ///@name units
   //@{
@@ -80,6 +101,9 @@ class PHG4TpcDirectLaser: public SubsysReco
   /// g4hitnode name
   std::string hitnodename;
 
+  /// lasers
+  std::vector<Laser> m_lasers;
+  
   /// g4hit container
   PHG4HitContainer* m_g4hitcontainer = nullptr;
   

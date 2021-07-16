@@ -51,6 +51,8 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
 //_____________________________________________________________
 int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 {
+
+  /// load and check G4Hit node
   hitnodename = "G4HIT_" + detector;
   auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -59,6 +61,9 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  /// setup lasers
+  setupLasers();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -119,13 +124,42 @@ void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max)
 }
 
 //_____________________________________________________________
+void PHG4TpcDirectLaser::setupLasers()
+{
+  // clear previous lasers
+  m_lasers.clear();
+  
+  /// default position
+  const TVector3 position_base( 60*cm, 0., 105.5*cm );
+  
+  /// add lasers
+  for( int i = 0; i<8; ++i )
+  {
+    Laser laser;
+    
+    // set laser direction 
+    // TODO: sort out sign conventions
+    laser.m_direction = (i < 4) ? 1:-1;
+    laser.m_position = position_base;
+    
+    // adjust z 
+    laser.m_position.SetZ( position_base.z()*laser.m_direction );
+
+    // rotate around z
+    laser.m_phi = M_PI/2*i; 
+    laser.m_position.RotateZ( laser.m_phi );
+
+    // append
+    m_lasers.push_back( laser );
+  }
+  
+}
+
+//_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
 {
-  for (int i=0;i<4*2;i++)
-  {
-    AppendLaserTrack(theta,phi,i);
-  }
-  return;
+  for( const auto& laser:m_lasers )
+  { AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
@@ -215,7 +249,7 @@ TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float ra
 }
 
 //_____________________________________________________________
-void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
+void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcDirectLaser::Laser& laser)
 {
 
   if( !m_g4hitcontainer )
@@ -224,21 +258,20 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
     return;
   }
 
-  //this function generates a series of PHG4 hits from the specified laser, in the specified direction.
-  float direction=1;
-
-  if (laser>=3 ) direction=-1;
-  TVector3 pos(60.*cm,0.*cm,105.5*cm*direction);
-  TVector3 dir(0.,0.,-1.*direction);
+  // store laser position
+  const auto& pos = laser.m_position;
+  
+  // define track direction
+  const auto& direction = laser.m_direction;
+  TVector3 dir( 0, 0, -1.*direction );
 
   //adjust direction:
   dir.RotateY(theta*direction);
   dir.RotateZ(phi*direction);
+   
+  // also rotate by laser azimuth
+  dir.RotateZ(laser.m_phi );
 
-  //rotate to the correct laser spot:
-  pos.RotateZ(2.*M_PI/4.*laser);
-  dir.RotateZ(2.*M_PI/4.*laser);
-  
   // print
   // if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
@@ -247,11 +280,9 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
   TVector3 cm_strike=GetCmStrike(pos,dir);
   TVector3 fc_strike=GetFieldcageStrike(pos,dir);
   TVector3 strike=cm_strike;
-  //char strikeChar='c';
   if( fc_strike.Z()!=999){
     if ((fc_strike.Z()-pos.Z())/dir.Z()<(cm_strike.Z()-pos.Z())/dir.Z()){
       strike=fc_strike;
-      //strikeChar='f';
     }
   }
 
