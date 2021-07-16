@@ -62,8 +62,15 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  /// setup lasers
+  // setup lasers
   setupLasers();
+  
+  // print configuration
+  std::cout << "PHG4TpcDirectLaser::InitRun - m_autoAdvanceDirectLaser: " << m_autoAdvanceDirectLaser << std::endl;
+  std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
+  std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
+  std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
+  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -157,6 +164,10 @@ void PHG4TpcDirectLaser::setupLasers()
 }
 
 //_____________________________________________________________
+void PHG4TpcDirectLaser::AimToNextPatternStep()
+{ if( nTotalSteps>=1 ) AimToPatternStep(currentPatternStep+1); };
+
+//_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
 {
   for( const auto& laser:m_lasers )
@@ -167,9 +178,12 @@ void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
 void PHG4TpcDirectLaser::AimToPatternStep(int n)
 {
 
-  n=n%nTotalSteps;//trim against overflows
-
-  std::cout << "PHG4TpcDirectLaser::AimToPatternStep - step: " << n << std::endl;
+  //trim against overflows
+  n=n%nTotalSteps;
+  
+  // if( Verbosity() )
+  { std::cout << "PHG4TpcDirectLaser::AimToPatternStep - step: " << n << "/" << nTotalSteps << std::endl; }
+  
   currentPatternStep=n;
   int phiStep=n%nThetaSteps;
   int thetaStep=n/nPhiSteps;

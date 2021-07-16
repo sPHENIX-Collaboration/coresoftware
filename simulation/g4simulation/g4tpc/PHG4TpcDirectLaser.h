@@ -51,8 +51,7 @@ class PHG4TpcDirectLaser: public SubsysReco
   void AimToPatternStep(int n);
 
   /// aim to next step
-  void AimToNextPatternStep()
-  { if( nTotalSteps>=1 ) AimToPatternStep(currentPatternStep+1); };
+  void AimToNextPatternStep();
   
   TVector3 GetCmStrike(TVector3 start, TVector3 direction) const;
 
