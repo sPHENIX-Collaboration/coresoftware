@@ -33,6 +33,14 @@ namespace
   static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
+  
+  /// TVector3 stream
+  inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
+  {
+    out << "( " << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+    return out;
+  }
+  
 }
 
 //_____________________________________________________________
@@ -230,7 +238,11 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
   //rotate to the correct laser spot:
   pos.RotateZ(2.*M_PI/4.*laser);
   dir.RotateZ(2.*M_PI/4.*laser);
-
+  
+  // print
+  // if( Verbosity() )
+  { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
+  
   //find collision point
   TVector3 cm_strike=GetCmStrike(pos,dir);
   TVector3 fc_strike=GetFieldcageStrike(pos,dir);
