@@ -165,70 +165,70 @@ void PHG4TpcDirectLaser::setupLasers()
 
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToNextPatternStep()
-{ if( nTotalSteps>=1 ) AimToPatternStep(currentPatternStep+1); };
+{ 
+  if( nTotalSteps>=1 )
+  {
+    AimToPatternStep(currentPatternStep); 
+    ++currentPatternStep;
+  }
+}
 
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
 {
   for( const auto& laser:m_lasers )
-  { AppendLaserTrack(theta,phi,laser); }
+  { if( laser.m_direction > 0 ) AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToPatternStep(int n)
 {
-
   //trim against overflows
   n=n%nTotalSteps;
   
-  // if( Verbosity() )
+  if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AimToPatternStep - step: " << n << "/" << nTotalSteps << std::endl; }
   
+  // store as current pattern
   currentPatternStep=n;
-  int phiStep=n%nThetaSteps;
-  int thetaStep=n/nPhiSteps;
-  AimToThetaPhi((maxTheta-minTheta)/(nThetaSteps*1.)*thetaStep,(maxPhi-minPhi)/(nPhiSteps*1.)*phiStep);
+  
+  // calculate theta
+  const int thetaStep = n/nPhiSteps;
+  const float theta = minTheta + thetaStep*(maxTheta-minTheta)/nThetaSteps;
+
+  // calculate phi
+  const int phiStep = n%nPhiSteps;
+  const float phi = minPhi + phiStep*(maxPhi-minPhi)/nPhiSteps;
+
+  // generate laser tracks
+  AimToThetaPhi(theta, phi );
+  
   return;
 }
 
 //_____________________________________________________________
 TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction) const
 {
-  TVector3 ret;
-  float end=halfwidth_CM;
-  if (start.Z()<0) end=-halfwidth_CM;
-  float dist=end-start.Z();
-  float direction_scale=dist/direction.Z();
-  ret=start+direction*direction_scale;
-
-  return ret;
+  const float end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;  
+  const float dist=end-start.z();
+  const float direction_scale=dist/direction.z();
+  return start + direction * direction_scale;
 }
 
 //_____________________________________________________________
 TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 direction) const
 {
-  TVector3 ofc_strike=GetCylinderStrike(start,direction,end_CM);
-  TVector3 ifc_strike=GetCylinderStrike(start,direction,begin_CM);
-  TVector3 no_strike(999,999,999);
+  const auto ofc_strike=GetCylinderStrike(start,direction,end_CM);
+  const auto ifc_strike=GetCylinderStrike(start,direction,begin_CM);
+  static const TVector3 no_strike(999,999,999);
 
-  //measure which one occurs 'first' along the track, by dividing by the trajectory z.
-
+  // measure which one occurs 'first' along the track, by dividing by the trajectory z.
   float ifc_dist=(ifc_strike.Z()-start.Z())/direction.Z();
   float ofc_dist=(ofc_strike.Z()-start.Z())/direction.Z();
 
-  if (ifc_dist<0){
-    if (ofc_dist>0) return ofc_strike;
-    return no_strike;
-  }
-
-  //now ifc strike is guaranteed to be positive or zero
-  if (ofc_dist<0){
-    return ifc_strike;
-  }
-  //now they're both positive
-  if (ifc_dist<ofc_dist){
-    return ifc_strike;
-  } else return ofc_strike;
+  if(ifc_dist<0) return (ofc_dist > 0) ? ofc_strike:no_strike;
+  else if( ofc_dist<0 ) return ifc_strike;
+  else return (ifc_dist<ofc_dist) ? ifc_strike:ofc_strike;
 
 }
 
@@ -244,12 +244,13 @@ TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float ra
   const float b = 2*(v.x()*s.x()+v.y()*s.y());
   const float c = square(s.x()) + square(s.y())-R2;
 
-  float rootterm=square(b)-4*a*c;
+  const float rootterm=square(b)-4*a*c;
 
   //if a==0 then we are parallel and will have no solutions.
   //if the rootterm is negative, we will have no real roots -- we are outside the cylinder and pointing skew to the cylinder such that we never cross.
   float t1=-1,t2=-1; //this is the distance, in units of v, we must travel to find a collision
-  if (rootterm >= 0 && a > 0) {
+  if (rootterm >= 0 && a > 0) 
+  {
     //Find the (up to) two points where we collide with the cylinder:
     float sqrtterm=sqrt(rootterm);
      t1 = (-b+sqrtterm)/(2*a);
