@@ -24,6 +24,7 @@ namespace
    * it is needed to convert the number of electrons deposited by the laser into some equivalent energy loss,
    * which is what G4Hit expects
    * copied from PHG4TpcElectronDrift::SetDefaultParameters
+   * TODO: should really use an independent set of parameters to get them from macro, rather than copy
    */
   static constexpr double Ne_dEdx = 1.56;   // keV/cm
   static constexpr double CF4_dEdx = 7.00;  // keV/cm
@@ -273,7 +274,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcD
   dir.RotateZ(laser.m_phi );
 
   // print
-  // if( Verbosity() )
+  if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
   
   //find collision point
