@@ -32,17 +32,22 @@ class PHG4TpcDirectLaser: public SubsysReco
   void SetThetaStepping(int n, float min,float max);
   
   /// get total number of steps
-  int GetNpatternSteps(){return nPhiSteps*nThetaSteps;};
+  int GetNpatternSteps() const 
+  {return nPhiSteps*nThetaSteps;};
 
+  /// set current patter step
+  void SetCurrentPatternStep( int value )
+  { currentPatternStep = value; }
+  
   /// advance automatically through patterns
-  void setDirectLaserAuto(bool x)
-  {m_autoAdvanceDirectLaser = x;};
+  void SetDirectLaserAuto(bool value)
+  {m_autoAdvanceDirectLaser = value;};
   
   private:
   
   /// define lasers
   /* by default there are 4 lasers on each side of the TPC */
-  void setupLasers();
+  void SetupLasers();
   
   /// aim lasers to a given theta and phi angle
   void AimToThetaPhi(float theta, float phi);
@@ -111,12 +116,14 @@ class PHG4TpcDirectLaser: public SubsysReco
   int nPhiSteps=1;
   int nThetaSteps=1;
   int nTotalSteps=1;
-  int currentPatternStep=0;
   float minPhi=0;
   float maxPhi=0;
   float minTheta=0;
   float maxTheta=0;
   //@}
+
+  // current patter step
+  int currentPatternStep=0;
 
   /// set to true to change direct laser tracks from one event to the other
   bool m_autoAdvanceDirectLaser=false;

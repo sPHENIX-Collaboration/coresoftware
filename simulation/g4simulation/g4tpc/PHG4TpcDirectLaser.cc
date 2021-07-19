@@ -63,7 +63,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   }
 
   // setup lasers
-  setupLasers();
+  SetupLasers();
   
   // print configuration
   std::cout << "PHG4TpcDirectLaser::InitRun - m_autoAdvanceDirectLaser: " << m_autoAdvanceDirectLaser << std::endl;
@@ -132,7 +132,7 @@ void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max)
 }
 
 //_____________________________________________________________
-void PHG4TpcDirectLaser::setupLasers()
+void PHG4TpcDirectLaser::SetupLasers()
 {
   // clear previous lasers
   m_lasers.clear();
