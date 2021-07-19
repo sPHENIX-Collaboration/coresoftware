@@ -7,6 +7,8 @@
 
 #include <Geant4/G4TouchableHandle.hh>
 
+#include <gsl/gsl_rng.h>
+
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
@@ -54,6 +56,7 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
   int light_scint_model;
   int m_IsBlackHole;
 
+  gsl_rng *RandomGenerator;
   const std::array<std::array<double, 18>,9>m_PMMA05 = 
     {{
     {16.258, 6.771, 3.844, 2.432, 1.531, 1.003, 0.543, 0.195, 0.102,

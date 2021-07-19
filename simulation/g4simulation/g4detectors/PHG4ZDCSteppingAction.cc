@@ -4,6 +4,9 @@
 #include <math.h> 
 #include <phparameter/PHParameters.h>
 
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -13,6 +16,7 @@
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
+#include <phool/PHRandomSeed.h>
 
 #include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
 #include <Geant4/G4Material.hh>       // for G4Material
@@ -71,6 +75,9 @@ PHG4ZDCSteppingAction::PHG4ZDCSteppingAction(PHG4ZDCDetector* detector, const PH
   , light_scint_model(1)
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
 {
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  unsigned int seed = PHRandomSeed();
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 PHG4ZDCSteppingAction::~PHG4ZDCSteppingAction()
@@ -80,6 +87,7 @@ PHG4ZDCSteppingAction::~PHG4ZDCSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+  gsl_rng_free(RandomGenerator);
 }
 
 //____________________________________________________________________________..
@@ -177,16 +185,21 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 		    //find energy
 		    G4double E = dypar->GetTotalEnergy();
 		    //electron response here
-		    G4double avg_ph = ZDCEResponce(E, angle);
-		     light_yield +=   avg_ph *0.16848;
+		    double avg_ph = ZDCEResponce(E, angle);
+		    avg_ph *= 0.16848;
+		    //use Poisson Distribution here
+		    int n_ph = gsl_ran_poisson(RandomGenerator,  avg_ph);
+		    light_yield +=   n_ph;
 		  }
 		else
 		  {
 		    G4double E = dypar->GetTotalEnergy();
 		    G4double P = dypar -> GetTotalMomentum();
 		    double beta = P / E;
-		    G4double avg_ph = ZDCResponce(beta, angle);
-		    light_yield +=  avg_ph*0.16848;
+		    double avg_ph = ZDCResponce(beta, angle);
+		    avg_ph *= 0.16848;
+		    int n_ph = gsl_ran_poisson(RandomGenerator,  avg_ph);
+		    light_yield +=  n_ph;
 		  }
 	      }
 	  }
