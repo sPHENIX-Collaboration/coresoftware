@@ -1,6 +1,7 @@
 #include "PHG4ZDCSteppingAction.h"
 #include "PHG4ZDCDetector.h"
-
+#include <array>
+#include <math.h> 
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
@@ -84,6 +85,7 @@ PHG4ZDCSteppingAction::~PHG4ZDCSteppingAction()
 //____________________________________________________________________________..
 bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
+  
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
  
@@ -112,7 +114,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   
 
   /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  G4double edep  =  aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   G4double light_yield = 0;
 
@@ -143,6 +145,52 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
+    
+    //if prepoint is in fiber
+    if(whichactive > 0)
+      {
+
+	double charge = aTrack->GetParticleDefinition()->GetPDGCharge();
+	//if charged particle
+	if(charge != 0)
+	  {
+	    
+	    //check if prepoint in active volume & postpoint out of active volume
+	    G4VPhysicalVolume* postvolume = postPoint->GetTouchableHandle()->GetVolume();
+	    int postactive = m_Detector->IsInZDC(postvolume);
+	    //postpoint outside fiber
+	    if(!postactive)
+	      {
+		
+		//get particle information here
+		int pid = aTrack->GetParticleDefinition()->GetPDGEncoding();
+		//calculate incidence angle 
+		const G4DynamicParticle* dypar = aTrack->GetDynamicParticle();
+		G4ThreeVector pdirect = dypar->GetMomentumDirection();
+		double dy = sqrt(2) / 2.;
+		double dz = sqrt(2) / 2.;
+		if(idx_j == 1) dz = -dz;
+		double CosTheta = pdirect.y() * dy + pdirect.z() * dz;
+		double angle  = acos(CosTheta) * 180.0 / M_PI;
+		if(pid == 11 || pid == -11)
+		  {
+		    //find energy
+		    G4double E = dypar->GetTotalEnergy();
+		    //electron response here
+		    G4double avg_ph = ZDCEResponce(E, angle);
+		     light_yield +=   avg_ph *0.16848;
+		  }
+		else
+		  {
+		    G4double E = dypar->GetTotalEnergy();
+		    G4double P = dypar -> GetTotalMomentum();
+		    double beta = P / E;
+		    G4double avg_ph = ZDCResponce(beta, angle);
+		    light_yield +=  avg_ph*0.16848;
+		  }
+	      }
+	  }
+      }
     switch (prePoint->GetStepStatus())
     {
     case fGeomBoundary:
@@ -199,9 +247,10 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (whichactive > 0)
     {
-      light_yield = eion;
-      light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+      //light_yield = eion;
+      //light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       static bool once = true;
+      
       if (once && edep > 0)
 		 {
           once = false;
@@ -237,6 +286,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     /* sum up the energy to get total deposited */
+    
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
@@ -339,6 +389,7 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
 }
 
+
 //getting index using copyno
 int PHG4ZDCSteppingAction::FindIndex(G4TouchableHandle& touch, int& j, int& k)
 {
@@ -349,7 +400,71 @@ int PHG4ZDCSteppingAction::FindIndex(G4TouchableHandle& touch, int& j, int& k)
  
   j = envelope->GetCopyNo();
   k = (plate->GetCopyNo()) / 27;
-
+  
   return 0;
 }
 
+ double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
+ {
+   if(beta<m_BetaThersh) return 0;
+   if(angle >= 90)  return 0;
+   for(int i = 1;i < 9; i++){
+     if(beta <= m_Beta[i]){
+       
+       std::array<double, 18> PMMAsub0 = m_PMMA05[i - 1];
+       std::array<double, 18> PMMAsub1 = m_PMMA05[i];
+       //find angle bin here and do 1D linear interpolation of angle
+       int Abin = (int) angle / 5;
+       if(Abin == 0) Abin = 1;
+       double avg_ph0 = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin +1);
+       double avg_ph1 = PMMAsub1[Abin - 1] + (PMMAsub1[Abin] - PMMAsub1[Abin - 1]) * (angle / 5 - Abin +1);
+       if(avg_ph0 < 0 ) avg_ph0 = 0;
+       if(avg_ph1 < 0 ) avg_ph1 = 0;
+      //linear linear interpolation with beta
+       double avg_ph = avg_ph0 + (avg_ph1 - avg_ph0) * (beta - m_Beta[i - 1]) / (m_Beta[i] - m_Beta[i - 1]);
+       if(avg_ph<0) avg_ph = 0;
+       //use poisson?
+       return avg_ph;
+     }
+   }
+   
+   return 0;
+   
+  
+ }
+
+double PHG4ZDCSteppingAction::ZDCEResponce(double E, double angle)
+{
+ if(E< m_E[0]) return 0;
+
+   if(E>= 0.05){
+     std::array<double, 36> PMMAsub0 = m_PMMA05E[10];
+     int Abin = (int) angle / 5;
+     if(Abin == 0) Abin = 1;
+     double avg_ph = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin +1);
+     return avg_ph;
+   }
+   else{
+     for(int i = 1;i < 11; i++){
+       if(E <= m_E[i]){
+	 std::array<double, 36> PMMAsub0 = m_PMMA05E[i - 1];
+	 std::array<double, 36> PMMAsub1 = m_PMMA05E[i];
+
+	 int Abin = (int) angle / 5;
+	 if(Abin == 0) Abin = 1;
+	 double avg_ph0 = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin +1);
+	 double avg_ph1 = PMMAsub1[Abin - 1] + (PMMAsub1[Abin] - PMMAsub1[Abin - 1]) * (angle / 5 - Abin +1);
+	 if(avg_ph0 < 0 ) avg_ph0 = 0;
+	 if(avg_ph1 < 0 ) avg_ph1 = 0;
+	 //linear linear interpolation with E
+      double avg_ph = avg_ph0 + (avg_ph1 - avg_ph0) * (E - m_E[i - 1]) / (m_E[i] - m_E[i - 1]);
+      if(avg_ph<0) avg_ph = 0;
+      //use poisson?
+      return avg_ph;
+       }
+     }
+  
+   }
+   std::cout<<"out of range"<<std::endl;
+   return 0; 
+}
