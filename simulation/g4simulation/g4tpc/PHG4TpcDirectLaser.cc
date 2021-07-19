@@ -7,6 +7,16 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+
+#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+
+#include <cassert>
 
 namespace
 {
@@ -34,14 +44,14 @@ namespace
   static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
-  
+
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
   {
     out << "( " << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
     return out;
   }
-  
+
 }
 
 //_____________________________________________________________
@@ -53,7 +63,7 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
 int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 {
 
-  /// load and check G4Hit node
+  // load and check G4Hit node
   hitnodename = "G4HIT_" + detector;
   auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -62,22 +72,49 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // find or create track map
+  /* it is used to store laser parameters on a per event basis */
+  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_track_map_name );
+  if( !m_track_map )
+  {
+    // find DST node and check
+    PHNodeIterator iter(topNode);
+    auto dstNode = static_cast<PHCompositeNode*>(iter.findFirst( "PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    // find or create SVTX node
+    iter = PHNodeIterator(dstNode);
+    auto node = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",  "SVTX"));
+    if( !node ) dstNode->addNode( node = new PHCompositeNode("SVTX") );
+
+    // add track node
+    m_track_map = new SvtxTrackMap_v1;
+    node->addNode( new PHIODataNode<PHObject>(m_track_map, m_track_map_name, "PHObject") );
+  }
+
   // setup lasers
   SetupLasers();
-  
+
   // print configuration
   std::cout << "PHG4TpcDirectLaser::InitRun - m_autoAdvanceDirectLaser: " << m_autoAdvanceDirectLaser << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
-  
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________
 int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 {
+  // load track map
+  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_track_map_name );
+  assert( m_track_map );
+
   // load g4hit container
   m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if( !m_g4hitcontainer )
@@ -136,39 +173,50 @@ void PHG4TpcDirectLaser::SetupLasers()
 {
   // clear previous lasers
   m_lasers.clear();
-  
-  /// default position
+
+  // default position
   const TVector3 position_base( 60*cm, 0., 105.5*cm );
-  
-  /// add lasers
+
+  // add lasers
   for( int i = 0; i<8; ++i )
   {
     Laser laser;
-    
-    // set laser direction 
-    // TODO: sort out sign conventions
-    laser.m_direction = (i < 4) ? 1:-1;
-    laser.m_position = position_base;
-    
-    // adjust z 
-    laser.m_position.SetZ( position_base.z()*laser.m_direction );
 
+    // set laser direction
+    /* 
+     * first four lasers are on positive z readout plane, and shoot towards negative z
+     * next four lasers are on negative z readout plane and shoot towards positive z 
+     */
+    laser.m_position = position_base;
+    if( i < 4 )
+    {
+
+      laser.m_position.SetZ( position_base.z() );
+      laser.m_direction = -1;
+
+    } else {
+
+      laser.m_position.SetZ( -position_base.z() );
+      laser.m_direction = 1;
+
+    }
+    
     // rotate around z
-    laser.m_phi = M_PI/2*i; 
+    laser.m_phi = M_PI/2*i;
     laser.m_position.RotateZ( laser.m_phi );
 
     // append
     m_lasers.push_back( laser );
   }
-  
+
 }
 
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToNextPatternStep()
-{ 
+{
   if( nTotalSteps>=1 )
   {
-    AimToPatternStep(currentPatternStep); 
+    AimToPatternStep(currentPatternStep);
     ++currentPatternStep;
   }
 }
@@ -176,8 +224,10 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
 {
-  for( const auto& laser:m_lasers )
-  { if( laser.m_direction > 0 ) AppendLaserTrack(theta,phi,laser); }
+  AppendLaserTrack(theta,phi,m_lasers[0]);
+  
+//   for( const auto& laser:m_lasers )
+//   { if( laser.m_direction > 0 ) AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
@@ -185,13 +235,13 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n)
 {
   //trim against overflows
   n=n%nTotalSteps;
-  
+
   if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AimToPatternStep - step: " << n << "/" << nTotalSteps << std::endl; }
-  
+
   // store as current pattern
   currentPatternStep=n;
-  
+
   // calculate theta
   const int thetaStep = n/nPhiSteps;
   const float theta = minTheta + thetaStep*(maxTheta-minTheta)/nThetaSteps;
@@ -202,14 +252,14 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n)
 
   // generate laser tracks
   AimToThetaPhi(theta, phi );
-  
+
   return;
 }
 
 //_____________________________________________________________
 TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction) const
 {
-  const float end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;  
+  const float end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
   const float dist=end-start.z();
   const float direction_scale=dist/direction.z();
   return start + direction * direction_scale;
@@ -249,19 +299,20 @@ TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float ra
   //if a==0 then we are parallel and will have no solutions.
   //if the rootterm is negative, we will have no real roots -- we are outside the cylinder and pointing skew to the cylinder such that we never cross.
   float t1=-1,t2=-1; //this is the distance, in units of v, we must travel to find a collision
-  if (rootterm >= 0 && a > 0) 
+  if (rootterm >= 0 && a > 0)
   {
     //Find the (up to) two points where we collide with the cylinder:
-    float sqrtterm=sqrt(rootterm);
+    float sqrtterm=std::sqrt(rootterm);
      t1 = (-b+sqrtterm)/(2*a);
      t2 = (-b-sqrtterm)/(2*a);
   }
 
-  //if either of the t's are nonzero, we have a collision.  the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
-  float min_t=t1;
-  if (t2>t1 && t2>0) min_t=t2;
-  TVector3 ret=s+v*min_t;
-  return ret;
+  /* 
+   * if either of the t's are nonzero, we have a collision
+   * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
+   */
+  const float& min_t = (t2<t1 && t2>0) ? t2:t1;
+  return s+v*min_t;
 }
 
 //_____________________________________________________________
@@ -276,22 +327,44 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcD
 
   // store laser position
   const auto& pos = laser.m_position;
-  
+
   // define track direction
   const auto& direction = laser.m_direction;
-  TVector3 dir( 0, 0, -1.*direction );
+  TVector3 dir( 0, 0, direction );
 
-  //adjust direction:
+  //adjust direction
   dir.RotateY(theta*direction);
-  dir.RotateZ(phi*direction);
-   
+  dir.RotateZ(phi);
+
   // also rotate by laser azimuth
   dir.RotateZ(laser.m_phi );
 
   // print
   if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
-  
+
+  // store in SvtxTrack map
+  if( m_track_map )
+  {
+    SvtxTrack_v2 track;
+    track.set_x( pos.x() );
+    track.set_y( pos.y() );
+    track.set_z( pos.z() );
+
+    // total momentum is irrelevant. What matters is the direction
+    static constexpr float total_momentum = 1;
+    track.set_px( total_momentum*dir.x() );
+    track.set_py( total_momentum*dir.y() );
+    track.set_pz( total_momentum*dir.z() );
+
+    // insert in map
+    m_track_map->insert( &track );
+    
+    if( Verbosity() )
+    { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
+
+  }
+
   //find collision point
   TVector3 cm_strike=GetCmStrike(pos,dir);
   TVector3 fc_strike=GetFieldcageStrike(pos,dir);
