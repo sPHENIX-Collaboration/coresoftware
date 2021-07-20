@@ -8,10 +8,7 @@
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
 
-#include <TString.h>
-
 #include <memory>
-#include <vector>
 
 // forward declaration
 class SvtxTrack;
@@ -39,7 +36,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   public:
 
   /// constructor
-  TpcSpaceChargeReconstruction( const std::string& = "TPCSPACECHARGERECONSTRUCTION" );
+  TpcSpaceChargeReconstruction( const std::string& = "TpcSpaceChargeReconstruction" );
 
   ///@name configuration
   //@{
