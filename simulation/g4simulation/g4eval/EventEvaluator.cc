@@ -565,7 +565,10 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
 
           auto xsec = truthevent->cross_section();
-          _cross_section = xsec->cross_section();
+          if (xsec)
+          {
+            _cross_section = xsec->cross_section();
+          }
           // Only fill the event weight if available.
           // The overall event weight will be stored in the last entry in the vector.
           auto weights = truthevent->weights();
