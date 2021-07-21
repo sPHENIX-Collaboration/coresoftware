@@ -44,7 +44,87 @@ namespace
   static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
+  
+  ///@name units
+  //@{
+  static constexpr double mm = 0.10;
+  static constexpr double cm = 1.0;
+  //@}
 
+  /// length of generated G4Hits along laser track
+  static constexpr double maxHitLength=1.0;//1cm.
+
+  // inner and outer radii of field cages/TPC
+  static constexpr double begin_CM = 20.*cm ;
+  static constexpr double end_CM = 78.*cm;
+
+  //half the thickness of the CM;
+  static constexpr double halfwidth_CM = 0.5*cm;
+
+  //_____________________________________________________________  
+  TVector3 central_membrane_intersection(TVector3 start, TVector3 direction)
+  {
+    
+    const double end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
+    const double dist=end-start.z();
+    const double direction_scale=dist/direction.z();
+    return start + direction * direction_scale;
+  }
+   
+  //_____________________________________________________________
+  std::pair<TVector3,bool>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
+  {
+    
+    const double R2=square(radius);
+    
+    //Generalized Parameters for collision with cylinder of radius R:
+    //from quadratic formula solutions of when a vector intersects a circle:
+    const double a = square(v.x())+ square(v.y());
+    const double b = 2*(v.x()*s.x()+v.y()*s.y());
+    const double c = square(s.x()) + square(s.y())-R2;
+    
+    const double rootterm=square(b)-4*a*c;
+    
+    /* 
+     * if a==0 then we are parallel and will have no solutions.
+     * if the rootterm is negative, we will have no real roots,
+     * we are outside the cylinder and pointing skew to the cylinder such that we never cross.
+     */
+    if( rootterm < 0 || a == 0 ) return std::make_pair(TVector3(), false);
+    
+    //Find the (up to) two points where we collide with the cylinder:
+    const double sqrtterm=std::sqrt(rootterm);
+    const double t1 = (-b+sqrtterm)/(2*a);
+    const double t2 = (-b-sqrtterm)/(2*a);
+    
+    /* 
+    * if either of the t's are nonzero, we have a collision
+    * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
+    */
+    const double& min_t = (t2<t1 && t2>0) ? t2:t1;
+    return std::make_pair(s+v*min_t, true );
+  }
+  
+  //_____________________________________________________________
+  std::pair<TVector3,bool> field_cage_intersection(TVector3 start, TVector3 direction)
+  {
+    const auto ofc_strike=cylinder_line_intersection(start,direction,end_CM);
+    const auto ifc_strike=cylinder_line_intersection(start,direction,begin_CM);
+    
+    // if either of the two intersection is invalid, return the other
+    if( !ifc_strike.second ) return ofc_strike;
+    if( !ofc_strike.second ) return ifc_strike;
+    
+    // both intersection are valid, calculate signed distance to start z
+    const auto ifc_dist=(ifc_strike.first.Z()-start.Z())/direction.Z();
+    const auto ofc_dist=(ofc_strike.first.Z()-start.Z())/direction.Z();
+   
+    if(ifc_dist<0) return (ofc_dist > 0) ? ofc_strike:std::make_pair( TVector3(), false );
+    else if( ofc_dist<0 ) return ifc_strike;
+    else return (ifc_dist<ofc_dist) ? ifc_strike:ofc_strike;
+    
+  }
+  
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
   {
@@ -139,7 +219,7 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 }
 
 //_____________________________________________________________
-void PHG4TpcDirectLaser::SetPhiStepping(int n, float min,float max)
+void PHG4TpcDirectLaser::SetPhiStepping(int n, double min,double max)
 {
   if (n<0 || max<min)
   {
@@ -153,7 +233,7 @@ void PHG4TpcDirectLaser::SetPhiStepping(int n, float min,float max)
   return;
 }
 //_____________________________________________________________
-void PHG4TpcDirectLaser::SetThetaStepping(int n, float min,float max)
+void PHG4TpcDirectLaser::SetThetaStepping(int n, double min,double max)
 {
   if (n<0 || max<min)
   {
@@ -222,7 +302,7 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 }
 
 //_____________________________________________________________
-void PHG4TpcDirectLaser::AimToThetaPhi(float theta, float phi)
+void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
   AppendLaserTrack(theta,phi,m_lasers[0]);
   
@@ -244,11 +324,11 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n)
 
   // calculate theta
   const int thetaStep = n/nPhiSteps;
-  const float theta = minTheta + thetaStep*(maxTheta-minTheta)/nThetaSteps;
+  const double theta = minTheta + thetaStep*(maxTheta-minTheta)/nThetaSteps;
 
   // calculate phi
   const int phiStep = n%nPhiSteps;
-  const float phi = minPhi + phiStep*(maxPhi-minPhi)/nPhiSteps;
+  const double phi = minPhi + phiStep*(maxPhi-minPhi)/nPhiSteps;
 
   // generate laser tracks
   AimToThetaPhi(theta, phi );
@@ -257,66 +337,7 @@ void PHG4TpcDirectLaser::AimToPatternStep(int n)
 }
 
 //_____________________________________________________________
-TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction) const
-{
-  const float end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
-  const float dist=end-start.z();
-  const float direction_scale=dist/direction.z();
-  return start + direction * direction_scale;
-}
-
-//_____________________________________________________________
-TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 direction) const
-{
-  const auto ofc_strike=GetCylinderStrike(start,direction,end_CM);
-  const auto ifc_strike=GetCylinderStrike(start,direction,begin_CM);
-  static const TVector3 no_strike(999,999,999);
-
-  // measure which one occurs 'first' along the track, by dividing by the trajectory z.
-  float ifc_dist=(ifc_strike.Z()-start.Z())/direction.Z();
-  float ofc_dist=(ofc_strike.Z()-start.Z())/direction.Z();
-
-  if(ifc_dist<0) return (ofc_dist > 0) ? ofc_strike:no_strike;
-  else if( ofc_dist<0 ) return ifc_strike;
-  else return (ifc_dist<ofc_dist) ? ifc_strike:ofc_strike;
-
-}
-
-//_____________________________________________________________
-TVector3  PHG4TpcDirectLaser::GetCylinderStrike(TVector3 s, TVector3 v, float radius) const
-{
-
-  const float R2=square(radius);
-
-  //Generalized Parameters for collision with cylinder of radius R:
-  //from quadratic formula solutions of when a vector intersects a circle:
-  const float a = square(v.x())+ square(v.y());
-  const float b = 2*(v.x()*s.x()+v.y()*s.y());
-  const float c = square(s.x()) + square(s.y())-R2;
-
-  const float rootterm=square(b)-4*a*c;
-
-  //if a==0 then we are parallel and will have no solutions.
-  //if the rootterm is negative, we will have no real roots -- we are outside the cylinder and pointing skew to the cylinder such that we never cross.
-  float t1=-1,t2=-1; //this is the distance, in units of v, we must travel to find a collision
-  if (rootterm >= 0 && a > 0)
-  {
-    //Find the (up to) two points where we collide with the cylinder:
-    float sqrtterm=std::sqrt(rootterm);
-     t1 = (-b+sqrtterm)/(2*a);
-     t2 = (-b-sqrtterm)/(2*a);
-  }
-
-  /* 
-   * if either of the t's are nonzero, we have a collision
-   * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
-   */
-  const float& min_t = (t2<t1 && t2>0) ? t2:t1;
-  return s+v*min_t;
-}
-
-//_____________________________________________________________
-void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcDirectLaser::Laser& laser)
+void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4TpcDirectLaser::Laser& laser)
 {
 
   if( !m_g4hitcontainer )
@@ -352,7 +373,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcD
     track.set_z( pos.z() );
 
     // total momentum is irrelevant. What matters is the direction
-    static constexpr float total_momentum = 1;
+    static constexpr double total_momentum = 1;
     track.set_px( total_momentum*dir.x() );
     track.set_py( total_momentum*dir.y() );
     track.set_pz( total_momentum*dir.z() );
@@ -365,25 +386,26 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, const PHG4TpcD
 
   }
 
-  //find collision point
-  TVector3 cm_strike=GetCmStrike(pos,dir);
-  TVector3 fc_strike=GetFieldcageStrike(pos,dir);
-  TVector3 strike=cm_strike;
-  if( fc_strike.Z()!=999){
-    if ((fc_strike.Z()-pos.Z())/dir.Z()<(cm_strike.Z()-pos.Z())/dir.Z()){
-      strike=fc_strike;
-    }
-  }
+  // find collision point
+  // intersection to central membrane
+  const auto cm_strike=central_membrane_intersection(pos,dir);
+  
+  // field cage intersection
+  const auto fc_strike=field_cage_intersection(pos,dir);
+
+  const auto& strike = ( fc_strike.second && (fc_strike.first.z()-pos.z())/dir.z()<(cm_strike.z()-pos.z())/dir.z()) ?
+    fc_strike.first:
+    cm_strike;
 
   //find length
   TVector3 delta=(strike-pos);
-  float fullLength=delta.Mag();
+  double fullLength=delta.Mag();
   int nHitSteps=fullLength/maxHitLength+1;
 
   TVector3 start=pos;
   TVector3 end=start;
   TVector3 step=dir*(maxHitLength/(dir.Mag()));
-  float stepLength=0;
+  double stepLength=0;
   for (int i=0;i<nHitSteps;i++)
   {
     start=end;//new starting point is the previous ending point.
