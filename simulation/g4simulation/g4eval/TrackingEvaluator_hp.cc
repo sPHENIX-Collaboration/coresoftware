@@ -625,7 +625,6 @@ void TrackingEvaluator_hp::evaluate_tracks()
     ::add_truth_information(track_struct, particle);
 
     // loop over clusters
-    auto state_iter = track->begin_states();
     for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
     {
 
@@ -652,7 +651,9 @@ void TrackingEvaluator_hp::evaluate_tracks()
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
       const auto radius( cluster_struct._r );
+
       float dr_min = -1;
+      auto state_iter = track->begin_states();
       for( auto iter = state_iter; iter != track->end_states(); ++iter )
       {
         const auto dr = std::abs( radius - get_r( iter->second->get_x(), iter->second->get_y() ) );
@@ -660,7 +661,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
         {
           state_iter = iter;
           dr_min = dr;
-        } else break;
+        }
       }
 
       // store track state in cluster struct
