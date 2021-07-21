@@ -414,7 +414,6 @@ void SimEvaluator_hp::fill_particles()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_hits()
 {
-  std::cout << "SimEvaluator_hp::fill_hits" << std::endl;
   if( !m_container ) return;
 
   // clear container
