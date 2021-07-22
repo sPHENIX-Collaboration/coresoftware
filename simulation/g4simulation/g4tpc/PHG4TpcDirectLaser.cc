@@ -52,8 +52,11 @@ namespace
   //@}
 
   /// length of generated G4Hits along laser track
-  static constexpr double maxHitLength=1.0;//1cm.
+  static constexpr double maxHitLength=1.0*cm;
 
+  /// TPC half length
+  static constexpr double halflength_tpc = 105.5*cm;
+  
   // inner and outer radii of field cages/TPC
   static constexpr double begin_CM = 20.*cm ;
   static constexpr double end_CM = 78.*cm;
@@ -62,15 +65,37 @@ namespace
   static constexpr double halfwidth_CM = 0.5*cm;
 
   //_____________________________________________________________  
-  TVector3 central_membrane_intersection(TVector3 start, TVector3 direction)
+  std::pair<TVector3,bool> central_membrane_intersection(TVector3 start, TVector3 direction)
   {
-    
     const double end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
     const double dist=end-start.z();
+    
+    // if line is vertical, it will never intercept the endcap
+    if( direction.z() == 0 ) return std::make_pair( TVector3(), false );
+
+    // check that distance and direction have the same sign
+    if( dist*direction.z() < 0 ) return std::make_pair( TVector3(), false );
+
     const double direction_scale=dist/direction.z();
-    return start + direction * direction_scale;
+    return std::make_pair(start + direction * direction_scale, true );
   }
    
+  //_____________________________________________________________  
+  std::pair<TVector3,bool> endcap_intersection(TVector3 start, TVector3 direction)
+  {
+    const double end = start.z() > 0 ? halflength_tpc:-halflength_tpc;
+    const double dist=end-start.z();
+    
+    // if line is vertical, it will never intercept the endcap
+    if( direction.z() == 0 ) return std::make_pair( TVector3(), false );
+    
+    // check that distance and direction have the same sign
+    if( dist*direction.z() < 0 ) return std::make_pair( TVector3(), false );
+
+    const double direction_scale=dist/direction.z();
+    return std::make_pair(start + direction * direction_scale, true );
+  }
+
   //_____________________________________________________________
   std::pair<TVector3,bool>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
   {
@@ -254,40 +279,48 @@ void PHG4TpcDirectLaser::SetupLasers()
   // clear previous lasers
   m_lasers.clear();
 
-  // default position
-  const TVector3 position_base( 60*cm, 0., 105.5*cm );
-
-  // add lasers
-  for( int i = 0; i<8; ++i )
-  {
-    Laser laser;
-
-    // set laser direction
-    /* 
-     * first four lasers are on positive z readout plane, and shoot towards negative z
-     * next four lasers are on negative z readout plane and shoot towards positive z 
-     */
-    laser.m_position = position_base;
-    if( i < 4 )
-    {
-
-      laser.m_position.SetZ( position_base.z() );
-      laser.m_direction = -1;
-
-    } else {
-
-      laser.m_position.SetZ( -position_base.z() );
-      laser.m_direction = 1;
-
-    }
-    
-    // rotate around z
-    laser.m_phi = M_PI/2*i;
-    laser.m_position.RotateZ( laser.m_phi );
-
-    // append
-    m_lasers.push_back( laser );
-  }
+  const TVector3 position( begin_CM+1.*cm, 0, halfwidth_CM+1.*cm );
+  Laser laser;
+  laser.m_position = position;
+  laser.m_direction = 1;
+  laser.m_phi = 0;
+  
+  m_lasers.push_back( laser );
+  
+//   // default position
+//   const TVector3 position_base( 60*cm, 0., halflength_tpc );
+// 
+//   // add lasers
+//   for( int i = 0; i<8; ++i )
+//   {
+//     Laser laser;
+// 
+//     // set laser direction
+//     /* 
+//      * first four lasers are on positive z readout plane, and shoot towards negative z
+//      * next four lasers are on negative z readout plane and shoot towards positive z 
+//      */
+//     laser.m_position = position_base;
+//     if( i < 4 )
+//     {
+// 
+//       laser.m_position.SetZ( position_base.z() );
+//       laser.m_direction = -1;
+// 
+//     } else {
+// 
+//       laser.m_position.SetZ( -position_base.z() );
+//       laser.m_direction = 1;
+// 
+//     }
+//     
+//     // rotate around z
+//     laser.m_phi = M_PI/2*i;
+//     laser.m_position.RotateZ( laser.m_phi );
+// 
+//     // append
+//     m_lasers.push_back( laser );
+//   }
 
 }
 
@@ -387,15 +420,24 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   }
 
   // find collision point
-  // intersection to central membrane
-  const auto cm_strike=central_membrane_intersection(pos,dir);
-  
+  /*
+   * intersection to either central membrane or endcaps
+   * if the position along beam and laser direction have the same sign, it will intercept the endcap
+   * otherwise will intercept the central membrane
+   */
+  const auto plane_strike = (pos.z()*dir.z() > 0 ) ? endcap_intersection(pos,dir):central_membrane_intersection(pos,dir);
+    
   // field cage intersection
   const auto fc_strike=field_cage_intersection(pos,dir);
 
-  const auto& strike = ( fc_strike.second && (fc_strike.first.z()-pos.z())/dir.z()<(cm_strike.z()-pos.z())/dir.z()) ?
+  // if none of the strikes is valid, there is no valid information found. 
+  if( !(plane_strike.second || fc_strike.second ) ) return;
+  
+  // decide relevant end of laser
+  /* chose field cage intersection if valid, and if either plane intersection is invalid or happens on a larger z along the laser direction) */
+  const auto& strike = ( fc_strike.second && (!plane_strike.second || fc_strike.first.z()/dir.z()<plane_strike.first.z()/dir.z()) ) ?
     fc_strike.first:
-    cm_strike;
+    plane_strike.first;
 
   //find length
   TVector3 delta=(strike-pos);
