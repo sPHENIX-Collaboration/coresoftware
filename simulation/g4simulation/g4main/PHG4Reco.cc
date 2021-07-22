@@ -16,7 +16,6 @@
 #include "PHG4UIsession.h"
 #include "PHG4Utils.h"
 
-#include <g4eicdirc/PrtOpBoundaryProcess.h>
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 
@@ -484,7 +483,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   G4OpAbsorption *fAbsorptionProcess = new G4OpAbsorption();
   G4OpRayleigh *fRayleighScatteringProcess = new G4OpRayleigh();
   G4OpMieHG *fMieHGScatteringProcess = new G4OpMieHG();
-  PrtOpBoundaryProcess *fBoundaryProcess = new PrtOpBoundaryProcess();
 
   // cout << "End of bogus warning message" << endl << endl;
   G4Scintillation *theScintillationProcess = new G4Scintillation("Scintillation");
@@ -537,13 +535,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->AddDiscreteProcess(fAbsorptionProcess);
       pmanager->AddDiscreteProcess(fRayleighScatteringProcess);
       pmanager->AddDiscreteProcess(fMieHGScatteringProcess);
-      pmanager->AddDiscreteProcess(fBoundaryProcess);
     }
   }
 
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
   pmanager->AddDiscreteProcess(new G4OpWLS());
   pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
+  pmanager->AddDiscreteProcess(new G4OpBoundaryProcess());
 
   // pmanager->DumpInfo();
 
