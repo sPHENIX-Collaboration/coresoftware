@@ -496,9 +496,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     theCerenkovProcess->DumpPhysicsTable();
     }
   */
-  theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
-  theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
-  theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
+  fCerenkovProcess->SetMaxNumPhotonsPerStep(300);
+  fCerenkovProcess->SetMaxBetaChangePerStep(10.0);
+  fCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
   theScintillationProcess->SetScintillationYieldFactor(1.0);
   theScintillationProcess->SetTrackSecondariesFirst(false);
