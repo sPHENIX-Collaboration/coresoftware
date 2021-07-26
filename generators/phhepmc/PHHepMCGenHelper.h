@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <string>
+#include <vector>
 #include <utility>
 
 class PHCompositeNode;
@@ -151,6 +152,15 @@ class PHHepMCGenHelper
     m_beam_angular_z_coefficient_hv = {{beamA_h, beamA_v}, {beamB_h, beamB_v}};
   }
 
+  //! simulate bunch interaction instead of applying vertex distributions
+  void use_beam_bunch_sim(bool b) {m_use_beam_bunch_sim = b;}
+
+  //! Beam bunch geometry as 3D Gauss width
+  //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
+  //! Second element is beamB, in vector of Gaussian Sigma H,V,Longitudinal
+  void set_beam_bunch_width(const std::vector<double> & beamA,const std::vector<double> & beamB);
+
+
   void CopySettings(PHHepMCGenHelper &helper);
 
   //! copy setting to helper_dest
@@ -164,6 +174,7 @@ class PHHepMCGenHelper
   void PHHepMCGenHelper_Verbosity(int v) { m_verbosity = v; }
 
   int PHHepMCGenHelper_Verbosity() { return m_verbosity; }
+
 
  private:
   gsl_rng *RandomGenerator;
@@ -226,6 +237,18 @@ class PHHepMCGenHelper
 
   //!verbosity
   int m_verbosity = 0;
+
+  //! simulate bunch interaction instead of applying vertex distributions
+  bool m_use_beam_bunch_sim = false;
+
+  //! Beam bunch geometry as 3D Gauss width
+  //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
+  //! Second element is beamB, in vector of Gaussian Sigma H,V,Longitudinal
+  std::pair<std::vector<double>, std::vector<double>> m_beam_bunch_width = {
+      {0, 0, 0},  //+z beam
+      {0, 0, 0}   //-z beam
+  };
+
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */

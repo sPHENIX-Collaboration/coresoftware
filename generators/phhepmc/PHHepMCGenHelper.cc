@@ -407,6 +407,13 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
 void PHHepMCGenHelper::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VTXFUNC z, VTXFUNC t)
 {
+  if (m_use_beam_bunch_sim)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+         << endl;
+    exit(1);
+  }
   _vertex_func_x = x;
   _vertex_func_y = y;
   _vertex_func_z = z;
@@ -416,6 +423,14 @@ void PHHepMCGenHelper::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VT
 
 void PHHepMCGenHelper::set_vertex_distribution_mean(const double x, const double y, const double z, const double t)
 {
+  if (m_use_beam_bunch_sim)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+         << endl;
+    exit(1);
+  }
+
   _vertex_x = x;
   _vertex_y = y;
   _vertex_z = z;
@@ -425,11 +440,33 @@ void PHHepMCGenHelper::set_vertex_distribution_mean(const double x, const double
 
 void PHHepMCGenHelper::set_vertex_distribution_width(const double x, const double y, const double z, const double t)
 {
+  if (m_use_beam_bunch_sim)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+         << endl;
+    exit(1);
+  }
+
   _vertex_width_x = x;
   _vertex_width_y = y;
   _vertex_width_z = z;
   _vertex_width_t = t;
   return;
+}
+
+void PHHepMCGenHelper::set_beam_bunch_width(const std::vector<double> &beamA, const std::vector<double> &beamB)
+{
+  if (not m_use_beam_bunch_sim)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect not to simulate bunch interaction but applying vertex distributions"
+         << endl;
+    exit(1);
+  }
+
+  m_beam_bunch_width.first = beamA;
+  m_beam_bunch_width.second = beamB;
 }
 
 double PHHepMCGenHelper::smear(const double position,
@@ -461,9 +498,18 @@ double PHHepMCGenHelper::smear(const double position,
 
 void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
 {
+  //allow copy of vertex distributions
+  helper_dest.use_beam_bunch_sim(false);
   helper_dest.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
   helper_dest.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
   helper_dest.set_vertex_distribution_mean(_vertex_x, _vertex_y, _vertex_z, _vertex_t);
+
+  //allow copy of bunch distributions
+  helper_dest.use_beam_bunch_sim(true);
+  helper_dest.set_beam_bunch_width(m_beam_bunch_width.first, m_beam_bunch_width.second);
+
+  //final bunch settings
+  helper_dest.use_beam_bunch_sim(m_use_beam_bunch_sim);
 
   helper_dest.set_beam_direction_theta_phi(
       m_beam_direction_theta_phi.first.first,
@@ -475,6 +521,12 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
       m_beam_angular_divergence_hv.first.second,
       m_beam_angular_divergence_hv.second.first,
       m_beam_angular_divergence_hv.second.second);
+  helper_dest.set_beam_angular_z_coefficient_hv(
+      m_beam_angular_z_coefficient_hv.first.first,
+      m_beam_angular_z_coefficient_hv.first.second,
+      m_beam_angular_z_coefficient_hv.second.first,
+      m_beam_angular_z_coefficient_hv.second.second);
+
   helper_dest.set_beam_angular_z_coefficient_hv(
       m_beam_angular_z_coefficient_hv.first.first,
       m_beam_angular_z_coefficient_hv.first.second,
