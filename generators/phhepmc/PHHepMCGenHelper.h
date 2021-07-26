@@ -15,8 +15,8 @@
 
 #include <cmath>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
@@ -83,12 +83,6 @@ class PHHepMCGenHelper
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
 
-  //! Record the translation,boost,rotation for HepMC frame to lab frame according to collision settings
-  void HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent);
-
-  //! move vertex in translation according to vertex settings
-  void move_vertex(PHHepMCGenEvent *genevent);
-
   const PHHepMCGenEventMap *get_geneventmap() const
   {
     return _geneventmap;
@@ -153,13 +147,12 @@ class PHHepMCGenHelper
   }
 
   //! simulate bunch interaction instead of applying vertex distributions
-  void use_beam_bunch_sim(bool b) {m_use_beam_bunch_sim = b;}
+  void use_beam_bunch_sim(bool b) { m_use_beam_bunch_sim = b; }
 
   //! Beam bunch geometry as 3D Gauss width
   //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
   //! Second element is beamB, in vector of Gaussian Sigma H,V,Longitudinal
-  void set_beam_bunch_width(const std::vector<double> & beamA,const std::vector<double> & beamB);
-
+  void set_beam_bunch_width(const std::vector<double> &beamA, const std::vector<double> &beamB);
 
   void CopySettings(PHHepMCGenHelper &helper);
 
@@ -175,6 +168,17 @@ class PHHepMCGenHelper
 
   int PHHepMCGenHelper_Verbosity() { return m_verbosity; }
 
+ protected:
+  //! Record the translation,boost,rotation for HepMC frame to lab frame according to collision settings
+  void HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent);
+
+  //! move vertex in translation according to vertex settings
+  void move_vertex(PHHepMCGenEvent *genevent);
+
+  //! generate vertx with bunch interaction according to
+  //! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
+  //! \return pair of bunch local z position for beam A and beam B
+  std::pair<double, double> generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent);
 
  private:
   gsl_rng *RandomGenerator;
@@ -248,7 +252,6 @@ class PHHepMCGenHelper
       {0, 0, 0},  //+z beam
       {0, 0, 0}   //-z beam
   };
-
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */

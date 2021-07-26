@@ -128,36 +128,22 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
   assert(_vertex_width_z >= 0);
   assert(_vertex_width_t >= 0);
 
-  if (_reuse_vertex)
-  {
-    assert(_geneventmap);
+  assert(not _reuse_vertex);  // logic check
 
-    PHHepMCGenEvent *vtx_evt =
-        _geneventmap->get(_reuse_vertex_embedding_id);
+  // not reusing vertex so smear with the vertex parameters
+  genevent->moveVertex(
+      (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
+      (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
+      (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
+      (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
+}
 
-    if (!vtx_evt)
-    {
-      cout << "PHHepMCGenHelper::move_vertex - Fatal Error - the requested source subevent with embedding ID "
-           << _reuse_vertex_embedding_id << " does not exist. Current HepMCEventMap:";
-      _geneventmap->identify();
-      exit(11);
-    }
-
-    genevent->moveVertex(
-        vtx_evt->get_collision_vertex().x(),
-        vtx_evt->get_collision_vertex().y(),
-        vtx_evt->get_collision_vertex().z(),
-        vtx_evt->get_collision_vertex().t());
-  }
-  else
-  {
-    // not reusing vertex so smear with the vertex parameters
-    genevent->moveVertex(
-        (smear(_vertex_x, _vertex_width_x, _vertex_func_x)),
-        (smear(_vertex_y, _vertex_width_y, _vertex_func_y)),
-        (smear(_vertex_z, _vertex_width_z, _vertex_func_z)),
-        (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
-  }
+//! generate vertx with bunch interaction according to
+//! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
+//! \return pair of bunch local z position for beam A and beam B
+pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent)
+{
+  return make_pair(0., 0.);
 }
 
 //! move vertex in translation,boost,rotation according to vertex settings
@@ -170,10 +156,58 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   assert(genevent);
 
+  if (_reuse_vertex)
+  {
+    // just copy over the vertex boost_rotation_translation
+
+    assert(_geneventmap);
+
+    PHHepMCGenEvent *vtx_evt =
+        _geneventmap->get(_reuse_vertex_embedding_id);
+
+    if (!vtx_evt)
+    {
+      cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal Error - the requested source subevent with embedding ID "
+           << _reuse_vertex_embedding_id << " does not exist. Current HepMCEventMap:";
+      _geneventmap->identify();
+      exit(1);
+    }
+
+    //copy boost_rotation_translation
+
+    genevent->moveVertex(
+        vtx_evt->get_collision_vertex().x(),
+        vtx_evt->get_collision_vertex().y(),
+        vtx_evt->get_collision_vertex().z(),
+        vtx_evt->get_collision_vertex().t());
+
+    genevent->set_boost_beta_vector(vtx_evt->get_boost_beta_vector());
+    genevent->set_rotation_vector(vtx_evt->get_rotation_vector());
+    genevent->set_rotation_angle(vtx_evt->get_rotation_angle());
+
+    if (m_verbosity)
+    {
+      cout << __PRETTY_FUNCTION__ << ": copied boost rotation shift of the collision" << endl;
+      genevent->identify();
+    }
+    return;
+  }  //!   if (_reuse_vertex)
+
   // now handle the collision vertex first, in the head-on collision frame
   // this is used as input to the Crab angle correction
-  move_vertex(genevent);
-  const double init_vertex_longitudinal = genevent->get_collision_vertex().z();
+  pair<double, double> beam_bunch_zs;
+  if (m_use_beam_bunch_sim)
+  {
+    // bunch interaction simulation
+    beam_bunch_zs = generate_vertx_with_bunch_interaction(genevent);
+  }
+  else
+  {
+    // vertex distribution simulation
+    move_vertex(genevent);
+    const double init_vertex_longitudinal = genevent->get_collision_vertex().z();
+    beam_bunch_zs.first = beam_bunch_zs.second = init_vertex_longitudinal;
+  }
 
   // boost-rotation from beam angles
 
@@ -230,14 +264,14 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     CLHEP::HepRotation x_smear_in_accelerator_plane(
         accelerator_plane,
         smear(
-            init_vertex_longitudinal * beam_angular_z_coefficient_hv.first,  //  central horizontal angle shift
-            x_divergence,                                                    // horizontal angle smear
+            beam_bunch_zs.first * beam_angular_z_coefficient_hv.first,  //  central horizontal angle shift
+            x_divergence,                                               // horizontal angle smear
             Gaus));
     CLHEP::HepRotation y_smear_out_accelerator_plane(
         accelerator_plane.cross(beam_center),
         smear(
-            init_vertex_longitudinal * beam_angular_z_coefficient_hv.second,  //  central vertical angle shift
-            y_divergence,                                                     // vertical angle smear
+            beam_bunch_zs.second * beam_angular_z_coefficient_hv.second,  //  central vertical angle shift
+            y_divergence,                                                 // vertical angle smear
             Gaus));
 
     return y_smear_out_accelerator_plane * x_smear_in_accelerator_plane * beam_center;
@@ -344,59 +378,58 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
 
   // rotate the collision vertex z direction to middle of the beam angles
-  if (not _reuse_vertex)
+  assert(not _reuse_vertex);  // logic check first
+
+  // the final longitudinal vertex smear axis
+  CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
+  beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
+
+  double cos_rotation_center_angle_to_z = beamCenterDiffAxis.dot(z_axis);
+
+  if (1 - fabs(cos_rotation_center_angle_to_z) < CLHEP::Hep3Vector::getTolerance())
   {
-    // the final longitudinal vertex smear axis
-    CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
-    beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
+    // new axis is basically beam axis
 
-    double cos_rotation_center_angle_to_z = beamCenterDiffAxis.dot(z_axis);
-
-    if (1 - fabs(cos_rotation_center_angle_to_z) < CLHEP::Hep3Vector::getTolerance())
+    if (m_verbosity)
     {
-      // new axis is basically beam axis
-
-      if (m_verbosity)
-      {
-        cout << __PRETTY_FUNCTION__
-             << ": collision longitudinal axis is very close to z-axis. No additional rotation of vertexes: "
-             << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z
-             << endl;
-      }
+      cout << __PRETTY_FUNCTION__
+           << ": collision longitudinal axis is very close to z-axis. No additional rotation of vertexes: "
+           << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z
+           << endl;
     }
-    else
+  }
+  else
+  {
+    // need a rotation
+    CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
+    const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
+    const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
+
+    const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
+    CLHEP::Hep3Vector init_3vertex(
+        init_4vertex.x(),
+        init_4vertex.y(),
+        init_4vertex.z());
+
+    CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
+
+    genevent->set_collision_vertex(HepMC::FourVector(
+        final_3vertex.x(),
+        final_3vertex.y(),
+        final_3vertex.z(),
+        init_4vertex.t()));
+
+    if (m_verbosity)
     {
-      // need a rotation
-      CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
-      const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
-      const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
-
-      const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
-      CLHEP::Hep3Vector init_3vertex(
-          init_4vertex.x(),
-          init_4vertex.y(),
-          init_4vertex.z());
-
-      CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
-
-      genevent->set_collision_vertex(HepMC::FourVector(
-          final_3vertex.x(),
-          final_3vertex.y(),
-          final_3vertex.z(),
-          init_4vertex.t()));
-
-      if (m_verbosity)
-      {
-        cout << __PRETTY_FUNCTION__
-             << ": collision longitudinal axis is rotated: "
-             << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
-             << "rotation_axis = " << rotation_axis << ", "
-             << "init_3vertex = " << init_3vertex << ", "
-             << "final_3vertex = " << final_3vertex << ", "
-             << endl;
-      }
+      cout << __PRETTY_FUNCTION__
+           << ": collision longitudinal axis is rotated: "
+           << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
+           << "rotation_axis = " << rotation_axis << ", "
+           << "init_3vertex = " << init_3vertex << ", "
+           << "final_3vertex = " << final_3vertex << ", "
+           << endl;
     }
-  }  //  if (not _reuse_vertex)
+  }
 
   if (m_verbosity)
   {
@@ -588,6 +621,13 @@ void PHHepMCGenHelper::Print(const std::string &what) const
        << ", " << m_beam_angular_z_coefficient_hv.first.second << endl;
   cout << "Beam angle shift as linear function of longitudinal vertex position: B X-Y = " << m_beam_angular_z_coefficient_hv.second.first
        << ", " << m_beam_angular_z_coefficient_hv.second.second << endl;
+
+  cout << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << endl;
+
+  cout << "Beam bunch A width = "
+       << m_beam_bunch_width.first[0] << ", " << m_beam_bunch_width.first[1] << ", " << m_beam_bunch_width.first[2] << "] cm" << endl;
+  cout << "Beam bunch B width = "
+       << m_beam_bunch_width.second[0] << ", " << m_beam_bunch_width.second[1] << ", " << m_beam_bunch_width.second[2] << "] cm" << endl;
 
   return;
 }
