@@ -23,9 +23,20 @@ using namespace std;
 
 PHG4TpcDirectLaser::PHG4TpcDirectLaser()
 {
-  begin_CM = 20. *cm; // outer radius of IFC
-  end_CM = 78. * cm; // inner radius of OFC
-  halfwidth_CM=0.5*cm;
+  ifc = 20. *cm; // outer radius of IFC
+  ofc = 78. * cm; // inner radius of OFC
+  halfwidth_CM=0.5*cm; //thickness of CM
+
+  double electrons_per_cm=300;
+  //these should be synched to another source
+    double Ne_dEdx = 1.56;   // keV/cm
+  double CF4_dEdx = 7.00;  // keV/cm
+  double Ne_NTotal = 43;    // Number/cm
+  double CF4_NTotal = 100;  // Number/cm
+  double Tpc_NTot = 0.50 * Ne_NTotal + 0.50 * CF4_NTotal;
+  double Tpc_dEdx = 0.50 * Ne_dEdx + 0.50 * CF4_dEdx;
+  double electrons_per_gev = Tpc_dEdx*1e6 / Tpc_NTot; // GeV dep per electron
+  gev_per_electron=1./electrons_per_gev;
 
   for (int i=0;i<4*2;i++){
     //PHG4Hits.push_back(new PHG4Hitv1());//instantiate it
@@ -97,8 +108,8 @@ TVector3 PHG4TpcDirectLaser::GetCmStrike(TVector3 start, TVector3 direction){
   return ret;
 }
 TVector3 PHG4TpcDirectLaser::GetFieldcageStrike(TVector3 start, TVector3 direction){
-  TVector3 ofc_strike=GetCylinderStrike(start,direction,end_CM);
-  TVector3 ifc_strike=GetCylinderStrike(start,direction,begin_CM);
+  TVector3 ofc_strike=GetCylinderStrike(start,direction,ofc);
+  TVector3 ifc_strike=GetCylinderStrike(start,direction,ifc);
   TVector3 no_strike(999,999,999);
 
   //measure which one occurs 'first' along the track, by dividing by the trajectory z.
@@ -242,24 +253,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
 
   //calculate the total energy deposited
 
-  //should calc this stuff in advance!
-  double Ne_dEdx = 1.56;   // keV/cm
-  double CF4_dEdx = 7.00;  // keV/cm
-
-  //double Ne_NTotal = 43;    // Number/cm
-  //double CF4_NTotal = 100;  // Number/cm
-  //double Tpc_NTot = 0.90 * Ne_NTotal + 0.10 * CF4_NTotal;
-
-  double Tpc_NTot = nElectrons;
-  double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
-
-  //double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  //double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx*1e6; //electrons per gev.
-
-  double electrons_per_gev = Tpc_dEdx*1e6 / Tpc_NTot; // GeV dep per electron
-
-  float electrons_per_length=300./cm;//hardcoded
-  float totalE=electrons_per_length*stepLength/electrons_per_gev;//rcc dummy hardcoded 300 electrons per cm!
+  float totalE=electrons_per_cm*stepLength/electrons_per_gev;//rcc dummy hardcoded 300 electrons per cm!
 
   hit->set_eion(totalE);
   hit->set_edep(totalE);

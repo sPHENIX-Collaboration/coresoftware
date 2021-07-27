@@ -23,9 +23,8 @@ class PHG4TpcDirectLaser {
 public:
   PHG4TpcDirectLaser(); //default constructor
 
-  double begin_CM, end_CM; // inner and outer radii of field cages/TPC
   double halfwidth_CM; //half the thickness of the CM;
-  double ifc,ofc;
+  double ifc,ofc;// inner and outer radii of field cages/TPC
   
   vector<PHG4Hitv1*> PHG4Hits;
 
@@ -38,7 +37,6 @@ public:
   
 private:
   static const int nLasers = 4; //per side
-  const double mm = 0.10;
   const double cm = 1.0;
   const float maxHitLength=1.0;//1cm.
 
@@ -55,7 +53,8 @@ private:
   TVector3 GetFieldcageStrike(TVector3 start, TVector3 direction);
   TVector3 GetCylinderStrike(TVector3 s, TVector3 v, float radius);
   
-  int nElectrons;
+  int electrons_per_cm;
+  float gev_per_electron;
  
   void AppendLaserTrack(float theta, float phi, int laser);
   void ClearHits();

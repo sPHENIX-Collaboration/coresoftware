@@ -118,13 +118,10 @@ private:
   int nStripesBefore_R2[nRadii];
   int nStripesBefore_R3[nRadii];
   int result;
-
-  double botvert, topvert;
   
   int nStripesPerPetal;
   int nPetals;
   int nTotStripes;
-  int stripeID;
   
   int nElectrons;
   
