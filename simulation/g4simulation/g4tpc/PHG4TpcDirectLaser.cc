@@ -253,7 +253,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(float theta, float phi, int laser)
 
   //calculate the total energy deposited
 
-  float totalE=electrons_per_cm*stepLength/electrons_per_gev;//rcc dummy hardcoded 300 electrons per cm!
+  float totalE=electrons_per_cm*stepLength*gev_per_electron;//rcc dummy hardcoded 300 electrons per cm!
 
   hit->set_eion(totalE);
   hit->set_edep(totalE);
