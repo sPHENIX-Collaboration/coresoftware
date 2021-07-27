@@ -27,7 +27,7 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser()
   ofc = 78. * cm; // inner radius of OFC
   halfwidth_CM=0.5*cm; //thickness of CM
 
-  double electrons_per_cm=300;
+  electrons_per_cm=300;
   //these should be synched to another source
     double Ne_dEdx = 1.56;   // keV/cm
   double CF4_dEdx = 7.00;  // keV/cm
