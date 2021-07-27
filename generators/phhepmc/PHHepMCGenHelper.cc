@@ -27,11 +27,12 @@
 
 #include <HepMC/SimpleVector.h>  // for FourVector
 
+#include <CLHEP/Units/PhysicalConstants.h>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <CLHEP/Vector/Boost.h>
 #include <CLHEP/Vector/LorentzRotation.h>
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/Rotation.h>
-#include <CLHEP/Vector/ThreeVector.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -138,12 +139,116 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
       (smear(_vertex_t, _vertex_width_t, _vertex_func_t)));
 }
 
+//! use m_beam_bunch_width to calculate horizontal and vertical collision width
+//! \param[in] hv_index 0: horizontal. 1: vertical
+//! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
+double PHHepMCGenHelper::get_collision_width(unsigned int hv_index)
+{
+  assert((hv_index == 0) or (hv_index == 1));
+
+  const double widthA = m_beam_bunch_width.first[hv_index];
+  const double widthB = m_beam_bunch_width.second[hv_index];
+
+  return widthA * widthB / sqrt(widthA * widthA + widthB * widthB);
+}
+
 //! generate vertx with bunch interaction according to
 //! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
 //! \return pair of bunch local z position for beam A and beam B
 pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent)
 {
-  return make_pair(0., 0.);
+  const pair<double, double> bunch_zs(
+      smear(
+          0,                            //  central vertical angle shift
+          m_beam_bunch_width.first[2],  // vertical angle smear
+          Gaus),
+      smear(
+          0,                             //  central vertical angle shift
+          m_beam_bunch_width.second[2],  // vertical angle smear
+          Gaus));
+
+  CLHEP::Hep3Vector beamA_center = pair2Hep3Vector(m_beam_direction_theta_phi.first);
+  CLHEP::Hep3Vector beamB_center = pair2Hep3Vector(m_beam_direction_theta_phi.second);
+  //  const static CLHEP::Hep3Vector z_axis(0, 0, 1);
+  const static CLHEP::Hep3Vector y_axis(0, 1, 0);
+
+  // the final longitudinal vertex smear axis
+  CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
+  assert(beamCenterDiffAxis.mag() > CLHEP::Hep3Vector::getTolerance());
+  beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
+
+  CLHEP::Hep3Vector vec_crossing = 0.5 * (beamA_center - beamB_center) - beamA_center;
+
+  CLHEP::Hep3Vector vec_longitudinal_collision = beamCenterDiffAxis * (bunch_zs.first + bunch_zs.second);
+  double ct_collision = 0.5 * (-bunch_zs.first + bunch_zs.second) / beamCenterDiffAxis.dot(beamA_center);
+  double t_collision = ct_collision * CLHEP::cm / CLHEP::c_light / CLHEP::ns;
+  CLHEP::Hep3Vector vec_crossing_collision = ct_collision * vec_crossing;  // shift of collision to crossing dierction
+
+  CLHEP::Hep3Vector horizontal_axis = y_axis.cross(beamCenterDiffAxis);
+  assert(horizontal_axis.mag() > CLHEP::Hep3Vector::getTolerance());
+  horizontal_axis = horizontal_axis / horizontal_axis.mag();
+
+  CLHEP::Hep3Vector vertical_axis = beamCenterDiffAxis.cross(horizontal_axis);
+  assert(vertical_axis.mag() > CLHEP::Hep3Vector::getTolerance());
+  vertical_axis = vertical_axis / vertical_axis.mag();
+
+  CLHEP::Hep3Vector vec_horizontal_collision_vertex_smear = horizontal_axis *
+                                                            smear(
+                                                                0,
+                                                                get_collision_width(0),
+                                                                Gaus);
+  CLHEP::Hep3Vector vec_vertical_collision_vertex_smear = vertical_axis *
+                                                          smear(
+                                                              0,
+                                                              get_collision_width(1),
+                                                              Gaus);
+
+  CLHEP::Hep3Vector vec_collision_vertex =
+      vec_horizontal_collision_vertex_smear +
+      vec_vertical_collision_vertex_smear +  //
+      vec_crossing_collision + vec_longitudinal_collision;
+
+  genevent->set_collision_vertex(HepMC::FourVector(
+      vec_collision_vertex.x(),
+      vec_collision_vertex.y(),
+      vec_collision_vertex.z(),
+      t_collision));
+
+  if (m_verbosity)
+  {
+    cout << __PRETTY_FUNCTION__
+         << ":"
+         << "bunch_zs.first  = " << bunch_zs.first << ", "
+         << "bunch_zs.second = " << bunch_zs.second << ", "
+         << "cos(theta/2) = " << beamCenterDiffAxis.dot(beamA_center) << ", " << endl
+
+         << "beamCenterDiffAxis = " << beamCenterDiffAxis << ", "
+         << "vec_crossing = " << vec_crossing << ", "
+         << "horizontal_axis = " << horizontal_axis << ", "
+         << "vertical_axis = " << vertical_axis << ", " << endl
+
+         << "vec_longitudinal_collision = " << vec_longitudinal_collision << ", "
+         << "vec_crossing_collision = " << vec_crossing_collision << ", "
+         << "vec_vertical_collision_vertex_smear = " << vec_vertical_collision_vertex_smear << ", "
+         << "vec_horizontal_collision_vertex_smear = " << vec_horizontal_collision_vertex_smear << ", " << endl
+
+         << "ct_collision = " << ct_collision << ", "
+         << "t_collision = " << t_collision << ", "
+         << endl;
+  }
+
+  return bunch_zs;
+}
+
+CLHEP::Hep3Vector PHHepMCGenHelper::pair2Hep3Vector(const std::pair<double, double> &theta_phi)
+{
+  const double &theta = theta_phi.first;
+  const double &phi = theta_phi.second;
+
+  return CLHEP::Hep3Vector(
+      sin(theta) * cos(phi),
+      sin(theta) * sin(phi),
+      cos(theta));
 }
 
 //! move vertex in translation,boost,rotation according to vertex settings
@@ -212,17 +317,6 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   // boost-rotation from beam angles
 
   const static CLHEP::Hep3Vector z_axis(0, 0, 1);
-
-  // function to convert spherical coordinate to Hep3Vector in x-y-z
-  auto pair2Hep3Vector = [](const std::pair<double, double> &theta_phi) {
-    const double &theta = theta_phi.first;
-    const double &phi = theta_phi.second;
-
-    return CLHEP::Hep3Vector(
-        sin(theta) * cos(phi),
-        sin(theta) * sin(phi),
-        cos(theta));
-  };
 
   CLHEP::Hep3Vector beamA_center = pair2Hep3Vector(m_beam_direction_theta_phi.first);
   CLHEP::Hep3Vector beamB_center = pair2Hep3Vector(m_beam_direction_theta_phi.second);
@@ -376,60 +470,6 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
       cout << __PRETTY_FUNCTION__ << ": has rotation " << endl;
     }
   }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
-
-  // rotate the collision vertex z direction to middle of the beam angles
-  assert(not _reuse_vertex);  // logic check first
-
-  // the final longitudinal vertex smear axis
-  CLHEP::Hep3Vector beamCenterDiffAxis = (beamA_center - beamB_center);
-  beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
-
-  double cos_rotation_center_angle_to_z = beamCenterDiffAxis.dot(z_axis);
-
-  if (1 - fabs(cos_rotation_center_angle_to_z) < CLHEP::Hep3Vector::getTolerance())
-  {
-    // new axis is basically beam axis
-
-    if (m_verbosity)
-    {
-      cout << __PRETTY_FUNCTION__
-           << ": collision longitudinal axis is very close to z-axis. No additional rotation of vertexes: "
-           << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z
-           << endl;
-    }
-  }
-  else
-  {
-    // need a rotation
-    CLHEP::Hep3Vector rotation_axis = beamCenterDiffAxis.cross(z_axis);
-    const double rotation_angle_to_z = -acos(cos_rotation_center_angle_to_z);
-    const CLHEP::HepRotation rotation(rotation_axis, rotation_angle_to_z);
-
-    const HepMC::FourVector init_4vertex = genevent->get_collision_vertex();
-    CLHEP::Hep3Vector init_3vertex(
-        init_4vertex.x(),
-        init_4vertex.y(),
-        init_4vertex.z());
-
-    CLHEP::Hep3Vector final_3vertex = rotation * init_3vertex;
-
-    genevent->set_collision_vertex(HepMC::FourVector(
-        final_3vertex.x(),
-        final_3vertex.y(),
-        final_3vertex.z(),
-        init_4vertex.t()));
-
-    if (m_verbosity)
-    {
-      cout << __PRETTY_FUNCTION__
-           << ": collision longitudinal axis is rotated: "
-           << "cos_rotation_center_angle_to_z = " << cos_rotation_center_angle_to_z << ", "
-           << "rotation_axis = " << rotation_axis << ", "
-           << "init_3vertex = " << init_3vertex << ", "
-           << "final_3vertex = " << final_3vertex << ", "
-           << endl;
-    }
-  }
 
   if (m_verbosity)
   {

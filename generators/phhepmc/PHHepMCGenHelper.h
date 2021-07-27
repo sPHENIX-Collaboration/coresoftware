@@ -11,6 +11,8 @@
 #ifndef PHHEPMC_PHHEPMCGENHELPER_H
 #define PHHEPMC_PHHEPMCGENHELPER_H
 
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <cmath>
@@ -185,6 +187,9 @@ class PHHepMCGenHelper
 
   double smear(const double position, const double width, VTXFUNC dist) const;
 
+  //! function to convert spherical coordinate to Hep3Vector in x-y-z
+  static CLHEP::Hep3Vector pair2Hep3Vector(const std::pair<double, double> &theta_phi);
+
   VTXFUNC _vertex_func_x;
   VTXFUNC _vertex_func_y;
   VTXFUNC _vertex_func_z;
@@ -252,6 +257,11 @@ class PHHepMCGenHelper
       {0, 0, 0},  //+z beam
       {0, 0, 0}   //-z beam
   };
+
+  //! use m_beam_bunch_width to calculate horizontal and vertical collision width
+  //! \param[in] hv_index 0: horizontal. 1: vertical
+  double get_collision_width(unsigned int hv_index);
+
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */
