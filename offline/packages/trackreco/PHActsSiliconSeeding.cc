@@ -1124,6 +1124,11 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
+
+  /// check if using 3d map, which needs a sign flip
+  if(m_3dField)
+    m_bField *= -1;
+
   config.bFieldInZ = m_bField;
 
   /// Average radiation length traversed per seed

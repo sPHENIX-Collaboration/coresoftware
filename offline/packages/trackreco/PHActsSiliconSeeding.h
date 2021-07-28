@@ -89,7 +89,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-  
+  void use3dField(bool use3dField)
+    { m_3dField = use3dField; }
+ 
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -199,6 +201,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
   float m_bField = 1.4 / 1000.;
+  bool m_3dField = false;
 
   std::shared_ptr<Acts::BinFinder<SpacePoint>> 
     m_bottomBinFinder, m_topBinFinder;
