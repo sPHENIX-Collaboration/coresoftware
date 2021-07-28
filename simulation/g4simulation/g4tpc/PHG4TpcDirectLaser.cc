@@ -52,7 +52,7 @@ namespace
   //@}
 
   /// length of generated G4Hits along laser track
-  static constexpr double maxHitLength=1.0*cm;
+  static constexpr double maxHitLength=1.*cm;
 
   /// TPC half length
   static constexpr double halflength_tpc = 105.5*cm;
@@ -279,48 +279,40 @@ void PHG4TpcDirectLaser::SetupLasers()
   // clear previous lasers
   m_lasers.clear();
 
-  const TVector3 position( begin_CM+1.*cm, 0, halfwidth_CM+1.*cm );
-  Laser laser;
-  laser.m_position = position;
-  laser.m_direction = 1;
-  laser.m_phi = 0;
-  
-  m_lasers.push_back( laser );
-  
-//   // default position
-//   const TVector3 position_base( 60*cm, 0., halflength_tpc );
-// 
-//   // add lasers
-//   for( int i = 0; i<8; ++i )
-//   {
-//     Laser laser;
-// 
-//     // set laser direction
-//     /* 
-//      * first four lasers are on positive z readout plane, and shoot towards negative z
-//      * next four lasers are on negative z readout plane and shoot towards positive z 
-//      */
-//     laser.m_position = position_base;
-//     if( i < 4 )
-//     {
-// 
-//       laser.m_position.SetZ( position_base.z() );
-//       laser.m_direction = -1;
-// 
-//     } else {
-// 
-//       laser.m_position.SetZ( -position_base.z() );
-//       laser.m_direction = 1;
-// 
-//     }
-//     
-//     // rotate around z
-//     laser.m_phi = M_PI/2*i;
-//     laser.m_position.RotateZ( laser.m_phi );
-// 
-//     // append
-//     m_lasers.push_back( laser );
-//   }
+  // position of first laser at positive z
+  const TVector3 position_base( 60*cm, 0., halflength_tpc );
+
+  // add lasers
+  for( int i = 0; i<8; ++i )
+  {
+    Laser laser;
+
+    // set laser direction
+    /* 
+     * first four lasers are on positive z readout plane, and shoot towards negative z
+     * next four lasers are on negative z readout plane and shoot towards positive z 
+     */
+    laser.m_position = position_base;
+    if( i < 4 )
+    {
+
+      laser.m_position.SetZ( position_base.z() );
+      laser.m_direction = -1;
+
+    } else {
+
+      laser.m_position.SetZ( -position_base.z() );
+      laser.m_direction = 1;
+
+    }
+    
+    // rotate around z
+    laser.m_phi = M_PI/2*i;
+    laser.m_position.RotateZ( laser.m_phi );
+
+    // append
+    m_lasers.push_back( laser );
+  }
 
 }
 
@@ -337,10 +329,8 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
-  AppendLaserTrack(theta,phi,m_lasers[0]);
-  
-//   for( const auto& laser:m_lasers )
-//   { if( laser.m_direction > 0 ) AppendLaserTrack(theta,phi,laser); }
+  for( const auto& laser:m_lasers )
+  { AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
