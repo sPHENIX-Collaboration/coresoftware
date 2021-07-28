@@ -81,6 +81,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , _do_track_match(true)
   , _do_eval_light(true)
   , _scan_for_embedded(false)
+  , _scan_for_primaries(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
@@ -2369,6 +2370,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
 
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
+      if(_scan_for_primaries){
+	range = truthinfo->GetPrimaryParticleRange();
+      }
+
       Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
            iter != range.second;
