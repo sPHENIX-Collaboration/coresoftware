@@ -328,8 +328,12 @@ void SimEvaluator_hp::check_genevent()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
-  if( !( m_container && m_geneventmap ) ) return;
-
+  if( !( m_container && m_geneventmap ) ) 
+  {
+    std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
+    return;
+  }
+  
   // clear vertices from previous event
   m_container->clearEventList();
 
