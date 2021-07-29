@@ -843,6 +843,8 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 {
   
+  if( !m_geomContainerIntt ) return;
+  
   if(Verbosity() > 10)
   { std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; }
 
@@ -920,6 +922,8 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
 void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 {
+  
+  if( !m_geomContainerMvtx ) return;
   
   if(Verbosity() > 10)
   { std::cout << "MakeActsGeometry::makeMvtxMapPairs - mvtxVolume: " << mvtxVolume->volumeName() << std::endl; }
@@ -1540,7 +1544,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << " CYLINDERGEOM_MVTX  node not found on node tree"
 	      << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   m_geomContainerTpc =
@@ -1550,7 +1554,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" 
 	      << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+      // return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_geomContainerIntt = findNode::getClass<
@@ -1560,7 +1564,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << " CYLINDERGEOM_INTT  node not found on node tree"
 	      << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+      // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // load micromegas geometry
