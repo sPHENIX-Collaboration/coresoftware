@@ -61,7 +61,8 @@ pkginclude_HEADERS = \
   SvtxVertexEval.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
-  TrackEvaluationContainerv1.h
+  TrackEvaluationContainerv1.h \
+  FarForwardEvaluator.h
 
 ROOTDICTS = \
   TrackEvaluationContainer_Dict.cc \
@@ -98,7 +99,8 @@ libg4eval_la_SOURCES = \
   SvtxTrackEval.cc \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
-  TrackEvaluation.cc
+  TrackEvaluation.cc \
+  FarForwardEvaluator.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
