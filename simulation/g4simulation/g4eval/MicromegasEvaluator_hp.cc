@@ -40,6 +40,13 @@ namespace
     to_underlying_type(T value) noexcept
   { return static_cast<underlying_type_t<T>>(value);}
 
+  //! radius
+  template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
+
+  //! radius
+  float get_r( PHG4Hit* hit, int i )
+  {  return get_r( hit->get_x(i), hit->get_y(i) ); }
+
   //! create g4hit struct from G4Hit
   MicromegasEvaluator_hp::G4HitStruct create_g4hit( PHG4Hit* g4hit )
   {
@@ -50,6 +57,7 @@ namespace
     g4hitstruct._x = g4hit->get_avg_x();
     g4hitstruct._y = g4hit->get_avg_y();
     g4hitstruct._z = g4hit->get_avg_z();
+    g4hitstruct._delta_r = get_r( g4hit, 1 ) - get_r( g4hit, 0 );
     return g4hitstruct;
   }
 
@@ -163,7 +171,7 @@ int MicromegasEvaluator_hp::End(PHCompositeNode* )
 int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
   // geometry
-  const std::string geonodename = "CYLINDERGEOM_MICROMEGAS";
+  const std::string geonodename = "CYLINDERGEOM_MICROMEGAS_FULL";
   m_geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
   assert(m_geonode);
 
@@ -182,16 +190,19 @@ int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::evaluate_g4hits()
 {
-  if( !( m_g4hits_micromegas && m_container ) ) return;
+  if( !( m_g4hits_micromegas && m_container ) )
+  {
+    std::cerr << "MicromegasEvaluator_hp::evaluate_g4hits - nodes not found" << std::endl;
+    return;
+  }
 
   // clear array
   m_container->clearG4Hits();
 
   // loop over layers in the g4hit container
-  auto layer_range = m_g4hits_micromegas->getLayers();
+  const auto layer_range = m_g4hits_micromegas->getLayers();
 
   TileStruct* current_tile = nullptr;
-
   for( auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it )
   {
 
@@ -214,9 +225,9 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
-      
+
       // get tile
-      const int tileid = layergeom->find_tile_cylindrical( (world_in + world_out)*0.5 );
+      const int tileid = layergeom->find_tile_cylindrical( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
 
       // convert to planar coordinates

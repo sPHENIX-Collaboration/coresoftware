@@ -100,6 +100,10 @@ class MicromegasEvaluator_hp : public SubsysReco
     //! total number of electrons
     uint _nelectron = 0;
 
+    //! delta_r
+    /** used to identify whether g4hits cover the full drift space or not */
+    float _delta_r = 0;
+
   };
 
   //! hit information to be stored in tree
