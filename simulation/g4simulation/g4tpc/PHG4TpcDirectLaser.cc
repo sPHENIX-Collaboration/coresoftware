@@ -28,7 +28,6 @@ namespace
 
   ///@name units
   //@{
-  static constexpr double mm = 0.10;
   static constexpr double cm = 1.0;
   //@}
 
