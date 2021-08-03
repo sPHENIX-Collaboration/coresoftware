@@ -2,18 +2,23 @@
 #define G4TPC_PHG4TPCDIRECTLASER_H
 
 #include <fun4all/SubsysReco.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <TVector3.h>
+
+#include <cmath>
 
 class PHG4HitContainer;
 class SvtxTrackMap;
 
-class PHG4TpcDirectLaser: public SubsysReco
+class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
 {
   public:
 
   /// constructor
   PHG4TpcDirectLaser( const std::string& name = "PHG4TpcDirectLaser" );
+
+  /// destructor
   ~PHG4TpcDirectLaser() override = default;
 
   /// run initialization
@@ -21,6 +26,9 @@ class PHG4TpcDirectLaser: public SubsysReco
 
   /// per event processing
   int process_event(PHCompositeNode *) override;
+
+  /// default parameters
+  void SetDefaultParameters() override;
 
   /// detector name
   void Detector(const std::string &d)
@@ -90,6 +98,17 @@ class PHG4TpcDirectLaser: public SubsysReco
   /// g4hit container
   PHG4HitContainer* m_g4hitcontainer = nullptr;
 
+  /// number of electrons deposited per cm laser track
+  int electrons_per_cm = 300;
+  
+  // number of electrons per deposited GeV in TPC gas
+  /** 
+   * it is used to convert a given number of electrons into an energy 
+   * as expected by G4Hit. The energy is then converted back to a number of electrons
+   * inside PHG4TpcElectronDrift
+   */
+  double electrons_per_gev = NAN;
+  
   ///@name default phi and theta steps
   //@{
   int nPhiSteps=1;

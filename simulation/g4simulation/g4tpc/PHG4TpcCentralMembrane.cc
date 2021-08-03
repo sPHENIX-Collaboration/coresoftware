@@ -16,21 +16,6 @@ namespace
   // unique detector id for all direct lasers
   static const int detId = PHG4HitDefs::get_volume_id( "PHG4TpcCentralMembrane" );
 
-  /*
-   * number of electrons deposited in gas per GeV for ionizing particle
-   * it is needed to convert the number of electrons deposited by the laser into some equivalent energy loss,
-   * which is what G4Hit expects
-   * copied from PHG4TpcElectronDrift::SetDefaultParameters
-   */
-  static constexpr double Ne_dEdx = 1.56;   // keV/cm
-  static constexpr double CF4_dEdx = 7.00;  // keV/cm
-  static constexpr double Ne_NTotal = 43;    // Number/cm
-  static constexpr double CF4_NTotal = 100;  // Number/cm
-  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
-  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
-  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
-
 }
 
 //_____________________________________________________________
@@ -39,7 +24,9 @@ namespace
 // stripes have width of one mm, length of one pad width, and are centered in middle of sector gaps
 PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string &name)
   : SubsysReco(name)
+  , PHParameterInterface(name)
 {
+  InitializeParameters();
   
   // set to 1.0 mm for all else
   for (int j=0; j<nRadii; j++){
@@ -60,30 +47,6 @@ PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string &name)
   CalculateVertices(nStripes_R2, nPads_R2, R2, spacing_R2, x1a_R2, y1a_R2, x1b_R2, y1b_R2, x2a_R2, y2a_R2, x2b_R2, y2b_R2, x3a_R2, y3a_R2, x3b_R2, y3b_R2, padfrac_R2, str_width_R2, widthmod_R2, nGoodStripes_R2, keepUntil_R2, nStripesIn_R2, nStripesBefore_R2);
   CalculateVertices(nStripes_R3, nPads_R3, R3, spacing_R3, x1a_R3, y1a_R3, x1b_R3, y1b_R3, x2a_R3, y2a_R3, x2b_R3, y2b_R3, x3a_R3, y3a_R3, x3b_R3, y3b_R3, padfrac_R3, str_width_R3, widthmod_R3, nGoodStripes_R3, keepUntil_R3, nStripesIn_R3, nStripesBefore_R3);
   
-  for (int i = 0; i < 18; i++){ // loop over petalID
-    for (int j = 0; j < 8; j++){ // loop over radiusID
-      for (int k = 0; k < nGoodStripes_R1_e[j]; k++){ // loop over stripeID
-	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 0, j, k, m_electrons_per_stripe));
-	BotVertices.push_back(GetBotVerticesFromStripe(0, j, k));
-	TopVertices.push_back(GetTopVerticesFromStripe(0, j, k));
-      }
-      for (int k = 0; k < nGoodStripes_R1[j]; k++){ // loop over stripeID
-	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 1, j, k, m_electrons_per_stripe));
-	BotVertices.push_back(GetBotVerticesFromStripe(1, j, k));
-	TopVertices.push_back(GetTopVerticesFromStripe(1, j, k));
-      }
-      for (int k = 0; k < nGoodStripes_R2[j]; k++){ // loop over stripeID
-	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 2, j, k, m_electrons_per_stripe));
-	BotVertices.push_back(GetBotVerticesFromStripe(2, j, k));
-	TopVertices.push_back(GetTopVerticesFromStripe(2, j, k));
-      }
-      for (int k = 0; k < nGoodStripes_R3[j]; k++){ // loop over stripeID
-	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 3, j, k, m_electrons_per_stripe));
-	BotVertices.push_back(GetBotVerticesFromStripe(3, j, k));
-	TopVertices.push_back(GetTopVerticesFromStripe(3, j, k));
-      }
-    }
-  }  
 }
 
 //______________________________________________________
@@ -98,6 +61,14 @@ PHG4TpcCentralMembrane::~PHG4TpcCentralMembrane()
 int PHG4TpcCentralMembrane::InitRun(PHCompositeNode *topNode)
 { 
   
+  // setup parameters
+  UpdateParametersWithMacro();
+  electrons_per_stripe = get_int_param("electrons_per_stripe");
+  electrons_per_gev = get_double_param("electrons_per_gev");
+
+  std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_stripe: " << electrons_per_stripe << std::endl;
+  std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
+
   // make sure G4Hit container exists
   hitnodename = "G4HIT_" + detector;
   auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -107,7 +78,42 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // adjust G4Hits energy and time
+  // reset vertices and g4hits
+  for( auto&& hit:PHG4Hits ) { delete hit; }
+  PHG4Hits.clear();
+  
+  for( auto&& hit:BotVertices ) { delete hit; }
+  BotVertices.clear();
+  
+  for( auto&& hit:TopVertices ) { delete hit; }
+  TopVertices.clear();
+  
+  for (int i = 0; i < 18; i++){ // loop over petalID
+    for (int j = 0; j < 8; j++){ // loop over radiusID
+      for (int k = 0; k < nGoodStripes_R1_e[j]; k++){ // loop over stripeID
+	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
+	BotVertices.push_back(GetBotVerticesFromStripe(0, j, k));
+	TopVertices.push_back(GetTopVerticesFromStripe(0, j, k));
+      }
+      for (int k = 0; k < nGoodStripes_R1[j]; k++){ // loop over stripeID
+	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
+	BotVertices.push_back(GetBotVerticesFromStripe(1, j, k));
+	TopVertices.push_back(GetTopVerticesFromStripe(1, j, k));
+      }
+      for (int k = 0; k < nGoodStripes_R2[j]; k++){ // loop over stripeID
+	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
+	BotVertices.push_back(GetBotVerticesFromStripe(2, j, k));
+	TopVertices.push_back(GetTopVerticesFromStripe(2, j, k));
+      }
+      for (int k = 0; k < nGoodStripes_R3[j]; k++){ // loop over stripeID
+	PHG4Hits.push_back(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
+	BotVertices.push_back(GetBotVerticesFromStripe(3, j, k));
+	TopVertices.push_back(GetTopVerticesFromStripe(3, j, k));
+      }
+    }
+  }  
+  
+  // adjust G4Hits position and time
   for( const auto& hit:PHG4Hits )
   {
     hit->set_t(0,m_centralMembraneDelay);//real hit delay
@@ -141,6 +147,32 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
  
+}
+
+//_____________________________________________________________
+void PHG4TpcCentralMembrane::SetDefaultParameters()
+{
+  
+  // same gas parameters as in PHG4TpcElectronDrift::SetDefaultParameters
+  
+  // Data on gasses @20 C and 760 Torr from the following source:
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
+  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
+  static constexpr double Ne_dEdx = 1.56;   // keV/cm
+  static constexpr double CF4_dEdx = 7.00;  // keV/cm
+  static constexpr double Ne_NTotal = 43;    // Number/cm
+  static constexpr double CF4_NTotal = 100;  // Number/cm
+  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
+  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
+  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  
+  // number of electrons per deposited GeV in TPC gas
+  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
+
+  /// mean number of electrons per stripe
+  set_default_int_param( "electrons_per_stripe", 300 );
+
 }
 
 //_____________________________________________________________
@@ -507,7 +539,7 @@ PHG4Hitv1* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleI
   hit->set_t(1, 0); // dummy number, nanosecond
 
   // calculate deposited energy corresponding to number of electrons per stripe
-  const double edep = nElectrons/Tpc_ElectronsPerGeV;
+  const double edep = nElectrons/electrons_per_gev;
   hit->set_edep(edep);
   hit->set_eion(edep);
 

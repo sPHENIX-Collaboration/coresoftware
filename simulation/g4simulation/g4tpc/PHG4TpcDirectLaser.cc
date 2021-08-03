@@ -26,25 +26,6 @@ namespace
   // unique detector id for all direct lasers
   static const int detId = PHG4HitDefs::get_volume_id( "PHG4TpcDirectLaser" );
 
-  // hard-coded number of electrons created per cm of laser
-  static constexpr double electrons_per_cm=300;
-
-  /*
-   * number of electrons deposited in gas per GeV for ionizing particle
-   * it is needed to convert the number of electrons deposited by the laser into some equivalent energy loss,
-   * which is what G4Hit expects
-   * copied from PHG4TpcElectronDrift::SetDefaultParameters
-   * TODO: should really use an independent set of parameters to get them from macro, rather than copy
-   */
-  static constexpr double Ne_dEdx = 1.56;   // keV/cm
-  static constexpr double CF4_dEdx = 7.00;  // keV/cm
-  static constexpr double Ne_NTotal = 43;    // Number/cm
-  static constexpr double CF4_NTotal = 100;  // Number/cm
-  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
-  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
-  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  static constexpr double Tpc_ElectronsPerGeV = 1e6*Tpc_ElectronsPerKeV;
-  
   ///@name units
   //@{
   static constexpr double mm = 0.10;
@@ -162,7 +143,10 @@ namespace
 //_____________________________________________________________
 PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
   : SubsysReco(name)
-{}
+  , PHParameterInterface(name)
+{
+  InitializeParameters();
+}
 
 //_____________________________________________________________
 int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
@@ -201,6 +185,11 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
     node->addNode( new PHIODataNode<PHObject>(m_track_map, m_track_map_name, "PHObject") );
   }
 
+  // setup parameters
+  UpdateParametersWithMacro();
+  electrons_per_cm = get_int_param("electrons_per_cm");
+  electrons_per_gev = get_double_param("electrons_per_gev");
+  
   // setup lasers
   SetupLasers();
 
@@ -209,6 +198,9 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
+  
+  std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_cm: " << electrons_per_cm << std::endl;
+  std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -241,6 +233,32 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________
+void PHG4TpcDirectLaser::SetDefaultParameters()
+{
+  
+  // same gas parameters as in PHG4TpcElectronDrift::SetDefaultParameters
+  
+  // Data on gasses @20 C and 760 Torr from the following source:
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
+  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
+  static constexpr double Ne_dEdx = 1.56;   // keV/cm
+  static constexpr double CF4_dEdx = 7.00;  // keV/cm
+  static constexpr double Ne_NTotal = 43;    // Number/cm
+  static constexpr double CF4_NTotal = 100;  // Number/cm
+  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
+  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
+  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  
+  // number of electrons per deposited GeV in TPC gas
+  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
+
+  // number of electrons deposited by laser per cm
+  set_default_int_param( "electrons_per_cm", 300 );
+
 }
 
 //_____________________________________________________________
@@ -480,7 +498,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     hit->set_t(1, 0.0); // dummy number, nanosecond
 
-    const double totalE=electrons_per_cm*stepLength/Tpc_ElectronsPerGeV;
+    const double totalE=electrons_per_cm*stepLength/electrons_per_gev;
 
     hit->set_eion(totalE);
     hit->set_edep(totalE);

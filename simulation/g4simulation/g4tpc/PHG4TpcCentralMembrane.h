@@ -2,8 +2,10 @@
 #define PHG4TPCCENTRALMEMBRANE_H
 
 #include <fun4all/SubsysReco.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <array>
+#include <cmath>
 #include <vector>
 
 class PHG4Hitv1;
@@ -12,7 +14,7 @@ class PHG4Hitv1;
 // class that generates stripes and dummy hit coordinates
 // stripes have width of one mm, length of one pad width, and are centered in middle of sector gaps
 
-class PHG4TpcCentralMembrane: public SubsysReco
+class PHG4TpcCentralMembrane: public SubsysReco, public PHParameterInterface
 {
   
   public:
@@ -29,6 +31,9 @@ class PHG4TpcCentralMembrane: public SubsysReco
   /// per event processing
   int process_event(PHCompositeNode *) override;
  
+  /// default parameters
+  void SetDefaultParameters() override;
+
   /// detector name
   void Detector(const std::string &d)
   { detector = d; }
@@ -165,7 +170,15 @@ private:
   static constexpr int nTotStripes = nStripesPerPetal * nPetals;
 
   /// mean number of electrons per stripe
-  int m_electrons_per_stripe = 300;
+  int electrons_per_stripe = 300;
+
+  // number of electrons per deposited GeV in TPC gas
+  /** 
+   * it is used to convert a given number of electrons into an energy 
+   * as expected by G4Hit. The energy is then converted back to a number of electrons
+   * inside PHG4TpcElectronDrift
+   */
+  double electrons_per_gev = NAN;
   
   /// delay between central membrane hits and trigger time (ns)
   int m_centralMembraneDelay=0; 
