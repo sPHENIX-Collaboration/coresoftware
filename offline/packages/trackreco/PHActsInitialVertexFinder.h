@@ -51,10 +51,15 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   void setCentroids(const int centroids)
   { m_nCentroids = centroids;}
+
   void setIterations(const int iterations)
   {m_nIterations = iterations;}
+
   void removeSiliconSeeds(const bool removeSeeds)
   {m_removeSeeds = removeSeeds;}
+
+  void setPCACut(const float pcaCut)
+  {m_pcaCut = pcaCut;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -97,6 +102,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   int m_nIterations = 15;
   /// Max number of vertices allowed by the Acts IVF
   int m_maxVertices = 5;
+  /// Maximum centroid transverse PCA cut
+  float m_pcaCut = 0.05; // cm
   /// Event num
   int m_event = 0;
   /// Diagnostic vertex numbers

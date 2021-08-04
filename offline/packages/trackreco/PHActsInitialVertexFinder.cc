@@ -466,10 +466,12 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
 	  if(Verbosity() > 3)
 	    {
 	      std::cout << "Checking track key " << track->get_id()
-			<< " with z " << track->get_z() << " and centroid " 
+			<< " with pos (" << track->get_x() << ", " 
+			<< track->get_y() << ", " << track->get_z() 
+			<< ") and centroid " 
 			<< centroids.at(centroidIndex).transpose() << std::endl;
 	    }
-	  for(int i = 0; i < sum.cols(); i++)
+	  for(int i = 0; i < sum.rows(); i++)
 	    {
 	      sum(i) += pow(track->get_pos(i) - centroids.at(centroidIndex)(i), 2);
 	    }
@@ -478,7 +480,11 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
 	{ 
 	  stddev.at(centroidIndex)(i) = sqrt(sum(i) / trackVec.size()); 
 	}
-      
+      if(Verbosity() > 3)
+	{
+	  std::cout << "Sums are " << sum.transpose() << " and stddev is " 
+		    << stddev.at(centroidIndex).transpose() << std::endl;
+	}
     }
   
   for(const auto& [centroidIndex, trackVec] : clusters)
@@ -489,19 +495,28 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
       if(trackVec.size() < 0.2 * maxTrackCentroid)
 	continue;
 
+      /// Skip large transverse PCA centroids
+      if(centroids.at(centroidIndex)(0) > m_pcaCut or 
+	 centroids.at(centroidIndex)(1) > m_pcaCut)
+	{
+	  continue;
+	}
+
       for(const auto& track : trackVec)
 	{
 	  Acts::Vector3D pulls = Acts::Vector3D::Zero();
 	  for(int i = 0; i < 3; i++)
-	    pulls(i) = fabs(track->get_pos(i) - centroids.at(centroidIndex)(i)) / stddev.at(centroidIndex)(i);
-	 
+	    {
+	      pulls(i) = fabs(track->get_pos(i) - centroids.at(centroidIndex)(i)) / stddev.at(centroidIndex)(i);
+	    }
+	  
 	  if(Verbosity() > 3)
 	    {
 	      std::cout << "Track pos is (" << track->get_x() << ", " 
 			<< track->get_y() << ", " << track->get_z() 
 			<< ") and pull is " << pulls.transpose() << std::endl;
 	    }
-	  if(pulls(0) < 3 and pulls(1) < 3 and pulls(2) < 3)
+	  if(pulls(0) < 2 and pulls(1) < 2 and pulls(2) < 2)
 	    {
 	      sortedTracks.push_back(track);
 	    }
