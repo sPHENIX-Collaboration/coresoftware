@@ -405,7 +405,7 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
   /// a centroid based on which they are closest to, and then iterate
   /// to update clusters and centroids
 
-  std::vector<float> centroids(m_nCentroids);
+  std::vector<Acts::Vector3D> centroids(m_nCentroids);
   std::uniform_int_distribution<int> indices(0,m_trackMap->size() - 1);
   std::vector<int> usedIndices;
 
@@ -418,11 +418,16 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
 	  index = indices(m_random_number_generator);
 
       usedIndices.push_back(index);
-      centroid = m_trackMap->get(index)->get_z();
+      
+      centroid = Acts::Vector3D(m_trackMap->get(index)->get_x(),
+				m_trackMap->get(index)->get_y(),
+				m_trackMap->get(index)->get_z());
       
       if(Verbosity() > 3)
 	{
-	  std::cout << "Centroid is " << centroid << std::endl;
+	  std::cout << "Centroid is (" << centroid(0) 
+		    << ", " << centroid(1) << ", " 
+		    << centroid(2) << ")" << std::endl;
 	}
     }
   
@@ -438,18 +443,19 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::sortTracks()
 }
 
 std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
-CentroidMap& clusters, std::vector<float>& centroids)
+		        CentroidMap& clusters, 
+			std::vector<Acts::Vector3D>& centroids)
 {
   
   std::vector<SvtxTrack*> sortedTracks;
 
   /// Note the centroid that has the most tracks
   int maxTrackCentroid = 0;
-  std::vector<float> stddev(m_nCentroids);
+  std::vector<Acts::Vector3D> stddev(m_nCentroids);
 
   for(const auto& [centroidIndex, trackVec] : clusters)
     {
-      float sum = 0;
+      Acts::Vector3D sum = Acts::Vector3D::Zero();
       if(trackVec.size() > maxTrackCentroid)
 	{
 	  maxTrackCentroid = trackVec.size();
@@ -461,13 +467,18 @@ CentroidMap& clusters, std::vector<float>& centroids)
 	    {
 	      std::cout << "Checking track key " << track->get_id()
 			<< " with z " << track->get_z() << " and centroid " 
-			<< centroids.at(centroidIndex) << std::endl;
+			<< centroids.at(centroidIndex).transpose() << std::endl;
 	    }
-	  sum += pow(track->get_z() - centroids.at(centroidIndex), 2);
+	  for(int i = 0; i < sum.cols(); i++)
+	    {
+	      sum(i) += pow(track->get_pos(i) - centroids.at(centroidIndex)(i), 2);
+	    }
 	}
-
-      float stddevVal = sqrt(sum / trackVec.size());
-      stddev.at(centroidIndex) = stddevVal;
+      for(int i = 0; i < 3; i++)
+	{ 
+	  stddev.at(centroidIndex)(i) = sqrt(sum(i) / trackVec.size()); 
+	}
+      
     }
   
   for(const auto& [centroidIndex, trackVec] : clusters)
@@ -480,15 +491,17 @@ CentroidMap& clusters, std::vector<float>& centroids)
 
       for(const auto& track : trackVec)
 	{
-	  float z = track->get_z();
-	  float pull = fabs(z-centroids.at(centroidIndex)) / stddev.at(centroidIndex);
+	  Acts::Vector3D pulls = Acts::Vector3D::Zero();
+	  for(int i = 0; i < 3; i++)
+	    pulls(i) = fabs(track->get_pos(i) - centroids.at(centroidIndex)(i)) / stddev.at(centroidIndex)(i);
+	 
 	  if(Verbosity() > 3)
 	    {
-	      std::cout << "z is " << z << " with Pull : " 
-			<< pull
-			<< std::endl;
+	      std::cout << "Track pos is (" << track->get_x() << ", " 
+			<< track->get_y() << ", " << track->get_z() 
+			<< ") and pull is " << pulls.transpose() << std::endl;
 	    }
-	  if(pull < 2)
+	  if(pulls(0) < 3 and pulls(1) < 3 and pulls(2) < 3)
 	    {
 	      sortedTracks.push_back(track);
 	    }
@@ -501,11 +514,12 @@ CentroidMap& clusters, std::vector<float>& centroids)
 
 	      if(Verbosity() > 3)
 		{
-		  std::cout << "Not adding track with z " << z 
-			    << " as it is incompatible with centroid " 
-			    << centroids.at(centroidIndex) 
+		  std::cout << "Not adding track with pos (" << track->get_x()
+			    << ", " << track->get_y() << ", " << track->get_z() 
+			    << ") as it is incompatible with centroid " 
+			    << centroids.at(centroidIndex).transpose() 
 			    << " with std dev " 
-			    << stddev.at(centroidIndex) << std::endl;
+			    << stddev.at(centroidIndex).transpose() << std::endl;
 		}
 	    }
 	}
@@ -515,7 +529,7 @@ CentroidMap& clusters, std::vector<float>& centroids)
 
 }
 
-CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& centroids)
+CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<Acts::Vector3D>& centroids)
 {
   CentroidMap clusters;
   
@@ -523,7 +537,7 @@ CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& cen
     {
       /// reset the centroid-track map
       clusters.clear();
-      for(unsigned int i =0; i<m_nCentroids; i++)
+      for(unsigned int i = 0; i<m_nCentroids; i++)
 	{
 	  std::vector<SvtxTrack*> vec;
 	  clusters.insert(std::make_pair(i, vec));
@@ -533,15 +547,21 @@ CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& cen
 	{
 	  for(int i =0; i< m_nCentroids; i++)
 	    std::cout << "Starting centroid is : " 
-		      << centroids.at(i) << std::endl;
+		      << centroids.at(i).transpose() << std::endl;
 	}
       for(const auto& [key, track] : *m_trackMap)
 	{
-	  double minDist = 9999.;
-	  unsigned int centKey = 9999.;
+	  Acts::Vector3D trackPos(track->get_x(),
+				  track->get_y(),
+				  track->get_z());
+	      
+	  double minDist = std::numeric_limits<double>::max();
+	  unsigned int centKey = std::numeric_limits<unsigned int>::max();
 	  for(int i = 0; i < centroids.size(); i++)
 	    {
-	      double dist = fabs(track->get_z() - centroids.at(i));
+	      double dist = sqrt(pow(trackPos(0) - centroids.at(i)(0), 2) +
+				 pow(trackPos(1) - centroids.at(i)(1), 2) +
+				 pow(trackPos(2) - centroids.at(i)(2), 2));
 	      if(dist < minDist)
 		{
 		  minDist = dist;
@@ -558,32 +578,36 @@ CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<float>& cen
 	  /// Add this track to the map that associates centroids with tracks
 	  if(Verbosity() > 3)
 	    {
-	      std::cout << "adding track with " << track->get_z() 
+	      std::cout << "adding track with " << trackPos.transpose() 
 			<< " to centroid " 
-			<< centroids.at(centKey) << std::endl;
+			<< centroids.at(centKey).transpose() << std::endl;
 	    }
-	  clusters.find(centKey)->second.push_back(track);
-	  
+
+	  clusters.find(centKey)->second.push_back(track);	  
 	}
       
-      /// Update z pos centroids
-      std::vector<float> newCentroids(m_nCentroids);
+      /// Update pos centroids
+      std::vector<Acts::Vector3D> newCentroids(m_nCentroids);
+      for(auto& centroid : newCentroids)
+	centroid = Acts::Vector3D(0,0,0);
+
       for(const auto& [centroidVal, trackVec] : clusters)
 	{
 	  for(const auto& track : trackVec)
 	    {
-	      newCentroids.at(centroidVal) += track->get_z();
+	      for(int i = 0; i < 3; i++)
+		newCentroids.at(centroidVal)(i) += track->get_pos(i);
 	    }
 
-	  /// Sets the centroid as the average z value
+	  /// Sets the centroid as the average value
 	  centroids.at(centroidVal) = 
 	    newCentroids.at(centroidVal) / trackVec.size();
 	}
       
       if(Verbosity() > 3)
 	{
-	  for(int i=0; i< m_nCentroids; i++)
-	    std::cout << "new centroids " << centroids.at(i) 
+	  for(int i = 0; i < m_nCentroids; i++)
+	    std::cout << "new centroids " << centroids.at(i).transpose() 
 		      << std::endl;
    
 	  for(const auto& [centKey, trackVec] : clusters)
@@ -618,7 +642,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     }
 
   std::vector<SvtxTrack*> sortedTracks;
-  if(m_svtxTrackMapName.find("Silicon") != std::string::npos)
+  if(m_svtxTrackMapName.find("TrackMap") != std::string::npos)
     {
       sortedTracks = sortTracks();
     }
@@ -638,7 +662,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	}
       
       /// Only vertex with stubs that have five clusters
-      if(m_svtxTrackMapName.find("SiliconTrackMap") != std::string::npos)
+      if(m_svtxTrackMapName.find("TrackMap") != std::string::npos)
 	{
 	  if(track->size_cluster_keys() < 5)
 	    {

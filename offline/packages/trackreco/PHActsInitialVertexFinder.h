@@ -86,9 +86,10 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   std::vector<SvtxTrack*> sortTracks();
   
   /// Helper functions for the k-means cluster algorithm
-  CentroidMap createCentroidMap(std::vector<float>& centroids);
+  CentroidMap createCentroidMap(std::vector<Acts::Vector3D>& centroids);
+
   std::vector<SvtxTrack*> getIVFTracks(CentroidMap& clusters, 
-				       std::vector<float>& centroids);
+				       std::vector<Acts::Vector3D>& centroids);
   
   /// Number of centroids for k-means clustering algorithm
   int m_nCentroids = 5;
