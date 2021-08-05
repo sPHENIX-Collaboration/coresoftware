@@ -449,6 +449,22 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
   
   std::vector<SvtxTrack*> sortedTracks;
 
+  if(Verbosity() > 2)
+    {
+      std::cout << "Final centroids are : " << std::endl;
+      for(const auto& [centroidIndex, trackVec] : clusters)
+	{
+	  std::cout << "Centroid: " << centroids.at(centroidIndex).transpose()
+		    << " has tracks " << std::endl;
+	  for(const auto& track : trackVec)
+	    {
+	      std::cout << "(" << track->get_x() << ", "
+			<< track->get_y() << ", " << track->get_z()
+			<< ")" << std::endl;
+	    }
+	}
+    }
+
   /// Note the centroid that has the most tracks
   int maxTrackCentroid = 0;
   std::vector<Acts::Vector3D> stddev(m_nCentroids);
@@ -463,14 +479,6 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
 
       for(const auto& track : trackVec)
 	{
-	  if(Verbosity() > 3)
-	    {
-	      std::cout << "Checking track key " << track->get_id()
-			<< " with pos (" << track->get_x() << ", " 
-			<< track->get_y() << ", " << track->get_z() 
-			<< ") and centroid " 
-			<< centroids.at(centroidIndex).transpose() << std::endl;
-	    }
 	  for(int i = 0; i < sum.rows(); i++)
 	    {
 	      sum(i) += pow(track->get_pos(i) - centroids.at(centroidIndex)(i), 2);
@@ -479,11 +487,6 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
       for(int i = 0; i < 3; i++)
 	{ 
 	  stddev.at(centroidIndex)(i) = sqrt(sum(i) / trackVec.size()); 
-	}
-      if(Verbosity() > 3)
-	{
-	  std::cout << "Sums are " << sum.transpose() << " and stddev is " 
-		    << stddev.at(centroidIndex).transpose() << std::endl;
 	}
     }
   
@@ -496,12 +499,20 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
 	continue;
 
       /// Skip large transverse PCA centroids
-      if(centroids.at(centroidIndex)(0) > m_pcaCut or 
-	 centroids.at(centroidIndex)(1) > m_pcaCut)
+      float centroidR = sqrt(pow(centroids.at(centroidIndex)(0), 2) +
+			     pow(centroids.at(centroidIndex)(1), 2));
+    
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Checking to add tracks from centroid " 
+		    << centroids.at(centroidIndex).transpose() << std::endl;
+	}
+
+      if(centroidR > m_pcaCut)
 	{
 	  continue;
 	}
-
+    
       for(const auto& track : trackVec)
 	{
 	  Acts::Vector3D pulls = Acts::Vector3D::Zero();
@@ -516,7 +527,8 @@ std::vector<SvtxTrack*> PHActsInitialVertexFinder::getIVFTracks(
 			<< track->get_y() << ", " << track->get_z() 
 			<< ") and pull is " << pulls.transpose() << std::endl;
 	    }
-	  if(pulls(0) < 2 and pulls(1) < 2 and pulls(2) < 2)
+	 
+	  if ((pulls(0) < 2 and pulls(1) < 2 and pulls(2) < 2))
 	    {
 	      sortedTracks.push_back(track);
 	    }
@@ -627,13 +639,14 @@ CentroidMap PHActsInitialVertexFinder::createCentroidMap(std::vector<Acts::Vecto
    
 	  for(const auto& [centKey, trackVec] : clusters)
 	    {
-	      std::cout << "cent key : " << centKey << "has tracks"
-			<< std::endl;
+	      std::cout << "cent key : " << centKey << " has " << trackVec.size() 
+			<< "tracks" << std::endl;
 	      for(const auto track : trackVec) 
 		{
 		  std::cout << "track id : " << track->get_id() 
-			    << " with z pos " << track->get_z()
-			    << std::endl;
+			    << " with pos (" << track->get_x() << ", "
+			    << track->get_y() << ", " <<  track->get_z()
+			    << ")" << std::endl;
 		  
 		}
 	    }
@@ -663,6 +676,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     }
   else
     {
+      std::cout << "Using all tracks"<<std::endl;
       for(const auto& [key, track] : *m_trackMap)
 	sortedTracks.push_back(track);
     }
@@ -702,8 +716,8 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       /// to the resolutions of the silicon seeds
       Acts::BoundSymMatrix cov;
       if(m_resetTrackCovariance)
-	cov << 5000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-	       0., 900 * Acts::UnitConstants::um, 0., 0., 0., 0.,
+	cov << 50 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+	       0., 30 * Acts::UnitConstants::um, 0., 0., 0., 0.,
 	       0., 0., 0.005, 0., 0., 0.,
 	       0., 0., 0., 0.001, 0., 0.,
 	       0., 0., 0., 0., 0.3 , 0.,

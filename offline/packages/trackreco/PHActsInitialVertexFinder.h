@@ -103,7 +103,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   /// Max number of vertices allowed by the Acts IVF
   int m_maxVertices = 5;
   /// Maximum centroid transverse PCA cut
-  float m_pcaCut = 0.05; // cm
+  float m_pcaCut = 0.03; // cm
   /// Event num
   int m_event = 0;
   /// Diagnostic vertex numbers
