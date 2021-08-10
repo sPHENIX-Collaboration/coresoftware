@@ -473,15 +473,15 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       if(Verbosity()>0) cout << "new track position: (" << kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi) << ", " << kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi) << ", " << kftrack.GetZ() << ")" << endl;
       if(Verbosity()>0) cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << endl;
       if(Verbosity()>0) cout << "distance: " << sqrt(pow(kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi)-cx,2)+pow(kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi)-cy,2)+pow(kftrack.GetZ()-cz,2)) << endl;
-//      kftrack.SetX(cx*cos(cphi)+cy*sin(cphi));
-//      kftrack.SetY(-cx*sin(cphi)+cy*cos(cphi));
-//      kftrack.SetZ(cz);
       if(fabs(tx-cx)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
          fabs(ty-cy)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
          fabs(tz-cz)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         if(Verbosity()>0) cout << "Kept cluster" << endl;
         propagated_track.push_back(next_ckey);
+//      kftrack.SetX(cx*cos(cphi)+cy*sin(cphi));
+//      kftrack.SetY(-cx*sin(cphi)+cy*cos(cphi));
+//      kftrack.SetZ(cz);
       }
       else
       {
@@ -534,13 +534,14 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 //      _kdtrees[l]->findNeighbors(resultSet, &query_pt[0], nanoflann::SearchParams(10));
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
-      _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
+      int n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
       if(Verbosity()>0) cout << "index_out: " << index_out[0] << endl;
       if(Verbosity()>0) cout << "squared_distance_out: " << distance_out[0] << endl;
       if(Verbosity()>0) cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << endl;
+      if(n_results==0) continue;
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
-      TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);                         
+      TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
       double ccX = cc->getX();
       double ccY = cc->getY();
       double ccZ = cc->getZ();
@@ -635,9 +636,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       if(Verbosity()>0) cout << "transported to " << radii[l-7] << "\n";
       if(Verbosity()>0) cout << "track position: (" << kftrack.GetX()*cos(cphi)-kftrack.GetY()*sin(cphi) << ", " << kftrack.GetX()*sin(cphi)+kftrack.GetY()*cos(cphi) << ", " << kftrack.GetZ() << ")" << endl;
       if(Verbosity()>0) cout << "cluster position: (" << cx << ", " << cy << ", " << cz << ")" << endl;
-//      kftrack_up.SetX(cx*cos(cphi)+cy*sin(cphi));
-//      kftrack_up.SetY(-cx*sin(cphi)+cy*cos(cphi));
-//      kftrack_up.SetZ(cz);
+//      kftrack.SetX(cx*cos(cphi)+cy*sin(cphi));
+//      kftrack.SetY(-cx*sin(cphi)+cy*cos(cphi));
+//      kftrack.SetZ(cz);
 //      propagated_track.push_back(next_ckey);
       old_phi = cphi;
     }
@@ -671,10 +672,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       double query_pt[3] = {tx, ty, tz};
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
-      _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
+      int n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
       if(Verbosity()>0) cout << "index_out: " << index_out[0] << endl;
       if(Verbosity()>0) cout << "squared_distance_out: " << distance_out[0] << endl;
       if(Verbosity()>0) cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << endl;
+      if(n_results==0) continue;
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
@@ -710,9 +712,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
         double ccerrY = fitter->getClusterError(cc,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,1,1)*cos(ccphi)*cos(ccphi);
         double ccerrZ = fitter->getClusterError(cc,2,2);
         kftrack.Filter(ccaY,cc->getZ(),ccerrY,ccerrZ,_max_sin_phi);
-//        kftrack_up.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
-//        kftrack_up.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
-//        kftrack_up.SetZ(cc->getZ());
+//        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
+//        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
+//        kftrack.SetZ(cc->getZ());
         if(Verbosity()>0) cout << "added cluster" << endl;
         old_phi = ccphi;
       }
