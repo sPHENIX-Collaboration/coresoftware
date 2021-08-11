@@ -463,6 +463,12 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 
   int charge = getCharge(clusters, atan2(Y0,X0));
   
+  ///3D field map is swapped
+  if(m_fieldMapName.find("3d") != std::string::npos)
+    {
+      charge *= -1;
+    }
+
   /// Now determine the line tangent to the circle at this point to get phi
   /// The slope of the line connecting the circle center and PCA is 
   /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m

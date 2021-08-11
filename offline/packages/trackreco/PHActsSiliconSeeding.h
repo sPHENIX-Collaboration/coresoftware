@@ -89,7 +89,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-  
+  void fieldMapName(std::string fieldmap)
+    { m_fieldMapName = fieldmap; }
+
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -220,7 +222,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
-  
+  std::string m_fieldMapName = "";
+
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;
