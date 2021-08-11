@@ -463,12 +463,6 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 
   int charge = getCharge(clusters, atan2(Y0,X0));
   
-  ///3D field map is swapped
-  if(m_fieldMapName.find("3d") != std::string::npos)
-    {
-      charge *= -1;
-    }
-
   /// Now determine the line tangent to the circle at this point to get phi
   /// The slope of the line connecting the circle center and PCA is 
   /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
@@ -517,7 +511,13 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   if(Verbosity() > 2)
     std::cout << "Momentum vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
-    
+  
+  ///3D field map is swapped
+  if(m_fieldMapName.find("3d") != std::string::npos)
+    {
+      charge *= -1;
+    }
+
   /// Project to INTT and find matches
   auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
   
@@ -1212,12 +1212,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
   if(!m_trackMap)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxTrackMap","PHObject");
       svtxNode->addNode(trackNode);
 
     }
