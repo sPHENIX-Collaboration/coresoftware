@@ -459,7 +459,7 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
 	{
 	  const double r = sqrt(pow(clus->getX(), 2) +
 				pow(clus->getY(), 2));
-	  if(r < m_nInttLayerRadii[2]) 
+	  if(r < m_nInttLayerRadii[1]) 
 	    inttFirstLayerClusters.push_back(clus);
 	  else
 	    inttSecondLayerClusters.push_back(clus);
