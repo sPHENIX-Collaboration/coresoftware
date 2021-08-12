@@ -89,7 +89,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-  
+  void cleanSeeds(bool cleanSeeds)
+    { m_cleanSeeds = cleanSeeds;}
+ 
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -160,6 +162,9 @@ class PHActsSiliconSeeding : public SubsysReco
 
   Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
 
+  std::map<const unsigned int, std::vector<TrkrCluster*>>
+    identifyBestSeed(std::map<const unsigned int, std::vector<TrkrCluster*>>);
+
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
@@ -217,6 +222,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
+
+  bool m_cleanSeeds = false;
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
