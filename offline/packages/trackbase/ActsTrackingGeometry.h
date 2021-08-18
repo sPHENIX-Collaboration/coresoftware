@@ -20,11 +20,13 @@ struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
 		       ActsExamples::Options::BFieldVariant mag,
+		       ActsExamples::Options::BFieldVariant swapMag,
 		       Acts::CalibrationContext calib,
 		       Acts::GeometryContext geoCtxt,
 		       Acts::MagneticFieldContext magFieldCtxt)
   : tGeometry(tGeo)
   , magField(mag)
+    , swapMagField(swapMag)
   , calibContext(calib)
   , geoContext(geoCtxt)
   , magFieldContext(magFieldCtxt)
@@ -32,7 +34,10 @@ struct ActsTrackingGeometry{
 
   /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+
   ActsExamples::Options::BFieldVariant magField;
+  /// The same b field but inverted
+  ActsExamples::Options::BFieldVariant swapMagField;
 
   /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
