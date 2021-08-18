@@ -50,8 +50,7 @@ class TpcClusterCleaner : public SubsysReco
   double _rphi_error_high_cut = 0.1;  // made large enough to not matter for now
 
   double _new_rphi_error = 0.05;
-  double _new_z_error = 0.10;
-
+  double _new_z_error = 0.1;
 };
 
 #endif // TPCCLUSTERCLEANER_H

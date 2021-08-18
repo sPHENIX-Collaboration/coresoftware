@@ -681,6 +681,12 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       unsigned int vertexId = track->get_vertex_id();
 
       const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
+
+      if(!svtxVertex) 
+	{
+	  std::cout << PHWHERE << " vertex ID " << vertexId << " not found!" << " for track " << track->get_id() << std::endl;
+	 return; 
+	}
    
       Acts::Vector3D vertex(
 		  svtxVertex->get_x() * Acts::UnitConstants::cm, 

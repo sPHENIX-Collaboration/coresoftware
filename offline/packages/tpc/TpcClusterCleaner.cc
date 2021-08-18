@@ -89,7 +89,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	
 	if (Verbosity() >= 1)
 	  {
-	  std::cout << " cluster : " << cluskey << " layer " << layer
+	  std::cout << " layer " << layer << " cluster : " << cluskey 
 		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
 		    << " ADC " << cluster->getAdc()
 		    << std::endl;
@@ -109,8 +109,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	
 	// errors too large
 	// associated with very small ADC values
-	if(cluster->getRPhiError() > _rphi_error_high_cut)
-	  discard_cluster = true;
+	//if(cluster->getRPhiError() > _rphi_error_high_cut)
+	//discard_cluster = true;
 	
 	if(discard_cluster)
 	  {
@@ -118,7 +118,7 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	    // mark it for modification
 	    discard_set.insert(cluskey);
 	    if(Verbosity() > 0) 
-	      std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+	      std::cout << "                       found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
 			<< " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
 	  }
       }
@@ -126,11 +126,11 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 
   for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
     {
-      /*
+
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
-      */
-      
+
+      /*      
       // increase the errors on the bad clusters to _new_rphi_error in r-phi and _new_z_error in z
       TrkrCluster *clus = _cluster_map->findCluster(*iter);
       double clusphi = atan2(clus->getY() , clus->getX());
@@ -139,14 +139,25 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
       for(int i = 0; i < 3; ++i)
 	for(int j = 0; j < 3; ++j)
 	  clus->setError(i,j,error[i][j]);
+
+      // set the local coordinates used by Acts
+      double ERR[3][3] = {0,0,0,0,0,0,0,0,0};
+      ERR[1][1] = _new_rphi_error * _new_rphi_error;  //cluster_v1 expects rad, arc, z as elementsof covariance
+      ERR[2][2] = _new_z_error * _new_z_error;
+
+      clus->setActsLocalError(0,0, ERR[1][1]);
+      clus->setActsLocalError(1,0, ERR[2][1]);
+      clus->setActsLocalError(0,1, ERR[1][2]);
+      clus->setActsLocalError(1,1, ERR[2][2]);
       
       if(Verbosity() > 1)
 	{
 	  TrkrDefs::cluskey ckey = clus->getClusKey();
 	  std::cout << " changed cluster " << ckey << " error to erphi " << clus->getRPhiError() << " ez " << clus->getZError() << std::endl;
 	}
+      */
     }
-
+      
   if(Verbosity() > 0)
     std::cout << "Clusters updated this event: " << count_discards << std::endl;
 
