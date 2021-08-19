@@ -637,8 +637,9 @@ void MakeActsGeometry::makeSwappedField()
     "--bf-map", m_magField,
       "--bf-name", "fieldmap",
       "--bf-lscalor", "10",
-      "--bf-bscalor", std::to_string(swapfield)
-      };  
+      "--bf-bscalor"};
+  argstr[7] = std::to_string(swapfield);
+
   for(int i = 0; i < argc; i++)
     { arg[i] = strdup(argstr[i].c_str()); }
 

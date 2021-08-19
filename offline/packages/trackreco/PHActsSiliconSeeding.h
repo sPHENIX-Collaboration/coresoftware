@@ -91,7 +91,7 @@ class PHActsSiliconSeeding : public SubsysReco
     { m_seedAnalysis = seedAnalysis; }
 
   /// field map name for 3d map functionality
-  void fieldMapName(std::string fieldmap)
+  void fieldMapName(const std::string& fieldmap)
     { m_fieldMapName = fieldmap; }
 
   /// For each MVTX+INTT seed, take the best INTT hits and form

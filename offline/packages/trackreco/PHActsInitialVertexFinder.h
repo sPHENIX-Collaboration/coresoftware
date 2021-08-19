@@ -55,7 +55,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   {m_nIterations = iterations;}
   void removeSiliconSeeds(const bool removeSeeds)
   {m_removeSeeds = removeSeeds;}
-  void magFieldName(const std::string magfield)
+  void magFieldName(const std::string& magfield)
   {m_magField = magfield;}
 
  protected:
