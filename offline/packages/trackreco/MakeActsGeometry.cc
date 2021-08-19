@@ -629,7 +629,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 }
 void MakeActsGeometry::makeSwappedField()
 {
-  int argc = 8;
+  const int argc = 8;
   char *arg[argc];
   int swapfield = m_magFieldRescale * -1;
 
