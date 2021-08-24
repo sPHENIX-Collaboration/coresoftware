@@ -51,10 +51,15 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   void setCentroids(const int centroids)
   { m_nCentroids = centroids;}
+
   void setIterations(const int iterations)
   {m_nIterations = iterations;}
+
   void removeSiliconSeeds(const bool removeSeeds)
   {m_removeSeeds = removeSeeds;}
+
+  void setPCACut(const float pcaCut)
+  {m_pcaCut = pcaCut;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -86,9 +91,10 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   std::vector<SvtxTrack*> sortTracks();
   
   /// Helper functions for the k-means cluster algorithm
-  CentroidMap createCentroidMap(std::vector<float>& centroids);
+  CentroidMap createCentroidMap(std::vector<Acts::Vector3D>& centroids);
+
   std::vector<SvtxTrack*> getIVFTracks(CentroidMap& clusters, 
-				       std::vector<float>& centroids);
+				       std::vector<Acts::Vector3D>& centroids);
   
   /// Number of centroids for k-means clustering algorithm
   int m_nCentroids = 5;
@@ -96,6 +102,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   int m_nIterations = 15;
   /// Max number of vertices allowed by the Acts IVF
   int m_maxVertices = 5;
+  /// Maximum centroid transverse PCA cut
+  float m_pcaCut = 0.03; // cm
   /// Event num
   int m_event = 0;
   /// Diagnostic vertex numbers
