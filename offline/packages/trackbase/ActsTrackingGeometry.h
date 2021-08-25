@@ -26,7 +26,6 @@ struct ActsTrackingGeometry{
 		       Acts::MagneticFieldContext magFieldCtxt)
   : tGeometry(tGeo)
   , magField(mag)
-    , swapMagField(swapMag)
   , calibContext(calib)
   , geoContext(geoCtxt)
   , magFieldContext(magFieldCtxt)
@@ -36,8 +35,6 @@ struct ActsTrackingGeometry{
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
 
   ActsExamples::Options::BFieldVariant magField;
-  /// The same b field but inverted
-  ActsExamples::Options::BFieldVariant swapMagField;
 
   /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;

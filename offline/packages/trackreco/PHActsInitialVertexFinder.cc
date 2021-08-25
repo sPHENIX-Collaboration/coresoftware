@@ -281,8 +281,6 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
   m_totVertexFits++;
 
   auto field = m_tGeometry->magField;
-  if(m_magField.find("3d") != std::string::npos)
-    { field = m_tGeometry->swapMagField; }
 
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field

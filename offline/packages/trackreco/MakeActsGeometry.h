@@ -116,7 +116,7 @@ class MakeActsGeometry : public SubsysReco
   /// Function that mimics ActsFW::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
-  void makeSwappedField();
+ 
   void setMaterialResponseFile(std::string& responseFile,
 			       std::string& materialFile);
 
@@ -203,7 +203,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
-  ActsExamples::Options::BFieldVariant m_magneticField, m_swapMagneticField;
+  ActsExamples::Options::BFieldVariant m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;

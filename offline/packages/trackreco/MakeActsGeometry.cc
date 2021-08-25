@@ -111,7 +111,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   /// Set the actsGeometry struct to be put on the node tree
   m_actsGeometry->tGeometry = m_tGeometry;
   m_actsGeometry->magField = m_magneticField;
-  m_actsGeometry->swapMagField = m_swapMagneticField;
   m_actsGeometry->calibContext = m_calibContext;
   m_actsGeometry->magFieldContext = m_magFieldContext;
   m_actsGeometry->geoContext = m_geoCtxt;
@@ -571,7 +570,6 @@ void MakeActsGeometry::buildActsSurfaces()
   //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
   
-  makeSwappedField();
   makeGeometry(argc, arg, m_detector);
 
   for(int i=0; i<argc; i++)
@@ -626,34 +624,6 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
   
   return;
 
-}
-void MakeActsGeometry::makeSwappedField()
-{
-  const int argc = 8;
-  char *arg[argc];
-  float swapfield = m_magFieldRescale * -1;
-
-  std::string argstr[argc]{
-    "--bf-map", m_magField,
-      "--bf-name", "fieldmap",
-      "--bf-lscalor", "10",
-      "--bf-bscalor"};
-  argstr[7] = std::to_string(swapfield);
-
-  for(int i = 0; i < argc; i++)
-    { arg[i] = strdup(argstr[i].c_str()); }
-
-  if(Verbosity() > 0) 
-    {
-      for(int i =0; i< argc; i++)
-	{ std::cout << arg[i] << ", " ; }
-    }
-
-  auto desc = ActsExamples::Options::makeDefaultOptions();
-  ActsExamples::Options::addBFieldOptions(desc);
-  auto vm = ActsExamples::Options::parse(desc, argc, arg);
-  m_swapMagneticField = ActsExamples::Options::readBField(vm);
-  
 }
 void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseDetector &detector)
 {

@@ -176,15 +176,18 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
     Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
 			  svtxVertex->get_y() * Acts::UnitConstants::cm, 
 			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+
     Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
     for(int i = 0; i < 6; i++)
       for(int j = 0; j < 6; j++)
 	cov(i,j) = track->get_acts_covariance(i,j);
     
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
+
     int charge = track->get_charge();
     if(m_fieldMap.find("3d") != std::string::npos)
       { charge *= -1; }
+
     const auto param = new Acts::BoundTrackParameters(
 			   pSurface, m_tGeometry->geoContext,
 			   position, momentum, track->get_p(),
@@ -216,8 +219,8 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
   m_totalFits++;
   
   auto field = m_tGeometry->magField;
-  if(m_fieldMap.find("3d") != std::string::npos)
-    { field = m_tGeometry->swapMagField; }
+  //if(m_fieldMap.find("3d") != std::string::npos)
+  //{ field = m_tGeometry->swapMagField; }
 
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field

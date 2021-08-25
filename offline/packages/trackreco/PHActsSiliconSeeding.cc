@@ -601,13 +601,7 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   if(Verbosity() > 2)
     std::cout << "Momentum vector estimate: (" << px <<" , " 
 	      << py << ", " << pz << ") " << std::endl;
-  
-  ///3D field map is swapped
-  if(m_fieldMapName.find("3d") != std::string::npos)
-    {
-      charge *= -1;
-    }
-
+ 
   /// Project to INTT and find matches
   auto additionalClusters = findInttMatches(clusters, R, X0, Y0, z, m);
   
