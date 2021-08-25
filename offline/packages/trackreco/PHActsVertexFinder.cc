@@ -182,11 +182,13 @@ TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 	cov(i,j) = track->get_acts_covariance(i,j);
     
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
-   
+    int charge = track->get_charge();
+    if(m_fieldMap.find("3d") != std::string::npos)
+      { charge *= -1; }
     const auto param = new Acts::BoundTrackParameters(
 			   pSurface, m_tGeometry->geoContext,
 			   position, momentum, track->get_p(),
-			   track->get_charge(), cov);
+			   charge, cov);
 
     keyMap.insert(std::make_pair(param, key));
     trackPtrs.push_back(param);
@@ -213,6 +215,10 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
 {
   m_totalFits++;
   
+  auto field = m_tGeometry->magField;
+  if(m_fieldMap.find("3d") != std::string::npos)
+    { field = m_tGeometry->swapMagField; }
+
   /// Determine the input mag field type from the initial geometry
   /// and run the vertex finding with the determined mag field
   return std::visit([tracks, this](auto &inputField) {
@@ -304,7 +310,7 @@ VertexVector PHActsVertexFinder::findVertices(TrackPtrVector& tracks)
       return vertexVector;
       
     } /// end lambda
-    , m_tGeometry->magField
+    , field
     ); /// end std::visit call
 }
 
