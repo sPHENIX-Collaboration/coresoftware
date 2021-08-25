@@ -631,7 +631,7 @@ void MakeActsGeometry::makeSwappedField()
 {
   const int argc = 8;
   char *arg[argc];
-  int swapfield = m_magFieldRescale * -1;
+  float swapfield = m_magFieldRescale * -1;
 
   std::string argstr[argc]{
     "--bf-map", m_magField,

@@ -659,8 +659,15 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
       const Acts::Vector3D stubMom(track->get_px(),
 				   track->get_py(),
 				   track->get_pz());
-      const int trackQ = track->get_charge() * Acts::UnitConstants::e;
+      int trackQ = track->get_charge() * Acts::UnitConstants::e;
       
+      /// The vertexing has an expectation about the field direction
+      /// and associated charge. For the 3D map, to work with the 
+      /// required swap of the field for the silicon seeds, we need
+      /// to flip the charge
+      if(m_magField.find("3d") != std::string::npos)
+	trackQ *= -1;
+
       const double p = track->get_p();
       
       /// Make a dummy covariance matrix for Acts that corresponds
