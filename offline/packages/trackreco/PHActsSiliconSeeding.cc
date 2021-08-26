@@ -1101,8 +1101,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   if(Verbosity() > 2)
     std::cout << "Space point has " 
 	      << x << ", " << y << ", " << z
-	      << " with variances " << varianceRphi 
-	      << ", " << varianceZ 
+	      << " with variances " << cov(0,0) 
+	      << ", " << cov(1,1)
 	      << " and cluster key "
 	      << cluskey << " and geo id "
 	      << sl.referenceSurface().geometryId() << std::endl;
@@ -1183,7 +1183,7 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
   Acts::SpacePointGridConfig config;
 
   config.bFieldInZ = m_bField;
-  config.minPt = m_minSeedPt;
+  config.minPt = m_minSeedPt / m_gridFactor;
   config.rMax = m_rMax;
   config.zMax = m_zMax;
   config.zMin = m_zMin;
@@ -1296,12 +1296,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
   if(!m_trackMap)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxTrackMap","PHObject");
       svtxNode->addNode(trackNode);
 
     }
