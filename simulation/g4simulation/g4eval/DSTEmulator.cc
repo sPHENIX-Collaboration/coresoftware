@@ -411,16 +411,17 @@ DSTEmulator::DSTEmulator( const std::string& name, const std::string &filename )
 
 //_____________________________________________________________________
 int DSTEmulator::Init(PHCompositeNode* topNode )
-{
+{ 
+  if (_tfile) delete _tfile;
   _tfile = new TFile(_filename.c_str(), "RECREATE");
-
+ 
   _dst_data = new TNtuple("dst_data", "dst data","event:seed:"
 			  "c3x:c3y:c3z:t3x:t3y:t3z:"
 			  "c2x:c2y:c2r:c2l:t2x:t2y:t2r:t2l:"
 			  "d2x:d2y:"
 			  "cmp_d2x:cmp_d2y:"
 			  "pt:eta:phi");
-
+  
   // find DST node
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -440,10 +441,10 @@ int DSTEmulator::Init(PHCompositeNode* topNode )
     evalNode = new PHCompositeNode( "EVAL" );
     dstNode->addNode(evalNode);
   }
-
+  
   auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainerv1, "TrackEvaluationContainer","PHObject");
   evalNode->addNode(newNode);
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
