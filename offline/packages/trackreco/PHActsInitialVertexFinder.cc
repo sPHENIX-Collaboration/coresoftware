@@ -77,7 +77,14 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
       std::cout << PHWHERE 
 		<< "No silicon track seeds found. Can't run initial vertexing, setting dummy vertex of (0,0,0)" 
 		<< std::endl;
-      createDummyVertex();
+      createDummyVertex(0,0,0);
+    }
+  else if(m_trackMap->size() == 1)
+    {
+      auto track = m_trackMap->get(0);
+      createDummyVertex(track->get_x(),
+			track->get_y(),
+			track->get_z());
     }
   else
     {
@@ -166,7 +173,7 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
   /// don't return a vertex
   if(vertices.size() == 0)
     {
-      createDummyVertex();
+      createDummyVertex(0,0,0);
       if(Verbosity() > 1)
 	std::cout << "No vertices found. Adding a dummy vertex"
 		  << std::endl;
@@ -236,10 +243,12 @@ void PHActsInitialVertexFinder::fillVertexMap(VertexVector& vertices,
   return;
 }
 
-void PHActsInitialVertexFinder::createDummyVertex()
+void PHActsInitialVertexFinder::createDummyVertex(const float x,
+						  const float y,
+						  const float z)
 {
 
-  /// If the Acts IVF finds 0 vertices, there weren't enough tracks
+  /// If the Acts IVF finds 0 vertices or there weren't enough tracks
   /// for it to properly identify a good vertex. So just create
   /// a dummy vertex with large covariance for rest of track
   /// reconstruction to avoid seg faults
@@ -250,9 +259,9 @@ void PHActsInitialVertexFinder::createDummyVertex()
   auto svtxVertex = std::make_unique<SvtxVertex_v1>();
   #endif
 
-  svtxVertex->set_x(0);  
-  svtxVertex->set_y(0);
-  svtxVertex->set_z(0);
+  svtxVertex->set_x(x);  
+  svtxVertex->set_y(y);
+  svtxVertex->set_z(z);
   
   for(int i = 0; i < 3; ++i) 
     for(int j = 0; j < 3; ++j)
@@ -262,6 +271,7 @@ void PHActsInitialVertexFinder::createDummyVertex()
 	else 
 	  svtxVertex->set_error(i,j, 0);
       }
+
   float nan = NAN;
   svtxVertex->set_chisq(nan);
   svtxVertex->set_ndof(nan);
@@ -269,7 +279,8 @@ void PHActsInitialVertexFinder::createDummyVertex()
   svtxVertex->set_id(0);
 
   m_vertexMap->insert(svtxVertex.release());
-  
+  std::cout << "Created dummy vertex at " << x << ", " << y << ", " << z
+	    << std::endl;
   for(auto& [key, track] : *m_trackMap)
     track->set_vertex_id(0);
 
@@ -678,7 +689,6 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
     }
   else
     {
-      std::cout << "Using all tracks"<<std::endl;
       for(const auto& [key, track] : *m_trackMap)
 	sortedTracks.push_back(track);
     }
