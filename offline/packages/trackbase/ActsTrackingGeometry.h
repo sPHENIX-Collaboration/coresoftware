@@ -20,7 +20,6 @@ struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
 		       ActsExamples::Options::BFieldVariant mag,
-		       ActsExamples::Options::BFieldVariant swapMag,
 		       Acts::CalibrationContext calib,
 		       Acts::GeometryContext geoCtxt,
 		       Acts::MagneticFieldContext magFieldCtxt)
