@@ -72,10 +72,11 @@ namespace
   //! eta
   template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
 
-  //! radius
+  /*  //! radius
   float get_r( PHG4Hit* hit, int i )
   {  return get_r( hit->get_x(i), hit->get_y(i) ); }
-
+  */
+  /*
   //! calculate the average of member function called on all members in collection
   template< float (PHG4Hit::*accessor)(int) const>
   float interpolate( std::set<PHG4Hit*> hits, float rextrap )
@@ -118,11 +119,12 @@ namespace
 
     return ( alpha*rextrap + beta )/denom;
   }
-
+  */
+  /*
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
-
+  */
   //! get mask from track clusters
   int64_t get_mask( SvtxTrack* track )
   { return std::accumulate( track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
@@ -404,6 +406,7 @@ namespace
 DSTEmulator::DSTEmulator( const std::string& name, const std::string &filename ):
   SubsysReco( name)
   , _filename(filename)
+  , _tfile(nullptr)
 {}
 
 //_____________________________________________________________________
@@ -490,6 +493,8 @@ int DSTEmulator::End(PHCompositeNode* )
 { 
   _tfile->cd();
   _dst_data->Write();
+  _tfile->Close();
+  delete _tfile;
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
@@ -663,7 +668,9 @@ void DSTEmulator::evaluate_tracks()
     
     if(mapIter == m_surfMaps->tpcSurfaceMap.end()){
       std::cout << PHWHERE 
-		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< "Error: hitsetkey not found in clusterSurfaceMap, layer = " << 
+	trk_r//layer 
+		<< " hitsetkey = "
 		<< hitsetkey << std::endl;
       continue;// nullptr;
     }
