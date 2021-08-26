@@ -333,30 +333,10 @@ int PHSiliconTpcTrackMatching::Process()
 	      unsigned int vertexId = _tracklet_si->get_vertex_id();
 	      _tracklet_tpc->set_vertex_id(vertexId);
 
-	      // set the track position to the vertex position
-	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-	      if(svtxVertex)
-		{
-		  _tracklet_tpc->set_x(svtxVertex->get_x());
-		  _tracklet_tpc->set_y(svtxVertex->get_y());
-		  _tracklet_tpc->set_z(svtxVertex->get_z());
-		}
-	      else
-		{
-		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId 
-			    << " associated with TPC tracklet " << _tracklet_tpc->get_id() 
-			    << " si tracklet " << _tracklet_si->get_id()
-			    << " set vertex to (0,0,0)"
-			    << std::endl; 
-		  std::cout << " ---------- Silicon track --------------" << std::endl;
-		  _tracklet_si->identify();
-		  std::cout << " ---------- TPC track -----------------" << std::endl;
-		  _tracklet_tpc->identify();
+	      _tracklet_tpc->set_x(_tracklet_si->get_x());
+	      _tracklet_tpc->set_y(_tracklet_si->get_y());
+	      _tracklet_tpc->set_z(_tracklet_si->get_z());
 
-		  _tracklet_tpc->set_x(0.0);
-		  _tracklet_tpc->set_y(0.0);
-		  _tracklet_tpc->set_z(0.0);
-		}
 	      for(auto clus_iter=si_clusters.begin(); clus_iter != si_clusters.end(); ++clus_iter)
 		{
 		  if(Verbosity() > 1) 
@@ -390,25 +370,9 @@ int PHSiliconTpcTrackMatching::Process()
 	      unsigned int vertexId = _tracklet_si->get_vertex_id();
 	      newTrack->set_vertex_id(vertexId);
 
-	      // set the track position to the vertex position
-	      const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);      
-	      if(svtxVertex)
-		{
-		  newTrack->set_x(svtxVertex->get_x());
-		  newTrack->set_y(svtxVertex->get_y());
-		  newTrack->set_z(svtxVertex->get_z());
-		}
-	      else
-		{
-		  std::cout << PHWHERE << "Failed to find vertex object for vertex ID " << vertexId << " associated with TPC tracklet " << _tracklet_tpc->get_id() << std::endl; 
-		  std::cout << " ---------- Silicon track --------------" << std::endl;
-		  _tracklet_si->identify();
-		  std::cout << " ---------- TPC track -----------------" << std::endl;
-		  _tracklet_tpc->identify();
-		  newTrack->set_x(0.0);
-		  newTrack->set_y(0.0);
-		  newTrack->set_z(0.0);
-		}
+	      newTrack->set_x(_tracklet_si->get_x());
+	      newTrack->set_y(_tracklet_si->get_y());
+	      newTrack->set_z(_tracklet_si->get_z());
 		      
 	      newTrack->set_charge(_tracklet_tpc->get_charge());
 	      newTrack->set_px(_tracklet_tpc->get_px());
