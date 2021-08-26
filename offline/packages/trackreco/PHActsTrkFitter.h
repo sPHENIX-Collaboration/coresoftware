@@ -87,7 +87,9 @@ class PHActsTrkFitter : public SubsysReco
 
   void useActsEvaluator(bool actsEvaluator)
   { m_actsEvaluator = actsEvaluator; }
-
+  
+  void setFieldMap(std::string& fieldMap)
+    { m_fieldMap = fieldMap; }
  private:
 
   /// Get all the nodes
@@ -157,6 +159,8 @@ class PHActsTrkFitter : public SubsysReco
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
+
+  std::string m_fieldMap = "";
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

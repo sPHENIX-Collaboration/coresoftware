@@ -230,12 +230,16 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 					10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
+      int charge = track->get_charge();
+      if(m_fieldMap.find("3d") != std::string::npos)
+	{ charge *= -1; }
+
       /// Reset the track seed with the dummy covariance and the 
       /// primary vertex as the track position
       ActsExamples::TrackParameters seed(actsFourPos,
 					 momentum,
 					 track->get_p(),
-					 track->get_charge(),
+					 charge,
 					 cov);
 
       if(Verbosity() > 2)
