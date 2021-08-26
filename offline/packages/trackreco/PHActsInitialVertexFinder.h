@@ -57,6 +57,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   void removeSiliconSeeds(const bool removeSeeds)
   {m_removeSeeds = removeSeeds;}
+  void magFieldName(const std::string& magfield)
+  {m_magField = magfield;}
 
   void setPCACut(const float pcaCut)
   {m_pcaCut = pcaCut;}
@@ -115,7 +117,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";
-
+  std::string m_magField = "";
   bool m_resetTrackCovariance = true;
   bool m_disableWeights = true;
   bool m_removeSeeds = false;

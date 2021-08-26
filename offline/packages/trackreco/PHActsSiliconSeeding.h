@@ -89,6 +89,13 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
+
+  /// field map name for 3d map functionality
+  void fieldMapName(const std::string& fieldmap)
+    { m_fieldMapName = fieldmap; }
+
+  /// For each MVTX+INTT seed, take the best INTT hits and form
+  /// 1 silicon seed per MVTX seed
   void cleanSeeds(bool cleanSeeds)
     { m_cleanSeeds = cleanSeeds;}
  
@@ -227,7 +234,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
-  
+  std::string m_fieldMapName = "";
+
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
   TH1 *h_nMvtxHits = nullptr;

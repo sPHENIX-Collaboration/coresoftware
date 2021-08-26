@@ -48,6 +48,8 @@ EicEventHeader::get_property_info(const PROPERTY prop_id)
     return make_pair("Milou True X", EicEventHeader::type_float);
   case prop_milou_trueq2:
     return make_pair("Milou True Q2", EicEventHeader::type_float);
+  case prop_demp_weight:
+    return make_pair("DEMP weight", EicEventHeader::type_float);
 
   default:
     cout << "EicEventHeader::get_property_info - Fatal Error - unknown index " << prop_id << endl;
@@ -90,6 +92,9 @@ void EicEventHeader::identify(ostream &os) const
   {
   case EvtGen::Milou:
     os << "Milou";
+    break;
+  case EvtGen::DEMP:
+    os << "DEMP";
     break;
   default:
     os << "Unknown";
