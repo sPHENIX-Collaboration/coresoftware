@@ -153,11 +153,12 @@ int PHSiliconTpcTrackMatching::Process()
       /// Correct the correction for the field direction
       /// Kludge to get the phi matching correct based on the field
       /// direction
-      if(_field.find(".root") != std::string::npos)
-	sign_phi_correction *= -1;
-      if(_fieldDir > 0)
-	sign_phi_correction *= -1;
-
+      if(_field.find("2d") != std::string::npos)
+	{
+	  sign_phi_correction *= -1;
+	  if(_fieldDir > 0)
+	    sign_phi_correction *= -1;
+	}
       // hard code this here for now
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
