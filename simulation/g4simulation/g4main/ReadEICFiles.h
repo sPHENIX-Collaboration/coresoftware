@@ -44,6 +44,7 @@ class ReadEICFiles : public SubsysReco, public PHHepMCGenHelper
   enum EvtGen
   {
     Milou = 1,
+    DEMP = 2,
     Unknown = 100
   };
 

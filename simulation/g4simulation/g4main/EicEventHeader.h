@@ -35,6 +35,14 @@ class EicEventHeader : public PHObject
   virtual void set_milou_trueQ2(const float val) { return; }
   virtual float get_milou_trueQ2() const { return NAN; }
 
+
+//  void set_milou_weight(const float val) override { set_property(prop_milou_weight, val); }
+//  float get_milou_weight() const override { return get_property_float(prop_milou_weight); }
+
+  // DEMP
+  virtual void set_demp_weight(const float val) { return; }
+  virtual float get_demp_weight() const { return NAN; }
+
   //! Procedure to add a new PROPERTY tag:
   //! 1.add new tag below with unique value,
   //! 2.add a short name to EicEventHeader::get_property_info
@@ -44,6 +52,8 @@ class EicEventHeader : public PHObject
     prop_milou_weight = 2,
     prop_milou_truex = 3,
     prop_milou_trueq2 = 4,
+
+    prop_demp_weight = 5,
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX
@@ -59,7 +69,8 @@ class EicEventHeader : public PHObject
 
   enum EvtGen
   {
-    Milou = 1
+    Milou = 1,
+    DEMP = 2
   };
 
   virtual bool has_property(const PROPERTY prop_id) const { return false; }
