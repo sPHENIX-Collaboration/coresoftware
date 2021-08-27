@@ -104,6 +104,7 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
 	  delete track;
 	}
     }
+
  if(Verbosity() > 0)
     std::cout << "PHActsInitialVertexFinder processed event "
 	      << m_event << std::endl;
