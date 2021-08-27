@@ -99,6 +99,21 @@ class PHActsSiliconSeeding : public SubsysReco
   void cleanSeeds(bool cleanSeeds)
     { m_cleanSeeds = cleanSeeds;}
  
+  void rMax(const float rMax)
+  { m_rMax = rMax; }
+  void rMin(const float rMin)
+  { m_rMin = rMin; }
+  void zMax(const float zMax)
+  {m_zMax = zMax; }
+  void zMin(const float zMin)
+  {m_zMin = zMin; }
+  void deltaRMax(const float deltaRMax)
+  {m_deltaRMax = deltaRMax;}
+  void cotThetaMax(const float cotThetaMax)
+  {m_cotThetaMax = cotThetaMax;}
+  void gridFactor(const float gridFactor)
+  {m_gridFactor = gridFactor;}
+
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -197,16 +212,20 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   /// We limit to the MVTX
-  float m_rMax = 50.;
+  float m_rMax = 200.;
   float m_rMin = 23.;
   float m_zMax = 300.;
   float m_zMin = -300.;
- 
+
+  /// Value tuned to provide as large of phi bins as possible. 
+  /// Increases the secondary finding efficiency
+  float m_gridFactor = 2.3809;
+
   /// max distance between two measurements in one seed
   float m_deltaRMax = 15;
   
-  /// Cot of maximum theta angle. Equivalent to eta=1.1 here
-  float m_cotThetaMax = 1.335647;
+  /// Cot of maximum theta angle
+  float m_cotThetaMax = 2.9;
   
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
@@ -218,7 +237,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_event = 0;
 
   /// Maximum allowed transverse PCA for seed, cm
-  double m_maxSeedPCA = 0.1;
+  double m_maxSeedPCA = 2.;
   
   const static unsigned int m_nInttLayers = 4;
   const double m_nInttLayerRadii[m_nInttLayers] = 

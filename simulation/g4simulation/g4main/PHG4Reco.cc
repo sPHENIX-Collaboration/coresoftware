@@ -96,7 +96,6 @@
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -280,7 +279,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   }
 #endif
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     reco->Init(topNode);
   }
@@ -355,7 +354,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (Verbosity() >= 1)
     {
@@ -376,7 +375,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     if (g4sub->GetDetector())
     {
@@ -396,7 +395,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create main event action, add subsystemts and register to GEANT
   m_EventAction = new PHG4PhenixEventAction();
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4EventAction *evtact = g4sub->GetEventAction();
     if (evtact)
@@ -412,7 +411,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main stepping action, add subsystems and register to GEANT
   m_StackingAction = new PHG4PhenixStackingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4StackingAction *action = g4sub->GetStackingAction();
     if (action)
@@ -432,7 +431,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main stepping action, add subsystems and register to GEANT
   m_SteppingAction = new PHG4PhenixSteppingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4SteppingAction *action = g4sub->GetSteppingAction();
     if (action)
@@ -453,7 +452,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main tracking action, add subsystems and register to GEANT
   m_TrackingAction = new PHG4PhenixTrackingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     m_TrackingAction->AddAction(g4sub->GetTrackingAction());
 
@@ -521,6 +520,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->AddProcess(theScintillationProcess);
       pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
       pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
+    }
+    for (PHG4Subsystem *g4sub: m_SubsystemList)
+    {
+      g4sub->AddProcesses(particle);
     }
   }
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
@@ -618,7 +621,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   m_GeneratorAction->SetInEvent(ineve);
 
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << endl;
@@ -645,7 +648,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   }
   m_RunManager->BeamOn(1);
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << endl;
@@ -666,7 +669,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
 int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 {
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     reco->ResetEvent(topNode);
   }
@@ -675,7 +678,7 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 
 void PHG4Reco::Print(const std::string &what) const
 {
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (what.empty() || what == "ALL" || (reco->Name()).find(what) != string::npos)
     {
@@ -1417,7 +1420,7 @@ void PHG4Reco::DefineRegions()
 PHG4Subsystem *
 PHG4Reco::getSubsystem(const string &name)
 {
-  BOOST_FOREACH (PHG4Subsystem *subsys, m_SubsystemList)
+  for (PHG4Subsystem *subsys: m_SubsystemList)
   {
     if (subsys->Name() == name)
     {
@@ -1448,7 +1451,7 @@ void PHG4Reco::ApplyDisplayAction()
   }
   G4VPhysicalVolume *physworld = m_Detector->GetPhysicalVolume();
   m_DisplayAction->ApplyDisplayAction(physworld);
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)  //for (PHG4Subsystem g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4DisplayAction *action = g4sub->GetDisplayAction();
     if (action)
