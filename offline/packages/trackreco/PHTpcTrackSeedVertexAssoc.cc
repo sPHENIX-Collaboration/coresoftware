@@ -86,6 +86,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
 
   // loop over the TPC track seeds
+  std::set<unsigned int> bad_tracks;
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
        ++phtrk_iter)
@@ -248,7 +249,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  if(clusters.size() < 10)
 	    {
 	      if(Verbosity() > 2) std::cout << "    erasing tracklet " << _tracklet_tpc->get_id()  << std::endl;
-	      _track_map->erase(_tracklet_tpc->get_id());	      
+	      //_track_map->erase(_tracklet_tpc->get_id());	      
+	      bad_tracks.insert(_tracklet_tpc->get_id());
 	      continue;
 	    }
 
@@ -278,15 +280,17 @@ int PHTpcTrackSeedVertexAssoc::Process()
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
 
-      // make circle fit including vertex as point
+      // try dropping this fit including vertex, and adjusting further down 
       std::vector<std::pair<double, double>> cpoints;
       double x_vertex = vertex->get_x();
       double y_vertex = vertex->get_y();
-      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+      //cpoints.push_back(std::make_pair(x_vertex, y_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  cpoints.push_back(make_pair(clusters[i]->getX(), clusters[i]->getY()));
 	}
+      
+      // make circle fit
       double R, X0, Y0;
       CircleFitByTaubin(cpoints, R, X0, Y0);
       if(Verbosity() > 2) 
@@ -315,7 +319,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
 		}
 	    }
 	  double circle_rms = sqrt(circle_rms_squared / circle_wt);
-	  if(Verbosity() > 5) std::cout << " circle_rms = " << circle_rms << " circle_rms_squared " << circle_rms_squared << " circle_wt " << circle_wt << std::endl;
+	  if(Verbosity() > 5) std::cout << " circle_rms = " << circle_rms << " circle_rms_squared " << circle_rms_squared 
+					<< " circle_wt " << circle_wt << std::endl;
 	  
 	  grand_circle_rms_squared += circle_rms_squared;
 	  grand_circle_wt += circle_wt;
@@ -326,7 +331,7 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	      bad_clusters_per_track_xy_wt += 1.0;
 	    }
 
-	  // Remove the bad clusters from the track here, remake the clusters list,  and refit the line
+	  // Remove the bad clusters from the track here, remake the clusters list
 	  for(auto &key : bad_clusters)
 	    {
 	      if(Verbosity() > 5) std::cout << " TPC tracklet " << _tracklet_tpc->get_id() << " removing bad xy cluster " << key << std::endl;
@@ -342,29 +347,41 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
 	  if(clusters.size() < 10)
 	    {
-	      if(Verbosity() > 2) std::cout << "   erasing  tracklet " << _tracklet_tpc->get_id()  << std::endl;
-	      _track_map->erase(_tracklet_tpc->get_id());	      
+	      if(Verbosity() > 2) std::cout << "   marking tracklet " << _tracklet_tpc->get_id()  << " to be erased" << std::endl;
+	      bad_tracks.insert(_tracklet_tpc->get_id());
 	      continue;
 	    }
-
-	  if(_refit)
+	  /*
+	  cpoints.clear();
+	  cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+	  for (unsigned int i=0; i<clusters.size(); ++i)
 	    {
-	      // refit the circle
-	      cpoints.clear();
-	      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
-	      for (unsigned int i=0; i<clusters.size(); ++i)
-		{
-		  double x = clusters[i]->getX();
-		  double y = clusters[i]->getY();	  
-		  cpoints.push_back(make_pair(x, y));
-		}
-
-	      CircleFitByTaubin(cpoints, R, X0, Y0);
-	      if(Verbosity() > 2) 
-		std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+	      double x = clusters[i]->getX();
+	      double y = clusters[i]->getY();	  
+	      cpoints.push_back(make_pair(x, y));
 	    }
+	  */
+	  bad_clusters.clear();
 	}
 
+      // Add vertex to cpoints
+      cpoints.clear();
+      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
+      for (unsigned int i=0; i<clusters.size(); ++i)
+	{
+	  double x = clusters[i]->getX();
+	  double y = clusters[i]->getY();	  
+	  cpoints.push_back(make_pair(x, y));
+	}
+
+      // optionally refit the circle with vertex included
+      if(_refit)
+	{
+	  CircleFitByTaubin(cpoints, R, X0, Y0);
+	  if(Verbosity() > 2) 
+	    std::cout << " after bad xy cluster removal, re-fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+	}
+      
       double pt_track = _tracklet_tpc->get_pt();
       if(Verbosity() > 5)
 	{
@@ -396,7 +413,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
       if(dphi < - M_PI) dphi += M_PI;
 
       if(Verbosity() > 5) 
-	  std::cout << " charge " <<  _tracklet_tpc->get_charge() << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
+	  std::cout << " charge " <<  _tracklet_tpc->get_charge() << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI 
+		    << " dphi " << dphi*180.0 / M_PI << std::endl;
 
       // whether we add or subtract 90 degrees depends on the track propagation direction determined above
       if(dphi < 0)
@@ -427,9 +445,17 @@ int PHTpcTrackSeedVertexAssoc::Process()
       _tracklet_tpc->set_pz(pz_new);
 
       if(Verbosity() > 5)
-	std::cout << " new mom " <<  _tracklet_tpc->get_p() <<  "  new eta " <<  _tracklet_tpc->get_eta() << " new phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
+	std::cout << " new mom " <<  _tracklet_tpc->get_p() <<  "  new eta " <<  _tracklet_tpc->get_eta() 
+		  << " new phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
       
     }  // end loop over TPC track seeds
+
+  for(auto &key : bad_tracks)
+    {
+      std::cout << "Erase track " << key << " with too few clusters" << std::endl;
+      _track_map->erase(key);	      
+    }
+  bad_tracks.clear();
 
   bad_clusters_per_track_z /= bad_clusters_per_track_z_wt;
   bad_clusters_per_track_xy /= bad_clusters_per_track_xy_wt;
@@ -440,7 +466,8 @@ int PHTpcTrackSeedVertexAssoc::Process()
   if(_reject_z_outliers && Verbosity() > 5)
     {
       double grand_line_rms =  sqrt(grand_line_rms_squared / grand_line_wt);  
-      std::cout << "grand_line_rms = " << grand_line_rms << " grand_line_rms_squared " << grand_line_rms_squared << " grand_line_wt " << grand_line_wt << std::endl;
+      std::cout << "grand_line_rms = " << grand_line_rms << " grand_line_rms_squared " << grand_line_rms_squared 
+		<< " grand_line_wt " << grand_line_wt << std::endl;
     }
 
   if(_reject_xy_outliers && Verbosity() > 5)

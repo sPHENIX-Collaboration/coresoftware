@@ -32,6 +32,7 @@ struct ActsTrackingGeometry{
 
   /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+
   ActsExamples::Options::BFieldVariant magField;
 
   /// Acts context, for Kalman options

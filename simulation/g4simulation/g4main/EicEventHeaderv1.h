@@ -40,6 +40,10 @@ class EicEventHeaderv1 : public EicEventHeader
   void set_milou_trueQ2(const float val) override { set_property(prop_milou_trueq2, val); }
   float get_milou_trueQ2() const override { return get_property_float(prop_milou_trueq2); }
 
+  // DEMP
+  void set_demp_weight(const float val) override { set_property(prop_demp_weight, val); }
+  float get_demp_weight() const override { return get_property_float(prop_demp_weight); }
+
  protected:
   unsigned int get_property_nocheck(const PROPERTY prop_id) const override;
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) override { prop_map[prop_id] = ui; }
