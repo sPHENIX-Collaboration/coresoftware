@@ -10,6 +10,7 @@
 #include <string>
 
 class G4LogicalVolume;
+class G4ParticleDefinition;
 class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
@@ -24,9 +25,6 @@ class PHG4Subsystem : public SubsysReco
   //! constructor
   PHG4Subsystem(const std::string &name = "Generic Subsystem")
     : SubsysReco(name)
-    , m_MyMotherSubsystem(nullptr)
-    , m_MyLogicalVolume(nullptr)
-    , overlapcheck(false)
   {
   }
 
@@ -86,10 +84,13 @@ class PHG4Subsystem : public SubsysReco
 // and return true
   virtual bool CanBeMotherSubsystem() const {return false;}
 
+//
+  virtual void AddProcesses(G4ParticleDefinition *particle) {}
+
  private:
-  PHG4Subsystem *m_MyMotherSubsystem;
-  G4LogicalVolume *m_MyLogicalVolume;
-  bool overlapcheck;
+  PHG4Subsystem *m_MyMotherSubsystem = nullptr;
+  G4LogicalVolume *m_MyLogicalVolume = nullptr;
+  bool overlapcheck = false;
 };
 
 #endif  // G4MAIN_PHG4SUBSYSTEM_H
