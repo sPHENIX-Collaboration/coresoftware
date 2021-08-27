@@ -61,9 +61,9 @@ int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
       
       m_file = new TFile("seedingOutfile.root","recreate");
     }
-  createHistograms();
-    
   
+  createHistograms();
+      
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
