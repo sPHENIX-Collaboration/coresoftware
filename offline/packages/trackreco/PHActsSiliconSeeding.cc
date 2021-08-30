@@ -1208,9 +1208,9 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -100.;
-  config.collisionRegionMax = 100.;
-  config.sigmaScattering = 50.;
+  config.collisionRegionMin = -210.;
+  config.collisionRegionMax = 210.;
+  config.sigmaScattering = 5.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
@@ -1301,7 +1301,7 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxSilconTrackMap","PHObject");
       svtxNode->addNode(trackNode);
 
     }
