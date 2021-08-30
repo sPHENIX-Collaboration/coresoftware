@@ -82,8 +82,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   /// Creates SvtxVertexMap
   void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
 
-  /// Makes a dummy (0,0,0) vertex only if Acts returns 0 vertices
-  void createDummyVertex();
+  /// Makes a dummy vertex only if Acts returns 0 vertices or there 
+  /// are either 0 or 1 silicon seeds
+  void createDummyVertex(const float x, const float y, const float z);
 
   /// Assigns silicon seed a vertex ID if it was left out of Acts IVF
   void checkTrackVertexAssociation();
