@@ -51,10 +51,17 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   void setCentroids(const int centroids)
   { m_nCentroids = centroids;}
+
   void setIterations(const int iterations)
   {m_nIterations = iterations;}
+
   void removeSiliconSeeds(const bool removeSeeds)
   {m_removeSeeds = removeSeeds;}
+  void magFieldName(const std::string& magfield)
+  {m_magField = magfield;}
+
+  void setPCACut(const float pcaCut)
+  {m_pcaCut = pcaCut;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -75,8 +82,9 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   /// Creates SvtxVertexMap
   void fillVertexMap(VertexVector& vertices, InitKeyMap& keyMap);
 
-  /// Makes a dummy (0,0,0) vertex only if Acts returns 0 vertices
-  void createDummyVertex();
+  /// Makes a dummy vertex only if Acts returns 0 vertices or there 
+  /// are either 0 or 1 silicon seeds
+  void createDummyVertex(const float x, const float y, const float z);
 
   /// Assigns silicon seed a vertex ID if it was left out of Acts IVF
   void checkTrackVertexAssociation();
@@ -86,9 +94,10 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   std::vector<SvtxTrack*> sortTracks();
   
   /// Helper functions for the k-means cluster algorithm
-  CentroidMap createCentroidMap(std::vector<float>& centroids);
+  CentroidMap createCentroidMap(std::vector<Acts::Vector3D>& centroids);
+
   std::vector<SvtxTrack*> getIVFTracks(CentroidMap& clusters, 
-				       std::vector<float>& centroids);
+				       std::vector<Acts::Vector3D>& centroids);
   
   /// Number of centroids for k-means clustering algorithm
   int m_nCentroids = 5;
@@ -96,6 +105,8 @@ class PHActsInitialVertexFinder: public PHInitVertexing
   int m_nIterations = 15;
   /// Max number of vertices allowed by the Acts IVF
   int m_maxVertices = 5;
+  /// Maximum centroid transverse PCA cut
+  float m_pcaCut = 0.03; // cm
   /// Event num
   int m_event = 0;
   /// Diagnostic vertex numbers
@@ -107,7 +118,7 @@ class PHActsInitialVertexFinder: public PHInitVertexing
 
   std::string m_svtxTrackMapName = "SvtxSiliconTrackMap";
   std::string m_svtxVertexMapName = "SvtxVertexMap";
-
+  std::string m_magField = "";
   bool m_resetTrackCovariance = true;
   bool m_disableWeights = true;
   bool m_removeSeeds = false;

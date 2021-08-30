@@ -6,6 +6,7 @@
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
@@ -58,11 +59,7 @@
 
 namespace
 {
-  template <class T>
-  inline constexpr T square(const T &x)
-  {
-    return x * x;
-  }
+  template <class T> inline constexpr T square(const T &x) { return x * x; }
 }  // namespace
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
@@ -74,7 +71,6 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
-  return;
 }
 
 //_____________________________________________________________
@@ -235,7 +231,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     deltarnodiff = new TH2F("deltarnodiff", "Delta r (no diffusion, only SC distortion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
     deltarnodist = new TH2F("deltarnodist", "Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
   }
-
+  
   if (Verbosity())
   {
     // eval tree only when verbosity is on
@@ -256,7 +252,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 18;
+  static constexpr unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -271,8 +267,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
-
-  PHG4HitContainer::ConstIterator hiter;
+   
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
@@ -283,7 +278,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+  for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
     dump_counter++;
