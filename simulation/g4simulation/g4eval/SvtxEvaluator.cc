@@ -80,6 +80,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , _do_gseed_eval(false)
   , _do_track_match(true)
   , _do_eval_light(true)
+  , _do_vtx_eval_light(true)
   , _scan_for_embedded(false)
   , _scan_for_primaries(false)
   , _nlayers_maps(nlayers_maps)
@@ -121,11 +122,13 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
-                                                 "event:seed:vx:vy:vz:ntracks:chi2:ndof:"
-                                                 "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
-                                                 "gnembed:nfromtruth:"
-                                                 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+						 "event:seed:vx:vy:vz:ntracks:chi2:ndof:"
+						 "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
+						 "gnembed:nfromtruth:"
+						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
+    
+    
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint", "g4point => best vertex",
                                                  "event:seed:gvx:gvy:gvz:gvt:gntracks:gembed:"
                                                  "vx:vy:vz:ntracks:"
@@ -929,6 +932,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _ntp_info->Fill(info_data);
     }
 
+
   //-----------------------
   // fill the Vertex NTuple
   //-----------------------
@@ -959,7 +963,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       map<int, unsigned int> embedvtxid_maps_particle_count;
       map<int, unsigned int> vertex_particle_count;
 
-      if (_do_eval_light == false)
+      if (_do_vtx_eval_light == false)
       {
         for (auto iter = prange.first; iter != prange.second; ++iter)  // process all primary paricle
         {
@@ -1025,7 +1029,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         const int point_id = iter->first;
         int gembed = truthinfo->isEmbededVtx(point_id);
-
+	
         if (_scan_for_embedded && gembed <= 0) continue;
 
         auto search = embedvtxid_found.find(gembed);
