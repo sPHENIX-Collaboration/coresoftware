@@ -8,11 +8,10 @@ AC_ENABLE_STATIC(no)
 
 LT_INIT([disable-static])
 
-dnl   no point in suppressing warnings people should 
-dnl   at least see them, so here we go for g++: -Wall
-dnl if test $ac_cv_prog_gxx = yes; then
-dnl    CXXFLAGS="$CXXFLAGS -Wall -Werror"
-dnl fi
+dnl   code produces warnings - helixhough is on its way out, not worth bothering
+if test $ac_cv_prog_gxx = yes; then
+    CXXFLAGS="$CXXFLAGS -Wno-error"
+fi
 
 ROOTLIBS=`$ROOTSYS/bin/root-config --libs`
 AC_SUBST(ROOTLIBS)
