@@ -1301,7 +1301,7 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxSilconTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
       svtxNode->addNode(trackNode);
 
     }
