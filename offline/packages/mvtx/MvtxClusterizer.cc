@@ -495,12 +495,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	/// So set subsurface key to 0
 	clus->setSubSurfKey(0);
 
+	if (Verbosity() > 2)
+	  clus->identify();
+
 	m_clusterlist->addCluster(clus.release());
 
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
 
-	if (Verbosity() > 2)
-	clus->identify();
 
       }  // clusitr
   }    // hitsetitr
