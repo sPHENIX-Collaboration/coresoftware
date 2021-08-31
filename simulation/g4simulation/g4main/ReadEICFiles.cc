@@ -137,17 +137,12 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     evthead->set_milou_trueX(gen->trueX);
     evthead->set_milou_trueQ2(gen->trueQ2);
   }
+  break;
   case EvtGen::DEMP:
   {
     erhic::EventDEMP *gen = dynamic_cast<erhic::EventDEMP *>(GenEvent);
-
-//    cout << gen->weight << endl;
     evthead->set_eventgenerator_type(EicEventHeader::EvtGen::DEMP);
     evthead->set_demp_weight(gen->weight);
-
-//    cout << "DEMP: " <<  gen->weight << "     " << " aAAAAAAAAA:  " << evthead->get_demp_weight() << endl;
-//    exit(0);
-
   }
   break;
   case EvtGen::Unknown:
@@ -157,11 +152,6 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     cout << "what is this " << m_EvtGenId << " ????" << endl;
     break;
   }
-
-
-//  cout << "what is this " << m_EvtGenId << " ????" << endl;
-//  exit(0);
-
 
   /* Create GenEvent */
   HepMC::GenEvent *evt = new HepMC::GenEvent();
