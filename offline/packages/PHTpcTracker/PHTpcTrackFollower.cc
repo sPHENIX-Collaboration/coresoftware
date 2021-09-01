@@ -57,7 +57,7 @@ PHTpcTrackFollower::PHTpcTrackFollower()
 {
 }
 
-std::vector<PHGenFit2::Track*> PHTpcTrackFollower::followTracks(std::vector<kdfinder::TrackCandidate<double>*>& candidates, PHField* B, PHTpcLookup* lookup, PHGenFit2::Fitter* fitter)
+std::vector<PHGenFit2::Track*> PHTpcTrackFollower::followTracks(std::vector<kdfinder::TrackCandidate<double>*>& candidates, PHField* /*B*/, PHTpcLookup* lookup, PHGenFit2::Fitter* fitter)
 {
   LOG_DEBUG("tracking.PHTpcTrackFollower.followTracks") << "start";
 
