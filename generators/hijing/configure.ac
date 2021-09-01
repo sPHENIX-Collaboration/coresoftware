@@ -6,6 +6,11 @@ AC_PROG_CXX
 AC_PROG_F77(gfortran)
 LT_INIT([disable-static])
 
+dnl deprecated declaraion from fastjet header
+if test $ac_cv_prog_gxx = yes; then
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
+fi
+
 CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 
