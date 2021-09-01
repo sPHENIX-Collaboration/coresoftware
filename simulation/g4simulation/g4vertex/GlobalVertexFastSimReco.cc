@@ -44,7 +44,7 @@ GlobalVertexFastSimReco::~GlobalVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int GlobalVertexFastSimReco::Init(PHCompositeNode *topNode)
+int GlobalVertexFastSimReco::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -130,7 +130,7 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalVertexFastSimReco::End(PHCompositeNode *topNode)
+int GlobalVertexFastSimReco::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
