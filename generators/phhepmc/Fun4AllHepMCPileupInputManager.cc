@@ -58,7 +58,7 @@ int Fun4AllHepMCPileupInputManager::SkipForThisManager(const int nevents)
   return 0;
 }
 
-int Fun4AllHepMCPileupInputManager::run(const int nevents, const bool skip)
+int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
 {
   if (_first_run)
   {

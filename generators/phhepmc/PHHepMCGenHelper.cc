@@ -506,7 +506,7 @@ void PHHepMCGenHelper::CopyHelperSettings(PHHepMCGenHelper *helper_src)
   }
 }
 
-void PHHepMCGenHelper::Print(const std::string &what) const
+void PHHepMCGenHelper::Print(const std::string &/*what*/) const
 {
   static map<VTXFUNC, string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
 
