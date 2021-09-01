@@ -23,7 +23,6 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
   PHHepMCParticleSelectorDecayProductChain(const std::string& name = "PARTICLESELECTOR");
   ~PHHepMCParticleSelectorDecayProductChain() override {}
 
-  int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
 
   /// Set the ID of the particle you want in your output.
@@ -52,18 +51,20 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
   HepMC::GenParticle* GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event);
 
   /// The particle you want to have in your output
-  int _theParticle;
+  int _theParticle = 11;
+  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
+  //! negative IDs are backgrounds, .e.g out of time pile up collisions
+  //! Usually, ID = 0 means the primary Au+Au collision background
+  int _embedding_id = 0;
+
   /// List of possible decay products of the particle you want in your output
   /// Ignored if empty
   std::vector<int> _theDaughters;
+
   /// List of possible ancestors of the particle you want in your output
   /// Ignored if empty
   std::vector<int> _theAncestors;
 
-  //! positive ID is the embedded event of interest, e.g. jetty event from pythia
-  //! negative IDs are backgrounds, .e.g out of time pile up collisions
-  //! Usually, ID = 0 means the primary Au+Au collision background
-  int _embedding_id;
 };
 
 #endif

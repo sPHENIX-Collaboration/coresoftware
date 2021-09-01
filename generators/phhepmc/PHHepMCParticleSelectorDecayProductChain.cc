@@ -24,18 +24,9 @@ using namespace std;
 
 PHHepMCParticleSelectorDecayProductChain::PHHepMCParticleSelectorDecayProductChain(const string& name)
   : SubsysReco(name)
-  , _embedding_id(0)
-{
-  _theParticle = 11;
-  return;
-}
+{}
 
-int PHHepMCParticleSelectorDecayProductChain::InitRun(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-HepMC::GenParticle* PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event)
+HepMC::GenParticle* PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::GenParticle* p, HepMC::GenEvent*)
 {
   HepMC::GenParticle* parent = nullptr;
   if (!p->production_vertex()) return parent;
