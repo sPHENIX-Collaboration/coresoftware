@@ -27,8 +27,6 @@ class RawTowerBuilderByHitIndex : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode) override;
-
   /** Name of the detector node the G4Hits should be taken from.
    */
   void Detector(const std::string &d);
