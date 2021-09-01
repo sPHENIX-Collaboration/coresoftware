@@ -74,7 +74,7 @@ int G4EdepNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4EdepNtuple::End(PHCompositeNode *topNode)
+int G4EdepNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();
