@@ -1363,3 +1363,16 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
     returnPhi += 2 * M_PI;
   return returnPhi;
 }
+
+
+void PHActsSiliconSeeding::largeGridSpacing(const bool spacing)
+{
+  if(!spacing)
+    {
+      m_gridFactor = 1.;
+      m_rMax = 50.;
+      m_cotThetaMax = 1.335647;
+      m_maxSeedPCA = 0.1;
+    }
+
+}
