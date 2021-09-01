@@ -206,35 +206,8 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
   return 0;
 }
 
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, PdbBankID bankID, const string &bankName, const int runNumber)
-// {
-//   RunToTime *runTime = RunToTime::instance();
-
-//   PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-//   if (runBeginTime != 0)
-//     {
-//       PHTimeStamp searchTime = *(runBeginTime);
-//       delete runBeginTime;
-//       fetchAllBanks(bankList, className, bankID, bankName, searchTime);
-//     }
-
-// }
-
-// void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, const string &bankName, const int runNumber)
-// {
-//   RunToTime *runTime = RunToTime::instance();
-
-//   PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-//   if (runBeginTime != 0)
-//     {
-//       PHTimeStamp searchTime = *(runBeginTime);
-//       delete runBeginTime;
-//       fetchAllBanks(bankList, className, bankName, searchTime);
-//     }
-// }
-
 //__________________________________________________________________________________
-PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
+PdbCalBank *PgPostBankManager::fetchBank(const string &, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
 {
 #ifdef DEBUG
   cout << "Fetching " << className << " from " << bankName << endl;
@@ -313,7 +286,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bank
 
 //__________________________________________________________________________________
 PdbCalBank *
-PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, const string &bankName, PHTimeStamp &searchTime)
+PgPostBankManager::fetchClosestBank(const string &, PdbBankID, const string &, PHTimeStamp &)
 {
   cout << PHWHERE << " PdbBankManager::fetchClosestBank: This method is not implemented" << endl;
   exit(1);

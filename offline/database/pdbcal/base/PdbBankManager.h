@@ -65,17 +65,6 @@ public:
 				       PdbBankID,
 				       const std::string &,
 				       const int) = 0; 
-  // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const std::string &,
-  // 			     PdbBankID,
-  // 			     const std::string &,
-  // 			     const int) = 0;
-
-  // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const std::string &,
-  // 			     const std::string &,
-  // 			     const int) = 0;
-
   virtual PdbCalBank* fetchBank(const std::string &,
 				PdbBankID,
 				const std::string &,
@@ -86,26 +75,15 @@ public:
 				       const std::string &,
 				       PHTimeStamp &) = 0;  
 
-  // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const std::string &,
-  // 			     PdbBankID,
-  // 			     const std::string &,
-  // 			     PHTimeStamp &) = 0;
-
-  // virtual void fetchAllBanks(PdbBankList &,
-  // 			     const std::string &,
-  // 			     const std::string &,
-  // 			     PHTimeStamp &) = 0;
-
   virtual PdbApplication* getApplication() = 0;
 
   virtual void fillCalibObject(PdbCalBank*,
 			       const std::string &,
 			       PHTimeStamp &) = 0;
 
-  virtual void GetUsedBankRids(std::map<std::string,std::set<int> > &usedbanks) const {}
+  virtual void GetUsedBankRids(std::map<std::string,std::set<int> > &) const {}
   virtual void ClearUsedBankRids() {}
-  virtual  void SetMaxInsertTime(const PHTimeStamp &tMax) {}
+  virtual  void SetMaxInsertTime(const PHTimeStamp &) {}
 
 protected:
 
