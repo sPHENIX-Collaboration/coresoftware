@@ -218,7 +218,7 @@ class sPHENIXTrackerTpc : public HelixHough {
   void findTracksBySegments(std::vector<SimpleHit3D>& hits,
                             std::vector<SimpleTrack3D>& tracks,
                             const HelixRange& range);  
-  void initEvent(std::vector<SimpleHit3D>& hits, unsigned int min_hits) {
+  void initEvent(std::vector<SimpleHit3D>& hits, unsigned int /*min_hits*/) {
 
     int min_layer = 999999;
     int max_layer = 0;

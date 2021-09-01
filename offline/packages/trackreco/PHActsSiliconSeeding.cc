@@ -40,7 +40,7 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
 {}
 
-int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
+int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 {
   m_seedFinderCfg = configureSeeder();
   m_gridCfg = configureSPGrid();
@@ -77,7 +77,7 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
+int PHActsSiliconSeeding::process_event(PHCompositeNode */*topNode*/)
 {
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
@@ -123,7 +123,7 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
+int PHActsSiliconSeeding::End(PHCompositeNode */*topNode*/)
 {
   if(m_seedAnalysis)
     {

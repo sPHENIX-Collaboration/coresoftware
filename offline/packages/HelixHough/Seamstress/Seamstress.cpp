@@ -26,7 +26,7 @@ namespace SeamStress
   }
 
 
-  Seamstress::Seamstress(const Seamstress &ss)
+  Seamstress::Seamstress(const Seamstress &/*ss*/)
   {
     gotime = false;
     end = false;

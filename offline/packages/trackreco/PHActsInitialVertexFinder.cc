@@ -66,7 +66,7 @@ int PHActsInitialVertexFinder::Setup(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
+int PHActsInitialVertexFinder::Process(PHCompositeNode */*topNode*/)
 {
   if(Verbosity() > 0)
     std::cout << "PHActsInitialVertexFinder processing event " 
@@ -114,12 +114,12 @@ int PHActsInitialVertexFinder::Process(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsInitialVertexFinder::ResetEvent(PHCompositeNode *topNode)
+int PHActsInitialVertexFinder::ResetEvent(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsInitialVertexFinder::End(PHCompositeNode *topNode)
+int PHActsInitialVertexFinder::End(PHCompositeNode */*topNode*/)
 {
 
   std::cout << "Acts IVF succeeded " << m_successFits 

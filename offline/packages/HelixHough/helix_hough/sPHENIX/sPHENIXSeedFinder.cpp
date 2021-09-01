@@ -79,7 +79,7 @@ public:
 };
 
 void sPHENIXSeedFinder::tripletRejection(vector<SimpleTrack3D>& input,
-		vector<SimpleTrack3D>& output, vector<bool>& usetrack,
+					 vector<SimpleTrack3D>& /*output*/, vector<bool>& usetrack,
 		vector<float>& next_best_chi2) {
 
 	vector<hitTriplet> trips;
@@ -102,8 +102,8 @@ void sPHENIXSeedFinder::tripletRejection(vector<SimpleTrack3D>& input,
 	}
 	sort(trips.begin(), trips.end());
 	unsigned int pos = 0;
-	unsigned int cur_h1 = trips[pos].hit1;
-	unsigned int cur_h2 = trips[pos].hit2;
+	// unsigned int cur_h1 = trips[pos].hit1;
+	// unsigned int cur_h2 = trips[pos].hit2;
 	while (pos < trips.size()) {
 		unsigned int next_pos = pos + 1;
 		if (next_pos >= trips.size()) {
@@ -150,8 +150,8 @@ void sPHENIXSeedFinder::tripletRejection(vector<SimpleTrack3D>& input,
 			}
 		}
 		pos = next_pos;
-		cur_h1 = trips[pos].hit1;
-		cur_h2 = trips[pos].hit2;
+		// cur_h1 = trips[pos].hit1;
+		// cur_h2 = trips[pos].hit2;
 	}
 }
 
@@ -340,65 +340,65 @@ float sPHENIXSeedFinder::ptToKappa(float pt) {
 }
 
 // hel should be +- 1
-static void xyTangent(SimpleHit3D& hit1, SimpleHit3D& hit2, float kappa,
-		float hel, float& ux_out, float& uy_out, float& ux_in, float& uy_in) {
-	float x = hit2.get_x() - hit1.get_x();
-	float y = hit2.get_y() - hit1.get_y();
-	float D = sqrt(x * x + y * y);
-	float ak = 0.5 * kappa * D;
-	float D_inv = 1. / D;
-	float hk = sqrt(1. - ak * ak);
+// static void xyTangent(SimpleHit3D& hit1, SimpleHit3D& hit2, float kappa,
+// 		float hel, float& ux_out, float& uy_out, float& ux_in, float& uy_in) {
+// 	float x = hit2.get_x() - hit1.get_x();
+// 	float y = hit2.get_y() - hit1.get_y();
+// 	float D = sqrt(x * x + y * y);
+// 	float ak = 0.5 * kappa * D;
+// 	float D_inv = 1. / D;
+// 	float hk = sqrt(1. - ak * ak);
 
-	float kcx = (ak * x + hel * hk * y) * D_inv;
-	float kcy = (ak * y - hel * hk * x) * D_inv;
-	float ktx = -(kappa * y - kcy);
-	float kty = kappa * x - kcx;
-	float norm = 1. / sqrt(ktx * ktx + kty * kty);
-	ux_out = ktx * norm;
-	uy_out = kty * norm;
+// 	float kcx = (ak * x + hel * hk * y) * D_inv;
+// 	float kcy = (ak * y - hel * hk * x) * D_inv;
+// 	float ktx = -(kappa * y - kcy);
+// 	float kty = kappa * x - kcx;
+// 	float norm = 1. / sqrt(ktx * ktx + kty * kty);
+// 	ux_out = ktx * norm;
+// 	uy_out = kty * norm;
 
-	ktx = kcy;
-	kty = -kcx;
-	norm = 1. / sqrt(ktx * ktx + kty * kty);
-	ux_in = ktx * norm;
-	uy_in = kty * norm;
-}
+// 	ktx = kcy;
+// 	kty = -kcx;
+// 	norm = 1. / sqrt(ktx * ktx + kty * kty);
+// 	ux_in = ktx * norm;
+// 	uy_in = kty * norm;
+// }
 
 // hel should be +- 1
-static float cosScatter(SimpleHit3D& hit1, SimpleHit3D& hit2, SimpleHit3D& hit3,
-		float kappa, float hel) {
-	float ux_in = 0.;
-	float uy_in = 0.;
-	float ux_out = 0.;
-	float uy_out = 0.;
+// static float cosScatter(SimpleHit3D& hit1, SimpleHit3D& hit2, SimpleHit3D& hit3,
+// 		float kappa, float hel) {
+// 	float ux_in = 0.;
+// 	float uy_in = 0.;
+// 	float ux_out = 0.;
+// 	float uy_out = 0.;
 
-	float temp1 = 0.;
-	float temp2 = 0.;
+// 	float temp1 = 0.;
+// 	float temp2 = 0.;
 
-	xyTangent(hit1, hit2, kappa, hel, ux_in, uy_in, temp1, temp2);
-	xyTangent(hit2, hit3, kappa, hel, temp1, temp2, ux_out, uy_out);
+// 	xyTangent(hit1, hit2, kappa, hel, ux_in, uy_in, temp1, temp2);
+// 	xyTangent(hit2, hit3, kappa, hel, temp1, temp2, ux_out, uy_out);
 
-	return ux_in * ux_out + uy_in * uy_out;
-}
+// 	return ux_in * ux_out + uy_in * uy_out;
+// }
 
-static float dzdsSimple(SimpleHit3D& hit1, SimpleHit3D& hit2, float k) {
-	float x = hit2.get_x() - hit1.get_x();
-	float y = hit2.get_y() - hit1.get_y();
-	float D = sqrt(x * x + y * y);
-	float s = 0.;
-	float temp1 = k * D * 0.5;
-	temp1 *= temp1;
-	float temp2 = D * 0.5;
-	s += 2. * temp2;
-	temp2 *= temp1;
-	s += temp2 / 3.;
-	temp2 *= temp1;
-	s += (3. / 20.) * temp2;
-	temp2 *= temp1;
-	s += (5. / 56.) * temp2;
+// static float dzdsSimple(SimpleHit3D& hit1, SimpleHit3D& hit2, float k) {
+// 	float x = hit2.get_x() - hit1.get_x();
+// 	float y = hit2.get_y() - hit1.get_y();
+// 	float D = sqrt(x * x + y * y);
+// 	float s = 0.;
+// 	float temp1 = k * D * 0.5;
+// 	temp1 *= temp1;
+// 	float temp2 = D * 0.5;
+// 	s += 2. * temp2;
+// 	temp2 *= temp1;
+// 	s += temp2 / 3.;
+// 	temp2 *= temp1;
+// 	s += (3. / 20.) * temp2;
+// 	temp2 *= temp1;
+// 	s += (5. / 56.) * temp2;
 
-	return (hit2.get_z() - hit1.get_z()) / s;
-}
+// 	return (hit2.get_z() - hit1.get_z()) / s;
+// }
 
 float sPHENIXSeedFinder::dcaToVertexXY(SimpleTrack3D& track, float vx,
 		float vy) {
@@ -522,7 +522,7 @@ void sPHENIXSeedFinder::findTracks(vector<SimpleHit3D>& hits,
 }
 
 bool sPHENIXSeedFinder::breakRecursion(const vector<SimpleHit3D>& hits,
-		const HelixRange& range) {
+				       const HelixRange& /*range*/) {
 	if (seeding == true) {
 		return false;
 	}
@@ -546,8 +546,8 @@ bool sPHENIXSeedFinder::breakRecursion(const vector<SimpleHit3D>& hits,
 	return (nlayers < required_layers);
 }
 
-float sPHENIXSeedFinder::phiError(SimpleHit3D& hit, float min_k, float max_k,
-		float min_d, float max_d, float min_z0, float max_z0, float min_dzdl,
+float sPHENIXSeedFinder::phiError(SimpleHit3D& hit, float  /*min_k*/, float max_k,
+				  float min_d, float max_d, float /*min_z0*/, float /*max_z0*/, float /*min_dzdl*/,
 		float max_dzdl, bool pairvoting) {
 	float Bfield_inv = 1. / detector_B_field;
 	float p_inv = 0.;
@@ -585,8 +585,8 @@ float sPHENIXSeedFinder::phiError(SimpleHit3D& hit, float min_k, float max_k,
 	return returnval;
 }
 
-float sPHENIXSeedFinder::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
-		float min_d, float max_d, float min_z0, float max_z0, float min_dzdl,
+float sPHENIXSeedFinder::dzdlError(SimpleHit3D& hit, float /*min_k*/, float max_k,
+				   float /*min_d*/, float /*max_d*/, float min_z0, float max_z0, float /*min_dzdl*/,
 		float max_dzdl, bool pairvoting) {
 	float Bfield_inv = 1. / detector_B_field;
 	float p_inv = 0.;
@@ -1207,80 +1207,80 @@ void sPHENIXSeedFinder::initDummyHits(vector<SimpleHit3D>& dummies,
 	}
 }
 
-static void triplet_rejection(vector<SimpleTrack3D>& input,
-		vector<float>& chi2s, vector<bool>& usetrack) {
-	vector<hit_triplet> trips;
-	for (unsigned int i = 0; i < input.size(); ++i) {
-		for (unsigned int h1 = 0; h1 < input[i].hits.size(); ++h1) {
-			for (unsigned int h2 = (h1 + 1); h2 < input[i].hits.size(); ++h2) {
-				for (unsigned int h3 = (h2 + 1); h3 < input[i].hits.size();
-						++h3) {
-					trips.push_back(
-							hit_triplet(input[i].hits[h1].get_id(),
-									input[i].hits[h2].get_id(),
-									input[i].hits[h3].get_id(), i, chi2s[i]));
-				}
-			}
-		}
-	}
-	if (trips.size() == 0) {
-		return;
-	}
-	sort(trips.begin(), trips.end());
-	unsigned int pos = 0;
-	unsigned int cur_h1 = trips[pos].hit1;
-	unsigned int cur_h2 = trips[pos].hit2;
-	while (pos < trips.size()) {
-		unsigned int next_pos = pos + 1;
-		if (next_pos >= trips.size()) {
-			break;
-		}
-		while (trips[pos] == trips[next_pos]) {
-			next_pos += 1;
-			if (next_pos >= trips.size()) {
-				break;
-			}
-		}
-		if ((next_pos - pos) > 1) {
-			float best_chi2 = trips[pos].chi2;
-			float next_chi2 = trips[pos + 1].chi2;
-			unsigned int best_pos = pos;
-			for (unsigned int i = (pos + 1); i < next_pos; ++i) {
-				if (input[trips[i].track].hits.size()
-						< input[trips[best_pos].track].hits.size()) {
-					continue;
-				} else if ((input[trips[i].track].hits.size()
-						> input[trips[best_pos].track].hits.size())
-						|| (input[trips[i].track].hits.back().get_layer()
-								> input[trips[best_pos].track].hits.back().get_layer())) {
-					next_chi2 = best_chi2;
-					best_chi2 = trips[i].chi2;
-					best_pos = i;
-					continue;
-				}
-				if ((trips[i].chi2 < best_chi2)
-						|| (usetrack[trips[best_pos].track] == false)) {
-					next_chi2 = best_chi2;
-					best_chi2 = trips[i].chi2;
-					best_pos = i;
-				} else if (trips[i].chi2 < next_chi2) {
-					next_chi2 = trips[i].chi2;
-				}
-			}
-			for (unsigned int i = pos; i < next_pos; ++i) {
-				if (i != best_pos) {
-					usetrack[trips[i].track] = false;
-				}
-			}
-		}
-		pos = next_pos;
-		cur_h1 = trips[pos].hit1;
-		cur_h2 = trips[pos].hit2;
-	}
-}
+// static void triplet_rejection(vector<SimpleTrack3D>& input,
+// 		vector<float>& chi2s, vector<bool>& usetrack) {
+// 	vector<hit_triplet> trips;
+// 	for (unsigned int i = 0; i < input.size(); ++i) {
+// 		for (unsigned int h1 = 0; h1 < input[i].hits.size(); ++h1) {
+// 			for (unsigned int h2 = (h1 + 1); h2 < input[i].hits.size(); ++h2) {
+// 				for (unsigned int h3 = (h2 + 1); h3 < input[i].hits.size();
+// 						++h3) {
+// 					trips.push_back(
+// 							hit_triplet(input[i].hits[h1].get_id(),
+// 									input[i].hits[h2].get_id(),
+// 									input[i].hits[h3].get_id(), i, chi2s[i]));
+// 				}
+// 			}
+// 		}
+// 	}
+// 	if (trips.size() == 0) {
+// 		return;
+// 	}
+// 	sort(trips.begin(), trips.end());
+// 	unsigned int pos = 0;
+// 	unsigned int cur_h1 = trips[pos].hit1;
+// 	unsigned int cur_h2 = trips[pos].hit2;
+// 	while (pos < trips.size()) {
+// 		unsigned int next_pos = pos + 1;
+// 		if (next_pos >= trips.size()) {
+// 			break;
+// 		}
+// 		while (trips[pos] == trips[next_pos]) {
+// 			next_pos += 1;
+// 			if (next_pos >= trips.size()) {
+// 				break;
+// 			}
+// 		}
+// 		if ((next_pos - pos) > 1) {
+// 			float best_chi2 = trips[pos].chi2;
+// 			float next_chi2 = trips[pos + 1].chi2;
+// 			unsigned int best_pos = pos;
+// 			for (unsigned int i = (pos + 1); i < next_pos; ++i) {
+// 				if (input[trips[i].track].hits.size()
+// 						< input[trips[best_pos].track].hits.size()) {
+// 					continue;
+// 				} else if ((input[trips[i].track].hits.size()
+// 						> input[trips[best_pos].track].hits.size())
+// 						|| (input[trips[i].track].hits.back().get_layer()
+// 								> input[trips[best_pos].track].hits.back().get_layer())) {
+// 					next_chi2 = best_chi2;
+// 					best_chi2 = trips[i].chi2;
+// 					best_pos = i;
+// 					continue;
+// 				}
+// 				if ((trips[i].chi2 < best_chi2)
+// 						|| (usetrack[trips[best_pos].track] == false)) {
+// 					next_chi2 = best_chi2;
+// 					best_chi2 = trips[i].chi2;
+// 					best_pos = i;
+// 				} else if (trips[i].chi2 < next_chi2) {
+// 					next_chi2 = trips[i].chi2;
+// 				}
+// 			}
+// 			for (unsigned int i = pos; i < next_pos; ++i) {
+// 				if (i != best_pos) {
+// 					usetrack[trips[i].track] = false;
+// 				}
+// 			}
+// 		}
+// 		pos = next_pos;
+// 		cur_h1 = trips[pos].hit1;
+// 		cur_h2 = trips[pos].hit2;
+// 	}
+// }
 
 void sPHENIXSeedFinder::findTracksBySegments(vector<SimpleHit3D>& hits,
-		vector<SimpleTrack3D>& tracks, const HelixRange& range) {
+					     vector<SimpleTrack3D>& tracks, const HelixRange& /*range*/) {
 
 	vector<TrackSegment>* cur_seg = &segments1;
 	vector<TrackSegment>* next_seg = &segments2;
@@ -1295,10 +1295,10 @@ void sPHENIXSeedFinder::findTracksBySegments(vector<SimpleHit3D>& hits,
 	}
 	for (unsigned int i = 0; i < hits.size(); ++i) {
 		unsigned int min = (hits[i].get_layer() - allowed_missing);
-		if (allowed_missing > hits[i].get_layer()) {
+		if (allowed_missing > (unsigned int) hits[i].get_layer()) {
 			min = 0;
 		}
-		for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
+		for (int l = min; l <= hits[i].get_layer(); l += 1) {
 			layer_sorted[l].push_back(hits[i]);
 		}
 	}
@@ -1889,11 +1889,11 @@ void sPHENIXSeedFinder::projectToLayer(SimpleTrack3D& seed, unsigned int layer,
 	y = P2y + signk * uy * h;
 
 	double sign_dzdl = sign(dzdl);
-	double onedzdl2_inv = 1. / (1. - dzdl * dzdl);
+//	double onedzdl2_inv = 1. / (1. - dzdl * dzdl);
 	double startx = d * cosphi;
 	double starty = d * sinphi;
 	double D = sqrt((startx - x) * (startx - x) + (starty - y) * (starty - y));
-	double D_inv = 1. / D;
+//	double D_inv = 1. / D;
 	double v = 0.5 * k * D;
 	z = 0.;
 	if (v > 0.1) {
@@ -1901,8 +1901,8 @@ void sPHENIXSeedFinder::projectToLayer(SimpleTrack3D& seed, unsigned int layer,
 			v = 0.999999;
 		}
 		double s = 2. * asin(v) / k;
-		double s_inv = 1. / s;
-		double sqrtvv = sqrt(1 - v * v);
+//		double s_inv = 1. / s;
+//		double sqrtvv = sqrt(1 - v * v);
 		double dz = sqrt(s * s * dzdl * dzdl / (1. - dzdl * dzdl));
 		z = z0 + sign_dzdl * dz;
 	} else {
@@ -1917,14 +1917,14 @@ void sPHENIXSeedFinder::projectToLayer(SimpleTrack3D& seed, unsigned int layer,
 		s += (3. / 20.) * temp2;
 		temp2 *= temp1;
 		s += (5. / 56.) * temp2;
-		double s_inv = 1. / s;
+//		double s_inv = 1. / s;
 		double dz = sqrt(s * s * dzdl * dzdl / (1. - dzdl * dzdl));
 		z = z0 + sign_dzdl * dz;
 	}
 }
 
 void sPHENIXSeedFinder::initSplitting(vector<SimpleHit3D>& hits,
-		unsigned int min_hits, unsigned int max_hits) {
+				      unsigned int min_hits, unsigned int /*max_hits*/) {
 	initEvent(hits, min_hits);
 	(*(hits_vec[0])) = hits;
 	zoomranges.clear();
@@ -1934,8 +1934,8 @@ void sPHENIXSeedFinder::initSplitting(vector<SimpleHit3D>& hits,
 }
 
 void sPHENIXSeedFinder::findHelicesParallelOneHelicity(
-		vector<SimpleHit3D>& hits, unsigned int min_hits, unsigned int max_hits,
-		vector<SimpleTrack3D>& tracks) {
+  vector<SimpleHit3D>& hits, unsigned int /*min_hits*/, unsigned int /*max_hits*/,
+		vector<SimpleTrack3D>& /*tracks*/) {
 	unsigned int hits_per_thread = (hits.size() + 2 * nthreads) / nthreads;
 	unsigned int pos = 0;
 	while (pos < hits.size()) {

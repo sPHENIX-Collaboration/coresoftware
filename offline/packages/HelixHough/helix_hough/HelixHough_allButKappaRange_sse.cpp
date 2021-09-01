@@ -20,7 +20,7 @@ static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 static const __m128 three_pi_over_two = {3.*0x1.921fb54442d1846ap0f, 3.*0x1.921fb54442d1846ap0f, 3.*0x1.921fb54442d1846ap0f, 3.*0x1.921fb54442d1846ap0f};
 
 
-static inline void __attribute__((always_inline)) calculate_phi_d(__m128& k, __m128& Delta, __m128& Delta2, __m128& Delta_inv, __m128& ux, __m128& uy, __m128& x3, __m128& y3, __m128& phi_1, __m128& phi_2, __m128& d_1, __m128& d_2)
+static inline void __attribute__((always_inline)) calculate_phi_d(__m128& k, __m128& /*Delta*/, __m128& Delta2, __m128& /*Delta_inv*/, __m128& ux, __m128& uy, __m128& x3, __m128& y3, __m128& phi_1, __m128& phi_2, __m128& d_1, __m128& d_2)
 {
   __m128 k_inv = _vec_rec_ps(k);
   __m128 k2 = _mm_mul_ps(k, k);

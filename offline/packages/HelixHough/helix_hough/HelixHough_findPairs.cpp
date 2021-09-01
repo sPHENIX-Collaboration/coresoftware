@@ -98,7 +98,7 @@ void HelixHough::findHelicesByPairs(unsigned int min_hits,
   if ((maxtracks != 0) && (tracks.size() >= max_tracks)) {
     return;
   }
-  unsigned int tracks_at_start = tracks.size();
+//  unsigned int tracks_at_start = tracks.size();
 
   timeval t1, t2;
   double time1 = 0.;

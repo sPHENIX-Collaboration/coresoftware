@@ -47,7 +47,7 @@ public:
 };
 
 void sPHENIXTrackerTpc::tripletRejection(vector<SimpleTrack3D>& input,
-                                         vector<SimpleTrack3D>& output,
+                                         vector<SimpleTrack3D>& /*output*/,
                                          vector<bool>& usetrack,
                                          vector<float>& next_best_chi2) {
   vector<hitTriplet> trips;
@@ -69,8 +69,8 @@ void sPHENIXTrackerTpc::tripletRejection(vector<SimpleTrack3D>& input,
   }
   sort(trips.begin(), trips.end());
   unsigned int pos = 0;
-  unsigned int cur_h1 = trips[pos].hit1;
-  unsigned int cur_h2 = trips[pos].hit2;
+  // unsigned int cur_h1 = trips[pos].hit1;
+  // unsigned int cur_h2 = trips[pos].hit2;
   while (pos < trips.size()) {
     unsigned int next_pos = pos + 1;
     if (next_pos >= trips.size()) {
@@ -117,8 +117,8 @@ void sPHENIXTrackerTpc::tripletRejection(vector<SimpleTrack3D>& input,
       }
     }
     pos = next_pos;
-    cur_h1 = trips[pos].hit1;
-    cur_h2 = trips[pos].hit2;
+    // cur_h1 = trips[pos].hit1;
+    // cur_h2 = trips[pos].hit2;
   }
 }
 
@@ -424,7 +424,7 @@ void sPHENIXTrackerTpc::finalize(vector<SimpleTrack3D>& input,
 }
 
 bool sPHENIXTrackerTpc::breakRecursion(const vector<SimpleHit3D>& hits,
-                                       const HelixRange& range) {
+                                       const HelixRange& /*range*/) {
   if (seeding == true) {
     return false;
   }
@@ -453,9 +453,9 @@ bool sPHENIXTrackerTpc::breakRecursion(const vector<SimpleHit3D>& hits,
   return (nlayers < required_layers);
 }
 
-float sPHENIXTrackerTpc::phiError(SimpleHit3D& hit, float min_k, float max_k,
-                                  float min_d, float max_d, float min_z0,
-                                  float max_z0, float min_dzdl, float max_dzdl,
+float sPHENIXTrackerTpc::phiError(SimpleHit3D& hit, float /*min_k*/, float max_k,
+                                  float min_d, float max_d, float /*min_z0*/,
+                                  float /*max_z0*/, float /*min_dzdl*/, float max_dzdl,
                                   bool pairvoting) {
   float Bfield_inv = 1. / detector_B_field;
   float p_inv = 0.;
@@ -493,9 +493,9 @@ float sPHENIXTrackerTpc::phiError(SimpleHit3D& hit, float min_k, float max_k,
   return returnval;
 }
 
-float sPHENIXTrackerTpc::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
-                                   float min_d, float max_d, float min_z0,
-                                   float max_z0, float min_dzdl, float max_dzdl,
+float sPHENIXTrackerTpc::dzdlError(SimpleHit3D& hit, float /*min_k*/, float max_k,
+                                   float /*min_d*/, float /*max_d*/, float min_z0,
+                                   float max_z0, float /*min_dzdl*/, float max_dzdl,
                                    bool pairvoting) {
   float Bfield_inv = 1. / detector_B_field;
   float p_inv = 0.;
@@ -712,7 +712,7 @@ float sPHENIXTrackerTpc::fitTrack(SimpleTrack3D& track,
 
 void sPHENIXTrackerTpc::initSplitting(vector<SimpleHit3D>& hits,
                                       unsigned int min_hits,
-                                      unsigned int max_hits) {
+                                      unsigned int /*max_hits*/) {
   initEvent(hits, min_hits);
   (*(hits_vec[0])) = hits;
   zoomranges.clear();
@@ -723,15 +723,14 @@ void sPHENIXTrackerTpc::initSplitting(vector<SimpleHit3D>& hits,
 
 static bool remove_bad_hits(SimpleTrack3D& track, float cut, float scale = 1.0) {
   SimpleTrack3D temp_track = track;
-  float fit_chi2 = 0.;
   vector<float> chi2_hit;
   vector<float> temp_hits;
   while (true) {
     temp_track = track;
-    fit_chi2 = sPHENIXTrackerTpc::fitTrack(temp_track, chi2_hit, scale);
+    sPHENIXTrackerTpc::fitTrack(temp_track, chi2_hit, scale);
     bool all_good = true;
     track.hits.clear();
-    for (int h = 0; h < temp_track.hits.size(); h += 1) {
+    for (unsigned int h = 0; h < temp_track.hits.size(); h += 1) {
       if (chi2_hit[h] < cut) {
         track.hits.push_back(temp_track.hits[h]);
       } else {
@@ -750,7 +749,7 @@ static bool remove_bad_hits(SimpleTrack3D& track, float cut, float scale = 1.0) 
 static bool fit_all_update(vector<vector<int> >& layer_indexes,
                            SimpleTrack3D& temp_track, vector<int>& best_ind,
                            vector<float>& best_chi2, SimpleTrack3D& track,
-                           float& chi2, int iter = 0,
+                           float& /*chi2*/, int iter = 0,
 			   float tempscale = 1.0, float scale = 1.0) {
   if (iter != 0) {
     if (remove_bad_hits(track, 5., scale) == false) {
@@ -773,7 +772,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
 
   best_ind.assign(layer_indexes.size(), -1);
   best_chi2.assign(layer_indexes.size(), -1.);
-  for (int i = 0; i < temp_track.hits.size(); i += 1) {
+  for (unsigned int i = 0; i < temp_track.hits.size(); i += 1) {
     float dx1 = temp_track.hits[i].get_x() - cx;
     float dy1 = temp_track.hits[i].get_y() - cy;
     float dx2 = temp_track.hits[i].get_x() + cx;
@@ -836,7 +835,7 @@ static bool fit_all_update(vector<vector<int> >& layer_indexes,
   }
 
   track.hits.clear();
-  for (int i = 0; i < layer_indexes.size(); i += 1) {
+  for (unsigned int i = 0; i < layer_indexes.size(); i += 1) {
     if (best_ind[i] < 0) {
       continue;
     }
@@ -856,7 +855,7 @@ static bool fit_all(vector<SimpleHit3D>& hits,
 
   SimpleTrack3D temp_track;
   vector<float> chi2_hit;
-  for (int i = 0; i < hits.size(); i += 1) {
+  for (unsigned int i = 0; i < hits.size(); i += 1) {
     if (hits[i].get_layer() < 3) {
       continue;
     }
@@ -866,7 +865,7 @@ static bool fit_all(vector<SimpleHit3D>& hits,
   vector<int> best_ind;
   vector<float> best_chi2;
   track.hits.clear();
-  for (int i = 0; i < hits.size(); i += 1) {
+  for (unsigned int i = 0; i < hits.size(); i += 1) {
     if (hits[i].get_layer() < 3) {
       continue;
     }
@@ -902,14 +901,14 @@ static bool fit_all(vector<SimpleHit3D>& hits,
 
 void sPHENIXTrackerTpc::findTracksByCombinatorialKalman(
     vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks,
-    const HelixRange& range) {
+    const HelixRange& /*range*/) {
 
   timeval t1, t2;
   double time1 = 0.;
   double time2 = 0.;
 
   gettimeofday(&t1, NULL);
-  float CHI2_CUT = chi2_cut + 2.;
+//  float CHI2_CUT = chi2_cut + 2.;
 
   vector<vector<int> > layer_indexes;
   layer_indexes.assign(n_layers, vector<int>());
@@ -985,9 +984,9 @@ void sPHENIXTrackerTpc::findTracksByCombinatorialKalman(
 
     vector<vector<int> > inner_combos;
     for (int l = 0; l < 2; ++l) {
-      for (int i0 = 0; i0 < layer_indexes[0].size(); ++i0) {
-        for (int i1 = 0; i1 < layer_indexes[1].size(); ++i1) {
-          for (int i2 = 0; i2 < layer_indexes[2].size(); ++i2) {
+      for (unsigned int i0 = 0; i0 < layer_indexes[0].size(); ++i0) {
+        for (unsigned int i1 = 0; i1 < layer_indexes[1].size(); ++i1) {
+          for (unsigned int i2 = 0; i2 < layer_indexes[2].size(); ++i2) {
             inner_combos.push_back(vector<int>(3, 0));
             inner_combos.back()[0] = layer_indexes[0][i0];
             inner_combos.back()[1] = layer_indexes[1][i1];
@@ -1000,7 +999,7 @@ void sPHENIXTrackerTpc::findTracksByCombinatorialKalman(
     float best_chi2_p[4] = {-1., -1., -1., -1.};
     int best_ind_p[4] = {-1, -1, -1, -1};
 
-    for (int c = 0; c < inner_combos.size(); ++c) {
+    for (unsigned int c = 0; c < inner_combos.size(); ++c) {
       HelixKalmanState temp_state(state);
       int n_p = 0;
       for (int l = 2; l >= 0; l -= 1) {
@@ -1078,7 +1077,7 @@ void sPHENIXTrackerTpc::findTracksByCombinatorialKalman(
 
 void sPHENIXTrackerTpc::findTracksBySegments(vector<SimpleHit3D>& hits,
                                              vector<SimpleTrack3D>& tracks,
-                                             const HelixRange& range) {
+                                             const HelixRange& /*range*/) {
 
   vector<TrackSegment>* cur_seg = &segments1;
   vector<TrackSegment>* next_seg = &segments2;
@@ -1093,10 +1092,10 @@ void sPHENIXTrackerTpc::findTracksBySegments(vector<SimpleHit3D>& hits,
   }
   for (unsigned int i = 0; i < hits.size(); ++i) {
     unsigned int min = (hits[i].get_layer() - allowed_missing);
-    if (allowed_missing > hits[i].get_layer()) {
+    if (allowed_missing > (unsigned int) hits[i].get_layer()) {
       min = 0;
     }
-    for (unsigned int l = min; l <= hits[i].get_layer(); l += 1) {
+    for (int l = min; l <= hits[i].get_layer(); l += 1) {
       layer_sorted[l].push_back(hits[i]);
     }
   }
