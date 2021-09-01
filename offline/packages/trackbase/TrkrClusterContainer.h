@@ -38,7 +38,10 @@ class TrkrClusterContainer : public PHObject
   void Reset() override {}
 
   //! identify object
-  void identify(std::ostream &os = std::cout) const override {}
+  void identify(std::ostream &os = std::cout) const override 
+  {
+    os << "TrkrClusterContainer identify needs implementing" << std::endl;
+  }
 
   //! add a cluster
   virtual ConstIterator addCluster(TrkrCluster*);

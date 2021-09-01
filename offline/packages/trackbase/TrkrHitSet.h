@@ -37,6 +37,7 @@ class TrkrHitSet : public PHObject
   //! TObject functions
   void identify(std::ostream& os = std::cout) const override
   {
+    os << "TrkrHitSet identify not implemented" << std::endl;
   }
 
   void Reset() override

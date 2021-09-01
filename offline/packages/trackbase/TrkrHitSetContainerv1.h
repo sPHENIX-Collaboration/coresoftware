@@ -30,7 +30,7 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
 
   void Reset() override;
 
-  void identify(std::ostream& = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   ConstIterator addHitSet(TrkrHitSet*) override;
 

@@ -11,6 +11,7 @@
 #include "TrkrDefs.h"
 
 #include <g4main/PHG4HitDefs.h>
+
 #include <phool/PHObject.h>
 
 #include <iostream>              // for cout, ostream
@@ -38,7 +39,9 @@ class TrkrHitTruthAssoc : public PHObject
   {}
 
   void identify(std::ostream &os = std::cout) const override
-  {}
+  {
+    os << "TrkrHitTruthAssoc identify needs implementing" << std::endl;
+  }
 
   /**
    * @brief Add an association between hit and cell
@@ -46,7 +49,7 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hidx TrkrHit index in TrkrHitSet
    * @param[in] ckey Key for assocuated g4hit
    */
-  virtual void addAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey) 
+  virtual void addAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) 
   {}
 
   /**
@@ -55,10 +58,10 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hidx TrkrHit index in TrkrHitSet
    * @param[in] ckey Key for assocuated g4hit
    */
-  virtual void findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey)
+  virtual void findOrAddAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype)
   {}
 
-  virtual void removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey)
+  virtual void removeAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey)
   {}
 
   /**
@@ -66,7 +69,7 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hset TrkrHitSet key
    * @param[in] hidx TrkrHit index in TrkrHitSet
    */
-  virtual void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const
+  virtual void getG4Hits(const TrkrDefs::hitsetkey, const unsigned int, MMap &) const
   {}
 
   protected:
