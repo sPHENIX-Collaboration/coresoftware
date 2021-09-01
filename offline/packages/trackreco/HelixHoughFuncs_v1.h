@@ -17,7 +17,7 @@ class HelixHoughFuncs_v1 : public HelixHoughFuncs
   ~HelixHoughFuncs_v1() override{};
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream& os = std::cout) const override{};
+  void identify(std::ostream& /*os*/ = std::cout) const override{};
   void Reset() override {}
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new HelixHoughFuncs_v1(*this); }

@@ -719,7 +719,7 @@ int PHInitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
+int PHInitZVertexing::translate_input(PHCompositeNode* /*topNode*/) {
 
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
@@ -2333,7 +2333,7 @@ int PHInitZVertexing::fit_vertex(){
 } 
 
 void PHInitZVertexing::convertHelixCovarianceToEuclideanCovariance(float B,
-		float phi, float d, float kappa, float z0, float dzdl,
+								   float phi, float d, float kappa, float /*z0*/, float dzdl,
 		Eigen::Matrix<float, 5, 5> const& input,
 		Eigen::Matrix<float, 6, 6>& output) {
 

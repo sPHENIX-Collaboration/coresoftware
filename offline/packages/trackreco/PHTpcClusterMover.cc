@@ -66,7 +66,7 @@ int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
+int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 {
 
   if(Verbosity() > 0)
@@ -185,7 +185,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTpcClusterMover::End(PHCompositeNode *topNode)
+int PHTpcClusterMover::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
