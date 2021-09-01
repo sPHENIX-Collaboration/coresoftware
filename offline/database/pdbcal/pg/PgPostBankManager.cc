@@ -234,7 +234,7 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
 // }
 
 //__________________________________________________________________________________
-PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
+PdbCalBank *PgPostBankManager::fetchBank(const string &/*className*/, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
 {
 #ifdef DEBUG
   cout << "Fetching " << className << " from " << bankName << endl;
@@ -313,7 +313,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bank
 
 //__________________________________________________________________________________
 PdbCalBank *
-PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, const string &bankName, PHTimeStamp &searchTime)
+PgPostBankManager::fetchClosestBank(const string &/*className*/, PdbBankID /*bankID*/, const string &/*bankName*/, PHTimeStamp &/*searchTime*/)
 {
   cout << PHWHERE << " PdbBankManager::fetchClosestBank: This method is not implemented" << endl;
   exit(1);

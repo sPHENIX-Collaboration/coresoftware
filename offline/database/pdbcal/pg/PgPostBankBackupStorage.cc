@@ -149,7 +149,7 @@ PgPostBankBackupStorage::BankHeader::get_id_string() const
   return o.str();
 }
 
-void PgPostBankBackupStorage::BankHeader::Print(Option_t *option) const
+void PgPostBankBackupStorage::BankHeader::Print(Option_t */*option*/) const
 {
   //  TObject::Print(option);
   cout << "ID = " << get_id_string() << " from user " << userName
