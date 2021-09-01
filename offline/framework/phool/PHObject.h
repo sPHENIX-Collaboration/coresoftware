@@ -46,7 +46,7 @@ class PHObject : public TObject
   virtual int isImplemented(const unsigned int i) const;
 
   virtual int Integrate() const { return 0; }
-  virtual int Integrate(PHObject* obj) { return -1; }
+  virtual int Integrate(PHObject* /*obj*/) { return -1; }
   virtual void CopyFrom(const PHObject *obj);
 
  private:
