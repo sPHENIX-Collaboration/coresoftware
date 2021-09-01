@@ -232,7 +232,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TrackFastSim::End(PHCompositeNode* topNode)
+int PHG4TrackFastSim::End(PHCompositeNode*)
 {
   if (m_DoEvtDisplayFlag && m_Fitter)
   {
@@ -242,7 +242,7 @@ int PHG4TrackFastSim::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
+int PHG4TrackFastSim::process_event(PHCompositeNode*)
 {
   m_EventCnt++;
 
