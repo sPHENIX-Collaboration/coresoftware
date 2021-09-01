@@ -33,12 +33,12 @@ class EventHeader : public PHObject
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }
   /// set Run Number
-  virtual void set_RunNumber(const int run) { return; }
+  virtual void set_RunNumber(const int) { return; }
 
   /// get Event Number
   virtual int get_EvtSequence() const { return 0; }
   /// set Event Number
-  virtual void set_EvtSequence(const int /*ival*/) { return; }
+  virtual void set_EvtSequence(const int) { return; }
 
   //! bunch crossing
   virtual void set_BunchCrossing(int64_t bcr) { set_intval("bcr", bcr); }
@@ -46,11 +46,11 @@ class EventHeader : public PHObject
   //! bunch crossing
   virtual int64_t get_BunchCrossing() const { return get_intval("bcr"); }
 
-  virtual void set_floatval(const std::string &name, const float fval) { return; }
-  virtual float get_floatval(const std::string &name) const { return NAN; }
+  virtual void set_floatval(const std::string &, const float) { return; }
+  virtual float get_floatval(const std::string &) const { return NAN; }
 
-  virtual void set_intval(const std::string &name, const int64_t ival) { return; }
-  virtual int64_t get_intval(const std::string &name) const { return -999999; }
+  virtual void set_intval(const std::string &, const int64_t) { return; }
+  virtual int64_t get_intval(const std::string &) const { return -999999; }
 
   /// get Event Type (Data,rejected,EOR,BOR,...)
   int get_EvtType() const { return get_intval("type"); }
