@@ -24,7 +24,6 @@ class PHSartre : public SubsysReco, public PHHepMCGenHelper
 
   int Init(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
   void set_config_file(const std::string &cfg_file)
