@@ -25,7 +25,7 @@ class InttClusterizer : public SubsysReco
   ~InttClusterizer() override {}
 
   //! module initialization
-  int Init(PHCompositeNode *topNode) override { return 0; }
+  int Init(PHCompositeNode */*topNode*/) override { return 0; }
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -34,7 +34,7 @@ class InttClusterizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode *topNode) override { return 0; }
+  int End(PHCompositeNode */*topNode*/) override { return 0; }
 
   //! set an energy requirement relative to the thickness MIP expectation
   void set_threshold(const float fraction_of_mip)
