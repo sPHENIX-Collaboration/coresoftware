@@ -30,17 +30,11 @@ class MvtxClusterizer : public SubsysReco
   MvtxClusterizer(const std::string &name = "MvtxClusterizer");
   ~MvtxClusterizer() override {}
 
-  //! module initialization
-  int Init(PHCompositeNode *topNode) override { return 0; }
-
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
-
-  //! end of process
-  int End(PHCompositeNode *topNode) override { return 0; }
 
   //! option to turn off z-dimension clustering
   void SetZClustering(const bool make_z_clustering)
