@@ -25,9 +25,6 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
 
-  //! end of process
-  int End(PHCompositeNode *topNode) override;
-
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { detector = d; }

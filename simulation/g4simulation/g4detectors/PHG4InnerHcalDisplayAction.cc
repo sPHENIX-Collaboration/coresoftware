@@ -25,7 +25,7 @@ PHG4InnerHcalDisplayAction::~PHG4InnerHcalDisplayAction()
   m_ScintiLogVolSet.clear();
 }
 
-void PHG4InnerHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4InnerHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *)
 {
   for (auto &it : m_ScintiLogVolSet)
   {

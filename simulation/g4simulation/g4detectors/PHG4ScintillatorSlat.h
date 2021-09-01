@@ -6,7 +6,9 @@
 #include "PHG4ScintillatorSlatDefs.h"
 
 #include <g4main/PHG4HitDefs.h>
+
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <map>
 #include <set>
@@ -22,7 +24,7 @@ class PHG4ScintillatorSlat : public PHObject
     os << "PHG4ScintillatorSlat base class" << std::endl;
   }
   
-  virtual void add_edep(const double edep, const double e, const double light_yield) {return;}
+  virtual void add_edep(const double, const double, const double) {return;}
 
   virtual void set_key(const PHG4ScintillatorSlatDefs::keytype) {return;}
   virtual void add_hit_key(PHG4HitDefs::keytype) {return;}

@@ -23,7 +23,7 @@ PHG4OuterHcalDisplayAction::~PHG4OuterHcalDisplayAction()
   m_ScintiLogVolSet.clear();
 }
 
-void PHG4OuterHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4OuterHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *)
 {
   for (auto &it:m_ScintiLogVolSet)
   {
