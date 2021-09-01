@@ -37,7 +37,7 @@ namespace
 
   /// TPC half length
   static constexpr double halflength_tpc = 105.5*cm;
-  
+
   // inner and outer radii of field cages/TPC
   static constexpr double begin_CM = 20.*cm ;
   static constexpr double end_CM = 78.*cm;
@@ -50,7 +50,7 @@ namespace
   {
     const double end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
     const double dist=end-start.z();
-    
+
     // if line is vertical, it will never intercept the endcap
     if( direction.z() == 0 ) return std::nullopt;
 
@@ -66,7 +66,7 @@ namespace
   {
     const double end = start.z() > 0 ? halflength_tpc:-halflength_tpc;
     const double dist=end-start.z();
-    
+
     // if line is vertical, it will never intercept the endcap
     if( direction.z() == 0 ) return std::nullopt;
 
@@ -80,18 +80,18 @@ namespace
   //_____________________________________________________________
   std::optional<TVector3>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
   {
-    
+
     const double R2=square(radius);
-    
+
     //Generalized Parameters for collision with cylinder of radius R:
     //from quadratic formula solutions of when a vector intersects a circle:
     const double a = square(v.x())+ square(v.y());
     const double b = 2*(v.x()*s.x()+v.y()*s.y());
     const double c = square(s.x()) + square(s.y())-R2;
-    
+
     const double rootterm=square(b)-4*a*c;
-    
-    /* 
+
+    /*
      * if a==0 then we are parallel and will have no solutions.
      * if the rootterm is negative, we will have no real roots,
      * we are outside the cylinder and pointing skew to the cylinder such that we never cross.
@@ -102,21 +102,21 @@ namespace
     const double sqrtterm=std::sqrt(rootterm);
     const double t1 = (-b+sqrtterm)/(2*a);
     const double t2 = (-b-sqrtterm)/(2*a);
-    
-    /* 
+
+    /*
     * if either of the t's are nonzero, we have a collision
     * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
     */
     const double& min_t = (t2<t1 && t2>0) ? t2:t1;
     return s+v*min_t;
   }
-  
+
   //_____________________________________________________________
   std::optional<TVector3> field_cage_intersection(TVector3 start, TVector3 direction)
   {
     const auto ofc_strike=cylinder_line_intersection(start,direction,end_CM);
     const auto ifc_strike=cylinder_line_intersection(start,direction,begin_CM);
-    
+
     // if either of the two intersection is invalid, return the other
     if( !ifc_strike ) return ofc_strike;
     if( !ofc_strike ) return ifc_strike;
@@ -130,7 +130,7 @@ namespace
     else return (ifc_dist<ofc_dist) ? ifc_strike : ofc_strike;
 
   }
-  
+
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
   {
@@ -189,7 +189,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   UpdateParametersWithMacro();
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
-  
+
   // setup lasers
   SetupLasers();
 
@@ -198,7 +198,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
-  
+
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_cm: " << electrons_per_cm << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
 
@@ -238,9 +238,9 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________
 void PHG4TpcDirectLaser::SetDefaultParameters()
 {
-  
+
   // same gas parameters as in PHG4TpcElectronDrift::SetDefaultParameters
-  
+
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
@@ -252,7 +252,7 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
   static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
   static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  
+
   // number of electrons per deposited GeV in TPC gas
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
 
@@ -298,7 +298,8 @@ void PHG4TpcDirectLaser::SetupLasers()
   m_lasers.clear();
 
   // position of first laser at positive z
-  const TVector3 position_base( 60*cm, 0., halflength_tpc );
+  // const TVector3 position_base( 60*cm, 0., halflength_tpc );
+  const TVector3 position_base( 31*cm, 0., halflength_tpc );
 
   // add lasers
   for( int i = 0; i<8; ++i )
@@ -306,9 +307,9 @@ void PHG4TpcDirectLaser::SetupLasers()
     Laser laser;
 
     // set laser direction
-    /* 
+    /*
      * first four lasers are on positive z readout plane, and shoot towards negative z
-     * next four lasers are on negative z readout plane and shoot towards positive z 
+     * next four lasers are on negative z readout plane and shoot towards positive z
      */
     laser.m_position = position_base;
     if( i < 4 )
@@ -323,7 +324,7 @@ void PHG4TpcDirectLaser::SetupLasers()
       laser.m_direction = 1;
 
     }
-    
+
     // rotate around z
     laser.m_phi = M_PI/2*i;
     laser.m_position.RotateZ( laser.m_phi );
@@ -347,8 +348,9 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
-  for( const auto& laser:m_lasers )
-  { AppendLaserTrack(theta,phi,laser); }
+  AppendLaserTrack(theta,phi,m_lasers[0]);
+//   for( const auto& laser:m_lasers )
+//   { AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
@@ -421,7 +423,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     // insert in map
     m_track_map->insert( &track );
-    
+
     if( Verbosity() )
     { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
 
@@ -434,7 +436,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
    * otherwise will intercept the central membrane
    */
   const auto plane_strike = (pos.z()*dir.z() > 0 ) ? endcap_intersection(pos,dir):central_membrane_intersection(pos,dir);
-    
+
   // field cage intersection
   const auto fc_strike=field_cage_intersection(pos,dir);
 
@@ -475,13 +477,26 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     hit->set_layer(99); // dummy number
 
     //here we set the entrance values in cm
-    hit->set_x(0, start.X() / cm);
-    hit->set_y(0, start.Y() / cm);
-    hit->set_z(0, start.Z() / cm);
-    //and the exist values
-    hit->set_x(1, end.X() / cm);
-    hit->set_y(1, end.Y() / cm);
-    hit->set_z(1, end.Z() / cm);
+    // todo: try to set entrance and exit point with increasing radius
+    auto get_r = []( const TVector3& in ) { return square( in.x() ) + square( in.y() ); };
+    if( get_r( start ) < get_r( end ) )
+    {
+      hit->set_x(0, start.X() / cm);
+      hit->set_y(0, start.Y() / cm);
+      hit->set_z(0, start.Z() / cm);
+
+      hit->set_x(1, end.X() / cm);
+      hit->set_y(1, end.Y() / cm);
+      hit->set_z(1, end.Z() / cm);
+    } else {
+      hit->set_x(0, end.X() / cm);
+      hit->set_y(0, end.Y() / cm);
+      hit->set_z(0, end.Z() / cm);
+
+      hit->set_x(1, start.X() / cm);
+      hit->set_y(1, start.Y() / cm);
+      hit->set_z(1, start.Z() / cm);
+    }
 
     // momentum
     hit->set_px(0, dir.X()); // GeV
