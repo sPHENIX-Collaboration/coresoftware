@@ -24,17 +24,11 @@ class InttClusterizer : public SubsysReco
                   unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
   ~InttClusterizer() override {}
 
-  //! module initialization
-  int Init(PHCompositeNode *topNode) override { return 0; }
-
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
-
-  //! end of process
-  int End(PHCompositeNode *topNode) override { return 0; }
 
   //! set an energy requirement relative to the thickness MIP expectation
   void set_threshold(const float fraction_of_mip)
