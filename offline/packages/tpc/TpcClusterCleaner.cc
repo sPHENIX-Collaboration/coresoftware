@@ -193,12 +193,12 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TpcClusterCleaner::End(PHCompositeNode *topNode)
+int TpcClusterCleaner::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int  TpcClusterCleaner::GetNodes(PHCompositeNode* topNode)
+int  TpcClusterCleaner::GetNodes(PHCompositeNode* /*topNode*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;
