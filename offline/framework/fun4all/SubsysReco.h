@@ -58,7 +58,7 @@ class SubsysReco : public Fun4AllBase
   /// Clean up after each event.
   virtual int ResetEvent(PHCompositeNode * /*topNode*/) { return 0; }
 
-  void Print(const std::string &what = "ALL") const override {}
+  void Print(const std::string & /*what*/ = "ALL") const override {}
 
  protected:
   /** ctor.
