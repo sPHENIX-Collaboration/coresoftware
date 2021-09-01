@@ -7,7 +7,7 @@ SvtxVertex::ConstTrackIter SvtxVertex::begin_tracks() const
   return DummyTrackSet.end();
 }
 
-SvtxVertex::ConstTrackIter SvtxVertex::find_track(unsigned int trackid) const
+SvtxVertex::ConstTrackIter SvtxVertex::find_track(unsigned int /*trackid*/) const
 {
   return DummyTrackSet.end();
 }
@@ -22,7 +22,7 @@ SvtxVertex::TrackIter SvtxVertex::begin_tracks()
   return DummyTrackSet.end();
 }
 
-SvtxVertex::TrackIter SvtxVertex::find_track(unsigned int trackid)
+SvtxVertex::TrackIter SvtxVertex::find_track(unsigned int /*trackid*/)
 {
   return DummyTrackSet.end();
 }
