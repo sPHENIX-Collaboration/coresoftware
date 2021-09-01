@@ -38,24 +38,24 @@ class PHG4Particle : public PHObject
   virtual double get_IonCharge() const { return NAN; }
   virtual double get_ExcitEnergy() const { return NAN; }
 
-  virtual void set_track_id(const int i) { return; }
-  virtual void set_vtx_id(const int i) { return; }
-  virtual void set_parent_id(const int i) { return; }
-  virtual void set_primary_id(const int i) { return; }
-  virtual void set_name(const std::string &name) { return; }
-  virtual void set_pid(const int i) { return; }
-  virtual void set_px(const double x) { return; }
-  virtual void set_py(const double x) { return; }
-  virtual void set_pz(const double x) { return; }
-  virtual void set_e(const double e) { return; }
+  virtual void set_track_id(const int) { return; }
+  virtual void set_vtx_id(const int) { return; }
+  virtual void set_parent_id(const int) { return; }
+  virtual void set_primary_id(const int) { return; }
+  virtual void set_name(const std::string &) { return; }
+  virtual void set_pid(const int) { return; }
+  virtual void set_px(const double) { return; }
+  virtual void set_py(const double) { return; }
+  virtual void set_pz(const double) { return; }
+  virtual void set_e(const double) { return; }
 
-  virtual void set_barcode(const int barcode) { return; }
+  virtual void set_barcode(const int) { return; }
 
-  virtual void set_A(const int a) { return; }
-  virtual void set_Z(const int z) { return; }
-  virtual void set_NumCharge(const int c) { return; }
-  virtual void set_IonCharge(const double e) { return; }
-  virtual void set_ExcitEnergy(const double e) { return; }
+  virtual void set_A(const int) { return; }
+  virtual void set_Z(const int) { return; }
+  virtual void set_NumCharge(const int) { return; }
+  virtual void set_IonCharge(const double) { return; }
+  virtual void set_ExcitEnergy(const double) { return; }
 
   bool operator==(const PHG4Particle &p) const;
 

@@ -102,9 +102,3 @@ PHG4InEventReadBack::process_event(PHCompositeNode *topNode)
   //  inEvent->identify();
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-int
-PHG4InEventReadBack::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}

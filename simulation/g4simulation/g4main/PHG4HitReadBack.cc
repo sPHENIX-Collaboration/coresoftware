@@ -21,12 +21,6 @@ PHG4HitReadBack::PHG4HitReadBack(const string &name): SubsysReco(name)
 }
 
 int
-PHG4HitReadBack::InitRun(PHCompositeNode *topNode)
-{
-  return 0;
-}
-
-int
 PHG4HitReadBack::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *phc = findNode::getClass<PHG4HitContainer>(topNode,"PHG4Hit");

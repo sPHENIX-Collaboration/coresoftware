@@ -22,13 +22,6 @@ PHG4ConsistencyCheck::PHG4ConsistencyCheck(const std::string &name):
 {}
 
 int
-PHG4ConsistencyCheck::InitRun(PHCompositeNode *topNode)
-{
-
-  return 0;
-}
-
-int
 PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
 {
   PHG4TruthInfoContainer *truthcont = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");

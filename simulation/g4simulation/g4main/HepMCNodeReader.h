@@ -23,17 +23,9 @@ class HepMCNodeReader : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
-  //! this function is depreciated.
-  //! Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
-  void Embed(const int i = 1);
-
-  //! this function is depreciated.
-  //! HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location.
   //! And the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
   void VertexPosition(const double v_x, const double v_y, const double v_z);
 
-  //! HepMCNodeReader::SmearVertex - WARNING - this function is depreciated.
-  //! HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location.
   //! And the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
   //! Positive value is Gauss smear, and negative values are flat smear
   void SmearVertex(const double s_x, const double s_y, const double s_z);

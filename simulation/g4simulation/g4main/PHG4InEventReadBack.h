@@ -16,7 +16,6 @@ class PHG4InEventReadBack: public SubsysReco
   ~PHG4InEventReadBack() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
  protected:
   

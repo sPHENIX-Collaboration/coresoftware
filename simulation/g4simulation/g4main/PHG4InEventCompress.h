@@ -17,11 +17,10 @@ class PHG4InEventCompress: public SubsysReco
   ~PHG4InEventCompress() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
  protected:
-  VariableArray *vtxarray;
-  VariableArray *particlearray;
+  VariableArray *vtxarray = nullptr;
+  VariableArray *particlearray = nullptr;
 };
 
 #endif

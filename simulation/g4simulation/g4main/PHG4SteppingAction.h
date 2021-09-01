@@ -24,7 +24,7 @@ class PHG4SteppingAction
   \param step pointer to the geant 4 step class
   \param was_used: true if the hit was already used by a previously registered subsystem
   */
-  virtual bool UserSteppingAction(const G4Step* step, bool was_used) = 0;
+  virtual bool UserSteppingAction(const G4Step*, bool) = 0;
 
   virtual void Verbosity(const int i) { m_Verbosity = i; }
   virtual int Verbosity() const { return m_Verbosity; }
@@ -39,7 +39,7 @@ class PHG4SteppingAction
   virtual void StoreLocalCoordinate(PHG4Hit* hit, const G4Step* step, const bool do_prepoint, const bool do_postpoint);
 
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
-  virtual void Print(const std::string& what) const { return; }
+  virtual void Print(const std::string&) const { return; }
   std::string GetName() const { return m_Name; }
   void SetName(const std::string& name) { m_Name = name; }
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);

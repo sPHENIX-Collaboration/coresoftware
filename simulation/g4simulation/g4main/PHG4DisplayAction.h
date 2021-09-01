@@ -29,13 +29,13 @@ class PHG4DisplayAction
    @param[in] physvol starting volume in hierarchy (typically world volume)
   */
 
-  virtual void ApplyDisplayAction(G4VPhysicalVolume *physvol) = 0;
+  virtual void ApplyDisplayAction(G4VPhysicalVolume *) = 0;
 
   virtual void SetName(const std::string &name) { m_Detector = name; }
 
   virtual std::string GetName() const { return m_Detector; }
 
-  virtual void Print(const std::string &what="ALL") {}
+  virtual void Print(const std::string &) {}
 
   enum CheckReturnCodes
   {
@@ -55,13 +55,13 @@ class PHG4DisplayAction
   /*
  * @param[in] physical volume to be checked
  */
-  virtual int CheckVolume(G4VPhysicalVolume *physvol) { return 0; }
+  virtual int CheckVolume(G4VPhysicalVolume *) { return 0; }
 
   //! ApplyVisAttributes method
   /**
  *@param[in] physvol selected physical volume
  */
-  virtual void ApplyVisAttributes(G4VPhysicalVolume *physvol) { return; }
+  virtual void ApplyVisAttributes(G4VPhysicalVolume *) { return; }
 
  private:
   std::string m_Detector;

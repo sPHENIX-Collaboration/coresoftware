@@ -26,9 +26,7 @@
 using namespace std;
 
 PHG4InEventCompress::PHG4InEventCompress(const std::string &name): 
-  SubsysReco(name),
-  vtxarray(nullptr),
-  particlearray(nullptr)
+  SubsysReco(name)
 {}
 
 int
@@ -103,11 +101,5 @@ PHG4InEventCompress::process_event(PHCompositeNode *topNode)
     }
   particlearray->set_val(spartvec);
   //  inEvent->identify();
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int
-PHG4InEventCompress::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }

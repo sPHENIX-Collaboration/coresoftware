@@ -418,12 +418,3 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   width_vz = s_z;
   return;
 }
-
-void HepMCNodeReader::Embed(const int i)
-{
-  cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
-       << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-       << endl;
-
-  return;
-}
