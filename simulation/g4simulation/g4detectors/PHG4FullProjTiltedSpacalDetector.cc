@@ -914,7 +914,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
   return block_logic;
 }
 
-void PHG4FullProjTiltedSpacalDetector::Print(const std::string& what) const
+void PHG4FullProjTiltedSpacalDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4FullProjTiltedSpacalDetector::Print::" << GetName()
        << " - Print Geometry:" << endl;

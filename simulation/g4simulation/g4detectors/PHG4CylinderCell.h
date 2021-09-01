@@ -26,15 +26,15 @@ class PHG4CylinderCell : public PHG4Cell
     os << "PHG4CylinderCell base class" << std::endl;
   }
   
-    void set_ladder_phi_index(const int i) override {return;}
+    void set_ladder_phi_index(const int) override {return;}
   int get_ladder_phi_index() const override {return -9999;}
 
-  void set_ladder_z_index(const int i) override {return;}
+  void set_ladder_z_index(const int) override {return;}
   int get_ladder_z_index() const override {return -9999;}
 
 // our own - not inherited  
-  virtual void set_cell_id(const PHG4CylinderCellDefs::keytype id) {return;}
-  virtual void set_layer(const unsigned int i) {return;}
+  virtual void set_cell_id(const PHG4CylinderCellDefs::keytype) {return;}
+  virtual void set_layer(const unsigned int) {return;}
 
   virtual unsigned int get_layer() const {return 0xFFFFFFFF;}
   virtual PHG4CylinderCellDefs::keytype get_cell_id() const {return 0xFFFFFFFF;}
@@ -42,21 +42,21 @@ class PHG4CylinderCell : public PHG4Cell
   virtual int get_binphi() const {return -1;}
   virtual int get_bineta() const {return -1;}
 
-  virtual void set_etabin(const int i) {return;}
-  virtual void set_light_yield(float lightYield)  {   return;  }
+  virtual void set_etabin(const int) {return;}
+  virtual void set_light_yield(float)  {   return;  }
 
-  virtual void set_fiber_ID(int fiberId) {   return;  }
+  virtual void set_fiber_ID(int) {   return;  }
   virtual int get_fiber_ID() const {return -1;}
 
-  virtual void set_sensor_index(const std::string &si) {return;}
+  virtual void set_sensor_index(const std::string &) {return;}
   virtual std::string get_sensor_index() const {return "";}
 
   virtual int get_j_index() const {return -9999;}
-  virtual void set_j_index(const int i) {return;}
+  virtual void set_j_index(const int) {return;}
   virtual int get_k_index() const {return -9999;}
-  virtual void set_k_index(const int i) {return;}
+  virtual void set_k_index(const int) {return;}
   virtual int get_l_index() const {return -9999;}
-  virtual void set_l_index(const int i) {return;}
+  virtual void set_l_index(const int) {return;}
 
    protected:
 

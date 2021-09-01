@@ -275,7 +275,7 @@ PHG4HcalDetector::GetLength(const double phi) const
   return a;
 }
 
-void PHG4HcalDetector::Print(const std::string& what) const
+void PHG4HcalDetector::Print(const std::string& /*what*/) const
 {
   cout << "radius: " << radius << endl;
   return;
