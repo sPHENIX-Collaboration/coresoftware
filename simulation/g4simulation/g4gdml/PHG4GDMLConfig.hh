@@ -36,7 +36,7 @@ class PHG4GDMLConfig : public PHObject
   virtual int isValid() const { return 1; }
   virtual void identify(std::ostream &os = std::cout) const
   {
-    std::cout << "PHG4GDMLConfig with " << excluded_physical_vol.size() << "excluded physical volume and "
+    os << "PHG4GDMLConfig with " << excluded_physical_vol.size() << "excluded physical volume and "
               << excluded_logical_vol.size() << " excluded logical volume" << std::endl;
   }
 
