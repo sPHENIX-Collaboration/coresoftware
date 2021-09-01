@@ -91,7 +91,7 @@ PHG4TpcEndCapSteppingAction::~PHG4TpcEndCapSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_used)
+bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -176,6 +176,7 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool wa
       cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
            << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
     }
+    [[fallthrough]]; // signal c++ this is on purpose, not a forgotten break
 // These are the normal cases
   case fGeomBoundary:
   case fUndefined:

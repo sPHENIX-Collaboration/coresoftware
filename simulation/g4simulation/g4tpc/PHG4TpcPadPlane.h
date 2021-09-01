@@ -29,10 +29,10 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
     return 0;
   }
   int InitRun(PHCompositeNode *topNode) override;
-  virtual int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) { return 0; }
+  virtual int CreateReadoutGeometry(PHCompositeNode *, PHG4CylinderCellGeomContainer *) { return 0; }
   virtual void UpdateInternalParameters() { return; }
-  virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
-  virtual void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
+  virtual void MapToPadPlane(PHG4CellContainer *, const double, const double, const double, PHG4HitContainer::ConstIterator, TNtuple *, TNtuple *) {}
+  virtual void MapToPadPlane(TrkrHitSetContainer *, TrkrHitSetContainer *, TrkrHitTruthAssoc *, const double, const double, const double, PHG4HitContainer::ConstIterator, TNtuple *, TNtuple *) {}
   void Detector(const std::string &name) { detector = name; }
 
  protected:
