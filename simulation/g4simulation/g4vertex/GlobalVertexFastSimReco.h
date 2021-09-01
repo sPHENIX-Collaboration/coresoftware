@@ -27,10 +27,8 @@ class GlobalVertexFastSimReco : public SubsysReco
   GlobalVertexFastSimReco(const std::string &name = "GlobalVertexFastSimReco");
   ~GlobalVertexFastSimReco() override;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_x_smearing(const float x_smear) { _x_smear = x_smear; }
   void set_y_smearing(const float y_smear) { _y_smear = y_smear; }

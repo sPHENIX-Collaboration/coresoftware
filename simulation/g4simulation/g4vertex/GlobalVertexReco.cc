@@ -33,20 +33,7 @@ using namespace std;
 
 GlobalVertexReco::GlobalVertexReco(const string &name)
   : SubsysReco(name)
-  , _xdefault(0.0)
-  , _xerr(0.3)
-  , _ydefault(0.0)
-  , _yerr(0.3)
-  , _tdefault(0.0)
-  , _terr(0.2)
 {
-}
-
-GlobalVertexReco::~GlobalVertexReco() {}
-
-int GlobalVertexReco::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int GlobalVertexReco::InitRun(PHCompositeNode *topNode)
@@ -242,11 +229,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int GlobalVertexReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

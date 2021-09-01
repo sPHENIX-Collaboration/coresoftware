@@ -44,11 +44,6 @@ GlobalVertexFastSimReco::~GlobalVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int GlobalVertexFastSimReco::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
   if (isnan(_x_smear) ||
@@ -127,11 +122,6 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode)
 
   vertexes->insert(vertex);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int GlobalVertexFastSimReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
