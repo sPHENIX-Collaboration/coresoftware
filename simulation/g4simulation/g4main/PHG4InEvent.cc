@@ -18,7 +18,7 @@ PHG4InEvent::~PHG4InEvent()
 }
 
 int
-PHG4InEvent::AddVtx(const int id, const PHG4VtxPoint &vtx)
+PHG4InEvent::AddVtx(const int /*id*/, const PHG4VtxPoint &vtx)
 {
   PHG4VtxPoint *newvtx = new PHG4VtxPoint(vtx);
   int iret = AddVtxCommon(newvtx);

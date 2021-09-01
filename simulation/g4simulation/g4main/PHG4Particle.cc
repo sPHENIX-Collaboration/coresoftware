@@ -1,10 +1,8 @@
 #include "PHG4Particle.h"
 
-using namespace std;
-
-void PHG4Particle::identify(ostream& os) const
+void PHG4Particle::identify(std::ostream& os) const
 {
-  cout << "calling virtual PHG4Particle base class" << endl;
+  os << "calling virtual PHG4Particle base class" << std::endl;
   return;
 }
 
