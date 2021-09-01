@@ -356,7 +356,7 @@ bool RecursiveMomentumContainer::insert(TrivialTrack& track)
   return containers[x_ind][y_ind][z_ind]->insert(track);
 }
 
-MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z)
+MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float pz_s, unsigned int /*n_l*/, unsigned int n_i, unsigned int n_r, float i_z, float o_z)
   : ntp_true(nullptr)
   , ntp_reco(nullptr)
   , pt_search_scale(pt_s)
@@ -381,7 +381,7 @@ MomentumEvaluator::~MomentumEvaluator()
   }
 }
 
-int MomentumEvaluator::Init(PHCompositeNode* topNode)
+int MomentumEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
   if (ntp_true != nullptr)
   {
@@ -595,7 +595,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MomentumEvaluator::End(PHCompositeNode* topNode)
+int MomentumEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   TFile outfile(file_name.c_str(), "recreate");
   outfile.cd();
