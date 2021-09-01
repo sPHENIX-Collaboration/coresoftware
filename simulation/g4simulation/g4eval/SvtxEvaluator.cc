@@ -56,7 +56,7 @@
 
 using namespace std;
 
-SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const string& trackmapname,
+SvtxEvaluator::SvtxEvaluator(const string&, const string& filename, const string& trackmapname,
                              unsigned int nlayers_maps,
                              unsigned int nlayers_intt,
                              unsigned int nlayers_tpc,
@@ -108,7 +108,7 @@ SvtxEvaluator::~SvtxEvaluator()
   delete _timer;
 }
 
-int SvtxEvaluator::Init(PHCompositeNode* topNode)
+int SvtxEvaluator::Init(PHCompositeNode* )
 {
   _ievent = 0;
 
@@ -212,13 +212,6 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int SvtxEvaluator::InitRun(PHCompositeNode* topNode)
-{
-  //clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int SvtxEvaluator::process_event(PHCompositeNode* topNode)
 {
   if ((Verbosity() > 1) && (_ievent % 100 == 0))
@@ -279,7 +272,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int SvtxEvaluator::End(PHCompositeNode* topNode)
+int SvtxEvaluator::End(PHCompositeNode*)
 {
   _tfile->cd();
 
