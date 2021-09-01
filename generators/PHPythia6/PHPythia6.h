@@ -21,9 +21,7 @@ class PHPythia6 : public SubsysReco, public PHHepMCGenHelper
 
   int process_event(PHCompositeNode *topNode) override;
 
-  int ResetEvent(PHCompositeNode *topNode) override;
-
-  int End(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *) override;
 
   void set_config_file(const std::string &cfg_file) { _configFile = cfg_file; }
 

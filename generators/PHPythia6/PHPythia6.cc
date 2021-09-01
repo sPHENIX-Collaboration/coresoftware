@@ -90,7 +90,7 @@ int PHPythia6::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia6::End(PHCompositeNode *topNode)
+int PHPythia6::End(PHCompositeNode *)
 {
   //........................................TERMINATION
   // write out some information from Pythia to the screen
@@ -337,7 +337,7 @@ void PHPythia6::print_config() const
 {
 }
 
-int PHPythia6::process_event(PHCompositeNode *topNode)
+int PHPythia6::process_event(PHCompositeNode *)
 {
   if (Verbosity() > 1) cout << "PHPythia6::process_event - event: " << _eventcount << endl;
 
@@ -465,11 +465,6 @@ void PHPythia6::IntegerTest(double number)
     //    throw Fun4AllReturnCodes::ABORTRUN;
   }
   return;
-}
-
-int PHPythia6::ResetEvent(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHPythia6::register_trigger(PHPy6GenTrigger *theTrigger)
