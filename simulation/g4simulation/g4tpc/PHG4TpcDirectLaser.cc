@@ -17,6 +17,7 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 
 #include <cassert>
+#include <optional>
 
 namespace
 {
@@ -44,40 +45,40 @@ namespace
   //half the thickness of the CM;
   static constexpr double halfwidth_CM = 0.5*cm;
 
-  //_____________________________________________________________  
-  std::pair<TVector3,bool> central_membrane_intersection(TVector3 start, TVector3 direction)
+  //_____________________________________________________________
+  std::optional<TVector3> central_membrane_intersection(TVector3 start, TVector3 direction)
   {
     const double end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
     const double dist=end-start.z();
     
     // if line is vertical, it will never intercept the endcap
-    if( direction.z() == 0 ) return std::make_pair( TVector3(), false );
+    if( direction.z() == 0 ) return std::nullopt;
 
     // check that distance and direction have the same sign
-    if( dist*direction.z() < 0 ) return std::make_pair( TVector3(), false );
+    if( dist*direction.z() < 0 ) return std::nullopt;
 
     const double direction_scale=dist/direction.z();
-    return std::make_pair(start + direction * direction_scale, true );
+    return start + direction * direction_scale;
   }
-   
-  //_____________________________________________________________  
-  std::pair<TVector3,bool> endcap_intersection(TVector3 start, TVector3 direction)
+
+  //_____________________________________________________________
+  std::optional<TVector3> endcap_intersection(TVector3 start, TVector3 direction)
   {
     const double end = start.z() > 0 ? halflength_tpc:-halflength_tpc;
     const double dist=end-start.z();
     
     // if line is vertical, it will never intercept the endcap
-    if( direction.z() == 0 ) return std::make_pair( TVector3(), false );
-    
+    if( direction.z() == 0 ) return std::nullopt;
+
     // check that distance and direction have the same sign
-    if( dist*direction.z() < 0 ) return std::make_pair( TVector3(), false );
+    if( dist*direction.z() < 0 ) return std::nullopt;
 
     const double direction_scale=dist/direction.z();
-    return std::make_pair(start + direction * direction_scale, true );
+    return start + direction * direction_scale;
   }
 
   //_____________________________________________________________
-  std::pair<TVector3,bool>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
+  std::optional<TVector3>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
   {
     
     const double R2=square(radius);
@@ -95,8 +96,8 @@ namespace
      * if the rootterm is negative, we will have no real roots,
      * we are outside the cylinder and pointing skew to the cylinder such that we never cross.
      */
-    if( rootterm < 0 || a == 0 ) return std::make_pair(TVector3(), false);
-    
+    if( rootterm < 0 || a == 0 ) return std::nullopt;
+
     //Find the (up to) two points where we collide with the cylinder:
     const double sqrtterm=std::sqrt(rootterm);
     const double t1 = (-b+sqrtterm)/(2*a);
@@ -107,27 +108,27 @@ namespace
     * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
     */
     const double& min_t = (t2<t1 && t2>0) ? t2:t1;
-    return std::make_pair(s+v*min_t, true );
+    return s+v*min_t;
   }
   
   //_____________________________________________________________
-  std::pair<TVector3,bool> field_cage_intersection(TVector3 start, TVector3 direction)
+  std::optional<TVector3> field_cage_intersection(TVector3 start, TVector3 direction)
   {
     const auto ofc_strike=cylinder_line_intersection(start,direction,end_CM);
     const auto ifc_strike=cylinder_line_intersection(start,direction,begin_CM);
     
     // if either of the two intersection is invalid, return the other
-    if( !ifc_strike.second ) return ofc_strike;
-    if( !ofc_strike.second ) return ifc_strike;
-    
+    if( !ifc_strike ) return ofc_strike;
+    if( !ofc_strike ) return ifc_strike;
+
     // both intersection are valid, calculate signed distance to start z
-    const auto ifc_dist=(ifc_strike.first.Z()-start.Z())/direction.Z();
-    const auto ofc_dist=(ofc_strike.first.Z()-start.Z())/direction.Z();
-   
-    if(ifc_dist<0) return (ofc_dist > 0) ? ofc_strike:std::make_pair( TVector3(), false );
+    const auto ifc_dist=(ifc_strike->Z()-start.Z())/direction.Z();
+    const auto ofc_dist=(ofc_strike->Z()-start.Z())/direction.Z();
+
+    if(ifc_dist<0) return (ofc_dist > 0) ? ofc_strike : std::nullopt;
     else if( ofc_dist<0 ) return ifc_strike;
-    else return (ifc_dist<ofc_dist) ? ifc_strike:ofc_strike;
-    
+    else return (ifc_dist<ofc_dist) ? ifc_strike : ofc_strike;
+
   }
   
   /// TVector3 stream
@@ -437,14 +438,14 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   // field cage intersection
   const auto fc_strike=field_cage_intersection(pos,dir);
 
-  // if none of the strikes is valid, there is no valid information found. 
-  if( !(plane_strike.second || fc_strike.second ) ) return;
-  
+  // if none of the strikes is valid, there is no valid information found.
+  if( !(plane_strike || fc_strike ) ) return;
+
   // decide relevant end of laser
   /* chose field cage intersection if valid, and if either plane intersection is invalid or happens on a larger z along the laser direction) */
-  const auto& strike = ( fc_strike.second && (!plane_strike.second || fc_strike.first.z()/dir.z()<plane_strike.first.z()/dir.z()) ) ?
-    fc_strike.first:
-    plane_strike.first;
+  const auto& strike = ( fc_strike && (!plane_strike || fc_strike->z()/dir.z() < plane_strike->z()/dir.z()) ) ?
+    *fc_strike:
+    *plane_strike;
 
   //find length
   TVector3 delta=(strike-pos);
