@@ -386,7 +386,7 @@ PHG4Hitv1* PHG4TpcCentralMembrane::GetTopVerticesFromStripe(int moduleID, int ra
     return topvert;
 }
 
-int PHG4TpcCentralMembrane::SearchModule(int nStripes, 
+int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/, 
   const double x1a[][nRadii], const double x1b[][nRadii], 
   const double x2a[][nRadii], const double x2b[][nRadii], 
   const double y1a[][nRadii], const double y1b[][nRadii], 

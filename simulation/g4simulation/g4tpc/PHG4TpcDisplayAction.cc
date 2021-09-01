@@ -29,7 +29,7 @@ PHG4TpcDisplayAction::~PHG4TpcDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   static const G4Colour color[] = {PHG4TpcColorDefs::tpc_cu_color,
                                    PHG4TpcColorDefs::tpc_pcb_color,
