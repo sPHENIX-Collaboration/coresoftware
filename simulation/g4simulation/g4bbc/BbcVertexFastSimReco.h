@@ -25,10 +25,8 @@ class BbcVertexFastSimReco : public SubsysReco
   BbcVertexFastSimReco(const std::string &name = "BbcVertexFastSimReco");
   ~BbcVertexFastSimReco() override;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_t_smearing(const float t_smear) { m_T_Smear = t_smear; }
   void set_z_smearing(const float z_smear) { m_Z_Smear = z_smear; }

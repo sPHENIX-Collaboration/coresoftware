@@ -43,11 +43,6 @@ BbcVertexFastSimReco::~BbcVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int BbcVertexFastSimReco::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
   if (isnan(m_T_Smear) || isnan(m_Z_Smear))
@@ -125,11 +120,6 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
 
   vertexes->insert(vertex);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int BbcVertexFastSimReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
