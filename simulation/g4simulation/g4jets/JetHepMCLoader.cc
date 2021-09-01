@@ -53,15 +53,6 @@ JetHepMCLoader::JetHepMCLoader(const std::string &jetInputCategory)
 {
 }
 
-JetHepMCLoader::~JetHepMCLoader()
-{
-}
-
-int JetHepMCLoader::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int JetHepMCLoader::InitRun(PHCompositeNode *topNode)
 {
   if (m_saveQAPlots)
@@ -198,7 +189,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetHepMCLoader::End(PHCompositeNode *topNode)
+int JetHepMCLoader::End(PHCompositeNode *)
 {
   if (m_saveQAPlots)
   {

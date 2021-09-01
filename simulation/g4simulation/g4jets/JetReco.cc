@@ -47,11 +47,6 @@ JetReco::~JetReco()
   _outputs.clear();
 }
 
-int JetReco::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int JetReco::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
@@ -103,11 +98,6 @@ int JetReco::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 1) cout << "JetReco::process_event -- exited" << endl;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int JetReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
