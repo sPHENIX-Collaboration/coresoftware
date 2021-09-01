@@ -22,7 +22,8 @@ namespace
 }
 
 SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
-  : _pathlength(pathlength)
+  : SvtxTrackState(pathlength)
+  , _pathlength(pathlength)
 {
   for (int i = 0; i < 3; ++i) _pos[i] = 0.0;
   for (int i = 0; i < 3; ++i) _mom[i] = NAN;
