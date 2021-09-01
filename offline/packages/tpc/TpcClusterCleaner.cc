@@ -32,21 +32,6 @@ TpcClusterCleaner::TpcClusterCleaner(const std::string &name)
 }
 
 //____________________________________________________________________________..
-TpcClusterCleaner::~TpcClusterCleaner()
-{
-
-}
-
-//____________________________________________________________________________..
-int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
-{
-  int ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  return ret;
-}
-
-//____________________________________________________________________________..
 int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
 
@@ -190,17 +175,6 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
     }
   */
   
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TpcClusterCleaner::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int  TpcClusterCleaner::GetNodes(PHCompositeNode* topNode)
-{
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

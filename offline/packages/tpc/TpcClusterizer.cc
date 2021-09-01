@@ -567,9 +567,9 @@ void *ProcessSector(void *threadarg) {
      if(fadc>0) 
        adc =  (unsigned short) fadc;
      
-     if(phibin < 0) continue;
+//     if(phibin < 0) continue; phibin is unsigned, check for <0 pointless
      if(phibin >= phibins) continue;
-     if(zbin   < 0) continue;
+//     if(zbin   < 0) continue; zbin is unsigned, check for <0 pointless
      if(zbin   >= zbins) continue;
 
      if(adc>0){
@@ -875,10 +875,5 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TpcClusterizer::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -31,7 +31,6 @@ class TpcClusterizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
   void set_search_bins(const int bins){NSearch = bins;}
