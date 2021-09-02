@@ -12,6 +12,7 @@ if test $ac_cv_prog_gxx = yes; then
 fi
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override -Wextra "
+
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])
