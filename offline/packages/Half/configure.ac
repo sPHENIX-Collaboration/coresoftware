@@ -12,11 +12,16 @@ if test $ac_cv_prog_gxx = yes; then
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
 fi
 
-dnl test for root 6
-if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
+case $CXX in
+ clang++)
+   CXXFLAGS="$CXXFLAGS -Wno-deprecated-copy"
+ ;;
+esac
+
 CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
+
 AC_SUBST(CINTDEFS)
-fi
+
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
