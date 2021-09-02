@@ -235,7 +235,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 }
 */
 
-void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
+void BEmcRecCEMC::CorrectShowerDepth(float /*E*/, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
   xC = xA;
   yC = yA;
@@ -243,7 +243,7 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   return;
 }
 
-void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
+void BEmcRecCEMC::CorrectEnergy(float Energy, float /*x*/, float /*y*/,
                                 float& Ecorr)
 {
   // Corrects the EM Shower Energy for attenuation in fibers and
@@ -269,7 +269,7 @@ void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
   Ecorr = Energy;
 }
 
-void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
+void BEmcRecCEMC::CorrectECore(float Ecore, float /*x*/, float /*y*/, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance

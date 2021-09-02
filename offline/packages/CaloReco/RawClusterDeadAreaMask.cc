@@ -47,7 +47,7 @@ int RawClusterDeadAreaMask::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
+int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
@@ -262,7 +262,7 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   }
 }
 
-int RawClusterDeadAreaMask::End(PHCompositeNode *topNode)
+int RawClusterDeadAreaMask::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

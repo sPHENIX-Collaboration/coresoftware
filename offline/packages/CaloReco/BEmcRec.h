@@ -89,21 +89,21 @@ class BEmcRec
   virtual float PredictEnergyParam(float, float, float);
 
   // Calorimeter specific functions to be specified in respective inherited object
-  virtual void CorrectEnergy(float energy, float x, float y, float &ecorr) { ecorr = energy; }
-  virtual void CorrectECore(float ecore, float x, float y, float &ecorecorr) { ecorecorr = ecore; }
-  virtual void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr)
+  virtual void CorrectEnergy(float energy, float /*x*/, float /*y*/, float &ecorr) { ecorr = energy; }
+  virtual void CorrectECore(float ecore, float /*x*/, float /*y*/, float &ecorecorr) { ecorecorr = ecore; }
+  virtual void CorrectPosition(float /*energy*/, float x, float y, float &xcorr, float &ycorr)
   {
     xcorr = x;
     ycorr = y;
   }
-  virtual void CorrectShowerDepth(float energy, float x, float y, float z, float &xc, float &yc, float &zc)
+  virtual void CorrectShowerDepth(float /*energy*/, float x, float y, float z, float &xc, float &yc, float &zc)
   {
     xc = x;
     yc = y;
     zc = z;
   }
   virtual void LoadProfile(const std::string &fname);
-  virtual void GetImpactThetaPhi(float xg, float yg, float zg, float &theta, float &phi)
+  virtual void GetImpactThetaPhi(float /*xg*/, float /*yg*/, float /*zg*/, float &theta, float &phi)
   {
     theta = 0;
     phi = 0;

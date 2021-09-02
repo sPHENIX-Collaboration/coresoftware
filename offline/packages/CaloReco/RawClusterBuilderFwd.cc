@@ -306,7 +306,7 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *to
   return true;  // mean phi was corrected
 }
 
-int RawClusterBuilderFwd::End(PHCompositeNode *topNode)
+int RawClusterBuilderFwd::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
