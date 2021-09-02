@@ -61,7 +61,7 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
+int QAG4SimulationTracking::Init(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
