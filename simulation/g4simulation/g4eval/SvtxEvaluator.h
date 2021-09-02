@@ -60,6 +60,7 @@ class SvtxEvaluator : public SubsysReco
 
   void do_track_match(bool b) { _do_track_match = b; }
   void do_eval_light(bool b) { _do_eval_light = b; }
+  void do_vtx_eval_light(bool b) { _do_vtx_eval_light = b;}
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
   void scan_for_primaries(bool b) { _scan_for_primaries = b; }
 
@@ -94,6 +95,7 @@ class SvtxEvaluator : public SubsysReco
 
   bool _do_track_match;
   bool _do_eval_light;
+  bool _do_vtx_eval_light;
   bool _scan_for_embedded;
   bool _scan_for_primaries;
 

@@ -23,13 +23,6 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   ~PHTpcTrackSeedVertexAssoc() override;
 
-  void reject_xy_outliers(const bool reject){_reject_xy_outliers = reject;}  
-  void reject_z_outliers(const bool reject){_reject_z_outliers = reject;}
-
-  void set_xy_residual_cut(const double cut){_xy_residual_cut = cut;}
-  void set_z_residual_cut(const double cut){_z_residual_cut = cut;}
-  void set_refit(const bool refit) {_refit = refit;}
-
  protected:
   int Setup(PHCompositeNode* topNode) override;
 
@@ -47,6 +40,7 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0);
   std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B);
   std::vector<TrkrCluster*> getTrackClusters(SvtxTrack *_tracklet_tpc);
+  void findRoot(const double R, const double X0, const double Y0, double& x, double& y);
 						    
   std::string _track_map_name_silicon;
 
@@ -57,13 +51,6 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
   unsigned int _max_tpc_layer = 54;
 
   double _z_proj= 0;
-
-  bool _reject_xy_outliers = false;
-  bool _reject_z_outliers = false;
-  bool _refit  = false;
-
-  double _xy_residual_cut = 0.08;
-  double _z_residual_cut = 0.22;
 
 };
 
