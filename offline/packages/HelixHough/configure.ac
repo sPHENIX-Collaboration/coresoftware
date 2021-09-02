@@ -10,9 +10,9 @@ LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
-dnl if test $ac_cv_prog_gxx = yes; then
-dnl    CXXFLAGS="$CXXFLAGS -Wall -Werror"
-dnl fi
+if test $ac_cv_prog_gxx = yes; then
+    CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+fi
 
 ROOTLIBS=`$ROOTSYS/bin/root-config --libs`
 AC_SUBST(ROOTLIBS)

@@ -12,10 +12,10 @@ dnl leaving this here in case we want to play with different compiler
 dnl specific flags
  case $CXX in
   clang++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions -Wextra"
   ;;
   *g++)
-   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic "
+   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic -Wextra "
   ;;
  esac
 

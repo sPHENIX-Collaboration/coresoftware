@@ -7,7 +7,7 @@ LT_INIT([disable-static])
 
 dnl   unused param warnings come from newbasic include
 if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-unused-parameter"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-unused-parameter -Wextra"
 fi
 
 AC_CONFIG_FILES([Makefile])

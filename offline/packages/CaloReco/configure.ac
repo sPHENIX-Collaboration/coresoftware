@@ -7,10 +7,10 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions -Wextra"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
  ;;
 esac
 

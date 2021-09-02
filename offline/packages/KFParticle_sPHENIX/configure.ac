@@ -9,10 +9,10 @@ dnl KFParticle KFParticleDatabase.h includes Vc/Vc which collides with
 dnl clangs inbuild Vc by redefining a macro
 case $CXX in
   clang++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-macro-redefined"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-macro-redefined -Wextra"
   ;;
   *g++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
   ;;
 esac
 
