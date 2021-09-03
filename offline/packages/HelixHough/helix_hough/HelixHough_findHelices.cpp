@@ -14,20 +14,20 @@
 
 using namespace std;
 
-static inline void in_place_counting_sort_unique(vector<unsigned int>& A,
-                                                 vector<unsigned int>& C,
-                                                 unsigned int MAX) {
-  unsigned int SIZE = A.size();
-  for (unsigned int i = 0; i < SIZE; ++i) {
-    ++C[A[i]];
-  }
-  unsigned int current = 0;
-  for (unsigned int i = 0; i < MAX; ++i) {
-    A[current] = ((((C[i] != 0) - 1) & (A[current])) ^ (((C[i] == 0) - 1) & i));
-    current += (C[i] != 0);
-  }
-  A.resize(current);
-}
+// static inline void in_place_counting_sort_unique(vector<unsigned int>& A,
+//                                                  vector<unsigned int>& C,
+//                                                  unsigned int MAX) {
+//   unsigned int SIZE = A.size();
+//   for (unsigned int i = 0; i < SIZE; ++i) {
+//     ++C[A[i]];
+//   }
+//   unsigned int current = 0;
+//   for (unsigned int i = 0; i < MAX; ++i) {
+//     A[current] = ((((C[i] != 0) - 1) & (A[current])) ^ (((C[i] == 0) - 1) & i));
+//     current += (C[i] != 0);
+//   }
+//   A.resize(current);
+// }
 
 static inline void in_place_counting_unique(vector<unsigned int>& A,
                                             vector<unsigned int>& C) {

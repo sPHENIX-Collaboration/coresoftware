@@ -14,10 +14,10 @@
 
 using namespace std;
 
-static const unsigned int digits = 2;
-static const unsigned int r = 7;
-static const unsigned int radix = 1 << r;
-static const unsigned int mask = radix - 1;
+//static const unsigned int digits = 2;
+//static const unsigned int r = 7;
+//static const unsigned int radix = 1 << r;
+//static const unsigned int mask = radix - 1;
 
 // static void radix_sort(std::vector<BinEntryPair5D>& A) {
 //   unsigned int SIZE = A.size();

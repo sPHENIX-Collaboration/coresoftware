@@ -13,5 +13,11 @@ if test $ac_cv_prog_gxx = yes; then
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
 fi
 
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wno-unused-parameter"
+ ;;
+esac
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
