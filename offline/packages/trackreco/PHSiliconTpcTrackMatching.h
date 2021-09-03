@@ -25,6 +25,9 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   void set_track_map_name_silicon(const std::string &map_name) { _track_map_name_silicon = map_name; }
   void set_phi_search_window(const double win){_phi_search_win = win;}
   void set_eta_search_window(const double win){_eta_search_win = win;}
+  void set_x_search_window(const double win){_x_search_win = win;}
+  void set_y_search_window(const double win){_y_search_win = win;}
+  void set_z_search_window(const double win){_z_search_win = win;}
   void set_search_par_values(const double p0, const double p1, const double p2){_par0 = p0; _par1 = p1; _par2 = p2; }
   void set_seeder(const bool is_ca_seeder){_is_ca_seeder = is_ca_seeder;}
 
@@ -56,6 +59,9 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
   double _eta_search_win = 0.004;
+  double _x_search_win = 0.3;
+  double _y_search_win = 0.3;
+  double _z_search_win = 0.4;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};

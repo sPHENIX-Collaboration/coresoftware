@@ -114,6 +114,10 @@ class PHActsSiliconSeeding : public SubsysReco
   void gridFactor(const float gridFactor)
   {m_gridFactor = gridFactor;}
 
+  /// A function to run the seeder with large (true)
+  /// or small (false) grid spacing
+  void largeGridSpacing(const bool spacing);
+
  private:
 
   int getNodes(PHCompositeNode *topNode);

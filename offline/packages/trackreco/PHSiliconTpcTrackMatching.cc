@@ -184,6 +184,9 @@ int PHSiliconTpcTrackMatching::Process()
       if(tpc_phi < - M_PI) tpc_phi += 2.0*M_PI;
       if(tpc_phi > M_PI) tpc_phi -= 2.0*M_PI;
 
+      double tpc_x = _tracklet_tpc->get_x();
+      double tpc_y = _tracklet_tpc->get_y();
+      double tpc_z = _tracklet_tpc->get_z();
 
       // Now search the silicon track list for a match in eta and phi
       // NOTE: we will take the combined track vertex from the vertex associated with the silicon stub, once the match is made
@@ -197,17 +200,21 @@ int PHSiliconTpcTrackMatching::Process()
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
-	  //double si_pt = sqrt(pow(_tracklet_si->get_px(), 2) + pow(_tracklet_si->get_py(), 2) );
+	  double si_x = _tracklet_si->get_x();
+	  double si_y = _tracklet_si->get_y();
+	  double si_z = _tracklet_si->get_z();
 
 	  if(Verbosity() >= 2)
 	    {
 	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
 	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win  << " tpc_eta " << tpc_eta 
 		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win << endl;
+	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
 	    }
 
 	  bool eta_match = false;
 	  bool phi_match = false;
+	  bool position_match = false;
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag) eta_match = true;
 
 	  // PHTpcTracker has a bias in the tracklet phi that depends on charge sign, PHCASeeding does not
@@ -228,6 +235,13 @@ int PHSiliconTpcTrackMatching::Process()
 	      if(  (tpc_phi - si_phi) > phi_search_win_lo && (tpc_phi - si_phi) < phi_search_win_hi) phi_match = true;	      
 	    }
 
+	  if(
+	     fabs(tpc_x - si_x) < _x_search_win * mag &&
+	     fabs(tpc_y - si_y) < _y_search_win * mag &&
+	     fabs(tpc_z - si_z) < _z_search_win * mag
+	     )
+	    position_match = true;
+	    
 	  /*
 	  // temporary for debugging!
 	  if(_test_windows)
@@ -235,7 +249,7 @@ int PHSiliconTpcTrackMatching::Process()
 		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
 	  */	  
 	  
-	  if(eta_match && phi_match)
+	  if(eta_match && phi_match && position_match)
 	    {
 	      // got a match, add to the list
 	      if(Verbosity() > 1)  
@@ -243,12 +257,15 @@ int PHSiliconTpcTrackMatching::Process()
 		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+		  std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
 		}
 
 	      // temporary!
 	      if(_test_windows)
 		cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi-si_phi  
-		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << endl;
+		     << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " tpc_x " << tpc_x << " tpc_y " << tpc_y << " tpc_z " << tpc_z 
+		     << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
+		     << endl;
 
 	      si_matches.insert(_tracklet_si->get_id());
 	    }
