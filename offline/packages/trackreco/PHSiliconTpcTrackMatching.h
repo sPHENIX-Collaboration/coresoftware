@@ -59,9 +59,9 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
   double _eta_search_win = 0.004;
-  double _x_search_win = 0.1;
-  double _y_search_win = 0.1;
-  double _z_search_win = 0.2;
+  double _x_search_win = 0.3;
+  double _y_search_win = 0.3;
+  double _z_search_win = 0.4;
   
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
