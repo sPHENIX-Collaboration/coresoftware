@@ -98,8 +98,8 @@ using namespace std;
 // names of our implemented calorimeters where the projections are done
 // at 1/2 of their depth, not at the surface
 // this is used to avoid user added projections with identical names
-set<string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT"};
-set<string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC", "EHCAL"};
+set<string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT", "BECAL"};
+set<string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC", "EHCAL", "LFHCAL"};
 
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
