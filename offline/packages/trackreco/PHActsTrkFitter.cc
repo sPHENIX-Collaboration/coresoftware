@@ -221,13 +221,16 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::Vector3D momentum(track->get_px(), 
 			      track->get_py(), 
 			      track->get_pz());
-   
-      auto actsVertex = getVertex(track);
+
+      Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
+			      track->get_y() * Acts::UnitConstants::cm,
+			      track->get_z() * Acts::UnitConstants::cm);
+
 
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-					  actsVertex);
-      auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
-					actsVertex(2),
+					  position);
+      auto actsFourPos = Acts::Vector4D(position(0), position(1),
+					position(2),
 					10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
