@@ -177,7 +177,7 @@ pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHH
   assert(beamCenterDiffAxis.mag() > CLHEP::Hep3Vector::getTolerance());
   beamCenterDiffAxis = beamCenterDiffAxis / beamCenterDiffAxis.mag();
 
-  CLHEP::Hep3Vector vec_crossing = 0.5 * (beamA_center - beamB_center) - beamA_center;
+  CLHEP::Hep3Vector vec_crossing = beamA_center - 0.5 * (beamA_center - beamB_center);
 
   CLHEP::Hep3Vector vec_longitudinal_collision = beamCenterDiffAxis * (bunch_zs.first + bunch_zs.second) / 2.;
   double ct_collision = 0.5 * (-bunch_zs.first + bunch_zs.second) / beamCenterDiffAxis.dot(beamA_center);
