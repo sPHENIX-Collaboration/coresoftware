@@ -179,7 +179,7 @@ pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHH
 
   CLHEP::Hep3Vector vec_crossing = 0.5 * (beamA_center - beamB_center) - beamA_center;
 
-  CLHEP::Hep3Vector vec_longitudinal_collision = beamCenterDiffAxis * (bunch_zs.first + bunch_zs.second);
+  CLHEP::Hep3Vector vec_longitudinal_collision = beamCenterDiffAxis * (bunch_zs.first + bunch_zs.second) / 2.;
   double ct_collision = 0.5 * (-bunch_zs.first + bunch_zs.second) / beamCenterDiffAxis.dot(beamA_center);
   double t_collision = ct_collision * CLHEP::cm / CLHEP::c_light / CLHEP::ns;
   CLHEP::Hep3Vector vec_crossing_collision = ct_collision * vec_crossing;  // shift of collision to crossing dierction
@@ -231,6 +231,7 @@ pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHH
          << "vec_crossing_collision = " << vec_crossing_collision << ", "
          << "vec_vertical_collision_vertex_smear = " << vec_vertical_collision_vertex_smear << ", "
          << "vec_horizontal_collision_vertex_smear = " << vec_horizontal_collision_vertex_smear << ", " << endl
+         << "vec_collision_vertex = " << vec_collision_vertex << ", " << endl
 
          << "ct_collision = " << ct_collision << ", "
          << "t_collision = " << t_collision << ", "
@@ -664,9 +665,9 @@ void PHHepMCGenHelper::Print(const std::string &what) const
 
   cout << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << endl;
 
-  cout << "Beam bunch A width = "
+  cout << "Beam bunch A width = ["
        << m_beam_bunch_width.first[0] << ", " << m_beam_bunch_width.first[1] << ", " << m_beam_bunch_width.first[2] << "] cm" << endl;
-  cout << "Beam bunch B width = "
+  cout << "Beam bunch B width = ["
        << m_beam_bunch_width.second[0] << ", " << m_beam_bunch_width.second[1] << ", " << m_beam_bunch_width.second[2] << "] cm" << endl;
 
   return;
