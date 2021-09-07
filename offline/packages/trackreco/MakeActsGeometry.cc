@@ -565,11 +565,11 @@ void MakeActsGeometry::buildActsSurfaces()
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
     }
-  
+
   // We replicate the relevant functionality of  
   //acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
-
+  
   makeGeometry(argc, arg, m_detector);
 
   for(int i=0; i<argc; i++)

@@ -116,7 +116,7 @@ class MakeActsGeometry : public SubsysReco
   /// Function that mimics ActsFW::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
-
+ 
   void setMaterialResponseFile(std::string& responseFile,
 			       std::string& materialFile);
 
