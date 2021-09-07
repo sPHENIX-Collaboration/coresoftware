@@ -54,6 +54,10 @@ class SimEvaluator_hp : public SubsysReco
     int _nevt_active = 0;
     int _nevt_bg = 0;
     //@}
+
+    // number of primary g4 particles with pt > 0.5 GeV
+    int _nparticles = 0;
+
   };
 
   // vertex information
@@ -256,7 +260,7 @@ class SimEvaluator_hp : public SubsysReco
   // map trk id to embed id
   using EmbedMap = std::map<int,int>;
   EmbedMap m_g4embed_map;
-  
+
   // map trk_id to layer mask
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;

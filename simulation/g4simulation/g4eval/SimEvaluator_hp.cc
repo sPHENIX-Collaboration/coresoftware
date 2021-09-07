@@ -289,7 +289,7 @@ void SimEvaluator_hp::print_tpc( PHCompositeNode* topnode )
 
   // add end radius for last layer
   radius.push_back( radius.back() + thickness.back() );
-  
+
   print_vector( "phibins", phibins );
   print_vector( "zbins", zbins );
   print_vector( "thickness", thickness );
@@ -328,17 +328,31 @@ void SimEvaluator_hp::check_genevent()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
-  if( !( m_container && m_geneventmap ) ) 
+  if( !( m_container && m_geneventmap ) )
   {
     std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
     return;
   }
-  
+
   // clear vertices from previous event
   m_container->clearEventList();
 
   // create event and store pileup information
-  m_container->addEvent(create_event(m_geneventmap));
+  auto event = create_event(m_geneventmap);
+
+  // count number of primary particles with pt > 0.5
+  if( m_g4truthinfo )
+  {
+    const auto range = m_g4truthinfo->GetPrimaryParticleRange();
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+      auto particle = iter->second;
+      if( particle && get_pt( particle->get_px(), particle->get_py() ) > 0.5 ) ++event._nparticles;
+    }
+  }
+
+  // add to container
+  m_container->addEvent(event);
 
 }
 
@@ -393,7 +407,7 @@ void SimEvaluator_hp::fill_particles()
 //     for( const auto& id:embed_ids ) std::cout << " " << id;
 //     std::cout << std::endl;
   }
-  
+
   auto range = m_g4truthinfo->GetPrimaryParticleRange();
   for( auto iter = range.first; iter != range.second; ++iter )
   {
