@@ -25,18 +25,18 @@ class SvtxVertexMap : public PHObject
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
-  virtual size_t count(unsigned int idkey) const { return 0; }
+  virtual size_t count(unsigned int /*idkey*/) const { return 0; }
   virtual void clear() {}
 
-  virtual const SvtxVertex* get(unsigned int idkey) const { return nullptr; }
-  virtual SvtxVertex* get(unsigned int idkey) { return nullptr; }
+  virtual const SvtxVertex* get(unsigned int /*idkey*/) const { return nullptr; }
+  virtual SvtxVertex* get(unsigned int /*idkey*/) { return nullptr; }
 
   //! Add vertex to container. Note the container take to ownership
-  virtual SvtxVertex* insert(SvtxVertex* cluster) { return nullptr; }
+  virtual SvtxVertex* insert(SvtxVertex* /*cluster*/) { return nullptr; }
   //! legacy interface. Add vertex to container. Note the container does not take ownership
-  virtual SvtxVertex* insert_clone(const SvtxVertex* vertex) { return nullptr; }
+  virtual SvtxVertex* insert_clone(const SvtxVertex* /*vertex*/) { return nullptr; }
 
-  virtual size_t erase(unsigned int idkey) { return 0; }
+  virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(unsigned int idkey) const;

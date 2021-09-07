@@ -31,7 +31,7 @@ int PH3DVertexing::InitRun(PHCompositeNode* topNode)
   return Setup(topNode);
 }
 
-int PH3DVertexing::process_event(PHCompositeNode* topNode)
+int PH3DVertexing::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }

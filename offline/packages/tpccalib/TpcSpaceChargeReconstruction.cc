@@ -83,7 +83,7 @@ void TpcSpaceChargeReconstruction::set_outputfile( const std::string& filename )
 { m_outputfile = filename; }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::Init(PHCompositeNode* /*topNode*/ )
 {
   // reset counters
   m_total_tracks = 0;
@@ -138,7 +138,7 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::End(PHCompositeNode* /*topNode*/ )
 {
 
   // save matrix container in output file

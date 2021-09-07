@@ -160,6 +160,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
              << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
       }
+      [[fallthrough]];
     case fGeomBoundary:
     case fUndefined:
       // if previous hit was saved, hit pointer was set to nullptr

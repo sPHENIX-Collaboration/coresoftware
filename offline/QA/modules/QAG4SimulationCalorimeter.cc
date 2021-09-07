@@ -200,7 +200,7 @@ QAG4SimulationCalorimeter::get_histo_prefix()
   return "h_QAG4Sim_" + string(_calo_name);
 }
 
-int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -248,7 +248,7 @@ int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
@@ -430,7 +430,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -600,7 +600,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

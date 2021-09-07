@@ -30,11 +30,11 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   //@{
 
   /// identify object
-  void identify(std::ostream &os = std::cout) const override
+  void identify(std::ostream &/*os*/ = std::cout) const override
   {}
 
   /// get grid dimensions
-  virtual void get_grid_dimensions( int& phibins, int& rbins, int& zbins ) const
+  virtual void get_grid_dimensions( int& /*phibins*/, int& /*rbins*/, int& /*zbins*/ ) const
   {}
 
   /// get total grid size
@@ -42,19 +42,19 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   { return 0; }
 
   /// get grid index for given sub-indexes
-  virtual int get_cell_index( int iphibin, int irbin, int izbin ) const
+  virtual int get_cell_index( int /*iphibin*/, int /*irbin*/, int /*izbin*/ ) const
   { return -1; }
 
   /// get entries for a given cell
-  virtual int get_entries( int cell_index ) const
+  virtual int get_entries( int /*cell_index*/ ) const
   { return 0; }
 
   /// get left hand side
-  virtual float get_lhs( int cell_index, int i, int j ) const
+  virtual float get_lhs( int /*cell_index*/, int /*i*/, int /*j*/ ) const
   { return 0; }
 
   /// get right hand side
-  virtual float get_rhs( int cell_index, int i ) const
+  virtual float get_rhs( int /*cell_index*/, int /*i*/ ) const
   { return 0; }
 
   //@}
@@ -71,27 +71,27 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   \param phibins the number of bins in the azimuth direction
   \param zbins the number of bins along z
   */
-  virtual void set_grid_dimensions( int phibins, int rbins, int zbins )
+  virtual void set_grid_dimensions( int /*phibins*/, int /*rbins*/, int /*zbins*/ )
   {}
 
   /// increment cell entries
-  virtual void add_to_entries( int cell_index )
+  virtual void add_to_entries( int /*cell_index*/ )
   {}
 
   /// increment cell entries
-  virtual void add_to_entries( int cell_index, int value )
+  virtual void add_to_entries( int /*cell_index*/, int /*value*/ )
   {}
 
   /// increment left hand side matrix
-  virtual void add_to_lhs( int cell_index, int i, int j, float value )
+  virtual void add_to_lhs( int /*cell_index*/, int /*i*/, int /*j*/, float /*value*/ )
   {}
 
   /// increment right hand side column
-  virtual void add_to_rhs( int cell_index, int i, float value )
+  virtual void add_to_rhs( int /*cell_index*/, int /*i*/, float /*value*/ )
   {}
 
   /// add content from other container, returns true on success
-  virtual bool add( const TpcSpaceChargeMatrixContainer& other )
+  virtual bool add( const TpcSpaceChargeMatrixContainer& /*other*/ )
   { return false; }
 
   //@}

@@ -58,7 +58,7 @@ BeamLineMagnetSteppingAction::~BeamLineMagnetSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_used)
+bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -127,6 +127,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
       std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
                 << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
+    [[fallthrough]];
   case fGeomBoundary:
   case fUndefined:
     if (!m_Hit)

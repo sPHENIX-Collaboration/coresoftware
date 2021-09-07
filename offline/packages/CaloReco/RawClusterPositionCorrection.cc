@@ -299,7 +299,7 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   const string paramNodeName2 = string("ecore_Recalibration_" + _det_name);
   _ecore_calib_params.SaveToNodeTree(parNode, paramNodeName2);
 }
-int RawClusterPositionCorrection::End(PHCompositeNode *topNode)
+int RawClusterPositionCorrection::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -153,7 +153,7 @@ int Fun4AllHepMCInputManager::fileopen(const std::string &filenam)
   return 0;
 }
 
-int Fun4AllHepMCInputManager::run(const int nevents)
+int Fun4AllHepMCInputManager::run(const int /*nevents*/)
 {
   // attempt to retrieve a valid event from inputs
   while (true)

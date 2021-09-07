@@ -24,9 +24,9 @@ using namespace std;
 #define ALMOST_ZERO 0.00001
 
 AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, float in_outerZ,
-				 int r, int roi_r0, int roi_r1, int in_rLowSpacing, int in_rHighSize,
-				 int phi, int roi_phi0, int roi_phi1, int in_phiLowSpacing, int in_phiHighSize,
-				 int z, int roi_z0, int roi_z1,int in_zLowSpacing, int in_zHighSize,
+				 int r, int roi_r0, int roi_r1, int /*in_rLowSpacing*/, int /*in_rHighSize*/,
+				 int phi, int roi_phi0, int roi_phi1, int /*in_phiLowSpacing*/, int /*in_phiHighSize*/,
+				 int z, int roi_z0, int roi_z1,int /*in_zLowSpacing*/, int /*in_zHighSize*/,
 				 float vdr,LookupCase in_lookupCase, ChargeCase in_chargeCase){
   //check well-ordering:
   if (roi_r0 >=r || roi_r1>r || roi_r0>=roi_r1){
@@ -2467,7 +2467,7 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase,TVector3 pos, 
 return;
 }
 
-void AnnularFieldSim::GenerateSeparateDistortionMaps(const char* filebase, int r_subsamples, int p_subsamples, int z_subsamples, int z_substeps, bool andCartesian){
+void AnnularFieldSim::GenerateSeparateDistortionMaps(const char* filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian){
 //1) pick a map spacing ('s')  
   TVector3 s(step.Perp()/r_subsamples, 0,step.Z()/z_subsamples);
   s.SetPhi(step.Phi()/p_subsamples);
@@ -2952,7 +2952,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char* filebase, int r
 
 
 
-void AnnularFieldSim::GenerateDistortionMaps(const char* filebase, int r_subsamples, int p_subsamples, int z_subsamples, int z_substeps, bool andCartesian){
+void AnnularFieldSim::GenerateDistortionMaps(const char* filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian){
 //1) pick a map spacing ('s')
   bool makeUnifiedMap=true; //if true, generate a single map across the whole TPC.  if false, save two maps, one for each side.
 

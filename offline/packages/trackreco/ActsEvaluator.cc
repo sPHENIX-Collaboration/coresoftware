@@ -50,7 +50,7 @@ ActsEvaluator::~ActsEvaluator()
 {
 }
 
-int ActsEvaluator::Init(PHCompositeNode *topNode)
+int ActsEvaluator::Init(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1)
   {
@@ -250,7 +250,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 }
 
 
-int ActsEvaluator::End(PHCompositeNode *topNode)
+int ActsEvaluator::End(PHCompositeNode */*topNode*/)
 {
   m_trackFile->cd();
   m_trackTree->Write();
@@ -259,7 +259,7 @@ int ActsEvaluator::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int ActsEvaluator::ResetEvent(PHCompositeNode *topNode)
+int ActsEvaluator::ResetEvent(PHCompositeNode */*topNode*/)
 {
   m_trajNr = 0;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -776,7 +776,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 
 
 
-Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode *topNode, 
+Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
 						TrkrDefs::cluskey cluskey,
 						float &_gt)
 {

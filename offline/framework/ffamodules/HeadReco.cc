@@ -105,7 +105,7 @@ int HeadReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int HeadReco::EndRun(const int runno)
+int HeadReco::EndRun(const int /*runno*/)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   FlagSave *flagsave = findNode::getClass<FlagSave>(se->topNode(), "Flags");

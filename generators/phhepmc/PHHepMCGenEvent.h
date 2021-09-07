@@ -69,7 +69,7 @@ class PHHepMCGenEvent : public PHObject
   }
 
   //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
-  virtual void set_boost_beta_vector(const HepMC::ThreeVector& v) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_boost_beta_vector(const HepMC::ThreeVector&) { PHOOL_VIRTUAL_WARNING; }
 
   //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   virtual const HepMC::ThreeVector& get_rotation_vector() const
@@ -80,7 +80,7 @@ class PHHepMCGenEvent : public PHObject
   }
 
   //! rotation axis vector, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
-  virtual void set_rotation_vector(const HepMC::ThreeVector& v) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_rotation_vector(const HepMC::ThreeVector&) { PHOOL_VIRTUAL_WARNING; }
 
   //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   virtual double get_rotation_angle() const
@@ -90,7 +90,7 @@ class PHHepMCGenEvent : public PHObject
   }
 
   //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
-  virtual void set_rotation_angle(const double a) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_rotation_angle(const double) { PHOOL_VIRTUAL_WARNING; }
 
   //!LorentzRotation to translate from hepmc event frame to lab frame
   virtual CLHEP::HepLorentzRotation get_LorentzRotation_EvtGen2Lab() const { return CLHEP::HepLorentzRotation::IDENTITY; }

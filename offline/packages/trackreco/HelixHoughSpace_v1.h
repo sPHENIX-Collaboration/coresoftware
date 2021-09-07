@@ -18,7 +18,7 @@ public:
 
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream &os=std::cout) const override {};
+  void identify(std::ostream &/*os*/=std::cout) const override {};
   void Reset() override {}
   int  isValid() const override {return 1;}
   PHObject* CloneMe() const override {return new HelixHoughSpace_v1(*this);}

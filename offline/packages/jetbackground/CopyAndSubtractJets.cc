@@ -196,7 +196,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CopyAndSubtractJets::End(PHCompositeNode *topNode)
+int CopyAndSubtractJets::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

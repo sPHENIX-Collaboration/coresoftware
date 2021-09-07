@@ -131,7 +131,7 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4CellNtuple::End(PHCompositeNode *topNode)
+int G4CellNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();

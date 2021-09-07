@@ -164,7 +164,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
 /*
  * Init
  */
-int PHGenFitTrkFitter::Init(PHCompositeNode* topNode)
+int PHGenFitTrkFitter::Init(PHCompositeNode* /*topNode*/)
 {
   //	CreateNodes(topNode);
 
@@ -500,7 +500,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 /*
  * End
  */
-int PHGenFitTrkFitter::End(PHCompositeNode* topNode)
+int PHGenFitTrkFitter::End(PHCompositeNode* /*topNode*/)
 {
   if (_do_eval)
   {
@@ -520,7 +520,7 @@ int PHGenFitTrkFitter::End(PHCompositeNode* topNode)
 /*
  * fill_eval_tree():
  */
-void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* topNode)
+void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
 {
   //! Make sure to reset all the TTree variables before trying to set them.
   reset_eval_variables();

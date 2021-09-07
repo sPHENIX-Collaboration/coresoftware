@@ -89,7 +89,7 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCalibration::process_event(PHCompositeNode *topNode)
+int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity())
   {
@@ -209,7 +209,7 @@ int RawTowerCalibration::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCalibration::End(PHCompositeNode *topNode)
+int RawTowerCalibration::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

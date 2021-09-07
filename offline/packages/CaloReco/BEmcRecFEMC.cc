@@ -71,13 +71,13 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   yC = yA;
 }
 
-void BEmcRecFEMC::CorrectEnergy(float Energy, float x, float y,
+void BEmcRecFEMC::CorrectEnergy(float Energy, float /*x*/, float /*y*/,
                                 float& Ecorr)
 {
   Ecorr = Energy;
 }
 
-float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
+float BEmcRecFEMC::GetImpactAngle(float /*e*/, float /*x*/, float /*y*/)
 // Get impact angle, (x,y) - position in Sector frame (cm)
 {
   /*

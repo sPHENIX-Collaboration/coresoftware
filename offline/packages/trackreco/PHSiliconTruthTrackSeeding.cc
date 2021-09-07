@@ -73,7 +73,7 @@ int PHSiliconTruthTrackSeeding::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* topNode)
+int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 {
   // We start with all reco clusters in the silicon layers
   // get the associated truth g4hits and from that the g4particle

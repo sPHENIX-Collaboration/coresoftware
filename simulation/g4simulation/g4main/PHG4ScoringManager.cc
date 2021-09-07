@@ -61,7 +61,7 @@ PHG4ScoringManager::PHG4ScoringManager()
 {
 }
 
-int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
+int PHG4ScoringManager::InitRun(PHCompositeNode */*topNode*/)
 {
   //1. check G4RunManager
   G4RunManager *runManager = G4RunManager::GetRunManager();

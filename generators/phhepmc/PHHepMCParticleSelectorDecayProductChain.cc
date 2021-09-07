@@ -30,12 +30,12 @@ PHHepMCParticleSelectorDecayProductChain::PHHepMCParticleSelectorDecayProductCha
   return;
 }
 
-int PHHepMCParticleSelectorDecayProductChain::InitRun(PHCompositeNode* topNode)
+int PHHepMCParticleSelectorDecayProductChain::InitRun(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-HepMC::GenParticle* PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event)
+HepMC::GenParticle* PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::GenParticle* p, HepMC::GenEvent* /*event*/)
 {
   HepMC::GenParticle* parent = nullptr;
   if (!p->production_vertex()) return parent;

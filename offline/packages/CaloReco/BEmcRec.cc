@@ -48,7 +48,7 @@ BEmcRec::~BEmcRec()
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::LoadProfile(const std::string& fname)
+void BEmcRec::LoadProfile(const std::string& /*fname*/)
 {
   std::cout << "Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module " << Name() << std::endl;
 }
@@ -513,7 +513,7 @@ float BEmcRec::PredictEnergy(float en, float xcg, float ycg, int ix, int iy)
   return PredictEnergyParam(en, dx, dy);
 }
 
-float BEmcRec::PredictEnergyParam(float en, float xc, float yc)
+float BEmcRec::PredictEnergyParam(float /*en*/, float xc, float yc)
 {
   // Calculates the energy deposited in the tower, the distance between
   // its center and shower Center of Gravity being (xc,yc)

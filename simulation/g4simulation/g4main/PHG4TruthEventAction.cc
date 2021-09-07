@@ -45,7 +45,7 @@ PHG4TruthEventAction::PHG4TruthEventAction()
 }
 
 //___________________________________________________
-void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt)
+void PHG4TruthEventAction::BeginOfEventAction(const G4Event* /*evt*/)
 {
   // if we do not find the node we need to make it.
   if (!m_TruthInfoContainer)

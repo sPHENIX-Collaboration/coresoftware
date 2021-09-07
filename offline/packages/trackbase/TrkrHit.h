@@ -37,11 +37,11 @@ class TrkrHit : public PHObject
   int isValid() const override { return 0; }
 
   // these set and get the energy before digitization
-  virtual void addEnergy(const double edep){}
+  virtual void addEnergy(const double){}
   virtual double getEnergy() {return 0;}
 
   // after digitization, these are the adc values
-  virtual void setAdc(const unsigned int adc) {}
+  virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() { return 0;}
 
  protected:

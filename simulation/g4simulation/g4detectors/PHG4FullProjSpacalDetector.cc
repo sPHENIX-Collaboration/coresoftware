@@ -552,7 +552,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   return block_logic;
 }
 
-void PHG4FullProjSpacalDetector::Print(const std::string& what) const
+void PHG4FullProjSpacalDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4FullProjSpacalDetector::Print::" << GetName()
        << " - Print Geometry:" << endl;

@@ -140,7 +140,7 @@ int PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume *volume) const
 }
 
 G4VSolid *
-PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume *hcalenvelope)
+PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume */*hcalenvelope*/)
 {
   double mid_radius = m_InnerRadius + (m_OuterRadius - m_InnerRadius) / 2.;
   Point_2 p_in_1(mid_radius, 0);  // center of scintillator
@@ -217,7 +217,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume *hcalenvelope)
 }
 
 G4VSolid *
-PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
+PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
 {
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
   // the scintibox + 1/2 the airgap

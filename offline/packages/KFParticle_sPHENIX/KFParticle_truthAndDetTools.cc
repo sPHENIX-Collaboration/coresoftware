@@ -95,7 +95,7 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch(TString(daughter_number) + "_true_track_history_pT", &m_true_daughter_track_history_pT[daughter_id]);
 }
 
-void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
+void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree */*m_tree*/, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
 {
   float true_px, true_py, true_pz, true_p, true_pt;
 
@@ -212,7 +212,7 @@ void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, 
   m_true_daughter_track_history_pT[daughter_id].push_back((Float_t) myFourVector.perp());
 }
 
-int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id)
+int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */*m_tree*/, KFParticle daughter, int daughter_id)
 {
   //Make dummy particle for null pointers and missing nodes
   HepMC::GenParticle* dummyParticle = new HepMC::GenParticle();
@@ -312,7 +312,7 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree *m_tree, KFParticle daughter, int daughter_id)
+                                                 TTree */*m_tree*/, KFParticle daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
   PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
@@ -379,7 +379,7 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, s
 }
 
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
-                                                     TTree *m_tree, KFParticle daughter, int daughter_id)
+                                                     TTree */*m_tree*/, KFParticle daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
 
@@ -446,7 +446,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 }
 
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
-                                            TTree *m_tree, 
+                                            TTree */*m_tree*/, 
                                             KFParticle motherParticle,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)

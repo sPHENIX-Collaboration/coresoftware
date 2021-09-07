@@ -521,7 +521,7 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
     		}
     		combos.insert(temp_combo);
 
-    		for (unsigned int j = i-1; j>=0; --j){
+    		for (int j = i-1; j>=0; --j){
       			comp2.clear();
       			for (unsigned int m = 0; m < (*cur_seg)[j].n_hits; ++m){
       				comp2.insert(layer_sorted[m][(*cur_seg)[j].hits[m]].get_id());
@@ -1365,7 +1365,7 @@ int CellularAutomaton_v1::process_single_track(SimpleTrack3D& track)
     }
     combos.insert(temp_combo);
 
-    for (unsigned int j = i-1; j>=0; --j){
+    for (int j = i-1; j>=0; --j){
       comp2.clear();
       for (unsigned int m = 0; m < (*cur_seg)[j].n_hits; ++m){
       comp2.insert(layer_sorted[m][(*cur_seg)[j].hits[m]].get_id());
