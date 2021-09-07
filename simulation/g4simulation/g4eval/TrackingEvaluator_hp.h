@@ -62,6 +62,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
       }
     }
+
     //! number of hits per layer / event
     /* for TPC hits, the charge is compared to threshold */
     int _nhits[max_layer];
@@ -200,7 +201,15 @@ class TrackingEvaluator_hp : public SubsysReco
 
     int _charge = 0;
     int _nclusters = 0;
-    int64_t _mask = 0;
+
+    /// mask of layers for which there is a cluster in the track
+    int64_t _mask = 0LL;
+
+    /// mask of layers for which there is a cluster in the track, with correct associated g4hit
+    int64_t _correct_mask = 0LL;
+
+    /// maks of layers for which there is a g4hit in the track
+    int64_t _truth_mask = 0LL;
 
     int _nclusters_mvtx = 0;
     int _nclusters_intt = 0;
@@ -248,6 +257,7 @@ class TrackingEvaluator_hp : public SubsysReco
 
     // associate clusters
     ClusterStruct::List _clusters;
+
   };
 
   // pair information to be stored in tree
@@ -372,6 +382,36 @@ class TrackingEvaluator_hp : public SubsysReco
   void set_flags( int flags )
   { m_flags = flags; }
 
+  //! utility functions
+  static bool has_layer( int64_t mask, int layer )
+  { return mask & (1LL<<layer); }
+
+  //! get number of clusters in given range
+  static int get_nclusters( int64_t mask, int first, int last )
+  {
+    int out = 0;
+    for( int layer = first; layer < last; ++layer )
+    { out += (int) has_layer( mask, layer ); }
+
+    return out;
+  }
+
+  //! get number of mvtx clusters from mask
+  static int get_nclusters_mvtx( int64_t mask )
+  { return get_nclusters( mask, 0, 3 ); }
+
+  //! get number of intt clusters from mask
+  static int get_nclusters_intt( int64_t mask )
+  { return get_nclusters( mask, 3, 7 ); }
+
+  //! get number of tpc clusters from mask
+  static int get_nclusters_tpc( int64_t mask )
+  { return get_nclusters( mask, 7, 55 ); }
+
+  //! get number of micromegas clusters from mask
+  static int get_nclusters_micromegas( int64_t mask )
+  { return get_nclusters( mask, 55, 57 ); }
+
   private:
 
   //! load nodes
@@ -416,21 +456,24 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! add track information to a cluster for the micromegas case
   /*!
-   * the difference between this and the generic method is that the track state to 
+   * the difference between this and the generic method is that the track state to
    * the tiles detector plane, and not to the same radius as the cluster
    */
   void add_trk_information_micromegas( ClusterStruct&, SvtxTrackState* ) const;
 
   // add truth information
   void add_truth_information( ClusterStruct&, std::set<PHG4Hit*> ) const;
-  
+
   // add truth information
   /*!
-   * the difference between this and the generic method is that the track state to 
+   * the difference between this and the generic method is that the track state to
    * the tiles detector plane, and not to the same radius as the cluster
    */
   void add_truth_information_micromegas( ClusterStruct&, std::set<PHG4Hit*> ) const;
-  
+
+  //! fill MC track map
+  void fill_g4particle_map();
+
   //! evaluation node
   Container* m_container = nullptr;
 
@@ -465,10 +508,15 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
-  
-  // map cluster keys to g4hits
+
+  //! map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
+
+  //! map trk_id to layer mask
+  /** copied from SimEvaluator_hp */
+  using G4ParticleMap = std::map<int,int64_t>;
+  G4ParticleMap m_g4particle_map;
 
 };
 
