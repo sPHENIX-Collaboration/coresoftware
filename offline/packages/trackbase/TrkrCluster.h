@@ -38,35 +38,35 @@ class TrkrCluster : public PHObject
   // cluster id
   //
   virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void setClusKey(TrkrDefs::cluskey) {}
+  virtual void setClusKey(TrkrDefs::cluskey id) {}
  
   //
   // cluster position
   //
   virtual float getX() const { return NAN; }
-  virtual void setX(float) {}
+  virtual void setX(float x) {}
   virtual float getY() const { return NAN; }
-  virtual void setY(float) {}
+  virtual void setY(float y) {}
   virtual float getZ() const { return NAN; }
-  virtual void setZ(float) {}
-  virtual float getPosition(int /*coor*/) const { return NAN; }
-  virtual void setPosition(int /*coor*/, float /*xi*/) {}
+  virtual void setZ(float z) {}
+  virtual float getPosition(int coor) const { return NAN; }
+  virtual void setPosition(int coor, float xi) {}
   virtual void setGlobal() {}
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
   virtual float getLocalX() const { return NAN; }
-  virtual void setLocalX(float) {}
+  virtual void setLocalX(float x) {}
   virtual float getLocalY() const { return NAN; }
-  virtual void setLocalY(float) {}
+  virtual void setLocalY(float y) {}
   //
   // cluster info
   //
-  virtual void setAdc(unsigned int) {}
+  virtual void setAdc(unsigned int adc) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
-  virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
-  virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
-  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
-  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+  virtual float getSize(unsigned int i, unsigned int j) const { return NAN; }
+  virtual void setSize(unsigned int i, unsigned int j, float value) {}
+  virtual float getError(unsigned int i, unsigned int j) const { return NAN; }
+  virtual void setError(unsigned int i, unsigned int j, float value) {}
   //
   // convenience interface
   //
@@ -77,10 +77,10 @@ class TrkrCluster : public PHObject
   virtual float getZError() const { return NAN; }
 
   /// Acts functions, for Acts modules use only
-  virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/){}
-  virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setActsLocalError(unsigned int i, unsigned int j, float value){}
+  virtual float getActsLocalError(unsigned int i, unsigned int j) const { return NAN; }
   virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
-  virtual void setSubSurfKey(TrkrDefs::subsurfkey /*id*/) {}
+  virtual void setSubSurfKey(TrkrDefs::subsurfkey id) {}
 
  protected:
   TrkrCluster() = default;

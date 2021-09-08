@@ -5,17 +5,18 @@
 
 namespace PHG4MvtxDefs
 {
-
   static constexpr unsigned int kNLayers = 3;
 
-  enum {
+  enum
+  {
     kRmn,
     kRmd,
     kRmx,
     kNModPerStave,
     kPhi0,
     kNStave,
-    kNPar};
+    kNPar
+  };
 
   static const double mvtxdat[kNLayers][kNPar] = {
       {24.61, 25.23, 27.93, 9., 0.285, 12.},  // for each layer: rMin, rMid, rMax, NChip/Stave, phi0, nStaves
@@ -25,10 +26,11 @@ namespace PHG4MvtxDefs
   static const int GLOBAL = -1;
   static const int ALPIDE_SEGMENTATION = -2;
   static const int SUPPORTPARAMS = -3;
+  static const int ALIGNMENT = -4;
 
-// passive volume indices
+  // passive volume indices
 
-// detid of support structures
+  // detid of support structures
 
 };  // namespace PHG4MvtxDefs
 

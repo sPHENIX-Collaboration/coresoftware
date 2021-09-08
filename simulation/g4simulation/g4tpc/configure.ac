@@ -7,10 +7,10 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-misleading-indentation -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-misleading-indentation"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 

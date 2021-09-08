@@ -10,10 +10,10 @@ dnl leaving this here in case we want to play with different compiler
 dnl specific flags
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 

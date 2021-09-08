@@ -49,47 +49,47 @@ void PHG4TruthInfoContainer::Reset()
 
 void PHG4TruthInfoContainer::identify(ostream& os) const
 {
-  os << "---particlemap--------------------------" << endl;
+  cout << "---particlemap--------------------------" << endl;
   for (ConstIterator iter = particlemap.begin(); iter != particlemap.end(); ++iter)
   {
-    os << "particle id " << iter->first << endl;
+    cout << "particle id " << iter->first << endl;
     (iter->second)->identify();
   }
 
-  os << "---vtxmap-------------------------------" << endl;
+  cout << "---vtxmap-------------------------------" << endl;
   for (ConstVtxIterator vter = vtxmap.begin(); vter != vtxmap.end(); ++vter)
   {
-    os << "vtx id: " << vter->first << endl;
+    cout << "vtx id: " << vter->first << endl;
     (vter->second)->identify();
   }
 
-  os << "---showermap-------------------------------" << endl;
+  cout << "---showermap-------------------------------" << endl;
   for (ConstShowerIterator ster = showermap.begin(); ster != showermap.end(); ++ster)
   {
-    os << "shower id: " << ster->first << endl;
+    cout << "shower id: " << ster->first << endl;
     (ster->second)->identify();
   }
 
-  os << "---list of embeded track flags-------------------" << endl;
+  cout << "---list of embeded track flags-------------------" << endl;
   for (std::map<int, int>::const_iterator eter = particle_embed_flags.begin();
        eter != particle_embed_flags.end();
        ++eter)
   {
-    os << "embeded track id: " << eter->first
+    cout << "embeded track id: " << eter->first
          << " flag: " << eter->second << endl;
   }
 
-  os << "---list of embeded vtx flags-------------------" << endl;
+  cout << "---list of embeded vtx flags-------------------" << endl;
   for (std::map<int, int>::const_iterator eter = vertex_embed_flags.begin();
        eter != vertex_embed_flags.end();
        ++eter)
   {
-    os << "embeded vertex id: " << eter->first
+    cout << "embeded vertex id: " << eter->first
          << " flag: " << eter->second << endl;
   }
 
-  os << "---primary vertex-------------------" << endl;
-  os << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << endl;
+  cout << "---primary vertex-------------------" << endl;
+  cout << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << endl;
 
   return;
 }

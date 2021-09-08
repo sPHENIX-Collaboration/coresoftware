@@ -7,10 +7,10 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-range-loop-construct -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-range-loop-construct"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 

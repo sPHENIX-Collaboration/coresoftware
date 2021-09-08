@@ -10,13 +10,13 @@ dnl leaving this here in case we want to play with different compiler
 dnl specific flags
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
  *g++)
   if test `g++ -dumpversion | gawk '{print $1>=8.0?"1":"0"}'` = 1; then
-   CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror"
   else
-   CXXFLAGS="$CXXFLAGS"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror"
   fi
  ;;
 esac

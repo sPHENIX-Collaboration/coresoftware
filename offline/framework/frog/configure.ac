@@ -12,10 +12,10 @@ dnl   treat warnings as errors: -Werror
 case $CXX in
  clang++)
 dnl odbc++ uses auto_ptr
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wno-deprecated-declarations -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wno-deprecated-declarations"
  ;;
 esac
 

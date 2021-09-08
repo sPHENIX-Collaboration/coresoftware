@@ -5,13 +5,12 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror"
-fi
-
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-tautological-overlap-compare -Wno-deprecated-copy"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-tautological-overlap-compare"
+ ;;
+ *g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 

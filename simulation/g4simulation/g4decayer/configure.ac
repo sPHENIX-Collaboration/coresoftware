@@ -20,14 +20,14 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-shadow"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-shadow"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
  ;;
 esac
 

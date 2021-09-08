@@ -40,7 +40,7 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
 {}
 
-int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
+int PHActsSiliconSeeding::Init(PHCompositeNode *topNode)
 {
   m_seedFinderCfg = configureSeeder();
   m_gridCfg = configureSPGrid();
@@ -77,7 +77,7 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsSiliconSeeding::process_event(PHCompositeNode */*topNode*/)
+int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
@@ -123,7 +123,7 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsSiliconSeeding::End(PHCompositeNode */*topNode*/)
+int PHActsSiliconSeeding::End(PHCompositeNode *topNode)
 {
   if(m_seedAnalysis)
     {
@@ -1208,9 +1208,9 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -210.;
-  config.collisionRegionMax = 210.;
-  config.sigmaScattering = 5.;
+  config.collisionRegionMin = -100.;
+  config.collisionRegionMax = 100.;
+  config.sigmaScattering = 50.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
@@ -1362,17 +1362,4 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
   if(returnPhi < 0)
     returnPhi += 2 * M_PI;
   return returnPhi;
-}
-
-
-void PHActsSiliconSeeding::largeGridSpacing(const bool spacing)
-{
-  if(!spacing)
-    {
-      m_gridFactor = 1.;
-      m_rMax = 50.;
-      m_cotThetaMax = 1.335647;
-      m_maxSeedPCA = 0.1;
-    }
-
 }

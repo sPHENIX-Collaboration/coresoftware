@@ -196,7 +196,6 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
              << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
       }
-      [[fallthrough]];
     case fGeomBoundary:
     case fUndefined:
       if (!m_Hit)
