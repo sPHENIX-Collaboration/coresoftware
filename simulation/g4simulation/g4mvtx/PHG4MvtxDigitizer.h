@@ -9,10 +9,9 @@
 #include <gsl/gsl_rng.h>
 
 #include <map>
-#include <string>                // for string
-#include <utility>               // for pair, make_pair
+#include <string>   // for string
+#include <utility>  // for pair, make_pair
 #include <vector>
-
 
 class PHCompositeNode;
 
