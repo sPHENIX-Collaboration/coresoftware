@@ -74,7 +74,7 @@ class PHTpcResiduals : public SubsysReco
   void setSavehistograms( bool value ) { m_savehistograms = value; }
     
   /// output file name for storing the space charge reconstruction matrices
-  void setOutputfile(std::string outputfile) {m_outputfile = outputfile;}
+  void setOutputfile(const std::string &outputfile) {m_outputfile = outputfile;}
   
  private:
 

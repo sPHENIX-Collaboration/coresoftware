@@ -69,7 +69,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   ///Parameters for the user to vary
 
-  void setDecayDescriptor(std::string decayDescriptor) { m_decayDescriptor = decayDescriptor; } 
+  void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
 
   static const int max_particles = 99;
 

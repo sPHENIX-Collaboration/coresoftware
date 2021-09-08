@@ -35,7 +35,7 @@ uint64_t timeSinceEpochMillisec()
    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
-void compress_clu_res_float32(std::string filename)
+void compress_clu_res_float32(std::string &filename)
 {
  ofstream logFile;
  logFile.open ("log.csv");
