@@ -1995,7 +1995,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
-	      float hitID = cluster_key;
+	      //float hitID = cluster_key;
+	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
 	      float x = cluster->getX();
 	      float y = cluster->getY();
 	      float z = cluster->getZ();

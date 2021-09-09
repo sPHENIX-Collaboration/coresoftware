@@ -222,7 +222,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			      track->get_py(), 
 			      track->get_pz());
    
-      auto actsVertex = getVertex(track);
+      //      auto actsVertex = getVertex(track);
+      Acts::Vector3D actsVertex(track->get_x() * Acts::UnitConstants::cm, 
+      			track->get_y() * Acts::UnitConstants::cm, 
+      			track->get_z() * Acts::UnitConstants::cm);
+      
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  actsVertex);
       auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
@@ -691,12 +695,13 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	  std::cout << PHWHERE << " vertex ID " << vertexId << " not found!" << " for track " << track->get_id() << std::endl;
 	 return; 
 	}
-   
+
+
       Acts::Vector3D vertex(
 		  svtxVertex->get_x() * Acts::UnitConstants::cm, 
 		  svtxVertex->get_y() * Acts::UnitConstants::cm, 
 		  svtxVertex->get_z() * Acts::UnitConstants::cm);
-   
+      
       rotater.calculateDCA(params, vertex, rotatedCov,
 			    m_tGeometry->geoContext, 
 			    dca3Dxy, dca3Dz, 
