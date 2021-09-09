@@ -1118,8 +1118,6 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
   const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
 
-  // std::cout << "TrackingEvaluator_hp::add_truth_information_micromegas - cluster_local: " << cluster_local << std::endl;
-
   // convert hits to list of interpolation_data_t
   interpolation_data_t::list hits;
   for( const auto& g4hit:g4hits )
@@ -1188,7 +1186,9 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
 void TrackingEvaluator_hp::fill_g4particle_map()
 {
   m_g4particle_map.clear();
-  for( const auto& container: {m_g4hits_tpc, m_g4hits_intt, m_g4hits_mvtx, m_g4hits_micromegas} )
+
+  // update all particle's masks for g4hits in TPC, intt and mvtx
+  for( const auto& container: {m_g4hits_tpc, m_g4hits_intt, m_g4hits_mvtx} )
   {
     if( !container ) continue;
 
@@ -1196,14 +1196,59 @@ void TrackingEvaluator_hp::fill_g4particle_map()
     const auto range = container->getHits();
     for( auto iter = range.first; iter != range.second; ++iter )
     {
-      const auto map_iter = m_g4particle_map.lower_bound( iter->second->get_trkid() );
-      if( map_iter != m_g4particle_map.end() && map_iter->first == iter->second->get_trkid() )
+
+      // get g4hit, track and layer
+      const auto& g4hit = iter->second;
+      const auto trkid = g4hit->get_trkid();
+      const auto layer = g4hit->get_layer();
+
+      // update relevant mask
+      const auto map_iter = m_g4particle_map.lower_bound( trkid );
+      if( map_iter != m_g4particle_map.end() && map_iter->first == trkid )
       {
-        map_iter->second |= (1LL<<iter->second->get_layer());
+        map_iter->second |= (1LL<<layer);
       } else {
-        m_g4particle_map.insert( map_iter, std::make_pair( iter->second->get_trkid(), 1LL<<iter->second->get_layer() ) );
+        m_g4particle_map.insert( map_iter, std::make_pair( trkid, 1LL<<layer ) );
       }
     }
+  }
+
+  // special treatment for micromegas because one must check that the hits actually fires an existing tile
+  if( m_g4hits_micromegas )
+  {
+
+    // loop over hits
+    const auto range = m_g4hits_micromegas->getHits();
+    for( auto iter = range.first; iter != range.second; ++iter )
+    {
+
+      // get g4hit, track and layer
+      const auto& g4hit = iter->second;
+      const auto trkid = g4hit->get_trkid();
+      const auto layer = g4hit->get_layer();
+
+      // get relevant micromegas geometry
+      const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+      assert( layergeom );
+
+      // get world coordinates
+      const TVector3 world( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() );
+
+      // make sure that the mid point is in one of the tiles
+      const int tileid = layergeom->find_tile_cylindrical( world );
+      if( tileid < 0 ) continue;
+
+      // update relevant mask
+      const auto map_iter = m_g4particle_map.lower_bound( trkid );
+      if( map_iter != m_g4particle_map.end() && map_iter->first == trkid )
+      {
+        map_iter->second |= (1LL<<layer);
+      } else {
+        m_g4particle_map.insert( map_iter, std::make_pair( trkid, 1LL<<layer ) );
+      }
+
+    }
+
   }
 
 }
