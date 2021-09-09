@@ -235,15 +235,6 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       layergeom->get_thickness()/2:
       -layergeom->get_thickness()/2;
 
-//     /*
-//      * get the radius of the detector mesh. It depends on the drift direction
-//      * it is used to calculate the drift distance of the primary electrons, and the
-//      * corresponding transverse diffusion
-//      */
-//       const auto mesh_radius = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
-//       (layergeom->get_radius() + layergeom->get_thickness()/2):
-//       (layergeom->get_radius() - layergeom->get_thickness()/2);
-
     // get hits
     const PHG4HitContainer::ConstRange g4hit_range = g4hitcontainer->getHits(layer);
 
