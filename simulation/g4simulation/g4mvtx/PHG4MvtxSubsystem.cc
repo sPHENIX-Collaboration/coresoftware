@@ -229,7 +229,7 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
   set_default_string_param(GLOBAL, "end_wheels_sideN",
                            string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideC_PEEK.gdml"));
   set_default_string_param(GLOBAL, "alignment_path",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry"));
+                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/MVTX/alignment"));
   /*
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
