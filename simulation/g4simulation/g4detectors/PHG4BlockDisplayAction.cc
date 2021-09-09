@@ -26,7 +26,7 @@ PHG4BlockDisplayAction::~PHG4BlockDisplayAction()
   delete m_Colour;
 }
 
-void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   if (m_MyVolume->GetVisAttributes())

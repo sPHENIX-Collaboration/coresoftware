@@ -23,7 +23,7 @@ class PHG4MvtxDigitizer : public SubsysReco
   ~PHG4MvtxDigitizer() override;
 
   //! module initialization
-  int Init(PHCompositeNode *topNode) override { return 0; }
+  int Init(PHCompositeNode */*topNode*/) override { return 0; }
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -32,7 +32,7 @@ class PHG4MvtxDigitizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode *topNode) override { return 0; };
+  int End(PHCompositeNode */*topNode*/) override { return 0; };
 
   void set_adc_scale(const int layer, const unsigned short max_adc, const float energy_per_adc)
   {

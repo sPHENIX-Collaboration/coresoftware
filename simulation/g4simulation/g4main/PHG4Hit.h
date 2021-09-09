@@ -25,16 +25,16 @@ class PHG4Hit: public PHObject
   void Reset() override;
 
   // The indices here represent the entry and exit points of the particle
-  virtual float get_x(const int i) const {return NAN;}
-  virtual float get_y(const int i) const {return NAN;}
-  virtual float get_z(const int i) const {return NAN;}
-  virtual float get_px(const int i) const {return NAN;}
-  virtual float get_py(const int i) const {return NAN;}
-  virtual float get_pz(const int i) const {return NAN;}
-  virtual float get_local_x(const int i) const {return NAN;}
-  virtual float get_local_y(const int i) const {return NAN;}
-  virtual float get_local_z(const int i) const {return NAN;}
-  virtual float get_t(const int i) const {return NAN;}
+  virtual float get_x(const int) const {return NAN;}
+  virtual float get_y(const int) const {return NAN;}
+  virtual float get_z(const int) const {return NAN;}
+  virtual float get_px(const int) const {return NAN;}
+  virtual float get_py(const int) const {return NAN;}
+  virtual float get_pz(const int) const {return NAN;}
+  virtual float get_local_x(const int) const {return NAN;}
+  virtual float get_local_y(const int) const {return NAN;}
+  virtual float get_local_z(const int) const {return NAN;}
+  virtual float get_t(const int) const {return NAN;}
   virtual float get_edep() const {return NAN;}
   virtual float get_eion() const {return NAN;}
   virtual float get_light_yield() const {return NAN;}
@@ -56,35 +56,35 @@ class PHG4Hit: public PHObject
   virtual int get_index_l() const {return INT_MIN;}
   virtual int get_hit_type() const {return INT_MIN;}
 
-  virtual void set_x(const int i, const float f) {return;}
-  virtual void set_y(const int i, const float f) {return;}
-  virtual void set_z(const int i, const float f) {return;}
-  virtual void set_px(const int i, const float f) {return;}
-  virtual void set_py(const int i, const float f) {return;}
-  virtual void set_pz(const int i, const float f) {return;}
-  virtual void set_local_x(const int i, const float f) {return;}
-  virtual void set_local_y(const int i, const float f) {return;}
-  virtual void set_local_z(const int i, const float f) {return;}
-  virtual void set_t(const int i, const float f) {return;}
-  virtual void set_edep(const float f) {return;}
-  virtual void set_eion(const float f) {return;}
-  virtual void set_light_yield(const float lightYield){return;}
-  virtual void set_path_length(const float pathLength){return;}
-  virtual void set_layer(const unsigned int i) {return;}
-  virtual void set_hit_id(const PHG4HitDefs::keytype i) {return;}
-  virtual void set_shower_id(const int i) {return;}
-  virtual void set_scint_id(const int i) {return;}
-  virtual void set_row(const int i) {return;}
-  virtual void set_trkid(const int i) {return;}
-  virtual void set_strip_z_index(const int i) {return;}
-  virtual void set_strip_y_index(const int i) {return;}
-  virtual void set_ladder_z_index(const int i) {return;}
-  virtual void set_ladder_phi_index(const int i) {return;}
-  virtual void set_index_i(const int i) {return;}
-  virtual void set_index_j(const int i) {return;}
-  virtual void set_index_k(const int i) {return;}
-  virtual void set_index_l(const int i) {return;}
-  virtual void set_hit_type(const int i) {return;}
+  virtual void set_x(const int, const float) {return;}
+  virtual void set_y(const int, const float) {return;}
+  virtual void set_z(const int, const float) {return;}
+  virtual void set_px(const int, const float) {return;}
+  virtual void set_py(const int, const float) {return;}
+  virtual void set_pz(const int, const float) {return;}
+  virtual void set_local_x(const int, const float) {return;}
+  virtual void set_local_y(const int, const float) {return;}
+  virtual void set_local_z(const int, const float) {return;}
+  virtual void set_t(const int, const float) {return;}
+  virtual void set_edep(const float) {return;}
+  virtual void set_eion(const float) {return;}
+  virtual void set_light_yield(const float){return;}
+  virtual void set_path_length(const float){return;}
+  virtual void set_layer(const unsigned int) {return;}
+  virtual void set_hit_id(const PHG4HitDefs::keytype) {return;}
+  virtual void set_shower_id(const int) {return;}
+  virtual void set_scint_id(const int) {return;}
+  virtual void set_row(const int) {return;}
+  virtual void set_trkid(const int) {return;}
+  virtual void set_strip_z_index(const int) {return;}
+  virtual void set_strip_y_index(const int) {return;}
+  virtual void set_ladder_z_index(const int) {return;}
+  virtual void set_ladder_phi_index(const int) {return;}
+  virtual void set_index_i(const int) {return;}
+  virtual void set_index_j(const int) {return;}
+  virtual void set_index_k(const int) {return;}
+  virtual void set_index_l(const int) {return;}
+  virtual void set_hit_type(const int) {return;}
 
   virtual float get_avg_x() const;
   virtual float get_avg_y() const;
@@ -180,20 +180,20 @@ class PHG4Hit: public PHObject
     type_unknown = -1
   };
 
-  virtual bool  has_property(const PROPERTY prop_id) const {return false;}
-  virtual float get_property_float(const PROPERTY prop_id) const {return NAN;}
-  virtual int   get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
-  virtual unsigned int   get_property_uint(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void  set_property(const PROPERTY prop_id, const float value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const int value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const unsigned int value) {return;}
+  virtual bool  has_property(const PROPERTY /*prop_id*/) const {return false;}
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const {return NAN;}
+  virtual int   get_property_int(const PROPERTY /*prop_id*/) const {return INT_MIN;}
+  virtual unsigned int   get_property_uint(const PROPERTY /*prop_id*/) const {return UINT_MAX;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const float /*value*/) {return;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const int /*value*/) {return;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) {return;}
   static std::pair<const std::string,PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
   static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
-  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const {return UINT_MAX;}
+  virtual void set_property_nocheck(const PROPERTY /*prop_id*/,const unsigned int) {return;}
   ClassDefOverride(PHG4Hit,1)
 };
 

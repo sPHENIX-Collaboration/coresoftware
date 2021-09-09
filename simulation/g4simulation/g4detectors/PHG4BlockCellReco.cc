@@ -46,7 +46,7 @@ PHG4BlockCellReco::PHG4BlockCellReco(const string &name)
   SetDefaultParameters();
 }
 
-int PHG4BlockCellReco::ResetEvent(PHCompositeNode *topNode)
+int PHG4BlockCellReco::ResetEvent(PHCompositeNode */*topNode*/)
 {
   sum_energy_g4hit = 0.;
   return Fun4AllReturnCodes::EVENT_OK;

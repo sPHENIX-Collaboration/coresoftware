@@ -191,11 +191,11 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   return assmeblyvol;
 }
 
-void PHG4TpcEndCapDetector ::AddLayer(  //
+void PHG4TpcEndCapDetector::AddLayer(  //
     G4AssemblyVolume *assmeblyvol,
     G4double &z_start,
-    std::string _name,         //! name base for this layer
-    std::string _material,     //! material name in G4
+    const std::string &_name,         //! name base for this layer
+    const std::string &_material,     //! material name in G4
     G4double _depth,           //! depth in G4 units
     double _percentage_filled  //! percentage filled//
 )

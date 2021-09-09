@@ -19,7 +19,7 @@
 
 namespace PHGenFit2
 {
-  Fitter::Fitter(TGeoManager* tgeo_manager, PHField* field)
+  Fitter::Fitter(TGeoManager* /*tgeo_manager*/, PHField* field)
   //    : _tgeo_manager(tgeo_manager)
   //    , _field(field)
   {

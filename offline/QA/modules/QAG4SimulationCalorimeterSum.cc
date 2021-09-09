@@ -209,7 +209,7 @@ QAG4SimulationCalorimeterSum::get_truth_particle()
   return last_primary;
 }
 
-int QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -469,7 +469,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTra
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
-int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -504,7 +504,7 @@ int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode *topNode)
+int QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeterSum::process_event_Cluster() entered"

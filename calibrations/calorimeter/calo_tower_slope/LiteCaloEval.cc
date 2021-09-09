@@ -37,7 +37,7 @@ LiteCaloEval::LiteCaloEval(const std::string& name, const std::string& caloname,
 }
 
 //____________________________________________________________________________..
-int LiteCaloEval::InitRun(PHCompositeNode* topNode)
+int LiteCaloEval::InitRun(PHCompositeNode* /*topNode*/)
 {
   // just quit if we forgot to set the calorimeter type
   if (calotype == LiteCaloEval::NONE)
@@ -219,7 +219,7 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int LiteCaloEval::End(PHCompositeNode* topNode)
+int LiteCaloEval::End(PHCompositeNode* /*topNode*/)
 {
   cal_output->cd();
   if (calotype == LiteCaloEval::HCALIN)

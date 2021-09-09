@@ -6,7 +6,7 @@ using namespace std::chrono;
 
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
-				Acts::GeometryContext geoCtxt) const
+				Acts::GeometryContext /*geoCtxt*/) const
 {
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
 
@@ -94,7 +94,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 			        const Acts::BoundTrackParameters params,
-				Acts::GeometryContext geoCtxt) const
+				Acts::GeometryContext /*geoCtxt*/) const
 {
 
   auto covarianceMatrix = *params.covariance();

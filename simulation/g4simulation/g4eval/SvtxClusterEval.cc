@@ -940,7 +940,7 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator lower_bound = temp_clusters_from_particles.lower_bound(g4particle);
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator upper_bound = temp_clusters_from_particles.upper_bound(g4particle);
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator cfp_iter;
-    for(cfp_iter = lower_bound;cfp_iter != upper_bound;cfp_iter++){
+    for(cfp_iter = lower_bound;cfp_iter != upper_bound;++cfp_iter){
       TrkrDefs::cluskey cluster_key = cfp_iter->second;
       clusters.insert(cluster_key);
     }

@@ -71,7 +71,7 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(
 }
 
 TVector3
-CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location)
+CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int /*half_stave*/, int /*module*/, int chip, TVector3 world_location)
 {
   double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
@@ -141,7 +141,7 @@ CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double> &wor
 }
 
 TVector3
-CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
+CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int /*half_stave*/, int /*module*/, int chip, TVector3 sensor_local)
 {
   double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y

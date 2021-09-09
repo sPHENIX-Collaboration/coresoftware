@@ -34,22 +34,22 @@ class ParticleFlowElement : public PHObject
   int isValid() const override { return 0; }
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
-  virtual void set_id(unsigned int id) { return; }
+  virtual void set_id(unsigned int) { return; }
 
   virtual ParticleFlowElement::PFLOWTYPE get_type() const {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
   virtual void set_type( ParticleFlowElement::PFLOWTYPE ) { return; }
 
   virtual float get_px() const { return NAN; }
-  virtual void set_px(float px) { return; }
+  virtual void set_px(float) { return; }
 
   virtual float get_py() const { return NAN; }
-  virtual void set_py(float py) { return; }
+  virtual void set_py(float) { return; }
 
   virtual float get_pz() const { return NAN; }
-  virtual void set_pz(float pz) { return; }
+  virtual void set_pz(float) { return; }
 
   virtual float get_e() const { return NAN; }
-  virtual void set_e(float e) { return; }
+  virtual void set_e(float) { return; }
 
   virtual float get_p() const { return NAN; }
   virtual float get_pt() const { return NAN; }

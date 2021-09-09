@@ -24,12 +24,12 @@ class HelixHoughFuncs : public PHObject
   PHObject* CloneMe() const override { return nullptr; }
 
   // Define Hough space for helical tracks
-  virtual void set_current_zoom(unsigned int cur_zoom) {}
-  virtual void set_hough_space(HelixHoughSpace* hough_space) {}
-  virtual void calculate_dzdl_range(float* hitpos3d, std::vector<float>& z0_range, std::vector<float>& kappa_phi_d_ranges, float* dzdl_range){};
-  virtual void calculate_phi_range(float* hitpos2d, std::vector<float>& kappa_d_ranges, float* phi_r_range, float* phi_l_range){};
-  virtual void calculate_phi_range(float* hitpos2d, std::vector<float>& kappa_d_ranges, int helicity, float* phi_range, float* phi_next_range){};
-  virtual void calculate_phi_range(float* hitpos2d, std::vector<float>& kappa_d_ranges, int helicity, float* phi_range, float* phi_prev_range, float* phi_next_range){};
+  virtual void set_current_zoom(unsigned int /*cur_zoom*/) {}
+  virtual void set_hough_space(HelixHoughSpace* /*hough_space*/) {}
+  virtual void calculate_dzdl_range(float* /*hitpos3d*/, std::vector<float>& /*z0_range*/, std::vector<float>& /*kappa_phi_d_ranges*/, float* /*dzdl_range*/){};
+  virtual void calculate_phi_range(float* /*hitpos2d*/, std::vector<float>& /*kappa_d_ranges*/, float* /*phi_r_range*/, float* /*phi_l_range*/){};
+  virtual void calculate_phi_range(float* /*hitpos2d*/, std::vector<float>& /*kappa_d_ranges*/, int /*helicity*/, float* /*phi_range*/, float* /*phi_next_range*/){};
+  virtual void calculate_phi_range(float* /*hitpos2d*/, std::vector<float>& /*kappa_d_ranges*/, int /*helicity*/, float* /*phi_range*/, float* /*phi_prev_range*/, float* /*phi_next_range*/){};
 
   /*
   virtual void set_z0_max(float z0_max)         {}

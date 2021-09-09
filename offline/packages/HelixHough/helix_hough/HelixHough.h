@@ -57,11 +57,11 @@ public:
     max_z0 = (((other.max_z0 > max_z0)-1)&max_z0) ^ (((other.max_z0 <= max_z0)-1)&other.max_z0);
   }
   
-  unsigned int min_k, max_k;
-  unsigned int min_phi, max_phi;
-  unsigned int min_d, max_d;
-  unsigned int min_dzdl, max_dzdl;
-  unsigned int min_z0, max_z0;
+  unsigned int min_k = UINT_MAX, max_k = UINT_MAX;
+  unsigned int min_phi = UINT_MAX, max_phi = UINT_MAX;
+  unsigned int min_d = UINT_MAX, max_d = UINT_MAX;
+  unsigned int min_dzdl = UINT_MAX, max_dzdl = UINT_MAX;
+  unsigned int min_z0 = UINT_MAX, max_z0 = UINT_MAX;
 };
 
 
@@ -142,21 +142,21 @@ class HelixHough
     
     void setPrintTimings(bool pt){print_timings=pt;}
     
-    virtual void finalize(std::vector<SimpleTrack3D>& input, std::vector<SimpleTrack3D>& output){}
-    virtual void findTracks(std::vector<SimpleHit3D>& hits, std::vector<SimpleTrack3D>& tracks, const HelixRange& range) = 0;
-    virtual void initEvent(std::vector<SimpleHit3D>& hits, unsigned int min_hits){}
-    virtual void findSeededTracks(std::vector<SimpleTrack3D>& seeds, std::vector<SimpleHit3D>& hits, std::vector<SimpleTrack3D>& tracks, const HelixRange& range){}
+    virtual void finalize(std::vector<SimpleTrack3D>&, std::vector<SimpleTrack3D>&){}
+    virtual void findTracks(std::vector<SimpleHit3D>&, std::vector<SimpleTrack3D>&, const HelixRange&) = 0;
+    virtual void initEvent(std::vector<SimpleHit3D>&, unsigned int){}
+    virtual void findSeededTracks(std::vector<SimpleTrack3D>&, std::vector<SimpleHit3D>&, std::vector<SimpleTrack3D>&, const HelixRange&){}
     
     // return true if we want to go straight into the user-written findTracks function instead of possibly continuing the Hough Transform
-    virtual bool breakRecursion(const std::vector<SimpleHit3D>& hits, const HelixRange& range){return false;}
+    virtual bool breakRecursion(const std::vector<SimpleHit3D>&, const HelixRange&){return false;}
     
     // additional phi error to add to a hit in the voting stage, given an bin with the k and dzdl parameters passed.  This is useful 
     // to take into account multiple scattering
-    virtual float phiError(SimpleHit3D& hit, float min_k, float max_k, float min_d, float max_d, float min_z0, float max_z0, float min_dzdl, float max_dzdl, bool pairvoting=false){return 0.;}
+    virtual float phiError(SimpleHit3D&, float, float, float, float, float, float, float, float, bool = false){return 0.;}
     // same as above, but for additional error on dzdl
-    virtual float dzdlError(SimpleHit3D& hit, float min_k, float max_k, float min_d, float max_d, float min_z0, float max_z0, float min_dzdl, float max_dzdl, bool pairvoting=false){return 0.;}
+    virtual float dzdlError(SimpleHit3D&, float, float, float, float, float, float, float, float, bool = false){return 0.;}
     
-    virtual void initSeeding(std::vector<SimpleTrack3D>& seeds){}
+    virtual void initSeeding(std::vector<SimpleTrack3D>&){}
     
     virtual void setSeparateByHelicity(bool sbh){separate_by_helicity=sbh;}
     virtual void setOnlyOneHelicity(bool ooh){only_one_helicity=ooh;}

@@ -46,7 +46,7 @@ PHActsVertexFitter::PHActsVertexFitter(const std::string &name)
 {
 }
 
-int PHActsVertexFitter::Init(PHCompositeNode *topNode)
+int PHActsVertexFitter::Init(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1)
     std::cout << "PHActsVertexFitter::Init" << std::endl;
@@ -54,14 +54,14 @@ int PHActsVertexFitter::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsVertexFitter::End(PHCompositeNode *topNode)
+int PHActsVertexFitter::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1)
     std::cout << "PHActsVertexFitter::End " << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsVertexFitter::ResetEvent(PHCompositeNode *topNode)
+int PHActsVertexFitter::ResetEvent(PHCompositeNode */*topNode*/)
 {
   m_actsVertexMap->clear();
 
@@ -79,7 +79,7 @@ int PHActsVertexFitter::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsVertexFitter::process_event(PHCompositeNode *topNode)
+int PHActsVertexFitter::process_event(PHCompositeNode */*topNode*/)
 {
   auto logLevel = Acts::Logging::FATAL;
   if (Verbosity() > 0)

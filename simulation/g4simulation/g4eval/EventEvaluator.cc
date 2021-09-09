@@ -291,7 +291,7 @@ EventEvaluator::EventEvaluator(const string& name, const string& filename)
 
 }
 
-int EventEvaluator::Init(PHCompositeNode* topNode)
+int EventEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
   _ievent = 0;
 
@@ -1512,7 +1512,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   return;
 }
 
-int EventEvaluator::End(PHCompositeNode* topNode)
+int EventEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   _tfile->cd();
 

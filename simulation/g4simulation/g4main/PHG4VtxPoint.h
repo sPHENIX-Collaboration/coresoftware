@@ -16,11 +16,11 @@ class PHG4VtxPoint: public PHObject
 
   void identify(std::ostream& os = std::cout) const override;
 
-  virtual void set_x(const double r) {}
-  virtual void set_y(const double r) {}
-  virtual void set_z(const double r) {}
-  virtual void set_t(const double r) {}
-  virtual void set_id(const int i) {}
+  virtual void set_x(const double) {}
+  virtual void set_y(const double) {}
+  virtual void set_z(const double) {}
+  virtual void set_t(const double) {}
+  virtual void set_id(const int) {}
 
   virtual double get_x() const {return NAN;}
   virtual double get_y() const {return NAN;}

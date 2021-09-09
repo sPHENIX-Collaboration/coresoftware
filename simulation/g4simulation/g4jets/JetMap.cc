@@ -16,7 +16,7 @@ JetMap::ConstSrcIter JetMap::begin_src() const
   return DummyJetSourceSet.end();
 }
 
-JetMap::ConstSrcIter JetMap::find_src(Jet::SRC src) const
+JetMap::ConstSrcIter JetMap::find_src(Jet::SRC /*src*/) const
 {
   return DummyJetSourceSet.end();
 }
@@ -31,7 +31,7 @@ JetMap::SrcIter JetMap::begin_src()
   return DummyJetSourceSet.end();
 }
 
-JetMap::SrcIter JetMap::find_src(Jet::SRC src)
+JetMap::SrcIter JetMap::find_src(Jet::SRC /*src*/)
 {
   return DummyJetSourceSet.end();
 }
@@ -46,7 +46,7 @@ JetMap::ConstIter JetMap::begin() const
   return DummyJetMapMap.end();
 }
 
-JetMap::ConstIter JetMap::find(unsigned int idkey) const
+JetMap::ConstIter JetMap::find(unsigned int /*idkey*/) const
 {
   return DummyJetMapMap.end();
 }
@@ -61,7 +61,7 @@ JetMap::Iter JetMap::begin()
   return DummyJetMapMap.end();
 }
 
-JetMap::Iter JetMap::find(unsigned int idkey)
+JetMap::Iter JetMap::find(unsigned int /*idkey*/)
 {
   return DummyJetMapMap.end();
 }

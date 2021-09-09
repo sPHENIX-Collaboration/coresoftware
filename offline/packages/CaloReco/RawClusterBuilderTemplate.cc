@@ -257,7 +257,7 @@ void RawClusterBuilderTemplate::PrintCylGeom(RawTowerGeomContainer *towergeom, c
   outfile.close();
 }
 
-bool RawClusterBuilderTemplate::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float &phi, float &eta)
+bool RawClusterBuilderTemplate::Cell2Abs(RawTowerGeomContainer */*towergeom*/, float /*phiC*/, float /*etaC*/, float &phi, float &eta)
 {
   phi = eta = 0;
   return false;

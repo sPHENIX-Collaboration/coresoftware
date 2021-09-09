@@ -44,7 +44,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	~CellularAutomaton_v1() override {};
 
 	// The "standard PHObject response" functions...
-	void identify(std::ostream &os=std::cout) const override {};
+	void identify(std::ostream& = std::cout) const override {};
 	void Reset() override;
 	int  isValid() const override {return 1;}
 	CellularAutomaton* Clone() const override {return new CellularAutomaton_v1(*this);}

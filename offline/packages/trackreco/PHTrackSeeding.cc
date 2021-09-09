@@ -40,7 +40,7 @@ int PHTrackSeeding::process_event(PHCompositeNode* topNode)
   return Process(topNode);
 }
 
-int PHTrackSeeding::End(PHCompositeNode* topNode)
+int PHTrackSeeding::End(PHCompositeNode* /*topNode*/)
 {
   return End();
 }

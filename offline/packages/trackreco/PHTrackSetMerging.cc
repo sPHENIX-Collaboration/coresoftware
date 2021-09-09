@@ -28,7 +28,7 @@ PHTrackSetMerging::PHTrackSetMerging(const std::string& name)
 {
 }
 
-int PHTrackSetMerging::Init(PHCompositeNode* topNode)
+int PHTrackSetMerging::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -38,12 +38,12 @@ int PHTrackSetMerging::InitRun(PHCompositeNode* topNode)
   return Setup(topNode);
 }
 
-int PHTrackSetMerging::process_event(PHCompositeNode* topNode)
+int PHTrackSetMerging::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }
 
-int PHTrackSetMerging::End(PHCompositeNode* topNode)
+int PHTrackSetMerging::End(PHCompositeNode* /*topNode*/)
 {
   return End();
 }

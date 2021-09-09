@@ -95,7 +95,7 @@ PHRaveVertexing::PHRaveVertexing(const string& name)
 /*
  * Init
  */
-int PHRaveVertexing::Init(PHCompositeNode* topNode)
+int PHRaveVertexing::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -214,7 +214,7 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
 /*
  * End
  */
-int PHRaveVertexing::End(PHCompositeNode* topNode)
+int PHRaveVertexing::End(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -23,9 +23,9 @@ PHObject::clone() const
   return nullptr;
 }
 
-void PHObject::identify(std::ostream& out) const
+void PHObject::identify(std::ostream& os) const
 {
-  out << "identify yourself: I am a PHObject object" << std::endl;
+  os << "identify yourself: I am a PHObject object" << std::endl;
 }
 
 void PHObject::Reset()
@@ -128,14 +128,14 @@ int PHObject::isImplemented(const unsigned int) const
 }
 
 
-void PHObject::CopyFrom(const PHObject *obj)
+void PHObject::CopyFrom(const PHObject */*obj*/)
 {
   std::cout << PHWHERE
             << " CopyFrom(const PHObject *obj) is not implemented" << std::endl;
   gSystem->Exit(1);
 }
 
-PHObject *PHObject::Clone(const char *newname) const
+PHObject *PHObject::Clone(const char */*newname*/) const
 {
 std::cout << PHWHERE
 	  << "You are overriding the TObject::Clone method which is not supported"  << std::endl;
@@ -143,7 +143,7 @@ std::cout << PHWHERE
   return nullptr;
 }
 
-void PHObject::Copy (TObject &object) const
+void PHObject::Copy (TObject &/*object*/) const
 {
 std::cout << PHWHERE
 	  << "You are overriding the TObject::Copy method which is not supported"  << std::endl;

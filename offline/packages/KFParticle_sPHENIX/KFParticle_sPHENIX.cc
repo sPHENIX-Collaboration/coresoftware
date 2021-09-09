@@ -146,7 +146,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int KFParticle_sPHENIX::End(PHCompositeNode *topNode)
+int KFParticle_sPHENIX::End(PHCompositeNode */*topNode*/)
 {
   std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of canadidates: " << candidateCounter << std::endl;  
 

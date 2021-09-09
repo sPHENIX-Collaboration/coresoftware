@@ -42,7 +42,7 @@ PHTruthSiliconAssociation::~PHTruthSiliconAssociation()
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::Init(PHCompositeNode *topNode)
+int PHTruthSiliconAssociation::Init(PHCompositeNode */*topNode*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -57,7 +57,7 @@ int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
+int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= 1) 
     cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
@@ -273,32 +273,32 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::ResetEvent(PHCompositeNode *topNode)
+int PHTruthSiliconAssociation::ResetEvent(PHCompositeNode */*topNode*/)
 {
   //cout << "PHTruthSiliconAssociation::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::EndRun(const int runnumber)
+int PHTruthSiliconAssociation::EndRun(const int /*runnumber*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::End(PHCompositeNode *topNode)
+int PHTruthSiliconAssociation::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHTruthSiliconAssociation::Reset(PHCompositeNode *topNode)
+int PHTruthSiliconAssociation::Reset(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-void PHTruthSiliconAssociation::Print(const std::string &what) const
+void PHTruthSiliconAssociation::Print(const std::string &/*what*/) const
 {
   //cout << "PHTruthSiliconAssociation::Print(const std::string &what) const Printing info for " << what << endl;
 }

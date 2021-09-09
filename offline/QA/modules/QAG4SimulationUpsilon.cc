@@ -67,7 +67,7 @@ int QAG4SimulationUpsilon::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationUpsilon::Init(PHCompositeNode *topNode)
+int QAG4SimulationUpsilon::Init(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

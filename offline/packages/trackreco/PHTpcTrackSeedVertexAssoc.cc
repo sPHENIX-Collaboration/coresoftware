@@ -278,7 +278,7 @@ int PHTpcTrackSeedVertexAssoc::End()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int  PHTpcTrackSeedVertexAssoc::GetNodes(PHCompositeNode* topNode)
+int  PHTpcTrackSeedVertexAssoc::GetNodes(PHCompositeNode* /*topNode*/)
 {
   //---------------------------------
   // Get additional objects off the Node Tree

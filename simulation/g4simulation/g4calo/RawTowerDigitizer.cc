@@ -102,7 +102,7 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
+int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity())
   {

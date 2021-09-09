@@ -36,7 +36,7 @@
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* parameters)
+PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* /*parameters*/)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_HitContainer(nullptr)
@@ -62,7 +62,7 @@ PHG4BbcSteppingAction::~PHG4BbcSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_used)
+bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   //std::cout << PHWHERE << " In PHG4BbcSteppingAction::UserSteppingAction()" << std::endl;
 
@@ -149,6 +149,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_use
       std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
                 << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
+    [[fallthrough]];
   // These are the normal cases
   case fGeomBoundary:
   case fUndefined:

@@ -47,7 +47,7 @@ JetReco::~JetReco()
   _outputs.clear();
 }
 
-int JetReco::Init(PHCompositeNode *topNode)
+int JetReco::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -106,7 +106,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetReco::End(PHCompositeNode *topNode)
+int JetReco::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -173,7 +173,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("outer_radius", 100);
 }
 
-void BeamLineMagnetSubsystem::Print(const string &what) const
+void BeamLineMagnetSubsystem::Print(const string &/*what*/) const
 {
   cout << Name() << " Parameters: " << endl;
   if (!BeginRunExecuted())

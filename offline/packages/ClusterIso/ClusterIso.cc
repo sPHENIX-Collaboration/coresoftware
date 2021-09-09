@@ -75,7 +75,7 @@ ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize
   if (!do_subtracted && !do_unsubtracted && Verbosity() >= VERBOSITY_QUIET) std::cout << "WARNING in " << Name() << "ClusterIso:: all processes turned off doing nothing" << '\n';
 }
 
-int ClusterIso::Init(PHCompositeNode *topNode)
+int ClusterIso::Init(PHCompositeNode */*topNode*/)
 {
   return 0;
 }
@@ -99,7 +99,7 @@ void ClusterIso::setConeSize(int coneSize)
 /**
  * Returns the minimum transverse energy required for a cluster to have its isolation calculated
  */
-const float ClusterIso::geteTCut()
+/*const*/ float ClusterIso::geteTCut()
 {
   return m_eTCut;
 }
@@ -107,7 +107,7 @@ const float ClusterIso::geteTCut()
 /**
  * Returns size of isolation cone as integer multiple of 0.1 (i.e. 3 is an R=0.3 cone)
  */
-const int ClusterIso::getConeSize()
+/*const*/ int ClusterIso::getConeSize()
 {
   return (int) m_coneSize * 10;
 }
@@ -115,7 +115,7 @@ const int ClusterIso::getConeSize()
 /**
  * Must be called to set the new vertex for the cluster 
  */
-const CLHEP::Hep3Vector ClusterIso::getVertex()
+/*const*/ CLHEP::Hep3Vector ClusterIso::getVertex()
 {
   return CLHEP::Hep3Vector(m_vx, m_vy, m_vz);
 }
@@ -388,7 +388,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int ClusterIso::End(PHCompositeNode *topNode)
+int ClusterIso::End(PHCompositeNode */*topNode*/)
 {
   return 0;
 }

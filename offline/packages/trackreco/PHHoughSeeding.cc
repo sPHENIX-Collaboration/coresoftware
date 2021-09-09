@@ -362,7 +362,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   return ret;
 }
 
-int PHHoughSeeding::Process(PHCompositeNode *topNode)
+int PHHoughSeeding::Process(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1)
   {
@@ -1814,7 +1814,7 @@ float PHHoughSeeding::ptToKappa(float pt)
 }
 
 void PHHoughSeeding::convertHelixCovarianceToEuclideanCovariance(float B,
-                                                                 float phi, float d, float kappa, float z0, float dzdl,
+                                                                 float phi, float d, float kappa, float /*z0*/, float dzdl,
                                                                  Eigen::Matrix<float, 5, 5> const& input,
                                                                  Eigen::Matrix<float, 6, 6>& output)
 {

@@ -282,7 +282,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 }
 
 //! end of process
-int PHG4InttDigitizer::End(PHCompositeNode *topNode)
+int PHG4InttDigitizer::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {

@@ -78,8 +78,8 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double get_stave_phi_tilt() const { return stave_phi_tilt; }
   double get_stave_phi_0() const { return stave_phi_0; }
 
-  int get_ladder_phi_index(int stave, int half_stave, int chip) {return stave; }
-  int get_ladder_z_index(int module, int chip) { return chip; }
+  int get_ladder_phi_index(int stave, int /*half_stave*/, int /*chip*/) {return stave; }
+  int get_ladder_z_index(int /*module*/, int chip) { return chip; }
 
   void find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[]);
 

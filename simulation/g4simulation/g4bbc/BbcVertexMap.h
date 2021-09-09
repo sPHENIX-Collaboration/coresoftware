@@ -20,13 +20,13 @@ class BbcVertexMap : public PHObject
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
-  virtual size_t count(unsigned int idkey) const { return 0; }
+  virtual size_t count(unsigned int /*idkey*/) const { return 0; }
   virtual void clear() {}
 
-  virtual const BbcVertex* get(unsigned int idkey) const { return nullptr; }
-  virtual BbcVertex* get(unsigned int idkey) { return nullptr; }
-  virtual BbcVertex* insert(BbcVertex* vertex) { return nullptr; }
-  virtual size_t erase(unsigned int idkey) { return 0; }
+  virtual const BbcVertex* get(unsigned int /*idkey*/) const { return nullptr; }
+  virtual BbcVertex* get(unsigned int /*idkey*/) { return nullptr; }
+  virtual BbcVertex* insert(BbcVertex* /*vertex*/) { return nullptr; }
+  virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(unsigned int idkey) const;

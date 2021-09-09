@@ -41,17 +41,17 @@ class PHG4Cell: public PHObject
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
 
   // all methods connected to the cell id (encoding/decoding
-  virtual void set_cellid(const PHG4CellDefs::keytype i) {return;}
+  virtual void set_cellid(const PHG4CellDefs::keytype) {return;}
 
   virtual PHG4CellDefs::keytype get_cellid() const {return ~0x0;}
   virtual bool has_binning(const PHG4CellDefs::CellBinning) const {return false;}
 
   // this adds hits to the g4 hit list map
-  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
-  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) {return;}
-  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype /*g4hitid*/, const float /*edep*/) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype /*g4hitid*/, const float /*edep*/, const float /*light_yield*/) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype /*g4hitid*/, const int /*tbin*/, const float /*edep*/) {return;}
   // this adds showers to the shower map
-  virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
+  virtual void add_shower_edep(const int /*g4showerid*/, const float /*edep*/) {return;}
 
   virtual EdepConstRange get_g4hits();
 
@@ -61,44 +61,44 @@ class PHG4Cell: public PHObject
   // for backward compatibility, layers and detector ids are identical
   short int get_layer() const {return get_detid();}
 
-  virtual void add_edep(const float f) {return;}
+  virtual void add_edep(const float) {return;}
   virtual double get_edep() const {return NAN;}
 
-  virtual void add_eion(const float f) {return;}
+  virtual void add_eion(const float) {return;}
   virtual double get_eion() const {return NAN;}
 
-  virtual void add_light_yield(const float lightYield){return;}
+  virtual void add_light_yield(const float){return;}
   virtual float get_light_yield() const {return NAN;}
 
   // get/set methodes - PLEASE add those ALPHABETICALLY
 
-  virtual void set_chip_index(const int i) {return;}
+  virtual void set_chip_index(const int) {return;}
   virtual int get_chip_index() const {return ~0x0;}
 
-  virtual void set_half_stave_index(const int i) {return;}
+  virtual void set_half_stave_index(const int) {return;}
   virtual int get_half_stave_index() const {return ~0x0;}
 
-  virtual void set_ladder_phi_index(const int i) {return;}
+  virtual void set_ladder_phi_index(const int) {return;}
   virtual int get_ladder_phi_index() const {return ~0x0;}
 
-  virtual void set_ladder_z_index(const int i) {return;}
+  virtual void set_ladder_z_index(const int) {return;}
   virtual int get_ladder_z_index() const {return ~0x0;}
 
-  virtual void set_module_index(const int i) {return;}
+  virtual void set_module_index(const int) {return;}
   virtual int get_module_index() const {return ~0x0;}
 
-  virtual void set_phibin(const int i) {return;}
+  virtual void set_phibin(const int) {return;}
   virtual int get_phibin() const {return ~0x0;}
 
-  virtual void set_pixel_index(const int i) {return;}
+  virtual void set_pixel_index(const int) {return;}
   virtual int get_pixel_index() const {return ~0x0;}
 
-  virtual void set_stave_index(const int i) {return;}
+  virtual void set_stave_index(const int) {return;}
   virtual int get_stave_index() const {return ~0x0;}
 
 //  virtual tpctod* get_train_of_digits() {return 0;}
 
-  virtual void set_zbin(const int i) {return;}
+  virtual void set_zbin(const int) {return;}
   virtual int get_zbin() const {return ~0x0;}
 
 
@@ -141,21 +141,21 @@ class PHG4Cell: public PHObject
     type_unknown = -1
   };
 
-  virtual bool  has_property(const PROPERTY prop_id) const {return false;}
-  virtual float get_property_float(const PROPERTY prop_id) const {return NAN;}
-  virtual int   get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
-  virtual unsigned int   get_property_uint(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void  set_property(const PROPERTY prop_id, const float value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const int value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const unsigned int value) {return;}
+  virtual bool  has_property(const PROPERTY /*prop_id*/) const {return false;}
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const {return NAN;}
+  virtual int   get_property_int(const PROPERTY /*prop_id*/) const {return INT_MIN;}
+  virtual unsigned int   get_property_uint(const PROPERTY /*prop_id*/) const {return UINT_MAX;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const float /*value*/) {return;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const int /*value*/) {return;}
+  virtual void  set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) {return;}
   static std::pair<const std::string,PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
   static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
   PHG4Cell() {}
-  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const {return UINT_MAX;}
+  virtual void set_property_nocheck(const PROPERTY /*prop_id*/,const unsigned int) {return;}
   ClassDefOverride(PHG4Cell,2)
 };
 

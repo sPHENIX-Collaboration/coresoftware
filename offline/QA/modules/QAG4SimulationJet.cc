@@ -228,7 +228,7 @@ QAG4SimulationJet::get_histo_prefix(const std::string& src_jet_name,
   return histo_prefix;
 }
 
-int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* topNode,
+int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
                                      const std::string& jet_name)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
@@ -553,7 +553,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationJet::Init_TruthMatching(PHCompositeNode* topNode,
+int QAG4SimulationJet::Init_TruthMatching(PHCompositeNode* /*topNode*/,
                                           const std::string& reco_jet_name)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();

@@ -37,7 +37,7 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARNING; }
+  void identify(std::ostream& /*os*/ = std::cout) const override { PHOOL_VIRTUAL_WARNING; }
   /** @defgroup getters
    *  @{
    */
@@ -163,7 +163,7 @@ class RawCluster : public PHObject
     return NAN;
   }
   //! isolation ET the radius and hueristic can be specified
-  virtual float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const
+  virtual float get_et_iso(const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
     return NAN;
@@ -188,31 +188,31 @@ class RawCluster : public PHObject
    *  @{
    */
   //! cluster ID
-  virtual void set_id(const RawClusterDefs::keytype id) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_id(const RawClusterDefs::keytype) { PHOOL_VIRTUAL_WARNING; }
   //! Tower operations
-  virtual void addTower(const RawClusterDefs::keytype twrid, const float etower) { PHOOL_VIRTUAL_WARNING; }
+  virtual void addTower(const RawClusterDefs::keytype /*twrid*/, const float /*etower*/) { PHOOL_VIRTUAL_WARNING; }
   //! total energy
-  virtual void set_energy(const float energy) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_energy(const float) { PHOOL_VIRTUAL_WARNING; }
   //
   //!  access to intrinsic cylindrical coordinate system
-  virtual void set_phi(const float phi) { PHOOL_VIRTUAL_WARNING; }
-  virtual void set_z(const float z) { PHOOL_VIRTUAL_WARNING; }
-  virtual void set_r(const float r) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_phi(const float) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_z(const float) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_r(const float) { PHOOL_VIRTUAL_WARNING; }
   //
   //! access additional optional properties
   //! cluster core energy for EM shower
-  virtual void set_ecore(const float ecore) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_ecore(const float) { PHOOL_VIRTUAL_WARNING; }
   //! reduced chi2 for EM shower
-  virtual void set_chi2(const float chi2) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_chi2(const float) { PHOOL_VIRTUAL_WARNING; }
   //! cluster template probability for EM shower
-  virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_prob(const float) { PHOOL_VIRTUAL_WARNING; }
   //! isolation ET
-  virtual void set_et_iso(const float e) { PHOOL_VIRTUAL_WARNING; }
-  virtual void set_et_iso(const float e, const int radiusx10, bool subtracted, bool clusterTower) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_et_iso(const float) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_et_iso(const float /*e*/, const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) { PHOOL_VIRTUAL_WARNING; }
   //  //! truth cluster's PHG4Particle ID
-  //  virtual void set_truth_track_ID(const int i) { PHOOL_VIRTUAL_WARNING; }
+  //  virtual void set_truth_track_ID(const int) { PHOOL_VIRTUAL_WARNING; }
   //  //! truth cluster's PHG4Particle flavor
-  //  virtual void set_truth_flavor(const int f) { PHOOL_VIRTUAL_WARNING; }
+  //  virtual void set_truth_flavor(const int) { PHOOL_VIRTUAL_WARNING; }
   //
   /*
    *
@@ -273,14 +273,14 @@ class RawCluster : public PHObject
   };
 
   //! getters
-  virtual bool has_property(const PROPERTY prop_id) const { return false; }
-  virtual float get_property_float(const PROPERTY prop_id) const { return NAN; }
-  virtual int get_property_int(const PROPERTY prop_id) const { return INT_MIN; }
-  virtual unsigned int get_property_uint(const PROPERTY prop_id) const { return UINT_MAX; }
+  virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return NAN; }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return INT_MIN; }
+  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
   //! setters
-  virtual void set_property(const PROPERTY prop_id, const float value) { return; }
-  virtual void set_property(const PROPERTY prop_id, const int value) { return; }
-  virtual void set_property(const PROPERTY prop_id, const unsigned int value) { return; }
+  virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }
+  virtual void set_property(const PROPERTY /*prop_id*/, const int /*value*/) { return; }
+  virtual void set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) { return; }
   //! type management
   static std::pair<const std::string, PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
   static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
