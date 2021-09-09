@@ -89,7 +89,7 @@ TpcDirectLaserReconstruction::TpcDirectLaserReconstruction( const std::string& n
 }
 
 //_____________________________________________________________________
-int TpcDirectLaserReconstruction::Init(PHCompositeNode* topNode )
+int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
