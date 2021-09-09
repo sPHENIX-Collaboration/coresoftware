@@ -38,6 +38,7 @@ class PHTrackCleaner : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+  void findGhostTracks();
 
 SvtxTrackMap *_track_map{nullptr};
 SvtxTrack *_track{nullptr};
@@ -46,6 +47,12 @@ SvtxTrack *_track{nullptr};
 
  unsigned int min_clusters = 20;
 
+  double _phi_cut = 0.01;
+  double _eta_cut = 0.004;
+  double _x_cut = 0.3;
+  double _y_cut = 0.3;
+  double _z_cut = 0.4;
+  
 };
 
 #endif // PHTRACKCLEANER_H
