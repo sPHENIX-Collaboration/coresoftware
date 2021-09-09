@@ -114,10 +114,12 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int idx_k = -1;
   int idx_j = -1;
 
-  if (whichactive > 0)  // in scintillator
+  if (whichactive > 0)  // in scintillator or fiber
   {
     /* Find indices of scintillator / tower containing this step */
-    FindIndex(touch, idx_j, idx_k);
+    //FindIndex(touch, idx_j, idx_k);
+    if(whichactive == 2)  FindIndexZDC(touch, idx_j, idx_k);
+    if(whichactive == 1) FindIndexSMD(touch, idx_j, idx_k);
   }
   
 
@@ -155,7 +157,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     
     //if prepoint is in fiber
-    if(whichactive > 0)
+    if(whichactive > 1)
       {
 
 	double charge = aTrack->GetParticleDefinition()->GetPDGCharge();
@@ -258,10 +260,10 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       break;
     }
 
-    if (whichactive > 0)
+    if (whichactive == 1)
     {
       //light_yield = eion;
-      //light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+      light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       static bool once = true;
       
       if (once && edep > 0)
@@ -403,8 +405,9 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 }
 
 
-//getting index using copyno
-int PHG4ZDCSteppingAction::FindIndex(G4TouchableHandle& touch, int& j, int& k)
+//getting index using copyno 
+//if in ZDC PMMA fiber
+int PHG4ZDCSteppingAction::FindIndexZDC(G4TouchableHandle& touch, int& j, int& k)
 {
  
 
@@ -413,9 +416,31 @@ int PHG4ZDCSteppingAction::FindIndex(G4TouchableHandle& touch, int& j, int& k)
  
   j = envelope->GetCopyNo();
   k = (plate->GetCopyNo()) / 27;
-  
+   
   return 0;
 }
+
+int PHG4ZDCSteppingAction::FindIndexSMD(G4TouchableHandle& touch, int& j, int& k)
+{
+  int jshift = 10;
+  int kshift = 10;
+  G4VPhysicalVolume* envelope = touch->GetVolume(2);  //Get the envelope
+  G4VPhysicalVolume* scint = touch->GetVolume(0);  //Get the fiber plate
+ 
+  int whichzdc = envelope->GetCopyNo();
+  
+  j = scint->GetCopyNo() % 7;
+  k = scint->GetCopyNo() / 7;
+
+  if (whichzdc == 1) j += 7;
+  // shift the index to avoid conflict with the ZDC index
+  j += jshift;
+  k += kshift;
+
+  return 0;
+}
+
+
 
  double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
  {

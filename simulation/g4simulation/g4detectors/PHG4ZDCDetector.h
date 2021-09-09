@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4FORWARDECALDETECTOR_H
-#define G4DETECTORS_PHG4FORWARDECALDETECTOR_H
+#ifndef G4DETECTORS_PHG4ZDCDETECTOR_H
+#define G4DETECTORS_PHG4ZDCDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -20,9 +20,6 @@ class PHG4GDMLConfig;
 class PHParameters;
 
 /**
- * \file ${file_name}
- * \brief Module to build forward sampling Hadron calorimeterr (endcap) in Geant4
- * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
 class PHG4ZDCDetector : public PHG4Detector
@@ -55,7 +52,8 @@ class PHG4ZDCDetector : public PHG4Detector
   PHParameters *m_Params;
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig *m_GdmlConfig;
-
+  
+  bool m_Window;
   /* ZDC geometry */
   double m_Angle;
 
@@ -82,6 +80,20 @@ class PHG4ZDCDetector : public PHG4Detector
   double m_PlaceY;
   double m_PlaceZ;
 
+  double m_TSMD;
+  double m_HSMD;
+  double m_WSMD;
+
+  double m_RHole;
+  double m_TWin;
+  double m_RWin;
+  
+  double m_PlaceHole;
+  double m_Pxwin;
+  double m_Pywin;
+  double m_Pzwin;
+  
+
   int m_NMod;
   int m_NLay;
 
@@ -94,6 +106,7 @@ class PHG4ZDCDetector : public PHG4Detector
 
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
+  std::set<G4LogicalVolume *> m_FiberLogicalVolSet;
 
  protected:
  

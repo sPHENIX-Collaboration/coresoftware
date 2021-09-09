@@ -59,6 +59,14 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       visatt->SetColour(G4Colour::Red());
     }
+    else if (it.second == "Window")
+    {
+      visatt->SetColour(G4Colour::Blue());
+    }
+    else if (it.second == "SMD")
+    {
+      visatt->SetColour(G4Colour::Yellow());
+    }
     else if (it.second == "FiberPlate")
     {
       visatt->SetColour(G4Colour::Cyan());
