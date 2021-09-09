@@ -347,7 +347,14 @@ void SimEvaluator_hp::fill_event()
     for( auto iter = range.first; iter != range.second; ++iter )
     {
       auto particle = iter->second;
-      if( particle && get_pt( particle->get_px(), particle->get_py() ) > 0.5 ) ++event._nparticles;
+      if( !particle ) continue;
+
+      // create convenient structure from particle
+      const auto pstruct = create_particle( particle );
+
+      // check pt, charge and pseudo rapidity
+      if( pstruct._pt > 0.5 && std::abs( pstruct._eta ) < 1 && pstruct._charge != 0 )
+      { ++event._nparticles; }
     }
   }
 
