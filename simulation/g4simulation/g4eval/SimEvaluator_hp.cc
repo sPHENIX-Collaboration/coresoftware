@@ -205,7 +205,7 @@ int SimEvaluator_hp::Init(PHCompositeNode* topnode )
 }
 
 //_____________________________________________________________________
-int SimEvaluator_hp::InitRun(PHCompositeNode* topnode )
+int SimEvaluator_hp::InitRun(PHCompositeNode*)
 {
   // print_tpc( topnode );
   return Fun4AllReturnCodes::EVENT_OK;
@@ -240,7 +240,7 @@ int SimEvaluator_hp::process_event(PHCompositeNode* topnode)
 }
 
 //_____________________________________________________________________
-int SimEvaluator_hp::End(PHCompositeNode* )
+int SimEvaluator_hp::End(PHCompositeNode*)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________

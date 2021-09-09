@@ -10,7 +10,7 @@ EventCounter_hp::EventCounter_hp( const std::string& name, unsigned int granular
 { std::cout << "EventCounter_hp::EventCounter_hp." << std::endl; }
 
 //_____________________________________________________________________
-int EventCounter_hp::Init(PHCompositeNode* topNode )
+int EventCounter_hp::Init(PHCompositeNode*)
 {
 
   std::cout << "EventCounter_hp::Init." << std::endl;
@@ -30,7 +30,7 @@ int EventCounter_hp::InitRun(PHCompositeNode* )
 }
 
 //_____________________________________________________________________
-int EventCounter_hp::process_event(PHCompositeNode* topNode)
+int EventCounter_hp::process_event(PHCompositeNode*)
 {
   // print event number
   if( _granularity > 0 && (_ievent % _granularity) == 0 )
@@ -41,7 +41,7 @@ int EventCounter_hp::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int EventCounter_hp::End(PHCompositeNode* )
+int EventCounter_hp::End(PHCompositeNode*)
 {
   std::cout << "EventCounter_hp::End." << std::endl;
 
