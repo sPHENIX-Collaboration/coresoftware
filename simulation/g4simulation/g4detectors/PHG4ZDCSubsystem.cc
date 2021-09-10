@@ -54,16 +54,13 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4ZDCDisplayAction(Name());
   // create detector
- 
-  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
+   m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
 
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
   set<string> nodes;
-  // GetParams()->set_int_param("active",1);
-  // std::cout<<"active?"<<GetParams()->get_int_param("active")<<std::endl;
-  
+   
   if (GetParams()->get_int_param("active"))
    {
    
@@ -137,7 +134,9 @@ PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
 
 void PHG4ZDCSubsystem::SetDefaultParameters()
 {
-  
+  set_default_int_param("fzdc", 0);
+  set_default_int_param("bzdc", 0);
+  set_default_double_param("z", 1843.0);
   return;
 }
 
