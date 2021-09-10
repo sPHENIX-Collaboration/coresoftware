@@ -34,6 +34,7 @@ class PHTrackCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void enableGhostRejection(bool enable){_reject_ghosts = enable;}
 
  private:
 
@@ -52,7 +53,8 @@ SvtxTrack *_track{nullptr};
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  
+  bool _reject_ghosts = true;
+
 };
 
 #endif // PHTRACKCLEANER_H

@@ -160,7 +160,8 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
   // now we have a single silicon match per TPC seed
   // Try to eliminate tracks based on repeated TPC seeds
 
-  findGhostTracks();
+  if(_reject_ghosts)
+    findGhostTracks();
 
   if(Verbosity() > 0)
     std::cout << "Track map size after deleting ghost tracks: " << _track_map->size() << std::endl;
