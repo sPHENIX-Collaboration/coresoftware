@@ -53,6 +53,7 @@ namespace TrkrDefs
     inttId = 1,
     tpcId = 2,
     micromegasId = 3,
+    ttl = 4,
   };
 
 
