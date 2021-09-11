@@ -45,7 +45,7 @@ int PHGhostRejection::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHGhostRejection::process_event(PHCompositeNode *topNode)
+int PHGhostRejection::process_event(PHCompositeNode * /*topNode*/)
 {
 
   if(Verbosity() > 0)
@@ -62,7 +62,7 @@ int PHGhostRejection::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHGhostRejection::End(PHCompositeNode *topNode)
+int PHGhostRejection::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
