@@ -472,7 +472,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 }
 
 double
-PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double width, FUNCTION dist) const
+PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double /*width*/, FUNCTION dist) const
 {
   double res = position;
   if (dist == Uniform)

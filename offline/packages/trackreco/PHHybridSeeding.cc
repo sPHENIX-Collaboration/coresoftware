@@ -230,7 +230,7 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHHybridSeeding::Process(PHCompositeNode *topNode)
+int PHHybridSeeding::Process(PHCompositeNode */*topNode*/)
 {
   // wipe previous vertex coordinates
   _vertex_x.clear();

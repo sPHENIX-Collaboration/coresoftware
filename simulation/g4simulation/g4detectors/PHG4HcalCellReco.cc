@@ -188,7 +188,7 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HcalCellReco::End(PHCompositeNode *topNode)
+int PHG4HcalCellReco::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -54,7 +54,7 @@ class Fun4AllInputManager : public Fun4AllBase
   std::string TopNodeName() const { return m_TopNodeName; }
   bool FileListEmpty() const { return m_FileList.empty(); }
   virtual int IsOpen() const { return m_IsOpen; }
-  virtual int SkipForThisManager(const int nevents) { return 0; }
+  virtual int SkipForThisManager(const int /*nevents*/) { return 0; }
   virtual int HasSyncObject() const { return 0; }
 
  protected:

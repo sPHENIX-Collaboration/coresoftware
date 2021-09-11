@@ -20,7 +20,7 @@ PHG4EventActionClearZeroEdep::AddNode(const std::string &name)
 }
 
 //___________________________________________________
-void PHG4EventActionClearZeroEdep::EndOfEventAction(const G4Event* evt)
+void PHG4EventActionClearZeroEdep::EndOfEventAction(const G4Event* /*evt*/)
 {
   BOOST_FOREACH(std::string node, nodename_set)
     {

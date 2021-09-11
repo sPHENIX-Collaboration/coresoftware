@@ -89,12 +89,12 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrackProjection::Init(PHCompositeNode *topNode)
+int PHActsTrackProjection::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrackProjection::End(PHCompositeNode *topNode)
+int PHActsTrackProjection::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

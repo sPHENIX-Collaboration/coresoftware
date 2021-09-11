@@ -11,7 +11,7 @@ void RawTowerGeomContainer::identify(std::ostream& os) const
   os << "Base class RawTowerGeomContainer." << std::endl;
 }
 
-RawTowerGeomContainer::ConstIterator RawTowerGeomContainer::add_tower_geometry(RawTowerGeom* geo)
+RawTowerGeomContainer::ConstIterator RawTowerGeomContainer::add_tower_geometry(RawTowerGeom* /*geo*/)
 {
   PHOOL_VIRTUAL_WARN("add_tower_geometry()");
   return DummyMap.end();

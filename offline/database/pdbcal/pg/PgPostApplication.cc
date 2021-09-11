@@ -171,7 +171,7 @@ PgPostApplication::commit(PdbCalBank *b)
 }
 
 PdbStatus
-PgPostApplication::commit(PdbCalBank *b, int rid, long it, long st, long et)
+PgPostApplication::commit(PdbCalBank *b, int /*rid*/, long /*it*/, long /*st*/, long /*et*/)
 {
   PgPostBankWrapper *tb = dynamic_cast<PgPostBankWrapper *>(b);
   if (tb)

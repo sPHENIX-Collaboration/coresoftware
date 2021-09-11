@@ -28,7 +28,7 @@ PHG4CylinderDisplayAction::~PHG4CylinderDisplayAction()
   delete m_Colour;
 }
 
-void PHG4CylinderDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4CylinderDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   if (m_MyVolume->GetVisAttributes())
   {

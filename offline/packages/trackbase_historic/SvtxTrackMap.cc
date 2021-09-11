@@ -10,7 +10,7 @@ SvtxTrackMap::ConstIter SvtxTrackMap::begin() const
   return DummyTrackMap.end();
 }
 
-SvtxTrackMap::ConstIter SvtxTrackMap::find(unsigned int idkey) const
+SvtxTrackMap::ConstIter SvtxTrackMap::find(unsigned int /*idkey*/) const
 {
   return DummyTrackMap.end();
 }
@@ -26,7 +26,7 @@ SvtxTrackMap::Iter SvtxTrackMap::begin()
   return DummyTrackMap.end();
 }
 
-SvtxTrackMap::Iter SvtxTrackMap::find(unsigned int idkey)
+SvtxTrackMap::Iter SvtxTrackMap::find(unsigned int /*idkey*/)
 {
   return DummyTrackMap.end();
 }

@@ -22,7 +22,7 @@ class PHG4ScintillatorSlat : public PHObject
     os << "PHG4ScintillatorSlat base class" << std::endl;
   }
   
-  virtual void add_edep(const double edep, const double e, const double light_yield) {return;}
+  virtual void add_edep(const double /*edep*/, const double /*e*/, const double /*light_yield*/) {return;}
 
   virtual void set_key(const PHG4ScintillatorSlatDefs::keytype) {return;}
   virtual void add_hit_key(PHG4HitDefs::keytype) {return;}

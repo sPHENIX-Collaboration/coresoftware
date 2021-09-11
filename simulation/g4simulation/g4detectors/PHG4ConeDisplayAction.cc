@@ -29,7 +29,7 @@ PHG4ConeDisplayAction::~PHG4ConeDisplayAction()
   delete m_Colour;
 }
 
-void PHG4ConeDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4ConeDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   if (m_MyVolume->GetVisAttributes())
   {

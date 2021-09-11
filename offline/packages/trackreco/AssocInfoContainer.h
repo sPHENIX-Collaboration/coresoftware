@@ -19,9 +19,9 @@ class AssocInfoContainer : public PHObject
 
   void identify(std::ostream& os = std::cout) const override;
 
-  virtual void SetClusterTrackAssoc(const TrkrDefs::cluskey& cluster_id, const unsigned int& track_id) {return;}
+  virtual void SetClusterTrackAssoc(const TrkrDefs::cluskey& /*cluster_id*/, const unsigned int& /*track_id*/) {return;}
 
-  virtual std::vector<unsigned int> GetTracksFromCluster(const TrkrDefs::cluskey& cluster_id) const { std::vector<unsigned int> emptyvec; return emptyvec;}
+  virtual std::vector<unsigned int> GetTracksFromCluster(const TrkrDefs::cluskey& /*cluster_id*/) const { std::vector<unsigned int> emptyvec; return emptyvec;}
 
  protected:
   AssocInfoContainer(){};

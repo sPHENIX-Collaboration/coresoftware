@@ -97,7 +97,7 @@ MakeActsGeometry::MakeActsGeometry(const std::string &name)
 : SubsysReco(name)
 { setPlanarSurfaceDivisions(); }
 
-int MakeActsGeometry::Init(PHCompositeNode *topNode)
+int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -147,11 +147,11 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MakeActsGeometry::process_event(PHCompositeNode *topNode)
+int MakeActsGeometry::process_event(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int MakeActsGeometry::End(PHCompositeNode *topNode)
+int MakeActsGeometry::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1119,7 +1119,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   return intt_hitsetkey;
 }
 
-void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
+void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode * /*topNode*/)
 {
   // This is just a diagnostic method
   // it lets you list all of the nodes by setting print_sensors = true
@@ -1282,7 +1282,7 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
 
   return;
 }
-void MakeActsGeometry::getTpcKeyFromNode(TGeoNode *gnode)
+void MakeActsGeometry::getTpcKeyFromNode(TGeoNode * /*gnode*/)
 {
 
 }

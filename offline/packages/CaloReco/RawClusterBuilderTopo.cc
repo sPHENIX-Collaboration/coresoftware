@@ -1149,7 +1149,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilderTopo::End(PHCompositeNode *topNode)
+int RawClusterBuilderTopo::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

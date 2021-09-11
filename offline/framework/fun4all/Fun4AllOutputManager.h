@@ -46,7 +46,7 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
-  virtual void SaveRunNode(const int i) {return;}
+  virtual void SaveRunNode(const int) {return;}
 
   /*! \brief
     add an event selector to the outputmanager.

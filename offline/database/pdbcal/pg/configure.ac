@@ -13,10 +13,10 @@ dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
 dnl odbc++ has issues
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wno-overloaded-virtual -Wno-inconsistent-missing-override"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wno-overloaded-virtual -Wno-inconsistent-missing-override -Wextra"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
  ;;
 esac
 

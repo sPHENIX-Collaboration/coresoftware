@@ -72,7 +72,7 @@ PHG4TrackFastSimEval::PHG4TrackFastSimEval(const string &name, const string &fil
 //-- Init():
 //--   Intialize all histograms, trees, and ntuples
 //----------------------------------------------------------------------------//
-int PHG4TrackFastSimEval::Init(PHCompositeNode *topNode)
+int PHG4TrackFastSimEval::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -246,7 +246,7 @@ int PHG4TrackFastSimEval::process_event(PHCompositeNode *topNode)
 //-- End():
 //--   End method, wrap everything up
 //----------------------------------------------------------------------------//
-int PHG4TrackFastSimEval::End(PHCompositeNode *topNode)
+int PHG4TrackFastSimEval::End(PHCompositeNode */*topNode*/)
 {
   PHTFileServer::get().cd(m_OutFileName);
 
@@ -440,7 +440,7 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 //-- fill_tree():
 //--   Fill the trees with truth, track fit, and cluster information
 //----------------------------------------------------------------------------//
-void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
+void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode */*topNode*/)
 {
   if (!m_TruthInfoContainer)
   {

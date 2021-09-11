@@ -16,7 +16,7 @@ class PHSartreGenTrigger
  public:
   virtual ~PHSartreGenTrigger();
 
-  virtual bool Apply(Event *event)
+  virtual bool Apply(Event */*event*/)
   {
     std::cout << "PHSartreGenTrigger::Apply - in virtual function" << std::endl;
     return false;

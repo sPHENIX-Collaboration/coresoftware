@@ -38,7 +38,7 @@ class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHParametersContainer* parameters)
+PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHParametersContainer* /*parameters*/)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -63,7 +63,7 @@ PHG4PSTOFSteppingAction::~PHG4PSTOFSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool was_used)
+bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -130,6 +130,7 @@ cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetS
       cout << " previous phys pre vol: " << savevolpre->GetName()
            << " previous phys post vol: " << savevolpost->GetName() << endl;
       }
+    [[fallthrough]];
   case fGeomBoundary:
   case fUndefined:
     if (!hit)

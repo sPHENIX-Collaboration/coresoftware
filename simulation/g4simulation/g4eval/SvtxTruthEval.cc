@@ -255,7 +255,7 @@ void  SvtxTruthEval::FillTruthHitsFromParticleCache(){
     std::multimap<const int, PHG4Hit*>::const_iterator lower_bound = temp_clusters_from_particles.lower_bound(g4particle->get_track_id());
     std::multimap<const int, PHG4Hit*>::const_iterator upper_bound = temp_clusters_from_particles.upper_bound(g4particle->get_track_id());
     std::multimap<const int, PHG4Hit*>::const_iterator cfp_iter;
-    for(cfp_iter = lower_bound;cfp_iter != upper_bound;cfp_iter++){
+    for(cfp_iter = lower_bound;cfp_iter != upper_bound;++cfp_iter){
       PHG4Hit* g4hit = cfp_iter->second;
       truth_hits.insert(g4hit);
     }

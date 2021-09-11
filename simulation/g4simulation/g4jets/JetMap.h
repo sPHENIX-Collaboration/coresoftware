@@ -32,16 +32,16 @@ class JetMap : public PHObject
 
   // map content info ----------------------------------------------------------
 
-  virtual void set_algo(Jet::ALGO algo) { return; }
+  virtual void set_algo(Jet::ALGO /*algo*/) { return; }
   virtual Jet::ALGO get_algo() const { return Jet::NONE; }
 
-  virtual void set_par(float par) { return; }
+  virtual void set_par(float) { return; }
   virtual float get_par() const { return NAN; }
 
   // set access to list of source identifiers ----------------------------------
 
   virtual bool empty_src() const { return true; }
-  virtual void insert_src(Jet::SRC src) { return; }
+  virtual void insert_src(Jet::SRC /*src*/) { return; }
 
   virtual ConstSrcIter begin_src() const;
   virtual ConstSrcIter find_src(Jet::SRC src) const;
@@ -55,14 +55,14 @@ class JetMap : public PHObject
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
-  virtual size_t count(unsigned int idkey) const { return 0; }
+  virtual size_t count(unsigned int /*idkey*/) const { return 0; }
   virtual void clear() { return; }
 
-  virtual const Jet* get(unsigned int idkey) const { return nullptr; }
-  virtual Jet* get(unsigned int idkey) { return nullptr; }
+  virtual const Jet* get(unsigned int /*idkey*/) const { return nullptr; }
+  virtual Jet* get(unsigned int /*idkey*/) { return nullptr; }
 
-  virtual Jet* insert(Jet* jet) { return nullptr; }
-  virtual size_t erase(unsigned int idkey) { return 0; }
+  virtual Jet* insert(Jet* /*jet*/) { return nullptr; }
+  virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(unsigned int idkey) const;

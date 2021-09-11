@@ -361,7 +361,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   return;
 }
 
-void PHG4InttSubsystem::Print(const string &what) const
+void PHG4InttSubsystem::Print(const string &/*what*/) const
 {
   PrintDefaultParams();
   cout << endl

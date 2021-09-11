@@ -113,7 +113,7 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia8::End(PHCompositeNode *topNode)
+int PHPythia8::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::End - I'm here!" << endl;
 
@@ -171,7 +171,7 @@ void PHPythia8::print_config() const
   m_Pythia8->info.list();
 }
 
-int PHPythia8::process_event(PHCompositeNode *topNode)
+int PHPythia8::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << m_EventCount << endl;
 

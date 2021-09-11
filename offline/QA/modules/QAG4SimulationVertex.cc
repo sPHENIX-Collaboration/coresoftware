@@ -75,7 +75,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationVertex::Init(PHCompositeNode *topNode)
+int QAG4SimulationVertex::Init(PHCompositeNode */*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

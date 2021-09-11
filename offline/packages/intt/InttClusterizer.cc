@@ -73,8 +73,8 @@ bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, Trk
 }
 
 InttClusterizer::InttClusterizer(const string& name,
-                                 unsigned int min_layer,
-                                 unsigned int max_layer)
+                                 unsigned int /*min_layer*/,
+                                 unsigned int /*max_layer*/)
   : SubsysReco(name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)

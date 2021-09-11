@@ -45,7 +45,7 @@ int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHTrackCleaner::process_event(PHCompositeNode *topNode)
+int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 {
 
   if(Verbosity() > 0)
@@ -160,7 +160,7 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTrackCleaner::End(PHCompositeNode *topNode)
+int PHTrackCleaner::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

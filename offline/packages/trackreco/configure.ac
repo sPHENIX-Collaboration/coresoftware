@@ -17,7 +17,7 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-     CXXFLAGS="$CXXFLAGS -Wall"
+     CXXFLAGS="$CXXFLAGS -Wall -Wextra"
 fi
 
 AM_CONDITIONAL([MAKE_ACTS],false)
@@ -25,7 +25,7 @@ dnl gcc 8.3 creates warning in boost header, needs -Wno-class-memaccess
 dnl need to check for *g++ since $CXX contains full path to g++
 case $CXX in
  clang++)
-   CXXFLAGS="$CXXFLAGS -Werror -Wno-undefined-var-template -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef"
+   CXXFLAGS="$CXXFLAGS -Werror -Wno-undefined-var-template -Wno-unused-private-field -Wno-range-loop-construct -Wno-unused-local-typedef -Wno-deprecated-copy -Wno-sign-compare -Wno-unused-parameter"
    AM_CONDITIONAL([MAKE_ACTS],test `clang++ -dumpversion | awk '{print $1>=10.0?"1":"0"}'` = 1)
  ;;
  *analyzer)

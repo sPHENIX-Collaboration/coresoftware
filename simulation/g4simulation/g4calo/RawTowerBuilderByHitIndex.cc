@@ -157,7 +157,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerBuilderByHitIndex::End(PHCompositeNode *topNode)
+int RawTowerBuilderByHitIndex::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

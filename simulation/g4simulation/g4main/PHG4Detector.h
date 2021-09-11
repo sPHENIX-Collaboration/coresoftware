@@ -49,7 +49,7 @@ class PHG4Detector
   virtual std::string GetName() const { return m_Name; }
   virtual void OverlapCheck(const bool chk) { m_OverlapCheck = chk; }
   virtual bool OverlapCheck() const { return m_OverlapCheck; }
-  virtual void Print(const std::string &what = "ALL") const
+  virtual void Print(const std::string &/*what*/ = "ALL") const
   {
     std::cout << GetName() << ": Print method not implemented" << std::endl;
   }

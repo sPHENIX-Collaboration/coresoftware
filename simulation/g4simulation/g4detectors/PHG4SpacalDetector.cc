@@ -384,7 +384,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
   return fiber_logic;
 }
 
-void PHG4SpacalDetector::Print(const std::string &what) const
+void PHG4SpacalDetector::Print(const std::string &/*what*/) const
 {
   cout << "PHG4SpacalDetector::Print::" << GetName() << " - Print Geometry:"
        << endl;

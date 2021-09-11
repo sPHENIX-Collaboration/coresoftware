@@ -90,7 +90,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
+int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
 {
   PHTimer eventTimer("eventTimer");
   eventTimer.stop();
@@ -146,7 +146,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
+int PHActsTrkFitter::ResetEvent(PHCompositeNode */*topNode*/)
 {
   
   if(Verbosity() > 1)
@@ -163,7 +163,7 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::End(PHCompositeNode *topNode)
+int PHActsTrkFitter::End(PHCompositeNode */*topNode*/)
 {
   if(m_timeAnalysis)
     {

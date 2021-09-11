@@ -62,7 +62,7 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
   , m_matrix_container( new TpcSpaceChargeMatrixContainerv1 )
 {}
 
-int PHTpcResiduals::Init(PHCompositeNode *topNode)
+int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
   if( m_savehistograms ) makeHistograms();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -100,7 +100,7 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
   return returnVal;
 }
 
-int PHTpcResiduals::End(PHCompositeNode *topNode)
+int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 {
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
 
@@ -120,7 +120,7 @@ int PHTpcResiduals::End(PHCompositeNode *topNode)
 }
 
 
-int PHTpcResiduals::processTracks(PHCompositeNode *topNode)
+int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 {
 
   std::cout << "proto track size " << m_trackMap->size()
@@ -618,7 +618,7 @@ int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
 
 }
 
-int PHTpcResiduals::createNodes(PHCompositeNode *topNode)
+int PHTpcResiduals::createNodes(PHCompositeNode */*topNode*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;

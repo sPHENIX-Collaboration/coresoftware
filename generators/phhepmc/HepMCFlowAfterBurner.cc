@@ -49,7 +49,7 @@ HepMCFlowAfterBurner::HepMCFlowAfterBurner(const std::string &name)
 {
 }
 
-int HepMCFlowAfterBurner::Init(PHCompositeNode *topNode)
+int HepMCFlowAfterBurner::Init(PHCompositeNode */*topNode*/)
 {
   if (seedset)
   {
@@ -125,7 +125,7 @@ void HepMCFlowAfterBurner::RestoreRandomState(const string &savefile)
   cout << PHWHERE << " Random engine not started yet" << endl;
 }
 
-void HepMCFlowAfterBurner::Print(const string &what) const
+void HepMCFlowAfterBurner::Print(const string &/*what*/) const
 {
   cout << "FlowAfterBurner parameters:" << endl;
   cout << "algorithm: " << algorithmName << endl;

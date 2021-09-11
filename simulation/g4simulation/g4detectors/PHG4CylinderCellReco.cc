@@ -48,7 +48,7 @@ PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name)
   memset(nbins, 0, sizeof(nbins));
 }
 
-int PHG4CylinderCellReco::ResetEvent(PHCompositeNode *topNode)
+int PHG4CylinderCellReco::ResetEvent(PHCompositeNode */*topNode*/)
 {
   sum_energy_before_cuts = 0.;
   sum_energy_g4hit = 0.;

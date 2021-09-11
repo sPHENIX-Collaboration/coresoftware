@@ -36,12 +36,12 @@ int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
   return Setup(topNode);
 }
 
-int PHTrackPropagating::process_event(PHCompositeNode* topNode)
+int PHTrackPropagating::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }
 
-int PHTrackPropagating::End(PHCompositeNode* topNode)
+int PHTrackPropagating::End(PHCompositeNode* /*topNode*/)
 {
   End();
   return Fun4AllReturnCodes::EVENT_OK;

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void HelixHough::splitIntoBins(unsigned int min_hits, unsigned int max_hits,
+void HelixHough::splitIntoBins(unsigned int /*min_hits*/, unsigned int /*max_hits*/,
                                vector<HelixRange>& ranges,
                                vector<vector<SimpleHit3D> >& split_hits,
                                unsigned int zoomlevel) {

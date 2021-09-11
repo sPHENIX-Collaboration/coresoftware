@@ -567,10 +567,10 @@ void *ProcessSector(void *threadarg) {
      if(fadc>0) 
        adc =  (unsigned short) fadc;
      
-     if(phibin < 0) continue;
+//     if(phibin < 0) continue; // phibin is unsigned int, <0 cannot happen
      if(phibin >= phibins) continue;
-     if(zbin   < 0) continue;
-     if(zbin   >= zbins) continue;
+//     if(zbin   < 0) continue;
+     if(zbin   >= zbins) continue; // zbin is unsigned int, <0 cannot happen
 
      if(adc>0){
        iphiz iCoord(std::make_pair(phibin,zbin));
@@ -878,7 +878,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TpcClusterizer::End(PHCompositeNode *topNode)
+int TpcClusterizer::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

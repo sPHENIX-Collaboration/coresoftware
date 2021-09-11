@@ -51,7 +51,7 @@ PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
 }
 
 //____________________________________________________________________________
-int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4MicromegasDigitizer::InitRun(PHCompositeNode */*topNode*/)
 {
 
   UpdateParametersWithMacro();

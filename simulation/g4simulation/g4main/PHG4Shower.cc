@@ -49,7 +49,7 @@ PHG4Shower::HitIdConstIter PHG4Shower::begin_g4hit_id() const
   return DummyHitIdMap.end();
 }
 
-PHG4Shower::HitIdConstIter PHG4Shower::find_g4hit_id(int volume) const
+PHG4Shower::HitIdConstIter PHG4Shower::find_g4hit_id(int /*volume*/) const
 {
   return DummyHitIdMap.end();
 }
@@ -64,7 +64,7 @@ PHG4Shower::HitIdIter PHG4Shower::begin_g4hit_id()
   return DummyHitIdMap.end();
 }
 
-PHG4Shower::HitIdIter PHG4Shower::find_g4hit_id(int volume)
+PHG4Shower::HitIdIter PHG4Shower::find_g4hit_id(int /*volume*/)
 {
   return DummyHitIdMap.end();
 }

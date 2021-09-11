@@ -85,7 +85,7 @@ class PHG4Subsystem : public SubsysReco
   virtual bool CanBeMotherSubsystem() const {return false;}
 
 //
-  virtual void AddProcesses(G4ParticleDefinition *particle) {}
+  virtual void AddProcesses(G4ParticleDefinition */*particle*/) {}
 
  private:
   PHG4Subsystem *m_MyMotherSubsystem = nullptr;

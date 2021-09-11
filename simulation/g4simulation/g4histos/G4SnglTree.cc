@@ -129,7 +129,7 @@ int G4SnglTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4SnglTree::End(PHCompositeNode *topNode)
+int G4SnglTree::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   g4tree->Write();

@@ -498,7 +498,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToDB()
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &/*name*/, const int /*issuper*/)
 {
   int iret = 1;
   // if (issuper)
@@ -546,7 +546,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsyste
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &/*name*/, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int /*issuper*/)
 {
   string extension;
   switch (ftyp)

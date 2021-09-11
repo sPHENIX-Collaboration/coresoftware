@@ -593,7 +593,7 @@ void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 }
 
-int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 0)
   {

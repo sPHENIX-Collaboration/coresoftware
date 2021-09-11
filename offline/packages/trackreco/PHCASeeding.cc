@@ -456,7 +456,7 @@ vector<coordKey> PHCASeeding::fromPointKey(vector<pointKey> p)
   return output;
 }
 
-int PHCASeeding::Process(PHCompositeNode *topNode)
+int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
 //  TFile fpara("CA_para.root", "RECREATE");
 //  _vertex = _vertex_map->get(0);

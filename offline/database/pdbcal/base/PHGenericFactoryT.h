@@ -26,7 +26,7 @@ template
 class DefaultFactoryError
 {
 protected:
-  AbstractProduct* OnUnknownType(const std::string& id) { return 0; }
+  AbstractProduct* OnUnknownType(const std::string& /*id*/) { return 0; }
 };
 
 template

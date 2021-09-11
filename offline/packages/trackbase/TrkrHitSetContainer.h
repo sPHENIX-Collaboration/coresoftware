@@ -42,7 +42,7 @@ class TrkrHitSetContainer : public PHObject
   virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*);
 
   //! preferred removal method, key is currently the hit id
-  virtual void removeHitSet(TrkrDefs::hitsetkey key)
+  virtual void removeHitSet(TrkrDefs::hitsetkey)
   {}
 
   //! inefficent, use key where possible instead

@@ -34,7 +34,9 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-  int FindIndex(G4TouchableHandle& touch, int& j, int& k);
+  int FindIndexZDC(G4TouchableHandle& touch, int& j, int& k);
+
+  int FindIndexSMD(G4TouchableHandle& touch, int& j, int& k);
   
   double ZDCResponce(double beta, double angle);
   

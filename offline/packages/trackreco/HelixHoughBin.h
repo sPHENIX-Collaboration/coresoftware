@@ -36,11 +36,11 @@ class HelixHoughBin : public PHObject
   virtual void init() {}
 
   //     get_cluster_IDs() {}
-  virtual void add_cluster_ID(unsigned int cluster_ID) {}
+  virtual void add_cluster_ID(unsigned int /*cluster_ID*/) {}
   virtual unsigned int get_count() const { return UINT_MAX; }
   virtual void clear_clusters() {}
   virtual bool empty_clusters() { return true; }
-  virtual size_t erase_cluster(unsigned int cluster_id) { return 0; }
+  virtual size_t erase_cluster(unsigned int /*cluster_id*/) { return 0; }
   virtual ConstClusterIter begin_clusters() const;
   virtual ConstClusterIter find_cluster(unsigned int cluster_id) const;
   virtual ConstClusterIter end_clusters() const;
@@ -48,48 +48,48 @@ class HelixHoughBin : public PHObject
   virtual ClusterIter find_cluster(unsigned int cluster_id);
   virtual ClusterIter end_clusters();
 
-  virtual unsigned int get_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_bin(unsigned int zoomlevel, unsigned int bin) {}
+  virtual unsigned int get_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_bin(unsigned int /*zoomlevel*/, unsigned int /*bin*/) {}
 
   virtual unsigned int get_zoomlevel() const { return UINT_MAX; }
-  virtual void set_zoomlevel(unsigned int zoomlevel) {}
+  virtual void set_zoomlevel(unsigned int /*zoomlevel*/) {}
 
-  virtual unsigned int get_kappa_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_kappa_bin(unsigned int zoomlevel, unsigned int kappa_bin) {}
-  virtual unsigned int get_phi_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_phi_bin(unsigned int zoomlevel, unsigned int phi_bin) {}
-  virtual unsigned int get_phi_high_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_phi_high_bin(unsigned int zoomlevel) {}
-  virtual void set_phi_high_bin(unsigned int zoomlevel, unsigned int phi_high_bin) {}
-  virtual unsigned int get_phi_low_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_phi_low_bin(unsigned int zoomlevel) {}
-  virtual void set_phi_low_bin(unsigned int zoomlevel, unsigned int phi_low_bin) {}
-  virtual unsigned int get_d_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_d_bin(unsigned int zoomlevel, unsigned int d_bin) {}
-  virtual unsigned int get_dzdl_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_dzdl_bin(unsigned int zoomlevel, unsigned int dzdl_bin) {}
-  virtual unsigned int get_dzdl_high_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_dzdl_high_bin(unsigned int zoomlevel) {}
-  virtual void set_dzdl_high_bin(unsigned int zoomlevel, unsigned int dzdl_high_bin) {}
-  virtual unsigned int get_dzdl_low_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_dzdl_low_bin(unsigned int zoomlevel) {}
-  virtual void set_dzdl_low_bin(unsigned int zoomlevel, unsigned int dzdl_low_bin) {}
-  virtual unsigned int get_z0_bin(unsigned int zoomlevel) const { return UINT_MAX; }
-  virtual void set_z0_bin(unsigned int zoomlevel, unsigned int z0_bin) {}
+  virtual unsigned int get_kappa_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_kappa_bin(unsigned int /*zoomlevel*/, unsigned int /*kappa_bin*/) {}
+  virtual unsigned int get_phi_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_phi_bin(unsigned int /*zoomlevel*/, unsigned int /*phi_bin*/) {}
+  virtual unsigned int get_phi_high_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_phi_high_bin(unsigned int /*zoomlevel*/) {}
+  virtual void set_phi_high_bin(unsigned int /*zoomlevel*/, unsigned int /*phi_high_bin*/) {}
+  virtual unsigned int get_phi_low_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_phi_low_bin(unsigned int /*zoomlevel*/) {}
+  virtual void set_phi_low_bin(unsigned int /*zoomlevel*/, unsigned int /*phi_low_bin*/) {}
+  virtual unsigned int get_d_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_d_bin(unsigned int /*zoomlevel*/, unsigned int /*d_bin*/) {}
+  virtual unsigned int get_dzdl_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_dzdl_bin(unsigned int /*zoomlevel*/, unsigned int /*dzdl_bin*/) {}
+  virtual unsigned int get_dzdl_high_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_dzdl_high_bin(unsigned int /*zoomlevel*/) {}
+  virtual void set_dzdl_high_bin(unsigned int /*zoomlevel*/, unsigned int /*dzdl_high_bin*/) {}
+  virtual unsigned int get_dzdl_low_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_dzdl_low_bin(unsigned int /*zoomlevel*/) {}
+  virtual void set_dzdl_low_bin(unsigned int /*zoomlevel*/, unsigned int /*dzdl_low_bin*/) {}
+  virtual unsigned int get_z0_bin(unsigned int /*zoomlevel*/) const { return UINT_MAX; }
+  virtual void set_z0_bin(unsigned int /*zoomlevel*/, unsigned int /*z0_bin*/) {}
 
-  virtual void set_hough_space(HelixHoughSpace* hough_space){};
-  virtual void set_bins(unsigned int zoomlevel, unsigned int bin){};
+  virtual void set_hough_space(HelixHoughSpace* /*hough_space*/){};
+  virtual void set_bins(unsigned int /*zoomlevel*/, unsigned int /*bin*/){};
 
-  virtual unsigned int get_global_bin(unsigned int zoomlevel) { return UINT_MAX; }
-  virtual void set_global_bin(unsigned int zoomlevel) {}
+  virtual unsigned int get_global_bin(unsigned int /*zoomlevel*/) { return UINT_MAX; }
+  virtual void set_global_bin(unsigned int /*zoomlevel*/) {}
 
-  virtual unsigned int get_neighbors_global_bin(unsigned int zoomlevel, unsigned int var, unsigned int bit_sign) { return UINT_MAX; }
+  virtual unsigned int get_neighbors_global_bin(unsigned int /*zoomlevel*/, unsigned int /*var*/, unsigned int /*bit_sign*/) { return UINT_MAX; }
 
-  virtual float get_kappa_center(unsigned int zoomlevel) { return 999.; }
-  virtual float get_phi_center(unsigned int zoomlevel) { return 999.; }
-  virtual float get_d_center(unsigned int zoomlevel) { return 999.; }
-  virtual float get_dzdl_center(unsigned int zoomlevel) { return 999.; }
-  virtual float get_z0_center(unsigned int zoomlevel) { return 999.; }
+  virtual float get_kappa_center(unsigned int /*zoomlevel*/) { return 999.; }
+  virtual float get_phi_center(unsigned int /*zoomlevel*/) { return 999.; }
+  virtual float get_d_center(unsigned int /*zoomlevel*/) { return 999.; }
+  virtual float get_dzdl_center(unsigned int /*zoomlevel*/) { return 999.; }
+  virtual float get_z0_center(unsigned int /*zoomlevel*/) { return 999.; }
 
  protected:
   HelixHoughBin() {}

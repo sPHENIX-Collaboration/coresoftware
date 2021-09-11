@@ -7,7 +7,7 @@ BbcVertexMap::ConstIter BbcVertexMap::begin() const
   return DummyBbcVertexMap.end();
 }
 
-BbcVertexMap::ConstIter BbcVertexMap::find(unsigned int idkey) const
+BbcVertexMap::ConstIter BbcVertexMap::find(unsigned int /*idkey*/) const
 {
   return DummyBbcVertexMap.end();
 }
@@ -23,7 +23,7 @@ BbcVertexMap::Iter BbcVertexMap:: begin()
   return DummyBbcVertexMap.end();
 }
 
-BbcVertexMap::Iter BbcVertexMap::find(unsigned int idkey)
+BbcVertexMap::Iter BbcVertexMap::find(unsigned int /*idkey*/)
 {
   return DummyBbcVertexMap.end();
 }
