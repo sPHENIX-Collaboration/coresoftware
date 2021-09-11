@@ -161,11 +161,12 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
   // Try to eliminate tracks based on repeated TPC seeds
 
   if(_reject_ghosts)
-    findGhostTracks();
+    {
+      findGhostTracks();
 
-  if(Verbosity() > 0)
-    std::cout << "Track map size after deleting ghost tracks: " << _track_map->size() << std::endl;
-
+      if(Verbosity() > 0)
+	std::cout << "Track map size after deleting ghost tracks: " << _track_map->size() << std::endl;
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
