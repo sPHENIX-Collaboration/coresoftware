@@ -157,17 +157,6 @@ int PHTrackCleaner::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 0)
     std::cout << "Track map size after choosing best silicon match: " << _track_map->size() << std::endl;
 
-  // now we have a single silicon match per TPC seed
-  // Try to eliminate tracks based on repeated TPC seeds
-
-  if(_reject_ghosts)
-    {
-      findGhostTracks();
-
-      if(Verbosity() > 0)
-	std::cout << "Track map size after deleting ghost tracks: " << _track_map->size() << std::endl;
-    }
-  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -195,90 +184,3 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-void PHTrackCleaner::findGhostTracks()
-{
-  std::set<unsigned int> matches_set;
-  std::multimap<unsigned int, unsigned int>  matches;
-  for (auto tr1_iter = _track_map->begin();
-       tr1_iter != _track_map->end(); 
-       ++tr1_iter)
-    {
-      auto track1 = (tr1_iter)->second;
-      
-      for (auto tr2_iter = tr1_iter;
-	   tr2_iter != _track_map->end(); 
-	   ++tr2_iter)
-	{
-	  if((tr2_iter)->first  ==  (tr1_iter)->first) continue;
-	  
-	  auto track2 = (tr2_iter)->second;
-	  if( 
-	     fabs( track1->get_phi() - track2->get_phi() ) < _phi_cut &&
-	     fabs( track1->get_eta() - track2->get_eta() ) < _eta_cut &&
-	     fabs( track1->get_x() - track2->get_x() ) < _x_cut &&
-	     fabs( track1->get_y() - track2->get_y() ) < _y_cut &&
-	     fabs( track1->get_z() - track2->get_z() ) < _z_cut
-	      )
-	    {
-	      matches_set.insert(tr1_iter->first);
-	      matches.insert( std::pair( (tr1_iter)->first, (tr2_iter)->first) );
-
-	      if(Verbosity() > 0)
-		std::cout << "Found match for tracks " << (tr1_iter)->first << " and " << (tr2_iter)->first << std::endl;
-	    }
-	}
-    }
-
-  std::set<unsigned int> ghost_reject_list;
-
-  for(auto set_it : matches_set)
-    {
-      auto match_list = matches.equal_range(set_it);
-
-      auto tr1 = _track_map->get(set_it);
-      double best_qual = tr1->get_chisq() / tr1->get_ndf();
-      unsigned int best_track = set_it;
-
-      if(Verbosity() > 0)  
-	std::cout << " start checking track " << set_it << " with best quality " << best_qual << " best_track " << best_track << std::endl;
-
-      for (auto it=match_list.first; it!=match_list.second; ++it)
-	{
-	  if(Verbosity() > 0)
-	    std::cout << "    match of track " << it->first << " to track " << it->second << std::endl;
-	  
-	  // which one has best quality?
-	  auto tr2 = _track_map->get(it->second);	  
-	  double tr2_qual = tr2->get_chisq() / tr2->get_ndf();
-	  if(Verbosity() > 0)
-	    std::cout << "       best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
-
-	  if(tr2_qual < best_qual)
-	    {
-	      ghost_reject_list.insert(best_track);
-	      best_qual = tr2_qual;
-	      best_track = it->second;
-	    }
-	  else
-	    ghost_reject_list.insert(it->second);
-
-	}
-      if(Verbosity() > 0)
-	std::cout << " best track " << best_track << " best_qual " << best_qual << std::endl;      
-
-    }
-
-  // delete ghost tracks
-  //for(auto it = ghost_reject_list.begin(); it != ghost_reject_list.end(); ++it)
-  for(auto it : ghost_reject_list)
-    {
-      if(Verbosity() > 1)
-	std::cout << " erasing track ID " << it << std::endl;
-
-      _track_map->erase(it);
-    }
-  
-  return;
-}
-
