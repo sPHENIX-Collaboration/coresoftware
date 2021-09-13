@@ -604,6 +604,7 @@ void TrackingEvaluator_hp::evaluate_clusters()
 //_____________________________________________________________________
 void TrackingEvaluator_hp::evaluate_tracks()
 {
+  std::cout << "TrackingEvaluator_hp::evaluate_tracks" << std::endl;
   if( !( m_track_map && m_cluster_map && m_container ) ) return;
 
   // clear array
@@ -655,15 +656,21 @@ void TrackingEvaluator_hp::evaluate_tracks()
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
 
-      // check g4hits associated particle id and update track _correct_mask
-      {
-        const auto iter = std::find_if( g4hits.begin(), g4hits.end(), [id]( const auto& g4hit ){ return g4hit->get_trkid() == id; } );
-        if( iter != g4hits.end() ) track_struct._correct_mask |= (1LL<<(*iter)->get_layer());
-      }
-
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
       if( is_micromegas ) add_truth_information_micromegas( cluster_struct, g4hits );
       else add_truth_information( cluster_struct, g4hits );
+
+      {
+        // check g4hits associated particle id and update track _correct_mask
+        const auto iter = std::find_if( g4hits.begin(), g4hits.end(), [id]( const auto& g4hit ){ return g4hit->get_trkid() == id; } );
+        if( iter != g4hits.end() )
+        {
+          track_struct._correct_mask |= (1LL<<(*iter)->get_layer());
+
+          // if cluster has only one contributor, also add to _correct_mask_strict
+          if( cluster_struct._ncontributors == 1 ) track_struct._correct_mask_strict |= (1LL<<(*iter)->get_layer());
+        }
+      }
 
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
@@ -1079,8 +1086,17 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
 //_____________________________________________________________________
 void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits ) const
 {
-  const auto rextrap = cluster._r;
+  // store number of contributing g4hits
   cluster._truth_size = hits.size();
+
+  {
+    // count number of truth track ids participating to this cluster
+    std::set<int> ids;
+    for( const auto& g4hit:hits ) { ids.insert( g4hit->get_trkid() ); }
+    cluster._ncontributors = ids.size();
+  }
+
+  const auto rextrap = cluster._r;
   cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
   cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
   cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
@@ -1109,6 +1125,16 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
 //_____________________________________________________________________
 void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> g4hits ) const
 {
+  // store number of contributing g4hits
+  cluster._truth_size = g4hits.size();
+
+  {
+    // count number of truth track ids participating to this cluster
+    std::set<int> ids;
+    for( const auto& g4hit:g4hits ) { ids.insert( g4hit->get_trkid() ); }
+    cluster._ncontributors = ids.size();
+  }
+
   const auto layer = cluster._layer;
   const auto tileid = cluster._tileid;
   const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
@@ -1155,8 +1181,6 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
 
   const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
 
-  // update cluster structure
-  cluster._truth_size = hits.size();
   cluster._truth_x = interpolation_world.x();
   cluster._truth_y = interpolation_world.y();
   cluster._truth_z = interpolation_world.z();
@@ -1185,6 +1209,8 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
 //_____________________________________________________________________
 void TrackingEvaluator_hp::fill_g4particle_map()
 {
+  std::cout << "TrackingEvaluator_hp::fill_g4particle_map" << std::endl;
+
   m_g4particle_map.clear();
 
   // update all particle's masks for g4hits in TPC, intt and mvtx

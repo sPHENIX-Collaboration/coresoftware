@@ -65,25 +65,25 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! number of hits per layer / event
     /* for TPC hits, the charge is compared to threshold */
-    int _nhits[max_layer];
+    unsigned int _nhits[max_layer];
 
     //! number of hits per layer / event
-    int _nhits_raw[max_layer];
+    unsigned int _nhits_raw[max_layer];
 
     //! number of clusters per layer / event
-    int _nclusters[max_layer];
+    unsigned int _nclusters[max_layer];
 
     //! number of clusters in the TPC
-    int _nclusters_mvtx = 0;
+    unsigned int _nclusters_mvtx = 0;
 
     //! number of clusters in the intt
-    int _nclusters_intt = 0;
+    unsigned int _nclusters_intt = 0;
 
     //! number of clusters in the TPC
-    int _nclusters_tpc = 0;
+    unsigned int _nclusters_tpc = 0;
 
     //! number of clusters in the Micromegas
-    int _nclusters_micromegas = 0;
+    unsigned int _nclusters_micromegas = 0;
   };
 
   // cluster information to be stored in tree
@@ -102,9 +102,13 @@ class TrackingEvaluator_hp : public SubsysReco
     //! number of g4hits associated to this cluster
     unsigned int _truth_size = 0;
 
+    //! number of particles associated to this cluster
+    unsigned int _ncontributors = 0;
+
+
     //! number of hits along phi and along z
-    int _phi_size = 0;
-    int _z_size = 0;
+    unsigned int _phi_size = 0;
+    unsigned int _z_size = 0;
 
     //!@name cluster position
     //@{
@@ -200,7 +204,7 @@ class TrackingEvaluator_hp : public SubsysReco
     using List = std::vector<TrackStruct>;
 
     int _charge = 0;
-    int _nclusters = 0;
+    unsigned int _nclusters = 0;
 
     /// mask of layers for which there is a cluster in the track
     int64_t _mask = 0LL;
@@ -208,13 +212,16 @@ class TrackingEvaluator_hp : public SubsysReco
     /// mask of layers for which there is a cluster in the track, with correct associated g4hit
     int64_t _correct_mask = 0LL;
 
+    /// mask of layers for which there is a cluster in the track, with correct associated g4hit
+    int64_t _correct_mask_strict = 0LL;
+
     /// maks of layers for which there is a g4hit in the track
     int64_t _truth_mask = 0LL;
 
-    int _nclusters_mvtx = 0;
-    int _nclusters_intt = 0;
-    int _nclusters_tpc = 0;
-    int _nclusters_micromegas = 0;
+    unsigned int _nclusters_mvtx = 0;
+    unsigned int _nclusters_intt = 0;
+    unsigned int _nclusters_tpc = 0;
+    unsigned int _nclusters_micromegas = 0;
 
     float _chisquare = 0;
     int _ndf = 0;
@@ -245,7 +252,7 @@ class TrackingEvaluator_hp : public SubsysReco
     bool _is_primary = false;
 
     // number of g4hits from this MC track that match
-    int _contributors = 0;
+    unsigned int _contributors = 0;
 
     float _truth_px = 0;
     float _truth_py = 0;
