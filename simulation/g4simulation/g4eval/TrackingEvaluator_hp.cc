@@ -3,6 +3,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -604,7 +605,6 @@ void TrackingEvaluator_hp::evaluate_clusters()
 //_____________________________________________________________________
 void TrackingEvaluator_hp::evaluate_tracks()
 {
-  std::cout << "TrackingEvaluator_hp::evaluate_tracks" << std::endl;
   if( !( m_track_map && m_cluster_map && m_container ) ) return;
 
   // clear array
@@ -1209,8 +1209,6 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
 //_____________________________________________________________________
 void TrackingEvaluator_hp::fill_g4particle_map()
 {
-  std::cout << "TrackingEvaluator_hp::fill_g4particle_map" << std::endl;
-
   m_g4particle_map.clear();
 
   // update all particle's masks for g4hits in TPC, intt and mvtx
@@ -1258,11 +1256,21 @@ void TrackingEvaluator_hp::fill_g4particle_map()
       assert( layergeom );
 
       // get world coordinates
-      const TVector3 world( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() );
+      TVector3 world( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() );
 
       // make sure that the mid point is in one of the tiles
       const int tileid = layergeom->find_tile_cylindrical( world );
       if( tileid < 0 ) continue;
+
+      // make a local copy of the g4hit
+      // update world coordinates
+      PHG4Hitv1 g4hit_copy( g4hit );
+      layergeom->convert_to_planar( tileid, &g4hit_copy );
+      world = TVector3( g4hit_copy.get_avg_x(), g4hit_copy.get_avg_y(), g4hit_copy.get_avg_z() );
+
+      // find strip
+      const int strip = layergeom->find_strip_from_world_coords( tileid, world );
+      if( strip < 0 || strip >= 256 ) continue;
 
       // update relevant mask
       const auto map_iter = m_g4particle_map.lower_bound( trkid );
