@@ -44,6 +44,7 @@ pkginclude_HEADERS = \
   PHActsVertexFitter.h \
   PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
+  PHGhostRejection.h \
   PHHoughSeeding.h \
   PHTrackCleaner.h \
   PHRTreeSeeding.h \
@@ -168,6 +169,7 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
+  PHGhostRejection.cc \
   PHRaveVertexing.cc \
   PHTpcTrackSeedVertexAssoc.cc \
   ALICEKF.cc \

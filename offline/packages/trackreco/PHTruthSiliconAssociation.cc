@@ -65,7 +65,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
   // Loop over all SvtxTracks from the CA seeder
   // These should contain all TPC clusters already
 
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
+  const unsigned int original_track_map_lastkey = std::prev(_track_map->end())->first;
   std::cout << " track map last key = " <<  original_track_map_lastkey << std::endl;
 
   for (auto phtrk_iter = _track_map->begin();
@@ -73,7 +73,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
        ++phtrk_iter)
     {
       // we may add tracks to the map, so we stop at the last original track
-      if(phtrk_iter->first >= original_track_map_lastkey)  break;
+      if(phtrk_iter->first > original_track_map_lastkey)  break;
 
       _tracklet = phtrk_iter->second;
       if (Verbosity() >= 1)
@@ -133,10 +133,10 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	{      
 	  SvtxTrack *newTrack = new SvtxTrack_v2();
 	  // Not the first g4particle in the list, we need to add a new copy of the track to the track map and add the silicon clusters to that
-	  const unsigned int lastTrackKey = _track_map->end()->first + ig4;
-	  //std::cout << "   extra track key " << lastTrackKey << std::endl;
+	  const unsigned int lastTrackKey = std::prev(_track_map->end())->first + ig4;
+	  //std::cout << "   extra track key " << lastTrackKey + 1 << std::endl;
 	 	  
-	  newTrack->set_id(lastTrackKey);
+	  newTrack->set_id(lastTrackKey + 1);
 	  newTrack->set_vertex_id(vertexId);
 
 	  newTrack->set_charge(_tracklet->get_charge());
@@ -164,7 +164,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	    }
 	  
 	  extraTrack.push_back(newTrack);
-	  //std::cout << "  added new copy of track " << lastTrackKey << " g4particle_vec.zize " << g4particle_vec.size() << std::endl;
+	  //std::cout << "  added new copy of track " << lastTrackKey + 1 << " g4particle_vec.zize " << g4particle_vec.size() << std::endl;
 	  //extraTrack[ig4]->identify();
 	}
 
@@ -224,10 +224,10 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	      std::set<TrkrDefs::cluskey> clusters = getSiliconClustersFromParticle(g4particle);
 	      	
 	      // Not the first g4particle in the list, we need to add a new copy of the track to the track map and add the silicon clusters to that
-	      const unsigned int lastTrackKey = _track_map->end()->first;
-	      //std::cout << "   lastTrackKey " << lastTrackKey << std::endl;
+	      const unsigned int lastTrackKey = std::prev(_track_map->end())->first;
+	      //std::cout << "   lastTrackKey " << lastTrackKey + 1 << std::endl;
 	      
-	      extraTrack[ig4]->set_id(lastTrackKey);
+	      extraTrack[ig4]->set_id(lastTrackKey + 1);
 	      
 	      if (Verbosity() >= 1) 
 		{

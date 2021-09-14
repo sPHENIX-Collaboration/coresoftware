@@ -115,15 +115,17 @@ int PHSiliconTpcTrackMatching::Process()
   
   
   // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
-  
+  const unsigned int original_track_map_lastkey = std::prev(_track_map->end())->first;
+  if(Verbosity() > 1)
+    std::cout << "Original track map has lastkey " << original_track_map_lastkey << std::endl;
+
   // loop over the original TPC tracks
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
        ++phtrk_iter)
     {
       // we may add tracks to the map, so we stop at the last original track
-      if(phtrk_iter->first >= original_track_map_lastkey)  break;
+      if(phtrk_iter->first > original_track_map_lastkey)  break;
       
       _tracklet_tpc = phtrk_iter->second;
       
@@ -350,10 +352,10 @@ int PHSiliconTpcTrackMatching::Process()
 #else
 	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 #endif
-	      const unsigned int lastTrackKey = _track_map->end()->first; 
-	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
+	      const unsigned int lastTrackKey = std::prev(_track_map->end())->first; 
+	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 	      
-	      newTrack->set_id(lastTrackKey);
+	      newTrack->set_id(lastTrackKey+1);
 	      
 	      unsigned int vertexId = _tracklet_si->get_vertex_id();
 	      newTrack->set_vertex_id(vertexId);

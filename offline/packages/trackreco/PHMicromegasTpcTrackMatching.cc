@@ -322,14 +322,14 @@ int PHMicromegasTpcTrackMatching::Process()
     std::cout << PHWHERE << " Event " << _event << " TPC track map size " << _track_map->size() << std::endl;
 
   // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
+  const unsigned int original_track_map_lastkey = std::prev(_track_map->end())->first;
 
   // loop over the original TPC tracks
   for (auto phtrk_iter = _track_map->begin(); phtrk_iter != _track_map->end(); ++phtrk_iter)
   {
 
     // we may add tracks to the map, so we stop at the last original track
-    if(phtrk_iter->first >= original_track_map_lastkey)  break;
+    if(phtrk_iter->first > original_track_map_lastkey)  break;
 
     auto tracklet_tpc = phtrk_iter->second;
 
