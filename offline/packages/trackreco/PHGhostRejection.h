@@ -38,6 +38,7 @@ class PHGhostRejection : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   void findGhostTracks();
+  bool checkClusterSharing(SvtxTrack *tr1, SvtxTrack *tr2);
 
 SvtxTrackMap *_track_map{nullptr};
 
@@ -46,7 +47,6 @@ SvtxTrackMap *_track_map{nullptr};
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  bool _reject_ghosts = true;
 
 };
 

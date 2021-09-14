@@ -134,8 +134,14 @@ void PHGhostRejection::findGhostTracks()
 	  if(Verbosity() > 1)
 	    std::cout << "    match of track " << it->first << " to track " << it->second << std::endl;
 	  
-	  // which one has best quality?
 	  auto tr2 = _track_map->get(it->second);	  
+
+	  // Check that these two tracks actually share the same clusters, if not skip this pair
+
+	  bool is_same_track = checkClusterSharing(tr1, tr2);
+	  if(!is_same_track) continue;
+
+	  // which one has the best quality?
 	  double tr2_qual = tr2->get_chisq() / tr2->get_ndf();
 	  if(Verbosity() > 1)
 	    {
@@ -179,3 +185,50 @@ void PHGhostRejection::findGhostTracks()
   return;
 }
 
+bool PHGhostRejection::checkClusterSharing(SvtxTrack * tr1, SvtxTrack *tr2)
+{
+  // Check that tr1 and tr2 share many clusters
+
+  bool is_same_track = false;
+
+  std::multimap<TrkrDefs::cluskey, unsigned int> cluskey_map;
+  std::vector<TrkrDefs::cluskey> clusterkeys;
+
+  for (SvtxTrack::ConstClusterKeyIter key_iter = tr1->begin_cluster_keys();
+       key_iter != tr1->end_cluster_keys();
+       ++key_iter)
+    {
+	  TrkrDefs::cluskey cluster_key = *key_iter;
+	  if(Verbosity() > 2) std::cout << " track id: " << tr1->get_id() <<  " adding clusterkey " << cluster_key << std::endl;
+	  cluskey_map.insert( std::make_pair(cluster_key, tr1->get_id()) );
+	  clusterkeys.push_back(cluster_key);
+    }
+
+  for (SvtxTrack::ConstClusterKeyIter key_iter = tr2->begin_cluster_keys();
+       key_iter != tr2->end_cluster_keys();
+       ++key_iter)
+    {
+	  TrkrDefs::cluskey cluster_key = *key_iter;  
+	  if(Verbosity() > 2) std::cout << " track id: " << tr2->get_id() <<  " adding clusterkey " << cluster_key << std::endl;
+	  cluskey_map.insert( std::make_pair(cluster_key, tr2->get_id()) );
+    }
+  
+  unsigned int nclus = clusterkeys.size();
+
+  unsigned int nclus_used = 0;
+  for (TrkrDefs::cluskey cluskey : clusterkeys)
+  {
+    if(cluskey_map.count(cluskey)>0) nclus_used++;
+  }
+
+  if( (float) nclus_used / (float) nclus > 0.5)
+    is_same_track = true;
+
+  if(Verbosity() > 1)
+    std::cout << " tr1 " << tr1->get_id() << " tr2 " << tr2->get_id() << " nclus_used " << nclus_used << " nclus " << nclus << std::endl;
+  if(Verbosity() > 0)
+    if(!is_same_track) std::cout << "   ***** not the same track! ********" << " tr1 " << tr1->get_id() << " tr2 " 
+				 << tr2->get_id() << " nclus_used " << nclus_used << " nclus " << nclus << std::endl;
+
+  return is_same_track;
+}
