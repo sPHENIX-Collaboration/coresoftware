@@ -42,8 +42,6 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-  
-
  private:
   void SetDefaultParameters();
 
@@ -58,8 +56,6 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
-
-  
 };
 
 #endif

@@ -16,8 +16,8 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <set>  // for set
 #include <fstream>
+#include <set>  // for set
 #include <sstream>
 
 class PHG4Detector;
@@ -30,7 +30,7 @@ PHG4ZDCSubsystem::PHG4ZDCSubsystem(const std::string& name, const int lyr)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
- 
+
 {
   InitializeParameters();
 }
@@ -44,23 +44,21 @@ PHG4ZDCSubsystem::~PHG4ZDCSubsystem()
 //_______________________________________________________________________
 int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector
   m_DisplayAction = new PHG4ZDCDisplayAction(Name());
   // create detector
-   m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
+  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
 
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
   set<string> nodes;
-   
+
   if (GetParams()->get_int_param("active"))
-   {
-   
+  {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode* DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)
@@ -69,7 +67,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
     ostringstream nodename;
-    
+
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -136,4 +134,3 @@ void PHG4ZDCSubsystem::SetDefaultParameters()
   set_default_double_param("z", 1843.0);
   return;
 }
-
