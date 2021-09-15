@@ -43,22 +43,21 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
   double ZDCEResponce(double E, double angle);
  
   //! pointer to the detector
-  PHG4ZDCDetector* m_Detector;
+  PHG4ZDCDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* m_SignalHitContainer;
-  PHG4HitContainer* m_AbsorberHitContainer;
-  const PHParameters* m_Params;
-  PHG4HitContainer* m_CurrentHitContainer;
-  PHG4Hit* m_Hit;
-  PHG4Shower* m_CurrentShower;
+  PHG4HitContainer* m_SignalHitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  const PHParameters* m_Params = nullptr;
+  PHG4HitContainer* m_CurrentHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4Shower* m_CurrentShower = nullptr;
 
-  int m_IsActiveFlag;
-  int absorbertruth;
-  int light_scint_model;
-  int m_IsBlackHole;
+  int m_IsActiveFlag = 0;
+  int absorbertruth = 0;
+  int m_IsBlackHole = 0;
 
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator = nullptr;
   const std::array<std::array<double, 18>,9>m_PMMA05 = 
     {{
     {16.258, 6.771, 3.844, 2.432, 1.531, 1.003, 0.543, 0.195, 0.102,

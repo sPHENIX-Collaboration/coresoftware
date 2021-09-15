@@ -64,15 +64,9 @@ using namespace std;
 PHG4ZDCSteppingAction::PHG4ZDCSteppingAction(PHG4ZDCDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_SignalHitContainer(nullptr)
-  , m_AbsorberHitContainer(nullptr)
   , m_Params(parameters)
-  , m_CurrentHitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_CurrentShower(nullptr)
   , m_IsActiveFlag(m_Params->get_int_param("active"))
   , absorbertruth(m_Params->get_int_param("absorberactive"))
-  , light_scint_model(1)
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
