@@ -259,20 +259,20 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   int Nx = m_WSMD / scintx;
   int Ny = m_HSMD / scinty;
  
-  G4RotationMatrix* SMDRotation = new G4RotationMatrix();
   for(int i=0; i<Nx; i++)
     {
       scint_XPos += scint_Xstep;
       scint_YPos = -m_HSMD / 2.;
       for(int j=0; j<Ny; j++)
-	{
-	  int copyno = Nx * j + i;
-	  scint_YPos += scint_Ystep;
-	  new G4PVPlacement(SMDRotation, G4ThreeVector(scint_XPos, scint_YPos, 0.0),
-			    Scint_log,
-			    G4String("single_scint"),
-			    SMD_log,
-			    0, copyno, OverlapCheck());
+      {
+	int copyno = Nx * j + i;
+	scint_YPos += scint_Ystep;
+	G4RotationMatrix SMDRotation;
+	new G4PVPlacement(G4Transform3D(SMDRotation, G4ThreeVector(scint_XPos, scint_YPos, 0.0)),
+			  Scint_log,
+			  "single_scint",
+			  SMD_log,
+			  0, copyno, OverlapCheck());
 	  
 	  scint_YPos += scint_Ystep;
 	}
