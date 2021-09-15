@@ -8,7 +8,6 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
-#include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -17,10 +16,8 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cstdlib>                         // for getenv
 #include <set>  // for set
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 class PHG4Detector;

@@ -4,7 +4,6 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
@@ -14,7 +13,6 @@
 #include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -29,14 +27,12 @@
 #include <Geant4/G4Types.hh>            // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
-#include <TSystem.h>
 
 #include <cassert>
 #include <cmath>
-#include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
-#include <utility>  // for pair, make_pair
 
 class G4VSolid;
 class PHCompositeNode;
@@ -252,17 +248,16 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4LogicalVolume* Scint_log = new G4LogicalVolume(Scint_solid, Scint, G4String("Scint_log"), 0, 0, 0);
   m_ScintiLogicalVolSet.insert(Scint_log);
   //put scintillators in the SMD volume
-  G4double scint_XPos = -m_WSMD / 2.;
-  G4double scint_Xstep = scintx / 2.;
-  G4double scint_YPos = -m_HSMD / 2.;
-  G4double scint_Ystep = scinty / 2.;
+  double scint_XPos = -m_WSMD / 2.;
+  double scint_Xstep = scintx / 2.;
+  double scint_Ystep = scinty / 2.;
   int Nx = m_WSMD / scintx;
   int Ny = m_HSMD / scinty;
  
   for(int i=0; i<Nx; i++)
     {
       scint_XPos += scint_Xstep;
-      scint_YPos = -m_HSMD / 2.;
+      double scint_YPos = -m_HSMD / 2.;
       for(int j=0; j<Ny; j++)
       {
 	int copyno = Nx * j + i;

@@ -9,8 +9,9 @@
 
 #include <gsl/gsl_rng.h>
 
+#include <array>
+
 class G4Step;
-class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4ZDCDetector;
 class PHG4Hit;

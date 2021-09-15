@@ -18,6 +18,7 @@
 #include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
 
+#include <Geant4/G4DynamicParticle.hh> // for G4DynamicParticle
 #include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
 #include <Geant4/G4Material.hh>       // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
@@ -38,20 +39,6 @@
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <TSystem.h>
-
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
 
 #include <iostream>
 #include <string>  // for basic_string, operator+
