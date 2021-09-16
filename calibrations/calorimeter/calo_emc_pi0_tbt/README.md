@@ -1,9 +1,5 @@
 Collects pi0-area invmass by leading tower for every tower in the Emcal.
 
-
-Just testing how to commit via command line
-
-
 Compiles and runs over MDC1 with macro in the macro/ folder.  
 
 It currently runs over DST files (towers only in them)  from MDC1  : e.g. /sphenix/data/data02/sphnxpro/MDC1/sHijing_HepMC/CaloCluster/data/DST_CALO_CLUSTER_sHijing_0_12fm-0000000001-00009.root
