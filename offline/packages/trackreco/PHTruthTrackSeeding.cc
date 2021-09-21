@@ -8,7 +8,7 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>
+
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
@@ -159,6 +159,20 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       svtx_track->insert_cluster_key(cluskey);
       _assoc_container->SetClusterTrackAssoc(cluskey,svtx_track->get_id());
     }
+
+    if(m_helicalTrackFit)
+      {
+	double x, y, z, px, py, pz;
+	circleFitSeed(ClusterKeyList, x, y, z,
+		      px, py, pz, svtx_track->get_charge());
+	svtx_track->set_x(x);
+	svtx_track->set_y(y);
+	svtx_track->set_z(z);
+	svtx_track->set_px(px);
+	svtx_track->set_py(py);
+	svtx_track->set_pz(pz);
+      }
+
     svtx_track->set_ndf(ClusterKeyList.size()*3-5);
     svtx_track->set_chisq(1.5*ClusterKeyList.size()*3-5);
     _track_map->insert(svtx_track.get());
@@ -205,6 +219,16 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
 int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 {
+
+ m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
+							 "TRKR_CLUSTER");
+ 
+ if(!m_clusterMap)
+   {
+     cerr << PHWHERE << "Error: Can't find node TRKR_CLUSTER" << endl;
+     return Fun4AllReturnCodes::ABORTEVENT;
+   }
+
   _g4truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!_g4truth_container)
   {
@@ -240,4 +264,198 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 int PHTruthTrackSeeding::End()
 {
   return 0;
+}
+
+
+
+void PHTruthTrackSeeding::circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
+					double& x, double& y, double& z,
+					double& px, double& py, double& pz, 
+					int charge)
+{
+  double R, X0, Y0;
+  circleFitByTaubin(clusters, R, X0, Y0);
+
+  findRoot(R, X0, Y0, x, y);
+
+  double phi = atan2(-1 * (X0-x), Y0-y);
+
+  if(charge > 0)
+    {
+      phi += M_PI;
+      if(phi > M_PI) 
+	phi -= 2. * M_PI;
+    }
+ 
+  double m, B;
+  lineFit(clusters, m, B);
+  z = B;
+  
+  double theta = atan(1./m);
+  if(theta < 0)
+    theta =+ M_PI;
+  
+  /// 0.3 conversion factor, 1.4=B field, 100 convert R from cm to m
+  /// Get a very rough estimate of p
+  float pt = 0.3 * 1.4 * R / 100.;
+  float eta = -log(tan(theta/2.));
+  float p = pt * cosh(eta);
+  
+  /// The only thing that is really needed for the propagation
+  /// is the direction
+  px = p * sin(theta) * cos(phi);
+  py = p * sin(theta) * sin(phi);
+  pz = p * cos(theta);
+  
+}
+
+void PHTruthTrackSeeding::lineFit(std::vector<TrkrDefs::cluskey>& clusters,
+				  double& A, double& B)
+{
+  
+  double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
+  for(auto& clusterkey : clusters)
+    {
+      auto cluster = m_clusterMap->findCluster(clusterkey);
+      double z = cluster->getZ();
+      double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
+      
+      xsum=xsum+r;               // calculate sigma(xi)
+      ysum=ysum+z;               // calculate sigma(yi)
+      x2sum=x2sum+pow(r,2);      // calculate sigma(x^2i)
+      xysum=xysum+r*z;           // calculate sigma(xi*yi)
+    }
+  
+  /// calculate slope
+  A = (clusters.size()*xysum-xsum*ysum) / (clusters.size()*x2sum-xsum*xsum);
+
+  /// calculate intercept
+  B = (x2sum*ysum-xsum*xysum) / (x2sum*clusters.size()-xsum*xsum);
+  
+}
+void PHTruthTrackSeeding::findRoot(const double& R, const double& X0, const double& Y0, double& x, double& y)
+{
+  
+  double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
+  double minx2 = -sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
+  
+  /// Figure out which of the two roots is actually closer to the origin
+  if(fabs(minx) < fabs(minx2))
+    x = minx;
+  else
+    x = minx2;
+
+  if(fabs(miny) < fabs(miny2))
+    y = miny;
+  else
+    y = miny2;
+  
+}
+
+void PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
+					     double& R, double& X0, double& Y0)
+{
+  /**  
+   *   Circle fit to a given set of data points (in 2D)
+   *   This is an algebraic fit, due to Taubin, based on the journal article
+   *   G. Taubin, "Estimation Of Planar Curves, Surfaces And Nonplanar
+   *               Space Curves Defined By Implicit Equations, With 
+   *               Applications To Edge And Range Image Segmentation",
+   *               IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
+   *  It works well whether data points are sampled along an entire circle 
+   *  or along a small arc. 
+   *  It still has a small bias and its statistical accuracy is slightly lower 
+   *  than that of the geometric fit (minimizing geometric distances),
+   *  It provides a very good initial guess for a subsequent geometric fit. 
+   *    Nikolai Chernov  (September 2012)
+   */
+  
+  int iter, IterMAX=99;
+  
+  double Mz, Mxy, Mxx, Myy, Mxz, Myz, Mzz, Cov_xy, Var_z;
+  double A0, A1, A2, A22, A3, A33;
+  double x, y;
+  double DET, Xcenter, Ycenter;
+  
+  // Compute x- and y- sample means   
+  double meanX = 0;
+  double meanY = 0;
+  double weight = 0;
+  
+  for(auto cluskey : clusters)
+    {
+      auto clus = m_clusterMap->findCluster(cluskey);
+      meanX += clus->getX();
+      meanY += clus->getY();
+      weight++;
+    }
+  meanX /= weight;
+  meanY /= weight;
+
+  Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
+
+  for(auto cluskey : clusters)
+    {
+      auto clus = m_clusterMap->findCluster(cluskey);
+
+      double Xi = clus->getX() - meanX;
+      double Yi = clus->getY() - meanY;
+      double Zi = Xi * Xi + Yi * Yi;
+
+      Mxy += Xi*Yi;
+      Mxx += Xi*Xi;
+      Myy += Yi*Yi;
+      Mxz += Xi*Zi;
+      Myz += Yi*Zi;
+      Mzz += Zi*Zi;
+    }
+
+  Mxx /= weight;
+  Myy /= weight;
+  Mxy /= weight;
+  Mxz /= weight;
+  Myz /= weight;
+  Mzz /= weight;
+
+  Mz = Mxx + Myy;
+  Cov_xy = Mxx * Myy - Mxy * Mxy;
+  Var_z = Mzz - Mz * Mz;
+  A3 = 4 * Mz;
+  A2 = -3 * Mz * Mz - Mzz;
+  A1 = Var_z * Mz + 4 * Cov_xy * Mz - Mxz * Mxz - Myz * Myz;
+  A0 = Mxz * (Mxz * Myy - Myz * Mxy) + 
+    Myz * (Myz * Mxx - Mxz * Mxy) - Var_z * Cov_xy;
+  A22 = A2 + A2;
+  A33 = A3 + A3 + A3;
+
+  for (x=0., y=A0, iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
+    {
+      double Dy = A1 + x * (A22 + A33 * x);
+      double xnew = x - y / Dy;
+      if ((xnew == x)||(!std::isfinite(xnew))) break;
+      double ynew = A0 + xnew * (A1 + xnew * (A2 + xnew * A3));
+      if (fabs(ynew)>=fabs(y))  break;
+      x = xnew;  y = ynew;
+    }
+  
+  //  computing parameters of the fitting circle
+  
+  DET = x*x - x*Mz + Cov_xy;
+  Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
+  Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
+  
+  //  assembling the output
+  
+  X0 = Xcenter + meanX;
+  Y0 = Ycenter + meanY;
+  R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
+
 }
