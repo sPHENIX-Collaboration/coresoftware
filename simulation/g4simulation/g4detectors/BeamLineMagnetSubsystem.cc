@@ -23,8 +23,6 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
@@ -51,7 +49,7 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  std::set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -147,18 +145,18 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("outer_radius", 100);
 }
 
-void BeamLineMagnetSubsystem::Print(const string &/*what*/) const
+void BeamLineMagnetSubsystem::Print(const std::string &/*what*/) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   if (!BeginRunExecuted())
   {
-    cout << "Need to execute BeginRun() before parameter printout is meaningful" << endl;
-    cout << "To do so either run one or more events or on the command line execute: " << endl;
-    cout << "Fun4AllServer *se = Fun4AllServer::instance();" << endl;
-    cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << endl;
-    cout << "g4->InitRun(se->topNode());" << endl;
-    cout << "BeamLineMagnetSubsystem *cyl = (PHG4BeamLineMagnetSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << endl;
-    cout << "cyl->Print()" << endl;
+    std::cout << "Need to execute BeginRun() before parameter printout is meaningful" << std::endl;
+    std::cout << "To do so either run one or more events or on the command line execute: " << std::endl;
+    std::cout << "Fun4AllServer *se = Fun4AllServer::instance();" << std::endl;
+    std::cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << std::endl;
+    std::cout << "g4->InitRun(se->topNode());" << std::endl;
+    std::cout << "BeamLineMagnetSubsystem *cyl = (PHG4BeamLineMagnetSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << std::endl;
+    std::cout << "cyl->Print()" << std::endl;
     return;
   }
   GetParams()->Print();
