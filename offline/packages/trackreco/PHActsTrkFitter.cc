@@ -155,10 +155,8 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode */*topNode*/)
 
     }
   
-  if(m_actsEvaluator)
-    {
-      m_trajectories->clear();
-    }
+  m_trajectories->clear();
+    
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -489,10 +487,8 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
 
-  if(m_actsEvaluator)
-    {
-      m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
-    }
+  m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
+    
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
@@ -835,21 +831,20 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	} 
     }
 
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
+    {
+      m_trajectories = new std::map<const unsigned int, Trajectory>;
+      PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
+      svtxNode->addNode(node);
+      
+    }
+  
   if(m_actsEvaluator)
     {
-      m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode,
-										    "ActsTrajectories");
-      if(!m_trajectories)
-	{
-	  m_trajectories = new std::map<const unsigned int, Trajectory>;
-	  PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
-	    new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
-	  svtxNode->addNode(node);
-	  
-	}
-      
       m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,"SeedTrackMap");
-         
+      
       if(!m_seedTracks)
 	{
 	  m_seedTracks = new SvtxTrackMap_v1;
@@ -858,7 +853,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	    new PHIODataNode<PHObject>(m_seedTracks,"SeedTrackMap","PHObject");
 	  svtxNode->addNode(seedNode);
 	}
-
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
