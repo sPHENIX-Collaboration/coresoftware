@@ -1,9 +1,9 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef PHTPCTRACKSEEDVERTEXASSOC_H
-#define PHTPCTRACKSEEDVERTEXASSOC_H
+#ifndef PHTPCTRACKSEEDCIRCLEFIT_H
+#define PHTPCTRACKSEEDCIRCLEFIT_H
 
-#include <trackreco/PHTrackPropagating.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>
@@ -13,23 +13,25 @@ class SvtxTrackMap;
 class SvtxTrack;
 class TrkrCluster;
 class TF1;
+class TrkrClusterContainer;
 
-
-class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
+class PHTpcTrackSeedCircleFit : public SubsysReco
 {
  public:
 
-  PHTpcTrackSeedVertexAssoc(const std::string &name = "PHTpcTrackSeedVertexAssoc");
+  PHTpcTrackSeedCircleFit(const std::string &name = "PHTpcTrackSeedCircleFit");
 
-  ~PHTpcTrackSeedVertexAssoc() override;
+  ~PHTpcTrackSeedCircleFit() override;
 
  protected:
-  int Setup(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
 
-  int Process() override;
+  int process_event(PHCompositeNode*) override;
 
-  int End() override;
-  
+  int End(PHCompositeNode*) override;
+  void use_truth_clusters(bool truth)
+  { _use_truth_clusters = truth; }
+
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -46,12 +48,15 @@ class PHTpcTrackSeedVertexAssoc : public PHTrackPropagating
 
   
   SvtxTrack *_tracklet_tpc{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
 
   unsigned int _min_tpc_layer = 7;
   unsigned int _max_tpc_layer = 54;
 
   double _z_proj= 0;
-
+  
+  bool _use_truth_clusters = false;
+  TrkrClusterContainer *_cluster_map = nullptr;
 };
 
 #endif // PHTRACKSEEDVERTEXASSOCIATION_H

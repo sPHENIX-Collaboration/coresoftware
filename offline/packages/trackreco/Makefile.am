@@ -57,7 +57,7 @@ pkginclude_HEADERS = \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
-  PHTpcTrackSeedVertexAssoc.h \
+  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -173,7 +173,7 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrackProjection.cc \
   PHGhostRejection.cc \
   PHRaveVertexing.cc \
-  PHTpcTrackSeedVertexAssoc.cc \
+  PHTpcTrackSeedCircleFit.cc \
   ALICEKF.cc \
   PHSimpleKFProp.cc
 
