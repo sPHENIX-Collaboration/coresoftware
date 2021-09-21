@@ -84,9 +84,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_x(position(0) / Acts::UnitConstants::cm);
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
-  //track->set_px(momentum(0));
-  //track->set_py(momentum(1));
-  //track->set_pz(momentum(2));
+
 }
 
 BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
