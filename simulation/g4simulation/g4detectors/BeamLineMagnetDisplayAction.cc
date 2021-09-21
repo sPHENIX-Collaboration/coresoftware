@@ -13,8 +13,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 BeamLineMagnetDisplayAction::BeamLineMagnetDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -62,7 +60,7 @@ void BeamLineMagnetDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvo
     }
     else
     {
-      cout << PHWHERE << "unknown logical volume " << it.second << endl;
+      std::cout << PHWHERE << "unknown logical volume " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);
