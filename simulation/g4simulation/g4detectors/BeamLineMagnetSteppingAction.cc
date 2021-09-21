@@ -99,7 +99,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
     return false;
   }
 
-  int magnet_id = volume->GetCopyNo() * whichactive;  // magnet id is stored in copy number, absorber is negative
+  int magnet_id = volume->GetCopyNo();  // magnet id is stored in copy number
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
