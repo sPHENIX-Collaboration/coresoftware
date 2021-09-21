@@ -41,9 +41,7 @@ using namespace std;
 //_______________________________________________________________
 BeamLineMagnetDetector::BeamLineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int magnet_id)
   : PHG4Detector(subsys, Node, dnam)
-  , params(parameters)
-  , magnet_physi(nullptr)
-  , magnet_iron_physi(nullptr)
+  , m_Params(parameters)
   , m_DisplayAction(dynamic_cast<BeamLineMagnetDisplayAction *>(subsys->GetDisplayAction()))
   , m_MagnetId(magnet_id)
 {
@@ -56,32 +54,32 @@ int BeamLineMagnetDetector::IsInBeamLineMagnet(const G4VPhysicalVolume *volume) 
   {
     return 1;
   }
-  else if (volume == magnet_iron_physi)
+  if (volume == magnet_iron_physi)
   {
     return -1;
   }
-  return false;
+  return 0;
 }
 
 //_______________________________________________________________
 void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 {
   /* Define origin vector (center of magnet) */
-  G4ThreeVector origin(params->get_double_param("place_x") * cm,
-                       params->get_double_param("place_y") * cm,
-                       params->get_double_param("place_z") * cm);
+  G4ThreeVector origin(m_Params->get_double_param("place_x") * cm,
+                       m_Params->get_double_param("place_y") * cm,
+                       m_Params->get_double_param("place_z") * cm);
 
   /* Define magnet rotation matrix */
   G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateX(params->get_double_param("rot_x") * deg);
-  rotm->rotateY(params->get_double_param("rot_y") * deg);
-  rotm->rotateZ(params->get_double_param("rot_z") * deg);
+  rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
+  rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
+  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
 
   // creating mother volume (cylinder for the time being)
   G4VSolid *magnet_mother_solid = new G4Tubs(G4String(GetName().append("_Mother").c_str()),
                                              0,
-                                             params->get_double_param("outer_radius") * cm,
-                                             params->get_double_param("length") * cm / 2., 0, twopi);
+                                             m_Params->get_double_param("outer_radius") * cm,
+                                             m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_mother_logic = new G4LogicalVolume(magnet_mother_solid,
                                                              G4Material::GetMaterial("G4_Galactic"),
                                                              G4String(GetName().c_str()),
@@ -106,26 +104,26 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     }
     /* Define origin vector (center of magnet) */
     // abs. position to world for field manager
-    field_origin = G4ThreeVector(params->get_double_param("field_global_position_x") * cm,
-                                 params->get_double_param("field_global_position_y") * cm,
-                                 params->get_double_param("field_global_position_z") * cm);
+    field_origin = G4ThreeVector(m_Params->get_double_param("field_global_position_x") * cm,
+                                 m_Params->get_double_param("field_global_position_y") * cm,
+                                 m_Params->get_double_param("field_global_position_z") * cm);
 
     /* Define magnet rotation matrix */
     // abs. rotation to world for field manager
     field_rotm = new G4RotationMatrix();
-    rotm->rotateX(params->get_double_param("field_global_rot_x") * deg);
-    rotm->rotateY(params->get_double_param("field_global_rot_y") * deg);
-    rotm->rotateZ(params->get_double_param("field_global_rot_z") * deg);
+    rotm->rotateX(m_Params->get_double_param("field_global_rot_x") * deg);
+    rotm->rotateY(m_Params->get_double_param("field_global_rot_y") * deg);
+    rotm->rotateZ(m_Params->get_double_param("field_global_rot_z") * deg);
   }
 
-  string magnettype = params->get_string_param("magtype");
+  string magnettype = m_Params->get_string_param("magtype");
   if (magnettype == "DIPOLE")
   {
-    G4ThreeVector field(params->get_double_param("field_x") * tesla,
-                        params->get_double_param("field_y") * tesla,
-                        params->get_double_param("field_z") * tesla);
+    G4ThreeVector field(m_Params->get_double_param("field_x") * tesla,
+                        m_Params->get_double_param("field_y") * tesla,
+                        m_Params->get_double_param("field_z") * tesla);
     // magnets can be rotated in y
-    //     field.rotateY(params->get_double_param("rot_y") * deg);
+    //     field.rotateY(m_Params->get_double_param("rot_y") * deg);
     // apply consistent geometry ops to field and detectors
     field.transform(*field_rotm);
     m_magField = new G4UniformMagField(field);
@@ -139,7 +137,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   }
   else if (magnettype == "QUADRUPOLE")
   {
-    G4double fieldGradient = params->get_double_param("fieldgradient") * tesla / meter;
+    G4double fieldGradient = m_Params->get_double_param("fieldgradient") * tesla / meter;
 
     /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
        * Therefore, place magnetic field center at the correct location and angle for the
@@ -167,9 +165,9 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 
   /* Add volume with solid magnet material */
   G4VSolid *magnet_iron_solid = new G4Tubs(G4String(GetName().append("_Solid").c_str()),
-                                           params->get_double_param("inner_radius") * cm,
-                                           params->get_double_param("outer_radius") * cm,
-                                           params->get_double_param("length") * cm / 2., 0, twopi);
+                                           m_Params->get_double_param("inner_radius") * cm,
+                                           m_Params->get_double_param("outer_radius") * cm,
+                                           m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_iron_logic = new G4LogicalVolume(magnet_iron_solid,
                                                            G4Material::GetMaterial("G4_Fe"),
                                                            G4String(GetName().c_str()),
@@ -182,8 +180,8 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 
   G4VSolid *magnet_field_solid = new G4Tubs(G4String(GetName().append("_Field_Solid").c_str()),
                                             0,
-                                            params->get_double_param("inner_radius") * cm,
-                                            params->get_double_param("length") * cm / 2., 0, twopi);
+                                            m_Params->get_double_param("inner_radius") * cm,
+                                            m_Params->get_double_param("length") * cm / 2., 0, twopi);
 
   m_magnetFieldLogic = new G4LogicalVolume(magnet_field_solid,
                                            G4Material::GetMaterial("G4_Galactic"),

@@ -28,9 +28,6 @@ using namespace std;
 //_______________________________________________________________________
 BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
@@ -46,8 +43,6 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-
   // create display settings before detector
   BeamLineMagnetDisplayAction *displayaction = new BeamLineMagnetDisplayAction(Name());
   m_DisplayAction = displayaction;
@@ -56,57 +51,35 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  set<string> nodes;
+  std::set<string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
-    }
-
-    ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    PHCompositeNode *DetNode = dstNode;
+    if (SuperDetector() != "NONE" || SuperDetector().empty())
     {
       // create super detector subnodes
       PHNodeIterator iter_dst(dstNode);
-      PHCompositeNode *superSubNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
-      if (!superSubNode)
+      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
       {
-        superSubNode = new PHCompositeNode(SuperDetector());
-        dstNode->addNode(superSubNode);
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
       }
-      dstNode = superSubNode;
-      PHNodeIterator iter_run(runNode);
-      superSubNode = dynamic_cast<PHCompositeNode *>(iter_run.findFirst("PHCompositeNode", SuperDetector()));
-      if (!superSubNode)
-      {
-        superSubNode = new PHCompositeNode(SuperDetector());
-        runNode->addNode(superSubNode);
-      }
-      runNode = superSubNode;
-
-      nodename << "G4HIT_" << SuperDetector();
     }
-    else
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
     {
-      nodename << "G4HIT_" << Name();
+      detector_suffix = Name();
     }
-    nodes.insert(nodename.str());
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name();
-      }
-      nodes.insert(nodename.str());
+      nodes.insert(m_AbsorberNodeName);
     }
     for (auto node : nodes)
     {
@@ -117,14 +90,15 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
         DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
       }
     }
-
-    m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
+    BeamLineMagnetSteppingAction *tmp = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
+    tmp->SetHitNodeName(m_HitNodeName);
+    tmp->SetAbsorberNodeName(m_AbsorberNodeName);
+    m_SteppingAction = tmp;
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
     m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
   }
-
   return 0;
 }
 

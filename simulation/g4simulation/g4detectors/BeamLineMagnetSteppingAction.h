@@ -28,6 +28,9 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode*) override;
 
+  void SetHitNodeName(const std::string& nam) { m_HitNodeName = nam; }
+  void SetAbsorberNodeName(const std::string& nam) { m_AbsorberNodeName = nam; }
+
  private:
   //! pointer to the detector
   BeamLineMagnetDetector* m_Detector = nullptr;
@@ -46,7 +49,12 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   double m_EdepSum = 0.;
   double m_EionSum = 0.;
   int m_ActiveFlag = 0;
+  int m_AbsorberActiveFlag = 0;
   int m_BlackHoleFlag = 0;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
+
 };
 
 #endif  // G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H
