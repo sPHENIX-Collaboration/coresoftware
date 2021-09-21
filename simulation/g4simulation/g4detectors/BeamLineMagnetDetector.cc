@@ -30,7 +30,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg, tesla, twopi, meter
 
 #include <cassert>
-#include <cstdlib>                        // for exit
+#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 
 class G4VSolid;
@@ -98,7 +98,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     if (Verbosity() > 0)
     {
       std::cout << __PRETTY_FUNCTION__ << ": set field using the global coordinate system, as the magnet is a daughter vol. of "
-           << GetMySubsystem()->GetMotherSubsystem()->Name() << std::endl;
+                << GetMySubsystem()->GetMotherSubsystem()->Name() << std::endl;
     }
     /* Define origin vector (center of magnet) */
     // abs. position to world for field manager
@@ -128,9 +128,9 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     if (Verbosity() > 0)
     {
       std::cout << "Creating DIPOLE with field x: " << field.x() / tesla
-           << ", y: " << field.y() / tesla
-           << ", z: " << field.z() / tesla
-           << " and name " << GetName() << std::endl;
+                << ", y: " << field.y() / tesla
+                << ", z: " << field.z() / tesla
+                << " and name " << GetName() << std::endl;
     }
   }
   else if (magnettype == "QUADRUPOLE")
@@ -158,7 +158,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   if (!m_magField && Verbosity() > 0)
   {
     std::cout << PHWHERE << " No magnetic field specified for " << GetName()
-         << " of type " << magnettype << std::endl;
+              << " of type " << magnettype << std::endl;
   }
 
   /* Add volume with solid magnet material */
@@ -212,7 +212,7 @@ void BeamLineMagnetDetector::PostConstruction()
   if (Verbosity() > 0)
   {
     std::cout << __PRETTY_FUNCTION__ << ": set field to vol " << m_magnetFieldLogic->GetName() << " that include "
-         << m_magnetFieldLogic->GetNoDaughters() << " daughter vols." << std::endl;
+              << m_magnetFieldLogic->GetNoDaughters() << " daughter vols." << std::endl;
   }
 
   /* Set up Geant4 field manager */

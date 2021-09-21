@@ -67,7 +67,6 @@ class BeamLineMagnetSubsystem : public PHG4DetectorSubsystem
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
-
 };
 
 #endif  // G4DETECTORS_BEAMLINEMAGNETSUBSYSTEM_H

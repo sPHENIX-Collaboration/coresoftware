@@ -54,7 +54,6 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
-
 };
 
 #endif  // G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H

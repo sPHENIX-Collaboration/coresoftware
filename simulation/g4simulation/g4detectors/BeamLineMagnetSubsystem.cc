@@ -127,17 +127,17 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("field_z", 0.);
   set_default_double_param("fieldgradient", 0.);
 
-  set_default_double_param("field_global_position_x", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_position_y", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_position_z", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_rot_x", 0.); // abs. rotation to world for field manager
-  set_default_double_param("field_global_rot_y", 0.); // abs. rotation to world for field manager
-  set_default_double_param("field_global_rot_z", 0.); // abs. rotation to world for field manager
+  set_default_double_param("field_global_position_x", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_position_y", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_position_z", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_rot_x", 0.);       // abs. rotation to world for field manager
+  set_default_double_param("field_global_rot_y", 0.);       // abs. rotation to world for field manager
+  set_default_double_param("field_global_rot_z", 0.);       // abs. rotation to world for field manager
 
   set_default_double_param("length", 100);
-  set_default_double_param("place_x", 0.); // relative position to mother vol.
-  set_default_double_param("place_y", 0.); // relative position to mother vol.
-  set_default_double_param("place_z", 0.); // relative position to mother vol.
+  set_default_double_param("place_x", 0.);  // relative position to mother vol.
+  set_default_double_param("place_y", 0.);  // relative position to mother vol.
+  set_default_double_param("place_z", 0.);  // relative position to mother vol.
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
@@ -145,7 +145,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("outer_radius", 100);
 }
 
-void BeamLineMagnetSubsystem::Print(const std::string &/*what*/) const
+void BeamLineMagnetSubsystem::Print(const std::string & /*what*/) const
 {
   std::cout << Name() << " Parameters: " << std::endl;
   if (!BeginRunExecuted())
