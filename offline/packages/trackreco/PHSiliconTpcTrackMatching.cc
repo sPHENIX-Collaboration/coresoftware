@@ -97,6 +97,9 @@ int PHSiliconTpcTrackMatching::Process()
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
 
+  if(_track_map->size() == 0)
+    return Fun4AllReturnCodes::EVENT_OK;
+    
   if(Verbosity() > 2)
     {
       // list silicon tracks
