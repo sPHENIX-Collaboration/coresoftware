@@ -28,8 +28,7 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode*) override;
 
-  void SetHitNodeName(const std::string& nam) { m_HitNodeName = nam; }
-  void SetAbsorberNodeName(const std::string& nam) { m_AbsorberNodeName = nam; }
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
 
  private:
   //! pointer to the detector
