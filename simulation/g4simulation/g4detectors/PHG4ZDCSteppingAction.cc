@@ -272,14 +272,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
     }
 
-    /* Update exit values- will be overwritten with every step until
-       * we leave the volume or the particle ceases to exist */
-    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
-    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
-    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
-
-    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
-
     /* sum up the energy to get total deposited */
 
     m_Hit->set_edep(m_Hit->get_edep() + edep);
@@ -289,25 +281,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
-    if (geantino)
-    {
-      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      if (whichactive > 0)
-      {
-        m_Hit->set_eion(-1);
-        m_Hit->set_light_yield(-1);
-      }
-    }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
-    {
-      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-      {
-        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-        {
-          pp->SetKeep(1);  // we want to keep the track
-        }
-      }
-    }
     // if any of these conditions is true this is the last step in
     // this volume and we need to save the hit
     // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -319,6 +292,23 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         postPoint->GetStepStatus() == fAtRestDoItProc ||
         aTrack->GetTrackStatus() == fStopAndKill)
     {
+      // Update exit values
+      m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+      m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+      m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
+
+      m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+
+// special case for geantinos
+      if (geantino)
+      {
+	m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+	if (whichactive > 0)
+	{
+	  m_Hit->set_eion(-1);
+	  m_Hit->set_light_yield(-1);
+	}
+      }
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
       {
@@ -328,6 +318,16 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           m_CurrentShower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
+	if (m_Hit->get_edep() > 0 && (whichactive > 0 || absorbertruth > 0))
+	{
+	  if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+	  {
+	    if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+	    {
+	      pp->SetKeep(1);  // we want to keep the track
+	    }
+	  }
+	}
         // so we will create a new hit for the next track
         m_Hit = nullptr;
       }
