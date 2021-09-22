@@ -16,8 +16,6 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -323,23 +321,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 }
 
-Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  if(!svtxVertex)
-    {
-      if(Verbosity() > 0)
-	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
-		  << std::endl;
-      return Acts::Vector3D(0,0,0);
-    }
-
-  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
-  return vertex;
-}
 
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey) const
@@ -660,11 +641,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
-  
-  float dca3Dxy = NAN;
-  float dca3Dz = NAN;
-  float dca3DxyCov = NAN;
-  float dca3DzCov = NAN;
  
   if(params.covariance())
     {
@@ -678,49 +654,19 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	  for(int j = 0; j < 6; j++)
 	    {
 	      track->set_error(i,j, rotatedCov(i,j));
-	      track->set_acts_covariance(i,j, params.covariance().value()(i,j));
+	      track->set_acts_covariance(i,j, 
+					 params.covariance().value()(i,j));
 	    }
 	}
-    
-      unsigned int vertexId = track->get_vertex_id();
-
-      const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-
-      if(!svtxVertex) 
-	{
-	  std::cout << PHWHERE << " vertex ID " << vertexId << " not found!" << " for track " << track->get_id() << std::endl;
-	 return; 
-	}
-
-
-      Acts::Vector3D vertex(
-		  svtxVertex->get_x() * Acts::UnitConstants::cm, 
-		  svtxVertex->get_y() * Acts::UnitConstants::cm, 
-		  svtxVertex->get_z() * Acts::UnitConstants::cm);
-      
-      rotater.calculateDCA(params, vertex, rotatedCov,
-			    m_tGeometry->geoContext, 
-			    dca3Dxy, dca3Dz, 
-			    dca3DxyCov, dca3DzCov);
+   
     }
 
-  /// Set the DCA here. The DCA will be updated after the final
-  /// vertex fitting in PHActsVertexFinder
-  track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
-  track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
-
-  /// The covariance that goes into the rotater is already in sphenix
-  /// units, so we don't need to convert back
-  track->set_dca3d_xy_error(sqrt(dca3DxyCov));
-  track->set_dca3d_z_error(sqrt(dca3DzCov));
-  
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
   PHTimer trackStateTimer("TrackStateTimer");
   trackStateTimer.stop();
   trackStateTimer.restart();
-
 
   if(m_fillSvtxTrackStates)
     rotater.fillSvtxTrackStates(traj, trackTip, track,
@@ -884,15 +830,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "SvtxVertexMap not on node tree, bailing"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
+ 
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   
   if(!m_trackMap)

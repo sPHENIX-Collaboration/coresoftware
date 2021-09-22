@@ -40,13 +40,21 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
 }
 int PHActsVertexPropagator::process_event(PHCompositeNode*)
 {
-
+  std::vector<unsigned int> deletedKeys;
   for(const auto& [trackKey, trajectory] : *m_trajectories)
     {
       auto svtxTrack = m_trackMap->get(trackKey);
+      if(!svtxTrack)
+	{
+	  /// Key was removed by the track cleaner, remove it from
+	  /// the trajectory list too
+	  deletedKeys.push_back(trackKey);
+	  continue;
+	}
       if(Verbosity() > 2)
 	{ svtxTrack->identify(); }
       const auto &[trackTips, mj] = trajectory.trajectory();
+
       if(trackTips.size() > 1 and Verbosity() > 0)
 	{ 
 	  std::cout << PHWHERE 
@@ -57,13 +65,21 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       for(const auto& trackTip : trackTips)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
+	 
 	  auto propresult = propagateTrack(boundParams, svtxTrack->get_vertex_id());
 	  if(propresult.ok())
 	    {
+	  
 	      auto paramsAtVertex = std::move(**propresult);
 	      updateSvtxTrack(svtxTrack,paramsAtVertex);
 	    }
 	}
+    }
+
+  /// Erase the trajectories that were removed from the track cleaner
+  for(auto& key : deletedKeys)
+    {
+      m_trajectories->erase(key);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -73,12 +89,13 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
 					     const Acts::BoundTrackParameters& params)
 {
   auto position = params.position(m_tGeometry->geoContext);
-  auto momentum = params.momentum();
   
   if(Verbosity() > 2)
     {
-      std::cout << "Updating track parameters to " << position.transpose() / 10.
-		<<" and " << momentum.transpose() / 10. << std::endl;
+      std::cout << "Updating position track parameters from " << track->get_x()
+		<< ", " << track->get_y() << ", " << track->get_z() << " to " 
+		<< position.transpose() / 10.
+		<< std::endl;
     }
 
   track->set_x(position(0) / Acts::UnitConstants::cm);

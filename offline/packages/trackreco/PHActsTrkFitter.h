@@ -42,7 +42,6 @@ namespace ActsExamples
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
 class TrkrClusterContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
@@ -100,7 +99,6 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(SvtxTrack *track);
-  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -142,7 +140,6 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
-  SvtxVertexMap *m_vertexMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   
