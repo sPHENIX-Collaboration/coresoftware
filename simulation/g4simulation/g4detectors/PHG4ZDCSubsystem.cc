@@ -130,8 +130,7 @@ PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
 
 void PHG4ZDCSubsystem::SetDefaultParameters()
 {
-  set_default_int_param("fzdc", 0);
-  set_default_int_param("bzdc", 0);
+  set_default_int_param("arm", -1); // invalid initializer to force setting in macro
   set_default_double_param("z", 1843.0);
   return;
 }

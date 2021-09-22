@@ -1,5 +1,6 @@
 #include "PHG4ZDCDetector.h"
 
+#include "PHG4ZDCDefs.h"
 #include "PHG4ZDCDisplayAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -124,12 +125,10 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   {
     cout << "PHG4ZDCDetector: Begin Construction" << endl;
   }
-  int fzdcflag = m_Params->get_int_param("fzdc");
-  int bzdcflag = m_Params->get_int_param("bzdc");
-
   m_PlaceZ = m_Params->get_double_param("z") * 10 * mm;
 
-  if (fzdcflag == 0 && bzdcflag == 0)
+  if (m_Params->get_int_param("arm") != PHG4ZDCDefs::NORTH &&
+      m_Params->get_int_param("arm") != PHG4ZDCDefs::SOUTH)
   {
     cout << "neither of the ZDC will be constructed" << endl;
     return;
@@ -172,16 +171,16 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
     string name_window_0 = "Window_phy_0";
     string name_window_1 = "Window_phy_1";
-    if (fzdcflag > 0)
+    if (m_Params->get_int_param("arm") == PHG4ZDCDefs::NORTH)
     {
       new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, m_PlaceZ - m_Pzwin)),
-                        ExitWindow_log, name_window_0, logicWorld, 0, 0, OverlapCheck());
+                        ExitWindow_log, name_window_0, logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
     }
 
-    if (bzdcflag > 0)
+    else if (m_Params->get_int_param("arm") == PHG4ZDCDefs::SOUTH)
     {
       new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_PlaceZ + m_Pzwin)),
-                        ExitWindow_log, name_window_1, logicWorld, 0, 1, OverlapCheck());
+                        ExitWindow_log, name_window_1, logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
     }
   }
   /* ZDC detector here */
@@ -390,20 +389,20 @@ GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
 
   /* Place envelope cone in simulation */
 
-  if (fzdcflag > 0)
-  {
     cout << "placing fZDC" << endl;
+    if (m_Params->get_int_param("arm") == PHG4ZDCDefs::NORTH)
+    {
     string name_envelope = "ZDC_phy_envelope_f";
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, m_PlaceZ)),
-                      ZDC_envelope_log, name_envelope, logicWorld, 0, 0, OverlapCheck());
-  }
-  if (bzdcflag > 0)
-  {
+                      ZDC_envelope_log, name_envelope, logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+    }
+    else if (m_Params->get_int_param("arm") == PHG4ZDCDefs::SOUTH)
+    {
     ZDC_rotm.rotateY(180 * deg);
     cout << "placing bZDC" << endl;
     string name_envelope = "ZDC_phy_envelope_b";
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, -m_PlaceZ)),
-                      ZDC_envelope_log, name_envelope, logicWorld, 0, 1, OverlapCheck());
-  }
+                      ZDC_envelope_log, name_envelope, logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+    }
   return;
 }
