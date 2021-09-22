@@ -47,7 +47,6 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   int m_SavePreStepStatus = -1;
   int m_SavePostStepStatus = -1;
   double m_EdepSum = 0.;
-  double m_EionSum = 0.;
   int m_ActiveFlag = 0;
   int m_AbsorberActiveFlag = 0;
   int m_BlackHoleFlag = 0;
