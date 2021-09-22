@@ -43,6 +43,7 @@ class PHG4ZDCDetector : public PHG4Detector
 
  private:
   G4LogicalVolume *ConstructTower(int type);
+  PHParameters *GetParams() const { return m_Params; }
 
   PHG4ZDCDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
@@ -94,6 +95,7 @@ class PHG4ZDCDetector : public PHG4Detector
 
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
+  int m_SupportActiveFlag;
   int m_Layer;
 
   std::string m_SuperDetector;
@@ -101,17 +103,9 @@ class PHG4ZDCDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
   std::set<G4LogicalVolume *> m_FiberLogicalVolSet;
+  std::set<G4LogicalVolume *> m_SupportLogicalVolSet;
 
- protected:
-  PHParameters *GetParams() const { return m_Params; }
-  void AbsorberLogicalVolSetInsert(G4LogicalVolume *logvol)
-  {
-    m_AbsorberLogicalVolSet.insert(logvol);
-  }
-  void ScintiLogicalVolSetInsert(G4LogicalVolume *logvol)
-  {
-    m_ScintiLogicalVolSet.insert(logvol);
-  }
+// protected:
 };
 
 #endif

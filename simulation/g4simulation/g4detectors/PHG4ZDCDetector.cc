@@ -77,6 +77,7 @@ PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, P
   , m_NLay(27)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
+  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
   , m_Layer(0)
   , m_SuperDetector("NONE")
 {
@@ -89,7 +90,6 @@ int PHG4ZDCDetector::IsInZDC(G4VPhysicalVolume* volume) const
   G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
 
   if (m_ActiveFlag)
-
   {
     if (m_ScintiLogicalVolSet.find(mylogvol) != m_ScintiLogicalVolSet.end())
     {
@@ -105,6 +105,13 @@ int PHG4ZDCDetector::IsInZDC(G4VPhysicalVolume* volume) const
     if (m_AbsorberLogicalVolSet.find(mylogvol) != m_AbsorberLogicalVolSet.end())
     {
       return -1;
+    }
+  }
+  if (m_SupportActiveFlag)
+  {
+    if (m_SupportLogicalVolSet.find(mylogvol) != m_SupportLogicalVolSet.end())
+    {
+      return -2;
     }
   }
   return 0;
@@ -157,6 +164,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
     G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, G4Material::GetMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
 
     GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
+    m_SupportLogicalVolSet.insert(ExitWindow_log);
     G4RotationMatrix Window_rotm;
     Window_rotm.rotateX(m_XRot);
     Window_rotm.rotateY(m_YRot);
@@ -205,8 +213,8 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                           TGap / 2.);
 
   G4LogicalVolume* fiber_plate_log = new G4LogicalVolume(fiber_plate_solid, WorldMaterial, G4String("fiber_plate_log"), 0, 0, 0);
-  m_AbsorberLogicalVolSet.insert(fiber_plate_log);
-
+  // m_AbsorberLogicalVolSet.insert(fiber_plate_log);
+GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
   /*  front and back plate */
   G4VSolid* fb_plate_solid = new G4Box(G4String("fb_plate_solid"),
                                        m_WPlate / 2.,
@@ -214,7 +222,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                        m_TPlate / 2.);
 
   G4LogicalVolume* fb_plate_log = new G4LogicalVolume(fb_plate_solid, Fe, G4String("fb_plate_log"), 0, 0, 0);
-  m_AbsorberLogicalVolSet.insert(fb_plate_log);
+  m_SupportLogicalVolSet.insert(fb_plate_log);
   GetDisplayAction()->AddVolume(fb_plate_log, "FrontBackPlate");
 
   /*  absorber */
@@ -235,7 +243,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                   m_TSMD / 2.);
 
   G4LogicalVolume* SMD_log = new G4LogicalVolume(SMD_solid, WorldMaterial, G4String("SMD_log"), 0, 0, 0);
-  m_AbsorberLogicalVolSet.insert(SMD_log);
+//  m_AbsorberLogicalVolSet.insert(SMD_log);
   GetDisplayAction()->AddVolume(SMD_log, "SMD");
   // small scintillators block
   G4double scintx = 15 * mm;
@@ -247,6 +255,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* Scint_log = new G4LogicalVolume(Scint_solid, Scint, G4String("Scint_log"), 0, 0, 0);
   m_ScintiLogicalVolSet.insert(Scint_log);
+GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
   //put scintillators in the SMD volume
   double scint_XPos = -m_WSMD / 2.;
   double scint_Xstep = scintx / 2.;
@@ -294,20 +303,19 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   for (int i = 0; i < Nfiber; i++)
   {
     fiber_XPos += fiber_step;
+      int copyno = i;
 
     new G4PVPlacement(FiberRotation, G4ThreeVector(fiber_XPos, 0.0, 0.0),
                       single_fiber_log,
                       G4String("single_fiber_scint"),
                       fiber_plate_log,
-                      0, 0, OverlapCheck());
-
+                      0, copyno, OverlapCheck());
     fiber_XPos += fiber_step;
   }
-  GetDisplayAction()->AddVolume(fiber_plate_log, "FiberPlate");
 
   /* Rotation for plates in ZDC */
   G4RotationMatrix* PlateRotation = new G4RotationMatrix();
-  ;
+
   PlateRotation->rotateX(-m_Angle);
 
   /* construct ZDC */
