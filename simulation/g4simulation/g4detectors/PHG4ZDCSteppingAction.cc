@@ -1,17 +1,13 @@
 #include "PHG4ZDCSteppingAction.h"
-#include <math.h>
-#include <phparameter/PHParameters.h>
-#include <array>
+
 #include "PHG4ZDCDetector.h"
 
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -40,6 +36,11 @@
 
 #include <TSystem.h>
 
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+
+#include <array>
+#include <cmath>
 #include <iostream>
 #include <string>  // for basic_string, operator+
 
@@ -189,10 +190,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit = new PHG4Hitv1();
       }
 
-      /* Set hit location (tower index) */
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_j(idx_j);
-
       /* Set hit location (space point) */
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -210,13 +207,24 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // here we do things which are different between scintillator and absorber hits
       if (whichactive > 0)
       {
-        m_CurrentHitContainer = m_SignalHitContainer;
+        m_CurrentHitContainer = m_HitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+      /* Set hit location (tower index) */
+      m_Hit->set_index_k(idx_k);
+      m_Hit->set_index_j(idx_j);
+
       }
       else
       {
-        m_CurrentHitContainer = m_AbsorberHitContainer;
+	if (whichactive == -1)
+	{
+          m_CurrentHitContainer = m_AbsorberHitContainer;
+	}
+	else
+	{
+	  m_CurrentHitContainer = m_SupportHitContainer;
+	}
       }
       // here we set what is common for scintillator and absorber hits
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -275,18 +283,18 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     /* sum up the energy to get total deposited */
 
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      m_Hit->set_eion(-1);
       if (whichactive > 0)
       {
+        m_Hit->set_eion(-1);
         m_Hit->set_light_yield(-1);
       }
     }
@@ -342,28 +350,14 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
-
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
-  }
-
   //now look for the map and grab a pointer to it.
-  m_SignalHitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
-
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
   // if we do not find the node it's messed up.
-  if (!m_SignalHitContainer)
+  if (!m_HitContainer)
   {
-    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
     gSystem->Exit(1);
   }
   // this is perfectly fine if absorber hits are disabled
@@ -371,9 +365,39 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << endl;
     }
   }
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << endl;
+    }
+  }
+
+}
+
+void PHG4ZDCSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }
 
 //getting index using copyno
