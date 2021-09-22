@@ -47,15 +47,19 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ZDCDetector* m_Detector;
+  PHG4ZDCDetector* m_Detector = nullptr;
 
   /** Stepping action
    */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
+  std::string m_SupportNodeName;
 };
 
 #endif
