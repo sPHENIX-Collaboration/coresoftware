@@ -37,6 +37,8 @@ class PHSimpleVertexFinder : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+ void setBeamLineCut(const double cut) {beamline_xy_cut = cut;}
+ void setDcaCut(const double cut) {dcacut = cut;}
 
  private:
 
@@ -52,6 +54,7 @@ SvtxTrack *_track{nullptr};
 SvtxVertexMap *_svtx_vertex_map{nullptr};
 
 double dcacut = 0.0080;  // 80 microns 
+double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
 
 std::multimap<unsigned int, unsigned int> _vertex_track_map;
 std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
