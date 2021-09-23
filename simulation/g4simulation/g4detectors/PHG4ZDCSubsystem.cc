@@ -57,7 +57,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode* DetNode = dstNode;
-    if (SuperDetector() != "NONE" || SuperDetector().empty())
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
       DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
