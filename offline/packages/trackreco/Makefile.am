@@ -54,6 +54,7 @@ pkginclude_HEADERS = \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHSiliconTpcTrackMatching.h \
+  PHSimpleVertexFinder.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
@@ -161,6 +162,7 @@ libtrack_reco_la_SOURCES = \
   PHMicromegasTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
   PHSiliconTruthTrackSeeding.cc \
+  PHSimpleVertexFinder.cc \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHTrackCleaner.cc \

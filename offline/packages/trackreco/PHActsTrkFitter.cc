@@ -222,7 +222,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			      track->get_y() * Acts::UnitConstants::cm,
 			      track->get_z() * Acts::UnitConstants::cm);
 
-
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  position);
       auto actsFourPos = Acts::Vector4D(position(0), position(1),
