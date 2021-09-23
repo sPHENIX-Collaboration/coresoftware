@@ -39,15 +39,12 @@
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int detid)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ZDCDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
   , m_GdmlConfig(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
-  , m_Window(1)
   , m_Angle(M_PI_4 * radian)
   , m_TPlate(2.3 * mm)
   , m_HPlate(400.0 * mm)
@@ -60,12 +57,6 @@ PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, P
   , m_WFiber(100.0 * mm)
   , m_GFiber(0.0001 * mm)
   , m_Gap(0.2 * mm)
-  , m_XRot(0.0)
-  , m_YRot(0.0)
-  , m_ZRot(0.0)
-  , m_PlaceX(0.0 * mm)
-  , m_PlaceY(0.0 * mm)
-  , m_PlaceZ(18430.0 * mm)
   , m_TSMD(10.0 * mm)
   , m_HSMD(160.0 * mm)
   , m_WSMD(105.0 * mm)
@@ -125,14 +116,13 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {
-    cout << "PHG4ZDCDetector: Begin Construction" << endl;
+    std::cout << "PHG4ZDCDetector: Begin Construction" << std::endl;
   }
-  m_PlaceZ = m_Params->get_double_param("z") * cm;
 
   if (m_Layer != PHG4ZDCDefs::NORTH &&
       m_Layer != PHG4ZDCDefs::SOUTH)
   {
-    cout << "use either PHG4ZDCDefs::NORTH or PHG4ZDCDefs::SOUTH for ZDC Subsystem" << endl;
+    std::cout << "use either PHG4ZDCDefs::NORTH or PHG4ZDCDefs::SOUTH for ZDC Subsystem" << std::endl;
     gSystem->Exit(1);
     return;
   }
@@ -151,8 +141,6 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4double First_Pos = -RTT * Det_Length / 2;
   G4double Room = 3.5 * mm;
   G4double Mother_2Z = RTT * Det_Length + 2. * (m_HFiber - m_HAbsorber / 2.) * cos(m_Angle);
-  if (m_Window)
-  {
     /* Create exit windows */
     G4VSolid* ExitWindow_nocut_solid = new G4Tubs(G4String("ExitWindow_nocut_solid"),
                                                   0.0, m_RWin, m_TWin, 0.0, CLHEP::twopi);
@@ -168,22 +156,21 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
     GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
     m_SupportLogicalVolSet.insert(ExitWindow_log);
     G4RotationMatrix Window_rotm;
-    Window_rotm.rotateX(m_XRot);
-    Window_rotm.rotateY(m_YRot);
-    Window_rotm.rotateZ(m_ZRot);
+    Window_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
+    Window_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
+    Window_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
 
     if (m_Layer == PHG4ZDCDefs::NORTH)
     {
-      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, m_PlaceZ - m_Pzwin)),
+      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin,m_Params->get_double_param("place_z") * cm - m_Pzwin)),
                         ExitWindow_log, "Window_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
     }
 
     else if (m_Layer == PHG4ZDCDefs::SOUTH)
     {
-      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_PlaceZ + m_Pzwin)),
+      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_Params->get_double_param("place_z") * cm + m_Pzwin)),
                         ExitWindow_log, "Window_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
     }
-  }
   /* ZDC detector here */
   /* Create the box envelope = 'world volume' for ZDC */
 
@@ -202,9 +189,9 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ZDC_rotm;
-  ZDC_rotm.rotateX(m_XRot);
-  ZDC_rotm.rotateY(m_YRot);
-  ZDC_rotm.rotateZ(m_ZRot);
+  ZDC_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
+  ZDC_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
+  ZDC_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
 
   /* Create logical volumes for a plate to contain fibers */
   G4VSolid* fiber_plate_solid = new G4Box(G4String("fiber_plate_solid"),
@@ -369,12 +356,11 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
 
       /* place the fiber plate */
       ZPos += (Gap_Step / 2.);
-      ostringstream name_fiber_plate;
       int copyno = 27 * i + j;
-      name_fiber_plate << "Fiber_Plate_" << copyno;
+      std::string name_fiber_plate = "Fiber_Plate_" + std::to_string(copyno);
       new G4PVPlacement(PlateRotation, G4ThreeVector(0.0, Gap_YPos, Gap_ZPos + ZPos),
                         fiber_plate_log,
-                        name_fiber_plate.str().c_str(),
+                        name_fiber_plate,
                         ZDC_envelope_log,
                         0, copyno, OverlapCheck());
       ZPos += (Gap_Step / 2.);
@@ -394,13 +380,13 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
 
     if (m_Layer == PHG4ZDCDefs::NORTH)
     {
-    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, m_PlaceZ)),
+    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm,m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)),
                       ZDC_envelope_log, "ZDC_Envelope_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
     }
     else if (m_Layer == PHG4ZDCDefs::SOUTH)
     {
     ZDC_rotm.rotateY(180 * deg);
-    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, -m_PlaceZ)),
+    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm,m_Params->get_double_param("place_y") * cm, -m_Params->get_double_param("place_z") * cm)),
                       ZDC_envelope_log, "ZDC_Envelope_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
     }
   return;
