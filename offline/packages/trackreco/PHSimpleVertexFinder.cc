@@ -10,7 +10,11 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
@@ -42,7 +46,8 @@ int PHSimpleVertexFinder::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
+  ret = CreateNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   return ret;
 }
 
@@ -220,6 +225,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	unsigned int trid = cit->second;
 	if(Verbosity() > 1) std::cout << "   vertex " << it << " insert track " << trid << std::endl; 
 	svtxVertex->insert_track(trid);
+	_track_map->get(trid)->set_vertex_id(it);
       }
 
       Eigen::Vector3d pos = _vertex_position_map.find(it)->second;
@@ -239,6 +245,34 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       _svtx_vertex_map->insert(svtxVertex.release());      
     }
   
+  /// Iterate through the tracks and assign the closest vtx id to 
+  /// the track position for propagating back to the vtx. Catches any
+  /// tracks that were missed or were not  compatible with any of the
+  /// identified vertices
+  for(const auto& [trackkey, track] : *_track_map)
+    {
+      auto vtxid = track->get_vertex_id();
+
+      /// If there is a vertex already assigned, keep going
+      if(_svtx_vertex_map->get(vtxid))
+	{ continue; }
+      
+      float maxdz = std::numeric_limits<float>::max();
+      unsigned int newvtxid = std::numeric_limits<unsigned int>::max();
+      
+      for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
+	{
+	  float dz = track->get_z() - vertex->get_z();
+	  if(fabs(dz) < maxdz)
+	    {
+	      maxdz = dz;
+	      newvtxid = vtxkey;
+	    }
+	}
+      
+      track->set_vertex_id(newvtxid);
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -249,7 +283,43 @@ int PHSimpleVertexFinder::End(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int  PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
+int PHSimpleVertexFinder::CreateNodes(PHCompositeNode* topNode)
+{
+  PHNodeIterator iter(topNode);
+
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+
+  /// Check that it is there
+  if (!dstNode)
+  {
+    std::cerr << "DST Node missing, quitting" << std::endl;
+    throw std::runtime_error("failed to find DST node in PHActsInitialVertexFinder::createNodes");
+  }
+
+  /// Get the tracking subnode
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+  _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
+  
+  if(!_svtx_vertex_map)
+    {
+      _svtx_vertex_map = new SvtxVertexMap_v1;
+      PHIODataNode<PHObject>* vertexNode = new PHIODataNode<PHObject>( 
+		   _svtx_vertex_map, "SvtxVertexMap","PHObject");
+
+      svtxNode->addNode(vertexNode);
+
+    }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
 {
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -259,12 +329,7 @@ int  PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_svtx_vertex_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find SvtxVertexMap: " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+ 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
