@@ -60,13 +60,13 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     if (SuperDetector() != "NONE" || SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
-      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
 
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
-    }
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
     }
     // create hit output nodes
     std::string detector_suffix = SuperDetector();
@@ -99,9 +99,9 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
     // create stepping action
     m_SteppingAction = new PHG4ZDCSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->SetHitNodeName("G4HIT",m_HitNodeName);
-    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER",m_AbsorberNodeName);
-    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT",m_SupportNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
   }
   else if (GetParams()->get_int_param("blackhole"))
   {

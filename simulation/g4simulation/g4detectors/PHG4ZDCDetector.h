@@ -99,7 +99,6 @@ class PHG4ZDCDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
   std::set<G4LogicalVolume *> m_FiberLogicalVolSet;
   std::set<G4LogicalVolume *> m_SupportLogicalVolSet;
-
 };
 
 #endif

@@ -8,6 +8,6 @@ namespace PHG4ZDCDefs
   // __attribute__((unused)) prevents warnings about unused variables
   static const int NORTH __attribute__((unused)) = 0;
   static const int SOUTH __attribute__((unused)) = 1;
-}
+}  // namespace PHG4ZDCDefs
 
 #endif

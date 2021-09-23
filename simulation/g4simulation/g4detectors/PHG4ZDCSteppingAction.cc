@@ -207,21 +207,20 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_CurrentHitContainer = m_HitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
-      /* Set hit location (tower index) */
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_j(idx_j);
-
+        /* Set hit location (tower index) */
+        m_Hit->set_index_k(idx_k);
+        m_Hit->set_index_j(idx_j);
       }
       else
       {
-	if (whichactive == -1)
-	{
+        if (whichactive == -1)
+        {
           m_CurrentHitContainer = m_AbsorberHitContainer;
-	}
-	else
-	{
-	  m_CurrentHitContainer = m_SupportHitContainer;
-	}
+        }
+        else
+        {
+          m_CurrentHitContainer = m_SupportHitContainer;
+        }
       }
       // here we set what is common for scintillator and absorber hits
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -251,20 +250,20 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         if (Verbosity() > 0)
         {
           std::cout << "PHG4ZDCSteppingAction::UserSteppingAction::"
-               //
-               << m_Detector->GetName() << " - "
-               << " use scintillating light model at each Geant4 steps. "
-               << "First step: "
-               << "Material = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-               << ", "
-               << "Birk Constant = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-               << ","
-               << "edep = " << edep << ", "
-               << "eion = " << eion
-               << ", "
-               << "light_yield = " << light_yield << std::endl;
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
       }
     }
@@ -296,15 +295,15 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-// special case for geantinos
+      // special case for geantinos
       if (geantino)
       {
-	m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-	if (whichactive > 0)
-	{
-	  m_Hit->set_eion(-1);
-	  m_Hit->set_light_yield(-1);
-	}
+        m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+        if (whichactive > 0)
+        {
+          m_Hit->set_eion(-1);
+          m_Hit->set_light_yield(-1);
+        }
       }
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
@@ -315,16 +314,16 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           m_CurrentShower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
-	if (m_Hit->get_edep() > 0 && (whichactive > 0 || absorbertruth > 0))
-	{
-	  if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-	  {
-	    if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-	    {
-	      pp->SetKeep(1);  // we want to keep the track
-	    }
-	  }
-	}
+        if (m_Hit->get_edep() > 0 && (whichactive > 0 || absorbertruth > 0))
+        {
+          if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+          {
+            if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+            {
+              pp->SetKeep(1);  // we want to keep the track
+            }
+          }
+        }
         // so we will create a new hit for the next track
         m_Hit = nullptr;
       }
@@ -372,10 +371,9 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
       std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
     }
   }
-
 }
 
-void PHG4ZDCSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+void PHG4ZDCSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
 {
   if (type == "G4HIT")
   {

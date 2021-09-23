@@ -141,36 +141,36 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4double First_Pos = -RTT * Det_Length / 2;
   G4double Room = 3.5 * mm;
   G4double Mother_2Z = RTT * Det_Length + 2. * (m_HFiber - m_HAbsorber / 2.) * cos(m_Angle);
-    /* Create exit windows */
-    G4VSolid* ExitWindow_nocut_solid = new G4Tubs(G4String("ExitWindow_nocut_solid"),
-                                                  0.0, m_RWin, m_TWin, 0.0, CLHEP::twopi);
+  /* Create exit windows */
+  G4VSolid* ExitWindow_nocut_solid = new G4Tubs(G4String("ExitWindow_nocut_solid"),
+                                                0.0, m_RWin, m_TWin, 0.0, CLHEP::twopi);
 
-    G4VSolid* Hole_solid = new G4Tubs(G4String("Hole_solid"),
-                                      0.0, m_RHole, 2 * m_TWin, 0.0, CLHEP::twopi);
-    G4VSolid* ExitWindow_1cut_solid = new G4SubtractionSolid("ExitWindow_1cut_solid", ExitWindow_nocut_solid, Hole_solid, 0, G4ThreeVector(m_PlaceHole, 0, 0));
+  G4VSolid* Hole_solid = new G4Tubs(G4String("Hole_solid"),
+                                    0.0, m_RHole, 2 * m_TWin, 0.0, CLHEP::twopi);
+  G4VSolid* ExitWindow_1cut_solid = new G4SubtractionSolid("ExitWindow_1cut_solid", ExitWindow_nocut_solid, Hole_solid, 0, G4ThreeVector(m_PlaceHole, 0, 0));
 
-    G4VSolid* ExitWindow_2cut_solid = new G4SubtractionSolid("ExitWindow_2cut_solid", ExitWindow_1cut_solid, Hole_solid, 0, G4ThreeVector(-m_PlaceHole, 0, 0));
+  G4VSolid* ExitWindow_2cut_solid = new G4SubtractionSolid("ExitWindow_2cut_solid", ExitWindow_1cut_solid, Hole_solid, 0, G4ThreeVector(-m_PlaceHole, 0, 0));
 
-    G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, G4Material::GetMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
+  G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, G4Material::GetMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
 
-    GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
-    m_SupportLogicalVolSet.insert(ExitWindow_log);
-    G4RotationMatrix Window_rotm;
-    Window_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
-    Window_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
-    Window_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
+  GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
+  m_SupportLogicalVolSet.insert(ExitWindow_log);
+  G4RotationMatrix Window_rotm;
+  Window_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
+  Window_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
+  Window_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
 
-    if (m_Layer == PHG4ZDCDefs::NORTH)
-    {
-      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin,m_Params->get_double_param("place_z") * cm - m_Pzwin)),
-                        ExitWindow_log, "Window_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
-    }
+  if (m_Layer == PHG4ZDCDefs::NORTH)
+  {
+    new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, m_Params->get_double_param("place_z") * cm - m_Pzwin)),
+                      ExitWindow_log, "Window_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+  }
 
-    else if (m_Layer == PHG4ZDCDefs::SOUTH)
-    {
-      new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_Params->get_double_param("place_z") * cm + m_Pzwin)),
-                        ExitWindow_log, "Window_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
-    }
+  else if (m_Layer == PHG4ZDCDefs::SOUTH)
+  {
+    new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_Params->get_double_param("place_z") * cm + m_Pzwin)),
+                      ExitWindow_log, "Window_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+  }
   /* ZDC detector here */
   /* Create the box envelope = 'world volume' for ZDC */
 
@@ -200,7 +200,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                           TGap / 2.);
 
   G4LogicalVolume* fiber_plate_log = new G4LogicalVolume(fiber_plate_solid, WorldMaterial, G4String("fiber_plate_log"), 0, 0, 0);
-GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
+  GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
   /*  front and back plate */
   G4VSolid* fb_plate_solid = new G4Box(G4String("fb_plate_solid"),
                                        m_WPlate / 2.,
@@ -289,7 +289,7 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
   for (int i = 0; i < Nfiber; i++)
   {
     fiber_XPos += fiber_step;
-      int copyno = i;
+    int copyno = i;
 
     new G4PVPlacement(FiberRotation, G4ThreeVector(fiber_XPos, 0.0, 0.0),
                       single_fiber_log,
@@ -351,7 +351,7 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
                         absorber_log,
                         G4String("single_absorber"),
                         ZDC_envelope_log,
-                        0, i*100+j, OverlapCheck());
+                        0, i * 100 + j, OverlapCheck());
       ZPos += (Absorber_Step / 2.);
 
       /* place the fiber plate */
@@ -378,16 +378,16 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
 
   /* Place envelope cone in simulation */
 
-    if (m_Layer == PHG4ZDCDefs::NORTH)
-    {
-    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm,m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)),
+  if (m_Layer == PHG4ZDCDefs::NORTH)
+  {
+    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)),
                       ZDC_envelope_log, "ZDC_Envelope_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
-    }
-    else if (m_Layer == PHG4ZDCDefs::SOUTH)
-    {
+  }
+  else if (m_Layer == PHG4ZDCDefs::SOUTH)
+  {
     ZDC_rotm.rotateY(180 * deg);
-    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm,m_Params->get_double_param("place_y") * cm, -m_Params->get_double_param("place_z") * cm)),
+    new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, -m_Params->get_double_param("place_z") * cm)),
                       ZDC_envelope_log, "ZDC_Envelope_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
-    }
+  }
   return;
 }
