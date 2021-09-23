@@ -68,10 +68,6 @@ class PHG4ZDCDetector : public PHG4Detector
 
   double m_Gap;
 
-  double m_XRot;
-  double m_YRot;
-  double m_ZRot;
-
   double m_TSMD;
   double m_HSMD;
   double m_WSMD;
