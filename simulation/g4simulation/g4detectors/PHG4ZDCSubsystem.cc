@@ -46,7 +46,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4ZDCDisplayAction(Name());
   // create detector
-  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
+  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name(), GetLayer());
 
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
@@ -130,7 +130,6 @@ PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
 
 void PHG4ZDCSubsystem::SetDefaultParameters()
 {
-  set_default_int_param("arm", -1); // invalid initializer to force setting in macro
   set_default_double_param("z", 1843.0);
   return;
 }

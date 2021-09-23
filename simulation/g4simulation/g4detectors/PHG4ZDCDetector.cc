@@ -13,6 +13,8 @@
 
 #include <phool/recoConsts.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -40,7 +42,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
+PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int detid)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ZDCDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
@@ -79,7 +81,7 @@ PHG4ZDCDetector::PHG4ZDCDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, P
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
-  , m_Layer(0)
+  , m_Layer(detid)
   , m_SuperDetector("NONE")
 {
   assert(m_GdmlConfig);
@@ -125,12 +127,13 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   {
     cout << "PHG4ZDCDetector: Begin Construction" << endl;
   }
-  m_PlaceZ = m_Params->get_double_param("z") * 10 * mm;
+  m_PlaceZ = m_Params->get_double_param("z") * cm;
 
-  if (m_Params->get_int_param("arm") != PHG4ZDCDefs::NORTH &&
-      m_Params->get_int_param("arm") != PHG4ZDCDefs::SOUTH)
+  if (m_Layer != PHG4ZDCDefs::NORTH &&
+      m_Layer != PHG4ZDCDefs::SOUTH)
   {
-    cout << "neither of the ZDC will be constructed" << endl;
+    cout << "use either PHG4ZDCDefs::NORTH or PHG4ZDCDefs::SOUTH for ZDC Subsystem" << endl;
+    gSystem->Exit(1);
     return;
   }
 
@@ -169,18 +172,16 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
     Window_rotm.rotateY(m_YRot);
     Window_rotm.rotateZ(m_ZRot);
 
-    string name_window_0 = "Window_phy_0";
-    string name_window_1 = "Window_phy_1";
-    if (m_Params->get_int_param("arm") == PHG4ZDCDefs::NORTH)
+    if (m_Layer == PHG4ZDCDefs::NORTH)
     {
       new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, m_PlaceZ - m_Pzwin)),
-                        ExitWindow_log, name_window_0, logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+                        ExitWindow_log, "Window_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
     }
 
-    else if (m_Params->get_int_param("arm") == PHG4ZDCDefs::SOUTH)
+    else if (m_Layer == PHG4ZDCDefs::SOUTH)
     {
       new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_PlaceZ + m_Pzwin)),
-                        ExitWindow_log, name_window_1, logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+                        ExitWindow_log, "Window_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
     }
   }
   /* ZDC detector here */
@@ -212,7 +213,6 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                           TGap / 2.);
 
   G4LogicalVolume* fiber_plate_log = new G4LogicalVolume(fiber_plate_solid, WorldMaterial, G4String("fiber_plate_log"), 0, 0, 0);
-  // m_AbsorberLogicalVolSet.insert(fiber_plate_log);
 GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
   /*  front and back plate */
   G4VSolid* fb_plate_solid = new G4Box(G4String("fb_plate_solid"),
@@ -242,7 +242,6 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
                                   m_TSMD / 2.);
 
   G4LogicalVolume* SMD_log = new G4LogicalVolume(SMD_solid, WorldMaterial, G4String("SMD_log"), 0, 0, 0);
-//  m_AbsorberLogicalVolSet.insert(SMD_log);
   GetDisplayAction()->AddVolume(SMD_log, "SMD");
   // small scintillators block
   G4double scintx = 15 * mm;
@@ -254,7 +253,8 @@ GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
 
   G4LogicalVolume* Scint_log = new G4LogicalVolume(Scint_solid, Scint, G4String("Scint_log"), 0, 0, 0);
   m_ScintiLogicalVolSet.insert(Scint_log);
-GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
+  GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
+
   //put scintillators in the SMD volume
   double scint_XPos = -m_WSMD / 2.;
   double scint_Xstep = scintx / 2.;
@@ -333,6 +333,7 @@ GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
   G4double SMD_ZPos = (m_HSMD - m_HAbsorber) / 2. * cos(m_Angle);
 
   /* start the loop: for every module ---  front plate-absorber-fiber plate-absorber-.....-fiber plate-back plate */
+  int copyno_plate = 0;
   for (int i = 0; i < m_NMod; i++)
   {
     //place the SMD in between the 1st and 2nd module
@@ -352,8 +353,9 @@ GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
                       fb_plate_log,
                       G4String("front_plate"),
                       ZDC_envelope_log,
-                      0, 0, OverlapCheck());
+                      0, copyno_plate, OverlapCheck());
     ZPos += (Plate_Step / 2.);
+    copyno_plate++;
     for (int j = 0; j < m_NLay; j++)
     {
       /* place the Absorber */
@@ -362,7 +364,7 @@ GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
                         absorber_log,
                         G4String("single_absorber"),
                         ZDC_envelope_log,
-                        0, 0, OverlapCheck());
+                        0, i*100+j, OverlapCheck());
       ZPos += (Absorber_Step / 2.);
 
       /* place the fiber plate */
@@ -383,26 +385,23 @@ GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
                       fb_plate_log,
                       G4String("back_plate"),
                       ZDC_envelope_log,
-                      0, 0, OverlapCheck());
+                      0, copyno_plate, OverlapCheck());
+    copyno_plate++;
     ZPos += (Plate_Step / 2.);
   }
 
   /* Place envelope cone in simulation */
 
-    cout << "placing fZDC" << endl;
-    if (m_Params->get_int_param("arm") == PHG4ZDCDefs::NORTH)
+    if (m_Layer == PHG4ZDCDefs::NORTH)
     {
-    string name_envelope = "ZDC_phy_envelope_f";
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, m_PlaceZ)),
-                      ZDC_envelope_log, name_envelope, logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+                      ZDC_envelope_log, "ZDC_Envelope_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
     }
-    else if (m_Params->get_int_param("arm") == PHG4ZDCDefs::SOUTH)
+    else if (m_Layer == PHG4ZDCDefs::SOUTH)
     {
     ZDC_rotm.rotateY(180 * deg);
-    cout << "placing bZDC" << endl;
-    string name_envelope = "ZDC_phy_envelope_b";
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, -m_PlaceZ)),
-                      ZDC_envelope_log, name_envelope, logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+                      ZDC_envelope_log, "ZDC_Envelope_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
     }
   return;
 }

@@ -23,13 +23,13 @@ class PHG4ZDCDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ZDCDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  explicit PHG4ZDCDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int detid);
 
   //! destructor
-  virtual ~PHG4ZDCDetector() {}
+  ~PHG4ZDCDetector() override {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   int IsInZDC(G4VPhysicalVolume *) const;
@@ -105,7 +105,6 @@ class PHG4ZDCDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_FiberLogicalVolSet;
   std::set<G4LogicalVolume *> m_SupportLogicalVolSet;
 
-// protected:
 };
 
 #endif
