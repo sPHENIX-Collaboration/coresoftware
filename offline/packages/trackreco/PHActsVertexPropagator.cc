@@ -1,4 +1,5 @@
 #include "PHActsVertexPropagator.h"
+#include "ActsTransformations.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -101,6 +102,22 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_x(position(0) / Acts::UnitConstants::cm);
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
+
+  ActsTransformations rotater;
+  rotater.setVerbosity(Verbosity());
+  if(params.covariance())
+    {
+      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+      
+      /// Update covariance
+      for(int i = 0; i < 3; i++) {
+	for(int j = 0; j < 3; j++) {
+	  track->set_error(i,j, rotatedCov(i,j));
+	  if(i < 2 and j < 2)
+	    { track->set_acts_covariance(i,j, params.covariance().value()(i,j)); }
+	}
+      }
+    }
 
   updateTrackDCA(track);
 
