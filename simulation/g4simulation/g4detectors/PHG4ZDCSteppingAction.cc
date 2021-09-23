@@ -82,7 +82,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // returns
   //  0 is outside of ZDC
   //  1 is inside scintillator
-  // -1 is inside absorber (dead material)
+  // -1 is inside absorber or support structure (dead material)
 
   int whichactive = m_Detector->IsInZDC(volume);
 
@@ -102,7 +102,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (whichactive == 2) FindIndexZDC(touch, idx_j, idx_k);
     if (whichactive == 1) FindIndexSMD(touch, idx_j, idx_k);
   }
-
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -162,7 +161,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             //find energy
             G4double E = dypar->GetTotalEnergy();
             //electron response here
-            double avg_ph = ZDCEResponce(E, angle);
+            double avg_ph = ZDCEResponse(E, angle);
             avg_ph *= 0.16848;
             //use Poisson Distribution here
             int n_ph = gsl_ran_poisson(RandomGenerator, avg_ph);
@@ -173,7 +172,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             G4double E = dypar->GetTotalEnergy();
             G4double P = dypar->GetTotalMomentum();
             double beta = P / E;
-            double avg_ph = ZDCResponce(beta, angle);
+            double avg_ph = ZDCResponse(beta, angle);
             avg_ph *= 0.16848;
             int n_ph = gsl_ran_poisson(RandomGenerator, avg_ph);
             light_yield += n_ph;
@@ -433,7 +432,7 @@ int PHG4ZDCSteppingAction::FindIndexSMD(G4TouchableHandle& touch, int& j, int& k
   return 0;
 }
 
-double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
+double PHG4ZDCSteppingAction::ZDCResponse(double beta, double angle)
 {
   if (beta < m_BetaThersh) return 0;
   if (angle >= 90) return 0;
@@ -461,7 +460,7 @@ double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
   return 0;
 }
 
-double PHG4ZDCSteppingAction::ZDCEResponce(double E, double angle)
+double PHG4ZDCSteppingAction::ZDCEResponse(double E, double angle)
 {
   if (E < m_E[0]) return 0;
 

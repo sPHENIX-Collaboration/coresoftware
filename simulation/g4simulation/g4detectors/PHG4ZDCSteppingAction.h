@@ -41,9 +41,9 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
 
   int FindIndexSMD(G4TouchableHandle& touch, int& j, int& k);
 
-  double ZDCResponce(double beta, double angle);
+  double ZDCResponse(double beta, double angle);
 
-  double ZDCEResponce(double E, double angle);
+  double ZDCEResponse(double E, double angle);
 
   //! pointer to the detector
   PHG4ZDCDetector* m_Detector = nullptr;
