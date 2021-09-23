@@ -46,8 +46,6 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHG4ZDCSteppingAction::PHG4ZDCSteppingAction(PHG4ZDCDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -124,7 +122,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -252,7 +250,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
         if (Verbosity() > 0)
         {
-          cout << "PHG4ZDCSteppingAction::UserSteppingAction::"
+          std::cout << "PHG4ZDCSteppingAction::UserSteppingAction::"
                //
                << m_Detector->GetName() << " - "
                << " use scintillating light model at each Geant4 steps. "
@@ -266,7 +264,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                << "edep = " << edep << ", "
                << "eion = " << eion
                << ", "
-               << "light_yield = " << light_yield << endl;
+               << "light_yield = " << light_yield << std::endl;
         }
       }
     }
@@ -364,14 +362,14 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << endl;
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
   if (!m_SupportHitContainer)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << endl;
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
     }
   }
 
