@@ -30,7 +30,6 @@ PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
   , m_trajectories(nullptr)
 {}
 
-
 int PHActsVertexPropagator::Init(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
