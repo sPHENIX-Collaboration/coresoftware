@@ -92,7 +92,7 @@ class PHActsTrackProjection : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
-  std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
+  std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};
 
 
   /// Objects to hold calorimeter information. There are 

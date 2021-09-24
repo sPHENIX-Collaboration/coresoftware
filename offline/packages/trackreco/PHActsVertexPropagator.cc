@@ -27,6 +27,7 @@
 
 PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
   : SubsysReco(name)
+  , m_trajectories(nullptr)
 {}
 
 

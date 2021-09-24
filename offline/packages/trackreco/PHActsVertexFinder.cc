@@ -52,6 +52,7 @@
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
   , m_actsVertexMap(nullptr)
+  , m_trajectories(nullptr)
 {
 }
 

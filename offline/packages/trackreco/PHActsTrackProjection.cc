@@ -37,6 +37,7 @@
 
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
+  , m_trajectories(nullptr)
 {
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
