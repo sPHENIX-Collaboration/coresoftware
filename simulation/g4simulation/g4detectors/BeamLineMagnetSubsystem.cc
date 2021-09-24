@@ -88,10 +88,9 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
         DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
       }
     }
-    BeamLineMagnetSteppingAction *tmp = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
-    tmp->SetHitNodeName(m_HitNodeName);
-    tmp->SetAbsorberNodeName(m_AbsorberNodeName);
-    m_SteppingAction = tmp;
+    m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT",m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER",m_AbsorberNodeName);
   }
   else if (GetParams()->get_int_param("blackhole"))
   {

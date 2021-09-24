@@ -27,10 +27,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ZDCSubsystem::PHG4ZDCSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
-
 {
   InitializeParameters();
 }
@@ -50,7 +46,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4ZDCDisplayAction(Name());
   // create detector
-  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name());
+  m_Detector = new PHG4ZDCDetector(this, topNode, GetParams(), Name(), GetLayer());
 
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
@@ -60,40 +56,39 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode* DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
-    }
-    ostringstream nodename;
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
 
-    if (SuperDetector() != "NONE")
-    {
-      nodename << "G4HIT_" << SuperDetector();
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
     }
-    else
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
     {
-      nodename << "G4HIT_" << Name();
+      detector_suffix = Name();
     }
-    nodes.insert(nodename.str());
 
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name();
-      }
-      nodes.insert(nodename.str());
+      nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    m_SupportNodeName = "G4HIT_SUPPORT_" + detector_suffix;
+    if (GetParams()->get_int_param("supportactive"))
+    {
+      nodes.insert(m_SupportNodeName);
+    }
 
-    //    BOOST_FOREACH (string node, nodes)
+    for (auto nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -104,8 +99,14 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
     // create stepping action
     m_SteppingAction = new PHG4ZDCSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
   }
-
+  else if (GetParams()->get_int_param("blackhole"))
+  {
+    m_SteppingAction = new PHG4ZDCSteppingAction(m_Detector, GetParams());
+  }
   return 0;
 }
 
@@ -129,8 +130,11 @@ PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
 
 void PHG4ZDCSubsystem::SetDefaultParameters()
 {
-  set_default_int_param("fzdc", 0);
-  set_default_int_param("bzdc", 0);
-  set_default_double_param("z", 1843.0);
+  set_default_double_param("place_x", 0.);
+  set_default_double_param("place_y", 0.);
+  set_default_double_param("place_z", 1843.0);
+  set_default_double_param("rot_x", 0.);
+  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_z", 0.);
   return;
 }

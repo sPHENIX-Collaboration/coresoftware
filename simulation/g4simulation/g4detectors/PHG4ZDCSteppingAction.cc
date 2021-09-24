@@ -1,17 +1,13 @@
 #include "PHG4ZDCSteppingAction.h"
-#include <math.h>
-#include <phparameter/PHParameters.h>
-#include <array>
+
 #include "PHG4ZDCDetector.h"
 
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -40,12 +36,15 @@
 
 #include <TSystem.h>
 
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+
+#include <array>
+#include <cmath>
 #include <iostream>
 #include <string>  // for basic_string, operator+
 
 class PHCompositeNode;
-
-using namespace std;
 
 //____________________________________________________________________________..
 PHG4ZDCSteppingAction::PHG4ZDCSteppingAction(PHG4ZDCDetector* detector, const PHParameters* parameters)
@@ -81,7 +80,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // returns
   //  0 is outside of ZDC
   //  1 is inside scintillator
-  // -1 is inside absorber (dead material)
+  // -1 is inside absorber or support structure (dead material)
 
   int whichactive = m_Detector->IsInZDC(volume);
 
@@ -101,7 +100,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (whichactive == 2) FindIndexZDC(touch, idx_j, idx_k);
     if (whichactive == 1) FindIndexSMD(touch, idx_j, idx_k);
   }
-
   /* Get energy deposited by this step */
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -124,7 +122,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     /* Check if particle is 'geantino' */
     bool geantino = false;
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -161,7 +159,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             //find energy
             G4double E = dypar->GetTotalEnergy();
             //electron response here
-            double avg_ph = ZDCEResponce(E, angle);
+            double avg_ph = ZDCEResponse(E, angle);
             avg_ph *= 0.16848;
             //use Poisson Distribution here
             int n_ph = gsl_ran_poisson(RandomGenerator, avg_ph);
@@ -172,7 +170,7 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             G4double E = dypar->GetTotalEnergy();
             G4double P = dypar->GetTotalMomentum();
             double beta = P / E;
-            double avg_ph = ZDCResponce(beta, angle);
+            double avg_ph = ZDCResponse(beta, angle);
             avg_ph *= 0.16848;
             int n_ph = gsl_ran_poisson(RandomGenerator, avg_ph);
             light_yield += n_ph;
@@ -188,10 +186,6 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_Hit = new PHG4Hitv1();
       }
-
-      /* Set hit location (tower index) */
-      m_Hit->set_index_k(idx_k);
-      m_Hit->set_index_j(idx_j);
 
       /* Set hit location (space point) */
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -210,13 +204,23 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // here we do things which are different between scintillator and absorber hits
       if (whichactive > 0)
       {
-        m_CurrentHitContainer = m_SignalHitContainer;
+        m_CurrentHitContainer = m_HitContainer;
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        /* Set hit location (tower index) */
+        m_Hit->set_index_k(idx_k);
+        m_Hit->set_index_j(idx_j);
       }
       else
       {
-        m_CurrentHitContainer = m_AbsorberHitContainer;
+        if (whichactive == -1)
+        {
+          m_CurrentHitContainer = m_AbsorberHitContainer;
+        }
+        else
+        {
+          m_CurrentHitContainer = m_SupportHitContainer;
+        }
       }
       // here we set what is common for scintillator and absorber hits
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -245,61 +249,34 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
         if (Verbosity() > 0)
         {
-          cout << "PHG4ZDCSteppingAction::UserSteppingAction::"
-               //
-               << m_Detector->GetName() << " - "
-               << " use scintillating light model at each Geant4 steps. "
-               << "First step: "
-               << "Material = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-               << ", "
-               << "Birk Constant = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-               << ","
-               << "edep = " << edep << ", "
-               << "eion = " << eion
-               << ", "
-               << "light_yield = " << light_yield << endl;
+          std::cout << "PHG4ZDCSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
       }
     }
-
-    /* Update exit values- will be overwritten with every step until
-       * we leave the volume or the particle ceases to exist */
-    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
-    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
-    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
-
-    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     /* sum up the energy to get total deposited */
 
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
-    if (geantino)
-    {
-      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      m_Hit->set_eion(-1);
-      if (whichactive > 0)
-      {
-        m_Hit->set_light_yield(-1);
-      }
-    }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
-    {
-      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-      {
-        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-        {
-          pp->SetKeep(1);  // we want to keep the track
-        }
-      }
-    }
     // if any of these conditions is true this is the last step in
     // this volume and we need to save the hit
     // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -311,6 +288,23 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         postPoint->GetStepStatus() == fAtRestDoItProc ||
         aTrack->GetTrackStatus() == fStopAndKill)
     {
+      // Update exit values
+      m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+      m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+      m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
+
+      m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+
+      // special case for geantinos
+      if (geantino)
+      {
+        m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+        if (whichactive > 0)
+        {
+          m_Hit->set_eion(-1);
+          m_Hit->set_light_yield(-1);
+        }
+      }
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
       {
@@ -320,6 +314,16 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           m_CurrentShower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
+        if (m_Hit->get_edep() > 0 && (whichactive > 0 || absorbertruth > 0))
+        {
+          if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+          {
+            if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+            {
+              pp->SetKeep(1);  // we want to keep the track
+            }
+          }
+        }
         // so we will create a new hit for the next track
         m_Hit = nullptr;
       }
@@ -342,28 +346,14 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
-
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
-  }
-
   //now look for the map and grab a pointer to it.
-  m_SignalHitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
-
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
   // if we do not find the node it's messed up.
-  if (!m_SignalHitContainer)
+  if (!m_HitContainer)
   {
-    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
     gSystem->Exit(1);
   }
   // this is perfectly fine if absorber hits are disabled
@@ -371,9 +361,38 @@ void PHG4ZDCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+    }
+  }
+}
+
+void PHG4ZDCSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }
 
 //getting index using copyno
@@ -409,7 +428,7 @@ int PHG4ZDCSteppingAction::FindIndexSMD(G4TouchableHandle& touch, int& j, int& k
   return 0;
 }
 
-double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
+double PHG4ZDCSteppingAction::ZDCResponse(double beta, double angle)
 {
   if (beta < m_BetaThersh) return 0;
   if (angle >= 90) return 0;
@@ -437,7 +456,7 @@ double PHG4ZDCSteppingAction::ZDCResponce(double beta, double angle)
   return 0;
 }
 
-double PHG4ZDCSteppingAction::ZDCEResponce(double E, double angle)
+double PHG4ZDCSteppingAction::ZDCEResponse(double E, double angle)
 {
   if (E < m_E[0]) return 0;
 

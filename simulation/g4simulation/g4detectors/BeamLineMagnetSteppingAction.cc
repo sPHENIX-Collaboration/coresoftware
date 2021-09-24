@@ -301,3 +301,20 @@ void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
     }
   }
 }
+
+void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
+}
