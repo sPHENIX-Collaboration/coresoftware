@@ -91,7 +91,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
 	  continue;
 	}
-      else
+      else if( (used.find(id1) == used.end()) && (used.find(id2) == used.end()))
 	{
 	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both not in used , start a new connected set" << std::endl;
 	  // close out and start a new connections set
@@ -121,16 +121,16 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      used.insert(id4);
 	    }
 	}
-
-      // close out the last ser
-      if(connected.size() > 0)
-	{
-	  connected_tracks.push_back(connected);
-	  connected.clear();
-	  if(Verbosity() > 2) std::cout << "           closing out last set " << std::endl;
-	}
     }
   
+  // close out the last set
+  if(connected.size() > 0)
+    {
+      connected_tracks.push_back(connected);
+      connected.clear();
+      if(Verbosity() > 2) std::cout << "           closing out last set " << std::endl;
+    }
+    
   if(Verbosity() > 1)   std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
 
   // make vertices, each set of connected tracks is a vertex
