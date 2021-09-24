@@ -2,8 +2,8 @@
 //  -*- C++ -*-.
 /* vim: set sw=2 ft=cpp: */
 
-#ifndef G4EPD_PHG4EPSTEPPINGACTION_H
-#define G4EPD_PHG4EPSTEPPINGACTION_H
+#ifndef G4EPD_PHG4EPDSTEPPINGACTION_H
+#define G4EPD_PHG4EPDSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -16,11 +16,11 @@ class PHG4Hit;
 class PHG4HitContainer;
 class PHParametersContainer;
 
-class PHG4EPSteppingAction : public PHG4SteppingAction
+class PHG4EPDSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4EPSteppingAction(PHG4EPDDetector*, PHParametersContainer const*);
-  ~PHG4EPSteppingAction() override;
+  PHG4EPDSteppingAction(PHG4EPDDetector*, PHParametersContainer const*);
+  ~PHG4EPDSteppingAction() override;
 
   bool UserSteppingAction(const G4Step*, bool) override;
 

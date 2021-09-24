@@ -3,7 +3,7 @@
 #include "PHG4EPDSubsystem.h"
 
 #include "PHG4EPDDetector.h"
-#include "PHG4EPSteppingAction.h"
+#include "PHG4EPDSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -36,7 +36,7 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
   m_detector->SuperDetector(SuperDetector());
   m_detector->OverlapCheck(CheckOverlap());
 
-  m_stepaction = new PHG4EPSteppingAction(m_detector, params);
+  m_stepaction = new PHG4EPDSteppingAction(m_detector, params);
   m_stepaction->Init();
 
   if (!params->GetParameters(-1)->get_int_param("active"))

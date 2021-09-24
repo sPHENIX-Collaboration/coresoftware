@@ -1,6 +1,6 @@
 /* vim: set sw=2 ft=cpp: */
 
-#include "PHG4EPSteppingAction.h"
+#include "PHG4EPDSteppingAction.h"
 
 #include "PHG4EPDDetector.h"
 
@@ -32,7 +32,7 @@
 
 class G4VPhysicalVolume;
 
-PHG4EPSteppingAction::PHG4EPSteppingAction(PHG4EPDDetector* detector,
+PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
                                            const PHParametersContainer*)
   : PHG4SteppingAction(detector->GetName())
   , m_detector(detector)
@@ -42,12 +42,12 @@ PHG4EPSteppingAction::PHG4EPSteppingAction(PHG4EPDDetector* detector,
 {
 }
 
-PHG4EPSteppingAction::~PHG4EPSteppingAction()
+PHG4EPDSteppingAction::~PHG4EPDSteppingAction()
 {
   delete m_hit;
 }
 
-bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
+bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 {
   G4StepPoint* prestep = step->GetPreStepPoint();
   G4TouchableHandle prehandle = prestep->GetTouchableHandle();
@@ -145,7 +145,7 @@ bool PHG4EPSteppingAction::UserSteppingAction(const G4Step* step, bool)
   return true;
 }
 
-void PHG4EPSteppingAction::SetInterfacePointers(PHCompositeNode* node)
+void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* node)
 {
   std::string label = "G4HIT_" + ((m_detector->SuperDetector() != "NONE")
                                       ? m_detector->SuperDetector()
@@ -154,6 +154,6 @@ void PHG4EPSteppingAction::SetInterfacePointers(PHCompositeNode* node)
   m_hit_container = findNode::getClass<PHG4HitContainer>(node, label.data());
 
   if (m_hit_container == nullptr)
-    std::cout << "[PHG4EPSteppingAction::SetInterfacePointers] unable to find "
+    std::cout << "[PHG4EPDSteppingAction::SetInterfacePointers] unable to find "
               << label << '\n';
 }
