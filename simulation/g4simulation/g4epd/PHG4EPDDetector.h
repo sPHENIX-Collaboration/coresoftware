@@ -2,8 +2,8 @@
 //  -*- C++ -*-.
 /* vim: set sw=2 ft=cpp: */
 
-#ifndef G4EPD_PHG4EPDETECTOR_H
-#define G4EPD_PHG4EPDETECTOR_H
+#ifndef G4EPD_PHG4EPDDETECTOR_H
+#define G4EPD_PHG4EPDDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -18,10 +18,10 @@ class PHCompositeNode;
 class PHParametersContainer;
 class PHG4Subsystem;
 
-class PHG4EPDetector : public PHG4Detector
+class PHG4EPDDetector : public PHG4Detector
 {
  public:
-  PHG4EPDetector(PHG4Subsystem* subsys,
+  PHG4EPDDetector(PHG4Subsystem* subsys,
                  PHCompositeNode* node,
                  PHParametersContainer* params,
                  std::string const& name);

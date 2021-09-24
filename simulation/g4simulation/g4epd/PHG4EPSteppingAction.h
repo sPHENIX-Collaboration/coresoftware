@@ -11,7 +11,7 @@
 
 class G4Step;
 class PHCompositeNode;
-class PHG4EPDetector;
+class PHG4EPDDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHParametersContainer;
@@ -19,7 +19,7 @@ class PHParametersContainer;
 class PHG4EPSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4EPSteppingAction(PHG4EPDetector*, PHParametersContainer const*);
+  PHG4EPSteppingAction(PHG4EPDDetector*, PHParametersContainer const*);
   ~PHG4EPSteppingAction() override;
 
   bool UserSteppingAction(const G4Step*, bool) override;
@@ -27,7 +27,7 @@ class PHG4EPSteppingAction : public PHG4SteppingAction
   void SetInterfacePointers(PHCompositeNode*) override;
 
  private:
-  PHG4EPDetector* m_detector;
+  PHG4EPDDetector* m_detector;
 
   PHG4HitContainer* m_hit_container;
   PHG4Hit* m_hit;

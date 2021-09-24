@@ -2,7 +2,7 @@
 
 #include "PHG4EPSteppingAction.h"
 
-#include "PHG4EPDetector.h"
+#include "PHG4EPDDetector.h"
 
 #include <phool/getClass.h>
 
@@ -32,7 +32,7 @@
 
 class G4VPhysicalVolume;
 
-PHG4EPSteppingAction::PHG4EPSteppingAction(PHG4EPDetector* detector,
+PHG4EPSteppingAction::PHG4EPSteppingAction(PHG4EPDDetector* detector,
                                            const PHParametersContainer*)
   : PHG4SteppingAction(detector->GetName())
   , m_detector(detector)

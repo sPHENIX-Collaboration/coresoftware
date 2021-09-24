@@ -12,7 +12,7 @@
 
 class PHCompositeNode;
 class PHG4Detector;
-class PHG4EPDetector;
+class PHG4EPDDetector;
 class PHG4EPSteppingAction;
 class PHG4SteppingAction;
 
@@ -31,7 +31,7 @@ class PHG4EPDSubsystem : public PHG4DetectorGroupSubsystem
  private:
   void SetDefaultParameters() override;
 
-  PHG4EPDetector* m_detector;
+  PHG4EPDDetector* m_detector;
   PHG4EPSteppingAction* m_stepaction;
 };
 
