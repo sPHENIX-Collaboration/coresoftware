@@ -23,13 +23,13 @@ class PHG4ZDCDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ZDCDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  explicit PHG4ZDCDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int detid);
 
   //! destructor
-  virtual ~PHG4ZDCDetector() {}
+  ~PHG4ZDCDetector() override {}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   int IsInZDC(G4VPhysicalVolume *) const;
@@ -43,13 +43,13 @@ class PHG4ZDCDetector : public PHG4Detector
 
  private:
   G4LogicalVolume *ConstructTower(int type);
+  PHParameters *GetParams() const { return m_Params; }
 
-  PHG4ZDCDisplayAction *m_DisplayAction;
-  PHParameters *m_Params;
+  PHG4ZDCDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *m_GdmlConfig;
+  PHG4GDMLConfig *m_GdmlConfig = nullptr;
 
-  bool m_Window;
   /* ZDC geometry */
   double m_Angle;
 
@@ -67,14 +67,6 @@ class PHG4ZDCDetector : public PHG4Detector
   double m_GFiber;
 
   double m_Gap;
-
-  double m_XRot;
-  double m_YRot;
-  double m_ZRot;
-
-  double m_PlaceX;
-  double m_PlaceY;
-  double m_PlaceZ;
 
   double m_TSMD;
   double m_HSMD;
@@ -94,6 +86,7 @@ class PHG4ZDCDetector : public PHG4Detector
 
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
+  int m_SupportActiveFlag;
   int m_Layer;
 
   std::string m_SuperDetector;
@@ -101,17 +94,7 @@ class PHG4ZDCDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
   std::set<G4LogicalVolume *> m_FiberLogicalVolSet;
-
- protected:
-  PHParameters *GetParams() const { return m_Params; }
-  void AbsorberLogicalVolSetInsert(G4LogicalVolume *logvol)
-  {
-    m_AbsorberLogicalVolSet.insert(logvol);
-  }
-  void ScintiLogicalVolSetInsert(G4LogicalVolume *logvol)
-  {
-    m_ScintiLogicalVolSet.insert(logvol);
-  }
+  std::set<G4LogicalVolume *> m_SupportLogicalVolSet;
 };
 
 #endif

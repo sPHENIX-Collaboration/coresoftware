@@ -89,6 +89,7 @@ pkginclude_HEADERS = \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4StepStatusDecode.h \
+  PHG4ZDCDefs.h \
   PHG4ZDCSubsystem.h
 
 ROOT_IO_DICTS = \

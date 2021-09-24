@@ -26,39 +26,42 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
   PHG4ZDCSteppingAction(PHG4ZDCDetector*, const PHParameters* parameters);
 
   //! destroctor
-  virtual ~PHG4ZDCSteppingAction();
+  ~PHG4ZDCSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
+
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
 
  private:
   int FindIndexZDC(G4TouchableHandle& touch, int& j, int& k);
 
   int FindIndexSMD(G4TouchableHandle& touch, int& j, int& k);
 
-  double ZDCResponce(double beta, double angle);
+  double ZDCResponse(double beta, double angle);
 
-  double ZDCEResponce(double E, double angle);
+  double ZDCEResponse(double E, double angle);
 
   //! pointer to the detector
   PHG4ZDCDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* m_SignalHitContainer = nullptr;
+  PHG4HitContainer* m_HitContainer = nullptr;
   PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4HitContainer* m_SupportHitContainer = nullptr;
   const PHParameters* m_Params = nullptr;
   PHG4HitContainer* m_CurrentHitContainer = nullptr;
   PHG4Hit* m_Hit = nullptr;
   PHG4Shower* m_CurrentShower = nullptr;
+  gsl_rng* RandomGenerator = nullptr;
 
   int m_IsActiveFlag = 0;
   int absorbertruth = 0;
   int m_IsBlackHole = 0;
 
-  gsl_rng* RandomGenerator = nullptr;
   const std::array<std::array<double, 18>, 9> m_PMMA05 =
       {{{16.258, 6.771, 3.844, 2.432, 1.531, 1.003, 0.543, 0.195, 0.102,
          0.053, 0.017, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000},
@@ -154,6 +157,10 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
          0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
          0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000}}};
   const double m_E[11] = {0.0005, 0.00055, 0.0006, 0.00075, 0.001, 0.0015, 0.002, 0.003, 0.005, 0.01, 0.05};
+
+  std::string m_AbsorberNodeName;
+  std::string m_HitNodeName;
+  std::string m_SupportNodeName;
 };
 
 #endif  // G4DETECTORS_PHG4ZDCSTEPPINGACTION_H

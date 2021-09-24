@@ -122,12 +122,11 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   }
 
   seggeonodename = "BLOCKCELLGEOM_" + detector;
-  PHG4BlockCellGeomContainer *seggeo = findNode::getClass<PHG4BlockCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4BlockCellGeomContainer *seggeo = findNode::getClass<PHG4BlockCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4BlockCellGeomContainer();
-    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
   GetParamsContainerModify()->set_name(detector);
