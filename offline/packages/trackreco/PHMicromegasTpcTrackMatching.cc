@@ -263,11 +263,11 @@ namespace
 
 //____________________________________________________________________________..
 PHMicromegasTpcTrackMatching::PHMicromegasTpcTrackMatching(const std::string &name):
- PHTrackPropagating(name)
+ SubsysReco(name)
 {}
 
 //____________________________________________________________________________..
-int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
+int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
 
   std::cout << std::endl << PHWHERE
@@ -300,17 +300,15 @@ int PHMicromegasTpcTrackMatching::Setup(PHCompositeNode *topNode)
   fdrphi->SetParameter(1, _par1);
 
   // base class setup
-  int ret = PHTrackPropagating::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = GetNodes(topNode);
+ 
+  int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return ret;
 }
 
 //____________________________________________________________________________..
-int PHMicromegasTpcTrackMatching::Process()
+int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
 {
   // _track_map contains the TPC seed track stubs
   // We will add the micromegas cluster to the TPC tracks already on the node tree
@@ -555,12 +553,36 @@ int PHMicromegasTpcTrackMatching::Process()
 }
 
 //_________________________________________________________________________________________________
-int PHMicromegasTpcTrackMatching::End()
+int PHMicromegasTpcTrackMatching::End(PHCompositeNode*)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_________________________________________________________________________________________________
 int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 {
+  if(_use_truth_clusters)
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  else
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+  if (!_cluster_map)
+  {
+    std:: cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_track_map)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
+  if (!_assoc_container)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   // micromegas geometry
   _geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );

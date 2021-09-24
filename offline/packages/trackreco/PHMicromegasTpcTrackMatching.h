@@ -3,12 +3,15 @@
 #ifndef PHMICROMEGASTPCTRACKMATCHING_H
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
-#include <trackreco/PHTrackPropagating.h>
+#include <fun4all/SubsysReco.h>
 
 #include <array>
 #include <string>
 #include <vector>
 
+class TrkrClusterContainer;
+class SvtxTrackMap;
+class AssocInfoContainer;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
 class SvtxTrack;
@@ -17,7 +20,7 @@ class TF1;
 class TH1;
 class TrkrHitSetContainer;
 
-class PHMicromegasTpcTrackMatching : public PHTrackPropagating
+class PHMicromegasTpcTrackMatching : public SubsysReco
 {
   
   public:
@@ -33,10 +36,10 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_sc_calib_mode(const bool mode){_sc_calib_mode = mode;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
 
-  protected:
-  int Setup(PHCompositeNode* topNode) override;
-  int Process() override;
-  int End() override;
+  
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
   
   private:
 
@@ -46,6 +49,11 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
   
+  bool _use_truth_clusters = false;
+  TrkrClusterContainer *_cluster_map{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
+  AssocInfoContainer *_assoc_container{nullptr};
+
   //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
 
