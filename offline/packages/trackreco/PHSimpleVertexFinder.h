@@ -44,6 +44,8 @@ class PHSimpleVertexFinder : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   int CreateNodes(PHCompositeNode* topNode);
+  
+  void checkDCAs();
 
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);  
   double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1, 

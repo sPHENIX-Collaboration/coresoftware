@@ -67,26 +67,15 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
   
   // define local scope objects
   std::set<unsigned int> track_used_list;
-  
-  // Loop over tracks and check for close DCA match with all other tracks
-  for(auto tr1_it = _track_map->begin(); tr1_it != _track_map->end(); ++tr1_it)
+  checkDCAs();
+
+  /// If we didn't find any matches, try again with a slightly larger DCA cut
+  if(_track_pair_map.size() == 0)
     {
-      auto id1 = tr1_it->first;
-
-      // look for close DCA matches with all other such tracks
-      for(auto tr2_it = std::next(tr1_it); tr2_it != _track_map->end(); ++tr2_it)
-	{
-	  auto id2 = tr2_it->first;
-
-	  // find DCA of these two tracks
-	  if(Verbosity() > 1) std::cout << "Check DCA for tracks " << id1 << " and " << id2 << std::endl;
-	  
-	  auto tr1 = tr1_it->second;
-	  auto tr2 = tr2_it->second;
-	  findDcaTwoTracks(tr1, tr2);
-
-	}
+      dcacut *= 1.5;
+      checkDCAs();
     }
+
 
   // get all connected pairs of tracks by looping over the track_pair map
   std::vector<std::set<unsigned int>> connected_tracks;
@@ -334,6 +323,32 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void PHSimpleVertexFinder::checkDCAs()
+{
+  // Loop over tracks and check for close DCA match with all other tracks
+  for(auto tr1_it = _track_map->begin(); tr1_it != _track_map->end(); ++tr1_it)
+    {
+      auto id1 = tr1_it->first;
+
+      // look for close DCA matches with all other such tracks
+      for(auto tr2_it = std::next(tr1_it); tr2_it != _track_map->end(); ++tr2_it)
+	{
+	  auto id2 = tr2_it->first;
+
+	  auto tr1 = tr1_it->second;
+	  auto tr2 = tr2_it->second;
+
+	  // find DCA of these two tracks
+	  if(Verbosity() > 1) std::cout << "Check DCA for tracks " << id1 << "and " << id2 << std::endl;
+	  
+	  findDcaTwoTracks(tr1, tr2);
+
+	}
+    }
+
+
+}
+
 void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
 {
   unsigned int id1 = tr1->get_id();
@@ -349,7 +364,7 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   Eigen::Vector3d PCA1(0,0,0);
   Eigen::Vector3d PCA2(0,0,0);  
   double dca = dcaTwoLines(a1, b1, a2,  b2, PCA1, PCA2);
-  
+
   // check dca cut is satisfied, and that PCA is close to beam line
 if( fabs(dca) < dcacut && (fabs(PCA1.x()) < beamline_xy_cut && fabs(PCA1.y()) < beamline_xy_cut) )
     {

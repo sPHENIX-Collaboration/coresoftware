@@ -11,6 +11,7 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -41,6 +42,10 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
 }
 int PHActsVertexPropagator::process_event(PHCompositeNode*)
 {
+
+  if(m_vertexMap->size() == 0)
+    { setTrackVertexTo0(); }
+
   std::vector<unsigned int> deletedKeys;
   for(const auto& [trackKey, trajectory] : *m_trajectories)
     {
@@ -52,8 +57,10 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	  deletedKeys.push_back(trackKey);
 	  continue;
 	}
+
       if(Verbosity() > 2)
 	{ svtxTrack->identify(); }
+
       const auto &[trackTips, mj] = trajectory.trajectory();
 
       if(trackTips.size() > 1 and Verbosity() > 0)
@@ -66,7 +73,7 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       for(const auto& trackTip : trackTips)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
-	 
+
 	  auto propresult = propagateTrack(boundParams, svtxTrack->get_vertex_id());
 	  if(propresult.ok())
 	    {
@@ -229,6 +236,32 @@ Acts::Vector3D PHActsVertexPropagator::getVertex(const unsigned int vtxid)
   return Acts::Vector3D(svtxVertex->get_x() * Acts::UnitConstants::cm,
 			svtxVertex->get_y() * Acts::UnitConstants::cm,
 			svtxVertex->get_z() * Acts::UnitConstants::cm);
+}
+
+void PHActsVertexPropagator::setTrackVertexTo0()
+{
+  /// If we found no vertices in the event, propagate the tracks to 0,0,0
+  auto vertex = std::make_unique<SvtxVertex_v1>();
+  vertex->set_chisq(0.);
+  vertex->set_ndof(0);
+  vertex->set_t0(0);
+  vertex->set_id(0);
+  vertex->set_x(0);
+  vertex->set_y(0);
+  vertex->set_z(0);
+  for(int i=0; i<3; i++) {
+    for(int j=0; j<3; j++) {
+      vertex->set_error(i,j, 20.);
+    }
+  }
+
+  m_vertexMap->insert(vertex.release());
+
+  for(auto& [key, track] : *m_trackMap)
+    {
+      track->set_vertex_id(0);
+    }
+
 }
 
 int PHActsVertexPropagator::End(PHCompositeNode*)
