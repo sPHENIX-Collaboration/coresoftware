@@ -1208,8 +1208,8 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -210.;
-  config.collisionRegionMax = 210.;
+  config.collisionRegionMin = -300.;
+  config.collisionRegionMax = 300.;
   config.sigmaScattering = 5.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;

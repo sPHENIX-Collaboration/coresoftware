@@ -1,4 +1,4 @@
-#include "PHTpcTrackSeedVertexAssoc.h"
+#include "PHTpcTrackSeedCircleFit.h"
 
 #include "AssocInfoContainer.h"
 
@@ -8,8 +8,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>
+
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -35,37 +34,33 @@
 using namespace std;
 
 //____________________________________________________________________________..
-PHTpcTrackSeedVertexAssoc::PHTpcTrackSeedVertexAssoc(const std::string &name):
- PHTrackPropagating(name)
+PHTpcTrackSeedCircleFit::PHTpcTrackSeedCircleFit(const std::string &name):
+ SubsysReco(name)
  , _track_map_name_silicon("SvtxSiliconTrackMap")
 {
-  //cout << "PHTpcTrackSeedVertexAssoc::PHTpcTrackSeedVertexAssoc(const std::string &name) Calling ctor" << endl;
+  //cout << "PHTpcTrackSeedCircleFit::PHTpcTrackSeedCircleFit(const std::string &name) Calling ctor" << endl;
 }
 
 //____________________________________________________________________________..
-PHTpcTrackSeedVertexAssoc::~PHTpcTrackSeedVertexAssoc()
+PHTpcTrackSeedCircleFit::~PHTpcTrackSeedCircleFit()
 {
 
 }
 
 //____________________________________________________________________________..
-int PHTpcTrackSeedVertexAssoc::Setup(PHCompositeNode *topNode)
+int PHTpcTrackSeedCircleFit::InitRun(PHCompositeNode *topNode)
 {
   //  std::cout << PHWHERE << " Parameters: _reject_xy_outliers " << _reject_xy_outliers << " _xy_residual_cut " << _xy_residual_cut
   //	    << " _reject_z_outliers " << _reject_z_outliers << " _z_residual_cut " << _z_residual_cut  << " _refit " << _refit
   //	    << std::endl; 
 
-  int ret = PHTrackPropagating::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  int ret = GetNodes(topNode);
 
   return ret;
 }
 
 //____________________________________________________________________________..
-int PHTpcTrackSeedVertexAssoc::Process()
+int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *)
 {
   // _track_map contains the TPC seed track stubs
   // We want to associate these TPC track seeds with a collision vertex
@@ -123,49 +118,15 @@ int PHTpcTrackSeedVertexAssoc::Process()
       // Project this TPC tracklet  to the beam line and store the projections
       _z_proj = B;
       
-      // Find the nearest collision vertex
-      int trackVertexId = 9999;
-      double dz = 9999.;	  
-      for(SvtxVertexMap::Iter viter = _vertex_map->begin();
-	  viter != _vertex_map->end();
-	  ++viter)
-	{
-	  auto vertexKey = viter->first;
-	  auto vertex = viter->second;
-	  if(Verbosity() > 100)
-	    vertex->identify();
-
-	  const double vertexZ = vertex->get_z();
-	  
-	  if(fabs(_z_proj - vertexZ) < dz )
-	    {
-	      dz = fabs(_z_proj - vertexZ);
-	      trackVertexId = vertexKey;
-	    }	  
-	}  // end loop over collision vertices
-
-      if(trackVertexId == 9999)
-	{
-	  // line fit failed, means that track does not point to beam line with a reasonable Z intercept, skip this track
-	  continue;	  
-	}
-
-      _tracklet_tpc->set_vertex_id(trackVertexId);
-      auto vertex = _vertex_map->find(trackVertexId)->second;
-      vertex->insert_track(phtrk_iter->first);
-
       // set the track Z position to the Z dca
       _tracklet_tpc->set_z(_z_proj);
-
-      if(Verbosity() > 1)
-	  std::cout << "    TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
 
       // Finished association of track with vertex, now we modify the track parameters
 
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
 
-       std::vector<std::pair<double, double>> cpoints;
+      std::vector<std::pair<double, double>> cpoints;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  cpoints.push_back(make_pair(clusters[i]->getX(), clusters[i]->getY()));
@@ -197,9 +158,6 @@ int PHTpcTrackSeedVertexAssoc::Process()
 
       // Add vertex to cpoints
       cpoints.clear();
-      double x_vertex = vertex->get_x();
-      double y_vertex = vertex->get_y();
-      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  double x = clusters[i]->getX();
@@ -207,10 +165,10 @@ int PHTpcTrackSeedVertexAssoc::Process()
 	  cpoints.push_back(make_pair(x, y));
 	}
 
-      double dx = X0 - x_vertex;
-      double dy = Y0 - y_vertex;
-      double phi= atan2(dy,dx);
-      //std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
+      double dx = X0 - dcax;
+      double dy = Y0 - dcay;
+      double phi= atan2(-dx,dy);
+    
       // convert to the angle of the tangent to the circle
       // we need to know if the track proceeds clockwise or CCW around the circle
       double dx0 = cpoints[0].first - X0;
@@ -227,16 +185,21 @@ int PHTpcTrackSeedVertexAssoc::Process()
       if(dphi < - M_PI) dphi += M_PI;
 
       if(Verbosity() > 5) 
+	{
 	  std::cout << " charge " <<  _tracklet_tpc->get_charge() << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI 
 		    << " dphi " << dphi*180.0 / M_PI << std::endl;
+	}
 
-      // whether we add or subtract 90 degrees depends on the track propagation direction determined above
+      // whether we add 180 degrees depends on the angle of the bend
       if(dphi < 0)
-	phi += M_PI / 2.0;  
-      else
-	phi -= M_PI / 2.0;  
+	{ 
+	  phi += M_PI; 
+	  if(phi > M_PI)
+	    { phi -= 2. * M_PI; }
+	}
+
       if(Verbosity() > 5) 
-	std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << std::endl;  
+	std::cout << " input track phi " << _tracklet_tpc->get_phi()  << " new phi " << phi  << std::endl;  
 
       // get the updated values of px, py, pz from the pT and the angles found here
       double px_new = pt_track * cos(phi);
@@ -268,27 +231,41 @@ int PHTpcTrackSeedVertexAssoc::Process()
     cout << " Final track map size " << _track_map->size() << endl;
   
   if (Verbosity() > 0)
-    cout << "PHTpcTrackSeedVertexAssoc::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
+    cout << "PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTpcTrackSeedVertexAssoc::End()
+int PHTpcTrackSeedCircleFit::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int  PHTpcTrackSeedVertexAssoc::GetNodes(PHCompositeNode* /*topNode*/)
+int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
 {
-  //---------------------------------
-  // Get additional objects off the Node Tree
-  //---------------------------------
+  if(_use_truth_clusters)
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
+  else
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+  if (!_cluster_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_track_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
-void  PHTpcTrackSeedVertexAssoc::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)
+void  PHTpcTrackSeedCircleFit::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
@@ -320,7 +297,7 @@ void  PHTpcTrackSeedVertexAssoc::line_fit(std::vector<std::pair<double,double>> 
     return;
 }   
 
-void  PHTpcTrackSeedVertexAssoc::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
+void  PHTpcTrackSeedCircleFit::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
 {
   std::vector<std::pair<double,double>> points;
   
@@ -337,7 +314,7 @@ void  PHTpcTrackSeedVertexAssoc::line_fit_clusters(std::vector<TrkrCluster*> clu
     return;
 }
 
-void PHTpcTrackSeedVertexAssoc::CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
+void PHTpcTrackSeedCircleFit::CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
@@ -430,7 +407,7 @@ void PHTpcTrackSeedVertexAssoc::CircleFitByTaubin (std::vector<std::pair<double,
   R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
 }
 
-std::vector<double> PHTpcTrackSeedVertexAssoc::GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
+std::vector<double> PHTpcTrackSeedCircleFit::GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
 {
   std::vector<double> residues;
   // calculate cluster residuals from the fitted circle
@@ -446,7 +423,7 @@ std::vector<double> PHTpcTrackSeedVertexAssoc::GetCircleClusterResiduals(std::ve
   return residues;  
 }
 
-std::vector<double> PHTpcTrackSeedVertexAssoc::GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
+std::vector<double> PHTpcTrackSeedCircleFit::GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
 {
   std::vector<double> residues;
   // calculate cluster residuals from the fitted circle
@@ -467,7 +444,7 @@ std::vector<double> PHTpcTrackSeedVertexAssoc::GetLineClusterResiduals(std::vect
   return residues;  
 }
 
-std::vector<TrkrCluster*> PHTpcTrackSeedVertexAssoc::getTrackClusters(SvtxTrack *_tracklet_tpc)
+std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(SvtxTrack *_tracklet_tpc)
 {
   std::vector<TrkrCluster*> clusters;
   
@@ -494,7 +471,7 @@ std::vector<TrkrCluster*> PHTpcTrackSeedVertexAssoc::getTrackClusters(SvtxTrack 
   return clusters;
 }
 
-void PHTpcTrackSeedVertexAssoc::findRoot(const double R, const double X0,
+void PHTpcTrackSeedCircleFit::findRoot(const double R, const double X0,
 				    const double Y0, double& x,
 				    double& y)
 {

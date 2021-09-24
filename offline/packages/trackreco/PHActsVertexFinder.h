@@ -90,6 +90,7 @@ class PHActsVertexFinder: public PHInitVertexing
   SvtxVertexMap *m_svtxVertexMapActs = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_svtxTrackMap = nullptr;
+  std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
 };
 
 #endif // TRACKRECO_PHACTSVERTEXFINDER_H

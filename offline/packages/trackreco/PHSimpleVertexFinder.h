@@ -43,26 +43,31 @@ class PHSimpleVertexFinder : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+  int CreateNodes(PHCompositeNode* topNode);
+  
+  void checkDCAs();
 
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);  
-  double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1, const Eigen::Vector3d &p2, const Eigen::Vector3d &v2, 
+  double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1, 
+		     const Eigen::Vector3d &p2, const Eigen::Vector3d &v2, 
 		     Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
 
-SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
-
-SvtxVertexMap *_svtx_vertex_map{nullptr};
-
-double dcacut = 0.0080;  // 80 microns 
-double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-
-std::multimap<unsigned int, unsigned int> _vertex_track_map;
-std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
-//std::multimap<unsigned int, std::pair<unsigned int, Eigen::Vector3d>> _track_pca_map;
-std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d, Eigen::Vector3d>>>  _track_pair_pca_map;
-std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
-std::set<unsigned int> _vertex_set;
-
+  SvtxTrackMap *_track_map{nullptr};
+  SvtxTrack *_track{nullptr};
+  
+  SvtxVertexMap *_svtx_vertex_map{nullptr};
+  
+  double dcacut = 0.0080;  // 80 microns 
+  double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
+  
+  std::multimap<unsigned int, unsigned int> _vertex_track_map;
+  std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
+  //std::multimap<unsigned int, std::pair<unsigned int, Eigen::Vector3d>> _track_pca_map;
+  std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,
+Eigen::Vector3d>>>  _track_pair_pca_map;
+  std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
+  std::set<unsigned int> _vertex_set;
+  
 };
 
 #endif // PHSIMPLEVERTEXFINDER_H

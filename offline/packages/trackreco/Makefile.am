@@ -40,6 +40,7 @@ pkginclude_HEADERS = \
   PHActsSiliconSeeding.h \
   PHActsInitialVertexFinder.h \
   PHActsVertexFinder.h \
+  PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
   PHActsVertexFitter.h \
   PHActsTrackProjection.h \
@@ -57,7 +58,7 @@ pkginclude_HEADERS = \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTruthTrackSeeding.h \
   PHTpcClusterMover.h \
-  PHTpcTrackSeedVertexAssoc.h \
+  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -121,6 +122,7 @@ ACTS_SOURCES = \
   PHActsInitialVertexFinder.cc \
   PHActsVertexFinder.cc \
   PHActsVertexFitter.cc \
+  PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc
 
 $OFFLINE_MAIN/share:
@@ -173,7 +175,7 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrackProjection.cc \
   PHGhostRejection.cc \
   PHRaveVertexing.cc \
-  PHTpcTrackSeedVertexAssoc.cc \
+  PHTpcTrackSeedCircleFit.cc \
   ALICEKF.cc \
   PHSimpleKFProp.cc
 
