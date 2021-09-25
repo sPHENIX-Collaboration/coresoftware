@@ -20,6 +20,7 @@ lib_LTLIBRARIES = \
 
 libg4epd_la_SOURCES = \
   PHG4EPDDetector.cc \
+  PHG4EPDDisplayAction.cc \
   PHG4EPDSteppingAction.cc \
   PHG4EPDSubsystem.cc
 
