@@ -38,8 +38,6 @@ PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
                                            const PHParameters*)
   : PHG4SteppingAction(detector->GetName())
   , m_detector(detector)
-  , m_hit_container(nullptr)
-  , m_hit(nullptr)
   , poststatus(-1)
 {
 }
@@ -148,17 +146,25 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
   return true;
 }
 
-void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* node)
+void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string label = "G4HIT_" + ((m_detector->SuperDetector() != "NONE")
-                                      ? m_detector->SuperDetector()
-                                      : m_detector->GetName());
+  m_hit_container = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
 
-  m_hit_container = findNode::getClass<PHG4HitContainer>(node, label.data());
-
-  if (m_hit_container == nullptr)
-    std::cout << "[PHG4EPDSteppingAction::SetInterfacePointers] unable to find "
-              << label << '\n';
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
+  // if we do not find the node it's messed up.
+  if (!m_hit_container)
+  {
+    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
+  }
+  // this is perfectly fine if support hits are disabled
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+    }
+  }
 }
 
 void PHG4EPDSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)

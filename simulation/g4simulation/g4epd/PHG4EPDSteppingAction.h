@@ -31,8 +31,11 @@ class PHG4EPDSteppingAction : public PHG4SteppingAction
   PHG4EPDDetector* m_detector = nullptr;
 
   PHG4HitContainer* m_hit_container = nullptr;
+  PHG4HitContainer* m_SupportHitContainer = nullptr;
   PHG4Hit* m_hit = nullptr;
+
   int32_t poststatus;
+
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
 };
