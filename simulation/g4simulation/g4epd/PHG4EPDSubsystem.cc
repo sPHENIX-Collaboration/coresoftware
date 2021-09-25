@@ -21,8 +21,6 @@
 
 PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
   : PHG4DetectorGroupSubsystem(name)
-  , m_detector(nullptr)
-  , m_stepaction(nullptr)
 {
   InitializeParameters();
 }
@@ -32,12 +30,12 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
   PHParametersContainer* params = GetParamsContainer();
   std::string const& name = Name();
 
-  m_detector = new PHG4EPDDetector(this, node, params, name);
-  m_detector->SuperDetector(SuperDetector());
-  m_detector->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4EPDDetector(this, node, params, name);
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
 
-  m_stepaction = new PHG4EPDSteppingAction(m_detector, params);
-  m_stepaction->Init();
+  m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, params);
+  m_SteppingAction->Init();
 
   if (!params->GetParameters(-1)->get_int_param("active"))
     return 0;
@@ -67,20 +65,15 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
 
 int32_t PHG4EPDSubsystem::process_event(PHCompositeNode* node)
 {
-  if (m_stepaction != nullptr)
-    m_stepaction->SetInterfacePointers(node);
+  if (m_SteppingAction != nullptr)
+    m_SteppingAction->SetInterfacePointers(node);
 
   return 0;
 }
 
 PHG4Detector* PHG4EPDSubsystem::GetDetector() const
 {
-  return m_detector;
-}
-
-PHG4SteppingAction* PHG4EPDSubsystem::GetSteppingAction() const
-{
-  return m_stepaction;
+  return m_Detector;
 }
 
 void PHG4EPDSubsystem::SetDefaultParameters()
