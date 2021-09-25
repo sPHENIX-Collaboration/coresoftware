@@ -16,7 +16,6 @@ class G4ExtrudedSolid;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
-class PHParametersContainer;
 class PHG4EPDDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
@@ -26,14 +25,12 @@ class PHG4EPDDetector : public PHG4Detector
  public:
   PHG4EPDDetector(PHG4Subsystem* subsys,
                  PHCompositeNode* node,
-//		  PHParameters *parameters,
-PHParametersContainer* params,
+       	         PHParameters *parameters,
                  std::string const& name);
 
   void ConstructMe(G4LogicalVolume* world) override;
 
   int IsInDetector(G4VPhysicalVolume *) const;
-  bool contains(G4VPhysicalVolume*) const;
 
   uint32_t module_id_for(int32_t index, int32_t slice, int32_t side);
   uint32_t module_id_for(G4VPhysicalVolume* volume);

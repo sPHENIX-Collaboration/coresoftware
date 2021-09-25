@@ -13,6 +13,8 @@
 #include <g4main/PHG4SteppingAction.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
 #include <Geant4/G4Step.hh>
@@ -33,7 +35,7 @@
 class G4VPhysicalVolume;
 
 PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
-                                           const PHParametersContainer*)
+                                           const PHParameters*)
   : PHG4SteppingAction(detector->GetName())
   , m_detector(detector)
   , m_hit_container(nullptr)
@@ -157,4 +159,21 @@ void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* node)
   if (m_hit_container == nullptr)
     std::cout << "[PHG4EPDSteppingAction::SetInterfacePointers] unable to find "
               << label << '\n';
+}
+
+void PHG4EPDSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

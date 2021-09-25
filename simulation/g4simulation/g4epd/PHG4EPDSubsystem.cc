@@ -21,25 +21,25 @@
 #include <phool/getClass.h>
 
 PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
-  : PHG4DetectorGroupSubsystem(name)
+  : PHG4DetectorSubsystem(name)
 {
   InitializeParameters();
 }
 
 int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
 {
-  PHParametersContainer* params = GetParamsContainer();
+//  PHParametersContainer* params = GetParamsContainer();
   std::string const& name = Name();
 
   m_DisplayAction = new PHG4EPDDisplayAction(Name());
 
-  m_Detector = new PHG4EPDDetector(this, node, params, name);
+m_Detector = new PHG4EPDDetector(this, node, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
-  m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, params);
+  m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
 
-  if (!params->GetParameters(-1)->get_int_param("active"))
+  if (!GetParams()->get_int_param("active"))
     return 0;
 
   std::string const& superdet = SuperDetector();
@@ -80,6 +80,5 @@ PHG4Detector* PHG4EPDSubsystem::GetDetector() const
 
 void PHG4EPDSubsystem::SetDefaultParameters()
 {
-  set_default_int_param(-1, "active", 1);
-  set_default_double_param(-1, "z_position", 300.);
+  set_default_double_param("z_position", 300.);
 }

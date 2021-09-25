@@ -5,7 +5,7 @@
 #ifndef G4EPD_PHG4EPDSUBSYSTEM_H
 #define G4EPD_PHG4EPDSUBSYSTEM_H
 
-#include <g4detectors/PHG4DetectorGroupSubsystem.h>
+#include <g4detectors/PHG4DetectorSubsystem.h>
 
 #include <cstdint>
 #include <string>
@@ -16,7 +16,7 @@ class PHG4EPDDetector;
 class PHG4EPDSteppingAction;
 class PHG4SteppingAction;
 
-class PHG4EPDSubsystem : public PHG4DetectorGroupSubsystem
+class PHG4EPDSubsystem : public PHG4DetectorSubsystem
 {
  public:
   PHG4EPDSubsystem(std::string const& name);

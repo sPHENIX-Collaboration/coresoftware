@@ -9,7 +9,7 @@
 #include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
+//#include <phparameter/PHParametersContainer.h>
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
@@ -29,17 +29,16 @@
 
 PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
                                PHCompositeNode* node,
-                               PHParametersContainer* params,
+                               PHParameters* parameters,
                                std::string const& name)
   : PHG4Detector(subsys, node, name)
   , m_DisplayAction(dynamic_cast<PHG4EPDDisplayAction*>(subsys->GetDisplayAction()))
-//  , m_Params(parameters)
-//  , m_ActiveFlag(m_Params->get_int_param("active"))
-//  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
-  m_ActiveFlag = 1;
-  PHParameters const* pars = params->GetParameters(-1);
-  m_z_position = pars->get_double_param("z_position");
+//  PHParameters const* pars = params->GetParameters(-1);
+  m_z_position = m_Params->get_double_param("z_position");
 }
 
 void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
@@ -82,11 +81,6 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
           module_id_for(i, k, 1));
     }
   }
-}
-
-bool PHG4EPDDetector::contains(G4VPhysicalVolume* volume) const
-{
-  return m_volumes.find(volume) != std::end(m_volumes);
 }
 
 int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const

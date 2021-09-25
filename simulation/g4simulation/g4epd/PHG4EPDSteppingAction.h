@@ -15,20 +15,18 @@ class PHG4EPDDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
-class PHParametersContainer;
 
 class PHG4EPDSteppingAction : public PHG4SteppingAction
 {
  public:
-   PHG4EPDSteppingAction(PHG4EPDDetector*, PHParametersContainer const*);
-//  PHG4EPDSteppingAction(PHG4EPDDetector*, const PHParameters* parameters);
+  PHG4EPDSteppingAction(PHG4EPDDetector*, const PHParameters* parameters);
   ~PHG4EPDSteppingAction() override;
 
   bool UserSteppingAction(const G4Step*, bool) override;
 
   void SetInterfacePointers(PHCompositeNode*) override;
 
-  // void SetHitNodeName(const std::string& type, const std::string& name) override;
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
  private:
   PHG4EPDDetector* m_detector = nullptr;
 
