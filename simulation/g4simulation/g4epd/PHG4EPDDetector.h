@@ -32,7 +32,7 @@ PHParametersContainer* params,
 
   void ConstructMe(G4LogicalVolume* world) override;
 
-  int IsInDetector(G4VPhysicalVolume *) const {return 0;}
+  int IsInDetector(G4VPhysicalVolume *) const;
   bool contains(G4VPhysicalVolume*) const;
 
   uint32_t module_id_for(int32_t index, int32_t slice, int32_t side);

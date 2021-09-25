@@ -3,6 +3,7 @@
 #include "PHG4EPDSubsystem.h"
 
 #include "PHG4EPDDetector.h"
+#include "PHG4EPDDisplayAction.h"
 #include "PHG4EPDSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -29,6 +30,8 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
 {
   PHParametersContainer* params = GetParamsContainer();
   std::string const& name = Name();
+
+  m_DisplayAction = new PHG4EPDDisplayAction(Name());
 
   m_Detector = new PHG4EPDDetector(this, node, params, name);
   m_Detector->SuperDetector(SuperDetector());

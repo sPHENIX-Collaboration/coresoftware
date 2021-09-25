@@ -2,7 +2,11 @@
 
 #include "PHG4EPDDetector.h"
 
+#include "PHG4EPDDisplayAction.h"
+
 #include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -28,6 +32,10 @@ PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
                                PHParametersContainer* params,
                                std::string const& name)
   : PHG4Detector(subsys, node, name)
+  , m_DisplayAction(dynamic_cast<PHG4EPDDisplayAction*>(subsys->GetDisplayAction()))
+//  , m_Params(parameters)
+//  , m_ActiveFlag(m_Params->get_int_param("active"))
+//  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
   PHParameters const* pars = params->GetParameters(-1);
   m_z_position = pars->get_double_param("z_position");
@@ -37,11 +45,11 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
   G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
-  G4VisAttributes* attrs = new G4VisAttributes();
+//  G4VisAttributes* attrs = new G4VisAttributes();
 
-  attrs->SetVisibility(true);
-  attrs->SetForceSolid(true);
-  attrs->SetColour(G4Colour::Red());
+  // attrs->SetVisibility(true);
+  // attrs->SetForceSolid(true);
+  // attrs->SetColour(G4Colour::Red());
 
   G4ThreeVector positive(0., 0., m_z_position * cm);
   G4ThreeVector negative(0., 0., -m_z_position * cm);
@@ -57,7 +65,9 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
     G4LogicalVolume* volume = new G4LogicalVolume(
         block, material, label.data(), 0, 0, 0);
 
-    volume->SetVisAttributes(attrs);
+//    volume->SetVisAttributes(attrs);
+    GetDisplayAction()->AddVolume(volume,volume->GetName());
+    m_ActiveLogVolSet.insert(volume);
 
     for (int32_t k = 0; k < nslices; ++k)
     {
@@ -83,6 +93,26 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 bool PHG4EPDDetector::contains(G4VPhysicalVolume* volume) const
 {
   return m_volumes.find(volume) != std::end(m_volumes);
+}
+
+int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
+{
+  G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
+  if (m_ActiveFlag)
+  {
+    if (m_ActiveLogVolSet.find(mylogvol) != m_ActiveLogVolSet.end())
+    {
+      return 1;
+    }
+  }
+  if (m_SupportActiveFlag)
+  {
+    if (m_SupportLogVolSet.find(mylogvol) != m_SupportLogVolSet.end())
+    {
+      return -2;
+    }
+  }
+    return 0;
 }
 
 uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice,
