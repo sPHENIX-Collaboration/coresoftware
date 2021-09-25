@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 
 class G4ExtrudedSolid;
@@ -16,18 +17,22 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHParametersContainer;
+class PHG4EPDDisplayAction;
 class PHG4Subsystem;
+class PHParameters;
 
 class PHG4EPDDetector : public PHG4Detector
 {
  public:
   PHG4EPDDetector(PHG4Subsystem* subsys,
                  PHCompositeNode* node,
-                 PHParametersContainer* params,
+//		  PHParameters *parameters,
+PHParametersContainer* params,
                  std::string const& name);
 
   void ConstructMe(G4LogicalVolume* world) override;
 
+  int IsInDetector(G4VPhysicalVolume *) const {return 0;}
   bool contains(G4VPhysicalVolume*) const;
 
   uint32_t module_id_for(int32_t index, int32_t slice, int32_t side);
@@ -36,8 +41,19 @@ class PHG4EPDDetector : public PHG4Detector
   void SuperDetector(std::string const& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
 
+  PHG4EPDDisplayAction *GetDisplayAction() { return m_DisplayAction; }
+
  private:
   G4ExtrudedSolid* construct_block(int32_t index);
+
+  PHG4EPDDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
+
+  int m_ActiveFlag = 0;
+  int m_SupportActiveFlag = 0;
+
+  std::set<G4LogicalVolume *> m_SupportLogVolSet;
+  std::set<G4LogicalVolume *> m_ActiveLogVolSet;
 
   std::map<G4VPhysicalVolume*, uint32_t> m_volumes;
 
