@@ -9,7 +9,6 @@
 #include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
-//#include <phparameter/PHParametersContainer.h>
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
@@ -37,16 +36,14 @@ PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
-//  PHParameters const* pars = params->GetParameters(-1);
-  m_z_position = m_Params->get_double_param("z_position");
 }
 
 void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
   G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
-  G4ThreeVector positive(0., 0., m_z_position * cm);
-  G4ThreeVector negative(0., 0., -m_z_position * cm);
+G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
+  G4ThreeVector negative(0., 0., - m_Params->get_double_param("place_z") * cm);
 
   constexpr int32_t ntiles = 31;
   constexpr int32_t nslices = 12;

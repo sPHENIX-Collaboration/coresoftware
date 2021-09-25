@@ -56,7 +56,6 @@ class PHG4EPDDetector : public PHG4Detector
 
   std::string superdetector;
 
-  double m_z_position;
 };
 
 #endif /* G4EPD_PHG4EPDETECTOR_H */
