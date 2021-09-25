@@ -37,6 +37,7 @@ PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
 //  , m_ActiveFlag(m_Params->get_int_param("active"))
 //  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
+  m_ActiveFlag = 1;
   PHParameters const* pars = params->GetParameters(-1);
   m_z_position = pars->get_double_param("z_position");
 }
@@ -44,12 +45,6 @@ PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
 void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
   G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
-
-//  G4VisAttributes* attrs = new G4VisAttributes();
-
-  // attrs->SetVisibility(true);
-  // attrs->SetForceSolid(true);
-  // attrs->SetColour(G4Colour::Red());
 
   G4ThreeVector positive(0., 0., m_z_position * cm);
   G4ThreeVector negative(0., 0., -m_z_position * cm);
@@ -65,7 +60,6 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
     G4LogicalVolume* volume = new G4LogicalVolume(
         block, material, label.data(), 0, 0, 0);
 
-//    volume->SetVisAttributes(attrs);
     GetDisplayAction()->AddVolume(volume,volume->GetName());
     m_ActiveLogVolSet.insert(volume);
 

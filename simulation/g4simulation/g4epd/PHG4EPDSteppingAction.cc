@@ -54,7 +54,8 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   G4VPhysicalVolume* volume = prehandle->GetVolume();
 
-  if (!m_detector->contains(volume))
+//  if (!m_detector->contains(volume))
+  if (!m_detector->IsInDetector(volume))
     return false;
 
   G4double deposit = step->GetTotalEnergyDeposit() / GeV;

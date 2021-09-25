@@ -38,7 +38,6 @@ int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
   m_Detector->OverlapCheck(CheckOverlap());
 
   m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, params);
-  m_SteppingAction->Init();
 
   if (!params->GetParameters(-1)->get_int_param("active"))
     return 0;
