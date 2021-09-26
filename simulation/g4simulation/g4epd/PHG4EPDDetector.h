@@ -24,13 +24,13 @@ class PHG4EPDDetector : public PHG4Detector
 {
  public:
   PHG4EPDDetector(PHG4Subsystem* subsys,
-                 PHCompositeNode* node,
-       	         PHParameters *parameters,
-                 std::string const& name);
+                  PHCompositeNode* node,
+                  PHParameters* parameters,
+                  std::string const& name);
 
   void ConstructMe(G4LogicalVolume* world) override;
 
-  int IsInDetector(G4VPhysicalVolume *) const;
+  int IsInDetector(G4VPhysicalVolume*) const;
 
   uint32_t module_id_for(int32_t index, int32_t slice, int32_t side);
   uint32_t module_id_for(G4VPhysicalVolume* volume);
@@ -38,24 +38,23 @@ class PHG4EPDDetector : public PHG4Detector
   void SuperDetector(std::string const& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
 
-  PHG4EPDDisplayAction *GetDisplayAction() { return m_DisplayAction; }
+  PHG4EPDDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
  private:
   G4ExtrudedSolid* construct_block(int32_t index);
 
-  PHG4EPDDisplayAction *m_DisplayAction = nullptr;
-  PHParameters *m_Params = nullptr;
+  PHG4EPDDisplayAction* m_DisplayAction = nullptr;
+  PHParameters* m_Params = nullptr;
 
   int m_ActiveFlag = 0;
   int m_SupportActiveFlag = 0;
 
-  std::set<G4LogicalVolume *> m_SupportLogVolSet;
-  std::set<G4LogicalVolume *> m_ActiveLogVolSet;
+  std::set<G4LogicalVolume*> m_SupportLogVolSet;
+  std::set<G4LogicalVolume*> m_ActiveLogVolSet;
 
   std::map<G4VPhysicalVolume*, uint32_t> m_volumes;
 
   std::string superdetector;
-
 };
 
 #endif /* G4EPD_PHG4EPDETECTOR_H */

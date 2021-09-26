@@ -20,7 +20,7 @@ PHG4EPDDisplayAction::~PHG4EPDDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4EPDDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4EPDDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   for (auto it : m_LogicalVolumeMap)
   {
@@ -43,6 +43,6 @@ void PHG4EPDDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
       visatt->SetColour(G4Colour::Red());
     }
     logvol->SetVisAttributes(visatt);
-   }
+  }
   return;
 }

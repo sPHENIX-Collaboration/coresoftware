@@ -37,7 +37,7 @@
 class G4VPhysicalVolume;
 
 PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
-                                           const PHParameters*)
+                                             const PHParameters*)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
 {
@@ -70,42 +70,42 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   G4double ionising = deposit - aStep->GetNonIonizingEnergyDeposit() / GeV;
   G4double light_yield = GetVisibleEnergyDeposition(aStep) / GeV;
 
-//  G4StepStatus prestatus = prestep->GetStepStatus();
+  //  G4StepStatus prestatus = prestep->GetStepStatus();
 
   int32_t tile_id = m_Detector->module_id_for(volume);
 
   G4Track const* track = aStep->GetTrack();
 
-  G4ParticleDefinition const *particle = track->GetParticleDefinition();
+  G4ParticleDefinition const* particle = track->GetParticleDefinition();
 
   bool geantino = (particle->GetPDGEncoding() == 0 && particle->GetParticleName().find("geantino") != std::string::npos);
 
-    G4StepPoint* prePoint = aStep->GetPreStepPoint();
-    G4StepPoint* postPoint = aStep->GetPostStepPoint();
+  G4StepPoint* prePoint = aStep->GetPreStepPoint();
+  G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
-    switch (prePoint->GetStepStatus())
+  switch (prePoint->GetStepStatus())
+  {
+  case fPostStepDoItProc:
+    if (m_SavePostStepStatus != fGeomBoundary)
     {
-    case fPostStepDoItProc:
-      if (m_SavePostStepStatus != fGeomBoundary)
-      {
-        break;
-      }
-      else
-      {
-	std::cout << GetName() << ": New Hit for  " << std::endl;
-	std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus()             )
-		  << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-		  << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
-      }
+      break;
+    }
+    else
+    {
+      std::cout << GetName() << ": New Hit for  " << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+    }
     [[fallthrough]];
-    case fGeomBoundary:
-    case fUndefined:
+  case fGeomBoundary:
+  case fUndefined:
     if (m_Hit == nullptr)
     {
       m_Hit = new PHG4Hitv1();
     }
 
-// only for active columes (scintillators)
+    // only for active columes (scintillators)
     if (whichactive > 0)
     {
       m_Hit->set_scint_id(tile_id);
@@ -127,23 +127,20 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
 
     m_Hit->set_edep(0);
-      break;
-    default:
-      break;
-    }
+    break;
+  default:
+    break;
+  }
 
   G4StepPoint* poststep = aStep->GetPostStepPoint();
   const G4ThreeVector postpos = poststep->GetPosition();
-    m_SavePostStepStatus = postPoint->GetStepStatus();
+  m_SavePostStepStatus = postPoint->GetStepStatus();
   m_Hit->set_edep(m_Hit->get_edep() + deposit);
-    if (whichactive > 0)
-    {
-  m_Hit->set_eion(m_Hit->get_eion() + ionising);
-  m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
-    }
-
-
-
+  if (whichactive > 0)
+  {
+    m_Hit->set_eion(m_Hit->get_eion() + ionising);
+    m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
+  }
 
   if (postPoint->GetStepStatus() != fGeomBoundary &&
       postPoint->GetStepStatus() != fWorldBoundary &&

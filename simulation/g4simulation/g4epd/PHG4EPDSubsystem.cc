@@ -31,7 +31,7 @@ PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
 
 int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-//  PHParametersContainer* params = GetParamsContainer();
+  //  PHParametersContainer* params = GetParamsContainer();
   std::string const& name = Name();
 
   m_DisplayAction = new PHG4EPDDisplayAction(Name());
@@ -47,9 +47,9 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   if (GetParams()->get_int_param("active"))
   {
-std::set<std::string> nodes;
-  PHNodeIterator iter(topNode);
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+    std::set<std::string> nodes;
+    PHNodeIterator iter(topNode);
+    PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode* DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
@@ -96,7 +96,6 @@ std::set<std::string> nodes;
   {
     m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
   }
-
 
   return 0;
 }

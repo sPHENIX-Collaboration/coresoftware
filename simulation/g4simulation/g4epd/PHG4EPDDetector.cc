@@ -27,9 +27,9 @@
 #include <vector>    // for vector
 
 PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
-                               PHCompositeNode* node,
-                               PHParameters* parameters,
-                               std::string const& name)
+                                 PHCompositeNode* node,
+                                 PHParameters* parameters,
+                                 std::string const& name)
   : PHG4Detector(subsys, node, name)
   , m_DisplayAction(dynamic_cast<PHG4EPDDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
@@ -42,8 +42,8 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
   G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
-G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
-  G4ThreeVector negative(0., 0., - m_Params->get_double_param("place_z") * cm);
+  G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
+  G4ThreeVector negative(0., 0., -m_Params->get_double_param("place_z") * cm);
 
   constexpr int32_t ntiles = 31;
   constexpr int32_t nslices = 12;
@@ -56,7 +56,7 @@ G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
     G4LogicalVolume* volume = new G4LogicalVolume(
         block, material, label.data(), 0, 0, 0);
 
-    GetDisplayAction()->AddVolume(volume,volume->GetName());
+    GetDisplayAction()->AddVolume(volume, volume->GetName());
     m_ActiveLogVolSet.insert(volume);
 
     for (int32_t k = 0; k < nslices; ++k)
@@ -97,11 +97,11 @@ int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
       return -2;
     }
   }
-    return 0;
+  return 0;
 }
 
 uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice,
-                                       int32_t side)
+                                        int32_t side)
 {
   return (side << 9 | slice << 5 | index) & 0x3FF;
 }

@@ -32,7 +32,7 @@ class PHG4EPDSubsystem : public PHG4DetectorSubsystem
 
   PHG4Detector* GetDetector() const override;
   PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; };
-  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
  private:
   void SetDefaultParameters() override;
@@ -51,7 +51,6 @@ class PHG4EPDSubsystem : public PHG4DetectorSubsystem
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
-
 };
 
 #endif /* G4EPD_PHG4EPDSUBSYSTEM_H */

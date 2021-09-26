@@ -6,7 +6,7 @@
 #include <g4main/PHG4DisplayAction.h>
 
 #include <map>
-#include <string>                      // for string
+#include <string>  // for string
 #include <vector>
 
 class G4LogicalVolume;
