@@ -54,6 +54,11 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   G4VPhysicalVolume* volume = prehandle->GetVolume();
 
+  // m_Detector->IsInDetector(volume)
+  // returns
+  //  0 is outside of EPD
+  //  1 is inside scintillator
+  // -1 is inside support structure (dead material)
   int whichactive = m_Detector->IsInDetector(volume);
   if (!whichactive)
   {
@@ -76,10 +81,17 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
   if ((prestatus == fPostStepDoItProc && poststatus == fGeomBoundary) || prestatus == fGeomBoundary || prestatus == fUndefined)
   {
     if (m_Hit == nullptr)
+    {
       m_Hit = new PHG4Hitv1();
+    }
 
-    m_Hit->set_scint_id(tile_id);
-
+// only for active columes (scintillators)
+    if (whichactive > 0)
+    {
+      m_Hit->set_scint_id(tile_id);
+      m_Hit->set_eion(0);
+      m_Hit->set_light_yield(0);
+    }
     m_Hit->set_x(0, prestep->GetPosition().x() / cm);
     m_Hit->set_y(0, prestep->GetPosition().y() / cm);
     m_Hit->set_z(0, prestep->GetPosition().z() / cm);
@@ -87,35 +99,36 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
     m_Hit->set_trkid(track->GetTrackID());
 
-    PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(
-        track->GetUserInformation());
+    PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
 
     if (userinfo != nullptr)
     {
       m_Hit->set_trkid(userinfo->GetUserTrackId());
 
-      userinfo->GetShower()->add_g4hit_id(
-          m_HitContainer->GetID(), m_Hit->get_hit_id());
+      userinfo->GetShower()->add_g4hit_id(m_HitContainer->GetID(), m_Hit->get_hit_id());
     }
 
     m_Hit->set_edep(0);
-    m_Hit->set_eion(0);
-    m_Hit->set_light_yield(0);
   }
 
-  m_Hit->set_edep(m_Hit->get_edep() + deposit);
-  m_Hit->set_eion(m_Hit->get_eion() + ionising);
-
   G4StepPoint* poststep = step->GetPostStepPoint();
-  auto postpos = poststep->GetPosition();
+  const G4ThreeVector postpos = poststep->GetPosition();
 
+  m_Hit->set_edep(m_Hit->get_edep() + deposit);
+    if (whichactive > 0)
+    {
+  m_Hit->set_eion(m_Hit->get_eion() + ionising);
   m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
+    }
+
+
 
   poststatus = poststep->GetStepStatus();
 
   if (poststatus != fGeomBoundary && poststatus != fWorldBoundary && poststatus != fAtRestDoItProc && track->GetTrackStatus() != fStopAndKill)
+  {
     return true;
-
+  }
   if (m_Hit->get_edep() <= 0 && !geantino)
   {
     m_Hit->Reset();
@@ -128,11 +141,12 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
   m_Hit->set_z(1, poststep->GetPosition().z() / cm);
   m_Hit->set_t(1, poststep->GetGlobalTime() / nanosecond);
 
-  PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(
-      track->GetUserInformation());
+  PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
 
   if (userinfo != nullptr)
+  {
     userinfo->SetKeep(1);
+  }
 
   if (geantino)
   {
