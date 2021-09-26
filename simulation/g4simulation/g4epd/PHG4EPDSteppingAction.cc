@@ -4,6 +4,8 @@
 
 #include "PHG4EPDDetector.h"
 
+#include <g4detectors/PHG4StepStatusDecode.h>
+
 #include <phool/getClass.h>
 
 #include <g4main/PHG4Hit.h>
@@ -38,7 +40,6 @@ PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
                                            const PHParameters*)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , poststatus(-1)
 {
 }
 
@@ -47,9 +48,9 @@ PHG4EPDSteppingAction::~PHG4EPDSteppingAction()
   delete m_Hit;
 }
 
-bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
+bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
-  G4StepPoint* prestep = step->GetPreStepPoint();
+  G4StepPoint* prestep = aStep->GetPreStepPoint();
   G4TouchableHandle prehandle = prestep->GetTouchableHandle();
 
   G4VPhysicalVolume* volume = prehandle->GetVolume();
@@ -65,21 +66,40 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
     return false;
   }
 
-  G4double deposit = step->GetTotalEnergyDeposit() / GeV;
-  G4double ionising = deposit - step->GetNonIonizingEnergyDeposit() / GeV;
-  G4double light_yield = GetVisibleEnergyDeposition(step) / GeV;
+  G4double deposit = aStep->GetTotalEnergyDeposit() / GeV;
+  G4double ionising = deposit - aStep->GetNonIonizingEnergyDeposit() / GeV;
+  G4double light_yield = GetVisibleEnergyDeposition(aStep) / GeV;
 
-  G4StepStatus prestatus = prestep->GetStepStatus();
+//  G4StepStatus prestatus = prestep->GetStepStatus();
 
   int32_t tile_id = m_Detector->module_id_for(volume);
 
-  G4Track const* track = step->GetTrack();
+  G4Track const* track = aStep->GetTrack();
 
   G4ParticleDefinition const *particle = track->GetParticleDefinition();
+
   bool geantino = (particle->GetPDGEncoding() == 0 && particle->GetParticleName().find("geantino") != std::string::npos);
 
-  if ((prestatus == fPostStepDoItProc && poststatus == fGeomBoundary) || prestatus == fGeomBoundary || prestatus == fUndefined)
-  {
+    G4StepPoint* prePoint = aStep->GetPreStepPoint();
+    G4StepPoint* postPoint = aStep->GetPostStepPoint();
+
+    switch (prePoint->GetStepStatus())
+    {
+    case fPostStepDoItProc:
+      if (m_SavePostStepStatus != fGeomBoundary)
+      {
+        break;
+      }
+      else
+      {
+	std::cout << GetName() << ": New Hit for  " << std::endl;
+	std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus()             )
+		  << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+		  << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      }
+    [[fallthrough]];
+    case fGeomBoundary:
+    case fUndefined:
     if (m_Hit == nullptr)
     {
       m_Hit = new PHG4Hitv1();
@@ -99,9 +119,7 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
     m_Hit->set_trkid(track->GetTrackID());
 
-    PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
-
-    if (userinfo != nullptr)
+    if (PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation()))
     {
       m_Hit->set_trkid(userinfo->GetUserTrackId());
 
@@ -109,11 +127,14 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
     }
 
     m_Hit->set_edep(0);
-  }
+      break;
+    default:
+      break;
+    }
 
-  G4StepPoint* poststep = step->GetPostStepPoint();
+  G4StepPoint* poststep = aStep->GetPostStepPoint();
   const G4ThreeVector postpos = poststep->GetPosition();
-
+    m_SavePostStepStatus = postPoint->GetStepStatus();
   m_Hit->set_edep(m_Hit->get_edep() + deposit);
     if (whichactive > 0)
     {
@@ -123,9 +144,11 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
 
 
-  poststatus = poststep->GetStepStatus();
 
-  if (poststatus != fGeomBoundary && poststatus != fWorldBoundary && poststatus != fAtRestDoItProc && track->GetTrackStatus() != fStopAndKill)
+  if (postPoint->GetStepStatus() != fGeomBoundary &&
+      postPoint->GetStepStatus() != fWorldBoundary &&
+      postPoint->GetStepStatus() != fAtRestDoItProc &&
+      track->GetTrackStatus() != fStopAndKill)
   {
     return true;
   }

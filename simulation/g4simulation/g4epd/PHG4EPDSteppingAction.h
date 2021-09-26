@@ -7,6 +7,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <Geant4/G4StepStatus.hh>
+
 #include <cstdint>
 
 class G4Step;
@@ -27,6 +29,7 @@ class PHG4EPDSteppingAction : public PHG4SteppingAction
   void SetInterfacePointers(PHCompositeNode*) override;
 
   void SetHitNodeName(const std::string& type, const std::string& name) override;
+
  private:
   PHG4EPDDetector* m_Detector = nullptr;
 
@@ -34,7 +37,7 @@ class PHG4EPDSteppingAction : public PHG4SteppingAction
   PHG4HitContainer* m_SupportHitContainer = nullptr;
   PHG4Hit* m_Hit = nullptr;
 
-  int32_t poststatus;
+  G4StepStatus m_SavePostStepStatus = G4StepStatus::fUndefined;
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
