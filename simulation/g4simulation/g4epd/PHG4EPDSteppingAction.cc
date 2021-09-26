@@ -37,14 +37,14 @@ class G4VPhysicalVolume;
 PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
                                            const PHParameters*)
   : PHG4SteppingAction(detector->GetName())
-  , m_detector(detector)
+  , m_Detector(detector)
   , poststatus(-1)
 {
 }
 
 PHG4EPDSteppingAction::~PHG4EPDSteppingAction()
 {
-  delete m_hit;
+  delete m_Hit;
 }
 
 bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
@@ -54,77 +54,79 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   G4VPhysicalVolume* volume = prehandle->GetVolume();
 
-//  if (!m_detector->contains(volume))
-  if (!m_detector->IsInDetector(volume))
+  int whichactive = m_Detector->IsInDetector(volume);
+  if (!whichactive)
+  {
     return false;
+  }
 
   G4double deposit = step->GetTotalEnergyDeposit() / GeV;
   G4double ionising = deposit - step->GetNonIonizingEnergyDeposit() / GeV;
   G4double light_yield = GetVisibleEnergyDeposition(step) / GeV;
 
-  auto prestatus = prestep->GetStepStatus();
+  G4StepStatus prestatus = prestep->GetStepStatus();
 
-  int32_t tile_id = m_detector->module_id_for(volume);
+  int32_t tile_id = m_Detector->module_id_for(volume);
 
   G4Track const* track = step->GetTrack();
 
-  auto particle = track->GetParticleDefinition();
+  G4ParticleDefinition const *particle = track->GetParticleDefinition();
   bool geantino = (particle->GetPDGEncoding() == 0 && particle->GetParticleName().find("geantino") != std::string::npos);
 
   if ((prestatus == fPostStepDoItProc && poststatus == fGeomBoundary) || prestatus == fGeomBoundary || prestatus == fUndefined)
   {
-    if (m_hit == nullptr)
-      m_hit = new PHG4Hitv1();
+    if (m_Hit == nullptr)
+      m_Hit = new PHG4Hitv1();
 
-    m_hit->set_scint_id(tile_id);
+    m_Hit->set_scint_id(tile_id);
 
-    m_hit->set_x(0, prestep->GetPosition().x() / cm);
-    m_hit->set_y(0, prestep->GetPosition().y() / cm);
-    m_hit->set_z(0, prestep->GetPosition().z() / cm);
-    m_hit->set_t(0, prestep->GetGlobalTime() / nanosecond);
+    m_Hit->set_x(0, prestep->GetPosition().x() / cm);
+    m_Hit->set_y(0, prestep->GetPosition().y() / cm);
+    m_Hit->set_z(0, prestep->GetPosition().z() / cm);
+    m_Hit->set_t(0, prestep->GetGlobalTime() / nanosecond);
 
-    m_hit->set_trkid(track->GetTrackID());
+    m_Hit->set_trkid(track->GetTrackID());
 
     PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(
         track->GetUserInformation());
 
     if (userinfo != nullptr)
     {
-      m_hit->set_trkid(userinfo->GetUserTrackId());
+      m_Hit->set_trkid(userinfo->GetUserTrackId());
 
       userinfo->GetShower()->add_g4hit_id(
-          m_hit_container->GetID(), m_hit->get_hit_id());
+          m_HitContainer->GetID(), m_Hit->get_hit_id());
     }
 
-    m_hit->set_edep(0);
-    m_hit->set_eion(0);
-    m_hit->set_light_yield(0);
+    m_Hit->set_edep(0);
+    m_Hit->set_eion(0);
+    m_Hit->set_light_yield(0);
   }
 
-  m_hit->set_edep(m_hit->get_edep() + deposit);
-  m_hit->set_eion(m_hit->get_eion() + ionising);
+  m_Hit->set_edep(m_Hit->get_edep() + deposit);
+  m_Hit->set_eion(m_Hit->get_eion() + ionising);
 
   G4StepPoint* poststep = step->GetPostStepPoint();
   auto postpos = poststep->GetPosition();
 
-  m_hit->set_light_yield(m_hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
+  m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield * GetLightCorrection(postpos.x(), postpos.y()));
 
   poststatus = poststep->GetStepStatus();
 
   if (poststatus != fGeomBoundary && poststatus != fWorldBoundary && poststatus != fAtRestDoItProc && track->GetTrackStatus() != fStopAndKill)
     return true;
 
-  if (m_hit->get_edep() <= 0 && !geantino)
+  if (m_Hit->get_edep() <= 0 && !geantino)
   {
-    m_hit->Reset();
+    m_Hit->Reset();
 
     return true;
   }
 
-  m_hit->set_x(1, poststep->GetPosition().x() / cm);
-  m_hit->set_y(1, poststep->GetPosition().y() / cm);
-  m_hit->set_z(1, poststep->GetPosition().z() / cm);
-  m_hit->set_t(1, poststep->GetGlobalTime() / nanosecond);
+  m_Hit->set_x(1, poststep->GetPosition().x() / cm);
+  m_Hit->set_y(1, poststep->GetPosition().y() / cm);
+  m_Hit->set_z(1, poststep->GetPosition().z() / cm);
+  m_Hit->set_t(1, poststep->GetGlobalTime() / nanosecond);
 
   PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(
       track->GetUserInformation());
@@ -134,25 +136,25 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* step, bool)
 
   if (geantino)
   {
-    m_hit->set_edep(-1.);
-    m_hit->set_eion(-1.);
-    m_hit->set_light_yield(-1.);
+    m_Hit->set_edep(-1.);
+    m_Hit->set_eion(-1.);
+    m_Hit->set_light_yield(-1.);
   }
 
-  m_hit_container->AddHit(tile_id, m_hit);
+  m_HitContainer->AddHit(tile_id, m_Hit);
 
-  m_hit = nullptr;
+  m_Hit = nullptr;
 
   return true;
 }
 
 void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  m_hit_container = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
 
   m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
   // if we do not find the node it's messed up.
-  if (!m_hit_container)
+  if (!m_HitContainer)
   {
     std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
     gSystem->Exit(1);

@@ -28,11 +28,11 @@ class PHG4EPDSteppingAction : public PHG4SteppingAction
 
   void SetHitNodeName(const std::string& type, const std::string& name) override;
  private:
-  PHG4EPDDetector* m_detector = nullptr;
+  PHG4EPDDetector* m_Detector = nullptr;
 
-  PHG4HitContainer* m_hit_container = nullptr;
+  PHG4HitContainer* m_HitContainer = nullptr;
   PHG4HitContainer* m_SupportHitContainer = nullptr;
-  PHG4Hit* m_hit = nullptr;
+  PHG4Hit* m_Hit = nullptr;
 
   int32_t poststatus;
 
