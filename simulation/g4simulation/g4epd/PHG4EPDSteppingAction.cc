@@ -190,7 +190,7 @@ void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
-    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    std::cout << "PHG4EPDSteppingAction::SetTopNode - unable to find hit node " << m_HitNodeName << std::endl;
     gSystem->Exit(1);
   }
   // this is perfectly fine if support hits are disabled
@@ -198,7 +198,7 @@ void PHG4EPDSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0)
     {
-      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+      std::cout << "PHG4EPDSteppingAction::SetTopNode - unable to find support hit node " << m_SupportNodeName << std::endl;
     }
   }
 }
