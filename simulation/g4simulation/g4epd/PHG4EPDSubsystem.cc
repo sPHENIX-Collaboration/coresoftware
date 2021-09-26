@@ -31,9 +31,6 @@ PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
 
 int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
-  //  PHParametersContainer* params = GetParamsContainer();
-  std::string const& name = Name();
-
   m_DisplayAction = new PHG4EPDDisplayAction(Name());
 
   m_Detector = new PHG4EPDDetector(this, topNode, GetParams(), Name());
@@ -41,9 +38,6 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->OverlapCheck(CheckOverlap());
 
   m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
-
-  if (!GetParams()->get_int_param("active"))
-    return 0;
 
   if (GetParams()->get_int_param("active"))
   {
@@ -100,11 +94,12 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   return 0;
 }
 
-int PHG4EPDSubsystem::process_event(PHCompositeNode* node)
+int PHG4EPDSubsystem::process_event(PHCompositeNode* topNode)
 {
   if (m_SteppingAction != nullptr)
-    m_SteppingAction->SetInterfacePointers(node);
-
+  {
+    m_SteppingAction->SetInterfacePointers(topNode);
+  }
   return 0;
 }
 
