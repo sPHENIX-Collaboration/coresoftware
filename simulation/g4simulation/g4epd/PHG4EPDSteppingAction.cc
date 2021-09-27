@@ -31,7 +31,7 @@
 #include <Geant4/G4VTouchable.hh>
 #include <Geant4/G4VUserTrackInformation.hh>
 
-#include <cstdint>                             // for int32_t
+#include <cstdint>  // for int32_t
 #include <iostream>
 #include <string>
 

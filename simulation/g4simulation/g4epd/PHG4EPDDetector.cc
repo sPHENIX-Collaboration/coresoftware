@@ -17,12 +17,12 @@
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4TwoVector.hh>  // for G4TwoVector
-#include <Geant4/G4VPhysicalVolume.hh>   // for G4VPhysicalVolume
+#include <Geant4/G4TwoVector.hh>        // for G4TwoVector
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
-#include <algorithm>                     // for max
+#include <algorithm>  // for max
 #include <cmath>
-#include <vector>    // for vector
+#include <vector>  // for vector
 
 PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
                                  PHCompositeNode* node,
