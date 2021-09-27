@@ -25,8 +25,6 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
   ~PHG4ZDCSubsystem() override;
 
   /**
-     Creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
-     Creates the stepping action and place it on the node tree, under "ACTIONS" node
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode*) override;
