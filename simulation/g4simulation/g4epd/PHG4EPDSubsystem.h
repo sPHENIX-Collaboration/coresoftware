@@ -7,13 +7,12 @@
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
-#include <cstdint>
 #include <string>
 
 class PHCompositeNode;
 class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4EPDDetector;
-class PHG4EPDSteppingAction;
 class PHG4SteppingAction;
 
 class PHG4EPDSubsystem : public PHG4DetectorSubsystem

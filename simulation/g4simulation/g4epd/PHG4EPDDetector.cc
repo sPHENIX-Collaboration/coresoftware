@@ -10,20 +10,18 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TwoVector.hh>  // for G4TwoVector
-#include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4VPhysicalVolume.hh>   // for G4VPhysicalVolume
 
+#include <algorithm>                     // for max
 #include <cmath>
-#include <iterator>  // for end
 #include <vector>    // for vector
 
 PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
@@ -53,7 +51,7 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
     std::string label = "EPD_tile_" + std::to_string(i);
 
     G4ExtrudedSolid* block = construct_block(i);
-    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label.data(), 0, 0, 0);
+    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, 0, 0, 0);
 
     GetDisplayAction()->AddVolume(volume, volume->GetName());
     m_ActiveLogVolSet.insert(volume);
@@ -148,7 +146,7 @@ static constexpr double coordinates[31][6][2] = {
 
 G4ExtrudedSolid* PHG4EPDDetector::construct_block(int32_t index)
 {
-  G4String label("tile_" + std::to_string(index));
+  std::string label("tile_" + std::to_string(index));
 
   const double(*coords)[6][2] = &coordinates[index];
 

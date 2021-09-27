@@ -7,10 +7,11 @@
 #include "PHG4EPDSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
 
-#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGroupSubsystem
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 
+#include <g4main/PHG4DisplayAction.h>           // for PHG4DisplayAction
+#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/PHCompositeNode.h>

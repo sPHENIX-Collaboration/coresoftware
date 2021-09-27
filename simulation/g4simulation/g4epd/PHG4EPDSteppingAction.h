@@ -9,7 +9,7 @@
 
 #include <Geant4/G4StepStatus.hh>
 
-#include <cstdint>
+#include <string>
 
 class G4Step;
 class PHCompositeNode;

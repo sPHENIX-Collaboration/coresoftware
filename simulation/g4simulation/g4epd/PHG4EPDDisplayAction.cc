@@ -6,6 +6,9 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <iostream>                    // for operator<<, basic_ostream, endl
+#include <utility>                     // for pair
+
 PHG4EPDDisplayAction::PHG4EPDDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
