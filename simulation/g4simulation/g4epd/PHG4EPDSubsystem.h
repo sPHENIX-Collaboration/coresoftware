@@ -20,6 +20,7 @@ class PHG4EPDSubsystem : public PHG4DetectorSubsystem
 {
  public:
   PHG4EPDSubsystem(std::string const& name);
+  ~PHG4EPDSubsystem() override;
 
   /**
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST

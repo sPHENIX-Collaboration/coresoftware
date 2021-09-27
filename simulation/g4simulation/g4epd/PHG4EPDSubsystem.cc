@@ -29,6 +29,11 @@ PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
   InitializeParameters();
 }
 
+PHG4EPDSubsystem::~PHG4EPDSubsystem()
+{
+  delete m_DisplayAction;
+}
+
 int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   m_DisplayAction = new PHG4EPDDisplayAction(Name());
