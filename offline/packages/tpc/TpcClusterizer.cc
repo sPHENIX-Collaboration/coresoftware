@@ -3,7 +3,7 @@
 #include "TpcDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
@@ -338,7 +338,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 
-  TrkrClusterv2 *clus = new TrkrClusterv2();
+  TrkrClusterv3 *clus = new TrkrClusterv3();
   clus->setClusKey(ckey);
   //  int phi_nsize = phibinhi - phibinlo + 1;
   //  int z_nsize   = zbinhi   - zbinlo + 1;
@@ -387,10 +387,9 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   // Fill in the cluster details
   //================
   clus->setAdc(adc_sum);
-  clus->setPosition(0, radius * cos(clusphi));
-  clus->setPosition(1, radius * sin(clusphi));
-  clus->setPosition(2, clusz);
-  clus->setGlobal();
+  
+  float clusx = radius * cos(clusphi);
+  float clusy = radius * sin(clusphi);
   
   TMatrixF DIM(3, 3);
   DIM[0][0] = 0.0;
@@ -440,25 +439,11 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   clus->setSize(2, 0, COVAR_DIM[2][0]);
   clus->setSize(2, 1, COVAR_DIM[2][1]);
   clus->setSize(2, 2, COVAR_DIM[2][2]);
-  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
-  
-  TMatrixF COVAR_ERR(3, 3);
-  COVAR_ERR = ROT * ERR * ROT_T;
-  
-  clus->setError(0, 0, COVAR_ERR[0][0]);
-  clus->setError(0, 1, COVAR_ERR[0][1]);
-  clus->setError(0, 2, COVAR_ERR[0][2]);
-  clus->setError(1, 0, COVAR_ERR[1][0]);
-  clus->setError(1, 1, COVAR_ERR[1][1]);
-  clus->setError(1, 2, COVAR_ERR[1][2]);
-  clus->setError(2, 0, COVAR_ERR[2][0]);
-  clus->setError(2, 1, COVAR_ERR[2][1]);
-  clus->setError(2, 2, COVAR_ERR[2][2]);
   
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
 
-  Acts::Vector3D global(clus->getX(), clus->getY(), clus->getZ());
+  Acts::Vector3D global(clusx, clusy, clusz);
   
   TrkrDefs::subsurfkey subsurfkey;
   Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
@@ -481,7 +466,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   
   /// no conversion needed, only used in acts
   Acts::Vector3D normal = surface->normal(tGeometry->geoContext);
-  double clusRadius = sqrt(clus->getX() * clus->getX() + clus->getY() * clus->getY());
+  double clusRadius = sqrt(clusx * clusx + clusy * clusy);
   double rClusPhi = clusRadius * clusphi;
   double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
   double surfPhiCenter = atan2(center[1], center[0]);

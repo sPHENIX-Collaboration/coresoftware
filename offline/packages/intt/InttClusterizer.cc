@@ -3,7 +3,7 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv2.h>
@@ -362,7 +362,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	auto clus = std::make_unique<TrkrClusterv2>();
+	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
@@ -475,10 +475,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
-	clus->setPosition(0, clusx);
-	clus->setPosition(1, clusy);
-	clus->setPosition(2, clusz);
-	clus->setGlobal();
 	
 	TMatrixF DIM(3, 3);
 	DIM[0][0] = square(0.5 * thickness);
@@ -492,15 +488,15 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	DIM[2][2] = square(0.5 * zsize);
 		
 	TMatrixF ERR(3, 3);
-  ERR[0][0] = square(thickness * invsqrt12);
+	ERR[0][0] = square(thickness * invsqrt12);
 	ERR[0][1] = 0.0;
 	ERR[0][2] = 0.0;
 	ERR[1][0] = 0.0;
-  ERR[1][1] = square(phierror);
+	ERR[1][1] = square(phierror);
 	ERR[1][2] = 0.0;
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
-  ERR[2][2] = square(zerror);
+	ERR[2][2] = square(zerror);
 
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);
@@ -544,19 +540,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setSize(2, 1, COVAR_DIM[2][1]);
 	clus->setSize(2, 2, COVAR_DIM[2][2]);
 	
-	TMatrixF COVAR_ERR(3, 3);
-	COVAR_ERR = R * ERR * R_T;
-	
-	clus->setError(0, 0, COVAR_ERR[0][0]);
-	clus->setError(0, 1, COVAR_ERR[0][1]);
-	clus->setError(0, 2, COVAR_ERR[0][2]);
-	clus->setError(1, 0, COVAR_ERR[1][0]);
-	clus->setError(1, 1, COVAR_ERR[1][1]);
-	clus->setError(1, 2, COVAR_ERR[1][2]);
-	clus->setError(2, 0, COVAR_ERR[2][0]);
-	clus->setError(2, 1, COVAR_ERR[2][1]);
-	clus->setError(2, 2, COVAR_ERR[2][2]);
-
 	if(Verbosity() > 10) clus->identify();
 	
 	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);

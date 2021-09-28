@@ -1,4 +1,5 @@
 #include "PHActsSiliconSeeding.h"
+#include "ActsTransformations.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -387,6 +388,8 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
   /// If mvtx seed wasn't found, just return
   if(mvtxClusters.size() == 0)
     { return returnStub; }
+  
+  ActsTransformations transform;
 
   for(const auto& [key, clusters] : allSeeds)
     {
@@ -395,15 +398,20 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
 	  if(TrkrDefs::getTrkrId(cluster->getClusKey()) != TrkrDefs::inttId)
 	    { continue; }
 
-	  double residual = sqrt( pow( cluster->getX() - X0, 2) +
-				  pow( cluster->getY() - Y0, 2)) - R;
+	  auto globalPos = transform.getGlobalPosition(cluster,
+						       m_surfMaps,
+						       m_tGeometry);
 
+	  double residual = sqrt( pow( globalPos(0) - X0, 2) +
+				  pow( globalPos(1) - Y0, 2)) - R;
+	  
 	  if(Verbosity() > 2)
 	    std::cout << "Residual for cluster " << cluster->getClusKey()
-		      << " and position " << cluster->getX() << ", " << cluster->getY() << " is " << residual << std::endl;
+		      << " and position " << globalPos(0) << ", " 
+		      << globalPos(1) << " is " << residual << std::endl;
 
-	  double r = sqrt( pow( cluster->getX(), 2) +
-			   pow( cluster->getY(), 2));
+	  double r = sqrt( pow(globalPos(0), 2) +
+	                   pow(globalPos(1), 2));
 	
 	  if(r < m_nInttLayerRadii[2] and residual < firstLayerBestResidual)
 	    {
@@ -449,16 +457,20 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
   std::map<const unsigned int, std::vector<TrkrCluster*>> stubs;
   unsigned int combo = 0;
 
+  ActsTransformations transform;
+
   for(const auto clus : allClusters)
     {
       const auto cluskey = clus->getClusKey();
-    
+      const auto globalPos = transform.getGlobalPosition(clus,
+							  m_surfMaps,
+							  m_tGeometry);
       if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
 	mvtxClusters.push_back(clus);
       else
 	{
-	  const double r = sqrt(pow(clus->getX(), 2) +
-				pow(clus->getY(), 2));
+	  const double r = sqrt(pow(globalPos(0), 2) +
+				pow(globalPos(1), 2));
 	  if(r < 8.) 
 	    inttFirstLayerClusters.push_back(clus);
 	  else
@@ -628,14 +640,16 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   double zProj[m_nInttLayers];
 
   /// Diagnostic 
+  ActsTransformations transform;
   for(auto clus : clusters)
     {
-      h_hits->Fill(clus->getX(), clus->getY());
-      h_zhits->Fill(clus->getZ(),
-		    sqrt(pow(clus->getX(),2) + pow(clus->getY(),2)));
-      h_projHits->Fill(clus->getX(), clus->getY());
-      h_zprojHits->Fill(clus->getZ(),
-			sqrt(pow(clus->getX(),2) + pow(clus->getY(),2)));
+      auto glob = transform.getGlobalPosition(clus, m_surfMaps, m_tGeometry);
+      h_hits->Fill(glob(0), glob(1));
+      h_zhits->Fill(glob(2),
+		    sqrt(pow(glob(0),2) + pow(glob(1),2)));
+      h_projHits->Fill(glob(0), glob(1));
+      h_zprojHits->Fill(glob(2),
+			sqrt(pow(glob(0),2) + pow(glob(1),2)));
     }
 
   /// Project the seed to the INTT to find matches
@@ -665,9 +679,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
       
       /// Figure out which solution is correct based on the position 
       /// of the last layer in the mvtx seed
-      const unsigned int lastClus = clusters.size() - 1;
-      const double lastClusPhi = atan2(clusters.at(lastClus)->getY(),
-				       clusters.at(lastClus)->getX());
+      const auto lastclus = clusters.at(clusters.size() - 1);
+      const auto lastclusglob = transform.getGlobalPosition(lastclus,
+							    m_surfMaps,
+							    m_tGeometry);
+      const double lastClusPhi = atan2(lastclusglob(1), lastclusglob(0));
       const double plusPhi = atan2(yplus, xplus);
       const double minusPhi = atan2(yminus, xminus);
       
@@ -706,6 +722,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 						     const double zProj[])
 {
   std::vector<TrkrDefs::cluskey> matchedClusters;
+  ActsTransformations transform;
 
   auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
   for (auto hitsetitr = hitsetrange.first;
@@ -727,24 +744,27 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
       const auto stripZSpacing = layerGeom->get_strip_z_spacing();
 
-      const double inttClusZ = cluster->getZ();
-      const double inttClusR = sqrt(pow(cluster->getX(), 2) + 
-				    pow(cluster->getY(), 2) );
-      const double inttClusRphi = inttClusR * atan2(cluster->getY(),
-						    cluster->getX());
+      const auto globalPos = transform.getGlobalPosition(cluster,
+							 m_surfMaps,
+							 m_tGeometry);
+      const double inttClusZ = globalPos(2);
+      const double inttClusR = sqrt(pow(globalPos(0), 2) + 
+				    pow(globalPos(1), 2) );
+      const double inttClusRphi = inttClusR * atan2(globalPos(1),
+						    globalPos(0));
       const double projR = sqrt(pow(xProj[projLayer], 2) + 
 				pow(yProj[projLayer], 2));
       const double projRphi = projR * atan2(yProj[projLayer], xProj[projLayer]);
 
-      h_hits->Fill(cluster->getX(), cluster->getY());
-      h_zhits->Fill(cluster->getZ(),
+      h_hits->Fill(globalPos(0), globalPos(1));
+      h_zhits->Fill(globalPos(2),
 		    inttClusR);
       h_resids->Fill(zProj[projLayer] - inttClusZ,
 		     projRphi - inttClusRphi);
 
       if(Verbosity() > 4)
-	std::cout << "Checking INTT cluster with position " << cluster->getX()
-		  << ", " << cluster->getY() << ", " << cluster->getZ()
+	std::cout << "Checking INTT cluster with position " << globalPos(0)
+		  << ", " << globalPos(1) << ", " << globalPos(2)
 		  << std::endl << " with projections rphi "
 		  << projRphi << " and inttclus rphi " << inttClusRphi
 		  << " and proj z " << zProj[projLayer] << " and inttclus z "
@@ -876,9 +896,15 @@ int PHActsSiliconSeeding::getCharge(const std::vector<TrkrCluster*>& clusters,
   /// Get a crude estimate of the seed phi by taking the average of the
   /// measurements
   double trackPhi = 0;
+  ActsTransformations transform;
+  
   for(auto clus : clusters)
     {
-      double clusPhi = atan2(clus->getY(), clus->getX());
+      const auto globalPos = transform.getGlobalPosition(clus,
+							 m_surfMaps,
+							 m_tGeometry);
+
+      double clusPhi = atan2(globalPos(1), globalPos(0));
 
       /// if it is close to the periodic boundary normalize to 
       /// two pi to avoid -pi and pi issues
@@ -941,17 +967,30 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
-  
+  ActsTransformations transform;
   double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
   for(auto& cluster : clusters)
     {
-      double z = cluster->getZ();
-      double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
+      const auto globalPos = transform.getGlobalPosition(cluster,
+							 m_surfMaps,
+							 m_tGeometry);
+      
+      double z = globalPos(2);
+      double r = sqrt(pow(globalPos(0),2) + pow(globalPos(1), 2));
       
       xsum=xsum+r;               // calculate sigma(xi)
       ysum=ysum+z;               // calculate sigma(yi)
       x2sum=x2sum+pow(r,2);      // calculate sigma(x^2i)
       xysum=xysum+r*z;           // calculate sigma(xi*yi)
+    
+      if(Verbosity() > 4)
+	{
+	  double r = sqrt(pow(globalPos(0),2) + pow(globalPos(1), 2));
+	  /// To calculate y(fitted) at given x points
+	  double z_fit = A * r + B;               
+	  std::cout << " r " << r << " z " << globalPos(2)
+		    << " z_fit " << z_fit << std::endl; 
+	}    
     }
   
   /// calculate slope
@@ -962,14 +1001,6 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
   
   if(Verbosity() > 4)
     {
-      for (auto& cluster : clusters)
-	{
-	  double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
-	  /// To calculate y(fitted) at given x points
-	  double z_fit = A * r + B;               
-	  std::cout << " r " << r << " z " << cluster->getZ() 
-		    << " z_fit " << z_fit << std::endl; 
-	} 
       for(int i =0; i <m_nInttLayers; i++)
 	{
 	  std::cout << "intt z_fit layer " << i << " is " 
@@ -1009,22 +1040,30 @@ void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<TrkrCluster*>& cl
   double meanX = 0;
   double meanY = 0;
   double weight = 0;
-  
-  for(auto clus : clusters)
+  ActsTransformations transform;
+  std::vector<Acts::Vector3D> globalPositions;
+  for(auto& clus : clusters)
     {
-      meanX += clus->getX();
-      meanY += clus->getY();
+      const auto globalPos = transform.getGlobalPosition(clus,
+							 m_surfMaps,
+							 m_tGeometry);
+      globalPositions.push_back(globalPos);
+
+      meanX += globalPos(0);
+      meanY += globalPos(1);
       weight++;
     }
+
   meanX /= weight;
   meanY /= weight;
 
   Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
 
-  for(auto clus : clusters)
+  for(auto& pos : globalPositions)
     {
-      double Xi = clus->getX() - meanX;
-      double Yi = clus->getY() - meanY;
+      
+      double Xi = pos(0) - meanX;
+      double Yi = pos(1) - meanY;
       double Zi = Xi * Xi + Yi * Yi;
 
       Mxy += Xi*Yi;

@@ -12,7 +12,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -284,7 +284,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	// make the cluster directly in the node tree
 	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
-	auto clus = std::make_unique<TrkrClusterv2>();
+	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	// determine the size of the cluster in phi and z
@@ -346,13 +346,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;
 	clusz = zsum / nhits;
-	//cout << "new mvtx clusterizer: clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
-	clus->setAdc(nhits);
 
-	clus->setPosition(0, clusx);
-	clus->setPosition(1, clusy);
-	clus->setPosition(2, clusz);
-	clus->setGlobal();
+	clus->setAdc(nhits);
 	
 	const double thickness = layergeom->get_pixel_thickness();
 	const double pitch = layergeom->get_pixel_x();
@@ -362,34 +357,34 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	static const double invsqrt12 = 1./std::sqrt(12);
 
-  // scale factors (phi direction)
-  /*
-  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
-  double phierror = pitch*invsqrt12;
-  if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
-  else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
-  else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
-  else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
-
-  // scale factors (z direction)
-  /*
-  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-  double zerror = length*invsqrt12;
-  if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
-  else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
-  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
-  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
-
-  if(Verbosity() > 0)
+	// scale factors (phi direction)
+	/*
+	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
+	double phierror = pitch*invsqrt12;
+	if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
+	else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
+	else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+	
+	// scale factors (z direction)
+	/*
+	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
+	double zerror = length*invsqrt12;
+	if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
+	else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
+	else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
+	else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
+	
+	if(Verbosity() > 0)
 	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
 	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
-
+	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
@@ -465,19 +460,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setSize(2, 1, COVAR_DIM[2][1]);
 	clus->setSize(2, 2, COVAR_DIM[2][2]);
 
-	TMatrixF COVAR_ERR(3, 3);
-	COVAR_ERR = R * ERR * R_T;
-
-	clus->setError(0, 0, COVAR_ERR[0][0]);
-	clus->setError(0, 1, COVAR_ERR[0][1]);
-	clus->setError(0, 2, COVAR_ERR[0][2]);
-	clus->setError(1, 0, COVAR_ERR[1][0]);
-	clus->setError(1, 1, COVAR_ERR[1][1]);
-	clus->setError(1, 2, COVAR_ERR[1][2]);
-	clus->setError(2, 0, COVAR_ERR[2][0]);
-	clus->setError(2, 1, COVAR_ERR[2][1]);
-	clus->setError(2, 2, COVAR_ERR[2][2]);
-
 	TVector3 local(0,0,0);
 	TVector3 world(clusx, clusy, clusz);
 	local = layergeom->get_local_from_world_coords(stave, 0, 0,
@@ -499,9 +481,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  clus->identify();
 
 	m_clusterlist->addCluster(clus.release());
-
-	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
-
 
       }  // clusitr
   }    // hitsetitr

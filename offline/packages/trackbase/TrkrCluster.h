@@ -43,7 +43,8 @@ class TrkrCluster : public PHObject
   //
   // cluster position
   //
-  /// Global coordinates are deprecated, use local coordinates only
+  // Global coordinate functions are deprecated, use local 
+  // coordinate functions only
   virtual float getX() const { return NAN; }
   virtual void setX(float) {}
   virtual float getY() const { return NAN; }
@@ -55,6 +56,8 @@ class TrkrCluster : public PHObject
   virtual void setGlobal() {}
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
+  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
 
   virtual float getLocalX() const { return NAN; }
@@ -68,8 +71,7 @@ class TrkrCluster : public PHObject
   virtual unsigned int getAdc() const { return UINT_MAX; }
   virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
-  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
-  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+
   //
   // convenience interface
   //

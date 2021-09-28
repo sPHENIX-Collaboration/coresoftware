@@ -2,6 +2,8 @@
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -21,6 +23,8 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+
+class TrkrCluster;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
@@ -77,9 +81,23 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext geoContext) const;
 
+  Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
+				   ActsSurfaceMaps* surfMaps,
+				   ActsTrackingGeometry *tGeometry);
+  Surface getSurface(TrkrCluster* cluster,
+		     ActsSurfaceMaps* surfMaps) const;
+  
  private:
   int m_verbosity = 0;
 
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
+			    ActsSurfaceMaps *maps) const;
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
+			TrkrDefs::subsurfkey surfkey,
+			ActsSurfaceMaps *maps) const;
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
+		       ActsSurfaceMaps *maps) const;
+  
 
 };
 

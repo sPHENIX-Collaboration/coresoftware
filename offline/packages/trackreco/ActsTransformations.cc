@@ -1,5 +1,6 @@
 #include "ActsTransformations.h"
 #include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <chrono>
 using namespace std::chrono;
@@ -250,6 +251,93 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 }
 
 
+Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
+						      ActsSurfaceMaps* surfMaps,
+						      ActsTrackingGeometry *tGeometry)
+{
+  Acts::Vector3D glob;
+
+  auto surface = getSurface(cluster, surfMaps);
+  if(!surface)
+    {
+      std::cerr << "Couldn't identify cluster surface. Returning NAN"
+		<< std::endl;
+      glob(0) = NAN;
+      glob(1) = NAN;
+      glob(2) = NAN;
+      return glob;
+    }
+
+  Acts::Vector2D local(cluster->getLocalX(), cluster->getLocalY());
+  auto global = surface->localToGlobal(tGeometry->geoContext,
+				       local * Acts::UnitConstants::cm,
+				       Acts::Vector3D(1,1,1));
+
+  global /= Acts::UnitConstants::cm;
+  return global;
+
+}
+
+Surface ActsTransformations::getSurface(TrkrCluster *cluster,
+					ActsSurfaceMaps *surfMaps) const
+{
+  const auto cluskey = cluster->getClusKey();
+  const auto surfkey = cluster->getSubSurfKey();
+  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  switch( trkrid )
+  {
+  case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey, surfMaps );
+  case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey, surfMaps);
+    case TrkrDefs::TrkrId::mvtxId:
+    case TrkrDefs::TrkrId::inttId:
+    {
+      return getSiliconSurface(hitsetkey, surfMaps);
+    }
+  }
+  
+  // unreachable
+  return nullptr;
+}
+
+Surface ActsTransformations::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
+					       ActsSurfaceMaps *maps) const
+{
+  auto surfMap = maps->siliconSurfaceMap;
+  auto iter = surfMap.find(hitsetkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  return nullptr;
+
+}
+
+Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, 
+					   TrkrDefs::subsurfkey surfkey,
+					   ActsSurfaceMaps* maps) const
+{
+  const auto iter = maps->tpcSurfaceMap.find(hitsetkey);
+  if(iter != maps->tpcSurfaceMap.end())
+  {
+    auto surfvec = iter->second;
+    return surfvec.at(surfkey);
+  }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+}
+
+
+Surface ActsTransformations::getMMSurface(TrkrDefs::hitsetkey hitsetkey,
+					  ActsSurfaceMaps *maps) const
+{
+  const auto iter = maps->mmSurfaceMap.find( hitsetkey );
+  return (iter == maps->mmSurfaceMap.end()) ? nullptr:iter->second;
+}
 
 void ActsTransformations::fillSvtxTrackStates(const Trajectory& traj,
 					      const size_t &trackTip,
