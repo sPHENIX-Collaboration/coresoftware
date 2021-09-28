@@ -663,13 +663,26 @@ void TrackingEvaluator_hp::evaluate_tracks()
       {
         // check g4hits associated particle id and update track _correct_mask
         const auto iter = std::find_if( g4hits.begin(), g4hits.end(), [id]( const auto& g4hit ){ return g4hit->get_trkid() == id; } );
-        if( iter != g4hits.end() )
-        {
-          track_struct._correct_mask |= (1LL<<(*iter)->get_layer());
+        if( iter != g4hits.end() ) track_struct._correct_mask |= (1LL<<(*iter)->get_layer());
 
-          // if cluster has only one contributor, also add to _correct_mask_strict
-          if( cluster_struct._ncontributors == 1 ) track_struct._correct_mask_strict |= (1LL<<(*iter)->get_layer());
+        // get track id energy as max contributor
+        using eion_map_t = std::map<int, float>;
+        using eion_pair_t = std::pair<int, float>;
+        eion_map_t eion_map;
+        for( const auto& g4hit:g4hits )
+        {
+          auto iter = eion_map.find( g4hit->get_trkid() );
+          if( iter == eion_map.end() ) eion_map.insert( std::make_pair( g4hit->get_trkid(), g4hit->get_eion() ) );
+          else iter->second += g4hit->get_eion();
         }
+
+        if( !eion_map.empty() )
+        {
+          const auto max_element_iter = std::max_element( eion_map.begin(), eion_map.end(), []( const eion_pair_t& first, const eion_pair_t& second )
+            { return first.second < second.second; } );
+          if( max_element_iter->first == id ) track_struct._correct_mask_strict |= (1LL<<(*iter)->get_layer());
+        }
+
       }
 
       // find track state that is the closest to cluster
