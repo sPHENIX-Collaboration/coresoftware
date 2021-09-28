@@ -43,34 +43,17 @@ class TrkrCluster : public PHObject
   //
   // cluster position
   //
-  // Global coordinate functions are deprecated, use local 
-  // coordinate functions only
-  virtual float getX() const { return NAN; }
-  virtual void setX(float) {}
-  virtual float getY() const { return NAN; }
-  virtual void setY(float) {}
-  virtual float getZ() const { return NAN; }
-  virtual void setZ(float) {}
-  virtual float getPosition(int /*coor*/) const { return NAN; }
-  virtual void setPosition(int /*coor*/, float /*xi*/) {}
-  virtual void setGlobal() {}
-  virtual void setLocal() {}
-  virtual bool isGlobal() { return true; }
-  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
-  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
-
-
   virtual float getLocalX() const { return NAN; }
   virtual void setLocalX(float) {}
   virtual float getLocalY() const { return NAN; }
   virtual void setLocalY(float) {}
+  virtual void setSize(unsigned int, float) {}
+  virtual float getSize(unsigned int) const {return NAN;}
   //
   // cluster info
   //
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
-  virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
-  virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
   //
   // convenience interface
@@ -86,6 +69,25 @@ class TrkrCluster : public PHObject
   virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
   virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
   virtual void setSubSurfKey(TrkrDefs::subsurfkey /*id*/) {}
+
+  // Global coordinate functions are deprecated, use local 
+  // coordinate functions only
+  virtual float getX() const { return NAN; }
+  virtual void setX(float) {}
+  virtual float getY() const { return NAN; }
+  virtual void setY(float) {}
+  virtual float getZ() const { return NAN; }
+  virtual void setZ(float) {}
+  virtual float getPosition(int /*coor*/) const { return NAN; }
+  virtual void setPosition(int /*coor*/, float /*xi*/) {}
+  virtual void setGlobal() {}
+  virtual void setLocal() {}
+  virtual bool isGlobal() { return true; }
+  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+  virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+
 
  protected:
   TrkrCluster() = default;

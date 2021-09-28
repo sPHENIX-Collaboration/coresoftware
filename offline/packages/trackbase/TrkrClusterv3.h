@@ -14,7 +14,7 @@
 class PHObject;
 
 /**
- * @brief Version 2 of TrkrCluster
+ * @brief Version 3 of TrkrCluster
  *
  * This version of TrkrCluster contains Acts source link objects
  * as member variables, to join the Svtx and Acts worlds
@@ -47,6 +47,8 @@ class TrkrClusterv3 : public TrkrCluster
   void setLocalX(float loc0) override { m_local[0] = loc0; }
   float getLocalY() const override { return m_local[1]; }
   void setLocalY(float loc1) override { m_local[1] = loc1; }
+  void setSize(unsigned int i, float size) override {m_size[i] = size;}
+  float getSize(unsigned int i) const override {return m_size[i];}
 
   /// Acts functions, for Acts module use only
   void setActsLocalError(unsigned int i, unsigned int j, float value) override;
@@ -54,26 +56,13 @@ class TrkrClusterv3 : public TrkrCluster
   TrkrDefs::subsurfkey getSubSurfKey() const override { return m_subsurfkey; }
   void setSubSurfKey(TrkrDefs::subsurfkey id) override { m_subsurfkey = id; }
 
-  /// deprecated global funtions with a warning
-  float getX() const override { std::cout << "Deprecated trkrcluster function!"<<std::endl; return NAN;}
-  float getY() const override { std::cout << "Deprecated trkrcluster function!"<<std::endl; return NAN;}
-  float getZ() const override { std::cout << "Deprecated trkrcluster function!"<<std::endl; return NAN;}
-   void setX(float) override { std::cout << "Deprecated trkrcluster function!"<<std::endl;} 
-   void setY(float) override { std::cout << "Deprecated trkrcluster function!"<<std::endl;} 
-   void setZ(float) override { std::cout << "Deprecated trkrcluster function!"<<std::endl;}
-
-   float getError(unsigned int, unsigned int) const override {std::cout << "Deprecated trkrcluster function!" << std::endl; return NAN;}
-   void setError(unsigned int, unsigned int, float) override { std::cout << "Deprecated trkrcluster function!" << std::endl; }
-
   //
   // cluster info
   //
   unsigned int getAdc() const override { return m_adc; }
   void setAdc(unsigned int adc) override { m_adc = adc; }
-  float getSize(unsigned int i, unsigned int j) const override;        //< get cluster dimension covar
-  void setSize(unsigned int i, unsigned int j, float value) override;  //< set cluster dimension covar
 
-  
+
   //
   // convenience interface
   //
@@ -83,13 +72,26 @@ class TrkrClusterv3 : public TrkrCluster
   float getRPhiError() const override;
   float getZError() const override;
 
+
+  /// deprecated global funtions with a warning
+  float getX() const override { std::cout << "Deprecated getx trkrcluster function!"<<std::endl; return NAN;}
+  float getY() const override { std::cout << "Deprecated gety trkrcluster function!"<<std::endl; return NAN;}
+  float getZ() const override { std::cout << "Deprecated getz trkrcluster function!"<<std::endl; return NAN;}
+   void setX(float) override { std::cout << "Deprecated setx trkrcluster function!"<<std::endl;} 
+   void setY(float) override { std::cout << "Deprecated sety trkrcluster function!"<<std::endl;} 
+   void setZ(float) override { std::cout << "Deprecated setz trkrcluster function!"<<std::endl;}
+   float getSize(unsigned int, unsigned int) const override {std::cout << "Deprecated getsize trkrcluster function!" << std::endl; return NAN;}       
+   void setSize(unsigned int, unsigned int, float) override {std::cout << "Deprecated setsize trkrcluster function!" << std::endl;}
+   float getError(unsigned int, unsigned int) const override {std::cout << "Deprecated geterr trkrcluster function!" << std::endl; return NAN;}
+   void setError(unsigned int, unsigned int, float) override { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
+
  protected:
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
   TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps
 
   unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
-  float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
+  float m_size[3];              //< size covariance matrix, in thickness==0, phisize==1, zsize[2]
   
   float m_local[2];             //< 2D local position [cm]
   float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]

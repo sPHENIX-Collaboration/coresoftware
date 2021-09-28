@@ -391,17 +391,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   float clusx = radius * cos(clusphi);
   float clusy = radius * sin(clusphi);
   
-  TMatrixF DIM(3, 3);
-  DIM[0][0] = 0.0;
-  DIM[0][1] = 0.0;
-  DIM[0][2] = 0.0;
-  DIM[1][0] = 0.0;
-  DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
-  DIM[1][2] = 0.0;
-  DIM[2][0] = 0.0;
-  DIM[2][1] = 0.0;
-  DIM[2][2] = pow(0.5 * z_size,2);
-  
   TMatrixF ERR(3, 3);
   ERR[0][0] = 0.0;
   ERR[0][1] = 0.0;
@@ -413,33 +402,10 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   ERR[2][1] = 0.0;
   ERR[2][2] = z_err_square;
   
-  TMatrixF ROT(3, 3);
-  ROT[0][0] = cos(clusphi);
-  ROT[0][1] = -sin(clusphi);
-  ROT[0][2] = 0.0;
-  ROT[1][0] = sin(clusphi);
-  ROT[1][1] = cos(clusphi);
-  ROT[1][2] = 0.0;
-  ROT[2][0] = 0.0;
-  ROT[2][1] = 0.0;
-  ROT[2][2] = 1.0;
-  
-  TMatrixF ROT_T(3, 3);
-  ROT_T.Transpose(ROT);
-  
-  TMatrixF COVAR_DIM(3, 3);
-  COVAR_DIM = ROT * DIM * ROT_T;
-  
-  clus->setSize(0, 0, COVAR_DIM[0][0]);
-  clus->setSize(0, 1, COVAR_DIM[0][1]);
-  clus->setSize(0, 2, COVAR_DIM[0][2]);
-  clus->setSize(1, 0, COVAR_DIM[1][0]);
-  clus->setSize(1, 1, COVAR_DIM[1][1]);
-  clus->setSize(1, 2, COVAR_DIM[1][2]);
-  clus->setSize(2, 0, COVAR_DIM[2][0]);
-  clus->setSize(2, 1, COVAR_DIM[2][1]);
-  clus->setSize(2, 2, COVAR_DIM[2][2]);
-  
+  clus->setSize(0, 0.); // no thickness to tpc layers
+  clus->setSize(1, pow(0.5 * phi_size, 2));
+  clus->setSize(2, pow(0.5 * z_size, 2));
+
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
 

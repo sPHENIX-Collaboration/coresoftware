@@ -388,21 +388,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
+
 
 	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
 	//float tilt = 0.0;
-
-	TMatrixF DIM(3, 3);
-	DIM[0][0] = square(0.5 * thickness);
-	DIM[0][1] = 0.0;
-	DIM[0][2] = 0.0;
-	DIM[1][0] = 0.0;
-	DIM[1][1] = square(0.5 * phisize);
-	DIM[1][2] = 0.0;
-	DIM[2][0] = 0.0;
-	DIM[2][1] = 0.0;
-	DIM[2][2] = square(0.5 * zsize);
 
 	TMatrixF ERR(3, 3);
 	ERR[0][0] = square(thickness*invsqrt12);
@@ -418,47 +407,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
 
-	TMatrixF ROT(3, 3);
-	ROT[0][0] = cos(ladderphi);
-	ROT[0][1] = -1.0 * sin(ladderphi);
-	ROT[0][2] = 0.0;
-	ROT[1][0] = sin(ladderphi);
-	ROT[1][1] = cos(ladderphi);
-	ROT[1][2] = 0.0;
-	ROT[2][0] = 0.0;
-	ROT[2][1] = 0.0;
-	ROT[2][2] = 1.0;
-
-	// TMatrixF TILT(3, 3);
-	// TILT[0][0] = 1.0;
-	// TILT[0][1] = 0.0;
-	// TILT[0][2] = 0.0;
-	// TILT[1][0] = 0.0;
-	// TILT[1][1] = cos(tilt);
-	// TILT[1][2] = -1.0 * sin(tilt);
-	// TILT[2][0] = 0.0;
-	// TILT[2][1] = sin(tilt);
-	// TILT[2][2] = cos(tilt);
-
-	TMatrixF &R = ROT;
-	//TMatrixF R(3, 3);
-	//R = ROT * TILT;
-
-	TMatrixF R_T(3, 3);
-	R_T.Transpose(R);
-
-	TMatrixF COVAR_DIM(3, 3);
-	COVAR_DIM = R * DIM * R_T;
-
-	clus->setSize(0, 0, COVAR_DIM[0][0]);
-	clus->setSize(0, 1, COVAR_DIM[0][1]);
-	clus->setSize(0, 2, COVAR_DIM[0][2]);
-	clus->setSize(1, 0, COVAR_DIM[1][0]);
-	clus->setSize(1, 1, COVAR_DIM[1][1]);
-	clus->setSize(1, 2, COVAR_DIM[1][2]);
-	clus->setSize(2, 0, COVAR_DIM[2][0]);
-	clus->setSize(2, 1, COVAR_DIM[2][1]);
-	clus->setSize(2, 2, COVAR_DIM[2][2]);
+	clus->setSize(0, square(0.5 * thickness));
+	clus->setSize(1, square(0.5 * phisize));
+	clus->setSize(2, square(0.5 * zsize));
 
 	TVector3 local(0,0,0);
 	TVector3 world(clusx, clusy, clusz);
