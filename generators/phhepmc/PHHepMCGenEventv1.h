@@ -3,13 +3,13 @@
 
 #include "PHHepMCGenEvent.h"
 
-#include <phool/phool.h>                   // for PHOOL_VIRTUAL_WARNING
+#include <phool/phool.h>  // for PHOOL_VIRTUAL_WARNING
 
-#include <HepMC/SimpleVector.h>            // for ThreeVector
+#include <HepMC/SimpleVector.h>  // for ThreeVector
 
 #include <CLHEP/Vector/LorentzRotation.h>  // for HepLorentzRotation
 
-#include <iostream>                        // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 class PHObject;
 

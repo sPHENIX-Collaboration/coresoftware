@@ -7,7 +7,7 @@
 #include <CLHEP/Vector/LorentzRotation.h>
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/Rotation.h>
-#include <CLHEP/Vector/ThreeVector.h>        // for Hep3Vector
+#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
 #include <sstream>
 
@@ -64,10 +64,10 @@ void PHHepMCGenEventv1::identify(std::ostream& os) const
   static const CLHEP::HepLorentzVector zp_lightcone(0, 0, 1, 1);
   static const CLHEP::HepLorentzVector zm_lightcone(0, 0, -1, 1);
 
-  os << " HepMC Frame unit light cone vector along +z axis "<<zp_lightcone<<" translate to lab at : "
+  os << " HepMC Frame unit light cone vector along +z axis " << zp_lightcone << " translate to lab at : "
      << (get_LorentzRotation_EvtGen2Lab() * zp_lightcone)
      << std::endl;
-  os << " HepMC Frame unit light cone vector along -z axis  "<<zm_lightcone<<" translate to lab at : "
+  os << " HepMC Frame unit light cone vector along -z axis  " << zm_lightcone << " translate to lab at : "
      << (get_LorentzRotation_EvtGen2Lab() * zm_lightcone)
      << std::endl;
 

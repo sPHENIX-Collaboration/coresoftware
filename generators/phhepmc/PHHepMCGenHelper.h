@@ -261,7 +261,6 @@ class PHHepMCGenHelper
   //! use m_beam_bunch_width to calculate horizontal and vertical collision width
   //! \param[in] hv_index 0: horizontal. 1: vertical
   double get_collision_width(unsigned int hv_index);
-
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */
