@@ -298,8 +298,7 @@ void PHG4TpcDirectLaser::SetupLasers()
   m_lasers.clear();
 
   // position of first laser at positive z
-  // const TVector3 position_base( 60*cm, 0., halflength_tpc );
-  const TVector3 position_base( 31*cm, 0., halflength_tpc );
+  const TVector3 position_base( 60*cm, 0., halflength_tpc );
 
   // add lasers
   for( int i = 0; i<8; ++i )
