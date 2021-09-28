@@ -69,6 +69,8 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
     std::cout << "PHActsTrackProjection : Starting process_event event "
 	      << m_event << std::endl;
+  if(m_skipCalos)
+    { return Fun4AllReturnCodes::EVENT_OK; }
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
@@ -409,7 +411,12 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
   for(int caloLayer = 0; caloLayer < m_nCaloLayers; caloLayer++)
     {
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
-	return Fun4AllReturnCodes::ABORTEVENT;
+	{
+	  std::cerr << "Calo nodes not available, track projection to calo values won't be added."
+		    << std::endl;
+	  m_skipCalos = true;
+	  return Fun4AllReturnCodes::EVENT_OK;
+	}
       
       const auto caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;

@@ -106,6 +106,7 @@ class PHActsTrackProjection : public SubsysReco
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
+  bool m_skipCalos = false;
   bool m_useCemcPosRecalib = false;
 
   int m_event = 0;

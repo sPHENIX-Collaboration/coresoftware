@@ -38,11 +38,8 @@ pkginclude_HEADERS = \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHActsSiliconSeeding.h \
-  PHActsInitialVertexFinder.h \
-  PHActsVertexFinder.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
-  PHActsVertexFitter.h \
   PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
@@ -119,9 +116,6 @@ ACTS_SOURCES = \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
-  PHActsInitialVertexFinder.cc \
-  PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc
 
