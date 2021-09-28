@@ -43,6 +43,7 @@ class TrkrCluster : public PHObject
   //
   // cluster position
   //
+  /// Global coordinates are deprecated, use local coordinates only
   virtual float getX() const { return NAN; }
   virtual void setX(float) {}
   virtual float getY() const { return NAN; }
@@ -54,6 +55,8 @@ class TrkrCluster : public PHObject
   virtual void setGlobal() {}
   virtual void setLocal() {}
   virtual bool isGlobal() { return true; }
+
+
   virtual float getLocalX() const { return NAN; }
   virtual void setLocalX(float) {}
   virtual float getLocalY() const { return NAN; }
