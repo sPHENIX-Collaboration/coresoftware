@@ -7,11 +7,9 @@
 #include <CLHEP/Vector/LorentzRotation.h>
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/Rotation.h>
+#include <CLHEP/Vector/ThreeVector.h>        // for Hep3Vector
 
 #include <sstream>
-#include <utility>  // for swap
-
-using namespace std;
 
 PHHepMCGenEventv1::PHHepMCGenEventv1()
   : m_boost_beta_vector(0, 0, 0)
@@ -60,18 +58,18 @@ void PHHepMCGenEventv1::identify(std::ostream& os) const
 {
   PHHepMCGenEvent::identify(os);
 
-  os << " m_boost_beta_vector = (" << m_boost_beta_vector.x() << "," << m_boost_beta_vector.y() << "," << m_boost_beta_vector.z() << ") " << endl;
-  os << " m_rotation_vector = (" << m_rotation_vector.x() << "," << m_rotation_vector.y() << "," << m_rotation_vector.z() << ") by " << m_rotation_angle << " rad" << endl;
+  os << " m_boost_beta_vector = (" << m_boost_beta_vector.x() << "," << m_boost_beta_vector.y() << "," << m_boost_beta_vector.z() << ") " << std::endl;
+  os << " m_rotation_vector = (" << m_rotation_vector.x() << "," << m_rotation_vector.y() << "," << m_rotation_vector.z() << ") by " << m_rotation_angle << " rad" << std::endl;
 
   static const CLHEP::HepLorentzVector zp_lightcone(0, 0, 1, 1);
   static const CLHEP::HepLorentzVector zm_lightcone(0, 0, -1, 1);
 
   os << " HepMC Frame unit light cone vector along +z axis "<<zp_lightcone<<" translate to lab at : "
      << (get_LorentzRotation_EvtGen2Lab() * zp_lightcone)
-     << endl;
+     << std::endl;
   os << " HepMC Frame unit light cone vector along -z axis  "<<zm_lightcone<<" translate to lab at : "
      << (get_LorentzRotation_EvtGen2Lab() * zm_lightcone)
-     << endl;
+     << std::endl;
 
   return;
 }
