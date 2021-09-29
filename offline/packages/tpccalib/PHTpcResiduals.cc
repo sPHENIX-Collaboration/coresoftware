@@ -179,8 +179,14 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 	      << nMMHits << std::endl;
 
   // Require at least 2 hits in each detector
-  if(nMvtxHits < 2 or nInttHits < 2 or nMMHits < 2)
+  if( m_useMicromegas )
+  {
+    if(nMvtxHits<2 || nInttHits<2 || nMMHits<2)
     return false;
+  } else {
+    if(nMvtxHits<2 || nInttHits<2 )
+    return false;
+  }
 
   return true;
 

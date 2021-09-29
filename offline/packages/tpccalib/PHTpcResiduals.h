@@ -77,6 +77,10 @@ class PHTpcResiduals : public SubsysReco
 
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile) {m_outputfile = outputfile;}
+
+  /// require micromegas to be present when extrapolating tracks to the TPC
+  void setUseMicromegas( bool value )
+  { m_useMicromegas = value; }
   
  private:
 
@@ -146,6 +150,9 @@ class PHTpcResiduals : public SubsysReco
   
   /// Counter for number of bad propagations from propagateTrackState()
   int m_nBadProps = 0;
+
+  /// require micromegas to be present when extrapolating tracks to the TPC
+  bool m_useMicromegas = true;
 
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
