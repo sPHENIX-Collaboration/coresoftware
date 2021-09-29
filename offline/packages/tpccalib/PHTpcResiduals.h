@@ -17,7 +17,6 @@
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
 class TrkrClusterContainer;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
@@ -110,11 +109,9 @@ class PHTpcResiduals : public SubsysReco
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
-  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
-  SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
