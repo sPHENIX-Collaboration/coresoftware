@@ -117,7 +117,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   
   
   // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = std::prev(_track_map->end())->first;
+  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
   if(Verbosity() > 1)
     std::cout << "Original track map has lastkey " << original_track_map_lastkey << std::endl;
 
@@ -349,7 +349,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 #else
 	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 #endif
-	      const unsigned int lastTrackKey = std::prev(_track_map->end())->first; 
+	      const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
 	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 	      
 	      newTrack->set_id(lastTrackKey+1);
