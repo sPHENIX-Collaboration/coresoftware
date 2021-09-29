@@ -846,7 +846,7 @@ void PHSimpleKFProp::MoveToVertex()
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
   /*
  // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
+  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
   */
 
   // loop over the TPC track seeds
