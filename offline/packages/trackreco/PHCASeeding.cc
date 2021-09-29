@@ -8,6 +8,7 @@
 #include "PHCASeeding.h"
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
+#include "ActsTransformations.h"
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -298,6 +299,22 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 	}*/
     }
   }
+
+  tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!tGeometry)
+    {
+      std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
+  surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!surfMaps)
+    {
+      std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -337,6 +354,8 @@ void PHCASeeding::FillTree()
   t_fill->stop();
   int n_dupli = 0;
   int nlayer[60];
+  ActsTransformations transform;
+
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (auto hitsetitr = hitsetrange.first;
@@ -359,7 +378,10 @@ void PHCASeeding::FillTree()
 	  if(nhits<_min_nhits_per_cluster) continue;
 	}
       */
-      TVector3 vec(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+      const auto globalpos = transform.getGlobalPosition(cluster,
+							 surfMaps,
+							 tGeometry);
+      TVector3 vec(globalpos(0), globalpos(1), globalpos(2));
       double clus_phi = vec.Phi();
       if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
       //clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
@@ -388,8 +410,12 @@ void PHCASeeding::FillTree()
 
 pointKey PHCASeeding::makepointKey(TrkrDefs::cluskey k)
 {
+  ActsTransformations transform;
   TrkrCluster* cluster = _cluster_map->findCluster(k);
-  TVector3 vec(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+  const auto globalpos = transform.getGlobalPosition(cluster,
+						     surfMaps,
+						     tGeometry);
+  TVector3 vec(globalpos(0), globalpos(1), globalpos(2));
   double clus_phi = vec.Phi();
   if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
   if(clus_phi>2*M_PI) clus_phi = clus_phi - 2*M_PI;
@@ -580,6 +606,8 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
   belowLinks.resize(_nlayers_tpc);
   aboveLinks.resize(_nlayers_tpc);
 
+  ActsTransformations transformer;
+
   for (vector<coordKey>::iterator StartCluster = clusters.begin(); StartCluster != clusters.end(); ++StartCluster)
   {
     nclusters++;
@@ -590,9 +618,12 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     if(StartLayer < _start_layer) continue;
     if(StartLayer > _end_layer) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
-    double StartX = StartCl->getPosition(0);//-_vertex->get_x();
-    double StartY = StartCl->getPosition(1);//-_vertex->get_y();
-    double StartZ = StartCl->getPosition(2);//-_vertex->get_z();
+    const auto globalpos = transformer.getGlobalPosition(StartCl,
+						       surfMaps,
+						       tGeometry);
+    double StartX = globalpos(0);
+    double StartY = globalpos(1);
+    double StartZ = globalpos(2);
     t_seed->stop();
     cluster_find_time += t_seed->elapsed();
     t_seed->restart();
@@ -633,18 +664,25 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     // calculate (delta_eta, delta_phi) vector for each neighboring cluster
 
     transform(ClustersBelow.begin(),ClustersBelow.end(),delta_below.begin(),
-      [&](pointKey BelowCandidate){
+	      [&](pointKey BelowCandidate){
         TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate.second);
-        return array<double,3>{BelowCl->getPosition(0)-StartX,
-          BelowCl->getPosition(1)-StartY,
-          BelowCl->getPosition(2)-StartZ};});
+	const auto belowpos = transformer.getGlobalPosition(BelowCl,
+							  surfMaps,
+							  tGeometry);
+        return array<double,3>{belowpos(0)-StartX,
+	    belowpos(1)-StartY,
+	    belowpos(2)-StartZ};});
 
     transform(ClustersAbove.begin(),ClustersAbove.end(),delta_above.begin(),
       [&](pointKey AboveCandidate){
         TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
-        return array<double,3>{AboveCl->getPosition(0)-StartX,
-          AboveCl->getPosition(1)-StartY,
-          AboveCl->getPosition(2)-StartZ};});
+	ActsTransformations transform;
+	const auto abovepos = transformer.getGlobalPosition(AboveCl,
+							  surfMaps,
+							  tGeometry);
+        return array<double,3>{abovepos(0)-StartX,
+          abovepos(1)-StartY,
+          abovepos(2)-StartZ};});
     t_seed->stop();
     transform_time += t_seed->elapsed();
     t_seed->restart();
@@ -700,9 +738,12 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
         transform(clustersTwoLayersBelow.begin(),clustersTwoLayersBelow.end(),delta_2below.begin(),
           [&](pointKey BelowCandidate){
             TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate.second);
-            return array<double,3>{(BelowCl->getPosition(0))-StartX,
-              (BelowCl->getPosition(1))-StartY,
-              (BelowCl->getPosition(2))-StartZ};});
+	    const auto belowpos = transformer.getGlobalPosition(BelowCl,
+							      surfMaps,
+							      tGeometry);
+            return array<double,3>{(belowpos(0))-StartX,
+              (belowpos(1))-StartY,
+              (belowpos(2))-StartZ};});
         for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
         {
           for(size_t iBelow = 0; iBelow<delta_2below.size(); ++iBelow)
@@ -737,9 +778,12 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
           transform(clustersTwoLayersAbove.begin(),clustersTwoLayersAbove.end(),delta_2above.begin(),
             [&](pointKey AboveCandidate){
               TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
-              return array<double,3>{(AboveCl->getPosition(0))-StartX,
-                (AboveCl->getPosition(1))-StartY,
-                (AboveCl->getPosition(2))-StartZ};});
+	      const auto abovepos = transformer.getGlobalPosition(AboveCl,
+								surfMaps,
+								tGeometry);
+              return array<double,3>{(abovepos(0))-StartX,
+                (abovepos(1))-StartY,
+                (abovepos(2))-StartZ};});
           for(size_t iAbove = 0; iAbove<delta_2above.size(); ++iAbove)
           {
             for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
@@ -874,6 +918,7 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
   }
   int jumpcount = 0;
   LogDebug(" track key associations:" << endl);
+  ActsTransformations transform;
   for(size_t i=0;i<trackSeedKeyLists.size();++i)
   {
     LogDebug(" seed " << i << ":" << endl);
@@ -883,7 +928,10 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
     {
       TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
-      TVector3 vec(cl->getPosition(0), cl->getPosition(1), cl->getPosition(2));
+      const auto globalpos = transform.getGlobalPosition(cl,
+							 surfMaps,
+							 tGeometry);
+      TVector3 vec(globalpos(0), globalpos(1), globalpos(2));
 
       double clus_phi = vec.Phi();
       if(clus_phi<0) clus_phi = 2*M_PI + clus_phi;
@@ -900,13 +948,13 @@ vector<keylist> PHCASeeding::FollowBiLinks(vector<vector<keylink>> bidirectional
            ++jumpcount;
         }
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
-        " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
+        " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << endl);
       
       if(Verbosity() > 0)
 	{
             unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
             std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
-             " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << std::endl;
+             " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl;
         }
       lasteta = clus_eta;
       lastphi = clus_phi;
@@ -923,6 +971,8 @@ vector<keylist> PHCASeeding::RemoveBadClusters(vector<keylist> chains)
 {
   if(Verbosity()>0) cout << "removing bad clusters" << endl;
   vector<keylist> clean_chains;
+  ActsTransformations transform;
+
   for(keylist chain : chains)
   {
     if(chain.size()<3) continue;
@@ -934,9 +984,10 @@ vector<keylist> PHCASeeding::RemoveBadClusters(vector<keylist> chains)
     for(TrkrDefs::cluskey ckey : chain)
     {
       TrkrCluster* c = _cluster_map->findCluster(ckey);
-      double x = c->getX();
-      double y = c->getY();
-      double z = c->getZ();
+      const auto global = transform.getGlobalPosition(c, surfMaps, tGeometry);
+      double x = global(0);
+      double y = global(1);
+      double z = global(2);
       xy_pts.push_back(make_pair(x,y));
       rz_pts.push_back(make_pair(sqrt(x*x+y*y),z));
     }
@@ -1041,7 +1092,9 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) cout << "Called Setup" << endl;
   if(Verbosity()>0) cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
-  InitializeGeometry(topNode);
+  int ret = InitializeGeometry(topNode);
+  if(ret != Fun4AllReturnCodes::EVENT_OK)
+    { return ret; }
  #if __cplusplus < 201402L
   t_fill = boost::make_unique<PHTimer>("t_fill");
   t_seed = boost::make_unique<PHTimer>("t_seed");
@@ -1051,7 +1104,7 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
 #endif
   t_fill->stop();
   t_seed->stop();
-  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,surfMaps,tGeometry,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));

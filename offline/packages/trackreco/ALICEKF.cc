@@ -1,5 +1,5 @@
 #include "ALICEKF.h"
-
+#include "ActsTransformations.h"
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
 
@@ -9,6 +9,9 @@
 #include "TFile.h"
 #include "TNtuple.h"
 
+#include <TMatrixFfwd.h>
+#include <TMatrixT.h>   
+#include <TMatrixTUtils.h>
 //#define _DEBUG_
 
 #if defined(_DEBUG_)
@@ -48,7 +51,39 @@ double ALICEKF::getClusterError(TrkrCluster* c, int i, int j)
      if(i==j) return _fixed_clus_error.at(i)*_fixed_clus_error.at(i);
      else return 0.;
   }
-  else return c->getError(i,j);
+  else 
+    {
+      TMatrixF localErr(3,3);
+      localErr[0][0] = 0.;
+      localErr[0][1] = 0.;
+      localErr[0][2] = 0.;
+      localErr[1][0] = 0.;
+      localErr[1][1] = c->getActsLocalError(0,0);
+      localErr[1][2] = c->getActsLocalError(0,1);
+      localErr[2][0] = 0.;
+      localErr[2][1] = c->getActsLocalError(1,0);
+      localErr[2][2] = c->getActsLocalError(2,0);
+      ActsTransformations transform;
+      auto global = transform.getGlobalPosition(c, _surfmaps, _tGeometry);
+      float clusphi = atan2(global(1), global(0));
+      TMatrixF ROT(3,3);
+      ROT[0][0] = cos(clusphi);
+      ROT[0][1] = -sin(clusphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(clusphi);
+      ROT[1][1] = cos(clusphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+      TMatrixF ROT_T(3,3);
+      ROT_T.Transpose(ROT);
+  
+      TMatrixF err(3,3);
+      err = ROT * localErr * ROT_T;
+      
+      return err[i][j];
+    }
 }
 
 vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit)
@@ -57,6 +92,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
   vector<SvtxTrack_v2> seeds_vector;
   int nseeds = 0;
+  ActsTransformations transformer;
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
@@ -66,9 +102,12 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     // get starting cluster from key
     TrkrCluster* startCluster = _cluster_map->findCluster(trackKeyChain->at(0));
     // Transform sPHENIX coordinates into ALICE-compatible coordinates
-    double x0 = startCluster->getPosition(0);
-    double y0 = startCluster->getPosition(1);
-    double z0 = startCluster->getPosition(2);
+    const auto globalpos = transformer.getGlobalPosition(startCluster,
+							 _surfmaps,
+							 _tGeometry);
+    double x0 = globalpos(0);
+    double y0 = globalpos(1);
+    double z0 = globalpos(2);;
     LogDebug("Initial (x,y,z): (" << x0 << "," << y0 << "," << z0 << ")" << endl);
     // ALICE x coordinate = distance from beampipe
     double alice_x0 = sqrt(x0*x0+y0*y0);
@@ -91,9 +130,13 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double trackCartesian_z = 0.;
     // Pre-set momentum-based parameters to improve numerical stability
     TrkrCluster* SecondCluster = _cluster_map->findCluster(trackKeyChain->at(1));
-    double second_x = SecondCluster->getPosition(0);
-    double second_y = SecondCluster->getPosition(1);
-    double second_z = SecondCluster->getPosition(2);
+    const auto secondpos = transformer.getGlobalPosition(SecondCluster,
+                                                         _surfmaps,
+                                                         _tGeometry);
+
+    double second_x = secondpos(0);
+    double second_y = secondpos(1);
+    double second_z = secondpos(2);
     double first_phi = atan2(y0,x0);
     double second_alice_x = second_x*cos(first_phi)+second_y*sin(first_phi);
     double delta_alice_x = second_alice_x - alice_x0;
@@ -108,11 +151,13 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     LogDebug("Set initial DzDs to " << init_DzDs << endl);
     
     // get initial pt estimate
+    ActsTransformations transformer;
     std::vector<std::pair<double,double>> pts;
     for(size_t c=0;c<trackKeyChain->size();++c)
     {
       TrkrCluster* cl = _cluster_map->findCluster(trackKeyChain->at(c));
-      pts.push_back(std::make_pair(cl->getX(),cl->getY()));
+      const auto clpos = transformer.getGlobalPosition(cl, _surfmaps, _tGeometry);
+      pts.push_back(std::make_pair(clpos(0),clpos(1)));
     }
     double R;
     double x_center;
@@ -134,7 +179,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     LogDebug("initial QPt: " << init_QPt << endl);
     trackSeed.SetQPt(init_QPt);
 
-
+  
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
     LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
@@ -164,12 +209,16 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       LogDebug("layer " << (int)TrkrDefs::getLayer(*clusterkey) << endl);
       // get cluster from key
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
+      const auto nextpos = transformer.getGlobalPosition(nextCluster,
+                                                         _surfmaps,
+						         _tGeometry);
+     
       // find ALICE x-coordinate
-      double nextCluster_x = nextCluster->getPosition(0);
+      double nextCluster_x = nextpos(0);
       double nextCluster_xerr = sqrt(getClusterError(nextCluster,0,0));
-      double nextCluster_y = nextCluster->getPosition(1);
+      double nextCluster_y = nextpos(1);
       double nextCluster_yerr = sqrt(getClusterError(nextCluster,1,1));
-      double nextCluster_z = nextCluster->getPosition(2);
+      double nextCluster_z = nextpos(2);
       double nextCluster_zerr = sqrt(getClusterError(nextCluster,2,2));
       // rotate track coordinates to match orientation of next cluster
       double newPhi = atan2(nextCluster_y,nextCluster_x);
@@ -202,6 +251,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         }
   //    }
       // convert ALICE coordinates to sPHENIX cartesian coordinates, for debugging
+
       double predicted_alice_x = trackSeed.GetX();
       LogDebug("new track ALICE x = " << trackSeed.GetX() << endl);
       double predicted_alice_y = trackSeed.GetY();
@@ -234,6 +284,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       LogDebug("chi2 = " << trackSeed.GetChi2() << endl);
       LogDebug("NDF = " << trackSeed.GetNDF() << endl);
       LogDebug("chi2 / NDF = " << trackSeed.GetChi2()/trackSeed.GetNDF() << endl);
+  
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,_max_sin_phi))
       {
@@ -260,9 +311,42 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       alice_x = nextAlice_x;
       #endif
       ++cluster_ctr;
+  
       //if(cluster_ctr>10)
       {
-        cx.push_back(nextCluster_x);
+        float nextclusphi = atan2(nextCluster_y, nextCluster_x);
+	float nextclusrad = std::sqrt(nextCluster_x*nextCluster_x +
+				      nextCluster_y*nextCluster_y);
+	float nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
+
+	TMatrixF ROT(3, 3);
+	ROT[0][0] = cos(nextclusphi);
+	ROT[0][1] = -sin(nextclusphi);
+	ROT[0][2] = 0.0;
+	ROT[1][0] = sin(nextclusphi);
+	ROT[1][1] = cos(nextclusphi);
+	ROT[1][2] = 0.0;
+	ROT[2][0] = 0.0;
+	ROT[2][1] = 0.0;
+	ROT[2][2] = 1.0;
+
+	TMatrixF localSize(3,3);
+	localSize[0][0] = nextCluster->getSize(0);
+	localSize[0][1] = 0.;
+	localSize[0][2] = 0.;
+	localSize[1][0] = 0.;
+	localSize[1][1] = nextCluster->getSize(1);
+	localSize[1][2] = 0.;
+	localSize[2][0] = 0.;
+	localSize[2][1] = 0.;
+	localSize[2][2] = nextCluster->getSize(2);
+
+	TMatrixF ROT_T(3,3);
+	ROT_T.Transpose(ROT);
+	TMatrixF globSize(3,3);
+	globSize = ROT * localSize * ROT_T; 
+
+	cx.push_back(nextCluster_x);
         cy.push_back(nextCluster_y);
         cz.push_back(nextCluster_z);
         tx.push_back(trackCartesian_x);
@@ -272,10 +356,10 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         yerr.push_back(nextCluster_yerr);
         zerr.push_back(nextCluster_zerr);
         layer.push_back(TrkrDefs::getLayer(*clusterkey));
-        xsize.push_back(sqrt(nextCluster->getSize(0,0)));
-        ysize.push_back(sqrt(nextCluster->getSize(1,1)));
+        xsize.push_back(sqrt(globSize(0,0)));
+        ysize.push_back(sqrt(globSize(1,1)));
         phisize.push_back(nextCluster->getPhiSize());
-        phierr.push_back(nextCluster->getPhiError());
+        phierr.push_back(nextclusphierr);
         zsize.push_back(nextCluster->getZSize());
       }
     }
@@ -428,7 +512,10 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     if(checknan(track_z,"z",nseeds)) continue;
     double track_zerr = sqrt(trackSeed.GetErr2Z());
     if(checknan(track_zerr,"zerr",nseeds)) continue;
-    double last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back())->getPhiError();
+    auto lcluster = _cluster_map->findCluster(trackKeyChain->back());
+    auto lclusterglob = transformer.getGlobalPosition(lcluster,_surfmaps,_tGeometry);
+    const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
+    double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
@@ -823,12 +910,15 @@ void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a,
 void  ALICEKF::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
 {
   std::vector<std::pair<double,double>> points;
+  ActsTransformations transformer;
+  for (unsigned int i=0; i<clusters.size(); ++i)
+    {
+      const auto globalpos = transformer.getGlobalPosition(clusters.at(i),
+							 _surfmaps,
+							 _tGeometry);
+      double z = globalpos(2);
+      double r = sqrt(pow(globalpos(0),2) + pow(globalpos(1), 2));
   
-   for (unsigned int i=0; i<clusters.size(); ++i)
-     {
-       double z = clusters[i]->getZ();
-       double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-
        points.push_back(make_pair(r,z));
      }
 

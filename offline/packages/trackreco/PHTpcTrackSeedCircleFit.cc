@@ -1,5 +1,5 @@
 #include "PHTpcTrackSeedCircleFit.h"
-
+#include "ActsTransformations.h"
 #include "AssocInfoContainer.h"
 
 /// Tracking includes
@@ -104,6 +104,19 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *)
       unsigned int nlayers = layers.size();
       if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
 
+      ActsTransformations transformer;
+
+      std::vector<std::pair<double, double>> cpoints;
+      std::vector<Acts::Vector3D> globalClusterPositions;
+      for (unsigned int i=0; i<clusters.size(); ++i)
+	{
+	  auto global = transformer.getGlobalPosition(clusters.at(i),
+						       _surfmaps,
+						       _tGeometry);
+	  globalClusterPositions.push_back(global);
+	  cpoints.push_back(make_pair(global(0), global(1)));
+	}
+      
       if(clusters.size() < 3)
 	{
 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough TPC clusters " << std::endl; 
@@ -112,7 +125,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *)
 
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
-      line_fit_clusters(clusters, A, B);
+      line_fit_clusters(globalClusterPositions, A, B);
       if(Verbosity() > 2) std::cout << " First fitted line has A " << A << " B " << B << std::endl;
 
       // Project this TPC tracklet  to the beam line and store the projections
@@ -125,12 +138,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *)
 
       // extract the track theta
       double track_angle = atan(A);  // referenced to 90 degrees
-
-      std::vector<std::pair<double, double>> cpoints;
-      for (unsigned int i=0; i<clusters.size(); ++i)
-	{
-	  cpoints.push_back(make_pair(clusters[i]->getX(), clusters[i]->getY()));
-	}
+  
       
       // make circle fit
       double R, X0, Y0;
@@ -155,15 +163,6 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode *)
       
       // We want the angle of the tangent relative to the positive x axis
       // start with the angle of the radial line from vertex to circle center
-
-      // Add vertex to cpoints
-      cpoints.clear();
-      for (unsigned int i=0; i<clusters.size(); ++i)
-	{
-	  double x = clusters[i]->getX();
-	  double y = clusters[i]->getY();	  
-	  cpoints.push_back(make_pair(x, y));
-	}
 
       double dx = X0 - dcax;
       double dy = Y0 - dcay;
@@ -243,6 +242,20 @@ int PHTpcTrackSeedCircleFit::End(PHCompositeNode*)
 
 int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
 {
+  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!_surfmaps)
+    {
+      std::cout << PHWHERE << "Error, can't find acts surface maps" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!_tGeometry)
+    {
+      std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
@@ -297,14 +310,14 @@ void  PHTpcTrackSeedCircleFit::line_fit(std::vector<std::pair<double,double>> po
     return;
 }   
 
-void  PHTpcTrackSeedCircleFit::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
+void PHTpcTrackSeedCircleFit::line_fit_clusters(std::vector<Acts::Vector3D>& globPos, double &a, double &b)
 {
   std::vector<std::pair<double,double>> points;
   
-   for (unsigned int i=0; i<clusters.size(); ++i)
+  for(auto& pos : globPos)
      {
-       double z = clusters[i]->getZ();
-       double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+       double z = pos(2);
+       double r = sqrt(pow(pos(0),2) + pow(pos(1), 2));
 
        points.push_back(make_pair(r,z));
      }
@@ -465,9 +478,10 @@ std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(SvtxTrack *_
       clusters.push_back(tpc_clus);
       
       if(Verbosity() > 5) 
-	std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
-		  << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " clusters.size() " << clusters.size() << std::endl;
+	std::cout << "  TPC cluster in layer " << layer << " with local position " << tpc_clus->getLocalX() 
+		  << "  " << tpc_clus->getLocalY() << " clusters.size() " << clusters.size() << std::endl;
     }
+
   return clusters;
 }
 
