@@ -4,7 +4,7 @@
 #include "nanoflann.hpp"
 #include "GPUTPCTrackParam.h"
 #include "GPUTPCTrackLinearisation.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>

@@ -1,5 +1,5 @@
 #include "ActsTransformations.h"
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include "SvtxTrackState_v1.h"
 #include <trackbase/TrkrCluster.h>
 
 #include <chrono>
@@ -272,8 +272,8 @@ Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
   auto global = surface->localToGlobal(tGeometry->geoContext,
 				       local * Acts::UnitConstants::cm,
 				       Acts::Vector3D(1,1,1));
-
   global /= Acts::UnitConstants::cm;
+
   return global;
 
 }

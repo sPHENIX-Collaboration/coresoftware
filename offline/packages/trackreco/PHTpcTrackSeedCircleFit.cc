@@ -1,5 +1,5 @@
 #include "PHTpcTrackSeedCircleFit.h"
-#include "ActsTransformations.h"
+
 #include "AssocInfoContainer.h"
 
 /// Tracking includes
@@ -9,6 +9,7 @@
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle

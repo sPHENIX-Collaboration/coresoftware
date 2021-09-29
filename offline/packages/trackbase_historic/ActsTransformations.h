@@ -10,13 +10,9 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <trackbase_historic/SvtxTrack.h>
+#include "SvtxTrack.h"
 
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
-
-#include <boost/bimap.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -26,15 +22,7 @@
 
 class TrkrCluster;
 
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
-
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundIndices,
-                                      Acts::eBoundLoc0,
-                                      Acts::eBoundLoc1>;
-
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 /**

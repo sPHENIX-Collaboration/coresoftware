@@ -8,7 +8,7 @@
 #include "PHCASeeding.h"
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>

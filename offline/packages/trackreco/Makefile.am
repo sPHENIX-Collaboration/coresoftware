@@ -21,7 +21,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsTransformations.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -38,11 +37,8 @@ pkginclude_HEADERS = \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHActsSiliconSeeding.h \
-  PHActsInitialVertexFinder.h \
-  PHActsVertexFinder.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
-  PHActsVertexFitter.h \
   PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
@@ -114,14 +110,10 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
-  PHActsInitialVertexFinder.cc \
-  PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc
 

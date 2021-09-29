@@ -1,5 +1,6 @@
 #include "PHActsSiliconSeeding.h"
-#include "ActsTransformations.h"
+
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
