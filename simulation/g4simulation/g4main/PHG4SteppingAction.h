@@ -47,6 +47,9 @@ class PHG4SteppingAction
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
   virtual bool ValidCorrection() const;
 
+  //! Set the G4HIT node names from Subsystem rather than constructing your own
+  virtual void SetHitNodeName(const std::string &, const std::string &) {return;}
+
  private:
   int m_Verbosity;
   double m_LightBalanceInnerRadius;

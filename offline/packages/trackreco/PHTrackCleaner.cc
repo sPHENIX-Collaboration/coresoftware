@@ -92,7 +92,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	  if(_track)
 	    {
 	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << "min_chisq " << min_chisq << std::endl;
+		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq " << min_chisq << std::endl;
 
 	      // only accept tracks with nclus > min_clusters
 	      if(_track->get_chisq() < min_chisq && _track->size_cluster_keys() > min_clusters)
@@ -155,8 +155,8 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
     }
 
   if(Verbosity() > 0)
-    std::cout << "Final  track map size " << _track_map->size() << std::endl;
-  
+    std::cout << "Track map size after choosing best silicon match: " << _track_map->size() << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -184,4 +184,3 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-

@@ -3,7 +3,7 @@
 #ifndef PHSILICONTPCTRACKMATCHING_H
 #define PHSILICONTPCTRACKMATCHING_H
 
-#include <trackreco/PHTrackPropagating.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <map>
@@ -13,8 +13,8 @@ class SvtxTrackMap;
 class SvtxTrack;
 class TF1;
 class TpcSeedTrackMap;
-
-class PHSiliconTpcTrackMatching : public PHTrackPropagating
+class AssocInfoContainer;
+class PHSiliconTpcTrackMatching : public SubsysReco
 {
  public:
 
@@ -43,12 +43,11 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
 
- protected:
-  int Setup(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
 
-  int Process() override;
+  int process_event(PHCompositeNode*) override;
 
-  int End() override;
+  int End(PHCompositeNode*) override;
   
  private:
 
@@ -63,6 +62,8 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
   
+  AssocInfoContainer *_assoc_container{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};

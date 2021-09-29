@@ -727,11 +727,10 @@ void PHG4Reco::G4Seed(const unsigned int i)
 //____________________________________________________________________________
 void PHG4Reco::DefineMaterials()
 {
-  G4String symbol;   //a=mass of a mole;
+  G4String symbol,name;   //a=mass of a mole;
   G4double density;  //z=mean number of protons;
-  G4double fractionmass;
-
-  G4int ncomponents, natoms;
+  G4double fractionmass,a;
+  G4int ncomponents, natoms,z;
   // this is for FTFP_BERT_HP where the neutron code barfs
   // if the z difference to the last known element (U) is too large
   set<G4String> ignoremat;
@@ -968,6 +967,15 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, 288.15 * kelvin, 1 * atmosphere);
   CF4->AddElement(G4Element::GetElement("C"), natoms = 1);
   CF4->AddElement(G4Element::GetElement("F"), natoms = 4);
+
+  G4Element* elLu = new G4Element(name="Lutetium", symbol="Lu", z=71., a=174.97*g/mole);    
+  G4Material *LSO = new G4Material("LSO",  //its name 
+                        density = 7.4*g/cm3,    //its density
+                         ncomponents = 3);         //number of components
+
+  LSO->AddElement(G4Element::GetElement("Si"), natoms = 1);
+  LSO->AddElement(elLu, natoms = 2);
+  LSO->AddElement(G4Element::GetElement("O"), natoms = 5);
 
   // Silver epoxy glue LOCTITE ABLESTIK 2902 for the silicon sensors and FPHX chips of INTT
   G4Material *SilverEpoxyGlue_INTT = new G4Material("SilverEpoxyGlue_INTT", density = 3.2 * g / cm3, ncomponents = 2);

@@ -2,13 +2,13 @@
 //  -*- C++ -*-.
 
 /*!
- *  \file		  PHTrackCleaner
+ *  \file		  PHGhostRejection
  *  \brief		Class for deciding which track based on a given TPC seed is the best one
  *  \author	 Tony Frawley <afrawley@fsu.edu>
  */
 
-#ifndef PHTRACKCLEANER_H
-#define PHTRACKCLEANER_H
+#ifndef PHGHOSTREJECTION_H
+#define PHGHOSTREJECTION_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -22,13 +22,13 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TpcSeedTrackMap;
 
-class PHTrackCleaner : public SubsysReco
+class PHGhostRejection : public SubsysReco
 {
  public:
 
-  PHTrackCleaner(const std::string &name = "PHTrackCleaner");
+  PHGhostRejection(const std::string &name = "PHGhostRejection");
 
-  ~PHTrackCleaner() override;
+  ~PHGhostRejection() override;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -38,14 +38,16 @@ class PHTrackCleaner : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   void findGhostTracks();
+  bool checkClusterSharing(SvtxTrack *tr1, SvtxTrack *tr2);
 
 SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
 
- TpcSeedTrackMap *_seed_track_map{nullptr};
-
- unsigned int min_clusters = 20;
+  double _phi_cut = 0.01;
+  double _eta_cut = 0.004;
+  double _x_cut = 0.3;
+  double _y_cut = 0.3;
+  double _z_cut = 0.4;
 
 };
 
-#endif // PHTRACKCLEANER_H
+#endif // PHGHOSTREJECTION_H
