@@ -115,6 +115,15 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
   }
 
+  // save histograms
+  if( m_savehistograms && m_histogramfile )
+  {
+    m_histogramfile->cd();
+    for( const auto o:std::initializer_list<TObject*>({ h_rphiResid, h_zResid, h_etaResidLayer, h_zResidLayer, h_etaResid, h_index, h_alpha, h_beta, h_deltarphi_layer, h_deltaz_layer, residTup }) )
+    { if( o ) o->Write(); }
+    m_histogramfile->Close();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -541,6 +550,10 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_zResidLayer->Fill(clusR , dz);
     h_etaResidLayer->Fill(clusR , clusEta - trackEta);
     
+    const auto layer =  TrkrDefs::getLayer(cluster->getClusKey());
+    h_deltarphi_layer->Fill( layer, drphi );
+    h_deltaz_layer->Fill( layer, dz );
+
     residTup->Fill();
   }
   
@@ -666,6 +679,10 @@ void PHTpcResiduals::makeHistograms()
 			     60, 20, 80, 500, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
 			   60, 20, 80, 1000, -2, 2);
+
+  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 100, -2, 2 );
+
   residTup = new TTree("residTree","tpc residual info");
   residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
   residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
@@ -685,7 +702,7 @@ void PHTpcResiduals::makeHistograms()
 //   residTup->Branch("ir",&ir,"ir/I");
 //   residTup->Branch("iz",&iz,"iz/I");
 //   residTup->Branch("iphi",&iphi,"iphi/I");
-  residTup->Branch("cluskey",&cluskey,"cluskey/I");
+  residTup->Branch("cluskey",&cluskey,"cluskey/l");
   residTup->Branch("event",&m_event,"event/I");
 
 }
