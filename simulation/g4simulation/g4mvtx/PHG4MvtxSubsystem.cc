@@ -8,26 +8,27 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
+
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>                // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>               // for PHG4SteppingAction
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNode.h>          // for PHNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
+#include <phool/PHIODataNode.h>                      // for PHIODataNode
+#include <phool/PHNode.h>                            // for PHNode
+#include <phool/PHNodeIterator.h>                    // for PHNodeIterator
+#include <phool/PHObject.h>                          // for PHObject
+#include <phool/phool.h>                             // for PHWHERE
 #include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
+#include <phool/PHCompositeNode.h>
 
-#include <mvtx/SegmentationAlpide.h>  // for Alpide constants
+#include <mvtx/SegmentationAlpide.h>                 // for Alpide constants
 
-#include <iostream>  // for operator<<, basi...
-#include <set>       // for _Rb_tree_const_i...
+#include <iostream>                                  // for operator<<, basi...
+#include <set>                                       // for _Rb_tree_const_i...
 #include <sstream>
-#include <utility>  // for pair
+#include <utility>                                   // for pair
 
 class PHG4Detector;
 
@@ -209,18 +210,6 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
     set_default_double_param(ilyr, "phitilt", turbo);
     set_default_double_param(ilyr, "phi0", mvtxdat[ilyr][kPhi0]);
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
-
-    set_default_double_param(ilyr, "layer_z_offset", 0.0);
-
-    for (int iStave = 0; iStave < mvtxdat[ilyr][kNStave]; ++iStave)
-    {
-      std::string stave_location = Form("layer_%i_stave_%i", ilyr, iStave);
-      set_default_string_param(ALIGNMENT, stave_location + "_name", "X000");
-      set_default_double_param(ALIGNMENT, stave_location + "_x_offset", 0.0);
-      set_default_double_param(ALIGNMENT, stave_location + "_y_offset", 0.0);
-      set_default_double_param(ALIGNMENT, stave_location + "_z_offset", 0.0);
-      set_default_double_param(ALIGNMENT, stave_location + "_tilt", 0.0);
-    }
   }
 
   set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
@@ -228,8 +217,6 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
                            string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideA_mod_PEEK.gdml"));
   set_default_string_param(GLOBAL, "end_wheels_sideN",
                            string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideC_PEEK.gdml"));
-  set_default_string_param(GLOBAL, "alignment_path",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/MVTX/alignment"));
   /*
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);

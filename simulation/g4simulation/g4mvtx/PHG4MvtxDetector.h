@@ -80,19 +80,12 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_radius;
   std::array<double, n_Layers> m_nominal_phitilt;
   std::array<double, n_Layers> m_nominal_phi0;
-  std::array<double, n_Layers> m_layer_z_offset;
-  std::map<std::pair<int, int>, std::string> m_stave_name;
-  std::map<std::pair<int, int>, double> m_stave_x_offset;
-  std::map<std::pair<int, int>, double> m_stave_y_offset;
-  std::map<std::pair<int, int>, double> m_stave_z_offset;
-  std::map<std::pair<int, int>, double> m_stave_tilt;
 
   std::string m_Detector;
   std::string m_SuperDetector;
   std::string m_StaveGeometryFile;
   std::string m_EndWheelsSideS;
   std::string m_EndWheelsSideN;
-  std::string m_alignmentPath;
 };
 
 #endif

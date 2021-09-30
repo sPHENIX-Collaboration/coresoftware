@@ -6,10 +6,10 @@
 #include <mvtx/MvtxDefs.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -27,7 +27,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
+#include <phool/PHObject.h>      // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -376,8 +376,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       // YCM: Fix pixel range: Xbin (row) 0 to 511, Zbin (col) 0 to 1023
       if (xbin_min < 0) xbin_min = 0;
       if (zbin_min < 0) zbin_min = 0;
-      if (xbin_max >= maxNX) xbin_max = maxNX - 1;
-      if (zbin_max >= maxNZ) xbin_max = maxNZ - 1;
+      if (xbin_max >= maxNX) xbin_max = maxNX-1;
+      if (zbin_max >= maxNZ) xbin_max = maxNZ-1;
 
       if (Verbosity() > 1)
       {
@@ -518,7 +518,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         if (!hit)
         {
           // Otherwise, create a new one
-          hit = new TrkrHitv2();
+	  hit = new TrkrHitv2();
           hitsetit->second->addHitSpecificKey(hitkey, hit);
         }
 
