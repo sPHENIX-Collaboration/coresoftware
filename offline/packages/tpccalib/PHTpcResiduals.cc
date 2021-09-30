@@ -523,26 +523,20 @@ void PHTpcResiduals::calculateTpcResiduals(
     std::cout << "Track angles " << trackPPhi << ", " << trackPR
 	      << ", " << trackPZ << ", " << trackAlpha << ", " << trackBeta
 	      << std::endl;
-
-  if(std::abs(trackAlpha) > m_maxTAlpha
-     or std::abs(drphi) > m_maxResidualDrphi)
-    return;
-
-  if(std::abs(trackBeta) > m_maxTBeta
-     or std::abs(dz) > m_maxResidualDz)
-    return;
     
   tanBeta = trackBeta;
   tanAlpha = trackAlpha;
   
+  // cluster global position
   Acts::Vector3D globClus(cluster->getX(), 
 			  cluster->getY(), 
 			  cluster->getZ());
+      
+  // get cell index
   const auto index = getCell(globClus);
-  
   if(Verbosity() > 3)
-    std::cout << "Bin index found is " << index << std::endl;
-
+  { std::cout << "Bin index found is " << index << std::endl; }
+  
   if(index < 0 ) return;
 
   if( m_savehistograms )
@@ -562,6 +556,15 @@ void PHTpcResiduals::calculateTpcResiduals(
 
     residTup->Fill();
   }
+  
+  // check track angles and residuals agains cuts
+  if(std::abs(trackAlpha) > m_maxTAlpha
+     or std::abs(drphi) > m_maxResidualDrphi)
+    return;
+
+  if(std::abs(trackBeta) > m_maxTBeta
+     or std::abs(dz) > m_maxResidualDz)
+    return;
   
   // Fill distortion matrices
   m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
