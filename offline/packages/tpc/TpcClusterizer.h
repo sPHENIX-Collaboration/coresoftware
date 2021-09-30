@@ -34,7 +34,6 @@ class TpcClusterizer : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
-  void set_search_bins(const int bins){NSearch = bins;}
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
 
  private:
@@ -64,7 +63,7 @@ class TpcClusterizer : public SubsysReco
   std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
   std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
 
-  int NSearch = 2;
+  // z range
   int NZBinsMax = 0;
 
 };
