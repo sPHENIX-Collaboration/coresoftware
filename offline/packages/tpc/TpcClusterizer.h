@@ -27,7 +27,7 @@ class TpcClusterizer : public SubsysReco
 {
  public:
   TpcClusterizer(const std::string &name = "TpcClusterizer");
-  ~TpcClusterizer() override{}
+  ~TpcClusterizer() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -38,7 +38,7 @@ class TpcClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist;
