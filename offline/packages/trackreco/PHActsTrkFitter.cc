@@ -209,7 +209,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(m_fitSiliconMMs)
       {
         sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-        if( std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
+        
+        // skip if there is no surfaces
+        if( surfaces.empty() ) continue;
+        
+        // make sure micromegas are in the tracks, if required
+        if( m_useMicromegas &&
+          std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
           { return m_surfMaps->isMicromegasSurface( *surface ); } ) )
         { continue; }
       }
@@ -517,18 +523,23 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
       if(Verbosity() > 1)
       { std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl; } 
 
-      if( !m_surfMaps->isTpcSurface( sl.referenceSurface() ) )
-      {
-        siliconMMSls.push_back(sl);
-        surfaces.push_back(&sl.referenceSurface());
-      }
+      // skip TPC surfaces
+      if( m_surfMaps->isTpcSurface( sl.referenceSurface() ) ) continue;
+      
+      // also skip micromegas surfaces if not used
+      if( m_surfMaps->isMicromegasSurface( sl.referenceSurface() ) && !m_useMicromegas ) continue;
+
+      // update vectors
+      siliconMMSls.push_back(sl);
+      surfaces.push_back(&sl.referenceSurface());
+
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
-  if(surfaces.size() > 0)
-    checkSurfaceVec(surfaces);
+  if(!surfaces.empty())
+  { checkSurfaceVec(surfaces); }
 
   if(Verbosity() > 1)
     {
