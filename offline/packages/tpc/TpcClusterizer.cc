@@ -832,11 +832,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
     if (side == 0){
       NZBinsMin = 0;
-      NZBinsMax = NZBins / 2 -1;
     }
     else{
       NZBinsMin = NZBins / 2;
-      NZBinsMax = NZBins;
     }
 
     unsigned short ZOffset = NZBinsMin;
