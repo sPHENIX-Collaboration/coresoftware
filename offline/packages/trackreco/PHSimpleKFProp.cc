@@ -9,7 +9,6 @@
 #include <Eigen/Dense>
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <phfield/PHField.h>
@@ -48,8 +47,7 @@ using namespace std;
 typedef std::vector<TrkrDefs::cluskey> keylist;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
-  : PHTrackPropagating(name)
-  , _field_map(nullptr)
+  : SubsysReco(name)
 {
   //cout << "created PHSimpleKFProp\n";
 }
@@ -72,16 +70,17 @@ int PHSimpleKFProp::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 */
-int PHSimpleKFProp::End()
+int PHSimpleKFProp::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSimpleKFProp::Setup(PHCompositeNode* topNode)
+int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 {
-  PHTrackPropagating::Setup(topNode);
+  
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
   fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
@@ -118,26 +117,20 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_vertex_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << endl;
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!_hitsets)
+    {
+      cerr << PHWHERE << "No hitset container on node tree. Bailing."
+		<< endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   PHG4CylinderCellGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
@@ -155,29 +148,9 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSimpleKFProp::Process()
+int PHSimpleKFProp::process_event(PHCompositeNode* )
 {
   if(Verbosity()>0) cout << "starting Process" << endl;
-  // wipe previous vertex coordinates
-  _vertex_x.clear();
-  _vertex_y.clear();
-  _vertex_z.clear();
-  _vertex_xerr.clear();
-  _vertex_yerr.clear();
-  _vertex_zerr.clear();
-  _vertex_ids.clear();
-  // fill new vertex coordinates
-  for(map<unsigned int, SvtxVertex*>::iterator iter = _vertex_map->begin(); iter != _vertex_map->end(); ++iter)
-  {
-    SvtxVertex* v = dynamic_cast<SvtxVertex*>(iter->second->CloneMe());
-    _vertex_x.push_back(v->get_x());
-    _vertex_y.push_back(v->get_y());
-    _vertex_z.push_back(v->get_z());
-    _vertex_xerr.push_back(sqrt(v->get_error(0,0)));
-    _vertex_yerr.push_back(sqrt(v->get_error(1,1)));
-    _vertex_zerr.push_back(sqrt(v->get_error(2,2)));
-    _vertex_ids.push_back(v->get_id());
-  }
   MoveToFirstTPCCluster();
   if(Verbosity()>0) cout << "moved tracks into TPC" << endl;
   PrepareKDTrees();
@@ -268,6 +241,79 @@ void PHSimpleKFProp::PrepareKDTrees()
     _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>(3,*(_ptclouds[l]),nanoflann::KDTreeSingleIndexAdaptorParams(10));
     _kdtrees[l]->buildIndex();
   }
+}
+
+void PHSimpleKFProp::MoveToFirstTPCCluster()
+{
+  
+  for(auto& [key, track] : *_track_map)
+    {
+      double track_x = track->get_x();
+      double track_y = track->get_y();
+      if(sqrt(track_x*track_x+track_y*track_y)>10.)
+	{
+	  if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
+	  continue;
+	}
+      // get cluster keys
+      std::vector<TrkrDefs::cluskey> ckeys;
+      std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
+      std::vector<TrkrCluster*> tpc_clusters;
+      // extract TPC clusters
+      for(auto ckey : ckeys)
+	{
+	  if(TrkrDefs::getLayer(ckey)>=7) tpc_clusters.push_back(_cluster_map->findCluster(ckey));
+	}
+      // get circle fit for TPC clusters plus vertex
+      std::vector<std::pair<double,double>> pts;
+      for(auto cluster : tpc_clusters)
+	{
+	  double x = cluster->getX();
+	  double y = cluster->getY();
+	  pts.push_back(std::make_pair(x,y));
+	}
+
+      double R = 0;
+      double xc = 0;
+      double yc = 0;
+      CircleFitByTaubin(pts,R,xc,yc);
+    // want angle of tangent to circle at innermost (i.e. last) cluster
+      size_t inner_index;
+      if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
+	{
+	  inner_index = ckeys.size()-1;
+	}
+      else
+	{
+	  inner_index = 0;
+	}
+      double cluster_x = pts[inner_index].first;
+      double cluster_y = pts[inner_index].second;
+      double dy = cluster_y-yc;
+      double dx = cluster_x-xc;
+      double phi = atan2(dy,dx);
+      double dx0 = pts[0].first - xc;     
+      double dy0 = pts[0].second - yc;
+      double phi0 = atan2(dy0, dx0);
+      double dx1 = pts[1].first - xc;
+      double dy1 = pts[1].second - yc;
+      double phi1 = atan2(dy1, dx1);
+      double dphi = phi1 - phi0;
+      if(dphi < 0)
+	phi += M_PI / 2.0;
+      else
+	phi -= M_PI / 2.0;
+      // rotate track momentum vector (pz stays the same)
+      double pt = track->get_pt();
+      track->set_px(pt*cos(phi));
+      track->set_py(pt*sin(phi));
+      // set track position
+      track->set_x(tpc_clusters[inner_index]->getX());
+      track->set_y(tpc_clusters[inner_index]->getY());
+      track->set_z(tpc_clusters[inner_index]->getZ());
+  }
+
+ 
 }
 
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
@@ -800,7 +846,7 @@ void PHSimpleKFProp::MoveToVertex()
     cout << PHWHERE << " TPC track map size " << _track_map->size()  << endl;
   /*
  // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
+  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
   */
 
   // loop over the TPC track seeds
@@ -879,60 +925,18 @@ void PHSimpleKFProp::MoveToVertex()
       // z projection is unique
       double _z_proj = B;
       
-      // Find the nearest collision vertex
-      // if find multiple close matches, duplicate the track?
-
-      int trackVertexId = 9999;
-      double dz = 9999.;	  
-      for(SvtxVertexMap::Iter viter = _vertex_map->begin();
-	  viter != _vertex_map->end();
-	  ++viter)
-	{
-	  auto vertexKey = viter->first;
-	  auto vertex = viter->second;
-	  if(Verbosity() > 100)
-	    vertex->identify();
-
-	  const double vertexZ = vertex->get_z();
-	  
-	  if(fabs(_z_proj - vertexZ) < dz )
-	    {
-	      dz = fabs(_z_proj - vertexZ);
-	      trackVertexId = vertexKey;
-	    }	  
-	}  // end loop over collision vertices
-
-      _tracklet_tpc->set_vertex_id(trackVertexId);
-      auto vertex = _vertex_map->find(trackVertexId)->second;
-      vertex->insert_track(phtrk_iter->first);
-
-      // set the track position to the vertex position
-      _tracklet_tpc->set_x(vertex->get_x());
-      _tracklet_tpc->set_y(vertex->get_y());
-      _tracklet_tpc->set_z(vertex->get_z());
-
-      if(Verbosity() > 1)
-	{
-	  std::cout << "TPC seed track " << phtrk_iter->first << " matched to vertex " << trackVertexId << endl; 
-	} 
-
-      // Finished association of track with vertex
       // Now we modify the track parameters
-
       // Repeat the z line fit including the vertex position, get theta, update pz
       std::vector<std::pair<double, double>> points;
-      double r_vertex = sqrt(vertex->get_x()*vertex->get_x() + vertex->get_y()*vertex->get_y());
-      double z_vertex = vertex->get_z();
-      points.push_back(make_pair(r_vertex, z_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  double z = clusters[i]->getZ();
-	  double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-	  
+	  double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));	  
 	  points.push_back(make_pair(r,z));
 	}
       
       line_fit(points, A, B);
+
       if(Verbosity() > 5) 
 	std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
 
@@ -950,11 +954,8 @@ void PHSimpleKFProp::MoveToVertex()
 	std::cout << "       new eta " <<  _tracklet_tpc->get_eta() << std::endl;
       // total momentum is now a bit different because pt was not changed - OK - we measure pt from bend, pz from dz/dr
 
-      // make circle fit including vertex as point
+      // make circle fit 
       std::vector<std::pair<double, double>> cpoints;
-      double x_vertex = vertex->get_x();
-      double y_vertex = vertex->get_y();
-      cpoints.push_back(std::make_pair(x_vertex, y_vertex));
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
 	  double x = clusters[i]->getX();
@@ -966,12 +967,19 @@ void PHSimpleKFProp::MoveToVertex()
       if(Verbosity() > 5) 
 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
+       // set the track x and y positions to the circle PCA
+      double dcax, dcay;
+      findRoot(R, X0, Y0, dcax, dcay);
+      _tracklet_tpc->set_x(dcax);
+      _tracklet_tpc->set_y(dcay);
+      _tracklet_tpc->set_z(_z_proj);
+
       //  could take new pT from radius of circle - we choose to keep the seed pT
 
       // We want the angle of the tangent relative to the positive x axis
       // start with the angle of the radial line from vertex to circle center
-      double dx = X0 - x_vertex;
-      double dy = Y0 - y_vertex;
+      double dx = X0 - dcax;
+      double dy = Y0 - dcay;
       double phi= atan2(dy,dx);
       //std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
       // convert to the angle of the tangent to the circle
@@ -1011,81 +1019,55 @@ void PHSimpleKFProp::MoveToVertex()
     }  // end loop over TPC track seeds
 }
 
-void PHSimpleKFProp::MoveToFirstTPCCluster()
+
+void PHSimpleKFProp::findRoot(const double R, const double X0, const double Y0,
+			      double& x, double& y)
 {
-  for(auto trkmap_iter = _track_map->begin();
-      trkmap_iter != _track_map->end();
-      ++trkmap_iter)
-  {
-    SvtxTrack* track = trkmap_iter->second;
-    // check to see if track is, in fact, not in the TPC
-    double track_x = track->get_x();
-    double track_y = track->get_y();
-    if(sqrt(track_x*track_x+track_y*track_y)>10.)
+   /**
+   * We need to determine the closest point on the circle to the origin
+   * since we can't assume that the track originates from the origin
+   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to 
+   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the 
+   * origin and some (currently, unknown) point on the circle x,y.
+   * 
+   * Solving the circle eqn for x and substituting into d gives an eqn for
+   * y. Taking the derivative and setting equal to 0 gives the following 
+   * two solutions. We take the smaller solution as the correct one, as 
+   * usually one solution is wildly incorrect (e.g. 1000 cm)
+   */
+  
+  double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
+		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
+    / (pow(X0, 2) + pow(Y0, 2));
+
+  double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
+  double minx2 = -sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
+  
+  if(Verbosity() > 1)
+    std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
+	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
+
+  /// Figure out which of the two roots is actually closer to the origin
+  if(fabs(minx) < fabs(minx2))
+    x = minx;
+  else
+    x = minx2;
+
+  if(fabs(miny) < fabs(miny2))
+    y = miny;
+  else
+    y = miny2;
+  
+  if(Verbosity() > 1)
     {
-      if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
-      continue;
+      std::cout << "Minimum x and y positions " << x << ",  " 
+		<< y << std::endl;
     }
-    // get cluster keys
-    std::vector<TrkrDefs::cluskey> ckeys;
-    std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-    std::vector<TrkrCluster*> tpc_clusters;
-    // extract TPC clusters
-    for(auto ckey : ckeys)
-    {
-      if(TrkrDefs::getLayer(ckey)>=7) tpc_clusters.push_back(_cluster_map->findCluster(ckey));
-    }
-    // get circle fit for TPC clusters plus vertex
-    std::vector<std::pair<double,double>> pts;
-    for(auto cluster : tpc_clusters)
-    {
-      double x = cluster->getX();
-      double y = cluster->getY();
-      pts.push_back(std::make_pair(x,y));
-    }
-    SvtxVertex* vertex = _vertex_map->get(track->get_vertex_id());
-    double vertex_x = vertex->get_x();
-    double vertex_y = vertex->get_y();
-    pts.push_back(std::make_pair(vertex_x,vertex_y));
-    double R = 0;
-    double xc = 0;
-    double yc = 0;
-    CircleFitByTaubin(pts,R,xc,yc);
-    // want angle of tangent to circle at innermost (i.e. last) cluster
-    size_t inner_index;
-    if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
-    {
-      inner_index = ckeys.size()-1;
-    }
-    else
-    {
-      inner_index = 0;
-    }
-    double cluster_x = pts[inner_index].first;
-    double cluster_y = pts[inner_index].second;
-    double dy = cluster_y-yc;
-    double dx = cluster_x-xc;
-    double phi = atan2(dy,dx);
-    double dx0 = pts[0].first - xc;     
-    double dy0 = pts[0].second - yc;
-    double phi0 = atan2(dy0, dx0);
-    double dx1 = pts[1].first - xc;
-    double dy1 = pts[1].second - yc;
-    double phi1 = atan2(dy1, dx1);
-    double dphi = phi1 - phi0;
-    if(dphi < 0)
-      phi += M_PI / 2.0;
-    else
-      phi -= M_PI / 2.0;
-    // rotate track momentum vector (pz stays the same)
-    double pt = track->get_pt();
-    track->set_px(pt*cos(phi));
-    track->set_py(pt*sin(phi));
-    // set track position
-    track->set_x(tpc_clusters[inner_index]->getX());
-    track->set_y(tpc_clusters[inner_index]->getY());
-    track->set_z(tpc_clusters[inner_index]->getZ());
-  }
+
 }
 
 void  PHSimpleKFProp::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)

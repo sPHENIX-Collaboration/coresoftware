@@ -27,7 +27,7 @@ PHG4ZDCDisplayAction::~PHG4ZDCDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)
@@ -58,6 +58,14 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     else if (it.second == "FrontBackPlate")
     {
       visatt->SetColour(G4Colour::Red());
+    }
+    else if (it.second == "Window")
+    {
+      visatt->SetColour(G4Colour::Blue());
+    }
+    else if (it.second == "SMD")
+    {
+      visatt->SetColour(G4Colour::Yellow());
     }
     else if (it.second == "FiberPlate")
     {

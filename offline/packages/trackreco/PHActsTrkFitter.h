@@ -42,7 +42,6 @@ namespace ActsExamples
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
 class TrkrClusterContainer;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
@@ -82,6 +81,10 @@ class PHActsTrkFitter : public SubsysReco
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
 
+  /// require micromegas in SiliconMM fits
+  void setUseMicromegas( bool value )
+  { m_useMicromegas = value; }
+
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
        { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
@@ -100,7 +103,6 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(SvtxTrack *track);
-  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -142,7 +144,6 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
-  SvtxVertexMap *m_vertexMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   
@@ -153,6 +154,9 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_useMicromegas = true;
+  
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 

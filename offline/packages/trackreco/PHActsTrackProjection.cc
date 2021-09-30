@@ -37,6 +37,7 @@
 
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
+  , m_trajectories(nullptr)
 {
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
@@ -107,19 +108,30 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
       != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  for(const auto& [trackKey, track] : *m_trackMap)
+  for(const auto& [trackKey, traj] : *m_trajectories)
     {
-      const auto params = makeTrackParams(track);
-      auto cylSurf = 
-	m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
-      
-      auto result = propagateTrack(params, cylSurf);
-      
-      if(result.ok())
+      const auto track = m_trackMap->get(trackKey);;
+      const auto& [trackTips, mj] = traj.trajectory();
+      if(trackTips.size() > 1 and Verbosity() > 0)
+	{ 
+	  std::cout << PHWHERE 
+		    << "More than 1 track tip per track. Should never happen..."
+		    << std::endl;
+	}
+      for(const auto& trackTip : trackTips)
 	{
-	  auto trackStateParams = std::move(**result);
-	  updateSvtxTrack(trackStateParams, 
-			  track, caloLayer);
+	  const auto params = traj.trackParameters(trackTip);
+	  auto cylSurf = 
+	    m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
+	  
+	  auto result = propagateTrack(params, cylSurf);
+	  
+	  if(result.ok())
+	    {
+	      auto trackStateParams = std::move(**result);
+	      updateSvtxTrack(trackStateParams, 
+			      track, caloLayer);
+	    }
 	}
     }
 
@@ -401,7 +413,9 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       
       const auto caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;
-      const auto eta = 1.1;
+      /// Extend farther so that there is at least surface there, for high
+      /// curling tracks. Can always reject later
+      const auto eta = 2.5;
       const auto theta = 2. * atan(exp(-eta));
       const auto halfZ = caloRadius / tan(theta) 
 	* Acts::UnitConstants::cm;
@@ -434,6 +448,14 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 
 int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
 {
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
+    {
+      std::cout << PHWHERE << "No Acts trajectories on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
     {

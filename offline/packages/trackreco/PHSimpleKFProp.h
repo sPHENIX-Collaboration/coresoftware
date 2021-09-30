@@ -8,7 +8,7 @@
 #define TRACKRECO_PHSIMPLEKFPROP_H
 
 // PHENIX includes
-#include "PHTrackPropagating.h"
+#include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <phfield/PHField.h>
@@ -24,7 +24,7 @@
 
 // forward declarations
 class PHCompositeNode;
-
+class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
@@ -34,15 +34,15 @@ class AssocInfoContainer;
 ///
 /// \brief Base class for track seeding
 ///
-class PHSimpleKFProp : public PHTrackPropagating
+class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
   virtual ~PHSimpleKFProp() {}
 
-  //int InitRun(PHCompositeNode *topNode) override;
-  //int process_event(PHCompositeNode *topNode) override;
-  //int End(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   //void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   //void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
   void set_field_dir(const double rescale)
@@ -56,31 +56,12 @@ class PHSimpleKFProp : public PHTrackPropagating
   void useConstBField(bool opt){_use_const_field = opt;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
- protected:
-  /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
-  /// overrided in derived classes
-  int Setup(PHCompositeNode *topNode) override;
-
-  /// process event interface for trackers, called in process_event.
-  /// implemented in derived classes
-  int Process() override;
-
-  ///
-  int End() override;
-
-
-  //SvtxClusterMap *_cluster_map;
-  //TrkrClusterContainer *_cluster_map;
-  //SvtxVertexMap *_vertex_map;
-  //SvtxTrackMap *_track_map;
-  //AssocInfoContainer *_assoc_container;
-  PHField* _field_map;
-
-  //std::string _track_map_name;
-
-  //bool _use_truth_clusters = false;
+  void use_truth_clusters(bool truth)
+  { _use_truth_clusters = truth; }
 
  private:
+  bool _use_truth_clusters = false;
+  
   /// fetch node pointers
   int get_nodes(PHCompositeNode *topNode);
   std::vector<double> radii;
@@ -99,6 +80,13 @@ class PHSimpleKFProp : public PHTrackPropagating
   double _max_sin_phi = 1.;
   double _rz_outlier_threshold = .1;
   double _xy_outlier_threshold = .1;
+
+  TrkrClusterContainer *_cluster_map = nullptr;
+  SvtxTrackMap *_track_map = nullptr;
+  TrkrHitSetContainer *_hitsets = nullptr;
+  PHField* _field_map = nullptr;
+
+  void MoveToFirstTPCCluster();
   void PrepareKDTrees();
   std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track);
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds);
@@ -140,10 +128,12 @@ class PHSimpleKFProp : public PHTrackPropagating
   void publishSeeds(std::vector<SvtxTrack_v2>);
   void publishSeeds(std::vector<SvtxTrack>);
   void MoveToVertex();
-  void MoveToFirstTPCCluster();
+
   void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
   void line_fit_clusters(std::vector<TrkrCluster*> clusters, double &A, double &B);
   void CircleFitByTaubin(std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0);
+  void findRoot(const double R, const double X0, const double Y0,
+		double& x, double& y);
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
