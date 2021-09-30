@@ -15,7 +15,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -267,31 +266,11 @@ Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
 }
 
 //___________________________________________________________________________________
-Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  if(!svtxVertex)
-    {
-      if(Verbosity() > 0)
-	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
-		  << std::endl;
-      return Acts::Vector3D(0,0,0);
-    }
-
-  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
-  return vertex;
-}
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 {
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(), 
 			  track->get_pz());
-  auto vertex = getVertex(track);
-  Acts::Vector4D actsFourPos(vertex(0), vertex(1), vertex(2),
-			     10 * Acts::UnitConstants::ns);
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
   double p = track->get_p();
   
@@ -303,12 +282,12 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 	  cov(i,j) = track->get_acts_covariance(i, j);
 	}
     }
+  const Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
+    track->get_y() * Acts::UnitConstants::cm,
+    track->get_z() * Acts::UnitConstants::cm);
 
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-				        Acts::Vector3D(vertex(0), 
-						       vertex(1), 
-						       vertex(2)));
-
+  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
+  const auto actsFourPos = Acts::Vector4D(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
   Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
 				  actsFourPos, momentum,
 				  p, trackQ, cov);
@@ -626,14 +605,6 @@ int PHTpcResiduals::createNodes(PHCompositeNode */*topNode*/)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "No vertex map, exiting." 
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
 						   "ActsSurfaceMaps");
