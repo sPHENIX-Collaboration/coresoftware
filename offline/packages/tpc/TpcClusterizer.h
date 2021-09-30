@@ -40,15 +40,15 @@ class TpcClusterizer : public SubsysReco
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
 
-  TrkrHitSetContainer *m_hits;
-  TrkrClusterContainer *m_clusterlist;
-  TrkrClusterHitAssoc *m_clusterhitassoc;
-  ActsSurfaceMaps *m_surfMaps;
-  ActsTrackingGeometry *m_tGeometry;
+  TrkrHitSetContainer *m_hits = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr;
+  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
-  bool do_hit_assoc;
-  double pedestal;
-  double SectorFiducialCut;
+  bool do_hit_assoc = true;
+  double pedestal = 74.4;
+  double SectorFiducialCut = 0.5;
 
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
@@ -64,8 +64,8 @@ class TpcClusterizer : public SubsysReco
   std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
   std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
 
-  int NSearch;
-  int NZBinsMax;
+  int NSearch = 2;
+  int NZBinsMax = 0;
 
 };
 
