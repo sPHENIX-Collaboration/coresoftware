@@ -615,7 +615,7 @@ TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
 {}
 
-bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
 {
   bool reject_it = false;
 
