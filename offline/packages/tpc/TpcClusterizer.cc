@@ -556,18 +556,7 @@ void *ProcessSector(void *threadarg) {
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
-  , m_hits(nullptr)
-  , m_clusterlist(nullptr)
-  , m_clusterhitassoc(nullptr)
-  , m_surfMaps(nullptr)
-  , m_tGeometry(nullptr)
-  , do_hit_assoc(true)
-  , pedestal(74.4)
-  , SectorFiducialCut(0.5)
-  , NSearch(2)
-  , NZBinsMax(0)
-{
-}
+{}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
 {
@@ -786,11 +775,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
     if (side == 0){
       NZBinsMin = 0;
-      NZBinsMax = NZBins / 2 -1;
     }
     else{
       NZBinsMin = NZBins / 2;
-      NZBinsMax = NZBins;
     }
 
     unsigned short ZOffset = NZBinsMin;
