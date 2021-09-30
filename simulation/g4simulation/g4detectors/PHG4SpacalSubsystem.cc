@@ -39,9 +39,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4SpacalSubsystem::PHG4SpacalSubsystem(const std::string& na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
@@ -97,6 +94,7 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
+  detector_->CosmicSetup(CosmicSetup());
   // the geometry object is set during detector construction, we need it for the
   // display to extract the visibility setting for logical volumes
   PHG4SpacalDisplayAction* DispAct = dynamic_cast<PHG4SpacalDisplayAction*>(m_DisplayAction);

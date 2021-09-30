@@ -163,12 +163,14 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                        G4String(GetName()), 0, 0, 0);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
 
-  cylinder_physi = new G4PVPlacement(0,
-                                     G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
-                                                   _geom->get_zpos() * cm),
-                                     cylinder_logic, G4String(GetName()),
-                                     logicWorld, false, 0, OverlapCheck());
-
+  if (! m_CosmicSetupFlag)
+    {
+      cylinder_physi = new G4PVPlacement(0,
+					 G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
+						       _geom->get_zpos() * cm),
+					 cylinder_logic, G4String(GetName()),
+					 logicWorld, false, 0, OverlapCheck());
+    }
   // install sectors
   if (_geom->get_sector_map().size() == 0)
     _geom->init_default_sector_map();
@@ -192,10 +194,19 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
     stringstream name;
     name << GetName() << "_sec" << sec;
-
-    G4PVPlacement *calo_phys = new G4PVPlacement(sec_place, sec_logic,
-                                                 G4String(name.str()), cylinder_logic, false, sec,
+    G4PVPlacement *calo_phys = nullptr;
+    if (m_CosmicSetupFlag)
+      {
+    calo_phys = new G4PVPlacement(0, G4ThreeVector(0,-( _geom->get_radius())*cm,0),sec_logic,
+                                                 G4String(name.str()), logicWorld,false, sec,
                                                  OverlapCheck());
+      }
+    else
+      {
+     calo_phys = new G4PVPlacement(sec_place, sec_logic,
+                                                  G4String(name.str()), cylinder_logic, false, sec,
+                                                  OverlapCheck());
+      }
     calo_vol[calo_phys] = sec;
 
     assert(gdml_config);
