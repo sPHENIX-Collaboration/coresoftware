@@ -5,6 +5,14 @@
 #include <chrono>
 using namespace std::chrono;
 
+
+namespace
+{
+  template<class T> inline constexpr T square(const T& x) {return x*x;}
+  template<class T> T radius(const T& x, const T& y)
+  { return std::sqrt(square(x) + square(y));}
+}
+
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 			        const SvtxTrack *track,
 				Acts::GeometryContext /*geoCtxt*/) const
@@ -257,6 +265,8 @@ Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 {
   Acts::Vector3D glob;
 
+  const auto trkrid = TrkrDefs::getTrkrId(cluster->getClusKey());
+
   auto surface = getSurface(cluster, surfMaps);
   if(!surface)
     {
@@ -269,13 +279,36 @@ Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
     }
 
   Acts::Vector2D local(cluster->getLocalX(), cluster->getLocalY());
-  auto global = surface->localToGlobal(tGeometry->geoContext,
-				       local * Acts::UnitConstants::cm,
-				       Acts::Vector3D(1,1,1));
-  global /= Acts::UnitConstants::cm;
+  Acts::Vector3D global;
+  /// If silicon/TPOT, the transform is one-to-one since the surface is planar
+  if(trkrid != TrkrDefs::tpcId)
+    {
+      global = surface->localToGlobal(tGeometry->geoContext,
+				      local * Acts::UnitConstants::cm,
+				      Acts::Vector3D(1,1,1));
+      global /= Acts::UnitConstants::cm;
+      return global;
+    }
 
+  /// Otherwise do the manual calculation
+  /// Undo the manual calculation that is performed in TpcClusterizer
+  auto surfCenter = surface->center(tGeometry->geoContext);
+  surfCenter /= Acts::UnitConstants::cm;
+  double surfPhiCenter = atan2(surfCenter(1), surfCenter(0));
+  double surfRadius = radius(surfCenter(0), surfCenter(1));
+  double surfRPhiCenter = surfPhiCenter * surfRadius;
+  
+  double clusRPhi = local(0) + surfRPhiCenter;
+  double gclusz = local(1) + surfCenter(2);
+  
+  double clusphi = clusRPhi / surfRadius;
+  double gclusx = surfRadius * cos(clusphi);
+  double gclusy = surfRadius * sin(clusphi);
+  global(0) = gclusx;
+  global(1) = gclusy;
+  global(2) = gclusz;
+  
   return global;
-
 }
 
 Surface ActsTransformations::getSurface(TrkrCluster *cluster,
