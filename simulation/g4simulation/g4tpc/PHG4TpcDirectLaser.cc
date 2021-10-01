@@ -347,9 +347,15 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
-  AppendLaserTrack(theta,phi,m_lasers[0]);
-//   for( const auto& laser:m_lasers )
-//   { AppendLaserTrack(theta,phi,laser); }
+//   // first laser only
+//   AppendLaserTrack(theta,phi,m_lasers[0]);
+
+//   // positive z lasers only
+//   for(int i=0; i<4; ++i) {AppendLaserTrack(theta,phi,m_lasers[i]);}
+  
+  // all lasers
+  for( const auto& laser:m_lasers )
+  { AppendLaserTrack(theta,phi,laser); }
 }
 
 //_____________________________________________________________
