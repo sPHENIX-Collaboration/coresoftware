@@ -17,6 +17,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -57,7 +58,7 @@ namespace
    * It provides a very good initial guess for a subsequent geometric fit.
    * Nikolai Chernov  (September 2012)
    */
-  void CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0)
+  void CircleFitByTaubin (std::vector<Acts::Vector3D>& clusters, double &R, double &X0, double &Y0)
   {
     int iter,IterMAX=99;
 
@@ -70,10 +71,11 @@ namespace
     double meanX = 0;
     double meanY = 0;
     double weight = 0;
-    for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
+
+    for(auto& global : clusters)
     {
-      meanX += clusters[iclus]->getX();
-      meanY += clusters[iclus]->getY();
+      meanX += global(0);
+      meanY += global(1);
       weight++;
     }
     meanX /= weight;
@@ -83,10 +85,10 @@ namespace
 
     Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
 
-    for (unsigned int i=0; i<clusters.size(); i++)
+    for (auto& global : clusters)
     {
-      double Xi = clusters[i]->getX() - meanX;   //  centered x-coordinates
-      double Yi = clusters[i]->getY() - meanY;   //  centered y-coordinates
+      double Xi = global(0) - meanX;   //  centered x-coordinates
+      double Yi = global(1) - meanY;   //  centered y-coordinates
       double Zi = Xi*Xi + Yi*Yi;
 
       Mxy += Xi*Yi;
@@ -143,17 +145,18 @@ namespace
   }
 
   // 2D linear fit
-  void line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b)
+void line_fit(std::vector<Acts::Vector3D>& clusters, double &a, double &b)
   {
     // copied from: https://www.bragitoff.com
     // we want to fit z vs radius
 
     //variables for sums/sigma of xi,yi,xi^2,xiyi etc
     double xsum=0,x2sum=0,ysum=0,xysum=0;
-    for (unsigned int i=0; i<clusters.size(); ++i)
+    ActsTransformations transformer;
+    for (auto& global : clusters)
     {
-      const double z = clusters[i]->getZ();
-      const double r = get_r( clusters[i]->getX(), clusters[i]->getY() );
+      const double z = global(2);
+      const double r = get_r( global(0), global(1) );
 
       xsum=xsum+r;                        //calculate sigma(xi)
       ysum=ysum+z;                        //calculate sigma(yi)
@@ -345,6 +348,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
     // Get the outermost TPC clusters for this tracklet
     std::map<unsigned int, TrkrCluster*> outer_clusters;
     std::vector<TrkrCluster*> clusters;
+    std::vector<Acts::Vector3D> clusGlobPos;
+    ActsTransformations transformer;
 
     for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
@@ -359,12 +364,13 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
 
       outer_clusters.insert(std::make_pair(layer, tpc_clus));
       clusters.push_back(tpc_clus);
-
+      clusGlobPos.push_back(transformer.getGlobalPosition(tpc_clus,_surfmaps,
+							  _tGeometry));
       if(Verbosity() > 10)
       {
         std::cout
-          << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX()
-          << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " outer_clusters.size() " << outer_clusters.size() << std::endl;
+          << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getLocalX()
+          << "  " << tpc_clus->getLocalY() << "  " << " outer_clusters.size() " << outer_clusters.size() << std::endl;
       }
     }
 
@@ -379,7 +385,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
     double R = 0;
     double X0 = 0;
     double Y0 = 0;
-    CircleFitByTaubin(clusters, R, X0, Y0);
+    CircleFitByTaubin(clusGlobPos, R, X0, Y0);
     if(Verbosity() > 10) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
     // toss tracks for which the fitted circle could not have come from the vertex
@@ -387,7 +393,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
 
     // get the straight line representing the z trajectory in the form of z vs radius
     double A = 0; double B = 0;
-    line_fit(clusters, A, B);
+    line_fit(clusGlobPos, A, B);
     if(Verbosity() > 10) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
     // loop over micromegas layer
@@ -418,7 +424,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
       }
 
       // we can figure out which solution is correct based on the last cluster position in the TPC
-      const double last_clus_phi = std::atan2(clusters.back()->getY(), clusters.back()->getX());
+      const double last_clus_phi = std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
       double phi_plus = std::atan2(yplus, xplus);
       double phi_minus = std::atan2(yminus, xminus);
 
@@ -490,14 +496,15 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
       const auto tilesetid = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
       const auto mm_clusrange = _cluster_map->getClusters(tilesetid);
 
+      ActsTransformations transformer;
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
 
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-
-        const TVector3 world_cluster( cluster->getX(), cluster->getY(), cluster->getZ() );
+	const auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tGeometry);
+        const TVector3 world_cluster(glob(0), glob(1), glob(2));
         const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
 
         // compute residuals and store
@@ -515,8 +522,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
           if( _test_windows )
           {
             // cluster rphi and z
-            const double mm_clus_rphi = get_r( cluster->getX(), cluster->getY() ) * std::atan2( cluster->getY(),  cluster->getX() );
-            const double mm_clus_z = cluster->getZ();
+            const double mm_clus_rphi = get_r( glob(0), glob(1) ) * std::atan2( glob(1),  glob(0) );
+            const double mm_clus_z = glob(2);
 
             // projection phi and z, without correction
             const double rphi_proj = get_r( world_intersection_planar.x(), world_intersection_planar.y() ) * std::atan2( world_intersection_planar.y(), world_intersection_planar.x() );
@@ -569,6 +576,22 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     std:: cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!_tGeometry)
+    {
+      std::cerr << PHWHERE << "No acts tracking geometry, can't continue."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!_surfmaps)
+    {
+      std::cerr << PHWHERE << "No acts surface son node tree, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
