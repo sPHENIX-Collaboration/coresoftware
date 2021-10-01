@@ -3521,7 +3521,6 @@ TMatrixF SvtxEvaluator::calculateClusterError(TrkrCluster* c, float& clusphi)
    localErr[2][0] = 0.;
    localErr[2][1] = c->getActsLocalError(1,0);
    localErr[2][2] = c->getActsLocalError(2,0);
-   ActsTransformations transform;
   
    TMatrixF ROT(3,3);
    ROT[0][0] = cos(clusphi);
