@@ -328,11 +328,7 @@ void SimEvaluator_hp::check_genevent()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_event()
 {
-  if( !( m_container && m_geneventmap ) )
-  {
-    std::cerr << "SimEvaluator_hp::fill_event - nodes not found." << std::endl;
-    return;
-  }
+  if( !( m_container && m_geneventmap ) ) return;
 
   // clear vertices from previous event
   m_container->clearEventList();
@@ -366,11 +362,7 @@ void SimEvaluator_hp::fill_event()
 //_____________________________________________________________________
 void SimEvaluator_hp::fill_vertices()
 {
-  if( !( m_container && m_g4truthinfo ) )
-  {
-    std::cerr << "SimEvaluator_hp::fill_vertices - nodes not found." << std::endl;
-    return;
-  }
+  if( !( m_container && m_g4truthinfo ) ) return;
 
   // clear vertices from previous event
   m_container->clearVertexList();
@@ -396,11 +388,7 @@ void SimEvaluator_hp::fill_vertices()
 void SimEvaluator_hp::fill_particles()
 {
 
-  if( !( m_container && m_g4truthinfo ) )
-  {
-    std::cerr << "SimEvaluator_hp::fill_vertices - nodes not found." << std::endl;
-    return;
-  }
+  if( !( m_container && m_g4truthinfo ) ) return;
 
   // clear vertices from previous event
   m_container->clearParticleList();
@@ -482,11 +470,7 @@ void SimEvaluator_hp::fill_hits()
 //_____________________________________________________________________
 void SimEvaluator_hp::print_vertices()
 {
-  if( !m_g4truthinfo )
-  {
-    std::cerr << "SimEvaluator_hp::print_vertices - nodes not found." << std::endl;
-    return;
-  }
+  if( !m_g4truthinfo ) return;
 
   // get main primary vertex id
   const auto main_vertex_id = m_g4truthinfo->GetPrimaryVertexIndex();
