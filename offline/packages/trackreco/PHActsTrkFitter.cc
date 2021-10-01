@@ -194,9 +194,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   for(const auto& [trackKey, track] : *m_trackMap)
     {
       if(!track)
-	{
-	  continue;
-	}
+	{ continue; }
 
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
