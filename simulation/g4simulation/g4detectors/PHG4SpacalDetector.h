@@ -119,12 +119,9 @@ class PHG4SpacalDetector : public PHG4Detector
   int CosmicSetup() {return m_CosmicSetupFlag;}
 
  private:
-  PHG4SpacalDisplayAction* m_DisplayAction;
+  PHG4SpacalDisplayAction* m_DisplayAction = nullptr;
 
  protected:
-  G4Tubs* cylinder_solid;
-  G4LogicalVolume* cylinder_logic;
-  G4VPhysicalVolume* cylinder_physi;
   std::map<const G4VPhysicalVolume*, int> fiber_core_vol;
 
   //! map for G4VPhysicalVolume -> fiber ID
@@ -136,22 +133,22 @@ class PHG4SpacalDetector : public PHG4Detector
   //! map for G4VPhysicalVolume -> towers ID
   std::map<const G4VPhysicalVolume*, int> block_vol;
 
-  int active;
-  int absorberactive;
-  int layer;
+  int active = 0;
+  int absorberactive = 0;
+  int layer = -9999;
   int m_CosmicSetupFlag = 0;
   std::string detector_type;
   std::string superdetector;
 
   //  G4UserLimits * step_limits;
   //  G4UserLimits * clading_step_limits;
-  G4UserLimits* fiber_core_step_limits;
+  G4UserLimits* fiber_core_step_limits = nullptr;
 
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig* gdml_config;
+  PHG4GDMLConfig* gdml_config = nullptr;
   //private:
 
-  SpacalGeom_t* _geom;
+  SpacalGeom_t* _geom = nullptr;
 };
 
 #endif

@@ -20,6 +20,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
@@ -37,8 +38,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>              // for G4double
 #include <Geant4/G4UserLimits.hh>
-
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>   // for exit
@@ -59,14 +58,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
                                        bool init_geom)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
-  , cylinder_solid(nullptr)
-  , cylinder_logic(nullptr)
-  , cylinder_physi(nullptr)
-  , active(0)
-  , absorberactive(0)
   , layer(lyr)
-  , fiber_core_step_limits(nullptr)
-  , _geom(nullptr)
 {
   if (init_geom)
   {
@@ -107,13 +99,19 @@ int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
   if (absorberactive)
   {
     if (fiber_vol.find(volume) != fiber_vol.end())
+    {
       return FIBER_CLADING;
+    }
 
     if (block_vol.find(volume) != block_vol.end())
+    {
       return ABSORBER;
+    }
 
     if (calo_vol.find(volume) != calo_vol.end())
+    {
       return SUPPORT;
+    }
   }
   return INACTIVE;
 }
@@ -123,8 +121,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   assert(_geom);
 
-  fiber_core_step_limits = new G4UserLimits(
-      _geom->get_fiber_core_step_size() * cm);
+  fiber_core_step_limits = new G4UserLimits(_geom->get_fiber_core_step_size() * cm);
 
   Verbosity(_geom->get_construction_verbose());
 
@@ -150,30 +147,30 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     gSystem->Exit(-1);
   }
 
-  G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName()),
+  G4Tubs *cylinder_solid = new G4Tubs(G4String(GetName()),
                                        _geom->get_radius() * cm, _geom->get_max_radius() * cm,
                                        _geom->get_length() * cm / 2.0, 0, twopi);
 
-  cylinder_solid = _cylinder_solid;
-
-  G4Material *cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material *cylinder_mat = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
-  cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
-                                       G4String(GetName()), 0, 0, 0);
+  G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
+                                       GetName(), 0, 0, 0);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
-
   if (! m_CosmicSetupFlag)
-    {
-      cylinder_physi = new G4PVPlacement(0,
-					 G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
-						       _geom->get_zpos() * cm),
-					 cylinder_logic, G4String(GetName()),
-					 logicWorld, false, 0, OverlapCheck());
-    }
+  {
+    new G4PVPlacement(0, G4ThreeVector(_geom->get_xpos() * cm,
+                                       _geom->get_ypos() * cm,
+				       _geom->get_zpos() * cm),
+		      cylinder_logic, GetName(),
+		      logicWorld, false, 0, OverlapCheck());
+  }
   // install sectors
   if (_geom->get_sector_map().size() == 0)
+  {
     _geom->init_default_sector_map();
+  }
 
   if ((Verbosity() > 0))
   {
@@ -185,7 +182,8 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   std::pair<G4LogicalVolume *, G4Transform3D> psec = Construct_AzimuthalSeg();
   G4LogicalVolume *sec_logic = psec.first;
   const G4Transform3D &sec_trans = psec.second;
-  BOOST_FOREACH (const SpacalGeom_t::sector_map_t::value_type &val, _geom->get_sector_map())
+
+  for (const SpacalGeom_t::sector_map_t::value_type &val: _geom->get_sector_map())
   {
     const int sec = val.first;
     const double rot = val.second;
