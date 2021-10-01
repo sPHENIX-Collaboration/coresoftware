@@ -20,6 +20,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcClusterizer.h \
+	 TpcSimpleClusterizer.h \
   TpcSpaceChargeCorrection.h \
   TpcClusterCleaner.h
 
@@ -28,6 +29,7 @@ pcmdir = $(libdir)
 # sources for tpc library
 libtpc_la_SOURCES = \
   TpcClusterizer.cc \
+	 TpcSimpleClusterizer.cc \
   TpcSpaceChargeCorrection.cc \
   TpcClusterCleaner.cc
 
