@@ -662,14 +662,13 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHTpcResiduals::makeHistograms()
 {  
-  
+  std::cout << "PHTpcResiduals::makeHistograms - writing evaluation histograms to: " << m_histogramfilename << std::endl;
   m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
   m_histogramfile->cd();
 
@@ -712,7 +711,6 @@ void PHTpcResiduals::makeHistograms()
 //   residTup->Branch("iphi",&iphi,"iphi/I");
   residTup->Branch("cluskey",&cluskey,"cluskey/l");
   residTup->Branch("event",&m_event,"event/I");
-
 }
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
