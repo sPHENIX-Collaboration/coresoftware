@@ -111,6 +111,36 @@ namespace
 
     return ( alpha*rextrap + beta )/denom;
   }
+  
+  //! calculate the average of member function called on all members in collection
+  template< float (PHG4Hit::*accessor)(int) const>
+  float average( const std::set<PHG4Hit*>& hits )
+  {
+
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x0 = (hit->*accessor)(0);
+      const double x1 = (hit->*accessor)(1);
+      if( std::isnan( x0 ) || std::isnan( x1 ) ) continue;
+
+      const double w = hit->get_edep();
+      if( w < 0 ) continue;
+
+      valid = true;
+      sw += w*2;
+      swx += w*(x0 + x1);
+    }
+
+    if( !valid ) return NAN;
+    return swx/sw;
+  }
 
   //! needed for weighted linear interpolation
   struct interpolation_data_t
@@ -1109,17 +1139,27 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
     cluster._ncontributors = ids.size();
   }
 
-  const auto rextrap = cluster._r;
-  cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
-  cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
-  cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
+//   const auto rextrap = cluster._r;
+  
+//   cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
+//   cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
+//   cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
+  
+  cluster._truth_x = average<&PHG4Hit::get_x>( hits );
+  cluster._truth_y = average<&PHG4Hit::get_y>( hits );
+  cluster._truth_z = average<&PHG4Hit::get_z>( hits );
+
   cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
   cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
 
   /* add truth momentum information */
-  cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
-  cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
-  cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+//   cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
+//   cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
+//   cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+
+  cluster._truth_px = average<&PHG4Hit::get_px>( hits );
+  cluster._truth_py = average<&PHG4Hit::get_py>( hits );
+  cluster._truth_pz = average<&PHG4Hit::get_pz>( hits );
 
   /*
   store state angles in (r,phi) and (r,z) plans
