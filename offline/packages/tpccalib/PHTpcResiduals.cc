@@ -15,6 +15,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -421,14 +423,16 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
 }
 void PHTpcResiduals::calculateTpcResiduals(
   const Acts::BoundTrackParameters &params,
-  const TrkrCluster* cluster)
+  TrkrCluster* cluster)
 {
   
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
-  clusR = std::sqrt(square(cluster->getX()) + square(cluster->getY()));
-  clusPhi = std::atan2(cluster->getY(), cluster->getX());
-  clusZ = cluster->getZ();
+  ActsTransformations transformer;
+  const auto globClusPos = transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+  clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
+  clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+  clusZ = globClusPos(2);
 
   clusRPhiErr = cluster->getRPhiError();
   clusZErr = cluster->getZError();
@@ -507,9 +511,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
   const auto clusEta = std::atanh(clusZ / std::sqrt(
-    square(cluster->getX()) +
-    square(cluster->getY()) +
-    square(cluster->getZ())));
+    square(globClusPos(0)) +
+    square(globClusPos(1)) +
+    square(globClusPos(2))));
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -526,14 +530,9 @@ void PHTpcResiduals::calculateTpcResiduals(
     
   tanBeta = trackBeta;
   tanAlpha = trackAlpha;
-  
-  // cluster global position
-  Acts::Vector3D globClus(cluster->getX(), 
-			  cluster->getY(), 
-			  cluster->getZ());
-      
+
   // get cell index
-  const auto index = getCell(globClus);
+  const auto index = getCell(globClusPos);
   if(Verbosity() > 3)
   { std::cout << "Bin index found is " << index << std::endl; }
   

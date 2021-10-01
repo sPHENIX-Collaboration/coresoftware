@@ -11,7 +11,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
 #include <trackbase/TrkrClusterContainerv3.h>        // for TrkrCluster
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
@@ -261,7 +261,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // create cluster key and corresponding cluster
       const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
-      auto cluster = std::make_unique<TrkrClusterv2>();
+      auto cluster = std::make_unique<TrkrClusterv3>();
       cluster->setClusKey(cluster_key);
 
       TVector3 local_coordinates;
@@ -321,12 +321,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       }
 
-      // cluster position
-      const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates*(1./weight_sum) );
-      cluster->setX( world_coordinates.x() );
-      cluster->setY( world_coordinates.y() );
-      cluster->setZ( world_coordinates.z() );
-      cluster->setGlobal();
+      local_coordinates *= (1./weight_sum);
 
       cluster->setAdc( adc_sum );
 
@@ -369,66 +364,17 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
       }
 
-      {
-        /// Add Acts local information
-        Acts::Vector3D globalPos(cluster->getX(), cluster->getY(), cluster->getZ());
-        auto result = acts_surface->globalToLocal(
-          acts_geometry->geoContext,
-          globalPos * Acts::UnitConstants::cm,
-          normal);
-
-        if( !result.ok() )
-        {
-          // if this happens, should use CylinderGeomMicromegas instead
-          std::cout
-            << "MicromegasClusterizer::process_event -"
-            << " could not convert global cluster position to local coordinates"
-            << std::endl;
-        }
-
-        Acts::Vector2D local2D = result.value()/Acts::UnitConstants::cm;
-
-        if( Verbosity() )
-        {
-          const auto local = layergeom->get_local_from_world_coords( tileid, world_coordinates );
-          std::cout << "MicromegasClusterizer::process_event -"
-            << " layer: " << (int) layer
-            << " tile: " << (int) tileid
-            << " local: " << local
-            << " acts: " << local2D
-            << std::endl;
-        }
-
-        cluster->setLocalX(local2D(0));
-        cluster->setLocalY(local2D(1));
-
-        cluster->setActsLocalError(0,0, error(1,1));
-        cluster->setActsLocalError(0,1, error(1,2));
-        cluster->setActsLocalError(1,0, error(2,1));
-        cluster->setActsLocalError(1,1,error(2,2));
-      }
-
-      // rotate size and error to global frame, and assign to cluster
-      matrix_t rotation = matrix_t::Identity();
-      const double phi = layergeom->get_center_phi( tileid );
-      const double cosphi = std::cos(phi);
-      const double sinphi = std::sin(phi);
-      rotation(0,0) = cosphi;
-      rotation(0,1) = -sinphi;
-      rotation(1,0) = sinphi;
-      rotation(1,1) = cosphi;
-
-      // rotate dimension and error
-      dimension = rotation*dimension*rotation.transpose();
-      error = rotation*error*rotation.transpose();
-
+      cluster->setLocalX(local_coordinates[0]);
+      cluster->setLocalY(local_coordinates[2]);
+      
+      cluster->setActsLocalError(0,0, error(1,1));
+      cluster->setActsLocalError(0,1, error(1,2));
+      cluster->setActsLocalError(1,0, error(2,1));
+      cluster->setActsLocalError(1,1,error(2,2));
+      
       // assign to cluster
       for( int i = 0; i<3; ++i )
-        for( int j = 0; j<3; ++j )
-      {
-        cluster->setSize( i, j, dimension(i,j) );
-        cluster->setError( i, j, error(i,j) );
-      }
+        { cluster->setSize( i, dimension(i,i)); }
 
       // add to container
       trkrClusterContainer->addCluster( cluster.release() );
