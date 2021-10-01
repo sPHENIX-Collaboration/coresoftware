@@ -32,6 +32,8 @@
 #include <cmath>
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <iostream>
 #include <sstream>
@@ -45,7 +47,7 @@ namespace
   // radius
   template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
-  template<class T> T deltaPhi(const T& phi)
+  template<class T> inline constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI) 
       return phi - 2. * M_PI;
@@ -102,10 +104,8 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 {
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
-
   if(Verbosity() > 0)
-    std::cout << "Number of bad SL propagations " 
-	      << m_nBadProps << std::endl;
+  { std::cout << "PHTpcResiduals::End - Number of bad SL propagations " << m_nBadProps << std::endl; }
       
   // save matrix container in output file
   if( m_matrix_container )
@@ -123,7 +123,6 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     { if( o ) o->Write(); }
     m_histogramfile->Close();
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
