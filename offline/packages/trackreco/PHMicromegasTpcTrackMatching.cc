@@ -496,7 +496,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
       const auto tilesetid = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
       const auto mm_clusrange = _cluster_map->getClusters(tilesetid);
 
-      ActsTransformations transformer;
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {

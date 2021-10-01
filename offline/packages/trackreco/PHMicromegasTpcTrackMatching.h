@@ -84,8 +84,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   //! micomegas geometry
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
 
-  ActsTrackingGeometry *_tGeometry;
-  ActsSurfaceMaps *_surfmaps;
+  ActsTrackingGeometry *_tGeometry = nullptr;
+  ActsSurfaceMaps *_surfmaps = nullptr;
 
   //! coarse SC correction function
   TF1 *fdrphi{nullptr};
