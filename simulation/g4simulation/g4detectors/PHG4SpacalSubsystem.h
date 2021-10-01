@@ -13,7 +13,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -56,8 +56,8 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   void
   Print(const std::string &what = "ALL") const override;
 
-  void CosmicSetup(const int i) {m_CosmicSetupFlag = i;}
-  int CosmicSetup() const {return m_CosmicSetupFlag;}
+  void CosmicSetup(const int i) { m_CosmicSetupFlag = i; }
+  int CosmicSetup() const { return m_CosmicSetupFlag; }
 
  private:
   void SetDefaultParameters() override;

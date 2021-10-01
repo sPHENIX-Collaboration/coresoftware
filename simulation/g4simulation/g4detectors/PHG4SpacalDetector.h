@@ -115,8 +115,8 @@ class PHG4SpacalDetector : public PHG4Detector
 
   PHG4SpacalDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
-  void CosmicSetup(const int i) {m_CosmicSetupFlag = i;}
-  int CosmicSetup() {return m_CosmicSetupFlag;}
+  void CosmicSetup(const int i) { m_CosmicSetupFlag = i; }
+  int CosmicSetup() { return m_CosmicSetupFlag; }
 
  private:
   PHG4SpacalDisplayAction* m_DisplayAction = nullptr;
