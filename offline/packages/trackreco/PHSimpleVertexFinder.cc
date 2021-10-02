@@ -99,7 +99,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	    {
 	      connected_tracks.push_back(connected);
 	      connected.clear();
-	      std::cout << "           closing out set " << std::endl;
+	      if(Verbosity() > 2) std::cout << "           closing out set " << std::endl;
 	    }
 	}
 
@@ -143,7 +143,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	{
 	  unsigned int id = it;
 	  _vertex_track_map.insert(std::make_pair(ivtx, id));
-	  if(Verbosity() > 2)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
+	  if(Verbosity() > 1)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
 
 	}      
     }
@@ -329,17 +329,46 @@ void PHSimpleVertexFinder::checkDCAs()
   for(auto tr1_it = _track_map->begin(); tr1_it != _track_map->end(); ++tr1_it)
     {
       auto id1 = tr1_it->first;
-
+      auto tr1 = tr1_it->second;
+      if(tr1->get_quality() > qual_cut) continue;
+      if(require_mvtx)
+	{
+	  unsigned int nmvtx = 0;
+	  for(auto clusit = tr1->begin_cluster_keys(); clusit != tr1->end_cluster_keys(); ++clusit)
+	    {
+	      if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
+		{
+		  nmvtx++;
+		}
+	      if(nmvtx > 2) break;
+	    }
+	  if(nmvtx <3) continue;
+	  if(Verbosity() > 1) std::cout << " tr1 has nmvtx " << nmvtx << std::endl;
+	}
+      
       // look for close DCA matches with all other such tracks
       for(auto tr2_it = std::next(tr1_it); tr2_it != _track_map->end(); ++tr2_it)
 	{
 	  auto id2 = tr2_it->first;
-
-	  auto tr1 = tr1_it->second;
 	  auto tr2 = tr2_it->second;
-
+	  if(tr2->get_quality() > qual_cut) continue;
+	  if(require_mvtx)
+	    {
+	      unsigned int nmvtx = 0;
+	      for(auto clusit = tr2->begin_cluster_keys(); clusit != tr2->end_cluster_keys(); ++clusit)
+		{
+		  if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
+		    {
+		      nmvtx++;
+		    }
+		  if(nmvtx > 2) break;
+		}
+	      if(nmvtx <3) continue;
+	      if(Verbosity() > 1)  std::cout << " tr2 has nmvtx " << nmvtx << std::endl;
+	    }
+	  
 	  // find DCA of these two tracks
-	  if(Verbosity() > 1) std::cout << "Check DCA for tracks " << id1 << "and " << id2 << std::endl;
+	  if(Verbosity() > 2) std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
 	  
 	  findDcaTwoTracks(tr1, tr2);
 
