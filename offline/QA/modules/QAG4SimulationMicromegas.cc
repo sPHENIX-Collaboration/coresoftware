@@ -9,6 +9,8 @@
 
 #include <mvtx/MvtxDefs.h>
 
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -235,6 +237,22 @@ std::string QAG4SimulationMicromegas::get_histo_prefix() const
 int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 {
 
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if (!m_surfmaps)
+    {
+      std::cout << PHWHERE << "Error: can't find Acts surface maps"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "No acts tracking geometry, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_micromegas_geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
   if (!m_micromegas_geonode)
   {
@@ -361,6 +379,8 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
+  ActsTransformations transformer;
+
   // loop over hitsets
   const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
   for (auto hitsetiter = hitsetrange.first; hitsetiter != hitsetrange.second; ++hitsetiter)
@@ -393,16 +413,18 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get cluster
       const auto& cluster = clusterIter->second;
 
+      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
+							m_tGeometry);
+
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType( key );
 
       // get relevant cluster information
-      const auto phi = -layergeom->get_center_phi( tileid );
-      const auto rphi_error = std::sqrt(rotate<&TrkrCluster::getError>(phi, cluster) );        
+      const auto rphi_error = std::sqrt(cluster->getRPhiError());        
       const auto z_error = cluster->getZError();
 
       // convert cluster position to local tile coordinates
-      const TVector3 cluster_world( cluster->getX(), cluster->getY(), cluster->getZ() );
+      const TVector3 cluster_world( global(0), global(1), global(2) );
       const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
 
       // find associated g4hits
