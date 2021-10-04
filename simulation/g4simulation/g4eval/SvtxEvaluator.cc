@@ -147,7 +147,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                                                "gembed:gprimary:nclusters:"
                                                "clusID:x:y:z:eta:phi:e:adc:layer:size:"
-                                               "phisize:zsize:efromtruth:dphitru:detatru:dztru:drtru:"
+                                               "efromtruth:dphitru:detatru:dztru:drtru:"
                                                "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
@@ -162,8 +162,8 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                                    "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
-                                                   "e:adc:maxadc:layer:phielem:zelem:size:phisize:"
-                                                   "zsize:trackID:g4hitID:gx:"
+                                                   "e:adc:maxadc:layer:phielem:zelem:size:"
+                                                   "trackID:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                                    "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
                                                    "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -171,7 +171,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
@@ -1413,8 +1413,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float adc = NAN;
       float layer = NAN;
       float size = NAN;
-      float phisize = NAN;
-      float zsize = NAN;
       float efromtruth = NAN;
       float dphitru = NAN;
       float detatru = NAN;
@@ -1448,8 +1446,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  {
 	    ++size; 
 	  }
-        phisize = cluster->getPhiSize();
-        zsize = cluster->getZSize();
+
         dphitru = vec2.DeltaPhi(vg4);
         detatru = eta - geta;
         dztru = z - gz;
@@ -1500,9 +1497,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                             adc,
                             layer,
                             size,
-                            phisize,
-                            zsize,
-                            efromtruth,
+			    efromtruth,
                             dphitru,
                             detatru,
                             dztru,
@@ -1813,8 +1808,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		maxadc = (hit->getAdc()-70);
 	    }
 	  e = sumadc;
-	  float phisize = cluster->getPhiSize();
-	  float zsize = cluster->getZSize();
 	  
 	  float trackID = NAN;
 	  if (track!=NULL) trackID = track->get_id();
@@ -1945,8 +1938,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  sector,
 				  side,
 				  size,
-				  phisize,
-				  zsize,
 				  trackID,
 				  g4hitID,
 				  gx,
@@ -2064,10 +2055,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    maxadc = hit->getAdc();
 		}
 	      
-
-	      float phisize = cluster->getPhiSize();
-	      float zsize = cluster->getZSize();
-	      
 	      float trackID = NAN;
 	      trackID = track->get_id();
 	      
@@ -2180,8 +2167,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      sector,
 				      side,
 				      size,
-				      phisize,
-				      zsize,
 				      trackID,
 				      g4hitID,
 				      gx,
@@ -2305,8 +2290,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float ey = NAN;
 	      float ez = NAN;
 	      float ephi = NAN;
-	      float phisize = NAN;
-	      float zsize = NAN;
 	      float adc = NAN;
 
 	      float nreco = 0;
@@ -2328,10 +2311,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  ex = sqrt(globerr[0][0]);
 		  ey = sqrt(globerr[1][1]);
 		  ez = reco_cluster->getZError();		  
-		  ephi = reco_cluster->getRPhiError();
-
-		  phisize = reco_cluster->getPhiSize();  
-		  zsize = reco_cluster->getZSize();   
+		  ephi = reco_cluster->getRPhiError(); 
 		  
 		  adc = reco_cluster->getAdc();
 
@@ -2377,8 +2357,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					ey,
 					ez,
 					ephi,
-					phisize,
-					zsize,
 					adc };
 	      _ntp_g4cluster->Fill(g4cluster_data);
 	    }

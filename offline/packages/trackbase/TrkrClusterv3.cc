@@ -21,9 +21,6 @@ TrkrClusterv3::TrkrClusterv3()
   , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_adc(0xFFFFFFFF)
 {
-  for (int i = 0; i < 3; ++i)
-    { m_size[i] = NAN; }
-
   for (int i = 0; i < 2; i++)
     {
       m_local[i] = NAN;
@@ -44,11 +41,7 @@ void TrkrClusterv3::identify(std::ostream& os) const
 
   os << " adc = " << getAdc() << std::endl;
 
-  os << "Size " << std::endl;
-  os << "         ( ";
-  os << getSize(0) << ", ";
-  os << getSize(1) << ", ";
-  os << getSize(2) << ") " << std::endl;
+  os << "Error " << std::endl;
   os << "         ( ";
   os << getError(0, 0) << " , ";
   os << getError(0, 1) << " ) " << std::endl;
@@ -72,19 +65,9 @@ int TrkrClusterv3::isValid() const
       { if (std::isnan(getActsLocalError(i,j))) { return 0; }}
   }
   if (m_adc == 0xFFFFFFFF) { return 0; }
-  for (int j = 0; j < 3; ++j)
-  {
-    if (std::isnan(getSize(j))) { return 0; }
-  }
 
   return 1;
 }
-
-float TrkrClusterv3::getPhiSize() const
-{ return m_size[1]; }
-
-float TrkrClusterv3::getZSize() const
-{ return m_size[2]; }
 
 float TrkrClusterv3::getRPhiError() const
 { return std::sqrt(m_actsLocalErr[0][0]); }

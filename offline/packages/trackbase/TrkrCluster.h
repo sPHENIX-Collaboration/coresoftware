@@ -47,8 +47,7 @@ class TrkrCluster : public PHObject
   virtual void setLocalX(float) {}
   virtual float getLocalY() const { return NAN; }
   virtual void setLocalY(float) {}
-  virtual void setSize(unsigned int, float) {}
-  virtual float getSize(unsigned int) const {return NAN;}
+
   //
   // cluster info
   //

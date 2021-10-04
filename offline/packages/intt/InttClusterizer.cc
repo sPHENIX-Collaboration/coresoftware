@@ -428,9 +428,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	      }
 	  }
 
-	float phisize = phibins.size() * pitch;
-	float zsize = zbins.size() * length;
-
 	static const float invsqrt12 = 1./sqrt(12);
 	
 	// scale factors (phi direction)
@@ -483,11 +480,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	ERR[2][1] = 0.0;
 	ERR[2][2] = square(zerror);
 
-	
-	clus->setSize(0, square(0.5 * thickness));
-	clus->setSize(1, square(0.5 * phisize));
-	clus->setSize(2, square(0.5 * zsize));
-	
 	if(Verbosity() > 10) clus->identify();
 	
 	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);

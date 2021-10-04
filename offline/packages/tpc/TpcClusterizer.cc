@@ -340,10 +340,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   TrkrClusterv3 *clus = new TrkrClusterv3();
   clus->setClusKey(ckey);
-  //  int phi_nsize = phibinhi - phibinlo + 1;
-  //  int z_nsize   = zbinhi   - zbinlo + 1;
-  double phi_size = (double) (phibinhi - phibinlo + 1) * radius * layergeom->get_phistep();
-  double z_size = (double) (zbinhi - zbinlo + 1) * layergeom->get_zstep();
 
   // Estimate the errors
   const double phi_err_square = (phibinhi == phibinlo) ?
@@ -401,10 +397,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   ERR[2][0] = 0.0;
   ERR[2][1] = 0.0;
   ERR[2][2] = z_err_square;
-  
-  clus->setSize(0, 0.); // no thickness to tpc layers
-  clus->setSize(1, pow(0.5 * phi_size, 2));
-  clus->setSize(2, pow(0.5 * z_size, 2));
 
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);

@@ -407,10 +407,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
 
-	clus->setSize(0, square(0.5 * thickness));
-	clus->setSize(1, square(0.5 * phisize));
-	clus->setSize(2, square(0.5 * zsize));
-
 	TVector3 local(0,0,0);
 	TVector3 world(clusx, clusy, clusz);
 	local = layergeom->get_local_from_world_coords(stave, 0, 0,

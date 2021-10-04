@@ -331,19 +331,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       static constexpr float error_scale_z = 0.8;
 
       using matrix_t = Eigen::Matrix<float, 3, 3>;
-      matrix_t dimension = matrix_t::Zero();
       matrix_t error = matrix_t::Zero();
 
-      const auto size = std::distance( range.first, range.second );
       auto coord_cov = coordsquare_sum/weight_sum - square( coord_sum/weight_sum );
       auto coord_error_sq = coord_cov/weight_sum;
       switch( segmentation_type )
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-        dimension(0,0) = square(0.5*thickness);
-        dimension(1,1) = square(0.5*pitch*size);
-        dimension(2,2) = square(0.5*strip_length);
-
         if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
         else coord_error_sq *= square(error_scale_phi);
         error(0,0) = square(thickness*invsqrt12);
@@ -352,10 +346,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
 
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-        dimension(0,0) = square(0.5*thickness);
-        dimension(1,1) = square(0.5*strip_length);
-        dimension(2,2) = square(0.5*pitch*size);
-
         if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
         else coord_error_sq *= square(error_scale_z);
         error(0,0) = square(thickness*invsqrt12);
@@ -372,10 +362,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setActsLocalError(1,0, error(2,1));
       cluster->setActsLocalError(1,1,error(2,2));
       
-      // assign to cluster
-      for( int i = 0; i<3; ++i )
-        { cluster->setSize( i, dimension(i,i)); }
-
       // add to container
       trkrClusterContainer->addCluster( cluster.release() );
 

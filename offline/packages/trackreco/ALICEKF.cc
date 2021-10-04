@@ -314,37 +314,10 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
   
       //if(cluster_ctr>10)
       {
-        float nextclusphi = atan2(nextCluster_y, nextCluster_x);
+    
 	float nextclusrad = std::sqrt(nextCluster_x*nextCluster_x +
 				      nextCluster_y*nextCluster_y);
 	float nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
-
-	TMatrixF ROT(3, 3);
-	ROT[0][0] = cos(nextclusphi);
-	ROT[0][1] = -sin(nextclusphi);
-	ROT[0][2] = 0.0;
-	ROT[1][0] = sin(nextclusphi);
-	ROT[1][1] = cos(nextclusphi);
-	ROT[1][2] = 0.0;
-	ROT[2][0] = 0.0;
-	ROT[2][1] = 0.0;
-	ROT[2][2] = 1.0;
-
-	TMatrixF localSize(3,3);
-	localSize[0][0] = nextCluster->getSize(0);
-	localSize[0][1] = 0.;
-	localSize[0][2] = 0.;
-	localSize[1][0] = 0.;
-	localSize[1][1] = nextCluster->getSize(1);
-	localSize[1][2] = 0.;
-	localSize[2][0] = 0.;
-	localSize[2][1] = 0.;
-	localSize[2][2] = nextCluster->getSize(2);
-
-	TMatrixF ROT_T(3,3);
-	ROT_T.Transpose(ROT);
-	TMatrixF globSize(3,3);
-	globSize = ROT * localSize * ROT_T; 
 
 	cx.push_back(nextCluster_x);
         cy.push_back(nextCluster_y);
@@ -356,11 +329,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         yerr.push_back(nextCluster_yerr);
         zerr.push_back(nextCluster_zerr);
         layer.push_back(TrkrDefs::getLayer(*clusterkey));
-        xsize.push_back(sqrt(globSize(0,0)));
-        ysize.push_back(sqrt(globSize(1,1)));
-        phisize.push_back(nextCluster->getPhiSize());
-        phierr.push_back(nextclusphierr);
-        zsize.push_back(nextCluster->getZSize());
+        phierr.push_back(nextclusphierr);     
       }
     }
 //    if(aborted) continue;
