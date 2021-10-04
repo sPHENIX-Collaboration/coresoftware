@@ -61,11 +61,14 @@ class PHSimpleVertexFinder : public SubsysReco
   double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
   
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
+  using matrix_t = Eigen::Matrix<float,3,3>;
+  std::multimap<unsigned int, matrix_t> _vertex_cov_map;
   std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
   //std::multimap<unsigned int, std::pair<unsigned int, Eigen::Vector3d>> _track_pca_map;
   std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,
 Eigen::Vector3d>>>  _track_pair_pca_map;
   std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
+  std::map<unsigned int, matrix_t> _vertex_covariance_map;
   std::set<unsigned int> _vertex_set;
   
 };
