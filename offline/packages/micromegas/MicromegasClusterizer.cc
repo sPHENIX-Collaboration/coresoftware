@@ -354,7 +354,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
       }
 
-      cluster->setLocalX(local_coordinates[0]);
+      /// local_coordinates rdphi is sign opposite Acts definition
+      cluster->setLocalX(-1*local_coordinates[0]);
       cluster->setLocalY(local_coordinates[2]);
       
       cluster->setActsLocalError(0,0, error(1,1));

@@ -412,12 +412,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	local = layergeom->get_local_from_world_coords(stave, 0, 0,
 						       chip,
 						       world);
+	float clusr = sqrt(clusx*clusx+clusy*clusy);
 	clus->setLocalX(local[0]);
 	clus->setLocalY(local[2]);
 	/// Take the x and z uncertainty of the cluster
-	clus->setActsLocalError(0,0,ERR[0][0]);
-	clus->setActsLocalError(0,1,ERR[0][2]);
-	clus->setActsLocalError(1,0,ERR[2][0]);
+	clus->setActsLocalError(0,0,clusr * ERR[1][1]);
+	clus->setActsLocalError(0,1,ERR[1][2]);
+	clus->setActsLocalError(1,0,ERR[2][1]);
 	clus->setActsLocalError(1,1,ERR[2][2]);
 	
 	/// All silicon surfaces have a 1-1 map to hitsetkey. 

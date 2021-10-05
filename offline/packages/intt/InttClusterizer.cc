@@ -490,12 +490,13 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	local = geom->get_local_from_world_coords(ladderZId,
 						  ladderPhiId,
 						  global);
+	float clusr = sqrt(clusx*clusx+clusy*clusy);
 	clus->setLocalX(local[1]);
 	clus->setLocalY(local[2]);
 	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
 	/// 0
 	clus->setSubSurfKey(0);
-	clus->setActsLocalError(0,0, ERR[1][1]);
+	clus->setActsLocalError(0,0, clusr* ERR[1][1]);
 	clus->setActsLocalError(0,1, ERR[1][2]);
 	clus->setActsLocalError(1,0, ERR[2][1]);
 	clus->setActsLocalError(1,1, ERR[2][2]);
