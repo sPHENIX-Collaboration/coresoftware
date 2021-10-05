@@ -39,6 +39,8 @@ class PHSimpleVertexFinder : public SubsysReco
   int End(PHCompositeNode *topNode) override;
  void setBeamLineCut(const double cut) {beamline_xy_cut = cut;}
  void setDcaCut(const double cut) {dcacut = cut;}
+ void setTrackQualityCut(double cut) {qual_cut = cut;}
+ void setRequireMVTX(bool set) {require_mvtx = set;}
 
  private:
 
@@ -59,6 +61,8 @@ class PHSimpleVertexFinder : public SubsysReco
   
   double dcacut = 0.0080;  // 80 microns 
   double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
+  double qual_cut = 6.0;
+  bool require_mvtx = true;
   
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
   using matrix_t = Eigen::Matrix<float,3,3>;
@@ -66,7 +70,7 @@ class PHSimpleVertexFinder : public SubsysReco
   std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
   //std::multimap<unsigned int, std::pair<unsigned int, Eigen::Vector3d>> _track_pca_map;
   std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,
-Eigen::Vector3d>>>  _track_pair_pca_map;
+  Eigen::Vector3d>>>  _track_pair_pca_map;
   std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
   std::map<unsigned int, matrix_t> _vertex_covariance_map;
   std::set<unsigned int> _vertex_set;
