@@ -60,9 +60,11 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   // reset maps
   _vertex_track_map.clear();
+  _vertex_cov_map.clear();
   _track_pair_map.clear();
   _track_pair_pca_map.clear();
   _vertex_position_map.clear();
+  _vertex_covariance_map.clear();
   _vertex_set.clear();
   
   // define local scope objects
@@ -142,8 +144,15 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       for(auto it : connected_tracks[ivtx])
 	{
 	  unsigned int id = it;
+	  matrix_t cov;
+	  auto track = _track_map->get(id);
+	  for(int i = 0; i < 3; ++i)
+	    for(int j = 0; j < 3; ++j)
+	      {cov(i,j) = track->get_error(i,j);}
+
 	  _vertex_track_map.insert(std::make_pair(ivtx, id));
-	  if(Verbosity() > 1)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
+	  _vertex_cov_map.insert(std::make_pair(ivtx, cov));
+	  if(Verbosity() > 2)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
 
 	}      
     }
@@ -187,12 +196,25 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 					  << " pca2.x " << pca2.x() << " pca2.y " << pca2.y() << " pca2.z " << pca2.z()  << std::endl; 
 	  }
       }
+      
+      matrix_t avgCov = matrix_t::Zero();
+      auto covret = _vertex_cov_map.equal_range(vtxid);
+      double covWeight = 0.;
+      for(auto cit=covret.first; cit != covret.second; ++cit)
+	{
+	  auto cov = cit->second;
+	  avgCov += cov;
+	  covWeight++;
+	}
 
       pca_avge /= wt;
+      avgCov /= sqrt(covWeight);
+ 
       if(Verbosity() > 1) std::cout << "vertex " << vtxid << " average pca.x " << pca_avge.x() << " pca.y " << pca_avge.y() << " pca.z " << pca_avge.z() << std::endl;
 
       // capture the position
       _vertex_position_map.insert(std::make_pair(vtxid, pca_avge));
+      _vertex_covariance_map.insert(std::make_pair(vtxid, avgCov));
     }       
 
   // Write the vertices to the vertex map on the node tree
@@ -223,11 +245,12 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       svtxVertex->set_z(pos.z());
       if(Verbosity() > 1) std::cout << "   vertex " << it << " insert pos.x " << pos.x() << " pos.y " << pos.y() << " pos.z " << pos.z() << std::endl; 
 
+      auto vtxCov = _vertex_covariance_map.find(it)->second;
       for(int i = 0; i < 3; ++i) 
 	{
 	  for(int j = 0; j < 3; ++j)
 	    {
-	      svtxVertex->set_error(i, j, 0.0); 
+	      svtxVertex->set_error(i, j, vtxCov(i,j)); 
 	    }
 	}
       
