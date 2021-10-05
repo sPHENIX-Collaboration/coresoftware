@@ -152,7 +152,7 @@ void line_fit(std::vector<Acts::Vector3D>& clusters, double &a, double &b)
 
     //variables for sums/sigma of xi,yi,xi^2,xiyi etc
     double xsum=0,x2sum=0,ysum=0,xysum=0;
-    ActsTransformations transformer;
+ 
     for (auto& global : clusters)
     {
       const double z = global(2);
