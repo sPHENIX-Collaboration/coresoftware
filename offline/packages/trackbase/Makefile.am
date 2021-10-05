@@ -34,6 +34,8 @@ pkginclude_HEADERS = \
   TrkrClusterHitAssocv1.h \
   TrkrClusterHitAssocv2.h \
   TrkrClusterHitAssocv3.h \
+  TrkrClusterIterationMap.h \
+  TrkrClusterIterationMapv1.h \
   TrkrDefs.h \
   TrkrHit.h \
   TrkrHitv1.h \
@@ -58,6 +60,8 @@ ROOTDICTS = \
   TrkrClusterHitAssocv1_Dict.cc \
   TrkrClusterHitAssocv2_Dict.cc \
   TrkrClusterHitAssocv3_Dict.cc \
+  TrkrClusterIterationMap_Dict.cc \
+  TrkrClusterIterationMapv1_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitv1_Dict.cc \
   TrkrHitv2_Dict.cc \
@@ -85,6 +89,8 @@ nobase_dist_pcm_DATA = \
   TrkrClusterHitAssocv1_Dict_rdict.pcm \
   TrkrClusterHitAssocv2_Dict_rdict.pcm \
   TrkrClusterHitAssocv3_Dict_rdict.pcm \
+  TrkrClusterIterationMap_Dict_rdict.pcm \
+  TrkrClusterIterationMapv1_Dict_rdict.pcm \
   TrkrHit_Dict_rdict.pcm \
   TrkrHitv1_Dict_rdict.pcm \
   TrkrHitv2_Dict_rdict.pcm \
@@ -112,6 +118,8 @@ libtrack_io_la_SOURCES = \
   TrkrClusterHitAssocv1.cc \
   TrkrClusterHitAssocv2.cc \
   TrkrClusterHitAssocv3.cc \
+  TrkrClusterIterationMap.cc \
+  TrkrClusterIterationMapv1.cc \
   TrkrDefs.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitSet.cc \

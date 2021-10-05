@@ -44,6 +44,7 @@ pkginclude_HEADERS = \
   PHGhostRejection.h \
   PHHoughSeeding.h \
   PHTrackCleaner.h \
+  PHTrackSelector.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
   PHHybridSeeding.h \
@@ -71,8 +72,9 @@ pkginclude_HEADERS = \
   ../PHTpcTracker/PHTpcTrackerUtil.h \
   ../PHTpcTracker/externals/kdfinder.hpp \
   ALICEKF.h \
-  nanoflann.hpp \
-  PHSimpleKFProp.h
+  PHSimpleKFProp.h \
+  nanoflann.hpp 
+
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -158,6 +160,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHTrackCleaner.cc \
+  PHTrackSelector.cc \
   PHRTreeSeeding.cc \
   ../PHTpcTracker/PHTpcTrackerUtil.cc \
   PHHybridSeeding.cc \

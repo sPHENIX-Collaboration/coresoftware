@@ -17,9 +17,9 @@
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
-class TrkrClusterContainer;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
+class TrkrClusterContainer;
 
 namespace ActsExamples
 {
@@ -27,9 +27,10 @@ namespace ActsExamples
 }
 
 #include <memory>
-#include <TH1.h>
-#include <TH2.h>
-#include <TTree.h>
+class TFile;
+class TH1;
+class TH2;
+class TTree;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using BoundTrackParamPtr = 
@@ -66,8 +67,7 @@ class PHTpcResiduals : public SubsysReco
   void setMaxTrackResidualDz(float maxResidualDz)
     { m_maxResidualDz = maxResidualDz; }
   
-  void setGridDimensions(const int phiBins, const int rBins,
-			 const int zBins);
+  void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms( bool value ) { m_savehistograms = value; }

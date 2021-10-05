@@ -20,6 +20,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -163,7 +164,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                                    "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
                                                    "e:adc:maxadc:layer:phielem:zelem:size:"
-                                                   "trackID:g4hitID:gx:"
+                                                   "trackID:niter:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                                    "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
                                                    "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -1733,6 +1734,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+
     if (Verbosity() > 1){
       if (clustermap != nullptr)
 	cout << "got clustermap" << endl;
@@ -1761,6 +1764,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	  SvtxTrack* track = trackeval->best_track_from(cluster_key);
 	  PHG4Particle* g4particle = clustereval->max_truth_particle_by_cluster_energy(cluster_key);
+	  float niter = 0;
+	  if(_iteration_map!=NULL)
+	    niter = _iteration_map->getIteration(cluster_key);
 	  float hitID = (float) cluster_key;
 	  auto cglob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
 	  float x = cglob(0);
@@ -1939,6 +1945,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  side,
 				  size,
 				  trackID,
+				  niter,
 				  g4hitID,
 				  gx,
 				  gy,
@@ -1990,6 +1997,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
 
     if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -2015,6 +2023,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
 	      //float hitID = cluster_key;
+	      float niter = 0;
+	      if(_iteration_map!=NULL)
+		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
 	      auto glob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
 	      float x = glob(0);
@@ -2168,6 +2179,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      side,
 				      size,
 				      trackID,
+				      niter,
 				      g4hitID,
 				      gx,
 				      gy,
