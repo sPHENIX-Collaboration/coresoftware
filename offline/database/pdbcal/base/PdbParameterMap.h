@@ -24,6 +24,8 @@ class PdbParameterMap: public PdbCalChan
   PdbParameterMap() {}
   ~PdbParameterMap() override {}
 
+  PHObject *CloneMe() const override { return new PdbParameterMap(*this); }
+
   void print() const override;
   void Reset() override; // from PHObject - clear content
 
