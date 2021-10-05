@@ -61,7 +61,7 @@ class PHSimpleVertexFinder : public SubsysReco
   
   double dcacut = 0.0080;  // 80 microns 
   double beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-  double qual_cut = 10.0;
+  double qual_cut = 6.0;
   bool require_mvtx = true;
   
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
