@@ -1743,7 +1743,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	  SvtxTrack* track = trackeval->best_track_from(cluster_key);
 	  PHG4Particle* g4particle = clustereval->max_truth_particle_by_cluster_energy(cluster_key);
-	  float niter = _iteration_map->getIteration(cluster_key);
+	  float niter = 0;
+	  if(_iteration_map!=NULL)
+	    niter = _iteration_map->getIteration(cluster_key);
 	  float hitID = (float) cluster_key;
 	  float x = cluster->getX();
 	  float y = cluster->getY();
@@ -2002,7 +2004,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
 	      //float hitID = cluster_key;
-	      float niter = _iteration_map->getIteration(cluster_key);
+	      float niter = 0;
+	      if(_iteration_map!=NULL)
+		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
 	      float x = cluster->getX();
 	      float y = cluster->getY();
