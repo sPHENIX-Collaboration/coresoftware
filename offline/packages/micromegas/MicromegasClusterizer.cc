@@ -183,6 +183,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     // surface, surface center and normal director
     const auto acts_surface( acts_surface_iter->second );
     Acts::Vector3D normal = acts_surface->normal(acts_geometry->geoContext);
+    Acts::Vector3D center = acts_surface->center(acts_geometry->geoContext);
+    float surfR = std::sqrt(square(center(0)) + square(center(1)));
 
     if( Verbosity() )
     {
@@ -358,7 +360,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setLocalX(-1*local_coordinates[0]);
       cluster->setLocalY(local_coordinates[2]);
       
-      cluster->setActsLocalError(0,0, error(1,1));
+      cluster->setActsLocalError(0,0, surfR*error(1,1));
       cluster->setActsLocalError(0,1, error(1,2));
       cluster->setActsLocalError(1,0, error(2,1));
       cluster->setActsLocalError(1,1,error(2,2));

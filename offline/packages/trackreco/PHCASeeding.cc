@@ -676,7 +676,6 @@ pair<vector<unordered_set<keylink>>,vector<unordered_set<keylink>>> PHCASeeding:
     transform(ClustersAbove.begin(),ClustersAbove.end(),delta_above.begin(),
       [&](pointKey AboveCandidate){
         TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
-	ActsTransformations transform;
 	const auto abovepos = transformer.getGlobalPosition(AboveCl,
 							  surfMaps,
 							  tGeometry);
