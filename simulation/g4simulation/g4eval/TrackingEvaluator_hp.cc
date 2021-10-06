@@ -1,6 +1,8 @@
 #include "TrackingEvaluator_hp.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
@@ -34,6 +36,8 @@
 #include <iostream>
 #include <numeric>
 
+#define USE_INTERPOLATION
+
 //_____________________________________________________________________
 namespace
 {
@@ -63,85 +67,7 @@ namespace
 
   //! eta
   template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
-
-  //! radius
-  float get_r( PHG4Hit* hit, int i )
-  {  return get_r( hit->get_x(i), hit->get_y(i) ); }
-
-  //! calculate the interpolation of member function called on all members in collection to the provided r_extrap
-  template< float (PHG4Hit::*accessor)(int) const>
-  float interpolate( const std::set<PHG4Hit*>& hits, float rextrap )
-  {
-
-    // calculate all terms needed for the interpolation
-    // need to use double everywhere here due to numerical divergences
-    double sw = 0;
-    double swr = 0;
-    double swr2 = 0;
-    double swx = 0;
-    double swrx = 0;
-
-    bool valid( false );
-    for( const auto& hit:hits )
-    {
-
-      const double x0 = (hit->*accessor)(0);
-      const double x1 = (hit->*accessor)(1);
-      if( std::isnan( x0 ) || std::isnan( x1 ) ) continue;
-
-      const double w = hit->get_edep();
-      if( w < 0 ) continue;
-
-      valid = true;
-      const double r0 = get_r( hit, 0 );
-      const double r1 = get_r( hit, 1 );
-
-      sw += w*2;
-      swr += w*(r0 + r1);
-      swr2 += w*(square(r0) + square(r1));
-      swx += w*(x0 + x1);
-      swrx += w*(r0*x0 + r1*x1);
-    }
-
-    if( !valid ) return NAN;
-
-    const auto alpha = (sw*swrx - swr*swx);
-    const auto beta = (swr2*swx - swr*swrx);
-    const auto denom = (sw*swr2 - square(swr));
-
-    return ( alpha*rextrap + beta )/denom;
-  }
   
-  //! calculate the average of member function called on all members in collection
-  template< float (PHG4Hit::*accessor)(int) const>
-  float average( const std::set<PHG4Hit*>& hits )
-  {
-
-    // calculate all terms needed for the interpolation
-    // need to use double everywhere here due to numerical divergences
-    double sw = 0;
-    double swx = 0;
-
-    bool valid( false );
-    for( const auto& hit:hits )
-    {
-
-      const double x0 = (hit->*accessor)(0);
-      const double x1 = (hit->*accessor)(1);
-      if( std::isnan( x0 ) || std::isnan( x1 ) ) continue;
-
-      const double w = hit->get_edep();
-      if( w < 0 ) continue;
-
-      valid = true;
-      sw += w*2;
-      swx += w*(x0 + x1);
-    }
-
-    if( !valid ) return NAN;
-    return swx/sw;
-  }
-
   //! needed for weighted linear interpolation
   struct interpolation_data_t
   {
@@ -161,7 +87,7 @@ namespace
 
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template<double (interpolation_data_t::*accessor)() const>
-  double interpolate( const interpolation_data_t::list& hits, double y_extrap )
+  double interpolate_y( const interpolation_data_t::list& hits, double y_extrap )
   {
 
     // calculate all terms needed for the interpolation
@@ -199,6 +125,75 @@ namespace
     return ( alpha*y_extrap + beta )/denom;
   }
 
+
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate_r( const interpolation_data_t::list& hits, double r_extrap )
+  {
+
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swr = 0;
+    double swr2 = 0;
+    double swx = 0;
+    double swrx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double r = get_r(hit.x(), hit.y());
+
+      sw += w;
+      swr += w*r;
+      swr2 += w*square(r);
+      swx += w*x;
+      swrx += w*x*r;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swrx - swr*swx);
+    const auto beta = (swr2*swx - swr*swrx);
+    const auto denom = (sw*swr2 - square(swr));
+
+    return ( alpha*r_extrap + beta )/denom;
+  }
+
+  //! calculate the average of member function called on all members in collection
+  template<double (interpolation_data_t::*accessor)() const>
+  double average( const interpolation_data_t::list& hits )
+  {
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      if(std::isnan(x)) continue;
+
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      sw += w;
+      swx += w*x;
+    }
+
+    if( !valid ) return NAN;
+    return swx/sw;
+  }
+  
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
@@ -399,7 +394,28 @@ namespace
       track._truth_eta = get_eta( track._truth_p, track._truth_pz );
     }
   }
+  
+  // calculate intersection between line and circle
+  double line_circle_intersection( const TVector3& p0, const TVector3& p1, double radius )
+  {
+    const double A = square(p1.x() - p0.x()) + square(p1.y() - p0.y());
+    const double B = 2*p0.x()*(p1.x()-p0.x()) + 2*p0.y()*(p1.y()-p0.y());
+    const double C = square(p0.x()) + square(p0.y()) - square(radius);
+    const double delta = square(B)-4*A*C;
+    if( delta < 0 ) return -1;
+    
+    // check first intersection
+    const double tup = (-B + std::sqrt(delta))/(2*A);
+    if( tup >= 0 && tup < 1 ) return tup;
+    
+    // check second intersection
+    const double tdn = (-B-sqrt(delta))/(2*A);
+    if( tdn >= 0 && tdn < 1 ) return tdn;
 
+    // no valid extrapolation
+    return -1;
+  }
+  
   // print to stream
   [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TrackingEvaluator_hp::ClusterStruct& cluster )
   {
@@ -528,9 +544,13 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   // g4 truth info
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
+  // tpc geometry
+  m_tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  assert( m_tpc_geom_container );
+  
   // micromegas geometry
-  m_micromegas_geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
-  assert( m_micromegas_geonode );
+  m_micromegas_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
+  assert( m_micromegas_geom_container );
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -853,12 +873,25 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
         << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << std::atan2( g4hit->get_y(1), g4hit->get_x(1) ) << "," << g4hit->get_z(1) << ")"
         << std::endl;
     }
+    
+    // convert hits to list of interpolation_data_t
+    interpolation_data_t::list hits;
+    for( const auto& g4hit:g4hits )
+    {
+      const auto weight = g4hit->get_edep();
+      for( int i = 0; i < 2; ++i )
+      {
+        const TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
+        const TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
+        hits.push_back( {.position = g4hit_world, .momentum = momentum_world, .weight = weight } );
+      }
+    }
 
-    // interpolate g4hits positions at the same radius as the cluster to get resolution
+    // interpolate g4hits positions at the same radius as the cluster to get resolution    
     const auto rextrap = get_r( cluster->getX(), cluster->getY());
-    const auto xextrap = interpolate<&PHG4Hit::get_x>( g4hits, rextrap );
-    const auto yextrap = interpolate<&PHG4Hit::get_y>( g4hits, rextrap );
-    const auto zextrap = interpolate<&PHG4Hit::get_z>( g4hits, rextrap );
+    const auto xextrap = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
+    const auto yextrap = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
+    const auto zextrap = interpolate_r<&interpolation_data_t::z>( hits, rextrap );
 
     // print interpolation
     std::cout
@@ -1073,7 +1106,7 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
   // get geometry cylinder from layer
   const auto layer = cluster._layer;
   const auto tileid = cluster._tileid;
-  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
   assert( layergeom );
 
   // convert cluster position to local tile coordinates
@@ -1127,39 +1160,110 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
 }
 
 //_____________________________________________________________________
-void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> hits ) const
+void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterStruct& cluster, std::set<PHG4Hit*> g4hits ) const
 {
   // store number of contributing g4hits
-  cluster._truth_size = hits.size();
+  cluster._truth_size = g4hits.size();
 
+  // get layer, tpc flag and corresponding layer geometry
+  const auto layer = cluster._layer;
+  const bool is_tpc( layer >= 7 && layer < 55 );
+  const PHG4CylinderCellGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer):nullptr;
+  const auto rin = layergeom ? layergeom->get_radius()-layergeom->get_thickness()/2:0;
+  const auto rout = layergeom ? layergeom->get_radius()+layergeom->get_thickness()/2:0;
+  
   {
     // count number of truth track ids participating to this cluster
     std::set<int> ids;
-    for( const auto& g4hit:hits ) { ids.insert( g4hit->get_trkid() ); }
+    for( const auto& g4hit:g4hits ) { ids.insert( g4hit->get_trkid() ); }
     cluster._ncontributors = ids.size();
   }
 
-//   const auto rextrap = cluster._r;
-  
-//   cluster._truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
-//   cluster._truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
-//   cluster._truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
-  
-  cluster._truth_x = average<&PHG4Hit::get_x>( hits );
-  cluster._truth_y = average<&PHG4Hit::get_y>( hits );
-  cluster._truth_z = average<&PHG4Hit::get_z>( hits );
+  // convert hits to list of interpolation_data_t
+  interpolation_data_t::list hits;
+  for( const auto& g4hit:g4hits )
+  {
+    interpolation_data_t::list tmp_hits;
+    const auto weight = g4hit->get_edep();
+    for( int i = 0; i < 2; ++i )
+    {
+      const TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
+      const TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
+      tmp_hits.push_back( {.position = g4hit_world, .momentum = momentum_world, .weight = weight } );
+    }
 
+    if( is_tpc )
+    {
+    
+      // ensure first hit has lowest r
+      auto r0 = get_r(tmp_hits[0].x(),tmp_hits[0].y());
+      auto r1 = get_r(tmp_hits[1].x(),tmp_hits[1].y());
+      if( r0 > r1 ) 
+      { 
+        std::swap(tmp_hits[0],tmp_hits[1]); 
+        std::swap(r0, r1);
+      }
+      
+      // do nothing if out of bound
+      if( r1 <= rin || r0 >= rout ) continue;
+
+      // keep track of original deltar
+      const auto dr_old = r1-r0;
+
+      // clamp r0 to rin
+      if( r0 < rin )
+      {
+        const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rin );
+        if( t<0 ) continue;
+        
+        tmp_hits[0].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
+        r0 = rin;
+      }
+      
+      if( r1 > rout )
+      {
+        const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rout );
+        if( t<0 ) continue;
+        
+        tmp_hits[1].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
+        r1 = rout;
+      }
+        
+      // update weights, only if clamping occured
+      const auto dr_new = r1-r0;
+      tmp_hits[0].weight *= dr_new/dr_old;
+      tmp_hits[1].weight *= dr_new/dr_old;      
+    }
+
+    // store in global list
+    hits.push_back(std::move(tmp_hits[0]));
+    hits.push_back(std::move(tmp_hits[1]));
+    
+  }
+  
+  #ifdef USE_INTERPOLATION
+  const auto rextrap = cluster._r;
+  // add truth position
+  cluster._truth_x = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
+  cluster._truth_y = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
+  cluster._truth_z = interpolate_r<&interpolation_data_t::z>( hits, rextrap );
+  // add truth momentum information
+  cluster._truth_px = interpolate_r<&interpolation_data_t::px>( hits, rextrap );
+  cluster._truth_py = interpolate_r<&interpolation_data_t::py>( hits, rextrap );
+  cluster._truth_pz = interpolate_r<&interpolation_data_t::pz>( hits, rextrap );
+  #else
+  // add truth position
+  cluster._truth_x = average<&interpolation_data_t::x>( hits );
+  cluster._truth_y = average<&interpolation_data_t::y>( hits );
+  cluster._truth_z = average<&interpolation_data_t::z>( hits );
+  // add truth momentum information
+  cluster._truth_px = average<&interpolation_data_t::px>( hits );
+  cluster._truth_py = average<&interpolation_data_t::py>( hits );
+  cluster._truth_pz = average<&interpolation_data_t::pz>( hits );
+  #endif  
+  
   cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
   cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
-
-  /* add truth momentum information */
-//   cluster._truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
-//   cluster._truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
-//   cluster._truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
-
-  cluster._truth_px = average<&PHG4Hit::get_px>( hits );
-  cluster._truth_py = average<&PHG4Hit::get_py>( hits );
-  cluster._truth_pz = average<&PHG4Hit::get_pz>( hits );
 
   /*
   store state angles in (r,phi) and (r,z) plans
@@ -1190,7 +1294,7 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
 
   const auto layer = cluster._layer;
   const auto tileid = cluster._tileid;
-  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
   assert( layergeom );
 
   // convert cluster position to local tile coordinates
@@ -1220,17 +1324,17 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   // do position interpolation
   const auto y_extrap = cluster_local.y();
   const TVector3 interpolation_local(
-    interpolate<&interpolation_data_t::x>( hits, y_extrap ),
-    interpolate<&interpolation_data_t::y>( hits, y_extrap ),
-    interpolate<&interpolation_data_t::z>( hits, y_extrap ) );
+    interpolate_y<&interpolation_data_t::x>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::y>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::z>( hits, y_extrap ) );
 
   const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, interpolation_local );
 
   // do momentum interpolation
   const TVector3 momentum_local(
-    interpolate<&interpolation_data_t::px>( hits, y_extrap ),
-    interpolate<&interpolation_data_t::py>( hits, y_extrap ),
-    interpolate<&interpolation_data_t::pz>( hits, y_extrap ) );
+    interpolate_y<&interpolation_data_t::px>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::py>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::pz>( hits, y_extrap ) );
 
   const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
 
@@ -1305,7 +1409,7 @@ void TrackingEvaluator_hp::fill_g4particle_map()
       const auto layer = g4hit->get_layer();
 
       // get relevant micromegas geometry
-      const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+      const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
       assert( layergeom );
 
       // get world coordinates

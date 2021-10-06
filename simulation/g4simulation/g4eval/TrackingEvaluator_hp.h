@@ -11,6 +11,7 @@
 #include <vector>
 
 class PHG4CylinderGeomContainer;
+class PHG4CylinderCellGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
@@ -513,9 +514,12 @@ class TrackingEvaluator_hp : public SubsysReco
   //! truth information
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
-  //! micromegas geometry
-  PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
+  //! tpc geometry
+  PHG4CylinderCellGeomContainer* m_tpc_geom_container = nullptr;
 
+  //! micromegas geometry
+  PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;
+  
   //! map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
