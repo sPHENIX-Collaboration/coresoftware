@@ -36,8 +36,6 @@
 #include <iostream>
 #include <numeric>
 
-#define USE_INTERPOLATION
-
 //_____________________________________________________________________
 namespace
 {
@@ -84,87 +82,6 @@ namespace
     TVector3 momentum;
     double weight = 1;
   };
-
-  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
-  template<double (interpolation_data_t::*accessor)() const>
-  double interpolate_y( const interpolation_data_t::list& hits, double y_extrap )
-  {
-
-    // calculate all terms needed for the interpolation
-    // need to use double everywhere here due to numerical divergences
-    double sw = 0;
-    double swy = 0;
-    double swy2 = 0;
-    double swx = 0;
-    double swyx = 0;
-
-    bool valid( false );
-    for( const auto& hit:hits )
-    {
-
-      const double x = (hit.*accessor)();
-      const double w = hit.weight;
-      if( w <= 0 ) continue;
-
-      valid = true;
-      const double y = hit.y();
-
-      sw += w;
-      swy += w*y;
-      swy2 += w*square(y);
-      swx += w*x;
-      swyx += w*x*y;
-    }
-
-    if( !valid ) return NAN;
-
-    const auto alpha = (sw*swyx - swy*swx);
-    const auto beta = (swy2*swx - swy*swyx);
-    const auto denom = (sw*swy2 - square(swy));
-
-    return ( alpha*y_extrap + beta )/denom;
-  }
-
-
-  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
-  template<double (interpolation_data_t::*accessor)() const>
-  double interpolate_r( const interpolation_data_t::list& hits, double r_extrap )
-  {
-
-    // calculate all terms needed for the interpolation
-    // need to use double everywhere here due to numerical divergences
-    double sw = 0;
-    double swr = 0;
-    double swr2 = 0;
-    double swx = 0;
-    double swrx = 0;
-
-    bool valid( false );
-    for( const auto& hit:hits )
-    {
-
-      const double x = (hit.*accessor)();
-      const double w = hit.weight;
-      if( w <= 0 ) continue;
-
-      valid = true;
-      const double r = get_r(hit.x(), hit.y());
-
-      sw += w;
-      swr += w*r;
-      swr2 += w*square(r);
-      swx += w*x;
-      swrx += w*x*r;
-    }
-
-    if( !valid ) return NAN;
-
-    const auto alpha = (sw*swrx - swr*swx);
-    const auto beta = (swr2*swx - swr*swrx);
-    const auto denom = (sw*swr2 - square(swr));
-
-    return ( alpha*r_extrap + beta )/denom;
-  }
 
   //! calculate the average of member function called on all members in collection
   template<double (interpolation_data_t::*accessor)() const>
@@ -887,11 +804,10 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
       }
     }
 
-    // interpolate g4hits positions at the same radius as the cluster to get resolution    
-    const auto rextrap = get_r( cluster->getX(), cluster->getY());
-    const auto xextrap = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
-    const auto yextrap = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
-    const auto zextrap = interpolate_r<&interpolation_data_t::z>( hits, rextrap );
+    // average g4hits positions at the same radius as the cluster to get resolution    
+    const auto xextrap = average<&interpolation_data_t::x>(hits);
+    const auto yextrap = average<&interpolation_data_t::y>(hits);
+    const auto zextrap = average<&interpolation_data_t::z>(hits);
 
     // print interpolation
     std::cout
@@ -1194,7 +1110,6 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
 
     if( is_tpc )
     {
-    
       // ensure first hit has lowest r
       auto r0 = get_r(tmp_hits[0].x(),tmp_hits[0].y());
       auto r1 = get_r(tmp_hits[1].x(),tmp_hits[1].y());
@@ -1217,6 +1132,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
         if( t<0 ) continue;
         
         tmp_hits[0].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
+        tmp_hits[0].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
         r0 = rin;
       }
       
@@ -1226,6 +1142,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
         if( t<0 ) continue;
         
         tmp_hits[1].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
+        tmp_hits[1].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
         r1 = rout;
       }
         
@@ -1238,29 +1155,17 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
     // store in global list
     hits.push_back(std::move(tmp_hits[0]));
     hits.push_back(std::move(tmp_hits[1]));
-    
   }
   
-  #ifdef USE_INTERPOLATION
-  const auto rextrap = cluster._r;
-  // add truth position
-  cluster._truth_x = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
-  cluster._truth_y = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
-  cluster._truth_z = interpolate_r<&interpolation_data_t::z>( hits, rextrap );
-  // add truth momentum information
-  cluster._truth_px = interpolate_r<&interpolation_data_t::px>( hits, rextrap );
-  cluster._truth_py = interpolate_r<&interpolation_data_t::py>( hits, rextrap );
-  cluster._truth_pz = interpolate_r<&interpolation_data_t::pz>( hits, rextrap );
-  #else
   // add truth position
   cluster._truth_x = average<&interpolation_data_t::x>( hits );
   cluster._truth_y = average<&interpolation_data_t::y>( hits );
   cluster._truth_z = average<&interpolation_data_t::z>( hits );
+
   // add truth momentum information
   cluster._truth_px = average<&interpolation_data_t::px>( hits );
   cluster._truth_py = average<&interpolation_data_t::py>( hits );
   cluster._truth_pz = average<&interpolation_data_t::pz>( hits );
-  #endif  
   
   cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
   cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
@@ -1322,19 +1227,18 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   }
 
   // do position interpolation
-  const auto y_extrap = cluster_local.y();
   const TVector3 interpolation_local(
-    interpolate_y<&interpolation_data_t::x>( hits, y_extrap ),
-    interpolate_y<&interpolation_data_t::y>( hits, y_extrap ),
-    interpolate_y<&interpolation_data_t::z>( hits, y_extrap ) );
+    average<&interpolation_data_t::x>(hits),
+    average<&interpolation_data_t::y>(hits),
+    average<&interpolation_data_t::z>(hits) );
 
   const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, interpolation_local );
 
   // do momentum interpolation
   const TVector3 momentum_local(
-    interpolate_y<&interpolation_data_t::px>( hits, y_extrap ),
-    interpolate_y<&interpolation_data_t::py>( hits, y_extrap ),
-    interpolate_y<&interpolation_data_t::pz>( hits, y_extrap ) );
+    average<&interpolation_data_t::px>(hits),
+    average<&interpolation_data_t::py>(hits),
+    average<&interpolation_data_t::pz>(hits));
 
   const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
 
