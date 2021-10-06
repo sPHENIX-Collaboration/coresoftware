@@ -43,11 +43,11 @@ void TrkrClusterv3::identify(std::ostream& os) const
 
   os << "Error " << std::endl;
   os << "         ( ";
-  os << getError(0, 0) << " , ";
-  os << getError(0, 1) << " ) " << std::endl;
+  os << getActsLocalError(0, 0) << " , ";
+  os << getActsLocalError(0, 1) << " ) " << std::endl;
   os << "         ( ";
-  os << getError(1, 0) << ", ";
-  os << getError(1, 1) << " ) " << std::endl;
+  os << getActsLocalError(1, 0) << ", ";
+  os << getActsLocalError(1, 1) << " ) " << std::endl;
 
   os << std::endl;
   os << "-----------------------------------------------" << std::endl;

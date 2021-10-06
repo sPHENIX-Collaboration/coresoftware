@@ -426,6 +426,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	  std::cout << "Surface : " << std::endl;
 	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
+	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with global pos " << std::endl
 		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
 		    << std::endl;

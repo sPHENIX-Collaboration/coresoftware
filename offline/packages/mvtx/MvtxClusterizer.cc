@@ -403,6 +403,44 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
 	ERR[2][2] = square( zerror );
+	
+	// returns the center of the sensor in world coordinates - used to get the ladder phi location
+	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
+	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
+	
+	TMatrixF ROT(3, 3);
+	ROT[0][0] = cos(ladderphi);
+	ROT[0][1] = -1.0 * sin(ladderphi);
+	ROT[0][2] = 0.0;
+	ROT[1][0] = sin(ladderphi);
+	ROT[1][1] = cos(ladderphi);
+	ROT[1][2] = 0.0;
+	ROT[2][0] = 0.0;
+	ROT[2][1] = 0.0;
+	ROT[2][2] = 1.0;
+
+	TMatrixF &R = ROT;
+	TMatrixF R_T(3, 3);
+	R_T.Transpose(R);
+
+	TMatrixF GLOBAL_COV(3, 3);
+	GLOBAL_COV = R * ERR * R_T;
+	std::cout << "Global cov is " <<std::endl;
+	for(int i =0;i <3; i++){
+	  for(int j=0; j<3;j++)
+	    std::cout << GLOBAL_COV[i][j]<<",";
+	  std::cout << std::endl;
+	}
+	/// Now rotate back by cluster phi
+	float clusphi = -atan2(clusy, clusx);
+	std::cout <<"clusphi "<< clusphi<<std::endl;
+	const auto cosphi = std::cos(clusphi);
+	const auto sinphi = std::sin(clusphi);
+	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
+	  + cosphi*cosphi*GLOBAL_COV[1][1] +
+	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
+        
+	std::cout << "calc rphi err is " << rphierr<<std::endl;
 
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
