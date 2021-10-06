@@ -369,7 +369,7 @@ std::map<const unsigned int, std::vector<TrkrCluster*>>
   TrkrDefs::cluskey secondlayerkey = std::numeric_limits<unsigned long long>::max();
 
   std::vector<TrkrCluster*> mvtxClusters;
-  double R, X0, Y0;
+  double R=NAN, X0=NAN, Y0=NAN;
 
   /// Just need to fit the mvtx once since all seeds have the same mvtx hits
   for(const auto& [key, clusters] : allSeeds)
@@ -986,11 +986,9 @@ void PHActsSiliconSeeding::lineFit(const std::vector<TrkrCluster*>& clusters,
     
       if(Verbosity() > 4)
 	{
-	  double r = sqrt(pow(globalPos(0),2) + pow(globalPos(1), 2));
-	  /// To calculate y(fitted) at given x points
-	  double z_fit = A * r + B;               
+	  double r = sqrt(pow(globalPos(0),2) + pow(globalPos(1), 2));          
 	  std::cout << " r " << r << " z " << globalPos(2)
-		    << " z_fit " << z_fit << std::endl; 
+		    << std::endl; 
 	}    
     }
   

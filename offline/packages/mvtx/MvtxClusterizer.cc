@@ -425,23 +425,19 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	TMatrixF GLOBAL_COV(3, 3);
 	GLOBAL_COV = R * ERR * R_T;
-	std::cout << "Global cov is " <<std::endl;
-	for(int i =0;i <3; i++){
-	  for(int j=0; j<3;j++)
-	    std::cout << GLOBAL_COV[i][j]<<",";
-	  std::cout << std::endl;
-	}
+
 	/// Now rotate back by cluster phi
+	/// We do this because the initial local cluster covariance produces
+	/// nontrivial pulls in rphi. This replicates the code formerly in 
+	/// TrkrCluster
 	float clusphi = -atan2(clusy, clusx);
-	std::cout <<"clusphi "<< clusphi<<std::endl;
+
 	const auto cosphi = std::cos(clusphi);
 	const auto sinphi = std::sin(clusphi);
 	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
 	  + cosphi*cosphi*GLOBAL_COV[1][1] +
 	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
         
-	std::cout << "calc rphi err is " << rphierr<<std::endl;
-
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
 
@@ -450,11 +446,11 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	local = layergeom->get_local_from_world_coords(stave, 0, 0,
 						       chip,
 						       world);
-	float clusr = sqrt(clusx*clusx+clusy*clusy);
+
 	clus->setLocalX(local[0]);
 	clus->setLocalY(local[2]);
-	/// Take the x and z uncertainty of the cluster
-	clus->setActsLocalError(0,0,clusr * ERR[1][1]);
+	/// Take the rphi and z uncertainty of the cluster
+	clus->setActsLocalError(0,0,rphierr);
 	clus->setActsLocalError(0,1,ERR[1][2]);
 	clus->setActsLocalError(1,0,ERR[2][1]);
 	clus->setActsLocalError(1,1,ERR[2][2]);

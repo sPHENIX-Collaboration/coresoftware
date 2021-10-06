@@ -466,6 +466,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 				  ladder_phi_index,
 				  ladder_location);
 
+	const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
+
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
 	
@@ -479,9 +481,41 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
 	ERR[2][2] = square(zerror);
+	
+	TMatrixF ROT(3, 3);
+	ROT[0][0] = cos(ladderphi);
+	ROT[0][1] = -1.0 * sin(ladderphi);
+	ROT[0][2] = 0.0;
+	ROT[1][0] = sin(ladderphi);
+	ROT[1][1] = cos(ladderphi);
+	ROT[1][2] = 0.0;
+	ROT[2][0] = 0.0;
+	ROT[2][1] = 0.0;
+	ROT[2][2] = 1.0;
+
+	TMatrixF R(3, 3);
+	R = ROT;
+	
+	TMatrixF R_T(3, 3);
+	R_T.Transpose(R);
+
+	TMatrixF GLOBAL_COV(3, 3);
+	GLOBAL_COV = R * ERR * R_T;
+
+	/// Now rotate back by cluster phi
+	/// We do this because the initial local cluster covariance produces
+	/// nontrivial pulls in rphi. This replicates the code formerly in 
+	/// TrkrCluster
+	float clusphi = -atan2(clusy, clusx);
+
+	const auto cosphi = std::cos(clusphi);
+	const auto sinphi = std::sin(clusphi);
+	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
+	  + cosphi*cosphi*GLOBAL_COV[1][1] +
+	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
 
 	if(Verbosity() > 10) clus->identify();
-	
+
 	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
 	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
 
@@ -490,13 +524,13 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	local = geom->get_local_from_world_coords(ladderZId,
 						  ladderPhiId,
 						  global);
-	float clusr = sqrt(clusx*clusx+clusy*clusy);
+
 	clus->setLocalX(local[1]);
 	clus->setLocalY(local[2]);
 	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
 	/// 0
 	clus->setSubSurfKey(0);
-	clus->setActsLocalError(0,0, clusr* ERR[1][1]);
+	clus->setActsLocalError(0,0, rphierr);
 	clus->setActsLocalError(0,1, ERR[1][2]);
 	clus->setActsLocalError(1,0, ERR[2][1]);
 	clus->setActsLocalError(1,1, ERR[2][2]);
