@@ -338,7 +338,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
 
   TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 
-  TrkrClusterv3 *clus = new TrkrClusterv3();
+  auto clus = std::make_unique<TrkrClusterv3>();
   clus->setClusKey(ckey);
 
   // Estimate the errors
@@ -458,7 +458,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   // Add the hit associations to the TrkrClusterHitAssoc node
   // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
   
-  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus));
+  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus.release()));
   if(do_assoc && clusterhitassoc){
     for (unsigned int i = 0; i < hitkeyvec.size(); i++){
       clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));

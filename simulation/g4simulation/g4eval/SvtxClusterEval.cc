@@ -915,7 +915,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
 }
 
 void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
-  PHTimer *Mytimer = new PHTimer("ReCl_timer");
+  auto Mytimer = std::make_unique<PHTimer>("ReCl_timer");
   Mytimer->stop();
   Mytimer->restart();
 
