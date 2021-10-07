@@ -123,6 +123,46 @@ namespace
       } );
   }
 
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate_y( const interpolation_data_t::list& hits, double y_extrap )
+  {
+
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swy = 0;
+    double swy2 = 0;
+    double swx = 0;
+    double swyx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double y = hit.y();
+
+      sw += w;
+      swy += w*y;
+      swy2 += w*square(y);
+      swx += w*x;
+      swyx += w*x*y;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swyx - swy*swx);
+    const auto beta = (swy2*swx - swy*swyx);
+    const auto denom = (sw*swy2 - square(swy));
+
+    return ( alpha*y_extrap + beta )/denom;
+  }
+  
   //! return number of clusters of a given type
   template<int type>
     int get_clusters( SvtxTrack* track )
@@ -1227,18 +1267,28 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   }
 
   // do position interpolation
+//   const TVector3 interpolation_local(
+//     average<&interpolation_data_t::x>(hits),
+//     average<&interpolation_data_t::y>(hits),
+//     average<&interpolation_data_t::z>(hits) );
+
+  const auto y_extrap = cluster_local.y();
   const TVector3 interpolation_local(
-    average<&interpolation_data_t::x>(hits),
-    average<&interpolation_data_t::y>(hits),
-    average<&interpolation_data_t::z>(hits) );
+    interpolate_y<&interpolation_data_t::x>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::y>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::z>( hits, y_extrap ) );
 
   const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, interpolation_local );
 
   // do momentum interpolation
+//   const TVector3 momentum_local(
+//     average<&interpolation_data_t::px>(hits),
+//     average<&interpolation_data_t::py>(hits),
+//     average<&interpolation_data_t::pz>(hits));
   const TVector3 momentum_local(
-    average<&interpolation_data_t::px>(hits),
-    average<&interpolation_data_t::py>(hits),
-    average<&interpolation_data_t::pz>(hits));
+    interpolate_y<&interpolation_data_t::px>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::py>( hits, y_extrap ),
+    interpolate_y<&interpolation_data_t::pz>( hits, y_extrap ) );
 
   const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
 
