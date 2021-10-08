@@ -331,7 +331,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       
       // only propagate to tpc surfaces
       if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
-	continue;;
+	continue;
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
