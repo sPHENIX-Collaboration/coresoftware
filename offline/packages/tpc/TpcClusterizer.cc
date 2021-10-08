@@ -398,35 +398,6 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
   ERR[2][1] = 0.0;
   ERR[2][2] = z_err_square;
 
-  TMatrixF ROT(3, 3);
-  ROT[0][0] = cos(clusphi);
-  ROT[0][1] = -sin(clusphi);
-  ROT[0][2] = 0.0;
-  ROT[1][0] = sin(clusphi);
-  ROT[1][1] = cos(clusphi);
-  ROT[1][2] = 0.0;
-  ROT[2][0] = 0.0;
-  ROT[2][1] = 0.0;
-  ROT[2][2] = 1.0;
-
-  TMatrixF ROT_T(3, 3);
-  ROT_T.Transpose(ROT);
-  
-  TMatrixF GLOBAL_COV(3, 3);
-  GLOBAL_COV = ROT * ERR * ROT_T;
-
-  /// Now rotate back by cluster phi
-  /// We do this because the initial local cluster covariance produces
-  /// nontrivial pulls in rphi. This replicates the code formerly in 
-  /// TrkrCluster
-  float clusterphi = -atan2(clusy, clusx);
-  
-  const auto cosphi = std::cos(clusterphi);
-  const auto sinphi = std::sin(clusterphi);
-  float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
-    + cosphi*cosphi*GLOBAL_COV[1][1] +
-    2.*cosphi*sinphi*GLOBAL_COV[0][1];
-
   /// Get the surface key to find the surface from the map
   TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
 
@@ -479,7 +450,7 @@ void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4Cylinder
       
   clus->setLocalX(localPos(0));
   clus->setLocalY(localPos(1));
-  clus->setActsLocalError(0,0, rphierr);
+  clus->setActsLocalError(0,0, ERR[1][1]);
   clus->setActsLocalError(1,0, ERR[2][1]);
   clus->setActsLocalError(0,1, ERR[1][2]);
   clus->setActsLocalError(1,1, ERR[2][2]);
