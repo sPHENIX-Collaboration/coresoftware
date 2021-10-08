@@ -90,6 +90,9 @@ TpcDirectLaserReconstruction::TpcDirectLaserReconstruction( const std::string& n
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 {
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   if( m_savehistograms ) create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -99,7 +102,28 @@ int TpcDirectLaserReconstruction::InitRun(PHCompositeNode* )
 {
   UpdateParametersWithMacro();
   m_max_dca = get_double_param( "directlaser_max_dca" );
-  std::cout << "TpcDirectLaserReconstruction::InitRun - m_max_dca: " << m_max_dca << std::endl;
+  m_max_talpha = get_double_param( "directlaser_max_talpha" );
+  m_max_drphi = get_double_param( "directlaser_max_drphi" );
+  m_max_tbeta = get_double_param( "directlaser_max_tbeta" );
+  m_max_dz = get_double_param( "directlaser_max_dz" );
+
+  // print
+  if( Verbosity() )
+  {
+    std::cout
+      << "TpcDirectLaserReconstruction::InitRun\n"
+      << " m_outputfile: " << m_outputfile << "\n"
+      << " m_max_dca: " << m_max_dca << "\n"
+      << " m_max_talpha: " << m_max_talpha << "\n"
+      << " m_max_drphi: " << m_max_drphi << "\n"
+      << " m_max_tbeta: " << m_max_tbeta << "\n"
+      << " m_max_dz: " << m_max_dz << "\n"
+      << std::endl;
+
+    // also identify the matrix container
+    m_matrix_container->identify();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -133,13 +157,30 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
     { if( o ) o->Write(); }
     m_histogramfile->Close();
   }
+  
+  // print counters
+  std::cout
+    << "TpcDirectLaserReconstruction::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //___________________________________________________________________________
 void TpcDirectLaserReconstruction::SetDefaultParameters()
 {
+  
+  // DCA cut, to decide whether a cluster should be associated to a given laser track or not
   set_default_double_param( "directlaser_max_dca", 1.5 );
+
+  // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices
+  set_default_double_param( "directlaser_max_talpha", 0.6 );
+  set_default_double_param( "directlaser_max_drphi", 0.5 );
+  set_default_double_param( "directlaser_max_tbeta", 1.5 );
+  set_default_double_param( "directlaser_max_dz", 0.5 );
 }
 
 //_____________________________________________________________________
@@ -219,6 +260,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     // get corresponding clusters
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
+
+      ++m_total_clusters;
+      
       const TVector3 oc( cluster->getX()-track->get_x(), cluster->getY()-track->get_y(), cluster->getZ()-track->get_z()  );
       const auto t = direction.Dot( oc )/square( direction.Mag() );
       const auto om = direction*t;
@@ -252,18 +296,65 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
       const auto cluster_z = cluster->getZ();
 
-//       // cluster errors
-//       const auto cluster_rphi_error = cluster->getRPhiError();
-//       const auto cluster_z_error = cluster->getZError();
+      // cluster errors
+      const auto cluster_rphi_error = cluster->getRPhiError();
+      const auto cluster_z_error = cluster->getZError();
 
+      /*
+      remove clusters with too small errors since they are likely pathological
+      and have a large contribution to the chisquare
+      TODO: make these cuts configurable
+      */
+      if( cluster_rphi_error < 0.015 ) continue;
+      if( cluster_z_error < 0.05 ) continue;
+    
       // track position
       const auto track_phi = std::atan2( projection.y(), projection.x() );
       const auto track_z = projection.z();
 
+      // track angles
+      const auto cosphi( std::cos( track_phi ) );
+      const auto sinphi( std::sin( track_phi ) );
+      const auto track_pphi = -state.get_px()*sinphi + state.get_py()*cosphi;
+      const auto track_pr = state.get_px()*cosphi + state.get_py()*sinphi;
+      const auto track_pz = state.get_pz();
+      const auto talpha = -track_pphi/track_pr;
+      const auto tbeta = -track_pz/track_pr;
+
+      // sanity check
+      if( std::isnan(talpha) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - talpha is nan" << std::endl;
+        continue;
+      }
+      
+      if( std::isnan(tbeta) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - tbeta is nan" << std::endl;
+        continue;
+      }
+      
+      // check against limits
+      if( std::abs( talpha ) > m_max_talpha ) continue;
+      if( std::abs( tbeta ) > m_max_tbeta ) continue;
+      
       // residuals
       const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
       const auto dz = cluster_z - track_z;
 
+      // sanity checks
+      if( std::isnan(drp) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - drp is nan" << std::endl;
+        continue;
+      }
+      
+      if( std::isnan(dz) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - dz is nan" << std::endl;
+        continue;
+      }
+      
       if(m_savehistograms)
       {
         if(h_dca_layer) h_dca_layer->Fill(layer, dca);
@@ -277,9 +368,91 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
           h_entries->Fill( phi, cluster_r, cluster_z );
         }
       }
+      
+      // check against limits
+      if( std::abs( drp ) > m_max_drphi ) continue;
+      if( std::abs( dz ) > m_max_dz ) continue;
 
+      // residual errors squared
+      const auto erp = square(cluster_rphi_error);
+      const auto ez = square(cluster_z_error);
+      
+      // sanity check
+      if( std::isnan( erp ) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - erp is nan" << std::endl;
+        continue;
+      }
+      
+      if( std::isnan( ez ) )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - ez is nan" << std::endl;
+        continue;
+      }
+  
+      // get cell
+      const auto i = get_cell_index( cluster );
+      if( i < 0 )
+      {
+        std::cout << "TpcDirectLaserReconstruction::process_track - invalid cell index" << std::endl;
+        continue;
+      }
+      
+      // update matrices
+      // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details 
+      m_matrix_container->add_to_lhs(i, 0, 0, 1./erp );
+      m_matrix_container->add_to_lhs(i, 0, 1, 0 );
+      m_matrix_container->add_to_lhs(i, 0, 2, talpha/erp );
+      
+      m_matrix_container->add_to_lhs(i, 1, 0, 0 );
+      m_matrix_container->add_to_lhs(i, 1, 1, 1./ez );
+      m_matrix_container->add_to_lhs(i, 1, 2, tbeta/ez );
+      
+      m_matrix_container->add_to_lhs(i, 2, 0, talpha/erp );
+      m_matrix_container->add_to_lhs(i, 2, 1, tbeta/ez );
+      m_matrix_container->add_to_lhs(i, 2, 2, square(talpha)/erp + square(tbeta)/ez );
+      
+      m_matrix_container->add_to_rhs(i, 0, drp/erp );
+      m_matrix_container->add_to_rhs(i, 1, dz/ez );
+      m_matrix_container->add_to_rhs(i, 2, talpha*drp/erp + tbeta*dz/ez );
+      
+      // update entries in cell
+      m_matrix_container->add_to_entries(i);
+  
+      // increment number of accepted clusters
+      ++m_accepted_clusters;
+    
     }
 
   }
 
+}
+
+//_____________________________________________________________________
+int TpcDirectLaserReconstruction::get_cell_index( TrkrCluster* cluster ) const
+{
+  // get grid dimensions from matrix container
+  int phibins = 0;
+  int rbins = 0;
+  int zbins = 0;
+  m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
+  
+  // phi
+  // bound check
+  float phi = std::atan2( cluster->getY(), cluster->getX() );
+  while( phi < m_phimin ) phi += 2.*M_PI;
+  while( phi >= m_phimax ) phi -= 2.*M_PI;
+  int iphi = phibins*(phi-m_phimin)/(m_phimax-m_phimin);
+
+  // radius
+  const float r = get_r( cluster->getX(), cluster->getY() );
+  if( r < m_rmin || r >= m_rmax ) return -1;
+  int ir = rbins*(r-m_rmin)/(m_rmax-m_rmin);
+
+  // z
+  const float z = cluster->getZ();
+  if( z < m_zmin || z >= m_zmax ) return -1;
+  int iz = zbins*(z-m_zmin)/(m_zmax-m_zmin);
+
+  return m_matrix_container->get_cell_index( iphi, ir, iz );
 }
