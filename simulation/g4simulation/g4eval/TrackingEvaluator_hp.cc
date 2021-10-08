@@ -1110,6 +1110,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
 
     if( is_tpc )
     {
+      // add layer boundary checks
       // ensure first hit has lowest r
       auto r0 = get_r(tmp_hits[0].x(),tmp_hits[0].y());
       auto r1 = get_r(tmp_hits[1].x(),tmp_hits[1].y());
