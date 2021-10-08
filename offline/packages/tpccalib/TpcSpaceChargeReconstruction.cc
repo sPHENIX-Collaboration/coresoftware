@@ -344,7 +344,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto ez = square(track_z_error) + square(cluster_z_error);
 
     // sanity check
-    // TODO: check whether this happens and fix upstream
     if( std::isnan( erp ) )
     {
       std::cout << "TpcSpaceChargeReconstruction::process_track - erp is nan" << std::endl;
