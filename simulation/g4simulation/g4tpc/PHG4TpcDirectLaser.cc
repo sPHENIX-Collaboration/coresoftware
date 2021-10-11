@@ -375,12 +375,6 @@ void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
   if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AimToThetaPhi - theta: " << theta << " phi: " << phi << std::endl; }
 
-//   // first laser only
-//   AppendLaserTrack(theta,phi,m_lasers[0]);
-
-//   // positive z lasers only
-//   for(int i=0; i<4; ++i) {AppendLaserTrack(theta,phi,m_lasers[i]);}
-
   // all lasers
   for( const auto& laser:m_lasers )
   { AppendLaserTrack(theta,phi,laser); }
@@ -463,14 +457,10 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     particle->set_vtx_id( vtxid );
     particle->set_parent_id(0);
     particle->set_primary_id(trackid);
-//     particle->set_name(pdgname);
-//     particle->set_pid(pdgcode);
-    // total momentum is irrelevant. What matters is the direction
     particle->set_px( total_momentum*dir.x() );
     particle->set_py( total_momentum*dir.y() );
     particle->set_pz( total_momentum*dir.z() );
-//     particle->set_e(e);
-
+    
     m_g4truthinfo->AddParticle(trackid, particle);
   }
   
