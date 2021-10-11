@@ -5,8 +5,9 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4InEvent.h>
-#include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4Particlev3.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPointv1.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
@@ -23,6 +24,10 @@
 
 namespace
 {
+  using PHG4Particle_t = PHG4Particlev3;
+  using PHG4VtxPoint_t = PHG4VtxPointv1;
+  using PHG4Hit_t = PHG4Hitv1;
+
   // utility
   template <class T> inline constexpr T square(const T &x) { return x * x; }
 
@@ -154,10 +159,12 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
 int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 {
 
-  // geant4 input event, needed to store g4 vertices and tracks
-  m_g4inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  if (!m_g4inevent)
+  // g4 truth info
+  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_g4truthinfo)
   {
+    std::cout << "Fun4AllDstPileupMerger::load_nodes - creating node G4TruthInfo" << std::endl;
+    
     PHNodeIterator iter(topNode);
     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
     if (!dstNode)
@@ -166,10 +173,10 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-    m_g4inevent = new PHG4InEvent();
-    dstNode->addNode(new PHDataNode<PHObject>(m_g4inevent, "PHG4INEVENT", "PHObject"));
+    m_g4truthinfo = new PHG4TruthInfoContainer();
+    dstNode->addNode(new PHIODataNode<PHObject>(m_g4truthinfo, "G4TruthInfo", "PHObject"));
   }
-  
+
   // load and check G4Hit node
   hitnodename = "G4HIT_" + detector;
   auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -227,8 +234,8 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 {
   // g4 input event
-  m_g4inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  assert( m_g4inevent );
+  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  assert( m_g4truthinfo );
   
   // load g4hit container
   m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -238,9 +245,6 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_track_map_name );
   assert( m_track_map );
   
-  // reset track id
-  m_trackid = -1;
-
   if( m_autoAdvanceDirectLaser )
   {
 
@@ -439,22 +443,26 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   // dummy momentum
   static constexpr double total_momentum = 1;
   
-  // fill G4 input event
-  int vtxid = -1;
-  if( m_g4inevent )
+  // mc track id
+  int trackid = -1;
+  
+  // create truth vertex and particle
+  if( m_g4truthinfo )
   {
-    // inspired from PHG4SimpleEventGenerator.cc
-    // create vertex at laser position
-    vtxid = m_g4inevent->AddVtx( pos.x(), pos.y(), pos.z(), 0 );
-    
-    // increment track id
-    ++m_trackid;
+    // add vertex
+    const auto vtxid = m_g4truthinfo->maxvtxindex()+1;
+    const auto vertex = new PHG4VtxPoint_t( pos.x(), pos.y(), pos.z(), 0, vtxid );
+    m_g4truthinfo->AddVertex(vtxid, vertex);
 
+    // increment track id
+    trackid = m_g4truthinfo->maxtrkindex()+1;
+    
     // create new g4particle
-    auto particle = new PHG4Particlev2();
-    particle->set_track_id(m_trackid);
+    auto particle = new PHG4Particle_t();
+    particle->set_track_id(trackid);
     particle->set_vtx_id( vtxid );
     particle->set_parent_id(0);
+    particle->set_primary_id(trackid);
 //     particle->set_name(pdgname);
 //     particle->set_pid(pdgcode);
     // total momentum is irrelevant. What matters is the direction
@@ -463,7 +471,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     particle->set_pz( total_momentum*dir.z() );
 //     particle->set_e(e);
 
-    m_g4inevent->AddParticle(vtxid, particle);
+    m_g4truthinfo->AddParticle(trackid, particle);
   }
   
   // store in SvtxTrack map
@@ -541,8 +549,9 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     }
 
     //from phg4tpcsteppingaction.cc
-    auto hit = new PHG4Hitv1();
-    hit->set_layer(99); // dummy number
+    auto hit = new PHG4Hit_t;
+    hit->set_trkid(trackid);
+    hit->set_layer(99); 
 
     //here we set the entrance values in cm
     // todo: try to set entrance and exit point with increasing radius
@@ -573,7 +582,6 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     // time in ns
     hit->set_t(0, 0.0); // nanosecond
-    hit->set_trkid(m_trkid); // dummy number
 
     hit->set_px(1, dir.X());
     hit->set_py(1, dir.Y());
@@ -581,7 +589,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     hit->set_t(1, 0.0); // dummy number, nanosecond
 
-    const double totalE=electrons_per_cm*stepLength/electrons_per_gev;
+    const double totalE = electrons_per_cm*stepLength/electrons_per_gev;
 
     hit->set_eion(totalE);
     hit->set_edep(totalE);
