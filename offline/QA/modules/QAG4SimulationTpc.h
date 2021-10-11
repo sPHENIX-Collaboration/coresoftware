@@ -2,6 +2,8 @@
 #define QA_QAG4SIMULATIONTPC_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -48,6 +50,12 @@ class QAG4SimulationTpc : public SubsysReco
 
   /// true if histograms are initialized
   bool m_initialized = false;
+
+   /// Acts surface maps for surface lookup
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;

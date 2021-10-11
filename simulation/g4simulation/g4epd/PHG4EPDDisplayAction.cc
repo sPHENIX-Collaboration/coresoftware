@@ -8,6 +8,7 @@
 
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
+#include <string>
 
 PHG4EPDDisplayAction::PHG4EPDDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -40,10 +41,14 @@ void PHG4EPDDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::Blue());
     }
+    if (it.second.find("EPD_tile") != std::string::npos)
+    {
+      visatt->SetColour(G4Colour::Red());
+    }
     else
     {
-      std::cout << "unknown logical volume " << it.second << std::endl;
-      visatt->SetColour(G4Colour::Red());
+      std::cout << GetName() << " unknown logical volume " << it.second << std::endl;
+      visatt->SetColour(G4Colour::White());
     }
     logvol->SetVisAttributes(visatt);
   }

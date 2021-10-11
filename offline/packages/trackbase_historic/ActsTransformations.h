@@ -2,19 +2,17 @@
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <trackbase_historic/SvtxTrack.h>
+#include "SvtxTrack.h"
 
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
-
-#include <boost/bimap.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -22,15 +20,9 @@
 #include <memory>
 #include <utility>
 
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
+class TrkrCluster;
 
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundIndices,
-                                      Acts::eBoundLoc0,
-                                      Acts::eBoundLoc1>;
-
-typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
 
 
 /**
@@ -77,9 +69,23 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext geoContext) const;
 
+  Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
+				   ActsSurfaceMaps* surfMaps,
+				   ActsTrackingGeometry *tGeometry);
+  Surface getSurface(TrkrCluster* cluster,
+		     ActsSurfaceMaps* surfMaps) const;
+  
  private:
   int m_verbosity = 0;
 
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
+			    ActsSurfaceMaps *maps) const;
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
+			TrkrDefs::subsurfkey surfkey,
+			ActsSurfaceMaps *maps) const;
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
+		       ActsSurfaceMaps *maps) const;
+  
 
 };
 
