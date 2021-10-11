@@ -106,14 +106,14 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   int m_total_clusters = 0;
   int m_accepted_clusters = 0;
   //@}
-    
+
   ///@name nodes
   //@{
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
   SvtxTrackMap* m_track_map = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
   //@}
-  
+
   ///@name evaluation
   //@{
   bool m_savehistograms = false;
