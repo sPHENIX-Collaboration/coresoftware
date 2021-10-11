@@ -45,6 +45,9 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   //! range of randomized phi values
   void set_phi_range(const double phi_min, const double phi_max);
 
+  //! power law value of distribution to sample from for pt values
+  void set_power_law_n(const double n);
+
   //! range of randomized pt values (mutually exclusive with momentum range)
   //! \param[in] pt_gaus_width   if non-zero, further apply a Gauss smearing to the pt_min - pt_max flat distribution
   void set_pt_range(const double pt_min, const double pt_max, const double pt_gaus_width = 0);
@@ -119,6 +122,7 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   std::vector<double> m_Pt_Bins;
   std::vector<double> m_Pt_Dist;
 
+  double m_powerLawN = NAN;
 };
 
 #endif
