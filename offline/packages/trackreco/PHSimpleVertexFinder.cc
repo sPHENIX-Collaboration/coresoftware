@@ -25,6 +25,7 @@
 #include <map>                                // for map
 #include <set>                                // for _Rb_tree_const_iterator
 #include <utility>                            // for pair, make_pair
+#include <iomanip>
 
 #include <Eigen/Dense>
 
@@ -60,83 +61,30 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   // reset maps
   _vertex_track_map.clear();
+  _revised_vertex_track_map.clear();
   _vertex_cov_map.clear();
   _track_pair_map.clear();
   _track_pair_pca_map.clear();
   _vertex_position_map.clear();
+  _revised_vertex_position_map.clear();
   _vertex_covariance_map.clear();
   _vertex_set.clear();
   
-  // define local scope objects
-  std::set<unsigned int> track_used_list;
+  // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
+  // Fills _track_pair_map and _track_pair_pca_map
   checkDCAs();
 
   /// If we didn't find any matches, try again with a slightly larger DCA cut
   if(_track_pair_map.size() == 0)
     {
-      dcacut *= 1.5;
+      _dcacut *= 1.5;
       checkDCAs();
     }
 
-
   // get all connected pairs of tracks by looping over the track_pair map
-  std::vector<std::set<unsigned int>> connected_tracks;
-  std::set<unsigned int> connected;
-  std::set<unsigned int> used;
-  for(auto it : _track_pair_map)
-    {
-      unsigned int id1 = it.first;
-      unsigned int id2 = it.second.first;
+  std::vector<std::set<unsigned int>> connected_tracks = findConnectedTracks();
 
-      if( (used.find(id1) != used.end()) && (used.find(id2) != used.end()) )
-	{
-	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
-	  continue;
-	}
-      else if( (used.find(id1) == used.end()) && (used.find(id2) == used.end()))
-	{
-	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both not in used , start a new connected set" << std::endl;
-	  // close out and start a new connections set
-	  if(connected.size() > 0)
-	    {
-	      connected_tracks.push_back(connected);
-	      connected.clear();
-	      if(Verbosity() > 2) std::cout << "           closing out set " << std::endl;
-	    }
-	}
-
-      // get everything connected to id1 and id2
-      connected.insert(id1);
-      used.insert(id1);
-      connected.insert(id2);
-      used.insert(id2);
-      for(auto cit :  _track_pair_map)
-	{
-	  unsigned int id3 = cit.first;
-	  unsigned int id4 = cit.second.first;
-	  if( (connected.find(id3) != connected.end()) || (connected.find(id4) != connected.end()) )
-	    {
-	      if(Verbosity() > 2) std::cout << " found connection to " << id3 << " and " << id4 << std::endl;
-	      connected.insert(id3);
-	      used.insert(id3);
-	      connected.insert(id4);
-	      used.insert(id4);
-	    }
-	}
-    }
-  
-  // close out the last set
-  if(connected.size() > 0)
-    {
-      connected_tracks.push_back(connected);
-      connected.clear();
-      if(Verbosity() > 2) std::cout << "           closing out last set " << std::endl;
-    }
-    
-  if(Verbosity() > 1)   std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
-
-  // make vertices, each set of connected tracks is a vertex
-  // loop over the vector of sets
+  // make vertices - each set of connected tracks is a vertex
   for(unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
     {
       if(Verbosity() > 1) std::cout << "process vertex " << ivtx << std::endl;
@@ -144,84 +92,35 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       for(auto it : connected_tracks[ivtx])
 	{
 	  unsigned int id = it;
-	  matrix_t cov;
-	  auto track = _track_map->get(id);
-	  for(int i = 0; i < 3; ++i)
-	    for(int j = 0; j < 3; ++j)
-	      {cov(i,j) = track->get_error(i,j);}
-
 	  _vertex_track_map.insert(std::make_pair(ivtx, id));
-	  _vertex_cov_map.insert(std::make_pair(ivtx, cov));
 	  if(Verbosity() > 2)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
-
 	}      
     }
 
+  // make a list of vertices
   for(auto it : _vertex_track_map)
     {
       if(Verbosity() > 1) std::cout << " vertex " << it.first << " track " << it.second << std::endl;      
       _vertex_set.insert(it.first);
     }
 
-  // Calculate the vertex positions
- std::set<unsigned int> already_used;
-  for(auto it : _vertex_set) 
-    {
-      unsigned int vtxid = it;
-      if(Verbosity() > 2) std::cout << "calculate average position for vertex " << vtxid << std::endl; 
+  // Get the initial estimate of the vertex positions from the connected track pairs PCA values
+  // This fills   _vertex_position_map
+  calculateInitialVertexPositions();
 
-      Eigen::Vector3d pca_avge(0,0,0);
-      double wt = 0.0;
+  // Find and reject  pairs with outlier PCA values
+  findOutlierTrackPairs();
+  
+  // Calculate the PCA of the tracks to the initial vertex estimates, reject outliers, recalculate the vertex positions
+  // Fills  _revised_vertex_track_map,  _revised_vertex_position_map,  _vertex_cov_map
+  calculateRevisedVertexPositions();
 
-      auto ret = _vertex_track_map.equal_range(vtxid);
-      for (auto cit=ret.first; cit!=ret.second; ++cit)
-      {
-	unsigned int trid = cit->second;
-	if(Verbosity() > 2) std::cout << "   get entries for track " << trid << " for vertex " << vtxid << std::endl; 
-
-	// find all pairs with trid
-	auto pca_range = _track_pair_pca_map.equal_range(trid);
-	for (auto pit=pca_range.first; pit!=pca_range.second; ++pit)
-	  {
-	    unsigned int tr2id = pit->second.first;
-
-	    Eigen::Vector3d pca1 = pit->second.second.first;
-	    pca_avge += pca1;
-	    wt++;
-	    Eigen::Vector3d pca2 = pit->second.second.second;
-	    pca_avge += pca2;
-	    wt++;
-
-	    if(Verbosity() > 2) std::cout << "       vertex " << vtxid << " tr1 " << trid << " tr2 " << tr2id << " pca1.x " << pca1.x() << " pca1.y " << pca1.y() << " pca1.z " << pca1.z()  
-					  << " pca2.x " << pca2.x() << " pca2.y " << pca2.y() << " pca2.z " << pca2.z()  << std::endl; 
-	  }
-      }
-      
-      matrix_t avgCov = matrix_t::Zero();
-      auto covret = _vertex_cov_map.equal_range(vtxid);
-      double covWeight = 0.;
-      for(auto cit=covret.first; cit != covret.second; ++cit)
-	{
-	  auto cov = cit->second;
-	  avgCov += cov;
-	  covWeight++;
-	}
-
-      pca_avge /= wt;
-      avgCov /= sqrt(covWeight);
- 
-      if(Verbosity() > 1) std::cout << "vertex " << vtxid << " average pca.x " << pca_avge.x() << " pca.y " << pca_avge.y() << " pca.z " << pca_avge.z() << std::endl;
-
-      // capture the position
-      _vertex_position_map.insert(std::make_pair(vtxid, pca_avge));
-      _vertex_covariance_map.insert(std::make_pair(vtxid, avgCov));
-    }       
-
-  // Write the vertices to the vertex map on the node tree
+  // Write the revised vertices to the vertex map on the node tree
+  //==============================================
   if(_vertex_track_map.size() > 0)
     _svtx_vertex_map->clear();
 
-  for(auto it : _vertex_set) 
+  for(auto it : _vertex_set)
     {
       auto svtxVertex = std::make_unique<SvtxVertex_v1>();
 
@@ -230,15 +129,18 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       svtxVertex->set_t0(0);
       svtxVertex->set_id(it);
 
+      //auto ret = _revised_vertex_track_map.equal_range(it);
       auto ret = _vertex_track_map.equal_range(it);
       for (auto cit=ret.first; cit!=ret.second; ++cit)
       {
 	unsigned int trid = cit->second;
+
 	if(Verbosity() > 1) std::cout << "   vertex " << it << " insert track " << trid << std::endl; 
 	svtxVertex->insert_track(trid);
 	_track_map->get(trid)->set_vertex_id(it);
       }
 
+      //Eigen::Vector3d pos = _revised_vertex_position_map.find(it)->second;
       Eigen::Vector3d pos = _vertex_position_map.find(it)->second;
       svtxVertex->set_x(pos.x());  
       svtxVertex->set_y(pos.y());
@@ -261,6 +163,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
   /// the track position for propagating back to the vtx. Catches any
   /// tracks that were missed or were not  compatible with any of the
   /// identified vertices
+  //=================================================
   for(const auto& [trackkey, track] : *_track_map)
     {
       auto vtxid = track->get_vertex_id();
@@ -353,8 +256,8 @@ void PHSimpleVertexFinder::checkDCAs()
     {
       auto id1 = tr1_it->first;
       auto tr1 = tr1_it->second;
-      if(tr1->get_quality() > qual_cut) continue;
-      if(require_mvtx)
+      if(tr1->get_quality() > _qual_cut) continue;
+      if(_require_mvtx)
 	{
 	  unsigned int nmvtx = 0;
 	  for(auto clusit = tr1->begin_cluster_keys(); clusit != tr1->end_cluster_keys(); ++clusit)
@@ -374,8 +277,8 @@ void PHSimpleVertexFinder::checkDCAs()
 	{
 	  auto id2 = tr2_it->first;
 	  auto tr2 = tr2_it->second;
-	  if(tr2->get_quality() > qual_cut) continue;
-	  if(require_mvtx)
+	  if(tr2->get_quality() > _qual_cut) continue;
+	  if(_require_mvtx)
 	    {
 	      unsigned int nmvtx = 0;
 	      for(auto clusit = tr2->begin_cluster_keys(); clusit != tr2->end_cluster_keys(); ++clusit)
@@ -403,6 +306,9 @@ void PHSimpleVertexFinder::checkDCAs()
 
 void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
 {
+  if(tr1->get_pt() < _track_pt_cut) return;
+  if(tr2->get_pt() < _track_pt_cut) return;
+
   unsigned int id1 = tr1->get_id();
   unsigned int id2 = tr2->get_id();
 
@@ -418,11 +324,11 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   double dca = dcaTwoLines(a1, b1, a2,  b2, PCA1, PCA2);
 
   // check dca cut is satisfied, and that PCA is close to beam line
-if( fabs(dca) < dcacut && (fabs(PCA1.x()) < beamline_xy_cut && fabs(PCA1.y()) < beamline_xy_cut) )
+if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
     {
       if(Verbosity() > 1)
 	{
-	  std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with z locations " << a1.z()  << " and " << a2.z() << std::endl;
+	  std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with pT " << tr1->get_pt()  << " and " << tr2->get_pt() << std::endl;
 	  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
 	  std::cout << "    a2.x  " << a2.x()  << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
 	  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
@@ -494,4 +400,277 @@ double PHSimpleVertexFinder::dcaTwoLines(const Eigen::Vector3d &a1,const Eigen::
   return dca;
 
 
+}
+
+std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
+{
+ std::vector<std::set<unsigned int>> connected_tracks;
+  std::set<unsigned int> connected;
+  std::set<unsigned int> used;
+  for(auto it : _track_pair_map)
+    {
+      unsigned int id1 = it.first;
+      unsigned int id2 = it.second.first;
+
+      if( (used.find(id1) != used.end()) && (used.find(id2) != used.end()) )
+	{
+	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
+	  continue;
+	}
+      else if( (used.find(id1) == used.end()) && (used.find(id2) == used.end()))
+	{
+	  if(Verbosity() > 2) std::cout << " tracks " << id1 << " and " << id2 << " are both not in used , start a new connected set" << std::endl;
+	  // close out and start a new connections set
+	  if(connected.size() > 0)
+	    {
+	      connected_tracks.push_back(connected);
+	      connected.clear();
+	      if(Verbosity() > 2) std::cout << "           closing out set " << std::endl;
+	    }
+	}
+
+      // get everything connected to id1 and id2
+      connected.insert(id1);
+      used.insert(id1);
+      connected.insert(id2);
+      used.insert(id2);
+      for(auto cit :  _track_pair_map)
+	{
+	  unsigned int id3 = cit.first;
+	  unsigned int id4 = cit.second.first;
+	  if( (connected.find(id3) != connected.end()) || (connected.find(id4) != connected.end()) )
+	    {
+	      if(Verbosity() > 2) std::cout << " found connection to " << id3 << " and " << id4 << std::endl;
+	      connected.insert(id3);
+	      used.insert(id3);
+	      connected.insert(id4);
+	      used.insert(id4);
+	    }
+	}
+    }
+  
+  // close out the last set
+  if(connected.size() > 0)
+    {
+      connected_tracks.push_back(connected);
+      connected.clear();
+      if(Verbosity() > 2) std::cout << "           closing out last set " << std::endl;
+    }
+    
+  if(Verbosity() > 1)   std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
+
+  return connected_tracks;
+}
+
+void PHSimpleVertexFinder::calculateInitialVertexPositions()
+{
+  // Calculate the vertex positions from the pair  PCA's
+  // This is the initial estimate, but it is pretty good
+  //=======================================
+  for(auto it : _vertex_set) 
+    {
+      unsigned int vtxid = it;
+      if(Verbosity() > 2) std::cout << "calculate average position for vertex " << vtxid << std::endl; 
+
+      Eigen::Vector3d pca_avge(0,0,0);
+      double wt = 0.0;
+      
+      auto ret = _vertex_track_map.equal_range(vtxid);
+      for (auto cit=ret.first; cit!=ret.second; ++cit)
+      {
+	unsigned int tr1id = cit->second;
+	if(Verbosity() > 2) std::cout << "   get entries for track " << tr1id << " for vertex " << vtxid << std::endl; 
+
+	// get the covariance matrix for the track position
+	matrix_t cov1 = matrix_t::Zero();
+	  auto track1 = _track_map->get(tr1id);
+	  for(int i = 0; i < 3; ++i)
+	    for(int j = 0; j < 3; ++j)
+	      {cov1(i,j) = track1->get_error(i,j);}
+	  //matrix_t cov1_wt = cov1.fullPivLu().inverse();
+
+	// find all pairs with trid
+	auto pca_range = _track_pair_pca_map.equal_range(tr1id);
+	for (auto pit=pca_range.first; pit!=pca_range.second; ++pit)
+	  {
+	    unsigned int tr2id = pit->second.first;
+	    matrix_t cov2 = matrix_t::Zero();
+	    auto track2 = _track_map->get(tr2id);
+	    for(int i = 0; i < 3; ++i)
+	      for(int j = 0; j < 3; ++j)
+		{cov2(i,j) =  track2->get_error(i,j);}
+	    //matrix_t cov2_wt = cov2.fullPivLu().inverse();
+
+	    Eigen::Vector3d pca1 = pit->second.second.first;
+	    pca_avge += pca1;
+	    wt += 1.0;
+
+	    Eigen::Vector3d pca2 = pit->second.second.second;
+	    pca_avge += pca2;
+	    wt += 1.0;
+	    
+	    if(Verbosity() > 2) std::cout << "       vertex " << vtxid << " tr1 " << tr1id << " pt " << track1->get_pt() << " tr2 " << tr2id << " pt " << track2->get_pt() << " pca1.x " << pca1.x() << " pca1.y " << pca1.y() << " pca1.z " << pca1.z()  
+					  << " pca2.x " << pca2.x() << " pca2.y " << pca2.y() << " pca2.z " << pca2.z()  << std::endl; 
+	  }
+      }
+
+      pca_avge = pca_avge / wt;
+ 
+      if(Verbosity() > 1) std::cout << "vertex " << vtxid << " average pca.x " << pca_avge.x() << " pca.y " << pca_avge.y() << " pca.z " << pca_avge.z() << std::endl;
+
+      _vertex_position_map.insert(std::make_pair(vtxid, pca_avge));
+    }
+}
+
+
+void PHSimpleVertexFinder::calculateRevisedVertexPositions()
+{
+  // start with the initial vertex list
+  for(auto it : _vertex_set) 
+    {
+      unsigned int vtxid = it;
+      Eigen::Vector3d pca_avge = _vertex_position_map.find(vtxid)->second;
+
+     if(Verbosity() > 2) std::cout << "calculate revised average position for vertex " << vtxid << std::endl; 
+
+      // We have a good initial estimate of the vertex position
+      // loop over all of the tracks in the vertex and get the PCA of each track to our initial vertex estimate
+      // Use those PCA's to recalculate the vertex position
+      //===========================================================================
+      Eigen::Vector3d new_pca_avge(0,0,0);
+      double new_wt = 0.0;
+      matrix_t cov_wt = matrix_t::Zero();
+
+      auto ret = _vertex_track_map.equal_range(vtxid);
+      for (auto cit=ret.first; cit!=ret.second; ++cit)
+      {
+	unsigned int trid = cit->second;
+	auto tr = _track_map->get(trid);
+	std::cout << " track " << trid << " with pt " << tr->get_pt() << std::endl;
+
+	// We have the line equation	
+	Eigen::Vector3d a(tr->get_x(), tr->get_y(), tr->get_z());
+	Eigen::Vector3d b(tr->get_px() / tr->get_p(), tr->get_py() / tr->get_p(), tr->get_pz() / tr->get_p());
+
+	// calculate the DCA of this line to our vertex estimate
+	Eigen::Vector3d Aa = pca_avge - a;
+	Eigen::Vector3d perp = b.cross(Aa);
+	double dca = perp.norm() / b.norm();
+	if(Verbosity() > 1) std::cout << " point line dca " << dca << " trid " << trid << std::endl;
+
+	// get the point of closest approach. The point is vector A. The closest point on the line is B
+	// The line is a + c*b, where c is a scalar, we want to solve for c when the ,ine is at B
+	//    AB = A - (a + c*b) = A - a - c*b
+	//  When AB is perpendicular to the line:
+	//    AB.b = 0 =  (A-a).b - c*b.b
+	//    so: c = (A-a).b / b.b,   and then: B = a + c*b
+
+	double c = Aa.dot(b) / b.dot(b);
+	Eigen::Vector3d B = a + c*b;
+	if(Verbosity() > 1) std::cout <<  " trid " << trid << " point line PCA " << B << std::endl;
+
+	// reject any bad outliers
+	//double cut_mag = 2.0;  // 2 seems to be optimum
+	double cut_mag = 10.0;  // 2 seems to be optimum
+	if( (abs(B.x()-pca_avge.x()) < cut_mag * _dcacut) && (abs(B.y()-pca_avge.y()) < cut_mag * _dcacut) ) 
+	  {
+	    // track is OK, remake the average
+	    _revised_vertex_track_map.insert(std::make_pair(vtxid, trid));
+
+	    if(_use_track_covariance)
+	      {
+		// get the covariance matrix for the track position
+		matrix_t cov = matrix_t::Zero();
+		for(int i = 0; i < 3; ++i)
+		  for(int j = 0; j < 3; ++j)
+		    {cov(i,j) = tr->get_error(i,j);
+		      std::cout << std::setprecision(8) << " cov(" << i << "," << j << ") = " << cov(i,j) << std::endl;
+		    }
+		matrix_t cov_inv = cov.fullPivLu().inverse();
+
+		std::cout << " Covariance: adding to new_pca_avge: " << cov_inv * B << std::endl;
+		
+		new_pca_avge += cov_inv * B;
+		cov_wt += cov_inv;
+	      }
+	    else
+	      {
+		std::cout << " Equal weight: adding to new_pca_avge: " << B << std::endl;
+		new_pca_avge += B;
+		new_wt++;
+	      }	    
+	  }
+	else
+	  {
+	    if(Verbosity() > 1) std::cout << "rejecting track " << trid << " from vertex " << vtxid << std::endl;
+	  }
+      }
+      
+      if(_use_track_covariance)
+	{
+	  if(Verbosity() > 1)  std::cout << " Covariance: new_pca_avge cum " << new_pca_avge << " cov_wt cum " << cov_wt << std::endl;
+	  new_pca_avge = cov_wt.fullPivLu().inverse() * new_pca_avge;
+	}
+      else
+	{
+	  if(Verbosity() > 1)  std::cout << " Equal weight: new_pca_avge cum " << new_pca_avge << " new_wt " << new_wt << std::endl;
+	  new_pca_avge = new_pca_avge / new_wt;
+	}
+
+      if(Verbosity() > 1)  
+	{
+	  std::cout << " pca_avge " << std::setprecision(8) << pca_avge.x() << "  " << pca_avge.y() << "  " << pca_avge.z() << std::endl; 
+	  std::cout << " new_pca_avge " << new_pca_avge.x() << "  " << new_pca_avge.y() << "  " << new_pca_avge.z() << std::endl; 
+	}
+
+      // capture the position
+      _revised_vertex_position_map.insert(std::make_pair(vtxid, new_pca_avge));
+    }       
+
+  // average covariance for accepted tracks
+  for(auto it : _vertex_set)
+    {
+      matrix_t avgCov = matrix_t::Zero();
+      double cov_wt = 0.0;
+
+      auto ret = _revised_vertex_track_map.equal_range(it);
+      for (auto cit=ret.first; cit!=ret.second; ++cit)
+	{
+	  unsigned int trid = cit->second;
+	  matrix_t cov;
+	  auto track = _track_map->get(trid);
+	  for(int i = 0; i < 3; ++i)
+	    for(int j = 0; j < 3; ++j)
+	      cov(i,j) = track->get_error(i,j);
+	  
+	  avgCov += cov;
+	  cov_wt++;
+	}
+      
+      avgCov /= sqrt(cov_wt);
+      _vertex_cov_map.insert(std::make_pair(it, avgCov));
+    }
+}
+
+void PHSimpleVertexFinder::findOutlierTrackPairs()
+{
+  // We want to use the average PCA vector as a reference, and loop over the pair map to find outlying pairs
+
+  for( auto it = _track_pair_pca_map.begin(); it != _track_pair_pca_map.end(); ++it)
+    {
+      //  Note: std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,  Eigen::Vector3d>>>  _track_pair_pca_map
+
+      unsigned int tr1id = it->first;
+      unsigned int tr2id = it->second.first;
+      Eigen::Vector3d PCA1 = it->second.second.first;
+      Eigen::Vector3d PCA2 = it->second.second.second;
+
+      std::cout << " tr1id " << tr1id << " tr2id " << tr2id
+		<< " PCA1 " << PCA1.x() << "  " << PCA1.y() << "  " << PCA1.z()
+		<< " PCA2 " << PCA2.x() << "  " << PCA2.y() << "  " << PCA2.z()
+		<< std::endl;
+
+
+    }
+  return;
 }
