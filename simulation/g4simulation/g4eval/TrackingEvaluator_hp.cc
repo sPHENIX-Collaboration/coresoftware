@@ -65,7 +65,7 @@ namespace
 
   //! eta
   template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
-  
+
   //! needed for weighted linear interpolation
   struct interpolation_data_t
   {
@@ -110,7 +110,7 @@ namespace
     if( !valid ) return NAN;
     return swx/sw;
   }
-  
+
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
@@ -311,7 +311,7 @@ namespace
       track._truth_eta = get_eta( track._truth_p, track._truth_pz );
     }
   }
-  
+
   // calculate intersection between line and circle
   double line_circle_intersection( const TVector3& p0, const TVector3& p1, double radius )
   {
@@ -320,11 +320,11 @@ namespace
     const double C = square(p0.x()) + square(p0.y()) - square(radius);
     const double delta = square(B)-4*A*C;
     if( delta < 0 ) return -1;
-    
+
     // check first intersection
     const double tup = (-B + std::sqrt(delta))/(2*A);
     if( tup >= 0 && tup < 1 ) return tup;
-    
+
     // check second intersection
     const double tdn = (-B-sqrt(delta))/(2*A);
     if( tdn >= 0 && tdn < 1 ) return tdn;
@@ -332,7 +332,7 @@ namespace
     // no valid extrapolation
     return -1;
   }
-  
+
   // print to stream
   [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TrackingEvaluator_hp::ClusterStruct& cluster )
   {
@@ -464,7 +464,7 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   // tpc geometry
   m_tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   assert( m_tpc_geom_container );
-  
+
   // micromegas geometry
   m_micromegas_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
   assert( m_micromegas_geom_container );
@@ -585,9 +585,16 @@ void TrackingEvaluator_hp::evaluate_tracks()
     auto track_struct = create_track( track );
 
     // truth information
-    const auto pair = get_max_contributor( track );
-    const auto id = pair.first;
-    track_struct._contributors = pair.second;
+    const auto [id,contributors] = get_max_contributor( track );
+    track_struct._contributors = contributors;
+
+    if( Verbosity() )
+    {
+      std::cout << "TrackingEvaluator_hp::evaluate_tracks -"
+        << " id: " << id
+        << " contributors: " << contributors
+        << std::endl;
+    }
 
     // get associated particle and store relevant information
     {
@@ -600,7 +607,8 @@ void TrackingEvaluator_hp::evaluate_tracks()
     {
       const auto iter = m_g4particle_map.find( id );
       if( iter != m_g4particle_map.end() ) track_struct._truth_mask = iter->second;
-      else std::cout << "TrackingEvaluator_hp::evaluate_tracks - could not get mask for particle " << id << std::endl;
+      else if( Verbosity() )
+      { std::cout << "TrackingEvaluator_hp::evaluate_tracks - could not get mask for particle " << id << std::endl; }
     }
 
     // loop over clusters
@@ -790,7 +798,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
         << " polar out: (" << get_r( g4hit->get_x(1), g4hit->get_y(1) ) << "," << std::atan2( g4hit->get_y(1), g4hit->get_x(1) ) << "," << g4hit->get_z(1) << ")"
         << std::endl;
     }
-    
+
     // convert hits to list of interpolation_data_t
     interpolation_data_t::list hits;
     for( const auto& g4hit:g4hits )
@@ -804,7 +812,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
       }
     }
 
-    // average g4hits positions at the same radius as the cluster to get resolution    
+    // average g4hits positions at the same radius as the cluster to get resolution
     const auto xextrap = average<&interpolation_data_t::x>(hits);
     const auto yextrap = average<&interpolation_data_t::y>(hits);
     const auto zextrap = average<&interpolation_data_t::z>(hits);
@@ -949,6 +957,9 @@ std::pair<int,int> TrackingEvaluator_hp::get_max_contributor( SvtxTrack* track )
   using IdMap = std::map<int,int>;
   IdMap contributor_map;
 
+  if( Verbosity() )
+  { std::cout << "TrackingEvaluator_hp::get_max_contributor - clusters: " << std::distance( track->begin_cluster_keys(), track->end_cluster_keys() ) << std::endl; }
+
   // loop over clusters
   for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
   {
@@ -1087,7 +1098,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
   const PHG4CylinderCellGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer):nullptr;
   const auto rin = layergeom ? layergeom->get_radius()-layergeom->get_thickness()/2:0;
   const auto rout = layergeom ? layergeom->get_radius()+layergeom->get_thickness()/2:0;
-  
+
   {
     // count number of truth track ids participating to this cluster
     std::set<int> ids;
@@ -1114,12 +1125,12 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
       // ensure first hit has lowest r
       auto r0 = get_r(tmp_hits[0].x(),tmp_hits[0].y());
       auto r1 = get_r(tmp_hits[1].x(),tmp_hits[1].y());
-      if( r0 > r1 ) 
-      { 
-        std::swap(tmp_hits[0],tmp_hits[1]); 
+      if( r0 > r1 )
+      {
+        std::swap(tmp_hits[0],tmp_hits[1]);
         std::swap(r0, r1);
       }
-      
+
       // do nothing if out of bound
       if( r1 <= rin || r0 >= rout ) continue;
 
@@ -1131,33 +1142,33 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
       {
         const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rin );
         if( t<0 ) continue;
-        
+
         tmp_hits[0].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
         tmp_hits[0].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
         r0 = rin;
       }
-      
+
       if( r1 > rout )
       {
         const auto t = line_circle_intersection( tmp_hits[0].position, tmp_hits[1].position, rout );
         if( t<0 ) continue;
-        
+
         tmp_hits[1].position = tmp_hits[0].position*(1.-t) + tmp_hits[1].position*t;
         tmp_hits[1].momentum = tmp_hits[0].momentum*(1.-t) + tmp_hits[1].momentum*t;
         r1 = rout;
       }
-        
+
       // update weights, only if clamping occured
       const auto dr_new = r1-r0;
       tmp_hits[0].weight *= dr_new/dr_old;
-      tmp_hits[1].weight *= dr_new/dr_old;      
+      tmp_hits[1].weight *= dr_new/dr_old;
     }
 
     // store in global list
     hits.push_back(std::move(tmp_hits[0]));
     hits.push_back(std::move(tmp_hits[1]));
   }
-  
+
   // add truth position
   cluster._truth_x = average<&interpolation_data_t::x>( hits );
   cluster._truth_y = average<&interpolation_data_t::y>( hits );
@@ -1167,7 +1178,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
   cluster._truth_px = average<&interpolation_data_t::px>( hits );
   cluster._truth_py = average<&interpolation_data_t::py>( hits );
   cluster._truth_pz = average<&interpolation_data_t::pz>( hits );
-  
+
   cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
   cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
 
