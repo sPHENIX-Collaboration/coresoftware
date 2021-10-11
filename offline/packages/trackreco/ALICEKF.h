@@ -3,6 +3,8 @@
 
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <phfield/PHField.h>
@@ -20,6 +22,8 @@ class ALICEKF
   public:
   ALICEKF(PHCompositeNode *topNode, 
           TrkrClusterContainer* cmap, 
+	  ActsSurfaceMaps *surfMaps,
+	  ActsTrackingGeometry *tGeometry,
           double fieldDir,
           unsigned int min_clusters,
           double max_sin_phi,
@@ -27,6 +31,8 @@ class ALICEKF
   {
     _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
     _cluster_map = cmap;
+    _surfmaps = surfMaps;
+    _tGeometry = tGeometry;
     _fieldDir = fieldDir;
     _max_sin_phi = max_sin_phi;
     _v = verbosity;
@@ -52,6 +58,8 @@ class ALICEKF
   PHField* _B;
   size_t _min_clusters_per_track = 20;
   TrkrClusterContainer* _cluster_map = nullptr;
+  ActsTrackingGeometry *_tGeometry = nullptr;
+  ActsSurfaceMaps *_surfmaps = nullptr;
   int Verbosity(){ return _v; }
   int _v = 0;
   double _Bzconst = 10*0.000299792458f;

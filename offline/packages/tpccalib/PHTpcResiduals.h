@@ -95,7 +95,7 @@ class PHTpcResiduals : public SubsysReco
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
   void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
-			     const TrkrCluster* cluster);
+			     TrkrCluster* cluster);
 
   /// Propagates the silicon+MM track fit to the surface on which
   /// an available source link in the TPC exists, added from the stub

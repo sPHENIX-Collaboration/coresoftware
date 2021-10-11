@@ -10,6 +10,8 @@
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <phfield/PHField.h>
 #include "nanoflann.hpp"
@@ -30,10 +32,6 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
 
-/// \class PHTrackPropagating
-///
-/// \brief Base class for track seeding
-///
 class PHSimpleKFProp : public SubsysReco
 {
  public:
@@ -85,7 +83,8 @@ class PHSimpleKFProp : public SubsysReco
   SvtxTrackMap *_track_map = nullptr;
   TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
-
+  ActsTrackingGeometry *_tgeometry = nullptr;
+  ActsSurfaceMaps *_surfmaps = nullptr;
   void MoveToFirstTPCCluster();
   void PrepareKDTrees();
   std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track);
@@ -131,7 +130,7 @@ class PHSimpleKFProp : public SubsysReco
 
   void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
   void line_fit_clusters(std::vector<TrkrCluster*> clusters, double &A, double &B);
-  void CircleFitByTaubin(std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0);
+  void CircleFitByTaubin(std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0);
   void findRoot(const double R, const double X0, const double Y0,
 		double& x, double& y);
   bool _use_const_field = false;
