@@ -354,36 +354,11 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
       }
 
-      // rotate size and error to global frame, and assign to cluster
-      matrix_t rotation = matrix_t::Identity();
-      const double phi = layergeom->get_center_phi( tileid );
-      const double cosphi = std::cos(phi);
-      const double sinphi = std::sin(phi);
-      rotation(0,0) = cosphi;
-      rotation(0,1) = -sinphi;
-      rotation(1,0) = sinphi;
-      rotation(1,1) = cosphi;
-
-      // rotate dimension and error
-      matrix_t globalerror = rotation*error*rotation.transpose();
-
-      /// Now rotate back by cluster phi
-      /// We do this because the initial local cluster covariance produces
-      /// nontrivial pulls in rphi. This replicates the code formerly in 
-      /// TrkrCluster
-      float clusterphi = -atan2(world_coordinates.y(), world_coordinates.x());
-      
-      const auto cluscosphi = std::cos(clusterphi);
-      const auto clussinphi = std::sin(clusterphi);
-      float rphierr = clussinphi*clussinphi*globalerror(0,0)
-	+ cluscosphi*cluscosphi*globalerror(1,1)+
-	2.*cluscosphi*clussinphi*globalerror(0,1);
-
       /// local_coordinates rdphi is sign opposite Acts definition
       cluster->setLocalX(-1*local_coordinates[0]);
       cluster->setLocalY(local_coordinates[2]);
       
-      cluster->setActsLocalError(0,0, rphierr);
+      cluster->setActsLocalError(0,0, error(1,1));
       cluster->setActsLocalError(0,1, error(1,2));
       cluster->setActsLocalError(1,0, error(2,1));
       cluster->setActsLocalError(1,1,error(2,2));
