@@ -95,9 +95,6 @@ class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
 
   /// lasers
   std::vector<Laser> m_lasers;
-
-  /// mc track id
-  int m_trackid = -1;
   
   /// number of electrons deposited per cm laser track
   int electrons_per_cm = 300;
