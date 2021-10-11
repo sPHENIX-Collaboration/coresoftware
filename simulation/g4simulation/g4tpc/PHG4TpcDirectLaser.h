@@ -10,6 +10,7 @@
 
 class PHG4HitContainer;
 class SvtxTrackMap;
+class PHG4TruthInfoContainer;
 
 class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
 {
@@ -95,9 +96,9 @@ class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
   /// lasers
   std::vector<Laser> m_lasers;
 
-  /// g4hit container
-  PHG4HitContainer* m_g4hitcontainer = nullptr;
-
+  /// mc track id
+  int m_trackid = -1;
+  
   /// number of electrons deposited per cm laser track
   int electrons_per_cm = 300;
   
@@ -125,6 +126,12 @@ class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
 
   /// set to true to change direct laser tracks from one event to the other
   bool m_autoAdvanceDirectLaser=false;
+  
+  /// g4hit container
+  PHG4HitContainer* m_g4hitcontainer = nullptr;
+
+  //! truth information
+  PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
 
   /// track map, used to store track parameters
   std::string m_track_map_name = "SvtxTrackMap";
