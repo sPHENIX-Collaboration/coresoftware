@@ -347,12 +347,15 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
+  if( Verbosity() )
+  { std::cout << "PHG4TpcDirectLaser::AimToThetaPhi - theta: " << theta << " phi: " << phi << std::endl; }
+
 //   // first laser only
 //   AppendLaserTrack(theta,phi,m_lasers[0]);
 
 //   // positive z lasers only
 //   for(int i=0; i<4; ++i) {AppendLaserTrack(theta,phi,m_lasers[i]);}
-  
+
   // all lasers
   for( const auto& laser:m_lasers )
   { AppendLaserTrack(theta,phi,laser); }
@@ -450,7 +453,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
   // decide relevant end of laser
   /* chose field cage intersection if valid, and if either plane intersection is invalid or happens on a larger z along the laser direction) */
-  const auto& strike = ( fc_strike && (!plane_strike || fc_strike->z()/dir.z() < plane_strike->z()/dir.z()) ) ?
+  const TVector3& strike = ( fc_strike && (!plane_strike || fc_strike->z()/dir.z() < plane_strike->z()/dir.z()) ) ?
     *fc_strike:
     *plane_strike;
 
@@ -463,10 +466,20 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   TVector3 end=start;
   TVector3 step=dir*(maxHitLength/(dir.Mag()));
   double stepLength=0;
+
+  if( Verbosity() )
+  {
+    std::cout << "PHG4TpcDirectLaser::AppendLaserTrack -"
+      << " fullLength: " << fullLength
+      << " nHitSteps: " << nHitSteps
+      << std::endl;
+  }
+
   for (int i=0;i<nHitSteps;i++)
   {
     start=end;//new starting point is the previous ending point.
-    if (i+1==nHitSteps){
+    if (i+1==nHitSteps)
+    {
       //last step is the remainder size
       end=strike;
       delta=start-end;
