@@ -58,7 +58,7 @@ class PHG4Detector
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual PHCompositeNode *topNode() { return m_topNode; }
   virtual PHG4Subsystem *GetMySubsystem() {return m_MySubsystem;}
-  static G4Material *GetDetectorMaterial(const std::string &name);
+  static G4Material *GetDetectorMaterial(const std::string &name, const bool quit = true);
 
  private:
   PHCompositeNode *m_topNode = nullptr;

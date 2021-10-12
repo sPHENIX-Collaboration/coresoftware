@@ -13,6 +13,8 @@
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
 
+#include <boost/stacktrace.hpp>
+
 PHG4Detector::PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam)
   : m_topNode(Node)
   , m_MySubsystem(subsys)
@@ -79,7 +81,7 @@ int PHG4Detector::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *lo
   return 0;
 }
 
-G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name)
+G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name, const bool quit)
 {
   G4Material *thismaterial =  G4Material::GetMaterial(name,false);
   if (thismaterial)
@@ -89,7 +91,14 @@ G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name)
   thismaterial = G4NistManager::Instance()->FindOrBuildMaterial(name);
   if (!thismaterial)
   {
+    if (quit)
+    {
+      return nullptr;
+    }
     std::cout << "PHG4Detector::GetDetectorMaterial: Could not locate " << name << " in NIST DB or create it" << std::endl;
+    std::cout << boost::stacktrace::stacktrace();
+    std::cout << std::endl;
+    std::cout << "read the above stack trace who is calling this material" << std::endl;
     gSystem->Exit(1);
     exit(1); // so coverity gets it
   }
