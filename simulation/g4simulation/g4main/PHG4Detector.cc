@@ -2,9 +2,12 @@
 
 #include "PHG4Subsystem.h"
 
+#include <TSystem.h>
+
 #include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4NistManager.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
@@ -13,9 +16,6 @@
 PHG4Detector::PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam)
   : m_topNode(Node)
   , m_MySubsystem(subsys)
-  , m_Verbosity(0)
-  , m_OverlapCheck(false)
-  , m_ColorIndex(0)
   , m_Name(nam)
 {
 }
@@ -77,4 +77,21 @@ int PHG4Detector::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *lo
   checksolid->SetVisAttributes(visattchk);
   new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, true);
   return 0;
+}
+
+G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name)
+{
+  G4Material *thismaterial =  G4Material::GetMaterial(name,false);
+  if (thismaterial)
+  {
+    return thismaterial;
+  }
+  thismaterial = G4NistManager::Instance()->FindOrBuildMaterial(name);
+  if (!thismaterial)
+  {
+    std::cout << "PHG4Detector::GetDetectorMaterial: Could not locate " << name << " in NIST DB or create it" << std::endl;
+    gSystem->Exit(1);
+    exit(1); // so coverity gets it
+  }
+  return thismaterial;
 }
