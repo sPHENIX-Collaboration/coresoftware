@@ -91,7 +91,7 @@ G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name, const boo
   thismaterial = G4NistManager::Instance()->FindOrBuildMaterial(name);
   if (!thismaterial)
   {
-    if (quit)
+    if (!quit)
     {
       return nullptr;
     }
