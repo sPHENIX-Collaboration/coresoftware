@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
@@ -194,9 +194,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   for(const auto& [trackKey, track] : *m_trackMap)
     {
       if(!track)
-	{
-	  continue;
-	}
+	{ continue; }
 
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
@@ -254,7 +252,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// associated to this track and the corresponding track seed which
       /// corresponds to the PHGenFitTrkProp track seeds
       Acts::PropagatorPlainOptions ppPlainOptions;
-      ppPlainOptions.absPdgCode = 11;
       Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
 			        m_tGeometry->geoContext,
 				m_tGeometry->magFieldContext,
@@ -429,6 +426,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	  std::cout << "Surface : " << std::endl;
 	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
+	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with global pos " << std::endl
 		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
 		    << std::endl;

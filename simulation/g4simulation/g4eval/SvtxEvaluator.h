@@ -10,9 +10,13 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <TMatrixFfwd.h>
+#include <TMatrixT.h>   
+#include <TMatrixTUtils.h>
 
 class PHCompositeNode;
 class PHTimer;
+class TrkrCluster;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
@@ -71,6 +75,8 @@ class SvtxEvaluator : public SubsysReco
   float m_fSeed;
   // eval stack
   SvtxEvalStack *_svtxevalstack;
+
+  TMatrixF calculateClusterError(TrkrCluster* c, float& clusphi);
 
   //TrkrClusterContainer *cluster_map{nullptr};
 

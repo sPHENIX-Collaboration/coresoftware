@@ -20,6 +20,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsTransformations.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_v2.h \
@@ -71,6 +72,7 @@ nobase_dist_pcm_DATA = \
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
+  ActsTransformations.cc \
   SvtxTrackState_v1.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
@@ -94,6 +96,7 @@ libtrackbase_historic_io_la_LIBADD = \
   -lphool \
   -lActsCore \
   -lActsFatras \
+  -ltrack_io \
   -lActsExamplesFramework
 
 # Rule for generating table CINT dictionaries.

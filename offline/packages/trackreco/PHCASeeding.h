@@ -18,6 +18,9 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
 #include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
@@ -177,8 +180,11 @@ class PHCASeeding : public PHTrackSeeding
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
-  std::shared_ptr<ALICEKF> fitter;
+  ActsTrackingGeometry *tGeometry{nullptr};
+  ActsSurfaceMaps *surfMaps{nullptr};
 
+  std::shared_ptr<ALICEKF> fitter;
+ 
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;
   bgi::rtree<pointKey, bgi::quadratic<16>> _rtree;

@@ -11,6 +11,8 @@
 
 #include <tpc/TpcDefs.h>
 
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -223,6 +225,22 @@ int QAG4SimulationTpc::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if (!m_surfmaps)
+    {
+      std::cout << PHWHERE << "Error: can't find Acts surface maps"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "No acts tracking geometry, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_cluster_hit_map)
   {
@@ -309,6 +327,9 @@ void QAG4SimulationTpc::evaluate_clusters()
 
   //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
+
+  ActsTransformations transformer;
+
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
@@ -359,12 +380,15 @@ void QAG4SimulationTpc::evaluate_clusters()
         // fill the matched cluster histo
         h_eff1->Fill(layer);
 
+	const auto global = transformer.getGlobalPosition(rclus, m_surfmaps,
+							  m_tGeometry);
+
         // get relevant cluster information
         const auto rkey = rclus->getClusKey();
-        const auto r_cluster = QAG4Util::get_r(rclus->getX(), rclus->getY());
-        const auto z_cluster = rclus->getZ();
-        const auto phi_cluster = std::atan2(rclus->getY(), rclus->getX());
-        const auto phi_error = rclus->getPhiError();
+        const auto r_cluster = QAG4Util::get_r(global(0), global(1));
+        const auto z_cluster = global(2);
+        const auto phi_cluster = (float)std::atan2(global(1), global(0));
+        const auto phi_error = rclus->getRPhiError() / r_cluster;
         const auto z_error = rclus->getZError();
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);

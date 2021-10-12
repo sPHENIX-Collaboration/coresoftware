@@ -3,7 +3,7 @@
 #include "TpcDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
@@ -47,10 +47,10 @@ namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 	
-  typedef std::pair<unsigned short, unsigned short> iphiz;
-  typedef std::pair<unsigned short, iphiz> ihit;
+	typedef std::pair<unsigned short, unsigned short> iphiz;
+	typedef std::pair<unsigned short, iphiz> ihit;
 	
-  struct thread_data {
+	struct thread_data {
 	  PHG4CylinderCellGeom *layergeom;
 	  TrkrHitSet *hitset;
 	  ActsSurfaceMaps *surfmaps;
@@ -99,9 +99,9 @@ namespace
 	  }
 	}
 	
-	void find_z_range(int phibin, int zbin, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+	void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 	
-	  static constexpr int FitRangeZ = 5;
+	  int FitRangeZ = 5;
 	  zup = 0;
 	  zdown = 0;
 	  for(int iz=0; iz< FitRangeZ; iz++){
@@ -146,9 +146,9 @@ namespace
 	  }
 	}
 	
-	void find_phi_range(int phibin, int zbin, int NPhiBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+	void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
 	
-	  static constexpr int FitRangePHI = 3;
+	  int FitRangePHI = 3;
 	  phidown = 0;
 	  phiup = 0;
 	  for(int iphi=0; iphi< FitRangePHI; iphi++){
@@ -197,7 +197,7 @@ namespace
 	  }
 	}
 	
-	void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+	void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
 	{
 	  // search along phi at the peak in z
 	 
@@ -337,12 +337,8 @@ namespace
 	
 	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 	
-	  TrkrClusterv2 *clus = new TrkrClusterv2();
+	  auto clus = std::make_unique<TrkrClusterv3>();
 	  clus->setClusKey(ckey);
-	  //  int phi_nsize = phibinhi - phibinlo + 1;
-	  //  int z_nsize   = zbinhi   - zbinlo + 1;
-	  double phi_size = (double) (phibinhi - phibinlo + 1) * radius * layergeom->get_phistep();
-	  double z_size = (double) (zbinhi - zbinlo + 1) * layergeom->get_zstep();
 	
 	  // Estimate the errors
 	  const double phi_err_square = (phibinhi == phibinlo) ?
@@ -386,21 +382,9 @@ namespace
 	  // Fill in the cluster details
 	  //================
 	  clus->setAdc(adc_sum);
-	  clus->setPosition(0, radius * cos(clusphi));
-	  clus->setPosition(1, radius * sin(clusphi));
-	  clus->setPosition(2, clusz);
-	  clus->setGlobal();
 	  
-	  TMatrixF DIM(3, 3);
-	  DIM[0][0] = 0.0;
-	  DIM[0][1] = 0.0;
-	  DIM[0][2] = 0.0;
-	  DIM[1][0] = 0.0;
-	  DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
-	  DIM[1][2] = 0.0;
-	  DIM[2][0] = 0.0;
-	  DIM[2][1] = 0.0;
-	  DIM[2][2] = pow(0.5 * z_size,2);
+	  float clusx = radius * cos(clusphi);
+	  float clusy = radius * sin(clusphi);
 	  
 	  TMatrixF ERR(3, 3);
 	  ERR[0][0] = 0.0;
@@ -412,52 +396,11 @@ namespace
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;
 	  ERR[2][2] = z_err_square;
-	  
-	  TMatrixF ROT(3, 3);
-	  ROT[0][0] = cos(clusphi);
-	  ROT[0][1] = -sin(clusphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(clusphi);
-	  ROT[1][1] = cos(clusphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0;
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  
-	  TMatrixF ROT_T(3, 3);
-	  ROT_T.Transpose(ROT);
-	  
-	  TMatrixF COVAR_DIM(3, 3);
-	  COVAR_DIM = ROT * DIM * ROT_T;
-	  
-	  clus->setSize(0, 0, COVAR_DIM[0][0]);
-	  clus->setSize(0, 1, COVAR_DIM[0][1]);
-	  clus->setSize(0, 2, COVAR_DIM[0][2]);
-	  clus->setSize(1, 0, COVAR_DIM[1][0]);
-	  clus->setSize(1, 1, COVAR_DIM[1][1]);
-	  clus->setSize(1, 2, COVAR_DIM[1][2]);
-	  clus->setSize(2, 0, COVAR_DIM[2][0]);
-	  clus->setSize(2, 1, COVAR_DIM[2][1]);
-	  clus->setSize(2, 2, COVAR_DIM[2][2]);
-	  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
-	  
-	  TMatrixF COVAR_ERR(3, 3);
-	  COVAR_ERR = ROT * ERR * ROT_T;
-	  
-	  clus->setError(0, 0, COVAR_ERR[0][0]);
-	  clus->setError(0, 1, COVAR_ERR[0][1]);
-	  clus->setError(0, 2, COVAR_ERR[0][2]);
-	  clus->setError(1, 0, COVAR_ERR[1][0]);
-	  clus->setError(1, 1, COVAR_ERR[1][1]);
-	  clus->setError(1, 2, COVAR_ERR[1][2]);
-	  clus->setError(2, 0, COVAR_ERR[2][0]);
-	  clus->setError(2, 1, COVAR_ERR[2][1]);
-	  clus->setError(2, 2, COVAR_ERR[2][2]);
-	  
+	
 	  /// Get the surface key to find the surface from the map
 	  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
 	
-	  Acts::Vector3D global(clus->getX(), clus->getY(), clus->getZ());
+	  Acts::Vector3D global(clusx, clusy, clusz);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
 	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
@@ -480,7 +423,7 @@ namespace
 	  
 	  /// no conversion needed, only used in acts
 	  Acts::Vector3D normal = surface->normal(tGeometry->geoContext);
-	  double clusRadius = sqrt(clus->getX() * clus->getX() + clus->getY() * clus->getY());
+	  double clusRadius = sqrt(clusx * clusx + clusy * clusy);
 	  double rClusPhi = clusRadius * clusphi;
 	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
 	  double surfPhiCenter = atan2(center[1], center[0]);
@@ -514,7 +457,7 @@ namespace
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 	  
-	  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus));
+	  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus.release()));
 	  if(do_assoc && clusterhitassoc){
 	    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
 	      clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
@@ -609,11 +552,13 @@ namespace
 	   }
 	   pthread_exit(nullptr);
 	}
+  
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
-{}
+{
+}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
 {

@@ -4,6 +4,8 @@
 #define PHTPCTRACKSEEDCIRCLEFIT_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <string>
 #include <vector>
@@ -36,7 +38,7 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-  void  line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b);
+  void  line_fit_clusters(std::vector<Acts::Vector3D>& globPos, double &a, double &b);
   void  line_fit(std::vector<std::pair<double,double>> points, double &a, double &b);
   void CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0);
   std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0);
@@ -46,7 +48,8 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
 						    
   std::string _track_map_name_silicon;
 
-  
+  ActsSurfaceMaps *_surfmaps{nullptr};
+  ActsTrackingGeometry *_tGeometry{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrackMap *_track_map{nullptr};
 
