@@ -13,8 +13,8 @@
 
 #include <memory>
 
-class ActsSurfaceMaps;
-class ActsTrackingGeometry;
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
