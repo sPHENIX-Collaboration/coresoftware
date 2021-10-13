@@ -418,10 +418,6 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory& traj,
         for (int j = 0; j < 6; ++j)
       { out.set_error(i, j, globalCov(i,j)); }
 
-      // add cluster key
-      const auto cluskey = state.uncalibrated().cluskey();
-      svtxTrack->insert_cluster_key(cluskey);
-
       // print
       if(m_verbosity > 20)
       {
@@ -431,7 +427,7 @@ void ActsTransformations::fillSvtxTrackStates(const Trajectory& traj,
           << " " << global.z() /  Acts::UnitConstants::cm 
           << " pathlength " << pathlength
           << " momentum px,py,pz = " <<  momentum.x() << "  " <<  momentum.y() << "  " << momentum.y()  
-          << " cluskey " << cluskey << std::endl
+		  << std::endl
           << "covariance " << globalCov << std::endl; 
       }
 	  

@@ -38,7 +38,7 @@ PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
 
 void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
-  G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+  G4Material* material = GetDetectorMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
   G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
   G4ThreeVector negative(0., 0., -m_Params->get_double_param("place_z") * cm);

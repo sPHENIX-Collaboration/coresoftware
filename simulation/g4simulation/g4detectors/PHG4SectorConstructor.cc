@@ -11,6 +11,7 @@
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>         // for PHG4Subsystem
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid
@@ -132,24 +133,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
                                                       -geom.get_total_thickness() / 2, geom.get_total_thickness(),
                                                       Boundary_Det);
 
-  G4Material *p_mat = G4Material::GetMaterial(geom.get_material());
-  if (!p_mat)
-  {
-    std::string msg = "Can not find definition of material ";
-    msg += geom.get_material();
-
-    std::cout << "PHG4SectorConstructor::Construct_Sectors - ERROR -" << msg << ". Print all available materials:" << std::endl;
-
-    for (G4MaterialTable::const_iterator it =
-             (G4Material::GetMaterialTable())->begin();
-         it != G4Material::GetMaterialTable()->end(); ++it)
-    {
-      cout << (*it) << endl;
-    }
-    G4Exception(
-        (string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
-        __FILE__, FatalException, msg.c_str());
-  }
+  G4Material *p_mat = PHG4Detector::GetDetectorMaterial(geom.get_material());
 
   G4LogicalVolume *DetectorLog_Det = new G4LogicalVolume(DetectorBox_Det,  //
                                                          p_mat, name_base + "_Log");
@@ -189,7 +173,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
                                                      z_start, l.depth * l.percentage_filled * perCent, Boundary_Det);
 
     G4LogicalVolume *LayerLog_Det = new G4LogicalVolume(LayerSol_Det,  //
-                                                        G4Material::GetMaterial(l.material), layer_name + "_Log");
+                                                        PHG4Detector::GetDetectorMaterial(l.material), layer_name + "_Log");
     RegisterLogicalVolume(LayerLog_Det);
 
     RegisterPhysicalVolume(

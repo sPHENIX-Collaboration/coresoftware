@@ -8,6 +8,8 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -85,8 +87,10 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   G4VSolid *tpc_envelope = new G4Tubs("tpc_envelope", inner_cage_radius, outer_cage_radius, params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
 
+  
+  recoConsts* rc = recoConsts::instance();
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
-                                                            G4Material::GetMaterial("G4_AIR"),
+                                                            GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
                                                             "tpc_envelope");
   m_DisplayAction->AddVolume(tpc_envelope_logic, "TpcEnvelope");
 
@@ -110,7 +114,7 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
 
   G4VSolid *tpc_window = new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness / 2., 0., 2 * M_PI);
   G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window,
-                                                          G4Material::GetMaterial(params->get_string_param("window_surface1_material")),
+                                                          GetDetectorMaterial(params->get_string_param("window_surface1_material")),
                                                           "tpc_window");
 
   //  G4VisAttributes *visatt = new G4VisAttributes();
@@ -136,7 +140,7 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
       new G4Tubs("tpc_window_surface2_core", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,
                  tpc_window_surface2_core_thickness / 2., 0., 2 * M_PI);
   G4LogicalVolume *tpc_window_surface2_core_logic = new G4LogicalVolume(tpc_window_surface2_core,
-                                                                        G4Material::GetMaterial(params->get_string_param("window_surface2_material")),
+                                                                        GetDetectorMaterial(params->get_string_param("window_surface2_material")),
                                                                         "tpc_window_surface2_core");
 
   m_DisplayAction->AddVolume(tpc_window_surface2_core_logic, "TpcWindow");
@@ -155,7 +159,7 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
       new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,
                  tpc_window_core_thickness / 2., 0., 2 * M_PI);
   G4LogicalVolume *tpc_window_core_logic = new G4LogicalVolume(tpc_window_core,
-                                                               G4Material::GetMaterial(params->get_string_param("window_core_material")),
+                                                               GetDetectorMaterial(params->get_string_param("window_core_material")),
                                                                "tpc_window_core");
 
   m_DisplayAction->AddVolume(tpc_window_core_logic, "TpcHoneyComb");
@@ -169,7 +173,7 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_half_length / 2., 0., 2 * M_PI);
 
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
-                                                       G4Material::GetMaterial(params->get_string_param("tpc_gas")),
+                                                       GetDetectorMaterial(params->get_string_param("tpc_gas")),
                                                        "tpc_gas");
 
   tpc_gas_logic->SetUserLimits(g4userlimits);
@@ -234,7 +238,7 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
     name << "tpc_cage_layer_" << layerno;
     G4VSolid *tpc_cage_layer = new G4Tubs(name.str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
-                                                                G4Material::GetMaterial(material[i]),
+                                                                GetDetectorMaterial(material[i]),
                                                                 name.str());
     m_DisplayAction->AddTpcInnerLayer(tpc_cage_layer_logic);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
@@ -253,7 +257,7 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
     name << "tpc_cage_layer_" << layerno;
     G4VSolid *tpc_cage_layer = new G4Tubs(name.str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
-                                                                G4Material::GetMaterial(material[i]),
+                                                                GetDetectorMaterial(material[i]),
                                                                 name.str());
     m_DisplayAction->AddTpcOuterLayer(tpc_cage_layer_logic);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
