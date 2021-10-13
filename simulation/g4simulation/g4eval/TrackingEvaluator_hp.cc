@@ -17,6 +17,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDefs.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -187,25 +189,6 @@ namespace
     trackpair_struct._trk_pt[1] = get_pt( second->get_px(), second->get_py()  );
 
     return trackpair_struct;
-  }
-
-  //! create cluster struct from svx cluster
-  TrackingEvaluator_hp::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
-  {
-    TrackingEvaluator_hp::ClusterStruct cluster_struct;
-    cluster_struct._layer = TrkrDefs::getLayer(key);
-    cluster_struct._x = cluster->getX();
-    cluster_struct._y = cluster->getY();
-    cluster_struct._z = cluster->getZ();
-    cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
-    cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
-    cluster_struct._phi_error = cluster->getPhiError();
-    cluster_struct._z_error = cluster->getZError();
-
-    if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
-    { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
-
-    return cluster_struct;
   }
 
   //! number of hits associated to cluster
@@ -433,6 +416,14 @@ int TrackingEvaluator_hp::End(PHCompositeNode* )
 //_____________________________________________________________________
 int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
+
+  // acts surface map
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  assert( m_surfmaps );
+
+  // acts geometry
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  assert( m_tGeometry );
 
   // get necessary nodes
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -739,12 +730,13 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
 {
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
+  const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
-    // << " position: (" << cluster->getX() << "," << cluster->getY() << "," << cluster->getZ() << ")"
-    << " polar: (" << get_r( cluster->getX(), cluster->getY()) << "," << std::atan2( cluster->getY(), cluster->getX()) << "," << cluster->getZ() << ")"
+    << " position: (" << global.x() << "," << global.y() << "," << global.z() << ")"
+    << " polar: (" << get_r( global.x(), global.y()) << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
     << " errors: (" << cluster->getPhiError() << ", " << cluster->getZError() << ")"
     << std::endl;
 
@@ -856,11 +848,14 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
         continue;
       }
 
+      // get global coordinates
+      const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+
       std::cout
         << "TrackingEvaluator_hp::print_track -"
         << " cluster layer: "  << (int)TrkrDefs::getLayer(cluster_key)
-        << " position: (" << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ() << ")"
-        << " polar: (" << get_r( cluster->getX(), cluster->getY() ) << ", " << std::atan2( cluster->getY(), cluster->getX() ) << "," << cluster->getZ() << ")"
+        << " position: (" << global.x() << ", " << global.y() << ", " << global.z() << ")"
+        << " polar: (" << get_r( global.x(), global.y() ) << ", " << std::atan2( global.y(), global.x() ) << "," << cluster->getZ() << ")"
         << std::endl;
 
     }
@@ -986,6 +981,28 @@ std::pair<int,int> TrackingEvaluator_hp::get_max_contributor( SvtxTrack* track )
 //_____________________________________________________________________
 int TrackingEvaluator_hp::get_embed( PHG4Particle* particle ) const
 { return (m_g4truthinfo && particle) ? m_g4truthinfo->isEmbeded( particle->get_primary_id() ):0; }
+
+//_____________________________________________________________________
+TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
+{
+  // get global coordinates
+  const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+
+  TrackingEvaluator_hp::ClusterStruct cluster_struct;
+  cluster_struct._layer = TrkrDefs::getLayer(key);
+  cluster_struct._x = global.x();
+  cluster_struct._y = global.y();
+  cluster_struct._z = global.z();
+  cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
+  cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
+  cluster_struct._phi_error = cluster->getPhiError();
+  cluster_struct._z_error = cluster->getZError();
+  
+  if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
+  { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
+  
+  return cluster_struct;
+}
 
 //_____________________________________________________________________
 void TrackingEvaluator_hp::add_trk_information( TrackingEvaluator_hp::ClusterStruct& cluster, SvtxTrackState* state ) const

@@ -4,12 +4,15 @@
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
+class ActsSurfaceMaps;
+class ActsTrackingGeometry;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4Hit;
@@ -459,6 +462,9 @@ class TrackingEvaluator_hp : public SubsysReco
   //! get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
+  //! create cluster structure from cluster
+  ClusterStruct create_cluster( TrkrDefs::cluskey, TrkrCluster* ) const;
+
   //! add track information to a cluster
   void add_trk_information( ClusterStruct&, SvtxTrackState* ) const;
 
@@ -488,6 +494,15 @@ class TrackingEvaluator_hp : public SubsysReco
   //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks | EvalTrackPairs;
 
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+
+  /// acts transformation
+  ActsTransformations m_transformer;
+  
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
 
