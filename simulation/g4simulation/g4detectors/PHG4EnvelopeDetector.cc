@@ -75,7 +75,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4double sPhi = _sPhi;
   G4double dPhi = _dPhi;
 
-  G4Material* material_crystal = G4Material::GetMaterial("G4_PbWO4");
+  G4Material* material_crystal = GetDetectorMaterial("G4_PbWO4");
 
   G4VSolid* GarbageCollector_solid = new G4Cons("GarbageCollector_solid",
                                                 rMin1, rMax1,
