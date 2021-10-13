@@ -1,0 +1,354 @@
+#include "QAG4SimulationKFParticle.h"
+
+using namespace std;
+
+
+// Create necessary objects
+typedef std::pair<int, float> particle_pair;
+KFParticle_particleList kfp_particleList_evtReco;
+
+//Particle masses are in GeV
+std::map<std::string, particle_pair> particleMasses = kfp_particleList_evtReco.getParticleList();
+
+QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
+  : SubsysReco(name)
+{
+  m_min_mass = min_m;
+  m_max_mass = max_m;
+  m_mother_id = particleMasses.find(mother_name)->second.first;
+  m_mother_name = mother_name;
+}
+
+
+
+int QAG4SimulationKFParticle::InitRun(PHCompositeNode *topNode)
+{
+  if (!m_svtxEvalStack)
+  {
+    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    m_svtxEvalStack->set_strict(false);
+    m_svtxEvalStack->set_verbosity(Verbosity());
+  }
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  if (!m_trackMap)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_trackMap)
+  {
+    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
+{
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  TH1 *h(nullptr);
+
+  h = new TH1F(TString(get_histo_prefix()) + "InvMass",  //
+               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+  hm->registerHisto(h);
+  
+  h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",  //
+               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "DecayTime",  //
+               ";Decay Time [ps];Entries", 100, 0, 10);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "pT",  //
+               ";pT [GeV/c^{2}];Entries", 100, 0, 10);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "Chi2_NDF",  //
+               ";#chi^{2}/NDF ;Entries", 100, 0, 5);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "Rapidity",  //
+               ";y;Entries", 100, -2, 2);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "Mother_DCA_XY",  //
+	       ";DCA [cm];Entries", 500, -0.05, 0.05);
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "Daughters_pT",  //
+               ";pT [GeV/c^{2}];Entries", 100, 0, 10);
+  hm->registerHisto(h);
+
+  int i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Daughter1");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter2");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter3");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter4");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+
+  h = new TH1F(TString(get_histo_prefix()) + "Daughters_DCA_XY_Mother",  //
+               ";DCA [cm];Entries", 500, -0.05, 0.05);
+  i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Daughter1");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter2");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter3");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter4");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+  
+  /*h = new TH1F(TString(get_histo_prefix()) + "Daughters_DCA_XY_Daughters",  //
+               ";DCA [cm];Entries", 500, -0.05, 0.05);
+  i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Daughter1_2");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter1_3");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter1_4");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter2_1");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter2_3");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter2_4");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter3_1");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter3_2");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter3_4");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter4_1");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter4_2");
+  h->GetXaxis()->SetBinLabel(i++, "Daughter4_3");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);*/
+  
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
+{
+  if (Verbosity() > 2)
+    cout << "QAG4SimulationKFParticle::process_event() entered" << endl;
+
+  // load relevant nodes from NodeTree
+  load_nodes(topNode);
+
+
+  // histogram manager
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  TH1F *h_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass"));
+  assert(h_mass);
+  TH1F *h_mass_KFP = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP"));
+  assert(h_mass_KFP);
+  TH1F *h_DecayTime = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "DecayTime"));
+  assert(h_DecayTime);
+  TH1F *h_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "pT"));
+  assert(h_pT);
+  TH1F *h_Chi2_NDF = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Chi2_NDF"));
+  assert(h_Chi2_NDF);
+  TH1F *h_Rapidity = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Rapidity"));
+  assert(h_Rapidity);
+  TH1F *h_Mother_DCA_XY = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Mother_DCA_XY"));
+  assert(h_Mother_DCA_XY);
+  TH1F *h_Daughters_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughters_pT"));
+  assert(h_Daughters_pT);
+  TH1F *h_Daughters_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughters_DCA_XY_Mother"));
+  assert(h_Daughters_DCA_XY_Mother);
+
+
+  if (m_svtxEvalStack)
+    m_svtxEvalStack->next_event(topNode);
+
+  std::vector<CLHEP::HepLorentzVector> daughters;
+  for (auto &[key, track] : *m_trackMap)
+  {
+    SvtxTrack *thisTrack = getTrack(key, m_trackMap);
+    CLHEP::HepLorentzVector *theVector = makeHepLV(topNode, thisTrack->get_id());
+    if (theVector) daughters.push_back(*theVector);
+  }
+
+  CLHEP::HepLorentzVector mother;
+  if (daughters.size() >= 2)
+  {
+    for (CLHEP::HepLorentzVector daughter : daughters)
+    {
+      mother += daughter;
+    }
+  }
+
+  h_mass->Fill(mother.m());
+
+  daughters.clear();
+  
+  std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
+  std::vector<int> d_id;
+  KFParticle_Tools kfpTools;
+  std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");  
+
+  for (auto& [key, part]: Map)
+  {
+    // filling mother histogram information
+    h_mass_KFP->Fill(part->GetMass());
+    h_DecayTime->Fill(part->GetLifeTime());
+    h_pT->Fill(part->GetPt());
+    h_Chi2_NDF->Fill(part->Chi2()/part->NDF());
+    h_Rapidity->Fill(part->GetRapidity());
+    // best PV fit for mother
+    int bestCombinationIndex = 0;
+    if (vertex_vec.size() > 0)
+    {
+      for (unsigned int i = 1; i < vertex_vec.size(); ++i)
+      {
+        if (part->GetDeviationFromVertex(vertex_vec[i]) <
+            part->GetDeviationFromVertex(vertex_vec[bestCombinationIndex]))
+        {
+          bestCombinationIndex = i;
+        }
+      }
+      h_Mother_DCA_XY->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+      d_id = part->DaughterIds();
+      for (int i =0; i < part->NDaughters(); i++)
+      {
+        std::map<unsigned int, KFParticle*> Map_d = m_kfpContainer->returnParticlesByPDGid(d_id[i]); 
+        for (auto& [key2, part2]: Map_d)
+        {
+          if (i == 0)
+	  {
+            h_Daughters_pT->Fill("Daughter1", part2->GetPt());
+            h_Daughters_DCA_XY_Mother->Fill("Daughter1",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	  }
+          if (i == 1)
+	  {
+	    h_Daughters_pT->Fill("Daughter2", part2->GetPt());
+            h_Daughters_DCA_XY_Mother->Fill("Daughter2",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+          }
+	  if (i == 2) 
+	  {
+	    h_Daughters_pT->Fill("Daughter3", part2->GetPt());
+            h_Daughters_DCA_XY_Mother->Fill("Daughter3",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+          }
+	  if (i == 3) 
+	  {
+	    h_Daughters_pT->Fill("Daughter4", part2->GetPt());
+            h_Daughters_DCA_XY_Mother->Fill("Daughter4",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	  }
+        } 
+      }
+    }
+  } 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+SvtxTrack *QAG4SimulationKFParticle::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
+{
+  SvtxTrack *matched_track = NULL;
+
+  for (SvtxTrackMap::Iter iter = trackmap->begin();
+       iter != trackmap->end();
+       ++iter)
+  {
+    if (iter->first == track_id) matched_track = iter->second;
+  }
+
+  return matched_track;
+}
+
+PHG4Particle *QAG4SimulationKFParticle::getTruthTrack(SvtxTrack *thisTrack)
+{
+  if (!clustereval)
+  {
+    clustereval = m_svtxEvalStack->get_cluster_eval();
+  }
+
+  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
+  PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
+
+  return particle;
+}
+
+CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *topNode, int track_number)
+{
+  SvtxTrack *track = getTrack(track_number, m_trackMap);
+  PHG4Particle *g4particle = getTruthTrack(track);
+  CLHEP::HepLorentzVector *lvParticle = NULL;
+
+  PHHepMCGenEventMap *m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  if (!m_geneventmap)
+  {
+    std::cout << "Missing node PHHepMCGenEventMap" << std::endl;
+    std::cout << "You will have no mother information" << std::endl;
+    return NULL;
+  }
+
+  PHHepMCGenEvent *m_genevt = m_geneventmap->get(1);
+  if (!m_genevt)
+  {
+    std::cout << "Missing node PHHepMCGenEvent" << std::endl;
+    std::cout << "You will have no mother information" << std::endl;
+    return NULL;
+  }
+
+  HepMC::GenEvent *theEvent = m_genevt->getEvent();
+
+  bool breakOut = false;
+  for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
+  {
+    assert((*p));
+    if ((*p)->barcode() == g4particle->get_barcode())
+    {
+      for (HepMC::GenVertex::particle_iterator mother = (*p)->production_vertex()->particles_begin(HepMC::parents);
+           mother != (*p)->production_vertex()->particles_end(HepMC::parents); ++mother)
+      {
+        if (abs((*mother)->pdg_id()) == m_mother_id)
+        {
+          double mass = 0;
+          for (auto it = particleMasses.begin(); it != particleMasses.end(); ++it)
+          {
+            if (it->second.first == abs((*p)->pdg_id()))
+            {
+              mass = it->second.second;
+            }
+          }
+          lvParticle = new CLHEP::HepLorentzVector();
+          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), mass);
+          // lvParticle->setVectM(CLHEP::Hep3Vector(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz()), mass);
+        }
+        else
+          continue;
+        break;
+      }
+      breakOut = true;
+    }
+    if (breakOut) break;
+  }
+
+  return lvParticle;
+}
+
+int QAG4SimulationKFParticle::load_nodes(PHCompositeNode *topNode)
+{
+  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_truthContainer)
+  {
+    cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
+         << "unable to find DST node "
+         << "G4TruthInfo" << endl;
+    assert(m_truthContainer);
+  }
+  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, m_mother_name+"_KFParticle_Container");
+  if(!m_kfpContainer)
+  { 
+    cout << m_mother_name.c_str() << "_KFParticle_Container - Fatal Error - "
+         <<"unable to find DST node "
+         << "G4_QA" << endl;
+    assert(m_kfpContainer);
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+string QAG4SimulationKFParticle::get_histo_prefix()
+{
+  return string("h_") + Name() + string("_") + m_trackMapName + string("_");
+}
