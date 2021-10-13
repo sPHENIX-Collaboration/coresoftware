@@ -15,6 +15,7 @@
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
+class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 
@@ -77,23 +78,40 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// process track
   void process_track( SvtxTrack* );
 
+  /// get relevant cell for a given cluster
+  int get_cell_index( TrkrCluster* ) const;
+
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
+
+  ///@name selection parameters
+  //@{
+  // residual cuts in r, phi plane
+  float m_max_dca = 1.5;
+
+  // residual cuts in r, phi plane
+  float m_max_talpha = 0.6;
+  float m_max_drphi = 0.5;
+
+  // residual cuts in r, z plane
+  float m_max_tbeta = 1.5;
+  float m_max_dz = 0.5;
+  //@}
+
+  /// matrix container
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
+
+  ///@name counters
+  //@{
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
 
   ///@name nodes
   //@{
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
   SvtxTrackMap* m_track_map = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
-  //@}
-
-  /// matrix container
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
-
-  ///@name selection parameters
-  //@{
-  // residual cuts in r, phi plane
-  float m_max_dca = 1.5;
   //@}
 
   ///@name evaluation
