@@ -71,7 +71,7 @@ class ActsTransformations
 
   Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
 				   ActsSurfaceMaps* surfMaps,
-				   ActsTrackingGeometry *tGeometry);
+				   ActsTrackingGeometry *tGeometry) const;
   Surface getSurface(TrkrCluster* cluster,
 		     ActsSurfaceMaps* surfMaps) const;
   
