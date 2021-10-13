@@ -99,9 +99,9 @@ namespace
 	  }
 	}
 	
-	void find_z_range(int phibin, int zbin, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+	void find_z_range(int phibin, int zbin, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 	
-	  int FitRangeZ = 5;
+	  static constexpr int FitRangeZ = 5;
 	  zup = 0;
 	  zdown = 0;
 	  for(int iz=0; iz< FitRangeZ; iz++){
@@ -146,9 +146,9 @@ namespace
 	  }
 	}
 	
-	void find_phi_range(int phibin, int zbin, int NPhiBinsMax, std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+	void find_phi_range(int phibin, int zbin, int NPhiBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
 	
-	  int FitRangePHI = 3;
+	  static constexpr int FitRangePHI = 3;
 	  phidown = 0;
 	  phiup = 0;
 	  for(int iphi=0; iphi< FitRangePHI; iphi++){
@@ -197,7 +197,7 @@ namespace
 	  }
 	}
 	
-	void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+	void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
 	{
 	  // search along phi at the peak in z
 	 
@@ -552,13 +552,11 @@ namespace
 	   }
 	   pthread_exit(nullptr);
 	}
-  
 }
 
 TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
-{
-}
+{}
 
 bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
 {
