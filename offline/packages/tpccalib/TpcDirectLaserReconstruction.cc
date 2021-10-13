@@ -10,6 +10,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -190,7 +192,14 @@ void TpcDirectLaserReconstruction::set_grid_dimensions( int phibins, int rbins, 
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
 {
-  // get necessary nodes
+  // acts surface map
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  assert( m_surfmaps );
+
+  // acts geometry
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  assert( m_tGeometry );
+
   // tracks
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
@@ -262,8 +271,11 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     {
 
       ++m_total_clusters;
+      
+      // get cluster global coordinates
+      const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
 
-      const TVector3 oc( cluster->getX()-track->get_x(), cluster->getY()-track->get_y(), cluster->getZ()-track->get_z()  );
+      const TVector3 oc( global.x()-track->get_x(), global.y()-track->get_y(), global.z()-track->get_z()  );
       const auto t = direction.Dot( oc )/square( direction.Mag() );
       const auto om = direction*t;
       const auto dca = (oc-om).Mag();
@@ -292,9 +304,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       track->insert_cluster_key( key );
 
       // cluster r, phi and z
-      const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
-      const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
-      const auto cluster_z = cluster->getZ();
+      const auto cluster_r = get_r(global.x(), global.y());
+      const auto cluster_phi = std::atan2(global.y(),global.x());
+      const auto cluster_z = global.z();
 
       // cluster errors
       const auto cluster_rphi_error = cluster->getRPhiError();
@@ -391,7 +403,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       }
 
       // get cell
-      const auto i = get_cell_index( cluster );
+      const auto i = get_cell_index( global );
       if( i < 0 )
       {
         if( Verbosity() )
@@ -436,7 +448,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-int TpcDirectLaserReconstruction::get_cell_index( TrkrCluster* cluster ) const
+int TpcDirectLaserReconstruction::get_cell_index( const Acts::Vector3D& global ) const
 {
   // get grid dimensions from matrix container
   int phibins = 0;
@@ -446,18 +458,18 @@ int TpcDirectLaserReconstruction::get_cell_index( TrkrCluster* cluster ) const
 
   // phi
   // bound check
-  float phi = std::atan2( cluster->getY(), cluster->getX() );
+  float phi = std::atan2( global.y(), global.x() );
   while( phi < m_phimin ) phi += 2.*M_PI;
   while( phi >= m_phimax ) phi -= 2.*M_PI;
   int iphi = phibins*(phi-m_phimin)/(m_phimax-m_phimin);
 
   // radius
-  const float r = get_r( cluster->getX(), cluster->getY() );
+  const float r = get_r( global.x(), global.y() );
   if( r < m_rmin || r >= m_rmax ) return -1;
   int ir = rbins*(r-m_rmin)/(m_rmax-m_rmin);
 
   // z
-  const float z = cluster->getZ();
+  const float z = global.z();
   if( z < m_zmin || z >= m_zmax ) return -1;
   int iz = zbins*(z-m_zmin)/(m_zmax-m_zmin);
 
