@@ -49,7 +49,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   //std::cout << PHWHERE << " Constructing BBC" << std::endl;
 
   // Logical Volume Info for a BBC PMT
-  G4Material *Quartz = G4Material::GetMaterial("G4_SILICON_DIOXIDE");
+  G4Material *Quartz = GetDetectorMaterial("G4_SILICON_DIOXIDE");
 
   const double z_bbcq[] = {-1.5, 1.5};
   const double rInner_bbcq[] = {0.,0.};
@@ -113,7 +113,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // Now Build the BBC Housing
 
   // BBC Outer and Inner Cylindrical Shells
-  G4Material *Alum = G4Material::GetMaterial("G4_Al");
+  G4Material *Alum = GetDetectorMaterial("G4_Al");
   G4Tubs *bbc_shell = new G4Tubs("bbc_shell",14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_shell_lv = new G4LogicalVolume(bbc_shell, Alum, "Bbc_Shell");
   G4VisAttributes *bbc_shell_VisAtt = new G4VisAttributes();

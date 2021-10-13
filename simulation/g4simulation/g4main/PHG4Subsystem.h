@@ -87,6 +87,9 @@ class PHG4Subsystem : public SubsysReco
 //
   virtual void AddProcesses(G4ParticleDefinition */*particle*/) {}
 
+// define materials used in detector
+  virtual void DefineMaterials() {}
+
  private:
   PHG4Subsystem *m_MyMotherSubsystem = nullptr;
   G4LogicalVolume *m_MyLogicalVolume = nullptr;

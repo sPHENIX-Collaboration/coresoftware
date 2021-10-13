@@ -148,7 +148,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                       _geom->get_length() * cm / 2.0, 0, twopi);
 
   recoConsts *rc = recoConsts::instance();
-  G4Material *cylinder_mat = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
+  G4Material *cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat, GetName(), 0, 0, 0);
@@ -276,7 +276,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
                                  _geom->get_radius() * cm, _geom->get_max_radius() * cm,
                                  _geom->get_length() * cm / 2.0, 0, twopi / _geom->get_azimuthal_n_sec());
 
-  G4Material *cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
+  G4Material *cylinder_mat = GetDetectorMaterial(_geom->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
@@ -343,7 +343,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
   G4Tubs *fiber_solid = new G4Tubs(G4String(GetName() + std::string("_fiber") + id),
                                    0, _geom->get_fiber_outer_r() * cm, length / 2.0, 0, twopi);
 
-  G4Material *clading_mat = G4Material::GetMaterial(_geom->get_fiber_clading_mat());
+  G4Material *clading_mat = GetDetectorMaterial(_geom->get_fiber_clading_mat());
   assert(clading_mat);
 
   G4LogicalVolume *fiber_logic = new G4LogicalVolume(fiber_solid, clading_mat,
@@ -358,7 +358,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
       G4String(GetName() + std::string("_fiber_core") + id), 0,
       _geom->get_fiber_core_diameter() * cm / 2, length / 2.0, 0, twopi);
 
-  G4Material *core_mat = G4Material::GetMaterial(_geom->get_fiber_core_mat());
+  G4Material *core_mat = GetDetectorMaterial(_geom->get_fiber_core_mat());
   assert(core_mat);
 
   G4LogicalVolume *core_logic = new G4LogicalVolume(core_solid, core_mat,
