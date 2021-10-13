@@ -41,7 +41,9 @@ class PHSimpleVertexFinder : public SubsysReco
  void setDcaCut(const double cut) {_dcacut = cut;}
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
- void setUseTrackCovariance(bool set) {_use_track_covariance = set;}
+ void setNmvtxRequired(unsigned int n) {_nmvtx_required = n;}
+ // void setUseTrackCovariance(bool set) {_use_track_covariance = set;}
+ void setOutlierPairCut(const double cut) {_outlier_cut = cut;}
 
  private:
 
@@ -55,24 +57,23 @@ class PHSimpleVertexFinder : public SubsysReco
 		     const Eigen::Vector3d &p2, const Eigen::Vector3d &v2, 
 		     Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   std::vector<std::set<unsigned int>> findConnectedTracks();
-  void calculateInitialVertexPositions();
-  void calculateRevisedVertexPositions();
-  void findOutlierTrackPairs();
+ void removeOutlierTrackPairs();
+ double getMedian(std::vector<double> &v);
+ double getAverage(std::vector<double> &v);
 
   SvtxTrackMap *_track_map{nullptr};
-  SvtxTrack *_track{nullptr};
-  
+  SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   
   double _dcacut = 0.0080;  // 80 microns 
   double _beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-  double _qual_cut = 6.0;
+  double _qual_cut = 5.0;
   bool _require_mvtx = true;
-  bool _use_track_covariance = false;
+  unsigned int _nmvtx_required = 3; 
   double _track_pt_cut = 0.0;
+  double _outlier_cut = 0.015;
 
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
-  std::multimap<unsigned int, unsigned int> _revised_vertex_track_map;
   using matrix_t = Eigen::Matrix<double,3,3>;
   std::multimap<unsigned int, matrix_t> _vertex_cov_map;
   std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
@@ -80,7 +81,6 @@ class PHSimpleVertexFinder : public SubsysReco
   std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,
   Eigen::Vector3d>>>  _track_pair_pca_map;
   std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
-  std::map<unsigned int, Eigen::Vector3d> _revised_vertex_position_map;
   std::map<unsigned int, matrix_t> _vertex_covariance_map;
   std::set<unsigned int> _vertex_set;
   
