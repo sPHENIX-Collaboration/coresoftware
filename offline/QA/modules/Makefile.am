@@ -4,7 +4,8 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 \
-  -I`root-config --incdir`
+  -I`root-config --incdir`\
+  -DHomogeneousField
 
 lib_LTLIBRARIES = \
    libqa_modules.la
