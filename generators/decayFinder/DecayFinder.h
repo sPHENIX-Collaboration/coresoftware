@@ -2,17 +2,19 @@
 #define HFTRIGGER_H
 
 //sPHENIX stuff
+#include <decayfinder/DecayFinderContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <kfparticle_sphenix/KFParticle_particleList.h> 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenParticle.h>
-#include <HepMC/IteratorRange.h> 
+#include <HepMC/IteratorRange.h>
 #include <HepMC/SimpleVector.h>
+#include <TDatabasePDG.h>
 
 #include <algorithm>
 #include <iostream>
@@ -20,16 +22,18 @@
 #include <string>
 #include <vector>
 
-//class KFParticle_particleList;
+class PHCompositeNode;
 
 class DecayFinder : public SubsysReco
 {
  public:
+  typedef std::vector<std::pair<int, int>> Decay;
+
   DecayFinder();
 
   explicit DecayFinder(const std::string &name);
 
-  virtual ~DecayFinder(){}
+  virtual ~DecayFinder() {}
 
   int Init(PHCompositeNode *topNode);
 
@@ -43,25 +47,38 @@ class DecayFinder : public SubsysReco
 
   bool findParticle(std::string particle);
 
-  int checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trackFailedPT, bool& trackFailedETA);
+  int checkIfCorrectParticle(HepMC::GenParticle *particle, bool &trackFailedPT, bool &trackFailedETA);
 
   int deleteElement(int arr[], int n, int x);
 
   void multiplyVectorByScalarAndSort(std::vector<int> &v, int k);
 
+  int get_pdgcode(std::string name);
+
+  int get_charge(std::string name);
+
+  int createDecayNode(PHCompositeNode *topNode);
+
+  void fillDecayNode(PHCompositeNode* topNode, Decay decay);
+
   void printInfo();
+
+  void printNode(PHCompositeNode *topNode);
 
   //User configuration
   void setDecayDescriptor(std::string decayDescriptor) { m_decayDescriptor = decayDescriptor; }
 
-  void triggerOnDecay(bool trigger) { m_triggerOnDecay = trigger;}
+  void triggerOnDecay(bool trigger) { m_triggerOnDecay = trigger; }
 
-  void allowPhotons(bool allow) { m_allowPhotons = allow;}
+  void allowPhotons(bool allow) { m_allowPhotons = allow; }
 
-  void allowPi0(bool allow) { m_allowPi0 = allow;}
- 
+  void allowPi0(bool allow) { m_allowPi0 = allow; }
+
+  void saveDST(bool save) { m_save_dst = save; }
+
+  void setNodeName(std::string name) { m_container_name = name; }
+
  private:
-
   PHHepMCGenEventMap *m_geneventmap = NULL;
   PHHepMCGenEvent *m_genevt = NULL;
 
@@ -86,6 +103,12 @@ class DecayFinder : public SubsysReco
   std::vector<int> m_nTracksFromIntermediates;
 
   std::vector<int> m_motherDecayProducts;
+
+  bool m_save_dst;
+  DecayFinderContainer *m_decayMap = nullptr;
+  Decay decayChain;
+  std::string m_nodeName;
+  std::string m_container_name;
 };
 
 #endif  //HFTRIGGER_H
