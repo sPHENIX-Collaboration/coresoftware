@@ -4,7 +4,7 @@
 /* cdean@bnl.gov */
 /*****************/
 
-#include "DecayFinderContainer.h"
+#include "DecayFinderContainerBase.h"
 
 #include <phool/PHObject.h>  // for PHObject
 
@@ -13,12 +13,12 @@
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
 
-DecayFinderContainer::DecayFinderContainer()
+DecayFinderContainerBase::DecayFinderContainerBase()
   : m_decaymap()
 {
 }
 
-DecayFinderContainer::DecayFinderContainer(const DecayFinderContainer& decaymap)
+DecayFinderContainerBase::DecayFinderContainerBase(const DecayFinderContainerBase& decaymap)
   : m_decaymap()
 {
   for (ConstIter iter = decaymap.begin(); iter != decaymap.end(); ++iter)
@@ -28,7 +28,7 @@ DecayFinderContainer::DecayFinderContainer(const DecayFinderContainer& decaymap)
   }
 }
 
-DecayFinderContainer& DecayFinderContainer::operator=(const DecayFinderContainer& decaymap)
+DecayFinderContainerBase& DecayFinderContainerBase::operator=(const DecayFinderContainerBase& decaymap)
 {
   Reset();
   for (ConstIter iter = decaymap.begin(); iter != decaymap.end(); ++iter)
@@ -39,23 +39,23 @@ DecayFinderContainer& DecayFinderContainer::operator=(const DecayFinderContainer
   return *this;
 }
 
-DecayFinderContainer::~DecayFinderContainer()
+DecayFinderContainerBase::~DecayFinderContainerBase()
 {
   Reset();
 }
 
-void DecayFinderContainer::Reset()
+void DecayFinderContainerBase::Reset()
 {
   m_decaymap.clear();
 }
 
-void DecayFinderContainer::identify(std::ostream& os) const
+void DecayFinderContainerBase::identify(std::ostream& os) const
 {
-  os << "DecayFinderContainer: size = " << m_decaymap.size() << std::endl;
+  os << "DecayFinderContainerBase: size = " << m_decaymap.size() << std::endl;
   return;
 }
 
-const DecayFinderContainer::Decay DecayFinderContainer::get(unsigned int id) const
+const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int id) const
 {
   Decay dummyDecay = {{0, 0}};
   ConstIter iter = m_decaymap.find(id);
@@ -63,7 +63,7 @@ const DecayFinderContainer::Decay DecayFinderContainer::get(unsigned int id) con
   return iter->second;
 }
 
-DecayFinderContainer::Decay DecayFinderContainer::get(unsigned int id)
+DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int id)
 {
   Decay dummyDecay = {{0, 0}};
   Iter iter = m_decaymap.find(id);
@@ -71,7 +71,7 @@ DecayFinderContainer::Decay DecayFinderContainer::get(unsigned int id)
   return iter->second;
 }
 
-DecayFinderContainer::Decay DecayFinderContainer::insert(const Decay decay)
+DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay decay)
 {
   unsigned int index = 0;
   if (!m_decaymap.empty()) index = m_decaymap.rbegin()->first + 1;
@@ -79,7 +79,7 @@ DecayFinderContainer::Decay DecayFinderContainer::insert(const Decay decay)
   return m_decaymap[index];
 }
 
-DecayFinderContainer::Map DecayFinderContainer::returnDecaysByPDGid(int PDGid)
+DecayFinderContainerBase::Map DecayFinderContainerBase::returnDecaysByPDGid(int PDGid)
 {
   Map requiredDecays;
 
@@ -91,7 +91,7 @@ DecayFinderContainer::Map DecayFinderContainer::returnDecaysByPDGid(int PDGid)
   return requiredDecays;
 }
 
-size_t DecayFinderContainer::erase(unsigned int key)
+size_t DecayFinderContainerBase::erase(unsigned int key)
 {
   return m_decaymap.erase(key);
 }

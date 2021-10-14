@@ -1,5 +1,5 @@
-#ifndef DECAYFINDERCONTAINER_H
-#define DECAYFINDERCONTAINER_H
+#ifndef DECAYFINDERCONTAINERBASE_H
+#define DECAYFINDERCONTAINERBASE_H
 
 #include <phool/PHObject.h>
 
@@ -11,10 +11,10 @@
 /**
  * @brief DecayFinder container object
  *
- * Container for DecayFinder objects, based off KFDecay_Container 
+ * Container for DecayFinder objects, based off KFParticle_Container 
  */
 
-class DecayFinderContainer : public PHObject
+class DecayFinderContainerBase : public PHObject
 {
  public:
   typedef std::vector<std::pair<int, int>> Decay;
@@ -22,15 +22,15 @@ class DecayFinderContainer : public PHObject
   typedef std::map<unsigned int, Decay>::const_iterator ConstIter;
   typedef std::map<unsigned int, Decay>::iterator Iter;
 
-  DecayFinderContainer();
-  DecayFinderContainer(const DecayFinderContainer& decayfindermap);
-  DecayFinderContainer& operator=(const DecayFinderContainer& decayfindermap);
-  virtual ~DecayFinderContainer();
+  DecayFinderContainerBase();
+  DecayFinderContainerBase(const DecayFinderContainerBase& decayfindermap);
+  DecayFinderContainerBase& operator=(const DecayFinderContainerBase& decayfindermap);
+  virtual ~DecayFinderContainerBase();
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
   int isValid() const override { return 1; }
-  PHObject* CloneMe() const override { return new DecayFinderContainer(*this); }
+  PHObject* CloneMe() const override { return new DecayFinderContainerBase(*this); }
 
   bool empty() const { return m_decaymap.empty(); }
   size_t size() const { return m_decaymap.size(); }
@@ -55,10 +55,10 @@ class DecayFinderContainer : public PHObject
 
   size_t erase(unsigned int key);
 
- private:
   Map m_decaymap;
 
-  ClassDefOverride(DecayFinderContainer, 1)
+ private:
+  ClassDefOverride(DecayFinderContainerBase, 1)
 };
 
-#endif  //DECAYFINDERCONTAINER_H
+#endif  //DECAYFINDERCONTAINERBASE_H

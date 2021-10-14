@@ -20,22 +20,27 @@ RINCLUDES = \
   -I$(OFFLINE_MAIN)/include
 
 pkginclude_HEADERS = \
-  DecayFinderContainer.h \
+  DecayFinderContainerBase.h \
+  DecayFinderContainer_v1.h \
   DecayFinder.h
 
 ROOTDICTS = \
-  DecayFinderContainer_Dict.cc
+  DecayFinderContainerBase_Dict.cc \
+  DecayFinderContainer_v1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  DecayFinderContainer_Dict_rdict.pcm
+  DecayFinderContainerBase_Dict_rdict.pcm \
+  DecayFinderContainer_v1_Dict_rdict.pcm
 
 libdecayfinder_io_la_SOURCES = \
   $(ROOTDICTS) \
-  DecayFinderContainer.cc
+  DecayFinderContainerBase.cc \
+  DecayFinderContainer_v1.cc 
 
 libdecayfinder_la_SOURCES = \
-  DecayFinderContainer.cc \ 
+  DecayFinderContainerBase.cc \
+  DecayFinderContainer_v1.cc \
   DecayFinder.cc
 
 libdecayfinder_io_la_LIBADD = \

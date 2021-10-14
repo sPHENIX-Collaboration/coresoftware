@@ -608,7 +608,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
 
   m_nodeName = baseName + "_DecayMap";
 
-  m_decayMap = new DecayFinderContainer();
+  m_decayMap = new DecayFinderContainer_v1();
   PHIODataNode<PHObject>* decayNode = new PHIODataNode<PHObject>(m_decayMap, m_nodeName.c_str(), "PHObject");
   lowerNode->addNode(decayNode);
   std::cout << m_nodeName << " node added" << std::endl;
@@ -618,7 +618,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
 
 void DecayFinder::fillDecayNode(PHCompositeNode* topNode, Decay decay)
 {
-  m_decayMap = findNode::getClass<DecayFinderContainer>(topNode, m_nodeName.c_str());
+  m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName.c_str());
   m_decayMap->insert(decay);
 }
 
@@ -641,8 +641,8 @@ void DecayFinder::printNode(PHCompositeNode* topNode)
   std::cout << "----------------";
   std::cout << " DecayFinderNode: " << m_nodeName << " information ";
   std::cout << "----------------" << std::endl;
-  DecayFinderContainer* map = findNode::getClass<DecayFinderContainer>(topNode, m_nodeName.c_str());
-  for (DecayFinderContainer::Iter iter = map->begin(); iter != map->end(); ++iter)
+  DecayFinderContainer_v1* map = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName.c_str());
+  for (DecayFinderContainer_v1::Iter iter = map->begin(); iter != map->end(); ++iter)
   {
     Decay decay = iter->second;
     for (int i = 0; i < decay.size(); ++i)

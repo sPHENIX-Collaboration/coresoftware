@@ -2,7 +2,7 @@
 #define HFTRIGGER_H
 
 //sPHENIX stuff
-#include <decayfinder/DecayFinderContainer.h>
+#include "DecayFinderContainer_v1.h"
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenEvent.h>
@@ -66,16 +66,51 @@ class DecayFinder : public SubsysReco
   void printNode(PHCompositeNode *topNode);
 
   //User configuration
+  /**
+   * Use this function to define the decay you want to find in the HepMC record
+   * @param[in] decayDescriptor the description of the decay chain, this is a string
+   * You define the decay with these rules:
+   * @brief You define a particle decaying with "->", the mother on the left, the decay products on the right
+   * @brief Set the charge of final state tracks with "^", the particle name on the left and the charge on the right. 
+   *        Accepted charges are +, - and 0
+   * @brief Use the same rules as above for any intermediatee decays but contain the entire decay within curled 
+   *        brackets, "{}"
+   * @brief If you also want to find the charge conjugate decay, contain the entire decay descriptor within "[]cc" for 
+   *        charge-conjugate. The "cc" is NOT case sensitive
+   * @brief The particle names you use must be kept in the TDatabasePDG class from root 
+   *        (https://root.cern.ch/doc/master/classTDatabasePDG.html). Print this table to see available particles with 
+   *        TDatabasePDG::Instance()->Print()
+   * @brief An example of a decay would be: "[B+ -> {D0_bar -> kaon^+ pion^-} pion^+]cc"
+   * @note There is an internal list of resonances which, if they appear in the record, will be further analysed. For 
+   *       example, the f0(980)->pipi decay is too quick to have a flight distance and so we would only see the pion 
+   *       pair in the detector. If you are looking for B_s0 -> J/psi pipi then the decay of the f0 will be studied 
+   *       for a pipi final state, basically inclusive decays are handled automatically. If you wish to study the f0 
+   *       decay, add it to your decay descriptor and it will automatically be removed from the "skip list"
+   */
   void setDecayDescriptor(std::string decayDescriptor) { m_decayDescriptor = decayDescriptor; }
-
+  /**
+   * @param[in] trigger Set to true to allow further processing of events in which your decay appears, if your decay 
+   *            does not appear, all further processing of this event is skipped. This defaults to false so every event 
+   *            is proccessed in F4A 
+   */
   void triggerOnDecay(bool trigger) { m_triggerOnDecay = trigger; }
-
+  /**
+   * @param[in] allow Set to true to allow photons to be associated to your decay
+   */
   void allowPhotons(bool allow) { m_allowPhotons = allow; }
-
+  /**
+   * @param[in] allow Set to true to allow pi zero to be associated to your decay
+   */
   void allowPi0(bool allow) { m_allowPi0 = allow; }
-
+  /**
+   * @param[in] allow Set to true to save any of your decays that are found back to the node tree in a DecayFinderContainer
+   *           The default name is "decay" and will automatically have "_DecayMap" added to the end
+   */
   void saveDST(bool save) { m_save_dst = save; }
-
+  /**
+   * @param[in] name Change the default name of the DecayFinderContainer. 
+   * @note This name will still have "_DecayMap" added to the end, this cannot be changed
+   */
   void setNodeName(std::string name) { m_container_name = name; }
 
  private:
@@ -105,7 +140,7 @@ class DecayFinder : public SubsysReco
   std::vector<int> m_motherDecayProducts;
 
   bool m_save_dst;
-  DecayFinderContainer *m_decayMap = nullptr;
+  DecayFinderContainer_v1 *m_decayMap = nullptr;
   Decay decayChain;
   std::string m_nodeName;
   std::string m_container_name;
