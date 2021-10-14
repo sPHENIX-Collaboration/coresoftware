@@ -7,10 +7,13 @@ AC_PROG_CXX(CC g++)
 
 LT_INIT([disable-static])
 
-CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-deprecated-copy"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+ ;;
+ *g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
  ;;
 esac
 
