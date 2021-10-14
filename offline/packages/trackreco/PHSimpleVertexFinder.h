@@ -75,7 +75,6 @@ class PHSimpleVertexFinder : public SubsysReco
 
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
   using matrix_t = Eigen::Matrix<double,3,3>;
-  std::multimap<unsigned int, matrix_t> _vertex_cov_map;
   std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
   // Eigen::Vector3d is an Eigen::Matrix<double,3,1>  
   std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,

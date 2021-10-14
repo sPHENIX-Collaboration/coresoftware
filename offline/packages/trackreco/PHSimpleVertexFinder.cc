@@ -68,7 +68,6 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   // reset maps
   _vertex_track_map.clear();
-  _vertex_cov_map.clear();
   _track_pair_map.clear();
   _track_pair_pca_map.clear();
   _vertex_position_map.clear();
@@ -104,15 +103,44 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   // make a list of vertices
   for(auto it : _vertex_track_map)
-  {
+    {
       if(Verbosity() > 1) std::cout << " vertex " << it.first << " track " << it.second << std::endl;      
       _vertex_set.insert(it.first);
     }
-
+  
   // this finds average vertex positions after removal of outlying track pairs 
   removeOutlierTrackPairs();
+
+  // average covariance for accepted tracks
+  for(auto it : _vertex_set)
+    {
+      matrix_t avgCov = matrix_t::Zero();
+      double cov_wt = 0.0;
+      
+      auto ret = _vertex_track_map.equal_range(it);
+      for (auto cit=ret.first; cit!=ret.second; ++cit)
+	{
+	  unsigned int trid = cit->second;
+	  matrix_t cov;
+	  auto track = _track_map->get(trid);
+	  for(int i = 0; i < 3; ++i)
+	    for(int j = 0; j < 3; ++j)
+	      cov(i,j) = track->get_error(i,j);
+	  
+	  avgCov += cov;
+	  cov_wt++;
+	}
+      
+      avgCov /= sqrt(cov_wt);
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Average covariance for vertex " << it << " is:" << std::endl;
+	  std::cout << std::setprecision(8) << avgCov << std::endl; 
+	}
+      _vertex_covariance_map.insert(std::make_pair(it, avgCov));
+    }
   
-  // Write the revised vertices to the vertex map on the node tree
+  // Write the vertices to the vertex map on the node tree
   //==============================================
   if(_vertex_track_map.size() > 0)
     _svtx_vertex_map->clear();
@@ -464,7 +492,7 @@ void PHSimpleVertexFinder::removeOutlierTrackPairs()
   for(auto it : _vertex_set) 
     {
       unsigned int vtxid = it;
-      if(Verbosity() > 1) std::cout << "calculate revised average position for vertex " << vtxid << std::endl; 
+      if(Verbosity() > 1) std::cout << "calculate average position for vertex " << vtxid << std::endl; 
 
       // we need the median values of the x and y positions 
       std::vector<double> vx;
@@ -512,7 +540,7 @@ void PHSimpleVertexFinder::removeOutlierTrackPairs()
       
       // Get the medians for this vertex
       // Using the median as a reference for rejecting outliers only makes sense for more than 2 tracks
-      if(vx.size() <= 2)
+      if(vx.size() < 3)
 	{
 	  new_pca_avge.x() = getAverage(vx);
 	  new_pca_avge.y() = getAverage(vy);
