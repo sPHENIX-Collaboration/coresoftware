@@ -9,9 +9,12 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <memory>
 
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
@@ -79,7 +82,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   void process_track( SvtxTrack* );
 
   /// get relevant cell for a given cluster
-  int get_cell_index( TrkrCluster* ) const;
+  int get_cell_index( const Acts::Vector3D& ) const;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
@@ -109,8 +112,23 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   ///@name nodes
   //@{
+
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps* m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry* m_tGeometry = nullptr;
+
+  /// acts transformation
+  ActsTransformations m_transformer;
+
+  /// hitset containers
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
+
+  /// tracks
   SvtxTrackMap* m_track_map = nullptr;
+  
+  // clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
   //@}
 
