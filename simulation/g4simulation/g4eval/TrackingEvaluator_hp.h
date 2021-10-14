@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
-class ActsSurfaceMaps;
-class ActsTrackingGeometry;
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4Hit;
