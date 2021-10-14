@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
@@ -194,9 +194,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   for(const auto& [trackKey, track] : *m_trackMap)
     {
       if(!track)
-	{
-	  continue;
-	}
+	{ continue; }
 
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
@@ -254,7 +252,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// associated to this track and the corresponding track seed which
       /// corresponds to the PHGenFitTrkProp track seeds
       Acts::PropagatorPlainOptions ppPlainOptions;
-      ppPlainOptions.absPdgCode = 11;
       Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
 			        m_tGeometry->geoContext,
 				m_tGeometry->magFieldContext,
@@ -429,6 +426,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	  std::cout << "Surface : " << std::endl;
 	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
+	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with global pos " << std::endl
 		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
 		    << std::endl;
@@ -612,17 +610,14 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
     }
 
-  // The number of associated clusters may have changed - start over
+  
   if(!m_fitSiliconMMs)
-    {
-      track->clear_states();
-      track->clear_cluster_keys();
-    }
+    { track->clear_states(); }
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
-  SvtxTrackState_v1 out( pathlength);
+  SvtxTrackState_v1 out(pathlength);
   out.set_x(0.0);
   out.set_y(0.0);
   out.set_z(0.0);
@@ -653,8 +648,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   rotater.setVerbosity(Verbosity());
  
   if(params.covariance())
-    {
-     
+    {     
       Acts::BoundSymMatrix rotatedCov = 
 	rotater.rotateActsCovToSvtxTrack(params,
 					  m_tGeometry->geoContext);
@@ -667,8 +661,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	      track->set_acts_covariance(i,j, 
 					 params.covariance().value()(i,j));
 	    }
-	}
-   
+	} 
     }
 
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
@@ -690,7 +683,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	      << stateTime << std::endl;
 
   if(m_timeAnalysis)
-    h_stateTime->Fill(stateTime);
+    { h_stateTime->Fill(stateTime); }
 
   if(Verbosity() > 2)
     {  

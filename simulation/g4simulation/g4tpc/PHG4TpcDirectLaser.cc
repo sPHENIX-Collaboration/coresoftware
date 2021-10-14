@@ -5,6 +5,9 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Particlev3.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPointv1.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
@@ -21,6 +24,10 @@
 
 namespace
 {
+  using PHG4Particle_t = PHG4Particlev3;
+  using PHG4VtxPoint_t = PHG4VtxPointv1;
+  using PHG4Hit_t = PHG4Hitv1;
+
   // utility
   template <class T> inline constexpr T square(const T &x) { return x * x; }
 
@@ -37,7 +44,7 @@ namespace
 
   /// TPC half length
   static constexpr double halflength_tpc = 105.5*cm;
-  
+
   // inner and outer radii of field cages/TPC
   static constexpr double begin_CM = 20.*cm ;
   static constexpr double end_CM = 78.*cm;
@@ -50,7 +57,7 @@ namespace
   {
     const double end = start.z() > 0 ? halfwidth_CM:-halfwidth_CM;
     const double dist=end-start.z();
-    
+
     // if line is vertical, it will never intercept the endcap
     if( direction.z() == 0 ) return std::nullopt;
 
@@ -66,7 +73,7 @@ namespace
   {
     const double end = start.z() > 0 ? halflength_tpc:-halflength_tpc;
     const double dist=end-start.z();
-    
+
     // if line is vertical, it will never intercept the endcap
     if( direction.z() == 0 ) return std::nullopt;
 
@@ -80,18 +87,18 @@ namespace
   //_____________________________________________________________
   std::optional<TVector3>  cylinder_line_intersection(TVector3 s, TVector3 v, double radius)
   {
-    
+
     const double R2=square(radius);
-    
+
     //Generalized Parameters for collision with cylinder of radius R:
     //from quadratic formula solutions of when a vector intersects a circle:
     const double a = square(v.x())+ square(v.y());
     const double b = 2*(v.x()*s.x()+v.y()*s.y());
     const double c = square(s.x()) + square(s.y())-R2;
-    
+
     const double rootterm=square(b)-4*a*c;
-    
-    /* 
+
+    /*
      * if a==0 then we are parallel and will have no solutions.
      * if the rootterm is negative, we will have no real roots,
      * we are outside the cylinder and pointing skew to the cylinder such that we never cross.
@@ -102,21 +109,21 @@ namespace
     const double sqrtterm=std::sqrt(rootterm);
     const double t1 = (-b+sqrtterm)/(2*a);
     const double t2 = (-b-sqrtterm)/(2*a);
-    
-    /* 
+
+    /*
     * if either of the t's are nonzero, we have a collision
     * the collision closest to the start (hence with the smallest t that is greater than zero) is the one that happens.
     */
     const double& min_t = (t2<t1 && t2>0) ? t2:t1;
     return s+v*min_t;
   }
-  
+
   //_____________________________________________________________
   std::optional<TVector3> field_cage_intersection(TVector3 start, TVector3 direction)
   {
     const auto ofc_strike=cylinder_line_intersection(start,direction,end_CM);
     const auto ifc_strike=cylinder_line_intersection(start,direction,begin_CM);
-    
+
     // if either of the two intersection is invalid, return the other
     if( !ifc_strike ) return ofc_strike;
     if( !ofc_strike ) return ifc_strike;
@@ -130,7 +137,7 @@ namespace
     else return (ifc_dist<ofc_dist) ? ifc_strike : ofc_strike;
 
   }
-  
+
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
   {
@@ -151,6 +158,24 @@ PHG4TpcDirectLaser::PHG4TpcDirectLaser(const std::string &name)
 //_____________________________________________________________
 int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 {
+
+  // g4 truth info
+  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_g4truthinfo)
+  {
+    std::cout << "Fun4AllDstPileupMerger::load_nodes - creating node G4TruthInfo" << std::endl;
+    
+    PHNodeIterator iter(topNode);
+    auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    m_g4truthinfo = new PHG4TruthInfoContainer();
+    dstNode->addNode(new PHIODataNode<PHObject>(m_g4truthinfo, "G4TruthInfo", "PHObject"));
+  }
 
   // load and check G4Hit node
   hitnodename = "G4HIT_" + detector;
@@ -189,7 +214,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   UpdateParametersWithMacro();
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
-  
+
   // setup lasers
   SetupLasers();
 
@@ -198,7 +223,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
   std::cout << "PHG4TpcDirectLaser::InitRun - phi steps: " << nPhiSteps << " min: " << minPhi << " max: " << maxPhi << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - theta steps: " << nThetaSteps << " min: " << minTheta << " max: " << maxTheta << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - nTotalSteps: " << nTotalSteps << std::endl;
-  
+
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_cm: " << electrons_per_cm << std::endl;
   std::cout << "PHG4TpcDirectLaser::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
 
@@ -208,18 +233,18 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode *topNode)
 //_____________________________________________________________
 int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 {
+  // g4 input event
+  m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  assert( m_g4truthinfo );
+  
+  // load g4hit container
+  m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  assert( m_g4hitcontainer );
+
   // load track map
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_track_map_name );
   assert( m_track_map );
-
-  // load g4hit container
-  m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if( !m_g4hitcontainer )
-  {
-    std::cout << PHWHERE << "Could not locate g4 hit node " << hitnodename << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
+  
   if( m_autoAdvanceDirectLaser )
   {
 
@@ -238,9 +263,9 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________
 void PHG4TpcDirectLaser::SetDefaultParameters()
 {
-  
+
   // same gas parameters as in PHG4TpcElectronDrift::SetDefaultParameters
-  
+
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
@@ -252,7 +277,7 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
   static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
   static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  
+
   // number of electrons per deposited GeV in TPC gas
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
 
@@ -306,9 +331,9 @@ void PHG4TpcDirectLaser::SetupLasers()
     Laser laser;
 
     // set laser direction
-    /* 
+    /*
      * first four lasers are on positive z readout plane, and shoot towards negative z
-     * next four lasers are on negative z readout plane and shoot towards positive z 
+     * next four lasers are on negative z readout plane and shoot towards positive z
      */
     laser.m_position = position_base;
     if( i < 4 )
@@ -323,7 +348,7 @@ void PHG4TpcDirectLaser::SetupLasers()
       laser.m_direction = 1;
 
     }
-    
+
     // rotate around z
     laser.m_phi = M_PI/2*i;
     laser.m_position.RotateZ( laser.m_phi );
@@ -347,6 +372,10 @@ void PHG4TpcDirectLaser::AimToNextPatternStep()
 //_____________________________________________________________
 void PHG4TpcDirectLaser::AimToThetaPhi(double theta, double phi)
 {
+  if( Verbosity() )
+  { std::cout << "PHG4TpcDirectLaser::AimToThetaPhi - theta: " << theta << " phi: " << phi << std::endl; }
+
+  // all lasers
   for( const auto& laser:m_lasers )
   { AppendLaserTrack(theta,phi,laser); }
 }
@@ -405,6 +434,36 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   if( Verbosity() )
   { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
 
+  // dummy momentum
+  static constexpr double total_momentum = 1;
+  
+  // mc track id
+  int trackid = -1;
+  
+  // create truth vertex and particle
+  if( m_g4truthinfo )
+  {
+    // add vertex
+    const auto vtxid = m_g4truthinfo->maxvtxindex()+1;
+    const auto vertex = new PHG4VtxPoint_t( pos.x(), pos.y(), pos.z(), 0, vtxid );
+    m_g4truthinfo->AddVertex(vtxid, vertex);
+
+    // increment track id
+    trackid = m_g4truthinfo->maxtrkindex()+1;
+    
+    // create new g4particle
+    auto particle = new PHG4Particle_t();
+    particle->set_track_id(trackid);
+    particle->set_vtx_id( vtxid );
+    particle->set_parent_id(0);
+    particle->set_primary_id(trackid);
+    particle->set_px( total_momentum*dir.x() );
+    particle->set_py( total_momentum*dir.y() );
+    particle->set_pz( total_momentum*dir.z() );
+    
+    m_g4truthinfo->AddParticle(trackid, particle);
+  }
+  
   // store in SvtxTrack map
   if( m_track_map )
   {
@@ -414,14 +473,13 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     track.set_z( pos.z() );
 
     // total momentum is irrelevant. What matters is the direction
-    static constexpr double total_momentum = 1;
     track.set_px( total_momentum*dir.x() );
     track.set_py( total_momentum*dir.y() );
     track.set_pz( total_momentum*dir.z() );
 
     // insert in map
     m_track_map->insert( &track );
-    
+
     if( Verbosity() )
     { std::cout << "PHG4TpcDirectLaser::AppendLaserTrack - position: " << pos << " direction: " << dir << std::endl; }
 
@@ -434,7 +492,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
    * otherwise will intercept the central membrane
    */
   const auto plane_strike = (pos.z()*dir.z() > 0 ) ? endcap_intersection(pos,dir):central_membrane_intersection(pos,dir);
-    
+
   // field cage intersection
   const auto fc_strike=field_cage_intersection(pos,dir);
 
@@ -443,7 +501,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
   // decide relevant end of laser
   /* chose field cage intersection if valid, and if either plane intersection is invalid or happens on a larger z along the laser direction) */
-  const auto& strike = ( fc_strike && (!plane_strike || fc_strike->z()/dir.z() < plane_strike->z()/dir.z()) ) ?
+  const TVector3& strike = ( fc_strike && (!plane_strike || fc_strike->z()/dir.z() < plane_strike->z()/dir.z()) ) ?
     *fc_strike:
     *plane_strike;
 
@@ -456,10 +514,20 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   TVector3 end=start;
   TVector3 step=dir*(maxHitLength/(dir.Mag()));
   double stepLength=0;
+
+  if( Verbosity() )
+  {
+    std::cout << "PHG4TpcDirectLaser::AppendLaserTrack -"
+      << " fullLength: " << fullLength
+      << " nHitSteps: " << nHitSteps
+      << std::endl;
+  }
+
   for (int i=0;i<nHitSteps;i++)
   {
     start=end;//new starting point is the previous ending point.
-    if (i+1==nHitSteps){
+    if (i+1==nHitSteps)
+    {
       //last step is the remainder size
       end=strike;
       delta=start-end;
@@ -471,17 +539,31 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     }
 
     //from phg4tpcsteppingaction.cc
-    auto hit = new PHG4Hitv1();
-    hit->set_layer(99); // dummy number
+    auto hit = new PHG4Hit_t;
+    hit->set_trkid(trackid);
+    hit->set_layer(99); 
 
     //here we set the entrance values in cm
-    hit->set_x(0, start.X() / cm);
-    hit->set_y(0, start.Y() / cm);
-    hit->set_z(0, start.Z() / cm);
-    //and the exist values
-    hit->set_x(1, end.X() / cm);
-    hit->set_y(1, end.Y() / cm);
-    hit->set_z(1, end.Z() / cm);
+    // todo: try to set entrance and exit point with increasing radius
+    auto get_r = []( const TVector3& in ) { return square( in.x() ) + square( in.y() ); };
+    if( get_r( start ) < get_r( end ) )
+    {
+      hit->set_x(0, start.X() / cm);
+      hit->set_y(0, start.Y() / cm);
+      hit->set_z(0, start.Z() / cm);
+
+      hit->set_x(1, end.X() / cm);
+      hit->set_y(1, end.Y() / cm);
+      hit->set_z(1, end.Z() / cm);
+    } else {
+      hit->set_x(0, end.X() / cm);
+      hit->set_y(0, end.Y() / cm);
+      hit->set_z(0, end.Z() / cm);
+
+      hit->set_x(1, start.X() / cm);
+      hit->set_y(1, start.Y() / cm);
+      hit->set_z(1, start.Z() / cm);
+    }
 
     // momentum
     hit->set_px(0, dir.X()); // GeV
@@ -490,7 +572,6 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     // time in ns
     hit->set_t(0, 0.0); // nanosecond
-    hit->set_trkid(-1); // dummy number
 
     hit->set_px(1, dir.X());
     hit->set_py(1, dir.Y());
@@ -498,7 +579,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
     hit->set_t(1, 0.0); // dummy number, nanosecond
 
-    const double totalE=electrons_per_cm*stepLength/electrons_per_gev;
+    const double totalE = electrons_per_cm*stepLength/electrons_per_gev;
 
     hit->set_eion(totalE);
     hit->set_edep(totalE);

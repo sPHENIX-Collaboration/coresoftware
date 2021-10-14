@@ -9,6 +9,8 @@
 
 #include <intt/InttDefs.h>
 
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -159,6 +161,22 @@ std::string QAG4SimulationIntt::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationIntt::load_nodes(PHCompositeNode* topNode)
 {
+   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if (!m_surfmaps)
+    {
+      std::cout << PHWHERE << "Error: can't find Acts surface maps"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "No acts tracking geometry, exiting." 
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hitsets)
   {
@@ -240,6 +258,7 @@ void QAG4SimulationIntt::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
+  ActsTransformations transformer;
   auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
@@ -251,11 +270,14 @@ void QAG4SimulationIntt::evaluate_clusters()
       // get cluster
       const auto& cluster = clusterIter->second;
       
+      const auto global = transformer.getGlobalPosition(cluster,m_surfmaps,
+							m_tGeometry);
+
       // get relevant cluster information
-      const auto r_cluster = QAG4Util::get_r(cluster->getX(), cluster->getY());
-      const auto z_cluster = cluster->getZ();
-      const auto phi_cluster = std::atan2(cluster->getY(), cluster->getX());
-      const auto phi_error = cluster->getPhiError();
+      const auto r_cluster = QAG4Util::get_r(global(0), global(1));
+      const auto z_cluster = global(2);
+      const auto phi_cluster = (float)std::atan2(global(1), global(0));
+      const auto phi_error = cluster->getRPhiError() / r_cluster;
       const auto z_error = cluster->getZError();
       
       // find associated g4hits

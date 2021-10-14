@@ -79,7 +79,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                              m_Params->get_double_param("outer_radius") * cm,
                                              m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_mother_logic = new G4LogicalVolume(magnet_mother_solid,
-                                                             G4Material::GetMaterial("G4_Galactic"),
+                                                             GetDetectorMaterial("G4_Galactic"),
                                                              GetName(),
                                                              0, 0, 0);
 
@@ -167,7 +167,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                            m_Params->get_double_param("outer_radius") * cm,
                                            m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_iron_logic = new G4LogicalVolume(magnet_iron_solid,
-                                                           G4Material::GetMaterial("G4_Fe"),
+                                                           GetDetectorMaterial("G4_Fe"),
                                                            GetName(),
                                                            0, 0, 0);
   m_DisplayAction->AddVolume(magnet_iron_logic, magnettype);
@@ -182,7 +182,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                             m_Params->get_double_param("length") * cm / 2., 0, twopi);
 
   m_magnetFieldLogic = new G4LogicalVolume(magnet_field_solid,
-                                           G4Material::GetMaterial("G4_Galactic"),
+                                           GetDetectorMaterial("G4_Galactic"),
                                            GetName(),
                                            0, 0, 0);
 

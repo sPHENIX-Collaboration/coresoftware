@@ -12,6 +12,7 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
@@ -418,7 +419,8 @@ void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ConstructOuterHcal(logicWorld);
   return;
 #endif
-  G4Material *Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
@@ -511,7 +513,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
 #endif
   G4VSolid *steel_plate = ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_Params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, GetDetectorMaterial(m_Params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
   m_DisplayAction->AddSteelVolume(steel_logical);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
@@ -784,7 +786,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
 

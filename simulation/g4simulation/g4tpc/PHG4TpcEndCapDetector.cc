@@ -214,7 +214,7 @@ void PHG4TpcEndCapDetector::AddLayer(  //
       _depth * _percentage_filled / 100. / 2.,
       0, CLHEP::twopi);
 
-  auto material = G4Material::GetMaterial(_material);
+  auto material = GetDetectorMaterial(_material);
   if (material == nullptr)
   {
     cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << _material << endl;
@@ -240,7 +240,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   assert(n_radial_modules >= 1);
 
   const string material_name(m_Params->get_string_param("wagon_wheel_material"));
-  auto material = G4Material::GetMaterial(material_name);
+  auto material = GetDetectorMaterial(material_name);
   if (material == nullptr)
   {
     cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("wagon_wheel_material") << endl;
@@ -455,7 +455,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
     }
 
     const string electronics_cooling_block_material_name(m_Params->get_string_param("electronics_cooling_block_material"));
-    auto material = G4Material::GetMaterial(electronics_cooling_block_material_name);
+    auto material = GetDetectorMaterial(electronics_cooling_block_material_name);
     if (material == nullptr)
     {
       cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("electronics_cooling_block_material_name") << endl;
@@ -578,7 +578,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                                                 electronics_FEE_depth / 2.);
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
-                                                               G4Material::GetMaterial("FR4"), name_base + "_PCB");
+                                                               GetDetectorMaterial("FR4"), name_base + "_PCB");
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);
@@ -600,7 +600,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                                                 electronics_FEE_depth / 2.);
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
-                                                               G4Material::GetMaterial("G4_Cu"), name_base + "_Cu");
+                                                               GetDetectorMaterial("G4_Cu"), name_base + "_Cu");
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);
@@ -622,7 +622,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                                                 electronics_FEE_depth / 2.);
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
-                                                               G4Material::GetMaterial("G4_Al"), name_base + "_Al");
+                                                               GetDetectorMaterial("G4_Al"), name_base + "_Al");
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);

@@ -12,7 +12,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -284,7 +284,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	// make the cluster directly in the node tree
 	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
-	auto clus = std::make_unique<TrkrClusterv2>();
+	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	// determine the size of the cluster in phi and z
@@ -346,13 +346,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;
 	clusz = zsum / nhits;
-	//cout << "new mvtx clusterizer: clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
-	clus->setAdc(nhits);
 
-	clus->setPosition(0, clusx);
-	clus->setPosition(1, clusy);
-	clus->setPosition(2, clusz);
-	clus->setGlobal();
+	clus->setAdc(nhits);
 	
 	const double thickness = layergeom->get_pixel_thickness();
 	const double pitch = layergeom->get_pixel_x();
@@ -362,52 +357,41 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	static const double invsqrt12 = 1./std::sqrt(12);
 
-  // scale factors (phi direction)
-  /*
-  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
-  double phierror = pitch*invsqrt12;
-  if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
-  else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
-  else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
-  else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
-
-  // scale factors (z direction)
-  /*
-  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
-  double zerror = length*invsqrt12;
-  if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
-  else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
-  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
-  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
-
-  if(Verbosity() > 0)
+	// scale factors (phi direction)
+	/*
+	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
+	double phierror = pitch*invsqrt12;
+	if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
+	else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
+	else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+	
+	// scale factors (z direction)
+	/*
+	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
+	double zerror = length*invsqrt12;
+	if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
+	else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
+	else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
+	else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
+	
+	if(Verbosity() > 0)
 	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
 	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
-
+	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
+
 
 	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
 	//float tilt = 0.0;
-
-	TMatrixF DIM(3, 3);
-	DIM[0][0] = square(0.5 * thickness);
-	DIM[0][1] = 0.0;
-	DIM[0][2] = 0.0;
-	DIM[1][0] = 0.0;
-	DIM[1][1] = square(0.5 * phisize);
-	DIM[1][2] = 0.0;
-	DIM[2][0] = 0.0;
-	DIM[2][1] = 0.0;
-	DIM[2][2] = square(0.5 * zsize);
 
 	TMatrixF ERR(3, 3);
 	ERR[0][0] = square(thickness*invsqrt12);
@@ -419,10 +403,11 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
 	ERR[2][2] = square( zerror );
-
-	if(Verbosity() > 2)
-	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
-
+	
+	// returns the center of the sensor in world coordinates - used to get the ladder phi location
+	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
+	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
+	
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);
 	ROT[0][1] = -1.0 * sin(ladderphi);
@@ -434,61 +419,40 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ROT[2][1] = 0.0;
 	ROT[2][2] = 1.0;
 
-	// TMatrixF TILT(3, 3);
-	// TILT[0][0] = 1.0;
-	// TILT[0][1] = 0.0;
-	// TILT[0][2] = 0.0;
-	// TILT[1][0] = 0.0;
-	// TILT[1][1] = cos(tilt);
-	// TILT[1][2] = -1.0 * sin(tilt);
-	// TILT[2][0] = 0.0;
-	// TILT[2][1] = sin(tilt);
-	// TILT[2][2] = cos(tilt);
-
 	TMatrixF &R = ROT;
-	//TMatrixF R(3, 3);
-	//R = ROT * TILT;
-
 	TMatrixF R_T(3, 3);
 	R_T.Transpose(R);
 
-	TMatrixF COVAR_DIM(3, 3);
-	COVAR_DIM = R * DIM * R_T;
+	TMatrixF GLOBAL_COV(3, 3);
+	GLOBAL_COV = R * ERR * R_T;
 
-	clus->setSize(0, 0, COVAR_DIM[0][0]);
-	clus->setSize(0, 1, COVAR_DIM[0][1]);
-	clus->setSize(0, 2, COVAR_DIM[0][2]);
-	clus->setSize(1, 0, COVAR_DIM[1][0]);
-	clus->setSize(1, 1, COVAR_DIM[1][1]);
-	clus->setSize(1, 2, COVAR_DIM[1][2]);
-	clus->setSize(2, 0, COVAR_DIM[2][0]);
-	clus->setSize(2, 1, COVAR_DIM[2][1]);
-	clus->setSize(2, 2, COVAR_DIM[2][2]);
+	/// Now rotate back by cluster phi
+	/// We do this because the initial local cluster covariance produces
+	/// nontrivial pulls in rphi. This replicates the code formerly in 
+	/// TrkrCluster
+	float clusphi = -atan2(clusy, clusx);
 
-	TMatrixF COVAR_ERR(3, 3);
-	COVAR_ERR = R * ERR * R_T;
-
-	clus->setError(0, 0, COVAR_ERR[0][0]);
-	clus->setError(0, 1, COVAR_ERR[0][1]);
-	clus->setError(0, 2, COVAR_ERR[0][2]);
-	clus->setError(1, 0, COVAR_ERR[1][0]);
-	clus->setError(1, 1, COVAR_ERR[1][1]);
-	clus->setError(1, 2, COVAR_ERR[1][2]);
-	clus->setError(2, 0, COVAR_ERR[2][0]);
-	clus->setError(2, 1, COVAR_ERR[2][1]);
-	clus->setError(2, 2, COVAR_ERR[2][2]);
+	const auto cosphi = std::cos(clusphi);
+	const auto sinphi = std::sin(clusphi);
+	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
+	  + cosphi*cosphi*GLOBAL_COV[1][1] +
+	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
+        
+	if(Verbosity() > 2)
+	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
 
 	TVector3 local(0,0,0);
 	TVector3 world(clusx, clusy, clusz);
 	local = layergeom->get_local_from_world_coords(stave, 0, 0,
 						       chip,
 						       world);
+
 	clus->setLocalX(local[0]);
 	clus->setLocalY(local[2]);
-	/// Take the x and z uncertainty of the cluster
-	clus->setActsLocalError(0,0,ERR[0][0]);
-	clus->setActsLocalError(0,1,ERR[0][2]);
-	clus->setActsLocalError(1,0,ERR[2][0]);
+	/// Take the rphi and z uncertainty of the cluster
+	clus->setActsLocalError(0,0,rphierr);
+	clus->setActsLocalError(0,1,ERR[1][2]);
+	clus->setActsLocalError(1,0,ERR[2][1]);
 	clus->setActsLocalError(1,1,ERR[2][2]);
 	
 	/// All silicon surfaces have a 1-1 map to hitsetkey. 
@@ -499,9 +463,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  clus->identify();
 
 	m_clusterlist->addCluster(clus.release());
-
-	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
-
 
       }  // clusitr
   }    // hitsetitr

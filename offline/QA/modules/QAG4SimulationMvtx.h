@@ -2,6 +2,8 @@
 #define QA_QAG4SIMULATIONMVTX_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -54,6 +56,12 @@ class QAG4SimulationMvtx : public SubsysReco
 
   /// hit to g4hit association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
   /// g4 hits
   PHG4HitContainer* m_g4hits_mvtx = nullptr;

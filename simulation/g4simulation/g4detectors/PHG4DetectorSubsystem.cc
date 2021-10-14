@@ -118,6 +118,10 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   }
   // put parameters on the node tree so the subsystem can read them from there (it does not have to)
   params->SaveToNodeTree(RunDetNode, paramnodename, layer);
+// define the materials for the detector
+// at this point all flags are known so materials set in the macro can
+// be implemented here
+  DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   // update parameters on node tree in case the subsystem has changed them
   // In the end the parameters on the node tree must reflect what was actually used

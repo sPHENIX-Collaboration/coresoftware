@@ -21,7 +21,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsTransformations.h \
   ActsEvaluator.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -38,16 +37,14 @@ pkginclude_HEADERS = \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHActsSiliconSeeding.h \
-  PHActsInitialVertexFinder.h \
-  PHActsVertexFinder.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
-  PHActsVertexFitter.h \
   PHActsTrackProjection.h \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
   PHHoughSeeding.h \
   PHTrackCleaner.h \
+  PHTrackSelector.h \
   PHRTreeSeeding.h \
   PHCASeeding.h \
   PHHybridSeeding.h \
@@ -75,8 +72,9 @@ pkginclude_HEADERS = \
   ../PHTpcTracker/PHTpcTrackerUtil.h \
   ../PHTpcTracker/externals/kdfinder.hpp \
   ALICEKF.h \
-  nanoflann.hpp \
-  PHSimpleKFProp.h
+  PHSimpleKFProp.h \
+  nanoflann.hpp 
+
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -114,14 +112,10 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
-  PHActsInitialVertexFinder.cc \
-  PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc
 
@@ -166,6 +160,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthSiliconAssociation.cc \
   PHHoughSeeding.cc \
   PHTrackCleaner.cc \
+  PHTrackSelector.cc \
   PHRTreeSeeding.cc \
   ../PHTpcTracker/PHTpcTrackerUtil.cc \
   PHHybridSeeding.cc \
