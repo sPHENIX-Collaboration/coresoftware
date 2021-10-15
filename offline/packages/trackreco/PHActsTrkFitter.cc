@@ -252,6 +252,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// associated to this track and the corresponding track seed which
       /// corresponds to the PHGenFitTrkProp track seeds
       Acts::PropagatorPlainOptions ppPlainOptions;
+      ppPlainOptions.absPdgCode = m_pHypothesis;
       Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
 			        m_tGeometry->geoContext,
 				m_tGeometry->magFieldContext,
