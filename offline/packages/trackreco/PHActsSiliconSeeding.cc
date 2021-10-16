@@ -255,8 +255,11 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 			  clusters, globalPositions);
 	  fitTimer->stop();
 	  auto svtxtracktime = fitTimer->get_accumulated_time();
-	  std::cout << "Circle fit time " << circlefittime << " and svtx time "
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "Circle fit time " << circlefittime << " and svtx time "
 		    << svtxtracktime << std::endl;
+	    }
 	}
     }
 
