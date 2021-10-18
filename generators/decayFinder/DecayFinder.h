@@ -1,28 +1,19 @@
-#ifndef HFTRIGGER_H
-#define HFTRIGGER_H
+#ifndef DECAYFINDER_DECAYFINDER_H
+#define DECAYFINDER_DECAYFINDER_H
 
 //sPHENIX stuff
-#include "DecayFinderContainer_v1.h"
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/IteratorRange.h>
-#include <HepMC/SimpleVector.h>
-#include <TDatabasePDG.h>
-
-#include <algorithm>
-#include <iostream>
-#include <map>
+#include <cstddef>              // for NULL
 #include <string>
 #include <vector>
+#include <utility>               // for pair
 
+class DecayFinderContainer_v1;
 class PHCompositeNode;
+class PHHepMCGenEvent;
+class PHHepMCGenEventMap;
+namespace HepMC { class GenParticle; }
 
 class DecayFinder : public SubsysReco
 {
@@ -146,4 +137,4 @@ class DecayFinder : public SubsysReco
   std::string m_container_name;
 };
 
-#endif  //HFTRIGGER_H
+#endif  //DECAYFINDER_DECAYFINDER_H

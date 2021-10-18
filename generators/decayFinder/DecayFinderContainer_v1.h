@@ -1,22 +1,13 @@
-#ifndef DECAYFINDERCONTAINERV1_H
-#define DECAYFINDERCONTAINERV1_H
+#ifndef DECAYFINDER_DECAYFINDERCONTAINERV1_H
+#define DECAYFINDER_DECAYFINDERCONTAINERV1_H
 
 #include "DecayFinderContainerBase.h"
-
-//#include <phool/PHObject.h>
-//
-//#include <cstddef>   // for size_t
-//#include <iostream>  // for cout, ostream
-//#include <map>
-//#include <utility>  // for pair
 
 /**
  * @brief DecayFinder container object
  *
  * Container for DecayFinder objects, based off KFParticle_Container 
  */
-
-class PHObject;
 
 class DecayFinderContainer_v1 : public DecayFinderContainerBase 
 {
@@ -30,4 +21,4 @@ class DecayFinderContainer_v1 : public DecayFinderContainerBase
   ClassDefOverride(DecayFinderContainer_v1, 1)
 };
 
-#endif  //DECAYFINDERCONTAINERV1_H
+#endif  //DECAYFINDER_DECAYFINDERCONTAINERV1_H

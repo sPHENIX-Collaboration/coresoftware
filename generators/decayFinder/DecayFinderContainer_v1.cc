@@ -6,18 +6,17 @@
 
 #include "DecayFinderContainer_v1.h"
 
-#include <phool/PHObject.h>  // for PHObject
-
-#include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
+#include <vector>   // for vector
 
 DecayFinderContainer_v1::DecayFinderContainer_v1()
 {
 }
 
-DecayFinderContainer_v1::DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap)
+DecayFinderContainer_v1::DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap):
+DecayFinderContainerBase(decaymap)
 {
   for (ConstIter iter = decaymap.begin(); iter != decaymap.end(); ++iter)
   {

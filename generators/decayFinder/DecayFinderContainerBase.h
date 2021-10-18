@@ -1,5 +1,5 @@
-#ifndef DECAYFINDERCONTAINERBASE_H
-#define DECAYFINDERCONTAINERBASE_H
+#ifndef DECAYFINDER_DECAYFINDERCONTAINERBASE_H
+#define DECAYFINDER_DECAYFINDERCONTAINERBASE_H
 
 #include <phool/PHObject.h>
 
@@ -7,6 +7,7 @@
 #include <iostream>  // for cout, ostream
 #include <map>
 #include <utility>  // for pair
+#include <vector>
 
 /**
  * @brief DecayFinder container object
@@ -61,4 +62,4 @@ class DecayFinderContainerBase : public PHObject
   ClassDefOverride(DecayFinderContainerBase, 1)
 };
 
-#endif  //DECAYFINDERCONTAINERBASE_H
+#endif  //DECAYFINDER_DECAYFINDERCONTAINERBASE_H

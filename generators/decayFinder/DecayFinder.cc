@@ -1,5 +1,3 @@
-#include "DecayFinder.h"
-
 /*
  * Find decay topologies in HepMC
  * Cameron Dean
@@ -9,6 +7,38 @@
 //This is an array of PID's which decay faster than we can see in the detector
 //This means if we find them in the HepMC record we need to skip over them
 //If your decay descriptor contains one of these IDs then it will be removed from the list before starting the search
+
+#include "DecayFinder.h"
+
+#include "DecayFinderContainerBase.h"    // for DecayFinderContainerBase::Iter
+#include "DecayFinderContainer_v1.h"     // for DecayFinderContainer_v1
+
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/getClass.h>
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>             // for GenVertex::particle_iterator
+#include <HepMC/IteratorRange.h>
+#include <HepMC/SimpleVector.h>
+
+#include <TDatabasePDG.h>
+
+#include <algorithm>                     // for find, for_each, sort, transform
+#include <ctype.h>                       // for toupper
+#include <cstdlib>                      // for abs, size_t
+#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <iterator>                      // for end, begin
+#include <map>                           // for map, map<>::mapped_type, _Rb...
+#include <memory>                        // for allocator_traits<>::value_type
+
 int listOfResonantPIDs[] = {111, 113, 213, 333, 310, 311, 313, 323, 413, 423, 513, 523, 441, 443, 100443, 9000111, 9000211, 100111, 100211, 10111,
                             10211, 9010111, 9010211, 10113, 10213, 20113, 20213, 9000113, 9000213, 100113, 100213, 9010113, 9010213, 9020113, 9020213,
                             30113, 30213, 9030113, 9030213, 9040113, 9040213, 115, 215, 10115, 10215, 9000115, 9000215, 9010115, 9010215, 117, 217,
@@ -29,7 +59,7 @@ DecayFinder::DecayFinder()
 {
 }
 
-DecayFinder::DecayFinder(const std::string& name)
+DecayFinder::DecayFinder(const std::string& /*name*/)
   : m_save_dst(false)
 {
 }
@@ -70,7 +100,7 @@ int DecayFinder::process_event(PHCompositeNode* topNode)
   }
 }
 
-int DecayFinder::End(PHCompositeNode* topNode)
+int DecayFinder::End(PHCompositeNode* /*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME) printInfo();
 
@@ -175,8 +205,8 @@ int DecayFinder::parseDecayDescriptor()
     m_nTracksFromMother += 1;
   }
 
-  int trackStart = 0;
-  int trackEnd = 0;
+  unsigned int trackStart = 0;
+  unsigned int trackEnd = 0;
   for (unsigned int i = 0; i < m_intermediates_ID.size(); ++i)
   {
     trackStart = trackEnd;
@@ -370,7 +400,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
 int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trackFailedPT, bool& trackFailedETA)
 {
   bool acceptParticle = false;
-  bool breakOut = false;
+//  bool breakOut = false;
 
   std::vector<int> positive_intermediates_ID;
   for (unsigned int i = 0; i < m_intermediates_ID.size(); ++i) positive_intermediates_ID.push_back(abs(m_intermediates_ID[i]));
@@ -385,7 +415,7 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
     auto it = std::find(positive_intermediates_ID.begin(), positive_intermediates_ID.end(), abs(particle->pdg_id()));
     int index = it - m_intermediates_ID.begin();
 
-    int trackStart = 0, trackStop = 0;
+    unsigned int trackStart = 0, trackStop = 0;
     if (index == 0)
       trackStop = m_nTracksFromIntermediates[0];
     else
@@ -413,14 +443,14 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
             continue;
           else if (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22)
           {
-            breakOut = true;
+//            breakOut = true;
             break;
           }
           else if (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
             continue;
           else if (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
           {
-            breakOut = true;
+//            breakOut = true;
             break;
           }
           else
@@ -436,14 +466,14 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
         continue;
       else if (!m_allowPhotons && (*grandchildren)->pdg_id() == 22)
       {
-        breakOut = true;
+//        breakOut = true;
         break;
       }
       else if (m_allowPi0 && (*grandchildren)->pdg_id() == 111)
         continue;
       else if (!m_allowPi0 && (*grandchildren)->pdg_id() == 111)
       {
-        breakOut = true;
+//        breakOut = true;
         break;
       }
       else
@@ -645,7 +675,7 @@ void DecayFinder::printNode(PHCompositeNode* topNode)
   for (DecayFinderContainer_v1::Iter iter = map->begin(); iter != map->end(); ++iter)
   {
     Decay decay = iter->second;
-    for (int i = 0; i < decay.size(); ++i)
+    for (unsigned int i = 0; i < decay.size(); ++i)
     {
       std::cout << "Particle Barcode: " << decay[i].first << ", Particle PDG ID: " << decay[i].second << std::endl;
     }
