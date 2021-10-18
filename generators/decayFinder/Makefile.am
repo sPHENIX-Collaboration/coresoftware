@@ -39,17 +39,13 @@ libdecayfinder_io_la_SOURCES = \
   DecayFinderContainer_v1.cc 
 
 libdecayfinder_la_SOURCES = \
-  DecayFinderContainerBase.cc \
-  DecayFinderContainer_v1.cc \
   DecayFinder.cc
 
 libdecayfinder_io_la_LIBADD = \
   -lphool
 
-libdecayfinder_la_LDFLAGS = \
+libdecayfinder_la_LIBADD = \
   libdecayfinder_io.la \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
   -lfun4all \
   -lphhepmc
 
