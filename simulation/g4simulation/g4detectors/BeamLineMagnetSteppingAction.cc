@@ -93,7 +93,12 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
       return false;
     }
   }
-
+  if (whichactive == -2)
+  {
+    edep = aTrack->GetKineticEnergy() / GeV;
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
+    killtrack->SetTrackStatus(fStopAndKill);
+  }
   if (!m_ActiveFlag)
   {
     return false;
