@@ -5,14 +5,7 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-case $CXX in
-  clang++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-macro-redefined"
-  ;;
-  g++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-  ;;
-esac
+CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror"
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
