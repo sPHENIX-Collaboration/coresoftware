@@ -92,7 +92,11 @@ class PHActsTrkFitter : public SubsysReco
   { m_actsEvaluator = actsEvaluator; }
   
   void setFieldMap(std::string& fieldMap)
-    { m_fieldMap = fieldMap; }
+  { m_fieldMap = fieldMap; }
+
+  void setAbsPdgHypothesis(unsigned int pHypothesis)
+  { m_pHypothesis = pHypothesis; }
+
  private:
 
   /// Get all the nodes
@@ -165,6 +169,9 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   std::string m_fieldMap = "";
+
+  /// Default particle assumption to pion
+  unsigned int m_pHypothesis = 211;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;
