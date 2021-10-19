@@ -62,11 +62,11 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "DecayTime",  //
-               ";Decay Time [ps];Entries", 100, 0, 10);
+               ";Decay Time [ps];Entries", 100, 0, 1.5);
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "pT",  //
-               ";pT [GeV/c^{2}];Entries", 100, 0, 10);
+               ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Chi2_NDF",  //
@@ -78,13 +78,11 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Mother_DCA_XY",  //
-	       ";DCA [cm];Entries", 500, -0.05, 0.05);
+	       ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Daughters_pT",  //
-               ";pT [GeV/c^{2}];Entries", 100, 0, 10);
-  hm->registerHisto(h);
-
+               ";pT [GeV/c];Entries", 100, 0, 10);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Daughter1");
   h->GetXaxis()->SetBinLabel(i++, "Daughter2");
@@ -94,7 +92,7 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Daughters_DCA_XY_Mother",  //
-               ";DCA [cm];Entries", 500, -0.05, 0.05);
+               ";DCA [cm];Entries", 100, -0.05, 0.05);
   i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Daughter1");
   h->GetXaxis()->SetBinLabel(i++, "Daughter2");
@@ -133,7 +131,6 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   // load relevant nodes from NodeTree
   load_nodes(topNode);
 
-
   // histogram manager
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -156,7 +153,6 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   assert(h_Daughters_pT);
   TH1F *h_Daughters_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughters_DCA_XY_Mother"));
   assert(h_Daughters_DCA_XY_Mother);
-
 
   if (m_svtxEvalStack)
     m_svtxEvalStack->next_event(topNode);
@@ -181,33 +177,103 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   h_mass->Fill(mother.m());
 
   daughters.clear();
-  
-  std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
+   
+  float m_calculated_mother_decaytime = -1;
+  float m_calculated_mother_decaytime_err = -1;
+  float m_calculated_mother_decaylength = -1;
+  float m_calculated_mother_decaylength_err = -1;
+  const float speedOfLight = 2.99792458e-1;
+ 
+  // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
   std::vector<int> d_id;
   KFParticle_Tools kfpTools;
   std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");  
 
-  for (auto& [key, part]: Map)
+  for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
   {
-    // filling mother histogram information
-    h_mass_KFP->Fill(part->GetMass());
-    h_DecayTime->Fill(part->GetLifeTime());
-    h_pT->Fill(part->GetPt());
-    h_Chi2_NDF->Fill(part->Chi2()/part->NDF());
-    h_Rapidity->Fill(part->GetRapidity());
-    // best PV fit for mother
-    int bestCombinationIndex = 0;
-    if (vertex_vec.size() > 0)
+    if (iter->second->GetPDG() != m_mother_id)
     {
-      for (unsigned int i = 1; i < vertex_vec.size(); ++i)
+      if (d_id.size() == 0)
       {
-        if (part->GetDeviationFromVertex(vertex_vec[i]) <
-            part->GetDeviationFromVertex(vertex_vec[bestCombinationIndex]))
+        d_id.push_back(abs(iter->second->GetPDG()));
+      }
+      else
+      {
+        for (unsigned int j = 0; j < d_id.size(); ++j)
         {
-          bestCombinationIndex = i;
+          if (abs(iter->second->GetPDG()) == d_id[j])
+          {
+            continue;
+          }
+          else if (j == d_id.size() - 1)
+          {
+            d_id.push_back(abs(iter->second->GetPDG()));
+	  }
         }
       }
-      h_Mother_DCA_XY->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+    }
+  }
+
+  for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
+  {
+    if (iter->second->GetPDG() == m_mother_id)
+    {
+      // filling mother histogram information
+      h_mass_KFP->Fill(iter->second->GetMass());
+      // h_DecayTime->Fill(part->GetLifeTime());
+      h_pT->Fill(iter->second->GetPt());
+      h_Chi2_NDF->Fill(iter->second->Chi2()/iter->second->NDF());
+      h_Rapidity->Fill(iter->second->GetRapidity());
+      // best PV fit for mother
+      int bestCombinationIndex = 0;
+      if (vertex_vec.size() > 0)
+      {
+        for (unsigned int i = 1; i < vertex_vec.size(); ++i)
+        {
+          if (iter->second->GetDeviationFromVertex(vertex_vec[i]) <
+              iter->second->GetDeviationFromVertex(vertex_vec[bestCombinationIndex]))
+          {
+            bestCombinationIndex = i;
+          }
+        }
+        h_Mother_DCA_XY->Fill(iter->second->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+
+        iter->second->SetProductionVertex(vertex_vec[bestCombinationIndex]);
+        iter->second->GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
+        // part->GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
+        m_calculated_mother_decaytime /= speedOfLight;
+        // m_calculated_mother_decaytime_err /= speedOfLight; 
+   
+        h_DecayTime->Fill(m_calculated_mother_decaytime);
+
+	for (unsigned int i = 0; i < d_id.size(); ++i)
+	{
+          std::map<unsigned int, KFParticle*> D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
+	  for (auto& [key, part]: D_Map)
+	  {    
+            if (i == 0)
+	    {
+              h_Daughters_pT->Fill("Daughter1", part->GetPt());
+              h_Daughters_DCA_XY_Mother->Fill("Daughter1",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	    }
+            if (i == 1)
+	    {
+	      h_Daughters_pT->Fill("Daughter2", part->GetPt());
+              h_Daughters_DCA_XY_Mother->Fill("Daughter2",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+            }
+	    if (i == 2) 
+	    {
+	      h_Daughters_pT->Fill("Daughter3", part->GetPt());
+              h_Daughters_DCA_XY_Mother->Fill("Daughter3",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+            }
+	    if (i == 3) 
+	    {
+	      h_Daughters_pT->Fill("Daughter4", part->GetPt());
+              h_Daughters_DCA_XY_Mother->Fill("Daughter4",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	    }
+	  }
+	}
+/*
       d_id = part->DaughterIds();
       for (int i =0; i < part->NDaughters(); i++)
       {
@@ -235,6 +301,8 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
             h_Daughters_DCA_XY_Mother->Fill("Daughter4",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
 	  }
         } 
+      }
+*/
       }
     }
   } 
