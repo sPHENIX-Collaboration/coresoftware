@@ -92,12 +92,10 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   // residual cuts in r, phi plane
   float m_max_dca = 1.5;
 
-  // residual cuts in r, phi plane
-  float m_max_talpha = 0.6;
+  /// residual cuts in r, phi plane
   float m_max_drphi = 0.5;
 
-  // residual cuts in r, z plane
-  float m_max_tbeta = 1.5;
+  /// residual cuts in r, z plane
   float m_max_dz = 0.5;
   //@}
 
