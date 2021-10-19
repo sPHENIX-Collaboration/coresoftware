@@ -149,6 +149,10 @@ namespace
     g4hitstruct._x = g4hit->get_avg_x();
     g4hitstruct._y = g4hit->get_avg_y();
     g4hitstruct._z = g4hit->get_avg_z();
+    g4hitstruct._length = std::sqrt( 
+      square(g4hit->get_x(1) - g4hit->get_x(0))+
+      square(g4hit->get_y(1) - g4hit->get_y(0))+
+      square(g4hit->get_z(1) - g4hit->get_z(0)));
     return g4hitstruct;
   }
 

@@ -105,6 +105,7 @@ class SimEvaluator_hp : public SubsysReco
     float _y = 0;
     float _z = 0;
     float _t = 0;
+    float _length = 0;
   };
 
   class Container: public PHObject
