@@ -653,7 +653,7 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   set_default_double_param("diffusion_long", 0.012);   // cm/SQRT(cm)
   set_default_double_param("diffusion_trans", 0.004);  // cm/SQRT(cm)
-  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
+  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1e6);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
