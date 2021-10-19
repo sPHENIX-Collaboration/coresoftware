@@ -279,10 +279,10 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
 
   // number of electrons per deposited GeV in TPC gas
-  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
+  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1e6);
 
   // number of electrons deposited by laser per cm
-  set_default_int_param( "electrons_per_cm", 300 );
+  set_default_int_param( "electrons_per_cm", 72 );
 
 }
 
