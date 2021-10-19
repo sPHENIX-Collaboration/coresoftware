@@ -81,45 +81,32 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
 	       ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Daughters_pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_pT",  //
                ";pT [GeV/c];Entries", 100, 0, 10);
-  int i = 1;
-  h->GetXaxis()->SetBinLabel(i++, "Daughter1");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter2");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter3");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter4");
-  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_pT",  //
+               ";pT [GeV/c];Entries", 100, 0, 10);
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_pT",  //
+               ";pT [GeV/c];Entries", 100, 0, 10);
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_pT",  //
+               ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Daughters_DCA_XY_Mother",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_DCA_XY_Mother",  //
                ";DCA [cm];Entries", 100, -0.05, 0.05);
-  i = 1;
-  h->GetXaxis()->SetBinLabel(i++, "Daughter1");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter2");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter3");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter4");
-  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_DCA_XY_Mother",  //
+               ";DCA [cm];Entries", 100, -0.05, 0.05);
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_DCA_XY_Mother",  //
+               ";DCA [cm];Entries", 100, -0.05, 0.05);
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_DCA_XY_Mother",  //
+               ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
   
-  /*h = new TH1F(TString(get_histo_prefix()) + "Daughters_DCA_XY_Daughters",  //
-               ";DCA [cm];Entries", 500, -0.05, 0.05);
-  i = 1;
-  h->GetXaxis()->SetBinLabel(i++, "Daughter1_2");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter1_3");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter1_4");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter2_1");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter2_3");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter2_4");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter3_1");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter3_2");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter3_4");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter4_1");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter4_2");
-  h->GetXaxis()->SetBinLabel(i++, "Daughter4_3");
-  h->GetXaxis()->LabelsOption("v");
-  hm->registerHisto(h);*/
-  
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -149,10 +136,22 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   assert(h_Rapidity);
   TH1F *h_Mother_DCA_XY = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Mother_DCA_XY"));
   assert(h_Mother_DCA_XY);
-  TH1F *h_Daughters_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughters_pT"));
-  assert(h_Daughters_pT);
-  TH1F *h_Daughters_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughters_DCA_XY_Mother"));
-  assert(h_Daughters_DCA_XY_Mother);
+  TH1F *h_Daughter1_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter1_pT"));
+  assert(h_Daughter1_pT);
+  TH1F *h_Daughter1_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter1_DCA_XY_Mother"));
+  assert(h_Daughter1_DCA_XY_Mother);
+  TH1F *h_Daughter2_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter2_pT"));
+  assert(h_Daughter2_pT);
+  TH1F *h_Daughter2_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter2_DCA_XY_Mother"));
+  assert(h_Daughter2_DCA_XY_Mother);
+  TH1F *h_Daughter3_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter3_pT"));
+  assert(h_Daughter3_pT);
+  TH1F *h_Daughter3_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter3_DCA_XY_Mother"));
+  assert(h_Daughter3_DCA_XY_Mother);
+  TH1F *h_Daughter4_pT = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter4_pT"));
+  assert(h_Daughter4_pT);
+  TH1F *h_Daughter4_DCA_XY_Mother = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Daughter4_DCA_XY_Mother"));
+  assert(h_Daughter4_DCA_XY_Mother);
 
   if (m_svtxEvalStack)
     m_svtxEvalStack->next_event(topNode);
@@ -253,56 +252,26 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 	  {    
             if (i == 0)
 	    {
-              h_Daughters_pT->Fill("Daughter1", part->GetPt());
-              h_Daughters_DCA_XY_Mother->Fill("Daughter1",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+              h_Daughter1_pT->Fill(part->GetPt());
+              h_Daughter1_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
 	    }
             if (i == 1)
 	    {
-	      h_Daughters_pT->Fill("Daughter2", part->GetPt());
-              h_Daughters_DCA_XY_Mother->Fill("Daughter2",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	      h_Daughter2_pT->Fill(part->GetPt());
+              h_Daughter2_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
             }
 	    if (i == 2) 
 	    {
-	      h_Daughters_pT->Fill("Daughter3", part->GetPt());
-              h_Daughters_DCA_XY_Mother->Fill("Daughter3",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	      h_Daughter3_pT->Fill(part->GetPt());
+              h_Daughter3_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
             }
 	    if (i == 3) 
 	    {
-	      h_Daughters_pT->Fill("Daughter4", part->GetPt());
-              h_Daughters_DCA_XY_Mother->Fill("Daughter4",part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+	      h_Daughter4_pT->Fill(part->GetPt());
+              h_Daughter4_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
 	    }
 	  }
 	}
-/*
-      d_id = part->DaughterIds();
-      for (int i =0; i < part->NDaughters(); i++)
-      {
-        std::map<unsigned int, KFParticle*> Map_d = m_kfpContainer->returnParticlesByPDGid(d_id[i]); 
-        for (auto& [key2, part2]: Map_d)
-        {
-          if (i == 0)
-	  {
-            h_Daughters_pT->Fill("Daughter1", part2->GetPt());
-            h_Daughters_DCA_XY_Mother->Fill("Daughter1",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-	  }
-          if (i == 1)
-	  {
-	    h_Daughters_pT->Fill("Daughter2", part2->GetPt());
-            h_Daughters_DCA_XY_Mother->Fill("Daughter2",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-          }
-	  if (i == 2) 
-	  {
-	    h_Daughters_pT->Fill("Daughter3", part2->GetPt());
-            h_Daughters_DCA_XY_Mother->Fill("Daughter3",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-          }
-	  if (i == 3) 
-	  {
-	    h_Daughters_pT->Fill("Daughter4", part2->GetPt());
-            h_Daughters_DCA_XY_Mother->Fill("Daughter4",part2->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-	  }
-        } 
-      }
-*/
       }
     }
   } 
