@@ -85,7 +85,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   
   //! micomegas geometry
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
-  TrkrClusterIterationMapv1* _iteration_map;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
 

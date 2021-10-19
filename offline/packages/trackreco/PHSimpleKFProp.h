@@ -139,7 +139,7 @@ class PHSimpleKFProp : public SubsysReco
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
-  TrkrClusterIterationMapv1* _iteration_map;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
 

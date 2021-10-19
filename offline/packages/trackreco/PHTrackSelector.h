@@ -50,7 +50,7 @@ class PHTrackSelector : public SubsysReco
   std::string _track_map_name;
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
-  TrkrClusterIterationMapv1* _iteration_map;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
 

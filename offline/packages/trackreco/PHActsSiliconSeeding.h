@@ -270,7 +270,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
   std::string m_fieldMapName = "";
-  TrkrClusterIterationMapv1* _iteration_map;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxSiliconTrackMap";
 
