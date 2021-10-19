@@ -36,7 +36,7 @@ class PHTrackSetMerging : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-
+  int Setup(PHCompositeNode *topNode);
   void set_track_map_name_in1(const std::string &map_name) { _track_map_name_in1 = map_name; }
   void set_track_map_name_in2(const std::string &map_name) { _track_map_name_in2 = map_name; }
   void set_track_map_name_out(const std::string &map_name) { _track_map_name_out = map_name; }
@@ -44,14 +44,14 @@ class PHTrackSetMerging : public SubsysReco
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
   /// overrided in derived classes
-  virtual int Setup(PHCompositeNode *topNode);
+   //  virtual
 
   /// process event interface for trackers, called in process_event.
   /// implemented in derived classes
-  virtual int Process() = 0;
+  virtual int Process(PHCompositeNode *topNode) = 0;
 
   /// Called in SubsysReco::End
-  virtual int End() = 0;
+    // virtual int End() = 0;
 
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map = nullptr;

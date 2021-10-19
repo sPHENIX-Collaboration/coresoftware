@@ -33,6 +33,8 @@ class PHGhostRejection : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
 
  private:
 
@@ -47,6 +49,8 @@ SvtxTrackMap *_track_map{nullptr};
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
 
 };
 

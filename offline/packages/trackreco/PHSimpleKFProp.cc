@@ -20,6 +20,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -164,8 +165,16 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSimpleKFProp::process_event(PHCompositeNode* )
+int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 {
+  if(_n_iteration!=0){
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map){
+      std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
   if(Verbosity()>0) cout << "starting Process" << endl;
   MoveToFirstTPCCluster();
   if(Verbosity()>0) cout << "moved tracks into TPC" << endl;
@@ -226,6 +235,15 @@ void PHSimpleKFProp::PrepareKDTrees()
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
       if(!cluster) continue;
+      if(_n_iteration!=0){
+	if(_iteration_map != NULL ){
+	  //	  std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
+	  if(_iteration_map->getIteration(cluskey)>0){ 
+	    //std::cout << "hit used, continue" << std::endl;
+	    continue; // skip hits used in a previous iteration
+	  }
+	}
+      }
       auto globalPos = transformer.getGlobalPosition(cluster,_surfmaps,_tgeometry);
 
       int layer = TrkrDefs::getLayer(cluskey);

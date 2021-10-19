@@ -28,6 +28,7 @@
 class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -56,6 +57,8 @@ class PHSimpleKFProp : public SubsysReco
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
 
  private:
   bool _use_truth_clusters = false;
@@ -136,6 +139,10 @@ class PHSimpleKFProp : public SubsysReco
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
+  TrkrClusterIterationMapv1* _iteration_map;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+
 };
 
 #endif

@@ -32,6 +32,7 @@ class SvtxVertexMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
+class TrkrClusterIterationMapv1;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
@@ -117,6 +118,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
+
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
 
  private:
 
@@ -266,6 +270,9 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
   std::string m_fieldMapName = "";
+  TrkrClusterIterationMapv1* _iteration_map;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxSiliconTrackMap";
 
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
