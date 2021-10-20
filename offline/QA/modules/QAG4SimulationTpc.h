@@ -53,11 +53,11 @@ class QAG4SimulationTpc : public SubsysReco
   /// true if histograms are initialized
   bool m_initialized = false;
 
-   /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps* m_surfmaps = nullptr;
 
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsTrackingGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;

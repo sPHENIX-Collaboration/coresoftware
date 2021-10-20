@@ -8,7 +8,7 @@
 #include <g4eval/SvtxEvalStack.h>
 
 #include <memory>
-#include <string>                  // for string
+#include <string>  // for string
 
 class KFParticle_Container;
 class PHCompositeNode;
@@ -18,7 +18,10 @@ class SvtxClusterEval;
 class SvtxTrackMap;
 class SvtxTrack;
 
-namespace CLHEP { class HepLorentzVector; }
+namespace CLHEP
+{
+  class HepLorentzVector;
+}
 
 class QAG4SimulationKFParticle : public SubsysReco
 {
@@ -40,7 +43,7 @@ class QAG4SimulationKFParticle : public SubsysReco
   int m_mother_id = 0;
   double m_min_mass = 0.;
   double m_max_mass = 10.;
-  std::string m_mother_name;  
+  std::string m_mother_name;
 
  private:
   int load_nodes(PHCompositeNode *);

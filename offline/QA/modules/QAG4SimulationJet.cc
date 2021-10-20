@@ -93,7 +93,7 @@ int QAG4SimulationJet::Init(PHCompositeNode* topNode)
   {
     if (Verbosity() >= 1)
       std::cout << "QAG4SimulationJet::Init - Process TruthSpectrum " << _truth_jet
-           << std::endl;
+                << std::endl;
     Init_Spectrum(topNode, _truth_jet);
   }
 
@@ -105,7 +105,7 @@ int QAG4SimulationJet::Init(PHCompositeNode* topNode)
       const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
         std::cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
-             << reco_jet << std::endl;
+                  << reco_jet << std::endl;
       Init_Spectrum(topNode, reco_jet);
     }
   }
@@ -118,7 +118,7 @@ int QAG4SimulationJet::Init(PHCompositeNode* topNode)
       const std::string& reco_jet = *it_reco_jets;
       if (Verbosity() >= 1)
         std::cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
-             << reco_jet << std::endl;
+                  << reco_jet << std::endl;
       Init_TruthMatching(topNode, reco_jet);
     }
   }
@@ -144,7 +144,7 @@ int QAG4SimulationJet::process_event(PHCompositeNode* topNode)
   {
     if (Verbosity() >= 1)
       std::cout << "QAG4SimulationJet::process_event - Process TruthSpectrum "
-           << _truth_jet << std::endl;
+                << _truth_jet << std::endl;
     process_Spectrum(topNode, _truth_jet, false);
   }
 
@@ -510,30 +510,30 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         {
           //            leading_jet->identify();
           std::cout << "Shower cemc_e sum = "
-               << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"))
-               << " + "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"))
-               << " + "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"))
-               << std::endl;
+                    << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_CEMC"))
+                    << " + "
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_CEMC_ELECTRONICS"))
+                    << " + "
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_CEMC"))
+                    << std::endl;
           std::cout << "Shower hcalin_e sum = "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_HCALIN"))
-               << " + "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"))
-               << std::endl;
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_HCALIN"))
+                    << " + "
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_ABSORBER_HCALIN"))
+                    << std::endl;
           std::cout << "Shower bh_e sum = "
-               << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"))
-               << " + "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"))
-               << " + "
-               << (*it)->get_edep(
-                      PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"))
-               << std::endl;
+                    << (*it)->get_edep(PHG4HitDefs::get_volume_id("G4HIT_BH_1"))
+                    << " + "
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_PLUS"))
+                    << " + "
+                    << (*it)->get_edep(
+                           PHG4HitDefs::get_volume_id("G4HIT_BH_FORWARD_NEG"))
+                    << std::endl;
         }
       }
 
@@ -678,7 +678,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     if (Verbosity() > 1)
     {
       std::cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
-           << " process truth jet ";
+                << " process truth jet ";
       truthjet->identify();
     }
 
@@ -690,7 +690,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
       if (Verbosity() > 1)
       {
         std::cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
-             << " inclusively matched with best reco jet: ";
+                  << " inclusively matched with best reco jet: ";
         recojet->identify();
       }
 
@@ -733,7 +733,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         if (Verbosity() > 1)
         {
           std::cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
-               << " uniquely matched with reco jet: ";
+                    << " uniquely matched with reco jet: ";
           recojet->identify();
         }
 
@@ -797,7 +797,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     if (Verbosity() > 1)
     {
       std::cout << "QAG4SimulationJet::process_TruthMatching - " << reco_jet_name
-           << " process reco jet ";
+                << " process reco jet ";
       recojet->identify();
     }
 

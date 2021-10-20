@@ -13,8 +13,8 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -37,7 +37,7 @@
 #include <TString.h>  // for Form
 
 #include <cassert>
-#include <cmath>                                       // for atan2
+#include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
@@ -72,7 +72,7 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   if (!m_truthContainer)
   {
     std::cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
-         << "unable to find node G4TruthInfo" << std::endl;
+              << "unable to find node G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
 
@@ -228,19 +228,19 @@ int QAG4SimulationTpc::load_nodes(PHCompositeNode* topNode)
 
   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
   if (!m_surfmaps)
-    {
-      std::cout << PHWHERE << "Error: can't find Acts surface maps"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    std::cout << PHWHERE << "Error: can't find Acts surface maps"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
-  if(!m_tGeometry)
-    {
-      std::cout << PHWHERE << "No acts tracking geometry, exiting." 
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  if (!m_tGeometry)
+  {
+    std::cout << PHWHERE << "No acts tracking geometry, exiting."
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_cluster_hit_map)
@@ -368,7 +368,7 @@ void QAG4SimulationTpc::evaluate_clusters()
       if (Verbosity() > 0)
       {
         std::cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
-             << " gphi " << gphi << " gedep " << gedep << std::endl;
+                  << " gphi " << gphi << " gedep " << gedep << std::endl;
       }
 
       // fill the truth cluster histo
@@ -381,14 +381,14 @@ void QAG4SimulationTpc::evaluate_clusters()
         // fill the matched cluster histo
         h_eff1->Fill(layer);
 
-	const auto global = transformer.getGlobalPosition(rclus, m_surfmaps,
-							  m_tGeometry);
+        const auto global = transformer.getGlobalPosition(rclus, m_surfmaps,
+                                                          m_tGeometry);
 
         // get relevant cluster information
         const auto rkey = rclus->getClusKey();
         const auto r_cluster = QAG4Util::get_r(global(0), global(1));
         const auto z_cluster = global(2);
-        const auto phi_cluster = (float)std::atan2(global(1), global(0));
+        const auto phi_cluster = (float) std::atan2(global(1), global(0));
         const auto phi_error = rclus->getRPhiError() / r_cluster;
         const auto z_error = rclus->getZError();
 

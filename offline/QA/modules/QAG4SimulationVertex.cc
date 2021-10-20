@@ -72,7 +72,7 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationVertex::Init(PHCompositeNode */*topNode*/)
+int QAG4SimulationVertex::Init(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -408,8 +408,8 @@ int QAG4SimulationVertex::load_nodes(PHCompositeNode *topNode)
   if (!m_truthContainer)
   {
     std::cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << std::endl;
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
   return Fun4AllReturnCodes::EVENT_OK;

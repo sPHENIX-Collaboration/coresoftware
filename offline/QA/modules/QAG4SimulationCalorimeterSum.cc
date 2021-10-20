@@ -55,8 +55,8 @@ int QAG4SimulationCalorimeterSum::InitRun(PHCompositeNode *topNode)
   if (!_truth_container)
   {
     std::cout << "QAG4SimulationCalorimeterSum::InitRun - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << std::endl;
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(_truth_container);
   }
 
@@ -126,7 +126,7 @@ int QAG4SimulationCalorimeterSum::Init(PHCompositeNode *topNode)
   {
     if (Verbosity() >= 1)
       std::cout << "QAG4SimulationCalorimeterSum::Init - Process tower occupancies"
-           << std::endl;
+                << std::endl;
     Init_Cluster(topNode);
   }
 
@@ -134,7 +134,7 @@ int QAG4SimulationCalorimeterSum::Init(PHCompositeNode *topNode)
   {
     if (Verbosity() >= 1)
       std::cout << "QAG4SimulationCalorimeterSum::Init - Process sampling fraction"
-           << std::endl;
+                << std::endl;
     Init_TrackProj(topNode);
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -207,7 +207,7 @@ QAG4SimulationCalorimeterSum::get_truth_particle()
   return last_primary;
 }
 
-int QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeterSum::Init_TrackProj(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -250,7 +250,7 @@ int QAG4SimulationCalorimeterSum::process_event_TrackProj(PHCompositeNode *topNo
 {
   if (Verbosity() > 2)
     std::cout << "QAG4SimulationCalorimeterSum::process_event_TrackProj() entered"
-         << std::endl;
+              << std::endl;
 
   PHG4Particle *primary = get_truth_particle();
   if (!primary)
@@ -326,11 +326,11 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
   if (Verbosity() > 3)
   {
     std::cout << __PRETTY_FUNCTION__ << " - info - handling track track p = ("
-         << track->get_px() << ", " << track->get_py() << ", "
-         << track->get_pz() << "), v = (" << track->get_x() << ", "
-         << track->get_z() << ", " << track->get_z() << ")"
-         << " size_states "
-         << track->size_states() << std::endl;
+              << track->get_px() << ", " << track->get_py() << ", "
+              << track->get_pz() << "), v = (" << track->get_x() << ", "
+              << track->get_z() << ", " << track->get_z() << ")"
+              << " size_states "
+              << track->size_states() << std::endl;
   }
 
   // curved tracks inside mag field
@@ -383,15 +383,15 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
 
   if (Verbosity() > 3)
     std::cout << __PRETTY_FUNCTION__ << " - info - handling track proj. (" << x
-         << ", " << y << ", " << z << ")"
-         << ", eta " << eta << ", phi" << phi
-         << ", bineta " << bineta << " - ["
-         << towergeo->get_etabounds(bineta).first << ", "
-         << towergeo->get_etabounds(bineta).second << "], etabin_shift = "
-         << etabin_shift << ", binphi " << binphi << " - ["
-         << towergeo->get_phibounds(binphi).first << ", "
-         << towergeo->get_phibounds(binphi).second << "], phibin_shift = "
-         << phibin_shift << std::endl;
+              << ", " << y << ", " << z << ")"
+              << ", eta " << eta << ", phi" << phi
+              << ", bineta " << bineta << " - ["
+              << towergeo->get_etabounds(bineta).first << ", "
+              << towergeo->get_etabounds(bineta).second << "], etabin_shift = "
+              << etabin_shift << ", binphi " << binphi << " - ["
+              << towergeo->get_phibounds(binphi).first << ", "
+              << towergeo->get_phibounds(binphi).second << "], phibin_shift = "
+              << phibin_shift << std::endl;
 
   const int bin_search_range = (Max_N_Tower - 1) / 2;
   for (int iphi = binphi - bin_search_range; iphi <= binphi + bin_search_range;
@@ -419,12 +419,12 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
 
       if (Verbosity() > 3)
         std::cout << __PRETTY_FUNCTION__ << " - info - processing tower"
-             << ", bineta " << ieta << " - ["
-             << towergeo->get_etabounds(ieta).first << ", "
-             << towergeo->get_etabounds(ieta).second << "]"
-             << ", binphi "
-             << wrapphi << " - [" << towergeo->get_phibounds(wrapphi).first
-             << ", " << towergeo->get_phibounds(wrapphi).second << "]" << std::endl;
+                  << ", bineta " << ieta << " - ["
+                  << towergeo->get_etabounds(ieta).first << ", "
+                  << towergeo->get_etabounds(ieta).second << "]"
+                  << ", binphi "
+                  << wrapphi << " - [" << towergeo->get_phibounds(wrapphi).first
+                  << ", " << towergeo->get_phibounds(wrapphi).second << "]" << std::endl;
 
       RawTower *tower = towerList->getTower(ieta, wrapphi);
       double energy = 0;
@@ -432,7 +432,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
       {
         if (Verbosity() > 1)
           std::cout << __PRETTY_FUNCTION__ << " - info - tower " << ieta << " "
-               << wrapphi << " energy = " << tower->get_energy() << std::endl;
+                    << wrapphi << " energy = " << tower->get_energy() << std::endl;
 
         energy = tower->get_energy();
       }
@@ -467,7 +467,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
-int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -502,11 +502,11 @@ int QAG4SimulationCalorimeterSum::Init_Cluster(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 2)
     std::cout << "QAG4SimulationCalorimeterSum::process_event_Cluster() entered"
-         << std::endl;
+              << std::endl;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -548,11 +548,11 @@ int QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode */*topNo
     if (Verbosity())
     {
       std::cout << "QAG4SimulationCalorimeterSum::process_event_Cluster - "
-           << " cluster_cemc_e = " << cluster_cemc_e
-           << " cluster_hcalin_e = " << cluster_hcalin_e
-           << " cluster_hcalout_e = " << cluster_hcalout_e << " hr = "
-           << (cluster_cemc_e + cluster_hcalin_e) / (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e)
-           << std::endl;
+                << " cluster_cemc_e = " << cluster_cemc_e
+                << " cluster_hcalin_e = " << cluster_hcalin_e
+                << " cluster_hcalout_e = " << cluster_hcalout_e << " hr = "
+                << (cluster_cemc_e + cluster_hcalin_e) / (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e)
+                << std::endl;
     }
 
     TH2F *h2 = dynamic_cast<TH2F *>(hm->getHisto(

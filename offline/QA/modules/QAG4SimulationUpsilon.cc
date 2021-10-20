@@ -51,8 +51,8 @@ int QAG4SimulationUpsilon::InitRun(PHCompositeNode *topNode)
   if (!_truthContainer)
   {
     std::cout << "QAG4SimulationUpsilon::InitRun - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << std::endl;
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(_truthContainer);
   }
 
@@ -66,7 +66,7 @@ int QAG4SimulationUpsilon::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationUpsilon::Init(PHCompositeNode */*topNode*/)
+int QAG4SimulationUpsilon::Init(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);

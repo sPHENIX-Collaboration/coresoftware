@@ -1,13 +1,13 @@
 #include "QAG4SimulationKFParticle.h"
 
-#include "QAHistManagerDef.h"                            // for getHistoManager
+#include "QAHistManagerDef.h"  // for getHistoManager
 
-#include <kfparticle_sphenix/KFParticle_particleList.h>
 #include <kfparticle_sphenix/KFParticle_Container.h>
 #include <kfparticle_sphenix/KFParticle_Tools.h>
+#include <kfparticle_sphenix/KFParticle_particleList.h>
 
 #include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>                        // for SvtxEvalStack
+#include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -15,7 +15,7 @@
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <trackbase/TrkrDefs.h>                          // for cluskey
+#include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
@@ -40,11 +40,11 @@
 #include <CLHEP/Vector/ThreeVector.h>
 
 #include <cassert>
-#include <cstdlib>                                      // for abs, NULL
+#include <cstdlib>  // for abs, NULL
 #include <iostream>
 #include <map>
 #include <string>
-#include <utility>                                       // for pair
+#include <utility>  // for pair
 #include <vector>
 
 // Create necessary objects
@@ -62,8 +62,6 @@ QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, cons
   m_mother_id = particleMasses.find(mother_name)->second.first;
   m_mother_name = mother_name;
 }
-
-
 
 int QAG4SimulationKFParticle::InitRun(PHCompositeNode *topNode)
 {
@@ -100,7 +98,7 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   h = new TH1F(TString(get_histo_prefix()) + "InvMass",  //
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",  //
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
@@ -122,7 +120,7 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Mother_DCA_XY",  //
-	       ";DCA [cm];Entries", 100, -0.05, 0.05);
+               ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "Daughter1_pT",  //
@@ -150,7 +148,7 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
   h = new TH1F(TString(get_histo_prefix()) + "Daughter4_DCA_XY_Mother",  //
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -220,15 +218,15 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   h_mass->Fill(mother.m());
 
   daughters.clear();
-   
+
   float m_calculated_mother_decaytime = -1;
   float m_calculated_mother_decaytime_err = -1;
   const float speedOfLight = 2.99792458e-1;
- 
+
   // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
   std::vector<int> d_id;
   KFParticle_Tools kfpTools;
-  std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");  
+  std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");
 
   for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
   {
@@ -249,7 +247,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
           else if (j == d_id.size() - 1)
           {
             d_id.push_back(abs(iter->second->GetPDG()));
-	  }
+          }
         }
       }
     }
@@ -263,7 +261,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
       h_mass_KFP->Fill(iter->second->GetMass());
       // h_DecayTime->Fill(part->GetLifeTime());
       h_pT->Fill(iter->second->GetPt());
-      h_Chi2_NDF->Fill(iter->second->Chi2()/iter->second->NDF());
+      h_Chi2_NDF->Fill(iter->second->Chi2() / iter->second->NDF());
       h_Rapidity->Fill(iter->second->GetRapidity());
       // best PV fit for mother
       int bestCombinationIndex = 0;
@@ -283,40 +281,40 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
         iter->second->GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
         // part->GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
         m_calculated_mother_decaytime /= speedOfLight;
-        // m_calculated_mother_decaytime_err /= speedOfLight; 
-   
+        // m_calculated_mother_decaytime_err /= speedOfLight;
+
         h_DecayTime->Fill(m_calculated_mother_decaytime);
 
-	for (unsigned int i = 0; i < d_id.size(); ++i)
-	{
-          std::map<unsigned int, KFParticle*> D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
-	  for (auto& [key, part]: D_Map)
-	  {    
+        for (unsigned int i = 0; i < d_id.size(); ++i)
+        {
+          std::map<unsigned int, KFParticle *> D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
+          for (auto &[key, part] : D_Map)
+          {
             if (i == 0)
-	    {
+            {
               h_Daughter1_pT->Fill(part->GetPt());
               h_Daughter1_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-	    }
+            }
             if (i == 1)
-	    {
-	      h_Daughter2_pT->Fill(part->GetPt());
+            {
+              h_Daughter2_pT->Fill(part->GetPt());
               h_Daughter2_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
             }
-	    if (i == 2) 
-	    {
-	      h_Daughter3_pT->Fill(part->GetPt());
+            if (i == 2)
+            {
+              h_Daughter3_pT->Fill(part->GetPt());
               h_Daughter3_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
             }
-	    if (i == 3) 
-	    {
-	      h_Daughter4_pT->Fill(part->GetPt());
+            if (i == 3)
+            {
+              h_Daughter4_pT->Fill(part->GetPt());
               h_Daughter4_DCA_XY_Mother->Fill(part->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
-	    }
-	  }
-	}
+            }
+          }
+        }
       }
     }
-  } 
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -412,16 +410,16 @@ int QAG4SimulationKFParticle::load_nodes(PHCompositeNode *topNode)
   if (!m_truthContainer)
   {
     std::cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << std::endl;
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
-  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, m_mother_name+"_KFParticle_Container");
-  if(!m_kfpContainer)
-  { 
+  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, m_mother_name + "_KFParticle_Container");
+  if (!m_kfpContainer)
+  {
     std::cout << m_mother_name.c_str() << "_KFParticle_Container - Fatal Error - "
-         <<"unable to find DST node "
-         << "G4_QA" << std::endl;
+              << "unable to find DST node "
+              << "G4_QA" << std::endl;
     assert(m_kfpContainer);
   }
   return Fun4AllReturnCodes::EVENT_OK;
