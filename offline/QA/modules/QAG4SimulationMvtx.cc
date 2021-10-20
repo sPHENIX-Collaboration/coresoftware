@@ -9,12 +9,13 @@
 
 #include <mvtx/MvtxDefs.h>
 
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <trackbase_historic/ActsTransformations.h>
@@ -31,6 +32,7 @@
 #include <TString.h>  // for Form
 
 #include <cassert>
+#include <cmath>                                    // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map

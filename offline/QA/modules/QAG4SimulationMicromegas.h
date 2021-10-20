@@ -2,8 +2,6 @@
 #define QA_QAG4SIMULATIONMICROMEGAS_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -18,6 +16,9 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 /// \class QAG4SimulationMicromegas
 class QAG4SimulationMicromegas : public SubsysReco

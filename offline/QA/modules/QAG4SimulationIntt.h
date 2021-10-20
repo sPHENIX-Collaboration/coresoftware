@@ -2,8 +2,6 @@
 #define QA_QAG4SIMULATIONINTT_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,6 +15,10 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+
 
 /// \class QAG4SimulationIntt
 class QAG4SimulationIntt : public SubsysReco

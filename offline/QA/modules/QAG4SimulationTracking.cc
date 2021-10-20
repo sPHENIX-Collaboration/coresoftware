@@ -23,6 +23,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                      // for PHWHERE
 
 #include <TAxis.h>
 #include <TDatabasePDG.h>

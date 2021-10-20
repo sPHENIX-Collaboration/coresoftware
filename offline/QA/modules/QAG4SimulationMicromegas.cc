@@ -1,16 +1,19 @@
 #include "QAG4SimulationMicromegas.h"
-#include "QAG4Util.h"
+
 #include "QAHistManagerDef.h"
 
+#include <g4detectors/PHG4CylinderGeom.h>            // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <mvtx/MvtxDefs.h>
+#include <micromegas/MicromegasDefs.h>               // for SegmentationType
 
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -34,10 +37,12 @@
 #include <TVector3.h>
 
 #include <cassert>
+#include <cmath>                                    // for cos, sin, NAN
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
 #include <utility>   // for pair, make_pair
+#include <vector>                                    // for vector
 
 //_____________________________________________________________________
 namespace 

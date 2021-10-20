@@ -1,4 +1,5 @@
 #include "QAG4SimulationCalorimeter.h"
+
 #include "QAHistManagerDef.h"
 
 #include <g4main/PHG4Hit.h>
@@ -35,6 +36,7 @@
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>  // for reverse_iterator

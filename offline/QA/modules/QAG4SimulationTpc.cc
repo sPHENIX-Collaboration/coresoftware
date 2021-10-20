@@ -13,6 +13,8 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -35,6 +37,7 @@
 #include <TString.h>  // for Form
 
 #include <cassert>
+#include <cmath>                                       // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map

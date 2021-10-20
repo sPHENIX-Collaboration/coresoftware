@@ -1,9 +1,9 @@
 #ifndef QA_QAG4SIMULATIONTPC_H
 #define QA_QAG4SIMULATIONTPC_H
 
+#include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
+
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -20,6 +20,8 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxEvalStack;
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 /// \class QAG4SimulationTpc
 class QAG4SimulationTpc : public SubsysReco
