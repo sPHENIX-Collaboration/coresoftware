@@ -48,7 +48,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   int process_event(PHCompositeNode*) override;
 
   int End(PHCompositeNode*) override;
-  
+
+  void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
+  void set_tpcseed_track_map_name(const std::string &map_name) { _tpcseed_track_map_name = map_name; }
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -93,6 +97,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   std::string _field;
   int _fieldDir = -1;
 
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
+  std::string _silicon_track_map_name = "SvtxSiliconTrackMap";
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

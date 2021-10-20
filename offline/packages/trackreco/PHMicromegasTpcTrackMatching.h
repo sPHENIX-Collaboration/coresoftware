@@ -12,6 +12,7 @@
 #include <vector>
 
 class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
 class AssocInfoContainer;
 class PHCompositeNode;
@@ -37,7 +38,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_test_windows_printout(const bool test){_test_windows = test;}
   void set_sc_calib_mode(const bool mode){_sc_calib_mode = mode;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
-
+  void SetIteration(int iter){_n_iteration = iter;}
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
@@ -83,6 +85,9 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   
   //! micomegas geometry
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
 
   ActsTrackingGeometry *_tGeometry = nullptr;
   ActsSurfaceMaps *_surfmaps = nullptr;

@@ -793,14 +793,14 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   
   if(m_actsEvaluator)
     {
-      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,"SeedTrackMap");
+      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,_seed_track_map_name);
       
       if(!m_seedTracks)
 	{
 	  m_seedTracks = new SvtxTrackMap_v1;
 	  
 	  PHIODataNode<PHObject> *seedNode = 
-	    new PHIODataNode<PHObject>(m_seedTracks,"SeedTrackMap","PHObject");
+	    new PHIODataNode<PHObject>(m_seedTracks,_seed_track_map_name,"PHObject");
 	  svtxNode->addNode(seedNode);
 	}
     }
@@ -835,7 +835,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
  
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   
   if(!m_trackMap)
     {

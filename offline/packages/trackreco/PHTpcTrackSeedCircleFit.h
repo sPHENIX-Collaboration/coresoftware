@@ -34,6 +34,9 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
 
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;} 
+
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -60,6 +63,8 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
   
   bool _use_truth_clusters = false;
   TrkrClusterContainer *_cluster_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
 };
 
 #endif // PHTRACKSEEDVERTEXASSOCIATION_H

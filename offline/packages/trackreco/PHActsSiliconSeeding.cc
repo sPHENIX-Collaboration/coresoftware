@@ -31,7 +31,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
-
+#include <trackbase/TrkrClusterIterationMapv1.h>
+ 
 #include <Acts/Seeding/BinnedSPGroup.hpp>
 #include <Acts/Seeding/InternalSeed.hpp>
 #include <Acts/Seeding/InternalSpacePoint.hpp>
@@ -79,8 +80,13 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsSiliconSeeding::process_event(PHCompositeNode */*topNode*/)
+int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
+  _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+  if (!_iteration_map){
+    std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
@@ -1220,7 +1226,13 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 	{
 	  const auto cluskey = clusIter->first;
 	  const auto cluster = clusIter->second;
-  
+	  if(_iteration_map != NULL ){
+	    //	    std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
+	    if(_iteration_map->getIteration(cluskey)>0){
+	      continue; // skip hits used in a previous iteration
+	    }
+	  }
+
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  const auto surface = getSurface(hitsetkey);
 	  if(!surface)
@@ -1390,12 +1402,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,"SvtxSiliconTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,_track_map_name);
   if(!m_trackMap)
     {
       m_trackMap = new SvtxTrackMap_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,"SvtxSiliconTrackMap","PHObject");
+	new PHIODataNode<PHObject>(m_trackMap,_track_map_name,"PHObject");
       svtxNode->addNode(trackNode);
 
     }

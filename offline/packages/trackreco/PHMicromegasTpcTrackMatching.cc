@@ -14,6 +14,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -311,8 +312,14 @@ int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
+int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 {
+  _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+  if (!_iteration_map){
+    std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   // _track_map contains the TPC seed track stubs
   // We will add the micromegas cluster to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
@@ -499,7 +506,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode*)
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
-
+	TrkrDefs::cluskey ckey = clusiter->first;
+	if(_iteration_map != NULL ){
+	  if( _iteration_map->getIteration(ckey) > 0) 
+	    continue; // skip hits used in a previous iteration
+	}
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
 	const auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tGeometry);

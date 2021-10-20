@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
+  PHTrackSetCopyMerging.h \
   PHTruthClustering.h \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
