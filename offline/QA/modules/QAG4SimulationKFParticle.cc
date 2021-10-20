@@ -49,14 +49,15 @@
 
 // Create necessary objects
 typedef std::pair<int, float> particle_pair;
-KFParticle_particleList kfp_particleList_evtReco;
 
 //Particle masses are in GeV
-std::map<std::string, particle_pair> particleMasses = kfp_particleList_evtReco.getParticleList();
+//std::map<std::string, particle_pair> particleMasses = kfp_particleList_evtReco.getParticleList();
 
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
 {
+  KFParticle_particleList kfp_particleList_evtReco;
+  particleMasses = kfp_particleList_evtReco.getParticleList();
   m_min_mass = min_m;
   m_max_mass = max_m;
   m_mother_id = particleMasses.find(mother_name)->second.first;

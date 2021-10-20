@@ -59,7 +59,7 @@ class QAG4SimulationKFParticle : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   PHG4TruthInfoContainer *m_truthInfo = nullptr;
   KFParticle_Container *m_kfpContainer = nullptr;
-
+  std::map<std::string, std::pair<int, float>> particleMasses;
   std::string m_trackMapName = "SvtxTrackMap";
 };
 
