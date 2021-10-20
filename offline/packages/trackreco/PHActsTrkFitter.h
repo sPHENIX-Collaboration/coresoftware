@@ -174,7 +174,7 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   std::string m_fieldMap = "";
-  TrkrClusterIterationMapv1* _iteration_map = null_ptr;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";
