@@ -241,8 +241,8 @@ void TpcDirectLaserReconstruction::create_histograms()
 
   // residuals vs layers
   h_dca_layer = new TH2F( "dca_layer", ";layer; DCA (cm)", 57, 0, 57, 500, 0, 2 );
-  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
+  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -339,13 +339,13 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto cluster_rphi_error = cluster->getRPhiError();
       const auto cluster_z_error = cluster->getZError();
 
-      /*
-      remove clusters with too small errors since they are likely pathological
-      and have a large contribution to the chisquare
-      TODO: make these cuts configurable
-      */
-      if( cluster_rphi_error < 0.015 ) continue;
-      if( cluster_z_error < 0.05 ) continue;
+//       /*
+//       remove clusters with too small errors since they are likely pathological
+//       and have a large contribution to the chisquare
+//       TODO: make these cuts configurable
+//       */
+//       if( cluster_rphi_error < 0.015 ) continue;
+//       if( cluster_z_error < 0.05 ) continue;
 
       // track position
       const auto track_phi = std::atan2( projection.y(), projection.x() );
@@ -394,7 +394,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       {
         if(h_dca_layer) h_dca_layer->Fill(layer, dca);
         if(h_deltarphi_layer) h_deltarphi_layer->Fill(layer, drp);
-        if(h_deltaz_layer) h_deltaz_layer->Fill(dz, drp);
+        if(h_deltaz_layer) h_deltaz_layer->Fill(layer, dz);
         if(h_entries)
         {
           auto phi = cluster_phi;
