@@ -4,7 +4,8 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 \
-  -I`root-config --incdir`
+  -I`root-config --incdir`\
+  -DHomogeneousField
 
 lib_LTLIBRARIES = \
    libqa_modules.la
@@ -14,19 +15,23 @@ libqa_modules_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libqa_modules_la_LIBADD = \
+  -lkfparticle_sphenix \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
   -lg4eval \
   -lg4jets_io \
   -lphg4hit \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lCLHEP \
+  -lphhepmc
 
 pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
   QAG4SimulationCalorimeterSum.h \
   QAG4SimulationIntt.h \
   QAG4SimulationJet.h \
+  QAG4SimulationKFParticle.h \
   QAG4SimulationMicromegas.h \
   QAG4SimulationMvtx.h \
   QAG4SimulationTpc.h \
@@ -40,6 +45,7 @@ libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeterSum.cc \
   QAG4SimulationIntt.cc \
   QAG4SimulationJet.cc \
+  QAG4SimulationKFParticle.cc \
   QAG4SimulationMicromegas.cc \
   QAG4SimulationMvtx.cc \
   QAG4SimulationTpc.cc \

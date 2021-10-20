@@ -73,8 +73,8 @@ class QAG4SimulationTracking : public SubsysReco
 
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
- 
-  TrkrHitSetContainer  *m_hitsets = nullptr;
+
+  TrkrHitSetContainer *m_hitsets = nullptr;
   TrkrClusterContainer *m_cluster_map = nullptr;
   TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;
   TrkrHitTruthAssoc *m_hit_truth_map = nullptr;
