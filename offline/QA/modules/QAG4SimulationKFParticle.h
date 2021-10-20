@@ -3,37 +3,22 @@
 #ifndef QAG4SIMULATIONKFPARTICLE_H
 #define QAG4SIMULATIONKFPARTICLE_H
 
-#include <CLHEP/Vector/LorentzVector.h>
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/IteratorRange.h>
-#include <TH1.h>
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <kfparticle_sphenix/KFParticle_particleList.h>
-#include <kfparticle_sphenix/KFParticle_Container.h>
-#include <kfparticle_sphenix/KFParticle_Tools.h>
-#include <KFParticle.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
-#include <phool/getClass.h>
-#include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <cassert>
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-#include "QAHistManagerDef.h"
 
+#include <g4eval/SvtxEvalStack.h>
+
+#include <memory>
+#include <string>                  // for string
+
+class KFParticle_Container;
 class PHCompositeNode;
+class PHG4Particle;
 class PHG4TruthInfoContainer;
+class SvtxClusterEval;
 class SvtxTrackMap;
+class SvtxTrack;
+
+namespace CLHEP { class HepLorentzVector; }
 
 class QAG4SimulationKFParticle : public SubsysReco
 {

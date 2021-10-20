@@ -1,5 +1,52 @@
 #include "QAG4SimulationKFParticle.h"
 
+#include "QAHistManagerDef.h"                            // for getHistoManager
+
+#include <kfparticle_sphenix/KFParticle_particleList.h>
+#include <kfparticle_sphenix/KFParticle_Container.h>
+#include <kfparticle_sphenix/KFParticle_Tools.h>
+
+#include <g4eval/SvtxClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>                        // for SvtxEvalStack
+
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+
+#include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <trackbase/TrkrDefs.h>                          // for cluskey
+
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <phool/getClass.h>
+
+#include <KFParticle.h>
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
+#include <HepMC/IteratorRange.h>
+
+#include <TH1.h>
+#include <TString.h>
+
+#include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/ThreeVector.h>
+
+#include <cassert>
+#include <cstdlib>                                      // for abs, NULL
+#include <iostream>
+#include <map>
+#include <string>
+#include <utility>                                       // for pair
+#include <vector>
+
 using namespace std;
 
 
@@ -179,8 +226,6 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
    
   float m_calculated_mother_decaytime = -1;
   float m_calculated_mother_decaytime_err = -1;
-  float m_calculated_mother_decaylength = -1;
-  float m_calculated_mother_decaylength_err = -1;
   const float speedOfLight = 2.99792458e-1;
  
   // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
