@@ -44,8 +44,6 @@
 #include <utility>   // for pair, make_pair
 #include <vector>    // for vector
 
-using namespace std;
-
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
   : SubsysReco(name)
@@ -73,8 +71,8 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
                                                                 "G4TruthInfo");
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
-         << "unable to find node G4TruthInfo" << endl;
+    std::cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
+         << "unable to find node G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
 
@@ -103,7 +101,7 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
     for (int region = 0; region < 3; ++region)
     {
       if (iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region])
-        m_layer_region_map.insert(make_pair(iter->first, region));
+        m_layer_region_map.insert(std::make_pair(iter->first, region));
     }
   }
 
@@ -326,7 +324,7 @@ void QAG4SimulationTpc::evaluate_clusters()
   // Get all truth clusters
   //===============
   if (Verbosity() > 0)
-    cout << PHWHERE << " get all truth clusters for primary particles " << endl;
+    std::cout << PHWHERE << " get all truth clusters for primary particles " << std::endl;
 
   //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
@@ -345,7 +343,7 @@ void QAG4SimulationTpc::evaluate_clusters()
     float gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
-      cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << endl;
+      std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
 
     // Get the truth clusters from this particle
     std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters = trutheval->all_truth_clusters(g4particle);
@@ -369,8 +367,8 @@ void QAG4SimulationTpc::evaluate_clusters()
 
       if (Verbosity() > 0)
       {
-        cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
-             << " gphi " << gphi << " gedep " << gedep << endl;
+        std::cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
+             << " gphi " << gphi << " gedep " << gedep << std::endl;
       }
 
       // fill the truth cluster histo
@@ -403,10 +401,10 @@ void QAG4SimulationTpc::evaluate_clusters()
 
         if (Verbosity() > 0)
         {
-          cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << endl;
-          cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << endl;
-          cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << endl;
-          cout << "     drphi " << r_cluster * dphi << " rphi_error " << r_cluster * phi_error << " dz " << dz << " z_error " << z_error << endl;
+          std::cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << std::endl;
+          std::cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << std::endl;
+          std::cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << std::endl;
+          std::cout << "     drphi " << r_cluster * dphi << " rphi_error " << r_cluster * phi_error << " dz " << dz << " z_error " << z_error << std::endl;
         }
 
         const auto hiter = histograms.find(region);

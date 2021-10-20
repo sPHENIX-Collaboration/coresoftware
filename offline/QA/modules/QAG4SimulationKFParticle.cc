@@ -47,9 +47,6 @@
 #include <utility>                                       // for pair
 #include <vector>
 
-using namespace std;
-
-
 // Create necessary objects
 typedef std::pair<int, float> particle_pair;
 KFParticle_particleList kfp_particleList_evtReco;
@@ -79,14 +76,14 @@ int QAG4SimulationKFParticle::InitRun(PHCompositeNode *topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_trackMap)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -160,7 +157,7 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
 int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationKFParticle::process_event() entered" << endl;
+    std::cout << "QAG4SimulationKFParticle::process_event() entered" << std::endl;
 
   // load relevant nodes from NodeTree
   load_nodes(topNode);
@@ -369,7 +366,7 @@ CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *to
   {
     std::cout << "Missing node PHHepMCGenEvent" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    return NULL;
+    return nullptr;
   }
 
   HepMC::GenEvent *theEvent = m_genevt->getEvent();
@@ -414,23 +411,23 @@ int QAG4SimulationKFParticle::load_nodes(PHCompositeNode *topNode)
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
+    std::cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
          << "unable to find DST node "
-         << "G4TruthInfo" << endl;
+         << "G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
   m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, m_mother_name+"_KFParticle_Container");
   if(!m_kfpContainer)
   { 
-    cout << m_mother_name.c_str() << "_KFParticle_Container - Fatal Error - "
+    std::cout << m_mother_name.c_str() << "_KFParticle_Container - Fatal Error - "
          <<"unable to find DST node "
-         << "G4_QA" << endl;
+         << "G4_QA" << std::endl;
     assert(m_kfpContainer);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-string QAG4SimulationKFParticle::get_histo_prefix()
+std::string QAG4SimulationKFParticle::get_histo_prefix()
 {
-  return string("h_") + Name() + string("_") + m_trackMapName + string("_");
+  return std::string("h_") + Name() + std::string("_") + m_trackMapName + std::string("_");
 }
