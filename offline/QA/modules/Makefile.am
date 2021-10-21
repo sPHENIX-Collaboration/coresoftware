@@ -8,14 +8,18 @@ AM_CPPFLAGS = \
   -DHomogeneousField
 
 lib_LTLIBRARIES = \
-   libqa_modules.la
+   libqa_modules.la \
+   libqa_kfparticle.la
 
-libqa_modules_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
+libqa_kfparticle_la_LIBADD = \
+  libqa_modules.la \
+  -lkfparticle_sphenix
+
 libqa_modules_la_LIBADD = \
-  -lkfparticle_sphenix \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
@@ -40,12 +44,14 @@ pkginclude_HEADERS = \
   QAG4SimulationUpsilon.h \
   QAHistManagerDef.h
 
+libqa_kfparticle_la_SOURCES = \
+  QAG4SimulationKFParticle.cc
+
 libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
   QAG4SimulationIntt.cc \
   QAG4SimulationJet.cc \
-  QAG4SimulationKFParticle.cc \
   QAG4SimulationMicromegas.cc \
   QAG4SimulationMvtx.cc \
   QAG4SimulationTpc.cc \
@@ -57,15 +63,23 @@ libqa_modules_la_SOURCES = \
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals_qa \
+  testexternals_qa_kfparticle
 
 BUILT_SOURCES = \
 	testexternals.cc
 
-testexternals_SOURCES = \
+testexternals_qa_SOURCES = \
 	testexternals.cc
 
-testexternals_LDADD = \
+testexternals_qa_LDADD = \
+	libqa_modules.la
+
+testexternals_qa_kfparticle_SOURCES = \
+	testexternals.cc
+
+testexternals_qa_kfparticle_LDADD = \
 	libqa_modules.la
 
 testexternals.cc:
