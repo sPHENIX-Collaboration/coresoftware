@@ -367,13 +367,23 @@ void PHG4TpcDirectLaser::SetupLasers()
  
   // put one laser on the inner field cage, close to the central membrane
   const TVector3 position_base( 0., 20.01*cm, 1 );
-  for( int i = 0; i < 8; ++i )
+  for( int i = 0; i < 16; ++i )
   {
     Laser laser;
     laser.m_position = position_base;
-    laser.m_direction = 1;
+
+    if( i < 8 )
+    {
+      laser.m_position.SetZ( position_base.z() );
+      laser.m_direction = 1;
+    } else {
+      laser.m_position.SetZ( -position_base.z() );
+      laser.m_direction = -1;
+    }
+
     laser.m_phi = (M_PI/4)*i;
     laser.m_position.RotateZ( laser.m_phi );
+
     m_lasers.push_back( laser );
   }
   
