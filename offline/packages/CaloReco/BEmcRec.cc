@@ -659,7 +659,8 @@ float BEmcRec::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist)
 float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float yg, float zg, float& chi2, int& ndf)
 // Do nothing; should be defined in a detector specific module BEmcRec{Name}
 {
-  float enoise = 0.01;  // 10 MeV per tower
+  //  float enoise = 0.01;  // 10 MeV per tower
+  float enoise = GetProbNoiseParam();
   //  float thresh = 0.01;
   float thresh = GetTowerThreshold();
 
@@ -741,6 +742,8 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   chi2 += (ep[2] - e3t) * (ep[2] - e3t) / err[2] / err[2];
   chi2 += (ep[3] - e4t) * (ep[3] - e4t) / err[3] / err[3];
   ndf = 4;
+
+  chi2 /= 1.5;
 
   float prob = TMath::Prob(chi2, ndf);
 

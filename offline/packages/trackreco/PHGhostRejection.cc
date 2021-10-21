@@ -70,7 +70,7 @@ int PHGhostRejection::End(PHCompositeNode * /*topNode*/)
 int  PHGhostRejection::GetNodes(PHCompositeNode* topNode)
 {
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;

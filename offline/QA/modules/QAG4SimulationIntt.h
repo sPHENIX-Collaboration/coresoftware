@@ -2,8 +2,6 @@
 #define QA_QAG4SIMULATIONINTT_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,6 +15,9 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 /// \class QAG4SimulationIntt
 class QAG4SimulationIntt : public SubsysReco
@@ -46,10 +47,10 @@ class QAG4SimulationIntt : public SubsysReco
   bool m_initialized = false;
 
   /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsSurfaceMaps* m_surfmaps = nullptr;
 
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsTrackingGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
@@ -58,7 +59,7 @@ class QAG4SimulationIntt : public SubsysReco
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
 
   /// hitsets
-  TrkrHitSetContainer  *m_hitsets = nullptr;
+  TrkrHitSetContainer* m_hitsets = nullptr;
 
   /// hit to g4hit association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;

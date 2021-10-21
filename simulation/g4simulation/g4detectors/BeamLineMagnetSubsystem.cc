@@ -142,6 +142,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("inner_radius", 4);
   set_default_double_param("outer_radius", 100);
+  set_default_double_param("skin_thickness",0.); // Fe thickness before tracks are terminated
 }
 
 void BeamLineMagnetSubsystem::Print(const std::string & /*what*/) const

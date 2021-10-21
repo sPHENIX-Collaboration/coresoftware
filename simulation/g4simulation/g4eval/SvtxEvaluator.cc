@@ -2435,7 +2435,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         unsigned int nglintt = 0;
         unsigned int ngltpc = 0;
         unsigned int nglmms = 0;
-	/*
+	
         int lmaps[_nlayers_maps + 1];
         if (_nlayers_maps > 0)
           for (unsigned int i = 0; i < _nlayers_maps; i++) lmaps[i] = 0;
@@ -2525,7 +2525,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           for (unsigned int i = 0; i < _nlayers_tpc; i++) ngltpc += ltpc[i];
 	if (_nlayers_mms > 0)
           for (unsigned int i = 0; i < _nlayers_mms; i++) nglmms += lmms[i];
-	*/
+	
         float gpx = g4particle->get_px();
         float gpy = g4particle->get_py();
         float gpz = g4particle->get_pz();

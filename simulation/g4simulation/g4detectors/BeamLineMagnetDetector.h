@@ -42,6 +42,7 @@ class BeamLineMagnetDetector : public PHG4Detector
 
   G4VPhysicalVolume *magnet_physi = nullptr;
   G4VPhysicalVolume *magnet_iron_physi = nullptr;
+  G4VPhysicalVolume *magnet_core_physi = nullptr;
   BeamLineMagnetDisplayAction *m_DisplayAction = nullptr;
   G4LogicalVolume *m_magnetFieldLogic = nullptr;
   G4MagneticField *m_magField = nullptr;

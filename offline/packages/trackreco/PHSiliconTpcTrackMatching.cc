@@ -439,22 +439,21 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode,  "SvtxSiliconTrackMap");
+  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-   _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode,
-							 "TpcSeedTrackMap");
+   _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode, _tpcseed_track_map_name);
   if(!_seed_track_map)
     {
       std::cout << "Creating node TpcSeedTrackMap" << std::endl;
@@ -482,7 +481,7 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
       
       _seed_track_map = new TpcSeedTrackMapv1();
       PHIODataNode<PHObject> *node
-	= new PHIODataNode<PHObject>(_seed_track_map, "TpcSeedTrackMap");
+	= new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
       svtxNode->addNode(node);
     }
 

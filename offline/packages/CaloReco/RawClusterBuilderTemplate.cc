@@ -54,6 +54,7 @@ RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   , NBINY(0)
   , bPrintGeom(false)
   , bProfProb(false)
+  , fProbNoiseParam(0.04)
 {
 }
 
@@ -101,7 +102,8 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   float vertex[3] = {0, 0, 0};
   bemc->SetVertex(vertex);
   // Set threshold
-  bemc->SetTowerThreshold(0);
+  bemc->SetTowerThreshold(_min_tower_e);
+  bemc->SetProbNoiseParam(fProbNoiseParam);
 }
 
 void RawClusterBuilderTemplate::LoadProfile(const string &fname)
@@ -309,6 +311,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   // Set threshold
   bemc->SetTowerThreshold(_min_tower_e);
 
+  bemc->SetProbNoiseParam(fProbNoiseParam);
   bemc->SetProfileProb(bProfProb);
 
   // _clusters->Reset(); // !!! Not sure if it is necessarry to do it - ask Chris

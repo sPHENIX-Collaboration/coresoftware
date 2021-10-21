@@ -21,6 +21,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -370,7 +371,12 @@ void PHCASeeding::FillTree()
       if (layer < _start_layer || layer >= _end_layer){
 	if(Verbosity()>0) cout << "layer: " << layer << endl;
 	continue;
-      }/*
+      }
+      if(_iteration_map != NULL ){
+	if( _iteration_map->getIteration(ckey) > 0) 
+	  continue; // skip hits used in a previous iteration
+      }
+      /*
       if(!_use_truth_clusters)
 	{
 	  TrkrClusterHitAssoc::ConstRange hitrange = _cluster_hit_map->getHits(ckey);
@@ -486,6 +492,10 @@ int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
 //  TFile fpara("CA_para.root", "RECREATE");
 //  _vertex = _vertex_map->get(0);
+  if (!_iteration_map){
+    cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   t_seed->restart();
 

@@ -43,6 +43,7 @@ class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
@@ -96,6 +97,10 @@ class PHActsTrkFitter : public SubsysReco
 
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
+
+  void SetIteration(int iter){_n_iteration = iter;}
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
  private:
 
@@ -169,6 +174,10 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   std::string m_fieldMap = "";
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _seed_track_map_name = "SeedTrackMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;

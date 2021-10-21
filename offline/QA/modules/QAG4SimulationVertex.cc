@@ -34,9 +34,6 @@
 #include <iostream>
 #include <map>
 #include <utility>  // for pair
-#include <vector>
-
-using namespace std;
 
 QAG4SimulationVertex::QAG4SimulationVertex(const std::string &name)
   : SubsysReco(name)
@@ -54,28 +51,28 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_trackMapName << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   if (!m_trackMap)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_vertexMapName << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing " << m_vertexMapName << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_trackMap)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationVertex::Init(PHCompositeNode */*topNode*/)
+int QAG4SimulationVertex::Init(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -146,7 +143,7 @@ void QAG4SimulationVertex::addEmbeddingID(int embeddingID)
 int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationVertex::process_event() entered" << endl;
+    std::cout << "QAG4SimulationVertex::process_event() entered" << std::endl;
 
   // load relevant nodes from NodeTree
   load_nodes(topNode);
@@ -208,9 +205,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   if (m_vertexMap && m_truthInfo)
   {
     const auto prange = m_truthInfo->GetPrimaryParticleRange();
-    map<int, unsigned int> embedvtxid_particle_count;
-    map<int, unsigned int> embedvtxid_maps_particle_count;
-    map<int, unsigned int> vertex_particle_count;
+    std::map<int, unsigned int> embedvtxid_particle_count;
+    std::map<int, unsigned int> embedvtxid_maps_particle_count;
+    std::map<int, unsigned int> vertex_particle_count;
     for (auto iter = prange.first; iter != prange.second; ++iter)  // process all primary paricle
     {
       const int point_id = iter->second->get_vtx_id();
@@ -238,7 +235,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       for (const TrkrDefs::cluskey g4cluster : g4clusters)
       {
         unsigned int layer = TrkrDefs::getLayer(g4cluster);
-        //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
+        //std::cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<std::endl;
         if (_nlayers_maps > 0 && layer < _nlayers_maps)
         {
           lmaps[layer] = 1;
@@ -270,9 +267,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
     }
 
     auto vrange = m_truthInfo->GetPrimaryVtxRange();
-    map<int, bool> embedvtxid_found;
-    map<int, int> embedvtxid_vertex_id;
-    map<int, PHG4VtxPoint *> embedvtxid_vertex;
+    std::map<int, bool> embedvtxid_found;
+    std::map<int, int> embedvtxid_vertex_id;
+    std::map<int, PHG4VtxPoint *> embedvtxid_vertex;
     for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
@@ -360,7 +357,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
           else
           {
             if (Verbosity())
-              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+              std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
           }
         }
         if (MVTX_hits >= 2)
@@ -410,16 +407,16 @@ int QAG4SimulationVertex::load_nodes(PHCompositeNode *topNode)
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << endl;
+    std::cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-string
+std::string
 QAG4SimulationVertex::get_histo_prefix()
 {
-  return string("h_") + Name() + string("_") + m_vertexMapName + string("_");
+  return std::string("h_") + Name() + std::string("_") + m_vertexMapName + std::string("_");
 }
