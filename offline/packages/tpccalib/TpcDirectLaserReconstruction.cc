@@ -242,7 +242,7 @@ void TpcDirectLaserReconstruction::create_histograms()
   // residuals vs layers
   h_dca_layer = new TH2F( "dca_layer", ";layer; DCA (cm)", 57, 0, 57, 500, 0, 2 );
   h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 400, -2, 2 );
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -260,6 +260,17 @@ void TpcDirectLaserReconstruction::create_histograms()
 void TpcDirectLaserReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
+
+  // count number of clusters in the TPC
+  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  {
+    if( TrkrDefs::getTrkrId( hitsetkey ) != TrkrDefs::tpcId ) continue;
+
+    const auto range = m_cluster_map->getClusters(hitsetkey);
+    m_total_clusters += std::distance( range.first, range.second );
+  }
+
+  // loop over tracks and process
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
   { process_track( iter->second ); }
 }
@@ -288,8 +299,6 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     // get corresponding clusters
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
-
-      ++m_total_clusters;
       
       // get cluster global coordinates
       const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
