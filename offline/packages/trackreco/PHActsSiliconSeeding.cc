@@ -82,10 +82,12 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
 
 int PHActsSiliconSeeding::process_event(PHCompositeNode *topNode)
 {
-  _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
-  if (!_iteration_map){
-    std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  if(_n_iteration>0){
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map){
+      std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
@@ -1226,7 +1228,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints()
 	{
 	  const auto cluskey = clusIter->first;
 	  const auto cluster = clusIter->second;
-	  if(_iteration_map != NULL ){
+	  if(_iteration_map != NULL && _n_iteration >0 ){
 	    //	    std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
 	    if(_iteration_map->getIteration(cluskey)>0){
 	      continue; // skip hits used in a previous iteration

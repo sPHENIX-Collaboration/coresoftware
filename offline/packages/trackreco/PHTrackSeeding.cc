@@ -29,7 +29,7 @@ using namespace std;
 PHTrackSeeding::PHTrackSeeding(const std::string& name)
   : SubsysReco(name)
   , _iteration_map(nullptr)
-  , _n_iteration(1)
+  , _n_iteration(0)
 {
 }
 
@@ -40,12 +40,13 @@ int PHTrackSeeding::InitRun(PHCompositeNode* topNode)
 
 int PHTrackSeeding::process_event(PHCompositeNode* topNode)
 {
-  _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
-  if (!_iteration_map){
-    cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  if(_n_iteration >0){
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map){
+      cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
-    
   return Process(topNode);
 }
 

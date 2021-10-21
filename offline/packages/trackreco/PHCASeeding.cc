@@ -372,7 +372,7 @@ void PHCASeeding::FillTree()
 	if(Verbosity()>0) cout << "layer: " << layer << endl;
 	continue;
       }
-      if(_iteration_map != NULL ){
+      if(_iteration_map != NULL && _n_iteration >0){
 	if( _iteration_map->getIteration(ckey) > 0) 
 	  continue; // skip hits used in a previous iteration
       }
@@ -492,9 +492,11 @@ int PHCASeeding::Process(PHCompositeNode */*topNode*/)
 {
 //  TFile fpara("CA_para.root", "RECREATE");
 //  _vertex = _vertex_map->get(0);
-  if (!_iteration_map){
-    cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+  if(_n_iteration>0){
+    if (!_iteration_map){
+      cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   t_seed->restart();
