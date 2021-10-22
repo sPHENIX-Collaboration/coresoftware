@@ -314,12 +314,16 @@ int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 {
-  _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
-  if (!_iteration_map){
-    std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
+  if(_n_iteration >0)
+  {
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map)
+    {
+      std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   // _track_map contains the TPC seed track stubs
   // We will add the micromegas cluster to the TPC tracks already on the node tree
   // We will have to expand the number of tracks whenever we find multiple matches to the silicon
