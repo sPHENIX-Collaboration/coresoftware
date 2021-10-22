@@ -49,6 +49,27 @@ namespace
   template<class T>
     inline constexpr T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
+  // calculate intersection between line and circle
+  double line_circle_intersection( const TVector3& p, const TVector3& d, double radius )
+  {
+    const double A = square(d.x()) + square(d.y());
+    const double B = 2*p.x()*d.x() + 2*p.y()*d.y();
+    const double C = square(p.x()) + square(p.y()) - square(radius);
+    const double delta = square(B)-4*A*C;
+    if( delta < 0 ) return -1;
+
+    // check first intersection
+    const double tup = (-B + std::sqrt(delta))/(2*A);
+    if( tup >= 0 ) return tup;
+
+    // check second intersection
+    const double tdn = (-B-sqrt(delta))/(2*A);
+    if( tdn >= 0 ) return tdn;
+
+    // no valid extrapolation
+    return -1;
+  }
+    
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
   {
@@ -104,9 +125,7 @@ int TpcDirectLaserReconstruction::InitRun(PHCompositeNode* )
 {
   UpdateParametersWithMacro();
   m_max_dca = get_double_param( "directlaser_max_dca" );
-  m_max_talpha = get_double_param( "directlaser_max_talpha" );
   m_max_drphi = get_double_param( "directlaser_max_drphi" );
-  m_max_tbeta = get_double_param( "directlaser_max_tbeta" );
   m_max_dz = get_double_param( "directlaser_max_dz" );
 
   // print
@@ -116,9 +135,7 @@ int TpcDirectLaserReconstruction::InitRun(PHCompositeNode* )
       << "TpcDirectLaserReconstruction::InitRun\n"
       << " m_outputfile: " << m_outputfile << "\n"
       << " m_max_dca: " << m_max_dca << "\n"
-      << " m_max_talpha: " << m_max_talpha << "\n"
       << " m_max_drphi: " << m_max_drphi << "\n"
-      << " m_max_tbeta: " << m_max_tbeta << "\n"
       << " m_max_dz: " << m_max_dz << "\n"
       << std::endl;
 
@@ -178,11 +195,13 @@ void TpcDirectLaserReconstruction::SetDefaultParameters()
   // DCA cut, to decide whether a cluster should be associated to a given laser track or not
   set_default_double_param( "directlaser_max_dca", 1.5 );
 
-  // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices
-  set_default_double_param( "directlaser_max_talpha", 0.6 );
-  set_default_double_param( "directlaser_max_drphi", 0.5 );
-  set_default_double_param( "directlaser_max_tbeta", 1.5 );
-  set_default_double_param( "directlaser_max_dz", 0.5 );
+  
+//   // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices
+//   set_default_double_param( "directlaser_max_drphi", 0.5 );
+//   set_default_double_param( "directlaser_max_dz", 0.5 );
+
+  set_default_double_param( "directlaser_max_drphi", 2. );
+  set_default_double_param( "directlaser_max_dz", 2. );
 }
 
 //_____________________________________________________________________
@@ -222,8 +241,8 @@ void TpcDirectLaserReconstruction::create_histograms()
 
   // residuals vs layers
   h_dca_layer = new TH2F( "dca_layer", ";layer; DCA (cm)", 57, 0, 57, 500, 0, 2 );
-  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
+  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 400, -2, 2 );
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -241,6 +260,17 @@ void TpcDirectLaserReconstruction::create_histograms()
 void TpcDirectLaserReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
+
+  // count number of clusters in the TPC
+  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  {
+    if( TrkrDefs::getTrkrId( hitsetkey ) != TrkrDefs::tpcId ) continue;
+
+    const auto range = m_cluster_map->getClusters(hitsetkey);
+    m_total_clusters += std::distance( range.first, range.second );
+  }
+
+  // loop over tracks and process
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
   { process_track( iter->second ); }
 }
@@ -269,20 +299,26 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     // get corresponding clusters
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
-
-      ++m_total_clusters;
       
       // get cluster global coordinates
       const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
 
-      const TVector3 oc( global.x()-track->get_x(), global.y()-track->get_y(), global.z()-track->get_z()  );
-      const auto t = direction.Dot( oc )/square( direction.Mag() );
-      const auto om = direction*t;
+      // calculate dca
+      const TVector3 oc( global.x()-origin.x(), global.y()-origin.y(), global.z()-origin.z()  );
+      auto t = direction.Dot( oc )/square( direction.Mag() );
+      auto om = direction*t;
       const auto dca = (oc-om).Mag();
-
+      
       // do not associate if dca is too large
       if( dca > m_max_dca ) continue;
+      
+      // calculate intersection to layer
+      t = line_circle_intersection(origin, direction, get_r( global.x(), global.y() ));
+      if( t < 0 ) continue;
 
+      // update position on track
+      om = direction*t;
+   
       // path length
       const auto pathlength = om.Mag();
 
@@ -312,13 +348,13 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto cluster_rphi_error = cluster->getRPhiError();
       const auto cluster_z_error = cluster->getZError();
 
-      /*
-      remove clusters with too small errors since they are likely pathological
-      and have a large contribution to the chisquare
-      TODO: make these cuts configurable
-      */
-      if( cluster_rphi_error < 0.015 ) continue;
-      if( cluster_z_error < 0.05 ) continue;
+//       /*
+//       remove clusters with too small errors since they are likely pathological
+//       and have a large contribution to the chisquare
+//       TODO: make these cuts configurable
+//       */
+//       if( cluster_rphi_error < 0.015 ) continue;
+//       if( cluster_z_error < 0.05 ) continue;
 
       // track position
       const auto track_phi = std::atan2( projection.y(), projection.x() );
@@ -346,10 +382,6 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
         continue;
       }
 
-//       // check against limits
-//       if( std::abs( talpha ) > m_max_talpha ) continue;
-//       if( std::abs( tbeta ) > m_max_tbeta ) continue;
-
       // residuals
       const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
       const auto dz = cluster_z - track_z;
@@ -371,7 +403,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       {
         if(h_dca_layer) h_dca_layer->Fill(layer, dca);
         if(h_deltarphi_layer) h_deltarphi_layer->Fill(layer, drp);
-        if(h_deltaz_layer) h_deltaz_layer->Fill(dz, drp);
+        if(h_deltaz_layer) h_deltaz_layer->Fill(layer, dz);
         if(h_entries)
         {
           auto phi = cluster_phi;
@@ -381,9 +413,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
         }
       }
 
-      // check against limits
-      if( std::abs( drp ) > m_max_drphi ) continue;
-      if( std::abs( dz ) > m_max_dz ) continue;
+//       // check against limits
+//       if( std::abs( drp ) > m_max_drphi ) continue;
+//       if( std::abs( dz ) > m_max_dz ) continue;
 
       // residual errors squared
       const auto erp = square(cluster_rphi_error);
