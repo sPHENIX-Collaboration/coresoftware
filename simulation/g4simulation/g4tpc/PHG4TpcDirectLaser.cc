@@ -19,6 +19,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 
+#include <gsl/gsl_const_mksa.h> // for the speed of light
 #include <cassert>
 #include <optional>
 
@@ -38,6 +39,9 @@ namespace
   //@{
   static constexpr double cm = 1.0;
   //@}
+
+  /// speed of light, in cm per ns
+  static constexpr double speed_of_light = GSL_CONST_MKSA_SPEED_OF_LIGHT*1e-7;
 
   /// length of generated G4Hits along laser track
   static constexpr double maxHitLength=1.*cm;
@@ -574,40 +578,24 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     hit->set_layer(99); 
 
     //here we set the entrance values in cm
-    // todo: try to set entrance and exit point with increasing radius
-    auto get_r = []( const TVector3& in ) { return square( in.x() ) + square( in.y() ); };
-    if( get_r( start ) < get_r( end ) )
-    {
-      hit->set_x(0, start.X() / cm);
-      hit->set_y(0, start.Y() / cm);
-      hit->set_z(0, start.Z() / cm);
+    hit->set_x(0, start.X() / cm);
+    hit->set_y(0, start.Y() / cm);
+    hit->set_z(0, start.Z() / cm);
+    hit->set_t(0, (start-pos).Mag()/speed_of_light );
 
-      hit->set_x(1, end.X() / cm);
-      hit->set_y(1, end.Y() / cm);
-      hit->set_z(1, end.Z() / cm);
-    } else {
-      hit->set_x(0, end.X() / cm);
-      hit->set_y(0, end.Y() / cm);
-      hit->set_z(0, end.Z() / cm);
-
-      hit->set_x(1, start.X() / cm);
-      hit->set_y(1, start.Y() / cm);
-      hit->set_z(1, start.Z() / cm);
-    }
+    hit->set_x(1, end.X() / cm);
+    hit->set_y(1, end.Y() / cm);
+    hit->set_z(1, end.Z() / cm);
+    hit->set_t(1, (end-pos).Mag()/speed_of_light );
 
     // momentum
     hit->set_px(0, dir.X()); // GeV
     hit->set_py(0, dir.Y());
     hit->set_pz(0, dir.Z());
 
-    // time in ns
-    hit->set_t(0, 0.0); // nanosecond
-
     hit->set_px(1, dir.X());
     hit->set_py(1, dir.Y());
     hit->set_pz(1, dir.Z());
-
-    hit->set_t(1, 0.0); // dummy number, nanosecond
 
     const double totalE = electrons_per_cm*stepLength/electrons_per_gev;
 
