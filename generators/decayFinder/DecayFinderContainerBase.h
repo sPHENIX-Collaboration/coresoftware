@@ -23,43 +23,43 @@ class DecayFinderContainerBase : public PHObject
   typedef std::map<unsigned int, Decay>::const_iterator ConstIter;
   typedef std::map<unsigned int, Decay>::iterator Iter;
 
-  DecayFinderContainerBase();
-  DecayFinderContainerBase(const DecayFinderContainerBase& decayfindermap);
-  DecayFinderContainerBase& operator=(const DecayFinderContainerBase& decayfindermap);
-  virtual ~DecayFinderContainerBase();
+  ~DecayFinderContainerBase() override {}
 
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override
+  {
+    os << "DecayFinderContainer base class" << std::endl;
+  }
   void Reset() override;
-  int isValid() const override { return 1; }
-  PHObject* CloneMe() const override { return new DecayFinderContainerBase(*this); }
+  int isValid() const override { return 0; }
+  PHObject* CloneMe() const override { return nullptr; }
 
-  bool empty() const { return m_decaymap.empty(); }
-  size_t size() const { return m_decaymap.size(); }
-  size_t count(unsigned int key) const { return m_decaymap.count(key); }
-  void clear() { Reset(); }
+  virtual bool empty() const { return true; }
+  virtual size_t size() const { return 0; }
+  virtual size_t count(unsigned int) const { return 0; }
+  virtual void clear();
 
-  const Decay get(unsigned int key) const;
-  Decay get(unsigned int key);
+  virtual const Decay get(unsigned int) const;
+  virtual Decay get(unsigned int);
 
-  ConstIter begin() const { return m_decaymap.begin(); }
-  ConstIter find(unsigned int key) const { return m_decaymap.find(key); }
-  ConstIter end() const { return m_decaymap.end(); }
+  virtual ConstIter begin() const;
+  virtual ConstIter find(unsigned int) const;
+  virtual ConstIter end() const;
 
-  Iter begin() { return m_decaymap.begin(); }
-  Iter find(unsigned int key) { return m_decaymap.find(key); }
-  Iter end() { return m_decaymap.end(); }
+  virtual Iter begin();
+  virtual Iter find(unsigned int);
+  virtual Iter end();
 
-  Decay insert(const Decay decay);
+  virtual Decay insert(const Decay);
 
-  ///Use the PDG MC ID to return a subset of the DecayFinder container, if those particle exist in the container
-  Map returnDecaysByPDGid(int PDGid);
+  virtual Map returnDecaysByPDGid(int);
 
-  size_t erase(unsigned int key);
+  virtual size_t erase(unsigned int key);
 
-  Map m_decaymap;
+ protected:
+  DecayFinderContainerBase() {}
 
  private:
-  ClassDefOverride(DecayFinderContainerBase, 1)
+  ClassDefOverride(DecayFinderContainerBase, 1);
 };
 
 #endif  //DECAYFINDER_DECAYFINDERCONTAINERBASE_H

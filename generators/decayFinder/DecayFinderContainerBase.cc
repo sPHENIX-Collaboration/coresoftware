@@ -6,90 +6,35 @@
 
 #include "DecayFinderContainerBase.h"
 
-#include <iterator>  // for reverse_iterator
+//#include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
 
-DecayFinderContainerBase::DecayFinderContainerBase()
-  : m_decaymap()
+DecayFinderContainerBase::Decay DummyDecay;
+DecayFinderContainerBase::Map DummyMap;
+
+const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int) const
 {
+  return DummyDecay;
 }
 
-DecayFinderContainerBase::DecayFinderContainerBase(const DecayFinderContainerBase& decaymap)
-  : m_decaymap()
+DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int)
 {
-  for (ConstIter iter = decaymap.begin(); iter != decaymap.end(); ++iter)
-  {
-    Decay decay = iter->second;
-    m_decaymap.insert(std::make_pair(iter->first, decay));
-  }
+  return DummyDecay;
 }
 
-DecayFinderContainerBase& DecayFinderContainerBase::operator=(const DecayFinderContainerBase& decaymap)
+DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay)
 {
-  Reset();
-  for (ConstIter iter = decaymap.begin(); iter != decaymap.end(); ++iter)
-  {
-    Decay decay = iter->second;
-    m_decaymap.insert(std::make_pair(iter->first, decay));
-  }
-  return *this;
+  return DummyDecay;
 }
 
-DecayFinderContainerBase::~DecayFinderContainerBase()
+DecayFinderContainerBase::Map DecayFinderContainerBase::returnDecaysByPDGid(int)
 {
-  Reset();
-}
-
-void DecayFinderContainerBase::Reset()
-{
-  m_decaymap.clear();
-}
-
-void DecayFinderContainerBase::identify(std::ostream& os) const
-{
-  os << "DecayFinderContainerBase: size = " << m_decaymap.size() << std::endl;
-  return;
-}
-
-const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int id) const
-{
-  Decay dummyDecay = {{0, 0}};
-  ConstIter iter = m_decaymap.find(id);
-  if (iter == m_decaymap.end()) return dummyDecay;
-  return iter->second;
-}
-
-DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int id)
-{
-  Decay dummyDecay = {{0, 0}};
-  Iter iter = m_decaymap.find(id);
-  if (iter == m_decaymap.end()) return dummyDecay;
-  return iter->second;
-}
-
-DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay decay)
-{
-  unsigned int index = 0;
-  if (!m_decaymap.empty()) index = m_decaymap.rbegin()->first + 1;
-  m_decaymap.insert(std::make_pair(index, decay));
-  return m_decaymap[index];
-}
-
-DecayFinderContainerBase::Map DecayFinderContainerBase::returnDecaysByPDGid(int PDGid)
-{
-  Map requiredDecays;
-
-  for (Iter iter = m_decaymap.begin(); iter != m_decaymap.end(); ++iter)
-    for (auto& [particleNumber, particleType] : iter->second)
-      if (particleType == PDGid)
-        requiredDecays.insert(std::make_pair(iter->first, iter->second));
-
-  return requiredDecays;
+  return DummyMap;
 }
 
 size_t DecayFinderContainerBase::erase(unsigned int key)
 {
-  return m_decaymap.erase(key);
+  return DummyMap.erase(key);
 }
