@@ -64,6 +64,8 @@ namespace
 	  unsigned short phioffset;
 	  unsigned short zbins;
 	  unsigned short zoffset;
+	  unsigned short maxHalfSizeZ;
+	  unsigned short maxHalfSizePhi;
 	  double zz_shaping_correction;
 	  std::pair<double,double> par0_neg;
 	  std::pair<double,double> par0_pos;
@@ -99,9 +101,9 @@ namespace
 	  }
 	}
 	
-	void find_z_range(int phibin, int zbin, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+  void find_z_range(int phibin, int zbin, int NZBinsMax, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 	
-	  static constexpr int FitRangeZ = 5;
+          int FitRangeZ = (int) maxHalfSizeZ;
 	  zup = 0;
 	  zdown = 0;
 	  for(int iz=0; iz< FitRangeZ; iz++){
@@ -146,9 +148,9 @@ namespace
 	  }
 	}
 	
-	void find_phi_range(int phibin, int zbin, int NPhiBinsMax, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+  void find_phi_range(int phibin, int zbin, int NPhiBinsMax, unsigned short maxHalfSizePhi, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
 	
-	  static constexpr int FitRangePHI = 3;
+          int FitRangePHI = (int) maxHalfSizePhi;
 	  phidown = 0;
 	  phiup = 0;
 	  for(int iphi=0; iphi< FitRangePHI; iphi++){
@@ -197,19 +199,19 @@ namespace
 	  }
 	}
 	
-	void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+  void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, unsigned short maxHalfSizePhi, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
 	{
 	  // search along phi at the peak in z
 	 
 	  int zup =0;
 	  int zdown =0;
-	  find_z_range(phibin, zbin, NZBinsMax, adcval, zdown, zup);
+	  find_z_range(phibin, zbin, NZBinsMax, maxHalfSizeZ, adcval, zdown, zup);
 	  //now we have the z extent of the cluster, go find the phi edges
 	
 	  for(int iz=zbin - zdown ; iz<= zbin + zup; iz++){
 	    int phiup = 0;
 	    int phidown = 0;
-	    find_phi_range(phibin, iz, NPhiBinsMax, adcval, phidown, phiup);
+	    find_phi_range(phibin, iz, NPhiBinsMax, maxHalfSizePhi, adcval, phidown, phiup);
 	    for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
 	      iphiz iCoord(std::make_pair(iphi,iz));
 	      ihit  thisHit(adcval[iphi][iz],iCoord);
@@ -481,6 +483,8 @@ namespace
 	   unsigned short phioffset = my_data->phioffset;
 	   unsigned short zbins     = my_data->zbins ;
 	   unsigned short zoffset   = my_data->zoffset ;
+	   unsigned short halfsizephi = my_data->maxHalfSizePhi; 
+	   unsigned short halfsizez = my_data->maxHalfSizeZ; 
 	   std::pair<double, double> par0_neg = my_data->par0_neg;
 	   std::pair<double, double> par0_pos = my_data->par0_pos;
 	   std::pair<double, double> par1_neg = my_data->par1_neg;
@@ -540,7 +544,7 @@ namespace
 	     //start with highest adc hit
 	     // -> cluster around it and get vector of hits
 	     std::vector<ihit> ihit_list;
-	     get_cluster(iphi, iz, phibins, zbins, adcval, ihit_list);
+	     get_cluster(iphi, iz, phibins, zbins,  halfsizephi, halfsizez, adcval, ihit_list);
 	     nclus++;
 	
 	     // -> calculate cluster parameters
@@ -765,6 +769,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
+    thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+    thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
 
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
