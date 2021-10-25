@@ -11,8 +11,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4BbcDisplayAction::PHG4BbcDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -47,17 +45,16 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     }
     else if (it.second == "Bbc_Shell")
     {
-      visatt->SetColour(G4Colour::Grey());
+      visatt->SetColour(0.5,0.5,0.5,0.4);
     }
     else if (it.second == "Bbc_Front_Plate")
     {
-      visatt->SetColour(G4Colour::Grey());
+      visatt->SetColour(0.5,0.5,0.5,0.4);
     }
     else
     {
-      cout << GetName() << " unknown logical volume " << it.second << endl;
-      visatt->SetColour(G4Colour::Cyan());
-//      gSystem->Exit(1);
+      std::cout << "PHG4BbcDisplayAction::ApplyDisplayAction unknown logical volume " << it.second << " in " << GetName() << std::endl;
+      gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }
