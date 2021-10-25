@@ -5,6 +5,8 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>                // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Polyhedra.hh>
 #include <Geant4/G4Tubs.hh>
@@ -25,6 +27,7 @@ class PHG4Subsystem;
 
 PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4BbcDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(params)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
@@ -67,11 +70,9 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Polyhedra *bbcq = new G4Polyhedra("bbcq",0.,2.0*M_PI,6,2,z_bbcq,rInner_bbcq,rOuter_bbcq); // bbc quartz radiator
 
   G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, "Bbc_quartz");
-  G4VisAttributes *bbcqVisAtt = new G4VisAttributes();
-  bbcqVisAtt->SetVisibility(true);
-  bbcqVisAtt->SetForceSolid(true);
-  bbcqVisAtt->SetColour(G4Colour::Red());
-  bbcq_lv->SetVisAttributes(bbcqVisAtt);
+
+  m_PhysLogicalVolSet.insert(bbcq_lv);
+  GetDisplayAction()->AddVolume(bbcq_lv, "Bbc_quartz");
 
   //m_bbcz = m_Params->get_double_param("z") * cm;
   m_bbcz = 250.0*cm;  // The midpoint of the quartz is at 250 cm
@@ -99,7 +100,6 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     -7.1, -7.1, -8.52, -8.52, -8.52, -8.52, -8.52, -9.94, 
     -9.94, -9.94, -9.94, -11.36, -11.36, -11.36, -12.78, -12.78, 
   };
-  m_PhysLogicalVolSet.insert(bbcq_lv);
   const int NPMT = 64;  // No. PMTs per arm
   for ( int iarm = 0; iarm<2; iarm ++ )
   {
@@ -110,10 +110,8 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     for (int itube = 0; itube < NPMT; itube++)
     {
       // Quartz Cerenkov Radiators (active)
-      G4VPhysicalVolume *vol = new G4PVPlacement(0, G4ThreeVector(side*xpos[itube]*cm, ypos[itube]*cm, side*m_bbcz),
+      new G4PVPlacement(0, G4ThreeVector(side*xpos[itube]*cm, ypos[itube]*cm, side*m_bbcz),
           bbcq_lv, "BBC", logicWorld, false, iarm*NPMT + itube, OverlapCheck());
-
-      m_PhysicalVolumesSet.insert(vol);
 
       // PMT bodies (inactive)
     }
@@ -126,30 +124,22 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *Alum = GetDetectorMaterial("G4_Al");
   G4Tubs *bbc_shell = new G4Tubs("bbc_shell",14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_shell_lv = new G4LogicalVolume(bbc_shell, Alum, "Bbc_Shell");
-  G4VisAttributes *bbc_shell_VisAtt = new G4VisAttributes();
-  bbc_shell_VisAtt->SetVisibility(true);
-  bbc_shell_VisAtt->SetForceSolid(true);
-  bbc_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_shell_lv->SetVisAttributes(bbcqVisAtt);
+  m_SupportLogicalVolSet.insert(bbc_shell_lv);
+  GetDisplayAction()->AddVolume(bbc_shell_lv, "Bbc_Shell");
+
   // Place South Shell
-  G4VPhysicalVolume *shell_vol[2] = {0};
-  shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
+  new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
           bbc_shell_lv, "BBC_SHELL", logicWorld, false, 0, OverlapCheck());
   // Place North Shell
-  shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
+  new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
           bbc_shell_lv, "BBC_SHELL", logicWorld, false, 1, OverlapCheck());
-  shell_vol[0]->GetName();
-  shell_vol[1]->GetName();
 
 
   // BBC Front Plate
   G4Tubs *bbc_fplate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_fplate_lv = new G4LogicalVolume(bbc_fplate, Alum, "Bbc_Front_Plate");
-  G4VisAttributes *bbc_fplate_VisAtt = new G4VisAttributes();
-  bbc_fplate_VisAtt->SetVisibility(true);
-  bbc_fplate_VisAtt->SetForceSolid(true);
-  bbc_fplate_VisAtt->SetColour(G4Colour::Gray());
-  bbc_fplate_lv->SetVisAttributes(bbcqVisAtt);
+  m_SupportLogicalVolSet.insert(bbc_fplate_lv);
+  GetDisplayAction()->AddVolume(bbc_fplate_lv, "Bbc_Front_Plate");
 
   // Place South Plates
   G4VPhysicalVolume *fplate_vol[2] = {0};

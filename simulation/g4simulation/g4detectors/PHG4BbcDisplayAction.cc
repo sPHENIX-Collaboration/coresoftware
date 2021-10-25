@@ -41,43 +41,23 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Absorber")
-    {
-      visatt->SetColour(G4Colour::Blue());
-    }
-    else if (it.second == "Envelope" || it.second == "fiber_plate_air")
-    {
-      visatt->SetVisibility(false);
-      visatt->SetForceSolid(false);
-    }
-    else if (it.second == "Fiber")
-    {
-      visatt->SetColour(G4Colour::Cyan());
-    }
-    else if (it.second == "FrontBackPlate")
-    {
-      visatt->SetColour(G4Colour::Red());
-    }
-    else if (it.second == "Window")
-    {
-      visatt->SetColour(G4Colour::Blue());
-    }
-    else if (it.second == "SMD")
+    if (it.second == "Bbc_quartz")
     {
       visatt->SetColour(G4Colour::Yellow());
     }
-    else if (it.second == "FiberPlate")
+    else if (it.second == "Bbc_Shell")
     {
-      visatt->SetColour(G4Colour::Cyan());
+      visatt->SetColour(G4Colour::Grey());
     }
-    else if (it.second == "Scint_solid")
+    else if (it.second == "Bbc_Front_Plate")
     {
-      visatt->SetColour(G4Colour::Cyan());
+      visatt->SetColour(G4Colour::Grey());
     }
     else
     {
       cout << GetName() << " unknown logical volume " << it.second << endl;
-      gSystem->Exit(1);
+      visatt->SetColour(G4Colour::Cyan());
+//      gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }
