@@ -1,5 +1,9 @@
 #include "PHG4BbcDetector.h"
 
+#include "PHG4BbcDisplayAction.h"
+
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>                // for PHG4Detector
 
 #include <Geant4/G4Polyhedra.hh>
@@ -22,25 +26,31 @@ class PHG4Subsystem;
 PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(params)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
-  //IsActive = par->get_int_param("active");
-  //IsAbsorberActive = par->get_int_param("absorberactive");
-  IsActive = true;
-  IsAbsorberActive = false;
 }
 
 //_______________________________________________________________
 //_______________________________________________________________
 int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 {
-  //std::cout << PHWHERE << " volume " << volume->GetName() << std::endl;
+  G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
 
-  std::set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);
-  if (iter != m_PhysicalVolumesSet.end())
+  if (m_ActiveFlag)
   {
-    return 1;
+    if (m_PhysLogicalVolSet.find(mylogvol) != m_PhysLogicalVolSet.end())
+    {
+      return 1;
+    }
   }
-
+  if (m_SupportActiveFlag)
+  {
+    if (m_SupportLogicalVolSet.find(mylogvol) != m_SupportLogicalVolSet.end())
+    {
+      return -2;
+    }
+  }
   return 0;
 }
 
@@ -89,7 +99,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     -7.1, -7.1, -8.52, -8.52, -8.52, -8.52, -8.52, -9.94, 
     -9.94, -9.94, -9.94, -11.36, -11.36, -11.36, -12.78, -12.78, 
   };
-
+  m_PhysLogicalVolSet.insert(bbcq_lv);
   const int NPMT = 64;  // No. PMTs per arm
   for ( int iarm = 0; iarm<2; iarm ++ )
   {
