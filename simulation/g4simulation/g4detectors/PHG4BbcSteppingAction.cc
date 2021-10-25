@@ -1,6 +1,9 @@
 #include "PHG4BbcSteppingAction.h"
+
 #include "PHG4BbcDetector.h"
 #include "PHG4StepStatusDecode.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -36,19 +39,13 @@
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* /*parameters*/)
+PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
-  , m_EdepSum(0)
-  , m_EionSum(0)
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
+  , m_SupportFlag(m_Params->get_int_param("supportactive"))
 {
 }
 
@@ -88,15 +85,16 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this detector stops everything, just put all kinetic energy into edep
-  /*
   if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track *killtrack = const_cast<G4Track *>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  */
-
+  if (whichactive < 0 && !m_SupportFlag)
+  {
+    return false;
+  }
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
@@ -114,15 +112,6 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
   int detector_id = touch->GetCopyNumber();
-  /*
-  if (detector_id != whichactive)
-  {
-    std::cout << PHWHERE << " inconsistency between G4 copy number: "
-	 << detector_id << " and module id from detector: "
-	 << whichactive << std::endl;
-    //gSystem->Exit(1);
-  }
-  */
 
   switch (prePoint->GetStepStatus())
   {
@@ -184,8 +173,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     }
     else
     {
-      std::cout << "implement stuff for whichactive < 0" << std::endl;
-      gSystem->Exit(1);
+      m_SaveHitContainer = m_SupportHitContainer;
     }
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {

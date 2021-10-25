@@ -142,14 +142,11 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   GetDisplayAction()->AddVolume(bbc_fplate_lv, "Bbc_Front_Plate");
 
   // Place South Plates
-  G4VPhysicalVolume *fplate_vol[2] = {0};
-  fplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5)*cm),
-          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 0, OverlapCheck());
+  new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5)*cm),
+          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 2, OverlapCheck());
   // Place North Plate
-  fplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5)*cm),
-          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 1, OverlapCheck());
-  fplate_vol[0]->GetName();
-  fplate_vol[1]->GetName();
+  new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5)*cm),
+          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 3, OverlapCheck());
 
   return;
 }
