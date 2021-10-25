@@ -326,9 +326,14 @@ void PHG4TpcDirectLaser::SetupLasers()
   // clear previous lasers
   m_lasers.clear();
 
-//   // position of first laser at positive z
-//   const TVector3 position_base( 60*cm, 0., halflength_tpc );
-// 
+  // position of first laser at positive z
+  const TVector3 position_base( 60*cm, 0., halflength_tpc );
+  Laser laser;
+  laser.m_position = position_base;
+  laser.m_direction = -1;
+  laser.m_phi = 0;
+  m_lasers.push_back( laser );
+
 //   // add lasers
 //   for( int i = 0; i<8; ++i )
 //   {
@@ -369,27 +374,27 @@ void PHG4TpcDirectLaser::SetupLasers()
 //   laser.m_phi = 0;
 //   m_lasers.push_back( laser );
  
-  // put one laser on the inner field cage, close to the central membrane
-  const TVector3 position_base( 0., 20.01*cm, 1 );
-  for( int i = 0; i < 16; ++i )
-  {
-    Laser laser;
-    laser.m_position = position_base;
-
-    if( i < 8 )
-    {
-      laser.m_position.SetZ( position_base.z() );
-      laser.m_direction = 1;
-    } else {
-      laser.m_position.SetZ( -position_base.z() );
-      laser.m_direction = -1;
-    }
-
-    laser.m_phi = (M_PI/4)*i;
-    laser.m_position.RotateZ( laser.m_phi );
-
-    m_lasers.push_back( laser );
-  }
+//   // put one laser on the inner field cage, close to the central membrane
+//   const TVector3 position_base( 0., 20.01*cm, 1 );
+//   for( int i = 0; i < 16; ++i )
+//   {
+//     Laser laser;
+//     laser.m_position = position_base;
+// 
+//     if( i < 8 )
+//     {
+//       laser.m_position.SetZ( position_base.z() );
+//       laser.m_direction = 1;
+//     } else {
+//       laser.m_position.SetZ( -position_base.z() );
+//       laser.m_direction = -1;
+//     }
+// 
+//     laser.m_phi = (M_PI/4)*i;
+//     laser.m_position.RotateZ( laser.m_phi );
+// 
+//     m_lasers.push_back( laser );
+//   }
   
 }
 
