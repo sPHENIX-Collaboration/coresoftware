@@ -34,12 +34,8 @@
 //_______________________________________________________________________
 PHG4BbcSubsystem::PHG4BbcSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
-  , m_detector(nullptr)
-  , m_steppingAction(nullptr)
 {
   InitializeParameters();
-  Name(name);
-  SuperDetector(name);
 }
 
 //_______________________________________________________________________
@@ -62,34 +58,45 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   //if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
+    PHCompositeNode *DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
     }
-    std::ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector();
+      detector_suffix = Name();
     }
-    else
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_SupportNodeName = "G4HIT_SUPPORT_" + detector_suffix;
+    if (GetParams()->get_int_param("supportactive"))
     {
-      nodename << "G4HIT_" << Name();
+      nodes.insert(m_SupportNodeName);
     }
-    nodes.insert(nodename.str());
-    BOOST_FOREACH (std::string node, nodes)
+    for (auto nodename: nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
       {
-        g4_hits = new PHG4HitContainer(node);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
       }
     }
     // create stepping action
-    m_steppingAction = new PHG4BbcSteppingAction(m_detector, GetParams());
-    m_steppingAction->Init();
+    m_SteppingAction = new PHG4BbcSteppingAction(m_detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
   }
 
   return 0;
@@ -100,9 +107,9 @@ int PHG4BbcSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (m_steppingAction)
+  if (m_SteppingAction)
   {
-    m_steppingAction->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -115,9 +122,9 @@ void PHG4BbcSubsystem::Print(const std::string &what) const
   {
     m_detector->Print(what);
   }
-  if (m_steppingAction)
+  if (m_SteppingAction)
   {
-    m_steppingAction->Print(what);
+    m_SteppingAction->Print(what);
   }
   return;
 }
@@ -126,12 +133,6 @@ void PHG4BbcSubsystem::Print(const std::string &what) const
 PHG4Detector *PHG4BbcSubsystem::GetDetector(void) const
 {
   return m_detector;
-}
-
-//_______________________________________________________________________
-PHG4SteppingAction *PHG4BbcSubsystem::GetSteppingAction(void) const
-{
-  return m_steppingAction;
 }
 
 void PHG4BbcSubsystem::SetDefaultParameters()

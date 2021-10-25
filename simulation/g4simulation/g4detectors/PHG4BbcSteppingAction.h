@@ -29,12 +29,15 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode*) override;
 
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
+
  private:
   //! pointer to the detector
   PHG4BbcDetector* m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer* m_HitContainer;
+  PHG4HitContainer* m_SupportHitContainer = nullptr;
   PHG4Hit* m_Hit;
   PHG4HitContainer *m_SaveHitContainer;
 
@@ -52,6 +55,9 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
   //! pointer to parameters
   //const PHParameters* m_Params;
 
+  std::string m_HitNodeName;
+  std::string m_SupportNodeName;
+
 };
 
-#endif  // PHG4BbcSteppingAction_h__
+#endif  // G4DETECTORS_PHG4BBCSTEPPINGACTION_H

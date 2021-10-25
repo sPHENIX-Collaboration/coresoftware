@@ -45,8 +45,6 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
   }
 
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-  creates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode*) override;
@@ -60,7 +58,9 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector() const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override{ return m_SteppingAction; };
+  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
+
 
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
@@ -71,12 +71,18 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
 
   //! MBD geometry and construction
   /*! derives from PHG4Detector */
-  PHG4BbcDetector* m_detector;
+  PHG4BbcDetector* m_detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_steppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  std::string m_HitNodeName;
+  std::string m_SupportNodeName;
 };
 
 #endif
