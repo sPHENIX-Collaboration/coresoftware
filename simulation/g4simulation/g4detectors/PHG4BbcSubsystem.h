@@ -40,9 +40,7 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
   PHG4BbcSubsystem(const std::string& name = "BBC");
 
   //! destructor
-  ~PHG4BbcSubsystem(void) override
-  {
-  }
+  ~PHG4BbcSubsystem(void) override;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST

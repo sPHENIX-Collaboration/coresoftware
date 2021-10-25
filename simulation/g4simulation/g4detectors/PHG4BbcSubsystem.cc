@@ -1,15 +1,7 @@
-// $Id$
-
-/*!
- * \file ${file_name}
- * \brief
- * \author Mickey Chiu <chiu@bnl.gov>
- * \version $Revision$
- * \date $Date$
- */
-
 #include "PHG4BbcSubsystem.h"
+
 #include "PHG4BbcDetector.h"
+#include "PHG4BbcDisplayAction.h"
 #include "PHG4BbcSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -25,8 +17,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <boost/foreach.hpp>
-
 #include <iostream>                     // for operator<<, basic_ostream, endl
 #include <set>                                  // for set
 #include <sstream>
@@ -36,6 +26,12 @@ PHG4BbcSubsystem::PHG4BbcSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4BbcSubsystem::~PHG4BbcSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -49,13 +45,15 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4BbcDisplayAction(Name());
   // create detector
   m_detector = new PHG4BbcDetector(this, topNode, GetParams(), Name());
   m_detector->SuperDetector(SuperDetector());
   m_detector->OverlapCheck(CheckOverlap());
 
   std::set<std::string> nodes;
-  //if (GetParams()->get_int_param("active"))
+  if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
