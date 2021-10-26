@@ -1,6 +1,9 @@
 #include "PHG4BbcSteppingAction.h"
+
 #include "PHG4BbcDetector.h"
 #include "PHG4StepStatusDecode.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -36,19 +39,13 @@
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* /*parameters*/)
+PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
-  , m_EdepSum(0)
-  , m_EionSum(0)
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
+  , m_SupportFlag(m_Params->get_int_param("supportactive"))
 {
 }
 
@@ -88,15 +85,20 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this detector stops everything, just put all kinetic energy into edep
-  /*
   if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
-    G4Track *killtrack = const_cast<G4Track *>(aTrack);
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
+    if (!m_ActiveFlag)
+    {
+      return false;
+    }
   }
-  */
-
+  if (whichactive < 0 && !m_SupportFlag)
+  {
+    return false;
+  }
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
@@ -114,15 +116,6 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
   int detector_id = touch->GetCopyNumber();
-  /*
-  if (detector_id != whichactive)
-  {
-    std::cout << PHWHERE << " inconsistency between G4 copy number: "
-	 << detector_id << " and module id from detector: "
-	 << whichactive << std::endl;
-    //gSystem->Exit(1);
-  }
-  */
 
   switch (prePoint->GetStepStatus())
   {
@@ -184,8 +177,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     }
     else
     {
-      std::cout << "implement stuff for whichactive < 0" << std::endl;
-      gSystem->Exit(1);
+      m_SaveHitContainer = m_SupportHitContainer;
     }
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {
@@ -310,24 +302,40 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
 //____________________________________________________________________________..
 void PHG4BbcSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string hitnodename = "G4HIT_" + m_Detector->GetName();
-  /*
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-  }
-  */
-
-  //now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-
-  // if we do not find the node we need to make it.
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
+  // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
-    std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    if (!m_Params->get_int_param("blackhole"))  // not messed up if we have a black hole
+    {
+      std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+      gSystem->Exit(1);
+    }
   }
+  // this is perfectly fine if support hits are disabled
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+    }
+  }
+}
+
+void PHG4BbcSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }
