@@ -56,10 +56,9 @@ class TpcClusterizer : public SubsysReco
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
   std::pair<double,double> par0_neg = std::make_pair(0.0538913, 0.000252096);
-  std::pair<double,double> par0_pos = std::make_pair(-0.0647731, 0.000296734);
+  std::pair<double,double> par0_pos = std::make_pair(-0.0538913, -0.000252096);
   std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
-  std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
-  
+  std::pair<double,double> par1_pos = std::make_pair(-0.000208279, 1.9205e-06);
 
 };
 
