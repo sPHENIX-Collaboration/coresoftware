@@ -69,7 +69,7 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
 
   //! MBD geometry and construction
   /*! derives from PHG4Detector */
-  PHG4BbcDetector* m_detector = nullptr;
+  PHG4BbcDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */

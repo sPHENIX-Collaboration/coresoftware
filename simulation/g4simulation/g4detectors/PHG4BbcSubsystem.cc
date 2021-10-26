@@ -48,9 +48,9 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4BbcDisplayAction(Name());
   // create detector
-  m_detector = new PHG4BbcDetector(this, topNode, GetParams(), Name());
-  m_detector->SuperDetector(SuperDetector());
-  m_detector->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4BbcDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
 
   std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
@@ -92,9 +92,13 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
     }
     // create stepping action
-    m_SteppingAction = new PHG4BbcSteppingAction(m_detector, GetParams());
+    m_SteppingAction = new PHG4BbcSteppingAction(m_Detector, GetParams());
     m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
     m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
+  }
+  else if (GetParams()->get_int_param("blackhole"))
+  {
+    m_SteppingAction = new PHG4BbcSteppingAction(m_Detector, GetParams());
   }
 
   return 0;
@@ -116,9 +120,9 @@ void PHG4BbcSubsystem::Print(const std::string &what) const
 {
   std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
-  if (m_detector)
+  if (m_Detector)
   {
-    m_detector->Print(what);
+    m_Detector->Print(what);
   }
   if (m_SteppingAction)
   {
@@ -130,7 +134,7 @@ void PHG4BbcSubsystem::Print(const std::string &what) const
 //_______________________________________________________________________
 PHG4Detector *PHG4BbcSubsystem::GetDetector(void) const
 {
-  return m_detector;
+  return m_Detector;
 }
 
 void PHG4BbcSubsystem::SetDefaultParameters()
