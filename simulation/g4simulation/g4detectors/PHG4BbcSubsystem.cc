@@ -140,12 +140,8 @@ PHG4Detector *PHG4BbcSubsystem::GetDetector(void) const
 
 void PHG4BbcSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("z", 250.);
-
   // geometry version number
   // we use negative numbers until the "official" version
   // when we build the detector
   // set_default_int_param("geometry_version",-1);
-  //set_default_int_param("active", 1);
-  //set_default_int_param("absorberactive", 0);
 }
