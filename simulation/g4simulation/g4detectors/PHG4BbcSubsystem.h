@@ -19,6 +19,7 @@
 
 class PHCompositeNode;
 class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4BbcDetector;
 class PHG4SteppingAction;
 
@@ -56,9 +57,8 @@ class PHG4BbcSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector() const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override{ return m_SteppingAction; };
-  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
-
+  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; };
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;

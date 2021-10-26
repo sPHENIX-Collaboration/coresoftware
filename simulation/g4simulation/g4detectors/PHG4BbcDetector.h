@@ -36,10 +36,10 @@ class PHG4BbcDetector : public PHG4Detector
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
- 
+
   PHG4BbcDisplayAction *GetDisplayAction() { return m_DisplayAction; }
 
-protected:
+ protected:
   PHG4BbcDisplayAction *m_DisplayAction = nullptr;
 
   PHParameters *m_Params = nullptr;

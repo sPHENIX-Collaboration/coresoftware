@@ -88,9 +88,12 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
-    G4Track *killtrack = const_cast<G4Track *>(aTrack);
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
-    return false;
+    if (!m_ActiveFlag)
+    {
+      return false;
+    }
   }
   if (whichactive < 0 && !m_SupportFlag)
   {
@@ -304,10 +307,10 @@ void PHG4BbcSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
-    if (!m_Params->get_int_param("blackhole")) // not messed up if we have a black hole
+    if (!m_Params->get_int_param("blackhole"))  // not messed up if we have a black hole
     {
-    std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
-    gSystem->Exit(1);
+      std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+      gSystem->Exit(1);
     }
   }
   // this is perfectly fine if support hits are disabled

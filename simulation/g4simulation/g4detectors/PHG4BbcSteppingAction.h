@@ -5,11 +5,12 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
-class PHG4BbcDetector;
+#include <string>  // for string
 
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4BbcDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
@@ -39,12 +40,11 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
   PHG4HitContainer* m_HitContainer = nullptr;
   PHG4HitContainer* m_SupportHitContainer = nullptr;
   const PHParameters* m_Params = nullptr;
-  PHG4HitContainer* m_CurrentHitContainer = nullptr;
   PHG4Hit* m_Hit = nullptr;
-  PHG4HitContainer *m_SaveHitContainer = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
 
-  G4VPhysicalVolume *m_SaveVolPre = nullptr;
-  G4VPhysicalVolume *m_SaveVolPost = nullptr;
+  G4VPhysicalVolume* m_SaveVolPre = nullptr;
+  G4VPhysicalVolume* m_SaveVolPost = nullptr;
 
   int m_SaveTrackId = -1;
   int m_SavePreStepStatus = -1;
@@ -57,7 +57,6 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
-
 };
 
 #endif  // G4DETECTORS_PHG4BBCSTEPPINGACTION_H

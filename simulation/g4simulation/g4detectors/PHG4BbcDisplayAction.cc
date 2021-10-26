@@ -45,11 +45,11 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     }
     else if (it.second == "Bbc_Shell")
     {
-      visatt->SetColour(0.5,0.5,0.5,0.4);
+      visatt->SetColour(0.5, 0.5, 0.5, 0.4);
     }
     else if (it.second == "Bbc_Front_Plate")
     {
-      visatt->SetColour(0.5,0.5,0.5,0.4);
+      visatt->SetColour(0.5, 0.5, 0.5, 0.4);
     }
     else
     {
