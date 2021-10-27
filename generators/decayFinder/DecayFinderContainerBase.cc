@@ -14,6 +14,16 @@
 DecayFinderContainerBase::Decay DummyDecay;
 DecayFinderContainerBase::Map DummyMap;
 
+void DecayFinderContainerBase::Reset()
+{
+  DummyMap.clear();
+}
+
+void DecayFinderContainerBase::clear()
+{
+  DummyMap.clear();
+}
+
 const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int) const
 {
   return DummyDecay;
@@ -22,6 +32,37 @@ const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int
 DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int)
 {
   return DummyDecay;
+}
+
+DecayFinderContainerBase::ConstIter DecayFinderContainerBase::begin() const
+{
+  return DummyMap.end();
+}
+
+DecayFinderContainerBase::ConstIter DecayFinderContainerBase::find(unsigned int) const
+{
+  return DummyMap.end();
+}
+
+DecayFinderContainerBase::ConstIter DecayFinderContainerBase::end() const
+{
+  return DummyMap.end();
+}
+
+
+DecayFinderContainerBase::Iter DecayFinderContainerBase::begin()
+{
+  return DummyMap.end();
+}
+
+DecayFinderContainerBase::Iter DecayFinderContainerBase::find(unsigned int)
+{
+  return DummyMap.end();
+}
+
+DecayFinderContainerBase::Iter DecayFinderContainerBase::end()
+{
+  return DummyMap.end();
 }
 
 DecayFinderContainerBase::Decay DecayFinderContainerBase::insert(const Decay)
