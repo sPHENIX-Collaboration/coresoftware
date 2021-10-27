@@ -78,7 +78,7 @@ class DecayFinder : public SubsysReco
    *       for a pipi final state, basically inclusive decays are handled automatically. If you wish to study the f0 
    *       decay, add it to your decay descriptor and it will automatically be removed from the "skip list"
    */
-  void setDecayDescriptor(std::string decayDescriptor) { m_decayDescriptor = decayDescriptor; }
+  void setDecayDescriptor(const std::string &decayDescriptor) { m_decayDescriptor = decayDescriptor; }
   /**
    * @param[in] trigger Set to true to allow further processing of events in which your decay appears, if your decay 
    *            does not appear, all further processing of this event is skipped. This defaults to false so every event 
@@ -102,11 +102,11 @@ class DecayFinder : public SubsysReco
    * @param[in] name Change the default name of the DecayFinderContainer. 
    * @note This name will still have "_DecayMap" added to the end, this cannot be changed
    */
-  void setNodeName(std::string name) { m_container_name = name; }
+  void setNodeName(const std::string &name) { m_container_name = name; }
 
  private:
-  PHHepMCGenEventMap *m_geneventmap = NULL;
-  PHHepMCGenEvent *m_genevt = NULL;
+  PHHepMCGenEventMap *m_geneventmap = nullptr;
+  PHHepMCGenEvent *m_genevt = nullptr;
 
   int m_counter = 0;
   int m_nCandFail_pT = 0;
