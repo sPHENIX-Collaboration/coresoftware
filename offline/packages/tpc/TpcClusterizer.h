@@ -35,6 +35,8 @@ class TpcClusterizer : public SubsysReco
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
+  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
 
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
@@ -48,6 +50,8 @@ class TpcClusterizer : public SubsysReco
   bool do_hit_assoc = true;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
+  unsigned short MaxClusterHalfSizePhi = 3;
+  unsigned short MaxClusterHalfSizeZ = 5;
 
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
