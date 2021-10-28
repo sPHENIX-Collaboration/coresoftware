@@ -50,29 +50,30 @@ namespace
 	typedef std::pair<unsigned short, unsigned short> iphiz;
 	typedef std::pair<unsigned short, iphiz> ihit;
 	
-	struct thread_data {
-	  PHG4CylinderCellGeom *layergeom;
-	  TrkrHitSet *hitset;
-	  ActsSurfaceMaps *surfmaps;
-	  ActsTrackingGeometry *tGeometry;
-	  unsigned int layer;
-	  int side;
-	  unsigned int sector;
-	  float pedestal;
-	  bool do_assoc;
-	  unsigned short phibins;
-	  unsigned short phioffset;
-	  unsigned short zbins;
-	  unsigned short zoffset;
-	  unsigned short maxHalfSizeZ;
-	  unsigned short maxHalfSizePhi;
-	  double zz_shaping_correction;
+	struct thread_data 
+  {
+	  PHG4CylinderCellGeom *layergeom = nullptr;
+	  TrkrHitSet *hitset = nullptr;
+	  ActsSurfaceMaps *surfmaps = nullptr;
+	  ActsTrackingGeometry *tGeometry = nullptr;
+	  unsigned int layer = 0;
+	  int side = 0;
+	  unsigned int sector = 0;
+	  float pedestal = 0;
+	  bool do_assoc = true;
+	  unsigned short phibins = 0;
+	  unsigned short phioffset = 0;
+	  unsigned short zbins = 0;
+	  unsigned short zoffset = 0;
+	  unsigned short maxHalfSizeZ = 0;
+	  unsigned short maxHalfSizePhi = 0;
+    double m_drift_velocity_scale = 1.0;
 	  std::pair<double,double> par0_neg;
 	  std::pair<double,double> par0_pos;
 	  std::pair<double,double> par1_neg;
 	  std::pair<double,double> par1_pos;
-	  std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist;
-	  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc;
+	  std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
+	  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
 	};
 	
 	pthread_mutex_t mythreadlock;
@@ -101,9 +102,11 @@ namespace
 	  }
 	}
 	
-  void find_z_range(int phibin, int zbin, int NZBinsMax, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+//   void find_z_range(int phibin, int zbin, int NZBinsMax, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+  void find_z_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 	
-          int FitRangeZ = (int) maxHalfSizeZ;
+    const int FitRangeZ = (int) my_data.maxHalfSizeZ;
+    const int NZBinsMax = (int) my_data.zbins;
 	  zup = 0;
 	  zdown = 0;
 	  for(int iz=0; iz< FitRangeZ; iz++){
@@ -148,9 +151,11 @@ namespace
 	  }
 	}
 	
-  void find_phi_range(int phibin, int zbin, int NPhiBinsMax, unsigned short maxHalfSizePhi, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+  // void find_phi_range(int phibin, int zbin, int NPhiBinsMax, unsigned short maxHalfSizePhi, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+  void find_phi_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
 	
-          int FitRangePHI = (int) maxHalfSizePhi;
+    int FitRangePHI = (int) my_data.maxHalfSizePhi;
+    int NPhiBinsMax = (int) my_data.phibins;
 	  phidown = 0;
 	  phiup = 0;
 	  for(int iphi=0; iphi< FitRangePHI; iphi++){
@@ -199,19 +204,20 @@ namespace
 	  }
 	}
 	
-  void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, unsigned short maxHalfSizePhi, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+  void get_cluster(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+    // void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, unsigned short maxHalfSizePhi, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
 	{
 	  // search along phi at the peak in z
 	 
 	  int zup =0;
 	  int zdown =0;
-	  find_z_range(phibin, zbin, NZBinsMax, maxHalfSizeZ, adcval, zdown, zup);
+	  find_z_range(phibin, zbin, my_data, adcval, zdown, zup);
 	  //now we have the z extent of the cluster, go find the phi edges
 	
 	  for(int iz=zbin - zdown ; iz<= zbin + zup; iz++){
 	    int phiup = 0;
 	    int phidown = 0;
-	    find_phi_range(phibin, iz, NPhiBinsMax, maxHalfSizePhi, adcval, phidown, phiup);
+	    find_phi_range(phibin, iz, my_data, adcval, phidown, phiup);
 	    for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
 	      iphiz iCoord(std::make_pair(iphi,iz));
 	      ihit  thisHit(adcval[iphi][iz],iCoord);
@@ -219,6 +225,7 @@ namespace
 	    }
 	  }
 	}
+  
 	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 					    Acts::Vector3D world,
 					    ActsSurfaceMaps *surfMaps,
@@ -468,8 +475,8 @@ namespace
 	}
 	
 	void *ProcessSector(void *threadarg) {
-	   struct thread_data *my_data;
-	   my_data = (struct thread_data *) threadarg;
+
+    auto my_data = static_cast<thread_data*>(threadarg);
 	   PHG4CylinderCellGeom *layergeom = my_data->layergeom;
 	   ActsSurfaceMaps *surfMaps = my_data->surfmaps;
 	   ActsTrackingGeometry *tGeometry = my_data->tGeometry;
@@ -483,8 +490,6 @@ namespace
 	   unsigned short phioffset = my_data->phioffset;
 	   unsigned short zbins     = my_data->zbins ;
 	   unsigned short zoffset   = my_data->zoffset ;
-	   unsigned short halfsizephi = my_data->maxHalfSizePhi; 
-	   unsigned short halfsizez = my_data->maxHalfSizeZ; 
 	   std::pair<double, double> par0_neg = my_data->par0_neg;
 	   std::pair<double, double> par0_pos = my_data->par0_pos;
 	   std::pair<double, double> par1_neg = my_data->par1_neg;
@@ -544,7 +549,8 @@ namespace
 	     //start with highest adc hit
 	     // -> cluster around it and get vector of hits
 	     std::vector<ihit> ihit_list;
-	     get_cluster(iphi, iz, phibins, zbins,  halfsizephi, halfsizez, adcval, ihit_list);
+	     get_cluster(iphi, iz, *my_data, adcval, ihit_list);
+      // get_cluster(iphi, iz, phibins, zbins,  halfsizephi, halfsizez, adcval, ihit_list);
 	     nclus++;
 	
 	     // -> calculate cluster parameters
@@ -761,17 +767,18 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.par0_neg = par0_neg;
-    thread_pair.data.par1_neg = par1_neg;
-    thread_pair.data.par0_pos = par0_pos;
-    thread_pair.data.par1_pos = par1_pos;
     thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
     thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
-    thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
-
+    thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+    thread_pair.data.m_drift_velocity_scale =  m_drift_velocity_scale;
+    thread_pair.data.par0_neg = par0_neg;
+    thread_pair.data.par1_neg = par1_neg;
+    thread_pair.data.par0_pos = par0_pos;
+    thread_pair.data.par1_pos = par1_pos;
+    
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NZBins = (unsigned short)layergeom->get_zbins();
