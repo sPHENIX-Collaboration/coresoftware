@@ -102,7 +102,6 @@ namespace
 	  }
 	}
 	
-//   void find_z_range(int phibin, int zbin, int NZBinsMax, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
   void find_z_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
 	
     const int FitRangeZ = (int) my_data.maxHalfSizeZ;
@@ -151,8 +150,8 @@ namespace
 	  }
 	}
 	
-  // void find_phi_range(int phibin, int zbin, int NPhiBinsMax, unsigned short maxHalfSizePhi, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
-  void find_phi_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup){
+  void find_phi_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup)
+  {
 	
     int FitRangePHI = (int) my_data.maxHalfSizePhi;
     int NPhiBinsMax = (int) my_data.phibins;
@@ -205,7 +204,6 @@ namespace
 	}
 	
   void get_cluster(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
-    // void get_cluster(int phibin, int zbin, int NPhiBinsMax, int NZBinsMax, unsigned short maxHalfSizePhi, unsigned short maxHalfSizeZ, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
 	{
 	  // search along phi at the peak in z
 	 
@@ -283,7 +281,7 @@ namespace
 	
 	}
 	
-	void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, PHG4CylinderCellGeom *layergeom, TrkrHitSet *hitset, unsigned short phioffset, unsigned short zoffset,  std::pair<double,double> par0_neg, std::pair<double,double> par0_pos, std::pair<double, double> par1_neg, std::pair<double, double> par1_pos, std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc, bool do_assoc, ActsTrackingGeometry *tGeometry, ActsSurfaceMaps *surfMaps)
+	void calc_cluster_parameter(const std::vector<ihit> &ihit_list,int iclus, const thread_data& my_data )
 	{
 	
 	  // loop over the hits in this cluster
@@ -293,7 +291,7 @@ namespace
 	  double z2_sum = 0.0;
 	  double phi2_sum = 0.0;
 	
-	  double radius = layergeom->get_radius();  // returns center of layer
+	  double radius = my_data.layergeom->get_radius();  // returns center of layer
 	    
 	  int phibinhi = -1;
 	  int phibinlo = 666666;
@@ -309,20 +307,20 @@ namespace
 	
 	    if (adc <= 0) continue;
 	
-	    int iphi = iter->second.first + phioffset;
-	    int iz   = iter->second.second + zoffset;
+	    int iphi = iter->second.first + my_data.phioffset;
+	    int iz   = iter->second.second + my_data.zoffset;
 	    if(iphi > phibinhi) phibinhi = iphi;
 	    if(iphi < phibinlo) phibinlo = iphi;
 	    if(iz > zbinhi) zbinhi = iz;
 	    if(iz < zbinlo) zbinlo = iz;
 	
 	    // update phi sums
-	    double phi_center = layergeom->get_phicenter(iphi);
+	    double phi_center = my_data.layergeom->get_phicenter(iphi);
 	    phi_sum += phi_center * adc;
 	    phi2_sum += square(phi_center)*adc;
 	
 	    // update z sums
-	    double z = layergeom->get_zcenter(iz);	  
+	    double z = my_data.layergeom->get_zcenter(iz);	  
 	    z_sum += z * adc;
 	    z2_sum += square(z)*adc;
 	
@@ -344,18 +342,18 @@ namespace
 	
 	  // create the cluster entry directly in the node tree
 	
-	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
+	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
 	
 	  auto clus = std::make_unique<TrkrClusterv3>();
 	  clus->setClusKey(ckey);
 	
 	  // Estimate the errors
 	  const double phi_err_square = (phibinhi == phibinlo) ?
-	    square(radius*layergeom->get_phistep())/12:
+	    square(radius*my_data.layergeom->get_phistep())/12:
 	    square(radius)*phi_cov/(adc_sum*0.14);
 	  
 	  const double z_err_square = (zbinhi == zbinlo) ?
-	    square(layergeom->get_zstep())/12:
+	    square(my_data.layergeom->get_zstep())/12:
 	    z_cov/(adc_sum*0.14);
 	
 	  // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
@@ -365,25 +363,19 @@ namespace
 	  // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
 	  // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-	
-	
-	  // Add Acts relevant quantities
-	  const unsigned int sectorId = TpcDefs::getSectorId(ckey);
-	  const unsigned int layer = TrkrDefs::getLayer(ckey);  
-	  const unsigned int side = TpcDefs::getSide(ckey);
-	
+			
 	  // correct cluster z for shaping distortion
 	  // get parameters of z dependence at this layer
 	  double p0, p1;
 	  if(clusz < 0)
 	    {
-	      p0 = par0_neg.first + (double) layer * par0_neg.second;
-	      p1= par1_neg.first + (double) layer * par1_neg.second;
+	      p0 = my_data.par0_neg.first + my_data.par0_neg.second*my_data.layer;
+	      p1 = my_data.par1_neg.first + my_data.par1_neg.second*my_data.layer;
 	    }
 	  else
 	    {
-	      p0 = par0_pos.first + (double) layer * par0_pos.second;
-	      p1=par1_pos.first + (double) layer *  par1_pos.second;
+	      p0 = my_data.par0_pos.first + my_data.par0_pos.second*my_data.layer;
+	      p1 = my_data.par1_pos.first + my_data.par1_pos.second*my_data.layer;
 	    }
 	  double z_correction = p0 + p1 * clusz;
 	  clusz -= z_correction;
@@ -407,15 +399,15 @@ namespace
 	  ERR[2][2] = z_err_square;
 	
 	  /// Get the surface key to find the surface from the map
-	  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
+	  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );
 	
 	  Acts::Vector3D global(clusx, clusy, clusz);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
 	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 							global,
-							surfMaps,
-							tGeometry,
+							my_data.surfmaps,
+							my_data.tGeometry,
 							subsurfkey);
 	
 	  if(!surface)
@@ -427,11 +419,10 @@ namespace
 	
 	  clus->setSubSurfKey(subsurfkey);
 	
-	  Acts::Vector3D center = surface->center(tGeometry->geoContext) 
-	    / Acts::UnitConstants::cm;
+	  Acts::Vector3D center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-	  Acts::Vector3D normal = surface->normal(tGeometry->geoContext);
+	  Acts::Vector3D normal = surface->normal(my_data.tGeometry->geoContext);
 	  double clusRadius = sqrt(clusx * clusx + clusy * clusy);
 	  double rClusPhi = clusRadius * clusphi;
 	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
@@ -439,7 +430,7 @@ namespace
 	  double surfRphiCenter = surfPhiCenter * surfRadius;
 	  double surfZCenter = center[2];
 	    
-	  auto local = surface->globalToLocal(tGeometry->geoContext,
+	  auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
 					      global * Acts::UnitConstants::cm,
 					      normal);
 	  Acts::Vector2D localPos;
@@ -466,10 +457,10 @@ namespace
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 	  
-	  if( clusterlist ) clusterlist->insert(std::make_pair(ckey, clus.release()));
-	  if(do_assoc && clusterhitassoc){
+	  if(my_data.clusterlist) my_data.clusterlist->insert(std::make_pair(ckey, clus.release()));
+	  if(my_data.do_assoc && my_data.clusterhitassoc){
 	    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-	      clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
+        my_data.clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
 	    }
 	  }
 	}
@@ -477,25 +468,11 @@ namespace
 	void *ProcessSector(void *threadarg) {
 
     auto my_data = static_cast<thread_data*>(threadarg);
-	   PHG4CylinderCellGeom *layergeom = my_data->layergeom;
-	   ActsSurfaceMaps *surfMaps = my_data->surfmaps;
-	   ActsTrackingGeometry *tGeometry = my_data->tGeometry;
-	   //   int side = my_data->side;
-	   //  unsigned int layer = my_data->layer;
-	   // unsigned int sector = my_data->sector;
-	   float pedestal = my_data->pedestal;
-	   bool do_assoc = my_data->do_assoc;
-	
-	   unsigned short phibins   = my_data->phibins;
-	   unsigned short phioffset = my_data->phioffset;
-	   unsigned short zbins     = my_data->zbins ;
-	   unsigned short zoffset   = my_data->zoffset ;
-	   std::pair<double, double> par0_neg = my_data->par0_neg;
-	   std::pair<double, double> par0_pos = my_data->par0_pos;
-	   std::pair<double, double> par1_neg = my_data->par1_neg;
-	   std::pair<double, double> par1_pos = my_data->par1_pos;
-	   std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = my_data->clusterlist;
-	   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> *clusterhitassoc = my_data->clusterhitassoc;
+    const auto& pedestal = my_data->pedestal;
+    const auto& phibins   = my_data->phibins;
+    const auto& phioffset = my_data->phioffset;
+    const auto& zbins     = my_data->zbins ;
+    const auto& zoffset   = my_data->zoffset ;
 	
 	   TrkrHitSet *hitset = my_data->hitset;
 	   TrkrHitSet::ConstRange hitrangei = hitset->getHits();
@@ -550,14 +527,13 @@ namespace
 	     // -> cluster around it and get vector of hits
 	     std::vector<ihit> ihit_list;
 	     get_cluster(iphi, iz, *my_data, adcval, ihit_list);
-      // get_cluster(iphi, iz, phibins, zbins,  halfsizephi, halfsizez, adcval, ihit_list);
 	     nclus++;
 	
 	     // -> calculate cluster parameters
 	     // -> add hits to truth association
 	     // remove hits from all_hit_map
 	     // repeat untill all_hit_map empty
-	     calc_cluster_parameter(ihit_list,nclus++, layergeom, hitset,phioffset,zoffset, par0_neg, par0_pos, par1_neg, par1_pos, clusterlist, clusterhitassoc, do_assoc,tGeometry, surfMaps);
+	     calc_cluster_parameter(ihit_list,nclus++, *my_data );
 	     remove_hits(ihit_list,all_hit_map, adcval);
 	   }
 	   pthread_exit(nullptr);
