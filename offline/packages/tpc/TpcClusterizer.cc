@@ -284,6 +284,13 @@ namespace
 	void calc_cluster_parameter(const std::vector<ihit> &ihit_list,int iclus, const thread_data& my_data )
 	{
 	
+    // get z range from layer geometry
+    /* these are used for rescaling the drift velocity */
+    const double z_min = my_data.layergeom->get_zmin();
+    const double z_max = my_data.layergeom->get_zmin() +  my_data.layergeom->get_zstep()*(my_data.layergeom->get_zbins()-1);
+
+    std::cout << "calc_cluster_parameter - z_min: " << z_min << " z_max: " << z_max << std::endl;
+
 	  // loop over the hits in this cluster
 	  double z_sum = 0.0;
 	  double phi_sum = 0.0;
@@ -320,8 +327,15 @@ namespace
 	    phi2_sum += square(phi_center)*adc;
 	
 	    // update z sums
-	    double z = my_data.layergeom->get_zcenter(iz);	  
-	    z_sum += z * adc;
+	    double z = my_data.layergeom->get_zcenter(iz);
+
+      // apply drift velocity scale
+      /* this formula ensures that z remains unchanged when located on one of the readout plane, at either z_max or z_min */
+      z =
+        z*my_data.m_drift_velocity_scale +
+        (z>0 ? z_max:z_min)*(1.-my_data.m_drift_velocity_scale);
+
+	    z_sum += z*adc;
 	    z2_sum += square(z)*adc;
 	
 	    adc_sum += adc;
@@ -749,7 +763,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
     thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-    thread_pair.data.m_drift_velocity_scale =  m_drift_velocity_scale;
+    thread_pair.data.m_drift_velocity_scale = m_drift_velocity_scale;
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par1_neg = par1_neg;
     thread_pair.data.par0_pos = par0_pos;
