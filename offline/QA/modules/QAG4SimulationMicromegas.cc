@@ -71,19 +71,6 @@ namespace
     double weight = 1;
   };
 
-  //! rotate size or covariant matrix to polar coordinates and return component along provided phi angle
-  /** this is copied from TrkrClusterv2.cc, with the difference that one must use the tile azimuthal angle instead of that of the cluster */
-  template <float (TrkrCluster::*accessor)(unsigned int, unsigned int) const>
-  float rotate(const double phi, const TrkrCluster* cluster)
-  {
-    const auto cosphi = std::cos(phi);
-    const auto sinphi = std::sin(phi);
-
-    return square(sinphi) * (cluster->*accessor)(0, 0) +
-           square(cosphi) * (cluster->*accessor)(1, 1) +
-           2. * cosphi * sinphi * (cluster->*accessor)(0, 1);
-  }
-
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template <double (interpolation_data_t::*accessor)() const>
   double interpolate(const interpolation_data_t::list& hits, double y_extrap)
