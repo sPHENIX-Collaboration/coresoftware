@@ -393,6 +393,10 @@ class TrackingEvaluator_hp : public SubsysReco
   void set_flags( int flags )
   { m_flags = flags; }
 
+  //! tracl map name
+  void set_trackmapname( const std::string& value )
+  { m_trackmapname = value; }
+  
   //! utility functions
   static bool has_layer( int64_t mask, int layer )
   { return mask & (1LL<<layer); }
@@ -515,6 +519,9 @@ class TrackingEvaluator_hp : public SubsysReco
   //! hit to truth association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
 
+  //! track map name
+  std::string m_trackmapname = "SvtxTrackMap";
+  
   //! tracks
   SvtxTrackMap* m_track_map = nullptr;
 

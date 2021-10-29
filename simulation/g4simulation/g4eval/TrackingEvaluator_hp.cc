@@ -426,7 +426,7 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   assert( m_tGeometry );
 
   // get necessary nodes
-  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
