@@ -83,9 +83,11 @@ class PHTpcResiduals : public SubsysReco
   using BoundTrackParamPtr = 
     std::unique_ptr<const Acts::BoundTrackParameters>;
   
+  /// pairs path length and track parameters
   using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+
+  /// result of track extrapolation
   using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
-  // using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
   
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
