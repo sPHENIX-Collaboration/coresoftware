@@ -95,11 +95,13 @@ class PHTpcResiduals : public SubsysReco
   bool checkTrack(SvtxTrack* track);
   void processTrack(SvtxTrack* track);
 
+  /// fill track state from bound track parameters
+  void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
+  
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
-			     TrkrCluster* cluster);
-
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
+        
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
    * an available source link in the TPC exists, added from the stub
