@@ -193,7 +193,7 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 
 }
 
-SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
 {
   auto key = cluster->getClusKey();
   auto subsurfkey = cluster->getSubSurfKey();
@@ -343,15 +343,18 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       if(result.ok())
 	{	  
-	  auto trackStateParams = std::move(**result);
+    auto pathLength = (*result).first;
+	  auto trackStateParams = std::move(*(*result).second);
 	  if(Verbosity() > 1)
-	    std::cout << "Silicon+MM momentum : " 
-		      << trackParams.momentum()
-		      << std::endl
-		      << "Propagator momentum : " 
-		      << trackStateParams.momentum()
-		      << std::endl;
-	  
+    {
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " path length: " << pathLength
+        << " track momentum : " 
+        << trackParams.momentum()
+        << " propagator momentum : " 
+        << trackStateParams.momentum()
+        << std::endl;
+    }
 
 	  calculateTpcResiduals(trackStateParams, cluster);
 	}
@@ -378,7 +381,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         
 }
 
-BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
+PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
 			   const SourceLink& sl)
 {
@@ -388,7 +391,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
     std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
   */
   return std::visit([params, sl, this]
-		    (auto && inputField) -> BoundTrackParamPtrResult {
+		    (auto && inputField) -> ExtrapolationResult {
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField      = Acts::SharedBField<InputMagneticField>;
@@ -412,10 +415,14 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       auto result = propagator.propagate(params, sl.referenceSurface(), 
 					 options);
    
+        
       if(result.ok())
-	return std::move((*result).endParameters);
-      else
-	return result.error();
+      {
+        // return both path length and extrapolated parameters
+        return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
+      } else {
+        return result.error();
+      }
    },
      std::move(m_tGeometry->magField));
 
