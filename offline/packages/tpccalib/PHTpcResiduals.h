@@ -32,11 +32,6 @@ class TH1;
 class TH2;
 class TTree;
 
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
-
 /**
  * This class takes preliminary fits from PHActsTrkFitter to the 
  * silicon + MM clusters and calculates the residuals in the TPC 
@@ -84,6 +79,14 @@ class PHTpcResiduals : public SubsysReco
   
  private:
 
+  using SourceLink = ActsExamples::TrkrClusterSourceLink;
+  using BoundTrackParamPtr = 
+    std::unique_ptr<const Acts::BoundTrackParameters>;
+  
+  using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+  using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
+  // using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -97,10 +100,13 @@ class PHTpcResiduals : public SubsysReco
   void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
 			     TrkrCluster* cluster);
 
-  /// Propagates the silicon+MM track fit to the surface on which
-  /// an available source link in the TPC exists, added from the stub
-  /// matching propagation
-  BoundTrackParamPtrResult propagateTrackState(
+  /** \brief 
+   * Propagates the silicon+MM track fit to the surface on which
+   * an available source link in the TPC exists, added from the stub
+   * matching propagation
+   * returns the path lenght and the resulting parameters
+   */
+  ExtrapolationResult propagateTrackState(
   const Acts::BoundTrackParameters& params, 
 		     const SourceLink& sl);
 
