@@ -286,10 +286,8 @@ namespace
 	
     // get z range from layer geometry
     /* these are used for rescaling the drift velocity */
-    const double z_min = my_data.layergeom->get_zmin();
-    const double z_max = my_data.layergeom->get_zmin() +  my_data.layergeom->get_zstep()*(my_data.layergeom->get_zbins()-1);
-
-    std::cout << "calc_cluster_parameter - z_min: " << z_min << " z_max: " << z_max << std::endl;
+    const double z_min = -105.5;
+    const double z_max = 105.5;
 
 	  // loop over the hits in this cluster
 	  double z_sum = 0.0;
