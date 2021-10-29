@@ -133,8 +133,8 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 {
 
-  std::cout << "proto track size " << m_trackMap->size()
-	    <<std::endl;
+  if( Verbosity() )
+  { std::cout << "PHTpcResiduals::processTracks - proto track size " << m_trackMap->size() <<std::endl; }
 
   for(auto &[trackKey, track] : *m_trackMap)
     {
