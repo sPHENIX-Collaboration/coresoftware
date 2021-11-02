@@ -50,28 +50,8 @@ typedef std::vector<TrkrDefs::cluskey> keylist;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : SubsysReco(name)
-{
-  //cout << "created PHSimpleKFProp\n";
-}
-/*
-int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
-{
-  cout << "initrun started\n";
-  return Setup(topNode);
-}
+{}
 
-int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
-{
-  cout << "process_event started\n";
-  return Process();
-}
-
-int PHSimpleKFProp::End(PHCompositeNode* topNode)
-{
-  End();
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-*/
 int PHSimpleKFProp::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -182,30 +162,28 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if(Verbosity()>0) cout << "prepared KD trees" << endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<SvtxTrack> unused_tracks;
-  for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); )
+  for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it )
   {
     // if not a TPC track, ignore
-    bool is_tpc = false;
-    std::vector<TrkrDefs::cluskey> ckeys;
     SvtxTrack* track = track_it->second;
-    std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-    for(size_t i=0;i<ckeys.size();i++)
-    {
-      if(TrkrDefs::getLayer(ckeys[i])>=7) is_tpc = true;
-    }
+    const bool is_tpc = std::any_of(
+      track->begin_cluster_keys(),
+      track->end_cluster_keys(),
+      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId; } );
+
     if(is_tpc)
     {
       if(Verbosity()>0) cout << "is tpc track" << endl;
       new_chains.push_back(PropagateTrack(track, globalPositions));
-      ++track_it;
     }
     else
     {
+      // this is bad: it copies the track to its base class, which is essentially nothing
       if(Verbosity()>0) cout << "is NOT tpc track" << endl;
       unused_tracks.push_back(*track);
-      ++track_it;
     }
   }
+  
   _track_map->Reset();
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
   std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
@@ -301,12 +279,14 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
       std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
       std::vector<TrkrCluster*> tpc_clusters;
       std::vector<Acts::Vector3F> trkGlobPos;
+
+      // get circle fit for TPC clusters plus vertex
       ActsTransformations transformer;
       // extract TPC clusters
       for(auto& ckey : ckeys)
 	{
-	  if(TrkrDefs::getLayer(ckey)>=7) 
-	    {
+    if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )	   
+    {
 	      auto clus = _cluster_map->findCluster(ckey);
 	      tpc_clusters.push_back(clus);
 	      auto global = transformer.getGlobalPositionF(clus,_surfmaps, _tgeometry);
