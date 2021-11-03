@@ -586,6 +586,13 @@ void PHG4Reco::Dump_GDML(const std::string &filename)
   PHG4GDMLUtility ::Dump_GDML(filename, m_Detector->GetPhysicalVolume());
 }
 
+//________________________________________________________________
+//Dump TGeo File using native Geant4 tools
+void PHG4Reco::Dump_G4_GDML(const std::string &filename)
+{
+  PHG4GDMLUtility::Dump_G4_GDML(filename, m_Detector->GetPhysicalVolume());
+}
+
 //_________________________________________________________________
 int PHG4Reco::ApplyCommand(const std::string &cmd)
 {
