@@ -4,6 +4,8 @@
 #define PHSILICONTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <string>
 #include <map>
@@ -11,9 +13,11 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class TrkrClusterContainer;
 class TF1;
 class TpcSeedTrackMap;
 class AssocInfoContainer;
+
 class PHSiliconTpcTrackMatching : public SubsysReco
 {
  public:
@@ -57,6 +61,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
+  double getBunchCrossing(unsigned int trid, double z_mismatch);
+double getMedian(std::vector<double> &v);
+
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -71,9 +78,13 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
+  TrkrClusterContainer *_cluster_map{nullptr};
+  ActsSurfaceMaps *_surfmaps{nullptr};
+  ActsTrackingGeometry *_tGeometry{nullptr};
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
   //std::multimap<unsigned int, unsigned int> _seed_track_map;
+  std::map<unsigned int, double> _z_mismatch_map;
  
   // correction function for PHTpcTracker track phi bias
   TF1 *fdphi{nullptr};
