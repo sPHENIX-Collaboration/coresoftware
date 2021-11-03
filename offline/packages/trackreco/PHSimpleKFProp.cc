@@ -461,11 +461,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   // get layer for each cluster
   std::vector<unsigned int> layers;
   if(Verbosity()>0) cout << "cluster layers:" << endl;
-  for(size_t i=0;i<ckeys.size();i++)
-  {
-    layers.push_back(TrkrDefs::getLayer(ckeys[i]));
-    if(Verbosity()>0) cout << layers[i] << endl;
-  }
+  std::transform( ckeys.begin(), ckeys.end(), std::back_inserter( layers ), []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getLayer(key); } );
 
   double old_phi = track_phi;
   unsigned int old_layer = TrkrDefs::getLayer(ckeys[0]);
