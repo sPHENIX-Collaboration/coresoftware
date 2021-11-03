@@ -21,11 +21,17 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ../PHTpcTracker/PHTpcTrackerUtil.h \
+  ../PHTpcTracker/externals/kdfinder.hpp \
   ActsEvaluator.h \
+  ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
+  GPUTPCBaseTrackParam.h \
+  GPUTPCTrackLinearisation.h \
+  GPUTPCTrackParam.h \
   HelixHoughBin.h \
   HelixHoughBin_v1.h \
   HelixHoughFuncs.h \
@@ -34,27 +40,31 @@ pkginclude_HEADERS = \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
   MakeActsGeometry.h \
-  PHGenFitTrackProjection.h \
-  PHGenFitTrkFitter.h \
+  nanoflann.hpp \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
   PHActsTrackProjection.h \
+  PHCASeeding.h \
+  PHGenFitTrackProjection.h \
+  PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
   PHHoughSeeding.h \
-  PHTrackCleaner.h \
-  PHTrackSelector.h \
-  PHRTreeSeeding.h \
-  PHCASeeding.h \
   PHHybridSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
+  PHMicromegasTpcTrackMatching.h \
+  PHRTreeSeeding.h \
   PHSiliconTpcTrackMatching.h \
   PHSimpleVertexFinder.h \
-  PHMicromegasTpcTrackMatching.h \
+  PHTrackCleaner.h \
+  PHTrackSelector.h \
+  PHRaveVertexing.h \
   PHSiliconTruthTrackSeeding.h \
+  PHSimpleKFProp.h \
   PHTpcClusterMover.h \
+  PHTpcDeltaZCorrection.h \
   PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
@@ -65,17 +75,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  VertexFitter.h \
-  PHRaveVertexing.h \
-  GPUTPCBaseTrackParam.h \
-  GPUTPCTrackLinearisation.h \
-  GPUTPCTrackParam.h \
-  ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp \
-  ALICEKF.h \
-  PHSimpleKFProp.h \
-  nanoflann.hpp 
-
+  VertexFitter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -103,13 +103,13 @@ libtrack_reco_io_la_SOURCES = \
   AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  GPUTPCTrackParam.cxx \
   HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
-  VertexFitter.cc \
-  GPUTPCTrackParam.cxx 
+  VertexFitter.cc
 
 if MAKE_ACTS
 ACTS_SOURCES = \
@@ -143,37 +143,38 @@ endif
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
+  ../PHTpcTracker/PHTpcTrackerUtil.cc \
+  ALICEKF.cc \
+  PH3DVertexing.cc \
+  PHCASeeding.cc \
+  PHGenFitTrackProjection.cc \
+  PHGenFitTrkFitter.cc \
+  PHGenFitTrkProp.cc \
+  PHGhostRejection.cc \
+  PHHoughSeeding.cc \
+  PHHybridSeeding.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
+  PHMicromegasTpcTrackMatching.cc \
+  PHRaveVertexing.cc \
+  PHRTreeSeeding.cc \
+  PHSiliconTpcTrackMatching.cc \
+  PHSiliconTruthTrackSeeding.cc \
+  PHSimpleKFProp.cc \
+  PHSimpleVertexFinder.cc \
+  PHTpcClusterMover.cc \
+  PHTpcDeltaZCorrection.cc \
+  PHTpcTrackSeedCircleFit.cc \
+  PHTrackCleaner.cc \
   PHTrackSeeding.cc \
+  PHTrackSelector.cc \
   PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
-  PH3DVertexing.cc \
-  PHTpcClusterMover.cc \
   PHTruthClustering.cc \
-  PHTruthVertexing.cc \
-  PHSiliconTpcTrackMatching.cc \
-  PHMicromegasTpcTrackMatching.cc \
   PHTruthTrackSeeding.cc \
-  PHSiliconTruthTrackSeeding.cc \
-  PHSimpleVertexFinder.cc \
-  PHTruthSiliconAssociation.cc \
-  PHHoughSeeding.cc \
-  PHTrackCleaner.cc \
-  PHTrackSelector.cc \
-  PHRTreeSeeding.cc \
-  ../PHTpcTracker/PHTpcTrackerUtil.cc \
-  PHHybridSeeding.cc \
-  PHCASeeding.cc \
-  PHGenFitTrkProp.cc \
-  PHGenFitTrkFitter.cc \
-  PHGenFitTrackProjection.cc \
-  PHGhostRejection.cc \
-  PHRaveVertexing.cc \
-  PHTpcTrackSeedCircleFit.cc \
-  ALICEKF.cc \
-  PHSimpleKFProp.cc
+  PHTruthVertexing.cc \
+  PHTruthSiliconAssociation.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
