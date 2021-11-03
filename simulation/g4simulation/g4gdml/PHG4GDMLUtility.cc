@@ -21,6 +21,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4GDMLWriteStructure.hh>
 
 #include <cassert>
 #include <iostream>  // for operator<<, stringstream
@@ -42,6 +43,31 @@ void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume *
   assert(config);
 
   PHG4GDMLWriteStructure gdml_parser(config);
+  assert(vol);
+  assert(vol->GetLogicalVolume());
+
+  xercesc::XMLPlatformUtils::Initialize();
+  gdml_parser.Write(filename, vol->GetLogicalVolume(), get_PHG4GDML_Schema(), 0, true);
+  xercesc::XMLPlatformUtils::Terminate();
+}
+
+void PHG4GDMLUtility::Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode)
+{
+  if (topNode == nullptr)
+  {
+    Fun4AllServer *se = Fun4AllServer::instance();
+    topNode = se->topNode();
+  }
+
+  const PHG4GDMLConfig *config =
+      GetOrMakeConfigNode(topNode);
+  assert(config);
+
+  // PHG4GDMLWriteStructure gdml_parser(config);
+  // assert(vol);
+  // assert(vol->GetLogicalVolume());
+
+  G4GDMLWriteStructure gdml_parser;
   assert(vol);
   assert(vol->GetLogicalVolume());
 
