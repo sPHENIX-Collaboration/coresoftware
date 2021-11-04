@@ -146,7 +146,6 @@ PHCASeeding::PHCASeeding(
     float neighbor_phi_width,
     float neighbor_eta_width,
     float maxSinPhi,
-    float Bz,
     float cosTheta_limit)
   : PHTrackSeeding(name)
   , _g4tracks(nullptr)
@@ -165,7 +164,6 @@ PHCASeeding::PHCASeeding(
   , _neighbor_phi_width(neighbor_phi_width)
   , _neighbor_eta_width(neighbor_eta_width)
   , _max_sin_phi(maxSinPhi)
-  , _Bz(Bz)
   , _cosTheta_limit(cosTheta_limit)
 {
 }
