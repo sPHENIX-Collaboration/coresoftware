@@ -23,8 +23,10 @@
 // Root headers
 #include <TAxis.h>                             // for TAxis
 #include <TH2.h>
+#include <TH2F.h>
 #include <TNamed.h>                            // for TNamed
 #include <TSystem.h>
+#include <TFile.h>
 
 // Geant4 headers
 
@@ -47,6 +49,7 @@
 #include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
 #include <Geant4/G4VTouchable.hh>              // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4Transform3D.hh>
 
 // finally system headers
 #include <cassert>
@@ -58,6 +61,9 @@
 class PHCompositeNode;
 
 using namespace std;
+
+TH2F *MapCorr = NULL;
+
 //____________________________________________________________________________..
 PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -100,6 +106,27 @@ int PHG4OuterHcalSteppingAction::Init()
 		     m_Params->get_double_param("light_balance_outer_radius") * cm,
 		     m_Params->get_double_param("light_balance_outer_corr")
     );
+
+
+  std::ostringstream mappingfilename;
+  const char* calibroot = getenv("CALIBRATIONROOT");
+  if (calibroot)
+  {
+    mappingfilename << calibroot;
+  }
+  else
+  {
+    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+    gSystem->Exit(1);
+  }
+
+  mappingfilename << "/HCALOUT/tilemap/oHCALMaps092021.root";
+  TFile *f = new TFile(mappingfilename.str().data()); 
+  MapCorr = (TH2F *)f->Get("hCombinedMap");
+  if(!MapCorr){
+    std::cout << "ERROR: MapCorr is NULL" << std::endl; 
+    gSystem->Exit(1); 
+  }
 
   return 0;
 }
@@ -175,6 +202,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     //       cout << "track id " << aTrack->GetTrackID() << endl;
     //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
     //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+
     switch (prePoint->GetStepStatus())
     {
     case fPostStepDoItProc:
@@ -207,6 +235,23 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
+
+      // DEBUG
+      // add the local coordinates
+      // if(whichactive>0){
+
+      // 	G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+      // 	G4ThreeVector worldPosition = prePoint->GetPosition();
+      // 	G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+
+      // 	m_Hit->set_property(PHG4Hit::prop_local_x_0, (float)(localPosition.x()/cm)); 
+      // 	m_Hit->set_property(PHG4Hit::prop_local_y_0, (float)(localPosition.y()/cm)); 
+      // 	m_Hit->set_property(PHG4Hit::prop_local_z_0, (float)(localPosition.z()/cm)); 
+
+      //   m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id); 
+
+      // }
+
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
@@ -281,9 +326,48 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (whichactive > 0)
     {
+
+      // Local Coordinates: 
+
+      //G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
+      // Use prePoint; sometimes the end point can be on the boundary/out of the scintillator
+      G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+      G4ThreeVector worldPosition = postPoint->GetPosition();
+      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+
+      // DEBUG 
+      // m_Hit->set_property(PHG4Hit::prop_local_x_1, (float)(localPosition.x()/cm)); 
+      // m_Hit->set_property(PHG4Hit::prop_local_y_1, (float)(localPosition.y()/cm)); 
+      // m_Hit->set_property(PHG4Hit::prop_local_z_1, (float)(localPosition.z()/cm)); 
+
+      // m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id); 
+
       if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
+
+	if(MapCorr){
+
+	  float lx = (localPosition.x()/cm); 
+	  float lz = fabs(localPosition.z()/cm); // reverse the sense for towerid<12
+
+	  // convert to the map bin coordinates:
+	  // map is in 0.5 cm bins
+	  int lcz = (int)(2.0*lz) + 1; 
+	  int lcx = (int)(2.0*(lx+42.75)) + 1;
+
+	  if( (lcx>=1) && (lcx<=MapCorr->GetNbinsY()) &&
+	      (lcz>=1) && (lcz<=MapCorr->GetNbinsX()) ){
+	  
+	    light_yield *= (double) (MapCorr->GetBinContent(lcz, lcx));
+
+	  }
+	  else{
+	    light_yield = 0.0; 
+	  }
+
+	} 
+      
       }
       else
       {
@@ -292,8 +376,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       if (ValidCorrection())
       {
-double cor =  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
-cout << "applying cor: " << cor << endl;
+	double cor =  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
+	cout << "applying cor: " << cor << endl;
         light_yield = light_yield *  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
       }
     }
