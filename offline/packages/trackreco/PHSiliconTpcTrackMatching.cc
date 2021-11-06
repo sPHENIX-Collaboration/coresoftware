@@ -194,11 +194,11 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     }	
   
   // add the silicon clusters to all tracks
-  //addSiliconClusters(vertex_crossings_map, vertex_map);
   addSiliconClusters(si_sorted_map);
   
   if(Verbosity() > 0)  
-    cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map->size() << endl;
+    cout << " si_sorted_map size " << si_sorted_map.size() << " Final track map size " << _track_map->size() 
+	 << " seed-track map size " << _seed_track_map->size() << endl;
   
   if (Verbosity() >= 1)
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
