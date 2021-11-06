@@ -46,6 +46,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void set_test_windows_printout(const bool test){_test_windows = test ;}
   void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
+  void set_reconstruct_pileup_tracks(const bool flag){_reconstruct_pileup_tracks = flag ;}
 
   int InitRun(PHCompositeNode* topNode) override;
 
@@ -62,7 +63,24 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 
   double getBunchCrossing(unsigned int trid, double z_mismatch);
-double getMedian(std::vector<double> &v);
+  double getMedian(std::vector<double> &v);
+//  void addSiliconClusters( std::map<unsigned int, double> &vertex_crossings_map,
+//std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
+void addSiliconClusters( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map);
+
+  void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
+			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
+  void getCrossingNumber( std::vector<double> &vertex_list,
+			    std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map, 
+			    std::map<unsigned int, double> &vertex_crossings_map);
+  void getSiVertexList( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map,
+			  std::vector<double> &vertex_list,
+			  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
+  void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
+			    std::multimap<unsigned int, unsigned int> &tpc_matches );
+  void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
+			   std::set<int> &crossing_set,
+			   std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches );
 
   std::string _track_map_name_silicon;
 
@@ -104,6 +122,7 @@ double getMedian(std::vector<double> &v);
   bool _is_ca_seeder = true;
   bool _sc_calib_flag = false;
   bool _test_windows = false;
+  bool _reconstruct_pileup_tracks = true;
 
   std::string _field;
   int _fieldDir = -1;
