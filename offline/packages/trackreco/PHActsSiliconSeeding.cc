@@ -347,6 +347,9 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
 	    { nMvtx++; }
 	  else if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
 	    { nIntt++; }	 
+
+	  if(Verbosity() > 2)
+	    { std::cout << "Cluskey adding : " << cluskey << std::endl; }
 	}
  
       /// Get a less rough estimate of R, and thus, p
@@ -871,67 +874,69 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
 	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
 	  
-	  float dphi = normPhi2Pi(ladderphi - projPhi);
-	  std::cout << "ladder phi "<<ladderphi << " projp hi "<< projPhi << std::endl;
-	  std::cout << "dphi between proj and ladder"<<std::endl;
+	  float dphi = ladderphi - projPhi;
+	  if(dphi > M_PI)
+	    { dphi -= 2. * M_PI; }
+	  else if (dphi < -1 * M_PI)
+	    { dphi += 2. * M_PI; }
 	  
 	  /// Check that the projection is within some reasonable amount of the segment
-	  /// to reject looking at segments in the opposite hemisphere
-	  if((inttlayer < 2 && fabs(dphi) > 0.2) or
-	     (inttlayer > 1 && fabs(dphi) > 0.4))
+	  /// to reject e.g. looking at segments in the opposite hemisphere
+	  if(fabs(dphi) > 0.2)
 	    { continue; }
 	  
-	  for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
-	    const auto cluskey = clusIter->first;
-	    const auto cluster = clusIter->second;
-	    
-	    const auto globalPos = transform.getGlobalPosition(cluster,
-							       m_surfMaps,
-							       m_tGeometry);
-	    const double inttClusZ = globalPos(2);
-	    const double inttClusR = sqrt(pow(globalPos(0), 2) + 
-					  pow(globalPos(1), 2) );
-	    const double inttClusRphi = inttClusR * atan2(globalPos(1),
-							  globalPos(0));
-	    
-	    if(m_seedAnalysis)
-	      {
-		h_hits->Fill(globalPos(0), globalPos(1));
-		h_zhits->Fill(globalPos(2),
-			      inttClusR);
-		h_resids->Fill(zProj[inttlayer] - inttClusZ,
-			       projRphi - inttClusRphi);
-	      }
-	    if(Verbosity() > 4)
-	      {
-		std::cout << "Checking INTT cluster with position " << cluskey << " and layer " << TrkrDefs::getLayer(cluskey) <<" --- " 
-			  << globalPos(0)
-			  << ", " << globalPos(1) << ", " << globalPos(2)
-			  << std::endl << " with projections rphi "
-			  << projRphi << " and inttclus rphi " << inttClusRphi
-			  << " and proj z " << zProj[inttlayer] << " and inttclus z "
-			  << inttClusZ << " in layer " << inttlayer 
-			  << " with search windows " << m_rPhiSearchWin 
-			  << " in rphi and strip z spacing " << stripZSpacing 
-			  << std::endl;
-	      }
-	    
-	    /// Z strip spacing is the entire strip, so because we use fabs
-	    /// we divide by two
-	    if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
-	       fabs(zProj[inttlayer] - inttClusZ) < stripZSpacing / 2.)
-	      {
-		matchedClusters.push_back(cluskey);
-		/// Cache INTT global positions with seed
-		clusters.push_back(globalPos);
-		
-		if(Verbosity() > 2)
-		  {
-		    std::cout << "Found matching projection with cluskey " 
-			      << cluskey << std::endl;
-		  }
-	      }
-	  }
+	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	    {
+	      const auto cluskey = clusIter->first;
+	      const auto cluster = clusIter->second;
+	      
+	      const auto globalPos = transform.getGlobalPosition(cluster,
+								 m_surfMaps,
+								 m_tGeometry);
+	      const double inttClusZ = globalPos(2);
+	      const double inttClusR = sqrt(pow(globalPos(0), 2) + 
+					    pow(globalPos(1), 2) );
+	      const double inttClusRphi = inttClusR * atan2(globalPos(1),
+							    globalPos(0));
+	      
+	      if(m_seedAnalysis)
+		{
+		  h_hits->Fill(globalPos(0), globalPos(1));
+		  h_zhits->Fill(globalPos(2),
+				inttClusR);
+		  h_resids->Fill(zProj[inttlayer] - inttClusZ,
+				 projRphi - inttClusRphi);
+		}
+	      
+	      if(Verbosity() > 4)
+		{
+		  std::cout << "Checking INTT cluster with cluskey " << cluskey 
+			    << " and position " << globalPos.transpose() 
+			    << std::endl << " with projections rphi "
+			    << projRphi << " and inttclus rphi " << inttClusRphi
+			    << " and proj z " << zProj[inttlayer] << " and inttclus z "
+			    << inttClusZ << " in layer " << inttlayer 
+			    << " with search windows " << m_rPhiSearchWin 
+			    << " in rphi and strip z spacing " << stripZSpacing 
+			    << std::endl;
+		}
+	      
+	      /// Z strip spacing is the entire strip, so because we use fabs
+	      /// we divide by two
+	      if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
+		 fabs(zProj[inttlayer] - inttClusZ) < stripZSpacing / 2.)
+		{
+		  matchedClusters.push_back(cluskey);
+		  /// Cache INTT global positions with seed
+		  clusters.push_back(globalPos);
+		  
+		  if(Verbosity() > 2)
+		    {
+		      std::cout << "Found matching projection with cluskey " 
+				<< cluskey << std::endl;
+		    }
+		}
+	    }
 	}  
     }
   
