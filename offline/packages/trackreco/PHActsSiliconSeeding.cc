@@ -867,21 +867,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
   std::vector<TrkrDefs::cluskey> matchedClusters;
   ActsTransformations transform;
 
-  auto totalrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-  int totalHitSets=0;
-  int totalInttClusters = 0;
-  for(auto hititr = totalrange.first; hititr != totalrange.second; ++hititr)
-    {
-      totalHitSets++;
-      auto range = m_clusterMap->getClusters(hititr->first);
-      for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
-	{
-	  totalInttClusters++;
-	}
-    }
-
-  std::cout << "Total INTT Hit sets " << totalHitSets << std::endl;
-  std::cout << "Total INTT clusters " << totalInttClusters << std::endl;
   for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
     {
       auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId, inttlayer+3);
@@ -890,10 +875,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       const double projPhi = atan2(yProj[inttlayer], xProj[inttlayer]);
       const double projRphi = projR * projPhi;
 
-      int hitsetsIterated = 0;
-      int hitsetsPassed = 0;
-      int totalClustersVisitedInLayer = 0;
-      std::cout << "Iterating hisets in layer " << inttlayer << std::endl;
       for (auto hitsetitr = hitsetrange.first;
 	   hitsetitr != hitsetrange.second;
 	   ++hitsetitr)
@@ -901,8 +882,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  const int ladderzindex = InttDefs::getLadderZId(hitsetitr->first);
 	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetitr->first);
 	  double ladderLocation[3] = {0.,0.,0.};
-	  hitsetsIterated++;
-	  std::cout << "iterating hitsetkey" << hitsetitr->first << std::endl;
+
 	  // Add three to skip the mvtx layers for comparison
 	  // to projections
 	  auto layerGeom = dynamic_cast<CylinderGeomIntt*>
@@ -919,18 +899,16 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	    { dphi += 2. * M_PI; }
 	  
 	  /// Check that the projection is within some reasonable amount of the segment
-	  /// to reject e.g. looking at segments in the opposite hemisphere
+	  /// to reject e.g. looking at segments in the opposite hemisphere. This is about
+	  /// the size of one intt segment (256 * 80 micron strips in a segment)
 	  if(fabs(dphi) > 0.2)
 	    { continue; }
-	  
-	  hitsetsPassed++;
-	  std::cout << "key passed, iterating hitsetkey's clusters"<<std::endl;
+
 	  auto range = m_clusterMap->getClusters(hitsetitr->first);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
 	      const auto cluskey = clusIter->first;
 	      const auto cluster = clusIter->second;
-	      totalClustersVisitedInLayer++;
 	      const auto globalPos = transform.getGlobalPosition(cluster,
 								 m_surfMaps,
 								 m_tGeometry);
@@ -978,9 +956,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 		    }
 		}
 	    }
-	  std::cout << "Total layer hitsets iterated " << hitsetsIterated << " and total passed " 
-		    << hitsetsPassed << " and total clusters visited in layer " << totalClustersVisitedInLayer
-		    << std::endl;
 	}  
     }
   
