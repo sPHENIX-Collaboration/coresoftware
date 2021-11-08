@@ -29,7 +29,7 @@ class PHG4GDMLUtility
   static void Dump_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode = nullptr);
 
   //! same as above but use default Geant functions as much as possible
-  static void Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode = nullptr);
+  static void Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol);
 
   static constexpr const char *get_PHG4GDML_Schema()
   {
