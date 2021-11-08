@@ -633,9 +633,6 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		<< std::endl;
   }
   
-  auto fitTimer = std::make_unique<PHTimer>("circlefitTimer");
-  fitTimer->stop();
-  fitTimer->restart();
 
   /// Circle radius at x,y center
   /// Note - units are sPHENIX cm since we are using TrkrClusters
@@ -647,10 +644,6 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 	      << ", " << Y0 << std::endl;
 
   findRoot(R, X0, Y0, x, y);
-
-  fitTimer->stop();
-  auto circlefittime = fitTimer->get_accumulated_time();
-  fitTimer->restart();
   
   /// If the xy position is O(100s) microns, the initial vertex 
   /// finder will throw an eigen stepper error trying to propagate 
@@ -722,10 +715,10 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
 		<< py << ", " << pz << ") " << std::endl;
     }
   
+  auto fitTimer = std::make_unique<PHTimer>("inttMatchTimer");
   fitTimer->stop();
-  auto linefit = fitTimer->get_accumulated_time();
   fitTimer->restart();
-  
+
   /// Project to INTT and find matches
   auto additionalClusters = findInttMatches(clusGlobPos, R, X0, Y0, z, m);
   
@@ -736,12 +729,10 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   
   fitTimer->stop();
   auto addClusters = fitTimer->get_accumulated_time();
-  
 
   if(Verbosity() > 0)
     {
-      std::cout << "circle+root fit time " << circlefittime << ", charge+linefit "
-		<< linefit << ", find intt clusters " << addClusters << std::endl;
+      std::cout << "find intt clusters time " << addClusters << std::endl;
     }
   
   return charge;
@@ -761,10 +752,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   double yProj[m_nInttLayers];
   double zProj[m_nInttLayers];
   
-  auto fitTimer = std::make_unique<PHTimer>("inttMatchTimer");
-  fitTimer->stop();
-  fitTimer->restart();
-
   /// Diagnostic 
   if(m_seedAnalysis)
     {
@@ -839,23 +826,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	}
     }
   
-  fitTimer->stop();
-  auto projectionTime = fitTimer->get_accumulated_time();
-  fitTimer->restart();
-  
-  auto additionalClusters = matchInttClusters(clusters, xProj, yProj, zProj);
-
-  fitTimer->stop();
-  auto matchTime = fitTimer->get_accumulated_time();
-  
-  if(Verbosity() > 0)
-    { 
-      std::cout << "INTT projection time " << projectionTime 
-		<< " and match time " << matchTime
-		<< std::endl; 
-    }
-  
-  return additionalClusters;
+  return matchInttClusters(clusters, xProj, yProj, zProj);
 }
 
 std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
