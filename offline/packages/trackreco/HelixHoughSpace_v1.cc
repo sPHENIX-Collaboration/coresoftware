@@ -212,7 +212,7 @@ unsigned int HelixHoughSpace_v1::get_dzdl_bin(unsigned int zoomlevel, float dzdl
 //	cout<<"dzdl-prevzoom "<<dzdl<<endl;
 // 	if (zoomlevel==1) cout<<"i "<<i<<" lbin "<<lbin<<endl;
 	if (lbin >= get_n_dzdl_bins(i)) return 999;
-	if (lbin<0) return 9999;
+//	if (lbin<0) return 9999; // lbin is unsigned - test for <0 is non sensical
 	}	
 //	cout<<"lbin "<<lbin<<endl;
 	return lbin;

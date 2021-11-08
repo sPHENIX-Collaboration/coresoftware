@@ -2,15 +2,17 @@
 
 #include "PHG4EPDSubsystem.h"
 
-#include "PHG4EPDetector.h"
-#include "PHG4EPSteppingAction.h"
+#include "PHG4EPDDetector.h"
+#include "PHG4EPDDisplayAction.h"
+#include "PHG4EPDSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
 
-#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGroupSubsystem
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -19,72 +21,100 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
+#include <set>
+#include <string>
+
 PHG4EPDSubsystem::PHG4EPDSubsystem(std::string const& name)
-  : PHG4DetectorGroupSubsystem(name)
-  , m_detector(nullptr)
-  , m_stepaction(nullptr)
+  : PHG4DetectorSubsystem(name)
 {
   InitializeParameters();
 }
 
-int32_t PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* node)
+PHG4EPDSubsystem::~PHG4EPDSubsystem()
 {
-  PHParametersContainer* params = GetParamsContainer();
-  std::string const& name = Name();
+  delete m_DisplayAction;
+}
 
-  m_detector = new PHG4EPDetector(this, node, params, name);
-  m_detector->SuperDetector(SuperDetector());
-  m_detector->OverlapCheck(CheckOverlap());
+int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
+{
+  m_DisplayAction = new PHG4EPDDisplayAction(Name());
 
-  m_stepaction = new PHG4EPSteppingAction(m_detector, params);
-  m_stepaction->Init();
+  m_Detector = new PHG4EPDDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
 
-  if (!params->GetParameters(-1)->get_int_param("active"))
-    return 0;
+  m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
 
-  std::string const& superdet = SuperDetector();
-  std::string label = "G4HIT_" + ((superdet != "NONE") ? superdet : name);
-
-  PHCompositeNode* dst = dynamic_cast<PHCompositeNode*>(
-      PHNodeIterator(node).findFirst("PHCompositeNode", "DST"));
-
-  PHCompositeNode* det = dynamic_cast<PHCompositeNode*>(
-      PHNodeIterator(dst).findFirst("PHCompositeNode", superdet));
-
-  if (det == nullptr)
+  if (GetParams()->get_int_param("active"))
   {
-    det = new PHCompositeNode(superdet);
+    std::set<std::string> nodes;
+    PHNodeIterator iter(topNode);
+    PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
+    {
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
 
-    dst->addNode(det);
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
+    }
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
+    {
+      detector_suffix = Name();
+    }
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_SupportNodeName = "G4HIT_SUPPORT_" + detector_suffix;
+    if (GetParams()->get_int_param("supportactive"))
+    {
+      nodes.insert(m_SupportNodeName);
+    }
+
+    for (auto nodename : nodes)
+    {
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+      }
+    }
+    // create stepping action
+    m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_SUPPORT", m_SupportNodeName);
   }
-
-  if (findNode::getClass<PHG4HitContainer>(node, label.data()) == nullptr)
-    det->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer(label),
-                                            label.data(), "PHObject"));
+  else if (GetParams()->get_int_param("blackhole"))
+  {
+    m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
+  }
 
   return 0;
 }
 
-int32_t PHG4EPDSubsystem::process_event(PHCompositeNode* node)
+int PHG4EPDSubsystem::process_event(PHCompositeNode* topNode)
 {
-  if (m_stepaction != nullptr)
-    m_stepaction->SetInterfacePointers(node);
-
+  if (m_SteppingAction != nullptr)
+  {
+    m_SteppingAction->SetInterfacePointers(topNode);
+  }
   return 0;
 }
 
 PHG4Detector* PHG4EPDSubsystem::GetDetector() const
 {
-  return m_detector;
-}
-
-PHG4SteppingAction* PHG4EPDSubsystem::GetSteppingAction() const
-{
-  return m_stepaction;
+  return m_Detector;
 }
 
 void PHG4EPDSubsystem::SetDefaultParameters()
 {
-  set_default_int_param(-1, "active", 1);
-  set_default_double_param(-1, "z_position", 300.);
+  set_default_double_param("place_z", 300.);
 }

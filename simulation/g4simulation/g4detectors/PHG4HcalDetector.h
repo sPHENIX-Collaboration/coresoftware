@@ -26,12 +26,12 @@ class PHG4HcalDetector : public PHG4Detector
   PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
 
   //! destructor
-  virtual ~PHG4HcalDetector(void)
+  ~PHG4HcalDetector(void) override
   {
   }
 
   //! construct
-  void ConstructMe(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world) override;
 
   void SetRadius(const G4double dbl) { radius = dbl * cm; }
   void SetLength(const G4double dbl) { length = dbl * cm; }
@@ -56,7 +56,7 @@ class PHG4HcalDetector : public PHG4Detector
   void SuperDetector(const std::string& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
-  G4UserSteppingAction* GetSteppingAction()
+  G4UserSteppingAction* GetSteppingAction() override
   {
     if (_region)
       return _region->GetRegionalSteppingAction();
@@ -64,7 +64,7 @@ class PHG4HcalDetector : public PHG4Detector
       return 0;
   }
 
-  void Print(const std::string& what = "ALL") const;
+  void Print(const std::string& what = "ALL") const override;
 
   static int INACTIVE;
 

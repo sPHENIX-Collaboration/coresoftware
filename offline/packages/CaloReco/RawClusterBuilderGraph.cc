@@ -276,7 +276,7 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilderGraph::End(PHCompositeNode *topNode)
+int RawClusterBuilderGraph::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

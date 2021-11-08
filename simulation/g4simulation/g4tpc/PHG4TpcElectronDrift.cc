@@ -6,16 +6,16 @@
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -59,23 +59,18 @@
 
 namespace
 {
-  template <class T>
-  inline constexpr T square(const T &x)
-  {
-    return x * x;
-  }
+  template <class T> inline constexpr T square(const T &x) { return x * x; }
 }  // namespace
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , temp_hitsetcontainer(new TrkrHitSetContainer)
-  , single_hitsetcontainer(new TrkrHitSetContainer)
+  , temp_hitsetcontainer(new TrkrHitSetContainerv1)
+  , single_hitsetcontainer(new TrkrHitSetContainerv1)
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
-  return;
 }
 
 //_____________________________________________________________
@@ -125,7 +120,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -141,7 +136,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hittruthassoc = new TrkrHitTruthAssoc();
+    hittruthassoc = new TrkrHitTruthAssocv1;
     auto newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -236,7 +231,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     deltarnodiff = new TH2F("deltarnodiff", "Delta r (no diffusion, only SC distortion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
     deltarnodist = new TH2F("deltarnodist", "Delta r (no SC distortion, only diffusion); r (cm);#Delta r (cm)", 580, 20, 78, 1000, -2, 5);
   }
-
+  
   if (Verbosity())
   {
     // eval tree only when verbosity is on
@@ -257,7 +252,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 18;
+  static constexpr unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -272,8 +267,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
-
-  PHG4HitContainer::ConstIterator hiter;
+   
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
@@ -284,7 +278,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+  for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
     dump_counter++;
@@ -469,7 +463,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    // Add the hit-g4hit association
 	    // no need to check for duplicates, since the hit is new
 	    hittruthassoc->addAssoc(node_hitsetkey, single_hitkey, hiter->first);
-	    if(Verbosity() > 2) 
+	    if(Verbosity() > 100) 
 	      std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
 	  }
       }
@@ -507,7 +501,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	      {
 		TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
 		TrkrHit *temp_tpchit = temp_hit_iter->second;
-		if (Verbosity() > 100 && layer == print_layer)
+		if (Verbosity() > 10 && layer == print_layer)
 		  {
 		    std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
 			      << " z bin " << TpcDefs::getTBin(temp_hitkey)
@@ -523,7 +517,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 		if (!node_hit)
 		  {
 		    // Otherwise, create a new one
-		    node_hit = new TpcHit();
+		    node_hit = new TrkrHitv2();
 		    node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
 		  }
 
@@ -578,9 +572,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       {
         TrkrDefs::hitkey hitkey = hit_iter->first;
         TrkrHit *tpchit = hit_iter->second;
-
-        std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
-                  << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << std::endl;
+	std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
+		  << "  energy " << tpchit->getEnergy() << std::endl;
       }
     }
   }
@@ -600,7 +593,7 @@ void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 }
 
-int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 0)
   {

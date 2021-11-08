@@ -19,11 +19,11 @@ class PdbCalChan : public PHObject{
 
 public:
   PdbCalChan() {}
-  virtual ~PdbCalChan() {}
+  ~PdbCalChan() override {}
   
   virtual void print() const = 0;
 
-  ClassDef(PdbCalChan,1);
+  ClassDefOverride(PdbCalChan,1);
 };
 
 #endif /* PDBCAL_BASE_PDBCALCHAN_H */

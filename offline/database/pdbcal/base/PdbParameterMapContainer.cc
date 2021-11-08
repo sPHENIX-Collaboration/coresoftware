@@ -121,7 +121,7 @@ int PdbParameterMapContainer::WriteToFile(const std::string &detector_name,
            parametermap.begin();
        it != parametermap.end(); ++it)
   {
-    PdbParameterMap *myparm = static_cast<PdbParameterMap *>(it->second->Clone());
+    PdbParameterMap *myparm = static_cast<PdbParameterMap *>(it->second->CloneMe());
     container->AddPdbParameterMap(it->first, myparm);
   }
 

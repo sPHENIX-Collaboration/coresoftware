@@ -30,9 +30,7 @@
 
 #include "PHG4RegionInformation.h"
 
-#include <Geant4/G4ios.hh>
-
-#include <ostream>          // for operator<<, ostream
+#include <iostream>          // for operator<<, ostream
 
 PHG4RegionInformation::PHG4RegionInformation()
 :isWorld(false),isTracker(false),isCalorimeter(false)
@@ -40,11 +38,11 @@ PHG4RegionInformation::PHG4RegionInformation()
 
 void PHG4RegionInformation::Print() const
 {
- G4cout << "I'm ";
- if(isWorld) { G4cout << "World."; }
- else if(isTracker) { G4cout << "Tracker."; }
- else if(isCalorimeter) { G4cout << "Calorimeter."; }
- else { G4cout << "unknown."; }
- G4cout << G4endl;
+ std::cout << "I'm ";
+ if(isWorld) { std::cout << "World."; }
+ else if(isTracker) { std::cout << "Tracker."; }
+ else if(isCalorimeter) { std::cout << "Calorimeter."; }
+ else { std::cout << "unknown."; }
+ std::cout << std::endl;
 }
 

@@ -7,7 +7,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -67,7 +66,7 @@ int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
+int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 {
 
   if(Verbosity() > 0)
@@ -186,7 +185,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTpcClusterMover::End(PHCompositeNode *topNode)
+int PHTpcClusterMover::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

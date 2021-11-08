@@ -15,25 +15,26 @@ class PHG4Particlev1 : public PHG4Particle
   PHG4Particlev1(const std::string &name, const int pid, const double px, const double py, const double pz);
   PHG4Particlev1(const PHG4Particle *in);
 
-  virtual ~PHG4Particlev1() {}
+  ~PHG4Particlev1() override {}
 
-  int get_pid() const { return fpid; }
-  std::string get_name() const { return fname; }
-  double get_px() const { return fpx; }
-  double get_py() const { return fpy; }
-  double get_pz() const { return fpz; }
+  void identify(std::ostream &os = std::cout) const override;
 
-  int get_barcode() const { return barcode; }
+  int get_pid() const override { return fpid; }
+  std::string get_name() const override { return fname; }
+  double get_px() const override { return fpx; }
+  double get_py() const override { return fpy; }
+  double get_pz() const override { return fpz; }
 
-  void set_name(const std::string &name) { fname = name; }
-  void set_pid(const int i) { fpid = i; }
-  void set_px(const double x) { fpx = x; }
-  void set_py(const double x) { fpy = x; }
-  void set_pz(const double x) { fpz = x; }
+  int get_barcode() const override { return barcode; }
 
-  void set_barcode(const int bcd) { barcode = bcd; }
+  void set_name(const std::string &name) override { fname = name; }
+  void set_pid(const int i) override { fpid = i; }
+  void set_px(const double x) override { fpx = x; }
+  void set_py(const double x) override { fpy = x; }
+  void set_pz(const double x) override { fpz = x; }
 
-  void identify(std::ostream &os = std::cout) const;
+  void set_barcode(const int bcd) override { barcode = bcd; }
+
 
  protected:
   std::string fname;
@@ -41,7 +42,7 @@ class PHG4Particlev1 : public PHG4Particle
   double fpx, fpy, fpz;
   int barcode;
 
-  ClassDef(PHG4Particlev1, 1)
+  ClassDefOverride(PHG4Particlev1, 1)
 };
 
 #endif

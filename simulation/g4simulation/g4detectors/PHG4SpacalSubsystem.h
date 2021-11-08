@@ -13,7 +13,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -29,7 +29,7 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
                       const int layer = 0);
 
   //! destructor
-  virtual ~PHG4SpacalSubsystem();
+  ~PHG4SpacalSubsystem() override;
 
   //! init
   /*!
@@ -38,39 +38,44 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   ceates the stepping action 
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   //! event processing
   /*!
    get all relevant nodes from top nodes (namely hit list)
    and pass that to the stepping action
    */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector *GetDetector() const;
-  virtual PHG4SteppingAction *GetSteppingAction() const { return steppingAction_; }
+  PHG4Detector *GetDetector() const override;
+  PHG4SteppingAction *GetSteppingAction() const override { return steppingAction_; }
 
-  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
   void
-  Print(const std::string &what = "ALL") const;
+  Print(const std::string &what = "ALL") const override;
+
+  void CosmicSetup(const int i) { m_CosmicSetupFlag = i; }
+  int CosmicSetup() const { return m_CosmicSetupFlag; }
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
   //  SpacalGeom_t _geom;
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SpacalDetector *detector_;
+  PHG4SpacalDetector *detector_ = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *steppingAction_ = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
+
+  int m_CosmicSetupFlag = 0;
 };
 
 #endif

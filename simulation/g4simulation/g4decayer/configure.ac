@@ -14,20 +14,20 @@ dnl case $CXX in
 dnl  clang++)
 dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 dnl  ;;
-dnl  g++)
+dnl  *g++)
 dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
 fi
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-shadow"
+  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-shadow"
  ;;
- g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ *g++)
+  CXXFLAGS="$CXXFLAGS"
  ;;
 esac
 
@@ -36,7 +36,7 @@ dnl   AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1"
 
 dnl test for root 6
 if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 fi
 

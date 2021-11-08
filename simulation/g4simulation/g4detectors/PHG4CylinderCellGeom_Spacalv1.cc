@@ -142,7 +142,7 @@ PHG4CylinderCellGeom_Spacalv1::get_etabounds(const int ibin) const
 }
 
 int
-PHG4CylinderCellGeom_Spacalv1::get_zbin(const double z) const
+PHG4CylinderCellGeom_Spacalv1::get_zbin(const double /*z*/) const
 {
   cout << "PHG4CylinderCellGeom_Spacalv1::get_zbin is invalid" << endl;
   exit(1);
@@ -150,7 +150,7 @@ PHG4CylinderCellGeom_Spacalv1::get_zbin(const double z) const
 }
 
 int
-PHG4CylinderCellGeom_Spacalv1::get_etabin(const double eta) const
+PHG4CylinderCellGeom_Spacalv1::get_etabin(const double /*eta*/) const
 {
   cout << "PHG4CylinderCellGeom_Spacalv1::get_etabin is invalid" << endl;
   exit(1);

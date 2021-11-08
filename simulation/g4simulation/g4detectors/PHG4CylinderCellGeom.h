@@ -5,6 +5,7 @@
 
 #include <phool/PHObject.h>
 
+#include <cmath>
 #include <iostream>          // for cout, ostream
 #include <string>
 #include <utility>           // for pair
@@ -12,11 +13,13 @@
 class PHG4CylinderCellGeom: public PHObject
 {
  public:
-  PHG4CylinderCellGeom();
+  PHG4CylinderCellGeom() = default;
 
-  virtual ~PHG4CylinderCellGeom() {}
+  ~PHG4CylinderCellGeom() override = default;
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
   int get_layer() const {return layer;}
   double get_radius() const {return radius;}
   double get_thickness() const {return thickness;}
@@ -61,18 +64,18 @@ class PHG4CylinderCellGeom: public PHObject
   void check_binning_method_eta(const std::string & src = "") const;
   void check_binning_method_phi(const std::string & src = "") const;
   std::string methodname(const int i) const;
-  int layer;
-  int binning;
-  double radius;
-  int nzbins;
-  double zmin;
-  double zstep;
-  int nphibins;
-  double phimin;
-  double phistep;
-  double thickness;
+  int layer = -999;
+  int binning = 0;
+  double radius = NAN;
+  int nzbins = -1;
+  double zmin = NAN;
+  double zstep = NAN;
+  int nphibins = -1;
+  double phimin = -M_PI;
+  double phistep = NAN;
+  double thickness = NAN;
 
-  ClassDef(PHG4CylinderCellGeom,1)
+  ClassDefOverride(PHG4CylinderCellGeom,1)
 };
 
 #endif

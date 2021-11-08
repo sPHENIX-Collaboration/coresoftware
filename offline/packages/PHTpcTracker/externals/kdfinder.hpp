@@ -1280,7 +1280,7 @@ namespace kdfinder
 
     bool is_good()
     {
-      return !std::isnan(a) && !isnan(b) && !isnan(r) &&
+      return !std::isnan(a) && !std::isnan(b) && !std::isnan(r) &&
              std::isfinite(a) && std::isfinite(b) && std::isfinite(r) &&
              std::isfinite(j) && j > 0;
     }
@@ -1320,7 +1320,7 @@ namespace kdfinder
 
     bool is_good()
     {
-      return !std::isnan(a) && !isnan(b) && !isnan(chi2) &&
+      return !std::isnan(a) && !std::isnan(b) && !std::isnan(chi2) &&
              std::isfinite(a) && std::isfinite(b) && std::isfinite(chi2);
     }
     T a;     // a + b * x

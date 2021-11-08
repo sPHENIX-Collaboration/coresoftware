@@ -25,7 +25,7 @@ PHG4VertexSelection::PHG4VertexSelection(const std::string &name)
 }
 
 //____________________________________________________________________________
-int PHG4VertexSelection::InitRun(PHCompositeNode *topNode)
+int PHG4VertexSelection::InitRun(PHCompositeNode */*topNode*/)
 {
   UpdateParametersWithMacro();
 

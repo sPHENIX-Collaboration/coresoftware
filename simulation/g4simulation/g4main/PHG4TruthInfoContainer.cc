@@ -49,47 +49,47 @@ void PHG4TruthInfoContainer::Reset()
 
 void PHG4TruthInfoContainer::identify(ostream& os) const
 {
-  cout << "---particlemap--------------------------" << endl;
+  os << "---particlemap--------------------------" << endl;
   for (ConstIterator iter = particlemap.begin(); iter != particlemap.end(); ++iter)
   {
-    cout << "particle id " << iter->first << endl;
+    os << "particle id " << iter->first << endl;
     (iter->second)->identify();
   }
 
-  cout << "---vtxmap-------------------------------" << endl;
+  os << "---vtxmap-------------------------------" << endl;
   for (ConstVtxIterator vter = vtxmap.begin(); vter != vtxmap.end(); ++vter)
   {
-    cout << "vtx id: " << vter->first << endl;
+    os << "vtx id: " << vter->first << endl;
     (vter->second)->identify();
   }
 
-  cout << "---showermap-------------------------------" << endl;
+  os << "---showermap-------------------------------" << endl;
   for (ConstShowerIterator ster = showermap.begin(); ster != showermap.end(); ++ster)
   {
-    cout << "shower id: " << ster->first << endl;
+    os << "shower id: " << ster->first << endl;
     (ster->second)->identify();
   }
 
-  cout << "---list of embeded track flags-------------------" << endl;
+  os << "---list of embeded track flags-------------------" << endl;
   for (std::map<int, int>::const_iterator eter = particle_embed_flags.begin();
        eter != particle_embed_flags.end();
        ++eter)
   {
-    cout << "embeded track id: " << eter->first
+    os << "embeded track id: " << eter->first
          << " flag: " << eter->second << endl;
   }
 
-  cout << "---list of embeded vtx flags-------------------" << endl;
+  os << "---list of embeded vtx flags-------------------" << endl;
   for (std::map<int, int>::const_iterator eter = vertex_embed_flags.begin();
        eter != vertex_embed_flags.end();
        ++eter)
   {
-    cout << "embeded vertex id: " << eter->first
+    os << "embeded vertex id: " << eter->first
          << " flag: " << eter->second << endl;
   }
 
-  cout << "---primary vertex-------------------" << endl;
-  cout << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << endl;
+  os << "---primary vertex-------------------" << endl;
+  os << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << endl;
 
   return;
 }
@@ -272,11 +272,25 @@ void PHG4TruthInfoContainer::delete_particle(Iterator piter)
   return;
 }
 
+void PHG4TruthInfoContainer::delete_particle(int trackid)
+{
+  Iterator it = particlemap.find(trackid);
+  if (it != particlemap.end())
+    delete_particle(it);
+}
+
 void PHG4TruthInfoContainer::delete_vtx(VtxIterator viter)
 {
   delete viter->second;
   vtxmap.erase(viter);
   return;
+}
+
+void PHG4TruthInfoContainer::delete_vtx(int vtxid)
+{
+  VtxIterator it = vtxmap.find(vtxid);
+  if (it != vtxmap.end())
+    delete_vtx(it);
 }
 
 void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter)

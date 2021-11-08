@@ -22,7 +22,7 @@ class ParticleFlowReco : public SubsysReco
 
   ParticleFlowReco(const std::string &name = "ParticleFlowReco");
 
-  virtual ~ParticleFlowReco();
+  ~ParticleFlowReco() override;
 
   int Init(PHCompositeNode *topNode) override;
 

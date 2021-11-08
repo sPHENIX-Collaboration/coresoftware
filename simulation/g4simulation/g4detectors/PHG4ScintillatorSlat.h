@@ -15,13 +15,14 @@ class PHG4ScintillatorSlat : public PHObject
 {
  public:
   
-  virtual ~PHG4ScintillatorSlat(){}
+  ~PHG4ScintillatorSlat() override{}
 
-  virtual void identify(std::ostream& os = std::cout) const {
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override {
     os << "PHG4ScintillatorSlat base class" << std::endl;
   }
   
-  virtual void add_edep(const double edep, const double e, const double light_yield) {return;}
+  virtual void add_edep(const double /*edep*/, const double /*e*/, const double /*light_yield*/) {return;}
 
   virtual void set_key(const PHG4ScintillatorSlatDefs::keytype) {return;}
   virtual void add_hit_key(PHG4HitDefs::keytype) {return;}
@@ -39,7 +40,7 @@ class PHG4ScintillatorSlat : public PHObject
  protected:
 
   PHG4ScintillatorSlat() {}
-  ClassDef(PHG4ScintillatorSlat,1)
+  ClassDefOverride(PHG4ScintillatorSlat,1)
 };
 
 #endif

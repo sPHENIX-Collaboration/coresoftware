@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef PHG4TPCENDCAPDETECTOR_H
-#define PHG4TPCENDCAPDETECTOR_H
+#ifndef G4TPC_PHG4TPCENDCAPDETECTOR_H
+#define G4TPC_PHG4TPCENDCAPDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4Types.hh>
@@ -25,7 +25,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   PHG4TpcEndCapDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4TpcEndCapDetector();
+  ~PHG4TpcEndCapDetector() override;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -63,11 +63,11 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   AddLayer(  //
       G4AssemblyVolume *assmeblyvol,
       G4double &z_start,
-      std::string _name,               //! name base for this layer
-      std::string _material,           //! material name in G4
+      const std::string &_name,               //! name base for this layer
+      const std::string &_material,           //! material name in G4
       G4double _depth,                 //! depth in G4 units
       double _percentage_filled = 100  //! percentage filled//
   );
 };
 
-#endif  // PHG4TPCENDCAPDETECTOR_H
+#endif  // G4TPC_PHG4TPCENDCAPDETECTOR_H

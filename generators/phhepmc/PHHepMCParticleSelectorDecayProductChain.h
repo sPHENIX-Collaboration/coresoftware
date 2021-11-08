@@ -21,10 +21,10 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
 {
  public:
   PHHepMCParticleSelectorDecayProductChain(const std::string& name = "PARTICLESELECTOR");
-  virtual ~PHHepMCParticleSelectorDecayProductChain() {}
+  ~PHHepMCParticleSelectorDecayProductChain() override {}
 
-  int InitRun(PHCompositeNode* topNode);
-  int process_event(PHCompositeNode* topNode);
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
 
   /// Set the ID of the particle you want in your output.
   virtual void SetParticle(const int pid);

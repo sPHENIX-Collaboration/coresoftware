@@ -45,7 +45,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4VExtDecayer.hh>  // for G4VExtDecayer
-#include <Geant4/G4ios.hh>          // for G4cout, G4endl
 
 #include <CLHEP/Vector/LorentzVector.h>
 
@@ -575,7 +574,7 @@ G4DecayProducts* G4Pythia6Decayer::ImportDecayProducts(const G4Track& track)
 
   if (fVerboseLevel > 0)
   {
-    G4cout << "nofParticles: " << nofParticles << G4endl;
+    std::cout << "nofParticles: " << nofParticles << std::endl;
   }
 
   // convert decay products Pythia6Particle type
@@ -598,7 +597,7 @@ G4DecayProducts* G4Pythia6Decayer::ImportDecayProducts(const G4Track& track)
 
       if (fVerboseLevel > 0)
       {
-        G4cout << "  " << i << "th particle PDG: " << pdg << "   ";
+        std::cout << "  " << i << "th particle PDG: " << pdg << "   ";
       }
 
       // create G4DynamicParticle
@@ -608,9 +607,9 @@ G4DecayProducts* G4Pythia6Decayer::ImportDecayProducts(const G4Track& track)
       {
         if (fVerboseLevel > 0)
         {
-          G4cout << "  G4 particle name: "
+          std::cout << "  G4 particle name: "
                  << dynamicParticle->GetDefinition()->GetParticleName()
-                 << G4endl;
+                 << std::endl;
         }
 
         // add dynamicParticle to decayProducts
@@ -622,7 +621,7 @@ G4DecayProducts* G4Pythia6Decayer::ImportDecayProducts(const G4Track& track)
   }
   if (fVerboseLevel > 0)
   {
-    G4cout << "nofParticles for tracking: " << counter << G4endl;
+    std::cout << "nofParticles for tracking: " << counter << std::endl;
   }
 
   return decayProducts;

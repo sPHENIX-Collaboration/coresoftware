@@ -1,6 +1,8 @@
 #ifndef QA_QAG4SIMULATIONTPC_H
 #define QA_QAG4SIMULATIONTPC_H
 
+#include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
+
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
@@ -18,6 +20,8 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class SvtxEvalStack;
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 /// \class QAG4SimulationTpc
 class QAG4SimulationTpc : public SubsysReco
@@ -48,6 +52,12 @@ class QAG4SimulationTpc : public SubsysReco
 
   /// true if histograms are initialized
   bool m_initialized = false;
+
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps* m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;

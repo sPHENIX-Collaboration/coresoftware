@@ -22,10 +22,10 @@ public:
   void AddNode(const std::string &name);
 
   //! destuctor
-  virtual ~PHG4EventActionClearZeroEdep()
+  ~PHG4EventActionClearZeroEdep() override
   {}
 
-  void EndOfEventAction(const G4Event*);
+  void EndOfEventAction(const G4Event*) override;
   
  private:
   

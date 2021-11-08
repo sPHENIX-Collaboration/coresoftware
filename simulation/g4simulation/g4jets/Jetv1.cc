@@ -137,21 +137,21 @@ void Jetv1::print_property(ostream& os) const
   for (typ_property_map::const_iterator citer = _property_map.begin();
        citer != _property_map.end(); ++citer)
   {
-    cout << " ";  //indent
+    os << " ";  //indent
 
     switch (citer->first)
     {
     case prop_JetCharge:
-      cout << "Jet Charge";
+      os << "Jet Charge";
       break;
     case prop_BFrac:
-      cout << "Jet B-quark fraction";
+      os << "Jet B-quark fraction";
       break;
     default:
-      cout << "Property[" << citer->first << "]";
+      os << "Property[" << citer->first << "]";
       break;
     }
 
-    cout << "\t= " << citer->second << endl;
+    os << "\t= " << citer->second << endl;
   }
 }

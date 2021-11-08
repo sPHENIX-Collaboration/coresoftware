@@ -39,7 +39,7 @@ FermimotionAfterburner::~FermimotionAfterburner()
 }
 
 //____________________________________________________________________________..
-int FermimotionAfterburner::Init(PHCompositeNode *topNode)
+int FermimotionAfterburner::Init(PHCompositeNode */*topNode*/)
 {
   unsigned int seed = PHRandomSeed();
   gsl_rng_set(RandomGenerator, seed);

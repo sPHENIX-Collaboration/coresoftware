@@ -57,7 +57,7 @@ JetHepMCLoader::~JetHepMCLoader()
 {
 }
 
-int JetHepMCLoader::Init(PHCompositeNode *topNode)
+int JetHepMCLoader::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -198,7 +198,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetHepMCLoader::End(PHCompositeNode *topNode)
+int JetHepMCLoader::End(PHCompositeNode */*topNode*/)
 {
   if (m_saveQAPlots)
   {

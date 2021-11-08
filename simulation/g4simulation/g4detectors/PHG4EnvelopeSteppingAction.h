@@ -18,14 +18,14 @@ class PHG4EnvelopeSteppingAction: public PHG4SteppingAction
 		PHG4EnvelopeSteppingAction( PHG4EnvelopeDetector* );
 	
 		//Destructor
-		virtual ~PHG4EnvelopeSteppingAction()
+		~PHG4EnvelopeSteppingAction() override
 		{}
 	
 		//Stepping Action
-		virtual bool UserSteppingAction( const G4Step*, bool);
+		bool UserSteppingAction( const G4Step*, bool) override;
 	
 		//reimplemented from base class
-		virtual void SetInterfacePointers( PHCompositeNode* );
+		void SetInterfacePointers( PHCompositeNode* ) override;
 	
 	private:
 		

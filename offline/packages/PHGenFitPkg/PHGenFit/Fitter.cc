@@ -45,7 +45,7 @@ Fitter::Fitter(
     const std::string& tgeo_file_name,
     const PHField* field,
     const std::string& fitter_choice,
-    const std::string& track_rep_choice,
+    const std::string& /*track_rep_choice*/,
     const bool doEventDisplay)
   : verbosity(1000)
   , _doEventDisplay(doEventDisplay)
@@ -183,7 +183,7 @@ Fitter* Fitter::getInstance(const std::string& tgeo_file_name,
 
 Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
                const PHGenFit::Fitter::FitterType& fitter_choice,
-               const PHGenFit::Fitter::TrackRepType& track_rep_choice,
+               const PHGenFit::Fitter::TrackRepType& /*track_rep_choice*/,
                const bool doEventDisplay)
   : verbosity(0)
   , _tgeo_manager(tgeo_manager)
@@ -233,7 +233,7 @@ Fitter* Fitter::getInstance(TGeoManager* tgeo_manager,
 }
 
 Fitter::Fitter(TGeoManager* tgeo_manager, genfit::AbsBField* fieldMap,
-               const std::string& fitter_choice, const std::string& track_rep_choice,
+               const std::string& fitter_choice, const std::string& /*track_rep_choice*/,
                const bool doEventDisplay)
   : verbosity(0)
   , _tgeo_manager(tgeo_manager)

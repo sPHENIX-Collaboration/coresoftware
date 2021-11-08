@@ -265,23 +265,23 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   {
   }
 
-  virtual ~RecursiveMomentumContainerEnd()
+  ~RecursiveMomentumContainerEnd() override
   {
   }
 
-  virtual bool insert(TrivialTrack& track)
+  bool insert(TrivialTrack& track) override
   {
     tracks.push_back(track);
     return true;
   }
 
-  virtual TrivialTrack* begin()
+  TrivialTrack* begin() override
   {
     x_pos = 0;
     return (&(tracks.at(0)));
   }
 
-  virtual TrivialTrack* next()
+  TrivialTrack* next() override
   {
     if (x_pos >= (tracks.size() - 1))
     {
@@ -294,7 +294,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
     }
   }
 
-  virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
+  void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
     for (unsigned int i = 0; i < tracks.size(); ++i)
     {
@@ -356,7 +356,7 @@ bool RecursiveMomentumContainer::insert(TrivialTrack& track)
   return containers[x_ind][y_ind][z_ind]->insert(track);
 }
 
-MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z)
+MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float pz_s, unsigned int /*n_l*/, unsigned int n_i, unsigned int n_r, float i_z, float o_z)
   : ntp_true(nullptr)
   , ntp_reco(nullptr)
   , pt_search_scale(pt_s)
@@ -381,7 +381,7 @@ MomentumEvaluator::~MomentumEvaluator()
   }
 }
 
-int MomentumEvaluator::Init(PHCompositeNode* topNode)
+int MomentumEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
   if (ntp_true != nullptr)
   {
@@ -595,7 +595,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MomentumEvaluator::End(PHCompositeNode* topNode)
+int MomentumEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   TFile outfile(file_name.c_str(), "recreate");
   outfile.cd();

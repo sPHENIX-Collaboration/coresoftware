@@ -21,11 +21,12 @@ class RawClusterContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   RawClusterContainer() {}
-  virtual ~RawClusterContainer() {}
+  ~RawClusterContainer() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
+
   ConstIterator AddCluster(RawCluster *clus);
 
   RawCluster *getCluster(const RawClusterDefs::keytype id);
@@ -43,7 +44,7 @@ class RawClusterContainer : public PHObject
  protected:
   Map _clusters;
 
-  ClassDef(RawClusterContainer, 1)
+  ClassDefOverride(RawClusterContainer, 1)
 };
 
 #endif

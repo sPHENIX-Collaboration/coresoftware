@@ -14,7 +14,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
-
+#include <memory>
 
 
 /**
@@ -26,42 +26,34 @@ class TrkrCluster : public PHObject
 {
  public:
   //! dtor
-  virtual ~TrkrCluster() {}
+  ~TrkrCluster() override {}
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "TrkrCluster base class" << std::endl;
   }
-  virtual void Reset() {}
-  virtual int isValid() const { return 0; }
+  void Reset() override {}
+  int isValid() const override { return 0; }
   //
   // cluster id
   //
   virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void setClusKey(TrkrDefs::cluskey id) {}
+  virtual void setClusKey(TrkrDefs::cluskey) {}
+ 
   //
   // cluster position
   //
-  virtual float getX() const { return NAN; }
-  virtual void setX(float x) {}
-  virtual float getY() const { return NAN; }
-  virtual void setY(float y) {}
-  virtual float getZ() const { return NAN; }
-  virtual void setZ(float z) {}
-  virtual float getPosition(int coor) const { return NAN; }
-  virtual void setPosition(int coor, float xi) {}
-  virtual void setGlobal() {}
-  virtual void setLocal() {}
-  virtual bool isGlobal() { return true; }
+  virtual float getLocalX() const { return NAN; }
+  virtual void setLocalX(float) {}
+  virtual float getLocalY() const { return NAN; }
+  virtual void setLocalY(float) {}
+
   //
   // cluster info
   //
-  virtual void setAdc(unsigned int adc) {}
+  virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
-  virtual float getSize(unsigned int i, unsigned int j) const { return NAN; }
-  virtual void setSize(unsigned int i, unsigned int j, float value) {}
-  virtual float getError(unsigned int i, unsigned int j) const { return NAN; }
-  virtual void setError(unsigned int i, unsigned int j, float value) {}
+
   //
   // convenience interface
   //
@@ -70,9 +62,35 @@ class TrkrCluster : public PHObject
   virtual float getPhiError() const { return NAN; }
   virtual float getRPhiError() const { return NAN; }
   virtual float getZError() const { return NAN; }
+
+  /// Acts functions, for Acts modules use only
+  virtual void setActsLocalError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/){}
+  virtual float getActsLocalError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual TrkrDefs::subsurfkey getSubSurfKey() const { return TrkrDefs::SUBSURFKEYMAX; }
+  virtual void setSubSurfKey(TrkrDefs::subsurfkey /*id*/) {}
+
+  // Global coordinate functions are deprecated, use local 
+  // coordinate functions only
+  virtual float getX() const { return NAN; }
+  virtual void setX(float) {}
+  virtual float getY() const { return NAN; }
+  virtual void setY(float) {}
+  virtual float getZ() const { return NAN; }
+  virtual void setZ(float) {}
+  virtual float getPosition(int /*coor*/) const { return NAN; }
+  virtual void setPosition(int /*coor*/, float /*xi*/) {}
+  virtual void setGlobal() {}
+  virtual void setLocal() {}
+  virtual bool isGlobal() { return true; }
+  virtual float getError(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setError(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+  virtual float getSize(unsigned int /*i*/, unsigned int /*j*/) const { return NAN; }
+  virtual void setSize(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
+
+
  protected:
-  TrkrCluster() {}
-  ClassDef(TrkrCluster, 1)
+  TrkrCluster() = default;
+  ClassDefOverride(TrkrCluster, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTER_H

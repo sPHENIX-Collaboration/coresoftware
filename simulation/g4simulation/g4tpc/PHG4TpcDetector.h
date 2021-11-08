@@ -23,12 +23,12 @@ class PHG4TpcDetector : public PHG4Detector
   PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4TpcDetector(void)
+  ~PHG4TpcDetector(void) override
   {
   }
 
   //! construct
-  void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   int IsInTpc(G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }

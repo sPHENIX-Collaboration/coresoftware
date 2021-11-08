@@ -18,9 +18,9 @@ class PHG4BlockDisplayAction : public PHG4DisplayAction
  public:
   PHG4BlockDisplayAction(const std::string &name, PHParameters *parameters);
 
-  virtual ~PHG4BlockDisplayAction();
+  ~PHG4BlockDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void SetMyVolume(G4LogicalVolume *vol) { m_MyVolume = vol; }
   void SetColor(const double red, const double green, const double blue, const double alpha = 1.);
 

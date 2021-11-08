@@ -7,6 +7,7 @@
 #include "PHG4PhenixDetector.h"
 #include "PHG4PhenixDisplayAction.h"
 #include "PHG4PhenixEventAction.h"
+#include "PHG4PhenixStackingAction.h"
 #include "PHG4PhenixSteppingAction.h"
 #include "PHG4PhenixTrackingAction.h"
 #include "PHG4PrimaryGeneratorAction.h"
@@ -46,6 +47,7 @@
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
+#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4Element.hh>       // for G4Element
 #include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
@@ -94,7 +96,6 @@
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -108,6 +109,7 @@ class G4TrackingManager;
 class G4VPhysicalVolume;
 class PHField;
 class PHG4EventAction;
+class PHG4StackingAction;
 class PHG4SteppingAction;
 
 using namespace std;
@@ -115,7 +117,6 @@ using namespace std;
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , m_MagneticField(0.)
   , m_MagneticFieldRescale(1.0)
   , m_Field(nullptr)
   , m_RunManager(nullptr)
@@ -251,6 +252,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
     gSystem->Exit(1);
+    exit(1);
   }
 
   if (m_ActiveDecayerFlag)
@@ -277,7 +279,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   }
 #endif
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     reco->Init(topNode);
   }
@@ -338,7 +340,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   recoConsts *rc = recoConsts::instance();
 
   rc->set_StringFlag("WorldMaterial", m_WorldMaterial);
-
+// build world material - so in subsequent code we can call
+//  G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"))
+// if the world material is not in the nist DB, we need to implement it here
+  G4NistManager::Instance()->FindOrBuildMaterial(m_WorldMaterial);
+  // G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
+  // G4NistManager::Instance()->FindOrBuildMaterial("G4_Be");
+  // G4NistManager::Instance()->FindOrBuildMaterial("G4_Al");
+  // G4NistManager::Instance()->FindOrBuildMaterial("G4_STAINLESS-STEEL");
   rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
   rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
   rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
@@ -352,7 +361,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (Verbosity() >= 1)
     {
@@ -373,8 +382,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_Detector->SetWorldShape(m_WorldShape);
   m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     if (g4sub->GetDetector())
     {
@@ -394,7 +402,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create main event action, add subsystemts and register to GEANT
   m_EventAction = new PHG4PhenixEventAction();
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4EventAction *evtact = g4sub->GetEventAction();
     if (evtact)
@@ -409,8 +417,28 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // create main stepping action, add subsystems and register to GEANT
+  m_StackingAction = new PHG4PhenixStackingAction();
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
+  {
+    PHG4StackingAction *action = g4sub->GetStackingAction();
+    if (action)
+    {
+      if (Verbosity() > 1)
+      {
+        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+      }
+      m_StackingAction->AddAction(g4sub->GetStackingAction());
+    }
+  }
+
+  if (not m_disableUserActions)
+  {
+    m_RunManager->SetUserAction(m_StackingAction);
+  }
+
+  // create main stepping action, add subsystems and register to GEANT
   m_SteppingAction = new PHG4PhenixSteppingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4SteppingAction *action = g4sub->GetSteppingAction();
     if (action)
@@ -431,7 +459,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   // create main tracking action, add subsystems and register to GEANT
   m_TrackingAction = new PHG4PhenixTrackingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     m_TrackingAction->AddAction(g4sub->GetTrackingAction());
 
@@ -458,7 +486,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
   // cout << "End of bogus warning message" << endl << endl;
-  // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
+  G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
     if (Verbosity() > 0)
@@ -467,12 +495,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     theCerenkovProcess->DumpPhysicsTable();
     }
   */
-  theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
+  theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
-  // theScintillationProcess->SetScintillationYieldFactor(1.);
-  // theScintillationProcess->SetTrackSecondariesFirst(true);
+  theScintillationProcess->SetScintillationYieldFactor(1.0);
+  theScintillationProcess->SetTrackSecondariesFirst(false);
+  // theScintillationProcess->SetScintillationExcitationRatio(1.0);
 
   // Use Birks Correction in the Scintillation process
 
@@ -493,15 +522,19 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       pmanager->AddProcess(theCerenkovProcess);
       pmanager->SetProcessOrdering(theCerenkovProcess, idxPostStep);
     }
-    // if (theScintillationProcess->IsApplicable(*particle))
-    // {
-    //   pmanager->AddProcess(theScintillationProcess);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
-    //   pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
-    // }
+    if (theScintillationProcess->IsApplicable(*particle))
+    {
+      pmanager->AddProcess(theScintillationProcess);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxAtRest);
+      pmanager->SetProcessOrderingToLast(theScintillationProcess, idxPostStep);
+    }
+    for (PHG4Subsystem *g4sub: m_SubsystemList)
+    {
+      g4sub->AddProcesses(particle);
+    }
   }
   G4ProcessManager *pmanager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
-  // G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
+  // std::cout << " AddDiscreteProcess to OpticalPhoton " << std::endl;
   pmanager->AddDiscreteProcess(new G4OpAbsorption());
   pmanager->AddDiscreteProcess(new G4OpRayleigh());
   pmanager->AddDiscreteProcess(new G4OpMieHG());
@@ -595,7 +628,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   m_GeneratorAction->SetInEvent(ineve);
 
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << endl;
@@ -622,7 +655,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   }
   m_RunManager->BeamOn(1);
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << endl;
@@ -643,7 +676,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
 int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 {
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     reco->ResetEvent(topNode);
   }
@@ -652,7 +685,7 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 
 void PHG4Reco::Print(const std::string &what) const
 {
-  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
+  for (SubsysReco *reco: m_SubsystemList)
   {
     if (what.empty() || what == "ALL" || (reco->Name()).find(what) != string::npos)
     {
@@ -701,74 +734,63 @@ void PHG4Reco::G4Seed(const unsigned int i)
 //____________________________________________________________________________
 void PHG4Reco::DefineMaterials()
 {
-  G4String symbol;   //a=mass of a mole;
+  G4String symbol,name;   //a=mass of a mole;
   G4double density;  //z=mean number of protons;
-  G4double fractionmass;
-
-  G4int ncomponents, natoms;
+  G4double fractionmass,a;
+  G4int ncomponents, natoms,z;
   // this is for FTFP_BERT_HP where the neutron code barfs
   // if the z difference to the last known element (U) is too large
-  set<G4String> ignoremat;
-  ignoremat.insert("G4_Cf");
-
-  //load all Materials from the nist database
-  G4NistManager *nist = G4NistManager::Instance();
-  vector<G4String> matnames = nist->GetNistMaterialNames();
-  while (matnames.begin() != matnames.end())
-  {
-    G4String mat = matnames.back();
-    if (ignoremat.find(mat) == ignoremat.end())
-    {
-      nist->FindOrBuildMaterial(mat);
-    }
-    matnames.pop_back();
-  }
   // home made compounds
+  // this is a legacy implementation but if they are used in multiple
+  // subsystems put them here
+  // otherwise implement locally used ones now in the DefineMaterials()
+  // method in your subsystem
+
   // making quartz
   G4Material *quartz = new G4Material("Quartz", density = 2.200 * g / cm3, ncomponents = 2);
-  quartz->AddElement(G4Element::GetElement("Si"), 1);
-  quartz->AddElement(G4Element::GetElement("O"), 2);
+  quartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 1);
+  quartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
 
   // making carbon fiber epoxy
   G4Material *cfrp_intt = new G4Material("CFRP_INTT", density = 1.69 * g / cm3, ncomponents = 3);
-  cfrp_intt->AddElement(G4Element::GetElement("C"), 10);
-  cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
-  cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
+  cfrp_intt->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 10);
+  cfrp_intt->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 6);
+  cfrp_intt->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 1);
 
   // water glycol mixture for the INTT endcap rings
   G4Material *PropyleneGlycol = new G4Material("Propyleneglycol", 1.036 * g / cm3, 3);
-  PropyleneGlycol->AddElement(G4Element::GetElement("C"), 3);
-  PropyleneGlycol->AddElement(G4Element::GetElement("H"), 8);
-  PropyleneGlycol->AddElement(G4Element::GetElement("O"), 2);
+  PropyleneGlycol->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 3);
+  PropyleneGlycol->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 8);
+  PropyleneGlycol->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
 
   G4Material *WaterGlycol_INTT = new G4Material("WaterGlycol_INTT", density = (0.997 * 0.7 + 1.036 * 0.3) * g / cm3, ncomponents = 2);
   WaterGlycol_INTT->AddMaterial(PropyleneGlycol, fractionmass = 0.30811936);
-  WaterGlycol_INTT->AddMaterial(G4Material::GetMaterial("G4_WATER"), fractionmass = 0.69188064);
+  WaterGlycol_INTT->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_WATER"), fractionmass = 0.69188064);
 
   // making Rohacell foam 110
   G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
-  rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
-  rohacell_foam_110->AddElement(G4Element::GetElement("H"), 11);
-  rohacell_foam_110->AddElement(G4Element::GetElement("O"), 2);
-  rohacell_foam_110->AddElement(G4Element::GetElement("N"), 1);
+  rohacell_foam_110->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 8);
+  rohacell_foam_110->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 11);
+  rohacell_foam_110->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
+  rohacell_foam_110->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), 1);
 
   // making Rohacell foam ROHACELL 51 WF
   // Source of density: https://www.rohacell.com/product/peek-industrial/downloads/rohacell%20wf%20product%20information.pdf
   G4Material *rohacell_foam_51 = new G4Material("ROHACELL_FOAM_51", density = 0.052 * g / cm3, ncomponents = 4);
-  rohacell_foam_51->AddElement(G4Element::GetElement("C"), 8);
-  rohacell_foam_51->AddElement(G4Element::GetElement("H"), 11);
-  rohacell_foam_51->AddElement(G4Element::GetElement("O"), 2);
-  rohacell_foam_51->AddElement(G4Element::GetElement("N"), 1);
+  rohacell_foam_51->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 8);
+  rohacell_foam_51->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 11);
+  rohacell_foam_51->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
+  rohacell_foam_51->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), 1);
 
   // making Carbon PEEK : 30 - 70 Vf.
   // https://www.quantum-polymers.com/wp-content/uploads/2017/03/QuantaPEEK-CF30.pdf
   G4Material *peek = new G4Material("PEEK", density = 1.32 * g / cm3, ncomponents = 3);
-  peek->AddElement(G4Element::GetElement("C"), 19);
-  peek->AddElement(G4Element::GetElement("H"), 12);
-  peek->AddElement(G4Element::GetElement("O"), 3);
+  peek->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 19);
+  peek->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 12);
+  peek->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 3);
 
   G4Material *cf = new G4Material("CF", density = 1.62 * g / cm3, ncomponents = 1);
-  cf->AddElement(G4Element::GetElement("C"), 1.);
+  cf->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 1.);
 
   G4Material *cf30_peek70 = new G4Material("CF30_PEEK70", density = (1.32 * 0.7 + 1.62 * 0.3) * g / cm3, ncomponents = 2);
   cf30_peek70->AddMaterial(cf, fractionmass = 0.34468085);
@@ -776,112 +798,112 @@ void PHG4Reco::DefineMaterials()
 
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
-  IsoButane->AddElement(G4Element::GetElement("C"), 4);
-  IsoButane->AddElement(G4Element::GetElement("H"), 10);
+  IsoButane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 4);
+  IsoButane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 10);
 
   G4Material *MuIDgas = new G4Material("MuIDgas", density = (1.977e-3 * 0.92 + 0.00265 * 0.08) * g / cm3, ncomponents = 2);
   MuIDgas->AddMaterial(IsoButane, fractionmass = 0.08);
-  MuIDgas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"), fractionmass = 0.92);
+  MuIDgas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE"), fractionmass = 0.92);
 
   // that seems to be the composition of 304 Stainless steel
   G4Material *StainlessSteel =
       new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
-  StainlessSteel->AddElement(G4Element::GetElement("Fe"), 0.70105);
-  StainlessSteel->AddElement(G4Element::GetElement("Cr"), 0.18);
-  StainlessSteel->AddElement(G4Element::GetElement("Ni"), 0.09);
-  StainlessSteel->AddElement(G4Element::GetElement("Mn"), 0.02);
-  StainlessSteel->AddElement(G4Element::GetElement("C"), 0.0007);
-  StainlessSteel->AddElement(G4Element::GetElement("S"), 0.0003);
-  StainlessSteel->AddElement(G4Element::GetElement("Si"), 0.0075);
-  StainlessSteel->AddElement(G4Element::GetElement("P"), 0.00045);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.70105);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.18);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.09);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.02);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0007);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("S"), 0.0003);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0075);
+  StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
   G4Material *SS310 =
       new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
-  SS310->AddElement(G4Element::GetElement("Fe"), 0.50455);
-  SS310->AddElement(G4Element::GetElement("Cr"), 0.25);
-  SS310->AddElement(G4Element::GetElement("Ni"), 0.20);
-  SS310->AddElement(G4Element::GetElement("Mn"), 0.02);
-  SS310->AddElement(G4Element::GetElement("C"), 0.0025);
-  SS310->AddElement(G4Element::GetElement("S"), 0.015);
-  SS310->AddElement(G4Element::GetElement("Si"), 0.0075);
-  SS310->AddElement(G4Element::GetElement("P"), 0.00045);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.50455);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.25);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.20);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.02);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0025);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("S"), 0.015);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0075);
+  SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
   // SS316 from https://www.azom.com
   G4Material *SS316 =
       new G4Material("SS316", density = 8.0 * g / cm3, ncomponents = 9);
-  SS316->AddElement(G4Element::GetElement("Fe"), 0.68095);
-  SS316->AddElement(G4Element::GetElement("Cr"), 0.16);
-  SS316->AddElement(G4Element::GetElement("Ni"), 0.11);
-  SS316->AddElement(G4Element::GetElement("Mn"), 0.02);
-  SS316->AddElement(G4Element::GetElement("Mo"), 0.02);
-  SS316->AddElement(G4Element::GetElement("C"), 0.0008);
-  SS316->AddElement(G4Element::GetElement("S"), 0.0003);
-  SS316->AddElement(G4Element::GetElement("Si"), 0.0075);
-  SS316->AddElement(G4Element::GetElement("P"), 0.00045);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.68095);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.16);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.11);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.02);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mo"), 0.02);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0008);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("S"), 0.0003);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0075);
+  SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
   G4Material *Steel =
       new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
-  Steel->AddElement(G4Element::GetElement("Fe"), 0.9834);
-  Steel->AddElement(G4Element::GetElement("Mn"), 0.014);
-  Steel->AddElement(G4Element::GetElement("C"), 0.0017);
-  Steel->AddElement(G4Element::GetElement("S"), 0.00045);
-  Steel->AddElement(G4Element::GetElement("P"), 0.00045);
+  Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.9834);
+  Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.014);
+  Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0017);
+  Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("S"), 0.00045);
+  Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
   // a36 steel from http://www.matweb.com
   G4Material *a36 = new G4Material("Steel_A36", density = 7.85 * g / cm3, ncomponents = 5);
-  a36->AddElement(G4Element::GetElement("Fe"), 0.9824);
-  a36->AddElement(G4Element::GetElement("Cu"), 0.002);
-  a36->AddElement(G4Element::GetElement("C"), 0.0025);
-  a36->AddElement(G4Element::GetElement("Mn"), 0.0103);
-  a36->AddElement(G4Element::GetElement("Si"), 0.0028);
+  a36->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.9824);
+  a36->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cu"), 0.002);
+  a36->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0025);
+  a36->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.0103);
+  a36->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0028);
 
   // 1006 steel from http://www.matweb.com
   G4Material *steel_1006 = new G4Material("Steel_1006", density = 7.872 * g / cm3, ncomponents = 2);
-  steel_1006->AddElement(G4Element::GetElement("Fe"), 0.996);
-  steel_1006->AddElement(G4Element::GetElement("Mn"), 0.004);
+  steel_1006->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.996);
+  steel_1006->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.004);
 
   // from www.aalco.co.uk
   G4Material *Al5083 = new G4Material("Al5083", density = 2.65 * g / cm3, ncomponents = 3);
-  Al5083->AddElement(G4Element::GetElement("Mn"), 0.004);
-  Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
-  Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
+  Al5083->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.004);
+  Al5083->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mg"), 0.04);
+  Al5083->AddElement(G4NistManager::Instance()->FindOrBuildElement("Al"), 0.956);
 
   // Al 4046 from http://www.matweb.com
   G4Material *Al4046 = new G4Material("Al4046", density = 2.66 * g / cm3, ncomponents = 3);
-  Al4046->AddElement(G4Element::GetElement("Al"), 0.897);
-  Al4046->AddElement(G4Element::GetElement("Si"), 0.1);
-  Al4046->AddElement(G4Element::GetElement("Mg"), 0.003);
+  Al4046->AddElement(G4NistManager::Instance()->FindOrBuildElement("Al"), 0.897);
+  Al4046->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.1);
+  Al4046->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mg"), 0.003);
 
   // Al 6061T6 from http://www.matweb.com
   G4Material *Al6061T6 = new G4Material("Al6061T6", density = 2.70 * g / cm3, ncomponents = 4);
-  Al6061T6->AddElement(G4Element::GetElement("Al"), 0.975);
-  Al6061T6->AddElement(G4Element::GetElement("Si"), 0.008);
-  Al6061T6->AddElement(G4Element::GetElement("Mg"), 0.01);
-  Al6061T6->AddElement(G4Element::GetElement("Fe"), 0.007);
+  Al6061T6->AddElement(G4NistManager::Instance()->FindOrBuildElement("Al"), 0.975);
+  Al6061T6->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.008);
+  Al6061T6->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mg"), 0.01);
+  Al6061T6->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.007);
 
   // E864 Pb-Scifi calorimeter
   // E864 Calorimeter is 99% Pb, 1% Antimony
   //Nuclear Instruments and Methods in Physics Research A 406 (1998) 227 258
   G4double density_e864 = (0.99 * 11.34 + 0.01 * 6.697) * g / cm3;
   G4Material *absorber_e864 = new G4Material("E864_Absorber", density_e864, 2);
-  absorber_e864->AddMaterial(G4Material::GetMaterial("G4_Pb"), 0.99);
-  absorber_e864->AddMaterial(G4Material::GetMaterial("G4_Sb"), 0.01);
+  absorber_e864->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Pb"), 0.99);
+  absorber_e864->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Sb"), 0.01);
 
   G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
-  FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
-  FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
+  FPC->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Cu"), 0.0162);
+  FPC->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_KAPTON"), 0.9838);
 
   // This is an approximation for the W saturated epoxy of the EMCal.
   G4Material *W_Epoxy = new G4Material("W_Epoxy", density = 10.2 * g / cm3, ncomponents = 2);
-  W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_W"), fractionmass = 0.5);
-  W_Epoxy->AddMaterial(G4Material::GetMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
+  W_Epoxy->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_W"), fractionmass = 0.5);
+  W_Epoxy->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"), fractionmass = 0.5);
 
   //from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
   //Epoxy (for FR4 )
   //density = 1.2*g/cm3;
   G4Material *Epoxy = new G4Material("Epoxy", 1.2 * g / cm3, ncomponents = 2);
-  Epoxy->AddElement(G4Element::GetElement("H"), natoms = 2);
-  Epoxy->AddElement(G4Element::GetElement("C"), natoms = 2);
+  Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 2);
+  Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 2);
 
   //FR4 (Glass + Epoxy)
   density = 1.86 * g / cm3;
@@ -895,10 +917,10 @@ void PHG4Reco::DefineMaterials()
   // chemical composition http://ww2.unime.it/cdlchimind/adm/inviofile/uploads/HP_Pols2.b.pdf
   density = 29 * kg / m3;
   G4Material *NOMEX = new G4Material("NOMEX", density, ncomponents = 4);
-  NOMEX->AddElement(G4Element::GetElement("C"), natoms = 14);
-  NOMEX->AddElement(G4Element::GetElement("H"), natoms = 10);
-  NOMEX->AddElement(G4Element::GetElement("N"), natoms = 2);
-  NOMEX->AddElement(G4Element::GetElement("O"), natoms = 2);
+  NOMEX->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 14);
+  NOMEX->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
+  NOMEX->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
+  NOMEX->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   // spacal material. Source : EICROOT/A. Kiselev
   /*
   WEpoxyMix          3  12.011 1.008 183.85  6.  1.  74.  12.18  0.029 0.002 0.969
@@ -907,9 +929,9 @@ void PHG4Reco::DefineMaterials()
                      */
   G4Material *Spacal_W_Epoxy =
       new G4Material("Spacal_W_Epoxy", density = 12.18 * g / cm3, ncomponents = 3);
-  Spacal_W_Epoxy->AddElement(G4Element::GetElement("C"), 0.029);
-  Spacal_W_Epoxy->AddElement(G4Element::GetElement("H"), 0.002);
-  Spacal_W_Epoxy->AddElement(G4Element::GetElement("W"), 0.969);
+  Spacal_W_Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.029);
+  Spacal_W_Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 0.002);
+  Spacal_W_Epoxy->AddElement(G4NistManager::Instance()->FindOrBuildElement("W"), 0.969);
   /*
 PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
        1  1  20.  .00001
@@ -917,72 +939,81 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
                      */
   G4Material *PMMA =
       new G4Material("PMMA", density = 1.19 * g / cm3, ncomponents = 3);
-  PMMA->AddElement(G4Element::GetElement("C"), 3.6 / (3.6 + 5.7 + 1.4));
-  PMMA->AddElement(G4Element::GetElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
-  PMMA->AddElement(G4Element::GetElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
+  PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 3.6 / (3.6 + 5.7 + 1.4));
+  PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
+  PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
 
   G4Material *G10 =
       new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
-  G10->AddElement(G4Element::GetElement("Si"), natoms = 1);
-  G10->AddElement(G4Element::GetElement("O"), natoms = 2);
-  G10->AddElement(G4Element::GetElement("C"), natoms = 3);
-  G10->AddElement(G4Element::GetElement("H"), natoms = 3);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 3);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 3);
 
   G4Material *CsI =
       new G4Material("CsI", density = 4.534 * g / cm3, ncomponents = 2);
-  CsI->AddElement(G4Element::GetElement("Cs"), natoms = 1);
-  CsI->AddElement(G4Element::GetElement("I"), natoms = 1);
+  CsI->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cs"), natoms = 1);
+  CsI->AddElement(G4NistManager::Instance()->FindOrBuildElement("I"), natoms = 1);
   CsI->GetIonisation()->SetMeanExcitationEnergy(553.1 * eV);
 
   G4Material *C4F10 =
       new G4Material("C4F10", density = 0.00973 * g / cm3, ncomponents = 2);
-  C4F10->AddElement(G4Element::GetElement("C"), natoms = 4);
-  C4F10->AddElement(G4Element::GetElement("F"), natoms = 10);
+  C4F10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4);
+  C4F10->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 10);
 
   G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, 288.15 * kelvin, 1 * atmosphere);
-  CF4->AddElement(G4Element::GetElement("C"), natoms = 1);
-  CF4->AddElement(G4Element::GetElement("F"), natoms = 4);
+  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
+  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
+
+  G4Element* elLu = new G4Element(name="Lutetium", symbol="Lu", z=71., a=174.97*g/mole);    
+  G4Material *LSO = new G4Material("LSO",  //its name 
+                        density = 7.4*g/cm3,    //its density
+                         ncomponents = 3);         //number of components
+
+  LSO->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
+  LSO->AddElement(elLu, natoms = 2);
+  LSO->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 5);
 
   // Silver epoxy glue LOCTITE ABLESTIK 2902 for the silicon sensors and FPHX chips of INTT
   G4Material *SilverEpoxyGlue_INTT = new G4Material("SilverEpoxyGlue_INTT", density = 3.2 * g / cm3, ncomponents = 2);
   SilverEpoxyGlue_INTT->AddMaterial(Epoxy, fractionmass = 0.79);
-  SilverEpoxyGlue_INTT->AddMaterial(G4Material::GetMaterial("G4_Ag"), fractionmass = 0.21);
+  SilverEpoxyGlue_INTT->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ag"), fractionmass = 0.21);
 
   //! ePHENIX TPC - Jin Huang <jhuang@bnl.gov>
   //! Ref: B. Yu et al. A gem based tpc for the legs experiment. In Nuclear Science Symposium
   //! Conference Record, 2005 IEEE, volume 2, pages 924-928, 2005. doi:10.1109/NSSMIC.2005.1596405.
 
   const double den_CF4 = CF4->GetDensity() * .1;
-  const double den_G4_Ar = G4Material::GetMaterial("G4_Ar")->GetDensity() * .8;
-  const double den_G4_CARBON_DIOXIDE = G4Material::GetMaterial("G4_CARBON_DIOXIDE")->GetDensity() * .1;
+  const double den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity() * .8;
+  const double den_G4_CARBON_DIOXIDE = G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE")->GetDensity() * .1;
   const double den = den_CF4 + den_G4_Ar + den_G4_CARBON_DIOXIDE;
 
   G4Material *ePHEINX_TPC_Gas = new G4Material("ePHEINX_TPC_Gas", den,
                                                ncomponents = 3, kStateGas);
   ePHEINX_TPC_Gas->AddMaterial(CF4, den_CF4 / den);
-  ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_Ar"), den_G4_Ar / den);
-  ePHEINX_TPC_Gas->AddMaterial(G4Material::GetMaterial("G4_CARBON_DIOXIDE"),
+  ePHEINX_TPC_Gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), den_G4_Ar / den);
+  ePHEINX_TPC_Gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_CARBON_DIOXIDE"),
                                den_G4_CARBON_DIOXIDE / den);
   // cross checked with original implementation made up of Ne,C,F
   // this here is very close but makes more sense since it uses Ne and CF4
   double G4_Ne_frac = 0.5;
   double CF4_frac = 0.5;
-  const double den_G4_Ne = G4Material::GetMaterial("G4_Ne")->GetDensity();
+  const double den_G4_Ne = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne")->GetDensity();
   const double den_CF4_2 = CF4->GetDensity();
   const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
   G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
   sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
-  sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
+  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
 
   // LHCb aerogel
   //    double density = 2.200 * g / cm3;
   G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
                                                  2.200 * g / cm3, 2);
-  SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
-  SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
+  SiO2AerogelQuartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 1);
+  SiO2AerogelQuartz->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 2);
 
   G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
-  AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
+  AerogTypeA->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("ePHENIX_AerogelQuartz"),
                           100.0 * perCent);
 
   //
@@ -1038,10 +1069,10 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   //
   // LiF
   //
-  G4Material *g4_lif = nist->FindOrBuildMaterial("G4_LITHIUM_FLUORIDE");
+  G4Material *g4_lif = G4NistManager::Instance()->FindOrBuildMaterial("G4_LITHIUM_FLUORIDE");
   G4Material *LiF = new G4Material("LiF", density = 2.635 * g / cm3, ncomponents = 2);
-  LiF->AddElement(G4Element::GetElement("Li"), natoms = 1);
-  LiF->AddElement(G4Element::GetElement("F"), natoms = 1);
+  LiF->AddElement(G4NistManager::Instance()->FindOrBuildElement("Li"), natoms = 1);
+  LiF->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 1);
 
   if (Verbosity() > 1)
   {
@@ -1147,9 +1178,9 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   // define P10 Gas which will be used for TPC Benchmarking
   G4Material *P10 =
       new G4Material("P10", density = 1.74 * mg / cm3, ncomponents = 3);  // @ 0K, 1atm
-  P10->AddElement(G4Element::GetElement("Ar"), fractionmass = 0.9222);
-  P10->AddElement(G4Element::GetElement("C"), fractionmass = 0.0623);
-  P10->AddElement(G4Element::GetElement("H"), fractionmass = 0.0155);
+  P10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ar"), fractionmass = 0.9222);
+  P10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), fractionmass = 0.0623);
+  P10->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), fractionmass = 0.0155);
 
   //------------------------------
   // for Modular RICH (mRICH)
@@ -1165,8 +1196,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Air_Opt_MPT->AddProperty("RINDEX", mRICH_PhotonEnergy_Air_Opt, mRICH_RefractiveIndex_Air_Opt, mRICH_nEntries_Air_Opt);
 
   G4Material *mRICH_Air_Opt = new G4Material("mRICH_Air_Opt", density = 1.29 * mg / cm3, ncomponents = 2);
-  mRICH_Air_Opt->AddElement(G4Element::GetElement("N"), fractionmass = 70. * perCent);
-  mRICH_Air_Opt->AddElement(G4Element::GetElement("O"), fractionmass = 30. * perCent);
+  mRICH_Air_Opt->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), fractionmass = 70. * perCent);
+  mRICH_Air_Opt->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), fractionmass = 30. * perCent);
   mRICH_Air_Opt->SetMaterialPropertiesTable(mRICH_Air_Opt_MPT);
 
   // mRICH_Acrylic ---------------
@@ -1207,9 +1238,9 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Ac_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_AcAbsorption, mRICH_nEntries1);
 
   G4Material *mRICH_Acrylic = new G4Material("mRICH_Acrylic", density = 1.19 * g / cm3, ncomponents = 3);
-  mRICH_Acrylic->AddElement(G4Element::GetElement("C"), natoms = 5);
-  mRICH_Acrylic->AddElement(G4Element::GetElement("H"), natoms = 8);  // molecular ratios
-  mRICH_Acrylic->AddElement(G4Element::GetElement("O"), natoms = 2);
+  mRICH_Acrylic->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 5);
+  mRICH_Acrylic->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 8);  // molecular ratios
+  mRICH_Acrylic->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   mRICH_Acrylic->SetMaterialPropertiesTable(mRICH_Ac_myMPT);
 
   // mRICH_Agel1 -----------------
@@ -1257,8 +1288,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Agel1_myMPT->AddConstProperty("RESOLUTIONSCALE", 1.0);
 
   G4Material *mRICH_Aerogel1 = new G4Material("mRICH_Aerogel1", density = 0.02 * g / cm3, ncomponents = 2);
-  mRICH_Aerogel1->AddElement(G4Element::GetElement("Si"), natoms = 1);
-  mRICH_Aerogel1->AddElement(G4Element::GetElement("O"), natoms = 2);
+  mRICH_Aerogel1->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
+  mRICH_Aerogel1->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   mRICH_Aerogel1->SetMaterialPropertiesTable(mRICH_Agel1_myMPT);
 
   // mRICH_Agel2 -----------------
@@ -1320,8 +1351,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_Agel2MPT->AddConstProperty("RESOLUTIONSCALE", 1.0);
 
   G4Material *mRICH_Aerogel2 = new G4Material("mRICH_Aerogel2", density = 0.02 * g / cm3, ncomponents = 2);
-  mRICH_Aerogel2->AddElement(G4Element::GetElement("Si"), natoms = 1);
-  mRICH_Aerogel2->AddElement(G4Element::GetElement("O"), natoms = 2);
+  mRICH_Aerogel2->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
+  mRICH_Aerogel2->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   mRICH_Aerogel2->SetMaterialPropertiesTable(mRICH_Agel2MPT);
 
   // mRICH_Borosilicate ----------
@@ -1351,7 +1382,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   mRICH_glass_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_glassRefractiveIndex, mRICH_nEntries1);
   mRICH_glass_myMPT->AddProperty("ABSLENGTH", mRICH_PhotonEnergy, mRICH_glassAbsorption, mRICH_nEntries1);
 
-  const G4Material *G4_Pyrex_Glass = nist->FindOrBuildMaterial("G4_Pyrex_Glass");
+  const G4Material *G4_Pyrex_Glass = G4NistManager::Instance()->FindOrBuildMaterial("G4_Pyrex_Glass");
   G4Material *mRICH_Borosilicate = new G4Material("mRICH_Borosilicate", G4_Pyrex_Glass->GetDensity(), G4_Pyrex_Glass, G4_Pyrex_Glass->GetState(), G4_Pyrex_Glass->GetTemperature(), G4_Pyrex_Glass->GetPressure());
   mRICH_Borosilicate->SetMaterialPropertiesTable(mRICH_glass_myMPT);
 
@@ -1367,32 +1398,34 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *mRICH_Air_myMPT = new G4MaterialPropertiesTable();
   mRICH_Air_myMPT->AddProperty("RINDEX", mRICH_PhotonEnergy, mRICH_AirRefractiveIndex, mRICH_nEntries1);
-  const G4Material *G4_AIR = G4Material::GetMaterial("G4_AIR");
+  const G4Material *G4_AIR = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
   G4Material *mRICH_Air = new G4Material("mRICH_Air", G4_AIR->GetDensity(), G4_AIR, G4_AIR->GetState(), G4_AIR->GetTemperature(), G4_AIR->GetPressure());
   mRICH_Air->SetMaterialPropertiesTable(mRICH_Air_myMPT);
 }
 
 void PHG4Reco::DefineRegions()
 {
-  const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
-  G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
-  G4Region *tpcregion = new G4Region("REGION_TPCGAS");
-  tpcregion->SetProductionCuts(gcuts);
-#if G4VERSION_NUMBER >= 1033
-  // Use this from the new G4 version 10.03 on
-  // add the PAI model to the TPCGAS region
-  // undocumented, painfully digged out with debugger by tracing what
-  // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
-//  G4EmParameters *g4emparams = G4EmParameters::Instance();
-//  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
-#endif
+  // the PAI model does not work anymore in G4 10.06
+  //   const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
+  //   G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
+  //   G4Region *tpcregion = new G4Region("REGION_TPCGAS");
+  //   tpcregion->SetProductionCuts(gcuts);
+  // #if G4VERSION_NUMBER >= 1033
+  //   // Use this from the new G4 version 10.03 on
+  //   // was commented out, crashes in 10.06 I think
+  //   // add the PAI model to the TPCGAS region
+  //   // undocumented, painfully digged out with debugger by tracing what
+  //   // is done for command "/process/em/AddPAIRegion all TPCGAS PAI"
+  // //  G4EmParameters *g4emparams = G4EmParameters::Instance();
+  // //  g4emparams->AddPAIModel("all", "REGION_TPCGAS", "PAI");
+  // #endif
   return;
 }
 
 PHG4Subsystem *
 PHG4Reco::getSubsystem(const string &name)
 {
-  BOOST_FOREACH (PHG4Subsystem *subsys, m_SubsystemList)
+  for (PHG4Subsystem *subsys: m_SubsystemList)
   {
     if (subsys->Name() == name)
     {
@@ -1423,7 +1456,7 @@ void PHG4Reco::ApplyDisplayAction()
   }
   G4VPhysicalVolume *physworld = m_Detector->GetPhysicalVolume();
   m_DisplayAction->ApplyDisplayAction(physworld);
-  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)  //for (PHG4Subsystem g4sub: m_SubsystemList)
+  for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     PHG4DisplayAction *action = g4sub->GetDisplayAction();
     if (action)

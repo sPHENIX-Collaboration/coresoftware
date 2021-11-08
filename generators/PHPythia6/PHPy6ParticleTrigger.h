@@ -26,9 +26,9 @@ class PHPy6ParticleTrigger : public PHPy6GenTrigger
   PHPy6ParticleTrigger(const std::string &name = "PHPy6ParticleTriggerger");
 
   //! destructor
-  ~PHPy6ParticleTrigger(void) {}
+  ~PHPy6ParticleTrigger(void) override {}
 
-  bool Apply(const HepMC::GenEvent *evt);
+  bool Apply(const HepMC::GenEvent *evt) override;
 
   void AddParticles(const std::string &particles);
   void AddParticles(int particle);

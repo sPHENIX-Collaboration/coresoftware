@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+#located in offline/framework/frog/
+
 use DBI;
 use strict;
 use Getopt::Long;
@@ -30,14 +32,15 @@ while(my @res = $getdsttypes->fetchrow_array())
 }
 
 my %proddesc = (
-    "1" => "hijing (0-12fm) pileup 0-12fm",
-    "2" => "hijing (0-4.88fm) pileup 0-12fm",
+    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
+    "2" => "hijing (0-4.88fm) pileup 0-12fm DELETED",
     "3" => "pythia8 pp MB",
     "4" => "hijing (0-20fm) pileup 0-20fm",
-    "5" => "hijing (0-12fm) pileup 0-20fm",
+    "5" => "hijing (0-12fm) pileup 0-20fm DELETED",
     "6" => "hijing (0-4.88fm) pileup 0-20fm",
     "7" => "HF pythia8 Charm",
-    "8" => "HF pythia8 Bottom"
+    "8" => "HF pythia8 Bottom",
+    "9" => "HF pythia8 D0"
     );
 
 
@@ -45,20 +48,20 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'r' => \$randomize, 's:i' => \$start_segment);
-
+my $runnumber= 2;
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber);
 my $filenamestring;
 my %filetypes = ();
 if (defined $prodtype)
 {
     if ($prodtype == 1)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm-";
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm";
 	&hijingfiletypes();
     }
     elsif ($prodtype == 2)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm";
 	&hijingfiletypes();
     }
     elsif ($prodtype == 3)
@@ -68,17 +71,17 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 4)
     {
-	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
+	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm";
 	&hijingfiletypes();
     }
     elsif ($prodtype == 5)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm-";
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
 	&hijingfiletypes();
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
 	&hijingfiletypes();
     }
     elsif ($prodtype == 7)
@@ -91,22 +94,29 @@ if (defined $prodtype)
 	$filenamestring = "DST_HF_BOTTOM";
 	&bottomfiletypes();
     }
+    elsif ($prodtype == 9)
+    {
+	$filenamestring = "pythia8_d0";
+	&bottomfiletypes();
+    }
     else
     {
 	print "no file substring for production type $prodtype\n";
 	exit(1);
     }
+    &fill_other_types();
 }
-
+$filenamestring = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
 {
     if (! defined $prodtype)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-n  : <number of events>\n";
-	print "-r  : randomize segments used\n";
-	print "-s  : <starting segment>\n";
+	print "-n    : <number of events>\n";
+	print "-rand : randomize segments used\n";
+	print "-run  : runnumber\n";
+	print "-s    : <starting segment>\n";
 	print "-type : production type\n";
 	foreach my $pd (sort keys %proddesc)
 	{
@@ -317,7 +327,7 @@ foreach my $seg (sort @segarray)
     }
 
 }
-print "wrote the following list files containing $nSelectedEvents events:\n";
+print "wrote the following list files containing >= $nSelectedEvents events:\n";
 foreach my $tp (sort keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
@@ -382,4 +392,19 @@ sub fill_nocombine_files
     $nocombine{"JET_EVAL_DST_HF_BOTTOM"} = 1;
     $nocombine{"QA_DST_HF_CHARM"} = 1;
     $nocombine{"QA_DST_HF_BOTTOM"} = 1;
+}
+
+sub fill_other_types
+{
+    my $sqlstring = sprintf("select distinct(dsttype) from datasets where filename like '%%%s%%'",$filenamestring);
+    my $getalltypes = $dbh->prepare($sqlstring);
+    $getalltypes->execute();
+    while (my @res = $getalltypes->fetchrow_array())
+    {
+	if (! exists $filetypes{$res[0]})
+	{
+	    $filetypes{$res[0]} = "No Description";
+	}
+    }
+    $getalltypes->finish();
 }

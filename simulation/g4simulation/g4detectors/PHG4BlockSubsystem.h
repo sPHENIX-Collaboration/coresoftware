@@ -21,7 +21,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   PHG4BlockSubsystem(const std::string& name = "BLOCK", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4BlockSubsystem();
+  ~PHG4BlockSubsystem() override;
 
   //! InitRunSubsystem
   /*!
@@ -29,21 +29,21 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector() const;
+  PHG4Detector* GetDetector() const override;
 
-  PHG4SteppingAction* GetSteppingAction() const { return m_SteppingAction; }
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
@@ -55,10 +55,10 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 // this method is used to check if it can be used as mothervolume
 // Subsystems which can be mothervolume need to implement this 
 // and return true
-  virtual bool CanBeMotherSubsystem() const {return true;}
+  bool CanBeMotherSubsystem() const override {return true;}
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! defines from PHG4Detector */

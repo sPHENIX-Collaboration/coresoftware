@@ -55,7 +55,7 @@ PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetecto
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_used)
+bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();

@@ -13,15 +13,15 @@ class PHG4PileupGenerator : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4PileupGenerator(const std::string &name = "PILEUPGENERATOR");
-  virtual ~PHG4PileupGenerator();
+  ~PHG4PileupGenerator() override;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int Reset(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
-  int EndRun(const int runnumber);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int Reset(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
+  int EndRun(const int runnumber) override;
+  int End(PHCompositeNode *topNode) override;
 
   void set_generator(PHG4ParticleGeneratorBase *generator) { _generator = generator; }
 

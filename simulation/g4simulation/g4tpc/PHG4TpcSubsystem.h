@@ -20,7 +20,7 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
   PHG4TpcSubsystem(const std::string &name = "TPC", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4TpcSubsystem();
+  ~PHG4TpcSubsystem() override;
 
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
@@ -28,27 +28,27 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
   ceates the stepping action 
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! Print info (from SubsysReco)
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector *GetDetector(void) const;
+  PHG4Detector *GetDetector(void) const override;
 
-  PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+  PHG4SteppingAction *GetSteppingAction(void) const override { return steppingAction_; }
 
-  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   //! detector geometry
   /*! derives from PHG4Detector */

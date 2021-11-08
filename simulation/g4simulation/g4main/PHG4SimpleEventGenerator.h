@@ -25,10 +25,10 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   };
 
   PHG4SimpleEventGenerator(const std::string &name = "EVTGENERATOR");
-  virtual ~PHG4SimpleEventGenerator() {}
+  ~PHG4SimpleEventGenerator() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   //! interface for adding particles by name
   void add_particles(const std::string &name, const unsigned int count);
@@ -44,6 +44,9 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
 
   //! range of randomized phi values
   void set_phi_range(const double phi_min, const double phi_max);
+
+  //! power law value of distribution to sample from for pt values
+  void set_power_law_n(const double n);
 
   //! range of randomized pt values (mutually exclusive with momentum range)
   //! \param[in] pt_gaus_width   if non-zero, further apply a Gauss smearing to the pt_min - pt_max flat distribution
@@ -110,6 +113,7 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   double m_P_Min = NAN;
   double m_P_Max = NAN;
   double m_P_GausWidth = NAN;
+  double m_powerLawN = NAN;
 };
 
 #endif

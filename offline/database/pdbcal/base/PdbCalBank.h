@@ -21,8 +21,8 @@ class PdbCalBank : public  PHObject
 {
 public:
   PdbCalBank() {}
-  virtual ~PdbCalBank() {}
-   virtual PHObject* CloneMe() const = 0;
+  ~PdbCalBank() override {}
+   PHObject* CloneMe() const override;
 
    virtual void printHeader() const = 0;
    virtual void print() = 0;
@@ -51,7 +51,7 @@ public:
    using PHObject::isValid;   
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-  ClassDef(PdbCalBank,1);
+  ClassDefOverride(PdbCalBank,1);
 };
 
 #endif /* PDBCAL_BASE_PDBCALBANK_H */

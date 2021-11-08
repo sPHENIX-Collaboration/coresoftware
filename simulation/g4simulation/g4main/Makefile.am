@@ -18,7 +18,6 @@ AM_CPPFLAGS = \
   -isystem $(OFFLINE_MAIN)/include \
   -isystem $(ROOTSYS)/include \
   -isystem ${G4_MAIN}/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OPT_SPHENIX)/include
 
 # rootcint barfs on isystem
@@ -125,6 +124,7 @@ libphg4hit_la_SOURCES = \
   PHG4Particlev1.cc \
   PHG4Particlev2.cc \
   PHG4Particlev3.cc \
+  PHG4Shower.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \
@@ -158,6 +158,7 @@ libg4testbench_la_SOURCES = \
   PHG4PhenixDetector.cc \
   PHG4PhenixDisplayAction.cc \
   PHG4PhenixEventAction.cc \
+  PHG4PhenixStackingAction.cc \
   PHG4PhenixSteppingAction.cc \
   PHG4PhenixTrackingAction.cc \
   PHG4PileupGenerator.cc \
@@ -166,6 +167,7 @@ libg4testbench_la_SOURCES = \
   PHG4RegionInformation.cc \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
+  PHG4StackingAction.cc \
   PHG4SteppingAction.cc \
   PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
@@ -218,6 +220,7 @@ pkginclude_HEADERS = \
   PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
+  PHG4StackingAction.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
   PHG4TrackingAction.h \

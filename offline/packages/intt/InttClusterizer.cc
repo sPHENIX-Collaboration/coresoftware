@@ -2,13 +2,13 @@
 #include "CylinderGeomIntt.h"
 #include "InttDefs.h"
 
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterHitAssocv3.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -73,8 +73,8 @@ bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, Trk
 }
 
 InttClusterizer::InttClusterizer(const string& name,
-                                 unsigned int min_layer,
-                                 unsigned int max_layer)
+                                 unsigned int /*min_layer*/,
+                                 unsigned int /*max_layer*/)
   : SubsysReco(name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
@@ -114,7 +114,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
   PHNodeIterator iter_dst(dstNode);
 
   // Create the Cluster and association nodes if required
-  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -126,13 +126,13 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	dstNode->addNode(DetNode);
       }
     
-    trkrclusters = new TrkrClusterContainer();
+    trkrclusters = new TrkrClusterContainerv3;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  TrkrClusterHitAssoc *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode,"TRKR_CLUSTERHITASSOC");
+  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode,"TRKR_CLUSTERHITASSOC");
   if(!clusterhitassoc)
     {
       PHNodeIterator dstiter(dstNode);
@@ -144,7 +144,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	  dstNode->addNode(DetNode);
 	}
 
-      clusterhitassoc = new TrkrClusterHitAssoc();
+      clusterhitassoc = new TrkrClusterHitAssocv3;
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
       DetNode->addNode(newNode);
     }
@@ -214,7 +214,9 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
+ 
+  
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
 
@@ -360,7 +362,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
+	auto clus = std::make_unique<TrkrClusterv3>();
+	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
@@ -369,14 +372,11 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	set<int> phibins;
 	set<int> zbins;
 
-	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the INTT ladders
-	float tilt = 0;  //geom->get_strip_tilt();
-	
 	// determine the cluster position...
 	double xsum = 0.0;
 	double ysum = 0.0;
 	double zsum = 0.0;
-	double clus_adc = 0.0;
+	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
@@ -389,8 +389,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    phibins.insert(row);
 
 	    // mapiter->second.second is the hit
-	    double hit_adc = (mapiter->second).second->getAdc();
-	    
+	    unsigned int hit_adc = (mapiter->second).second->getAdc();
+
 	    // now get the positions from the geometry
 	    
 	    double hit_location[3] = {0.0, 0.0, 0.0};
@@ -402,9 +402,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    
 	    if (_make_e_weights[layer])
 	      {
-		xsum += hit_location[0] * hit_adc;
-		ysum += hit_location[1] * hit_adc;
-		zsum += hit_location[2] * hit_adc;
+		xsum += hit_location[0] * (double) hit_adc;
+		ysum += hit_location[1] * (double) hit_adc;
+		zsum += hit_location[2] * (double) hit_adc;
 	      }
 	    else
 	      {
@@ -423,28 +423,25 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    if (Verbosity() > 2)
 	      {
 		cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << endl;
-		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << endl;
+		cout << "     nhits " << nhits << " clusx  = " << xsum / nhits << " clusy " << ysum / nhits << " clusz " << zsum / nhits << " hit_adc " << hit_adc << endl;
 		
 	      }
 	  }
 
-	float phisize = phibins.size() * pitch;
-	float zsize = zbins.size() * length;
-
-  static const float invsqrt12 = 1./sqrt(12);
-
-  // scale factors (phi direction)
-  /*
-  they corresponds to clusters of size 1 and 2 in phi
-  other clusters, which are very few and pathological, get a scale factor of 1
-  */
-  static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
-  float phierror = pitch*invsqrt12;
-  if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
-  else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
-
-  // z error. All clusters have a z-size of 1.
-  const float zerror = length*invsqrt12;
+	static const float invsqrt12 = 1./sqrt(12);
+	
+	// scale factors (phi direction)
+	/*
+	  they corresponds to clusters of size 1 and 2 in phi
+	  other clusters, which are very few and pathological, get a scale factor of 1
+	*/
+	static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
+	float phierror = pitch*invsqrt12;
+	if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
+	
+	// z error. All clusters have a z-size of 1.
+	const float zerror = length*invsqrt12;
 	
 	double clusx = NAN;
 	double clusy = NAN;
@@ -453,9 +450,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	if (_make_e_weights[layer])
 	  {
-	    clusx = xsum / clus_adc;
-	    clusy = ysum / clus_adc;
-	    clusz = zsum / clus_adc;
+	    clusx = xsum / (double) clus_adc;
+	    clusy = ysum / (double) clus_adc;
+	    clusz = zsum / (double) clus_adc;
 	  }
 	else
 	  {
@@ -468,37 +465,23 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	geom->find_segment_center(ladder_z_index,
 				  ladder_phi_index,
 				  ladder_location);
-  const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
+
+	const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
 
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
-	clus->setPosition(0, clusx);
-	clus->setPosition(1, clusy);
-	clus->setPosition(2, clusz);
-	clus->setGlobal();
 	
-	TMatrixF DIM(3, 3);
-	DIM[0][0] = square(0.5 * thickness);
-	DIM[0][1] = 0.0;
-	DIM[0][2] = 0.0;
-	DIM[1][0] = 0.0;
-	DIM[1][1] = square(0.5 * phisize);
-	DIM[1][2] = 0.0;
-	DIM[2][0] = 0.0;
-	DIM[2][1] = 0.0;
-	DIM[2][2] = square(0.5 * zsize);
-		
 	TMatrixF ERR(3, 3);
-  ERR[0][0] = square(thickness * invsqrt12);
+	ERR[0][0] = square(thickness * invsqrt12);
 	ERR[0][1] = 0.0;
 	ERR[0][2] = 0.0;
 	ERR[1][0] = 0.0;
-  ERR[1][1] = square(phierror);
+	ERR[1][1] = square(phierror);
 	ERR[1][2] = 0.0;
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
-  ERR[2][2] = square(zerror);
-
+	ERR[2][2] = square(zerror);
+	
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);
 	ROT[0][1] = -1.0 * sin(ladderphi);
@@ -509,51 +492,50 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	ROT[2][0] = 0.0;
 	ROT[2][1] = 0.0;
 	ROT[2][2] = 1.0;
-	
-	TMatrixF TILT(3, 3);
-	TILT[0][0] = 1.0;
-	TILT[0][1] = 0.0;
-	TILT[0][2] = 0.0;
-	TILT[1][0] = 0.0;
-	TILT[1][1] = cos(tilt);
-	TILT[1][2] = -1.0 * sin(tilt);
-	TILT[2][0] = 0.0;
-	TILT[2][1] = sin(tilt);
-	TILT[2][2] = cos(tilt);
-	
+
 	TMatrixF R(3, 3);
-	R = ROT * TILT;
 	R = ROT;
 	
 	TMatrixF R_T(3, 3);
 	R_T.Transpose(R);
-	
-	TMatrixF COVAR_DIM(3, 3);
-	COVAR_DIM = R * DIM * R_T;
-	
-	clus->setSize(0, 0, COVAR_DIM[0][0]);
-	clus->setSize(0, 1, COVAR_DIM[0][1]);
-	clus->setSize(0, 2, COVAR_DIM[0][2]);
-	clus->setSize(1, 0, COVAR_DIM[1][0]);
-	clus->setSize(1, 1, COVAR_DIM[1][1]);
-	clus->setSize(1, 2, COVAR_DIM[1][2]);
-	clus->setSize(2, 0, COVAR_DIM[2][0]);
-	clus->setSize(2, 1, COVAR_DIM[2][1]);
-	clus->setSize(2, 2, COVAR_DIM[2][2]);
-	
-	TMatrixF COVAR_ERR(3, 3);
-	COVAR_ERR = R * ERR * R_T;
-	
-	clus->setError(0, 0, COVAR_ERR[0][0]);
-	clus->setError(0, 1, COVAR_ERR[0][1]);
-	clus->setError(0, 2, COVAR_ERR[0][2]);
-	clus->setError(1, 0, COVAR_ERR[1][0]);
-	clus->setError(1, 1, COVAR_ERR[1][1]);
-	clus->setError(1, 2, COVAR_ERR[1][2]);
-	clus->setError(2, 0, COVAR_ERR[2][0]);
-	clus->setError(2, 1, COVAR_ERR[2][1]);
-	clus->setError(2, 2, COVAR_ERR[2][2]);
-	
+
+	TMatrixF GLOBAL_COV(3, 3);
+	GLOBAL_COV = R * ERR * R_T;
+
+	/// Now rotate back by cluster phi
+	/// We do this because the initial local cluster covariance produces
+	/// nontrivial pulls in rphi. This replicates the code formerly in 
+	/// TrkrCluster
+	float clusphi = -atan2(clusy, clusx);
+
+	const auto cosphi = std::cos(clusphi);
+	const auto sinphi = std::sin(clusphi);
+	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
+	  + cosphi*cosphi*GLOBAL_COV[1][1] +
+	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
+
+	if(Verbosity() > 10) clus->identify();
+
+	const unsigned int ladderZId = InttDefs::getLadderZId(ckey);
+	const unsigned int ladderPhiId = InttDefs::getLadderPhiId(ckey);
+
+	TVector3 local(0,0,0);
+	TVector3 global(clusx, clusy, clusz);
+	local = geom->get_local_from_world_coords(ladderZId,
+						  ladderPhiId,
+						  global);
+
+	clus->setLocalX(local[1]);
+	clus->setLocalY(local[2]);
+	/// silicon has a 1-1 map between hitsetkey and surfaces. So set to 
+	/// 0
+	clus->setSubSurfKey(0);
+	clus->setActsLocalError(0,0, rphierr);
+	clus->setActsLocalError(0,1, ERR[1][2]);
+	clus->setActsLocalError(1,0, ERR[2][1]);
+	clus->setActsLocalError(1,1, ERR[2][2]);
+	m_clusterlist->addCluster(clus.release());
+
       } // end loop over cluster ID's
   }  // end loop over hitsets
 
@@ -586,4 +568,3 @@ void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
 
   return;
 }
-

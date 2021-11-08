@@ -8,6 +8,7 @@
 
 class TrkrCluster;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class TFile;
 class TH3;
 
@@ -19,10 +20,10 @@ class TpcSpaceChargeCorrection : public SubsysReco
   TpcSpaceChargeCorrection(  const std::string& = "TpcSpaceChargeCorrection" );
 
   //! global initialization
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //! distortion filename
   void set_distortion_filename( const std::string& value )
@@ -52,6 +53,9 @@ class TpcSpaceChargeCorrection : public SubsysReco
 
   //! cluster container
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! hitset container
+  TrkrHitSetContainer  *m_hitsets = nullptr;
 
   //! space charge correction file name
   std::string m_distortion_filename;

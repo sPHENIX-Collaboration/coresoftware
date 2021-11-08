@@ -14,7 +14,7 @@
 #define G4DETECTORS_PHG4OUTERHCALFIELD_H
 
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4Types.hh>          // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 
 /*!
  * \brief PHG4OuterHcalField
@@ -30,14 +30,14 @@
  */
 class PHG4OuterHcalField : public G4MagneticField
 {
-public:
-  PHG4OuterHcalField( bool isInIron, G4int steelPlates,
-      G4double scintiGap, G4double tiltAngle );
-  virtual
-  ~PHG4OuterHcalField();
+ public:
+  PHG4OuterHcalField(bool isInIron, G4int steelPlates,
+                     G4double scintiGap, G4double tiltAngle);
+
+  ~PHG4OuterHcalField() override {}
 
   void
-  GetFieldValue(const double Point[4], double *Bfield) const;
+  GetFieldValue(const double Point[4], double *Bfield) const override;
 
   bool
   is_is_in_iron() const
@@ -111,10 +111,10 @@ public:
     tilt_angle = tiltAngle;
   }
 
-private:
-
-  double relative_permeability_absorber;
-  double relative_permeability_gap;
+ private:
+  double relative_permeability_absorber = 1514.;
+  // relative permeability for Steel 1006 @ B = 1.06T
+  double relative_permeability_gap = 1;
 
   bool is_in_iron;
   G4int n_steel_plates;
@@ -122,4 +122,4 @@ private:
   G4double tilt_angle;
 };
 
-#endif /* PHG4OUTERHCALFIELD_H_ */
+#endif /* G4DETECTORS_PHG4OUTERHCALFIELD_H */

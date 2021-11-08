@@ -114,7 +114,7 @@ namespace FitNewton
   }
   
   
-  bool NewtonMinimizerGradHessian::lineSearch(double& alpha, const double& wolfe1, const double& wolfe2, VectorXd& try_grad, VectorXd& direction, double& grad0_dir, double& val0, VectorXd& init_params, VectorXd& try_params, const double& precision, const double& accuracy, unsigned int max_iter, double& result)
+  bool NewtonMinimizerGradHessian::lineSearch(double& alpha, const double& wolfe1, const double& wolfe2, VectorXd& try_grad, VectorXd& direction, double& grad0_dir, double& val0, VectorXd& init_params, VectorXd& try_params, const double& /*precision*/, const double& /*accuracy*/, unsigned int max_iter, double& result)
   {
     double tryval = val0;
     double prev_val = tryval;

@@ -22,7 +22,7 @@ libphparameter_la_LDFLAGS = \
 libphparameter_la_LIBADD = \
   -lphool \
   -lpdbcalBase \
-  -lboost_filesystem \
+  -lstdc++fs \
   -lboost_system 
 
 

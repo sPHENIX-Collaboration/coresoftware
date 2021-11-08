@@ -1,6 +1,6 @@
 #include "PHTrackSeeding.h"
 
-#include "AssocInfoContainer.h"
+#include "AssocInfoContainerv1.h"
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -8,6 +8,8 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                  // for SubsysReco
@@ -26,6 +28,8 @@ using namespace std;
 
 PHTrackSeeding::PHTrackSeeding(const std::string& name)
   : SubsysReco(name)
+  , _iteration_map(nullptr)
+  , _n_iteration(0)
 {
 }
 
@@ -36,10 +40,17 @@ int PHTrackSeeding::InitRun(PHCompositeNode* topNode)
 
 int PHTrackSeeding::process_event(PHCompositeNode* topNode)
 {
+  if(_n_iteration >0){
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map){
+      cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   return Process(topNode);
 }
 
-int PHTrackSeeding::End(PHCompositeNode* topNode)
+int PHTrackSeeding::End(PHCompositeNode* /*topNode*/)
 {
   return End();
 }
@@ -98,7 +109,7 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
   if(Verbosity() > 0)
     _track_map->identify();
 
-  _assoc_container = new AssocInfoContainer;
+  _assoc_container = new AssocInfoContainerv1;
   PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
       _assoc_container, "AssocInfoContainer", "PHObject");
   tb_node->addNode(assoc_node);
@@ -130,13 +141,6 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
   }
 
-  _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_vertex_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
- 
  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
@@ -148,6 +152,13 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
   if (!_assoc_container)
   {
     cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!_hitsets)
+  {
+    cerr << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

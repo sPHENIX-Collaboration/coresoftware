@@ -11,10 +11,10 @@ class DumpPHG4BlockGeomContainer : public DumpObject
 {
  public:
   DumpPHG4BlockGeomContainer(const std::string &NodeName);
-  virtual ~DumpPHG4BlockGeomContainer() {}
+  ~DumpPHG4BlockGeomContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

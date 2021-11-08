@@ -18,9 +18,9 @@ class PHG4TpcDisplayAction : public PHG4DisplayAction
  public:
   PHG4TpcDisplayAction(const std::string &name);
 
-  virtual ~PHG4TpcDisplayAction();
+  ~PHG4TpcDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
   void AddTpcInnerLayer(G4LogicalVolume *logvol) { m_TpcInnerLayersVec.push_back(logvol); }
   void AddTpcOuterLayer(G4LogicalVolume *logvol) { m_TpcOuterLayersVec.push_back(logvol); }

@@ -5,14 +5,6 @@
 
 using namespace std;
 
-RawTowerv1::RawTowerv1()
-  : towerid(~0)
-  ,  // initialize all bits on
-  energy(0)
-  , time(NAN)
-{
-}
-
 RawTowerv1::RawTowerv1(const RawTower& tower)
 {
   towerid = (tower.get_id());
@@ -38,24 +30,16 @@ RawTowerv1::RawTowerv1(const RawTower& tower)
 
 RawTowerv1::RawTowerv1(RawTowerDefs::keytype id)
   : towerid(id)
-  , energy(0)
-  , time(NAN)
 {
 }
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi)
-  : towerid(0)
-  , energy(0)
-  , time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
 }
 
 RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
                        const unsigned int ieta, const unsigned int iphi)
-  : towerid(0)
-  , energy(0)
-  , time(NAN)
 {
   towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
 }
@@ -75,8 +59,21 @@ int RawTowerv1::isValid() const
 
 void RawTowerv1::identify(std::ostream& os) const
 {
-  os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi()
+  
+  RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
+  switch(caloid)
+  {
+  case RawTowerDefs::LFHCAL:
+    os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi() << ", l-bin: " << get_binl()
      << " energy=" << get_energy() << std::endl;
+     return;
+  default:
+    os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi()
+     << " energy=" << get_energy() << std::endl;
+    return ;
+  }
+   
+    
 }
 
 void RawTowerv1::add_ecell(const CellKeyType g4cellid,
@@ -102,4 +99,30 @@ void RawTowerv1::add_eshower(const int g4showerid, const float eshower)
   {
     eshowers[g4showerid] += eshower;
   }
+}
+
+int RawTowerv1::get_bineta() const
+{
+  RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
+  switch(caloid)
+  {
+  case RawTowerDefs::LFHCAL:
+    return RawTowerDefs::decode_index1v2(towerid);
+  default:
+    return RawTowerDefs::decode_index1(towerid);
+  }
+  return -1;
+}
+
+int RawTowerv1::get_binphi() const
+{
+  RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
+  switch(caloid)
+  {
+  case RawTowerDefs::LFHCAL:
+    return RawTowerDefs::decode_index2v2(towerid);
+  default:
+    return RawTowerDefs::decode_index2(towerid);
+  }
+  return -1;
 }
