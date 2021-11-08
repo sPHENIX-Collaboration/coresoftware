@@ -51,21 +51,8 @@ void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume *
   xercesc::XMLPlatformUtils::Terminate();
 }
 
-void PHG4GDMLUtility::Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode)
+void PHG4GDMLUtility::Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol)
 {
-  if (topNode == nullptr)
-  {
-    Fun4AllServer *se = Fun4AllServer::instance();
-    topNode = se->topNode();
-  }
-
-  const PHG4GDMLConfig *config =
-      GetOrMakeConfigNode(topNode);
-  assert(config);
-
-  // PHG4GDMLWriteStructure gdml_parser(config);
-  // assert(vol);
-  // assert(vol->GetLogicalVolume());
 
   G4GDMLWriteStructure gdml_parser;
   assert(vol);
