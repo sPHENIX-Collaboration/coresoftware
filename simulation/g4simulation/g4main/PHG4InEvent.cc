@@ -6,7 +6,7 @@
 
 #include <cmath>
 #include <cstdlib>
-
+#include <algorithm>
 using namespace std;
 
 PHG4InEvent::~PHG4InEvent()
@@ -18,7 +18,7 @@ PHG4InEvent::~PHG4InEvent()
 }
 
 int
-PHG4InEvent::AddVtx(const int id, const PHG4VtxPoint &vtx)
+PHG4InEvent::AddVtx(const int /*id*/, const PHG4VtxPoint &vtx)
 {
   PHG4VtxPoint *newvtx = new PHG4VtxPoint(vtx);
   int iret = AddVtxCommon(newvtx);
@@ -46,8 +46,28 @@ PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
 {
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end =  GetVertices();
   for (map<int, PHG4VtxPoint *>::const_iterator viter = vtxbegin_end.first; viter != vtxbegin_end.second; ++viter)
-    {
-      if (*newvtx == *(viter->second))
+    {        
+      /// Do a simultaneous relative + absolute floating point comparison for 
+      /// the vertex four vectors
+      /// make the distance comparison 1 micron, time comparison 0.1 ps
+      const auto distepsilon = 0.0001;
+      const auto timeepsilon = 0.0001;
+      auto xlist = {1.0, std::abs(newvtx->get_x()), std::abs(viter->second->get_x())};
+      auto ylist = {1.0, std::abs(newvtx->get_y()), std::abs(viter->second->get_y())};
+      auto zlist = {1.0, std::abs(newvtx->get_z()), std::abs(viter->second->get_z())};
+      auto tlist = {1.0, std::abs(newvtx->get_t()), std::abs(viter->second->get_t())};
+     
+      bool xcomp = std::abs(newvtx->get_x() - viter->second->get_x())
+	<= distepsilon * (*std::max_element(xlist.begin(), xlist.end()));
+      bool ycomp = std::abs(newvtx->get_y() - viter->second->get_y())
+	<= distepsilon * (*std::max_element(ylist.begin(), ylist.end()));
+      bool zcomp = std::abs(newvtx->get_z() - viter->second->get_z())
+	<= distepsilon * (*std::max_element(zlist.begin(), zlist.end()));
+      bool tcomp = std::abs(newvtx->get_t() - viter->second->get_t())
+	<= timeepsilon * (*std::max_element(tlist.begin(), tlist.end()));
+      
+      if (*newvtx == *(viter->second) or
+	  (xcomp and ycomp and zcomp and tcomp) )
 	{
 	  delete newvtx;
 	  return viter->first;

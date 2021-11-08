@@ -29,7 +29,7 @@ class PHTruthVertexing : public PHInitVertexing
 {
  public:
   PHTruthVertexing(const std::string &name = "PHTruthVertexing");
-  virtual ~PHTruthVertexing();
+  ~PHTruthVertexing() override;
 
   void set_vertex_error(const float &x_err, const float &y_err, const float &z_err)
   {
@@ -43,23 +43,29 @@ class PHTruthVertexing : public PHInitVertexing
   {
     return _vertex_error;
   }
-
+  void associate_tracks(bool associate_tracks)
+  {
+    _associate_tracks = associate_tracks;
+  }
   void set_embed_only(bool embed_only)
   {
     _embed_only = embed_only;
   }
-
+  void set_track_map_name(std::string& name)
+  { _track_map_name = name; }
  protected:
 
-  int Setup(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
 
-  int Process(PHCompositeNode *topNode);
+  int Process(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode * /*topNode*/);
+  int End(PHCompositeNode * /*topNode*/) override;
 
  private:
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
+
+  void assignTracksVertices(PHCompositeNode *topNode);
 
   PHG4TruthInfoContainer *_g4truth_container;
 
@@ -67,7 +73,8 @@ class PHTruthVertexing : public PHInitVertexing
   std::vector<float> _vertex_error;
 
   bool _embed_only;
-
+  bool _associate_tracks = false;
+  std::string _track_map_name = "SvtxTrackMap";
   gsl_rng *m_RandomGenerator;
 };
 

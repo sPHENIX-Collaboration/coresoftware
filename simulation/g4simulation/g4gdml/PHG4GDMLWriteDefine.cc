@@ -130,7 +130,7 @@ Position_vectorWrite(xercesc::DOMElement* element, const G4String& tag,
 
 void PHG4GDMLWriteDefine::DefineWrite(xercesc::DOMElement* element)
 {
-   G4cout << "PHG4GDML: Writing definitions..." << G4endl;
+  std::cout << "PHG4GDML: Writing definitions..." << std::endl;
 
    defineElement = NewElement("define");
    element->appendChild(defineElement);

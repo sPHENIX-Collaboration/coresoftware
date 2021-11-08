@@ -15,21 +15,15 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
-
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 pkginclude_HEADERS = \
   TpcDefs.h \
-  TpcHit.h \
   TpcClusterizer.h \
   TpcSpaceChargeCorrection.h \
   TpcClusterCleaner.h
 
-ROOTDICTS = \
-  TpcHit_Dict.cc
-
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-    TpcHit_Dict_rdict.pcm
 
 # sources for tpc library
 libtpc_la_SOURCES = \
@@ -40,13 +34,13 @@ libtpc_la_SOURCES = \
 libtpc_la_LIBADD = \
   libtpc_io.la \
   -lfun4all \
-  -lSpectrum
+  -lSpectrum \
+  -lpthread
 
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TpcDefs.cc \
-  TpcHit.cc
+  TpcDefs.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \

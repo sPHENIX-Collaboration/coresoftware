@@ -28,16 +28,16 @@ class ClusterIso : public SubsysReco
    */
   ClusterIso(const std::string&, float eTCut, int coneSize, bool do_subtracted, bool do_unsubtracted);
 
-  virtual int Init(PHCompositeNode*);
-  virtual int process_event(PHCompositeNode*);
-  virtual int End(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
 
   void seteTCut(float x);
   void setConeSize(int x);
-  const float geteTCut();
+  /*const*/ float geteTCut();
   //! returns coneSize*10 as an int
-  const int getConeSize();
-  const CLHEP::Hep3Vector getVertex();
+  /*const*/ int getConeSize();
+  /*const*/ CLHEP::Hep3Vector getVertex();
 
  private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
@@ -56,7 +56,7 @@ class ClusterIso : public SubsysReco
  * of the etas and phis added in quadrature. Used to find towers
  * inside a cone of delta R around a cluster.
  */
-inline const float deltaR(float eta1, float eta2, float phi1, float phi2)
+inline /*const*/ float deltaR(float eta1, float eta2, float phi1, float phi2)
 {
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;

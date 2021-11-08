@@ -49,6 +49,7 @@ class SvtxTruthEval
   bool is_primary(PHG4Particle* particle);
   PHG4Particle* get_primary_particle(PHG4Hit* g4hit);
   PHG4Particle* get_primary_particle(PHG4Particle* particle);
+  PHG4Particle* get_particle(const int trackid); 
 
   std::map<unsigned int, std::shared_ptr<TrkrCluster> > all_truth_clusters(PHG4Particle* particle);
 
@@ -62,7 +63,7 @@ class SvtxTruthEval
   unsigned int get_errors() { return _errors + _basetrutheval.get_errors(); }
 
   std::set<PHG4Hit*> get_truth_hits_from_truth_cluster(TrkrDefs::cluskey ckey);
-
+  void  FillTruthHitsFromParticleCache();
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();

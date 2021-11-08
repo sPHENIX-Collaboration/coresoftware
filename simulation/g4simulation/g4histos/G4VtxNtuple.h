@@ -17,16 +17,16 @@ class G4VtxNtuple : public SubsysReco
   G4VtxNtuple(const std::string &name = "G4VtxNtuple", const std::string &filename = "G4VtxNtuple.root");
 
   //! destructor
-  virtual ~G4VtxNtuple();
+  ~G4VtxNtuple() override;
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
  protected:
   std::string m_FileName;

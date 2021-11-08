@@ -29,7 +29,7 @@ int PHG4BeamlineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-int PHG4BeamlineMagnetSubsystem::process_event(PHCompositeNode* topNode)
+int PHG4BeamlineMagnetSubsystem::process_event(PHCompositeNode* /*topNode*/)
 {
   return 0;
 }
@@ -64,7 +64,7 @@ void PHG4BeamlineMagnetSubsystem::SetDefaultParameters()
   set_default_string_param("material", "G4_Galactic");
 }
 
-void PHG4BeamlineMagnetSubsystem::Print(const string& what) const
+void PHG4BeamlineMagnetSubsystem::Print(const string& /*what*/) const
 {
   cout << Name() << " Parameters: " << endl;
   if (!BeginRunExecuted())

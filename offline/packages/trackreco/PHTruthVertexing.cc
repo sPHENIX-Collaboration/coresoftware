@@ -3,7 +3,8 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertex_v1.h>
-
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
@@ -124,10 +125,67 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       
     }
   
-  if (Verbosity() > 0)
-    _vertex_map->identify();
-
+  if (Verbosity() > 0) 
+      _vertex_map->identify();
+   
+  if(_associate_tracks)
+    { assignTracksVertices(topNode); }
+    
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHTruthVertexing::assignTracksVertices(PHCompositeNode *topNode)
+{
+  SvtxTrackMap * trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name.c_str());
+  if(!trackMap)
+    {
+      std::cout << PHWHERE 
+		<< "Can't find requested track map. Exiting" 
+		<< std::endl;
+      return;
+    }
+
+  for(SvtxTrackMap::Iter iter = trackMap->begin();
+      iter != trackMap->end();
+      ++iter)
+    {
+      auto trackKey = iter->first;
+      auto track = iter->second;
+
+      if(Verbosity() > 3)
+	track->identify();
+    
+      const double trackZ = track->get_z();
+      
+      double dz = 9999.;
+      int trackVertexId = 9999;
+      
+      for(SvtxVertexMap::Iter viter = _vertex_map->begin();
+	  viter != _vertex_map->end();
+	  ++viter)
+	{
+	  auto vertexKey = viter->first;
+	  auto vertex = viter->second;
+	  if(Verbosity() > 3)
+	    vertex->identify();
+	  
+	  const double vertexZ = vertex->get_z();
+	  
+	  if( fabs(trackZ - vertexZ) < dz )
+	    {
+	      dz = fabs(trackZ - vertexZ);
+	      trackVertexId = vertexKey;
+	    }
+
+	}
+
+      track->set_vertex_id(trackVertexId);
+      auto vertex = _vertex_map->find(trackVertexId)->second;
+      vertex->insert_track(trackKey);
+      
+    }
+
+
 }
 
 int PHTruthVertexing::GetNodes(PHCompositeNode* topNode)

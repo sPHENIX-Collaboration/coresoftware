@@ -36,16 +36,18 @@ class PHG4TruthInfoContainer : public PHObject
   typedef std::pair<ConstShowerIterator, ConstShowerIterator> ConstShowerRange;
 
   PHG4TruthInfoContainer();
-  virtual ~PHG4TruthInfoContainer();
+  ~PHG4TruthInfoContainer() override;
 
-  void Reset();
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override;
 
   // --- particle storage ------------------------------------------------------
 
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
   void delete_particle(Iterator piter);
+  void delete_particle(int trackid);
 
   PHG4Particle* GetParticle(const int trackid);
   PHG4Particle* GetPrimaryParticle(const int trackid);
@@ -106,6 +108,7 @@ class PHG4TruthInfoContainer : public PHObject
   //! Add a vertex and return an iterator to the user
   ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
   void delete_vtx(VtxIterator viter);
+  void delete_vtx(int vtxid);
 
   PHG4VtxPoint* GetVtx(const int vtxid);
   PHG4VtxPoint* GetPrimaryVtx(const int vtxid);
@@ -226,7 +229,7 @@ class PHG4TruthInfoContainer : public PHObject
   std::map<int, int> particle_embed_flags;  //< trackid => embed flag
   std::map<int, int> vertex_embed_flags;    //< vtxid => embed flag
 
-  ClassDef(PHG4TruthInfoContainer, 1)
+  ClassDefOverride(PHG4TruthInfoContainer, 1)
 };
 
 

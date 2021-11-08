@@ -17,6 +17,7 @@ config.guess
 config.sub
 ltmain.sh
 
+build
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
@@ -77,6 +78,9 @@ tmtags
 *.la
 *.a
 *.lib
+*.pcm
+*_Dict.cc
+*.status
 
 # Executables
 *.exe

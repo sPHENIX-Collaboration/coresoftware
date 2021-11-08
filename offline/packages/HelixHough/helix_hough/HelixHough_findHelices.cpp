@@ -14,20 +14,20 @@
 
 using namespace std;
 
-static inline void in_place_counting_sort_unique(vector<unsigned int>& A,
-                                                 vector<unsigned int>& C,
-                                                 unsigned int MAX) {
-  unsigned int SIZE = A.size();
-  for (unsigned int i = 0; i < SIZE; ++i) {
-    ++C[A[i]];
-  }
-  unsigned int current = 0;
-  for (unsigned int i = 0; i < MAX; ++i) {
-    A[current] = ((((C[i] != 0) - 1) & (A[current])) ^ (((C[i] == 0) - 1) & i));
-    current += (C[i] != 0);
-  }
-  A.resize(current);
-}
+// static inline void in_place_counting_sort_unique(vector<unsigned int>& A,
+//                                                  vector<unsigned int>& C,
+//                                                  unsigned int MAX) {
+//   unsigned int SIZE = A.size();
+//   for (unsigned int i = 0; i < SIZE; ++i) {
+//     ++C[A[i]];
+//   }
+//   unsigned int current = 0;
+//   for (unsigned int i = 0; i < MAX; ++i) {
+//     A[current] = ((((C[i] != 0) - 1) & (A[current])) ^ (((C[i] == 0) - 1) & i));
+//     current += (C[i] != 0);
+//   }
+//   A.resize(current);
+// }
 
 static inline void in_place_counting_unique(vector<unsigned int>& A,
                                             vector<unsigned int>& C) {
@@ -224,7 +224,7 @@ bool HelixHough::attemptClusterMerge(
     float cluster_size_cut, float overlap_cut,
     vector<ParameterCluster>& clusters, unsigned int* bins_start,
     unsigned int* bins_end, vector<unsigned int>& map_clus,
-    vector<unsigned char>& too_big, vector<unsigned int>& temp_merged,
+    vector<unsigned char>& too_big, vector<unsigned int>& /*temp_merged*/,
     vector<unsigned int>& C) {
   if ((good_bins[newbin] == 1) && (map_clus[newbin] != 4294967295)) {
     if (too_big[map_clus[newbin]] == 0) {
@@ -269,10 +269,10 @@ void HelixHough::makeClusters(unsigned int zoomlevel, unsigned int MAX,
                               unsigned int n_k, unsigned int n_dzdl,
                               unsigned int n_z0, unsigned int min_hits,
                               vector<ParameterCluster>& clusters,
-                              bool& use_clusters, bool& is_super_bin) {
+                              bool& /*use_clusters*/, bool& is_super_bin) {
   unsigned int volume = n_phi * n_d * n_k * n_dzdl * n_z0;
   float cluster_size_cut = 1.0;
-  float bin_size_cut = 0.75;
+//  float bin_size_cut = 0.75;
   float overlap_cut = 0.1;
   is_super_bin = false;
 
@@ -668,15 +668,15 @@ void HelixHough::findSeededHelices(vector<SimpleTrack3D>& seeds,
   smooth_back = false;
   while (layers_left > 0) {
     unsigned int layers_iter = layers_at_a_time;
-    if ((cur_layer + layers_at_a_time - 1) > max_layer) {
+    if ((cur_layer + layers_at_a_time - 1) > (unsigned int) max_layer) {
       layers_iter = (max_layer - (cur_layer - 1));
     }
 
     cur_tracks.clear();
     cur_hits.clear();
     for (unsigned int i = 0; i < hits.size(); ++i) {
-      if ((hits[i].get_layer() >= cur_layer) &&
-          (hits[i].get_layer() <= (cur_layer + layers_at_a_time - 1))) {
+      if ((hits[i].get_layer() >= (int) cur_layer) &&
+          (hits[i].get_layer() <= (int) (cur_layer + layers_at_a_time - 1))) {
         cur_hits.push_back(hits[i]);
       }
     }
@@ -692,7 +692,7 @@ void HelixHough::findSeededHelices(vector<SimpleTrack3D>& seeds,
     clear();
     req_layers = nreq;
 
-    if (layers_left <= layers_at_a_time) {
+    if (layers_left <= (int) layers_at_a_time) {
       smooth_back = smooth_back_orig;
     }
 

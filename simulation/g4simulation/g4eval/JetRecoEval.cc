@@ -100,6 +100,12 @@ void JetRecoEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 }
 
+void JetRecoEval:: set_track_nodename (const string & name) 
+{
+  m_TrackNodeName = name;
+  _jettrutheval.set_track_nodename (name);
+}
+
 std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
 {
   if (_strict)
@@ -470,7 +476,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_trackmap)
       {
-        cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+        cout << PHWHERE << "ERROR: can't find TrackMap" << endl;
         exit(-1);
       }
 
@@ -1073,7 +1079,6 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
   float energy_contribution = 0.0;
 
   std::set<PHG4Particle*> truthjetcomp = get_truth_eval()->all_truth_particles(truthjet);
-
   // loop over all truthjet constituents
   for (std::set<PHG4Particle*>::iterator iter = truthjetcomp.begin();
        iter != truthjetcomp.end();
@@ -1117,17 +1122,12 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
 
         PHG4Particle* maxtruthparticle = get_svtx_eval_stack()->get_track_eval()->max_truth_particle_by_nclusters(track);
 
-        if (_strict)
+        if (maxtruthparticle == nullptr)
         {
-          assert(maxtruthparticle);
+          // in extreme rare cases, noise hits can make a track with no maxtruthparticle matched
+          energy = 0;
         }
-        else if (!maxtruthparticle)
-        {
-          ++_errors;
-          continue;
-        }
-
-        if (maxtruthparticle->get_track_id() == truthparticle->get_track_id())
+        else if (maxtruthparticle->get_track_id() == truthparticle->get_track_id())
         {
           energy = track->get_p();
         }

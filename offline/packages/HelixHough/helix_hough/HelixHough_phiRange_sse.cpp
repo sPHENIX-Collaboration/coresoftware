@@ -1374,7 +1374,7 @@ void HelixHough::phiRange_sse(float* hit_x, float* hit_y, float* min_d, float* m
 }
 
 
-void HelixHough::phiRange_sse(float* hit_x, float* hit_y, float* min_d, float* max_d, float* min_k, float* max_k, float* min_phi, float* max_phi, float* min_phi_2, float* max_phi_2, float hel, __m128& phi_3, __m128& phi_4, __m128& phi_3_out, __m128& phi_4_out, float* hit_x_2, float* hit_y_2, __m128& phi_3_2, __m128& phi_4_2, __m128& phi_3_out_2, __m128& phi_4_out_2)
+void HelixHough::phiRange_sse(float* hit_x, float* hit_y, float* min_d, float* max_d, float* /*min_k*/, float* max_k, float* min_phi, float* max_phi, float* min_phi_2, float* max_phi_2, float hel, __m128& phi_3, __m128& phi_4, __m128& phi_3_out, __m128& phi_4_out, float* hit_x_2, float* hit_y_2, __m128& phi_3_2, __m128& phi_4_2, __m128& phi_3_out_2, __m128& phi_4_out_2)
 {
   __m128 helicity_vec = _mm_load1_ps(&(hel));
   

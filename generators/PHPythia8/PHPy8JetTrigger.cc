@@ -8,6 +8,7 @@
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
+#include <algorithm> // for max
 #include <cmath>     // for sqrt
 #include <cstdlib>   // for abs
 #include <iostream>  // for operator<<, endl, basic_ostream

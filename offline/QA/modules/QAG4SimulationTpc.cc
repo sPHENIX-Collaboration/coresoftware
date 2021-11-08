@@ -11,6 +11,10 @@
 
 #include <tpc/TpcDefs.h>
 
+#include <trackbase_historic/ActsTransformations.h>
+
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -33,13 +37,12 @@
 #include <TString.h>  // for Form
 
 #include <cassert>
+#include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
 #include <utility>   // for pair, make_pair
 #include <vector>    // for vector
-
-using namespace std;
 
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
@@ -68,8 +71,8 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
                                                                 "G4TruthInfo");
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
-         << "unable to find node G4TruthInfo" << endl;
+    std::cout << "QAG4SimulationTpc::InitRun - Fatal Error - "
+              << "unable to find node G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
 
@@ -98,7 +101,7 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
     for (int region = 0; region < 3; ++region)
     {
       if (iter->first >= region_layer_low[region] && iter->first <= region_layer_high[region])
-        m_layer_region_map.insert(make_pair(iter->first, region));
+        m_layer_region_map.insert(std::make_pair(iter->first, region));
     }
   }
 
@@ -223,6 +226,22 @@ int QAG4SimulationTpc::load_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if (!m_surfmaps)
+  {
+    std::cout << PHWHERE << "Error: can't find Acts surface maps"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if (!m_tGeometry)
+  {
+    std::cout << PHWHERE << "No acts tracking geometry, exiting."
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_cluster_hit_map)
   {
@@ -305,10 +324,13 @@ void QAG4SimulationTpc::evaluate_clusters()
   // Get all truth clusters
   //===============
   if (Verbosity() > 0)
-    cout << PHWHERE << " get all truth clusters for primary particles " << endl;
+    std::cout << PHWHERE << " get all truth clusters for primary particles " << std::endl;
 
   //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
+
+  ActsTransformations transformer;
+
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
@@ -321,7 +343,7 @@ void QAG4SimulationTpc::evaluate_clusters()
     float gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
-      cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << endl;
+      std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
 
     // Get the truth clusters from this particle
     std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters = trutheval->all_truth_clusters(g4particle);
@@ -345,8 +367,8 @@ void QAG4SimulationTpc::evaluate_clusters()
 
       if (Verbosity() > 0)
       {
-        cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
-             << " gphi " << gphi << " gedep " << gedep << endl;
+        std::cout << "     gkey " << gkey << " detID " << detID << " tpcId " << TrkrDefs::tpcId << " layer " << layer << "  truth clus " << gkey << " ng4hits " << ng4hits << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz
+                  << " gphi " << gphi << " gedep " << gedep << std::endl;
       }
 
       // fill the truth cluster histo
@@ -359,12 +381,15 @@ void QAG4SimulationTpc::evaluate_clusters()
         // fill the matched cluster histo
         h_eff1->Fill(layer);
 
+        const auto global = transformer.getGlobalPosition(rclus, m_surfmaps,
+                                                          m_tGeometry);
+
         // get relevant cluster information
         const auto rkey = rclus->getClusKey();
-        const auto r_cluster = QAG4Util::get_r(rclus->getX(), rclus->getY());
-        const auto z_cluster = rclus->getZ();
-        const auto phi_cluster = std::atan2(rclus->getY(), rclus->getX());
-        const auto phi_error = rclus->getPhiError();
+        const auto r_cluster = QAG4Util::get_r(global(0), global(1));
+        const auto z_cluster = global(2);
+        const auto phi_cluster = (float) std::atan2(global(1), global(0));
+        const auto phi_error = rclus->getRPhiError() / r_cluster;
         const auto z_error = rclus->getZError();
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
@@ -376,10 +401,10 @@ void QAG4SimulationTpc::evaluate_clusters()
 
         if (Verbosity() > 0)
         {
-          cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << endl;
-          cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << endl;
-          cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << endl;
-          cout << "     drphi " << r_cluster * dphi << " rphi_error " << r_cluster * phi_error << " dz " << dz << " z_error " << z_error << endl;
+          std::cout << "   Found match in layer " << layer << " region " << region << " for gtrackID " << gtrackID << std::endl;
+          std::cout << "      x " << rclus->getX() << " y " << rclus->getY() << " z " << rclus->getZ() << std::endl;
+          std::cout << "     gx " << gclus->getX() << " gy " << gclus->getY() << " gz " << gclus->getZ() << std::endl;
+          std::cout << "     drphi " << r_cluster * dphi << " rphi_error " << r_cluster * phi_error << " dz " << dz << " z_error " << z_error << std::endl;
         }
 
         const auto hiter = histograms.find(region);

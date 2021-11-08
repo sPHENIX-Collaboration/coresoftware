@@ -13,33 +13,38 @@
 #include <map>          // for _Rb_tree_const_iterator
 #include <ostream>      // for operator<<, basic_ostream, basic_ostream<>::_...
 
-using namespace std;
+SvtxTrack_FastSim::SvtxTrack_FastSim(const SvtxTrack& source)
+{ SvtxTrack_FastSim::CopyFrom( source ); }
 
-SvtxTrack_FastSim::SvtxTrack_FastSim()
-  : _truth_track_id(UINT_MAX)
-  , _nmeas(0)
+void SvtxTrack_FastSim::CopyFrom( const SvtxTrack& source )
 {
-}
+  
+  // parent class method
+  SvtxTrack_v1::CopyFrom( source );
+  
+  // additional members
+  _truth_track_id = source.get_truth_track_id();
+  _nmeas = source.get_num_measurements();
 
-SvtxTrack_FastSim::~SvtxTrack_FastSim()
-{
 }
 
 void SvtxTrack_FastSim::identify(std::ostream& os) const
 {
+  SvtxTrack_v1::identify( os );
+
   os << "SvtxTrack_FastSim Object ";
-  os << "truth_track_id:" << get_truth_track_id() << endl;
+  os << "truth_track_id:" << get_truth_track_id();
   os << "id: " << get_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";
-  os << endl;
+  os << std::endl;
 
   os << "(px,py,pz) = ("
      << get_px() << ","
      << get_py() << ","
-     << get_pz() << ")" << endl;
+     << get_pz() << ")" << std::endl;
 
-  os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
+  os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << std::endl;
 
   if (!empty_clusters())
   {
@@ -51,8 +56,8 @@ void SvtxTrack_FastSim::identify(std::ostream& os) const
       unsigned int cluster_id = *iter;
       os << cluster_id << " ";
     }
+    os << std::endl;
   }
-  os << endl;
 
   return;
 }

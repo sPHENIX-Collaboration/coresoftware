@@ -17,13 +17,13 @@ class PHObject : public TObject
   PHObject() {}
 
   /// dtor
-  virtual ~PHObject() {}
+  ~PHObject() override {}
   /// Virtual copy constructor.
   virtual PHObject* CloneMe() const;
 
   virtual PHObject* clone() const final;
-  virtual PHObject *Clone(const char *newname = "") const final;
-  virtual void 	Copy(TObject &object) const final;
+  PHObject *Clone(const char *newname = "") const final;
+  void 	Copy(TObject &object) const final;
 
   /** identify Function from PHObject
       @param os Output Stream 
@@ -46,11 +46,11 @@ class PHObject : public TObject
   virtual int isImplemented(const unsigned int i) const;
 
   virtual int Integrate() const { return 0; }
-  virtual int Integrate(PHObject* obj) { return -1; }
+  virtual int Integrate(PHObject* /*obj*/) { return -1; }
   virtual void CopyFrom(const PHObject *obj);
 
  private:
-  ClassDef(PHObject, 0)  // no I/O
+  ClassDefOverride(PHObject, 0)  // no I/O
 };
 
 #endif /* PHOOL_PHOBJECT_H */

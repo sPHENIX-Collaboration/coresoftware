@@ -37,14 +37,18 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
  protected:
   bool m_has_intermediates_nTuple;
   bool m_constrain_to_vertex_nTuple;
-  int m_num_tracks_nTuple;
-  int m_num_intermediate_states_nTuple;
+  bool m_get_all_PVs;
+  //int m_num_intermediate_states_nTuple;
+  //int m_num_tracks_from_intermediate_nTuple[99];
+  std::vector<int> m_num_tracks_from_intermediate_nTuple;
   bool m_truth_matching;
   bool m_detector_info;
+  bool m_calo_info;
   std::string m_mother_name;
+  //std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
-  std::string m_intermediate_name_ntuple[99];
+  std::vector<std::string> m_intermediate_name_ntuple;
 
  private:
   TTree *m_tree;
@@ -58,7 +62,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_mother_dira = -1;
   float m_calculated_mother_fdchi2 = -1;
   float m_calculated_mother_ip = -1;
+  float m_calculated_mother_ip_xy = -1;
   float m_calculated_mother_ipchi2 = -1;
+  float m_calculated_mother_ip_err = -1;
   float m_calculated_mother_x = -1;
   float m_calculated_mother_y = -1;
   float m_calculated_mother_z = -1;
@@ -89,8 +95,12 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_intermediate_decaytime_err[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength_err[max_intermediates] = {0};
+  float m_calculated_intermediate_dira[max_intermediates] = {0};
+  float m_calculated_intermediate_fdchi2[max_intermediates] = {0};
   float m_calculated_intermediate_ip[max_intermediates] = {0};
+  float m_calculated_intermediate_ip_xy[max_intermediates] = {0};
   float m_calculated_intermediate_ipchi2[max_intermediates] = {0};
+  float m_calculated_intermediate_ip_err[max_intermediates] = {0};
   float m_calculated_intermediate_x[max_intermediates] = {0};
   float m_calculated_intermediate_y[max_intermediates] = {0};
   float m_calculated_intermediate_z[max_intermediates] = {0};
@@ -117,7 +127,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   static const int max_tracks = 20;
   float m_calculated_daughter_mass[max_tracks] = {0};
   float m_calculated_daughter_ip[max_tracks] = {0};
+  float m_calculated_daughter_ip_xy[max_tracks] = {0};
   float m_calculated_daughter_ipchi2[max_tracks] = {0};
+  float m_calculated_daughter_ip_err[max_tracks] = {0};
   float m_calculated_daughter_x[max_tracks] = {0};
   float m_calculated_daughter_y[max_tracks] = {0};
   float m_calculated_daughter_z[max_tracks] = {0};
@@ -129,6 +141,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_daughter_p_err[max_tracks] = {0};
   float m_calculated_daughter_pt[max_tracks] = {0};
   float m_calculated_daughter_pt_err[max_tracks] = {0};
+  float m_calculated_daughter_jt[max_tracks] = {0};
   int m_calculated_daughter_q[max_tracks] = {0};
   float m_calculated_daughter_eta[max_tracks] = {0};
   float m_calculated_daughter_rapidity[max_tracks] = {0};

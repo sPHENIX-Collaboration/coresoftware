@@ -11,10 +11,10 @@ class DumpGlobalVertexMap : public DumpObject
 {
  public:
   DumpGlobalVertexMap(const std::string &NodeName);
-  virtual ~DumpGlobalVertexMap() {}
+  ~DumpGlobalVertexMap() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

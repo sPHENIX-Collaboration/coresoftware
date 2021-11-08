@@ -13,6 +13,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -22,6 +23,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TAxis.h>
 #include <TDatabasePDG.h>
@@ -38,8 +40,6 @@
 #include <iostream>
 #include <map>      // for map
 #include <utility>  // for pair
-
-using namespace std;
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
@@ -60,7 +60,7 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
+int QAG4SimulationTracking::Init(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -199,7 +199,7 @@ void QAG4SimulationTracking::addEmbeddingID(int embeddingID)
 int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationTracking::process_event() entered" << endl;
+    std::cout << "QAG4SimulationTracking::process_event() entered" << std::endl;
 
   // load relevant nodes from NodeTree
   load_nodes(topNode);
@@ -306,7 +306,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   // fill histograms that need truth information
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::process_event - fatal error - missing m_truthContainer! ";
+    std::cout << "QAG4SimulationTracking::process_event - fatal error - missing m_truthContainer! ";
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -318,24 +318,30 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   {
     // loop over clusters
-    const auto range = m_cluster_map->getClusters();
-    for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
+    auto hitsetrange = m_hitsets->getHitSets();
+    for (auto hitsetitr = hitsetrange.first;
+         hitsetitr != hitsetrange.second;
+         ++hitsetitr)
     {
-      // store cluster key
-      const auto &key = clusterIter->first;
-
-      // loop over associated g4hits
-      for (const auto &g4hit : find_g4hits(key))
+      auto range = m_cluster_map->getClusters(hitsetitr->first);
+      for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
       {
-        const int trkid = g4hit->get_trkid();
-        auto iter = g4particle_map.lower_bound(trkid);
-        if (iter != g4particle_map.end() && iter->first == trkid)
+        // store cluster key
+        const auto &key = clusterIter->first;
+
+        // loop over associated g4hits
+        for (const auto &g4hit : find_g4hits(key))
         {
-          iter->second.insert(key);
-        }
-        else
-        {
-          g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
+          const int trkid = g4hit->get_trkid();
+          auto iter = g4particle_map.lower_bound(trkid);
+          if (iter != g4particle_map.end() && iter->first == trkid)
+          {
+            iter->second.insert(key);
+          }
+          else
+          {
+            g4particle_map.insert(iter, std::make_pair(trkid, KeySet({key})));
+          }
         }
       }
     }
@@ -375,7 +381,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         else
         {
           if (Verbosity())
-            cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+            std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
         }
       }
       if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
@@ -413,7 +419,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " : Fatal error: missing SvtxTrackMap" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }  // reco track loop
 
@@ -425,7 +431,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
     if (Verbosity())
     {
-      cout << "QAG4SimulationTracking::process_event - processing ";
+      std::cout << "QAG4SimulationTracking::process_event - processing ";
       g4particle->identify();
     }
 
@@ -456,13 +462,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity())
       {
-        cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << endl;
+        std::cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << std::endl;
       }
     }
     else
     {
       if (Verbosity())
-        cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << endl;
+        std::cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << std::endl;
       continue;
     }
 
@@ -470,7 +476,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(pid);
     if (!pdg_p)
     {
-      cout << "QAG4SimulationTracking::process_event - Error - invalid particle ID = " << pid << endl;
+      std::cout << "QAG4SimulationTracking::process_event - Error - invalid particle ID = " << pid << std::endl;
       continue;
     }
 
@@ -486,7 +492,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     else
     {
       if (Verbosity())
-        cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << endl;
+        std::cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << std::endl;
       continue;
     }
     h_norm->Fill("Truth Track", 1);
@@ -526,20 +532,20 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           {
             match_found = true;
             if (Verbosity())
-              cout << "QAG4SimulationTracking::process_event - found unique match for g4 particle " << g4particle->get_track_id() << endl;
+              std::cout << "QAG4SimulationTracking::process_event - found unique match for g4 particle " << g4particle->get_track_id() << std::endl;
           }
           else
           {
             if (Verbosity())
-              cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
-                   << ". The track belong to g4 particle " << g4particle_matched->get_track_id() << endl;
+              std::cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                        << ". The track belong to g4 particle " << g4particle_matched->get_track_id() << std::endl;
           }
         }  //        if (g4particle_matched)
         else
         {
           if (Verbosity())
-            cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
-                 << ". The track belong to no g4 particle!" << endl;
+            std::cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                      << ". The track belong to no g4 particle!" << std::endl;
         }
       }
 
@@ -587,7 +593,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           else
           {
             if (Verbosity())
-              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+              std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
           }
         }
         if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
@@ -619,7 +625,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           else
           {
             if (Verbosity())
-              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+              std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
           }
         }  // for
         h_nMVTX_nReco_pTGen->Fill(gpt, nclusters[0]);
@@ -635,12 +641,19 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
 int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
 {
+  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!m_hitsets)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << endl;
+    std::cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(m_truthContainer);
   }
 
@@ -660,14 +673,15 @@ int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  m_g4hits_micromegas = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-string
+std::string
 QAG4SimulationTracking::get_histo_prefix()
 {
-  return string("h_") + Name() + string("_");
+  return std::string("h_") + Name() + std::string("_");
 }
 
 QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::cluskey cluster_key) const
@@ -705,6 +719,10 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
 
       case TrkrDefs::tpcId:
         if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
+        break;
+
+      case TrkrDefs::micromegasId:
+        if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
         break;
 
       default:

@@ -120,7 +120,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4HitTTree::End(PHCompositeNode *topNode)
+int G4HitTTree::End(PHCompositeNode */*topNode*/)
 {
   hm->dumpHistos("HitHistos.root");
   delete hm;

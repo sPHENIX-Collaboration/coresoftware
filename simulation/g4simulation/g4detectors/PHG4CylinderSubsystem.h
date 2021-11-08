@@ -21,7 +21,7 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderSubsystem(void);
+  ~PHG4CylinderSubsystem(void) override;
 
   //! init runwise stuff
   /*!
@@ -56,7 +56,7 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   // this method is used to check if it can be used as mothervolume
   // Subsystems which can be mothervolume need to implement this
   // and return true
-  virtual bool CanBeMotherSubsystem() const override { return true; }
+  bool CanBeMotherSubsystem() const override { return true; }
 
   // this is just needed for use as reference plane for projections
   // this is the only detector using this - there is no need to add

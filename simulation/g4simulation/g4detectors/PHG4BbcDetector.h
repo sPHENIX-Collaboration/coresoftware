@@ -5,12 +5,15 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <cmath>
 #include <set>
 #include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4BbcDisplayAction;
 class PHCompositeNode;
+class PHG4Subsystem;
 class PHParameters;
 
 class PHG4BbcDetector : public PHG4Detector
@@ -20,7 +23,7 @@ class PHG4BbcDetector : public PHG4Detector
   PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "BBC");
 
   //! destructor
-  virtual ~PHG4BbcDetector()
+  ~PHG4BbcDetector() override
   {
   }
 
@@ -33,15 +36,21 @@ class PHG4BbcDetector : public PHG4Detector
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
- 
-protected:
-  int IsActive = 1;
-  int IsAbsorberActive = 0;
+
+  PHG4BbcDisplayAction *GetDisplayAction() { return m_DisplayAction; }
+
+ protected:
+  PHG4BbcDisplayAction *m_DisplayAction = nullptr;
+
   PHParameters *m_Params = nullptr;
 
-  G4float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
+  int m_ActiveFlag = 0;
+  int m_SupportActiveFlag = 0;
 
-  std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
+  float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
+
+  std::set<G4LogicalVolume *> m_PhysLogicalVolSet;
+  std::set<G4LogicalVolume *> m_SupportLogicalVolSet;
 
   std::string m_SuperDetector;
 };

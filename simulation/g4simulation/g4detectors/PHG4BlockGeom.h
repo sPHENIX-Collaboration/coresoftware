@@ -14,9 +14,10 @@ class PHG4BlockGeom: public PHObject
 {
  public:
 
-  virtual ~PHG4BlockGeom() {}
+  ~PHG4BlockGeom() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   virtual int get_layer() const {PHOOL_VIRTUAL_WARN("get_layer()"); return -99999;}
   virtual double get_size_x() const {PHOOL_VIRTUAL_WARN("get_size_x()");return NAN;}
@@ -33,12 +34,12 @@ class PHG4BlockGeom: public PHObject
 
   virtual double get_rot_matrix(const int, const int) const {PHOOL_VIRTUAL_WARN("get_rot_matrix(const int, const int)"); return NAN;}
 
-  virtual void set_layer(const int i) {PHOOL_VIRTUAL_WARN("set_layer(const int)");}
-  virtual void set_size(const double sizex, const double sizey, const double sizez)
+  virtual void set_layer(const int) {PHOOL_VIRTUAL_WARN("set_layer(const int)");}
+  virtual void set_size(const double /*sizex*/, const double /*sizey*/, const double /*sizez*/)
     {PHOOL_VIRTUAL_WARN("set_size(const double, const double, const double)");}
-  virtual void set_place(const double placex, const double placey, const double placez)
+  virtual void set_place(const double /*placex*/, const double /*placey*/, const double /*placez*/)
     {PHOOL_VIRTUAL_WARN("set_place(const double, const double, const double)");}
-  virtual void set_z_rot(const double z) {PHOOL_VIRTUAL_WARN("set_z_rot(const double)");}
+  virtual void set_z_rot(const double) {PHOOL_VIRTUAL_WARN("set_z_rot(const double)");}
 
   virtual void convert_local_to_global(const double, const double, const double,
                                        double &, double &, double &) const
@@ -50,7 +51,7 @@ class PHG4BlockGeom: public PHObject
  protected:
   PHG4BlockGeom() {}
 
-  ClassDef(PHG4BlockGeom,1)
+  ClassDefOverride(PHG4BlockGeom,1)
 };
 
 #endif

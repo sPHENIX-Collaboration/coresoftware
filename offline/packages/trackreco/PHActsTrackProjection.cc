@@ -12,6 +12,8 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
@@ -35,7 +37,7 @@
 
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
-  , m_actsFitResults(nullptr)
+  , m_trajectories(nullptr)
 {
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
@@ -88,12 +90,12 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrackProjection::Init(PHCompositeNode *topNode)
+int PHActsTrackProjection::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrackProjection::End(PHCompositeNode *topNode)
+int PHActsTrackProjection::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -106,30 +108,29 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
       != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  for(const auto& [trackKey, traj] : *m_actsFitResults)
+  for(const auto& [trackKey, traj] : *m_trajectories)
     {
+      const auto track = m_trackMap->get(trackKey);;
       const auto& [trackTips, mj] = traj.trajectory();
- 
-      /// Skip failed track fits
-      if(trackTips.empty())
-	continue;
- 
-      for(const size_t& trackTip : trackTips)
+      if(trackTips.size() > 1 and Verbosity() > 0)
+	{ 
+	  std::cout << PHWHERE 
+		    << "More than 1 track tip per track. Should never happen..."
+		    << std::endl;
+	}
+      for(const auto& trackTip : trackTips)
 	{
-	  if(traj.hasTrackParameters(trackTip))
+	  const auto params = traj.trackParameters(trackTip);
+	  auto cylSurf = 
+	    m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
+	  
+	  auto result = propagateTrack(params, cylSurf);
+	  
+	  if(result.ok())
 	    {
-	      const auto &params = traj.trackParameters(trackTip);
-	      auto cylSurf = 
-		m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
-
-	      auto result = propagateTrack(params, cylSurf);
-
-	      if(result.ok())
-		{
-		  auto trackStateParams = std::move(**result);
-		  updateSvtxTrack(trackStateParams, 
-				  trackKey, caloLayer);
-		}
+	      auto trackStateParams = std::move(**result);
+	      updateSvtxTrack(trackStateParams, 
+			      track, caloLayer);
 	    }
 	}
     }
@@ -137,13 +138,51 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Acts::BoundTrackParameters 
+PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
+{
+
+  Acts::Vector3D momentum(track->get_px(), 
+			  track->get_py(), 
+			  track->get_pz());
+  
+  auto actsVertex = getVertex(track);
+  auto perigee = 
+    Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
+  auto actsFourPos = 
+    Acts::Vector4D(track->get_x() * Acts::UnitConstants::cm,
+		   track->get_y() * Acts::UnitConstants::cm,
+		   track->get_z() * Acts::UnitConstants::cm,
+		   10 * Acts::UnitConstants::ns);
+
+  Acts::BoundSymMatrix cov;
+  for(int i = 0; i < 6; i++)
+    for(int j = 0; j < 6; j++)
+      cov(i,j) = track->get_acts_covariance(i,j);
+
+  Acts::BoundTrackParameters param(perigee, m_tGeometry->geoContext,
+				   actsFourPos, momentum,
+				   track->get_p(), track->get_charge(),
+				   cov);
+  return param;
+}
+Acts::Vector3D PHActsTrackProjection::getVertex(SvtxTrack *track)
+{
+  auto vertexId = track->get_vertex_id();
+  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
+
+  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+			svtxVertex->get_y() * Acts::UnitConstants::cm, 
+			svtxVertex->get_z() * Acts::UnitConstants::cm);
+  return vertex;
+}
+
+
 void PHActsTrackProjection::updateSvtxTrack(
                const Acts::BoundTrackParameters& params, 
-	       const unsigned int trackKey,
+	       SvtxTrack* svtxTrack,
 	       const int caloLayer)
 {
-  auto svtxTrack = m_trackMap->find(trackKey)->second;
-  
   auto projectionPos = params.position(m_tGeometry->geoContext);
 
   auto projectionPhi = atan2(projectionPos(1), projectionPos(0));
@@ -278,7 +317,7 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
 }
 
 BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
-        const FitParameters& params, 
+        const Acts::BoundTrackParameters& params, 
 	const SurfacePtr& targetSurf)
 {
   
@@ -311,7 +350,8 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
       if(Verbosity() > 3)
 	logLevel = Acts::Logging::VERBOSE;
 
-      auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
+      auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
+					   logLevel);
       
       Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
 					m_tGeometry->magFieldContext,
@@ -373,7 +413,9 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       
       const auto caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;
-      const auto eta = 1.1;
+      /// Extend farther so that there is at least surface there, for high
+      /// curling tracks. Can always reject later
+      const auto eta = 2.5;
       const auto theta = 2. * atan(exp(-eta));
       const auto halfZ = caloRadius / tan(theta) 
 	* Acts::UnitConstants::cm;
@@ -406,6 +448,22 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 
 int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
 {
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
+    {
+      std::cout << PHWHERE << "No Acts trajectories on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_vertexMap)
+    {
+      std::cout << PHWHERE << "No vertex map on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(
 			  topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
@@ -416,16 +474,6 @@ int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-    m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>
-                     (topNode, "ActsFitResults");
-
-  if (!m_actsFitResults)
-  {
-    std::cout << PHWHERE << "No Acts fit results on node tree. Bailing."
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if(!m_trackMap)
     {

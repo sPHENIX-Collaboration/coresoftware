@@ -21,7 +21,7 @@ PHG4HitReadBack::PHG4HitReadBack(const string &name): SubsysReco(name)
 }
 
 int
-PHG4HitReadBack::InitRun(PHCompositeNode *topNode)
+PHG4HitReadBack::InitRun(PHCompositeNode */*topNode*/)
 {
   return 0;
 }

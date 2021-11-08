@@ -43,7 +43,7 @@ BbcVertexFastSimReco::~BbcVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int BbcVertexFastSimReco::Init(PHCompositeNode *topNode)
+int BbcVertexFastSimReco::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -128,7 +128,7 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int BbcVertexFastSimReco::End(PHCompositeNode *topNode)
+int BbcVertexFastSimReco::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

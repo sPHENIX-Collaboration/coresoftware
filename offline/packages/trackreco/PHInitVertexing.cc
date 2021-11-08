@@ -3,6 +3,7 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                   // for SubsysReco
@@ -22,6 +23,7 @@ using namespace std;
 PHInitVertexing::PHInitVertexing(const std::string& name)
   : SubsysReco(name)
   , _cluster_map(nullptr)
+  , _hitsets(nullptr)
   , _vertex_map(nullptr)
 {
 }
@@ -95,6 +97,14 @@ int PHInitVertexing::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TrkrClusterContainer" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!_hitsets)
+    {
+      cerr << PHWHERE << "No hitset container on node tree. Bailing."
+		<< endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   // Pull the reconstructed track information off the node tree...
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");

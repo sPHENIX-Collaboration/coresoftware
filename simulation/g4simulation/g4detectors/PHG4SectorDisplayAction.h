@@ -18,9 +18,9 @@ class PHG4SectorDisplayAction : public PHG4DisplayAction
  public:
   PHG4SectorDisplayAction(const std::string &name);
 
-  virtual ~PHG4SectorDisplayAction();
+  ~PHG4SectorDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
 
  private:

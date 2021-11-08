@@ -12,13 +12,15 @@
 class PHG4VtxPoint: public PHObject
 {
  public:
-  virtual ~PHG4VtxPoint() {}
+  ~PHG4VtxPoint() override {}
 
-  virtual void set_x(const double r) {}
-  virtual void set_y(const double r) {}
-  virtual void set_z(const double r) {}
-  virtual void set_t(const double r) {}
-  virtual void set_id(const int i) {}
+  void identify(std::ostream& os = std::cout) const override;
+
+  virtual void set_x(const double) {}
+  virtual void set_y(const double) {}
+  virtual void set_z(const double) {}
+  virtual void set_t(const double) {}
+  virtual void set_id(const int) {}
 
   virtual double get_x() const {return NAN;}
   virtual double get_y() const {return NAN;}
@@ -26,7 +28,6 @@ class PHG4VtxPoint: public PHObject
   virtual double get_t() const {return NAN;}
   virtual int get_id() const {return INT_MIN;}
 
-  virtual void identify(std::ostream& os = std::cout) const;
 
   //! comparison of vertex value only, not on the id, per algorithm requirement in PHG4TruthInfoContainer::AddPrimaryVertex
   bool  operator== (const PHG4VtxPoint &) const ;
@@ -34,7 +35,7 @@ class PHG4VtxPoint: public PHObject
 
  protected:
   PHG4VtxPoint(){}
-  ClassDef(PHG4VtxPoint,1)
+  ClassDefOverride(PHG4VtxPoint,1)
 
 };
 

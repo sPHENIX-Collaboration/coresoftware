@@ -6,11 +6,14 @@ AC_PROG_CXX
 AC_PROG_F77(gfortran)
 LT_INIT([disable-static])
 
-dnl test for root 6
-if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
-AC_SUBST(CINTDEFS)
+dnl deprecated declaraion from fastjet header
+if test $ac_cv_prog_gxx = yes; then
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
 fi
+
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override -Wextra "
+
+AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

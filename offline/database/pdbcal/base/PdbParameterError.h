@@ -14,19 +14,19 @@ class PdbParameterError : public PdbParameter
  public:
   PdbParameterError();
   PdbParameterError(const double, const double, const std::string &name); 
-  virtual ~PdbParameterError() {}
+  ~PdbParameterError() override {}
 
   double getParameterError() const { return theParError; }
 
   void  setParameterError(const double val) { theParError = val; }
 
-  virtual void print() const;
+  void print() const override;
 
  protected:
 
   double theParError;
 
-  ClassDef(PdbParameterError,1);
+  ClassDefOverride(PdbParameterError,1);
 };
 
 #endif /* PDBCAL_BASE_PDBPARAMETERERROR_H */

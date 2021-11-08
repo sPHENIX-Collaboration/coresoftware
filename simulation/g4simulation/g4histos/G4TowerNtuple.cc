@@ -104,7 +104,7 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4TowerNtuple::End(PHCompositeNode *topNode)
+int G4TowerNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();

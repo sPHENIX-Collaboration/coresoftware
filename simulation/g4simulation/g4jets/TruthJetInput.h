@@ -14,7 +14,7 @@ class TruthJetInput : public JetInput
 {
  public:
   TruthJetInput(Jet::SRC input);
-  virtual ~TruthJetInput() {}
+  ~TruthJetInput() override {}
 
   //! by default, TruthJetInput process all truth primary particle.
   //! However, it can be configured to read only one or more embedded stream via add_embedding_flag()
@@ -25,11 +25,11 @@ class TruthJetInput : public JetInput
     _embed_id.push_back(embed_stream_id);
   }
 
-  void identify(std::ostream& os = std::cout);
+  void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() { return _input; }
+  Jet::SRC get_src() override { return _input; }
 
-  std::vector<Jet*> get_input(PHCompositeNode* topNode);
+  std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
   void set_eta_range(float eta_min, float eta_max)
   {

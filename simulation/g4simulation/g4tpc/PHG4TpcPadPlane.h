@@ -22,17 +22,17 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
  public:
   PHG4TpcPadPlane(const std::string &name = "PHG4TpcPadPlane");
 
-  virtual ~PHG4TpcPadPlane() {}
+  ~PHG4TpcPadPlane() override {}
 
   int process_event(PHCompositeNode *) final
   {
     return 0;
   }
-  int InitRun(PHCompositeNode *topNode);
-  virtual int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) { return 0; }
+  int InitRun(PHCompositeNode *topNode) override;
+  virtual int CreateReadoutGeometry(PHCompositeNode */*topNode*/, PHG4CylinderCellGeomContainer */*seggeo*/) { return 0; }
   virtual void UpdateInternalParameters() { return; }
-  virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
-  virtual void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
+  virtual void MapToPadPlane(PHG4CellContainer */*g4cells*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple */*ntpad*/, TNtuple */*nthit*/) {}
+  virtual void MapToPadPlane(TrkrHitSetContainer */*single_hitsetcontainer*/, TrkrHitSetContainer */*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple */*ntpad*/, TNtuple */*nthit*/) {}
   void Detector(const std::string &name) { detector = name; }
 
  protected:

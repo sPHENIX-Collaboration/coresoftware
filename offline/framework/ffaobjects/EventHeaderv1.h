@@ -19,7 +19,7 @@ class EventHeaderv1 : public EventHeader
   /// ctor
   EventHeaderv1() = default;
   /// dtor
-  virtual ~EventHeaderv1() = default;
+  ~EventHeaderv1() override = default;
 
   PHObject *CloneMe() const override { return new EventHeaderv1(*this); }
 
@@ -56,17 +56,8 @@ class EventHeaderv1 : public EventHeader
   std::map<std::string, int64_t> m_IntEventProperties;
   std::map<std::string, float> m_FloatEventProperties;
 
-// rootcling and clang complain about inconsistent overrides in the ClassDef
-// this can be supressed with ignoring -Winconsistent-missing-override
-// this pragma is not known to gcc, so we need an #ifdef __clang__ here
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
-#endif
+  ClassDefOverride(EventHeaderv1, 2)
 
-  ClassDef(EventHeaderv1, 2)
-
-#pragma GCC diagnostic pop
 };
 
 #endif

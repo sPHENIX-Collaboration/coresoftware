@@ -402,7 +402,7 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
                                                   mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
   G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube,
-                                                                      G4Material::GetMaterial("CFRP_INTT"),
+                                                                      GetDetectorMaterial("CFRP_INTT"),
                                                                       "mvtx_shell_inner_skin_volume", 0, 0, 0);
 
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
@@ -415,7 +415,7 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
                                                  mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
   G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube,
-                                                                     G4Material::GetMaterial("ROHACELL_FOAM_110"),
+                                                                     GetDetectorMaterial("ROHACELL_FOAM_110"),
                                                                      "mvtx_shell_foam_core_volume", 0, 0, 0);
 
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
@@ -428,7 +428,7 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
                                                   mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
   G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube,
-                                                                      G4Material::GetMaterial("CFRP_INTT"),
+                                                                      GetDetectorMaterial("CFRP_INTT"),
                                                                       "mvtx_shell_outer_skin_volume", 0, 0, 0);
 
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,

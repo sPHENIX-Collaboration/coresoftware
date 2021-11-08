@@ -11,9 +11,9 @@ dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 if test $ac_cv_prog_gxx = yes; then
   if test `g++ -dumpversion | gawk '{print $1>=8.0?"1":"0"}'` = 1; then
-   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic "
+   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic  -Wextra"
   else
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra"
   fi
 fi
 

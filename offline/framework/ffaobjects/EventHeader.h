@@ -16,24 +16,24 @@ class EventHeader : public PHObject
 {
  public:
   /// dtor
-  virtual ~EventHeader() = default;
+  ~EventHeader() override = default;
 
   /// Clear Event
-  virtual void Reset();
+  void Reset() override;
 
   /*
    * identify Function from PHObject
    * @param os Output Stream 
    */
-  virtual void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const;
+  int isValid() const override;
 
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }
   /// set Run Number
-  virtual void set_RunNumber(const int run) { return; }
+  virtual void set_RunNumber(const int /*run*/) { return; }
 
   /// get Event Number
   virtual int get_EvtSequence() const { return 0; }
@@ -46,11 +46,11 @@ class EventHeader : public PHObject
   //! bunch crossing
   virtual int64_t get_BunchCrossing() const { return get_intval("bcr"); }
 
-  virtual void set_floatval(const std::string &name, const float fval) { return; }
-  virtual float get_floatval(const std::string &name) const { return NAN; }
+  virtual void set_floatval(const std::string &/*name*/, const float /*fval*/) { return; }
+  virtual float get_floatval(const std::string &/*name*/) const { return NAN; }
 
-  virtual void set_intval(const std::string &name, const int64_t ival) { return; }
-  virtual int64_t get_intval(const std::string &name) const { return -999999; }
+  virtual void set_intval(const std::string &/*name*/, const int64_t /*ival*/) { return; }
+  virtual int64_t get_intval(const std::string &/*name*/) const { return -999999; }
 
   /// get Event Type (Data,rejected,EOR,BOR,...)
   int get_EvtType() const { return get_intval("type"); }
@@ -75,8 +75,8 @@ class EventHeader : public PHObject
   void set_TimeStamp(const time_t tval) { set_intval("time", tval); }
   time_t get_TimeStamp() const { return get_intval("time"); }
 
- private:  // prevent doc++ from showing ClassDef
-  ClassDef(EventHeader, 1)
+ private:  // prevent doc++ from showing ClassDefOverride
+  ClassDefOverride(EventHeader, 1)
 };
 
 #endif

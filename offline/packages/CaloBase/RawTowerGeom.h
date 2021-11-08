@@ -12,11 +12,11 @@
 class RawTowerGeom : public PHObject
 {
  public:
-  virtual ~RawTowerGeom() {}
+  ~RawTowerGeom() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  virtual void set_id(RawTowerDefs::keytype key) { PHOOL_VIRTUAL_WARN("set_id()"); }
+  virtual void set_id(RawTowerDefs::keytype) { PHOOL_VIRTUAL_WARN("set_id()"); }
 
   virtual RawTowerDefs::keytype get_id() const
   {
@@ -33,6 +33,12 @@ class RawTowerGeom : public PHObject
   virtual int get_binphi() const
   {
     PHOOL_VIRTUAL_WARN("get_iphi()");
+    return -1;
+  }
+
+  virtual int get_binl() const
+  {
+    PHOOL_VIRTUAL_WARN("get_binl()");
     return -1;
   }
 
@@ -161,10 +167,32 @@ class RawTowerGeom : public PHObject
     return -1;
   }
 
+    virtual double get_roty() const
+  {
+     PHOOL_VIRTUAL_WARN("get_roty()");
+      return NAN;
+  }
+  virtual double get_rotz() const
+  {
+     PHOOL_VIRTUAL_WARN("get_rotz()");
+      return NAN;
+  }
+
+  virtual void set_roty(double)
+  {
+    PHOOL_VIRTUAL_WARN("set_roty()");
+    return;
+  }
+  virtual void set_rotz(double)
+  {
+    PHOOL_VIRTUAL_WARN("set_rotz()");
+    return;
+  }
+
  protected:
   RawTowerGeom() {}
 
-  ClassDef(RawTowerGeom, 2)
+  ClassDefOverride(RawTowerGeom, 2)
 };
 
 #endif

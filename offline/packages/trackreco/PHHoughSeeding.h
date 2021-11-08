@@ -53,16 +53,16 @@ class PHHoughSeeding : public PHTrackSeeding
       unsigned int min_seeding_nlayer = 4
 );
 
-  virtual ~PHHoughSeeding()
+  ~PHHoughSeeding() override
   {
   }
 
  protected:
-  int Setup(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
 
-  int Process(PHCompositeNode *topNode);
+  int Process(PHCompositeNode *topNode) override;
 
-  int End();
+  int End() override;
 
  private:
   /// fetch node pointers
@@ -218,34 +218,34 @@ class PHHoughSeeding : public PHTrackSeeding
   //---deprecated---------------------------------------------------------------
 
   /// set option to produce initial vertex for further tracking
-  void set_use_vertex(bool b)
+  void set_use_vertex(bool /*b*/)
   {
   }
 
-  void setInitialResMultiplier(int beta)
+  void setInitialResMultiplier(int /*beta*/)
   {
   }
-  void setFullResMultiplier(int lambda)
+  void setFullResMultiplier(int /*lambda*/)
   {
   }
 
   /// set the minimum pT to try to find during initial vertex finding tracking
-  void set_min_pT_init(float PT)
+  void set_min_pT_init(float /*PT*/)
   {
   }
 
   /// limit the maximum error reported by cluster (in number of cell units)
-  void setMaxClusterError(float max_cluster_error)
+  void setMaxClusterError(float /*max_cluster_error*/)
   {
   }
 
   /// use the cell size as cluster size instead of value stored on cluster
-  void setUseCellSize(bool use_cell_size)
+  void setUseCellSize(bool /*use_cell_size*/)
   {
   }
 
   /// set the tracking chi2 for initial vertex finding
-  void set_chi2_cut_init(double chi2_cut)
+  void set_chi2_cut_init(double /*chi2_cut*/)
   {
   }
 

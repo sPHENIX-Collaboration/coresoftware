@@ -12,11 +12,11 @@ class RawClusterBuilderGraph : public SubsysReco
 {
  public:
   RawClusterBuilderGraph(const std::string &name = "RawClusterBuilderGraph");
-  virtual ~RawClusterBuilderGraph() {}
+  ~RawClusterBuilderGraph() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { detector = d; }
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }

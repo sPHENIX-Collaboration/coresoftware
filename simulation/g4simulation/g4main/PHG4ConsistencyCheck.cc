@@ -22,7 +22,7 @@ PHG4ConsistencyCheck::PHG4ConsistencyCheck(const std::string &name):
 {}
 
 int
-PHG4ConsistencyCheck::InitRun(PHCompositeNode *topNode)
+PHG4ConsistencyCheck::InitRun(PHCompositeNode */*topNode*/)
 {
 
   return 0;

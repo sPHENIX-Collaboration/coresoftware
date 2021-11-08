@@ -73,7 +73,7 @@ ParticleFlowReco::~ParticleFlowReco()
 }
 
 //____________________________________________________________________________..
-int ParticleFlowReco::Init(PHCompositeNode *topNode)
+int ParticleFlowReco::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1053,7 +1053,7 @@ int ParticleFlowReco::CreateNode(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int ParticleFlowReco::ResetEvent(PHCompositeNode *topNode)
+int ParticleFlowReco::ResetEvent(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 0)
   {
@@ -1073,7 +1073,7 @@ int ParticleFlowReco::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int ParticleFlowReco::End(PHCompositeNode *topNode)
+int ParticleFlowReco::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 0)
   {
@@ -1083,7 +1083,7 @@ int ParticleFlowReco::End(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int ParticleFlowReco::Reset(PHCompositeNode *topNode)
+int ParticleFlowReco::Reset(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 0)
   {

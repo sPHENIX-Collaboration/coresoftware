@@ -10,9 +10,13 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <TMatrixFfwd.h>
+#include <TMatrixT.h>   
+#include <TMatrixTUtils.h>
 
 class PHCompositeNode;
 class PHTimer;
+class TrkrCluster;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
@@ -36,12 +40,13 @@ class SvtxEvaluator : public SubsysReco
                 unsigned int nlayers_intt = 8,
                 unsigned int nlayers_tpc = 48,
                 unsigned int nlayers_mms = 2);
-  virtual ~SvtxEvaluator();
+  ~SvtxEvaluator() override;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
+  //  void do_primaries(bool b);
 
   void set_strict(bool b) { _strict = b; }
   void set_use_initial_vertex(bool use_init_vtx) {_use_initial_vertex = use_init_vtx;}
@@ -59,7 +64,10 @@ class SvtxEvaluator : public SubsysReco
 
   void do_track_match(bool b) { _do_track_match = b; }
   void do_eval_light(bool b) { _do_eval_light = b; }
+  void do_vtx_eval_light(bool b) { _do_vtx_eval_light = b;}
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
+  void scan_for_primaries(bool b) { _scan_for_primaries = b; }
+
 
  private:
   unsigned int _ievent;
@@ -68,13 +76,15 @@ class SvtxEvaluator : public SubsysReco
   // eval stack
   SvtxEvalStack *_svtxevalstack;
 
+  TMatrixF calculateClusterError(TrkrCluster* c, float& clusphi);
+
   //TrkrClusterContainer *cluster_map{nullptr};
 
   //----------------------------------
   // evaluator output ntuples
 
   bool _strict;
-  bool _use_initial_vertex = false;
+  bool _use_initial_vertex = true;
   bool _use_genfit_vertex = false;
   unsigned int _errors;
 
@@ -91,7 +101,9 @@ class SvtxEvaluator : public SubsysReco
 
   bool _do_track_match;
   bool _do_eval_light;
+  bool _do_vtx_eval_light;
   bool _scan_for_embedded;
+  bool _scan_for_primaries;
 
   unsigned int _nlayers_maps = 3;
   unsigned int _nlayers_intt = 4;

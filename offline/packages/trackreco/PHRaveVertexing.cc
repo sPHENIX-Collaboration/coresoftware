@@ -95,7 +95,7 @@ PHRaveVertexing::PHRaveVertexing(const string& name)
 /*
  * Init
  */
-int PHRaveVertexing::Init(PHCompositeNode* topNode)
+int PHRaveVertexing::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -169,6 +169,22 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
     if (!(svtx_track->get_ndf() >= _vertex_min_ndf))
       continue;
 
+    // require MVTX association
+    if(_nmvtx_required > 0)
+      {
+	unsigned int nmvtx = 0;
+	for(auto clusit = svtx_track->begin_cluster_keys(); clusit != svtx_track->end_cluster_keys(); ++clusit)
+	  {
+	    if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
+	      {
+		nmvtx++;
+	      }
+	    if(nmvtx >=  _nmvtx_required) break;
+	  }
+	if(nmvtx < _nmvtx_required) continue;
+	if(Verbosity() > 1) std::cout << " track " << iter->first << "  has nmvtx at least " << nmvtx << std::endl;
+      } 
+    
     //auto genfit_track = shared_ptr<genfit::Track> (TranslateSvtxToGenFitTrack(svtx_track));
     auto genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
     if (!genfit_track)
@@ -214,7 +230,7 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
 /*
  * End
  */
-int PHRaveVertexing::End(PHCompositeNode* topNode)
+int PHRaveVertexing::End(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

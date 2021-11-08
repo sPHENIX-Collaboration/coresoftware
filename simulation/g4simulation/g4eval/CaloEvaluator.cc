@@ -75,7 +75,7 @@ CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const s
 {
 }
 
-int CaloEvaluator::Init(PHCompositeNode* topNode)
+int CaloEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
   _ievent = 0;
 
@@ -161,7 +161,7 @@ int CaloEvaluator::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloEvaluator::End(PHCompositeNode* topNode)
+int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
 {
   _tfile->cd();
 

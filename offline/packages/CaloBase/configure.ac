@@ -5,9 +5,14 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
-fi
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wextra"
+ ;;
+ *g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra"
+ ;;
+esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)

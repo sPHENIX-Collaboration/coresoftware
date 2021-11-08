@@ -22,6 +22,7 @@ class PHCompositeNode;
 class PHG4DisplayAction;
 class PHG4PhenixDetector;
 class PHG4PhenixEventAction;
+class PHG4PhenixStackingAction;
 class PHG4PhenixSteppingAction;
 class PHG4PhenixTrackingAction;
 class PHG4PrimaryGeneratorAction;
@@ -40,21 +41,21 @@ class PHG4Reco : public SubsysReco
   PHG4Reco(const std::string &name = "PHG4RECO");
 
   //! destructor
-  virtual ~PHG4Reco();
+  ~PHG4Reco() override;
 
   //! full initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! Clean up after each event.
-  int ResetEvent(PHCompositeNode *);
+  int ResetEvent(PHCompositeNode *) override;
 
   //! print info
-  void Print(const std::string &what = std::string()) const;
+  void Print(const std::string &what = std::string()) const override;
 
   //! register subsystem
   void registerSubsystem(PHG4Subsystem *subsystem)
@@ -129,7 +130,7 @@ class PHG4Reco : public SubsysReco
   void DefineMaterials();
   void DefineRegions();
 
-  float m_MagneticField;
+  float m_MagneticField = 0.;
   float m_MagneticFieldRescale;
   double m_WorldSize[3];
 
@@ -147,6 +148,9 @@ class PHG4Reco : public SubsysReco
 
   //! pointer to main event action
   PHG4PhenixEventAction *m_EventAction;
+
+  //! pointer to main stacking action
+  PHG4PhenixStackingAction *m_StackingAction = nullptr;
 
   //! pointer to main stepping action
   PHG4PhenixSteppingAction *m_SteppingAction;

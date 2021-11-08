@@ -1,7 +1,5 @@
-// This is the new trackbase container version
-
 /*!
- * \file PHG4MicromegasDigitizer.h
+ * \file PHG4MicromegasDigitizer.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -53,7 +51,7 @@ PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string &name)
 }
 
 //____________________________________________________________________________
-int PHG4MicromegasDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4MicromegasDigitizer::InitRun(PHCompositeNode */*topNode*/)
 {
 
   UpdateParametersWithMacro();

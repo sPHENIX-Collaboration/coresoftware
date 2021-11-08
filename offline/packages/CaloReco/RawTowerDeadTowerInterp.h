@@ -15,13 +15,13 @@ class RawTowerDeadTowerInterp : public SubsysReco
 {
  public:
   RawTowerDeadTowerInterp(const std::string &name = "RawTowerDeadTowerInterp");
-  virtual ~RawTowerDeadTowerInterp()
+  ~RawTowerDeadTowerInterp() override
   {
   }
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void
   detector(const std::string &d)

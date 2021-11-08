@@ -49,7 +49,7 @@ hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<i
   enablep = (enable==1) ? true: false;
   
   algo_info_vec.clear();
-  for (int i = 0; i < valgorithm.size(); ++i)
+  for (unsigned int i = 0; i < valgorithm.size(); ++i)
     {
       string algorithmName = valgorithm[i];
       transform(algorithmName.begin(), algorithmName.end(), algorithmName.begin(), ::toupper);
