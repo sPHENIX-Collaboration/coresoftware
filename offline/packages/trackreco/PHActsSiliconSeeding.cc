@@ -731,7 +731,7 @@ int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
   
   /// Add possible matches to cluster list to be parsed when
   /// Svtx tracks are made
-  for(auto cluskey : additionalClusters)
+  for(auto& cluskey : additionalClusters)
     { clusters.push_back(m_clusterMap->findCluster(cluskey)); }
   
   fitTimer->stop();
@@ -760,6 +760,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   double xProj[m_nInttLayers];
   double yProj[m_nInttLayers];
   double zProj[m_nInttLayers];
+  
+  auto fitTimer = std::make_unique<PHTimer>("inttMatchTimer");
+  fitTimer->stop();
+  fitTimer->restart();
 
   /// Diagnostic 
   if(m_seedAnalysis)
@@ -775,6 +779,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 	}
     }
   
+  
+
   /// Project the seed to the INTT to find matches
   for(int layer = 0; layer < m_nInttLayers; ++layer)
     {
@@ -832,9 +838,23 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 		    << yProj[layer] << ", " << zProj[layer] << std::endl;
 	}
     }
-
+  
+  fitTimer->stop();
+  auto projectionTime = fitTimer->get_accumulated_time();
+  fitTimer->restart();
+  
   auto additionalClusters = matchInttClusters(clusters, xProj, yProj, zProj);
 
+  fitTimer->stop();
+  auto matchTime = fitTimer->get_accumulated_time();
+  
+  if(Verbosity() > 0)
+    { 
+      std::cout << "INTT projection time " << projectionTime 
+		<< " and match time " << matchTime
+		<< std::endl; 
+    }
+  
   return additionalClusters;
 }
 
@@ -847,24 +867,42 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
   std::vector<TrkrDefs::cluskey> matchedClusters;
   ActsTransformations transform;
 
+  auto totalrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
+  int totalHitSets=0;
+  int totalInttClusters = 0;
+  for(auto hititr = totalrange.first; hititr != totalrange.second; ++hititr)
+    {
+      totalHitSets++;
+      auto range = m_clusterMap->getClusters(hititr->first);
+      for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	{
+	  totalInttClusters++;
+	}
+    }
+
+  std::cout << "Total INTT Hit sets " << totalHitSets << std::endl;
+  std::cout << "Total INTT clusters " << totalInttClusters << std::endl;
   for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
     {
       auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId, inttlayer+3);
-
       const double projR = sqrt(pow(xProj[inttlayer], 2) + 
 				pow(yProj[inttlayer], 2));
       const double projPhi = atan2(yProj[inttlayer], xProj[inttlayer]);
       const double projRphi = projR * projPhi;
-      
+
+      int hitsetsIterated = 0;
+      int hitsetsPassed = 0;
+      int totalClustersVisitedInLayer = 0;
+      std::cout << "Iterating hisets in layer " << inttlayer << std::endl;
       for (auto hitsetitr = hitsetrange.first;
 	   hitsetitr != hitsetrange.second;
 	   ++hitsetitr)
 	{
-	  auto range = m_clusterMap->getClusters(hitsetitr->first);
 	  const int ladderzindex = InttDefs::getLadderZId(hitsetitr->first);
 	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetitr->first);
 	  double ladderLocation[3] = {0.,0.,0.};
-	  
+	  hitsetsIterated++;
+	  std::cout << "iterating hitsetkey" << hitsetitr->first << std::endl;
 	  // Add three to skip the mvtx layers for comparison
 	  // to projections
 	  auto layerGeom = dynamic_cast<CylinderGeomIntt*>
@@ -885,11 +923,14 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  if(fabs(dphi) > 0.2)
 	    { continue; }
 	  
+	  hitsetsPassed++;
+	  std::cout << "key passed, iterating hitsetkey's clusters"<<std::endl;
+	  auto range = m_clusterMap->getClusters(hitsetitr->first);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
 	      const auto cluskey = clusIter->first;
 	      const auto cluster = clusIter->second;
-	      
+	      totalClustersVisitedInLayer++;
 	      const auto globalPos = transform.getGlobalPosition(cluster,
 								 m_surfMaps,
 								 m_tGeometry);
@@ -937,6 +978,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 		    }
 		}
 	    }
+	  std::cout << "Total layer hitsets iterated " << hitsetsIterated << " and total passed " 
+		    << hitsetsPassed << " and total clusters visited in layer " << totalClustersVisitedInLayer
+		    << std::endl;
 	}  
     }
   
