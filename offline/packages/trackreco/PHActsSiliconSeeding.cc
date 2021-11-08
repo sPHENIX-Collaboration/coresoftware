@@ -875,55 +875,54 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  if(fabs(dphi) > 0.2)
 	    { continue; }
 
+	  TVector3 projectionLocal(0,0,0);
+	  TVector3 projectionGlobal(xProj[inttlayer],yProj[inttlayer],zProj[inttlayer]);
+	  projectionLocal = layerGeom->get_local_from_world_coords(ladderzindex, 
+								   ladderphiindex,
+								   projectionGlobal);
+
 	  auto range = m_clusterMap->getClusters(hitsetitr->first);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
 	      const auto cluskey = clusIter->first;
 	      const auto cluster = clusIter->second;
-	      const auto globalPos = transform.getGlobalPosition(cluster,
-								 m_surfMaps,
-								 m_tGeometry);
-	      const double inttClusZ = globalPos(2);
-	      const double inttClusR = sqrt(pow(globalPos(0), 2) + 
-					    pow(globalPos(1), 2) );
-	      const double inttClusRphi = inttClusR * atan2(globalPos(1),
-							    globalPos(0));
-	      
-	      if(m_seedAnalysis)
-		{
-		  h_hits->Fill(globalPos(0), globalPos(1));
-		  h_zhits->Fill(globalPos(2),
-				inttClusR);
-		  h_resids->Fill(zProj[inttlayer] - inttClusZ,
-				 projRphi - inttClusRphi);
-		}
-	      
-	      if(Verbosity() > 4)
-		{
-		  std::cout << "Checking INTT cluster with cluskey " << cluskey 
-			    << " and position " << globalPos.transpose() 
-			    << std::endl << " with projections rphi "
-			    << projRphi << " and inttclus rphi " << inttClusRphi
-			    << " and proj z " << zProj[inttlayer] << " and inttclus z "
-			    << inttClusZ << " in layer " << inttlayer 
-			    << " with search windows " << m_rPhiSearchWin 
-			    << " in rphi and strip z spacing " << stripZSpacing 
-			    << std::endl;
-		}
-	      
+      
 	      /// Z strip spacing is the entire strip, so because we use fabs
 	      /// we divide by two
-	      if(fabs(projRphi - inttClusRphi) < m_rPhiSearchWin and
-		 fabs(zProj[inttlayer] - inttClusZ) < stripZSpacing / 2.)
+	      if(fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin and
+		 fabs(projectionLocal[2] - cluster->getLocalY()) < stripZSpacing / 2.)
 		{
+	
 		  matchedClusters.push_back(cluskey);
 		  /// Cache INTT global positions with seed
+		  const auto globalPos = transform.getGlobalPosition(cluster, m_surfMaps,
+								     m_tGeometry);
 		  clusters.push_back(globalPos);
+
+		  /// Diagnostic
+		  float inttClusRphi = sqrt(pow(globalPos(0),2)+pow(globalPos(1),2)) * atan2(globalPos(1),globalPos(0));
+		  if(m_seedAnalysis)
+		    { 
+		      h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
+					projectionLocal[2] - cluster->getLocalY()); 
+		      h_hits->Fill(globalPos(0), globalPos(1));
+		      h_zhits->Fill(globalPos(2),
+				    sqrt(pow(globalPos(0),2)+pow(globalPos(1),2)));
 		  
-		  if(Verbosity() > 2)
+		      h_resids->Fill(zProj[inttlayer] - globalPos(2),
+				     projRphi - inttClusRphi);
+		    }		  	      
+		  if(Verbosity() > 4)
 		    {
-		      std::cout << "Found matching projection with cluskey " 
-				<< cluskey << std::endl;
+		      std::cout << "Matched INTT cluster with cluskey " << cluskey 
+				<< " and position " << globalPos.transpose() 
+				<< std::endl << " with projections rphi "
+				<< projRphi << " and inttclus rphi " << inttClusRphi
+				<< " and proj z " << zProj[inttlayer] << " and inttclus z "
+				<< globalPos(2) << " in layer " << inttlayer 
+				<< " with search windows " << m_rPhiSearchWin 
+				<< " in rphi and strip z spacing " << stripZSpacing 
+				<< std::endl;
 		    }
 		}
 	    }
@@ -1478,6 +1477,7 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
 void PHActsSiliconSeeding::writeHistograms()
 {
   m_file->cd();
+  h_nInttProj->Write();
   h_nMvtxHits->Write();
   h_nSeeds->Write();
   h_nActsSeeds->Write();
@@ -1498,6 +1498,8 @@ void PHActsSiliconSeeding::writeHistograms()
 
 void PHActsSiliconSeeding::createHistograms()
 {
+  h_nInttProj = new TH2F("nInttProj",";l_{0}^{proj}-l_{0}^{clus} [cm]; l_{1}^{proj}-l_{1}^{clus} [cm]",
+			 10000,-10,10,10000,-50,50);
   h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
   h_nInttHits = new TH1I("nInttHits",";N_{INTT}",80,0,80);
   h_nHits = new TH2I("nHits",";N_{MVTX};N_{INTT}",10,0,10,
