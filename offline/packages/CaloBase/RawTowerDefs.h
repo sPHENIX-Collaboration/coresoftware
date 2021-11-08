@@ -40,7 +40,8 @@ namespace RawTowerDefs
     EEMC_glass = 10, 
     LFHCAL = 11,
     BECAL = 12,
-    ZDC = 13
+    ZDC = 13,
+    B0ECAL = 14
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
@@ -249,6 +250,10 @@ namespace RawTowerDefs
       return "ZDC";
       break;
   
+    case B0ECAL:
+      return "B0ECAL";
+      break;
+  
     default:
       std::cout
           << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
@@ -303,6 +308,9 @@ namespace RawTowerDefs
 
     else if (caloname == "ZDC")
       return ZDC;
+
+    else if (caloname == "B0ECAL")
+      return B0ECAL;
 
     else
     {
