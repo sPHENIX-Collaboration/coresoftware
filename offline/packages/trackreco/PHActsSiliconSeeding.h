@@ -276,6 +276,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
+  TH2 *h_nInttProj = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;
   TH2 *h_nHits = nullptr;
