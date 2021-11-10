@@ -13,9 +13,10 @@
 #include <g4main/PHG4Hit.h>
 
 PHG4CentralityReco::PHG4CentralityReco(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), 
+    _mbd_N(-99.), _mbd_S(-99.), _mbd_NS(-99.), _epd_N(-99.), _epd_S(-99.), _epd_NS(-99.)
 {
-
+  
 }
 
 int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
@@ -49,6 +50,8 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 
   std::cout << "PHG4CentralityReco::process_event -- heartbeat" << std::endl;
   
+  _mbd_N = 0;
+  _mbd_S = 0;
   _mbd_NS = 0;
 
   auto bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
@@ -58,16 +61,23 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     for (auto it = brange.first; it != brange.second; ++it) {
       if ( ( it->second->get_t(0) > -50 ) && ( it->second->get_t(1) < 50) ) { 
 	_mbd_NS += it->second->get_edep();
+	int id = it->second->get_layer();
+	if ((id & 0x40) == 0)
+	  _mbd_N += it->second->get_edep();
+	else 
+	  _mbd_S += it->second->get_edep();
       }
     }
 
     if (Verbosity() >= 5) 
-      std::cout << "PHG4CentralityReco::process_event : MBD Sum Charge (N+S) = " << _mbd_NS << std::endl;
+      std::cout << "PHG4CentralityReco::process_event : MBD Sum Charge N / S / N+S = " << _mbd_N << " / " << _mbd_S << " / " << _mbd_NS << std::endl;
   } else {
     if (Verbosity() >= 5) 
-      std::cout << "PHG4CentralityReco::process_event : No MBD info, setting Sum Charge = 0" << std::endl;
+      std::cout << "PHG4CentralityReco::process_event : No MBD info, setting all Sum Charges = 0" << std::endl;
   }
 
+  _epd_N = 0;
+  _epd_S = 0;
   _epd_NS = 0;
   
   auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
@@ -77,17 +87,22 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     for (auto it = erange.first; it != erange.second; ++it)
       if ( ( it->second->get_t(0) > -50 ) && ( it->second->get_t(1) < 50) ) { 
 	_epd_NS += it->second->get_edep();
+	int id = it->second->get_scint_id();
+	if ((id & 0x200) == 0)
+	  _epd_N += it->second->get_edep();
+	else 
+	  _epd_S += it->second->get_edep();
       }
 
     if (Verbosity() >= 5) 
-      std::cout << "PHG4CentralityReco::process_event : sEPD Sum Energy (N+S) = " << _epd_NS << std::endl;
+      std::cout << "PHG4CentralityReco::process_event : sEPD Sum Energy N / S / N+S = " << _epd_N << " / " << _epd_S << " / " << _epd_NS << std::endl;
   } else {
     if (Verbosity() >= 5) 
-      std::cout << "PHG4CentralityReco::process_event : No sEPD info, setting Sum Energy = 0" << std::endl;
+      std::cout << "PHG4CentralityReco::process_event : No sEPD info, setting all Sum Energies = 0" << std::endl;
   }
   
   if (Verbosity() >= 1) 
-    std::cout << "PHG4CentralityReco::process_event : summary MBD (N+S) = " << _mbd_NS << ", sEPD (N+S) = " << _epd_NS << std::endl;
+    std::cout << "PHG4CentralityReco::process_event : summary MBD (N, S, N+S) = (" << _mbd_N << ", " << _mbd_S << ", " << _mbd_NS << "), sEPD (N, S, N+S) = (" << _epd_N << ", " << _epd_S << ", " << _epd_NS << ")" << std::endl;
 
   FillNode(topNode);
   
@@ -110,7 +125,11 @@ void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
     }
   else
     {
+      cent->set_quantity( CentralityInfo::PROP::mbd_N , _mbd_N );
+      cent->set_quantity( CentralityInfo::PROP::mbd_S , _mbd_S );
       cent->set_quantity( CentralityInfo::PROP::mbd_NS , _mbd_NS );
+      cent->set_quantity( CentralityInfo::PROP::epd_N , _epd_N );
+      cent->set_quantity( CentralityInfo::PROP::epd_S , _epd_S );
       cent->set_quantity( CentralityInfo::PROP::epd_NS , _epd_NS );
     }
 }

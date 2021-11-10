@@ -33,8 +33,12 @@ class PHG4CentralityReco : public SubsysReco
   void CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
+  float _epd_N;
+  float _epd_S;
   float _epd_NS;
 
+  float _mbd_N;
+  float _mbd_S;
   float _mbd_NS;
 
 };
