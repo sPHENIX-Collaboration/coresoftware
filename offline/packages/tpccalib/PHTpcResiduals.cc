@@ -13,9 +13,10 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -132,8 +133,8 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 {
 
-  std::cout << "proto track size " << m_trackMap->size()
-	    <<std::endl;
+  if( Verbosity() )
+  { std::cout << "PHTpcResiduals::processTracks - proto track size " << m_trackMap->size() <<std::endl; }
 
   for(auto &[trackKey, track] : *m_trackMap)
     {
@@ -193,7 +194,7 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 
 }
 
-SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
 {
   auto key = cluster->getClusKey();
   auto subsurfkey = cluster->getSubSurfKey();
@@ -342,25 +343,29 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       auto result = propagateTrackState(trackParams, sl);
 
       if(result.ok())
-	{	  
-	  auto trackStateParams = std::move(**result);
-	  if(Verbosity() > 1)
-	    std::cout << "Silicon+MM momentum : " 
-		      << trackParams.momentum()
-		      << std::endl
-		      << "Propagator momentum : " 
-		      << trackStateParams.momentum()
-		      << std::endl;
-	  
+      {
+        auto pathLength = (*result).first;
+        auto trackStateParams = std::move(*(*result).second);
+        if(Verbosity() > 1)
+        {
+          std::cout << "PHTpcResiduals::processTrack -"
+            << " path length: " << pathLength
+            << " track momentum : "
+            << trackParams.momentum()
+            << " propagator momentum : "
+            << trackStateParams.momentum()
+            << std::endl;
+        }
 
-	  calculateTpcResiduals(trackStateParams, cluster);
-	}
-      else
-	{
-	  m_nBadProps++;
-	
-	  continue;
-	}
+        addTrackState( track, pathLength, trackStateParams );
+        calculateTpcResiduals(trackStateParams, cluster);
+
+      } else 	{
+
+        m_nBadProps++;
+        continue;
+        
+      }
     } 
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
@@ -378,7 +383,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         
 }
 
-BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
+PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
 			   const SourceLink& sl)
 {
@@ -388,7 +393,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
     std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
   */
   return std::visit([params, sl, this]
-		    (auto && inputField) -> BoundTrackParamPtrResult {
+		    (auto && inputField) -> ExtrapolationResult {
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField      = Acts::SharedBField<InputMagneticField>;
@@ -412,14 +417,49 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       auto result = propagator.propagate(params, sl.referenceSurface(), 
 					 options);
    
+        
       if(result.ok())
-	return std::move((*result).endParameters);
-      else
-	return result.error();
+      {
+        // return both path length and extrapolated parameters
+        return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
+      } else {
+        return result.error();
+      }
    },
      std::move(m_tGeometry->magField));
 
 }
+
+void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params )
+{
+
+  /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
+
+  // create track state
+  SvtxTrackState_v1 state( pathlength );
+
+  // save global position
+  const auto global = params.position(m_tGeometry->geoContext);
+  state.set_x(global.x() / Acts::UnitConstants::cm);
+  state.set_y(global.y() / Acts::UnitConstants::cm);
+  state.set_z(global.z() / Acts::UnitConstants::cm);
+
+  // save momentum
+  const auto momentum = params.momentum();
+  state.set_px(momentum.x());
+  state.set_py(momentum.y());
+  state.set_pz(momentum.z());
+
+  // covariance
+  ActsTransformations transformer;
+  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  for (int i = 0; i < 6; ++i)
+    for (int j = 0; j < 6; ++j)
+  { state.set_error(i, j, globalCov(i,j)); }
+
+  track->insert_state(&state);
+}
+
 void PHTpcResiduals::calculateTpcResiduals(
   const Acts::BoundTrackParameters &params,
   TrkrCluster* cluster)

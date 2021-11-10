@@ -28,6 +28,9 @@ class PHG4GDMLUtility
   //! save the current Geant4 geometry to GDML file. Reading PHG4GDMLConfig from topNode
   static void Dump_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode = nullptr);
 
+  //! same as above but use default Geant functions as much as possible
+  static void Dump_G4_GDML(const std::string &filename, G4VPhysicalVolume *vol);
+
   static constexpr const char *get_PHG4GDML_Schema()
   {
     return "http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd";

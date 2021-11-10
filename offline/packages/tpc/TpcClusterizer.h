@@ -38,6 +38,8 @@ class TpcClusterizer : public SubsysReco
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
 
+  void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
 
@@ -53,13 +55,18 @@ class TpcClusterizer : public SubsysReco
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeZ = 5;
 
+  /// drift velocity scale factor
+  /** 
+   * represents the ratio vdrift_measured/vdrift_true
+   * it is used to get cluster z from its timebin
+   **/
+  double m_drift_velocity_scale = 1.0;
+  
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
-  std::pair<double,double> par0_neg = std::make_pair(0.0538913, 0.000252096);
-  std::pair<double,double> par0_pos = std::make_pair(-0.0538913, -0.000252096);
-  std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
-  std::pair<double,double> par1_pos = std::make_pair(-0.000208279, 1.9205e-06);
-
+  double par0_neg = 0.0503;
+  double par0_pos = -0.0503;
+  
 };
 
 #endif
