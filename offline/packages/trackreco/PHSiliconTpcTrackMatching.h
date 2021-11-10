@@ -46,7 +46,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void set_test_windows_printout(const bool test){_test_windows = test ;}
   void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
-  void set_reconstruct_pileup_tracks(const bool flag){_reconstruct_pileup_tracks = flag ;}
+  void set_pp_mode(const bool flag){_pp_mode = flag ;}
 
   int InitRun(PHCompositeNode* topNode) override;
 
@@ -79,9 +79,17 @@ void addSiliconClusters( std::multimap<double, std::pair<unsigned int, unsigned 
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
   void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
-			   std::set<int> &crossing_set,
-			   std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches );
-
+			 std::set<int> &crossing_set,
+			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+			 std::map<unsigned int, int> &tpc_crossing_map );
+  void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
+			 std::set<int> &crossing_set,
+			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+			 std::map<unsigned int, int> &tpc_crossing_map );
+  void cleanVertexMap( std::map<unsigned int, double> &vertex_crossings_map,
+		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
+		       std::map<unsigned int, int> &tpc_crossing_map );
+  
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -118,11 +126,12 @@ void addSiliconClusters( std::multimap<double, std::pair<unsigned int, unsigned 
 
   double _collision_rate = 50e3;  // input rate for phi correction
   double _reference_collision_rate = 50e3;  // reference rate for phi correction
+  double _si_vertex_dzmax = 0.25;  // mm
 
   bool _is_ca_seeder = true;
   bool _sc_calib_flag = false;
   bool _test_windows = false;
-  bool _reconstruct_pileup_tracks = true;
+  bool _pp_mode = false;
 
   std::string _field;
   int _fieldDir = -1;
