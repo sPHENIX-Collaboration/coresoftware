@@ -64,10 +64,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   double getMedian(std::vector<double> &v);
-//  void addSiliconClusters( std::map<unsigned int, double> &vertex_crossings_map,
-//std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
-void addSiliconClusters( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map);
-
+  void addSiliconClusters( std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches);
+  void addSiliconClusters(  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>> &vertex_map);
   void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
 			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
   void getCrossingNumber( std::vector<double> &vertex_list,
