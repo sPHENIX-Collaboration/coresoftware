@@ -163,36 +163,36 @@ namespace
     R = std::sqrt(square(Xcenter) + square(Ycenter) + Mz);
   }
   
-  std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
-  {
-    std::vector<double> residues;
-    std::transform( points.begin(), points.end(), std::back_inserter( residues ), 
-      [R,X0,Y0]( const std::pair<double,double>& point )
-      {
-        // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
-        const auto& x = point.first;
-        const auto& y = point.second;
-        return std::sqrt( square(x-X0) + square(y-Y0))-R;  
-      } );
-    return residues;  
-  }
+//   std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
+//   {
+//     std::vector<double> residues;
+//     std::transform( points.begin(), points.end(), std::back_inserter( residues ), 
+//       [R,X0,Y0]( const std::pair<double,double>& point )
+//       {
+//         // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+//         const auto& x = point.first;
+//         const auto& y = point.second;
+//         return std::sqrt( square(x-X0) + square(y-Y0))-R;  
+//       } );
+//     return residues;  
+//   }
   
-  std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
-  {
-    std::vector<double> residues;
-    std::transform( points.begin(), points.end(), std::back_inserter( residues ), 
-      [A,B]( const std::pair<double,double>& point )
-      {
-        // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
-        const auto& r = point.first;
-        const auto& z = point.second;
-        const double a = -A;
-        const double b = 1.0;
-        const double c = -B;
-        return std::abs(a*r+b*z+c)/std::sqrt(square(a)+square(b));      
-      });
-    return residues;  
-  }
+//   std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
+//   {
+//     std::vector<double> residues;
+//     std::transform( points.begin(), points.end(), std::back_inserter( residues ), 
+//       [A,B]( const std::pair<double,double>& point )
+//       {
+//         // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+//         const auto& r = point.first;
+//         const auto& z = point.second;
+//         const double a = -A;
+//         const double b = 1.0;
+//         const double c = -B;
+//         return std::abs(a*r+b*z+c)/std::sqrt(square(a)+square(b));      
+//       });
+//     return residues;  
+//   }
   
   void findRoot(
     const double R, const double X0,
