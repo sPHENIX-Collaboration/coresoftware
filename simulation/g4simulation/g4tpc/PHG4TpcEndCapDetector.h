@@ -1,12 +1,13 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4TPC_PHG4TPCENDCAPDETECTOR_H
-#define G4TPC_PHG4TPCENDCAPDETECTOR_H
+#ifndef PHG4TPCENDCAPDETECTOR_H
+#define PHG4TPCENDCAPDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4Types.hh>
 
 #include <set>
+#include <vector>
 #include <string>  // for string
 
 class G4LogicalVolume;
@@ -63,11 +64,19 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   AddLayer(  //
       G4AssemblyVolume *assmeblyvol,
       G4double &z_start,
-      const std::string &_name,               //! name base for this layer
-      const std::string &_material,           //! material name in G4
+      std::string _name,               //! name base for this layer
+      std::string _material,           //! material name in G4
       G4double _depth,                 //! depth in G4 units
       double _percentage_filled = 100  //! percentage filled//
   );
+
+  void CreateCompositeMaterial( //
+      std::string compositeName, //! desired name for the new material
+      std::vector<std::string> materialName, //! vector of the names of the component materials in G4
+      std::vector<double>thickness //! thickness of this particular layer (assuming 100 percent filled)
+  );
+
+  
 };
 
-#endif  // G4TPC_PHG4TPCENDCAPDETECTOR_H
+#endif  // PHG4TPCENDCAPDETECTOR_H
